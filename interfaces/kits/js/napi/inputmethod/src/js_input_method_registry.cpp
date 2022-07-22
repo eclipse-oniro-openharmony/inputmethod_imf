@@ -27,6 +27,7 @@ namespace MiscServices {
     using namespace AbilityRuntime;
     namespace {
         constexpr size_t ARGC_ZERO = 0;
+        constexpr size_t ARGC_ONE = 1;
         constexpr int32_t MAX_TYPE_NUM = 128;
     }
     class JsInputMethodRegistry {
