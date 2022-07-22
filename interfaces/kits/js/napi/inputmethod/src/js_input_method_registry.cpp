@@ -91,7 +91,7 @@ namespace MiscServices {
         NativeValue *OnSwitchInputMethod(NativeEngine &engine, NativeCallbackInfo &info)
         {
             IMSA_HILOGI("JsInputMethodRegistry::OnSwitchInputMethod is called!");
-            if (info.argc != 1) {
+            if (info.argc < ARGC_ONE) {
                 IMSA_HILOGE("JsInputMethodRegistry::OnSwitchInputMethod Params not match");
                 return engine.CreateUndefined();
             }
