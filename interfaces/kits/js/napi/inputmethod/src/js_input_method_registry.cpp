@@ -27,6 +27,7 @@ namespace MiscServices {
     using namespace AbilityRuntime;
     namespace {
         constexpr size_t ARGC_ZERO = 0;
+        constexpr size_t ARGC_ONE = 1;
         constexpr int32_t MAX_TYPE_NUM = 128;
     }
     class JsInputMethodRegistry {
@@ -91,7 +92,7 @@ namespace MiscServices {
         NativeValue *OnSwitchInputMethod(NativeEngine &engine, NativeCallbackInfo &info)
         {
             IMSA_HILOGI("JsInputMethodRegistry::OnSwitchInputMethod is called!");
-            if (info.argc != 1) {
+            if (info.argc < ARGC_ONE) {
                 IMSA_HILOGE("JsInputMethodRegistry::OnSwitchInputMethod Params not match");
                 return engine.CreateUndefined();
             }
