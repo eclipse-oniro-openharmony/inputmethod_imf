@@ -20,7 +20,10 @@ config("inputmethodengine_native_config") {
 
 config("inputmethodengine_native_public_config") {
   visibility = []
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "${inputmethod_path}/frameworks/inputmethod_controller/include",
+  ]
 }
 
 ohos_shared_library("inputmethodengine") {
@@ -44,7 +47,6 @@ ohos_shared_library("inputmethodengine") {
     "${ability_runtime_path}/frameworks/native/ability/native:abilitykit_native",
     "//base/global/resource_management/frameworks/resmgr:global_resmgr",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
-    "//base/inputmethod/imf/services:inputmethod_service",
     "//foundation/arkui/napi/:ace_napi",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",

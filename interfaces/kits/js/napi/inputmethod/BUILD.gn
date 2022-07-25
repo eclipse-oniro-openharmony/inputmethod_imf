@@ -20,7 +20,11 @@ config("imf_config") {
 
 config("imf_public_config") {
   visibility = []
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "${inputmethod_path}/frameworks/inputmethod_controller/include",
+    "${inputmethod_path}/services/dfx/include",
+  ]
 }
 
 ohos_shared_library("inputmethod") {
@@ -41,9 +45,9 @@ ohos_shared_library("inputmethod") {
     "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
     "${ability_runtime_inner_api_path}/app_manager:app_manager",
     "${ability_runtime_path}/frameworks/native/ability/native:abilitykit_native",
+    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
     "//base/global/resource_management/frameworks/resmgr:global_resmgr",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
-    "//base/inputmethod/imf/services:inputmethod_service",
     "//foundation/arkui/napi/:ace_napi",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",

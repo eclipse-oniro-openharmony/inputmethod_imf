@@ -10,6 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import("//base/inputmethod/imf/inputmethod.gni")
 import("//build/ohos.gni")
 
@@ -17,11 +18,11 @@ config("inputmethod_services_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
-    "dfx/include",
     "${inputmethod_path}/frameworks/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/inputmethod_controller/include",
     "//base/notification/common_event_service/frameworks/core/include",
     "//base/notification/common_event_service/interfaces/innerkits/native/include",
+    "${inputmethod_path}/services/dfx/include",
   ]
 
   cflags_cc = [ "-fexceptions" ]
@@ -30,9 +31,6 @@ config("inputmethod_services_native_config") {
 ohos_shared_library("inputmethod_service") {
   sources = [
     "${inputmethod_path}/frameworks/inputmethod_controller/src/input_client_proxy.cpp",
-    "dfx/src/inputmethod_dump.cpp",
-    "dfx/src/inputmethod_sysevent.cpp",
-    "dfx/src/inputmethod_trace.cpp",
     "src/global.cpp",
     "src/im_common_event_manager.cpp",
     "src/input_attribute.cpp",
@@ -61,6 +59,7 @@ ohos_shared_library("inputmethod_service") {
     "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
     "${ability_runtime_inner_api_path}/app_manager:app_manager",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
     "//base/global/resource_management/frameworks/resmgr:global_resmgr",
     "//base/inputmethod/imf/etc/para:inputmethod_para",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
@@ -84,9 +83,6 @@ ohos_shared_library("inputmethod_service") {
     "common_event_service:cesfwk_core",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
-    "hisysevent_native:libhisysevent",
-    "hitrace_native:hitrace_meter",
-    "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
     "os_account:os_account_innerkits",
   ]
