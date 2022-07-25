@@ -40,9 +40,6 @@ config("inputmethod_client_native_public_config") {
 ohos_shared_library("inputmethod_client") {
   sources = [
     "${inputmethod_path}/frameworks/inputmethod_ability/src/input_method_agent_proxy.cpp",
-    "${inputmethod_path}/services/dfx/src/inputmethod_dump.cpp",
-    "${inputmethod_path}/services/dfx/src/inputmethod_sysevent.cpp",
-    "${inputmethod_path}/services/dfx/src/inputmethod_trace.cpp",
     "${inputmethod_path}/services/src/input_attribute.cpp",
     "${inputmethod_path}/services/src/input_method_property.cpp",
     "${inputmethod_path}/services/src/keyboard_type.cpp",
@@ -64,12 +61,10 @@ ohos_shared_library("inputmethod_client") {
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//foundation/multimodalinput/input/frameworks/proxy:libmmi-common",
     "//utils/native/base:utils",
+    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
   ]
 
   external_deps = [
-    "hisysevent_native:libhisysevent",
-    "hitrace_native:hitrace_meter",
-    "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
   ]
 

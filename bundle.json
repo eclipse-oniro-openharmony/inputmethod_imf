@@ -48,35 +48,26 @@
       ]
     },
     "build": {
-      "sub_component": [
-        "//base/inputmethod/imf:imf_packages"
-      ],
+      "group_type": {
+        "base_group": [
+        ],
+        "fwk_group": [
+          "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
+          "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
+          "//base/inputmethod/imf/interfaces/kits/js/declaration:inputmethod",
+          "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod:inputmethod",
+          "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodengine:inputmethodengine",
+          "//base/inputmethod/imf/services/dfx:inputmethod_dfx_static"
+        ],
+        "service_group": [
+          "//base/inputmethod/imf/etc/init:inputmethodservice.cfg",
+          "//base/inputmethod/imf/etc/para:inputmethod.para",
+          "//base/inputmethod/imf/etc/para:inputmethod_para",
+          "//base/inputmethod/imf/profile:inputmethod_inputmethod_sa_profiles",
+          "//base/inputmethod/imf/services:inputmethod_service"
+        ]
+      },
       "inner_kits": [
-        {
-          "name": "//base/inputmethod/imf/services:inputmethod_service",
-          "header": {
-            "header_files": [
-              "global.h",
-              "input_attribute.h",
-              "input_channel.h",
-              "input_control_channel_proxy.h",
-              "input_control_channel_stub.h",
-              "input_method_ability_connection_stub.h",
-              "input_method_property.h",
-              "input_method_setting.h",
-              "input_method_system_ability.h",
-              "input_method_system_ability_stub.h",
-              "keyboard_type.h",
-              "message.h",
-              "message_handler.h",
-              "peruser_session.h",
-              "peruser_setting.h",
-              "platform.h",
-              "platform_callback_stub.h"
-            ],
-            "header_base": "//base/inputmethod/imf/services/include"
-          }
-        },
         {
           "name": "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
           "header": {
