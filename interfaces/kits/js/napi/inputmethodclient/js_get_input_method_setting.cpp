@@ -59,7 +59,6 @@ napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_in
             IMSA_HILOGE("objInfo is nullptr");
             delete objInfo;
         }
-        //LOG()
     }, nullptr, nullptr);
 
     return thisVar;
@@ -74,12 +73,10 @@ napi_value JsGetInputMethodSetting::GetInputMethodSetting(napi_env env, napi_cal
         IMSA_HILOGE("GetInputMethodSetting::napi_get_reference_value not ok");
         return nullptr;
     }
-    // LOG("Get a reference to the global variable appAccountRef_ complete");
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
         IMSA_HILOGE("GetInputMethodSetting::napi_new_instance not ok");
         return nullptr;
     }
-    // LOGI("New the js instance complete");
     IMSA_HILOGE("New the js instance complete");
     return instance;
 }
@@ -116,31 +113,27 @@ void JsGetInputMethodSetting::GetResult(napi_env env, std::vector<InputMethodPro
 
 void JsGetInputMethodSetting::ProcessCallbackOrPromiseCBArray(napi_env env,ContextBase *asyncContext)
 {
-    IMSA_HILOGE("run in ProcessCallbackOrPromiseCBArray");
+    IMSA_HILOGI("run in ProcessCallbackOrPromiseCBArray");
     napi_value jsCode = asyncContext->GetErrorCodeValue(env, asyncContext->errCode);
     napi_value args[RESULT_ALL] = { jsCode, asyncContext->outData };
 
     if (asyncContext->deferred) {
-        IMSA_HILOGE("ProcessCallbackOrPromiseCBArray::promise");
         if (asyncContext->errCode == ErrorCode::NO_ERROR) { 
             napi_resolve_deferred(env, asyncContext->deferred, args[RESULT_DATA]);
         } else {
             napi_reject_deferred(env, asyncContext->deferred, args[RESULT_ERROR]);
         }
     } else {
-        IMSA_HILOGE("ProcessCallbackOrPromiseCBArray::callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, asyncContext->callbackRef, &callback);
         if (asyncContext->callbackRef == nullptr) {
-            IMSA_HILOGE("ProcessCallbackOrPromiseCBArray::callback2222222222xxxxxxxxx");
+            IMSA_HILOGE("get reference error");
         }
-        IMSA_HILOGE("ProcessCallbackOrPromiseCBArray::callback2222222222");
         napi_value returnVal = nullptr;
         if (callback == nullptr) {
-            IMSA_HILOGE("ProcessCallbackOrPromiseCBArray::callback333333xxxxxxxxxxxxxx");
+            IMSA_HILOGE("get reference error");
         }
-        napi_call_function(env, nullptr, callback, RESULT_ALL, args, &returnVal);//RESULT_CODE
-        IMSA_HILOGE("ProcessCallbackOrPromiseCBArray::callback3333333333");
+        napi_call_function(env, nullptr, callback, RESULT_ALL, args, &returnVal);
         if (asyncContext->callbackRef != nullptr) {
             napi_delete_reference(env, asyncContext->callbackRef);
         }
@@ -149,18 +142,16 @@ void JsGetInputMethodSetting::ProcessCallbackOrPromiseCBArray(napi_env env,Conte
 
 void JsGetInputMethodSetting::ProcessCallbackOrPromise(napi_env env, ContextBase *asyncContext)
 {
-    IMSA_HILOGE("run in ProcessCallbackOrPromise");
+    IMSA_HILOGI("run in ProcessCallbackOrPromise");
     napi_value jsCode = asyncContext->GetErrorCodeValue(env, asyncContext->errCode);
     napi_value args[RESULT_ALL] = { jsCode, asyncContext->outData };
     if (asyncContext->deferred) {
-        IMSA_HILOGE("ProcessCallbackOrPromise::promise");
         if (asyncContext->errCode == ErrorCode::NO_ERROR) {
             napi_resolve_deferred(env, asyncContext->deferred, args[RESULT_DATA]);
         } else {
             napi_reject_deferred(env, asyncContext->deferred, args[RESULT_ERROR]);
         }
     } else {
-        IMSA_HILOGE("ProcessCallbackOrPromise::callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, asyncContext->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -190,7 +181,7 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
     ctxt->callbackRef = nullptr;
     ctxt->ParseContext(env, info);
 
-    napi_value promise = nullptr;//封装进函数
+    napi_value promise = nullptr;
     if (ctxt->callbackRef == nullptr) {
         napi_create_promise(env, &ctxt->deferred, &promise);
     } else {
@@ -204,7 +195,6 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
         nullptr,
         resource,
         [ctxt](napi_env env, void *data) {
-            // ListInputContext *ctxt = reinterpret_cast<ListInputContext*>(data);
             IMSA_HILOGE("ListInputMethod::napi_create_async_work in");
             ListInputContext *ctxt = reinterpret_cast<ListInputContext*>(data);
             if (ctxt == nullptr) {
@@ -270,7 +260,6 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
         nullptr,
         resource,
         [](napi_env env, void *data) {
-            IMSA_HILOGE("DisplayOptionalInputMethod::napi_create_async_work in");
             ContextBase *ctxt = reinterpret_cast<ContextBase*>(data);
             if (ctxt == nullptr) {
                 IMSA_HILOGE("DisplayOptionalInputMethod::ctxt is nullptr");
@@ -284,7 +273,7 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
                 IMSA_HILOGE("DisplayOptionalInputMethod::ctxt is nullptr");
                 return;
             }
-            napi_get_undefined(env, &ctxt->outData);//PARAMONE = 1
+            napi_get_undefined(env, &ctxt->outData);
             ProcessCallbackOrPromise(env, ctxt);
             napi_delete_async_work(env, ctxt->work);
             delete ctxt;

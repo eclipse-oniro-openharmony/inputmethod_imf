@@ -42,7 +42,7 @@ napi_value JsInputMethod::Init(napi_env env, napi_value exports) {
 
 napi_value JsInputMethod::JsConstructor(napi_env env, napi_callback_info cbinfo)
 {
-    IMSA_HILOGE("run in JsConstructor");
+    IMSA_HILOGI("run in JsConstructor");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
 
@@ -67,7 +67,7 @@ napi_value JsInputMethod::JsConstructor(napi_env env, napi_callback_info cbinfo)
 void JsInputMethod::CallbackOrPromiseSwitchInput(
     napi_env env, const SwitchInput *switchInput, napi_value err, napi_value data)
 {    
-    IMSA_HILOGE("run in CallbackOrPromiseSwitchInput");
+    IMSA_HILOGI("run in CallbackOrPromiseSwitchInput");
     napi_value args[RESULT_COUNT] = {err, data};
     if (switchInput->deferred) {
         if (switchInput->status == napi_ok) {
@@ -77,19 +77,16 @@ void JsInputMethod::CallbackOrPromiseSwitchInput(
             napi_reject_deferred(env, switchInput->deferred, args[RESULT_ERROR]);
         }
     } else {
-        IMSA_HILOGE("CallbackOrPromiseSwitchInput::callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, switchInput->callbackRef, &callback);
         if (switchInput->callbackRef == nullptr) {
-            IMSA_HILOGE("CallbackOrPromiseSwitchInput::callback2222222222xxxxxxxxx");
+            IMSA_HILOGE("CallbackOrPromiseSwitchInput::callbackref null");
         }
-        IMSA_HILOGE("CallbackOrPromiseSwitchInput::callback2222222222");
         napi_value returnVal = nullptr;
         if (callback == nullptr) {
-            IMSA_HILOGE("CallbackOrPromiseSwitchInput::callback333333xxxxxxxxxxxxxx");
+            IMSA_HILOGE("CallbackOrPromiseSwitchInput::callback null");
         }
         napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
-        IMSA_HILOGE("CallbackOrPromiseSwitchInput::callback3333333333");
         if (switchInput->callbackRef != nullptr) {
             napi_delete_reference(env, switchInput->callbackRef);
         }
@@ -98,7 +95,6 @@ void JsInputMethod::CallbackOrPromiseSwitchInput(
 
 napi_value JsInputMethod::GetErrorCodeValue(napi_env env, int errCode)
 {
-    // ACCOUNT_LOGD("enter");
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
     NAPI_CALL(env, napi_create_int32(env, errCode, &jsValue));
@@ -155,7 +151,6 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
         nullptr,
         resource,
         [](napi_env env, void *data) {
-            IMSA_HILOGE("SwitchInputMethod::napi_create_async_work in");
             SwitchInput *switchInpput = reinterpret_cast<SwitchInput *>(data);
             InputMethodProperty *property = new (std::nothrow) InputMethodProperty();
             if (property == nullptr){
@@ -165,23 +160,17 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
             property->mPackageName = Str8ToStr16(switchInpput->packageName);
             property->mImeId = Str8ToStr16(switchInpput->methodId);
             switchInpput->errCode = InputMethodController::GetInstance()->SwitchInputMethod(property);
-             IMSA_HILOGI("ListInputMethod::************************************");
             if (switchInpput->errCode == 0) {
                 IMSA_HILOGE("JsInputMethod::switchInpput successful!");
                 switchInpput->sSwitchInput = true;
             }
             switchInpput->status = (switchInpput->errCode == 0) ? napi_ok : napi_generic_failure;
-            //delete property;
-            //property = nullptr;
         },
         [](napi_env env, napi_status status, void *data) {
-            IMSA_HILOGE("JsInputMethod::SwitchInputMethod   napi_status status");
             SwitchInput *switchInpput = reinterpret_cast<SwitchInput *>(data);
             switchInpput->errCode = 0;
             napi_value getResult[RESULT_ALL] = {0};
-            IMSA_HILOGE("JsInputMethod::SwitchInputMethod   GetErrorCodeValue start ");
             getResult[PARAMZERO] = GetErrorCodeValue(env, switchInpput->errCode);
-            IMSA_HILOGE("JsInputMethod::SwitchInputMethod   GetErrorCodeValue end ");
             napi_get_boolean(env, switchInpput->sSwitchInput, &getResult[PARAMONE]);
             CallbackOrPromiseSwitchInput(env, switchInpput, getResult[PARAMZERO], getResult[PARAMONE]);
             napi_delete_async_work(env, switchInpput->work);

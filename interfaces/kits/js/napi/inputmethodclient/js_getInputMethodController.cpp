@@ -25,7 +25,7 @@ namespace OHOS {
 namespace MiscServices {
 void JsGetInputMethodController::CBOrPromiseStopInput(napi_env env, const StopInputInfo *stopInput, napi_value err, napi_value data)
 {
-    IMSA_HILOGE("run in CBOrPromiseStopInput");
+    IMSA_HILOGI("run in CBOrPromiseStopInput");
     napi_value args[RESULT_COUNT] = {err, data};
     if (stopInput->deferred) {
         if (stopInput->status == napi_ok) {
@@ -35,19 +35,16 @@ void JsGetInputMethodController::CBOrPromiseStopInput(napi_env env, const StopIn
             napi_reject_deferred(env, stopInput->deferred, args[RESULT_ERROR]);
         }
     } else {
-        IMSA_HILOGE("CBOrPromiseStopInput::callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, stopInput->callbackRef, &callback);
         if (stopInput->callbackRef == nullptr) {
-            IMSA_HILOGE("CBOrPromiseStopInput::callback2222222222xxxxxxxxx");
+            IMSA_HILOGE("CBOrPromiseStopInput::callback is null");
         }
-        IMSA_HILOGE("CBOrPromiseStopInput::callback2222222222");
         napi_value returnVal = nullptr;
         if (callback == nullptr) {
-            IMSA_HILOGE("CBOrPromiseStopInput::callback333333xxxxxxxxxxxxxx");
+            IMSA_HILOGE("CBOrPromiseStopInput::callback is null");
         }
         napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
-        IMSA_HILOGE("CBOrPromiseStopInput::callback3333333333");
         if (stopInput->callbackRef != nullptr) {
             napi_delete_reference(env, stopInput->callbackRef);
         }
@@ -82,7 +79,7 @@ napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback
 
     JsGetInputMethodController *IMSobject = new (std::nothrow) JsGetInputMethodController();
     if (IMSobject == nullptr) {
-        IMSA_HILOGI("IMSobject is nullptr");
+        IMSA_HILOGE("IMSobject is nullptr");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
@@ -90,10 +87,9 @@ napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback
     napi_wrap(env, thisVar, IMSobject, [](napi_env env, void *data, void *hint) {
         auto* objInfo = reinterpret_cast<JsGetInputMethodController*>(data);
         if (objInfo != nullptr) {
-            IMSA_HILOGI("objInfo is nullptr");
+            IMSA_HILOGE("objInfo is nullptr");
             delete objInfo;
         }
-        //LOG()
     }, nullptr, nullptr);
 
     return thisVar;
@@ -101,7 +97,7 @@ napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback
 
 napi_value JsGetInputMethodController::GetInputMethodController(napi_env env, napi_callback_info cbInfo)
 {
-    IMSA_HILOGE("run in GetInputMethodController");
+    IMSA_HILOGI("run in GetInputMethodController");
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, IMSRef_, &cons) != napi_ok) {
@@ -119,7 +115,7 @@ napi_value JsGetInputMethodController::GetInputMethodController(napi_env env, na
 
 napi_value JsGetInputMethodController::GetErrorCodeValue(napi_env env, ErrCode errCode)
 {
-    IMSA_HILOGE("run in GetErrorCodeValue");
+    IMSA_HILOGI("run in GetErrorCodeValue");
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
     NAPI_CALL(env, napi_create_int32(env, errCode, &jsValue));
@@ -130,7 +126,7 @@ napi_value JsGetInputMethodController::GetErrorCodeValue(napi_env env, ErrCode e
 
 napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_info Info)
 {
-    IMSA_HILOGE("run in ListInputMethod");
+    IMSA_HILOGI("run in ListInputMethod");
     struct StopInputContext : public ContextBase {
         bool sStopInput = false;
     }
@@ -163,9 +159,8 @@ napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_inf
             IMSA_HILOGI("ListInputMethod::napi_create_async_work in");
             StopInputInfo *stopInput = reinterpret_cast<StopInputInfo *>(data);
             stopInput->errCode = InputMethodController::GetInstance()->HideCurrentInput();
-            IMSA_HILOGI("ListInputMethod::************************************");
             if (stopInput->errCode == 0) {
-                IMSA_HILOGI("JsGetInputMethodController::StopInput successful!");
+                IMSA_HILOGE("JsGetInputMethodController::StopInput successful!");
                 stopInput->sStopInput = true;
             }
             stopInput->status = (stopInput->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -174,7 +169,7 @@ napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_inf
             IMSA_HILOGI("ListInputMethod::napi_create_async_work out");
             StopInputInfo *stopInput = reinterpret_cast<StopInputInfo *>(data);
             if (stopInput == nullptr) {
-                IMSA_HILOGI("StopInput::stopInput is nullptr");
+                IMSA_HILOGE("StopInput::stopInput is nullptr");
                 return;
             }
             stopInput->errCode = 0;

@@ -33,12 +33,10 @@ struct ContextBase {
     napi_async_work work = nullptr;
     napi_deferred deferred = nullptr;
     napi_ref callbackRef = nullptr;
-    // napi_status jsstatus = napi_invalid_arg;
     napi_value outData = nullptr;
     napi_callback_info info;
     void* native = nullptr;
     int32_t errCode;
-    // std::vector<InputMethodProperty*> properties;//后续继承 1.数据错误吗共同放入结构体？
 };
 }
 }
