@@ -175,7 +175,7 @@ namespace MiscServices {
             dprintf(fd, "\n - InputMethodSystemAbility::DumpAllMethod get Active Id failed.\n");
             return;
         }
-        dprintf(fd, "\n - DumpAllMethod get Active Id succeed,count=%d,", ids.size());
+        dprintf(fd, "\n - DumpAllMethod get Active Id succeed,count=%zu,", ids.size());
         for (auto it : ids) {
             std::vector<InputMethodProperty *> properties;
             listInputMethodByUserId(it, &properties);
