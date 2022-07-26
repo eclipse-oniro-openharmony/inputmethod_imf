@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace MiscServices {
 struct StopInputContext : public ContextBase {
-    bool sStopInput = false; 
+    bool sStopInput = false;
     napi_status status = napi_generic_failure;
 };
 class JsGetInputMethodController {

@@ -55,7 +55,7 @@ void JsGetInputMethodController::CBOrPromiseStopInput(napi_env env,
     }
 }
 
-napi_value JsGetInputMethodController::Init(napi_env env, napi_value info) 
+napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
 {
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getInputMethodController", GetInputMethodController),

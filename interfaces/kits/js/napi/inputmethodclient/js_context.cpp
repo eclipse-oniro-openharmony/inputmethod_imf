@@ -17,9 +17,9 @@
 #include "global.h"
 namespace OHOS {
 namespace MiscServices {
-
 ContextBase::~ContextBase()
 {
+    
 }
 
 napi_status ContextBase::GetNative(napi_env envi, napi_callback_info info)

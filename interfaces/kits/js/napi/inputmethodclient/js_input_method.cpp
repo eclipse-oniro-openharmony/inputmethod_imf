@@ -25,7 +25,7 @@ namespace OHOS {
 namespace MiscServices {
 thread_local napi_ref JsInputMethod::IMSRef_ = nullptr;
 const std::string JsInputMethod::IMS_CLASS_NAME = "InputMethod";
-napi_value JsInputMethod::Init(napi_env env, napi_value exports) 
+napi_value JsInputMethod::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("switchInputMethod", SwitchInputMethod),
@@ -69,7 +69,7 @@ napi_value JsInputMethod::JsConstructor(napi_env env, napi_callback_info cbinfo)
 
 void JsInputMethod::CallbackOrPromiseSwitchInput(
     napi_env env, const SwitchInputMethodContext *switchInput, napi_value err, napi_value data)
-{   
+{
     IMSA_HILOGI("run in CallbackOrPromiseSwitchInput");
     napi_value args[RESULT_COUNT] = {err, data};
     if (switchInput->deferred) {

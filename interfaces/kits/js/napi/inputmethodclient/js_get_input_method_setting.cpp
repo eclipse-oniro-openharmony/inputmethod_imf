@@ -89,7 +89,6 @@ void JsGetInputMethodSetting::GetResult(napi_env env, std::vector<InputMethodPro
     uint32_t index = 0;
 
     for (const auto &item : properties) {
-
         if (item == nullptr) {
             IMSA_HILOGE("GetResult::item is null");
             continue;
