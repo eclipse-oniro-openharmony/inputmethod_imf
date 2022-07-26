@@ -15,6 +15,12 @@
 
 #include "input_method_system_ability_proxy.h"
 
+#include <new>
+#include <vector>
+
+#include "global.h"
+#include "message_option.h"
+
 namespace OHOS {
 namespace MiscServices {
     using namespace ErrorCode;
