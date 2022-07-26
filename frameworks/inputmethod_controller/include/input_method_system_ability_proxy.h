@@ -20,7 +20,7 @@
 #include <functional>
 #include <vector>
 
-#include "<string>
+#include <string>
 #include "global.h"
 #include "i_input_method_system_ability.h"
 #include "input_attribute.h"
