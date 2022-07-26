@@ -21,14 +21,10 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr int RESULT_ERROR = 0;
-constexpr int RESULT_DATA = 1;
-constexpr int PARAZERO = 1;
-constexpr int PARAMONE = 1;
-constexpr int RESULT_ALL = 2;
-constexpr int RESULT_COUNT = 2;
-const std::string IMS_CLASS_NAME = "InputMethodSetting";
-static thread_local napi_ref IMSRef_ = nullptr;
+struct ListInputContext : public ContextBase {
+    std::vector<InputMethodProperty*> properties;
+};
+
 class JsGetInputMethodSetting {
 public:
     JsGetInputMethodSetting() = default;
@@ -38,12 +34,22 @@ public:
     static napi_value ListInputMethod(napi_env env, napi_callback_info info);
     static napi_value DisplayOptionalInputMethod(napi_env env, napi_callback_info info);
 private:
-            
+    static ListInputContext *GetListInputMethodContext(napi_env env, napi_callback_info info);
+    static ContextBase *GetContextBase(napi_env env, napi_callback_info info);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static void GetResult(napi_env env, std::vector<InputMethodProperty*> &properties, napi_value &result);
-    static void ProcessCallbackOrPromiseCBArray(napi_env env,ContextBase *ctxt);
+    static void ProcessCallbackOrPromiseCBArray(napi_env env, ContextBase *ctxt);
     static void ProcessCallbackOrPromise(napi_env env, ContextBase *ctxt);
+    
+    static thread_local napi_ref IMSRef_;
+    static constexpr int RESULT_ERROR = 0;
+    static constexpr int RESULT_DATA = 1;
+    static constexpr int PARAZERO = 1;
+    static constexpr int PARAMONE = 1;
+    static constexpr int RESULT_ALL = 2;
+    static constexpr int RESULT_COUNT = 2;
+    static const std::string IMS_CLASS_NAME;
     };
 }
-} 
+}
 #endif // INTERFACE_KITS_JS_GETINPUT_METHOD_SETTING_H

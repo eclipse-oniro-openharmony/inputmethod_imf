@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr size_t ARGC_MAX = 6;
 using NapiCbInfoParser = std::function<void(size_t argc, napi_value* argv)>;
 struct ContextBase {
     virtual ~ContextBase();
@@ -37,6 +36,8 @@ struct ContextBase {
     napi_callback_info info;
     void* native = nullptr;
     int32_t errCode;
+private:
+    static constexpr size_t ARGC_MAX = 6;
 };
 }
 }

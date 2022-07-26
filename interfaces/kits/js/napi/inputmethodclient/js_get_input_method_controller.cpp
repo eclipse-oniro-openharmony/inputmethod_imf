@@ -19,16 +19,20 @@
 #include "event_handler.h"
 #include "event_runner.h"
 #include "string_ex.h"
-#include "js_getInputMethodController.h"
+#include "js_get_input_method_controller.h"
 
 namespace OHOS {
 namespace MiscServices {
-void JsGetInputMethodController::CBOrPromiseStopInput(napi_env env, const StopInputInfo *stopInput, napi_value err, napi_value data)
+thread_local napi_ref JsGetInputMethodController::IMSRef_ = nullptr;
+const std::string JsGetInputMethodController::IMC_CLASS_NAME = "InputMethodController";
+
+void JsGetInputMethodController::CBOrPromiseStopInput(napi_env env,
+    const StopInputContext *stopInput, napi_value err, napi_value data)
 {
     IMSA_HILOGI("run in CBOrPromiseStopInput");
     napi_value args[RESULT_COUNT] = {err, data};
     if (stopInput->deferred) {
-        if (stopInput->status == napi_ok) {
+        if (stopInput->errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGE("CBOrPromiseStopInput::promise");
             napi_resolve_deferred(env, stopInput->deferred, args[RESULT_DATA]);
         } else {
@@ -124,30 +128,29 @@ napi_value JsGetInputMethodController::GetErrorCodeValue(napi_env env, ErrCode e
     return jsObject;
 }
 
-napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_info Info)
+StopInputContext *JsGetInputMethodController::GetStopInputContext(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("run in ListInputMethod");
-    struct StopInputContext : public ContextBase {
-        bool sStopInput = false;
-    }
     StopInputContext *stopInput = new (std::nothrow) StopInputContext();
     if (stopInput == nullptr) {
         IMSA_HILOGE("ListInputMethod::stopInput is nullptr");
-        napi_value result = nullptr;
-        napi_get_null(env, &result);
-        return result;
+        return stopInput;
     }
-
     stopInput->env = env;
     stopInput->callbackRef = nullptr;
-    stopInput->ParseContext(env, Info);
+    stopInput->ParseContext(env, info);
+    return stopInput;
+}
 
-    napi_value promise = nullptr;
-    if (stopInput->callbackRef == nullptr) {
-        napi_create_promise(env, &stopInput->deferred, &promise);
-    } else {
-        napi_get_undefined(env, &promise);
+napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGI("run in ListInputMethod");
+    StopInputContext *ctxt = GetStopInputContext(env, info);
+    if (ctxt == nullptr) {
+        return nullptr;
     }
+    napi_value promise = nullptr;
+    (ctxt->callbackRef == nullptr) ? napi_create_promise(env, &ctxt->deferred, &promise)
+     : napi_get_undefined(env, &promise);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "StopInput", NAPI_AUTO_LENGTH, &resource);
@@ -157,8 +160,9 @@ napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_inf
         resource,
         [](napi_env env, void *data) {
             IMSA_HILOGI("ListInputMethod::napi_create_async_work in");
-            StopInputInfo *stopInput = reinterpret_cast<StopInputInfo *>(data);
-            stopInput->errCode = InputMethodController::GetInstance()->HideCurrentInput();
+            StopInputContext *stopInput = reinterpret_cast<StopInputContext *>(data);
+            InputMethodController::GetInstance()->HideCurrentInput();
+            stopInput->errCode = 0;
             if (stopInput->errCode == 0) {
                 IMSA_HILOGE("JsGetInputMethodController::StopInput successful!");
                 stopInput->sStopInput = true;
@@ -167,23 +171,23 @@ napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_inf
         },
         [](napi_env env, napi_status status, void *data) {
             IMSA_HILOGI("ListInputMethod::napi_create_async_work out");
-            StopInputInfo *stopInput = reinterpret_cast<StopInputInfo *>(data);
+            StopInputContext *stopInput = reinterpret_cast<StopInputContext *>(data);
             if (stopInput == nullptr) {
                 IMSA_HILOGE("StopInput::stopInput is nullptr");
                 return;
             }
             stopInput->errCode = 0;
             napi_value getResult[RESULT_COUNT] = {0};
-            getResult[PARAMZERO] =  GetErrorCodeValue(env, stopInput->errCode);;
+            getResult[PARAMZERO] = GetErrorCodeValue(env, stopInput->errCode);
             napi_get_boolean(env, stopInput->sStopInput, &getResult[PARAMONE]);
             CBOrPromiseStopInput(env, stopInput, getResult[PARAMZERO], getResult[PARAMONE]);
             napi_delete_async_work(env, stopInput->work);
             delete stopInput;
             stopInput = nullptr;
         },
-        reinterpret_cast<void *>(stopInput),
-        &stopInput->work);
-    napi_queue_async_work(env, stopInput->work);
+        reinterpret_cast<void *>(ctxt),
+        &ctxt->work);
+    napi_queue_async_work(env, ctxt->work);
     return promise;
 }
 }

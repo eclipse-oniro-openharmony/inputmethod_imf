@@ -23,7 +23,10 @@
 
 namespace OHOS {
 namespace MiscServices {
-napi_value JsInputMethod::Init(napi_env env, napi_value exports) {
+thread_local napi_ref JsInputMethod::IMSRef_ = nullptr;
+const std::string JsInputMethod::IMS_CLASS_NAME = "InputMethod";
+napi_value JsInputMethod::Init(napi_env env, napi_value exports) 
+{
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("switchInputMethod", SwitchInputMethod),
     };
@@ -65,8 +68,8 @@ napi_value JsInputMethod::JsConstructor(napi_env env, napi_callback_info cbinfo)
 }
 
 void JsInputMethod::CallbackOrPromiseSwitchInput(
-    napi_env env, const SwitchInput *switchInput, napi_value err, napi_value data)
-{    
+    napi_env env, const SwitchInputMethodContext *switchInput, napi_value err, napi_value data)
+{   
     IMSA_HILOGI("run in CallbackOrPromiseSwitchInput");
     napi_value args[RESULT_COUNT] = {err, data};
     if (switchInput->deferred) {
@@ -103,46 +106,53 @@ napi_value JsInputMethod::GetErrorCodeValue(napi_env env, int errCode)
     return jsObject;
 }
 
-napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info info)
+std::string JsInputMethod::GetStringProperty(napi_env env, napi_value obj)
 {
-    struct SwitchInputMethodContext : public ContextBase{
-        bool sSwitchInput = false;
-        std::string packageName;
-        std::string methodId;
+    char propValue[MAX_VALUE_LEN] = {0};
+    size_t propLen;
+    if (napi_get_value_string_utf8(env, obj, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
+        IMSA_HILOGE("GetStringProperty error");
     }
-    
+    return std::string(propValue);
+}
+
+SwitchInputMethodContext *JsInputMethod::GetSwitchInputContext(napi_env env, napi_callback_info info)
+{
     SwitchInputMethodContext *switchInpput = new  (std::nothrow) SwitchInputMethodContext();
     if (switchInpput == nullptr) {
-        napi_value promise = nullptr;
-        napi_get_null(env, &promise);
-        return promise;
+        return switchInpput;
     }
 
-    auto input = [env, ctxt](size_t argc, napi_value* argv) {
+    auto input = [env, switchInpput](size_t argc, napi_value* argv) {
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (valueType == napi_object) {
             napi_value result = nullptr;
             napi_get_named_property(env, argv[0], "packageName", &result);
-            ctxt->packageName = GetStringProperty(env, result);
-            IMSA_HILOGE("packageName:%{public}s", packageName.c_str());
+            switchInpput->packageName = GetStringProperty(env, result);
+            IMSA_HILOGI("packageName:%{public}s", switchInpput->packageName.c_str());
             result = nullptr;
             napi_get_named_property(env, argv[0], "methodId", &result);
-            ctxt->methodId = GetStringProperty(env, result);
-            IMSA_HILOGE("methodId:%{public}s", methodId.c_str());
-        } 
+            switchInpput->methodId = GetStringProperty(env, result);
+            IMSA_HILOGI("methodId:%{public}s", switchInpput->methodId.c_str());
+        }
     };
 
     switchInpput->env = env;
     switchInpput->callbackRef = nullptr;
     switchInpput->ParseContext(env, info, input);
+    return switchInpput;
+}
 
-    napi_value promise = nullptr;
-    if (switchInpput->callbackRef == nullptr) {
-        napi_create_promise(env, &switchInpput->deferred, &promise);
-    } else {
-        napi_get_undefined(env, &promise);
+napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info info)
+{
+    SwitchInputMethodContext *ctxt = GetSwitchInputContext(env, info);
+    if (ctxt == nullptr) {
+        return nullptr;
     }
+    napi_value promise = nullptr;
+    (ctxt->callbackRef == nullptr) ? napi_create_promise(env, &ctxt->deferred, &promise)
+     : napi_get_undefined(env, &promise);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "SwitchInputMethod", NAPI_AUTO_LENGTH, &resource);
@@ -151,9 +161,9 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
         nullptr,
         resource,
         [](napi_env env, void *data) {
-            SwitchInput *switchInpput = reinterpret_cast<SwitchInput *>(data);
+            SwitchInputMethodContext *switchInpput = reinterpret_cast<SwitchInputMethodContext *>(data);
             InputMethodProperty *property = new (std::nothrow) InputMethodProperty();
-            if (property == nullptr){
+            if (property == nullptr) {
                 IMSA_HILOGE("SwitchInputMethod:: property == nullptr");
                 return;
             }
@@ -161,14 +171,12 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
             property->mImeId = Str8ToStr16(switchInpput->methodId);
             switchInpput->errCode = InputMethodController::GetInstance()->SwitchInputMethod(property);
             if (switchInpput->errCode == 0) {
-                IMSA_HILOGE("JsInputMethod::switchInpput successful!");
                 switchInpput->sSwitchInput = true;
             }
             switchInpput->status = (switchInpput->errCode == 0) ? napi_ok : napi_generic_failure;
         },
         [](napi_env env, napi_status status, void *data) {
-            SwitchInput *switchInpput = reinterpret_cast<SwitchInput *>(data);
-            switchInpput->errCode = 0;
+            SwitchInputMethodContext *switchInpput = reinterpret_cast<SwitchInputMethodContext *>(data);
             napi_value getResult[RESULT_ALL] = {0};
             getResult[PARAMZERO] = GetErrorCodeValue(env, switchInpput->errCode);
             napi_get_boolean(env, switchInpput->sSwitchInput, &getResult[PARAMONE]);
@@ -177,10 +185,8 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
             delete switchInpput;
             switchInpput = nullptr;
         },
-        reinterpret_cast<void *>(switchInpput),
-        &switchInpput->work);
-
-    napi_queue_async_work(env, switchInpput->work);
+        reinterpret_cast<void *>(ctxt), &ctxt->work);
+    napi_queue_async_work(env, ctxt->work);
     return promise;
 }
 }

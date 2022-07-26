@@ -20,8 +20,10 @@
 
 namespace OHOS {
 namespace MiscServices {
-
-napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports) {
+const std::string JsGetInputMethodSetting::IMS_CLASS_NAME = "InputMethodSetting";
+thread_local napi_ref JsGetInputMethodSetting::IMSRef_ = nullptr;
+napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
+{
         napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getInputMethodSetting", GetInputMethodSetting),
     };
@@ -111,14 +113,14 @@ void JsGetInputMethodSetting::GetResult(napi_env env, std::vector<InputMethodPro
     IMSA_HILOGE("GetResult::index is %{public}d", index);
 }
 
-void JsGetInputMethodSetting::ProcessCallbackOrPromiseCBArray(napi_env env,ContextBase *asyncContext)
+void JsGetInputMethodSetting::ProcessCallbackOrPromiseCBArray(napi_env env, ContextBase *asyncContext)
 {
     IMSA_HILOGI("run in ProcessCallbackOrPromiseCBArray");
     napi_value jsCode = asyncContext->GetErrorCodeValue(env, asyncContext->errCode);
     napi_value args[RESULT_ALL] = { jsCode, asyncContext->outData };
 
     if (asyncContext->deferred) {
-        if (asyncContext->errCode == ErrorCode::NO_ERROR) { 
+        if (asyncContext->errCode == ErrorCode::NO_ERROR) {
             napi_resolve_deferred(env, asyncContext->deferred, args[RESULT_DATA]);
         } else {
             napi_reject_deferred(env, asyncContext->deferred, args[RESULT_ERROR]);
@@ -162,40 +164,36 @@ void JsGetInputMethodSetting::ProcessCallbackOrPromise(napi_env env, ContextBase
     }
 }
 
-napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_info info)
-{    
-    IMSA_HILOGE("run in ListInputMethod");
-    // auto ctxt = std::make_shared<ContextBase>();
-    struct ListInputContext : public ContextBase {
-        std::vector<InputMethodProperty*> properties;
-    };
-
+ListInputContext *JsGetInputMethodSetting::GetListInputMethodContext(napi_env env, napi_callback_info info)
+{
     ListInputContext *ctxt = new (std::nothrow) ListInputContext();
     if (ctxt == nullptr) {
         IMSA_HILOGE("ListInputMethod::ctxt is nullptr");
-        napi_value result = nullptr;
-        napi_get_null(env, &result);
-        return result;
+        return ctxt;
     }
     ctxt->env = env;
     ctxt->callbackRef = nullptr;
     ctxt->ParseContext(env, info);
+    return ctxt;
+}
 
-    napi_value promise = nullptr;
-    if (ctxt->callbackRef == nullptr) {
-        napi_create_promise(env, &ctxt->deferred, &promise);
-    } else {
-        napi_get_undefined(env, &promise);
+napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGE("run in ListInputMethod");
+    ListInputContext *ctxt = GetListInputMethodContext(env, info);
+    if (ctxt == nullptr) {
+        return nullptr;
     }
+    napi_value promise = nullptr;
+    (ctxt->callbackRef == nullptr) ? napi_create_promise(env, &ctxt->deferred, &promise)
+     : napi_get_undefined(env, &promise);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "ListInputMethod", NAPI_AUTO_LENGTH, &resource);
-
     napi_create_async_work(env,
         nullptr,
         resource,
-        [ctxt](napi_env env, void *data) {
-            IMSA_HILOGE("ListInputMethod::napi_create_async_work in");
+        [](napi_env env, void *data) {
             ListInputContext *ctxt = reinterpret_cast<ListInputContext*>(data);
             if (ctxt == nullptr) {
                 IMSA_HILOGE("ListInputMethod::ctxt is nullptr");
@@ -203,7 +201,6 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
             }
             ctxt->properties = InputMethodController::GetInstance()->ListInputMethod();
             if (!ctxt->properties.empty()) {
-                // ctxt->jsstatus = napi_ok;
                 ctxt->errCode = ErrorCode::NO_ERROR;
                 IMSA_HILOGE("JsInputMethodSetting::ListInputMethod get properties successful!");
             } else {
@@ -212,7 +209,6 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
             }
         },
         [](napi_env env, napi_status status, void *data) {
-            IMSA_HILOGE("ListInputMethod::napi_create_async_work out");
             ListInputContext *ctxt = reinterpret_cast<ListInputContext*>(data);
             if (ctxt == nullptr) {
                 IMSA_HILOGE("ListInputMethod::ctxt is nullptr");
@@ -225,33 +221,35 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
             delete ctxt;
             ctxt = nullptr;
         },
-        reinterpret_cast<void *>(ctxt),
-        &ctxt->work);
+        reinterpret_cast<void *>(ctxt), &ctxt->work);
     napi_queue_async_work(env, ctxt->work);
     return promise;
 }
 
-napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, napi_callback_info info)
-{    
-    IMSA_HILOGE("run in DisplayOptionalInputMethod");
+ContextBase *JsGetInputMethodSetting::GetContextBase(napi_env env, napi_callback_info info)
+{
     ContextBase *ctxt = new (std::nothrow) ContextBase();
     if (ctxt == nullptr) {
         IMSA_HILOGE("DisplayOptionalInputMethod::ctxt is nullptr");
-        napi_value result = nullptr;
-        napi_get_null(env, &result);
-        return result;
+        return ctxt;
     }
 
     ctxt->env = env;
     ctxt->callbackRef = nullptr;
     ctxt->ParseContext(env, info);
+    return ctxt;
+}
 
-    napi_value promise = nullptr;
-    if (ctxt->callbackRef == nullptr) {
-        napi_create_promise(env, &ctxt->deferred, &promise);
-    } else {
-        napi_get_undefined(env, &promise);
+napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGE("run in DisplayOptionalInputMethod");
+    ContextBase *ctxt = GetContextBase(env, info);
+    if (ctxt == nullptr) {
+        return nullptr;
     }
+    napi_value promise = nullptr;
+    (ctxt->callbackRef == nullptr) ? napi_create_promise(env, &ctxt->deferred, &promise)
+     : napi_get_undefined(env, &promise);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "DisplayOptionalInputMethod", NAPI_AUTO_LENGTH, &resource);

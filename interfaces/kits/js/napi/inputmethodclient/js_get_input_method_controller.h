@@ -23,7 +23,10 @@
 
 namespace OHOS {
 namespace MiscServices {
-const std::string IMC_CLASS_NAME = "InputMethodController";
+struct StopInputContext : public ContextBase {
+    bool sStopInput = false; 
+    napi_status status = napi_generic_failure;
+};
 class JsGetInputMethodController {
 public:
     JsGetInputMethodController() = default;
@@ -32,12 +35,20 @@ public:
     static napi_value GetInputMethodController(napi_env env, napi_callback_info info);
     static napi_value StopInput(napi_env env, napi_callback_info Info);
 private:
-
+    static StopInputContext *GetStopInputContext(napi_env env, napi_callback_info info);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static napi_value GetErrorCodeValue(napi_env env, ErrCode errCode);
-    static void CBOrPromiseStopInput(napi_env env, 
-        const StopInputInfo *stopInput, napi_value err, napi_value data);
+    static void CBOrPromiseStopInput(napi_env env,
+        const StopInputContext *stopInput, napi_value err, napi_value data);
+    static const std::string IMC_CLASS_NAME;
+    static thread_local napi_ref IMSRef_;
+    static constexpr int RESULT_ERROR = 0;
+    static constexpr int RESULT_DATA = 1;
+    static constexpr int PARAMONE = 1;
+    static constexpr int PARAMZERO = 0;
+    static constexpr int RESULT_ALL = 2;
+    static constexpr int RESULT_COUNT = 2;
 };
 }
-} 
+}
 #endif // INTERFACE_KITS_JS_GETINPUT_METHOD_CCONTROLLER_H
