@@ -15,10 +15,11 @@
 
 #ifndef SERVICES_INCLUDE_INPUT_CHANNEL_H
 #define SERVICES_INCLUDE_INPUT_CHANNEL_H
+
 #include <string>
-#include "parcel.h"
-#include "global.h"
+
 #include "message_parcel.h"
+#include "parcel.h"
 
 namespace OHOS {
 namespace MiscServices {
