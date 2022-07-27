@@ -41,7 +41,7 @@ namespace MiscServices {
         void startInput(MessageParcel& data) override;
         void stopInput(MessageParcel& data) override;
         void SetCoreAndAgent(MessageParcel& data) override;
-        void HideCurrentInput(MessageParcel& data) override;
+        int32_t HideCurrentInput(MessageParcel& data) override;
 
         int32_t Prepare(int32_t displayId, sptr<InputClientStub> &client, sptr<InputDataChannelStub> &channel,
                         InputAttribute &attribute);
@@ -49,7 +49,7 @@ namespace MiscServices {
         int32_t Start(sptr<InputClientStub> &client);
         int32_t Stop(sptr<InputClientStub> &client);
 
-        void displayOptionalInputMethod(MessageParcel& data) override;
+        int32_t displayOptionalInputMethod(MessageParcel& data) override;
         int32_t getDisplayMode(int32_t &retMode) override;
         int32_t getKeyboardWindowHeight(int32_t &retHeight) override;
         int32_t getCurrentKeyboardType(KeyboardType *retType) override;
