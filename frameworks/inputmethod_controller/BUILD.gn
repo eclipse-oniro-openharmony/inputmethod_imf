@@ -19,7 +19,7 @@ config("inputmethod_client_native_config") {
   include_dirs = [
     "include",
     "${inputmethod_path}/services/dfx/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "${inputmethod_path}/services/include",
   ]
 }
@@ -34,7 +34,7 @@ config("inputmethod_client_native_public_config") {
     "${inputmethod_path}/services/dfx/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//foundation/multimodalinput/input/interfaces/native/innerkits/event/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
 }
 
@@ -62,10 +62,12 @@ ohos_shared_library("inputmethod_client") {
     "//foundation/distributedschedule/safwk/interfaces/innerkits/safwk:system_ability_fwk",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//foundation/multimodalinput/input/frameworks/proxy:libmmi-common",
-    "//utils/native/base:utils",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
 
   configs = [ ":inputmethod_client_native_config" ]
 

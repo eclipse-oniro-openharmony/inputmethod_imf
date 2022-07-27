@@ -29,12 +29,12 @@ ohos_static_library("inputmethod_dfx_static") {
   deps = [
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-    "//utils/native/base:utils",
   ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
 
   external_deps = [
+    "c_utils:utils",
     "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
     "hitrace_native:libhitrace",
