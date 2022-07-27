@@ -133,7 +133,7 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->properties = InputMethodController::GetInstance()->ListInputMethod();;
+        ctxt->properties = InputMethodController::GetInstance()->ListInputMethod();
         if (!ctxt->properties.empty()) {
             IMSA_HILOGE("exec ---- ListInputMethod success");
             ctxt->status = napi_ok;
