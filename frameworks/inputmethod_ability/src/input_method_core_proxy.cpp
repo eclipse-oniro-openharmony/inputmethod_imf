@@ -14,10 +14,12 @@
  */
 
 #include "input_method_core_proxy.h"
-#include "message_parcel.h"
-#include "message_option.h"
-#include "input_attribute.h"
+
 #include <string_ex.h>
+
+#include "input_attribute.h"
+#include "message_option.h"
+#include "message_parcel.h"
 
 namespace OHOS {
 namespace MiscServices {

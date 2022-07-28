@@ -14,16 +14,18 @@
  */
 #include "input_method_core_stub.h"
 
+#include <string_ex.h>
+
 #include <chrono>
 #include <cstdint>
-#include "message_handler.h"
+
 #include "i_input_data_channel.h"
 #include "input_channel.h"
-#include "platform.h"
-#include "message_parcel.h"
 #include "input_control_channel_proxy.h"
 #include "input_method_ability.h"
-#include <string_ex.h>
+#include "message_handler.h"
+#include "message_parcel.h"
+#include "platform.h"
 
 namespace OHOS {
 namespace MiscServices {
