@@ -18,17 +18,32 @@
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 #include "global.h"
-#include "js_context.h"
+#include "async_call.h"
 
 namespace OHOS {
 namespace MiscServices {
-struct SwitchInputMethodContext : public ContextBase {
-    bool sSwitchInput = false;
+struct SwitchInputMethodContext : public AsyncCall::Context {
+    bool isSwitchInput = false;
     std::string packageName;
     std::string methodId;
     napi_status status = napi_generic_failure;
+    SwitchInputMethodContext() : Context(nullptr, nullptr) { };
+    SwitchInputMethodContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
+
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
 };
-    
+
 class JsInputMethod {
 public:
     JsInputMethod() = default;
@@ -36,22 +51,10 @@ public:
     static napi_value Init(napi_env env, napi_value exports);
     static napi_value SwitchInputMethod(napi_env env, napi_callback_info info);
 private:
-    static SwitchInputMethodContext *GetSwitchInputContext(napi_env env, napi_callback_info info);
-    static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
-    static napi_value GetErrorCodeValue(napi_env env, int errCode);
-    static void CallbackOrPromiseSwitchInput(napi_env env,
-        const SwitchInputMethodContext *switchInput, napi_value err, napi_value data);
-    static std::string GetStringProperty(napi_env env, napi_value obj);
-    
-    static thread_local napi_ref IMSRef_ ;
-    static constexpr int RESULT_ERROR = 0;
-    static constexpr int RESULT_DATA = 1;
-    static constexpr int PARAMONE = 1;
-    static constexpr int PARAMZERO = 0;
-    static constexpr int RESULT_ALL = 2;
-    static constexpr int RESULT_COUNT = 2;
+    static std::string GetStringProperty(napi_env env, napi_value result);
+    static napi_status GetInputMethodProperty(napi_env env, napi_value argv,
+        std::shared_ptr<SwitchInputMethodContext> ctxt);
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
-    static const std::string IMS_CLASS_NAME;
 };
 }
 }

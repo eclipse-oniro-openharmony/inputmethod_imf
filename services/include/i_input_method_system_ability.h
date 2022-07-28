@@ -57,9 +57,9 @@ namespace MiscServices {
         virtual void startInput(MessageParcel& data) = 0;
         virtual void stopInput(MessageParcel& data) = 0;
         virtual void SetCoreAndAgent(MessageParcel& data) = 0;
-        virtual void HideCurrentInput(MessageParcel& data) = 0;
+        virtual int32_t HideCurrentInput(MessageParcel& data) = 0;
 
-        virtual void displayOptionalInputMethod(MessageParcel& data) = 0;
+        virtual int32_t displayOptionalInputMethod(MessageParcel& data) = 0;
         virtual int32_t getDisplayMode(int32_t &retMode) = 0;
         virtual int32_t getKeyboardWindowHeight(int32_t &retHeight) = 0;
         virtual int32_t getCurrentKeyboardType(KeyboardType *retType) = 0;

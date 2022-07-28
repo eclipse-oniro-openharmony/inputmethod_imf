@@ -220,17 +220,17 @@ using namespace MessageID;
         StopInput(mClient);
     }
 
-    void InputMethodController::HideCurrentInput()
+    int32_t InputMethodController::HideCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::HideCurrentInput");
         if (!mImms) {
-            return;
+            return ErrorCode::ERROR_KBD_HIDE_FAILED;
         }
         MessageParcel data;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            return;
+            return ErrorCode::ERROR_KBD_HIDE_FAILED;
         }
-        mImms->HideCurrentInput(data);
+        return mImms->HideCurrentInput(data);
     }
 
     void InputMethodController::Close()
@@ -259,17 +259,17 @@ using namespace MessageID;
         mImms->prepareInput(data);
     }
 
-    void InputMethodController::DisplayOptionalInputMethod()
+    int32_t InputMethodController::DisplayOptionalInputMethod()
     {
         IMSA_HILOGI("InputMethodController::DisplayOptionalInputMethod");
         if (!mImms) {
-            return;
+            return ErrorCode::ERROR_STATUS_BAD_VALUE;
         }
         MessageParcel data;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            return;
+            return ErrorCode::ERROR_STATUS_BAD_VALUE;
         }
-        mImms->displayOptionalInputMethod(data);
+        return mImms->displayOptionalInputMethod(data);
     }
 
     std::vector<InputMethodProperty*> InputMethodController::ListInputMethod()

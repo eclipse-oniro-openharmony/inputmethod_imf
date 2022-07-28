@@ -69,11 +69,11 @@ namespace MiscServices {
         void OnSelectionChange(std::u16string text, int start, int end);
         void OnConfigurationChange(Configuration info);
         bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
-        void DisplayOptionalInputMethod();
+        int32_t DisplayOptionalInputMethod();
         std::vector<InputMethodProperty*> ListInputMethod();
         int32_t GetEnterKeyType();
         int32_t GetInputPattern();
-        void HideCurrentInput();
+        int32_t HideCurrentInput();
         void SetCallingWindow(uint32_t windowId);
         int32_t SwitchInputMethod(const InputMethodProperty &target);
 

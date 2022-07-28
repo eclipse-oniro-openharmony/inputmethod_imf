@@ -14,15 +14,72 @@
  */
 #ifndef INTERFACE_KITS_JS_GETINPUT_METHOD_SETTING_H
 #define INTERFACE_KITS_JS_GETINPUT_METHOD_SETTING_H
-#include "napi/native_api.h"
+
 #include "global.h"
 #include "input_method_property.h"
-#include "js_context.h"
+#include "async_call.h"
 
 namespace OHOS {
 namespace MiscServices {
-struct ListInputContext : public ContextBase {
+struct ListInputContext : public AsyncCall::Context {
     std::vector<InputMethodProperty*> properties;
+    napi_status status = napi_generic_failure;
+    ListInputContext() : Context(nullptr, nullptr) { };
+    ListInputContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
+
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
+struct DisplayOptionalInputMethodContext : public AsyncCall::Context {
+    napi_status status = napi_generic_failure;
+    DisplayOptionalInputMethodContext() : Context(nullptr, nullptr) { };
+    DisplayOptionalInputMethodContext(InputAction input, OutputAction output)
+        : Context(std::move(input), std::move(output)) { };
+
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
+struct GetInputMethodControllerContext : public AsyncCall::Context {
+    bool isStopInput;
+    napi_status status = napi_generic_failure;
+    GetInputMethodControllerContext() : Context(nullptr, nullptr) { };
+    GetInputMethodControllerContext(InputAction input, OutputAction output)
+        : Context(std::move(input), std::move(output)) { };
+
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
 };
 
 class JsGetInputMethodSetting {
@@ -34,21 +91,10 @@ public:
     static napi_value ListInputMethod(napi_env env, napi_callback_info info);
     static napi_value DisplayOptionalInputMethod(napi_env env, napi_callback_info info);
 private:
-    static ListInputContext *GetListInputMethodContext(napi_env env, napi_callback_info info);
-    static ContextBase *GetContextBase(napi_env env, napi_callback_info info);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
-    static void GetResult(napi_env env, std::vector<InputMethodProperty*> &properties, napi_value &result);
-    static void ProcessCallbackOrPromiseCBArray(napi_env env, ContextBase *ctxt);
-    static void ProcessCallbackOrPromise(napi_env env, ContextBase *ctxt);
-    
-    static thread_local napi_ref IMSRef_;
-    static constexpr int RESULT_ERROR = 0;
-    static constexpr int RESULT_DATA = 1;
-    static constexpr int PARAZERO = 1;
-    static constexpr int PARAMONE = 1;
-    static constexpr int RESULT_ALL = 2;
-    static constexpr int RESULT_COUNT = 2;
+    static napi_value GetJSInputMethodProperty(napi_env env, std::vector<InputMethodProperty*> &properties);
     static const std::string IMS_CLASS_NAME;
+    static thread_local napi_ref IMSRef_;
     };
 }
 }
