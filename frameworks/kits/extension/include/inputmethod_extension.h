@@ -17,10 +17,10 @@
 #define FOUNDATION_ABILITYRUNTIME_OHOS_INPUTMETHOD_EXTENSION_H
 
 #include "extension_base.h"
+#include "inputmethod_extension_context.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class InputMethodExtensionContext;
 class Runtime;
 /**
  * @brief Basic inputmethod components.

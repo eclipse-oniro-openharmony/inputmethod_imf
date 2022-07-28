@@ -29,8 +29,9 @@ gen_js_obj("inputmethod_extension_context_js") {
 }
 
 gen_js_obj("inputmethod_extension_context_abc") {
-  input = get_label_info(":gen_inputmethod_extension_context_abc",
-                         "target_out_dir") + "/inputmethod_extension_context.abc"
+  input =
+      get_label_info(":gen_inputmethod_extension_context_abc",
+                     "target_out_dir") + "/inputmethod_extension_context.abc"
   output = target_out_dir + "/inputmethod_extension_context_abc.o"
   dep = ":gen_inputmethod_extension_context_abc"
 }
