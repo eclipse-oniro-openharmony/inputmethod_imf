@@ -167,7 +167,7 @@ private:
 
         int32_t accountId = 0;
         if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(reinterpret_cast<napi_env>(&engine),
-                reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), accountId)) {
+            reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), accountId)) {
             IMSA_HILOGI("%{public}s called, the second parameter is invalid.", __func__);
             return engine.CreateUndefined();
         }
@@ -311,7 +311,7 @@ private:
 
         int32_t accountId = 0;
         if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(
-                reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), accountId)) {
+            reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), accountId)) {
             IMSA_HILOGI("%{public}s called, the second parameter is invalid.", __func__);
             return engine.CreateUndefined();
         }
