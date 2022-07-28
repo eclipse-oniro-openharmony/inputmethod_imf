@@ -18,16 +18,15 @@
 
 #include "extension_base.h"
 #include "inputmethod_extension_context.h"
+#include "runtime.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class Runtime;
 /**
  * @brief Basic inputmethod components.
  */
 class InputMethodExtension
-    : public ExtensionBase<InputMethodExtensionContext>
-    , public std::enable_shared_from_this<InputMethodExtension> {
+    : public ExtensionBase<InputMethodExtensionContext>, public std::enable_shared_from_this<InputMethodExtension> {
 public:
     InputMethodExtension() = default;
     virtual ~InputMethodExtension() = default;

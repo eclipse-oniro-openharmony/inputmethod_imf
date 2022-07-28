@@ -17,21 +17,17 @@
 #define FOUNDATION_ABILITYRUNTIME_OHOS_JS_INPUTMETHOD_EXTENSION_H
 
 #include "inputmethod_extension.h"
-
-class NativeReference;
-class NativeValue;
+#include "js_runtime.h"
+#include "native_engine/native_value.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class InputMethodExtension;
-class JsRuntime;
 
 /**
  * @brief Basic inputmethod components.
  */
 class JsInputMethodExtension
-    : public InputMethodExtension
-    , public std::enable_shared_from_this<JsInputMethodExtension> {
+    : public InputMethodExtension, public std::enable_shared_from_this<JsInputMethodExtension> {
 public:
     JsInputMethodExtension(JsRuntime &jsRuntime);
     virtual ~JsInputMethodExtension() override;
@@ -70,7 +66,9 @@ public:
      *
      * You can override this function to implement your own processing logic.
      *
-     * @param want Indicates the {@link Want} structure containing connection information about the InputMethod extension.
+     * @param want Indicates the {@link Want} structure containing connection information about the InputMethod
+     *        extension.
+     *
      * @return Returns a pointer to the <b>sid</b> of the connected InputMethod extension.
      */
     virtual sptr<IRemoteObject> OnConnect(const AAFwk::Want &want) override;
@@ -86,13 +84,14 @@ public:
     /**
      * @brief Called back when InputMethod is started.
      * This method can be called only by InputMethod. You can use the StartAbility(ohos.aafwk.content.Want) method
-     * to start InputMethod. Then the system calls back the current method to use the transferred want parameter
-     * to execute its own logic.
+     *        to start InputMethod. Then the system calls back the current method to use the transferred want parameter
+     *        to execute its own logic.
      *
      * @param want Indicates the want of InputMethod to start.
      * @param restart Indicates the startup mode. The value true indicates that InputMethod is restarted after being
-     * destroyed, and the value false indicates a normal startup.
-     * @param startId Indicates the number of times the InputMethod extension has been started. The startId is incremented
+     *        destroyed, and the value false indicates a normal startup.
+     * @param startId Indicates the number of times the InputMethod extension has been started. The startId is
+     *        incremented.
      * by 1 every time the extension is started. For example, if the extension has been started for six times, the
      * value of startId is 6.
      */

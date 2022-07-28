@@ -21,10 +21,8 @@
 #include "ability_connect_callback.h"
 #include "event_handler.h"
 #include "inputmethod_extension_context.h"
-
-class NativeEngine;
-class NativeValue;
-class NativeReference;
+#include "native_engine/native_engine.h"
+#include "native_engine/native_value.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
