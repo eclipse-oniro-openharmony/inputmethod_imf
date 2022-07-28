@@ -41,7 +41,7 @@ namespace MiscServices {
         }
     }
 
-    void InputMethodSystemAbilityProxy::displayOptionalInputMethod(MessageParcel& data)
+    int32_t InputMethodSystemAbilityProxy::displayOptionalInputMethod(MessageParcel& data)
     {
         MessageParcel reply;
         MessageOption option;
@@ -49,14 +49,15 @@ namespace MiscServices {
         auto ret = Remote()->SendRequest(DISPLAY_OPTIONAL_INPUT_METHOD, data, reply, option);
         if (ret != NO_ERROR) {
             IMSA_HILOGI("InputMethodSystemAbilityProxy::displayOptionalInputMethod SendRequest failed");
-            return;
+            return ret;
         }
 
         ret = reply.ReadInt32();
         if (ret != NO_ERROR) {
             IMSA_HILOGI("InputMethodSystemAbilityProxy::displayOptionalInputMethod reply failed");
-            return;
+            return ret;
         }
+        return ErrorCode::NO_ERROR;
     }
 
     void InputMethodSystemAbilityProxy::releaseInput(MessageParcel& data)
