@@ -88,7 +88,6 @@ napi_value JsGetInputMethodSetting::GetInputMethodSetting(napi_env env, napi_cal
 napi_value JsGetInputMethodSetting::GetJSInputMethodProperty(napi_env env,
     std::vector<InputMethodProperty*> &properties)
 {
-    IMSA_HILOGD("run in GetResult %{public}lu", properties.size());
     uint32_t index = 0;
     napi_value result = nullptr;
     napi_create_array(env, &result);
