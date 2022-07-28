@@ -220,7 +220,6 @@ using namespace MessageID;
         StopInput(mClient);
     }
 
-
     int32_t InputMethodController::HideCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::HideCurrentInput");

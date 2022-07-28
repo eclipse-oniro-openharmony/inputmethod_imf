@@ -31,7 +31,7 @@ ohos_fuzztest("InputClientStubFuzzTest") {
     "//base/inputmethod/imf/services/include",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
 
   cflags = [
@@ -50,10 +50,12 @@ ohos_fuzztest("InputClientStubFuzzTest") {
     "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
     "//foundation/distributedschedule/safwk/interfaces/innerkits/safwk:system_ability_fwk",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//utils/native/base:utils",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
 }
 
 ###############################################################################

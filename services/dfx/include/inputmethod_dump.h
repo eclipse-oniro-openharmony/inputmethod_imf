@@ -18,11 +18,11 @@
 
 #include <cstdlib>
 #include <functional>
+#include <iosfwd>
 #include <list>
 #include <string>
 #include <vector>
 
-#include "iosfwd"
 #include "singleton.h"
 
 namespace OHOS {
