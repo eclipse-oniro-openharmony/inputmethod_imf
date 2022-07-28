@@ -131,7 +131,7 @@ namespace MiscServices {
         Remote()->SendRequest(SET_CORE_AND_AGENT, data, reply, option);
     }
 
-    void InputMethodSystemAbilityProxy::HideCurrentInput(MessageParcel& data)
+    int32_t InputMethodSystemAbilityProxy::HideCurrentInput(MessageParcel& data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInput");
         MessageParcel reply;
@@ -140,14 +140,15 @@ namespace MiscServices {
         auto ret = Remote()->SendRequest(HIDE_CURRENT_INPUT, data, reply, option);
         if (ret != NO_ERROR) {
             IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInput SendRequest failed");
-            return;
+            return ErrorCode::ERROR_KBD_HIDE_FAILED;
         }
 
         ret = reply.ReadInt32();
         if (ret != NO_ERROR) {
             IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInput reply failed");
-            return;
+            return ErrorCode::ERROR_KBD_HIDE_FAILED;
         }
+        return ErrorCode::NO_ERROR;
     }
 
     int32_t InputMethodSystemAbilityProxy::Prepare(int32_t displayId, sptr<InputClientStub> &client,

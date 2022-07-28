@@ -220,15 +220,16 @@ using namespace MessageID;
         StopInput(mClient);
     }
 
+
     int32_t InputMethodController::HideCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::HideCurrentInput");
         if (!mImms) {
-            return;
+            return ErrorCode::ERROR_KBD_HIDE_FAILED;
         }
         MessageParcel data;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            return;
+            return ErrorCode::ERROR_KBD_HIDE_FAILED;
         }
         return mImms->HideCurrentInput(data);
     }
@@ -263,11 +264,11 @@ using namespace MessageID;
     {
         IMSA_HILOGI("InputMethodController::DisplayOptionalInputMethod");
         if (!mImms) {
-            return;
+            return ErrorCode::ERROR_STATUS_BAD_VALUE;
         }
         MessageParcel data;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            return;
+            return ErrorCode::ERROR_STATUS_BAD_VALUE;
         }
         return mImms->displayOptionalInputMethod(data);
     }
