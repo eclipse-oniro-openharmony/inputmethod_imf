@@ -76,13 +76,9 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         IMSA_HILOGE("exec ---- SwitchInputMethod");
-        InputMethodProperty *property = new (std::nothrow) InputMethodProperty();
-        if (property == nullptr) {
-            IMSA_HILOGE("SwitchInputMethod:: property == nullptr");
-            return;
-        }
-        property->mPackageName = Str8ToStr16(ctxt->packageName);
-        property->mImeId = Str8ToStr16(ctxt->methodId);
+        InputMethodProperty property;
+        property.mPackageName = Str8ToStr16(ctxt->packageName);
+        property.mImeId = Str8ToStr16(ctxt->methodId);
         int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(property);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGE("exec ---- SwitchInputMethod success");

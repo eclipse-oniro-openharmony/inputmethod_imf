@@ -207,7 +207,7 @@ namespace MiscServices {
         MessageHandler::Instance()->SendMessage(msg);
     }
 
-    void InputMethodSystemAbilityStub::displayOptionalInputMethod(MessageParcel& data)
+    int32_t InputMethodSystemAbilityStub::displayOptionalInputMethod(MessageParcel& data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::displayOptionalInputMethod");
         int32_t pid = IPCSkeleton::GetCallingPid();
@@ -220,6 +220,7 @@ namespace MiscServices {
 
         Message *msg = new Message(MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD, parcel);
         MessageHandler::Instance()->SendMessage(msg);
+        return ErrorCode::NO_ERROR;
     }
 
     /*! Release input
@@ -297,7 +298,7 @@ namespace MiscServices {
         MessageHandler::Instance()->SendMessage(msg);
     }
 
-    void InputMethodSystemAbilityStub::HideCurrentInput(MessageParcel& data)
+    int32_t InputMethodSystemAbilityStub::HideCurrentInput(MessageParcel& data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::HideCurrentInput");
         int32_t uid = IPCSkeleton::GetCallingUid();
@@ -307,6 +308,7 @@ namespace MiscServices {
 
         Message *msg = new Message(MSG_HIDE_CURRENT_INPUT, parcel);
         MessageHandler::Instance()->SendMessage(msg);
+        return ErrorCode::NO_ERROR;
     }
 
     int32_t InputMethodSystemAbilityStub::SwitchInputMethod(MessageParcel &data)

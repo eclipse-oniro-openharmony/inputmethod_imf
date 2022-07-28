@@ -35,7 +35,7 @@ namespace MiscServices {
         void stopInput(MessageParcel& data) override;
         void SetCoreAndAgent(MessageParcel& data) override;
         int32_t HideCurrentInput(MessageParcel& data) override;
-        void displayOptionalInputMethod(MessageParcel& data) override;
+        int32_t displayOptionalInputMethod(MessageParcel& data) override;
         virtual int32_t listInputMethodByUserId(int32_t userId, std::vector<InputMethodProperty*> *properties) = 0;
         int32_t SwitchInputMethod(MessageParcel &data);
 
