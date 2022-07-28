@@ -16,16 +16,24 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_PROXY_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_PROXY_H
 
+#include <cstdint>
+#include <functional>
 #include <vector>
-#include "iremote_proxy.h"
+
+#include <string>
+#include "global.h"
 #include "i_input_method_system_ability.h"
-#include "message_parcel.h"
-#include "keyboard_type.h"
-#include "input_method_property.h"
+#include "input_attribute.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
-#include "input_attribute.h"
-#include "global.h"
+#include "input_method_property.h"
+#include "iremote_broker.h"
+#include "iremote_object.h"
+#include "iremote_proxy.h"
+#include "keyboard_type.h"
+#include "message_parcel.h"
+#include "nocopyable.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace MiscServices {
