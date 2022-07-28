@@ -33,17 +33,11 @@ ohos_shared_library("inputmethod") {
     "${inputmethod_path}/frameworks/inputmethod_controller/src/input_client_stub.cpp",
     "${inputmethod_path}/frameworks/inputmethod_controller/src/input_data_channel_stub.cpp",
     "${inputmethod_path}/frameworks/inputmethod_controller/src/input_method_controller.cpp",
-
-    #"src/input_method_module.cpp",
-    #"src/js_input_method_controller.cpp",
-    #"src/js_input_method_registry.cpp",
-    #"src/js_input_method_setting.cpp",
-    #"src/js_input_method_utils.cpp",
-    "../inputmethodclient/async_call.cpp",
-    "../inputmethodclient/input_method_module.cpp",
-    "../inputmethodclient/js_get_input_method_controller.cpp",
-    "../inputmethodclient/js_get_input_method_setting.cpp",
-    "../inputmethodclient/js_input_method.cpp",
+    "src/input_method_module.cpp",
+    "src/js_input_method_controller.cpp",
+    "src/js_input_method_registry.cpp",
+    "src/js_input_method_setting.cpp",
+    "src/js_input_method_utils.cpp",
   ]
 
   configs = [ ":imf_config" ]

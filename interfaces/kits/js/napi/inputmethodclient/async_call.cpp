@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "async_call.h"
 #include "global.h"
 
@@ -123,14 +124,12 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
         napi_get_undefined(env, &result[ARG_DATA]);
     }
     if (context->defer != nullptr) {
-        // promise
         if (status == napi_ok && runStatus == napi_ok) {
             napi_resolve_deferred(env, context->defer, result[ARG_DATA]);
         } else {
             napi_reject_deferred(env, context->defer, result[ARG_ERROR]);
         }
     } else {
-        // callback
         napi_value callback = nullptr;
         napi_get_reference_value(env, context->callback, &callback);
         napi_value returnValue;

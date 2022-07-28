@@ -52,11 +52,10 @@ napi_status JsInputMethod::GetInputMethodProperty(napi_env env, napi_value argv,
         napi_value result = nullptr;
         status = napi_get_named_property(env, argv, "packageName", &result);
         ctxt->packageName = GetStringProperty(env, result);
-        IMSA_HILOGE("packageName:%{public}s", ctxt->packageName.c_str());
         result = nullptr;
         status = napi_get_named_property(env, argv, "methodId", &result);
         ctxt->methodId = GetStringProperty(env, result);
-        IMSA_HILOGE("methodId:%{public}s", ctxt->methodId.c_str());
+        IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s" , ctxt->methodId.c_str(), ctxt->packageName.c_str());
     }
     return status;
 }
@@ -71,17 +70,16 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_status status = napi_get_boolean(env, ctxt->isSwitchInput, result);
-        IMSA_HILOGE("output ---- napi_get_boolean != nullptr[%{public}d]", result != nullptr);
+        IMSA_HILOGE("output  napi_get_boolean != nullptr[%{public}d]", result != nullptr);
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        IMSA_HILOGE("exec ---- SwitchInputMethod");
         InputMethodProperty property;
         property.mPackageName = Str8ToStr16(ctxt->packageName);
         property.mImeId = Str8ToStr16(ctxt->methodId);
         int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(property);
         if (errCode == ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("exec ---- SwitchInputMethod success");
+            IMSA_HILOGI("exec  SwitchInputMethod success");
             ctxt->status = napi_ok;
             ctxt->isSwitchInput = true;
         }

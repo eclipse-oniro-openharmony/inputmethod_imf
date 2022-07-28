@@ -49,7 +49,7 @@ napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback
 
     JsGetInputMethodController *IMSobject = new (std::nothrow) JsGetInputMethodController();
     if (IMSobject == nullptr) {
-        IMSA_HILOGI("IMSobject is nullptr");
+        IMSA_HILOGE("IMSobject is nullptr");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
@@ -57,7 +57,7 @@ napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback
     napi_wrap(env, thisVar, IMSobject, [](napi_env env, void *data, void *hint) {
         auto* objInfo = reinterpret_cast<JsGetInputMethodController*>(data);
         if (objInfo != nullptr) {
-            IMSA_HILOGI("objInfo is nullptr");
+            IMSA_HILOGE("objInfo is nullptr");
             delete objInfo;
         }
     }, nullptr, nullptr);
@@ -90,15 +90,14 @@ napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_inf
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_status status = napi_get_boolean(env, ctxt->isStopInput, result);
-        IMSA_HILOGE("output ---- napi_get_boolean != nullptr[%{public}d]", result != nullptr);
+        IMSA_HILOGE("output napi_get_boolean != nullptr[%{public}d]", result != nullptr);
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        IMSA_HILOGI("exec ---- HideCurrentInput");
         int32_t errCode = InputMethodController::GetInstance()->HideCurrentInput();
-        IMSA_HILOGE("exec ---- HideCurrentInput %{public}d", errCode);
+        IMSA_HILOGE("exec HideCurrentInput %{public}d", errCode);
         if (errCode == ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("exec ---- HideCurrentInput success");
+            IMSA_HILOGE("exec HideCurrentInput success");
             ctxt->status = napi_ok;
             ctxt->isStopInput = true;
         }
