@@ -29,19 +29,20 @@ class JsRuntime;
 /**
  * @brief Basic inputmethod components.
  */
-class JsInputMethodExtension : public InputMethodExtension,
-                           public std::enable_shared_from_this<JsInputMethodExtension> {
+class JsInputMethodExtension
+    : public InputMethodExtension
+    , public std::enable_shared_from_this<JsInputMethodExtension> {
 public:
-    JsInputMethodExtension(JsRuntime& jsRuntime);
+    JsInputMethodExtension(JsRuntime &jsRuntime);
     virtual ~JsInputMethodExtension() override;
-    static JsInputMethodExtension* jsInputMethodExtension;
+    static JsInputMethodExtension *jsInputMethodExtension;
     /**
      * @brief Create JsInputMethodExtension.
      *
      * @param runtime The runtime.
      * @return The JsInputMethodExtension instance.
      */
-    static JsInputMethodExtension* Create(const std::unique_ptr<Runtime>& runtime);
+    static JsInputMethodExtension *Create(const std::unique_ptr<Runtime> &runtime);
 
     /**
      * @brief Init the extension.
@@ -53,8 +54,7 @@ public:
      */
     virtual void Init(const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &record,
         const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
-        std::shared_ptr<AppExecFwk::AbilityHandler> &handler,
-        const sptr<IRemoteObject> &token) override;
+        std::shared_ptr<AppExecFwk::AbilityHandler> &handler, const sptr<IRemoteObject> &token) override;
 
     /**
      * @brief Called when this extension is started. You must override this function if you want to perform some
@@ -107,13 +107,13 @@ public:
     virtual void OnStop() override;
 
 private:
-    NativeValue* CallObjectMethod(const char* name, NativeValue * const *argv = nullptr, size_t argc = 0);
+    NativeValue *CallObjectMethod(const char *name, NativeValue *const *argv = nullptr, size_t argc = 0);
 
     void GetSrcPath(std::string &srcPath);
 
-    JsRuntime& jsRuntime_;
+    JsRuntime &jsRuntime_;
     std::unique_ptr<NativeReference> jsObj_;
 };
-}  // namespace AbilityRuntime
-}  // namespace OHOS
-#endif  // FOUNDATION_ABILITYRUNTIME_OHOS_JS_INPUTMETHOD_EXTENSION_H
+} // namespace AbilityRuntime
+} // namespace OHOS
+#endif // FOUNDATION_ABILITYRUNTIME_OHOS_JS_INPUTMETHOD_EXTENSION_H

@@ -18,14 +18,14 @@
 #include "ability_loader.h"
 #include "connection_manager.h"
 #include "hilog_wrapper.h"
+#include "inputmethod_extension_context.h"
 #include "js_inputmethod_extension.h"
 #include "runtime.h"
-#include "inputmethod_extension_context.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
-InputMethodExtension* InputMethodExtension::Create(const std::unique_ptr<Runtime>& runtime)
+InputMethodExtension *InputMethodExtension::Create(const std::unique_ptr<Runtime> &runtime)
 {
     HILOG_INFO("jws InputMethodExtension::Create runtime");
     if (!runtime) {
@@ -42,8 +42,7 @@ InputMethodExtension* InputMethodExtension::Create(const std::unique_ptr<Runtime
 }
 
 void InputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
-    const std::shared_ptr<OHOSApplication> &application,
-    std::shared_ptr<AbilityHandler> &handler,
+    const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
     const sptr<IRemoteObject> &token)
 {
     HILOG_INFO("jws InputMethodExtension begin init context");
@@ -52,10 +51,8 @@ void InputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &recor
 }
 
 std::shared_ptr<InputMethodExtensionContext> InputMethodExtension::CreateAndInitContext(
-    const std::shared_ptr<AbilityLocalRecord> &record,
-    const std::shared_ptr<OHOSApplication> &application,
-    std::shared_ptr<AbilityHandler> &handler,
-    const sptr<IRemoteObject> &token)
+    const std::shared_ptr<AbilityLocalRecord> &record, const std::shared_ptr<OHOSApplication> &application,
+    std::shared_ptr<AbilityHandler> &handler, const sptr<IRemoteObject> &token)
 {
     HILOG_INFO("jws InputMethodExtension begin init context");
     std::shared_ptr<InputMethodExtensionContext> context =
@@ -66,5 +63,5 @@ std::shared_ptr<InputMethodExtensionContext> InputMethodExtension::CreateAndInit
     }
     return context;
 }
-}
-}
+} // namespace AbilityRuntime
+} // namespace OHOS

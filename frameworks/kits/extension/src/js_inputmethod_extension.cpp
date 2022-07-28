@@ -17,6 +17,7 @@
 
 #include "ability_info.h"
 #include "hilog_wrapper.h"
+#include "hitrace_meter.h"
 #include "inputmethod_manager.h"
 #include "js_inputmethod_extension_context.h"
 #include "js_runtime.h"
@@ -26,7 +27,6 @@
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
-#include "hitrace_meter.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

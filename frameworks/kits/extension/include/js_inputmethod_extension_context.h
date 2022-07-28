@@ -19,8 +19,8 @@
 #include <memory>
 
 #include "ability_connect_callback.h"
-#include "inputmethod_extension_context.h"
 #include "event_handler.h"
+#include "inputmethod_extension_context.h"
 
 class NativeEngine;
 class NativeValue;
@@ -28,12 +28,12 @@ class NativeReference;
 
 namespace OHOS {
 namespace AbilityRuntime {
-NativeValue* CreateJsInputMethodExtensionContext(NativeEngine& engine,
-    std::shared_ptr<InputMethodExtensionContext> context);
+NativeValue *CreateJsInputMethodExtensionContext(
+    NativeEngine &engine, std::shared_ptr<InputMethodExtensionContext> context);
 
 class JSInputMethodExtensionConnection : public AbilityConnectCallback {
 public:
-    explicit JSInputMethodExtensionConnection(NativeEngine& engine);
+    explicit JSInputMethodExtensionConnection(NativeEngine &engine);
     ~JSInputMethodExtensionConnection();
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode) override;
@@ -41,10 +41,11 @@ public:
     void HandleOnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode);
     void HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
-    void SetJsConnectionObject(NativeValue* jsConnectionObject);
+    void SetJsConnectionObject(NativeValue *jsConnectionObject);
     void CallJsFailed(int32_t errorCode);
+
 private:
-    NativeEngine& engine_;
+    NativeEngine &engine_;
     std::unique_ptr<NativeReference> jsConnectionObject_ = nullptr;
 };
 
@@ -66,6 +67,6 @@ struct key_compare {
 static std::map<ConnecttionKey, sptr<JSInputMethodExtensionConnection>, key_compare> connects_;
 static int64_t serialNumber_ = 0;
 static std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-}  // namespace AbilityRuntime
-}  // namespace OHOS
-#endif  // ABILITY_RUNTIME_JS_INPUTMETHOD_EXTENSION_CONTEXT_H
+} // namespace AbilityRuntime
+} // namespace OHOS
+#endif // ABILITY_RUNTIME_JS_INPUTMETHOD_EXTENSION_CONTEXT_H

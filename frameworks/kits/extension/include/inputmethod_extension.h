@@ -25,48 +25,46 @@ class Runtime;
 /**
  * @brief Basic inputmethod components.
  */
-class InputMethodExtension : public ExtensionBase<InputMethodExtensionContext>,
-                       public std::enable_shared_from_this<InputMethodExtension> {
+class InputMethodExtension
+    : public ExtensionBase<InputMethodExtensionContext>
+    , public std::enable_shared_from_this<InputMethodExtension> {
 public:
     InputMethodExtension() = default;
     virtual ~InputMethodExtension() = default;
 
     /**
-     * @brief Create and init context.
-     *
-     * @param record the extension record.
-     * @param application the application info.
-     * @param handler the extension handler.
-     * @param token the remote token.
-     * @return The created context.
-     */
+   * @brief Create and init context.
+   *
+   * @param record the extension record.
+   * @param application the application info.
+   * @param handler the extension handler.
+   * @param token the remote token.
+   * @return The created context.
+   */
     virtual std::shared_ptr<InputMethodExtensionContext> CreateAndInitContext(
-        const std::shared_ptr<AbilityLocalRecord> &record,
-        const std::shared_ptr<OHOSApplication> &application,
-        std::shared_ptr<AbilityHandler> &handler,
-        const sptr<IRemoteObject> &token) override;
+        const std::shared_ptr<AbilityLocalRecord> &record, const std::shared_ptr<OHOSApplication> &application,
+        std::shared_ptr<AbilityHandler> &handler, const sptr<IRemoteObject> &token) override;
 
     /**
-     * @brief Init the extension.
-     *
-     * @param record the extension record.
-     * @param application the application info.
-     * @param handler the extension handler.
-     * @param token the remote token.
-     */
+   * @brief Init the extension.
+   *
+   * @param record the extension record.
+   * @param application the application info.
+   * @param handler the extension handler.
+   * @param token the remote token.
+   */
     virtual void Init(const std::shared_ptr<AbilityLocalRecord> &record,
-        const std::shared_ptr<OHOSApplication> &application,
-        std::shared_ptr<AbilityHandler> &handler,
+        const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
         const sptr<IRemoteObject> &token) override;
 
     /**
-     * @brief Create Extension.
-     *
-     * @param runtime The runtime.
-     * @return The InputMethodExtension instance.
-     */
-    static InputMethodExtension* Create(const std::unique_ptr<Runtime>& runtime);
+   * @brief Create Extension.
+   *
+   * @param runtime The runtime.
+   * @return The InputMethodExtension instance.
+   */
+    static InputMethodExtension *Create(const std::unique_ptr<Runtime> &runtime);
 };
-}  // namespace AbilityRuntime
-}  // namespace OHOS
-#endif  // FOUNDATION_ABILITYRUNTIME_OHOS_INPUTMETHOD_EXTENSION_H
+} // namespace AbilityRuntime
+} // namespace OHOS
+#endif // FOUNDATION_ABILITYRUNTIME_OHOS_INPUTMETHOD_EXTENSION_H

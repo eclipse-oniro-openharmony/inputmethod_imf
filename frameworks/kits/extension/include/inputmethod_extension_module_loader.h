@@ -19,7 +19,9 @@
 #include "extension_module_loader.h"
 
 namespace OHOS::AbilityRuntime {
-class InputMethodExtensionModuleLoader : public ExtensionModuleLoader, public Singleton<InputMethodExtensionModuleLoader> {
+class InputMethodExtensionModuleLoader
+    : public ExtensionModuleLoader
+    , public Singleton<InputMethodExtensionModuleLoader> {
     DECLARE_SINGLETON(InputMethodExtensionModuleLoader);
 
 public:
@@ -29,7 +31,7 @@ public:
      * @param runtime The runtime.
      * @return The Extension instance.
      */
-    virtual Extension *Create(const std::unique_ptr<Runtime>& runtime) const override;
+    virtual Extension *Create(const std::unique_ptr<Runtime> &runtime) const override;
 };
-}
+} // namespace OHOS::AbilityRuntime
 #endif // FOUNDATION_ABILITYRUTIME_INPUTMETHOD_EXTENSION_MODULE_LOADER_H
