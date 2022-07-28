@@ -55,7 +55,8 @@ napi_status JsInputMethod::GetInputMethodProperty(napi_env env, napi_value argv,
         result = nullptr;
         status = napi_get_named_property(env, argv, "methodId", &result);
         ctxt->methodId = GetStringProperty(env, result);
-        IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s" , ctxt->methodId.c_str(), ctxt->packageName.c_str());
+        IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s",
+            ctxt->methodId.c_str(), ctxt->packageName.c_str());
     }
     return status;
 }
