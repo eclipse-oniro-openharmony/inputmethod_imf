@@ -24,7 +24,6 @@ config("imf_public_config") {
     "include",
     "${inputmethod_path}/frameworks/inputmethod_controller/include",
     "${inputmethod_path}/services/dfx/include",
-    "//base/miscservices/inputmethod/interfaces/kits/js/napi/inputmethodclient",
   ]
 }
 
