@@ -123,7 +123,6 @@ AppExecFwk::AbilityType InputMethodExtensionContext::GetAbilityInfoType() const
         IMSA_HILOGE("InputMethodContext::GetAbilityInfoType info == nullptr");
         return AppExecFwk::AbilityType::UNKNOWN;
     }
-
     return info->type;
 }
 } // namespace AbilityRuntime

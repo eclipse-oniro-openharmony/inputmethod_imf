@@ -35,7 +35,6 @@ InputMethodExtension *InputMethodExtension::Create(const std::unique_ptr<Runtime
     switch (runtime->GetLanguage()) {
         case Runtime::Language::JS:
             return JsInputMethodExtension::Create(runtime);
-
         default:
             return new InputMethodExtension();
     }

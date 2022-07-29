@@ -27,7 +27,6 @@ extern "C" __attribute__((constructor)) void NAPI_InputMethodExtension_AutoRegis
         .name = "InputMethodExtension",
         .fileName = "libinputmethodextension_napi.so/inputmethod_extension.js",
     };
-
     moduleManager->Register(&newModuleInfo);
 }
 
@@ -37,7 +36,6 @@ extern "C" __attribute__((visibility("default"))) void NAPI_InputMethodExtension
     if (buf != nullptr) {
         *buf = _binary_inputmethod_extension_js_start;
     }
-
     if (bufLen != nullptr) {
         *bufLen = _binary_inputmethod_extension_js_end - _binary_inputmethod_extension_js_start;
     }

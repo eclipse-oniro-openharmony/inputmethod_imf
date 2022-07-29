@@ -108,7 +108,6 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
             delete static_cast<std::weak_ptr<AbilityRuntime::Context> *>(data);
         },
         nullptr);
-
     IMSA_HILOGI("JsInputMethodExtension::Init end.");
 }
 

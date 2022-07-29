@@ -129,7 +129,6 @@ protected:
 
 private:
     static int ILLEGAL_REQUEST_CODE;
-
     /**
    * @brief Get Current Ability Type
    *

@@ -27,7 +27,6 @@ extern "C" __attribute__((constructor)) void NAPI_InputMethodExtensionContext_Au
         .name = "InputMethodExtensionContext",
         .fileName = "libinputmethodextensioncontext_napi.so/inputmethod_extension_context.js",
     };
-
     moduleManager->Register(&newModuleInfo);
 }
 
@@ -37,7 +36,6 @@ extern "C" __attribute__((visibility("default"))) void NAPI_InputMethodExtension
     if (buf != nullptr) {
         *buf = _binary_inputmethod_extension_context_js_start;
     }
-
     if (bufLen != nullptr) {
         *bufLen = _binary_inputmethod_extension_context_js_end - _binary_inputmethod_extension_context_js_start;
     }

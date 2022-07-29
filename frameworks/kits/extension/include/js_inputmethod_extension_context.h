@@ -55,10 +55,7 @@ struct ConnecttionKey {
 struct key_compare {
     bool operator()(const ConnecttionKey &key1, const ConnecttionKey &key2) const
     {
-        if (key1.id < key2.id) {
-            return true;
-        }
-        return false;
+        return key1.id < key2.id;
     }
 };
 
