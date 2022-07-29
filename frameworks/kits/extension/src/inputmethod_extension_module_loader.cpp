@@ -15,6 +15,7 @@
 
 #include "inputmethod_extension_module_loader.h"
 
+#include "global.h"
 #include "inputmethod_extension.h"
 
 namespace OHOS::AbilityRuntime {
@@ -23,7 +24,7 @@ InputMethodExtensionModuleLoader::~InputMethodExtensionModuleLoader() = default;
 
 Extension *InputMethodExtensionModuleLoader::Create(const std::unique_ptr<Runtime> &runtime) const
 {
-    HILOG_INFO("jws InputMethodExtension::Create runtime");
+    IMSA_HILOGI("InputMethodExtension::Create runtime");
     return InputMethodExtension::Create(runtime);
 }
 

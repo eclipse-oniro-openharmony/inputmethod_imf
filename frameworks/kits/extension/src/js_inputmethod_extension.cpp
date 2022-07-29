@@ -16,9 +16,8 @@
 #include "js_inputmethod_extension.h"
 
 #include "ability_info.h"
-#include "hilog_wrapper.h"
+#include "global.h"
 #include "hitrace_meter.h"
-#include "inputmethod_manager.h"
 #include "js_inputmethod_extension_context.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
@@ -38,7 +37,7 @@ using namespace OHOS::AppExecFwk;
 using namespace OHOS::MiscServices;
 JsInputMethodExtension *JsInputMethodExtension::Create(const std::unique_ptr<Runtime> &runtime)
 {
-    IMSA_HILOGI("jws JsInputMethodExtension begin Create");
+    IMSA_HILOGI("JsInputMethodExtension begin Create");
     jsInputMethodExtension = new JsInputMethodExtension(static_cast<JsRuntime &>(*runtime));
     return jsInputMethodExtension;
 }
@@ -121,7 +120,7 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
     Extension::OnStart(want);
     FinishAsyncTrace(
         HITRACE_TAG_MISC, "Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
-    IMSA_HILOGI("jws JsInputMethodExtension OnStart begin..");
+    IMSA_HILOGI("JsInputMethodExtension OnStart begin..");
     HandleScope handleScope(jsRuntime_);
     NativeEngine *nativeEngine = &jsRuntime_.GetNativeEngine();
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(reinterpret_cast<napi_env>(nativeEngine), want);
@@ -149,7 +148,7 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
 void JsInputMethodExtension::OnStop()
 {
     InputMethodExtension::OnStop();
-    IMSA_HILOGI("jws JsInputMethodExtension OnStop begin.");
+    IMSA_HILOGI("JsInputMethodExtension OnStop begin.");
     CallObjectMethod("onDestroy");
     bool ret = ConnectionManager::GetInstance().DisconnectCaller(GetContext()->GetToken());
     if (ret) {
@@ -160,7 +159,7 @@ void JsInputMethodExtension::OnStop()
 
 sptr<IRemoteObject> JsInputMethodExtension::OnConnect(const AAFwk::Want &want)
 {
-    IMSA_HILOGI("jws JsInputMethodExtension OnConnect begin.");
+    IMSA_HILOGI("JsInputMethodExtension OnConnect begin.");
     StartAsyncTrace(HITRACE_TAG_MISC, "OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_EXTENSION));
     StartAsyncTrace(
         HITRACE_TAG_MISC, "Extension::OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_MIDDLE_EXTENSION));
@@ -206,7 +205,7 @@ sptr<IRemoteObject> JsInputMethodExtension::OnConnect(const AAFwk::Want &want)
 
 void JsInputMethodExtension::OnDisconnect(const AAFwk::Want &want)
 {
-    IMSA_HILOGI("jws JsInputMethodExtension OnDisconnect begin.");
+    IMSA_HILOGI("JsInputMethodExtension OnDisconnect begin.");
     Extension::OnDisconnect(want);
     IMSA_HILOGI("%{public}s begin.", __func__);
     HandleScope handleScope(jsRuntime_);
@@ -237,7 +236,7 @@ void JsInputMethodExtension::OnDisconnect(const AAFwk::Want &want)
 
 void JsInputMethodExtension::OnCommand(const AAFwk::Want &want, bool restart, int startId)
 {
-    IMSA_HILOGI("jws JsInputMethodExtension OnCommand begin.");
+    IMSA_HILOGI("JsInputMethodExtension OnCommand begin.");
     Extension::OnCommand(want, restart, startId);
     IMSA_HILOGI(
         "%{public}s begin restart=%{public}s,startId=%{public}d.", __func__, restart ? "true" : "false", startId);
@@ -246,7 +245,7 @@ void JsInputMethodExtension::OnCommand(const AAFwk::Want &want, bool restart, in
 
 NativeValue *JsInputMethodExtension::CallObjectMethod(const char *name, NativeValue *const *argv, size_t argc)
 {
-    IMSA_HILOGI("jws JsInputMethodExtension::CallObjectMethod(%{public}s), begin", name);
+    IMSA_HILOGI("JsInputMethodExtension::CallObjectMethod(%{public}s), begin", name);
 
     if (!jsObj_) {
         IMSA_HILOGW("Not found InputMethodExtension.js");
@@ -274,7 +273,7 @@ NativeValue *JsInputMethodExtension::CallObjectMethod(const char *name, NativeVa
 
 void JsInputMethodExtension::GetSrcPath(std::string &srcPath)
 {
-    IMSA_HILOGI("jws JsInputMethodExtension GetSrcPath begin.");
+    IMSA_HILOGI("JsInputMethodExtension GetSrcPath begin.");
     if (!Extension::abilityInfo_->isModuleJson) {
         /* temporary compatibility api8 + config.json */
         srcPath.append(Extension::abilityInfo_->package);

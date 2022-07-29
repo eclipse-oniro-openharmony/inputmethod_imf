@@ -17,7 +17,7 @@
 
 #include "ability_loader.h"
 #include "connection_manager.h"
-#include "hilog_wrapper.h"
+#include "global.h"
 #include "inputmethod_extension_context.h"
 #include "js_inputmethod_extension.h"
 #include "runtime.h"
@@ -27,11 +27,11 @@ namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 InputMethodExtension *InputMethodExtension::Create(const std::unique_ptr<Runtime> &runtime)
 {
-    HILOG_INFO("jws InputMethodExtension::Create runtime");
+    IMSA_HILOGI("InputMethodExtension::Create runtime");
     if (!runtime) {
         return new InputMethodExtension();
     }
-    HILOG_INFO("jws InputMethodExtension::Create runtime");
+    IMSA_HILOGI("InputMethodExtension::Create runtime");
     switch (runtime->GetLanguage()) {
         case Runtime::Language::JS:
             return JsInputMethodExtension::Create(runtime);
@@ -45,20 +45,20 @@ void InputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &recor
     const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
     const sptr<IRemoteObject> &token)
 {
-    HILOG_INFO("jws InputMethodExtension begin init context");
+    IMSA_HILOGI("InputMethodExtension begin init context");
     ExtensionBase<InputMethodExtensionContext>::Init(record, application, handler, token);
-    HILOG_INFO("InputMethodExtension begin init context");
+    IMSA_HILOGI("InputMethodExtension begin init context");
 }
 
 std::shared_ptr<InputMethodExtensionContext> InputMethodExtension::CreateAndInitContext(
     const std::shared_ptr<AbilityLocalRecord> &record, const std::shared_ptr<OHOSApplication> &application,
     std::shared_ptr<AbilityHandler> &handler, const sptr<IRemoteObject> &token)
 {
-    HILOG_INFO("jws InputMethodExtension begin init context");
+    IMSA_HILOGI("InputMethodExtension begin init context");
     std::shared_ptr<InputMethodExtensionContext> context =
         ExtensionBase<InputMethodExtensionContext>::CreateAndInitContext(record, application, handler, token);
     if (context == nullptr) {
-        HILOG_ERROR("InputMethodExtension::CreateAndInitContext context is nullptr");
+        IMSA_HILOGE("InputMethodExtension::CreateAndInitContext context is nullptr");
         return context;
     }
     return context;
