@@ -202,12 +202,7 @@ namespace MiscServices {
             IMSA_HILOGI("InputMethodAbility::OnInitialInput channelObject is nullptr");
             return;
         }
-        sptr<InputControlChannelProxy> channelProxy = new (std::nothrow) InputControlChannelProxy(channelObject);
-        if (channelProxy == nullptr) {
-            IMSA_HILOGI("InputMethodAbility::OnInitialInput inputControlChannel is nullptr");
-            return;
-        }
-        inputControlChannel = channelProxy;
+        SetInputControlChannel(channelObject);
     }
 
     void InputMethodAbility::OnInitInputControlChannel(Message *msg)
@@ -219,24 +214,14 @@ namespace MiscServices {
             IMSA_HILOGI("InputMethodAbility::OnInitInputControlChannel channelObject is nullptr");
             return;
         }
-        sptr<InputControlChannelProxy> channelProxy = new (std::nothrow) InputControlChannelProxy(channelObject);
-        if (channelProxy == nullptr) {
-            IMSA_HILOGI("InputMethodAbility::OnInitInputControlChannel inputControlChannel is nullptr");
-            return;
-        }
-        inputControlChannel = channelProxy;
+        SetInputControlChannel(channelObject);
     }
 
     void InputMethodAbility::OnStartInput(Message *msg)
     {
         IMSA_HILOGI("InputMethodAbility::OnStartInput");
         MessageParcel *data = msg->msgContent_;
-        sptr<InputDataChannelProxy> channalProxy = new (std::nothrow) InputDataChannelProxy(data->ReadRemoteObject());
-        if (channalProxy == nullptr) {
-            IMSA_HILOGI("InputMethodAbility::OnStartInput inputDataChannel is nullptr");
-            return;
-        }
-        inputDataChannel = channalProxy;
+        SetInputDataChannel(data->ReadRemoteObject());
         editorAttribute = data->ReadParcelable<InputAttribute>();
         if (!editorAttribute) {
             IMSA_HILOGI("InputMethodAbility::OnStartInput editorAttribute is nullptr");
@@ -248,11 +233,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodAbility::OnShowKeyboard");
         MessageParcel *data = msg->msgContent_;
-        sptr<InputDataChannelProxy> channalProxy = new (std::nothrow) InputDataChannelProxy(data->ReadRemoteObject());
-        if (channalProxy != nullptr) {
-            inputDataChannel = channalProxy;
-            IMSA_HILOGI("InputMethodAbility::OnShowKeyboard inputDataChannel is not nullptr");
-        }
+        SetInputDataChannel(data->ReadRemoteObject());
         ShowInputWindow();
     }
 
@@ -340,7 +321,7 @@ namespace MiscServices {
         }
         imeListener_->OnInputStart();
         imeListener_->OnKeyboardStatus(true);
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::ShowInputWindow channel is nullptr");
             return;
@@ -356,7 +337,7 @@ namespace MiscServices {
             return;
         }
         imeListener_->OnKeyboardStatus(false);
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::DissmissInputWindow channel is nullptr");
             return;
@@ -367,7 +348,7 @@ namespace MiscServices {
     bool InputMethodAbility::InsertText(const std::string text)
     {
         IMSA_HILOGI("InputMethodAbility::InsertText");
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::InsertText channel is nullptr");
             return false;
@@ -378,7 +359,7 @@ namespace MiscServices {
     void InputMethodAbility::DeleteForward(int32_t length)
     {
         IMSA_HILOGI("InputMethodAbility::DeleteForward");
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::DeleteForward channel is nullptr");
             return;
@@ -389,7 +370,7 @@ namespace MiscServices {
     void InputMethodAbility::DeleteBackward(int32_t length)
     {
         IMSA_HILOGI("InputMethodAbility::DeleteBackward");
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::DeleteBackward channel is nullptr");
             return;
@@ -400,7 +381,7 @@ namespace MiscServices {
     void InputMethodAbility::SendFunctionKey(int32_t funcKey)
     {
         IMSA_HILOGI("InputMethodAbility::SendFunctionKey");
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::SendFunctionKey channel is nullptr");
             return;
@@ -411,7 +392,7 @@ namespace MiscServices {
     void InputMethodAbility::HideKeyboardSelf()
     {
         IMSA_HILOGI("InputMethodAbility::HideKeyboardSelf");
-        sptr<IInputControlChannel> controlChannel = inputControlChannel;
+        std::shared_ptr<IInputControlChannel> controlChannel = GetInputControlChannel();
         if (controlChannel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::HideKeyboardSelf controlChannel is nullptr");
             return;
@@ -422,7 +403,7 @@ namespace MiscServices {
     std::u16string InputMethodAbility::GetTextBeforeCursor(int32_t number)
     {
         IMSA_HILOGI("InputMethodAbility::GetTextBeforeCursor");
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::GetTextBeforeCursor channel is nullptr");
             return u"";
@@ -433,7 +414,7 @@ namespace MiscServices {
     std::u16string InputMethodAbility::GetTextAfterCursor(int32_t number)
     {
         IMSA_HILOGI("InputMethodAbility::GetTextAfterCursor");
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::GetTextAfterCursor channel is nullptr");
             return u"";
@@ -444,7 +425,7 @@ namespace MiscServices {
     void InputMethodAbility::MoveCursor(int32_t keyCode)
     {
         IMSA_HILOGI("InputMethodAbility::MoveCursor");
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::MoveCursor channel is nullptr");
             return;
@@ -457,7 +438,7 @@ namespace MiscServices {
     int32_t InputMethodAbility::GetEnterKeyType()
     {
         IMSA_HILOGI("InputMethodAbility::GetEnterKeyType");
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::GetEnterKeyType channel is nullptr");
             return 0;
@@ -468,7 +449,7 @@ namespace MiscServices {
     int32_t InputMethodAbility::GetInputPattern()
     {
         IMSA_HILOGI("InputMethodAbility::GetInputPattern");
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::GetInputPattern channel is nullptr");
             return 0;
@@ -479,12 +460,50 @@ namespace MiscServices {
     void InputMethodAbility::StopInput()
     {
         IMSA_HILOGI("InputMethodAbility::StopInput");
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<IInputDataChannel> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::StopInput channel is nullptr");
             return;
         }
         channel->StopInput();
+    }
+
+    void InputMethodAbility::SetInputDataChannel(sptr<IRemoteObject> &object)
+    {
+        IMSA_HILOGI("run in SetInputDataChannel");
+        std::lock_guard<std::mutex> lock(dataChannelLock_);
+        std::shared_ptr<InputDataChannelProxy> channalProxy = make_shared<InputDataChannelProxy>(object)
+        if (channalProxy == nullptr) {
+            IMSA_HILOGI("InputMethodAbility::SetInputDataChannel inputDataChannel is nullptr");
+            return;
+        }
+        inputDataChannel = channalProxy;
+    }
+
+    std::shared_ptr<InputDataChannelProxy> InputMethodAbility::GetInputDataChannel()
+    {
+        IMSA_HILOGI("run in GetInputDataChannel");
+        std::lock_guard<std::mutex> lock(dataChannelLock_);
+        return inputDataChannel;
+    }
+
+    void InputMethodAbility::SetInputControlChannel(sptr<IRemoteObject> &object)
+    {
+        IMSA_HILOGI("run in SetInputControlChannel");
+        std::lock_guard<std::mutex> lock(controlChannelLock_);
+        std::shared_ptr<InputControlChannelProxy> channalProxy = make_shared<InputControlChannelProxy>(object)
+        if (channalProxy == nullptr) {
+            IMSA_HILOGI("InputMethodAbility::SetInputControlChannel inputDataChannel is nullptr");
+            return;
+        }
+        inputControlChannel = channalProxy;
+    }
+
+    std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlChannel()
+    {
+        IMSA_HILOGI("run in GetInputControlChannel");
+        std::lock_guard<std::mutex> lock(controlChannelLock_);
+        return inputControlChannel;
     }
 } // namespace MiscServices
 } // namespace OHOS

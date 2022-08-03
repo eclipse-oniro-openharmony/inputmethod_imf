@@ -88,13 +88,15 @@ namespace MiscServices {
         void StartInput(sptr<InputClientStub> &client);
         void StopInput(sptr<InputClientStub> &client);
         void ReleaseInput(sptr<InputClientStub> &client);
+        void SetInputMethodAgent(sptr<IRemoteObject> &object);
+        std::shared_ptr<InputMethodAgentProxy> GetInputMethodAgent();
         void WorkThread();
 
         sptr<InputDataChannelStub> mInputDataChannel;
         sptr<InputClientStub> mClient;
         sptr<InputMethodSystemAbilityProxy> mImms;
         sptr<ImsaDeathRecipient> deathRecipient_;
-        sptr<InputMethodAgentProxy> mAgent;
+        std::shared_ptr<InputMethodAgentProxy> mAgent = nullptr;
         sptr<OnTextChangedListener> textListener;
         InputAttribute mAttribute;
         std::u16string mTextString;
@@ -104,6 +106,7 @@ namespace MiscServices {
         int mSelectNewEnd = 0;
         CursorInfo cursorInfo_;
 
+        std::mutex mAgentLock_;
         static std::mutex instanceLock_;
         static sptr<InputMethodController> instance_;
         std::thread workThreadHandler;
