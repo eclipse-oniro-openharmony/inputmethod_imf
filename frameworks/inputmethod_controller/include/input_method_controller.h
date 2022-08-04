@@ -106,7 +106,7 @@ namespace MiscServices {
         int mSelectNewEnd = 0;
         CursorInfo cursorInfo_;
 
-        std::mutex mAgentLock_;
+        std::mutex agentLock_;
         static std::mutex instanceLock_;
         static sptr<InputMethodController> instance_;
         std::thread workThreadHandler;

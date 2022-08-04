@@ -482,7 +482,7 @@ using namespace MessageID;
     void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> object)
     {
         IMSA_HILOGI("run in SetInputMethodAgent");
-        std::lock_guard<std::mutex> lock(mAgentLock_);
+        std::lock_guard<std::mutex> lock(agentLock_);
         std::shared_ptr<InputMethodAgentProxy> agent = std::make_shared<InputMethodAgentProxy>(object);
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::SetInputMethodAgent agent is nullptr");
@@ -493,8 +493,7 @@ using namespace MessageID;
 
     std::shared_ptr<InputMethodAgentProxy> InputMethodController::GetInputMethodAgent()
     {
-        IMSA_HILOGI("run in GetInputMethodAgent");
-        std::lock_guard<std::mutex> lock(mAgentLock_);
+        std::lock_guard<std::mutex> lock(agentLock_);
         return mAgent;
     }
 } // namespace MiscServices

@@ -482,7 +482,6 @@ namespace MiscServices {
 
     std::shared_ptr<InputDataChannelProxy> InputMethodAbility::GetInputDataChannel()
     {
-        IMSA_HILOGI("run in GetInputDataChannel");
         std::lock_guard<std::mutex> lock(dataChannelLock_);
         return inputDataChannel;
     }
@@ -501,7 +500,6 @@ namespace MiscServices {
 
     std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlChannel()
     {
-        IMSA_HILOGI("run in GetInputControlChannel");
         std::lock_guard<std::mutex> lock(controlChannelLock_);
         return inputControlChannel;
     }
