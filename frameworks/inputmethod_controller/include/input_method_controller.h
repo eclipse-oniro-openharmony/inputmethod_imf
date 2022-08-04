@@ -96,6 +96,7 @@ namespace MiscServices {
         sptr<InputClientStub> mClient;
         sptr<InputMethodSystemAbilityProxy> mImms;
         sptr<ImsaDeathRecipient> deathRecipient_;
+        std::mutex agentLock_;
         std::shared_ptr<InputMethodAgentProxy> mAgent = nullptr;
         sptr<OnTextChangedListener> textListener;
         InputAttribute mAttribute;
@@ -106,7 +107,6 @@ namespace MiscServices {
         int mSelectNewEnd = 0;
         CursorInfo cursorInfo_;
 
-        std::mutex agentLock_;
         static std::mutex instanceLock_;
         static sptr<InputMethodController> instance_;
         std::thread workThreadHandler;

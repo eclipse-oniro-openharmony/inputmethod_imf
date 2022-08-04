@@ -74,16 +74,17 @@ namespace MiscServices {
         bool isBindClient = false;
 
         // communicating with IMSA
-        std::shared_ptr<IInputControlChannel> inputControlChannel = nullptr;
+        std::mutex controlChannelLock_;
+        std::shared_ptr<IInputControlChannel> controlChannel_ = nullptr;
         void SetCoreAndAgent();
 
         // communicating with IMC
-        std::shared_ptr<IInputDataChannel> inputDataChannel = nullptr;
+        std::mutex dataChannelLock_;
+        std::shared_ptr<IInputDataChannel> dataChannel_ = nullptr;
         sptr<JsInputMethodEngineListener> imeListener_;
         sptr<JsKeyboardDelegateListener> kdListener_;
         static std::mutex instanceLock_;
-        std::mutex dataChannelLock_;
-        std::mutex controlChannelLock_;
+
         static sptr<InputMethodAbility> instance_;
         sptr<InputMethodSystemAbilityProxy> mImms;
         sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
