@@ -483,7 +483,12 @@ using namespace MessageID;
     {
         IMSA_HILOGI("run in SetInputMethodAgent");
         std::lock_guard<std::mutex> lock(mAgentLock_);
-        mAgent = std::make_shared<InputMethodAgentProxy>(object);
+        std::shared_ptr<InputMethodAgentProxy> agent = std::make_shared<InputMethodAgentProxy>(object);
+        if (agent == nullptr) {
+            IMSA_HILOGI("InputMethodController::SetInputMethodAgent agent is nullptr");
+            return;
+        }
+        mAgent = agent;
     }
 
     std::shared_ptr<InputMethodAgentProxy> InputMethodController::GetInputMethodAgent()
