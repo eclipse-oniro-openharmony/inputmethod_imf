@@ -221,6 +221,10 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodAbility::OnStartInput");
         MessageParcel *data = msg->msgContent_;
         sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
+        if (!channelObject) {
+            IMSA_HILOGI("InputMethodAbility::OnStartInput channelObject is nullptr");
+            return;
+        }
         SetInputDataChannel(channelObject);
         editorAttribute = data->ReadParcelable<InputAttribute>();
         if (!editorAttribute) {
@@ -234,6 +238,10 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodAbility::OnShowKeyboard");
         MessageParcel *data = msg->msgContent_;
         sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
+        if (!channelObject) {
+            IMSA_HILOGI("InputMethodAbility::OnShowKeyboard channelObject is nullptr");
+            return;
+        }
         SetInputDataChannel(channelObject);
         ShowInputWindow();
     }
