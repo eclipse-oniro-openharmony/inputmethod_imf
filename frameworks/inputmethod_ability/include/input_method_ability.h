@@ -73,14 +73,12 @@ namespace MiscServices {
         int32_t KEYBOARD_SHOW = 2;
         bool isBindClient = false;
 
-        // communicating with IMSA
         std::mutex controlChannelLock_;
-        std::shared_ptr<IInputControlChannel> controlChannel_ = nullptr;
+        std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;
         void SetCoreAndAgent();
 
-        // communicating with IMC
         std::mutex dataChannelLock_;
-        std::shared_ptr<IInputDataChannel> dataChannel_ = nullptr;
+        std::shared_ptr<InputDataChannelProxy> dataChannel_ = nullptr;
         sptr<JsInputMethodEngineListener> imeListener_;
         sptr<JsKeyboardDelegateListener> kdListener_;
         static std::mutex instanceLock_;
@@ -90,14 +88,13 @@ namespace MiscServices {
         sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
 
         void SetInputDataChannel(sptr<IRemoteObject> &object);
-        std::shared_ptr<IInputDataChannel> GetInputDataChannel();
+        std::shared_ptr<InputDataChannelProxy> GetInputDataChannel();
         void SetInputControlChannel(sptr<IRemoteObject> &object);
-        std::shared_ptr<IInputControlChannel> GetInputControlChannel();
+        std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
 
         void Initialize();
         void WorkThread();
 
-        // the message from IMSA
         void OnInitialInput(Message *msg);
         void OnStartInput(Message *msg);
         void OnStopInput(Message *msg);
@@ -106,11 +103,9 @@ namespace MiscServices {
         void OnHideKeyboard(Message *msg);
         void OnInitInputControlChannel(Message *msg);
 
-        // the message from IMC
         void OnCursorUpdate(Message *msg);
         void OnSelectionChange(Message *msg);
 
-        // control inputwindow
         void InitialInputWindow();
         void ShowInputWindow();
         void DissmissInputWindow();
