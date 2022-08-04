@@ -28,8 +28,9 @@ gen_js_obj("inputmethod_extension_ability_js") {
 }
 
 gen_js_obj("inputmethod_extension_ability_abc") {
-  input = get_label_info(":gen_inputmethod_extension_ability_abc", "target_out_dir") +
-          "/inputmethod_extension_ability.abc"
+  input =
+      get_label_info(":gen_inputmethod_extension_ability_abc",
+                     "target_out_dir") + "/inputmethod_extension_ability.abc"
   output = target_out_dir + "/inputmethod_extension_ability_abc.o"
   dep = ":gen_inputmethod_extension_ability_abc"
 }
