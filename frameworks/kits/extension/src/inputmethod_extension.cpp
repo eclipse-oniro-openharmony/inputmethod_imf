@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,6 @@ InputMethodExtension *InputMethodExtension::Create(const std::unique_ptr<Runtime
     if (!runtime) {
         return new InputMethodExtension();
     }
-    IMSA_HILOGI("InputMethodExtension::Create runtime");
     switch (runtime->GetLanguage()) {
         case Runtime::Language::JS:
             return JsInputMethodExtension::Create(runtime);
@@ -44,16 +43,15 @@ void InputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &recor
     const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
     const sptr<IRemoteObject> &token)
 {
-    IMSA_HILOGI("InputMethodExtension begin init context");
+    IMSA_HILOGI("InputMethodExtension init context");
     ExtensionBase<InputMethodExtensionContext>::Init(record, application, handler, token);
-    IMSA_HILOGI("InputMethodExtension begin init context");
 }
 
 std::shared_ptr<InputMethodExtensionContext> InputMethodExtension::CreateAndInitContext(
     const std::shared_ptr<AbilityLocalRecord> &record, const std::shared_ptr<OHOSApplication> &application,
     std::shared_ptr<AbilityHandler> &handler, const sptr<IRemoteObject> &token)
 {
-    IMSA_HILOGI("InputMethodExtension begin init context");
+    IMSA_HILOGI("InputMethodExtension CreateAndInitContext");
     std::shared_ptr<InputMethodExtensionContext> context =
         ExtensionBase<InputMethodExtensionContext>::CreateAndInitContext(record, application, handler, token);
     if (context == nullptr) {

@@ -466,17 +466,27 @@ namespace MiscServices {
     \return ErrorCode::NO_ERROR no error
     \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
     */
-    int32_t InputMethodSystemAbility::listInputMethodByUserId(int32_t userId, std::vector<InputMethodProperty*> *properties)
+    int32_t InputMethodSystemAbility::listInputMethodByUserId(
+        int32_t userId, std::vector<InputMethodProperty *> *properties)
+    {
+        listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::SERVICE);
+        listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
+        return ErrorCode::NO_ERROR;
+    }
+
+    int32_t InputMethodSystemAbility::listInputMethodByType(
+        int32_t userId, std::vector<InputMethodProperty *> *properties, AppExecFwk::ExtensionAbilityType type)
     {
         IMSA_HILOGI("InputMethodSystemAbility::listInputMethodByUserId");
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-        bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(AppExecFwk::ExtensionAbilityType::SERVICE, userId, extensionInfos);
+        bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(type, userId, extensionInfos);
         if (!ret) {
             IMSA_HILOGI("InputMethodSystemAbility::listInputMethodByUserId QueryExtensionAbilityInfos error");
             return ErrorCode::ERROR_STATUS_UNKNOWN_ERROR;
         }
         for (auto extension : extensionInfos) {
-            std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
+            std::shared_ptr<Global::Resource::ResourceManager> resourceManager(
+                Global::Resource::CreateResourceManager());
             if (!resourceManager) {
                 IMSA_HILOGI("InputMethodSystemAbility::listInputMethodByUserId resourcemanager is nullptr");
                 break;

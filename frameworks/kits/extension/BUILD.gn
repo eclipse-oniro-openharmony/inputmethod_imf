@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -20,7 +20,7 @@ config("ability_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "${inputmethod_path}/frameworks/kits/extension/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
     "${ABILITY_RUNTIME_INNERKITS_PATH}/app_manager/include/appmgr",
@@ -82,10 +82,12 @@ config("ability_public_config") {
   ]
 }
 
-ohos_shared_library("inputmethodextension") {
+ohos_shared_library("inputmethod_extension") {
   include_dirs = [
     "${inputmethod_path}/frameworks/kits/extension/include",
     "//base/global/i18n/frameworks/intl/include",
+    "${inputmethod_path}/services/include",
+    "${inputmethod_path}/services/dfx/include",
   ]
 
   sources = [
@@ -100,7 +102,10 @@ ohos_shared_library("inputmethodextension") {
     "${ability_runtime_path}/frameworks/native/ability:ability_context_public_config",
   ]
 
-  deps = [ "${ability_runtime_path}/frameworks/native/appkit:app_context" ]
+  deps = [
+    "${ability_runtime_path}/frameworks/native/appkit:app_context",
+    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
+  ]
 
   external_deps = [
     "ability_base:want",
@@ -108,10 +113,8 @@ ohos_shared_library("inputmethodextension") {
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
     "ability_runtime:runtime",
-    "hitrace_native:hitrace_meter",
-    "hiviewdfx_hilog_native:libhilog",
+    "c_utils:utils",
     "ipc_js:rpc",
-    "utils_base:utils",
   ]
 
   public_deps = [
@@ -131,6 +134,7 @@ ohos_shared_library("inputmethod_extension_module") {
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
+    "${inputmethod_path}/services/include",
   ]
 
   sources = [ "${inputmethod_path}/frameworks/kits/extension/src/inputmethod_extension_module_loader.cpp" ]
@@ -139,11 +143,10 @@ ohos_shared_library("inputmethod_extension_module") {
   public_configs = [ ":ability_public_config" ]
 
   deps = [
-    ":inputmethodextension",
+    ":inputmethod_extension",
     "${ability_runtime_path}/frameworks/native/ability/native:abilitykit_native",
     "//foundation/window/window_manager/utils:libwmutil",
     "//foundation/window/window_manager/wm:libwm",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
@@ -151,8 +154,7 @@ ohos_shared_library("inputmethod_extension_module") {
     "ability_base:want",
     "ability_base:zuri",
     "ability_runtime:runtime",
-    "hisysevent_native:libhisysevent",
-    "hitrace_native:hitrace_meter",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
   ]
 
