@@ -145,7 +145,7 @@ using namespace MessageID;
                     MessageParcel *data = msg->msgContent_;
                     sptr<IRemoteObject> object = data->ReadRemoteObject();
                     if (object) {
-                        mAgent = new InputMethodAgentProxy(object);
+                        SetInputMethodAgent(object);
                     }
                     break;
                 }
@@ -344,7 +344,7 @@ using namespace MessageID;
 
     void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
     {
-        sptr<InputMethodAgentProxy> agent = mAgent;
+        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::OnCursorUpdate agent is nullptr");
             return;
@@ -374,7 +374,7 @@ using namespace MessageID;
         mSelectOldEnd = mSelectNewEnd;
         mSelectNewBegin = start;
         mSelectNewEnd = end;
-        sptr<InputMethodAgentProxy> agent = mAgent;
+        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::OnSelectionChange agent is nullptr");
             return;
@@ -420,7 +420,7 @@ using namespace MessageID;
     bool InputMethodController::dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
     {
         IMSA_HILOGI("InputMethodController::dispatchKeyEvent");
-        sptr<InputMethodAgentProxy> agent = mAgent;
+        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::dispatchKeyEvent agent is nullptr");
             return false;
@@ -455,7 +455,7 @@ using namespace MessageID;
 
     void InputMethodController::SetCallingWindow(uint32_t windowId)
     {
-        sptr<InputMethodAgentProxy> agent = mAgent;
+        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
         IMSA_HILOGI("InputMethodController::SetCallingWindow windowId = %{public}d", windowId);
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::SetCallingWindow agent is nullptr");
@@ -477,6 +477,24 @@ using namespace MessageID;
             return false;
         }
         return mImms->SwitchInputMethod(target);
+    }
+
+    void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
+    {
+        IMSA_HILOGI("run in SetInputMethodAgent");
+        std::lock_guard<std::mutex> lock(agentLock_);
+        std::shared_ptr<InputMethodAgentProxy> agent = std::make_shared<InputMethodAgentProxy>(object);
+        if (agent == nullptr) {
+            IMSA_HILOGI("InputMethodController::SetInputMethodAgent agent is nullptr");
+            return;
+        }
+        mAgent = agent;
+    }
+
+    std::shared_ptr<InputMethodAgentProxy> InputMethodController::GetInputMethodAgent()
+    {
+        std::lock_guard<std::mutex> lock(agentLock_);
+        return mAgent;
     }
 } // namespace MiscServices
 } // namespace OHOS
