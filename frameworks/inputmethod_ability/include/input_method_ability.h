@@ -90,9 +90,9 @@ namespace MiscServices {
         sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
 
         void SetInputDataChannel(sptr<IRemoteObject> &object);
-        std::shared_ptr<InputDataChannelProxy> GetInputDataChannel();
+        std::shared_ptr<IInputDataChannel> GetInputDataChannel();
         void SetInputControlChannel(sptr<IRemoteObject> &object);
-        std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
+        std::shared_ptr<IInputControlChannel> GetInputControlChannel();
 
         void Initialize();
         void WorkThread();

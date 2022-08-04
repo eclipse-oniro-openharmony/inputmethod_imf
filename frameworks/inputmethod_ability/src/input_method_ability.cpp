@@ -481,7 +481,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("run in SetInputDataChannel");
         std::lock_guard<std::mutex> lock(dataChannelLock_);
-        std::shared_ptr<InputDataChannelProxy> channalProxy = std::make_shared<InputDataChannelProxy>(object)
+        std::shared_ptr<InputDataChannelProxy> channalProxy = std::make_shared<InputDataChannelProxy>(object);
         if (channalProxy == nullptr) {
             IMSA_HILOGI("InputMethodAbility::SetInputDataChannel inputDataChannel is nullptr");
             return;
@@ -489,7 +489,7 @@ namespace MiscServices {
         dataChannel_ = channalProxy;
     }
 
-    std::shared_ptr<InputDataChannelProxy> InputMethodAbility::GetInputDataChannel()
+    std::shared_ptr<IInputDataChannel> InputMethodAbility::GetInputDataChannel()
     {
         std::lock_guard<std::mutex> lock(dataChannelLock_);
         return dataChannel_;
@@ -499,7 +499,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("run in SetInputControlChannel");
         std::lock_guard<std::mutex> lock(controlChannelLock_);
-        std::shared_ptr<InputControlChannelProxy> channalProxy = std::make_shared<InputControlChannelProxy>(object)
+        std::shared_ptr<InputControlChannelProxy> channalProxy = std::make_shared<InputControlChannelProxy>(object);
         if (channalProxy == nullptr) {
             IMSA_HILOGI("InputMethodAbility::SetInputControlChannel inputDataChannel is nullptr");
             return;
@@ -507,7 +507,7 @@ namespace MiscServices {
         controlChannel_ = channalProxy;
     }
 
-    std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlChannel()
+    std::shared_ptr<IInputControlChannel> InputMethodAbility::GetInputControlChannel()
     {
         std::lock_guard<std::mutex> lock(controlChannelLock_);
         return controlChannel_;
