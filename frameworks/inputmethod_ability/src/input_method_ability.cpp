@@ -18,7 +18,6 @@
 #include "input_method_agent_stub.h"
 #include "message_parcel.h"
 #include "system_ability_definition.h"
-#include "input_data_channel_proxy.h"
 #include "input_method_utils.h"
 #include "iservice_registry.h"
 #include "input_method_core_proxy.h"
