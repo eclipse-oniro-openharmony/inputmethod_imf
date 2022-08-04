@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,9 +29,9 @@ ErrCode InputMethodExtensionContext::StartAbility(const AAFwk::Want &want) const
 {
     IMSA_HILOGD("%{public}s begin.", __func__);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, ILLEGAL_REQUEST_CODE);
-    IMSA_HILOGD("%{public}s. End calling StartAbility. ret=%{public}d", __func__, err);
+    IMSA_HILOGD("%{public}s ret=%{public}d", __func__, err);
     if (err != ERR_OK) {
-        IMSA_HILOGE("InputMethodContext::StartAbility is failed %{public}d", err);
+        IMSA_HILOGE("InputMethodExtensionContext::StartAbility failed: %{public}d", err);
     }
     return err;
 }
@@ -42,9 +42,9 @@ ErrCode InputMethodExtensionContext::StartAbility(
     IMSA_HILOGD("%{public}s begin.", __func__);
     ErrCode err =
         AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_, ILLEGAL_REQUEST_CODE);
-    IMSA_HILOGD("%{public}s. End calling StartAbility. ret=%{public}d", __func__, err);
+    IMSA_HILOGD("%{public}s ret=%{public}d", __func__, err);
     if (err != ERR_OK) {
-        IMSA_HILOGE("InputMethodContext::StartAbility is failed %{public}d", err);
+        IMSA_HILOGE("InputMethodExtensionContext::StartAbility failed: %{public}d", err);
     }
     return err;
 }
@@ -54,19 +54,18 @@ bool InputMethodExtensionContext::ConnectAbility(
 {
     IMSA_HILOGI("%{public}s begin.", __func__);
     ErrCode ret = ConnectionManager::GetInstance().ConnectAbility(token_, want, connectCallback);
-    IMSA_HILOGI("InputMethodExtensionContext::ConnectAbility ErrorCode = %{public}d", ret);
+    IMSA_HILOGI("InputMethodExtensionContext::ConnectAbility ret = %{public}d", ret);
     return ret == ERR_OK;
 }
 
 ErrCode InputMethodExtensionContext::StartAbilityWithAccount(const AAFwk::Want &want, int accountId) const
 {
-    IMSA_HILOGD("%{public}s begin.", __func__);
-    IMSA_HILOGI("%{public}d accountId:", accountId);
+    IMSA_HILOGI("%{public}s begin, accountId: %{public}d", __func__, accountId);
     ErrCode err =
         AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, ILLEGAL_REQUEST_CODE, accountId);
-    IMSA_HILOGD("%{public}s. End calling StartAbilityWithAccount. ret=%{public}d", __func__, err);
+    IMSA_HILOGD("%{public}s ret=%{public}d", __func__, err);
     if (err != ERR_OK) {
-        IMSA_HILOGE("InputMethodContext::StartAbilityWithAccount is failed %{public}d", err);
+        IMSA_HILOGE("InputMethodExtensionContext::StartAbilityWithAccount failed: %{public}d", err);
     }
     return err;
 }
@@ -77,7 +76,7 @@ ErrCode InputMethodExtensionContext::StartAbilityWithAccount(
     IMSA_HILOGD("%{public}s begin.", __func__);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(
         want, startOptions, token_, ILLEGAL_REQUEST_CODE, accountId);
-    IMSA_HILOGD("%{public}s. End calling StartAbilityWithAccount. ret=%{public}d", __func__, err);
+    IMSA_HILOGD("%{public}s ret=%{public}d", __func__, err);
     if (err != ERR_OK) {
         IMSA_HILOGE("InputMethodContext::StartAbilityWithAccount is failed %{public}d", err);
     }
@@ -89,7 +88,7 @@ bool InputMethodExtensionContext::ConnectAbilityWithAccount(
 {
     IMSA_HILOGI("%{public}s begin.", __func__);
     ErrCode ret = ConnectionManager::GetInstance().ConnectAbilityWithAccount(token_, want, accountId, connectCallback);
-    IMSA_HILOGI("InputMethodExtensionContext::ConnectAbilityWithAccount ErrorCode = %{public}d", ret);
+    IMSA_HILOGI("InputMethodExtensionContext::ConnectAbilityWithAccount ret = %{public}d", ret);
     return ret == ERR_OK;
 }
 
@@ -110,7 +109,7 @@ ErrCode InputMethodExtensionContext::TerminateAbility()
     IMSA_HILOGI("%{public}s begin.", __func__);
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token_, -1, nullptr);
     if (err != ERR_OK) {
-        IMSA_HILOGE("InputMethodExtensionContext::TerminateAbility is failed %{public}d", err);
+        IMSA_HILOGE("InputMethodExtensionContext::TerminateAbility failed: %{public}d", err);
     }
     IMSA_HILOGI("%{public}s end.", __func__);
     return err;

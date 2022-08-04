@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,11 +14,6 @@
  */
 
 import {AsyncCallback} from './basic';
-import Want from './@ohos.application.Want';
-import StartOptions from "./@ohos.application.StartOptions";
-import { ConnectOptions } from "./ability/connectOptions";
-import ExtensionContext from './application/ExtensionContext';
-import { ExtensionAbilityInfo } from "./bundle/extensionAbilityInfo";
 
 /**
  * inputmethodengine
@@ -165,82 +160,6 @@ declare namespace inputMethodEngine {
         readonly keyAction: number;
     }
 
-    /**
-     * The extension context class of input method.
-     *
-     * @since 9
-     * @syscap SystemCapability.MiscServices.InputMethodFramework
-     * @StageModelOnly
-     */
-    class InputMethodExtensionContext extends ExtensionContext {
-
-        /**
-         * Input method extension uses this method to start a specific ability.
-         *
-         * @since 9
-         * @syscap SystemCapability.MiscServices.InputMethodFramework
-         * @param want Indicates the ability to start.
-         * @param options Indicates the start options.
-         * @return -
-         * @StageModelOnly
-         */
-        startAbility(want: Want, callback: AsyncCallback<void>): void;
-        startAbility(want: Want, options: StartOptions, callback: AsyncCallback<void>): void;
-        startAbility(want: Want, options?: StartOptions): Promise<void>;
-
-        /**
-         * Destroy the input method extension.
-         *
-         * @since 9
-         * @syscap SystemCapability.MiscServices.InputMethodFramework
-         * @return -
-         * @StageModelOnly
-         */
-        terminateSelf(callback: AsyncCallback<void>): void;
-        terminateSelf(): Promise<void>;
-
-    }
-
-    /**
-     * The extension ability class of input method.
-     *
-     * @since 9
-     * @syscap SystemCapability.MiscServices.InputMethodFramework
-     * @StageModelOnly
-     */
-    class InputMethodExtensionAbility {
-
-        /**
-         * Indicates input method extension ability context.
-         *
-         * @since 9
-         * @syscap SystemCapability.MiscServices.InputMethodFramework
-         * @StageModelOnly
-         */
-        context: InputMethodExtensionContext;
-
-        /**
-         * Called back when a input method extension is started for initialization.
-         *
-         * @since 9
-         * @syscap SystemCapability.MiscServices.InputMethodFramework
-         * @param want Indicates the want of created service extension.
-         * @return -
-         * @StageModelOnly
-         */
-        onCreate(want: Want): void;
-
-        /**
-         * Called back before a input method extension is destroyed.
-         *
-         * @since 9
-         * @syscap SystemCapability.MiscServices.InputMethodFramework
-         * @return -
-         * @StageModelOnly
-         */
-        onDestroy(): void;
-
-    }
 }
 
 export default inputMethodEngine;

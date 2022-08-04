@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,7 +53,7 @@ public:
 
     static void Finalizer(NativeEngine *engine, void *data, void *hint)
     {
-        IMSA_HILOGI("JsAbilityContext::Finalizer is called");
+        IMSA_HILOGI("JsInputMethodExtensionContext::Finalizer is called");
         std::unique_ptr<JsInputMethodExtensionContext>(static_cast<JsInputMethodExtensionContext *>(data));
     }
 
@@ -98,7 +98,7 @@ private:
 
     NativeValue *OnStartAbility(NativeEngine &engine, NativeCallbackInfo &info)
     {
-        IMSA_HILOGI("OnStartAbility is called");
+        IMSA_HILOGI("InputMethodExtensionContext OnStartAbility");
         // only support one or two or three params
         if (info.argc != ARGC_ONE && info.argc != ARGC_TWO && info.argc != ARGC_THREE) {
             IMSA_HILOGE("Not enough params");
@@ -245,7 +245,7 @@ private:
 
     NativeValue *OnConnectAbility(NativeEngine &engine, NativeCallbackInfo &info)
     {
-        IMSA_HILOGI("OnConnectAbility is called");
+        IMSA_HILOGI("OnConnectAbility");
         // only support two params
         if (info.argc != ARGC_TWO) {
             IMSA_HILOGE("Not enough params");
@@ -469,6 +469,9 @@ NativeValue *CreateJsInputMethodExtensionContext(
     NativeEngine &engine, std::shared_ptr<InputMethodExtensionContext> context)
 {
     IMSA_HILOGI("CreateJsInputMethodExtensionContext begin");
+    if (context) {
+        auto abilityInfo = context->GetAbilityInfo();
+    }
     NativeValue *objValue = CreateJsExtensionContext(engine, context);
     NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
 
@@ -486,32 +489,10 @@ NativeValue *CreateJsInputMethodExtensionContext(
         engine, *object, "startAbilityWithAccount", JsInputMethodExtensionContext::StartAbilityWithAccount);
     BindNativeFunction(
         engine, *object, "connectAbilityWithAccount", JsInputMethodExtensionContext::ConnectAbilityWithAccount);
-
-    if (context) {
-        IMSA_HILOGI("Set ExtensionAbilityInfo Property");
-        auto abilityInfo = context->GetAbilityInfo();
-        auto hapModuleInfo = context->GetHapModuleInfo();
-        if (abilityInfo && hapModuleInfo) {
-            auto isExist = [&abilityInfo](const AppExecFwk::ExtensionAbilityInfo &info) {
-                IMSA_HILOGI("%{public}s, %{public}s", info.bundleName.c_str(), info.name.c_str());
-                return info.bundleName == abilityInfo->bundleName && info.name == abilityInfo->name;
-            };
-            auto infoIter =
-                std::find_if(hapModuleInfo->extensionInfos.begin(), hapModuleInfo->extensionInfos.end(), isExist);
-            if (infoIter == hapModuleInfo->extensionInfos.end()) {
-                IMSA_HILOGI("Get target fail.");
-                return objValue;
-            }
-            object->SetProperty("extensionAbilityInfo", CreateJsExtensionAbilityInfo(engine, *infoIter));
-        }
-    }
-
     return objValue;
 }
 
-JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(NativeEngine &engine) : engine_(engine)
-{
-}
+JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(NativeEngine &engine) : engine_(engine) {}
 
 JSInputMethodExtensionConnection::~JSInputMethodExtensionConnection() = default;
 

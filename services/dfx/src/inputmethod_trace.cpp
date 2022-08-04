@@ -28,6 +28,16 @@ void ValueTrace(const std::string &name, int64_t count)
     CountTrace(HITRACE_TAG_MISC, name, count);
 }
 
+void StartAsync(uint64_t label, const std::string& value, int32_t taskId)
+{
+    StartAsyncTrace(label, value, taskId);
+}
+
+void FinishAsync(uint64_t label, const std::string &value, int32_t taskId)
+{
+    FinishAsyncTrace(label, value, taskId);
+}
+
 InputmethodTrace::InputmethodTrace(const std::string &value)
 {
     StartTrace(HITRACE_TAG_MISC, value);

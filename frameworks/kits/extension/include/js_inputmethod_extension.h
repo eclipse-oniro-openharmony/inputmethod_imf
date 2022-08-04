@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -106,6 +106,8 @@ public:
 
 private:
     NativeValue *CallObjectMethod(const char *name, NativeValue *const *argv = nullptr, size_t argc = 0);
+
+    void BindContext(NativeEngine& engine, NativeObject* obj);
 
     void GetSrcPath(std::string &srcPath);
 
