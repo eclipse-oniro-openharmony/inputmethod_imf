@@ -479,7 +479,7 @@ using namespace MessageID;
         return mImms->SwitchInputMethod(target);
     }
 
-    void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> object)
+    void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
     {
         IMSA_HILOGI("run in SetInputMethodAgent");
         std::lock_guard<std::mutex> lock(agentLock_);
