@@ -197,7 +197,7 @@ namespace MiscServices {
         MessageParcel *data = msg->msgContent_;
         displyId = data->ReadInt32();
         sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
-        if (!channelObject) {
+        if (channelObject == nullptr) {
             IMSA_HILOGI("InputMethodAbility::OnInitialInput channelObject is nullptr");
             return;
         }
@@ -209,7 +209,7 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodAbility::OnInitInputControlChannel");
         MessageParcel *data = msg->msgContent_;
         sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
-        if (!channelObject) {
+        if (channelObject == nullptr) {
             IMSA_HILOGI("InputMethodAbility::OnInitInputControlChannel channelObject is nullptr");
             return;
         }
@@ -221,7 +221,7 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodAbility::OnStartInput");
         MessageParcel *data = msg->msgContent_;
         sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
-        if (!channelObject) {
+        if (channelObject == nullptr) {
             IMSA_HILOGI("InputMethodAbility::OnStartInput channelObject is nullptr");
             return;
         }
@@ -238,7 +238,7 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodAbility::OnShowKeyboard");
         MessageParcel *data = msg->msgContent_;
         sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
-        if (!channelObject) {
+        if (channelObject == nullptr) {
             IMSA_HILOGI("InputMethodAbility::OnShowKeyboard channelObject is nullptr");
             return;
         }
