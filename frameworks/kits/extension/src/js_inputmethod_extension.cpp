@@ -258,12 +258,10 @@ void JsInputMethodExtension::OnCommand(const AAFwk::Want &want, bool restart, in
     Extension::OnCommand(want, restart, startId);
     IMSA_HILOGI(
         "%{public}s begin restart=%{public}s,startId=%{public}d.", __func__, restart ? "true" : "false", startId);
-    // wrap want
     HandleScope handleScope(jsRuntime_);
     NativeEngine* nativeEngine = &jsRuntime_.GetNativeEngine();
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(reinterpret_cast<napi_env>(nativeEngine), want);
     NativeValue* nativeWant = reinterpret_cast<NativeValue*>(napiWant);
-    // wrap startId
     napi_value napiStartId = nullptr;
     napi_create_int32(reinterpret_cast<napi_env>(nativeEngine), startId, &napiStartId);
     NativeValue* nativeStartId = reinterpret_cast<NativeValue*>(napiStartId);

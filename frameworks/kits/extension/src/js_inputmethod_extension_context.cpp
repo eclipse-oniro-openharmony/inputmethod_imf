@@ -252,13 +252,11 @@ private:
             return engine.CreateUndefined();
         }
 
-        // unwrap want
         AAFwk::Want want;
         OHOS::AppExecFwk::UnwrapWant(
             reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ZERO]), want);
         IMSA_HILOGI("%{public}s bundlename:%{public}s abilityname:%{public}s", __func__, want.GetBundle().c_str(),
             want.GetElement().GetAbilityName().c_str());
-        // unwarp connection
         sptr<JSInputMethodExtensionConnection> connection = new JSInputMethodExtensionConnection(engine);
         connection->SetJsConnectionObject(info.argv[1]);
         int64_t connectId = serialNumber_;
@@ -302,7 +300,6 @@ private:
             return engine.CreateUndefined();
         }
 
-        // unwrap want
         AAFwk::Want want;
         OHOS::AppExecFwk::UnwrapWant(
             reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ZERO]), want);
@@ -316,7 +313,6 @@ private:
             return engine.CreateUndefined();
         }
 
-        // unwarp connection
         sptr<JSInputMethodExtensionConnection> connection = new JSInputMethodExtensionConnection(engine);
         connection->SetJsConnectionObject(info.argv[1]);
         int64_t connectId = serialNumber_;
@@ -360,9 +356,7 @@ private:
             return engine.CreateUndefined();
         }
 
-        // unwrap want
         AAFwk::Want want;
-        // unwrap connectId
         int64_t connectId = -1;
         sptr<JSInputMethodExtensionConnection> connection = nullptr;
         napi_get_value_int64(
