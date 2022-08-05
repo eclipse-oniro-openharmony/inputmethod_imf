@@ -39,7 +39,7 @@ public:
     class EventSubscriber : public EventFwk::CommonEventSubscriber {
     public:
         EventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
-            : CommonEventSubscriber(subscribeInfo) {}
+            : EventFwk::CommonEventSubscriber(subscribeInfo) {}
         void OnReceiveEvent(const EventFwk::CommonEventData &data);
         void startUser(int32_t newUserId);
     };
