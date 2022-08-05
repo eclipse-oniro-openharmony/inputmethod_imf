@@ -115,8 +115,10 @@ namespace MiscServices {
     }
 
     ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(
-    std::shared_ptr<EventSubscriber> &sub) : sub_(sub)
-    {}
+        std::shared_ptr<EventSubscriber> &sub)
+        : sub_(sub)
+    {
+    }
 
     void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility(
         int32_t systemAbilityId, const std::string& deviceId)
