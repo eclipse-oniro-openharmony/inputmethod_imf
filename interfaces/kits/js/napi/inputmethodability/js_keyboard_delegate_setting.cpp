@@ -30,7 +30,7 @@ constexpr size_t ARGC_FOUR = 4;
 const std::string JsKeyboardDelegateSetting::KDS_CLASS_NAME = "KeyboardDelegate";
 thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
 napi_value JsKeyboardDelegateSetting::Init(napi_env env, napi_value exports)
-{  
+{
     napi_property_descriptor descriptor[] = {
         
         DECLARE_NAPI_PROPERTY("OPTION_ASCII", GetJsConstProperty(env, static_cast<uint32_t>(20))),
@@ -189,7 +189,7 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    NAPI_ASSERT(env, argc == 2, "Wrong number of arguments, requires 2");
+    NAPI_ASSERT(env, argc == ARGC_TWO, "Wrong number of arguments, requires 2");
     
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
@@ -279,23 +279,20 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
 
 bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
-    UvEntry *entry = nullptr;
     bool isOnKeyEvent = false;
     bool isResult = false;
+    std::string type = "";
+    std::vector<std::shared_ptr<JSCallbackObject>> vecCopy {};
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
-        std::string type = keyStatus == ARGC_TWO ? "keyDown" : "keyUp";
+        type = keyStatus == ARGC_TWO ? "keyDown" : "keyUp";
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnKeyEvent cb-vector is empty");
             return isOnKeyEvent;
         }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return isOnKeyEvent;
-        }
+        vecCopy = jsCbMap_[type];
     }
-    for (auto item : entry->vecCopy) {
+    for (auto item : vecCopy) {
         napi_value jsObject = GetResultOnKeyEvent(item->env_, keyCode, keyStatus);
         if (jsObject == nullptr) {
             IMSA_HILOGE("get GetResultOnKeyEvent failed: %{punlic}p", jsObject);
@@ -329,7 +326,7 @@ uv_work_t *JsKeyboardDelegateSetting::GetCursorUVwork(std::string type, CursorPa
 {
     UvEntry *entry = nullptr;
     {
-        std::lock_guard<std::recursive_mutex> lock(mutex_); 
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnInputStart cb-vector is empty");
@@ -357,7 +354,7 @@ uv_work_t *JsKeyboardDelegateSetting::GetSelectionUVwork(std::string type, Selec
 {
     UvEntry *entry = nullptr;
     {
-        std::lock_guard<std::recursive_mutex> lock(mutex_); 
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnInputStart cb-vector is empty");
@@ -386,7 +383,7 @@ uv_work_t *JsKeyboardDelegateSetting::GetTextUVwork(std::string type, std::strin
 {
     UvEntry *entry = nullptr;
     {
-        std::lock_guard<std::recursive_mutex> lock(mutex_); 
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnInputStart cb-vector is empty");

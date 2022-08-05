@@ -55,12 +55,12 @@ private:
     static thread_local napi_ref KDSRef_;
     struct CursorPara {
         int32_t positionX;
-        int32_t positionY; 
+        int32_t positionY;
         int height;
     };
     struct SelectionPara {
         int32_t oldBegin;
-        int32_t oldEnd; 
+        int32_t oldEnd;
         int32_t newBegin;
         int32_t newEnd;
     };

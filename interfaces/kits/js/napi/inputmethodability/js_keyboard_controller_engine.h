@@ -46,7 +46,7 @@ public:
     static napi_value Init(napi_env env, napi_value info);
     static napi_value GetKeyboardControllerInstance(napi_env env);
     static napi_value HideKeyboard(napi_env env, napi_callback_info info);
-private:   
+private:  
     static napi_value JsConstructor(napi_env env, napi_callback_info info);
     static napi_value GetJSInputMethodProperty(napi_env env, std::vector<InputMethodProperty*> &properties);
     static const std::string KCE_CLASS_NAME;

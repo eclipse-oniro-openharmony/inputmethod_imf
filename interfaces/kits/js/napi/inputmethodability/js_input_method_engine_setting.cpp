@@ -31,7 +31,7 @@ const std::string JsInputMethodEngineSetting::IMES_CLASS_NAME = "InputMethodEngi
 thread_local napi_ref JsInputMethodEngineSetting::IMESRef_ = nullptr;
 napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
 {
-    napi_property_descriptor descriptor[] = {     
+    napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_UNSPECIFIED",
             GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::UNSPECIFIED))),
         DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_GO",
@@ -111,7 +111,7 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
 };
 
 napi_value JsInputMethodEngineSetting::GetInputMethodEngine(napi_env env, napi_callback_info info)
-{  
+{
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, IMESRef_, &cons) != napi_ok) {
@@ -303,7 +303,7 @@ uv_work_t *JsInputMethodEngineSetting::GetUVwork(std::string type)
 {
     UvEntry *entry = nullptr;
     {
-        std::lock_guard<std::recursive_mutex> lock(mutex_); 
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnInputStart cb-vector is empty");
@@ -328,7 +328,7 @@ uv_work_t *JsInputMethodEngineSetting::GetUVwork(std::string type)
 {
     UvEntry *entry = nullptr;
     {
-        std::lock_guard<std::recursive_mutex> lock(mutex_); 
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnInputStart cb-vector is empty");
@@ -353,7 +353,7 @@ uv_work_t *JsInputMethodEngineSetting::GetStopInputUVwork(std::string type, std:
 {
     UvEntry *entry = nullptr;
     {
-        std::lock_guard<std::recursive_mutex> lock(mutex_); 
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnInputStart cb-vector is empty");
@@ -379,7 +379,7 @@ uv_work_t *JsInputMethodEngineSetting::GetWindowIDUVwork(std::string type, uint3
 {
     UvEntry *entry = nullptr;
     {
-        std::lock_guard<std::recursive_mutex> lock(mutex_); 
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnInputStart cb-vector is empty");
