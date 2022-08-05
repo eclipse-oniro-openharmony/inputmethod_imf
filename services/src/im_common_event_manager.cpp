@@ -14,12 +14,13 @@
  */
 
 #include "im_common_event_manager.h"
-#include "common_event_manager.h"
-#include "common_event_support.h"
+
 #include "global.h"
-#include "ipc_skeleton.h"
-#include "message_handler.h"
 #include "input_method_system_ability_stub.h"
+#include "ipc_skeleton.h"
+#include "iservice_registry.h"
+#include "message_handler.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -61,17 +62,31 @@ namespace MiscServices {
             IMSA_HILOGI("ImCommonEventManager::SubscribeEvent subscriber is nullptr");
             return false;
         }
-
+        subscriber_ = subscriber;
+        auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        statusChangeListener_ = new (std::nothrow) SystemAbilityStatusChangeListener(subscriber_);
+        if (samgrProxy == nullptr || statusChangeListener_ == nullptr) {
+            IMSA_HILOGE("SubscribeEvent samgrProxy or statusChangeListener_ is nullptr");
+            return false;
+        }
+        int32_t ret = samgrProxy->SubscribeSystemAbility(COMMON_EVENT_SERVICE_ID, statusChangeListener_);
+        IMSA_HILOGE("SubscribeEvent SubscribeSystemAbility result:%{public}d", ret);
         if (!EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber)) {
             IMSA_HILOGI("ImCommonEventManager::SubscribeEvent fail");
             return false;
         }
-
         return true;
     }
 
     bool ImCommonEventManager::UnsubscribeEvent()
     {
+        if (subscriber_ == nullptr) {
+            IMSA_HILOGE("ImCommonEventManager::UnsubscribeEvent subscriber_ is nullptr");
+            return false;
+        }
+        bool subscribeResult = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
+        subscriber_ = nullptr;
+        IMSA_HILOGI("ImCommonEventManager::UnsubscribeEvent subscribeResult = %{public}d", subscribeResult);
         return true;
     }
 
@@ -79,10 +94,9 @@ namespace MiscServices {
     {
         auto want = data.GetWant();
         std::string action = want.GetAction();
-        IMSA_HILOGI("ImCommonEventManager::EventSubscriber data.GetCode = %{public}u", data.GetCode());
+        IMSA_HILOGI("ImCommonEventManager::OnReceiveEvent data.GetCode = %{public}u", data.GetCode());
         if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
-            // do something
-            IMSA_HILOGI("ImCommonEventManager::EventSubscriber user switched!!!");
+            IMSA_HILOGI("ImCommonEventManager::OnReceiveEvent user switched!!!");
             startUser(data.GetCode());
         }
     }
@@ -98,6 +112,40 @@ namespace MiscServices {
         Message *msg = new Message(MessageID::MSG_ID_USER_START, parcel);
         MessageHandler::Instance()->SendMessage(msg);
         IMSA_HILOGI("ImCommonEventManager::startUser 3");
+    }
+
+    ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(
+    std::shared_ptr<EventSubscriber> &sub) : sub_(sub)
+    {}
+
+    void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility(
+        int32_t systemAbilityId, const std::string& deviceId)
+    {
+        if (systemAbilityId != COMMON_EVENT_SERVICE_ID) {
+            IMSA_HILOGE("ImCommonEventManager::OnAddSystemAbility systemAbilityId is not COMMON_EVENT_SERVICE_ID");
+            return;
+        }
+        if (sub_ == nullptr) {
+            IMSA_HILOGE("ImCommonEventManager::OnAddSystemAbility COMMON_EVENT_SERVICE_ID sub_ is nullptr");
+            return;
+        }
+        bool subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(sub_);
+        IMSA_HILOGI("ImCommonEventManager::OnAddSystemAbility subscribeResult = %{public}d", subscribeResult);
+    }
+    
+    void ImCommonEventManager::SystemAbilityStatusChangeListener::OnRemoveSystemAbility(
+        int32_t systemAbilityId, const std::string& deviceId)
+    {
+        if (systemAbilityId != COMMON_EVENT_SERVICE_ID) {
+            IMSA_HILOGE("ImCommonEventManager::OnRemoveSystemAbilitysystemAbilityId is not COMMON_EVENT_SERVICE_ID");
+            return;
+        }
+        if (sub_ == nullptr) {
+            IMSA_HILOGE("ImCommonEventManager::OnRemoveSystemAbility COMMON_EVENT_SERVICE_ID opName_ is nullptr");
+            return;
+        }
+        bool subscribeResult = EventFwk::CommonEventManager::UnSubscribeCommonEvent(sub_);
+        IMSA_HILOGI("ImCommonEventManager::OnRemoveSystemAbility subscribeResult = %{public}d", subscribeResult);
     }
 } // namespace MiscServices
 } // namespace OHOS
