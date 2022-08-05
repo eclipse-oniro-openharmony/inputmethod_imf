@@ -18,7 +18,7 @@
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 #include "global.h"
-#include "js_context.h"
+#include "async_call.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -42,6 +42,7 @@ struct SendKeyFunctionContext : public AsyncCall::Context {
         return Context::operator()(env, result);
     }
 };
+
 struct DeleteForwardContext : public AsyncCall::Context {
     bool isDeleteForward = false;
     int32_t length;
@@ -62,6 +63,7 @@ struct DeleteForwardContext : public AsyncCall::Context {
         return Context::operator()(env, result);
     }
 };
+
 struct DeleteBackwardContext : public AsyncCall::Context {
     bool isDeleteBackward = false;
     int32_t length;
@@ -82,6 +84,7 @@ struct DeleteBackwardContext : public AsyncCall::Context {
         return Context::operator()(env, result);
     }
 };
+
 struct InsertTextContext : public AsyncCall::Context {
     bool isInsertText = false;
     std::string text;
@@ -102,6 +105,7 @@ struct InsertTextContext : public AsyncCall::Context {
         return Context::operator()(env, result);
     }
 };
+
 struct GetForwardContext : public AsyncCall::Context {
     int32_t length;
     std::string text;
@@ -122,6 +126,7 @@ struct GetForwardContext : public AsyncCall::Context {
         return Context::operator()(env, result);
     }
 };
+
 struct GetBackwardContext : public AsyncCall::Context {
     int32_t length;
     std::string text;
@@ -142,12 +147,14 @@ struct GetBackwardContext : public AsyncCall::Context {
         return Context::operator()(env, result);
     }
 };
+
 struct GetEditorAttributeContext : public AsyncCall::Context {
     int32_t inputPattern = 0;
     int32_t enterKeyType = 0;
     napi_status status = napi_generic_failure;
     GetEditorAttributeContext() : Context(nullptr, nullptr) { };
-    GetEditorAttributeContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
+    GetEditorAttributeContext(InputAction input, OutputAction output)
+        : Context(std::move(input), std::move(output)) { };
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -162,6 +169,7 @@ struct GetEditorAttributeContext : public AsyncCall::Context {
         return Context::operator()(env, result);
     }
 };
+
 class JsTextInputClientEngine {
 public:
     JsTextInputClientEngine() = default;
@@ -193,7 +201,8 @@ private:
     static int32_t GetNumberProperty(napi_env env, napi_value obj);
     static std::string GetStringProperty(napi_env env, napi_value obj);
     static napi_value GetResult(napi_env env, std::string &text);
-    static napi_value GetResultEditorAttribute(napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
+    static napi_value GetResultEditorAttribute(napi_env env,
+        std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
 
     static const std::string TIC_CLASS_NAME;
     static thread_local napi_ref TICRef_;

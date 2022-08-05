@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
 #ifndef INTERFACE_KITS_JS_KEYBOARD_CONTROLLER_H
 #define INTERFACE_KITS_JS_KEYBOARD_CONTROLLER_H
 
-#include "js_context.h"
+#include "async_call.h"
 #include "global.h"
 
 namespace OHOS {
@@ -46,7 +46,7 @@ public:
     static napi_value Init(napi_env env, napi_value info);
     static napi_value GetKeyboardControllerInstance(napi_env env);
     static napi_value HideKeyboard(napi_env env, napi_callback_info info);
-private:      
+private:   
     static napi_value JsConstructor(napi_env env, napi_callback_info info);
     static napi_value GetJSInputMethodProperty(napi_env env, std::vector<InputMethodProperty*> &properties);
     static const std::string KCE_CLASS_NAME;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";
 
 napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
 {
-    IMSA_HILOGI("run in JsTextInputClientEngine::init");
+    IMSA_HILOGI("JsTextInputClientEngine init");
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("sendKeyFunction", SendKeyFunction),
         DECLARE_NAPI_FUNCTION("deleteForward", DeleteForward),
@@ -109,7 +109,8 @@ napi_value JsTextInputClientEngine::GetResult(napi_env env, std::string &text)
     return jsText;
 }
 
-napi_value JsTextInputClientEngine::GetResultEditorAttribute(napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute)
+napi_value JsTextInputClientEngine::GetResultEditorAttribute(napi_env env,
+    std::shared_ptr<GetEditorAttributeContext> getEditorAttribute)
 {
     napi_value editorAttribute = nullptr;
     napi_create_object(env, &editorAttribute);
@@ -253,9 +254,9 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-         InputMethodAbility::GetInstance()->DeleteBackward(ctxt->length);
-         ctxt->status = napi_ok;
-         ctxt->isDeleteBackward = true;
+        InputMethodAbility::GetInstance()->DeleteBackward(ctxt->length);
+        ctxt->status = napi_ok;
+        ctxt->isDeleteBackward = true;
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
@@ -277,7 +278,7 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         ctxt->isInsertText = InputMethodAbility::GetInstance()->InsertText(ctxt->text);
         if (ctxt->isInsertText) {
-            ctxt->status = napi_ok;;
+            ctxt->status = napi_ok;
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));

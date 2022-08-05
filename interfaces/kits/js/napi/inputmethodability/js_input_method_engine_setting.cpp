@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,47 +29,40 @@ constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_MAX = 6;
 const std::string JsInputMethodEngineSetting::IMES_CLASS_NAME = "InputMethodEngine";
 thread_local napi_ref JsInputMethodEngineSetting::IMESRef_ = nullptr;
-napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports) {    
-    
-    IMSA_HILOGE("run in JsInputMethodEngineSetting::init");
-    
-    napi_property_descriptor descriptor[] = {
-        
-        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_UNSPECIFIED", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::UNSPECIFIED))),
-        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_GO", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::GO))),
-        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_SEARCH", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::SEARCH))),
-        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_SEND", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::SEND))),
-        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_NEXT", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::NEXT))),
-        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_DONE", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::DONE))),
-        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_PREVIOUS", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::PREVIOUS))),
+napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
+{
+    napi_property_descriptor descriptor[] = {     
+        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_UNSPECIFIED",
+            GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::UNSPECIFIED))),
+        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_GO",
+            GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::GO))),
+        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_SEARCH",
+            GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::SEARCH))),
+        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_SEND",
+            GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::SEND))),
+        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_NEXT",
+            GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::NEXT))),
+        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_DONE",
+            GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::DONE))),
+        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_PREVIOUS",
+            GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::PREVIOUS))),
 
-        DECLARE_NAPI_PROPERTY("PATTERN_NULL", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NONE))),
-        DECLARE_NAPI_PROPERTY("PATTERN_TEXT", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::TEXT))),
-        DECLARE_NAPI_PROPERTY("PATTERN_NUMBER", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER))),
-        DECLARE_NAPI_PROPERTY("PATTERN_PHONE", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::PHONE))),
-        DECLARE_NAPI_PROPERTY("PATTERN_DATETIME", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::DATETIME))),
-        DECLARE_NAPI_PROPERTY("PATTERN_EMAIL", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::EMAIL_ADDRESS))),
-        DECLARE_NAPI_PROPERTY("PATTERN_URI", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::URL))),
-        DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::VISIBLE_PASSWORD))),
-
-        DECLARE_NAPI_PROPERTY("FLAG_SELECTING", GetJsConstProperty(env, static_cast<uint32_t>(2))),
-        DECLARE_NAPI_PROPERTY("FLAG_SINGLE_LINE", GetJsConstProperty(env, static_cast<uint32_t>(1))),
-
-        DECLARE_NAPI_PROPERTY("DISPLAY_MODE_PART", GetJsConstProperty(env, static_cast<uint32_t>(0))),
-        DECLARE_NAPI_PROPERTY("DISPLAY_MODE_FULL", GetJsConstProperty(env, static_cast<uint32_t>(1))),
-
-        DECLARE_NAPI_PROPERTY("OPTION_ASCII", GetJsConstProperty(env, static_cast<uint32_t>(20))),
-        DECLARE_NAPI_PROPERTY("OPTION_NONE", GetJsConstProperty(env, static_cast<uint32_t>(0))),
-        DECLARE_NAPI_PROPERTY("OPTION_AUTO_CAP_CHARACTERS", GetJsConstProperty(env, static_cast<uint32_t>(2))),
-        DECLARE_NAPI_PROPERTY("OPTION_AUTO_CAP_SENTENCES", GetJsConstProperty(env, static_cast<uint32_t>(8))),
-        DECLARE_NAPI_PROPERTY("OPTION_AUTO_WORDS", GetJsConstProperty(env, static_cast<uint32_t>(4))),
-        DECLARE_NAPI_PROPERTY("OPTION_MULTI_LINE", GetJsConstProperty(env, static_cast<uint32_t>(1))),
-        DECLARE_NAPI_PROPERTY("OPTION_NO_FULLSCREEN", GetJsConstProperty(env, static_cast<uint32_t>(10))),
-
-        DECLARE_NAPI_PROPERTY("CURSOR_UP", GetJsConstProperty(env, static_cast<uint32_t>(1))),
-        DECLARE_NAPI_PROPERTY("CURSOR_DOWN", GetJsConstProperty(env, static_cast<uint32_t>(2))),
-        DECLARE_NAPI_PROPERTY("CURSOR_LEFT", GetJsConstProperty(env, static_cast<uint32_t>(3))),
-        DECLARE_NAPI_PROPERTY("CURSOR_RIGHT", GetJsConstProperty(env, static_cast<uint32_t>(4))),
+        DECLARE_NAPI_PROPERTY("PATTERN_NULL",
+            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NONE))),
+        DECLARE_NAPI_PROPERTY("PATTERN_TEXT",
+            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::TEXT))),
+        DECLARE_NAPI_PROPERTY("PATTERN_NUMBER",
+            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER))),
+        DECLARE_NAPI_PROPERTY("PATTERN_PHONE",
+            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::PHONE))),
+        DECLARE_NAPI_PROPERTY("PATTERN_DATETIME",
+            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::DATETIME))),
+        DECLARE_NAPI_PROPERTY("PATTERN_EMAIL",
+            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::EMAIL_ADDRESS))),
+        DECLARE_NAPI_PROPERTY("PATTERN_URI",
+            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::URL))),
+        DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD",
+            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::VISIBLE_PASSWORD))),
 
         DECLARE_NAPI_FUNCTION("MoveCursor", MoveCursor),
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
@@ -99,10 +92,10 @@ napi_value JsInputMethodEngineSetting::GetJsConstProperty(napi_env env, uint32_t
 napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
-    IMSA_HILOGE("run in JsConstructor****");
+    IMSA_HILOGI("run in JsConstructor");
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
 
-    std::shared_ptr<JsInputMethodEngineSetting> IMESobject = std::make_shared<JsInputMethodEngineSetting>();    
+    std::shared_ptr<JsInputMethodEngineSetting> IMESobject = std::make_shared<JsInputMethodEngineSetting>();
     InputMethodAbility::GetInstance()->setImeListener(IMESobject);
     if (IMESobject == nullptr) {
         napi_value result = nullptr;
@@ -117,8 +110,8 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
     return thisVar;
 };
 
-napi_value JsInputMethodEngineSetting::GetInputMethodEngine(napi_env env, napi_callback_info info) {
-    
+napi_value JsInputMethodEngineSetting::GetInputMethodEngine(napi_env env, napi_callback_info info)
+{  
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, IMESRef_, &cons) != napi_ok) {
@@ -140,11 +133,11 @@ napi_value JsInputMethodEngineSetting::MoveCursor(napi_env env, napi_callback_in
     NAPI_ASSERT(env, argc == 1, "Wrong number of arguments, requires 1");
 
     napi_valuetype valuetype;
-    NAPI_CALL(env, napi_typeof(env, argv[0], &valuetype));
+    NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     NAPI_ASSERT(env, valuetype == napi_number, "type is not a number");
 
     int32_t number;
-    if (napi_get_value_int32(env, argv[0], &number) != napi_ok) {
+    if (napi_get_value_int32(env, argv[ARGC_ZERO], &number) != napi_ok) {
         IMSA_HILOGE("GetNumberProperty error");
     }
 
@@ -167,9 +160,9 @@ std::string JsInputMethodEngineSetting::GetStringProperty(napi_env env, napi_val
 }
 
 void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::string type,
-    std::shared_ptr<CallbackObj> callbackObj)
+    std::shared_ptr<JSCallbackObject> JSCallbackObject)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);  
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGE("methodName: %{public}s not registertd!", type.c_str());
     }
@@ -179,9 +172,9 @@ void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::stri
             IMSA_HILOGE("JsInputMethodEngineListener::IfCallbackRegistered callback already registered!");
             return;
         }
-    }  
+    }
 
-    jsCbMap_[type].push_back(std::move(callbackObj));
+    jsCbMap_[type].push_back(std::move(JSCallbackObject));
 }
 
 void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::string type)
@@ -230,29 +223,29 @@ JsInputMethodEngineSetting *JsInputMethodEngineSetting::GetNative(napi_env env, 
 
 napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_info info)
 {
-    size_t argc = 2;
-    napi_value argv[2] = {nullptr};
+    size_t argc = ARGC_TWO;
+    napi_value argv[ARGC_TWO] = {nullptr};
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    NAPI_ASSERT(env, argc == 2, "Wrong number of arguments, requires 2");
+    NAPI_ASSERT(env, argc == ARGC_TWO, "Wrong number of arguments, requires 2");
     
     napi_valuetype valuetype;
-    NAPI_CALL(env, napi_typeof(env, argv[0], &valuetype));
+    NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     NAPI_ASSERT(env, valuetype == napi_string, "type is not a string");
-    std::string type = GetStringProperty(env, argv[0]);
+    std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
     IMSA_HILOGE("event type is: %{public}s", type.c_str());
     
     valuetype = napi_undefined;
-    napi_typeof(env, argv[1], &valuetype);
+    napi_typeof(env, argv[ARGC_ONE], &valuetype);
     NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
     
     auto engine = GetNative(env, info);
-    if (engine == nullptr){
+    if (engine == nullptr) {
         return nullptr;
     }
-    std::shared_ptr<CallbackObj> callbackObj = std::make_shared<CallbackObj>(env, argv[1]);
-    engine->RegisterListener(argv[1], type, callbackObj);
+    std::shared_ptr<JSCallbackObject> JSCallbackObject = std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE]);
+    engine->RegisterListener(argv[ARGC_ONE], type, JSCallbackObject);
 
     napi_value result = nullptr;
     napi_get_null(env, &result);
@@ -260,18 +253,18 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
 }
 
 napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_info info)
-{    
-    size_t argc = 2;
-    napi_value argv[2] = {nullptr};
+{
+    size_t argc = ARGC_TWO;
+    napi_value argv[ARGC_TWO] = {nullptr};
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    NAPI_ASSERT(env, argc == 1 || argc == 2, "Wrong number of arguments, requires 1 or 2");
+    NAPI_ASSERT(env, argc == ARGC_ONE || argc == ARGC_TWO, "Wrong number of arguments, requires 1 or 2");
     
     napi_valuetype valuetype;
-    NAPI_CALL(env, napi_typeof(env, argv[0], &valuetype));
+    NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     NAPI_ASSERT(env, valuetype == napi_string, "type is not a string");
-    std::string type = GetStringProperty(env, argv[0]);
+    std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
     IMSA_HILOGE("event type is: %{public}s", type.c_str());
 
     auto engine = GetNative(env, info);
@@ -279,13 +272,13 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
         return nullptr;
     }
 
-    if (argc == 2) {
+    if (argc == ARGC_TWO) {
         valuetype = napi_undefined;
-        napi_typeof(env, argv[1], &valuetype);
+        napi_typeof(env, argv[ARGC_ONE], &valuetype);
         NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
     }
 
-    engine->UnRegisterListener(argv[1], type);
+    engine->UnRegisterListener(argv[ARGC_ONE], type);
 
     napi_value result = nullptr;
     napi_get_null(env, &result);
@@ -306,29 +299,115 @@ bool JsInputMethodEngineSetting::Equals(napi_env env, napi_value value, napi_ref
     return isEquals;
 }
 
-void JsInputMethodEngineSetting::OnInputStart()
+uv_work_t *JsInputMethodEngineSetting::GetUVwork(std::string type)
 {
     UvEntry *entry = nullptr;
     {
-        std::string type = "inputStart";
         std::lock_guard<std::recursive_mutex> lock(mutex_); 
 
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnInputStart cb-vector is empty");
-            return;
+            return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
         if (entry == nullptr) {
             IMSA_HILOGE("entry ptr is nullptr!");
-            return;
+            return nullptr;
         }
     }
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         IMSA_HILOGE("entry ptr is nullptr!");
-        return;
+        return nullptr;
     }
     work->data = entry;
+    return work;
+}
+
+uv_work_t *JsInputMethodEngineSetting::GetUVwork(std::string type)
+{
+    UvEntry *entry = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_); 
+
+        if (jsCbMap_[type].empty()) {
+            IMSA_HILOGE("OnInputStart cb-vector is empty");
+            return nullptr;
+        }
+        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
+        if (entry == nullptr) {
+            IMSA_HILOGE("entry ptr is nullptr!");
+            return nullptr;
+        }
+    }
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        IMSA_HILOGE("entry ptr is nullptr!");
+        return nullptr;
+    }
+    work->data = entry;
+    return work;
+}
+
+uv_work_t *JsInputMethodEngineSetting::GetStopInputUVwork(std::string type, std::string imeId)
+{
+    UvEntry *entry = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_); 
+
+        if (jsCbMap_[type].empty()) {
+            IMSA_HILOGE("OnInputStart cb-vector is empty");
+            return nullptr;
+        }
+        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
+        if (entry == nullptr) {
+            IMSA_HILOGE("entry ptr is nullptr!");
+            return nullptr;
+        }
+        entry->imeid = imeId;
+    }
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        IMSA_HILOGE("entry ptr is nullptr!");
+        return nullptr;
+    }
+    work->data = entry;
+    return work;
+}
+
+uv_work_t *JsInputMethodEngineSetting::GetWindowIDUVwork(std::string type, uint32_t windowid)
+{
+    UvEntry *entry = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_); 
+
+        if (jsCbMap_[type].empty()) {
+            IMSA_HILOGE("OnInputStart cb-vector is empty");
+            return nullptr;
+        }
+        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
+        if (entry == nullptr) {
+            IMSA_HILOGE("entry ptr is nullptr!");
+            return nullptr;
+        }
+        entry->windowid = windowid;
+    }
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        IMSA_HILOGE("entry ptr is nullptr!");
+        return nullptr;
+    }
+    work->data = entry;
+    return work;
+}
+
+void JsInputMethodEngineSetting::OnInputStart()
+{
+    std::string type = "inputStart";
+    uv_work_t *work = GetUVwork(type);
+    if (work == nullptr) {
+        return;
+    }
     uv_queue_work(loop_, work,
         [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -336,20 +415,21 @@ void JsInputMethodEngineSetting::OnInputStart()
                 delete data;
                 delete work;
             });
-            if(entry == nullptr) {
+            if (entry == nullptr) {
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-
             for (auto item : entry->vecCopy) {
-                napi_value textInputIns = JsTextInputClientEngine::GetTextInputClientInstance(item->env_);
-                napi_value keyBoardControllerIns = JsKeyboardControllerEngine::GetKeyboardControllerInstance(item->env_);
-                if (keyBoardControllerIns == nullptr || textInputIns == nullptr) {
-                    IMSA_HILOGE("get KBCins or TICins failed: %{punlic}p, %{public}p", keyBoardControllerIns, textInputIns);
+                napi_value textInput =
+                    JsTextInputClientEngine::GetTextInputClientInstance(item->env_);
+                napi_value keyBoardController =
+                    JsKeyboardControllerEngine::GetKeyboardControllerInstance(item->env_);
+                if (keyBoardController == nullptr || textInput == nullptr) {
+                    IMSA_HILOGE("get KBCins or TICins failed:");
                     break;
                 }
                 napi_value callback = nullptr;
-                napi_value args[] = {keyBoardControllerIns, textInputIns};
+                napi_value args[] = {keyBoardController, textInput};
                 napi_get_reference_value(item->env_, item->callback_, &callback);
                 if (callback == nullptr) {
                     IMSA_HILOGE("callback is nullptr");
@@ -369,28 +449,12 @@ void JsInputMethodEngineSetting::OnInputStart()
 }
 
 void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
-{ 
-    UvEntry *entry = nullptr;
-    {    
-        std::lock_guard<std::recursive_mutex> lock(mutex_); 
-        std::string type = isShow ? "keyboardShow" : "keyboardHide";
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("OnKeyboardStatus cb-vector is empty");
-            return;
-        }
-        entry = new UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return;
-        }
-    }
-
-    uv_work_t *work = new uv_work_t;
+{
+    std::string type = isShow ? "keyboardShow" : "keyboardHide";
+    uv_work_t *work = GetUVwork(type);
     if (work == nullptr) {
-        IMSA_HILOGE("work ptr is nullptr!");
         return;
     }
-    work->data = entry;
     uv_queue_work(loop_, work,
         [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -401,7 +465,7 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
 
             for (auto &item : entry->vecCopy) {
                 napi_value callback = nullptr;
-                napi_value args[1] = { nullptr };
+                napi_value args[ARGC_ONE] = { nullptr };
                 napi_get_reference_value(item->env_, item->callback_, &callback);
                 if (callback == nullptr) {
                     IMSA_HILOGE("callback is nullptr");
@@ -422,48 +486,27 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
 
 void JsInputMethodEngineSetting::OnInputStop(std::string imeId)
 {
-    struct StopUvEntry : public UvEntry {
-        StopUvEntry(std::vector<std::shared_ptr<CallbackObj>> cbVec,
-            std::string type) : UvEntry(cbVec, type) {};
-        std::string Id;
-    };
-    StopUvEntry *entry = nullptr;
-    {
-        std::string type = "inputStop";
-        std::lock_guard<std::recursive_mutex> lock(mutex_); 
-
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("OnInputStop cb-vector is empty");
-            return;
-        }
-        entry = new (std::nothrow) StopUvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return;
-        }
-        entry->Id = imeId;
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
+    std::string type = "inputStop";
+    uv_work_t *work = GetStopInputUVwork(type, imeId);
     if (work == nullptr) {
-        IMSA_HILOGE("entry ptr is nullptr!");
         return;
     }
-    work->data = entry;
     uv_queue_work(loop_, work,
         [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<StopUvEntry> entry(static_cast<StopUvEntry *>(work->data), [work](StopUvEntry *data) {
-                delete data;
-                delete work;
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data),
+                [work](UvEntry *data) {
+                    delete data;
+                    delete work;
             });
-            if(entry == nullptr) {
+            if (entry == nullptr) {
                 IMSA_HILOGE("OnInputStop:: entryptr is null");
                 return;
             }
 
             for (auto item : entry->vecCopy) {
-                napi_value args[1] = {nullptr};
-                napi_create_string_utf8(item->env_, entry->Id.c_str(), NAPI_AUTO_LENGTH, &args[0]);
+                napi_value args[ARGC_ONE] = {nullptr};
+                napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[0]);
             
                 napi_value callback = nullptr;
                 napi_get_reference_value(item->env_, item->callback_, &callback);
@@ -482,53 +525,31 @@ void JsInputMethodEngineSetting::OnInputStop(std::string imeId)
                 }
             }
         });
-
 }
 
 void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
 {
-    struct WindowIDUvEntry : public UvEntry {
-        WindowIDUvEntry(std::vector<std::shared_ptr<CallbackObj>> cbVec,
-            std::string type) : UvEntry(cbVec, type) {};
-        uint32_t Id;
-    };
-    WindowIDUvEntry *entry = nullptr;
-    {
-        std::string type = "setCallingWindow";
-        std::lock_guard<std::recursive_mutex> lock(mutex_); 
-
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("setCallingWindow cb-vector is empty");
-            return;
-        }
-        entry = new (std::nothrow) WindowIDUvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return;
-        }
-        entry->Id = windowId;
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
+    std::string type = "setCallingWindow";
+    uv_work_t *work = GetWindowIDUVwork(type, windowId);
     if (work == nullptr) {
-        IMSA_HILOGE("entry ptr is nullptr!");
         return;
     }
-    work->data = entry;
     uv_queue_work(loop_, work,
         [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<WindowIDUvEntry> entry(static_cast<WindowIDUvEntry *>(work->data), [work](WindowIDUvEntry *data) {
-                delete data;
-                delete work;
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data),
+                [work](UvEntry *data) {
+                    delete data;
+                    delete work;
             });
-            if(entry == nullptr) {
+            if (entry == nullptr) {
                 IMSA_HILOGE("setCallingWindow:: entryptr is null");
                 return;
             }
 
             for (auto item : entry->vecCopy) {
-                napi_value args[1] = {nullptr};
-                napi_create_int32(item->env_, entry->Id, &args[0]);
+                napi_value args[ARGC_ONE] = {nullptr};
+                napi_create_int32(item->env_, entry->windowid, &args[0]);
             
                 napi_value callback = nullptr;
                 napi_get_reference_value(item->env_, item->callback_, &callback);

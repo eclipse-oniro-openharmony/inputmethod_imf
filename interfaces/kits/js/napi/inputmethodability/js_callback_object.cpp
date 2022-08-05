@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,20 +13,17 @@
  * limitations under the License.
  */
 
-#include "js_input_method_engine_setting.h"
-#include "napi/native_api.h"
-#include "napi/native_node_api.h"
+#include "js_input_method_listener_engine.h"
 
 namespace OHOS {
 namespace MiscServices {
-
-CallbackObj::CallbackObj(napi_env env, napi_value callback)
+JSCallbackObject::JSCallbackObject(napi_env env, napi_value callback)
     : env_(env)
 {
     napi_create_reference(env, callback, 1, &callback_);
 }
 
-CallbackObj::~CallbackObj()
+JSCallbackObject::~JSCallbackObject()
 {
     if (callback_ != nullptr) {
         napi_delete_reference(env_, callback_);
