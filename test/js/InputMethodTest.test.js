@@ -26,11 +26,11 @@ describe('appInfoTest_input_2', function () {
     it('inputmethod_test_listInputMethod_001', 0, async function (done) {
       let inputMethodSetting = inputMethod.getInputMethodSetting();
       console.info("inputmethoh_test_001 result:" + JSON.stringify(inputMethodSetting));
-      inputMethodSetting.listInputMethod((arr) => {
-        console.info("inputmethoh_test_001 listInputMethod result---" + JSON.stringify(arr));
-        expect(1==1).assertTrue();
+      inputMethodSetting.listInputMethod((err, data) => {
+          console.info("inputmethoh_test_001 listInputMethod result" + JSON.stringify(data));
+          expect(err==undefined).assertTrue();
       });
-      done();
+       done();
     });
     
     /*
@@ -43,10 +43,10 @@ describe('appInfoTest_input_2', function () {
       let inputMethodSetting = inputMethod.getInputMethodSetting();
       console.info("inputmethoh_test_002 result:" + JSON.stringify(inputMethodSetting));
       let promise = await inputMethodSetting.listInputMethod();
-      console.info("inputmethoh_test_002 listInputMethod result---" + JSON.stringify(promise));
+      console.info("inputmethoh_test_002 listInputMethod result" + JSON.stringify(promise));
       if (promise.length > 0){
         let obj = promise[0]
-        console.info("inputmethoh_test_002 listInputMethod obj---" + JSON.stringify(obj));
+        console.info("inputmethoh_test_002 listInputMethod obj" + JSON.stringify(obj));
         expect(obj.packageName != null).assertTrue();
         expect(obj.methodId != null).assertTrue();
       }else{
@@ -57,22 +57,42 @@ describe('appInfoTest_input_2', function () {
     });
 
     /*
-     * @tc.number  inputmethod_test_displayOptionalInputMethod_001
+     * @tc.number  inputmethod_test_listInputMethod_003
      * @tc.name    Test Indicates the input method which will replace the current one.
      * @tc.desc    Function test
      * @tc.level   2
      */
-    it('inputmethod_test_displayOptionalInputMethod_001', 0, async function (done) {
+    it('inputmethod_test_listInputMethod_003', 0, async function (done) {
       let inputMethodSetting = inputMethod.getInputMethodSetting();
-      console.info("inputmethod_test_displayOptionalInputMethod_001 result:" + JSON.stringify(inputMethodSetting));
-      inputMethodSetting.displayOptionalInputMethod(() => {
-        console.info("inputmethod_test_displayOptionalInputMethod_001 result");
+      console.info("inputmethod_test_listInputMethod_003 result:" + JSON.stringify(inputMethodSetting));
+      await inputMethodSetting.listInputMethod().then((data)=>{
+          console.info("inputmethod_test_listInputMethod_003 listInputMethod result" + JSON.stringify(data));
+          expect(data.length > 0).assertTrue();
+      }).catch((err) => {
+          console.info('inputmethod_test_listInputMethod_003 listInputMethod err ' + err);
+          expect(null).assertFail();
       });
       done();
     });
 
     /*
      * @tc.number  inputmethod_test_displayOptionalInputMethod_001
+     * @tc.name    Test Indicates the input method which will replace the current one.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+    it('inputmethod_test_displayOptionalInputMethod_001', 0, async function (done) {
+        let inputMethodSetting = inputMethod.getInputMethodSetting();
+        console.info("inputmethod_test_displayOptionalInputMethod_001 result:" + JSON.stringify(inputMethodSetting));
+        inputMethodSetting.displayOptionalInputMethod((err) => {
+            console.info("inputmethod_test_displayOptionalInputMethod_001 err:" + err);
+            expect(err==undefined).assertTrue();
+        });
+       done();
+    });
+
+    /*
+     * @tc.number  inputmethod_test_displayOptionalInputMethod_002
      * @tc.name    Test Indicates the input method which will replace the current one.
      * @tc.desc    Function test
      * @tc.level   2
@@ -86,19 +106,43 @@ describe('appInfoTest_input_2', function () {
       done();
     });
 
+
+    /*
+     * @tc.number  inputmethod_test_displayOptionalInputMethod_003
+     * @tc.name    Test Indicates the input method which will replace the current one.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+        it('inputmethod_test_displayOptionalInputMethod_003', 0, async function (done) {
+          let inputMethodSetting = inputMethod.getInputMethodSetting();
+          console.info("inputmethod_test_displayOptionalInputMethod_003 result:" + JSON.stringify(inputMethodSetting));
+          await inputMethodSetting.displayOptionalInputMethod().then(()=>{
+              console.info("inputmethod_test_displayOptionalInputMethod_003 displayOptionalInputMethod result");
+              expect(true).assertTrue();
+          }).catch((err) => {
+              console.info('inputmethod_test_displayOptionalInputMethod_003 listInputMethod err ' + err);
+              expect(null).assertFail();
+          });
+          done();
+      });
+
+
     /*
      * @tc.number  inputmethod_test_stopInput_001
      * @tc.name    Test Indicates the input method which will replace the current one.
      * @tc.desc    Function test
      * @tc.level   2
      */
-    it('inputmethod_test_stopInput_001', 0, async function (done) {
-      let inputMethodCtrl = inputMethod.getInputMethodController();
-      console.info("inputmethod_test_stopInput_001 result:" + JSON.stringify(inputMethodCtrl));
-      inputMethodCtrl.stopInput((res) => {
-        console.info("inputmethod_test_stopInput_001 stopInput result----" + res);
-      });
-      done();
+    it('inputmethod_test_stopInput_001', 0, function (done) {
+        let inputMethodCtrl = inputMethod.getInputMethodController();
+        console.info("inputmethod_test_stopInput_001 result:" + JSON.stringify(inputMethodCtrl));
+        inputMethodCtrl.stopInput((err,res) => {
+            console.info("inputmethod_test_stopInput_001 stopInput result" + res);
+            console.info("inputmethod_test_stopInput_001 stopInput result" + err);
+            expect(res == true).assertTrue();
+            expect(err==undefined).assertTrue();
+        });
+       done();
     });
 
     /*
@@ -115,6 +159,26 @@ describe('appInfoTest_input_2', function () {
       expect(promise).assertEqual(true)
       done();
     });
+
+    /*
+     * @tc.number  inputmethod_test_stopInput_003
+     * @tc.name    Test Indicates the input method which will replace the current one.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+        it('inputmethod_test_stopInput_003', 0, async function (done) {
+          let inputMethodCtrl = inputMethod.getInputMethodController();
+          console.info("inputmethod_test_stopInput_003 result:" + JSON.stringify(inputMethodCtrl));
+          await inputMethodCtrl.stopInput().then((res)=>{
+              console.info('inputmethod_test_stopInput_003 stopInput result' + res);
+              expect(res == true).assertTrue();
+          }).catch((err) => {
+              console.info('inputmethod_test_stopInput_003 stopInput err ' + err);
+              expect(null).assertFail();
+          });
+          console.info("inputmethod_test_stopInput_003 inputMethodCtrl stopInput result");
+          done();
+      });
 
     /*
      * @tc.number: inputmethod_test_MAX_TYPE_NUM_001
