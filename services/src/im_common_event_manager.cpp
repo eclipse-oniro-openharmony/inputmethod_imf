@@ -65,7 +65,7 @@ namespace MiscServices {
         subscriber_ = subscriber;
         auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         sptr<ISystemAbilityStatusChange> status = new (std::nothrow) SystemAbilityStatusChangeListener(subscriber_);
-        if (samgrProxy == nullptr || statusChangeListener_ == nullptr) {
+        if (samgrProxy == nullptr || status == nullptr) {
             IMSA_HILOGE("SubscribeEvent samgrProxy or statusChangeListener_ is nullptr");
             return false;
         }
