@@ -17,10 +17,14 @@
 #define SERVICES_INCLUDE_IM_COMMON_EVENT_MANAGER_H
 
 #include <mutex>
-#include "common_event_subscriber.h"
-#include "common_event_subscribe_info.h"
+
 #include "common_event_data.h"
+#include "common_event_manager.h"
+#include "common_event_subscribe_info.h"
+#include "common_event_subscriber.h"
+#include "common_event_support.h"
 #include "matching_skills.h"
+#include "system_ability_status_change_stub.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -39,10 +43,22 @@ public:
         void OnReceiveEvent(const EventFwk::CommonEventData &data);
         void startUser(int32_t newUserId);
     };
+private:
+    class SystemAbilityStatusChangeListener : public SystemAbilityStatusChangeStub {
+    public:
+        explicit SystemAbilityStatusChangeListener(std::shared_ptr<EventSubscriber> &subscriber);
+        ~SystemAbilityStatusChangeListener() = default;
+        virtual void OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
+        virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
 
+    private:
+        std::shared_ptr<EventSubscriber> sub_ = nullptr;
+    };
 private:
     static std::mutex instanceLock_;
     static sptr<ImCommonEventManager> instance_;
+
+    sptr<ISystemAbilityStatusChange> statusChangeListener_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS
