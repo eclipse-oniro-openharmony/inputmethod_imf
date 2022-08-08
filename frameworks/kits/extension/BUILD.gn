@@ -158,6 +158,7 @@ ohos_shared_library("inputmethod_extension_module") {
     "hiviewdfx_hilog_native:libhilog",
   ]
 
+  relative_install_dir = "extensionability/"
   subsystem_name = "inputmethod"
   part_name = "imf"
 }

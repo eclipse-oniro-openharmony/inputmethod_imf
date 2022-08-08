@@ -469,8 +469,17 @@ namespace MiscServices {
     int32_t InputMethodSystemAbility::listInputMethodByUserId(
         int32_t userId, std::vector<InputMethodProperty *> *properties)
     {
-        listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::SERVICE);
-        listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
+        int32_t serviceRet = listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::SERVICE);
+        if (serviceRet != NO_ERROR) {
+            IMSA_HILOGE("list service failed, ret = %{public}d", serviceRet);
+            return ErrorCode::ERROR_STATUS_UNKNOWN_ERROR;
+        }
+        int32_t inputmethodRet =
+            listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
+        if (inputmethodRet != NO_ERROR) {
+            IMSA_HILOGE("list inputmethod failed, ret = %{public}d", inputmethodRet);
+            return ErrorCode::ERROR_STATUS_UNKNOWN_ERROR;
+        }
         return ErrorCode::NO_ERROR;
     }
 
@@ -481,14 +490,14 @@ namespace MiscServices {
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
         bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(type, userId, extensionInfos);
         if (!ret) {
-            IMSA_HILOGI("InputMethodSystemAbility::listInputMethodByUserId QueryExtensionAbilityInfos error");
+            IMSA_HILOGE("InputMethodSystemAbility::listInputMethodByUserId QueryExtensionAbilityInfos error");
             return ErrorCode::ERROR_STATUS_UNKNOWN_ERROR;
         }
         for (auto extension : extensionInfos) {
             std::shared_ptr<Global::Resource::ResourceManager> resourceManager(
                 Global::Resource::CreateResourceManager());
             if (!resourceManager) {
-                IMSA_HILOGI("InputMethodSystemAbility::listInputMethodByUserId resourcemanager is nullptr");
+                IMSA_HILOGE("InputMethodSystemAbility::listInputMethodByUserId resourcemanager is nullptr");
                 break;
             }
             AppExecFwk::ApplicationInfo applicationInfo = extension.applicationInfo;
