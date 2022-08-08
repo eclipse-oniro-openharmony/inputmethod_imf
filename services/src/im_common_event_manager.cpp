@@ -64,17 +64,18 @@ namespace MiscServices {
         }
         subscriber_ = subscriber;
         auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        statusChangeListener_ = new (std::nothrow) SystemAbilityStatusChangeListener(subscriber_);
+        sptr<ISystemAbilityStatusChange> status = new (std::nothrow) SystemAbilityStatusChangeListener(subscriber_);
         if (samgrProxy == nullptr || statusChangeListener_ == nullptr) {
             IMSA_HILOGE("SubscribeEvent samgrProxy or statusChangeListener_ is nullptr");
             return false;
         }
-        int32_t ret = samgrProxy->SubscribeSystemAbility(COMMON_EVENT_SERVICE_ID, statusChangeListener_);
-        IMSA_HILOGE("SubscribeEvent SubscribeSystemAbility result:%{public}d", ret);
-        if (!EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber)) {
-            IMSA_HILOGI("ImCommonEventManager::SubscribeEvent fail");
+        int32_t ret = samgrProxy->SubscribeSystemAbility(COMMON_EVENT_SERVICE_ID, status);
+        if (ret != ERR_OK) {
+            IMSA_HILOGE("SubscribeEvent SubscribeSystemAbility failed. ret = %{public}d", ret);
             return false;
         }
+        statusChangeListener_ = status;
+        IMSA_HILOGE("SubscribeEvent SubscribeSystemAbility result:%{public}d", ret);
         return true;
     }
 
@@ -138,16 +139,6 @@ namespace MiscServices {
     void ImCommonEventManager::SystemAbilityStatusChangeListener::OnRemoveSystemAbility(
         int32_t systemAbilityId, const std::string& deviceId)
     {
-        if (systemAbilityId != COMMON_EVENT_SERVICE_ID) {
-            IMSA_HILOGE("ImCommonEventManager::OnRemoveSystemAbilitysystemAbilityId is not COMMON_EVENT_SERVICE_ID");
-            return;
-        }
-        if (sub_ == nullptr) {
-            IMSA_HILOGE("ImCommonEventManager::OnRemoveSystemAbility COMMON_EVENT_SERVICE_ID opName_ is nullptr");
-            return;
-        }
-        bool subscribeResult = EventFwk::CommonEventManager::UnSubscribeCommonEvent(sub_);
-        IMSA_HILOGI("ImCommonEventManager::OnRemoveSystemAbility subscribeResult = %{public}d", subscribeResult);
     }
 } // namespace MiscServices
 } // namespace OHOS
