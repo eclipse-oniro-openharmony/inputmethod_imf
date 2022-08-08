@@ -75,7 +75,6 @@ namespace MiscServices {
             return false;
         }
         statusChangeListener_ = status;
-        IMSA_HILOGE("SubscribeEvent SubscribeSystemAbility result:%{public}d", ret);
         return true;
     }
 
