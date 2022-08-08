@@ -58,7 +58,6 @@ private:
     static std::mutex instanceLock_;
     static sptr<ImCommonEventManager> instance_;
 
-    std::shared_ptr<EventSubscriber> subscriber_;
     sptr<ISystemAbilityStatusChange> statusChangeListener_ = nullptr;
 };
 } // namespace MiscServices
