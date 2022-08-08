@@ -62,9 +62,8 @@ namespace MiscServices {
             IMSA_HILOGI("ImCommonEventManager::SubscribeEvent subscriber is nullptr");
             return false;
         }
-        subscriber_ = subscriber;
         auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        sptr<ISystemAbilityStatusChange> status = new (std::nothrow) SystemAbilityStatusChangeListener(subscriber_);
+        sptr<ISystemAbilityStatusChange> status = new (std::nothrow) SystemAbilityStatusChangeListener(subscriber);
         if (samgrProxy == nullptr || status == nullptr) {
             IMSA_HILOGE("SubscribeEvent samgrProxy or statusChangeListener_ is nullptr");
             return false;
@@ -80,13 +79,6 @@ namespace MiscServices {
 
     bool ImCommonEventManager::UnsubscribeEvent()
     {
-        if (subscriber_ == nullptr) {
-            IMSA_HILOGE("ImCommonEventManager::UnsubscribeEvent subscriber_ is nullptr");
-            return false;
-        }
-        bool subscribeResult = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriber_);
-        subscriber_ = nullptr;
-        IMSA_HILOGI("ImCommonEventManager::UnsubscribeEvent subscribeResult = %{public}d", subscribeResult);
         return true;
     }
 
