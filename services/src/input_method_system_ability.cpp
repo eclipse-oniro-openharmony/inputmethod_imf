@@ -469,17 +469,8 @@ namespace MiscServices {
     int32_t InputMethodSystemAbility::listInputMethodByUserId(
         int32_t userId, std::vector<InputMethodProperty *> *properties)
     {
-        int32_t serviceRet = listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::SERVICE);
-        if (serviceRet != NO_ERROR) {
-            IMSA_HILOGE("list service failed, ret = %{public}d", serviceRet);
-            return ErrorCode::ERROR_STATUS_UNKNOWN_ERROR;
-        }
-        int32_t inputmethodRet =
-            listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
-        if (inputmethodRet != NO_ERROR) {
-            IMSA_HILOGE("list inputmethod failed, ret = %{public}d", inputmethodRet);
-            return ErrorCode::ERROR_STATUS_UNKNOWN_ERROR;
-        }
+        listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::SERVICE);
+        listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
         return ErrorCode::NO_ERROR;
     }
 
