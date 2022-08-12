@@ -199,19 +199,19 @@ using namespace MessageID;
         }
     }
 
-    void InputMethodController::Attach(sptr<OnTextChangedListener> &listener)
+    void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard)
     {
         textListener = listener;
         IMSA_HILOGI("InputMethodController::Attach");
         InputmethodTrace tracer("InputMethodController Attach trace.");
-        StartInput(mClient);
+        StartInput(mClient, isShowKeyboard);
         PrepareInput(0, mClient, mInputDataChannel, mAttribute);
     }
 
     void InputMethodController::ShowTextInput()
     {
         IMSA_HILOGI("InputMethodController::ShowTextInput");
-        StartInput(mClient);
+        StartInput(mClient, true);
     }
 
     void InputMethodController::HideTextInput()
@@ -231,6 +231,19 @@ using namespace MessageID;
             return ErrorCode::ERROR_KBD_HIDE_FAILED;
         }
         return mImms->HideCurrentInput(data);
+    }
+
+    int32_t InputMethodController::ShowCurrentInput()
+    {
+        IMSA_HILOGI("InputMethodController::ShowCurrentInput");
+        if (!mImms) {
+            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+        }
+        MessageParcel data;
+        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
+            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+        }
+        return mImms->ShowCurrentInput(data);
     }
 
     void InputMethodController::Close()
@@ -283,15 +296,15 @@ using namespace MessageID;
         return properties;
     }
 
-    void InputMethodController::StartInput(sptr<InputClientStub> &client)
+    void InputMethodController::StartInput(sptr<InputClientStub> &client, bool isShowKeyboard)
     {
         IMSA_HILOGI("InputMethodController::StartInput");
         if (!mImms) {
             return;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
-            && data.WriteRemoteObject(client->AsObject()))) {
+        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()) && data.WriteRemoteObject(client->AsObject())
+                && data.WriteBool(isShowKeyboard))) {
             return;
         }
         isStopInput = false;

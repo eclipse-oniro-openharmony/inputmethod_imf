@@ -243,7 +243,10 @@ namespace MiscServices {
             return;
         }
         SetInputDataChannel(channelObject);
-        ShowInputWindow();
+        bool isShowKeyboard = data->ReadBool();
+        if (isShowKeyboard) {
+            ShowInputWindow();
+        }
     }
 
     void InputMethodAbility::OnHideKeyboard(Message *msg)
@@ -328,7 +331,6 @@ namespace MiscServices {
             IMSA_HILOGI("InputMethodAbility::ShowInputWindow imeListener_ is nullptr");
             return;
         }
-        imeListener_->OnInputStart();
         imeListener_->OnKeyboardStatus(true);
         std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
         if (channel == nullptr) {

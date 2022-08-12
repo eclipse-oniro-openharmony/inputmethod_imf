@@ -57,7 +57,7 @@
           "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension",
           "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension_module",
           "//base/inputmethod/imf/interfaces/kits/js/declaration:inputmethod",
-          "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod:inputmethod",
+          "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodclient:inputmethod",
           "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodengine:inputmethodengine",
           "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod_extension_ability:inputmethodextensionability_napi",
           "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi",
@@ -105,15 +105,15 @@
           }
         },
         {
-          "name": "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod:inputmethod",
+          "name": "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodclient:inputmethod",
           "header": {
             "header_files": [
-              "js_input_method_registry.h",
-              "js_input_method_utils.h",
-              "js_input_method_setting.h",
-              "js_input_method_controller.h"
+              "async_call.h",
+              "js_get_input_method_controller.h",
+              "js_get_input_method_setting.h",
+              "js_input_method.h"
             ],
-            "header_base": "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod/include"
+            "header_base": "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodclient"
           }
         },
         {

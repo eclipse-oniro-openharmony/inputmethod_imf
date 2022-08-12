@@ -50,6 +50,7 @@ namespace MiscServices {
         void stopInput(MessageParcel& data) override;
         void SetCoreAndAgent(MessageParcel& data) override;
         int32_t HideCurrentInput(MessageParcel& data) override;
+        int32_t ShowCurrentInput(MessageParcel& data) override;
 
         int32_t Prepare(int32_t displayId, sptr<InputClientStub> &client, sptr<InputDataChannelStub> &channel,
                         InputAttribute &attribute);

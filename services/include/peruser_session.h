@@ -171,6 +171,7 @@ namespace MiscServices {
         void OnClientDied(const wptr<IRemoteObject>& who);
         void OnImsDied(const wptr<IRemoteObject>& who);
         void OnHideKeyboardSelf(int flags);
+        void OnShowKeyboardSelf(int flags);
         void OnAdvanceToNext();
         void OnSetDisplayMode(int mode);
         void OnRestartIms(int index, const std::u16string& imeId);
@@ -181,7 +182,7 @@ namespace MiscServices {
         int RemoveClient(const sptr<IInputClient>& inputClient, int retClientNum);
         int StartInputMethod(int index);
         int StopInputMethod(int index);
-        int ShowKeyboard(const sptr<IInputClient>& inputClient);
+        int ShowKeyboard(const sptr<IInputClient>& inputClient, bool isShowKeyboard);
         int HideKeyboard(const sptr<IInputClient>& inputClient);
         void SetDisplayId(int displayId);
         int GetImeIndex(const sptr<IInputClient>& inputClient);

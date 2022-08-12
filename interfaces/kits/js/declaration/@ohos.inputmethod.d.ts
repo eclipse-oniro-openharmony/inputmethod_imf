@@ -117,6 +117,14 @@ declare namespace inputMethod {
         stopInput(callback: AsyncCallback<boolean>): void;
 
         stopInput(): Promise<boolean>;
+
+        showSoftKeyboard(callback: AsyncCallback<boolean>): void;
+
+        showSoftKeyboard():Promise<boolean>;
+
+        hideSoftKeyboard(callback: AsyncCallback): void;
+
+        hideSoftKeyboard():Promise<boolean>;
     }
 
     /**

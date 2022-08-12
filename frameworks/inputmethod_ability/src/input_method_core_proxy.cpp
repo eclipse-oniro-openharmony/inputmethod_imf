@@ -193,7 +193,7 @@ namespace MiscServices {
         return reply.ReadInt32();
     }
 
-    bool InputMethodCoreProxy::showKeyboard(const sptr<IInputDataChannel> &inputDataChannel)
+    bool InputMethodCoreProxy::showKeyboard(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard)
     {
         IMSA_HILOGI("InputMethodCoreProxy::showKeyboard");
         auto remote = Remote();
@@ -203,14 +203,12 @@ namespace MiscServices {
         }
 
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(GetDescriptor())
-            && data.WriteRemoteObject(inputDataChannel->AsObject()))) {
+        if (!(data.WriteInterfaceToken(GetDescriptor()) && data.WriteRemoteObject(inputDataChannel->AsObject())
+                && data.WriteBool(isShowKeyboard))) {
             return false;
         }
         MessageParcel reply;
-        MessageOption option {
-            MessageOption::TF_SYNC
-        };
+        MessageOption option{ MessageOption::TF_SYNC };
 
         int32_t res = remote->SendRequest(SHOW_KEYBOARD, data, reply, option);
         if (res != ErrorCode::NO_ERROR) {
