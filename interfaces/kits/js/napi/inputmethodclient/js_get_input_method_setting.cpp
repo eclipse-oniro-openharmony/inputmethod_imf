@@ -52,14 +52,14 @@ napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_in
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
 
-    JsGetInputMethodSetting *IMSobject = new (std::nothrow) JsGetInputMethodSetting();
-    if (IMSobject == nullptr) {
-        IMSA_HILOGE("IMSobject is nullptr");
+    JsGetInputMethodSetting *settingObject = new (std::nothrow) JsGetInputMethodSetting();
+    if (settingObject == nullptr) {
+        IMSA_HILOGE("settingObject is nullptr");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(env, thisVar, IMSobject, [](napi_env env, void *data, void *hint) {
+    napi_wrap(env, thisVar, settingObject, [](napi_env env, void *data, void *hint) {
         auto* objInfo = reinterpret_cast<JsGetInputMethodSetting*>(data);
         if (objInfo != nullptr) {
             IMSA_HILOGE("objInfo is nullptr");

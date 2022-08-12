@@ -205,13 +205,13 @@ void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::st
 
 JsInputMethodEngineSetting *JsInputMethodEngineSetting::GetNative(napi_env env, napi_callback_info info)
 {
-    size_t argc = AsyncCall::ARGC_MAX;
+    size_t argc = ARGC_MAX;
     void *native = nullptr;
     napi_value self = nullptr;
-    napi_value argv[AsyncCall::ARGC_MAX] = { nullptr };
+    napi_value argv[ARGC_MAX] = { nullptr };
     napi_status status = napi_invalid_arg;
     status = napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    if (self == nullptr && argc >= AsyncCall::ARGC_MAX) {
+    if (self == nullptr && argc >= ARGC_MAX) {
         IMSA_HILOGE("napi_get_cb_info failed");
         return nullptr;
     }
