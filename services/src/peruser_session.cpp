@@ -803,9 +803,6 @@ namespace MiscServices {
         HideKeyboard(currentClient);
     }
 
-    /*! Show current keyboard
-    \param flag the flag to show keyboard.
-    */
     void PerUserSession::OnShowKeyboardSelf(int flags)
     {
         IMSA_HILOGI("PerUserSession::OnShowKeyboardSelf");

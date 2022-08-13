@@ -244,9 +244,7 @@ namespace MiscServices {
         }
         SetInputDataChannel(channelObject);
         bool isShowKeyboard = data->ReadBool();
-        if (isShowKeyboard) {
-            ShowInputWindow();
-        }
+        ShowInputWindow(isShowKeyboard);
     }
 
     void InputMethodAbility::OnHideKeyboard(Message *msg)
@@ -324,11 +322,16 @@ namespace MiscServices {
         kdListener_->OnSelectionChange(oldBegin, oldEnd, newBegin, newEnd);
     }
 
-    void InputMethodAbility::ShowInputWindow()
+    void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
     {
         IMSA_HILOGI("InputMethodAbility::ShowInputWindow");
         if (!imeListener_) {
             IMSA_HILOGI("InputMethodAbility::ShowInputWindow imeListener_ is nullptr");
+            return;
+        }
+        imeListener_->OnInputStart();
+        if (!isShowKeyboard) {
+            IMSA_HILOGI("InputMethodAbility::ShowInputWindow will not show keyboard");
             return;
         }
         imeListener_->OnKeyboardStatus(true);
