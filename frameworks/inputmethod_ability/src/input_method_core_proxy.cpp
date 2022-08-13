@@ -208,7 +208,7 @@ namespace MiscServices {
             return false;
         }
         MessageParcel reply;
-        MessageOption option{ MessageOption::TF_SYNC };
+        MessageOption option { MessageOption::TF_SYNC };
 
         int32_t res = remote->SendRequest(SHOW_KEYBOARD, data, reply, option);
         if (res != ErrorCode::NO_ERROR) {

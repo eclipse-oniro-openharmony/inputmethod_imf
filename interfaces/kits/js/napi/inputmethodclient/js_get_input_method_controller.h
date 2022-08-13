@@ -24,8 +24,8 @@ namespace MiscServices {
 struct HideSoftKeyboardContext : public AsyncCall::Context {
     bool isHideSoftKeyboard = false;
     napi_status status = napi_generic_failure;
-    HideSoftKeyboardContext() : Context(nullptr, nullptr){};
-    HideSoftKeyboardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+    HideSoftKeyboardContext() : Context(nullptr, nullptr) { };
+    HideSoftKeyboardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -44,8 +44,8 @@ struct HideSoftKeyboardContext : public AsyncCall::Context {
 struct ShowSoftKeyboardContext : public AsyncCall::Context {
     bool isShowSoftKeyboard = false;
     napi_status status = napi_generic_failure;
-    ShowSoftKeyboardContext() : Context(nullptr, nullptr){};
-    ShowSoftKeyboardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+    ShowSoftKeyboardContext() : Context(nullptr, nullptr) { };
+    ShowSoftKeyboardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -64,8 +64,8 @@ struct ShowSoftKeyboardContext : public AsyncCall::Context {
 struct StopInputContext : public AsyncCall::Context {
     bool isStopInput = false;
     napi_status status = napi_generic_failure;
-    StopInputContext() : Context(nullptr, nullptr){};
-    StopInputContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+    StopInputContext() : Context(nullptr, nullptr) { };
+    StopInputContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
