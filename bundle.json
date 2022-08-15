@@ -13,7 +13,7 @@
     "name": "imf",
     "subsystem": "inputmethod",
     "syscap": [
-      "SystemCapability.MiscServices.InputMethod"
+      "SystemCapability.MiscServices.InputMethodFramework"
     ],
     "features": [
     ],
