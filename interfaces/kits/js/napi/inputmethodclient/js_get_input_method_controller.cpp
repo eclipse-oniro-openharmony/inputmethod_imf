@@ -96,8 +96,8 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
         IMSA_HILOGE("output napi_get_boolean != nullptr[%{public}d]", result != nullptr);
         return status;
     };
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = callback();
+    auto exec = [ctxt, callback](AsyncCall::Context *ctx) {
+        int errCode = callback();
         IMSA_HILOGI("exec %{public}d", errCode);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec success");
@@ -113,19 +113,19 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
 napi_value JsGetInputMethodController::ShowSoftKeyboard(napi_env env, napi_callback_info info)
 {
     return HandleSoftKeyboard(
-        env, info, []() -> int32_t { return InputMethodController::GetInstance()->ShowCurrentInput(); })
+        env, info, []{ return InputMethodController::GetInstance()->ShowCurrentInput(); });
 }
 
 napi_value JsGetInputMethodController::HideSoftKeyboard(napi_env env, napi_callback_info info)
 {
     return HandleSoftKeyboard(
-        env, info, []() -> int32_t { return InputMethodController::GetInstance()->HideCurrentInput(); })
+        env, info, []{ return InputMethodController::GetInstance()->HideCurrentInput(); });
 }
 
 napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_info info)
 {
     return HandleSoftKeyboard(
-        env, info, []() -> int32_t { return InputMethodController::GetInstance()->HideCurrentInput(); })
+        env, info, []{ return InputMethodController::GetInstance()->HideCurrentInput(); });
 }
 }
 }
