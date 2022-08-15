@@ -171,8 +171,8 @@ namespace MiscServices {
                 break;
             }
             case SHOW_CURRENT_INPUT: {
-                ShowCurrentInput(data);
-                reply.WriteInt32(NO_ERROR);
+                int32_t ret = ShowCurrentInput(data);
+                reply.WriteInt32(ret);
                 break;
             }
             case SWITCH_INPUT_METHOD: {
@@ -322,10 +322,17 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodSystemAbilityStub::ShowCurrentInput");
         int32_t uid = IPCSkeleton::GetCallingUid();
         int32_t userId = getUserId(uid);
-        MessageParcel *parcel = new MessageParcel();
+
+        auto *parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
         parcel->WriteInt32(userId);
 
-        Message *msg = new Message(MSG_SHOW_CURRENT_INPUT, parcel);
+        auto *msg = new (std::nothrow) Message(MSG_SHOW_CURRENT_INPUT, parcel);
+        if (msg == nullptr) {
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
         MessageHandler::Instance()->SendMessage(msg);
         return ErrorCode::NO_ERROR;
     }

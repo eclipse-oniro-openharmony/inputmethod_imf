@@ -171,7 +171,7 @@ namespace MiscServices {
         void OnClientDied(const wptr<IRemoteObject>& who);
         void OnImsDied(const wptr<IRemoteObject>& who);
         void OnHideKeyboardSelf(int flags);
-        void OnShowKeyboardSelf(int flags);
+        void OnShowKeyboardSelf();
         void OnAdvanceToNext();
         void OnSetDisplayMode(int mode);
         void OnRestartIms(int index, const std::u16string& imeId);

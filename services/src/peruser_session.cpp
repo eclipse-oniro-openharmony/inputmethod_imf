@@ -187,7 +187,7 @@ namespace MiscServices {
                     break;
                 }
                 case MSG_SHOW_CURRENT_INPUT: {
-                    OnShowKeyboardSelf(0);
+                    OnShowKeyboardSelf();
                     break;
                 }
                 default: {
@@ -803,10 +803,9 @@ namespace MiscServices {
         HideKeyboard(currentClient);
     }
 
-    void PerUserSession::OnShowKeyboardSelf(int flags)
+    void PerUserSession::OnShowKeyboardSelf()
     {
         IMSA_HILOGI("PerUserSession::OnShowKeyboardSelf");
-        (void) flags;
         ShowKeyboard(currentClient, true);
     }
 
