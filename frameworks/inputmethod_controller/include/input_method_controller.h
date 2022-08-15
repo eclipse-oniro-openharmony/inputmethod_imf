@@ -58,6 +58,7 @@ namespace MiscServices {
     class InputMethodController : public RefBase {
     public:
         static sptr<InputMethodController> GetInstance();
+        void Attach(sptr<OnTextChangedListener> &listener);
         void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard = true);
         std::u16string GetTextBeforeCursor(int32_t number);
         std::u16string GetTextAfterCursor(int32_t number);

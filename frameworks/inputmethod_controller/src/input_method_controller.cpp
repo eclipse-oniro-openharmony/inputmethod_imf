@@ -199,6 +199,11 @@ using namespace MessageID;
         }
     }
 
+    void InputMethodController::Attach(sptr<OnTextChangedListener> &listener)
+    {
+        Attach(listener, true);
+    }
+
     void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard)
     {
         textListener = listener;
