@@ -112,20 +112,17 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
 
 napi_value JsGetInputMethodController::ShowSoftKeyboard(napi_env env, napi_callback_info info)
 {
-    return HandleSoftKeyboard(
-        env, info, []{ return InputMethodController::GetInstance()->ShowCurrentInput(); });
+    return HandleSoftKeyboard(env, info, [] { return InputMethodController::GetInstance()->ShowCurrentInput(); });
 }
 
 napi_value JsGetInputMethodController::HideSoftKeyboard(napi_env env, napi_callback_info info)
 {
-    return HandleSoftKeyboard(
-        env, info, []{ return InputMethodController::GetInstance()->HideCurrentInput(); });
+    return HandleSoftKeyboard(env, info, [] { return InputMethodController::GetInstance()->HideCurrentInput(); });
 }
 
 napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_info info)
 {
-    return HandleSoftKeyboard(
-        env, info, []{ return InputMethodController::GetInstance()->HideCurrentInput(); });
+    return HandleSoftKeyboard(env, info, [] { return InputMethodController::GetInstance()->HideCurrentInput(); });
 }
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
