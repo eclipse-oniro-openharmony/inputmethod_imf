@@ -186,6 +186,10 @@ namespace MiscServices {
                     OnHideKeyboardSelf(0);
                     break;
                 }
+                case MSG_SHOW_CURRENT_INPUT: {
+                    OnShowKeyboardSelf();
+                    break;
+                }
                 default: {
                     break;
                 }
@@ -271,7 +275,7 @@ namespace MiscServices {
                     break;
                 }
                 if (needReshowClient && GetImeIndex(needReshowClient) == i) {
-                    ShowKeyboard(needReshowClient);
+                    ShowKeyboard(needReshowClient, true);
                     needReshowClient = nullptr;
                 }
             }
@@ -478,7 +482,7 @@ namespace MiscServices {
     \return ErrorCode::ERROR_KBD_SHOW_FAILED failed to show keyboard
     \return other errors returned by binder driver
     */
-    int PerUserSession::ShowKeyboard(const sptr<IInputClient>& inputClient)
+    int PerUserSession::ShowKeyboard(const sptr<IInputClient>& inputClient, bool isShowKeyboard)
     {
         IMSA_HILOGI("PerUserSession::ShowKeyboard");
         ClientInfo *clientInfo = GetClientInfo(inputClient);
@@ -493,7 +497,7 @@ namespace MiscServices {
             return ErrorCode::ERROR_NULL_POINTER;
         }
 
-        imsCore[0]->showKeyboard(clientInfo->channel);
+        imsCore[0]->showKeyboard(clientInfo->channel, isShowKeyboard);
 
         currentClient = inputClient;
         return ErrorCode::NO_ERROR;
@@ -799,6 +803,12 @@ namespace MiscServices {
         HideKeyboard(currentClient);
     }
 
+    void PerUserSession::OnShowKeyboardSelf()
+    {
+        IMSA_HILOGI("PerUserSession::OnShowKeyboardSelf");
+        ShowKeyboard(currentClient, true);
+    }
+
     /*! Switch to next keyboard type
     */
     void PerUserSession::OnAdvanceToNext()
@@ -875,7 +885,7 @@ namespace MiscServices {
             int ret = StartInputMethod(index);
             if (needReshowClient && GetImeIndex(needReshowClient) == index) {
                 if (ret == ErrorCode::NO_ERROR) {
-                    ShowKeyboard(needReshowClient);
+                    ShowKeyboard(needReshowClient, true);
                 }
                 needReshowClient = nullptr;
             }
@@ -1253,7 +1263,8 @@ namespace MiscServices {
         if (imsCore[0]) {
             imsCore[0]->SetClientState(true);
         }
-        ShowKeyboard(client);
+        bool isShowKeyboard = data->ReadBool();
+        ShowKeyboard(client, isShowKeyboard);
     }
 
     void PerUserSession::SetCoreAndAgent(Message *msg)

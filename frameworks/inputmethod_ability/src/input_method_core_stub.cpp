@@ -110,7 +110,8 @@ namespace MiscServices {
             }
             case SHOW_KEYBOARD: {
                 sptr<IInputDataChannel> inputDataChannel = iface_cast<IInputDataChannel>(data.ReadRemoteObject());
-                showKeyboard(inputDataChannel);
+                bool isShowKeyboard = data.ReadBool();
+                showKeyboard(inputDataChannel, isShowKeyboard);
                 reply.WriteNoException();
                 break;
             }
@@ -230,19 +231,27 @@ namespace MiscServices {
         msgHandler_->SendMessage(msg);
     }
 
-    bool InputMethodCoreStub::showKeyboard(const sptr<IInputDataChannel>& inputDataChannel)
+    bool InputMethodCoreStub::showKeyboard(const sptr<IInputDataChannel>& inputDataChannel, bool isShowKeyboard)
     {
         IMSA_HILOGI("InputMethodCoreStub::showKeyboard");
         if (!msgHandler_) {
             return false;
         }
-        MessageParcel *data = new MessageParcel();
+        auto *data = new (std::nothrow) MessageParcel();
+        if (data == nullptr) {
+            return false;
+        }
+        IMSA_HILOGI("InputMethodCoreStub::showKeyboard isShowKeyboard %{public}s", isShowKeyboard ? "true" : "false");
         if (inputDataChannel) {
             IMSA_HILOGI("InputMethodCoreStub::showKeyboard inputDataChannel is not nullptr");
             data->WriteRemoteObject(inputDataChannel->AsObject());
+            data->WriteBool(isShowKeyboard);
         }
 
-        Message *msg = new Message(MessageID::MSG_ID_SHOW_KEYBOARD, data);
+        Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_SHOW_KEYBOARD, data);
+        if (msg == nullptr) {
+            return false;
+        }
         msgHandler_->SendMessage(msg);
         return true;
     }

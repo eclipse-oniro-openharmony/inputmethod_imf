@@ -57,7 +57,7 @@
           "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension",
           "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension_module",
           "//base/inputmethod/imf/interfaces/kits/js/declaration:inputmethod",
-          "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod:inputmethod",
+          "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodclient:inputmethod",
           "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodengine:inputmethodengine",
           "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod_extension_ability:inputmethodextensionability_napi",
           "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi",
@@ -102,33 +102,6 @@
               "input_method_core_stub.h"
             ],
             "header_base": "//base/inputmethod/imf/frameworks/inputmethod_ability/include"
-          }
-        },
-        {
-          "name": "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod:inputmethod",
-          "header": {
-            "header_files": [
-              "js_input_method_registry.h",
-              "js_input_method_utils.h",
-              "js_input_method_setting.h",
-              "js_input_method_controller.h"
-            ],
-            "header_base": "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod/include"
-          }
-        },
-        {
-          "name": "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodengine:inputmethodengine",
-          "header": {
-            "header_files": [
-              "js_input_method_engine_registry.h",
-              "js_input_method_engine_listener.h",
-              "js_input_method_engine.h",
-              "js_input_method_engine_utils.h",
-              "js_keyboard_controller.h",
-              "js_text_input_client.h",
-              "js_keyboard_delegate.h"
-            ],
-            "header_base": "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodengine/include"
           }
         }
       ],

@@ -40,7 +40,7 @@ namespace MiscServices {
                                 const InputAttribute& editorAttribute,
                                 bool supportPhysicalKbd) override;
         int32_t stopInput() override;
-        bool showKeyboard(const sptr<IInputDataChannel>& inputDataChannel) override;
+        bool showKeyboard(const sptr<IInputDataChannel>& inputDataChannel, bool isShowKeyboard) override;
         bool hideKeyboard(int32_t flags) override;
         int32_t setKeyboardType(const KeyboardType& type) override;
         int32_t getKeyboardWindowHeight(int32_t &retHeight) override;

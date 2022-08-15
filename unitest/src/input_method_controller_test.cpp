@@ -218,6 +218,14 @@ namespace MiscServices {
         int waitForStatusOk = 2;
         sleep(waitForStatusOk);
 
+        IMSA_HILOGI("IMC Attach isShowKeyboard true START");
+        imc->Attach(textListener, true);
+        sleep(waitForStatusOk);
+
+        IMSA_HILOGI("IMC Attach isShowKeyboard false START");
+        imc->Attach(textListener, false);
+        sleep(waitForStatusOk);
+
         IMSA_HILOGI("IMC ShowTextInput START");
         imc->ShowTextInput();
         sleep(10);

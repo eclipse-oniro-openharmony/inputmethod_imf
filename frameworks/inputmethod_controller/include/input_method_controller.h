@@ -59,6 +59,7 @@ namespace MiscServices {
     public:
         static sptr<InputMethodController> GetInstance();
         void Attach(sptr<OnTextChangedListener> &listener);
+        void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard);
         std::u16string GetTextBeforeCursor(int32_t number);
         std::u16string GetTextAfterCursor(int32_t number);
         void ShowTextInput();
@@ -74,6 +75,7 @@ namespace MiscServices {
         int32_t GetEnterKeyType();
         int32_t GetInputPattern();
         int32_t HideCurrentInput();
+        int32_t ShowCurrentInput();
         void SetCallingWindow(uint32_t windowId);
         int32_t SwitchInputMethod(const InputMethodProperty &target);
 
@@ -85,7 +87,7 @@ namespace MiscServices {
         sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
         void PrepareInput(int32_t displayId, sptr<InputClientStub> &client, sptr<InputDataChannelStub> &channel,
                           InputAttribute &attribute);
-        void StartInput(sptr<InputClientStub> &client);
+        void StartInput(sptr<InputClientStub> &client, bool isShowKeyboard);
         void StopInput(sptr<InputClientStub> &client);
         void ReleaseInput(sptr<InputClientStub> &client);
         void SetInputMethodAgent(sptr<IRemoteObject> &object);

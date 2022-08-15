@@ -81,7 +81,7 @@ namespace MiscServices {
         }
     }
 
-    void InputMethodSystemAbilityProxy::startInput(MessageParcel& data)
+    void InputMethodSystemAbilityProxy::startInput(MessageParcel &data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityProxy::startInput");
         MessageParcel reply;
@@ -151,6 +151,26 @@ namespace MiscServices {
         if (ret != NO_ERROR) {
             IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInput reply failed");
             return ErrorCode::ERROR_KBD_HIDE_FAILED;
+        }
+        return ErrorCode::NO_ERROR;
+    }
+
+    int32_t InputMethodSystemAbilityProxy::ShowCurrentInput(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInput");
+        MessageParcel reply;
+        MessageOption option;
+
+        auto ret = Remote()->SendRequest(SHOW_CURRENT_INPUT, data, reply, option);
+        if (ret != NO_ERROR) {
+            IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInput SendRequest failed");
+            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+        }
+
+        ret = reply.ReadInt32();
+        if (ret != NO_ERROR) {
+            IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInput reply failed");
+            return ErrorCode::ERROR_KBD_SHOW_FAILED;
         }
         return ErrorCode::NO_ERROR;
     }

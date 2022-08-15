@@ -32,6 +32,8 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
 
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("stopInput", StopInput),
+        DECLARE_NAPI_FUNCTION("hideSoftKeyboard", HideSoftKeyboard),
+        DECLARE_NAPI_FUNCTION("showSoftKeyboard", ShowSoftKeyboard),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, IMC_CLASS_NAME.c_str(), IMC_CLASS_NAME.size(),
@@ -81,30 +83,46 @@ napi_value JsGetInputMethodController::GetInputMethodController(napi_env env, na
     return instance;
 }
 
-napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_info info)
+napi_value JsGetInputMethodController::HandleSoftKeyboard(
+    napi_env env, napi_callback_info info, std::function<int32_t()> callback)
 {
-    auto ctxt = std::make_shared<StopInputContext>();
+    auto ctxt = std::make_shared<HandleContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         NAPI_ASSERT_BASE(env, argc == 0 || argc == 1, " should null or 1 parameters!", napi_invalid_arg);
         return napi_ok;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        napi_status status = napi_get_boolean(env, ctxt->isStopInput, result);
+        napi_status status = napi_get_boolean(env, ctxt->isHandle, result);
         IMSA_HILOGE("output napi_get_boolean != nullptr[%{public}d]", result != nullptr);
         return status;
     };
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->HideCurrentInput();
-        IMSA_HILOGE("exec HideCurrentInput %{public}d", errCode);
+    auto exec = [ctxt, callback](AsyncCall::Context *ctx) {
+        int errCode = callback();
+        IMSA_HILOGI("exec %{public}d", errCode);
         if (errCode == ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("exec HideCurrentInput success");
+            IMSA_HILOGI("exec success");
             ctxt->status = napi_ok;
-            ctxt->isStopInput = true;
+            ctxt->isHandle = true;
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
     return asyncCall.Call(env, exec);
 }
+
+napi_value JsGetInputMethodController::ShowSoftKeyboard(napi_env env, napi_callback_info info)
+{
+    return HandleSoftKeyboard(env, info, [] { return InputMethodController::GetInstance()->ShowCurrentInput(); });
 }
+
+napi_value JsGetInputMethodController::HideSoftKeyboard(napi_env env, napi_callback_info info)
+{
+    return HandleSoftKeyboard(env, info, [] { return InputMethodController::GetInstance()->HideCurrentInput(); });
 }
+
+napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_info info)
+{
+    return HandleSoftKeyboard(env, info, [] { return InputMethodController::GetInstance()->HideCurrentInput(); });
+}
+} // namespace MiscServices
+} // namespace OHOS

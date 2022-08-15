@@ -107,7 +107,7 @@ namespace MiscServices {
         void OnSelectionChange(Message *msg);
 
         void InitialInputWindow();
-        void ShowInputWindow();
+        void ShowInputWindow(bool isShowKeyboard);
         void DissmissInputWindow();
     };
 } // namespace MiscServices
