@@ -84,7 +84,7 @@ napi_value JsGetInputMethodController::GetInputMethodController(napi_env env, na
 }
 
 napi_value JsGetInputMethodController::HandleSoftKeyboard(
-    napi_env env, napi_callback_info info, std::function<int32_t()> callback)
+    napi_env env, napi_callback_info info, std::function<int32_t()> callback, bool isOutput)
 {
     auto ctxt = std::make_shared<HandleContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
@@ -105,24 +105,31 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
             ctxt->isHandle = true;
         }
     };
-    ctxt->SetAction(std::move(input), std::move(output));
+    if (isOutput) {
+        ctxt->SetAction(std::move(input), std::move(output));
+    } else {
+        ctxt->SetAction(std::move(input));
+    }
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
     return asyncCall.Call(env, exec);
 }
 
 napi_value JsGetInputMethodController::ShowSoftKeyboard(napi_env env, napi_callback_info info)
 {
-    return HandleSoftKeyboard(env, info, [] { return InputMethodController::GetInstance()->ShowCurrentInput(); });
+    return HandleSoftKeyboard(
+        env, info, [] { return InputMethodController::GetInstance()->ShowCurrentInput(); }, false);
 }
 
 napi_value JsGetInputMethodController::HideSoftKeyboard(napi_env env, napi_callback_info info)
 {
-    return HandleSoftKeyboard(env, info, [] { return InputMethodController::GetInstance()->HideCurrentInput(); });
+    return HandleSoftKeyboard(
+        env, info, [] { return InputMethodController::GetInstance()->HideCurrentInput(); }, false);
 }
 
 napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_info info)
 {
-    return HandleSoftKeyboard(env, info, [] { return InputMethodController::GetInstance()->HideCurrentInput(); });
+    return HandleSoftKeyboard(
+        env, info, [] { return InputMethodController::GetInstance()->HideCurrentInput(); }, true);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -122,43 +122,35 @@ declare namespace inputMethod {
          * Show soft keyboard
          * @since 9
          * @param callback
-         * @return :
-         *     if true, success.
-         *     if false, fail.
+         * @return : -
          * @syscap SystemCapability.MiscServices.InputMethodFramework
          */
-        showSoftKeyboard(callback: AsyncCallback<boolean>): void;
+        showSoftKeyboard(callback: AsyncCallback<void>): void;
 
         /**
          * Show soft keyboard
          * @since 9
-         * @return :
-         *     if true, success.
-         *     if false, fail.
+         * @return : -
          * @syscap SystemCapability.MiscServices.InputMethodFramework
          */
-        showSoftKeyboard():Promise<boolean>;
+        showSoftKeyboard():Promise<void>;
 
         /**
          * Hide soft keyboard
          * @since 9
          * @param callback
-         * @return :
-         *     if true, success.
-         *     if false, fail.
+         * @return : -
          * @syscap SystemCapability.MiscServices.InputMethodFramework
          */
-        hideSoftKeyboard(callback: AsyncCallback<boolean>): void;
+        hideSoftKeyboard(callback: AsyncCallback<void>): void;
 
         /**
          * Hide soft keyboard
          * @since 9
-         * @return :
-         *     if true, success.
-         *     if false, fail.
+         * @return : -
          * @syscap SystemCapability.MiscServices.InputMethodFramework
          */
-        hideSoftKeyboard():Promise<boolean>;
+        hideSoftKeyboard():Promise<void>;
     }
 
     /**
