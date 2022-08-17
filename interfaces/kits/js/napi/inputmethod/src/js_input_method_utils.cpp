@@ -36,8 +36,10 @@ namespace OHOS {
             std::unique_ptr<JsInputMethodSetting> jsInputMethodSetting = std::make_unique<JsInputMethodSetting>();
             object->SetNativePointer(jsInputMethodSetting.release(), JsInputMethodSetting::Finalizer, nullptr);
 
-            BindNativeFunction(engine, *object, "displayOptionalInputMethod", JsInputMethodSetting::DisplayOptionalInputMethod);
-            BindNativeFunction(engine, *object, "listInputMethod", JsInputMethodSetting::ListInputMethod);
+            const char *moduleName = "JsInputMethodSetting";
+            BindNativeFunction(engine, *object,
+                "displayOptionalInputMethod", moduleName, JsInputMethodSetting::DisplayOptionalInputMethod);
+            BindNativeFunction(engine, *object, "listInputMethod", moduleName, JsInputMethodSetting::ListInputMethod);
             return objValue;
         }
 
@@ -54,7 +56,8 @@ namespace OHOS {
             std::unique_ptr<JsInputMethodController> jsInputMethodController = std::make_unique<JsInputMethodController>();
             object->SetNativePointer(jsInputMethodController.release(), JsInputMethodController::Finalizer, nullptr);
 
-            BindNativeFunction(engine, *object, "stopInput", JsInputMethodController::StopInput);
+            const char *moduleName = "JsInputMethodController";
+            BindNativeFunction(engine, *object, "stopInput", moduleName, JsInputMethodController::StopInput);
             return objValue;
         }
     } // namespace MiscServices
