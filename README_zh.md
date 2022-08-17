@@ -1,4 +1,4 @@
-# miscservices_inputmethod
+# inputmethod_imf
 
 #### 介绍
 输入法框架，主要作用是拉通应用和输入法，保证应用可以通过输入法进行文本输入
