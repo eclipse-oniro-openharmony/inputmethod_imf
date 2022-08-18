@@ -105,7 +105,7 @@ inputmethod.switchInputMethod({packageName:"com.example.kikakeyboard", methodId:
 });
 
 // 切换输入法promise
-await inputMethod.switchInputMethod({packageName:"com.example.kikakeyboard", methodId:"com.example.kikakeyboard"}).then((res) => {
+await inputMethod.switchInputMethod({packageName:"com.example.kikakeyboard", methodId:"com.example.kikakeyboard"}).then((result) => {
     if (result) {
         console.info("Success to switchInputMethod.(promise)");
     } else {
@@ -136,7 +136,7 @@ await inputMethod.switchInputMethod({packageName:"com.example.kikakeyboard", met
 </tr>
 <tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>showSoftKeyboard(callback: AsyncCallback&lt;void&gt;);</p>
 </td>
-<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>显示软键盘，使用promise形式返回结果。参数个数为0，否则抛出异常</p>
+<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>显示软键盘，使用promise形式返回结果。参数个数为1，否则抛出异常</p>
 </td>
 </tr>
 <tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>stopInput(): Promise&lt;void&gt;;</p>
@@ -145,7 +145,7 @@ await inputMethod.switchInputMethod({packageName:"com.example.kikakeyboard", met
 </td>
 </tr><tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>hideSoftKeyboard(callback: AsyncCallback&lt;void&gt;);</p>
 </td>
-<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>隐藏软键盘，使用promise形式返回结果。参数个数为0，否则抛出异常</p>
+<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>隐藏软键盘，使用promise形式返回结果。参数个数为1，否则抛出异常</p>
 </td>
 </tr><tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>hideSoftKeyboard(): Promise&lt;void&gt;;</p>
 </td>
@@ -755,7 +755,7 @@ client.deleteForward(length, (err, result) => {
 });
 
 // 删除光标前固定长度的文本promise
-await client.deleteForward(length).then((res) => {
+await client.deleteForward(length).then((result) => {
     if (result) {
         console.info("Success to deleteForward.(promise) ");
     } else {
