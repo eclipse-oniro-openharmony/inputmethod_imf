@@ -165,9 +165,13 @@ namespace MiscServices {
         std::unique_ptr<JsInputMethodRegistry> jsInputMethodRegistry = std::make_unique<JsInputMethodRegistry>(engine);
         object->SetNativePointer(jsInputMethodRegistry.release(), JsInputMethodRegistry::Finalizer, nullptr);
 
-        BindNativeFunction(*engine, *object, "getInputMethodSetting", JsInputMethodRegistry::GetInputMethodSetting);
-        BindNativeFunction(*engine, *object, "getInputMethodController", JsInputMethodRegistry::GetInputMethodController);
-        BindNativeFunction(*engine, *object, "switchInputMethod", JsInputMethodRegistry::SwitchInputMethod);
+        const char *moduleName = "JsInputMethodRegistry";
+        BindNativeFunction(*engine, *object,
+            "getInputMethodSetting", moduleName, JsInputMethodRegistry::GetInputMethodSetting);
+        BindNativeFunction(*engine, *object,
+            "getInputMethodController", moduleName, JsInputMethodRegistry::GetInputMethodController);
+        BindNativeFunction(*engine, *object,
+            "switchInputMethod", moduleName, JsInputMethodRegistry::SwitchInputMethod);
 
         object->SetProperty("MAX_TYPE_NUM", CreateJsValue(*engine, static_cast<uint32_t>(MAX_TYPE_NUM)));
 

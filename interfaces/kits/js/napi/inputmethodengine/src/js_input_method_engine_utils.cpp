@@ -40,8 +40,9 @@ namespace OHOS {
             std::unique_ptr<JsInputMethodEngine> jsInputMethodEngine = std::make_unique<JsInputMethodEngine>(&engine);
             object->SetNativePointer(jsInputMethodEngine.release(), JsInputMethodEngine::Finalizer, nullptr);
 
-            BindNativeFunction(engine, *object, "on", JsInputMethodEngine::RegisterCallback);
-            BindNativeFunction(engine, *object, "off", JsInputMethodEngine::UnRegisterCallback);
+            const char *moduleName = "JsInputMethodEngine";
+            BindNativeFunction(engine, *object, "on", moduleName, JsInputMethodEngine::RegisterCallback);
+            BindNativeFunction(engine, *object, "off", moduleName, JsInputMethodEngine::UnRegisterCallback);
             return objValue;
         }
 
@@ -58,7 +59,8 @@ namespace OHOS {
             std::unique_ptr<JsKeyboardController> jsKeyboardController = std::make_unique<JsKeyboardController>();
             object->SetNativePointer(jsKeyboardController.release(), JsKeyboardController::Finalizer, nullptr);
 
-            BindNativeFunction(engine, *object, "hideKeyboard", JsKeyboardController::HideKeyboardSelf);
+            const char *moduleName = "JsKeyboardController";
+            BindNativeFunction(engine, *object, "hideKeyboard", moduleName, JsKeyboardController::HideKeyboardSelf);
 
             return objValue;
         }
@@ -76,13 +78,15 @@ namespace OHOS {
             std::unique_ptr<JsTextInputClient> jsTextInputClient = std::make_unique<JsTextInputClient>();
             object->SetNativePointer(jsTextInputClient.release(), JsTextInputClient::Finalizer, nullptr);
 
-            BindNativeFunction(engine, *object, "insertText", JsTextInputClient::InsertText);
-            BindNativeFunction(engine, *object, "deleteForward", JsTextInputClient::DeleteForward);
-            BindNativeFunction(engine, *object, "deleteBackward", JsTextInputClient::DeleteBackward);
-            BindNativeFunction(engine, *object, "sendKeyFunction", JsTextInputClient::SendFunctionKey);
-            BindNativeFunction(engine, *object, "getForward", JsTextInputClient::GetForward);
-            BindNativeFunction(engine, *object, "getBackward", JsTextInputClient::GetBackward);
-            BindNativeFunction(engine, *object, "getEditorAttribute", JsTextInputClient::GetEditorAttribute);
+            const char *moduleName = "JsTextInputClient";
+            BindNativeFunction(engine, *object, "insertText", moduleName, JsTextInputClient::InsertText);
+            BindNativeFunction(engine, *object, "deleteForward", moduleName, JsTextInputClient::DeleteForward);
+            BindNativeFunction(engine, *object, "deleteBackward", moduleName, JsTextInputClient::DeleteBackward);
+            BindNativeFunction(engine, *object, "sendKeyFunction", moduleName, JsTextInputClient::SendFunctionKey);
+            BindNativeFunction(engine, *object, "getForward", moduleName, JsTextInputClient::GetForward);
+            BindNativeFunction(engine, *object, "getBackward", moduleName, JsTextInputClient::GetBackward);
+            BindNativeFunction(engine, *object,
+                "getEditorAttribute", moduleName, JsTextInputClient::GetEditorAttribute);
             return objValue;
         }
 
@@ -99,8 +103,9 @@ namespace OHOS {
             std::unique_ptr<JsKeyboardDelegate> jsKeyboardDelegate = std::make_unique<JsKeyboardDelegate>(&engine);
             object->SetNativePointer(jsKeyboardDelegate.release(), JsKeyboardDelegate::Finalizer, nullptr);
 
-            BindNativeFunction(engine, *object, "on", JsKeyboardDelegate::RegisterCallback);
-            BindNativeFunction(engine, *object, "off", JsKeyboardDelegate::UnRegisterCallback);
+            const char *moduleName = "JsKeyboardDelegate";
+            BindNativeFunction(engine, *object, "on", moduleName, JsKeyboardDelegate::RegisterCallback);
+            BindNativeFunction(engine, *object, "off", moduleName, JsKeyboardDelegate::UnRegisterCallback);
             return objValue;
         }
 

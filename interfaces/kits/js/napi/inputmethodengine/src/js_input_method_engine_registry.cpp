@@ -128,8 +128,11 @@ namespace MiscServices {
         std::unique_ptr<JsInputMethodEngineRegistry> jsInputMethodEngineRegistry = std::make_unique<JsInputMethodEngineRegistry>(engine);
         object->SetNativePointer(jsInputMethodEngineRegistry.release(), JsInputMethodEngineRegistry::Finalizer, nullptr);
 
-        BindNativeFunction(*engine, *object, "getInputMethodEngine", JsInputMethodEngineRegistry::GetInputMethodEngine);
-        BindNativeFunction(*engine, *object, "createKeyboardDelegate", JsInputMethodEngineRegistry::GetKeyboardDelegate);
+        const char *moduleName = "JsInputMethodEngineRegistry";
+        BindNativeFunction(*engine, *object,
+            "getInputMethodEngine", moduleName, JsInputMethodEngineRegistry::GetInputMethodEngine);
+        BindNativeFunction(*engine, *object,
+            "createKeyboardDelegate", moduleName, JsInputMethodEngineRegistry::GetKeyboardDelegate);
 
         object->SetProperty("ENTER_KEY_TYPE_UNSPECIFIED", CreateJsValue(*engine, static_cast<uint32_t>(EnterKeyType::UNSPECIFIED)));
         object->SetProperty("ENTER_KEY_TYPE_GO", CreateJsValue(*engine, static_cast<uint32_t>(EnterKeyType::GO)));
@@ -162,7 +165,7 @@ namespace MiscServices {
         object->SetProperty("OPTION_MULTI_LINE", CreateJsValue(*engine, static_cast<uint32_t>(1)));
         object->SetProperty("OPTION_NO_FULLSCREEN", CreateJsValue(*engine, static_cast<uint32_t>(10)));
 
-        BindNativeFunction(*engine, *object, "MoveCursor", JsInputMethodEngineRegistry::MoveCursor);
+        BindNativeFunction(*engine, *object, "MoveCursor", moduleName, JsInputMethodEngineRegistry::MoveCursor);
 
         object->SetProperty("CURSOR_UP", CreateJsValue(*engine, static_cast<uint32_t>(1)));
         object->SetProperty("CURSOR_DOWN", CreateJsValue(*engine, static_cast<uint32_t>(2)));

@@ -475,14 +475,16 @@ NativeValue *CreateJsInputMethodExtensionContext(
     // make handler
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
 
-    BindNativeFunction(engine, *object, "startAbility", JsInputMethodExtensionContext::StartAbility);
-    BindNativeFunction(engine, *object, "terminateSelf", JsInputMethodExtensionContext::TerminateAbility);
-    BindNativeFunction(engine, *object, "connectAbility", JsInputMethodExtensionContext::ConnectAbility);
-    BindNativeFunction(engine, *object, "disconnectAbility", JsInputMethodExtensionContext::DisconnectAbility);
-    BindNativeFunction(
-        engine, *object, "startAbilityWithAccount", JsInputMethodExtensionContext::StartAbilityWithAccount);
-    BindNativeFunction(
-        engine, *object, "connectAbilityWithAccount", JsInputMethodExtensionContext::ConnectAbilityWithAccount);
+    const char *moduleName = "JsInputMethodExtensionContext";
+    BindNativeFunction(engine, *object, "startAbility", moduleName, JsInputMethodExtensionContext::StartAbility);
+    BindNativeFunction(engine, *object, "terminateSelf", moduleName, JsInputMethodExtensionContext::TerminateAbility);
+    BindNativeFunction(engine, *object, "connectAbility", moduleName, JsInputMethodExtensionContext::ConnectAbility);
+    BindNativeFunction(engine, *object,
+        "disconnectAbility", moduleName, JsInputMethodExtensionContext::DisconnectAbility);
+    BindNativeFunction(engine, *object,
+        "startAbilityWithAccount", moduleName, JsInputMethodExtensionContext::StartAbilityWithAccount);
+    BindNativeFunction(engine, *object,
+        "connectAbilityWithAccount", moduleName, JsInputMethodExtensionContext::ConnectAbilityWithAccount);
     return objValue;
 }
 
