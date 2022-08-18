@@ -134,8 +134,27 @@ await inputMethod.switchInputMethod({packageName:"com.example.kikakeyboard", met
 <td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>隐藏输入法，使用promise形式返回结果。参数个数为0，否则抛出异常</p>
 </td>
 </tr>
+<tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>showSoftKeyboard(callback: AsyncCallback&lt;void&gt;);</p>
+</td>
+<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>显示软键盘，使用promise形式返回结果。参数个数为0，否则抛出异常</p>
+</td>
+</tr>
+<tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>stopInput(): Promise&lt;void&gt;;</p>
+</td>
+<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>显示软键盘，使用promise形式返回结果。参数个数为0，否则抛出异常</p>
+</td>
+</tr><tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>hideSoftKeyboard(callback: AsyncCallback&lt;void&gt;);</p>
+</td>
+<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>隐藏软键盘，使用promise形式返回结果。参数个数为0，否则抛出异常</p>
+</td>
+</tr><tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>hideSoftKeyboard(): Promise&lt;void&gt;;</p>
+</td>
+<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>隐藏软键盘，使用promise形式返回结果。参数个数为0，否则抛出异常</p>
+</td>
+</tr>
 </tbody>
 </table>
+
 
 ##### 使用说明
 
@@ -160,7 +179,7 @@ inputMethodController.stopInput((err, result) => {
 });
 
 // 隐藏输入法promise
-await inputMethodCtrl.stopInput().then((result)=>{
+await inputMethodController.stopInput().then((result)=>{
     if (result) {
         console.info("Success to stopInput.(promise)");
     } else {
@@ -169,6 +188,39 @@ await inputMethodCtrl.stopInput().then((result)=>{
 }).catch((err) => {
     console.error("stopInput promise err: " + err.msg);
 });
+
+// 显示软键盘callback
+inputMethodController.showSoftKeyboard((err) => {
+    if (err) {
+        console.error("showSoftKeyboard callback result---err: " + err.msg);
+        return;
+    }
+    console.info("Success to showSoftKeyboard.(callback)");
+});
+
+// 显示软键盘promise
+await inputMethodController.showSoftKeyboard().then(()=>{
+    console.info("Success to showSoftKeyboard.(promise)");
+}).catch((err) => {
+    console.error("showSoftKeyboard promise err: " + err.msg);
+});
+
+// 隐藏软键盘callback
+inputMethodController.hideSoftKeyboard((err) => {
+    if (err) {
+        console.error("hideSoftKeyboard callback result---err: " + err.msg);
+        return;
+    }
+    console.info("Success to hideSoftKeyboard.(callback)");
+});
+
+// 隐藏软键盘promise
+await inputMethodController.hideSoftKeyboard().then(()=>{
+    console.info("Success to hideSoftKeyboard.(promise)");
+}).catch((err) => {
+    console.error("hideSoftKeyboard promise err: " + err.msg);
+});
+
 ```
 
 **表 3**   InputMethodSetting开放的主要方法
