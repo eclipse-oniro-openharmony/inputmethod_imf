@@ -1,4 +1,4 @@
-# miscservices_inputmethod
+# inputmethod_imf
 
 #### 介绍
 输入法框架，主要作用是拉通应用和输入法，保证应用可以通过输入法进行文本输入
@@ -93,7 +93,7 @@ let inputMethodSetting = inputmethod.getInputMethodSetting();
 
 // 切换输入法callback
 inputmethod.switchInputMethod({packageName:"com.example.kikakeyboard", methodId:"com.example.kikakeyboard"} ,(err,result) => {
-    if (err) {
+    if (err == undefined) {
         console.info("switchInputMethod callback result---err: " + err.msg);
         return;
     }
@@ -105,7 +105,7 @@ inputmethod.switchInputMethod({packageName:"com.example.kikakeyboard", methodId:
 });
 
 // 切换输入法promise
-await inputMethod.switchInputMethod({packageName:"com.example.kikakeyboard", methodId:"com.example.kikakeyboard"}).then((res) => {
+await inputMethod.switchInputMethod({packageName:"com.example.kikakeyboard", methodId:"com.example.kikakeyboard"}).then((result) => {
     if (result) {
         console.info("Success to switchInputMethod.(promise)");
     } else {
@@ -134,8 +134,27 @@ await inputMethod.switchInputMethod({packageName:"com.example.kikakeyboard", met
 <td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>隐藏输入法，使用promise形式返回结果。参数个数为0，否则抛出异常</p>
 </td>
 </tr>
+<tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>showSoftKeyboard(callback: AsyncCallback&lt;void&gt;);</p>
+</td>
+<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>显示软键盘，使用callback形式返回结果。参数个数为1，否则抛出异常</p>
+</td>
+</tr>
+<tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>stopInput(): Promise&lt;void&gt;;</p>
+</td>
+<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>显示软键盘，使用promise形式返回结果。参数个数为0，否则抛出异常</p>
+</td>
+</tr><tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>hideSoftKeyboard(callback: AsyncCallback&lt;void&gt;);</p>
+</td>
+<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>隐藏软键盘，使用callback形式返回结果。参数个数为1，否则抛出异常</p>
+</td>
+</tr><tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>hideSoftKeyboard(): Promise&lt;void&gt;;</p>
+</td>
+<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>隐藏软键盘，使用promise形式返回结果。参数个数为0，否则抛出异常</p>
+</td>
+</tr>
 </tbody>
 </table>
+
 
 ##### 使用说明
 
@@ -148,7 +167,7 @@ let inputMethodController = inputmethod.getInputMethodController();
 
 // 隐藏输入法callback
 inputMethodController.stopInput((err, result) => {
-    if (err) {
+    if (err == undefined) {
         console.error("stopInput callback result---err: " + err.msg);
         return;
     }
@@ -160,7 +179,7 @@ inputMethodController.stopInput((err, result) => {
 });
 
 // 隐藏输入法promise
-await inputMethodCtrl.stopInput().then((result)=>{
+await inputMethodController.stopInput().then((result)=>{
     if (result) {
         console.info("Success to stopInput.(promise)");
     } else {
@@ -169,6 +188,39 @@ await inputMethodCtrl.stopInput().then((result)=>{
 }).catch((err) => {
     console.error("stopInput promise err: " + err.msg);
 });
+
+// 显示软键盘callback
+inputMethodController.showSoftKeyboard((err) => {
+    if (err == undefined) {
+        console.error("showSoftKeyboard callback result---err: " + err.msg);
+        return;
+    }
+    console.info("Success to showSoftKeyboard.(callback)");
+});
+
+// 显示软键盘promise
+await inputMethodController.showSoftKeyboard().then(()=>{
+    console.info("Success to showSoftKeyboard.(promise)");
+}).catch((err) => {
+    console.error("showSoftKeyboard promise err: " + err.msg);
+});
+
+// 隐藏软键盘callback
+inputMethodController.hideSoftKeyboard((err) => {
+    if (err == undefined) {
+        console.error("hideSoftKeyboard callback result---err: " + err.msg);
+        return;
+    }
+    console.info("Success to hideSoftKeyboard.(callback)");
+});
+
+// 隐藏软键盘promise
+await inputMethodController.hideSoftKeyboard().then(()=>{
+    console.info("Success to hideSoftKeyboard.(promise)");
+}).catch((err) => {
+    console.error("hideSoftKeyboard promise err: " + err.msg);
+});
+
 ```
 
 **表 3**   InputMethodSetting开放的主要方法
@@ -213,7 +265,7 @@ let inputMethodSetting = inputmethod.getInputMethodSetting();
 
 // 查询已安装的输入法列表callback
 inputMethodSetting.listInputMethod((err,data) => {
-    if (err) {
+    if (err == undefined) {
         console.error("listInputMethod callback result---err: " + err.msg);
         return;
     }
@@ -229,7 +281,7 @@ await inputMethodSetting.listInputMethod().then((data)=>{
 
 // 显示输入法选择对话框callback
 inputMethodSetting.displayOptionalInputMethod((err) => {
-    if (err) {
+    if (err == undefined) {
         console.error("displayOptionalInputMethod callback---err: " + err.msg);
         return;
     }
@@ -474,9 +526,7 @@ keyboardDelegate.on('cursorContextChange', (x, y, height) => {
 
 // 取消订阅光标变化事件
 keyboardDelegate.off('cursorContextChange', (x, y, height) => {
-    console.log("delete cursorContextChange notification. x:" + x);
-    console.log("delete cursorContextChange notification. y:" + y);
-    console.log("delete cursorContextChange notification. height:" + height);
+    console.log("delete cursorContextChange notification.");
 });
 
 // 订阅文本选择变化事件
@@ -489,10 +539,7 @@ keyboardDelegate.on('selectionChange', (oldBegin, oldEnd, newBegin, newEnd) => {
 
 // 取消订阅文本选择变化事件
 keyboardDelegate.off('selectionChange', (oldBegin, oldEnd, newBegin, newEnd) => {
-  console.log("delete selectionChange notification. oldBegin:" + oldBegin);
-  console.log("delete selectionChange notification. oldEnd:" + oldEnd);
-  console.log("delete selectionChange notification. newBegin:" + newBegin);
-  console.log("delete selectionChange notification. newEnd:" + newEnd);
+  console.log("delete selectionChange notification.");
 });
 
 // 订阅文本变化事件
@@ -543,7 +590,7 @@ inputMethodEngine.on('inputStart', (kbController, textInputClient) => {
 
 // 隐藏输入法callback
 kbCtrl.hideKeyboard((err) => {
-    if (err) {
+    if (err == undefined) {
         console.error("hideKeyboard callback result---err: " + err.msg);
         return;
     }
@@ -659,7 +706,7 @@ inputMethodEngine.on('inputStart', (kbController, textInputClient) => {
 
 // 获取光标前固定长度的文本callback
 client.getForward(length, (err, text) => {
-    if (err) {
+    if (err == undefined) {
         console.error("getForward callback result---err: " + err.msg);
         return;
     }
@@ -675,7 +722,7 @@ await client.getForward(length).then((text) => {
 
 // 获取光标后固定长度的文本callback
 client.getBackward(length, (err, text) => {
-    if (err) {
+    if (err == undefined) {
         console.error("getBackward callback result---err: " + err.msg);
         return;
     }
@@ -691,7 +738,7 @@ await client.getBackward(length).then((text) => {
 
 // 删除光标前固定长度的文本callback
 client.deleteForward(length, (err, result) => {
-    if (err) {
+    if (err == undefined) {
         console.error('deleteForward callback result---err: ' + err.msg);
         return;
     }
@@ -703,7 +750,7 @@ client.deleteForward(length, (err, result) => {
 });
 
 // 删除光标前固定长度的文本promise
-await client.deleteForward(length).then((res) => {
+await client.deleteForward(length).then((result) => {
     if (result) {
         console.info("Success to deleteForward.(promise) ");
     } else {
@@ -715,7 +762,7 @@ await client.deleteForward(length).then((res) => {
 
 // 删除光标前固定长度的文本callback
 client.deleteBackward(length, (err, result) => {
-    if (err) {
+    if (err == undefined) {
         console.error("deleteBackward callback result---err: " + err.msg);
         return;
     }
@@ -739,7 +786,7 @@ await client.deleteBackward(length).then((result) => {
 
 // 发送功能键callback
 client.sendKeyFunction(keyFunction, (err, result) => {
-    if (err) {
+    if (err == undefined) {
         console.error("sendKeyFunction callback result---err: " + err.msg);
         return;
     }
@@ -763,7 +810,7 @@ await client.sendKeyFunction(keyFunction).then((result) => {
 
 // 插入文本callback
 client.insertText('test', (err, result) => {
-    if (err) {
+    if (err == undefined) {
         console.error("insertText callback result---err: " + err.msg);
         return;
     }
@@ -787,7 +834,7 @@ await client.insertText('test').then((result) => {
 
 // 获取编辑框属性值callback
 client.getEditorAttribute((err, editorAttribute) => {
-    if (err) {
+    if (err == undefined) {
         console.error("getEditorAttribute callback result---err: " + err.msg);
         return;
     }
