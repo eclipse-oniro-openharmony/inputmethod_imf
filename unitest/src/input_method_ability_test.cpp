@@ -127,16 +127,8 @@ namespace MiscServices {
     HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreStub, TestSize.Level0)
     {
         sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
-        sptr<IInputDataChannel> channelStub = new InputDataChannelStub();
-
-        MessageParcel data;
-        data.WriteRemoteObject(channelStub->AsObject());
-        sptr<IRemoteObject> channelObject = data.ReadRemoteObject();
-
-        sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
-        sptr<IInputDataChannel> channel = channelProxy;
-        auto ret = coreStub->showKeyboard(channel, true);
-        EXPECT_TRUE(ret);
+        auto ret = coreStub->showKeyboard(nullptr, true);
+        EXPECT_TRUE(!ret);
     }
 
     /**
