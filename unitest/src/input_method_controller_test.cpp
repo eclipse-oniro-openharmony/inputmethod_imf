@@ -12,24 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <functional>
-#include <gtest/gtest.h>
-#include <cstdint>
-#include <vector>
-#include <sys/time.h>
-#include <thread>
-#include <string>
-#include "global.h"
-#include "utils.h"
-
 #include "input_method_controller.h"
-#include "i_input_method_system_ability.h"
+
+#include <gtest/gtest.h>
+#include <sys/time.h>
+
+#include <cstdint>
+#include <functional>
+#include <string>
+#include <thread>
+#include <vector>
+
+#include "global.h"
 #include "i_input_method_agent.h"
-#include "input_data_channel_stub.h"
+#include "i_input_method_system_ability.h"
 #include "input_client_stub.h"
+#include "input_data_channel_stub.h"
+#include "input_method_setting.h"
+#include "input_method_system_ability_proxy.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
-#include "input_method_setting.h"
+#include "utils.h"
+#include "message_parcel.h"
 
 using namespace testing::ext;
 namespace OHOS {
@@ -226,6 +230,10 @@ namespace MiscServices {
         imc->Attach(textListener, false);
         sleep(waitForStatusOk);
 
+        IMSA_HILOGI("IMC ShowCurrentInput START");
+        imc->ShowCurrentInput();
+        sleep(waitForStatusOk);
+
         IMSA_HILOGI("IMC ShowTextInput START");
         imc->ShowTextInput();
         sleep(10);
@@ -238,6 +246,41 @@ namespace MiscServices {
         imc->Close();
         sleep(waitForStatusOk);
         IMSA_HILOGI("IMC TEST OVER");
+    }
+
+    /**
+    * @tc.name: testIMCShowCurrentInput
+    * @tc.desc: IMC ShowCurrentInput.
+    * @tc.type: FUNC
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCShowCurrentInput, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC ShowCurrentInput Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        int32_t ret = imc->ShowCurrentInput();
+        EXPEXT_TRUE(ret == 0);
+    }
+
+    /**
+    * @tc.name: testIMSAProxyShowCurrentInput
+    * @tc.desc: IMSAProxy ShowCurrentInput.
+    * @tc.type: FUNC
+    */
+    HWTEST_F(InputMethodControllerTest, testIMSAProxyShowCurrentInput, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMSAProxy ShowCurrentInput Test START");
+        sptr<ISystemAbilityManager> systemAbilityManager =
+            SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+
+        auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
+
+        sptr<InputMethodSystemAbilityProxy> imsaProxy = new InputMethodSystemAbilityProxy(systemAbility);
+
+        MessageParcel data;
+        data.WriteInterfaceToken(imsaProxy->GetDescriptor());
+        int32_t ret = imsaProxy->ShowCurrentInput(data);
+        EXPECT_TRUE(ret == 0);
     }
 } // namespace MiscServices
 } // namespace OHOS
