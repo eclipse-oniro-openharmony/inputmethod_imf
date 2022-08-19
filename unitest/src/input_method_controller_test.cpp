@@ -259,7 +259,7 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->ShowCurrentInput();
-        EXPEXT_TRUE(ret == 0);
+        EXPECT_TRUE(ret == 0);
     }
 
     /**
