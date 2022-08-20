@@ -22,22 +22,24 @@
 #include "napi/native_api.h"
 #include "global.h"
 #include "async_call.h"
+#include "js_callback_object.h"
+#include "input_method_engine_listener.h"
 
 namespace OHOS {
 namespace MiscServices {
-class JsInputMethodEngineSetting {
+class JsInputMethodEngineSetting : public InputMethodEngineListener {
 public:
     JsInputMethodEngineSetting() = default;
-    ~JsInputMethodEngineSetting() = default;
+    ~JsInputMethodEngineSetting() override = default;
     static napi_value Init(napi_env env, napi_value info);
     static napi_value GetInputMethodEngine(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static napi_value MoveCursor(napi_env env, napi_callback_info info);
-    void OnInputStart();
-    void OnKeyboardStatus(bool isShow);
-    void OnInputStop(std::string imeId);
-    void OnSetCallingWindow(uint32_t windowId);
+    void OnInputStart() override;
+    void OnKeyboardStatus(bool isShow) override;
+    void OnInputStop(std::string imeId) override;
+    void OnSetCallingWindow(uint32_t windowId) override;
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsInputMethodEngineSetting *GetNative(napi_env env, napi_callback_info info);

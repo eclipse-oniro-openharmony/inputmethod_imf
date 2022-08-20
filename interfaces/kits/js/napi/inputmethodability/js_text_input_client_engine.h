@@ -34,6 +34,27 @@ struct SendKeyFunctionContext : public AsyncCall::Context {
         NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
+
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
+struct MoveCursorContext : public AsyncCall::Context {
+    bool num = false;
+    napi_status status = napi_generic_failure;
+    MoveCursorContext() : Context(nullptr, nullptr) { };
+    MoveCursorContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
+
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
     napi_status operator()(napi_env env, napi_value *result) override
     {
         if (status != napi_ok) {
@@ -181,6 +202,7 @@ public:
     static napi_value InsertText(napi_env env, napi_callback_info Info);
     static napi_value GetForward(napi_env env, napi_callback_info Info);
     static napi_value GetBackward(napi_env env, napi_callback_info Info);
+    static napi_value MoveCursor(napi_env env, napi_callback_info info);
     static napi_value GetEditorAttribute(napi_env env, napi_callback_info Info);
     static napi_value GetTextInputClientInstance(napi_env env);
 private:
@@ -190,6 +212,8 @@ private:
         std::shared_ptr<DeleteForwardContext> ctxt);
     static napi_status GetDeleteBackwardLength(napi_env env, napi_value argv,
         std::shared_ptr<DeleteBackwardContext> ctxt);
+    static napi_status GetMoveCursorParam(napi_env env, napi_value argv,
+        std::shared_ptr<MoveCursorContext> ctxt);
     static napi_status GetInsertText(napi_env env, napi_value argv,
         std::shared_ptr<InsertTextContext> ctxt);
     static napi_status GetForwardLength(napi_env env, napi_value argv,
