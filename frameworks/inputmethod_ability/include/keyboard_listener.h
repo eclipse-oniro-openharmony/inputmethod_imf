@@ -16,16 +16,16 @@
 #ifndef INPUTMETHOD_IMF_KEYBOARD_LISTENER_H
 #define INPUTMETHOD_IMF_KEYBOARD_LISTENER_H
 
-#include <map>
-
-namespace OHOS :: MiscServices {
- class KeyboardListener {
- public:
-     virtual ~KeyboardListener() = default;
-     virtual bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) = 0;
-     virtual void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) = 0;
-     virtual void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) = 0;
-     virtual void OnTextChange(std::string text) = 0;
- };
-}
-#endif //INPUTMETHOD_IMF_KEYBOARD_LISTENER_H
+namespace OHOS {
+namespace MiscServices {
+class KeyboardListener {
+public:
+    virtual ~KeyboardListener() = default;
+    virtual bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) = 0;
+    virtual void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) = 0;
+    virtual void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) = 0;
+    virtual void OnTextChange(std::string text) = 0;
+};
+} // namespace MiscServices
+} // namespace OHOS
+#endif // INPUTMETHOD_IMF_KEYBOARD_LISTENER_H

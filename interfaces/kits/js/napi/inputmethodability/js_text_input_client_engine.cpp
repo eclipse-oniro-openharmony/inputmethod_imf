@@ -168,7 +168,8 @@ napi_status JsTextInputClientEngine::GetDeleteForwardLength(napi_env env, napi_v
     return status;
 }
 
-napi_status JsTextInputClientEngine::GetMoveCursorParam(napi_env env, napi_value argv, std::shared_ptr<MoveCursorContext> ctxt)
+napi_status JsTextInputClientEngine::GetMoveCursorParam(
+    napi_env env, napi_value argv, std::shared_ptr<MoveCursorContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;

@@ -15,31 +15,33 @@ import("//build/ohos.gni")
 
 config("inputmethodengine_native_config") {
   visibility = [ ":*" ]
-  include_dirs = [ "include",
-          "${inputmethod_path}/frameworks/inputmethod_ability/include",
-          "${inputmethod_path}/frameworks/inputmethod_controller/include"
-]
+  include_dirs = [
+    "include",
+    "${inputmethod_path}/frameworks/inputmethod_ability/include",
+    "${inputmethod_path}/frameworks/inputmethod_controller/include",
+  ]
 }
 
 config("inputmethodengine_native_public_config") {
   visibility = []
-  include_dirs = [ "include",
-                   "${inputmethod_path}/interfaces/kits/js/napi/inputmethodclient",
-                   "${inputmethod_path}/interfaces/kits/js/napi/inputmethodengine/include",
-                   "${inputmethod_path}/interfaces/kits/js/napi/inputmethodability",
+  include_dirs = [
+    "include",
+    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodclient",
+    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodengine/include",
+    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodability",
   ]
 }
 
 ohos_shared_library("inputmethodengine") {
   sources = [
-    "//base/inputmethod/imf/services/src/global.cpp",
-    "js_callback_object.cpp",
-    "input_method_engine_module.cpp",
-    "js_text_input_client_engine.cpp",
-    "js_keyboard_controller_engine.cpp",
-    "js_input_method_engine_setting.cpp",
-    "js_keyboard_delegate_setting.cpp",
     "${inputmethod_path}/interfaces/kits/js/napi/inputmethodclient/async_call.cpp",
+    "//base/inputmethod/imf/services/src/global.cpp",
+    "input_method_engine_module.cpp",
+    "js_callback_object.cpp",
+    "js_input_method_engine_setting.cpp",
+    "js_keyboard_controller_engine.cpp",
+    "js_keyboard_delegate_setting.cpp",
+    "js_text_input_client_engine.cpp",
   ]
 
   configs = [ ":inputmethodengine_native_config" ]

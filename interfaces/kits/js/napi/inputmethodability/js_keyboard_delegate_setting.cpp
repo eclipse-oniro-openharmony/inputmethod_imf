@@ -403,7 +403,7 @@ uv_work_t *JsKeyboardDelegateSetting::GetTextUVwork(std::string type, std::strin
     return work;
 }
 
-void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int height)
+void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
     CursorPara para {positionX, positionY, height};
     std::string type = "cursorContextChange";
