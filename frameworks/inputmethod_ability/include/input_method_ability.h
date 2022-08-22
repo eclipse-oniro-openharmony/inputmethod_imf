@@ -17,8 +17,6 @@
 #define FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_INPUT_METHOD_ABILITY_H
 
 #include <thread>
-#include "js_input_method_engine_listener.h"
-#include "js_keyboard_delegate_listener.h"
 #include "iremote_object.h"
 #include "i_input_control_channel.h"
 #include "i_input_method_core.h"
@@ -33,10 +31,11 @@
 #include "message.h"
 #include "utils.h"
 #include "input_method_system_ability_proxy.h"
+#include "input_method_engine_listener.h"
+#include "keyboard_listener.h"
 
 namespace OHOS {
 namespace MiscServices {
-    class JsInputMethodEngineListener;
     class MessageHandler;
     class InputMethodAbility : public RefBase {
     public:
@@ -45,8 +44,8 @@ namespace MiscServices {
         static sptr<InputMethodAbility> GetInstance();
         sptr<IInputMethodCore> OnConnect();
         bool InsertText(const std::string text);
-        void setImeListener(sptr<JsInputMethodEngineListener> imeListener);
-        void setKdListener(sptr<JsKeyboardDelegateListener> kdListener);
+        void setImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
+        void setKdListener(std::shared_ptr<KeyboardListener> kdListener);
         void DeleteForward(int32_t length);
         void DeleteBackward(int32_t length);
         void HideKeyboardSelf();
@@ -79,8 +78,8 @@ namespace MiscServices {
 
         std::mutex dataChannelLock_;
         std::shared_ptr<InputDataChannelProxy> dataChannel_ = nullptr;
-        sptr<JsInputMethodEngineListener> imeListener_;
-        sptr<JsKeyboardDelegateListener> kdListener_;
+        std::shared_ptr<InputMethodEngineListener> imeListener_;
+        std::shared_ptr<KeyboardListener> kdListener_;
         static std::mutex instanceLock_;
 
         static sptr<InputMethodAbility> instance_;

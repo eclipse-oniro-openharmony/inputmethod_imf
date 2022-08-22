@@ -116,7 +116,7 @@ namespace MiscServices {
         SetCoreAndAgent();
     }
 
-    void InputMethodAbility::setImeListener(sptr<JsInputMethodEngineListener> imeListener)
+    void InputMethodAbility::setImeListener(std::shared_ptr<InputMethodEngineListener> imeListener)
     {
         IMSA_HILOGI("InputMethodAbility::setImeListener");
         if (!imeListener_) {
@@ -124,7 +124,7 @@ namespace MiscServices {
         }
     }
 
-    void InputMethodAbility::setKdListener(sptr<JsKeyboardDelegateListener> kdListener)
+    void InputMethodAbility::setKdListener(std::shared_ptr<KeyboardListener> kdListener)
     {
         IMSA_HILOGI("InputMethodAbility::setKdListener");
         if (!kdListener_) {

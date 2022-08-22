@@ -35,6 +35,7 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("getForward", GetForward),
         DECLARE_NAPI_FUNCTION("getBackward", GetBackward),
         DECLARE_NAPI_FUNCTION("getEditorAttribute", GetEditorAttribute),
+        DECLARE_NAPI_FUNCTION("moveCursor", MoveCursor),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(),
@@ -43,6 +44,23 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
     NAPI_CALL(env, napi_set_named_property(env, info, TIC_CLASS_NAME.c_str(), cons));
 
     return info;
+}
+
+napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<MoveCursorContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        NAPI_ASSERT_BASE(env, argc == 1 || argc == 2, " should 1 or 2 parameters!", napi_invalid_arg);
+        napi_status status = GetMoveCursorParam(env, argv[0], ctxt);
+        return status;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        InputMethodAbility::GetInstance()->MoveCursor(ctxt->num);
+        ctxt->status = napi_ok;
+    };
+    ctxt->SetAction(std::move(input));
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    return asyncCall.Call(env, exec);
 }
 
 napi_value JsTextInputClientEngine::JsConstructor(napi_env env, napi_callback_info cbinfo)
@@ -146,6 +164,18 @@ napi_status JsTextInputClientEngine::GetDeleteForwardLength(napi_env env, napi_v
     status = napi_typeof(env, argv, &valueType);
     if (valueType == napi_number) {
         ctxt->length = GetNumberProperty(env, argv);
+    }
+    return status;
+}
+
+napi_status JsTextInputClientEngine::GetMoveCursorParam(
+    napi_env env, napi_value argv, std::shared_ptr<MoveCursorContext> ctxt)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_status status = napi_generic_failure;
+    status = napi_typeof(env, argv, &valueType);
+    if (valueType == napi_number) {
+        ctxt->num = GetNumberProperty(env, argv);
     }
     return status;
 }

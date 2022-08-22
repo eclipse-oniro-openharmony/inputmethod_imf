@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,21 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef CALLBAKC_OBJECT_H
-#define CALLBAKC_OBJECT_H
 
-#include "napi/native_api.h"
-#include "napi/native_node_api.h"
+#ifndef INPUTMETHOD_IMF_KEYBOARD_LISTENER_H
+#define INPUTMETHOD_IMF_KEYBOARD_LISTENER_H
 
 namespace OHOS {
 namespace MiscServices {
-class JSCallbackObject {
+class KeyboardListener {
 public:
-    JSCallbackObject(napi_env env, napi_value callback);
-    ~JSCallbackObject();
-    napi_ref callback_ = nullptr;
-    napi_env env_ {};
+    virtual ~KeyboardListener() = default;
+    virtual bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) = 0;
+    virtual void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) = 0;
+    virtual void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) = 0;
+    virtual void OnTextChange(std::string text) = 0;
 };
-}
-}
-#endif // CALLBAKC_OBJECT_H
+} // namespace MiscServices
+} // namespace OHOS
+#endif // INPUTMETHOD_IMF_KEYBOARD_LISTENER_H

@@ -22,23 +22,23 @@
 #include "napi/native_api.h"
 #include "global.h"
 #include "async_call.h"
-#include "js_input_method_engine_setting.h"
+#include "keyboard_listener.h"
+#include "js_callback_object.h"
 
 namespace OHOS {
 namespace MiscServices {
-class JSCallbackObject;
-class JsKeyboardDelegateSetting {
+class JsKeyboardDelegateSetting : public KeyboardListener {
 public:
     JsKeyboardDelegateSetting() = default;
-    ~JsKeyboardDelegateSetting() = default;
+    ~JsKeyboardDelegateSetting() override = default;
     static napi_value Init(napi_env env, napi_value info);
     static napi_value CreateKeyboardDelegate(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
-    bool OnKeyEvent(int32_t keyCode, int32_t keyStatus);
-    void OnCursorUpdate(int32_t positionX, int32_t positionY, int height);
-    void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd);
-    void OnTextChange(std::string text);
+    bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override;
+    void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
+    void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
+    void OnTextChange(std::string text) override;
 private:
     static napi_value GetResultOnKeyEvent(napi_env env, int32_t keyCode, int32_t keyStatus);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
@@ -46,7 +46,7 @@ private:
     static JsKeyboardDelegateSetting *GetNative(napi_env env, napi_callback_info info);
     static bool Equals(napi_env env, napi_value value, napi_ref copy);
     void RegisterListener(napi_value callback, std::string type,
-        std::shared_ptr<JSCallbackObject> JSCallbackObject);
+        std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
 
     static std::string GetStringProperty(napi_env env, napi_value obj);

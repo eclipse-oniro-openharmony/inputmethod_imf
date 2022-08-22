@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "js_input_method_listener_engine.h"
+#include "js_callback_object.h"
 
 namespace OHOS {
 namespace MiscServices {

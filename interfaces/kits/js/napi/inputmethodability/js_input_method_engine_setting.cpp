@@ -95,18 +95,18 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
     IMSA_HILOGI("run in JsConstructor");
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
 
-    std::shared_ptr<JsInputMethodEngineSetting> IMESobject = std::make_shared<JsInputMethodEngineSetting>();
-    InputMethodAbility::GetInstance()->setImeListener(IMESobject);
-    if (IMESobject == nullptr) {
+    std::shared_ptr<JsInputMethodEngineSetting> obj = std::make_shared<JsInputMethodEngineSetting>();
+    InputMethodAbility::GetInstance()->setImeListener(obj);
+    if (obj == nullptr) {
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
     }
     
-    napi_wrap(env, thisVar, IMESobject.get(), [](napi_env env, void *data, void *hint) {
+    napi_wrap(env, thisVar, obj.get(), [](napi_env env, void *data, void *hint) {
         IMSA_HILOGE("run in IMESobject delete");
     }, nullptr, nullptr);
-    napi_get_uv_event_loop(env, &IMESobject->loop_);
+    napi_get_uv_event_loop(env, &obj->loop_);
     return thisVar;
 };
 
@@ -244,8 +244,8 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     if (engine == nullptr) {
         return nullptr;
     }
-    std::shared_ptr<JSCallbackObject> JSCallbackObject = std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE]);
-    engine->RegisterListener(argv[ARGC_ONE], type, JSCallbackObject);
+    std::shared_ptr<JSCallbackObject> callback = std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE]);
+    engine->RegisterListener(argv[ARGC_ONE], type, callback);
 
     napi_value result = nullptr;
     napi_get_null(env, &result);
@@ -277,9 +277,7 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
         napi_typeof(env, argv[ARGC_ONE], &valuetype);
         NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
     }
-
     engine->UnRegisterListener(argv[ARGC_ONE], type);
-
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
@@ -297,31 +295,6 @@ bool JsInputMethodEngineSetting::Equals(napi_env env, napi_value value, napi_ref
     bool isEquals = false;
     napi_strict_equals(env, value, copyValue, &isEquals);
     return isEquals;
-}
-
-uv_work_t *JsInputMethodEngineSetting::GetUVwork(std::string type)
-{
-    UvEntry *entry = nullptr;
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("OnInputStart cb-vector is empty");
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        IMSA_HILOGE("entry ptr is nullptr!");
-        return nullptr;
-    }
-    work->data = entry;
-    return work;
 }
 
 uv_work_t *JsInputMethodEngineSetting::GetUVwork(std::string type)

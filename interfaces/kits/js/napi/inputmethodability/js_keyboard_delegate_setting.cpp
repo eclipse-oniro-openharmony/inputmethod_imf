@@ -40,7 +40,6 @@ napi_value JsKeyboardDelegateSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("OPTION_AUTO_WORDS", GetJsConstProperty(env, static_cast<uint32_t>(4))),
         DECLARE_NAPI_PROPERTY("OPTION_MULTI_LINE", GetJsConstProperty(env, static_cast<uint32_t>(1))),
         DECLARE_NAPI_PROPERTY("OPTION_NO_FULLSCREEN", GetJsConstProperty(env, static_cast<uint32_t>(10))),
-
         DECLARE_NAPI_PROPERTY("CURSOR_UP", GetJsConstProperty(env, static_cast<uint32_t>(1))),
         DECLARE_NAPI_PROPERTY("CURSOR_DOWN", GetJsConstProperty(env, static_cast<uint32_t>(2))),
         DECLARE_NAPI_PROPERTY("CURSOR_LEFT", GetJsConstProperty(env, static_cast<uint32_t>(3))),
@@ -51,6 +50,7 @@ napi_value JsKeyboardDelegateSetting::Init(napi_env env, napi_value exports)
 
         DECLARE_NAPI_PROPERTY("DISPLAY_MODE_PART", GetJsConstProperty(env, static_cast<uint32_t>(0))),
         DECLARE_NAPI_PROPERTY("DISPLAY_MODE_FULL", GetJsConstProperty(env, static_cast<uint32_t>(1))),
+        DECLARE_NAPI_PROPERTY("WINDOW_TYPE_INPUT_METHOD_FLOAT", GetJsConstProperty(env, static_cast<uint32_t>(2105))),
 
         DECLARE_NAPI_FUNCTION("createKeyboardDelegate", CreateKeyboardDelegate),
     };
@@ -81,17 +81,18 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
 
-    std::shared_ptr<JsKeyboardDelegateSetting> KDSobject = std::make_shared<JsKeyboardDelegateSetting>();
-    InputMethodAbility::GetInstance()->setKdListener(KDSobject);
-    if (KDSobject == nullptr) {
+    std::shared_ptr<JsKeyboardDelegateSetting> obj = std::make_shared<JsKeyboardDelegateSetting>();
+    InputMethodAbility::GetInstance()->setKdListener(obj);
+    if (obj == nullptr) {
         IMSA_HILOGE("KDSobject == nullptr");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(env, thisVar, KDSobject.get(), [](napi_env env, void *data, void *hint) {
+    napi_wrap(env, thisVar, obj.get(), [](napi_env env, void *data, void *hint) {
+        IMSA_HILOGE("delete JsKeyboardDelegateSetting");
     }, nullptr, nullptr);
-    napi_get_uv_event_loop(env, &KDSobject->loop_);
+    napi_get_uv_event_loop(env, &obj->loop_);
     return thisVar;
 };
 
@@ -122,11 +123,11 @@ std::string JsKeyboardDelegateSetting::GetStringProperty(napi_env env, napi_valu
 }
 
 void JsKeyboardDelegateSetting::RegisterListener(napi_value callback, std::string type,
-    std::shared_ptr<JSCallbackObject> JSCallbackObject)
+    std::shared_ptr<JSCallbackObject> callbackObj)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName %{public}s not registertd!", type.c_str());
+        IMSA_HILOGE("methodName %{public}s not registered!", type.c_str());
     }
 
     for (auto &item : jsCbMap_[type]) {
@@ -136,7 +137,7 @@ void JsKeyboardDelegateSetting::RegisterListener(napi_value callback, std::strin
         }
     }
 
-    jsCbMap_[type].push_back(std::move(JSCallbackObject));
+    jsCbMap_[type].push_back(std::move(callbackObj));
 }
 
 void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::string type)
@@ -205,8 +206,8 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     if (engine == nullptr) {
         return nullptr;
     }
-    std::shared_ptr<JSCallbackObject> JSCallbackObject = std::make_shared<JSCallbackObject>(env, argv[1]);
-    engine->RegisterListener(argv[ARGC_ONE], type, JSCallbackObject);
+    std::shared_ptr<JSCallbackObject> callback = std::make_shared<JSCallbackObject>(env, argv[1]);
+    engine->RegisterListener(argv[ARGC_ONE], type, callback);
 
     napi_value result = nullptr;
     napi_get_null(env, &result);
@@ -227,8 +228,8 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     NAPI_ASSERT(env, valuetype == napi_string, "type is not a string");
     std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
 
-    auto engine = GetNative(env, info);
-    if (engine == nullptr) {
+    auto delegate = GetNative(env, info);
+    if (delegate == nullptr) {
         return nullptr;
     }
 
@@ -237,10 +238,7 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
         napi_typeof(env, argv[ARGC_ONE], &valuetype);
         NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
     }
-
-    auto JSCallbackObject = std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE]);
-    engine->UnRegisterListener(argv[ARGC_ONE], type);
-
+    delegate->UnRegisterListener(argv[ARGC_ONE], type);
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
@@ -405,7 +403,7 @@ uv_work_t *JsKeyboardDelegateSetting::GetTextUVwork(std::string type, std::strin
     return work;
 }
 
-void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int height)
+void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
     CursorPara para {positionX, positionY, height};
     std::string type = "cursorContextChange";
