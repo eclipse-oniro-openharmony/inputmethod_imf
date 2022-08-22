@@ -12,18 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <functional>
+
 #include <gtest/gtest.h>
-#include <cstdint>
-#include <vector>
 #include <sys/time.h>
-#include <thread>
+
+#include <cstdint>
+#include <functional>
 #include <string>
+#include <thread>
+#include <vector>
+
 #include "global.h"
-#include "input_method_agent_stub.h"
-#include "input_method_core_stub.h"
-#include "input_control_channel_stub.h"
+#include "i_input_data_channel.h"
 #include "input_attribute.h"
+#include "input_control_channel_stub.h"
+#include "input_data_channel_proxy.h"
+#include "input_data_channel_stub.h"
+#include "input_method_agent_stub.h"
+#include "input_method_core_proxy.h"
+#include "input_method_core_stub.h"
 #include "message_handler.h"
 
 using namespace testing::ext;
@@ -87,6 +94,41 @@ namespace MiscServices {
         auto remoteObject = data.ReadRemoteObject();
         sptr<IInputMethodCore> iface = iface_cast<IInputMethodCore>(remoteObject);
         EXPECT_TRUE(iface != nullptr);
+    }
+
+    /**
+     * @tc.name: testShowKeyboardInputMethodCoreProxy
+     * @tc.desc: Test InputMethodCoreProxy ShowKeyboard
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.Level0)
+    {
+        sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
+        sptr<IInputMethodCore> core = coreStub;
+        sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
+
+        MessageParcel data;
+        data.WriteRemoteObject(core->AsObject());
+        data.WriteRemoteObject(channelStub->AsObject());
+        sptr<IRemoteObject> coreObject = data.ReadRemoteObject();
+        sptr<IRemoteObject> channelObject = data.ReadRemoteObject();
+
+        sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
+        sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
+        auto ret = coreProxy->showKeyboard(channelProxy, true);
+        EXPECT_TRUE(ret);
+    }
+
+    /**
+     * @tc.name: testShowKeyboardInputMethodCoreStub
+     * @tc.desc: Test InputMethodCoreStub ShowKeyboard
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreStub, TestSize.Level0)
+    {
+        sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
+        auto ret = coreStub->showKeyboard(nullptr, true);
+        EXPECT_TRUE(!ret);
     }
 
     /**
