@@ -1279,6 +1279,11 @@ namespace MiscServices {
         }
         imsCore[0] = core;
 
+        int ret = coreObject->AddDeathRecipient(imsDeathRecipient);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("PerUserSession::SetCoreAndAgent AddDeathRecipient return : %{public}s", ErrorCode::ToString(ret));
+        }
+        
         sptr<IRemoteObject> agentObject = data->ReadRemoteObject();
         sptr<InputMethodAgentProxy> proxy = new InputMethodAgentProxy(agentObject);
         imsAgent = proxy;
