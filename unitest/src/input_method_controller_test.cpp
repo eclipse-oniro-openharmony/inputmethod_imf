@@ -209,6 +209,7 @@ namespace MiscServices {
     * @tc.name: testInputMethodWholeProcess
     * @tc.desc: Bind IMSA.
     * @tc.type: FUNC
+    * @tc.require: I5NXHK
     */
     HWTEST_F(InputMethodControllerTest, testInputMethodWholeProcess, TestSize.Level0)
     {
@@ -252,6 +253,7 @@ namespace MiscServices {
     * @tc.name: testIMCShowCurrentInput
     * @tc.desc: IMC ShowCurrentInput.
     * @tc.type: FUNC
+    * @tc.require: I5NXHK
     */
     HWTEST_F(InputMethodControllerTest, testIMCShowCurrentInput, TestSize.Level0)
     {
@@ -266,6 +268,7 @@ namespace MiscServices {
     * @tc.name: testIMSAProxyShowCurrentInput
     * @tc.desc: IMSAProxy ShowCurrentInput.
     * @tc.type: FUNC
+    * @tc.require: I5NXHK
     */
     HWTEST_F(InputMethodControllerTest, testIMSAProxyShowCurrentInput, TestSize.Level0)
     {
