@@ -100,7 +100,7 @@ namespace MiscServices {
      * @tc.name: testShowKeyboardInputMethodCoreProxy
      * @tc.desc: Test InputMethodCoreProxy ShowKeyboard
      * @tc.type: FUNC
-     * @tc.require: I5NXHK
+     * @tc.require: issueI5NXHK
      */
     HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.Level0)
     {
@@ -124,7 +124,7 @@ namespace MiscServices {
      * @tc.name: testShowKeyboardInputMethodCoreStub
      * @tc.desc: Test InputMethodCoreStub ShowKeyboard
      * @tc.type: FUNC
-     * @tc.require: I5NXHK
+     * @tc.require: issueI5NXHK
      */
     HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreStub, TestSize.Level0)
     {
