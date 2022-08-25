@@ -88,13 +88,16 @@ namespace MiscServices {
         void StartInput(sptr<InputClientStub> &client);
         void StopInput(sptr<InputClientStub> &client);
         void ReleaseInput(sptr<InputClientStub> &client);
+        void SetInputMethodAgent(sptr<IRemoteObject> &object);
+        std::shared_ptr<InputMethodAgentProxy> GetInputMethodAgent();
         void WorkThread();
 
         sptr<InputDataChannelStub> mInputDataChannel;
         sptr<InputClientStub> mClient;
         sptr<InputMethodSystemAbilityProxy> mImms;
         sptr<ImsaDeathRecipient> deathRecipient_;
-        sptr<InputMethodAgentProxy> mAgent;
+        std::mutex agentLock_;
+        std::shared_ptr<InputMethodAgentProxy> mAgent = nullptr;
         sptr<OnTextChangedListener> textListener;
         InputAttribute mAttribute;
         std::u16string mTextString;
