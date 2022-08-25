@@ -68,6 +68,7 @@ namespace MiscServices {
     * @tc.name: testReadWriteIInputMethodAgent
     * @tc.desc: Checkout IInputMethodAgent.
     * @tc.type: FUNC
+    * @tc.require: issueI5JBR6
     */
     HWTEST_F(InputMethodAbilityTest, testReadWriteIInputMethodAgent, TestSize.Level0)
     {
