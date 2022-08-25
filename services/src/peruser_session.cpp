@@ -1277,6 +1277,7 @@ namespace MiscServices {
         if (imsCore[0]) {
             IMSA_HILOGI("PerUserSession::SetCoreAndAgent Input Method Service has already been started ! ");
         }
+        
         imsCore[0] = core;
 
         sptr<IRemoteObject> agentObject = data->ReadRemoteObject();
