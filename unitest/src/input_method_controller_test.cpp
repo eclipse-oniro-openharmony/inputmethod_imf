@@ -150,6 +150,7 @@ namespace MiscServices {
     * @tc.name: testInputMethodSettingValue
     * @tc.desc: Checkout setting.
     * @tc.type: FUNC
+    * @tc.require: issueI5JPMG
     */
     HWTEST_F(InputMethodControllerTest, testInputMethodSettingValue, TestSize.Level0)
     {
