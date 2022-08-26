@@ -77,7 +77,8 @@ namespace MiscServices {
         std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;
         void SetCoreAndAgent();
 
-        sptr<IInputDataChannel> inputDataChannel;
+        std::mutex dataChannelLock_;
+        std::shared_ptr<InputDataChannelProxy> dataChannel_ = nullptr;
         sptr<JsInputMethodEngineListener> imeListener_;
         sptr<JsKeyboardDelegateListener> kdListener_;
         static std::mutex instanceLock_;
