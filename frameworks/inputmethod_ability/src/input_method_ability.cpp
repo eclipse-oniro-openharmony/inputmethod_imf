@@ -357,7 +357,7 @@ namespace MiscServices {
     bool InputMethodAbility::InsertText(const std::string text)
     {
         IMSA_HILOGI("InputMethodAbility::InsertText");
-        sptr<IInputDataChannel> channel = inputDataChannel;
+        std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::InsertText channel is nullptr");
             return false;
