@@ -1277,13 +1277,8 @@ namespace MiscServices {
         if (imsCore[0]) {
             IMSA_HILOGI("PerUserSession::SetCoreAndAgent Input Method Service has already been started ! ");
         }
+        
         imsCore[0] = core;
-
-        int ret = coreObject->AddDeathRecipient(imsDeathRecipient);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE(
-                "PerUserSession::SetCoreAndAgent AddDeathRecipient return : %{public}s", ErrorCode::ToString(ret));
-        }
 
         sptr<IRemoteObject> agentObject = data->ReadRemoteObject();
         sptr<InputMethodAgentProxy> proxy = new InputMethodAgentProxy(agentObject);
