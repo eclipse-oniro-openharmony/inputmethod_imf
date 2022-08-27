@@ -528,6 +528,26 @@ namespace MiscServices {
         return setting->ListKeyboardType(imeId, types);
     }
 
+    int32_t InputMethodSystemAbility::GetCurrentInputMethodProperty(InputMethodProperty *currImeProperty)
+    {
+        IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethodProperty");
+        std::string currImeStr = ParaHandle::GetDefaultIme(userId_);
+        if (currImeStr.empty()) {
+            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currImeStr is empty");
+            return ErrorCode::ERROR_BAD_PARAMETERS;
+        }
+
+        int pos = currImeStr.find('/');
+        if (pos == -1) {
+            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currImeStr can not find '/'");
+            return ErrorCode::ERROR_BAD_PARAMETERS;
+        }
+
+        currImeProperty->mPackageName = Str8ToStr16(currImeStr.substr(0, pos));
+        currImeProperty->mAbilityName = Str8ToStr16(currImeStr.substr(pos + 1, currImeStr.length() - pos - 1));
+        return NO_ERROR;
+    }
+
     /*! Get the instance of PerUserSetting for the given user
     \param userId the user id of the given user
     \return a pointer of the instance if the user is found

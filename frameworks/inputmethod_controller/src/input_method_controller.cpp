@@ -14,9 +14,9 @@
  */
 
 #include "input_method_controller.h"
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
+
 #include "global.h"
+#include "input_method_ability_property.h"
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
 
@@ -300,6 +300,25 @@ using namespace MessageID;
         }
         mImms->listInputMethod(&properties);
         return properties;
+    }
+
+    InputMethodAbilityProperty InputMethodController::GetCurrentInputMethod()
+    {
+        IMSA_HILOGI("InputMethodController::GetCurrentInputMethod");
+        InputMethodAbilityProperty currIme;
+        if (!mImms) {
+            return currIme;
+        }
+
+        InputMethodProperty currImeProperty;
+        int32_t ret = mImms->GetCurrentInputMethod(&currImeProperty);
+        if (ret != NO_ERROR) {
+            return currIme;
+        }
+
+        currIme.packageName = currImeProperty.mPackageName;
+        currIme.abilityName = currImeProperty.mAbilityName;
+        return currIme;
     }
 
     void InputMethodController::StartInput(sptr<InputClientStub> &client, bool isShowKeyboard)

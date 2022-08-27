@@ -330,6 +330,24 @@ namespace MiscServices {
         return NO_ERROR;
     }
 
+    int32_t InputMethodSystemAbilityProxy::GetCurrentInputMethod(InputMethodProperty *currImeProperty)
+    {
+        if (currImeProperty == nullptr) {
+            return ERROR_NULL_POINTER;
+        }
+        MessageParcel data, reply;
+        MessageOption option;
+        if (!data.WriteInterfaceToken(GetDescriptor())) {
+            return ERROR_EX_NULL_POINTER;
+        }
+        auto ret = Remote()->SendRequest(GET_CURRENT_INPUT_METHOD, data, reply, option);
+        if (ret != NO_ERROR) {
+            return ret;
+        }
+        currImeProperty = reply.ReadParcelable<InputMethodProperty>();
+        return NO_ERROR;
+    }
+
     int32_t InputMethodSystemAbilityProxy::getCurrentKeyboardType(KeyboardType *retType)
     {
         if (!retType) {

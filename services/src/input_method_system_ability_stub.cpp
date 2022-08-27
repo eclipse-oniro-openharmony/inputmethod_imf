@@ -180,6 +180,17 @@ namespace MiscServices {
                 reply.WriteInt32(ret);
                 break;
             }
+            case GET_CURRENT_INPUT_METHOD: {
+                InputMethodProperty *currImeProperty;
+                int32_t ret = GetCurrentInputMethodProperty(currImeProperty);
+                if (ret != NO_ERROR) {
+                    reply.WriteInt32(ret);
+                    break;
+                }
+                reply.WriteInt32(NO_ERROR);
+                reply.WriteParcelable(currImeProperty);
+                break;
+            }
             default: {
                 return BRemoteObject::OnRemoteRequest(code, data, reply, option);
             }
