@@ -373,11 +373,12 @@ namespace MiscServices {
         InputMethodProperty property;
         int32_t ret = GetCurrentInputMethod(property);
         if (ret != NO_ERROR) {
+            IMSA_HILOGE("InputMethodSystemAbilityStub::OnGetCurrentInputMethod failed: %{public}d", ret);
             reply.WriteInt32(ErrorCode::ERROR_GETTING_CURRENT_IME);
             return;
         }
         reply.WriteInt32(NO_ERROR);
-        reply.WriteParcelable(std::make_shared<InputMethodProperty>(property));
+        reply.WriteParcelable(&property);
     }
 
     /*! Get user id from uid

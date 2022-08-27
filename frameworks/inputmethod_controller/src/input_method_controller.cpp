@@ -16,7 +16,6 @@
 #include "input_method_controller.h"
 
 #include "global.h"
-#include "input_method_ability_property.h"
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
@@ -308,18 +307,20 @@ using namespace MessageID;
     std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
     {
         IMSA_HILOGI("InputMethodController::GetCurrentInputMethod");
-        if (!mImms) {
+        if (mImms == nullptr) {
+            IMSA_HILOGE("InputMethodController::GetCurrentInputMethod mImms is nullptr");
             return nullptr;
         }
 
         InputMethodProperty property;
         int32_t ret = mImms->GetCurrentInputMethod(property);
         if (ret != NO_ERROR) {
+            IMSA_HILOGE("InputMethodController::GetCurrentInputMethod failed: %{public}d", ret);
             return nullptr;
         }
 
         return { new Property({ Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) }),
-            [](auto property) {} };
+            [](auto p) {} };
     }
 
     void InputMethodController::StartInput(sptr<InputClientStub> &client, bool isShowKeyboard)

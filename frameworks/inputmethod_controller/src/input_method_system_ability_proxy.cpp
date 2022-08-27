@@ -335,10 +335,17 @@ namespace MiscServices {
         MessageParcel data, reply;
         MessageOption option;
         if (!data.WriteInterfaceToken(GetDescriptor())) {
+            IMSA_HILOGE("InputMethodSystemAbilityProxy::GetCurrentInputMethod WriteInterfaceToken failed");
             return ERROR_EX_NULL_POINTER;
         }
         auto ret = Remote()->SendRequest(GET_CURRENT_INPUT_METHOD, data, reply, option);
         if (ret != NO_ERROR) {
+            IMSA_HILOGE("InputMethodSystemAbilityProxy::GetCurrentInputMethod SendRequest failed: %{public}d", ret);
+            return ret;
+        }
+        ret = reply.ReadInt32();
+        if (ret != NO_ERROR) {
+            IMSA_HILOGE("InputMethodSystemAbilityProxy::GetCurrentInputMethod reply error: %{public}d", ret);
             return ret;
         }
         auto currentIme = reply.ReadParcelable<InputMethodProperty>();

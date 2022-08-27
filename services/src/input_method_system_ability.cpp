@@ -545,7 +545,7 @@ namespace MiscServices {
 
         property.mPackageName = Str8ToStr16(currImeStr.substr(0, pos));
         property.mAbilityName = Str8ToStr16(currImeStr.substr(pos + 1, currImeStr.length() - pos - 1));
-        return NO_ERROR;
+        return ErrorCode::NO_ERROR;
     }
 
     /*! Get the instance of PerUserSetting for the given user
