@@ -376,15 +376,6 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
-    int32_t InputMethodSystemAbilityStub::GetCurrentInputMethod(InputMethodProperty *currImeProperty)
-    {
-        int32_t ret = GetCurrentInputMethod(currImeProperty);
-        if (ret != NO_ERROR) {
-            return ErrorCode::ERROR_GETTING_CURRENT_IME;
-        }
-        return NO_ERROR;
-    }
-
     /*! Get user id from uid
     \param uid the uid from which the remote call is
     \return return user id of the remote caller

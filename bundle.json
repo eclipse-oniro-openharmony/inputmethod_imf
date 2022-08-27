@@ -82,7 +82,7 @@
               "input_client_stub.h",
               "input_data_channel_proxy.h",
               "input_data_channel_stub.h",
-              "input_method_ability_property",
+              "input_method_ability_property.h",
               "input_method_controller.h",
               "input_method_system_ability_proxy.h",
               "input_method_utils.h"
