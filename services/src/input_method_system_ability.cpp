@@ -528,7 +528,7 @@ namespace MiscServices {
         return setting->ListKeyboardType(imeId, types);
     }
 
-    int32_t InputMethodSystemAbility::GetCurrentInputMethodProperty(InputMethodProperty *currImeProperty)
+    int32_t InputMethodSystemAbility::GetCurrentInputMethod(InputMethodProperty *currImeProperty)
     {
         IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethodProperty");
         std::string currImeStr = ParaHandle::GetDefaultIme(userId_);

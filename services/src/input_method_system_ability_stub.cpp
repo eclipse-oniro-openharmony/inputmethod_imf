@@ -182,7 +182,7 @@ namespace MiscServices {
             }
             case GET_CURRENT_INPUT_METHOD: {
                 InputMethodProperty *currImeProperty;
-                int32_t ret = GetCurrentInputMethodProperty(currImeProperty);
+                int32_t ret = GetCurrentInputMethod(currImeProperty);
                 if (ret != NO_ERROR) {
                     reply.WriteInt32(ret);
                     break;
@@ -373,6 +373,15 @@ namespace MiscServices {
         }
         MessageHandler::Instance()->SendMessage(msg);
         return ErrorCode::NO_ERROR;
+    }
+
+    int32_t InputMethodSystemAbilityStub::GetCurrentInputMethod(InputMethodProperty *currImeProperty)
+    {
+        int32_t ret = GetCurrentInputMethod(currImeProperty);
+        if (ret != NO_ERROR) {
+            return ErrorCode::ERROR_GETTING_CURRENT_IME;
+        }
+        return NO_ERROR;
     }
 
     /*! Get user id from uid
