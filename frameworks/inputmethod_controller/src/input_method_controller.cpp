@@ -21,6 +21,7 @@
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "string_ex.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -304,23 +305,21 @@ using namespace MessageID;
         return properties;
     }
 
-    InputMethodAbilityProperty InputMethodController::GetCurrentInputMethod()
+    std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
     {
         IMSA_HILOGI("InputMethodController::GetCurrentInputMethod");
-        InputMethodAbilityProperty currIme;
         if (!mImms) {
-            return currIme;
+            return nullptr;
         }
 
-        InputMethodProperty currImeProperty;
-        int32_t ret = mImms->GetCurrentInputMethod(&currImeProperty);
+        InputMethodProperty property;
+        int32_t ret = mImms->GetCurrentInputMethod(property);
         if (ret != NO_ERROR) {
-            return currIme;
+            return nullptr;
         }
 
-        currIme.packageName = currImeProperty.mPackageName;
-        currIme.abilityName = currImeProperty.mAbilityName;
-        return currIme;
+        return { new Property({ Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) }),
+            [](auto property) {} };
     }
 
     void InputMethodController::StartInput(sptr<InputClientStub> &client, bool isShowKeyboard)

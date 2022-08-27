@@ -61,7 +61,7 @@ namespace MiscServices {
         int32_t displayOptionalInputMethod(MessageParcel& data) override;
         int32_t getDisplayMode(int32_t &retMode) override;
         int32_t getKeyboardWindowHeight(int32_t &retHeight) override;
-        int32_t GetCurrentInputMethod(InputMethodProperty *currentInputMethod) override;
+        int32_t GetCurrentInputMethod(InputMethodProperty &currentInputMethod) override;
         int32_t getCurrentKeyboardType(KeyboardType *retType) override;
         int32_t listInputMethodEnabled(std::vector<InputMethodProperty*> *properties) override;
         int32_t listInputMethod(std::vector<InputMethodProperty*> *properties) override;

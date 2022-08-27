@@ -330,11 +330,8 @@ namespace MiscServices {
         return NO_ERROR;
     }
 
-    int32_t InputMethodSystemAbilityProxy::GetCurrentInputMethod(InputMethodProperty *currImeProperty)
+    int32_t InputMethodSystemAbilityProxy::GetCurrentInputMethod(InputMethodProperty &property)
     {
-        if (currImeProperty == nullptr) {
-            return ERROR_NULL_POINTER;
-        }
         MessageParcel data, reply;
         MessageOption option;
         if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -344,7 +341,9 @@ namespace MiscServices {
         if (ret != NO_ERROR) {
             return ret;
         }
-        currImeProperty = reply.ReadParcelable<InputMethodProperty>();
+        auto currentIme = reply.ReadParcelable<InputMethodProperty>();
+        property = *currentIme;
+        delete currentIme;
         return NO_ERROR;
     }
 

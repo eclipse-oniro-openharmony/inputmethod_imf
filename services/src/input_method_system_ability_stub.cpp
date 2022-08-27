@@ -181,15 +181,7 @@ namespace MiscServices {
                 break;
             }
             case GET_CURRENT_INPUT_METHOD: {
-                auto currImeProperty = new (std::nothrow) InputMethodProperty();
-                int32_t ret = GetCurrentInputMethod(currImeProperty);
-                if (ret != NO_ERROR) {
-                    reply.WriteInt32(ret);
-                    break;
-                }
-                reply.WriteInt32(NO_ERROR);
-                reply.WriteParcelable(currImeProperty);
-                delete currImeProperty;
+                OnGetCurrentInputMethod(reply);
                 break;
             }
             default: {
@@ -374,6 +366,18 @@ namespace MiscServices {
         }
         MessageHandler::Instance()->SendMessage(msg);
         return ErrorCode::NO_ERROR;
+    }
+
+    void InputMethodSystemAbilityStub::OnGetCurrentInputMethod(MessageParcel &reply)
+    {
+        InputMethodProperty property;
+        int32_t ret = GetCurrentInputMethod(property);
+        if (ret != NO_ERROR) {
+            reply.WriteInt32(ErrorCode::ERROR_GETTING_CURRENT_IME);
+            return;
+        }
+        reply.WriteInt32(NO_ERROR);
+        reply.WriteParcelable(std::make_shared<InputMethodProperty>(property));
     }
 
     /*! Get user id from uid

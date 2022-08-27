@@ -528,7 +528,7 @@ namespace MiscServices {
         return setting->ListKeyboardType(imeId, types);
     }
 
-    int32_t InputMethodSystemAbility::GetCurrentInputMethod(InputMethodProperty *currImeProperty)
+    int32_t InputMethodSystemAbility::GetCurrentInputMethod(InputMethodProperty &property)
     {
         IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethodProperty");
         std::string currImeStr = ParaHandle::GetDefaultIme(userId_);
@@ -543,8 +543,8 @@ namespace MiscServices {
             return ErrorCode::ERROR_BAD_PARAMETERS;
         }
 
-        currImeProperty->mPackageName = Str8ToStr16(currImeStr.substr(0, pos));
-        currImeProperty->mAbilityName = Str8ToStr16(currImeStr.substr(pos + 1, currImeStr.length() - pos - 1));
+        property.mPackageName = Str8ToStr16(currImeStr.substr(0, pos));
+        property.mAbilityName = Str8ToStr16(currImeStr.substr(pos + 1, currImeStr.length() - pos - 1));
         return NO_ERROR;
     }
 

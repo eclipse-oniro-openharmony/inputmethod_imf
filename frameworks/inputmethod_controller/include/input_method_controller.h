@@ -48,6 +48,11 @@ namespace MiscServices {
         virtual void MoveCursor(const Direction direction) = 0;
     };
 
+    struct Property {
+        std::string packageName;
+        std::string abilityName;
+    };
+
     class ImsaDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         explicit ImsaDeathRecipient();
@@ -75,7 +80,7 @@ namespace MiscServices {
         std::vector<InputMethodProperty*> ListInputMethod();
         int32_t GetEnterKeyType();
         int32_t GetInputPattern();
-        InputMethodAbilityProperty GetCurrentInputMethod();
+        std::shared_ptr<Property> GetCurrentInputMethod();
         int32_t HideCurrentInput();
         int32_t ShowCurrentInput();
         void SetCallingWindow(uint32_t windowId);
