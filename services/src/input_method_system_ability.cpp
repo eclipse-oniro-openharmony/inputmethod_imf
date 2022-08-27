@@ -530,8 +530,8 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::GetCurrentInputMethod(InputMethodProperty &property)
     {
-        IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethodProperty");
-        std::string currImeStr = ParaHandle::GetDefaultIme(userId_);
+        IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
+        std::string currImeStr = ParaHandle::GetDefaultIme(MAIN_USER_ID);
         if (currImeStr.empty()) {
             IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currImeStr is empty");
             return ErrorCode::ERROR_BAD_PARAMETERS;

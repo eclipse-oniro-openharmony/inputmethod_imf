@@ -31,7 +31,7 @@ namespace OHOS {
 
         std::string ParaHandle::GetDefaultIme(int32_t userId)
         {
-            char value[CONFIG_LEN];
+            char value[CONFIG_LEN] = {0};
             int code = 0;
             if (userId != main_userId) {
                 code = GetParameter(DEFAULT_IME_KEY + userId, "", value, CONFIG_LEN);
