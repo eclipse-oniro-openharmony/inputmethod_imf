@@ -19,6 +19,8 @@
 #include "input_method_ability_property.h"
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
+#include "iservice_registry.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace MiscServices {
