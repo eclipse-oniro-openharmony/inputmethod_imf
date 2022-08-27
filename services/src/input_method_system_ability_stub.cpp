@@ -181,7 +181,7 @@ namespace MiscServices {
                 break;
             }
             case GET_CURRENT_INPUT_METHOD: {
-                InputMethodProperty *currImeProperty;
+                auto currImeProperty = new (std::nothrow) InputMethodProperty();
                 int32_t ret = GetCurrentInputMethod(currImeProperty);
                 if (ret != NO_ERROR) {
                     reply.WriteInt32(ret);
@@ -189,6 +189,7 @@ namespace MiscServices {
                 }
                 reply.WriteInt32(NO_ERROR);
                 reply.WriteParcelable(currImeProperty);
+                delete currImeProperty;
                 break;
             }
             default: {
