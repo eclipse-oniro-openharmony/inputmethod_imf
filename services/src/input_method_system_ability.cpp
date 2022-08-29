@@ -531,20 +531,20 @@ namespace MiscServices {
     int32_t InputMethodSystemAbility::GetCurrentInputMethod(InputMethodProperty &property)
     {
         IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
-        std::string currImeStr = ParaHandle::GetDefaultIme(MAIN_USER_ID);
-        if (currImeStr.empty()) {
-            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currImeStr is empty");
+        std::string propertyStr = ParaHandle::GetDefaultIme(MAIN_USER_ID);
+        if (propertyStr.empty()) {
+            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod propertyStr is empty");
             return ErrorCode::ERROR_BAD_PARAMETERS;
         }
 
-        int pos = currImeStr.find('/');
+        int pos = propertyStr.find('/');
         if (pos == -1) {
-            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currImeStr can not find '/'");
+            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod propertyStr can not find '/'");
             return ErrorCode::ERROR_BAD_PARAMETERS;
         }
 
-        property.mPackageName = Str8ToStr16(currImeStr.substr(0, pos));
-        property.mAbilityName = Str8ToStr16(currImeStr.substr(pos + 1, currImeStr.length() - pos - 1));
+        property.mPackageName = Str8ToStr16(propertyStr.substr(0, pos));
+        property.mAbilityName = Str8ToStr16(propertyStr.substr(pos + 1, propertyStr.length() - pos - 1));
         return ErrorCode::NO_ERROR;
     }
 

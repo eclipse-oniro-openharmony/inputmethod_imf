@@ -319,7 +319,7 @@ using namespace MessageID;
             return nullptr;
         }
 
-        return { new Property({ Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) }),
+        return { new Property( { Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) } ),
             [](auto p) {} };
     }
 
