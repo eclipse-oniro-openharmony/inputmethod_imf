@@ -30,9 +30,8 @@
         "name": "ohos.permission.DISTRIBUTED_DATASYNC"
       }
     ],
-  "reqPermissions": [
+    "reqPermissions": [
       {
-        "name": "ohos.permission.GRANT_SENSITIVE_PERMISSIONS",
         "reason": "ceshi"
       },
       {

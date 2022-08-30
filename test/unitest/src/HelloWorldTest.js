@@ -12,28 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import app from '@system.app'
 import inputMethod from '@ohos.inputmethod'
 import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from 'deccjsunit/index'
 
-describe("HelloWorldTest", function () {
-    beforeAll(function() {
-        // input testsuit setup step，setup invoked before all testcases
+describe("InputMethodTest", function () {
+    beforeAll(function () {
         console.info('beforeAll caled')
     })
 
-    afterAll(function() {
-        // input testsuit teardown step，teardown invoked after all testcases
+    afterAll(function () {
         console.info('afterAll caled')
     })
 
-    beforeEach(function() {
-        // input testcase setup step，setup invoked before each testcases
+    beforeEach(function () {
         console.info('beforeEach caled')
     })
 
-    afterEach(function() {
-        // input testcase teardown step，teardown invoked after each testcases
+    afterEach(function () {
         console.info('afterEach caled')
     })
 
@@ -41,16 +38,17 @@ describe("HelloWorldTest", function () {
      * @tc.name:appInfoTest001
      * @tc.desc:verify app info is not null
      * @tc.type: FUNC
-     * @tc.require: issueNumber
+     * @tc.require: issueNumber.
      */
     it("HelloWorldTest", 0, function () {
         //step 1:调用函数获取结果
-        let a=-1
-        inputMethod.getInputMethodSetting().listInputMethod().then((successMessage)=>{
-         a=successMessage.length()
+        let len = -1
+        inputMethod.getInputMethodSetting().listInputMethod().then((successMessage) => {
+            //Step 2:使用断言比较预期与实际结果
+            len = successMessage.length()
+            expect(a > 0).assertEqual(true)
         })
 
-        //Step 2:使用断言比较预期与实际结果
-        expect(a>0).assertEqual(true)
+
     })
 })
