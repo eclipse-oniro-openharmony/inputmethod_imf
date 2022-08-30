@@ -137,6 +137,7 @@ namespace ErrorCode {
         ERROR_CLIENTWINDOW_NOT_FOCUSED, // the input client window is not focused
         ERROR_CLIENT_NOT_WINDOW, // the input client is not from a valid window
         ERROR_IME_PROPERTY_MARSHALL, // failed to marshall the ime property
+        ERROR_GETTING_CURRENT_IME,
         // error from ime
         ERROR_REMOTE_IME_DIED, // remote input method service died abnormally
         ERROR_RESTART_IME_FAILED, // failed to restart input method service

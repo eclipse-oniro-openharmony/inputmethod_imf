@@ -14,11 +14,13 @@
  */
 
 #include "input_method_controller.h"
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
+
 #include "global.h"
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
+#include "iservice_registry.h"
+#include "system_ability_definition.h"
+#include "string_ex.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -300,6 +302,25 @@ using namespace MessageID;
         }
         mImms->listInputMethod(&properties);
         return properties;
+    }
+
+    std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
+    {
+        IMSA_HILOGI("InputMethodController::GetCurrentInputMethod");
+        if (mImms == nullptr) {
+            IMSA_HILOGE("InputMethodController::GetCurrentInputMethod mImms is nullptr");
+            return nullptr;
+        }
+
+        InputMethodProperty property;
+        int32_t ret = mImms->GetCurrentInputMethod(property);
+        if (ret != NO_ERROR) {
+            IMSA_HILOGE("InputMethodController::GetCurrentInputMethod failed: %{public}d", ret);
+            return nullptr;
+        }
+
+        return { new Property({ Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) }),
+            [](auto p) {} };
     }
 
     void InputMethodController::StartInput(sptr<InputClientStub> &client, bool isShowKeyboard)
