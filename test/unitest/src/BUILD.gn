@@ -16,13 +16,14 @@ import("//build/test.gni")
 module_output_path = "imf/napi"
 
 ohos_js_unittest("HelloWorldJsTest") {
-    module_out_path = module_output_path
+  module_out_path = module_output_path
 
-    hap_profile = "./config.json"
-    certificate_profile = "./openharmony_sx.p7b"
+  hap_profile = "./config.json"
+
+  certificate_profile = "./openharmony_sx.p7b"
 }
 
 group("unittest") {
-    testonly = true
-    deps = [ ":HelloWorldJsTest" ]
+  testonly = true
+  deps = [ ":HelloWorldJsTest" ]
 }
