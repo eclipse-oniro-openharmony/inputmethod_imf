@@ -497,7 +497,7 @@ namespace MiscServices {
             property->mAbilityName = Str8ToStr16(extension.name);
             property->labelId = applicationInfo.labelId;
             property->descriptionId = applicationInfo.descriptionId;
-            resourceManager->AddResource(extension.resourcePath.c_str());
+            resourceManager->AddResource(extension.hapPath.c_str());
             std::string labelString;
             resourceManager->GetStringById(applicationInfo.labelId, labelString);
             property->label = Str8ToStr16(labelString);
