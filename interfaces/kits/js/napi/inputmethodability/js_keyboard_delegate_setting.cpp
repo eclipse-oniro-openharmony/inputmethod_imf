@@ -278,7 +278,7 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
 bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
     IMSA_HILOGI("run in OnKeyEvent");
-    KeyEventPara para{ keyCode, keyStatus, false };
+    KeyEventPara para { keyCode, keyStatus, false };
     std::string type = (keyStatus == ARGC_TWO ? "keyDown" : "keyUp");
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
     uv_work_t *work = GetKeyEventUVwork(type, para, isDone);
