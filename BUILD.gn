@@ -28,6 +28,7 @@ group("imf_packages") {
       "interfaces/kits/js/napi/inputmethodengine:inputmethodengine",
       "profile:inputmethod_inputmethod_sa_profiles",
       "services:inputmethod_service",
+      "test/unitest/src:unittest",
     ]
   }
 }
