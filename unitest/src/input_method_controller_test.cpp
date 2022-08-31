@@ -251,6 +251,19 @@ namespace MiscServices {
     }
 
     /**
+     * @tc.name: testIMCGetCurrentInputMethod
+     * @tc.desc: IMC GetCurrentInputMethod
+     * @tc.type: FUNC
+     * @tc.require: issueI5OX20
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCGetCurrentInputMethod, TestSize.level0)
+    {
+        IMSA_HILOGI("IMC GetCurrentInputMethod Test Start");
+        std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
+        EXPECT_TRUE(property != nullptr);
+    }
+
+    /**
     * @tc.name: testIMCShowCurrentInput
     * @tc.desc: IMC ShowCurrentInput.
     * @tc.type: FUNC
