@@ -349,6 +349,7 @@ uv_work_t *JsKeyboardDelegateSetting::GetKeyEventUVwork(
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         IMSA_HILOGE("entry ptr is nullptr!");
+        delete entry;
         return nullptr;
     }
     work->data = entry;
