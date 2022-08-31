@@ -28,45 +28,48 @@
 
 namespace OHOS {
 namespace MiscServices {
-    template <typename T>
-    class BlockData {
-    public:
-        explicit BlockData(uint32_t interval, const T &invalid = T()) : INTERVAL(interval), data_(invalid) {}
-        ~BlockData() {}
+template<typename T> class BlockData {
+public:
+    explicit BlockData(uint32_t interval, const T &invalid = T()) : INTERVAL(interval), data_(invalid)
+    {
+    }
+    ~BlockData()
+    {
+    }
 
-    public:
-        void SetValue(T &data)
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            data_ = data;
-            isSet_ = true;
-            cv_.notify_one();
-        }
+public:
+    void SetValue(T &data)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        data_ = data;
+        isSet_ = true;
+        cv_.notify_one();
+    }
 
-        T GetValue()
-        {
-            std::unique_lock<std::mutex> lock(mutex_);
-            cv_.wait_for(lock, std::chrono::seconds(INTERVAL), [this]() { return isSet_; });
-            T data = data_;
-            cv_.notify_one();
-            return data;
-        }
+    T GetValue()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        cv_.wait_for(lock, std::chrono::seconds(INTERVAL), [this]() { return isSet_; });
+        T data = data_;
+        cv_.notify_one();
+        return data;
+    }
 
-        void Clear(const T &invalid = T())
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            isSet_ = false;
-            data_ = invalid;
-            cv_.notify_one();
-        }
+    void Clear(const T &invalid = T())
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        isSet_ = false;
+        data_ = invalid;
+        cv_.notify_one();
+    }
 
-    private:
-        bool isSet_ = false;
-        const uint32_t INTERVAL;
-        T data_;
-        std::mutex mutex_;
-        std::condition_variable cv_;
-    };
+private:
+    bool isSet_ = false;
+    const uint32_t INTERVAL;
+    T data_;
+    std::mutex mutex_;
+    std::condition_variable cv_;
+};
 class JsKeyboardDelegateSetting : public KeyboardListener {
 public:
     JsKeyboardDelegateSetting() = default;
@@ -79,14 +82,14 @@ public:
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void OnTextChange(std::string text) override;
+
 private:
     static napi_value GetResultOnKeyEvent(napi_env env, int32_t keyCode, int32_t keyStatus);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsKeyboardDelegateSetting *GetNative(napi_env env, napi_callback_info info);
     static bool Equals(napi_env env, napi_value value, napi_ref copy);
-    void RegisterListener(napi_value callback, std::string type,
-        std::shared_ptr<JSCallbackObject> callbackObj);
+    void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
 
     static std::string GetStringProperty(napi_env env, napi_value obj);
@@ -118,8 +121,9 @@ private:
         KeyEventPara keyEventPara;
         std::shared_ptr<BlockData<bool>> isDone;
         std::string text;
-        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type)
-            : vecCopy(cbVec), type(type) {}
+        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : vecCopy(cbVec), type(type)
+        {
+        }
     };
     uv_work_t *GetCursorUVwork(std::string type, CursorPara para);
     uv_work_t *GetSelectionUVwork(std::string type, SelectionPara para);
@@ -129,6 +133,6 @@ private:
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
 };
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
 #endif // INTERFACE_KITS_JS_KEYBOARD_DELEGATE_SETTING_H
