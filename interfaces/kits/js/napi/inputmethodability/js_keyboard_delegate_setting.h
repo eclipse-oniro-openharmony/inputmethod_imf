@@ -19,6 +19,7 @@
 #include <map>
 #include <uv.h>
 #include <mutex>
+#include <memory>
 #include "napi/native_api.h"
 #include "global.h"
 #include "async_call.h"
@@ -27,6 +28,45 @@
 
 namespace OHOS {
 namespace MiscServices {
+    template <typename T>
+    class BlockData {
+    public:
+        explicit BlockData(uint32_t interval, const T &invalid = T()) : INTERVAL(interval), data_(invalid) {}
+        ~BlockData() {}
+
+    public:
+        void SetValue(T &data)
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            data_ = data;
+            isSet_ = true;
+            cv_.notify_one();
+        }
+
+        T GetValue()
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+            cv_.wait_for(lock, std::chrono::seconds(INTERVAL), [this]() { return isSet_; });
+            T data = data_;
+            cv_.notify_one();
+            return data;
+        }
+
+        void Clear(const T &invalid = T())
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            isSet_ = false;
+            data_ = invalid;
+            cv_.notify_one();
+        }
+
+    private:
+        bool isSet_ = false;
+        const uint32_t INTERVAL;
+        T data_;
+        std::mutex mutex_;
+        std::condition_variable cv_;
+    };
 class JsKeyboardDelegateSetting : public KeyboardListener {
 public:
     JsKeyboardDelegateSetting() = default;
@@ -51,6 +91,7 @@ private:
 
     static std::string GetStringProperty(napi_env env, napi_value obj);
     static constexpr int32_t MAX_VALUE_LEN = 1024;
+    static constexpr int32_t MAX_TIMEOUT = 5;
     static const std::string KDS_CLASS_NAME;
     static thread_local napi_ref KDSRef_;
     struct CursorPara {
@@ -64,11 +105,18 @@ private:
         int32_t newBegin;
         int32_t newEnd;
     };
+    struct KeyEventPara {
+        int32_t keyCode;
+        int32_t keyStatus;
+        bool isOnKeyEvent;
+    };
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
         CursorPara curPara;
         SelectionPara selPara;
+        KeyEventPara keyEventPara;
+        std::shared_ptr<BlockData<bool>> isDone;
         std::string text;
         UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type)
             : vecCopy(cbVec), type(type) {}
@@ -76,6 +124,7 @@ private:
     uv_work_t *GetCursorUVwork(std::string type, CursorPara para);
     uv_work_t *GetSelectionUVwork(std::string type, SelectionPara para);
     uv_work_t *GetTextUVwork(std::string type, std::string text);
+    uv_work_t *GetKeyEventUVwork(std::string type, KeyEventPara para, std::shared_ptr<BlockData<bool>> &isDone);
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
