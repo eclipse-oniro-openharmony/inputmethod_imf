@@ -19,19 +19,19 @@ import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from '
 
 describe("InputMethodTest", function () {
     beforeAll(function () {
-        console.info('beforeAll caled')
+        console.info('beforeAll called')
     })
 
     afterAll(function () {
-        console.info('afterAll caled')
+        console.info('afterAll called')
     })
 
     beforeEach(function () {
-        console.info('beforeEach caled')
+        console.info('beforeEach called')
     })
 
     afterEach(function () {
-        console.info('afterEach caled')
+        console.info('afterEach called')
     })
 
     /*
@@ -40,13 +40,10 @@ describe("InputMethodTest", function () {
      * @tc.type: FUNC
      * @tc.require: issueNumber.
      */
-    it("HelloWorldTest", 0, function () {
-        //step 1:调用函数获取结果
-        let len = -1
+    it("appInfoTest001", 0, function () {
         inputMethod.getInputMethodSetting().listInputMethod().then((successMessage) => {
-            //Step 2:使用断言比较预期与实际结果
-            len = successMessage.length()
-            expect(a > 0).assertEqual(true)
+            let len = successMessage.length()
+            expect(len > 0).assertEqual(true)
         })
 
 

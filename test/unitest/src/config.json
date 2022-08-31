@@ -32,9 +32,6 @@
     ],
     "reqPermissions": [
       {
-        "reason": "ceshi"
-      },
-      {
         "name": "ohos.permission.DISTRIBUTED_DATASYNC",
         "reason": "ceshi"
       }

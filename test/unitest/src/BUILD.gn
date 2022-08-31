@@ -15,7 +15,7 @@ import("//build/test.gni")
 
 module_output_path = "imf/napi"
 
-ohos_js_unittest("HelloWorldJsTest") {
+ohos_js_unittest("GetInputMethodJsTest") {
   module_out_path = module_output_path
 
   hap_profile = "./config.json"
@@ -25,5 +25,5 @@ ohos_js_unittest("HelloWorldJsTest") {
 
 group("unittest") {
   testonly = true
-  deps = [ ":HelloWorldJsTest" ]
+  deps = [ ":GetInputMethodJsTest" ]
 }
