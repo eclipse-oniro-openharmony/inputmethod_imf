@@ -41,8 +41,8 @@ describe("InputMethodTest", function () {
      * @tc.require: issueNumber.
      */
     it("appInfoTest001", 0, function () {
-        inputMethod.getInputMethodSetting().listInputMethod().then((successMessage) => {
-            let len = successMessage.length()
+        inputMethod.getInputMethodSetting().listInputMethod().then((properties) => {
+            let len = properties.length()
             expect(len > 0).assertEqual(true)
         })
 
