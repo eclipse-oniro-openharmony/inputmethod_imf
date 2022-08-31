@@ -279,7 +279,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
     IMSA_HILOGE("run in OnKeyEvent");
     std::string status;
-    KeyEventPara para{ keyCode, keyStatus, false };
+    KeyEventPara para { keyCode, keyStatus, false };
     std::string type = (keyStatus == ARGC_TWO ? status = "keyDown" : status = "keyUp");
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
     uv_work_t *work = GetKeyEventUVwork(type, para, isDone);
