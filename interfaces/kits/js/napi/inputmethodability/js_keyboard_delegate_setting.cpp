@@ -277,10 +277,9 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
 
 bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
-    IMSA_HILOGE("run in OnKeyEvent");
-    std::string status;
-    KeyEventPara para { keyCode, keyStatus, false };
-    std::string type = (keyStatus == ARGC_TWO ? status = "keyDown" : status = "keyUp");
+    IMSA_HILOGI("run in OnKeyEvent");
+    KeyEventPara para{ keyCode, keyStatus, false };
+    std::string type = (keyStatus == ARGC_TWO ? "keyDown" : "keyUp");
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
     uv_work_t *work = GetKeyEventUVwork(type, para, isDone);
     if (work == nullptr) {
@@ -301,9 +300,10 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                     GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnKeyEvent failed: %{punlic}p", jsObject);
+                    continue;
                 }
                 napi_value callback = nullptr;
-                napi_value args[1] = { jsObject };
+                napi_value args[] = { jsObject };
                 napi_get_reference_value(item->env_, item->callback_, &callback);
                 if (callback == nullptr) {
                     IMSA_HILOGE("callback is nullptr");
