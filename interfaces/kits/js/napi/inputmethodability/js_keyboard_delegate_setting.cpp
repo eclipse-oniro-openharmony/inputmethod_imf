@@ -279,7 +279,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
     IMSA_HILOGE("run in OnKeyEvent");
     std::string status;
-    KeyEventPara para {keyCode, keyStatus, false};
+    KeyEventPara para{ keyCode, keyStatus, false };
     std::string type = (keyStatus == ARGC_TWO ? status = "keyDown" : status = "keyUp");
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
     uv_work_t *work = GetKeyEventUVwork(type, para, isDone);
@@ -287,22 +287,23 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
         IMSA_HILOGE("GetKeyEventUVwork nullptr");
         return false;
     }
-    uv_queue_work(loop_, work,
-        [](uv_work_t *work) {},
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             bool isResult = false;
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
                 delete data;
                 delete work;
             });
-			bool isOnKeyEvent = false;
+            bool isOnKeyEvent = false;
             for (auto item : entry->vecCopy) {
-                napi_value jsObject = GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
+                napi_value jsObject =
+                    GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnKeyEvent failed: %{punlic}p", jsObject);
                 }
                 napi_value callback = nullptr;
-                napi_value args[1] = {jsObject};
+                napi_value args[1] = { jsObject };
                 napi_get_reference_value(item->env_, item->callback_, &callback);
                 if (callback == nullptr) {
                     IMSA_HILOGE("callback is nullptr");
@@ -311,15 +312,14 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 napi_value global = nullptr;
                 napi_get_global(item->env_, &global);
                 napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, 1, args,
-                    &result);
+                napi_status callStatus = napi_call_function(item->env_, global, callback, 1, args, &result);
                 napi_get_value_bool(item->env_, result, &isResult);
                 if (isResult) {
                     isOnKeyEvent = true;
                 }
                 if (callStatus != napi_ok) {
-                    IMSA_HILOGE("notify data change failed callStatus:%{public}d callback:%{public}p", callStatus,
-                        callback);
+                    IMSA_HILOGE(
+                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
                 }
             }
             entry->isDone->SetValue(isOnKeyEvent);
@@ -327,7 +327,8 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
     return isDone->GetValue();
 }
 
-uv_work_t *JsKeyboardDelegateSetting::GetKeyEventUVwork(std::string type, KeyEventPara para, std::shared_ptr<BlockData<bool>> &isDone)
+uv_work_t *JsKeyboardDelegateSetting::GetKeyEventUVwork(
+    std::string type, KeyEventPara para, std::shared_ptr<BlockData<bool>> &isDone)
 {
     UvEntry *entry = nullptr;
     {
