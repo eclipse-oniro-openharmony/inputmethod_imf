@@ -20,6 +20,7 @@
 #include "i_input_method_agent.h"
 #include "input_channel.h"
 #include "global.h"
+#include "message_handler.h"
 
 /**
  * brief Definition of interface IInputClient

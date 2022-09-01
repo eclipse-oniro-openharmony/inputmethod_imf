@@ -184,6 +184,5 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputDataChannelProxy::SetHandler");
     }
-
 } // namespace MiscServices
 } // namespace OHOS
