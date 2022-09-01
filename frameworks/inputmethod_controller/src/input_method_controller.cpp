@@ -266,8 +266,8 @@ using namespace MessageID;
         IMSA_HILOGI("InputMethodController::Close");
     }
 
-    void InputMethodController::PrepareInput(int32_t displayId, sptr<InputClientStub> &client,
-                                             sptr<InputDataChannelStub> &channel, InputAttribute &attribute)
+    void InputMethodController::PrepareInput(int32_t displayId, sptr<IInputClient> &client,
+                                             sptr<IInputDataChannel> &channel, InputAttribute &attribute)
     {
         IMSA_HILOGI("InputMethodController::PrepareInput");
         if (!mImms) {
@@ -327,7 +327,7 @@ using namespace MessageID;
             [](auto p) {} };
     }
 
-    void InputMethodController::StartInput(sptr<InputClientStub> &client, bool isShowKeyboard)
+    void InputMethodController::StartInput(sptr<IInputClient> &client, bool isShowKeyboard)
     {
         IMSA_HILOGI("InputMethodController::StartInput");
         if (!mImms) {
@@ -342,7 +342,7 @@ using namespace MessageID;
         mImms->startInput(data);
     }
 
-    void InputMethodController::ReleaseInput(sptr<InputClientStub> &client)
+    void InputMethodController::ReleaseInput(sptr<IInputClient> &client)
     {
         IMSA_HILOGI("InputMethodController::ReleaseInput");
         if (!mImms) {
@@ -357,7 +357,7 @@ using namespace MessageID;
         mImms->releaseInput(data);
     }
 
-    void InputMethodController::StopInput(sptr<InputClientStub> &client)
+    void InputMethodController::StopInput(sptr<IInputClient> &client)
     {
         IMSA_HILOGI("InputMethodController::StopInput");
         if (!mImms) {
