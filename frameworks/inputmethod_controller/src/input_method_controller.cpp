@@ -528,7 +528,7 @@ using namespace MessageID;
             IMSA_HILOGE("InputMethodController::SwitchInputMethod Failed to marshall target to data!");
             return false;
         }
-        return mImms->SwitchInputMethod(target);
+        return mImms->SwitchInputMethod(data);
     }
 
     void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
