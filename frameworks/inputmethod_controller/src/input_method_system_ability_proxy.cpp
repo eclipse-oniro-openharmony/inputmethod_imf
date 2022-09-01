@@ -487,7 +487,7 @@ namespace MiscServices {
         return NO_ERROR;
     }
 
-    int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const InputMethodProperty &target)
+    int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(MessageParcel& data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityProxy::SwitchInputMethod");
         MessageParcel reply;
