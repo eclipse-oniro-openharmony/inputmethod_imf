@@ -75,13 +75,8 @@
                   "header": {
                       "header_files": [
                           "i_input_client.h", 
-                          "i_input_data_channel.h", 
-                          "input_client_proxy.h", 
-                          "input_client_stub.h", 
-                          "input_data_channel_proxy.h", 
-                          "input_data_channel_stub.h", 
+                          "i_input_data_channel.h",  
                           "input_method_controller.h", 
-                          "input_method_system_ability_proxy.h", 
                           "input_method_utils.h"
                       ], 
                       "header_base": "//base/inputmethod/imf/frameworks/inputmethod_controller/include"

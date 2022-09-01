@@ -35,7 +35,7 @@ namespace MiscServices {
                                 MessageParcel &reply, MessageOption &option) override;
         InputClientStub();
         ~InputClientStub();
-        void SetHandler(MessageHandler *handler);
+        void SetHandler(MessageHandler *handler) override;
 
         int32_t onInputReady(const sptr<IInputMethodAgent>& agent) override;
         int32_t onInputReleased(int32_t retValue) override;

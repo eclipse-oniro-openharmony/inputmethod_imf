@@ -40,6 +40,7 @@ namespace MiscServices {
         virtual int32_t onInputReady(const sptr<IInputMethodAgent>& agent) = 0;
         virtual int32_t onInputReleased(int32_t retValue) = 0;
         virtual int32_t setDisplayMode(int32_t mode) = 0;
+        virtual void SetHandler(MessageHandler *handler) = 0;
     };
 } // namespace MiscServices
 } // namespace OHOS

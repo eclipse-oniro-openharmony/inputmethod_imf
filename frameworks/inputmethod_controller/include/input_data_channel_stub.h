@@ -38,7 +38,7 @@ namespace MiscServices {
                                 MessageOption &option) override;
         InputDataChannelStub();
         ~InputDataChannelStub();
-        void SetHandler(MessageHandler *handler);
+        void SetHandler(MessageHandler *handler) override;
 
         bool InsertText(const std::u16string& text) override;
         bool DeleteForward(int32_t length) override;

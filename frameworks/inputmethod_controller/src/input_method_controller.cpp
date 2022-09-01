@@ -21,6 +21,10 @@
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "string_ex.h"
+#include "input_client_stub.h"
+#include "input_data_channel_stub.h"
+#include "input_method_agent_proxy.h"
+#include "input_method_system_ability_proxy.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -76,7 +80,7 @@ using namespace MessageID;
         return true;
     }
 
-    sptr<InputMethodSystemAbilityProxy> InputMethodController::GetImsaProxy()
+    sptr<IInputMethodSystemAbility> InputMethodController::GetImsaProxy()
     {
         IMSA_HILOGI("InputMethodController::GetImsaProxy");
         sptr<ISystemAbilityManager> systemAbilityManager =
@@ -100,7 +104,7 @@ using namespace MessageID;
         }
         systemAbility->AddDeathRecipient(deathRecipient_);
 
-        sptr<InputMethodSystemAbilityProxy> iface = new InputMethodSystemAbilityProxy(systemAbility);
+        sptr<IInputMethodSystemAbility> iface = iface_cast<InputMethodSystemAbilityProxy>(systemAbility);
         return iface;
     }
 
@@ -384,7 +388,7 @@ using namespace MessageID;
 
     void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
     {
-        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
+        std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::OnCursorUpdate agent is nullptr");
             return;
@@ -414,7 +418,7 @@ using namespace MessageID;
         mSelectOldEnd = mSelectNewEnd;
         mSelectNewBegin = start;
         mSelectNewEnd = end;
-        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
+        std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::OnSelectionChange agent is nullptr");
             return;
@@ -460,7 +464,7 @@ using namespace MessageID;
     bool InputMethodController::dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
     {
         IMSA_HILOGI("InputMethodController::dispatchKeyEvent");
-        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
+        std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::dispatchKeyEvent agent is nullptr");
             return false;
@@ -495,7 +499,7 @@ using namespace MessageID;
 
     void InputMethodController::SetCallingWindow(uint32_t windowId)
     {
-        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
+        std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         IMSA_HILOGI("InputMethodController::SetCallingWindow windowId = %{public}d", windowId);
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::SetCallingWindow agent is nullptr");
@@ -516,6 +520,14 @@ using namespace MessageID;
         if (!mImms) {
             return false;
         }
+        MessageParcel data;
+        if (!data.WriteInterfaceToken(mImms->GetDescriptor())) {
+            return ErrorCode::ERROR_EX_PARCELABLE;
+        }
+        if (!target.Marshalling(data)) {
+            IMSA_HILOGE("InputMethodController::SwitchInputMethod Failed to marshall target to data!");
+            return false;
+        }
         return mImms->SwitchInputMethod(target);
     }
 
@@ -523,7 +535,7 @@ using namespace MessageID;
     {
         IMSA_HILOGI("run in SetInputMethodAgent");
         std::lock_guard<std::mutex> lock(agentLock_);
-        std::shared_ptr<InputMethodAgentProxy> agent = std::make_shared<InputMethodAgentProxy>(object);
+        std::shared_ptr<IInputMethodAgent> agent = std::make_shared<InputMethodAgentProxy>(object);
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::SetInputMethodAgent agent is nullptr");
             return;
@@ -531,7 +543,7 @@ using namespace MessageID;
         mAgent = agent;
     }
 
-    std::shared_ptr<InputMethodAgentProxy> InputMethodController::GetInputMethodAgent()
+    std::shared_ptr<IInputMethodAgent> InputMethodController::GetInputMethodAgent()
     {
         std::lock_guard<std::mutex> lock(agentLock_);
         return mAgent;

@@ -38,6 +38,7 @@ namespace MiscServices {
         int32_t onInputReady(const sptr<IInputMethodAgent>& agent) override;
         int32_t onInputReleased(int32_t retValue) override;
         int32_t setDisplayMode(int32_t mode) override;
+        void SetHandler(MessageHandler *handler) override;
 
     private:
         static inline BrokerDelegator<InputClientProxy> delegator_;
