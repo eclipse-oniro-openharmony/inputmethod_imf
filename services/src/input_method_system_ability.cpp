@@ -460,6 +460,11 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
+    int32_t InputMethodSystemAbility::SwitchInputMethod(const InputMethodProperty &target)
+    {
+        return ErrorCode::NO_ERROR;
+    }
+
     /*! Get all of the input method engine list installed in the system
     \n Run in binder thread
     \param[out] properties input method engine list returned to the caller

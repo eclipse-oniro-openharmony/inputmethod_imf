@@ -176,7 +176,7 @@ namespace MiscServices {
                 break;
             }
             case SWITCH_INPUT_METHOD: {
-                int32_t ret = SwitchInputMethod(data);
+                int32_t ret = switchInputMethod(data);
                 reply.WriteInt32(ret);
                 break;
             }
@@ -341,7 +341,7 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
-    int32_t InputMethodSystemAbilityStub::SwitchInputMethod(MessageParcel &data)
+    int32_t InputMethodSystemAbilityStub::switchInputMethod(MessageParcel &data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::switchInputMethod");
         int32_t uid = IPCSkeleton::GetCallingUid();

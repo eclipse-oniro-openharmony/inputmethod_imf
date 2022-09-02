@@ -487,12 +487,18 @@ namespace MiscServices {
         return NO_ERROR;
     }
 
-    int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(MessageParcel& data)
+    int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const InputMethodProperty &target)
     {
         IMSA_HILOGI("InputMethodSystemAbilityProxy::SwitchInputMethod");
-        MessageParcel reply;
+        MessageParcel data, reply;
         MessageOption option;
-        
+        if (!data.WriteInterfaceToken(mImms->GetDescriptor())) {
+            return ErrorCode::ERROR_EX_PARCELABLE;
+        }
+        if (!target.Marshalling(data)) {
+            IMSA_HILOGE("InputMethodSystemAbilityProxy::SwitchInputMethod Failed to marshall target to data!");
+            return false;
+        }
         auto ret = Remote()->SendRequest(SWITCH_INPUT_METHOD, data, reply, option);
         if (ret != 0) {
             return ERROR_STATUS_FAILED_TRANSACTION;

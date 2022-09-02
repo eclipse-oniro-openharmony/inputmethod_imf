@@ -520,15 +520,7 @@ using namespace MessageID;
         if (!mImms) {
             return false;
         }
-        MessageParcel data;
-        if (!data.WriteInterfaceToken(mImms->GetDescriptor())) {
-            return ErrorCode::ERROR_EX_PARCELABLE;
-        }
-        if (!target.Marshalling(data)) {
-            IMSA_HILOGE("InputMethodController::SwitchInputMethod Failed to marshall target to data!");
-            return false;
-        }
-        return mImms->SwitchInputMethod(data);
+        return mImms->SwitchInputMethod(target);
     }
 
     void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
