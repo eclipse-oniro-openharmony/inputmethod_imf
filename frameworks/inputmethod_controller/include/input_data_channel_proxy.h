@@ -47,7 +47,6 @@ namespace MiscServices {
         int32_t GetEnterKeyType() override;
         int32_t GetInputPattern() override;
         void StopInput() override;
-        void SetHandler(MessageHandler *handler) override;
         
     private:
         static inline BrokerDelegator<InputDataChannelProxy> delegator_;

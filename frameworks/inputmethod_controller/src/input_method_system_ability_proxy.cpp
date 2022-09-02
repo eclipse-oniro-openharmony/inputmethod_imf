@@ -493,11 +493,11 @@ namespace MiscServices {
         MessageParcel data, reply;
         MessageOption option;
         if (!data.WriteInterfaceToken(GetDescriptor())) {
-            return ErrorCode::ERROR_EX_PARCELABLE;
+            return ERROR_EX_PARCELABLE;
         }
         if (!target.Marshalling(data)) {
             IMSA_HILOGE("InputMethodSystemAbilityProxy::SwitchInputMethod Failed to marshall target to data!");
-            return false;
+            return ERROR_IME_PROPERTY_MARSHALL;
         }
         auto ret = Remote()->SendRequest(SWITCH_INPUT_METHOD, data, reply, option);
         if (ret != 0) {

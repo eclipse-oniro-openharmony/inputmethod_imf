@@ -66,10 +66,5 @@ using namespace ErrorCode;
         auto status = Remote()->SendRequest(SET_DISPLAY_MODE, data, reply, option);
         return status;
     }
-    
-    void InputClientProxy::SetHandler(MessageHandler *handler)
-    {
-        IMSA_HILOGI("InputClientProxy::SetHandler.");
-    }
 } // namespace MiscServices
 } // namespace OHOS

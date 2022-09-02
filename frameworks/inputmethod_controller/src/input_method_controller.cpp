@@ -65,11 +65,13 @@ using namespace MessageID;
 
         msgHandler = new MessageHandler();
 
-        mClient = new InputClientStub();
-        mClient->SetHandler(msgHandler);
+        InputClientStub *client = new InputClientStub();
+        client->SetHandler(msgHandler);
+        mClient = client;
 
-        mInputDataChannel = new InputDataChannelStub();
-        mInputDataChannel->SetHandler(msgHandler);
+        InputDataChannelStub *channel = new InputDataChannelStub();
+        channel->SetHandler(msgHandler);
+        mInputDataChannel = channel;
 
         workThreadHandler = std::thread([this] {WorkThread();});
         mAttribute.SetInputPattern(InputAttribute::PATTERN_TEXT);
@@ -104,7 +106,7 @@ using namespace MessageID;
         }
         systemAbility->AddDeathRecipient(deathRecipient_);
 
-        sptr<IInputMethodSystemAbility> iface = iface_cast<InputMethodSystemAbilityProxy>(systemAbility);
+        sptr<IInputMethodSystemAbility> iface = iface_cast<IInputMethodSystemAbility>(systemAbility);
         return iface;
     }
 

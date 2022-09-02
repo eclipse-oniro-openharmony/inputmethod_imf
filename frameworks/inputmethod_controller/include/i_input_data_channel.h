@@ -58,7 +58,6 @@ namespace MiscServices {
         virtual int32_t GetEnterKeyType() = 0;
         virtual int32_t GetInputPattern() = 0;
         virtual void StopInput() = 0;
-        virtual void SetHandler(MessageHandler *handler) = 0;
     };
 } // namespace MiscServices
 } // namespace OHOS

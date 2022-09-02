@@ -179,10 +179,5 @@ namespace MiscServices {
 
         Remote()->SendRequest(STOP_INPUT, data, reply, option);
     }
-    
-    void InputDataChannelProxy::SetHandler(MessageHandler *handler)
-    {
-        IMSA_HILOGI("InputDataChannelProxy::SetHandler");
-    }
 } // namespace MiscServices
 } // namespace OHOS

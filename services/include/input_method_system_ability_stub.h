@@ -26,6 +26,7 @@ namespace OHOS {
 namespace MiscServices {
     class InputMethodSystemAbilityStub : public IRemoteStub<IInputMethodSystemAbility> {
     public:
+        using IInputMethodSystemAbility::SwitchInputMethod;
         int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
                                 MessageOption &option) override;
 
@@ -39,7 +40,7 @@ namespace MiscServices {
         int32_t displayOptionalInputMethod(MessageParcel& data) override;
         void OnGetCurrentInputMethod(MessageParcel &reply);
         virtual int32_t listInputMethodByUserId(int32_t userId, std::vector<InputMethodProperty*> *properties) = 0;
-        int32_t switchInputMethod(MessageParcel &data);
+        int32_t SwitchInputMethod(MessageParcel &data);
 
     protected:
         int32_t getUserId(int32_t uid);
