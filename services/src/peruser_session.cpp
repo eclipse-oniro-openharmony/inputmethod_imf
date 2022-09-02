@@ -33,6 +33,7 @@
 #include "ipc_skeleton.h"
 #include "input_method_core_proxy.h"
 #include "input_method_agent_proxy.h"
+#include "para_handle.h"
 
 namespace OHOS {
 namespace MiscServices {
