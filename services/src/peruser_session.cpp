@@ -629,9 +629,9 @@ namespace MiscServices {
     It's called when an input method service died
     \param who the remote object handler of input method service who died.
     */
-    void PerUserSession::OnImsDied(const wptr<IRemoteObject>& who)
+    void PerUserSession::OnImsDied(const wptr<IRemoteObject> &who)
     {
-        (void)who; // temporary void it, as we will add support for security IME.
+        (void)who;
         IMSA_HILOGI("Start...[%{public}d]\n", userId_);
         int index = 0;
         for (int i = 0; i < MAX_IME; i++) {
@@ -644,34 +644,26 @@ namespace MiscServices {
                 break;
             }
         }
-        if (currentClient && (GetImeIndex(currentClient) == index ||
-            currentIme[index] == currentIme[1 - index])) {
-            needReshowClient = currentClient;
-            HideKeyboard(currentClient);
-        }
         StopInputMethod(index);
-        if (currentIme[index] == currentIme[1 - index]) {
-            StopInputMethod(1 - index);
-        }
-
         if (IncreaseOrResetImeError(false, index) == IME_ERROR_CODE) {
-            // call to disable the current input method.
-            MessageParcel *parcel = new MessageParcel();
-            parcel->WriteInt32(userId_);
-            parcel->WriteString16(currentIme[index]->mImeId);
-            Message *msg = new Message(MSG_ID_DISABLE_IMS, parcel);
-            MessageHandler::Instance()->SendMessage(msg);
-        } else {
-            // restart current input method.
-            IMSA_HILOGI("IME died. Restart input method ! [%{public}d]\n", userId_);
-            MessageParcel *parcel = new MessageParcel();
-            parcel->WriteInt32(userId_);
-            parcel->WriteInt32(index);
-            parcel->WriteString16(currentIme[index]->mImeId);
-            Message *msg = new Message(MSG_ID_RESTART_IMS, parcel);
-            usleep(1600*1000); // wait that PACKAGE_REMOVED message is received if this ime has been removed
-            MessageHandler::Instance()->SendMessage(msg);
+            IMSA_HILOGE("Restart ime failed");
+            return;
         }
+        IMSA_HILOGI("IME died. Restart input method...[%{public}d]\n", userId_);
+        std::string ime = ParaHandle::GetDefaultIme(userId_);
+        auto *parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
+            return;
+        }
+        parcel->WriteString(ime);
+        auto *msg = new (std::nothrow) Message(MSG_ID_START_INPUT_SERVICE, parcel);
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
+            return;
+        }
+        usleep(1600 * 1000);
+        MessageHandler::Instance()->SendMessage(msg);
         IMSA_HILOGI("End...[%{public}d]\n", userId_);
     }
 
@@ -1277,8 +1269,14 @@ namespace MiscServices {
         if (imsCore[0]) {
             IMSA_HILOGI("PerUserSession::SetCoreAndAgent Input Method Service has already been started ! ");
         }
-        
+
         imsCore[0] = core;
+
+        if (coreObject->AddDeathRecipient(imsDeathRecipient)) {
+            IMSA_HILOGI("Add death recipient success");
+        } else {
+            IMSA_HILOGE("Add death recipient failed");
+        }
 
         sptr<IRemoteObject> agentObject = data->ReadRemoteObject();
         sptr<InputMethodAgentProxy> proxy = new InputMethodAgentProxy(agentObject);
@@ -1335,6 +1333,8 @@ namespace MiscServices {
     {
         IMSA_HILOGI("PerUserSession::StopInputService");
         if (imsCore[0]) {
+            IMSA_HILOGI("Remove death recipient");
+            imsCore[0]->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
             imsCore[0]->StopInputService(imeId);
         }
     }

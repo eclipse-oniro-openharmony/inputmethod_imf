@@ -668,6 +668,12 @@ namespace MiscServices {
                     OnSwitchInputMethod(userId, target);
                     break;
                 }
+                case MSG_ID_START_INPUT_SERVICE: {
+                    MessageParcel *data = msg->msgContent_;
+                    std::string ime = data->ReadString();
+                    StartInputService(ime);
+                    break;
+                }
                 default: {
                     break;
                 }
