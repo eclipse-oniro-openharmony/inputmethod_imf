@@ -78,7 +78,6 @@
                           "i_input_data_channel.h",  
                           "input_method_controller.h", 
                           "input_method_utils.h",
-                          "i_input_method_system_ability.h",
                           "i_input_method_agent.h"
                       ], 
                       "header_base": "//base/inputmethod/imf/frameworks/inputmethod_controller/include"
