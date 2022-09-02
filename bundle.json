@@ -82,7 +82,16 @@
                       ], 
                       "header_base": "//base/inputmethod/imf/frameworks/inputmethod_controller/include"
                   }
-              }
+              },
+              {
+                "name": "//base/inputmethod/imf/services:inputmethod_service", 
+                "header": {
+                    "header_files": [
+                        "i_input_method_system_ability.h"
+                    ], 
+                    "header_base": "//base/inputmethod/imf/services/include"
+                }
+            }
           ], 
           "test": [
               "//base/inputmethod/imf/unitest:InputMethodControllerTest", 
