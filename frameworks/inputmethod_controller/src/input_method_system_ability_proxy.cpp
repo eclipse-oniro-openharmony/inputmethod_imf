@@ -492,7 +492,7 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodSystemAbilityProxy::SwitchInputMethod");
         MessageParcel data, reply;
         MessageOption option;
-        if (!data.WriteInterfaceToken(mImms->GetDescriptor())) {
+        if (!data.WriteInterfaceToken(GetDescriptor())) {
             return ErrorCode::ERROR_EX_PARCELABLE;
         }
         if (!target.Marshalling(data)) {
