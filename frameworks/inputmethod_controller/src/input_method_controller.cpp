@@ -67,7 +67,7 @@ using namespace MessageID;
 
         InputClientStub *client = new (std::nothrow) InputClientStub();
         if (client == nullptr) {
-            MSA_HILOGE("InputMethodController::Initialize client is nullptr");
+            IMSA_HILOGE("InputMethodController::Initialize client is nullptr");
             return false;
         }
         client->SetHandler(msgHandler);
@@ -75,7 +75,7 @@ using namespace MessageID;
 
         InputDataChannelStub *channel = new (std::nothrow) InputDataChannelStub();
         if (channel == nullptr) {
-            MSA_HILOGE("InputMethodController::Initialize channel is nullptr");
+            IMSA_HILOGE("InputMethodController::Initialize channel is nullptr");
             return false;
         }
         channel->SetHandler(msgHandler);
