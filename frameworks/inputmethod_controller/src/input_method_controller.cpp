@@ -65,11 +65,19 @@ using namespace MessageID;
 
         msgHandler = new MessageHandler();
 
-        InputClientStub *client = new InputClientStub();
+        InputClientStub *client = new (std::nothrow) InputClientStub();
+        if (client == nullptr) {
+            MSA_HILOGE("InputMethodController::Initialize client is nullptr");
+            return false;
+        }
         client->SetHandler(msgHandler);
         mClient = client;
 
-        InputDataChannelStub *channel = new InputDataChannelStub();
+        InputDataChannelStub *channel = new (std::nothrow) InputDataChannelStub();
+        if (channel == nullptr) {
+            MSA_HILOGE("InputMethodController::Initialize channel is nullptr");
+            return false;
+        }
         channel->SetHandler(msgHandler);
         mInputDataChannel = channel;
 
@@ -106,8 +114,7 @@ using namespace MessageID;
         }
         systemAbility->AddDeathRecipient(deathRecipient_);
 
-        sptr<IInputMethodSystemAbility> iface = iface_cast<IInputMethodSystemAbility>(systemAbility);
-        return iface;
+        return iface_cast<IInputMethodSystemAbility>(systemAbility);
     }
 
     void InputMethodController::WorkThread()
@@ -501,8 +508,8 @@ using namespace MessageID;
 
     void InputMethodController::SetCallingWindow(uint32_t windowId)
     {
-        std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         IMSA_HILOGI("InputMethodController::SetCallingWindow windowId = %{public}d", windowId);
+        std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::SetCallingWindow agent is nullptr");
             return;

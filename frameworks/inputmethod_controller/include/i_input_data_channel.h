@@ -19,7 +19,6 @@
 #include "iremote_broker.h"
 #include "global.h"
 #include "input_method_utils.h"
-#include "message_handler.h"
 
 /**
  * brief Definition of interface IInputDataChannel
