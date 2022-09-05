@@ -19,6 +19,7 @@
 #include "native_engine/native_value.h"
 #include "global.h"
 #include "async_call.h"
+#include "input_method_controller.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -50,6 +51,10 @@ public:
     ~JsInputMethod() = default;
     static napi_value Init(napi_env env, napi_value exports);
     static napi_value SwitchInputMethod(napi_env env, napi_callback_info info);
+    static napi_value GetCurrentInputMethod(napi_env env, napi_callback_info info);
+    static napi_value GetJsInputMethodProperty(napi_env env, const Property &property);
+    static napi_value GetJSInputMethodProperties(napi_env env, const std::vector<Property> &properties);
+
 private:
     static std::string GetStringProperty(napi_env env, napi_value result);
     static napi_status GetInputMethodProperty(napi_env env, napi_value argv,

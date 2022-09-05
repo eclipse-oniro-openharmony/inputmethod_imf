@@ -16,11 +16,13 @@
 #include "input_method_controller.h"
 
 #include "global.h"
+#include "input_method_status.h"
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
-#include "system_ability_definition.h"
 #include "string_ex.h"
+#include "system_ability_definition.h"
+#include "utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -293,15 +295,27 @@ using namespace MessageID;
         return mImms->displayOptionalInputMethod(data);
     }
 
-    std::vector<InputMethodProperty*> InputMethodController::ListInputMethod()
+    std::vector<Property> InputMethodController::ListInputMethodCommon(InputMethodStatus status)
+    {
+        IMSA_HILOGI("InputMethodController::ListInputMethodCommon");
+        if (mImms == nullptr) {
+            IMSA_HILOGE("mImms is nullptr");
+            return {};
+        }
+        std::vector<InputMethodProperty> property = mImms->ListInputMethod(status);
+        return Utils::GetProperty(property);
+    }
+
+    std::vector<Property> InputMethodController::ListInputMethod()
     {
         IMSA_HILOGI("InputMethodController::listInputMethod");
-        std::vector<InputMethodProperty*> properties;
-        if (!mImms) {
-            return properties;
-        }
-        mImms->listInputMethod(&properties);
-        return properties;
+        return ListInputMethodCommon(ALL);
+    }
+
+    std::vector<Property> InputMethodController::ListInputMethod(bool enable)
+    {
+        IMSA_HILOGI("InputMethodController::listInputMethod enable = %{public}s", enable ? "ENABLE" : "DISABLE");
+        return  ListInputMethodCommon(enable ? ENABLE : DISABLE);
     }
 
     std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
@@ -312,14 +326,13 @@ using namespace MessageID;
             return nullptr;
         }
 
-        InputMethodProperty property;
-        int32_t ret = mImms->GetCurrentInputMethod(property);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGE("InputMethodController::GetCurrentInputMethod failed: %{public}d", ret);
+        std::shared_ptr<InputMethodProperty> property = mImms->GetCurrentInputMethod();
+        if (property == nullptr) {
+            IMSA_HILOGE("InputMethodController::GetCurrentInputMethod property is nullptr");
             return nullptr;
         }
 
-        return { new Property({ Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) }),
+        return { new Property({ Str16ToStr8(property->mPackageName), Str16ToStr8(property->mAbilityName) }),
             [](auto p) {} };
     }
 

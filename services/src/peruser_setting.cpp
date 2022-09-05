@@ -394,21 +394,6 @@ namespace MiscServices {
         return &inputMethodSetting;
     }
 
-    /*! list the details of all the enabled input method engine
-    \param[out] properties the details will be written to the param properties
-    \return ErrorCode::NO_ERROR
-    */
-    int32_t PerUserSetting::ListInputMethodEnabled(std::vector<InputMethodProperty*> *properties)
-    {
-        std::u16string enabledInputMethods = inputMethodSetting.GetValue(InputMethodSetting::ENABLED_INPUT_METHODS_TAG);
-        for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
-            if (enabledInputMethods.find(inputMethodProperties[i]->mImeId) != std::string::npos) {
-                properties->push_back(inputMethodProperties[i]);
-            }
-        }
-        return ErrorCode::NO_ERROR;
-    }
-
     /*! List the details of all input method engine installed in the system
     \param[out] properties the details will be written to the param properties
     \return ErrorCode::NO_ERROR

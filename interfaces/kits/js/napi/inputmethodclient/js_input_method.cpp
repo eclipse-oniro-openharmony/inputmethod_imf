@@ -26,6 +26,7 @@ napi_value JsInputMethod::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("switchInputMethod", SwitchInputMethod),
+        DECLARE_NAPI_FUNCTION("getCurrentInputMethod", GetCurrentInputMethod),
     };
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -61,6 +62,39 @@ napi_status JsInputMethod::GetInputMethodProperty(napi_env env, napi_value argv,
     return status;
 }
 
+napi_value JsInputMethod::GetJsInputMethodProperty(napi_env env, const Property &property)
+{
+    napi_value prop = nullptr;
+    napi_create_object(env, &prop);
+
+    napi_value packageName = nullptr;
+    napi_create_string_utf8(env, property.packageName.c_str(), NAPI_AUTO_LENGTH, &packageName);
+    napi_set_named_property(env, prop, "packageName", packageName);
+
+    napi_value methodId = nullptr;
+    napi_create_string_utf8(env, property.abilityName.c_str(), NAPI_AUTO_LENGTH, &methodId);
+    napi_set_named_property(env, prop, "methodId", methodId);
+
+    return prop;
+}
+
+napi_value JsInputMethod::GetJSInputMethodProperties(napi_env env, const std::vector<Property> &properties)
+{
+    uint32_t index = 0;
+    napi_value prop = nullptr;
+    napi_create_array(env, &prop);
+    if (prop == nullptr) {
+        IMSA_HILOGE("create array failed");
+        return prop;
+    }
+    for (const auto &property : properties) {
+        napi_value pro = GetJsInputMethodProperty(env, property);
+        napi_set_element(env, prop, index, pro);
+        index++;
+    }
+    return prop;
+}
+
 napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
@@ -89,5 +123,17 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
     return asyncCall.Call(env, exec);
 }
+
+napi_value JsInputMethod::GetCurrentInputMethod(napi_env env, napi_callback_info info)
+{
+    std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
+    if (property == nullptr) {
+        IMSA_HILOGE("get current inputmethod is nullptr");
+        napi_value result = nullptr;
+        napi_get_null(env, &result);
+        return result;
+    }
+    return GetJsInputMethodProperty(env, { property->packageName, property->abilityName });
 }
-}
+} // namespace MiscServices
+} // namespace OHOS

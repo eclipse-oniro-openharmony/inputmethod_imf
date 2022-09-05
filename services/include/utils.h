@@ -18,10 +18,14 @@
 #ifndef SERVICES_INCLUDE_UTILS_H
 #define SERVICES_INCLUDE_UTILS_H
 
-#include <string>
 #include <codecvt>
-#include <locale>
 #include <iostream>
+#include <locale>
+#include <string>
+
+#include "input_method_controller.h"
+#include "input_method_property.h"
+#include "string_ex.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -34,6 +38,14 @@ namespace MiscServices {
         static std::u16string to_utf16(std::string str)
         {
             return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(str);
+        }
+        static std::vector<Property> GetProperty(const std::vector<InputMethodProperty> &inputMethodProperties)
+        {
+            std::vector<Property> properties;
+            for (const auto &property : inputMethodProperties) {
+                properties.push_back({ Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) });
+            }
+            return properties;
         }
     };
 } // namespace MiscServices

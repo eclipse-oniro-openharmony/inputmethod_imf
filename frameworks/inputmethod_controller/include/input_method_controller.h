@@ -76,7 +76,9 @@ namespace MiscServices {
         void OnConfigurationChange(Configuration info);
         bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
         int32_t DisplayOptionalInputMethod();
-        std::vector<InputMethodProperty*> ListInputMethod();
+        std::vector<Property> ListInputMethodCommon(InputMethodStatus status);
+        std::vector<Property> ListInputMethod();
+        std::vector<Property> ListInputMethod(bool enable);
         int32_t GetEnterKeyType();
         int32_t GetInputPattern();
         std::shared_ptr<Property> GetCurrentInputMethod();

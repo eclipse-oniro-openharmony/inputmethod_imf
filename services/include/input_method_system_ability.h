@@ -31,6 +31,7 @@
 namespace OHOS {
 namespace MiscServices {
     class InputDataChannelStub;
+    using AbilityType = AppExecFwk::ExtensionAbilityType;
     enum class ServiceRunningState {
         STATE_NOT_START,
         STATE_RUNNING
@@ -52,12 +53,10 @@ namespace MiscServices {
         int32_t getDisplayMode(int32_t &retMode) override;
         int32_t getKeyboardWindowHeight(int32_t &retHeight) override;
         int32_t getCurrentKeyboardType(KeyboardType *retType) override;
-        int32_t GetCurrentInputMethod(InputMethodProperty &currImeProperty) override;
-        int32_t listInputMethodEnabled(std::vector<InputMethodProperty*> *properties) override;
-        int32_t listInputMethod(std::vector<InputMethodProperty *> *properties) override;
-        int32_t listInputMethodByUserId(int32_t userId, std::vector<InputMethodProperty *> *properties) override;
-        int32_t listInputMethodByType(
-            int32_t userId, std::vector<InputMethodProperty *> *properties, AppExecFwk::ExtensionAbilityType type);
+        std::shared_ptr<InputMethodProperty> GetCurrentInputMethod() override;
+        std::vector<InputMethodProperty> ListInputMethod(InputMethodStatus stauts) override;
+        std::vector<InputMethodProperty> ListInputMethodByUserId(int32_t userId, InputMethodStatus status) override;
+        std::vector<InputMethodProperty> listInputMethodByType(int32_t userId, AbilityType type);
         int32_t listKeyboardType(const std::u16string &imeId, std::vector<KeyboardType *> *types) override;
         int Dump(int fd, const std::vector<std::u16string> &args) override;
         void DumpAllMethod(int fd);
@@ -98,7 +97,7 @@ namespace MiscServices {
         OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
         void StartUserIdListener();
         int32_t OnSwitchInputMethod(int32_t userId, InputMethodProperty *target);
-        void GetInputMethodParam(std::vector<InputMethodProperty *> properties, std::string &params);
+        std::string GetInputMethodParam(const std::vector<InputMethodProperty> &properties);
         ServiceRunningState state_;
         void InitServiceHandler();
         static std::mutex instanceLock_;

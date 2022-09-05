@@ -32,6 +32,7 @@
 #include "im_common_event_manager.h"
 #include "resource_manager.h"
 #include "os_account_manager.h"
+#include "input_method_status.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -142,28 +143,26 @@ namespace MiscServices {
         return ERR_OK;
     }
 
-    void InputMethodSystemAbility::GetInputMethodParam(
-        std::vector<InputMethodProperty *> properties, std::string &params)
+    std::string InputMethodSystemAbility::GetInputMethodParam(const std::vector<InputMethodProperty> &properties)
     {
         std::string defaultIme = ParaHandle::GetDefaultIme(userId_);
-        std::vector<InputMethodProperty *>::iterator it;
-        for (it = properties.begin(); it < properties.end(); ++it) {
-            if (it == properties.begin()) {
-                params += "{\"imeList\":[";
-            } else {
-                params += "},";
-            }
-            InputMethodProperty *property = (InputMethodProperty *)*it;
-            std::string imeId = Str16ToStr8(property->mPackageName) + "/" + Str16ToStr8(property->mAbilityName);
+        bool isBegin = true;
+        std::string params = "{\"imeList\":[";
+        for (const auto &property : properties) {
+            params += isBegin ? "" : "},";
+            isBegin = false;
+
+            std::string imeId = Str16ToStr8(property.mPackageName) + "/" + Str16ToStr8(property.mAbilityName);
             params += "{\"ime\": \"" + imeId + "\",";
-            params += "\"labelId\": \"" + std::to_string(property->labelId) + "\",";
-            params += "\"descriptionId\": \"" + std::to_string(property->descriptionId) + "\",";
+            params += "\"labelId\": \"" + std::to_string(property.labelId) + "\",";
+            params += "\"descriptionId\": \"" + std::to_string(property.descriptionId) + "\",";
             std::string isDefaultIme = defaultIme == imeId ? "true" : "false";
             params += "\"isDefaultIme\": \"" + isDefaultIme + "\",";
-            params += "\"label\": \"" + Str16ToStr8(property->label) + "\",";
-            params += "\"description\": \"" + Str16ToStr8(property->description) + "\"";
+            params += "\"label\": \"" + Str16ToStr8(property.label) + "\",";
+            params += "\"description\": \"" + Str16ToStr8(property.description) + "\"";
         }
         params += "}]}";
+        return params;
     }
 
     void InputMethodSystemAbility::DumpAllMethod(int fd)
@@ -177,15 +176,13 @@ namespace MiscServices {
         }
         dprintf(fd, "\n - DumpAllMethod get Active Id succeed,count=%zu,", ids.size());
         for (auto id : ids) {
-            std::vector<InputMethodProperty *> properties;
-            listInputMethodByUserId(id, &properties);
+            const auto &properties = ListInputMethodByUserId(id, ALL);
             if (properties.empty()) {
                 IMSA_HILOGI("The IME properties is empty.");
                 dprintf(fd, "\n - The IME properties about the Active Id %d is empty.\n", id);
                 continue;
             }
-            std::string params;
-            GetInputMethodParam(properties, params);
+            const auto &params = GetInputMethodParam(properties);
             dprintf(fd, "\n - The Active Id:%d get input method:\n%s\n", id, params.c_str());
         }
         IMSA_HILOGI("InputMethodSystemAbility::DumpAllMethod end.");
@@ -427,37 +424,9 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
-    /*! Get the enabled input method engine list
-    \n Run in binder thread
-    \param[out] properties input method engine list returned to the caller
-    \return ErrorCode::NO_ERROR no error
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    */
-    int32_t InputMethodSystemAbility::listInputMethodEnabled(std::vector<InputMethodProperty*> *properties)
+    std::vector<InputMethodProperty> InputMethodSystemAbility::ListInputMethod(InputMethodStatus status)
     {
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        int32_t userId = getUserId(uid);
-        PerUserSetting *setting = GetUserSetting(userId);
-        if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-            IMSA_HILOGE("%s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-            return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-        }
-        setting->ListInputMethodEnabled(properties);
-
-        std::vector<InputMethodProperty*>::iterator it;
-        for (it = properties->begin(); it != properties->end();) {
-            if (*it && (*it)->isSystemIme) {
-                it = properties->erase(it);
-            } else {
-                ++it;
-            }
-        }
-        return ErrorCode::NO_ERROR;
-    }
-
-    int32_t InputMethodSystemAbility::listInputMethod(std::vector<InputMethodProperty*> *properties)
-    {
-        return ErrorCode::NO_ERROR;
+        return {};
     }
 
     /*! Get all of the input method engine list installed in the system
@@ -466,47 +435,86 @@ namespace MiscServices {
     \return ErrorCode::NO_ERROR no error
     \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
     */
-    int32_t InputMethodSystemAbility::listInputMethodByUserId(
-        int32_t userId, std::vector<InputMethodProperty *> *properties)
+    std::vector<InputMethodProperty> InputMethodSystemAbility::ListInputMethodByUserId(int32_t userId, InputMethodStatus status)
     {
-        listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::SERVICE);
-        listInputMethodByType(userId, properties, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
-        return ErrorCode::NO_ERROR;
+        IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodByUserId");
+        std::vector<InputMethodProperty> properties;
+        switch (status) {
+            case ALL: {
+                IMSA_HILOGI("List all inputmethod");
+                AbilityType types[] = {AbilityType::SERVICE, AbilityType::INPUTMETHOD};
+                for (const auto &type : types) {
+                    auto property = listInputMethodByType(userId, type);
+                    properties.insert(properties.end(), property.begin(), property.end());
+                }
+                break;
+            }
+            case ENABLE: {
+                IMSA_HILOGI("List enable inputmethod");
+                auto property = GetCurrentInputMethod();
+                if (property == nullptr) {
+                    IMSA_HILOGE("GetCurrentInputMethod property is nullptr");
+                    return {};
+                }
+                properties.push_back(*property);
+                break;
+            }
+            case DISABLE: {
+                IMSA_HILOGI("List disable inputmethod");
+                listInputMethodByType(userId, properties, AbilityType::INPUTMETHOD);
+                auto property = GetCurrentInputMethod();
+                if (property == nullptr) {
+                    IMSA_HILOGE("GetCurrentInputMethod property is nullptr");
+                    return {};
+                }
+                for (auto iter = properties.begin(); iter != properties.end();) {
+                    if (iter->mPackageName == property->mPackageName && iter->mAbilityName == property->mAbilityName) {
+                        iter = properties.erase(iter);
+                        continue;
+                    }
+                    ++iter;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+        return properties;
     }
 
-    int32_t InputMethodSystemAbility::listInputMethodByType(
-        int32_t userId, std::vector<InputMethodProperty *> *properties, AppExecFwk::ExtensionAbilityType type)
+    std::vector<InputMethodProperty> InputMethodSystemAbility::listInputMethodByType(int32_t userId, AbilityType type)
     {
-        IMSA_HILOGI("InputMethodSystemAbility::listInputMethodByUserId");
+        IMSA_HILOGI("InputMethodSystemAbility::listInputMethodByType userId = %{public}d", userId);
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
         bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(type, userId, extensionInfos);
         if (!ret) {
-            IMSA_HILOGE("InputMethodSystemAbility::listInputMethodByUserId QueryExtensionAbilityInfos error");
-            return ErrorCode::ERROR_STATUS_UNKNOWN_ERROR;
+            IMSA_HILOGE("InputMethodSystemAbility::listInputMethodByType QueryExtensionAbilityInfos error");
+            return {};
         }
+        std::vector<InputMethodProperty> properties;
         for (auto extension : extensionInfos) {
             std::shared_ptr<Global::Resource::ResourceManager> resourceManager(
                 Global::Resource::CreateResourceManager());
             if (!resourceManager) {
-                IMSA_HILOGE("InputMethodSystemAbility::listInputMethodByUserId resourcemanager is nullptr");
+                IMSA_HILOGE("InputMethodSystemAbility::listInputMethodByType resourcemanager is nullptr");
                 break;
             }
             AppExecFwk::ApplicationInfo applicationInfo = extension.applicationInfo;
-            InputMethodProperty *property = new InputMethodProperty();
-            property->mPackageName = Str8ToStr16(extension.bundleName);
-            property->mAbilityName = Str8ToStr16(extension.name);
-            property->labelId = applicationInfo.labelId;
-            property->descriptionId = applicationInfo.descriptionId;
             resourceManager->AddResource(extension.hapPath.c_str());
             std::string labelString;
             resourceManager->GetStringById(applicationInfo.labelId, labelString);
-            property->label = Str8ToStr16(labelString);
             std::string descriptionString;
             resourceManager->GetStringById(applicationInfo.descriptionId, descriptionString);
-            property->description = Str8ToStr16(descriptionString);
-            properties->push_back(property);
+            properties.push_back({
+                .mPackageName = Str8ToStr16(extension.bundleName);
+                .mAbilityName = Str8ToStr16(extension.name);
+                .labelId = applicationInfo.labelId;
+                .descriptionId = applicationInfo.descriptionId;
+                .label = Str8ToStr16(labelString);
+                .description = Str8ToStr16(descriptionString);
+            });
         }
-        return ErrorCode::NO_ERROR;
+        return properties;
     }
 
     /*! Get the keyboard type list for the given input method engine
@@ -528,24 +536,25 @@ namespace MiscServices {
         return setting->ListKeyboardType(imeId, types);
     }
 
-    int32_t InputMethodSystemAbility::GetCurrentInputMethod(InputMethodProperty &property)
+    std::shared_ptr<InputMethodProperty> InputMethodSystemAbility::GetCurrentInputMethod()
     {
         IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
         std::string propertyStr = ParaHandle::GetDefaultIme(MAIN_USER_ID);
         if (propertyStr.empty()) {
             IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod propertyStr is empty");
-            return ErrorCode::ERROR_BAD_PARAMETERS;
+            return nullptr;
         }
 
         int pos = propertyStr.find('/');
         if (pos == -1) {
             IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod propertyStr can not find '/'");
-            return ErrorCode::ERROR_BAD_PARAMETERS;
+            return nullptr;
         }
 
-        property.mPackageName = Str8ToStr16(propertyStr.substr(0, pos));
-        property.mAbilityName = Str8ToStr16(propertyStr.substr(pos + 1, propertyStr.length() - pos - 1));
-        return ErrorCode::NO_ERROR;
+        auto property = std::make_shared<InputMethodProperty>();
+        property->mPackageName = Str8ToStr16(propertyStr.substr(0, pos));
+        property->mAbilityName = Str8ToStr16(propertyStr.substr(pos + 1, propertyStr.length() - pos - 1));
+        return property;
     }
 
     /*! Get the instance of PerUserSetting for the given user
@@ -999,21 +1008,18 @@ namespace MiscServices {
     int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, InputMethodProperty *target)
     {
         IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod");
-        std::vector<InputMethodProperty *> properties;
-        listInputMethodByUserId(userId, &properties);
-        if (!properties.size()) {
+        const auto &properties = ListInputMethodByUserId(userId, ALL);
+        if (properties.empty()) {
             IMSA_HILOGE("InputMethodSystemAbility::OnSwitchInputMethod has no ime");
             return ErrorCode::ERROR_BAD_PARAMETERS;
         }
         bool isTargetFound = false;
-        for (auto it = properties.begin(); it < properties.end(); ++it) {
-            InputMethodProperty *temp = (InputMethodProperty *)*it;
-            if (temp->mPackageName == target->mPackageName) {
-                *target = *temp;
+        for (const auto &property : properties) {
+            if (property.mPackageName == target->mPackageName) {
+                *target = property;
                 isTargetFound = true;
                 IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod target is found in installed packages!");
             }
-            delete temp;
         }
         if (!isTargetFound) {
             IMSA_HILOGE("InputMethodSystemAbility::OnSwitchInputMethod target is not an installed package !");
@@ -1049,14 +1055,12 @@ namespace MiscServices {
     void InputMethodSystemAbility::OnDisplayOptionalInputMethod(int32_t userId)
     {
         IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod");
-        std::vector<InputMethodProperty *> properties;
-        listInputMethodByUserId(userId, &properties);
-        if (!properties.size()) {
+        const auto &properties = ListInputMethodByUserId(userId, ALL);
+        if (properties.empty()) {
             IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod has no ime");
             return;
         }
-        std::string params = "";
-        GetInputMethodParam(properties, params);
+        const auto &params = GetInputMethodParam(properties);
         IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod param : %{public}s", params.c_str());
         const int TITLE_HEIGHT = 62;
         const int SINGLE_IME_HEIGHT = 66;

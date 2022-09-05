@@ -330,28 +330,26 @@ namespace MiscServices {
         return NO_ERROR;
     }
 
-    int32_t InputMethodSystemAbilityProxy::GetCurrentInputMethod(InputMethodProperty &property)
+    std::shared_ptr<InputMethodProperty> InputMethodSystemAbilityProxy::GetCurrentInputMethod()
     {
         MessageParcel data, reply;
         MessageOption option;
         if (!data.WriteInterfaceToken(GetDescriptor())) {
             IMSA_HILOGE("InputMethodSystemAbilityProxy::GetCurrentInputMethod WriteInterfaceToken failed");
-            return ERROR_EX_NULL_POINTER;
+            return nullptr;
         }
         auto ret = Remote()->SendRequest(GET_CURRENT_INPUT_METHOD, data, reply, option);
         if (ret != NO_ERROR) {
             IMSA_HILOGE("InputMethodSystemAbilityProxy::GetCurrentInputMethod SendRequest failed: %{public}d", ret);
-            return ret;
+            return nullptr;
         }
         ret = reply.ReadInt32();
         if (ret != NO_ERROR) {
             IMSA_HILOGE("InputMethodSystemAbilityProxy::GetCurrentInputMethod reply error: %{public}d", ret);
-            return ret;
+            return nullptr;
         }
-        auto currentIme = reply.ReadParcelable<InputMethodProperty>();
-        property = *currentIme;
-        delete currentIme;
-        return NO_ERROR;
+        std::shared_ptr<InputMethodProperty> property = reply.ReadParcelable<InputMethodProperty>();
+        return property;
     }
 
     int32_t InputMethodSystemAbilityProxy::getCurrentKeyboardType(KeyboardType *retType)
@@ -387,71 +385,39 @@ namespace MiscServices {
         return NO_ERROR;
     }
 
-    int32_t InputMethodSystemAbilityProxy::listInputMethodEnabled(std::vector<InputMethodProperty*> *properties)
+    std::vector<InputMethodProperty> InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus stauts)
     {
-        if (!properties) {
-            return ERROR_NULL_POINTER;
-        }
-
+        IMSA_HILOGI("InputMethodSystemAbilityProxy::ListInputMethod");
         MessageParcel data, reply;
         MessageOption option;
 
-        if (!data.WriteInterfaceToken(GetDescriptor())) {
-            return ERROR_EX_PARCELABLE;
+        if (!(data.WriteInterfaceToken(GetDescriptor()) && data.WriteUint32(status))) {
+            IMSA_HILOGE("Write InterfaceToken or Uint32 failed");
+            return {};
         }
-
-        auto ret = Remote()->SendRequest(LIST_INPUT_METHOD_ENABLED, data, reply, option);
-        if (ret != NO_ERROR) {
-            return ERROR_STATUS_FAILED_TRANSACTION;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            return ret;
-        }
-
-        auto size = reply.ReadInt32();
-        while (size > 0) {
-            InputMethodProperty *imp = reply.ReadParcelable<InputMethodProperty>();
-            properties->push_back(imp);
-            size--;
-        }
-
-        return NO_ERROR;
-    }
-
-    int32_t InputMethodSystemAbilityProxy::listInputMethod(std::vector<InputMethodProperty*> *properties)
-    {
-        if (!properties) {
-            return ERROR_NULL_POINTER;
-        }
-
-        MessageParcel data, reply;
-        MessageOption option;
-
-        if (!data.WriteInterfaceToken(GetDescriptor())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
         auto ret = Remote()->SendRequest(LIST_INPUT_METHOD, data, reply, option);
         if (ret != NO_ERROR) {
-            return ERROR_STATUS_FAILED_TRANSACTION;
+            IMSA_HILOGE("InputMethodSystemAbilityProxy SendRequest failed: %{public}d", ret);
+            return {};
         }
 
         ret = reply.ReadInt32();
         if (ret != NO_ERROR) {
-            return ret;
+            IMSA_HILOGE("InputMethodSystemAbilityProxy reply error: %{public}d", ret);
+            return {};
         }
 
-        auto size = reply.ReadInt32();
+        auto size = reply.ReadUint32();
 
+        std::vector<InputMethodProperty> properties;
         while (size > 0) {
-            InputMethodProperty *imp = reply.ReadParcelable<InputMethodProperty>();
-            properties->push_back(imp);
+            auto property = reply.ReadParcelable<InputMethodProperty>();
+            properties.push_back(*property);
+            delete property;
             size--;
         }
 
-        return NO_ERROR;
+        return properties;
     }
 
     int32_t InputMethodSystemAbilityProxy::listKeyboardType(const std::u16string& imeId,

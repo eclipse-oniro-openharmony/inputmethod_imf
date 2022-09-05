@@ -46,7 +46,6 @@ namespace MiscServices {
         void OnUserLocked();
         void Dump(int32_t fd);
 
-        int32_t ListInputMethodEnabled(std::vector<InputMethodProperty*> *properties);
         int32_t ListInputMethod(std::vector<InputMethodProperty*> *properties);
         int32_t ListKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types);
 
