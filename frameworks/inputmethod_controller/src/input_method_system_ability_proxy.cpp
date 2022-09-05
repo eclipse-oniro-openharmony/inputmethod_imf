@@ -348,8 +348,12 @@ namespace MiscServices {
             IMSA_HILOGE("InputMethodSystemAbilityProxy::GetCurrentInputMethod reply error: %{public}d", ret);
             return nullptr;
         }
-        std::shared_ptr<InputMethodProperty> property = reply.ReadParcelable<InputMethodProperty>();
-        return property;
+        auto property = reply.ReadParcelable<InputMethodProperty>();
+        if (property == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbilityProxy::read parcel nullptr");
+            return nullptr;
+        }
+        return { property, [](auto p) {} };
     }
 
     int32_t InputMethodSystemAbilityProxy::getCurrentKeyboardType(KeyboardType *retType)
@@ -385,7 +389,7 @@ namespace MiscServices {
         return NO_ERROR;
     }
 
-    std::vector<InputMethodProperty> InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus stauts)
+    std::vector<InputMethodProperty> InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status)
     {
         IMSA_HILOGI("InputMethodSystemAbilityProxy::ListInputMethod");
         MessageParcel data, reply;

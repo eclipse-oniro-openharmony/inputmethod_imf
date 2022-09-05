@@ -302,7 +302,7 @@ using namespace MessageID;
             IMSA_HILOGE("mImms is nullptr");
             return {};
         }
-        std::vector<InputMethodProperty> property = mImms->ListInputMethod(status);
+        auto property = mImms->ListInputMethod(status);
         return Utils::GetProperty(property);
     }
 
@@ -315,7 +315,7 @@ using namespace MessageID;
     std::vector<Property> InputMethodController::ListInputMethod(bool enable)
     {
         IMSA_HILOGI("InputMethodController::listInputMethod enable = %{public}s", enable ? "ENABLE" : "DISABLE");
-        return  ListInputMethodCommon(enable ? ENABLE : DISABLE);
+        return ListInputMethodCommon(enable ? ENABLE : DISABLE);
     }
 
     std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()

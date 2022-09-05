@@ -101,7 +101,7 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         NAPI_ASSERT_BASE(env, valueType == napi_boolean, " Parameter type error", napi_invalid_arg);
-        bool enable = true;
+        bool enable = false;
         napi_get_value_bool(env, argv[0], &enable);
         ctxt->inputMethodStatus = enable ? InputMethodStatus::ENABLE : InputMethodStatus::DISABLE;
         return napi_ok;

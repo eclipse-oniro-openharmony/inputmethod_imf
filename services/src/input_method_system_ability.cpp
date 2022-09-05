@@ -435,14 +435,15 @@ namespace MiscServices {
     \return ErrorCode::NO_ERROR no error
     \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
     */
-    std::vector<InputMethodProperty> InputMethodSystemAbility::ListInputMethodByUserId(int32_t userId, InputMethodStatus status)
+    std::vector<InputMethodProperty> InputMethodSystemAbility::ListInputMethodByUserId(
+        int32_t userId, InputMethodStatus status)
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodByUserId");
         std::vector<InputMethodProperty> properties;
         switch (status) {
             case ALL: {
                 IMSA_HILOGI("List all inputmethod");
-                AbilityType types[] = {AbilityType::SERVICE, AbilityType::INPUTMETHOD};
+                AbilityType types[] = { AbilityType::SERVICE, AbilityType::INPUTMETHOD };
                 for (const auto &type : types) {
                     auto property = listInputMethodByType(userId, type);
                     properties.insert(properties.end(), property.begin(), property.end());
@@ -495,7 +496,7 @@ namespace MiscServices {
         for (auto extension : extensionInfos) {
             std::shared_ptr<Global::Resource::ResourceManager> resourceManager(
                 Global::Resource::CreateResourceManager());
-            if (!resourceManager) {
+            if (resourceManager == nullptr) {
                 IMSA_HILOGE("InputMethodSystemAbility::listInputMethodByType resourcemanager is nullptr");
                 break;
             }
@@ -539,21 +540,21 @@ namespace MiscServices {
     std::shared_ptr<InputMethodProperty> InputMethodSystemAbility::GetCurrentInputMethod()
     {
         IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
-        std::string propertyStr = ParaHandle::GetDefaultIme(MAIN_USER_ID);
-        if (propertyStr.empty()) {
+        std::string ime = ParaHandle::GetDefaultIme(MAIN_USER_ID);
+        if (ime.empty()) {
             IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod propertyStr is empty");
             return nullptr;
         }
 
-        int pos = propertyStr.find('/');
+        int pos = ime.find('/');
         if (pos == -1) {
             IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod propertyStr can not find '/'");
             return nullptr;
         }
 
         auto property = std::make_shared<InputMethodProperty>();
-        property->mPackageName = Str8ToStr16(propertyStr.substr(0, pos));
-        property->mAbilityName = Str8ToStr16(propertyStr.substr(pos + 1, propertyStr.length() - pos - 1));
+        property->mPackageName = Str8ToStr16(ime.substr(0, pos));
+        property->mAbilityName = Str8ToStr16(ime.substr(pos + 1, ime.length() - pos - 1));
         return property;
     }
 
@@ -673,8 +674,9 @@ namespace MiscServices {
                 case MSG_ID_SWITCH_INPUT_METHOD: {
                     MessageParcel *data = msg->msgContent_;
                     int32_t userId = data->ReadInt32();
-                    InputMethodProperty *target = InputMethodProperty::Unmarshalling(*data);
-                    OnSwitchInputMethod(userId, target);
+                    auto target = InputMethodProperty::Unmarshalling(*data);
+                    OnSwitchInputMethod(userId, *target);
+                    delete target;
                     break;
                 }
                 default: {
@@ -1005,7 +1007,7 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
-    int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, InputMethodProperty *target)
+    int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const InputMethodProperty &target)
     {
         IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod");
         const auto &properties = ListInputMethodByUserId(userId, ALL);
@@ -1015,8 +1017,7 @@ namespace MiscServices {
         }
         bool isTargetFound = false;
         for (const auto &property : properties) {
-            if (property.mPackageName == target->mPackageName) {
-                *target = property;
+            if (property.mPackageName == target.mPackageName) {
                 isTargetFound = true;
                 IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod target is found in installed packages!");
             }
@@ -1027,7 +1028,7 @@ namespace MiscServices {
         }
 
         std::string defaultIme = ParaHandle::GetDefaultIme(userId_);
-        std::string targetIme = Str16ToStr8(target->mPackageName) + "/" + Str16ToStr8(target->mAbilityName);
+        std::string targetIme = Str16ToStr8(target.mPackageName) + "/" + Str16ToStr8(target.mAbilityName);
         IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod DefaultIme : %{public}s, TargetIme : %{public}s",
             defaultIme.c_str(), targetIme.c_str());
         if (defaultIme != targetIme) {

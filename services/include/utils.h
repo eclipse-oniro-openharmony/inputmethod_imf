@@ -39,13 +39,13 @@ namespace MiscServices {
         {
             return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(str);
         }
-        static std::vector<Property> GetProperty(const std::vector<InputMethodProperty> &inputMethodProperties)
+        static std::vector<Property> GetProperty(const std::vector<InputMethodProperty> &properties)
         {
-            std::vector<Property> properties;
-            for (const auto &property : inputMethodProperties) {
-                properties.push_back({ Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) });
+            std::vector<Property> props;
+            for (const auto &property : properties) {
+                props.push_back({ Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) });
             }
-            return properties;
+            return props;
         }
     };
 } // namespace MiscServices

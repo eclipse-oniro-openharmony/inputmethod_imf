@@ -96,7 +96,7 @@ namespace MiscServices {
         static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
         OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
         void StartUserIdListener();
-        int32_t OnSwitchInputMethod(int32_t userId, InputMethodProperty *target);
+        int32_t OnSwitchInputMethod(int32_t userId, const InputMethodProperty &target);
         std::string GetInputMethodParam(const std::vector<InputMethodProperty> &properties);
         ServiceRunningState state_;
         void InitServiceHandler();
