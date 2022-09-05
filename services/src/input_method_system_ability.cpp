@@ -462,7 +462,7 @@ namespace MiscServices {
             }
             case DISABLE: {
                 IMSA_HILOGI("List disable inputmethod");
-                listInputMethodByType(userId, properties, AbilityType::INPUTMETHOD);
+                listInputMethodByType(userId, AbilityType::INPUTMETHOD);
                 auto property = GetCurrentInputMethod();
                 if (property == nullptr) {
                     IMSA_HILOGE("GetCurrentInputMethod property is nullptr");
@@ -507,12 +507,12 @@ namespace MiscServices {
             std::string descriptionString;
             resourceManager->GetStringById(applicationInfo.descriptionId, descriptionString);
             properties.push_back({
-                .mPackageName = Str8ToStr16(extension.bundleName);
-                .mAbilityName = Str8ToStr16(extension.name);
-                .labelId = applicationInfo.labelId;
-                .descriptionId = applicationInfo.descriptionId;
-                .label = Str8ToStr16(labelString);
-                .description = Str8ToStr16(descriptionString);
+                .mPackageName = Str8ToStr16(extension.bundleName),
+                .mAbilityName = Str8ToStr16(extension.name),
+                .labelId = applicationInfo.labelId,
+                .descriptionId = applicationInfo.descriptionId,
+                .label = Str8ToStr16(labelString),
+                .description = Str8ToStr16(descriptionString)
             });
         }
         return properties;
