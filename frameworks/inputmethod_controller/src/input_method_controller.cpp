@@ -326,7 +326,7 @@ using namespace MessageID;
             return nullptr;
         }
 
-        std::shared_ptr<InputMethodProperty> property = mImms->GetCurrentInputMethod();
+        auto property = mImms->GetCurrentInputMethod();
         if (property == nullptr) {
             IMSA_HILOGE("InputMethodController::GetCurrentInputMethod property is nullptr");
             return nullptr;

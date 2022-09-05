@@ -506,14 +506,14 @@ namespace MiscServices {
             resourceManager->GetStringById(applicationInfo.labelId, labelString);
             std::string descriptionString;
             resourceManager->GetStringById(applicationInfo.descriptionId, descriptionString);
-            properties.push_back({
-                .mPackageName = Str8ToStr16(extension.bundleName),
-                .mAbilityName = Str8ToStr16(extension.name),
-                .labelId = applicationInfo.labelId,
-                .descriptionId = applicationInfo.descriptionId,
-                .label = Str8ToStr16(labelString),
-                .description = Str8ToStr16(descriptionString)
-            });
+            InputMethodProperty property;
+            property.mPackageName = Str8ToStr16(extension.bundleName);
+            property.mAbilityName = Str8ToStr16(extension.name);
+            property.labelId = applicationInfo.labelId;
+            property.descriptionId = applicationInfo.descriptionId;
+            property.label = Str8ToStr16(labelString);
+            property.description = Str8ToStr16(descriptionString);
+            properties.push_back(property);
         }
         return properties;
     }

@@ -359,7 +359,7 @@ namespace MiscServices {
         uint32_t status = data.ReadUint32();
         const auto &properties = ListInputMethodByUserId(userId, InputMethodStatus(status));
         if (properties.empty()) {
-            IMSA_HILOGE("InputMethodSystemAbilityStub ListInputMethodByUserId failed: %{public}d");
+            IMSA_HILOGE("InputMethodSystemAbilityStub ListInputMethodByUserId failed");
             reply.WriteInt32(ErrorCode::ERROR_LIST_IME);
             return;
         }
