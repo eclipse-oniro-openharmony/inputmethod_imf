@@ -109,9 +109,9 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        InputMethodProperty property;
-        property.mPackageName = Str8ToStr16(ctxt->packageName);
-        property.mImeId = Str8ToStr16(ctxt->methodId);
+        Property property;
+        property.packageName = ctxt->packageName;
+        property.abilityName = ctxt->methodId;
         int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(property);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec  SwitchInputMethod success");

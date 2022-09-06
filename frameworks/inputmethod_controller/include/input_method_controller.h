@@ -85,7 +85,7 @@ namespace MiscServices {
         int32_t HideCurrentInput();
         int32_t ShowCurrentInput();
         void SetCallingWindow(uint32_t windowId);
-        int32_t SwitchInputMethod(const InputMethodProperty &target);
+        int32_t SwitchInputMethod(const Property &target);
 
     private:
         InputMethodController();

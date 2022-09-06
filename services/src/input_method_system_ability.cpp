@@ -429,6 +429,49 @@ namespace MiscServices {
         return {};
     }
 
+    std::vector<InputMethodProperty> InputMethodSystemAbility::ListAllInputMethod(int32_t userId, InputMethodStatus status)
+    {
+        IMSA_HILOGI("InputMethodSystemAbility::listAllInputMethod");
+        std::vector<InputMethodProperty> properties;
+        AbilityType types[] = { AbilityType::SERVICE, AbilityType::INPUTMETHOD };
+        for (const auto &type : types) {
+            auto property = listInputMethodByType(userId, type);
+            properties.insert(properties.end(), property.begin(), property.end());
+        }
+        return properties;
+    }
+
+    std::vector<InputMethodProperty> InputMethodSystemAbility::ListEnabledInputMethod(int32_t userId, InputMethodStatus status)
+    {
+        IMSA_HILOGI("InputMethodSystemAbility::listEnabledInputMethod");
+        auto property = GetCurrentInputMethod();
+        if (property == nullptr) {
+            IMSA_HILOGE("GetCurrentInputMethod property is nullptr");
+            return {};
+        }
+        return { *property };
+    }
+
+    std::vector<InputMethodProperty> InputMethodSystemAbility::ListDisabledInputMethod(
+        int32_t userId, InputMethodStatus status)
+    {
+        IMSA_HILOGI("InputMethodSystemAbility::listDisabledInputMethod");
+        auto properties = listInputMethodByType(userId, AbilityType::INPUTMETHOD);
+        auto property = GetCurrentInputMethod();
+        if (property == nullptr) {
+            IMSA_HILOGE("GetCurrentInputMethod property is nullptr");
+            return {};
+        }
+        for (auto iter = properties.begin(); iter != properties.end();) {
+            if (iter->mPackageName == property->mPackageName && iter->mAbilityName == property->mAbilityName) {
+                iter = properties.erase(iter);
+                continue;
+            }
+            ++iter;
+        }
+        return properties;
+    }
+
     /*! Get all of the input method engine list installed in the system
     \n Run in binder thread
     \param[out] properties input method engine list returned to the caller
@@ -439,48 +482,20 @@ namespace MiscServices {
         int32_t userId, InputMethodStatus status)
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodByUserId");
-        std::vector<InputMethodProperty> properties;
         switch (status) {
             case ALL: {
-                IMSA_HILOGI("List all inputmethod");
-                AbilityType types[] = { AbilityType::SERVICE, AbilityType::INPUTMETHOD };
-                for (const auto &type : types) {
-                    auto property = listInputMethodByType(userId, type);
-                    properties.insert(properties.end(), property.begin(), property.end());
-                }
-                break;
+                return ListAllInputMethod(userId, status);
             }
             case ENABLE: {
-                IMSA_HILOGI("List enable inputmethod");
-                auto property = GetCurrentInputMethod();
-                if (property == nullptr) {
-                    IMSA_HILOGE("GetCurrentInputMethod property is nullptr");
-                    return {};
-                }
-                properties.push_back(*property);
-                break;
+                return ListEnabledInputMethod(userId, status);
             }
             case DISABLE: {
-                IMSA_HILOGI("List disable inputmethod");
-                listInputMethodByType(userId, AbilityType::INPUTMETHOD);
-                auto property = GetCurrentInputMethod();
-                if (property == nullptr) {
-                    IMSA_HILOGE("GetCurrentInputMethod property is nullptr");
-                    return {};
-                }
-                for (auto iter = properties.begin(); iter != properties.end();) {
-                    if (iter->mPackageName == property->mPackageName && iter->mAbilityName == property->mAbilityName) {
-                        iter = properties.erase(iter);
-                        continue;
-                    }
-                    ++iter;
-                }
-                break;
+                return ListDisabledInputMethod(userId, status);
             }
             default:
                 break;
         }
-        return properties;
+        return {};
     }
 
     std::vector<InputMethodProperty> InputMethodSystemAbility::listInputMethodByType(int32_t userId, AbilityType type)
@@ -674,7 +689,7 @@ namespace MiscServices {
                 case MSG_ID_SWITCH_INPUT_METHOD: {
                     MessageParcel *data = msg->msgContent_;
                     int32_t userId = data->ReadInt32();
-                    auto target = InputMethodProperty::Unmarshalling(*data);
+                    auto target = data->ReadParcelable<InputMethodProperty>();
                     OnSwitchInputMethod(userId, *target);
                     delete target;
                     break;

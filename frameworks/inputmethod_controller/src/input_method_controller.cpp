@@ -523,13 +523,17 @@ using namespace MessageID;
         agent->SetCallingWindow(windowId);
     }
 
-    int32_t InputMethodController::SwitchInputMethod(const InputMethodProperty &target)
+    int32_t InputMethodController::SwitchInputMethod(const Property &target)
     {
         IMSA_HILOGI("InputMethodController::SwitchInputMethod");
         if (!mImms) {
+            IMSA_HILOGE("InputMethodController mImms is nullptr");
             return false;
         }
-        return mImms->SwitchInputMethod(target);
+        InputMethodProperty property;
+        property.mPackageName = Str8ToStr16(target.packageName);
+        property.mAbilityName = Str8ToStr16(target.abilityName);
+        return mImms->SwitchInputMethod(property);
     }
 
     void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)

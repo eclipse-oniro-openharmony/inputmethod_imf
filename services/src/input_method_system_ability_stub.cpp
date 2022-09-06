@@ -322,15 +322,8 @@ namespace MiscServices {
         if (parcel == nullptr) {
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        InputMethodProperty *target = InputMethodProperty::Unmarshalling(data);
         parcel->WriteInt32(userId);
-        if (!target->Marshalling(*parcel)) {
-            IMSA_HILOGE("InputMethodSystemAbilityStub::switchInputMethod Failed to marshall the target! ");
-            delete target;
-            delete parcel;
-            return ErrorCode::ERROR_IME_PROPERTY_MARSHALL;
-        }
-        delete target;
+        parcel->WriteParcelable(data.ReadParcelable<InputMethodProperty>());
         auto *msg = new (std::nothrow) Message(MSG_ID_SWITCH_INPUT_METHOD, parcel);
         if (msg == nullptr) {
             return ErrorCode::ERROR_EX_NULL_POINTER;
