@@ -14,8 +14,11 @@
  */
 
 #include "input_method_system_ability_stub.h"
-#include "message_handler.h"
+
+#include <memory>
+
 #include "ipc_skeleton.h"
+#include "message_handler.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -106,40 +109,8 @@ namespace MiscServices {
                 }
                 break;
             }
-            case LIST_INPUT_METHOD_ENABLED: {
-                std::vector<InputMethodProperty*> properties;
-                int32_t ret = listInputMethodEnabled(&properties);
-                if (ret != ErrorCode::NO_ERROR) {
-                    reply.WriteInt32(ErrorCode::ERROR_EX_ILLEGAL_STATE); // write exception code
-                    reply.WriteInt32(-1);
-                } else {
-                    reply.WriteInt32(NO_ERROR);
-                    int32_t size = properties.size();
-                    reply.WriteInt32(size);
-                    for (int32_t i = 0; i < size; i++) {
-                        reply.WriteParcelable(properties[i]);
-                    }
-                    properties.clear();
-                }
-                break;
-            }
             case LIST_INPUT_METHOD: {
-                int32_t uid = IPCSkeleton::GetCallingUid();
-                int32_t userId = getUserId(uid);
-                std::vector<InputMethodProperty*> properties;
-                int32_t ret = listInputMethodByUserId(userId, &properties);
-                if (ret != ErrorCode::NO_ERROR) {
-                    reply.WriteInt32(ErrorCode::ERROR_EX_ILLEGAL_STATE); // write exception code
-                    reply.WriteInt32(-1);
-                    return ret;
-                }
-                reply.WriteInt32(NO_ERROR);
-                int32_t size = properties.size();
-                reply.WriteInt32(size);
-                for (int32_t i = 0; i < size; i++) {
-                    reply.WriteParcelable(properties[i]);
-                }
-                properties.clear();
+                OnListInputMethod(data, reply);
                 break;
             }
             case LIST_KEYBOARD_TYPE: {
@@ -351,15 +322,11 @@ namespace MiscServices {
         if (parcel == nullptr) {
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        InputMethodProperty *target = InputMethodProperty::Unmarshalling(data);
         parcel->WriteInt32(userId);
-        if (!target->Marshalling(*parcel)) {
-            IMSA_HILOGE("InputMethodSystemAbilityStub::switchInputMethod Failed to marshall the target! ");
-            delete target;
-            delete parcel;
-            return ErrorCode::ERROR_IME_PROPERTY_MARSHALL;
-        }
-        delete target;
+        auto property = data.ReadParcelable<InputMethodProperty>();
+        parcel->WriteParcelable(property);
+        delete property;
+
         auto *msg = new (std::nothrow) Message(MSG_ID_SWITCH_INPUT_METHOD, parcel);
         if (msg == nullptr) {
             return ErrorCode::ERROR_EX_NULL_POINTER;
@@ -370,15 +337,34 @@ namespace MiscServices {
 
     void InputMethodSystemAbilityStub::OnGetCurrentInputMethod(MessageParcel &reply)
     {
-        InputMethodProperty property;
-        int32_t ret = GetCurrentInputMethod(property);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGE("InputMethodSystemAbilityStub::OnGetCurrentInputMethod failed: %{public}d", ret);
+        auto property = GetCurrentInputMethod();
+        if (property == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbilityStub::OnGetCurrentInputMethod property is nullptr");
             reply.WriteInt32(ErrorCode::ERROR_GETTING_CURRENT_IME);
             return;
         }
         reply.WriteInt32(NO_ERROR);
-        reply.WriteParcelable(&property);
+        reply.WriteParcelable(property.get());
+    }
+
+    void InputMethodSystemAbilityStub::OnListInputMethod(MessageParcel &data, MessageParcel &reply)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityStub::OnListInputMethod");
+        int32_t uid = IPCSkeleton::GetCallingUid();
+        int32_t userId = getUserId(uid);
+        uint32_t status = data.ReadUint32();
+        const auto &properties = ListInputMethodByUserId(userId, InputMethodStatus(status));
+        if (properties.empty()) {
+            IMSA_HILOGE("InputMethodSystemAbilityStub ListInputMethodByUserId failed");
+            reply.WriteInt32(ErrorCode::ERROR_LIST_IME);
+            return;
+        }
+        reply.WriteInt32(NO_ERROR);
+        uint32_t size = properties.size();
+        reply.WriteUint32(size);
+        for (const auto &property : properties) {
+            reply.WriteParcelable(&property);
+        }
     }
 
     /*! Get user id from uid

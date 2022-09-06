@@ -16,17 +16,21 @@
 #ifndef SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H
 #define SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H
 
-#include <vector>
 #include <errors.h>
-#include "iremote_broker.h"
+
+#include <memory>
+#include <vector>
+
+#include "global.h"
 #include "i_input_client.h"
 #include "i_input_data_channel.h"
+#include "i_input_method_core.h"
 #include "input_attribute.h"
 #include "input_method_property.h"
+#include "input_method_status.h"
+#include "iremote_broker.h"
 #include "keyboard_type.h"
-#include "global.h"
 #include "message_parcel.h"
-#include "i_input_method_core.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -44,7 +48,6 @@ namespace MiscServices {
             GET_KEYBOARD_WINDOW_HEIGHT,
             GET_CURRENT_INPUT_METHOD,
             GET_CURRENT_KEYBOARD_TYPE,
-            LIST_INPUT_METHOD_ENABLED,
             LIST_INPUT_METHOD,
             LIST_KEYBOARD_TYPE,
             SET_CORE_AND_AGENT,
@@ -65,10 +68,9 @@ namespace MiscServices {
         virtual int32_t displayOptionalInputMethod(MessageParcel& data) = 0;
         virtual int32_t getDisplayMode(int32_t &retMode) = 0;
         virtual int32_t getKeyboardWindowHeight(int32_t &retHeight) = 0;
-        virtual int32_t GetCurrentInputMethod(InputMethodProperty &currentInputMethod) = 0;
+        virtual std::shared_ptr<InputMethodProperty> GetCurrentInputMethod() = 0;
         virtual int32_t getCurrentKeyboardType(KeyboardType *retType) = 0;
-        virtual int32_t listInputMethodEnabled(std::vector<InputMethodProperty*> *properties) = 0;
-        virtual int32_t listInputMethod(std::vector<InputMethodProperty*> *properties) = 0;
+        virtual std::vector<InputMethodProperty> ListInputMethod(InputMethodStatus stauts) = 0;
         virtual int32_t listKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types) = 0;
     };
 } // namespace MiscServices

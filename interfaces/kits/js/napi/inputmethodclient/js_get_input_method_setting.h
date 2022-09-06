@@ -15,14 +15,16 @@
 #ifndef INTERFACE_KITS_JS_GETINPUT_METHOD_SETTING_H
 #define INTERFACE_KITS_JS_GETINPUT_METHOD_SETTING_H
 
-#include "global.h"
-#include "input_method_property.h"
 #include "async_call.h"
+#include "global.h"
+#include "input_method_controller.h"
+#include "input_method_status.h"
 
 namespace OHOS {
 namespace MiscServices {
 struct ListInputContext : public AsyncCall::Context {
-    std::vector<InputMethodProperty*> properties;
+    InputMethodStatus inputMethodStatus;
+    std::vector<Property> properties;
     napi_status status = napi_generic_failure;
     ListInputContext() : Context(nullptr, nullptr) { };
     ListInputContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
@@ -92,7 +94,6 @@ public:
     static napi_value DisplayOptionalInputMethod(napi_env env, napi_callback_info info);
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
-    static napi_value GetJSInputMethodProperty(napi_env env, std::vector<InputMethodProperty*> &properties);
     static const std::string IMS_CLASS_NAME;
     static thread_local napi_ref IMSRef_;
     };
