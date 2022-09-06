@@ -354,11 +354,6 @@ namespace MiscServices {
         int32_t userId = getUserId(uid);
         uint32_t status = data.ReadUint32();
         const auto &properties = ListInputMethodByUserId(userId, InputMethodStatus(status));
-        if (properties.empty()) {
-            IMSA_HILOGE("InputMethodSystemAbilityStub ListInputMethodByUserId failed");
-            reply.WriteInt32(ErrorCode::ERROR_LIST_IME);
-            return;
-        }
         reply.WriteInt32(NO_ERROR);
         uint32_t size = properties.size();
         reply.WriteUint32(size);
