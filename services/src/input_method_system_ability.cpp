@@ -456,13 +456,13 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::listDisabledInputMethod");
         auto properties = listInputMethodByType(userId, AbilityType::INPUTMETHOD);
-        auto property = GetCurrentInputMethod();
-        if (property == nullptr) {
+        auto filter = GetCurrentInputMethod();
+        if (filter == nullptr) {
             IMSA_HILOGE("GetCurrentInputMethod property is nullptr");
             return {};
         }
         for (auto iter = properties.begin(); iter != properties.end();) {
-            if (iter->mPackageName == property->mPackageName && iter->mAbilityName == property->mAbilityName) {
+            if (iter->mPackageName == filter->mPackageName && iter->mAbilityName == filter->mAbilityName) {
                 iter = properties.erase(iter);
                 continue;
             }
@@ -561,6 +561,9 @@ namespace MiscServices {
         }
 
         auto property = std::make_shared<InputMethodProperty>();
+        if (property == nullptr) {
+            return nullptr;
+        }
         property->mPackageName = Str8ToStr16(ime.substr(0, pos));
         property->mAbilityName = Str8ToStr16(ime.substr(pos + 1, ime.length() - pos - 1));
         return property;
