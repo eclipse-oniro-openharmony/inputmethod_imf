@@ -323,7 +323,10 @@ namespace MiscServices {
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
         parcel->WriteInt32(userId);
-        parcel->WriteParcelable(data.ReadParcelable<InputMethodProperty>());
+        auto property = data.ReadParcelable<InputMethodProperty>();
+        parcel->WriteParcelable(property);
+        delete property;
+
         auto *msg = new (std::nothrow) Message(MSG_ID_SWITCH_INPUT_METHOD, parcel);
         if (msg == nullptr) {
             return ErrorCode::ERROR_EX_NULL_POINTER;

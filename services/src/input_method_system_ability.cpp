@@ -429,7 +429,7 @@ namespace MiscServices {
         return {};
     }
 
-    std::vector<InputMethodProperty> InputMethodSystemAbility::ListAllInputMethod(int32_t userId, InputMethodStatus status)
+    std::vector<InputMethodProperty> InputMethodSystemAbility::ListAllInputMethod(int32_t userId)
     {
         IMSA_HILOGI("InputMethodSystemAbility::listAllInputMethod");
         std::vector<InputMethodProperty> properties;
@@ -441,7 +441,7 @@ namespace MiscServices {
         return properties;
     }
 
-    std::vector<InputMethodProperty> InputMethodSystemAbility::ListEnabledInputMethod(int32_t userId, InputMethodStatus status)
+    std::vector<InputMethodProperty> InputMethodSystemAbility::ListEnabledInputMethod()
     {
         IMSA_HILOGI("InputMethodSystemAbility::listEnabledInputMethod");
         auto property = GetCurrentInputMethod();
@@ -452,8 +452,7 @@ namespace MiscServices {
         return { *property };
     }
 
-    std::vector<InputMethodProperty> InputMethodSystemAbility::ListDisabledInputMethod(
-        int32_t userId, InputMethodStatus status)
+    std::vector<InputMethodProperty> InputMethodSystemAbility::ListDisabledInputMethod(int32_t userId)
     {
         IMSA_HILOGI("InputMethodSystemAbility::listDisabledInputMethod");
         auto properties = listInputMethodByType(userId, AbilityType::INPUTMETHOD);
@@ -482,18 +481,12 @@ namespace MiscServices {
         int32_t userId, InputMethodStatus status)
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodByUserId");
-        switch (status) {
-            case ALL: {
-                return ListAllInputMethod(userId, status);
-            }
-            case ENABLE: {
-                return ListEnabledInputMethod(userId, status);
-            }
-            case DISABLE: {
-                return ListDisabledInputMethod(userId, status);
-            }
-            default:
-                break;
+        if (status == InputMethodStatus::ALL) {
+            return ListAllInputMethod(userId);
+        } else if (status == InputMethodStatus::ENABLE) {
+            return ListEnabledInputMethod();
+        } else if (status == InputMethodStatus::DISABLE) {
+            return ListDisabledInputMethod(userId);
         }
         return {};
     }
