@@ -288,7 +288,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("IMC ListInputMethod Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
-        EXPECT_NE(imd, nullptr);
+        EXPECT_NE(imc, nullptr);
 
         IMSA_HILOGI("Test list all input method");
         std::vector<Property> properties = imc->ListInputMethod();
