@@ -425,9 +425,9 @@ namespace MiscServices {
         IMSA_HILOGI("IMC SwitchInputMethod Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
-        InputMethodProperty property;
-        property.mPackageName = Str8ToStr16("com.example.kikakeyboard");
-        property.mImeId = Str8ToStr16("ServiceExtAbility");
+        Property property;
+        property.mPackageName = "com.example.kikakeyboard";
+        property.mImeId = "ServiceExtAbility";
         int32_t ret = imc->SwitchInputMethod(property);
         EXPECT_TRUE(ret == 0);
     }
