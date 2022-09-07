@@ -518,5 +518,21 @@ namespace MiscServices {
 
         imc->OnConfigurationChange(info);
     }
+
+    /**
+    * @tc.name: testIMCSetCallingWindow
+    * @tc.desc: IMC testSetCallingWindow.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC SetCallingWindow Test START");
+        constexpr uint32_t WINDOW_ID = 0
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        
+        imc->SetCallingWindow(WINDOW_ID);
+    }
 } // namespace MiscServices
 } // namespace OHOS
