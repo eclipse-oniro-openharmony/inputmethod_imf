@@ -651,7 +651,7 @@ namespace MiscServices {
             return;
         }
         IMSA_HILOGI("IME died. Restart input method...[%{public}d]\n", userId_);
-        std::string ime = ParaHandle::GetDefaultIme(userId_);
+        const auto &ime = ParaHandle::GetDefaultIme(userId_);
         auto *parcel = new (std::nothrow) MessageParcel();
         if (parcel == nullptr) {
             IMSA_HILOGE("parcel is nullptr");
@@ -661,6 +661,7 @@ namespace MiscServices {
         auto *msg = new (std::nothrow) Message(MSG_ID_START_INPUT_SERVICE, parcel);
         if (msg == nullptr) {
             IMSA_HILOGE("msg is nullptr");
+            delete parcel;
             return;
         }
         usleep(1600 * 1000);
@@ -1263,24 +1264,21 @@ namespace MiscServices {
     void PerUserSession::SetCoreAndAgent(Message *msg)
     {
         IMSA_HILOGI("PerUserSession::SetCoreAndAgent Start...[%{public}d]\n", userId_);
-        MessageParcel *data = msg->msgContent_;
+        auto data = msg->msgContent_;
 
-        sptr<IRemoteObject> coreObject = data->ReadRemoteObject();
-        sptr<InputMethodCoreProxy> core = new InputMethodCoreProxy(coreObject);
-        if (imsCore[0]) {
+        auto coreObject = data->ReadRemoteObject();
+        auto core = new (std::nothrow) InputMethodCoreProxy(coreObject);
+        if (imsCore[0] != nullptr) {
             IMSA_HILOGI("PerUserSession::SetCoreAndAgent Input Method Service has already been started ! ");
         }
 
         imsCore[0] = core;
 
-        if (coreObject->AddDeathRecipient(imsDeathRecipient)) {
-            IMSA_HILOGI("Add death recipient success");
-        } else {
-            IMSA_HILOGE("Add death recipient failed");
-        }
+        bool ret = coreObject->AddDeathRecipient(imsDeathRecipient);
+        IMSA_HILOGI("Add death recipient %{public}s", ret ? "success" : "failed");
 
-        sptr<IRemoteObject> agentObject = data->ReadRemoteObject();
-        sptr<InputMethodAgentProxy> proxy = new InputMethodAgentProxy(agentObject);
+        auto agentObject = data->ReadRemoteObject();
+        auto proxy = new (std::nothrow) InputMethodAgentProxy(agentObject);
         imsAgent = proxy;
 
         InitInputControlChannel();
