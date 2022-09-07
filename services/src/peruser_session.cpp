@@ -636,10 +636,10 @@ namespace MiscServices {
         IMSA_HILOGI("Start...[%{public}d]\n", userId_);
         int index = 0;
         for (int i = 0; i < MAX_IME; i++) {
-            if (!imsCore[i]) {
+            if (imsCore[i] == nullptr) {
                 continue;
             }
-            sptr<IRemoteObject> b = imsCore[i]->AsObject();
+            auto b = imsCore[i]->AsObject();
             if (b == who) {
                 index = i;
                 break;
