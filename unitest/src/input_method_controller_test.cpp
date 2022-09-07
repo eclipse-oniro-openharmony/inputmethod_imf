@@ -486,7 +486,6 @@ namespace MiscServices {
 
         CursorInfo cursorInfo;
         imc->OnCursorUpdate(cursorInfo);
-        EXPECT_TRUE(1 == 1);
     }
 
     /**
@@ -502,7 +501,6 @@ namespace MiscServices {
         EXPECT_TRUE(imc != nullptr);
 
         imc->OnSelectionChange(Str8ToStr16("text"), 1, 1);
-        EXPECT_TRUE(1 == 1);
     }
 
     /**
@@ -522,7 +520,6 @@ namespace MiscServices {
         info.SetTextInputType(TextInputType::TEXT);
 
         imc->OnConfigurationChange(info);
-        EXPECT_TRUE(1 == 1);
     }
 } // namespace MiscServices
 } // namespace OHOS
