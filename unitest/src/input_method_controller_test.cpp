@@ -458,10 +458,7 @@ namespace MiscServices {
         IMSA_HILOGI("IMC dispatchKeyEvent Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
-
-        sptr<OnTextChangedListener> textListener = new TextListener();
-        imc->Attach(textListener);
-
+        
         std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
         EXPECT_TRUE(keyEvent != nullptr);
 
