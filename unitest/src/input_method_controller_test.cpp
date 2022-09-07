@@ -385,21 +385,6 @@ namespace MiscServices {
     }
 
     /**
-    * @tc.name: testIMCListInputMethod
-    * @tc.desc: IMC testListInputMethod.
-    * @tc.type: FUNC
-    * @tc.require: 
-    */
-    HWTEST_F(InputMethodControllerTest, testIMCListInputMethod, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC ListInputMethod Test START");
-        sptr<InputMethodController> imc = InputMethodController::GetInstance();
-        EXPECT_TRUE(imc != nullptr);
-        std::vector<InputMethodProperty*> methods = imc->ListInputMethod();
-        EXPECT_TRUE(methods.size() != 0);
-    }
-
-    /**
     * @tc.name: testIMCGetEnterKeyType
     * @tc.desc: IMC testGetEnterKeyType.
     * @tc.type: FUNC
