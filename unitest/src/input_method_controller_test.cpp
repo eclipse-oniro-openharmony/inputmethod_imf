@@ -426,8 +426,8 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         Property property;
-        property.mPackageName = "com.example.kikakeyboard";
-        property.mImeId = "ServiceExtAbility";
+        property.packageName = "com.example.kikakeyboard";
+        property.abilityName = "ServiceExtAbility";
         int32_t ret = imc->SwitchInputMethod(property);
         EXPECT_TRUE(ret == 0);
     }
@@ -513,7 +513,7 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
     {
         IMSA_HILOGI("IMC SetCallingWindow Test START");
-        constexpr uint32_t WINDOW_ID = 0
+        constexpr uint32_t WINDOW_ID = 0;
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         
