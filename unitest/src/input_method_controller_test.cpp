@@ -205,6 +205,28 @@ namespace MiscServices {
         setting.SetCurrentKeyboardType(curType);
         EXPECT_EQ(setting.GetCurrentKeyboardType(), curType);
     }
+    
+    /**
+    * @tc.name: testIMCdispatchKeyEvent
+    * @tc.desc: IMC testdispatchKeyEvent.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCdispatchKeyEvent, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC dispatchKeyEvent Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        
+        std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
+        EXPECT_TRUE(keyEvent != nullptr);
+
+        keyEvent->SetKeyAction(2);
+        keyEvent->SetKeyCode(2013);
+
+        bool ret = imc->dispatchKeyEvent(keyEvent);
+        EXPECT_TRUE(ret == true);
+    }
 
     /**
     * @tc.name: testInputMethodWholeProcess
@@ -430,28 +452,6 @@ namespace MiscServices {
         property.abilityName = "ServiceExtAbility";
         int32_t ret = imc->SwitchInputMethod(property);
         EXPECT_TRUE(ret == 0);
-    }
-
-    /**
-    * @tc.name: testIMCdispatchKeyEvent
-    * @tc.desc: IMC testdispatchKeyEvent.
-    * @tc.type: FUNC
-    * @tc.require: 
-    */
-    HWTEST_F(InputMethodControllerTest, testIMCdispatchKeyEvent, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC dispatchKeyEvent Test START");
-        sptr<InputMethodController> imc = InputMethodController::GetInstance();
-        EXPECT_TRUE(imc != nullptr);
-        
-        std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
-        EXPECT_TRUE(keyEvent != nullptr);
-
-        keyEvent->SetKeyAction(2);
-        keyEvent->SetKeyCode(2013);
-
-        bool ret = imc->dispatchKeyEvent(keyEvent);
-        EXPECT_TRUE(ret == true);
     }
 
     /**
