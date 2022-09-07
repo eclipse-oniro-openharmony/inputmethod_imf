@@ -419,7 +419,8 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->GetEnterKeyType();
-        EXPECT_TRUE(ret >= EnterKeyType::UNSPECIFIED && ret <= EnterKeyType::PREVIOUS);
+        EXPECT_TRUE(ret >= static_cast<int32_t>(EnterKeyType::UNSPECIFIED) && 
+            ret <= static_cast<int32_t>(EnterKeyType::PREVIOUS));
     }
 
     /**
@@ -434,7 +435,8 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->GetInputPattern();
-        EXPECT_TRUE(ret >= TextInputType::NONE && ret <= TextInputType::VISIBLE_PASSWORD);
+        EXPECT_TRUE(ret >= static_cast<int32_t>(TextInputType::NONE) && 
+            ret <= static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD));
     }
 
     /**
