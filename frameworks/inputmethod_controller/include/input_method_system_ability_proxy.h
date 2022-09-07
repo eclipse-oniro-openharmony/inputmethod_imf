@@ -18,9 +18,9 @@
 
 #include <cstdint>
 #include <functional>
+#include <string>
 #include <vector>
 
-#include <string>
 #include "global.h"
 #include "i_input_method_system_ability.h"
 #include "input_attribute.h"
@@ -61,10 +61,9 @@ namespace MiscServices {
         int32_t displayOptionalInputMethod(MessageParcel& data) override;
         int32_t getDisplayMode(int32_t &retMode) override;
         int32_t getKeyboardWindowHeight(int32_t &retHeight) override;
-        int32_t GetCurrentInputMethod(InputMethodProperty &currentInputMethod) override;
+        std::shared_ptr<InputMethodProperty> GetCurrentInputMethod() override;
         int32_t getCurrentKeyboardType(KeyboardType *retType) override;
-        int32_t listInputMethodEnabled(std::vector<InputMethodProperty*> *properties) override;
-        int32_t listInputMethod(std::vector<InputMethodProperty*> *properties) override;
+        std::vector<InputMethodProperty> ListInputMethod(InputMethodStatus stauts) override;
         int32_t listKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types) override;
         int32_t SwitchInputMethod(const InputMethodProperty &target) override;
 

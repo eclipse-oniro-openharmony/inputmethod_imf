@@ -12,11 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "js_get_input_method_setting.h"
+
+#include "input_method_controller.h"
+#include "input_method_status.h"
+#include "js_input_method.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
-#include "input_method_controller.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -85,61 +89,37 @@ napi_value JsGetInputMethodSetting::GetInputMethodSetting(napi_env env, napi_cal
     return instance;
 }
 
-napi_value JsGetInputMethodSetting::GetJSInputMethodProperty(napi_env env,
-    std::vector<InputMethodProperty*> &properties)
-{
-    uint32_t index = 0;
-    napi_value result = nullptr;
-    napi_create_array(env, &result);
-    if (result == nullptr) {
-        IMSA_HILOGE("create_array failed");
-        return result;
-    }
-    for (const auto &item : properties) {
-        if (item == nullptr) {
-            IMSA_HILOGE("GetResult::item is null");
-            continue;
-        }
-        napi_value InputMethodSetting = nullptr;
-        napi_create_object(env, &InputMethodSetting);
-
-        std::string packageName = Str16ToStr8(item->mPackageName);
-        napi_value jsPackageName = nullptr;
-        napi_create_string_utf8(env, packageName.c_str(), NAPI_AUTO_LENGTH, &jsPackageName);
-        napi_set_named_property(env, InputMethodSetting, "packageName", jsPackageName);
-
-        std::string methodId = Str16ToStr8(item->mAbilityName);
-        napi_value jsMethodId = nullptr;
-        napi_create_string_utf8(env, methodId.c_str(), NAPI_AUTO_LENGTH, &jsMethodId);
-        napi_set_named_property(env, InputMethodSetting, "methodId", jsMethodId);
-
-        napi_set_element(env, result, index, InputMethodSetting);
-        index++;
-    }
-    return result;
-}
-
 napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 0 || argc == 1, " should null or 1 parameters!", napi_invalid_arg);
+        NAPI_ASSERT_BASE(env, argc == 0 || argc == 1, " Parameter number error", napi_invalid_arg);
+        if (argc == 0) {
+            ctxt->inputMethodStatus = InputMethodStatus::ALL;
+            return napi_ok;
+        }
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        NAPI_ASSERT_BASE(env, valueType == napi_boolean, " Parameter type error", napi_invalid_arg);
+        bool enable = false;
+        napi_get_value_bool(env, argv[0], &enable);
+        ctxt->inputMethodStatus = enable ? InputMethodStatus::ENABLE : InputMethodStatus::DISABLE;
         return napi_ok;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        napi_value data = GetJSInputMethodProperty(env, ctxt->properties);
-        *result = data;
+        *result = JsInputMethod::GetJSInputMethodProperties(env, ctxt->properties);
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->properties = InputMethodController::GetInstance()->ListInputMethod();
-        if (!ctxt->properties.empty()) {
-            IMSA_HILOGE("exec ---- ListInputMethod success");
-            ctxt->status = napi_ok;
+        if (ctxt->inputMethodStatus == ALL) {
+            ctxt->properties = InputMethodController::GetInstance()->ListInputMethod();
+        } else {
+            ctxt->properties = InputMethodController::GetInstance()->ListInputMethod(ctxt->inputMethodStatus == ENABLE);
         }
+        ctxt->status = napi_ok;
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
     return asyncCall.Call(env, exec);
 }
 

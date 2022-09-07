@@ -279,6 +279,29 @@ namespace MiscServices {
     }
 
     /**
+     * @tc.name: testIMCListInputMethod
+     * @tc.desc: IMC ListInputMethod
+     * @tc.type: FUNC
+     * @tc.require: issueI5OX20
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCListInputMethod, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC ListInputMethod Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_NE(imc, nullptr);
+
+        IMSA_HILOGI("Test list all input method");
+        std::vector<Property> properties = imc->ListInputMethod();
+        EXPECT_TRUE(!properties.empty());
+
+        IMSA_HILOGI("Test list disabled input method");
+        properties = imc->ListInputMethod(false);
+        IMSA_HILOGI("Test list enabled input method");
+        properties = imc->ListInputMethod(true);
+        EXPECT_TRUE(!properties.empty());
+    }
+
+    /**
     * @tc.name: testIMSAProxyShowCurrentInput
     * @tc.desc: IMSAProxy ShowCurrentInput.
     * @tc.type: FUNC
