@@ -225,7 +225,7 @@ namespace MiscServices {
         keyEvent->SetKeyCode(2013);
 
         bool ret = imc->dispatchKeyEvent(keyEvent);
-        EXPECT_TRUE(ret == true);
+        EXPECT_TRUE(ret);
     }
 
     /**
@@ -344,6 +344,7 @@ namespace MiscServices {
         int32_t ret = imsaProxy->ShowCurrentInput(data);
         EXPECT_TRUE(ret == 0);
     }
+
     /**
     * @tc.name: testIMCHideCurrentInput
     * @tc.desc: IMC HideCurrentInput.
@@ -365,7 +366,7 @@ namespace MiscServices {
     * @tc.type: FUNC
     * @tc.require: 
     */
-    HWTEST_F(InputMethodControllerTest, testIMCGetTextBeforeCursor, TestSize.Level0)
+    HWTEST_F(InputMethodControllerTest, testIMCGetTextBeforeCursor, TestSize.Level2)
     {
         IMSA_HILOGI("IMC GetTextBeforeCursor Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
@@ -381,7 +382,7 @@ namespace MiscServices {
     * @tc.type: FUNC
     * @tc.require: 
     */
-    HWTEST_F(InputMethodControllerTest, testIMCGetTextAfterCursor, TestSize.Level0)
+    HWTEST_F(InputMethodControllerTest, testIMCGetTextAfterCursor, TestSize.Level2)
     {
         IMSA_HILOGI("IMC GetTextAfterCursor Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
@@ -397,7 +398,7 @@ namespace MiscServices {
     * @tc.type: FUNC
     * @tc.require: 
     */
-    HWTEST_F(InputMethodControllerTest, testIMCDisplayOptionalInputMethod, TestSize.Level0)
+    HWTEST_F(InputMethodControllerTest, testIMCDisplayOptionalInputMethod, TestSize.Level2)
     {
         IMSA_HILOGI("IMC DisplayOptionalInputMethod Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
@@ -418,7 +419,7 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->GetEnterKeyType();
-        EXPECT_TRUE(ret >= 0 && ret <= 7);
+        EXPECT_TRUE(ret >= EnterKeyType::UNSPECIFIED && ret <= EnterKeyType::PREVIOUS);
     }
 
     /**
@@ -433,7 +434,7 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->GetInputPattern();
-        EXPECT_TRUE(ret >= -1 && ret <= 7);
+        EXPECT_TRUE(ret >= TextInputType::NONE && ret <= TextInputType::VISIBLE_PASSWORD);
     }
 
     /**
@@ -447,10 +448,7 @@ namespace MiscServices {
         IMSA_HILOGI("IMC SwitchInputMethod Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
-        Property property;
-        property.packageName = "com.example.kikakeyboard";
-        property.abilityName = "ServiceExtAbility";
-        int32_t ret = imc->SwitchInputMethod(property);
+        int32_t ret = imc->SwitchInputMethod({"com.example.kikakeyboard"， "ServiceExtAbility"});
         EXPECT_TRUE(ret == 0);
     }
 
@@ -466,8 +464,7 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
 
-        CursorInfo cursorInfo;
-        imc->OnCursorUpdate(cursorInfo);
+        imc->OnCursorUpdate({});
     }
 
     /**
