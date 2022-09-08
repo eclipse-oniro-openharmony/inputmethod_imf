@@ -952,7 +952,7 @@ namespace MiscServices {
         double diffSeconds = difftime(now, past[imeIndex]);
 
         // time difference is more than 5 minutes, reset time and error num;
-        if (diffSeconds > COMMON_COUNT_THREE_HUNDRED) {
+        if (diffSeconds > IME_RESET_TIME_OUT) {
             past[imeIndex] = now;
             errorNum[imeIndex] = 1;
         }
