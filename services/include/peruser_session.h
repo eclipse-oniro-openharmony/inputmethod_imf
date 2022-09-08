@@ -87,7 +87,7 @@ namespace MiscServices {
     };
 
     struct ResetManager {
-        int num;
+        uint32_t num;
         time_t last;
     };
 
@@ -97,11 +97,11 @@ namespace MiscServices {
         This class manages the sessions between input clients and input method engines for each unlocked user.
     */
     class PerUserSession {
-    enum {
-        DEFAULT_IME = 0,  // index for default input method service
-        SECURITY_IME = 1, // index for security input method service
-        MAX_IME = 2, // the maximum count of ims started for a user
-    };
+        enum : uint32_t {
+            DEFAULT_IME = 0, // index for default input method service
+            SECURITY_IME,    // index for security input method service
+            MAX_IME          // the maximum count of ims started for a user
+        };
 
     public:
         explicit PerUserSession(int userId);
@@ -129,11 +129,11 @@ namespace MiscServices {
         int displayId; // the id of the display screen on which the user is
         int currentIndex;
         std::map<sptr<IRemoteObject>, ClientInfo*> mapClients;
-        int MIN_IME = 2;
-        int MAX_RESTART_NUM = 3;
-        int IME_RESET_TIME_OUT = 300;
+        static const int MIN_IME = 2;
+        static const int MAX_RESTART_NUM = 3;
+        static const int IME_RESET_TIME_OUT = 300;
         static const int MAX_RESET_WAIT_TIME = 1600000;
-        int SLEEP_TIME = 300000;
+        static const int SLEEP_TIME = 300000;
 
         InputMethodProperty *currentIme[MAX_IME]; // 0 - the default ime. 1 - security ime
 
@@ -197,9 +197,9 @@ namespace MiscServices {
         void SendAgentToSingleClient(const sptr<IInputClient>& inputClient);
         void InitInputControlChannel();
         void SendAgentToAllClients();
-        void ResetImeError(int index);
-        bool IsRestartIme(int index);
-        void ClearImeData(int index);
+        void ResetImeError(uint32_t index);
+        bool IsRestartIme(uint32_t index);
+        void ClearImeData(uint32_t index);
     };
 } // namespace MiscServices
 } // namespace OHOS

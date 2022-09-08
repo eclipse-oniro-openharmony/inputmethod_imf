@@ -1238,6 +1238,10 @@ namespace MiscServices {
         auto data = msg->msgContent_;
 
         auto coreObject = data->ReadRemoteObject();
+        if (coreObject == nullptr) {
+            IMSA_HILOGE("coreObject is nullptr");
+            return;
+        }
         auto core = new (std::nothrow) InputMethodCoreProxy(coreObject);
         if (core == nullptr) {
             IMSA_HILOGE("core is nullptr");
@@ -1319,10 +1323,10 @@ namespace MiscServices {
         imsCore[0]->StopInputService(imeId);
     }
 
-    bool PerUserSession::IsRestartIme(int index)
+    bool PerUserSession::IsRestartIme(uint32_t index)
     {
         IMSA_HILOGI("PerUserSession::IsRestartIme");
-        std::unique_lock<std::mutex> lock(resetLock);
+        std::lock_guard<std::mutex> lock(resetLock);
         auto now = time(nullptr);
         if (difftime(now, manager[index].last) > IME_RESET_TIME_OUT) {
             manager[index] = { 0, now };
@@ -1331,14 +1335,14 @@ namespace MiscServices {
         return manager[index].num <= MAX_RESTART_NUM;
     }
 
-    void PerUserSession::ResetImeError(int index)
+    void PerUserSession::ResetImeError(uint32_t index)
     {
         IMSA_HILOGI("PerUserSession::ResetImeError index = %{public}d", index);
-        std::unique_lock<std::mutex> lock(resetLock);
+        std::lock_guard<std::mutex> lock(resetLock);
         manager[index] = { 0, 0 };
     }
 
-    void PerUserSession::ClearImeData(int index)
+    void PerUserSession::ClearImeData(uint32_t index)
     {
         IMSA_HILOGI("Clear ime...index = %{public}d", index);
         if (imsCore[index] != nullptr) {
