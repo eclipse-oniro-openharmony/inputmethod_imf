@@ -132,6 +132,7 @@ namespace MiscServices {
         int MIN_IME = 2;
         int MAX_RESTART_NUM = 3;
         int IME_RESET_TIME_OUT = 300;
+        static const int MAX_RESET_WAIT_TIME = 1600000;
         int SLEEP_TIME = 300000;
 
         InputMethodProperty *currentIme[MAX_IME]; // 0 - the default ime. 1 - security ime

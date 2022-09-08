@@ -647,7 +647,7 @@ namespace MiscServices {
         }
         ClearImeData(index);
         if (!IsRestartIme(index)) {
-            IMSA_HILOGI("Restart ime failed");
+            IMSA_HILOGI("Restart ime over max num");
             return;
         }
         IMSA_HILOGI("IME died. Restart input method...[%{public}d]\n", userId_);
@@ -664,7 +664,7 @@ namespace MiscServices {
             delete parcel;
             return;
         }
-        usleep(1600 * 1000);
+        usleep(MAX_RESET_WAIT_TIME);
         MessageHandler::Instance()->SendMessage(msg);
         IMSA_HILOGI("End...[%{public}d]\n", userId_);
     }
