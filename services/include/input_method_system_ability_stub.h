@@ -40,7 +40,7 @@ namespace MiscServices {
         void OnGetCurrentInputMethod(MessageParcel &reply);
         void OnListInputMethod(MessageParcel &data, MessageParcel &reply);
         virtual std::vector<InputMethodProperty> ListInputMethodByUserId(int32_t userId, InputMethodStatus status) = 0;
-        int32_t SwitchInputMethod(MessageParcel &data);
+        int32_t OnSwitchInputMethod(MessageParcel &data);
 
     protected:
         int32_t getUserId(int32_t uid);

@@ -57,6 +57,7 @@ namespace MiscServices {
         std::vector<InputMethodProperty> ListInputMethod(InputMethodStatus stauts) override;
         std::vector<InputMethodProperty> ListInputMethodByUserId(int32_t userId, InputMethodStatus status) override;
         int32_t listKeyboardType(const std::u16string &imeId, std::vector<KeyboardType *> *types) override;
+        int32_t SwitchInputMethod(const InputMethodProperty &target) override;
         int Dump(int fd, const std::vector<std::u16string> &args) override;
         void DumpAllMethod(int fd);
 

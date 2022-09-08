@@ -21,6 +21,10 @@
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
 #include "string_ex.h"
+#include "input_client_stub.h"
+#include "input_data_channel_stub.h"
+#include "input_method_agent_proxy.h"
+#include "input_method_system_ability_proxy.h"
 #include "system_ability_definition.h"
 #include "utils.h"
 
@@ -63,11 +67,21 @@ using namespace MessageID;
 
         msgHandler = new MessageHandler();
 
-        mClient = new InputClientStub();
-        mClient->SetHandler(msgHandler);
+        InputClientStub *client = new (std::nothrow) InputClientStub();
+        if (client == nullptr) {
+            IMSA_HILOGE("InputMethodController::Initialize client is nullptr");
+            return false;
+        }
+        client->SetHandler(msgHandler);
+        mClient = client;
 
-        mInputDataChannel = new InputDataChannelStub();
-        mInputDataChannel->SetHandler(msgHandler);
+        InputDataChannelStub *channel = new (std::nothrow) InputDataChannelStub();
+        if (channel == nullptr) {
+            IMSA_HILOGE("InputMethodController::Initialize channel is nullptr");
+            return false;
+        }
+        channel->SetHandler(msgHandler);
+        mInputDataChannel = channel;
 
         workThreadHandler = std::thread([this] {WorkThread();});
         mAttribute.SetInputPattern(InputAttribute::PATTERN_TEXT);
@@ -78,7 +92,7 @@ using namespace MessageID;
         return true;
     }
 
-    sptr<InputMethodSystemAbilityProxy> InputMethodController::GetImsaProxy()
+    sptr<IInputMethodSystemAbility> InputMethodController::GetImsaProxy()
     {
         IMSA_HILOGI("InputMethodController::GetImsaProxy");
         sptr<ISystemAbilityManager> systemAbilityManager =
@@ -102,8 +116,7 @@ using namespace MessageID;
         }
         systemAbility->AddDeathRecipient(deathRecipient_);
 
-        sptr<InputMethodSystemAbilityProxy> iface = new InputMethodSystemAbilityProxy(systemAbility);
-        return iface;
+        return iface_cast<IInputMethodSystemAbility>(systemAbility);
     }
 
     void InputMethodController::WorkThread()
@@ -264,8 +277,8 @@ using namespace MessageID;
         IMSA_HILOGI("InputMethodController::Close");
     }
 
-    void InputMethodController::PrepareInput(int32_t displayId, sptr<InputClientStub> &client,
-                                             sptr<InputDataChannelStub> &channel, InputAttribute &attribute)
+    void InputMethodController::PrepareInput(int32_t displayId, sptr<IInputClient> &client,
+                                             sptr<IInputDataChannel> &channel, InputAttribute &attribute)
     {
         IMSA_HILOGI("InputMethodController::PrepareInput");
         if (!mImms) {
@@ -336,7 +349,7 @@ using namespace MessageID;
             [](auto p) {} };
     }
 
-    void InputMethodController::StartInput(sptr<InputClientStub> &client, bool isShowKeyboard)
+    void InputMethodController::StartInput(sptr<IInputClient> &client, bool isShowKeyboard)
     {
         IMSA_HILOGI("InputMethodController::StartInput");
         if (!mImms) {
@@ -351,7 +364,7 @@ using namespace MessageID;
         mImms->startInput(data);
     }
 
-    void InputMethodController::ReleaseInput(sptr<InputClientStub> &client)
+    void InputMethodController::ReleaseInput(sptr<IInputClient> &client)
     {
         IMSA_HILOGI("InputMethodController::ReleaseInput");
         if (!mImms) {
@@ -366,7 +379,7 @@ using namespace MessageID;
         mImms->releaseInput(data);
     }
 
-    void InputMethodController::StopInput(sptr<InputClientStub> &client)
+    void InputMethodController::StopInput(sptr<IInputClient> &client)
     {
         IMSA_HILOGI("InputMethodController::StopInput");
         if (!mImms) {
@@ -397,7 +410,7 @@ using namespace MessageID;
 
     void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
     {
-        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
+        std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::OnCursorUpdate agent is nullptr");
             return;
@@ -427,7 +440,7 @@ using namespace MessageID;
         mSelectOldEnd = mSelectNewEnd;
         mSelectNewBegin = start;
         mSelectNewEnd = end;
-        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
+        std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::OnSelectionChange agent is nullptr");
             return;
@@ -473,7 +486,7 @@ using namespace MessageID;
     bool InputMethodController::dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
     {
         IMSA_HILOGI("InputMethodController::dispatchKeyEvent");
-        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
+        std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::dispatchKeyEvent agent is nullptr");
             return false;
@@ -508,8 +521,8 @@ using namespace MessageID;
 
     void InputMethodController::SetCallingWindow(uint32_t windowId)
     {
-        std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
         IMSA_HILOGI("InputMethodController::SetCallingWindow windowId = %{public}d", windowId);
+        std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::SetCallingWindow agent is nullptr");
             return;
@@ -540,7 +553,7 @@ using namespace MessageID;
     {
         IMSA_HILOGI("run in SetInputMethodAgent");
         std::lock_guard<std::mutex> lock(agentLock_);
-        std::shared_ptr<InputMethodAgentProxy> agent = std::make_shared<InputMethodAgentProxy>(object);
+        std::shared_ptr<IInputMethodAgent> agent = std::make_shared<InputMethodAgentProxy>(object);
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::SetInputMethodAgent agent is nullptr");
             return;
@@ -548,7 +561,7 @@ using namespace MessageID;
         mAgent = agent;
     }
 
-    std::shared_ptr<InputMethodAgentProxy> InputMethodController::GetInputMethodAgent()
+    std::shared_ptr<IInputMethodAgent> InputMethodController::GetInputMethodAgent()
     {
         std::lock_guard<std::mutex> lock(agentLock_);
         return mAgent;

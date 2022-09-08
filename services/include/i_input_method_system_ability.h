@@ -72,6 +72,7 @@ namespace MiscServices {
         virtual int32_t getCurrentKeyboardType(KeyboardType *retType) = 0;
         virtual std::vector<InputMethodProperty> ListInputMethod(InputMethodStatus stauts) = 0;
         virtual int32_t listKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types) = 0;
+        virtual int32_t SwitchInputMethod(const InputMethodProperty &target) = 0;
     };
 } // namespace MiscServices
 } // namespace OHOS
