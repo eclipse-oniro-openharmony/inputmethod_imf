@@ -26,7 +26,6 @@ namespace OHOS {
 namespace MiscServices {
     class InputMethodSystemAbilityStub : public IRemoteStub<IInputMethodSystemAbility> {
     public:
-        using IInputMethodSystemAbility::SwitchInputMethod;
         int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
                                 MessageOption &option) override;
 
