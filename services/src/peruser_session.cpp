@@ -1346,7 +1346,7 @@ namespace MiscServices {
         }
     }
 
-    bool PerUserSession::IsRestartIme(const int &index)
+    bool PerUserSession::IsRestartIme(int index)
     {
         IMSA_HILOGI("PerUserSession::IsRestartIme");
         auto now = time(nullptr);
@@ -1357,7 +1357,7 @@ namespace MiscServices {
         return manager[index].errorNum < MAX_RESTART_NUM;
     }
 
-    void PerUserSession::ResetImeError(const int &index)
+    void PerUserSession::ResetImeError(int index)
     {
         IMSA_HILOGI("PerUserSession::ResetImeError index = %{public}d", index);
         manager[index] = { 0, 0 };
@@ -1366,8 +1366,10 @@ namespace MiscServices {
     void PerUserSession::ClearImeData(int index)
     {
         IMSA_HILOGI("Clear ime...index = %{public}d", index);
-        imsCore[index]->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
-        imsCore[index] = nullptr;
+        if (imsCore[index] != nullptr) {
+            imsCore[index]->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
+            imsCore[index] = nullptr;
+        }
         inputControlChannel[index] = nullptr;
         localControlChannel[index] = nullptr;
         inputMethodToken[index] = nullptr;

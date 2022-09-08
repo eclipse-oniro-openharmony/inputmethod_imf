@@ -197,8 +197,8 @@ namespace MiscServices {
         void SendAgentToSingleClient(const sptr<IInputClient>& inputClient);
         void InitInputControlChannel();
         void SendAgentToAllClients();
-        static void ResetImeError(const int &index);
-        bool IsRestartIme(const int &index);
+        static void ResetImeError(int index);
+        bool IsRestartIme(int index);
         void ClearImeData(int index);
     };
 } // namespace MiscServices
