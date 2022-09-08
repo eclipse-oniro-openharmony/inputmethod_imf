@@ -1339,11 +1339,13 @@ namespace MiscServices {
     void PerUserSession::StopInputService(std::string imeId)
     {
         IMSA_HILOGI("PerUserSession::StopInputService");
-        if (imsCore[0]) {
-            IMSA_HILOGI("Remove death recipient");
-            imsCore[0]->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
-            imsCore[0]->StopInputService(imeId);
+        if (imsCore[0] == nullptr) {
+            IMSA_HILOGE("imsCore[0] is nullptr");
+            return;
         }
+        IMSA_HILOGI("Remove death recipient");
+        imsCore[0]->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
+        imsCore[0]->StopInputService(imeId);
     }
 
     bool PerUserSession::IsRestartIme(int index)
