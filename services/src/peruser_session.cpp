@@ -251,7 +251,7 @@ namespace MiscServices {
             if (imsCore[i]) {
                 StopInputMethod(i);
             }
-            IncreaseOrResetImeError(true, i);
+            ResetImeError(i);
             currentIme[i] = ime[i];
             if (!currentIme[i]) {
                 if (needReshowClient && GetImeIndex(needReshowClient) == i) {
@@ -930,35 +930,6 @@ namespace MiscServices {
         needReshowClient = nullptr;
     }
 
-    /*! Increase or reset ime error number
-    \param resetFlag the flag to increase or reset number.
-            \n resetFlag=true, reset error number to 0;
-            \n resetFlag=false, increase error number.
-    \param imeIndex index = 0 default ime; index=1 security ime
-    \return return the error count value. It is less or equal 3.
-    */
-    int PerUserSession::IncreaseOrResetImeError(bool resetFlag, int imeIndex)
-    {
-        static int errorNum[2] = {0, 0};
-        static time_t past[2] = {time(0), time(0)};
-        if (resetFlag) {
-            errorNum[imeIndex] = 0;
-            past[imeIndex] = 0;
-            return 0;
-        }
-
-        errorNum[imeIndex]++;
-        time_t now = time(0);
-        double diffSeconds = difftime(now, past[imeIndex]);
-
-        // time difference is more than 5 minutes, reset time and error num;
-        if (diffSeconds > IME_RESET_TIME_OUT) {
-            past[imeIndex] = now;
-            errorNum[imeIndex] = 1;
-        }
-        return errorNum[imeIndex];
-    }
-
     /*! Get keyboard type
     \param imeIndex it can be 0 or 1.  0 - default ime, 1 - security ime
     \param typeIndex the index of keyboard type.
@@ -1351,17 +1322,19 @@ namespace MiscServices {
     bool PerUserSession::IsRestartIme(int index)
     {
         IMSA_HILOGI("PerUserSession::IsRestartIme");
+        std::unique_lock<std::mutex> lock(resetLock);
         auto now = time(nullptr);
-        ++manager[index].errorNum;
         if (difftime(now, manager[index].last) > IME_RESET_TIME_OUT) {
             manager[index] = { 0, now };
         }
-        return manager[index].errorNum < MAX_RESTART_NUM;
+        ++manager[index].num;
+        return manager[index].num <= MAX_RESTART_NUM;
     }
 
     void PerUserSession::ResetImeError(int index)
     {
         IMSA_HILOGI("PerUserSession::ResetImeError index = %{public}d", index);
+        std::unique_lock<std::mutex> lock(resetLock);
         manager[index] = { 0, 0 };
     }
 

@@ -87,7 +87,7 @@ namespace MiscServices {
     };
 
     struct ResetManager {
-        int errorNum;
+        int num;
         time_t last;
     };
 
@@ -157,14 +157,13 @@ namespace MiscServices {
         std::thread workThreadHandler; // work thread handler
         std::mutex mtx; // mutex to lock the operations among multi work threads
         sptr<AAFwk::AbilityConnectionProxy> connCallback;
-        static std::mutex resetLock;
-        static ResetManager manager[MAX_IME];
+        std::mutex resetLock;
+        ResetManager manager[MAX_IME];
 
         PerUserSession(const PerUserSession&);
         PerUserSession& operator =(const PerUserSession&);
         PerUserSession(const PerUserSession&&);
         PerUserSession& operator =(const PerUserSession&&);
-        int IncreaseOrResetImeError(bool resetFlag, int imeIndex);
         KeyboardType *GetKeyboardType(int imeIndex, int typeIndex);
         void ResetCurrentKeyboardType(int imeIndex);
         int OnCurrentKeyboardTypeChanged(int index, const std::u16string& value);
@@ -198,7 +197,7 @@ namespace MiscServices {
         void SendAgentToSingleClient(const sptr<IInputClient>& inputClient);
         void InitInputControlChannel();
         void SendAgentToAllClients();
-        static void ResetImeError(int index);
+        void ResetImeError(int index);
         bool IsRestartIme(int index);
         void ClearImeData(int index);
     };
