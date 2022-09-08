@@ -645,9 +645,9 @@ namespace MiscServices {
                 break;
             }
         }
-        StopInputMethod(index);
-        if (IncreaseOrResetImeError(false, index) == IME_ERROR_CODE) {
-            IMSA_HILOGE("Restart ime failed");
+        ClearImeData(index);
+        if (!IsRestartIme(index)) {
+            IMSA_HILOGI("Restart ime failed");
             return;
         }
         IMSA_HILOGI("IME died. Restart input method...[%{public}d]\n", userId_);
@@ -1268,6 +1268,10 @@ namespace MiscServices {
 
         auto coreObject = data->ReadRemoteObject();
         auto core = new (std::nothrow) InputMethodCoreProxy(coreObject);
+        if (core == nullptr) {
+            IMSA_HILOGE("core is nullptr");
+            return;
+        }
         if (imsCore[0] != nullptr) {
             IMSA_HILOGI("PerUserSession::SetCoreAndAgent Input Method Service has already been started ! ");
         }
@@ -1279,6 +1283,10 @@ namespace MiscServices {
 
         auto agentObject = data->ReadRemoteObject();
         auto proxy = new (std::nothrow) InputMethodAgentProxy(agentObject);
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
+            return;
+        }
         imsAgent = proxy;
 
         InitInputControlChannel();
@@ -1336,6 +1344,33 @@ namespace MiscServices {
             imsCore[0]->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
             imsCore[0]->StopInputService(imeId);
         }
+    }
+
+    bool PerUserSession::IsRestartIme(const int &index)
+    {
+        IMSA_HILOGI("PerUserSession::IsRestartIme");
+        auto now = time(nullptr);
+        ++manager[index].errorNum;
+        if (difftime(now, manager[index].last) > IME_RESET_TIME_OUT) {
+            manager[index] = { 0, now };
+        }
+        return manager[index].errorNum < MAX_RESTART_NUM;
+    }
+
+    void PerUserSession::ResetImeError(const int &index)
+    {
+        IMSA_HILOGI("PerUserSession::ResetImeError index = %{public}d", index);
+        manager[index] = { 0, 0 };
+    }
+
+    void PerUserSession::ClearImeData(int index)
+    {
+        IMSA_HILOGI("Clear ime...index = %{public}d", index);
+        imsCore[index]->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
+        imsCore[index] = nullptr;
+        inputControlChannel[index] = nullptr;
+        localControlChannel[index] = nullptr;
+        inputMethodToken[index] = nullptr;
     }
 } // namespace MiscServices
 } // namespace OHOS

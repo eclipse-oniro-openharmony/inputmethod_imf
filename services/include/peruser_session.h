@@ -86,6 +86,11 @@ namespace MiscServices {
         };
     };
 
+    struct ResetManager {
+        int errorNum;
+        time_t last;
+    };
+
     /*! \class PerUserSession
         \brief The class provides session management in input method management service
 
@@ -125,8 +130,8 @@ namespace MiscServices {
         int currentIndex;
         std::map<sptr<IRemoteObject>, ClientInfo*> mapClients;
         int MIN_IME = 2;
-        int IME_ERROR_CODE = 3;
-        int COMMON_COUNT_THREE_HUNDRED = 300;
+        int MAX_RESTART_NUM = 3;
+        int IME_RESET_TIME_OUT = 300;
         int SLEEP_TIME = 300000;
 
         InputMethodProperty *currentIme[MAX_IME]; // 0 - the default ime. 1 - security ime
@@ -151,6 +156,8 @@ namespace MiscServices {
         std::thread workThreadHandler; // work thread handler
         std::mutex mtx; // mutex to lock the operations among multi work threads
         sptr<AAFwk::AbilityConnectionProxy> connCallback;
+        static std::mutex resetLock;
+        static ResetManager manager[MAX_IME];
 
         PerUserSession(const PerUserSession&);
         PerUserSession& operator =(const PerUserSession&);
@@ -190,6 +197,9 @@ namespace MiscServices {
         void SendAgentToSingleClient(const sptr<IInputClient>& inputClient);
         void InitInputControlChannel();
         void SendAgentToAllClients();
+        static void ResetImeError(const int &index);
+        bool IsRestartIme(const int &index);
+        void ClearImeData(int index);
     };
 } // namespace MiscServices
 } // namespace OHOS

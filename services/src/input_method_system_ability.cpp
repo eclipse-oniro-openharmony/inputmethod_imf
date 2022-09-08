@@ -670,7 +670,7 @@ namespace MiscServices {
                 }
                 case MSG_ID_START_INPUT_SERVICE: {
                     MessageParcel *data = msg->msgContent_;
-                    std::string ime = data->ReadString();
+                    const auto &ime = data->ReadString();
                     StartInputService(ime);
                     break;
                 }
