@@ -205,6 +205,28 @@ namespace MiscServices {
         setting.SetCurrentKeyboardType(curType);
         EXPECT_EQ(setting.GetCurrentKeyboardType(), curType);
     }
+    
+    /**
+    * @tc.name: testIMCdispatchKeyEvent
+    * @tc.desc: IMC testdispatchKeyEvent.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCdispatchKeyEvent, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC dispatchKeyEvent Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        
+        std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
+        EXPECT_TRUE(keyEvent != nullptr);
+
+        keyEvent->SetKeyAction(2);
+        keyEvent->SetKeyCode(2013);
+
+        bool ret = imc->dispatchKeyEvent(keyEvent);
+        EXPECT_TRUE(ret);
+    }
 
     /**
     * @tc.name: testInputMethodWholeProcess
@@ -321,6 +343,180 @@ namespace MiscServices {
         data.WriteInterfaceToken(imsaProxy->GetDescriptor());
         int32_t ret = imsaProxy->ShowCurrentInput(data);
         EXPECT_TRUE(ret == 0);
+    }
+
+    /**
+    * @tc.name: testIMCHideCurrentInput
+    * @tc.desc: IMC HideCurrentInput.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCHideCurrentInput, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC HideCurrentInput Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        int32_t ret = imc->HideCurrentInput();
+        EXPECT_TRUE(ret == 0);
+    }
+
+    /**
+    * @tc.name: testIMCGetTextBeforeCursor
+    * @tc.desc: IMC testGetTextBeforeCursor.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCGetTextBeforeCursor, TestSize.Level2)
+    {
+        IMSA_HILOGI("IMC GetTextBeforeCursor Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        constexpr int32_t TEXT_LENGTH = 1;
+        std::u16string ret = imc->GetTextBeforeCursor(TEXT_LENGTH);
+        EXPECT_TRUE(ret.size() == 0);
+    }
+    
+    /**
+    * @tc.name: testIMCGetTextAfterCursor
+    * @tc.desc: IMC testGetTextAfterCursor.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCGetTextAfterCursor, TestSize.Level2)
+    {
+        IMSA_HILOGI("IMC GetTextAfterCursor Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        constexpr int32_t TEXT_LENGTH = 1;
+        std::u16string ret = imc->GetTextAfterCursor(TEXT_LENGTH);
+        EXPECT_TRUE(ret.size() == 0);
+    }
+
+    /**
+    * @tc.name: testIMCDisplayOptionalInputMethod
+    * @tc.desc: IMC testDisplayOptionalInputMethod.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCDisplayOptionalInputMethod, TestSize.Level2)
+    {
+        IMSA_HILOGI("IMC DisplayOptionalInputMethod Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        int32_t ret = imc->DisplayOptionalInputMethod();
+        EXPECT_TRUE(ret == 0);
+    }
+
+    /**
+    * @tc.name: testIMCGetEnterKeyType
+    * @tc.desc: IMC testGetEnterKeyType.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCGetEnterKeyType, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC GetEnterKeyType Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        int32_t ret = imc->GetEnterKeyType();
+        EXPECT_TRUE(ret >= static_cast<int32_t>(EnterKeyType::UNSPECIFIED) && 
+            ret <= static_cast<int32_t>(EnterKeyType::PREVIOUS));
+    }
+
+    /**
+    * @tc.name: testIMCGetInputPattern
+    * @tc.desc: IMC testGetInputPattern.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCGetInputPattern, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC GetInputPattern Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        int32_t ret = imc->GetInputPattern();
+        EXPECT_TRUE(ret >= static_cast<int32_t>(TextInputType::NONE) && 
+            ret <= static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD));
+    }
+
+    /**
+    * @tc.name: testIMCSwitchInputMethod
+    * @tc.desc: IMC testSwitchInputMethod.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCSwitchInputMethod, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC SwitchInputMethod Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        int32_t ret = imc->SwitchInputMethod({"com.example.kikakeyboard", "ServiceExtAbility"});
+        EXPECT_TRUE(ret == 0);
+    }
+
+    /**
+    * @tc.name: testIMCOnCursorUpdate
+    * @tc.desc: IMC testOnCursorUpdate
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCOnCursorUpdate, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC OnCursorUpdate Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+
+        imc->OnCursorUpdate({});
+    }
+
+    /**
+    * @tc.name: testIMCOnSelectionChange
+    * @tc.desc: IMC testOnSelectionChange
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC OnSelectionChange Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+
+        imc->OnSelectionChange(Str8ToStr16("text"), 1, 1);
+    }
+
+    /**
+    * @tc.name: testIMCOnConfigurationChange
+    * @tc.desc: IMC testOnConfigurationChange.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCOnConfigurationChange, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC OnConfigurationChange Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        
+        Configuration info;
+        info.SetEnterKeyType(EnterKeyType::NONE);
+        info.SetTextInputType(TextInputType::TEXT);
+
+        imc->OnConfigurationChange(info);
+    }
+
+    /**
+    * @tc.name: testIMCSetCallingWindow
+    * @tc.desc: IMC testSetCallingWindow.
+    * @tc.type: FUNC
+    * @tc.require: 
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC SetCallingWindow Test START");
+        constexpr uint32_t WINDOW_ID = 0;
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        
+        imc->SetCallingWindow(WINDOW_ID);
     }
 } // namespace MiscServices
 } // namespace OHOS
