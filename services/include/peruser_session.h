@@ -86,17 +86,22 @@ namespace MiscServices {
         };
     };
 
+    struct ResetManager {
+        uint32_t num;
+        time_t last;
+    };
+
     /*! \class PerUserSession
         \brief The class provides session management in input method management service
 
         This class manages the sessions between input clients and input method engines for each unlocked user.
     */
     class PerUserSession {
-    enum {
-        DEFAULT_IME = 0,  // index for default input method service
-        SECURITY_IME = 1, // index for security input method service
-        MAX_IME = 2, // the maximum count of ims started for a user
-    };
+        enum : uint32_t {
+            DEFAULT_IME = 0, // index for default input method service
+            SECURITY_IME,    // index for security input method service
+            MAX_IME          // the maximum count of ims started for a user
+        };
 
     public:
         explicit PerUserSession(int userId);
@@ -124,10 +129,11 @@ namespace MiscServices {
         int displayId; // the id of the display screen on which the user is
         int currentIndex;
         std::map<sptr<IRemoteObject>, ClientInfo*> mapClients;
-        int MIN_IME = 2;
-        int IME_ERROR_CODE = 3;
-        int COMMON_COUNT_THREE_HUNDRED = 300;
-        int SLEEP_TIME = 300000;
+        static const int MIN_IME = 2;
+        static const int MAX_RESTART_NUM = 3;
+        static const int IME_RESET_TIME_OUT = 300;
+        static const int MAX_RESET_WAIT_TIME = 1600000;
+        static const int SLEEP_TIME = 300000;
 
         InputMethodProperty *currentIme[MAX_IME]; // 0 - the default ime. 1 - security ime
 
@@ -151,12 +157,13 @@ namespace MiscServices {
         std::thread workThreadHandler; // work thread handler
         std::mutex mtx; // mutex to lock the operations among multi work threads
         sptr<AAFwk::AbilityConnectionProxy> connCallback;
+        std::mutex resetLock;
+        ResetManager manager[MAX_IME];
 
         PerUserSession(const PerUserSession&);
         PerUserSession& operator =(const PerUserSession&);
         PerUserSession(const PerUserSession&&);
         PerUserSession& operator =(const PerUserSession&&);
-        int IncreaseOrResetImeError(bool resetFlag, int imeIndex);
         KeyboardType *GetKeyboardType(int imeIndex, int typeIndex);
         void ResetCurrentKeyboardType(int imeIndex);
         int OnCurrentKeyboardTypeChanged(int index, const std::u16string& value);
@@ -190,6 +197,9 @@ namespace MiscServices {
         void SendAgentToSingleClient(const sptr<IInputClient>& inputClient);
         void InitInputControlChannel();
         void SendAgentToAllClients();
+        void ResetImeError(uint32_t index);
+        bool IsRestartIme(uint32_t index);
+        void ClearImeData(uint32_t index);
     };
 } // namespace MiscServices
 } // namespace OHOS

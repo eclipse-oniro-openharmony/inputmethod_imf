@@ -33,6 +33,7 @@
 #include "ipc_skeleton.h"
 #include "input_method_core_proxy.h"
 #include "input_method_agent_proxy.h"
+#include "para_handle.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -250,7 +251,7 @@ namespace MiscServices {
             if (imsCore[i]) {
                 StopInputMethod(i);
             }
-            IncreaseOrResetImeError(true, i);
+            ResetImeError(i);
             currentIme[i] = ime[i];
             if (!currentIme[i]) {
                 if (needReshowClient && GetImeIndex(needReshowClient) == i) {
@@ -629,49 +630,42 @@ namespace MiscServices {
     It's called when an input method service died
     \param who the remote object handler of input method service who died.
     */
-    void PerUserSession::OnImsDied(const wptr<IRemoteObject>& who)
+    void PerUserSession::OnImsDied(const wptr<IRemoteObject> &who)
     {
-        (void)who; // temporary void it, as we will add support for security IME.
+        (void)who;
         IMSA_HILOGI("Start...[%{public}d]\n", userId_);
         int index = 0;
         for (int i = 0; i < MAX_IME; i++) {
-            if (!imsCore[i]) {
+            if (imsCore[i] == nullptr) {
                 continue;
             }
-            sptr<IRemoteObject> b = imsCore[i]->AsObject();
+            auto b = imsCore[i]->AsObject();
             if (b == who) {
                 index = i;
                 break;
             }
         }
-        if (currentClient && (GetImeIndex(currentClient) == index ||
-            currentIme[index] == currentIme[1 - index])) {
-            needReshowClient = currentClient;
-            HideKeyboard(currentClient);
+        ClearImeData(index);
+        if (!IsRestartIme(index)) {
+            IMSA_HILOGI("Restart ime over max num");
+            return;
         }
-        StopInputMethod(index);
-        if (currentIme[index] == currentIme[1 - index]) {
-            StopInputMethod(1 - index);
+        IMSA_HILOGI("IME died. Restart input method...[%{public}d]\n", userId_);
+        const auto &ime = ParaHandle::GetDefaultIme(userId_);
+        auto *parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
+            return;
         }
-
-        if (IncreaseOrResetImeError(false, index) == IME_ERROR_CODE) {
-            // call to disable the current input method.
-            MessageParcel *parcel = new MessageParcel();
-            parcel->WriteInt32(userId_);
-            parcel->WriteString16(currentIme[index]->mImeId);
-            Message *msg = new Message(MSG_ID_DISABLE_IMS, parcel);
-            MessageHandler::Instance()->SendMessage(msg);
-        } else {
-            // restart current input method.
-            IMSA_HILOGI("IME died. Restart input method ! [%{public}d]\n", userId_);
-            MessageParcel *parcel = new MessageParcel();
-            parcel->WriteInt32(userId_);
-            parcel->WriteInt32(index);
-            parcel->WriteString16(currentIme[index]->mImeId);
-            Message *msg = new Message(MSG_ID_RESTART_IMS, parcel);
-            usleep(1600*1000); // wait that PACKAGE_REMOVED message is received if this ime has been removed
-            MessageHandler::Instance()->SendMessage(msg);
+        parcel->WriteString(ime);
+        auto *msg = new (std::nothrow) Message(MSG_ID_START_INPUT_SERVICE, parcel);
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
+            delete parcel;
+            return;
         }
+        usleep(MAX_RESET_WAIT_TIME);
+        MessageHandler::Instance()->SendMessage(msg);
         IMSA_HILOGI("End...[%{public}d]\n", userId_);
     }
 
@@ -934,35 +928,6 @@ namespace MiscServices {
         inputMethodSetting = nullptr;
         currentClient = nullptr;
         needReshowClient = nullptr;
-    }
-
-    /*! Increase or reset ime error number
-    \param resetFlag the flag to increase or reset number.
-            \n resetFlag=true, reset error number to 0;
-            \n resetFlag=false, increase error number.
-    \param imeIndex index = 0 default ime; index=1 security ime
-    \return return the error count value. It is less or equal 3.
-    */
-    int PerUserSession::IncreaseOrResetImeError(bool resetFlag, int imeIndex)
-    {
-        static int errorNum[2] = {0, 0};
-        static time_t past[2] = {time(0), time(0)};
-        if (resetFlag) {
-            errorNum[imeIndex] = 0;
-            past[imeIndex] = 0;
-            return 0;
-        }
-
-        errorNum[imeIndex]++;
-        time_t now = time(0);
-        double diffSeconds = difftime(now, past[imeIndex]);
-
-        // time difference is more than 5 minutes, reset time and error num;
-        if (diffSeconds > COMMON_COUNT_THREE_HUNDRED) {
-            past[imeIndex] = now;
-            errorNum[imeIndex] = 1;
-        }
-        return errorNum[imeIndex];
     }
 
     /*! Get keyboard type
@@ -1270,18 +1235,33 @@ namespace MiscServices {
     void PerUserSession::SetCoreAndAgent(Message *msg)
     {
         IMSA_HILOGI("PerUserSession::SetCoreAndAgent Start...[%{public}d]\n", userId_);
-        MessageParcel *data = msg->msgContent_;
+        auto data = msg->msgContent_;
 
-        sptr<IRemoteObject> coreObject = data->ReadRemoteObject();
-        sptr<InputMethodCoreProxy> core = new InputMethodCoreProxy(coreObject);
-        if (imsCore[0]) {
+        auto coreObject = data->ReadRemoteObject();
+        if (coreObject == nullptr) {
+            IMSA_HILOGE("coreObject is nullptr");
+            return;
+        }
+        auto core = new (std::nothrow) InputMethodCoreProxy(coreObject);
+        if (core == nullptr) {
+            IMSA_HILOGE("core is nullptr");
+            return;
+        }
+        if (imsCore[0] != nullptr) {
             IMSA_HILOGI("PerUserSession::SetCoreAndAgent Input Method Service has already been started ! ");
         }
-        
+
         imsCore[0] = core;
 
-        sptr<IRemoteObject> agentObject = data->ReadRemoteObject();
-        sptr<InputMethodAgentProxy> proxy = new InputMethodAgentProxy(agentObject);
+        bool ret = coreObject->AddDeathRecipient(imsDeathRecipient);
+        IMSA_HILOGI("Add death recipient %{public}s", ret ? "success" : "failed");
+
+        auto agentObject = data->ReadRemoteObject();
+        auto proxy = new (std::nothrow) InputMethodAgentProxy(agentObject);
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
+            return;
+        }
         imsAgent = proxy;
 
         InitInputControlChannel();
@@ -1334,9 +1314,44 @@ namespace MiscServices {
     void PerUserSession::StopInputService(std::string imeId)
     {
         IMSA_HILOGI("PerUserSession::StopInputService");
-        if (imsCore[0]) {
-            imsCore[0]->StopInputService(imeId);
+        if (imsCore[0] == nullptr) {
+            IMSA_HILOGE("imsCore[0] is nullptr");
+            return;
         }
+        IMSA_HILOGI("Remove death recipient");
+        imsCore[0]->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
+        imsCore[0]->StopInputService(imeId);
+    }
+
+    bool PerUserSession::IsRestartIme(uint32_t index)
+    {
+        IMSA_HILOGI("PerUserSession::IsRestartIme");
+        std::lock_guard<std::mutex> lock(resetLock);
+        auto now = time(nullptr);
+        if (difftime(now, manager[index].last) > IME_RESET_TIME_OUT) {
+            manager[index] = { 0, now };
+        }
+        ++manager[index].num;
+        return manager[index].num <= MAX_RESTART_NUM;
+    }
+
+    void PerUserSession::ResetImeError(uint32_t index)
+    {
+        IMSA_HILOGI("PerUserSession::ResetImeError index = %{public}d", index);
+        std::lock_guard<std::mutex> lock(resetLock);
+        manager[index] = { 0, 0 };
+    }
+
+    void PerUserSession::ClearImeData(uint32_t index)
+    {
+        IMSA_HILOGI("Clear ime...index = %{public}d", index);
+        if (imsCore[index] != nullptr) {
+            imsCore[index]->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
+            imsCore[index] = nullptr;
+        }
+        inputControlChannel[index] = nullptr;
+        localControlChannel[index] = nullptr;
+        inputMethodToken[index] = nullptr;
     }
 } // namespace MiscServices
 } // namespace OHOS
