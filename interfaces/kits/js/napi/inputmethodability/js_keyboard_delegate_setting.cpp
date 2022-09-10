@@ -80,7 +80,7 @@ napi_value JsKeyboardDelegateSetting::GetJsConstProperty(napi_env env, uint32_t 
     return jsNumber;
 };
 
-std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::GetKeyboardDelegateListener()
+std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::GetKeyboardDelegateSetting()
 {
     if (keyboardDelegate_ == nullptr) {
         std::lock_guard<std::mutex> lock(keyboardMutex_);
@@ -102,7 +102,7 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
     IMSA_HILOGI("run in JsConstructor");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
-    auto delegate = GetKeyboardDelegateListener();
+    auto delegate = GetKeyboardDelegateSetting();
     if (delegate == nullptr) {
         IMSA_HILOGE("get delegate nullptr");
         napi_value result = nullptr;

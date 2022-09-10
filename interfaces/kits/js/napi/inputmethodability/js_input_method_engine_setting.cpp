@@ -93,17 +93,17 @@ napi_value JsInputMethodEngineSetting::GetJsConstProperty(napi_env env, uint32_t
     return jsNumber;
 }
 
-std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInputMethodEngineListener()
+std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInputMethodEngineSetting()
 {
     if (inputMethodEngine_ == nullptr) {
         std::lock_guard<std::mutex> lock(engineMutex_);
         if (inputMethodEngine_ == nullptr) {
-            auto delegate = std::make_shared<JsInputMethodEngineSetting>();
-            if (delegate == nullptr) {
-                IMSA_HILOGE("keyboard delegate nullptr");
+            auto engine = std::make_shared<JsInputMethodEngineSetting>();
+            if (engine == nullptr) {
+                IMSA_HILOGE("input method engine nullptr");
                 return nullptr;
             }
-            inputMethodEngine_ = delegate;
+            inputMethodEngine_ = engine;
             InputMethodAbility::GetInstance()->setImeListener(inputMethodEngine_);
         }
     }
@@ -115,7 +115,7 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
     IMSA_HILOGI("run in JsConstructor");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
-    auto delegate = GetInputMethodEngineListener();
+    auto delegate = GetInputMethodEngineSetting();
     if (delegate == nullptr) {
         IMSA_HILOGE("get delegate nullptr");
         napi_value result = nullptr;
