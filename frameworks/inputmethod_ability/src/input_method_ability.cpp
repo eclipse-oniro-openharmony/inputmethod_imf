@@ -119,7 +119,7 @@ namespace MiscServices {
     void InputMethodAbility::setImeListener(std::shared_ptr<InputMethodEngineListener> imeListener)
     {
         IMSA_HILOGI("InputMethodAbility::setImeListener");
-        if (!imeListener_) {
+        if (imeListener_ == nullptr) {
             imeListener_ = imeListener;
         }
     }
@@ -127,7 +127,7 @@ namespace MiscServices {
     void InputMethodAbility::setKdListener(std::shared_ptr<KeyboardListener> kdListener)
     {
         IMSA_HILOGI("InputMethodAbility::setKdListener");
-        if (!kdListener_) {
+        if (kdListener_ == nullptr) {
             kdListener_ = kdListener;
         }
     }

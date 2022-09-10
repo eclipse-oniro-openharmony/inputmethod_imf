@@ -29,6 +29,10 @@ constexpr size_t ARGC_THREE = 3;
 constexpr size_t ARGC_FOUR = 4;
 const std::string JsKeyboardDelegateSetting::KDS_CLASS_NAME = "KeyboardDelegate";
 thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
+
+std::mutex JsKeyboardDelegateSetting::keyboardMutex_;
+std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::keyboardDelegate_ { nullptr };
+
 napi_value JsKeyboardDelegateSetting::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptor[] = {
@@ -76,23 +80,41 @@ napi_value JsKeyboardDelegateSetting::GetJsConstProperty(napi_env env, uint32_t 
     return jsNumber;
 };
 
+std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::GetKeyboardDelegateListener()
+{
+    if (keyboardDelegate_ == nullptr) {
+        std::lock_guard<std::mutex> lock(keyboardMutex_);
+        if (keyboardDelegate_ == nullptr) {
+            auto delegate = std::make_shared<JsKeyboardDelegateSetting>();
+            if (delegate == nullptr) {
+                IMSA_HILOGE("keyboard delegate nullptr");
+                return nullptr;
+            }
+            keyboardDelegate_ = delegate;
+            InputMethodAbility::GetInstance()->setKdListener(keyboardDelegate_);
+        }
+    }
+    return keyboardDelegate_;
+}
+
 napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_info info)
 {
+    IMSA_HILOGI("run in JsConstructor");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
-
-    std::shared_ptr<JsKeyboardDelegateSetting> obj = std::make_shared<JsKeyboardDelegateSetting>();
-    InputMethodAbility::GetInstance()->setKdListener(obj);
-    if (obj == nullptr) {
-        IMSA_HILOGE("KDSobject == nullptr");
+    auto delegate = GetKeyboardDelegateListener();
+    if (delegate == nullptr) {
+        IMSA_HILOGE("get delegate nullptr");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(env, thisVar, obj.get(), [](napi_env env, void *data, void *hint) {
+    napi_wrap(env, thisVar, delegate.get(), [](napi_env env, void *nativeObject, void *hint) {
         IMSA_HILOGE("delete JsKeyboardDelegateSetting");
     }, nullptr, nullptr);
-    napi_get_uv_event_loop(env, &obj->loop_);
+    if (delegate->loop_ == nullptr) {
+        napi_get_uv_event_loop(env, &delegate->loop_);
+    }
     return thisVar;
 };
 

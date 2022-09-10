@@ -86,6 +86,7 @@ public:
 private:
     static napi_value GetResultOnKeyEvent(napi_env env, int32_t keyCode, int32_t keyStatus);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
+    static std::shared_ptr<JsKeyboardDelegateSetting> GetKeyboardDelegateListener();
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsKeyboardDelegateSetting *GetNative(napi_env env, napi_callback_info info);
     static bool Equals(napi_env env, napi_value value, napi_ref copy);
@@ -132,6 +133,8 @@ private:
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
+    static std::mutex keyboardMutex_;
+    static std::shared_ptr<JsKeyboardDelegateSetting> keyboardDelegate_;
 };
 } // namespace MiscServices
 } // namespace OHOS
