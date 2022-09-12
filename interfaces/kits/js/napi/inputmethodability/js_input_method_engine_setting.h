@@ -19,6 +19,7 @@
 #include <map>
 #include <uv.h>
 #include <mutex>
+#include <memory>
 #include "napi/native_api.h"
 #include "global.h"
 #include "async_call.h"
@@ -43,6 +44,7 @@ public:
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsInputMethodEngineSetting *GetNative(napi_env env, napi_callback_info info);
+    static std::shared_ptr<JsInputMethodEngineSetting> GetInputMethodEngineSetting();
     static bool Equals(napi_env env, napi_value value, napi_ref copy);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     void RegisterListener(napi_value callback, std::string type,
@@ -66,6 +68,8 @@ private:
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
+    static std::mutex engineMutex_;
+    static std::shared_ptr<JsInputMethodEngineSetting> inputMethodEngine_;
 };
 }
 }
