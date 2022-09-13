@@ -87,8 +87,8 @@ namespace MiscServices {
     };
 
     struct ResetManager {
-        uint32_t num;
-        time_t last;
+        uint32_t num {0};
+        time_t last {};
     };
 
     /*! \class PerUserSession
