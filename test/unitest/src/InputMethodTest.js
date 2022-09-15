@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import app from '@system.app'
 import inputMethod from '@ohos.inputmethod'
 import inputMethodEngine from '@ohos.inputmethodengine'
 import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from 'deccjsunit/index'
@@ -56,7 +57,7 @@ describe("InputMethodTest", function () {
     
     /*
      * @tc.number  inputmethod_test_getInputMethodController_001
-     * @tc.name    Test Indicates the input method which will show softboard with calback.
+     * @tc.name    Test to get an InputMethodController instance.
      * @tc.desc    Function test
      * @tc.level   2
      */
@@ -70,7 +71,7 @@ describe("InputMethodTest", function () {
 
     /*
      * @tc.number  inputmethod_test_getInputMethodSetting_001
-     * @tc.name    Test Indicates the input method which will show softboard with calback.
+     * @tc.name    Test to get an InputMethodSetting instance.
      * @tc.desc    Function test
      * @tc.level   2
      */
