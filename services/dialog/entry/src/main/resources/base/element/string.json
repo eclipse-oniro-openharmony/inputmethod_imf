@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "entry_desc",
+      "value": "description"
+    },
+    {
+      "name": "ServiceExtAbility_desc",
+      "value": "InputMethodSelect Dialog"
+    },
+    {
+      "name": "ServiceExtAbility_label",
+      "value": "Dialog"
+    }
+  ]
+}

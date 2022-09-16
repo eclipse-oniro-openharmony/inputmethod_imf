@@ -107,6 +107,8 @@ namespace MiscServices {
         static sptr<InputMethodSystemAbility> instance_;
         static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
         int32_t userId_;
+        static constexpr const char *SELECT_DIALOG_HAP = "com.example.inputmethodselect";
+        static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
     };
 } // namespace MiscServices
 } // namespace OHOS

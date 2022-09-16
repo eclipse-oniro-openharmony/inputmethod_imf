@@ -12,23 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import hilog from '@ohos.hilog';
+import AbilityStage from "@ohos.application.AbilityStage"
 
-import router from '@ohos.router'
-
-export default {
-    data: {
-        imeList: router.getParams().imeList,
-    },
-    onInit() {
-        this.dialogTitle = this.$t('strings.dialogTitle');
-        this.setIme = this.$t('strings.setIme');
-    },
-    changeDefaultIme(ime) {
-        console.info('ImsaKit-dialog changeDefaultIme: ' + ime);
-        callNativeHandler("EVENT_CHANGE_IME", ime);
-    },
-    startImeSetting() {
-        console.info('ImsaKit-dialog startImeSetting');
-        callNativeHandler("EVENT_START_IME_SETTING", "");
-    },
+export default class MyAbilityStage extends AbilityStage {
+    onCreate() {
+        hilog.isLoggable(0x0000, '[InputMethodSelect]', hilog.LogLevel.INFO);
+        hilog.info(0x0000, '[InputMethodSelect]', '%{public}s', 'AbilityStage onCreate');
+    }
 }

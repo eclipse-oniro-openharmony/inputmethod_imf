@@ -73,8 +73,6 @@ ohos_shared_library("inputmethod_service") {
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
   ]
 
-  deps +=
-      [ "//base/inputmethod/imf/services/dialog/js:dialog_ime_js_files_etc" ]
   external_deps = [
     "ability_base:want",
     "bundle_framework:appexecfwk_base",

@@ -1067,41 +1067,20 @@ namespace MiscServices {
     void InputMethodSystemAbility::OnDisplayOptionalInputMethod(int32_t userId)
     {
         IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod");
-        const auto &properties = ListInputMethodByUserId(userId, ALL);
-        if (properties.empty()) {
-            IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod has no ime");
+        auto abilityManager = GetAbilityManagerService();
+        if (abilityManager == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::get ability manager failed");
             return;
         }
-        const auto &params = GetInputMethodParam(properties);
-        IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod param : %{public}s", params.c_str());
-        const int TITLE_HEIGHT = 62;
-        const int SINGLE_IME_HEIGHT = 66;
-        const int POSTION_X = 0;
-        const int POSTION_Y = 200;
-        const int WIDTH = 336;
-        const int HEIGHT = POSTION_Y + TITLE_HEIGHT + SINGLE_IME_HEIGHT * properties.size();
-        Ace::UIServiceMgrClient::GetInstance()->ShowDialog(
-            "input_method_choose_dialog",
-            params,
-            OHOS::Rosen::WindowType::WINDOW_TYPE_SYSTEM_ALARM_WINDOW,
-            POSTION_X,
-            POSTION_Y,
-            WIDTH,
-            HEIGHT,
-            [this](int32_t id, const std::string& event, const std::string& params) {
-                IMSA_HILOGI("Dialog callback: %{public}s, %{public}s", event.c_str(), params.c_str());
-                if (event == "EVENT_CHANGE_IME") {
-                    std::string defaultIme = ParaHandle::GetDefaultIme(userId_);
-                    if (defaultIme != params) {
-                        StopInputService(defaultIme);
-                        StartInputService(params);
-                        ParaHandle::SetDefaultIme(userId_, params);
-                    }
-                    Ace::UIServiceMgrClient::GetInstance()->CancelDialog(id);
-                } else if (event == "EVENT_START_IME_SETTING") {
-                    Ace::UIServiceMgrClient::GetInstance()->CancelDialog(id);
-                }
-        });
+        AAFwk::Want want;
+        want.SetAction("action.system.inputmethodselect");
+        want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
+        int32_t result = abilityManager->StartAbility(want);
+        if (result) {
+            IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", result);
+            return;
+        }
+        IMSA_HILOGI("InputMethodSystemAbility::Start InputMethod ability success.");
     }
 
     /*! Disable input method service. Called from PerUserSession module
