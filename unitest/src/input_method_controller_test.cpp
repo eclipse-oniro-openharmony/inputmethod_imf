@@ -223,6 +223,9 @@ namespace MiscServices {
 
         keyEvent->SetKeyAction(2);
         keyEvent->SetKeyCode(2013);
+        
+        sptr<OnTextChangedListener> textListener = new TextListener();
+        imc->Attach(textListener);
 
         bool ret = imc->dispatchKeyEvent(keyEvent);
         EXPECT_TRUE(ret);
