@@ -48,9 +48,10 @@ describe("InputMethodTest", function () {
      */
     it('inputmethod_test_MAX_TYPE_NUM_001', 0, async function (done) {
       console.info("************* inputmethod_test_MAX_TYPE_NUM_001 Test start*************");
+      let MAX_NUM = 128;
       let inputMethodSetting = inputMethod.MAX_TYPE_NUM;
       console.info("inputmethod_test_001 result:" + inputMethodSetting);
-      expect(inputMethodSetting == 128).assertTrue();
+      expect(inputMethodSetting == MAX_NUM).assertTrue();
       console.info("************* inputmethod_test_MAX_TYPE_NUM_001 Test end*************");
       done();
     });
@@ -162,7 +163,7 @@ describe("InputMethodTest", function () {
           expect().assertFail();
         }
           console.info("listInputMethod_001 listInputMethod result" + JSON.stringify(data));
-          expect(err==undefined).assertTrue();
+          expect(err == undefined).assertTrue();
       });
       console.info("************* inputmethod_test_listInputMethod_001 Test end*************");
        done();
@@ -226,7 +227,7 @@ describe("InputMethodTest", function () {
           expect().assertFail();
         }
           console.info("inputmethoh_test_004 listInputMethod result" + JSON.stringify(data));
-          expect(err==undefined).assertTrue();
+          expect(err == undefined).assertTrue();
       });
       console.info("************* inputmethod_test_listInputMethod_004 Test end*************");
        done();
@@ -244,7 +245,7 @@ describe("InputMethodTest", function () {
       console.info("inputmethod_test_displayOptionalInputMethod_001 result:" + JSON.stringify(inputMethodSetting));
       inputMethodSetting.displayOptionalInputMethod((err) => {
         console.info("inputmethod_test_displayOptionalInputMethod_001 err:" + JSON.stringify(err.msg));
-        expect(err==undefined).assertTrue();
+        expect(err == undefined).assertTrue();
       });
       console.info("************* inputmethod_test_displayOptionalInputMethod_001 Test end*************");
      done();
@@ -841,22 +842,25 @@ describe("InputMethodTest", function () {
       if (kbController == null) {
         expect(kbController == null).assertEqual(true);
       } else {
-        kbController.hideKeyboard(() => {
-          console.info("inputMethodEngine_test_039 hideKeyboard:" + value);
-          expect(1 == 1).assertTrue();
+        kbController.hideKeyboard((err) => {
+          if (err == undefined) {
+            console.info("inputMethodEngine_test_039 hideKeyboard success.");
+          } else {
+            console.info('inputMethodEngine_test_039 hideKeyboard callbace failed : ' + JSON.stringify(err.msg));
+            expect().assertFail();
+          }
         });
       }
       done();
     });
-  
+
     it('inputMethodEngine_test_040', 0, async function (done) {
       if (kbController == null) {
         expect(kbController == null).assertEqual(true);
       } else {
         let promise = kbController.hideKeyboard();
         promise.then(res => {
-          console.info("inputMethodEngine_test_040 hideKeyboard promise result-----" + JSON.stringify(res));
-          expect(1 == 1).assertTrue();
+          console.info("inputMethodEngine_test_040 hideKeyboard promise success.");
         }).catch(err => {
           console.info("inputMethodEngine_test_040 hideKeyboard promise error----" + JSON.stringify(err));
           expect().assertFail();
