@@ -59,16 +59,18 @@ namespace MiscServices {
     */
     class ClientInfo {
     public:
-        int pid; // the process id of the process in which the input client is running
-        int uid; // the uid of the process in which the input client is running
-        int userId; // the user if of the user under which the input client is running
-        int displayId; // the display id on which the input client is showing
-        sptr<IInputClient> client; // the remote object handler for the service to callback to the input client
+        int pid;                         // the process id of the process in which the input client is running
+        int uid;                         // the uid of the process in which the input client is running
+        int userId;                      // the user if of the user under which the input client is running
+        int displayId;                   // the display id on which the input client is showing
+        sptr<IInputClient> client;       // the remote object handler for the service to callback to the input client
         sptr<IInputDataChannel> channel; // the remote object handler for IMSA callback to input client
+        sptr<RemoteObjectDeathRecipient> deathRecipient;
         InputAttribute attribute; // the input attribute of the input client
 
-        ClientInfo(int pid, int uid, int userId, int displayId, const sptr<IInputClient>& client,
-                   const sptr<IInputDataChannel>& channel, const InputAttribute& attribute)
+        ClientInfo(int pid, int uid, int userId, int displayId, const sptr<IInputClient> &client,
+            const sptr<IInputDataChannel> &channel, const sptr<RemoteObjectDeathRecipient> &deathRecipient,
+            const InputAttribute &attribute)
         {
             this->pid = pid;
             this->uid = uid;
@@ -76,6 +78,7 @@ namespace MiscServices {
             this->displayId = displayId;
             this->client = client;
             this->channel = channel;
+            this->deathRecipient = deathRecipient;
             this->attribute = attribute;
         };
 
@@ -151,7 +154,6 @@ namespace MiscServices {
         sptr<IInputClient> currentClient; // the current input client
         sptr<IInputClient> needReshowClient; // the input client for which keyboard need to re-show
 
-        sptr<RemoteObjectDeathRecipient> clientDeathRecipient; // remote object death monitor for input client
         sptr<RemoteObjectDeathRecipient> imsDeathRecipient;
         MessageHandler *msgHandler = nullptr; // message handler working with Work Thread
         std::thread workThreadHandler; // work thread handler
@@ -175,8 +177,8 @@ namespace MiscServices {
         void OnStartInput(Message *msg);
         void OnStopInput(Message *msg);
         void SetCoreAndAgent(Message *msg);
-        void OnClientDied(const wptr<IRemoteObject>& who);
-        void OnImsDied(const wptr<IRemoteObject>& who);
+        void OnClientDied(IRemoteObject *who);
+        void OnImsDied(IRemoteObject *who);
         void OnHideKeyboardSelf(int flags);
         void OnShowKeyboardSelf();
         void OnAdvanceToNext();
@@ -186,7 +188,7 @@ namespace MiscServices {
         int AddClient(int pid, int uid, int displayId, const sptr<IInputClient>& inputClient,
                   const sptr<IInputDataChannel>& channel,
                   const InputAttribute& attribute);
-        int RemoveClient(const sptr<IInputClient>& inputClient, int retClientNum);
+        int RemoveClient(const sptr<IRemoteObject>& inputClient, int retClientNum);
         int StartInputMethod(int index);
         int StopInputMethod(int index);
         int ShowKeyboard(const sptr<IInputClient>& inputClient, bool isShowKeyboard);

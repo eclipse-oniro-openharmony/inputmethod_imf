@@ -57,11 +57,12 @@ namespace MiscServices {
     \n It's called when the linked remote object died.
     \param who the IRemoteObject handler of the remote object died.
     */
-    void RemoteObjectDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& who)
+    void RemoteObjectDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &who)
     {
         MessageParcel *parcel = new MessageParcel();
+        IMSA_HILOGI("RemoteObjectDeathRecipient::OnRemoteDied %{public}p", who.GetRefPtr());
         parcel->WriteInt32(userId_);
-        parcel->WriteRemoteObject(who.promote());
+        parcel->WritePointer(reinterpret_cast<uintptr_t>(who.GetRefPtr()));
         Message *msg = new Message(msgId_, parcel);
         MessageHandler::Instance()->SendMessage(msg);
     }
@@ -78,7 +79,6 @@ namespace MiscServices {
 
         needReshowClient = nullptr;
 
-        clientDeathRecipient = new RemoteObjectDeathRecipient(userId, MSG_ID_CLIENT_DIED);
         imsDeathRecipient = new RemoteObjectDeathRecipient(userId, MSG_ID_IMS_DIED);
     }
 
@@ -89,7 +89,6 @@ namespace MiscServices {
         if (userState == UserState::USER_STATE_UNLOCKED) {
             OnUserLocked();
         }
-        clientDeathRecipient = nullptr;
         imsDeathRecipient = nullptr;
         if (workThreadHandler.joinable()) {
             workThreadHandler.join();
@@ -154,12 +153,12 @@ namespace MiscServices {
                     break;
                 }
                 case MSG_ID_CLIENT_DIED: {
-                    wptr<IRemoteObject> who = msg->msgContent_->ReadRemoteObject();
+                    auto *who = reinterpret_cast<IRemoteObject *>(msg->msgContent_->ReadPointer());
                     OnClientDied(who);
                     break;
                 }
                 case MSG_ID_IMS_DIED: {
-                    wptr<IRemoteObject> who = msg->msgContent_->ReadRemoteObject();
+                    auto *who = reinterpret_cast<IRemoteObject *>(msg->msgContent_->ReadPointer());
                     OnImsDied(who);
                     break;
                 }
@@ -327,28 +326,29 @@ namespace MiscServices {
     \return \li ErrorCode::NO_ERROR no error
     \return \li ErrorCode::ERROR_CLIENT_DUPLICATED client is duplicated
     */
-    int PerUserSession::AddClient(int pid, int uid, int displayId, const sptr<IInputClient>& inputClient,
-                                  const sptr<IInputDataChannel>& channel,
-                                  const InputAttribute& attribute)
+    int PerUserSession::AddClient(int pid, int uid, int displayId, const sptr<IInputClient> &inputClient,
+        const sptr<IInputDataChannel> &channel, const InputAttribute &attribute)
     {
         IMSA_HILOGI("PerUserSession::AddClient");
         ClientInfo *clientInfo = GetClientInfo(inputClient);
-        if (clientInfo) {
+        if (clientInfo != nullptr) {
             IMSA_HILOGE("PerUserSession::AddClient clientInfo is exist, not need add.");
             return ErrorCode::NO_ERROR;
         }
 
         sptr<IRemoteObject> obj = inputClient->AsObject();
-        if (!obj) {
-             IMSA_HILOGE("PerUserSession::AddClient inputClient AsObject is nullptr");
-             return ErrorCode::ERROR_REMOTE_CLIENT_DIED;
+        if (obj == nullptr) {
+            IMSA_HILOGE("PerUserSession::AddClient inputClient AsObject is nullptr");
+            return ErrorCode::ERROR_REMOTE_CLIENT_DIED;
         }
-        clientInfo = new ClientInfo(pid, uid, userId_, displayId, inputClient, channel, attribute);
-        mapClients.insert(std::pair<sptr<IRemoteObject>, ClientInfo*>(obj, clientInfo));
+        sptr<RemoteObjectDeathRecipient> clientDeathRecipient =
+            new RemoteObjectDeathRecipient(Utils::GetUserId(uid), MSG_ID_CLIENT_DIED);
         int ret = obj->AddDeathRecipient(clientDeathRecipient);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("PerUserSession::AddClient AddDeathRecipient return : %{public}s", ErrorCode::ToString(ret));
-        }
+        IMSA_HILOGI("Add death recipient %{public}s", ret ? "success" : "failed");
+
+        clientInfo =
+            new ClientInfo(pid, uid, userId_, displayId, inputClient, channel, clientDeathRecipient, attribute);
+        mapClients.insert(std::pair<sptr<IRemoteObject>, ClientInfo *>(obj, clientInfo));
         return ErrorCode::NO_ERROR;
     }
 
@@ -360,25 +360,17 @@ namespace MiscServices {
     \return ErrorCode::NO_ERROR no error
     \return ErrorCode::ERROR_CLIENT_NOT_FOUND client is not found
     */
-    int PerUserSession::RemoveClient(const sptr<IInputClient>& inputClient, int remainClientNum)
+    int PerUserSession::RemoveClient(const sptr<IRemoteObject> &inputClient, int remainClientNum)
     {
         IMSA_HILOGE("PerUserSession::RemoveClient");
-        sptr<IRemoteObject> b = inputClient->AsObject();
-        std::map<sptr<IRemoteObject>, ClientInfo*>::iterator it = mapClients.find(b);
+        auto it = mapClients.find(inputClient);
         if (it == mapClients.end()) {
             IMSA_HILOGE("PerUserSession::RemoveClient ErrorCode::ERROR_CLIENT_NOT_FOUND");
             return ErrorCode::ERROR_CLIENT_NOT_FOUND;
         }
         ClientInfo *clientInfo = it->second;
         bool flag = clientInfo->attribute.GetSecurityFlag();
-        int ret = b->RemoveDeathRecipient(clientDeathRecipient);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("PerUserSession::RemoveClient RemoveDeathRecipient fail %{public}s", ErrorCode::ToString(ret));
-        }
-        ret = clientInfo->client->onInputReleased(0);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("PerUserSession::RemoveClient onInputReleased fail %{public}s", ErrorCode::ToString(ret));
-        }
+        inputClient->RemoveDeathRecipient(clientInfo->deathRecipient);
         delete clientInfo;
         clientInfo = nullptr;
         mapClients.erase(it);
@@ -601,36 +593,31 @@ namespace MiscServices {
     It's called when a remote input client died
     \param who the remote object handler of the input client died.
     */
-    void PerUserSession::OnClientDied(const wptr<IRemoteObject>& who)
+    void PerUserSession::OnClientDied(IRemoteObject *who)
     {
         IMSA_HILOGI("PerUserSession::OnClientDied Start...[%{public}d]\n", userId_);
-        bool flag = false;
-        std::map<sptr<IRemoteObject>, ClientInfo*>::iterator it;
-
-        for (it = mapClients.begin(); it != mapClients.end(); ++it) {
-            if (it->first == who) {
-                flag = true;
-                break;
-            }
-        }
-        if (!flag) {
-            IMSA_HILOGW("Aborted! The client died is not found! [%{public}d]\n", userId_);
+        auto it = mapClients.find(who);
+        if (it == mapClients.end()) {
+            IMSA_HILOGE("PerUserSession::RemoveClient client not found");
             return;
         }
-
-        sptr<IInputClient> client = it->second->client;
-        int remainClientNum = 0;
-        if (currentClient) {
-            HideKeyboard(client);
+        if (currentClient->AsObject() == it->first) {
+            int ret = HideKeyboard(currentClient);
+            if (ret != ErrorCode::NO_ERROR) {
+                IMSA_HILOGE("hide keyboard failed: %{public}s", ErrorCode::ToString(ret));
+            }
         }
-        RemoveClient(client, remainClientNum);
+        int ret = RemoveClient(it->first, 0);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("remove client failed: %{public}s", ErrorCode::ToString(ret));
+        }
     }
 
     /*! Handle the situation a input method service died\n
     It's called when an input method service died
     \param who the remote object handler of input method service who died.
     */
-    void PerUserSession::OnImsDied(const wptr<IRemoteObject> &who)
+    void PerUserSession::OnImsDied(IRemoteObject *who)
     {
         (void)who;
         IMSA_HILOGI("Start...[%{public}d]\n", userId_);
@@ -640,7 +627,7 @@ namespace MiscServices {
                 continue;
             }
             auto b = imsCore[i]->AsObject();
-            if (b == who) {
+            if (b.GetRefPtr() == who) {
                 index = i;
                 break;
             }
