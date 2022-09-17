@@ -60,7 +60,6 @@ namespace MiscServices {
     void RemoteObjectDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &who)
     {
         MessageParcel *parcel = new MessageParcel();
-        IMSA_HILOGI("RemoteObjectDeathRecipient::OnRemoteDied %{public}p", who.GetRefPtr());
         parcel->WriteInt32(userId_);
         parcel->WritePointer(reinterpret_cast<uintptr_t>(who.GetRefPtr()));
         Message *msg = new Message(msgId_, parcel);
