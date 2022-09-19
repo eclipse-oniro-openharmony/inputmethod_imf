@@ -153,6 +153,10 @@ namespace MiscServices {
                 }
                 case MSG_ID_CLIENT_DIED: {
                     auto *who = reinterpret_cast<IRemoteObject *>(msg->msgContent_->ReadPointer());
+                    if (who == nullptr) {
+                        IMSA_HILOGE("who is nullptr");
+                        break;
+                    }
                     OnClientDied(who);
                     break;
                 }
@@ -341,13 +345,12 @@ namespace MiscServices {
             return ErrorCode::ERROR_REMOTE_CLIENT_DIED;
         }
         sptr<RemoteObjectDeathRecipient> clientDeathRecipient =
-            new RemoteObjectDeathRecipient(Utils::GetUserId(uid), MSG_ID_CLIENT_DIED);
+            new RemoteObjectDeathRecipient(Utils::ToUserId(uid), MSG_ID_CLIENT_DIED);
         int ret = obj->AddDeathRecipient(clientDeathRecipient);
         IMSA_HILOGI("Add death recipient %{public}s", ret ? "success" : "failed");
 
-        clientInfo =
-            new ClientInfo(pid, uid, userId_, displayId, inputClient, channel, clientDeathRecipient, attribute);
-        mapClients.insert(std::pair<sptr<IRemoteObject>, ClientInfo *>(obj, clientInfo));
+        clientInfo = new ClientInfo({pid, uid, userId_, displayId, inputClient, channel, clientDeathRecipient, attribute});
+        mapClients.insert({obj, clientInfo});
         return ErrorCode::NO_ERROR;
     }
 
@@ -359,7 +362,7 @@ namespace MiscServices {
     \return ErrorCode::NO_ERROR no error
     \return ErrorCode::ERROR_CLIENT_NOT_FOUND client is not found
     */
-    int PerUserSession::RemoveClient(const sptr<IRemoteObject> &inputClient, int remainClientNum)
+    int PerUserSession::RemoveClient(const sptr<IRemoteObject> &inputClient)
     {
         IMSA_HILOGE("PerUserSession::RemoveClient");
         auto it = mapClients.find(inputClient);
@@ -373,13 +376,6 @@ namespace MiscServices {
         delete clientInfo;
         clientInfo = nullptr;
         mapClients.erase(it);
-
-        remainClientNum = 0;
-        for (it = mapClients.begin(); it != mapClients.end(); ++it) {
-            if (it->second->attribute.GetSecurityFlag() == flag) {
-                remainClientNum++;
-            }
-        }
         return ErrorCode::NO_ERROR;
     }
 
@@ -600,13 +596,13 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::RemoveClient client not found");
             return;
         }
-        if (currentClient->AsObject() == it->first) {
+        if (it->first == currentClient->AsObject()) {
             int ret = HideKeyboard(currentClient);
             if (ret != ErrorCode::NO_ERROR) {
                 IMSA_HILOGE("hide keyboard failed: %{public}s", ErrorCode::ToString(ret));
             }
         }
-        int ret = RemoveClient(it->first, 0);
+        int ret = RemoveClient(it->first);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("remove client failed: %{public}s", ErrorCode::ToString(ret));
         }
@@ -1193,7 +1189,7 @@ namespace MiscServices {
             imsCore[0]->SetClientState(false);
         }
         HideKeyboard(client);
-        int ret = RemoveClient(clientObject, remainClientNum);
+        int ret = RemoveClient(clientObject);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("PerUserSession::OnReleaseInput Aborted! Failed to RemoveClient [%{public}d]\n", userId_);
         }

@@ -48,7 +48,7 @@ namespace MiscServices {
             }
             return props;
         }
-        static uint32_t GetUserId(uint32_t uid)
+        static uint32_t ToUserId(uint32_t uid)
         {
             return uid / USER_ID_CHANGE_VALUE;
         }

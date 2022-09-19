@@ -54,11 +54,7 @@ namespace MiscServices {
         int msgId_; // the message id can be  MessageID::MSG_ID_CLIENT_DIED and MessageID::MSG_ID_IMS_DIED
     };
 
-    /*! \class ClientInfo
-    \brief The class defines the details of an input client.
-    */
-    class ClientInfo {
-    public:
+    struct ClientInfo {
         int pid;                         // the process id of the process in which the input client is running
         int uid;                         // the uid of the process in which the input client is running
         int userId;                      // the user if of the user under which the input client is running
@@ -67,26 +63,6 @@ namespace MiscServices {
         sptr<IInputDataChannel> channel; // the remote object handler for IMSA callback to input client
         sptr<RemoteObjectDeathRecipient> deathRecipient;
         InputAttribute attribute; // the input attribute of the input client
-
-        ClientInfo(int pid, int uid, int userId, int displayId, const sptr<IInputClient> &client,
-            const sptr<IInputDataChannel> &channel, const sptr<RemoteObjectDeathRecipient> &deathRecipient,
-            const InputAttribute &attribute)
-        {
-            this->pid = pid;
-            this->uid = uid;
-            this->userId = userId;
-            this->displayId = displayId;
-            this->client = client;
-            this->channel = channel;
-            this->deathRecipient = deathRecipient;
-            this->attribute = attribute;
-        };
-
-        ~ClientInfo()
-        {
-            this->client = nullptr;
-            this->channel = nullptr;
-        };
     };
 
     struct ResetManager {
@@ -188,7 +164,7 @@ namespace MiscServices {
         int AddClient(int pid, int uid, int displayId, const sptr<IInputClient>& inputClient,
                   const sptr<IInputDataChannel>& channel,
                   const InputAttribute& attribute);
-        int RemoveClient(const sptr<IRemoteObject>& inputClient, int retClientNum);
+        int RemoveClient(const sptr<IRemoteObject>& inputClient);
         int StartInputMethod(int index);
         int StopInputMethod(int index);
         int ShowKeyboard(const sptr<IInputClient>& inputClient, bool isShowKeyboard);
