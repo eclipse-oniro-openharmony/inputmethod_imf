@@ -59,10 +59,18 @@ namespace MiscServices {
     */
     void RemoteObjectDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &who)
     {
-        MessageParcel *parcel = new MessageParcel();
+        auto parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
+            return;
+        }
         parcel->WriteInt32(userId_);
         parcel->WritePointer(reinterpret_cast<uintptr_t>(who.GetRefPtr()));
-        Message *msg = new Message(msgId_, parcel);
+        auto msg = new (std::nothrow) Message(msgId_, parcel);
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
+            return;
+        }
         MessageHandler::Instance()->SendMessage(msg);
     }
 
