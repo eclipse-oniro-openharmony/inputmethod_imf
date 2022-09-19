@@ -884,7 +884,7 @@ namespace MiscServices {
         }
         userState = UserState::USER_STATE_STARTED;
         // hide current keyboard
-        if (currentClient) {
+        if (currentClient != nullptr) {
             HideKeyboard(currentClient);
         }
         for (int i = 0; i < MIN_IME; i++) {
@@ -895,9 +895,9 @@ namespace MiscServices {
         std::map<sptr<IRemoteObject>, ClientInfo*>::iterator it;
         for (it = mapClients.begin(); it != mapClients.end();) {
             sptr<IRemoteObject> b = it->first;
-            b->RemoveDeathRecipient(clientDeathRecipient);
             ClientInfo *clientInfo = it->second;
-            if (clientInfo) {
+            b->RemoveDeathRecipient(clientInfo->deathRecipient);
+            if (clientInfo != nullptr) {
                 int ret = clientInfo->client->onInputReleased(0);
                 if (ret != ErrorCode::NO_ERROR) {
                     IMSA_HILOGE("2-onInputReleased return : %{public}s", ErrorCode::ToString(ret));
@@ -1189,11 +1189,11 @@ namespace MiscServices {
         sptr<InputClientProxy> client = new InputClientProxy(clientObject);
         sptr<IInputClient> interface = client;
         int remainClientNum = 0;
-        if (imsCore[0]) {
+        if (imsCore[0] != nullptr) {
             imsCore[0]->SetClientState(false);
         }
         HideKeyboard(client);
-        int ret = RemoveClient(client, remainClientNum);
+        int ret = RemoveClient(clientObject, remainClientNum);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("PerUserSession::OnReleaseInput Aborted! Failed to RemoveClient [%{public}d]\n", userId_);
         }
