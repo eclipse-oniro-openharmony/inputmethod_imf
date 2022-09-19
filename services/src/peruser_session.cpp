@@ -356,9 +356,6 @@ namespace MiscServices {
 
     /*! Remove an input client
     \param inputClient remote object handler of the input client
-    \param[out] remainClientNum remained count of the same kinds of clients for this user
-        \n (i.e. if inputClient is an normal client, remainClientNum is the count of remained normal clients.
-        \n if inputClient is a security client, remainClientNum is the count of remained security clients.)
     \return ErrorCode::NO_ERROR no error
     \return ErrorCode::ERROR_CLIENT_NOT_FOUND client is not found
     */
@@ -367,11 +364,10 @@ namespace MiscServices {
         IMSA_HILOGE("PerUserSession::RemoveClient");
         auto it = mapClients.find(inputClient);
         if (it == mapClients.end()) {
-            IMSA_HILOGE("PerUserSession::RemoveClient ErrorCode::ERROR_CLIENT_NOT_FOUND");
+            IMSA_HILOGE("PerUserSession::RemoveClient client not found");
             return ErrorCode::ERROR_CLIENT_NOT_FOUND;
         }
         ClientInfo *clientInfo = it->second;
-        bool flag = clientInfo->attribute.GetSecurityFlag();
         inputClient->RemoveDeathRecipient(clientInfo->deathRecipient);
         delete clientInfo;
         clientInfo = nullptr;
@@ -1184,7 +1180,6 @@ namespace MiscServices {
         sptr<IRemoteObject> clientObject = data->ReadRemoteObject();
         sptr<InputClientProxy> client = new InputClientProxy(clientObject);
         sptr<IInputClient> interface = client;
-        int remainClientNum = 0;
         if (imsCore[0] != nullptr) {
             imsCore[0]->SetClientState(false);
         }
