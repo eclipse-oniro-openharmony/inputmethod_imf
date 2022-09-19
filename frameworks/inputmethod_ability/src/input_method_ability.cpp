@@ -12,16 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "input_method_ability.h"
-#include "string_ex.h"
+
+#include <para_handle.h>
+#include <unistd.h>
+
 #include "input_method_agent_proxy.h"
 #include "input_method_agent_stub.h"
-#include "message_parcel.h"
-#include "system_ability_definition.h"
-#include "input_method_utils.h"
-#include "iservice_registry.h"
 #include "input_method_core_proxy.h"
 #include "input_method_core_stub.h"
+#include "input_method_utils.h"
+#include "iservice_registry.h"
+#include "message_parcel.h"
+#include "string_ex.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -65,15 +70,25 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodAbility::GetImsaProxy");
         sptr<ISystemAbilityManager> systemAbilityManager =
             SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (!systemAbilityManager) {
+        if (systemAbilityManager == nullptr) {
             IMSA_HILOGI("InputMethodAbility::GetImsaProxy systemAbilityManager is nullptr");
             return nullptr;
         }
 
         auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
-        if (!systemAbility) {
+        if (systemAbility == nullptr) {
             IMSA_HILOGI("InputMethodAbility::GetImsaProxy systemAbility is nullptr");
             return nullptr;
+        }
+        if (deathRecipientPtr_ == nullptr) {
+            deathRecipientPtr_ = new (std::nothrow) ServiceDeathRecipient();
+            if (deathRecipientPtr_ == nullptr) {
+                IMSA_HILOGE("new KvStoreDeathRecipient failed");
+                return nullptr;
+            }
+        }
+        if ((systemAbility->IsProxyObject()) && (!systemAbility->AddDeathRecipient(deathRecipientPtr_))) {
+            IMSA_HILOGE("failed to add death recipient.");
         }
 
         sptr<InputMethodSystemAbilityProxy> iface = new InputMethodSystemAbilityProxy(systemAbility);
@@ -121,6 +136,9 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodAbility::setImeListener");
         if (imeListener_ == nullptr) {
             imeListener_ = imeListener;
+        }
+        if (deathRecipientPtr_ != nullptr && deathRecipientPtr_->listener == nullptr) {
+            deathRecipientPtr_->listener = imeListener_;
         }
     }
 
@@ -516,6 +534,14 @@ namespace MiscServices {
     {
         std::lock_guard<std::mutex> lock(controlChannelLock_);
         return controlChannel_;
+    }
+
+    void InputMethodAbility::ServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
+    {
+        IMSA_HILOGI("lwh:ServiceDeathRecipient::OnRemoteDied");
+        if (listener != nullptr) {
+            listener->OnInputStop(ParaHandle::GetDefaultIme(Utils::ToUserId(IPCSkeleton::GetCallingUid())));
+        }
     }
 } // namespace MiscServices
 } // namespace OHOS
