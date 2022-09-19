@@ -354,6 +354,9 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::AddClient inputClient AsObject is nullptr");
             return ErrorCode::ERROR_REMOTE_CLIENT_DIED;
         }
+        int ret = obj->AddDeathRecipient(clientInfo.deathRecipient);
+        IMSA_HILOGI("Add death recipient %{public}s", ret ? "success" : "failed");
+
         info = new (std::nothrow) ClientInfo(clientInfo);
         if (info == nullptr) {
             IMSA_HILOGE("info is nullptr");
@@ -1149,10 +1152,8 @@ namespace MiscServices {
         if (clientDeathRecipient == nullptr) {
             IMSA_HILOGE("clientDeathRecipient is nullptr");
         }
-        int ret = clientObject->AddDeathRecipient(clientDeathRecipient);
-        IMSA_HILOGI("Add death recipient %{public}s", ret ? "success" : "failed");
 
-        ret = AddClient({ pid, uid, userId_, displayId, client, channel, clientDeathRecipient, *attribute });
+        int ret = AddClient({ pid, uid, userId_, displayId, client, channel, clientDeathRecipient, *attribute });
         delete attribute;
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("PerUserSession::OnPrepareInput Aborted! %{public}s", ErrorCode::ToString(ret));
