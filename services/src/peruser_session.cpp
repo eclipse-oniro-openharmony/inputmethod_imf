@@ -69,6 +69,7 @@ namespace MiscServices {
         auto msg = new (std::nothrow) Message(msgId_, parcel);
         if (msg == nullptr) {
             IMSA_HILOGE("msg is nullptr");
+            delete parcel;
             return;
         }
         MessageHandler::Instance()->SendMessage(msg);
@@ -274,9 +275,8 @@ namespace MiscServices {
                 continue;
             }
 
-            std::map<IRemoteObject *, ClientInfo *>::const_iterator it;
             bool flag = false;
-            for (it = mapClients.cbegin(); it != mapClients.cend(); ++it) {
+            for (auto it = mapClients.cbegin(); it != mapClients.cend(); ++it) {
                 if ((i == DEFAULT_IME && !it->second->attribute.GetSecurityFlag()) ||
                         (i == SECURITY_IME && it->second->attribute.GetSecurityFlag())) {
                     flag = true;
@@ -341,36 +341,25 @@ namespace MiscServices {
     \return \li ErrorCode::NO_ERROR no error
     \return \li ErrorCode::ERROR_CLIENT_DUPLICATED client is duplicated
     */
-    int PerUserSession::AddClient(int pid, int uid, int displayId, const sptr<IInputClient> &inputClient,
-        const sptr<IInputDataChannel> &channel, const InputAttribute &attribute)
+    int PerUserSession::AddClient(const ClientInfo &clientInfo)
     {
         IMSA_HILOGI("PerUserSession::AddClient");
-        ClientInfo *clientInfo = GetClientInfo(inputClient);
-        if (clientInfo != nullptr) {
-            IMSA_HILOGE("PerUserSession::AddClient clientInfo is exist, not need add.");
+        ClientInfo *info = GetClientInfo(clientInfo.client);
+        if (info != nullptr) {
+            IMSA_HILOGE("PerUserSession::AddClient info is exist, not need add.");
             return ErrorCode::NO_ERROR;
         }
-
-        sptr<IRemoteObject> obj = inputClient->AsObject();
+        sptr<IRemoteObject> obj = clientInfo.client->AsObject();
         if (obj == nullptr) {
             IMSA_HILOGE("PerUserSession::AddClient inputClient AsObject is nullptr");
             return ErrorCode::ERROR_REMOTE_CLIENT_DIED;
         }
-        sptr<RemoteObjectDeathRecipient> clientDeathRecipient = new (std::nothrow)
-            RemoteObjectDeathRecipient(Utils::ToUserId(uid), MSG_ID_CLIENT_DIED);
-        if (clientDeathRecipient == nullptr) {
-            IMSA_HILOGE("clientDeathRecipient is nullptr");
-        }
-        int ret = obj->AddDeathRecipient(clientDeathRecipient);
-        IMSA_HILOGI("Add death recipient %{public}s", ret ? "success" : "failed");
-
-        clientInfo = new (std::nothrow)
-            ClientInfo({ pid, uid, userId_, displayId, inputClient, channel, clientDeathRecipient, attribute });
-        if (clientInfo == nullptr) {
-            IMSA_HILOGE("clientInfo is nullptr");
+        info = new (std::nothrow) ClientInfo(clientInfo);
+        if (info == nullptr) {
+            IMSA_HILOGE("info is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        mapClients.insert({ obj, clientInfo });
+        mapClients.insert({ obj, info });
         return ErrorCode::NO_ERROR;
     }
 
@@ -379,20 +368,19 @@ namespace MiscServices {
     \return ErrorCode::NO_ERROR no error
     \return ErrorCode::ERROR_CLIENT_NOT_FOUND client is not found
     */
-    int PerUserSession::RemoveClient(IRemoteObject *inputClient)
+    void PerUserSession::RemoveClient(IRemoteObject *inputClient)
     {
         IMSA_HILOGE("PerUserSession::RemoveClient");
         auto it = mapClients.find(inputClient);
         if (it == mapClients.end()) {
             IMSA_HILOGE("PerUserSession::RemoveClient client not found");
-            return ErrorCode::ERROR_CLIENT_NOT_FOUND;
+            return;
         }
         ClientInfo *clientInfo = it->second;
         inputClient->RemoveDeathRecipient(clientInfo->deathRecipient);
         delete clientInfo;
         clientInfo = nullptr;
         mapClients.erase(it);
-        return ErrorCode::NO_ERROR;
     }
 
     /*! Start input method service
@@ -612,15 +600,10 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::RemoveClient client not found");
             return;
         }
-        if (it->first == currentClient->AsObject()) {
+        RemoveClient(it->first);
+        if (currentClient->AsObject().GetRefPtr() == who) {
             int ret = HideKeyboard(currentClient);
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("hide keyboard failed: %{public}s", ErrorCode::ToString(ret));
-            }
-        }
-        int ret = RemoveClient(it->first);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("remove client failed: %{public}s", ErrorCode::ToString(ret));
+            IMSA_HILOGI("hide keyboard ret: %{public}s", ErrorCode::ToString(ret));
         }
     }
 
@@ -904,12 +887,11 @@ namespace MiscServices {
             currentIme[i] = nullptr;
         }
         // disconnect all clients.
-        std::map<IRemoteObject *, ClientInfo *>::iterator it;
-        for (it = mapClients.begin(); it != mapClients.end();) {
-            sptr<IRemoteObject> b = it->first;
+        for (auto it = mapClients.begin(); it != mapClients.end();) {
+            auto b = it->first;
             ClientInfo *clientInfo = it->second;
-            b->RemoveDeathRecipient(clientInfo->deathRecipient);
             if (clientInfo != nullptr) {
+                b->RemoveDeathRecipient(clientInfo->deathRecipient);
                 int ret = clientInfo->client->onInputReleased(0);
                 if (ret != ErrorCode::NO_ERROR) {
                     IMSA_HILOGE("2-onInputReleased return : %{public}s", ErrorCode::ToString(ret));
@@ -1091,8 +1073,9 @@ namespace MiscServices {
             return nullptr;
         }
         sptr<IRemoteObject> b = Platform::RemoteBrokerToObject(inputClient);
-        std::map<IRemoteObject *, ClientInfo *>::iterator it = mapClients.find(b);
+        auto it = mapClients.find(b);
         if (it == mapClients.end()) {
+            IMSA_HILOGE("PerUserSession::GetClientInfo client not found");
             return nullptr;
         }
         return (ClientInfo *)it->second;
@@ -1142,24 +1125,34 @@ namespace MiscServices {
         int displayId = data->ReadInt32();
 
         sptr<IRemoteObject> clientObject = data->ReadRemoteObject();
-        if (!clientObject) {
+        if (clientObject == nullptr) {
             IMSA_HILOGI("PerUserSession::OnPrepareInput clientObject is null");
             return;
         }
+
         sptr<InputClientProxy> client = new InputClientProxy(clientObject);
         sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
-        if (!channelObject) {
+        if (channelObject == nullptr) {
             IMSA_HILOGI("PerUserSession::OnPrepareInput channelObject is null");
             return;
         }
+
         sptr<InputDataChannelProxy> channel = new InputDataChannelProxy(channelObject);
         InputAttribute *attribute = data->ReadParcelable<InputAttribute>();
-        if (!attribute) {
+        if (attribute == nullptr) {
             IMSA_HILOGI("PerUserSession::OnPrepareInput attribute is nullptr");
             return;
         }
 
-        int ret = AddClient(pid, uid, displayId, client, channel, *attribute);
+        sptr<RemoteObjectDeathRecipient> clientDeathRecipient = new (std::nothrow)
+            RemoteObjectDeathRecipient(Utils::ToUserId(uid), MSG_ID_CLIENT_DIED);
+        if (clientDeathRecipient == nullptr) {
+            IMSA_HILOGE("clientDeathRecipient is nullptr");
+        }
+        int ret = clientObject->AddDeathRecipient(clientDeathRecipient);
+        IMSA_HILOGI("Add death recipient %{public}s", ret ? "success" : "failed");
+
+        ret = AddClient({ pid, uid, userId_, displayId, client, channel, clientDeathRecipient, *attribute });
         delete attribute;
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("PerUserSession::OnPrepareInput Aborted! %{public}s", ErrorCode::ToString(ret));
@@ -1203,10 +1196,7 @@ namespace MiscServices {
             imsCore[0]->SetClientState(false);
         }
         HideKeyboard(client);
-        int ret = RemoveClient(clientObject.GetRefPtr());
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("PerUserSession::OnReleaseInput Aborted! Failed to RemoveClient [%{public}d]\n", userId_);
-        }
+        RemoveClient(clientObject.GetRefPtr());
         IMSA_HILOGI("PerUserSession::OnReleaseInput End...[%{public}d]\n", userId_);
     }
 
@@ -1273,8 +1263,8 @@ namespace MiscServices {
             return;
         }
 
-        for (std::map<IRemoteObject *, ClientInfo *>::iterator it = mapClients.begin(); it != mapClients.end(); ++it) {
-            ClientInfo *clientInfo = (ClientInfo *)it->second;
+        for (auto it = mapClients.begin(); it != mapClients.end(); ++it) {
+            auto clientInfo = (ClientInfo *)it->second;
             if (clientInfo) {
                 clientInfo->client->onInputReady(imsAgent);
             }
