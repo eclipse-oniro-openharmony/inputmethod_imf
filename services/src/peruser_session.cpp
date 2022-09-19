@@ -603,11 +603,11 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::RemoveClient client not found");
             return;
         }
-        RemoveClient(it->first);
         if (currentClient->AsObject().GetRefPtr() == who) {
             int ret = HideKeyboard(currentClient);
             IMSA_HILOGI("hide keyboard ret: %{public}s", ErrorCode::ToString(ret));
         }
+        RemoveClient(it->first);
     }
 
     /*! Handle the situation a input method service died\n
