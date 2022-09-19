@@ -356,8 +356,8 @@ namespace MiscServices {
         int ret = obj->AddDeathRecipient(clientDeathRecipient);
         IMSA_HILOGI("Add death recipient %{public}s", ret ? "success" : "failed");
 
-        clientInfo =
-            new (std::nothrow) ClientInfo({ pid, uid, userId_, displayId, inputClient, channel, clientDeathRecipient, attribute });
+        clientInfo = new (std::nothrow)
+            ClientInfo({ pid, uid, userId_, displayId, inputClient, channel, clientDeathRecipient, attribute });
         if (clientInfo == nullptr) {
             IMSA_HILOGE("clientInfo is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
