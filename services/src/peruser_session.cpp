@@ -1265,8 +1265,8 @@ namespace MiscServices {
         }
 
         for (auto it = mapClients.begin(); it != mapClients.end(); ++it) {
-            auto clientInfo = (ClientInfo *)it->second;
-            if (clientInfo) {
+            auto clientInfo = it->second;
+            if (clientInfo != nullptr) {
                 clientInfo->client->onInputReady(imsAgent);
             }
         }
