@@ -379,7 +379,7 @@ namespace MiscServices {
     \return ErrorCode::NO_ERROR no error
     \return ErrorCode::ERROR_CLIENT_NOT_FOUND client is not found
     */
-    int PerUserSession::RemoveClient(const sptr<IRemoteObject> &inputClient)
+    int PerUserSession::RemoveClient(IRemoteObject *inputClient)
     {
         IMSA_HILOGE("PerUserSession::RemoveClient");
         auto it = mapClients.find(inputClient);
@@ -1203,7 +1203,7 @@ namespace MiscServices {
             imsCore[0]->SetClientState(false);
         }
         HideKeyboard(client);
-        int ret = RemoveClient(clientObject);
+        int ret = RemoveClient(clientObject.GetRefPtr());
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("PerUserSession::OnReleaseInput Aborted! Failed to RemoveClient [%{public}d]\n", userId_);
         }

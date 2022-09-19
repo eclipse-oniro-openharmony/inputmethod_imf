@@ -164,7 +164,7 @@ namespace MiscServices {
         int AddClient(int pid, int uid, int displayId, const sptr<IInputClient>& inputClient,
                   const sptr<IInputDataChannel>& channel,
                   const InputAttribute& attribute);
-        int RemoveClient(const sptr<IRemoteObject>& inputClient);
+        int RemoveClient(IRemoteObject *inputClient);
         int StartInputMethod(int index);
         int StopInputMethod(int index);
         int ShowKeyboard(const sptr<IInputClient>& inputClient, bool isShowKeyboard);
