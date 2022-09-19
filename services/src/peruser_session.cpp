@@ -162,6 +162,10 @@ namespace MiscServices {
                 }
                 case MSG_ID_IMS_DIED: {
                     auto *who = reinterpret_cast<IRemoteObject *>(msg->msgContent_->ReadPointer());
+                    if (who == nullptr) {
+                        IMSA_HILOGE("who is nullptr");
+                        break;
+                    }
                     OnImsDied(who);
                     break;
                 }
@@ -262,7 +266,7 @@ namespace MiscServices {
                 continue;
             }
 
-            std::map<sptr<IRemoteObject>, ClientInfo*>::const_iterator it;
+            std::map<IRemoteObject *, ClientInfo *>::const_iterator it;
             bool flag = false;
             for (it = mapClients.cbegin(); it != mapClients.cend(); ++it) {
                 if ((i == DEFAULT_IME && !it->second->attribute.GetSecurityFlag()) ||
@@ -344,13 +348,21 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::AddClient inputClient AsObject is nullptr");
             return ErrorCode::ERROR_REMOTE_CLIENT_DIED;
         }
-        sptr<RemoteObjectDeathRecipient> clientDeathRecipient =
-            new RemoteObjectDeathRecipient(Utils::ToUserId(uid), MSG_ID_CLIENT_DIED);
+        sptr<RemoteObjectDeathRecipient> clientDeathRecipient = new (std::nothrow)
+            RemoteObjectDeathRecipient(Utils::ToUserId(uid), MSG_ID_CLIENT_DIED);
+        if (clientDeathRecipient == nullptr) {
+            IMSA_HILOGE("clientDeathRecipient is nullptr");
+        }
         int ret = obj->AddDeathRecipient(clientDeathRecipient);
         IMSA_HILOGI("Add death recipient %{public}s", ret ? "success" : "failed");
 
-        clientInfo = new ClientInfo({pid, uid, userId_, displayId, inputClient, channel, clientDeathRecipient, attribute});
-        mapClients.insert({obj, clientInfo});
+        clientInfo =
+            new (std::nothrow) ClientInfo({ pid, uid, userId_, displayId, inputClient, channel, clientDeathRecipient, attribute });
+        if (clientInfo == nullptr) {
+            IMSA_HILOGE("clientInfo is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        mapClients.insert({ obj, clientInfo });
         return ErrorCode::NO_ERROR;
     }
 
@@ -884,7 +896,7 @@ namespace MiscServices {
             currentIme[i] = nullptr;
         }
         // disconnect all clients.
-        std::map<sptr<IRemoteObject>, ClientInfo*>::iterator it;
+        std::map<IRemoteObject *, ClientInfo *>::iterator it;
         for (it = mapClients.begin(); it != mapClients.end();) {
             sptr<IRemoteObject> b = it->first;
             ClientInfo *clientInfo = it->second;
@@ -1064,19 +1076,18 @@ namespace MiscServices {
     \n      null if client is not found
     \note the clientInfo pointer should not be freed by caller
     */
-    ClientInfo *PerUserSession::GetClientInfo(const sptr<IInputClient>& inputClient)
+    ClientInfo *PerUserSession::GetClientInfo(const sptr<IInputClient> &inputClient)
     {
-        if (!inputClient) {
+        if (inputClient == nullptr) {
             IMSA_HILOGE("PerUserSession::GetClientInfo inputClient is nullptr");
             return nullptr;
         }
         sptr<IRemoteObject> b = Platform::RemoteBrokerToObject(inputClient);
-        std::map<sptr<IRemoteObject>, ClientInfo*>::iterator it = mapClients.find(b);
+        std::map<IRemoteObject *, ClientInfo *>::iterator it = mapClients.find(b);
         if (it == mapClients.end()) {
             return nullptr;
         }
-
-        return (ClientInfo*) it->second;
+        return (ClientInfo *)it->second;
     }
 
     bool PerUserSession::StartInputService()
@@ -1249,14 +1260,13 @@ namespace MiscServices {
     void PerUserSession::SendAgentToAllClients()
     {
         IMSA_HILOGI("PerUserSession::SendAgentToAllClients");
-        if (!imsAgent) {
+        if (imsAgent == nullptr) {
             IMSA_HILOGI("PerUserSession::SendAgentToAllClients imsAgent is nullptr");
             return;
         }
 
-        for (std::map<sptr<IRemoteObject>, ClientInfo*>::iterator it = mapClients.begin();
-            it != mapClients.end(); ++it) {
-            ClientInfo *clientInfo = (ClientInfo*) it->second;
+        for (std::map<IRemoteObject *, ClientInfo *>::iterator it = mapClients.begin(); it != mapClients.end(); ++it) {
+            ClientInfo *clientInfo = (ClientInfo *)it->second;
             if (clientInfo) {
                 clientInfo->client->onInputReady(imsAgent);
             }

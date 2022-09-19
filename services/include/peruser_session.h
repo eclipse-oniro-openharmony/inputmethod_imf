@@ -107,7 +107,7 @@ namespace MiscServices {
         int userState; // the state of the user to whom the object is linking
         int displayId; // the id of the display screen on which the user is
         int currentIndex;
-        std::map<sptr<IRemoteObject>, ClientInfo*> mapClients;
+        std::map<IRemoteObject *, ClientInfo *> mapClients;
         static const int MIN_IME = 2;
         static const int MAX_RESTART_NUM = 3;
         static const int IME_RESET_TIME_OUT = 300;
