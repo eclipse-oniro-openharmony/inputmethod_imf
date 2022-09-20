@@ -538,7 +538,7 @@ namespace MiscServices {
 
     void InputMethodAbility::ServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
     {
-        IMSA_HILOGI("lwh:ServiceDeathRecipient::OnRemoteDied");
+        IMSA_HILOGI("ServiceDeathRecipient::OnRemoteDied");
         if (listener != nullptr) {
             listener->OnInputStop(ParaHandle::GetDefaultIme(Utils::ToUserId(IPCSkeleton::GetCallingUid())));
         }
