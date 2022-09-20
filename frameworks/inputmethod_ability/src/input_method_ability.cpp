@@ -83,7 +83,7 @@ namespace MiscServices {
         if (deathRecipientPtr_ == nullptr) {
             deathRecipientPtr_ = new (std::nothrow) ServiceDeathRecipient();
             if (deathRecipientPtr_ == nullptr) {
-                IMSA_HILOGE("new KvStoreDeathRecipient failed");
+                IMSA_HILOGE("new ServiceDeathRecipient failed");
                 return nullptr;
             }
         }
