@@ -1081,7 +1081,7 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::GetClientInfo client not found");
             return nullptr;
         }
-        return (ClientInfo *)it->second;
+        return it->second;
     }
 
     bool PerUserSession::StartInputService()
