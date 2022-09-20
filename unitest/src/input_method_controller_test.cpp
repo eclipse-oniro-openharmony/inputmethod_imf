@@ -227,7 +227,7 @@ namespace MiscServices {
         sptr<OnTextChangedListener> textListener = new TextListener();
         imc->Attach(textListener);
 
-        bool ret = imc->dispatchKeyEvent(keyEvent);
+        imc->dispatchKeyEvent(keyEvent);
     }
 
     /**
