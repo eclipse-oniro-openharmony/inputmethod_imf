@@ -56,27 +56,13 @@ ohos_shared_library("inputmethodengine") {
 
   deps = [
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
-    #    "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
-    #    "${ability_runtime_inner_api_path}/app_manager:app_manager",
-#    "${ability_runtime_path}/frameworks/native/ability/native:abilitykit_native",
-#    "//base/global/resource_management/frameworks/resmgr:global_resmgr",
-#    "//foundation/arkui/napi/:ace_napi",
-#    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-#    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-#    "//foundation/multimodalinput/input/frameworks/proxy:libmmi-client",
-#    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
   ]
 
   external_deps = [
-#    "ability_base:want",
-#    "ability_runtime:runtime",
-#    "bundle_framework:appexecfwk_base",
-#    "bundle_framework:appexecfwk_core",
+    "ability_runtime:abilitykit_native",
     "c_utils:utils",
-#    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "ability_runtime:abilitykit_native",
   ]
 
   public_configs = [ ":inputmethodengine_native_public_config" ]
