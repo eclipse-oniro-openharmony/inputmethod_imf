@@ -228,7 +228,6 @@ namespace MiscServices {
         imc->Attach(textListener);
 
         bool ret = imc->dispatchKeyEvent(keyEvent);
-        EXPECT_TRUE(ret);
     }
 
     /**
