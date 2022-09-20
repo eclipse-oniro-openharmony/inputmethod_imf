@@ -14,14 +14,14 @@
 import("//base/inputmethod/imf/inputmethod.gni")
 import("//build/ohos.gni")
 
-config("inputmethodengine_native_config") {
+config("imf_config") {
   visibility = [ ":*" ]
-  include_dirs = [
-    "include",
-    "${inputmethod_path}/frameworks/inputmethod_ability/include",
-    "${inputmethod_path}/frameworks/inputmethod_controller/include",
-    "//foundation/multimodalinput/input/interfaces/native/innerkits/event/include",
-  ]
+  include_dirs = [ "include" ]
+}
+
+config("imf_public_config") {
+  visibility = []
+  include_dirs = [ "include" ]
   ldflags = [ "-Wl,--exclude-libs=ALL" ]
   cflags = [
     "-fdata-sections",
@@ -30,42 +30,28 @@ config("inputmethodengine_native_config") {
   ]
 }
 
-config("inputmethodengine_native_public_config") {
-  visibility = []
-  include_dirs = [
-    "include",
-    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodclient",
-    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodengine/include",
-    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodability",
-  ]
-}
-
-ohos_shared_library("inputmethodengine") {
+ohos_shared_library("inputmethod") {
   sources = [
-    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodclient/async_call.cpp",
-    "//base/inputmethod/imf/services/src/global.cpp",
-    "input_method_engine_module.cpp",
-    "js_callback_object.cpp",
-    "js_input_method_engine_setting.cpp",
-    "js_keyboard_controller_engine.cpp",
-    "js_keyboard_delegate_setting.cpp",
-    "js_text_input_client_engine.cpp",
+    "async_call.cpp",
+    "input_method_module.cpp",
+    "js_get_input_method_controller.cpp",
+    "js_get_input_method_setting.cpp",
+    "js_input_method.cpp",
   ]
 
-  configs = [ ":inputmethodengine_native_config" ]
+  configs = [ ":imf_config" ]
 
   deps = [
-    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/frameworks/inputmethod_controller:inputmethod_client",
   ]
 
   external_deps = [
     "ability_runtime:abilitykit_native",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
   ]
 
-  public_configs = [ ":inputmethodengine_native_public_config" ]
+  public_configs = [ ":imf_public_config" ]
 
   relative_install_dir = "module"
   subsystem_name = "inputmethod"
