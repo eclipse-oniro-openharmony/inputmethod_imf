@@ -227,8 +227,8 @@ using namespace MessageID;
         IMSA_HILOGI("InputMethodController::Attach");
         InputmethodTrace tracer("InputMethodController Attach trace.");
         IMSA_HILOGI("InputMethodController::Attach isShowKeyboard %{public}s", isShowKeyboard ? "true" : "false");
-        StartInput(mClient, isShowKeyboard);
         PrepareInput(0, mClient, mInputDataChannel, mAttribute);
+        StartInput(mClient, isShowKeyboard);
     }
 
     void InputMethodController::ShowTextInput()

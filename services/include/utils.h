@@ -31,6 +31,7 @@ namespace OHOS {
 namespace MiscServices {
     class Utils {
     public:
+        static constexpr int USER_ID_CHANGE_VALUE = 200000;
         static std::string to_utf8(std::u16string str16)
         {
             return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(str16);
@@ -46,6 +47,10 @@ namespace MiscServices {
                 props.push_back({ Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) });
             }
             return props;
+        }
+        static uint32_t ToUserId(uint32_t uid)
+        {
+            return uid / USER_ID_CHANGE_VALUE;
         }
     };
 } // namespace MiscServices
