@@ -10,6 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import("//base/inputmethod/imf/inputmethod.gni")
 import("//build/ohos.gni")
 
@@ -19,6 +20,13 @@ config("inputmethodengine_native_config") {
     "include",
     "${inputmethod_path}/frameworks/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/inputmethod_controller/include",
+    "//foundation/multimodalinput/input/interfaces/native/innerkits/event/include",
+  ]
+  ldflags = [ "-Wl,--exclude-libs=ALL" ]
+  cflags = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
   ]
 }
 
@@ -47,27 +55,28 @@ ohos_shared_library("inputmethodengine") {
   configs = [ ":inputmethodengine_native_config" ]
 
   deps = [
-    "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
-    "${ability_runtime_inner_api_path}/app_manager:app_manager",
-    "${ability_runtime_path}/frameworks/native/ability/native:abilitykit_native",
-    "//base/global/resource_management/frameworks/resmgr:global_resmgr",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
-    "//foundation/arkui/napi/:ace_napi",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-    "//foundation/multimodalinput/input/frameworks/proxy:libmmi-client",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    #    "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
+    #    "${ability_runtime_inner_api_path}/app_manager:app_manager",
+#    "${ability_runtime_path}/frameworks/native/ability/native:abilitykit_native",
+#    "//base/global/resource_management/frameworks/resmgr:global_resmgr",
+#    "//foundation/arkui/napi/:ace_napi",
+#    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+#    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
+#    "//foundation/multimodalinput/input/frameworks/proxy:libmmi-client",
+#    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
   ]
 
   external_deps = [
-    "ability_base:want",
-    "ability_runtime:runtime",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
+#    "ability_base:want",
+#    "ability_runtime:runtime",
+#    "bundle_framework:appexecfwk_base",
+#    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
+#    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "ability_runtime:abilitykit_native",
   ]
 
   public_configs = [ ":inputmethodengine_native_public_config" ]
