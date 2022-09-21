@@ -561,7 +561,7 @@ namespace MiscServices {
             return nullptr;
         }
 
-        int pos = ime.find('/');
+        std::string::size_type = ime.find('/');
         if (pos == -1) {
             IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod ime can not find '/'");
             return nullptr;
