@@ -128,7 +128,7 @@ struct InsertTextContext : public AsyncCall::Context {
 };
 
 struct GetForwardContext : public AsyncCall::Context {
-    int32_t = 0;
+    int32_t length = 0;
     std::string text;
     napi_status status = napi_generic_failure;
     GetForwardContext() : Context(nullptr, nullptr) { };
