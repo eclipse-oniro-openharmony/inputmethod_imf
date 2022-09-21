@@ -105,7 +105,7 @@ namespace MiscServices {
         std::string GetInputMethodParam(const std::vector<InputMethodProperty> &properties);
         ServiceRunningState state_;
         void InitServiceHandler();
-        std::atomic_flag dialogLock_ = ATOMIC_FLAG_INIT ;
+        std::atomic_flag dialogLock_ = ATOMIC_FLAG_INIT;
         static std::mutex instanceLock_;
         static sptr<InputMethodSystemAbility> instance_;
         static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
