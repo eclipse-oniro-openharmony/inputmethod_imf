@@ -52,7 +52,7 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
             GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::PREVIOUS))),
 
         DECLARE_NAPI_PROPERTY("PATTERN_NULL",
-            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NONE))),
+            GetIntJsConstProperty(env, static_cast<int32_t>(TextInputType::NONE))),
         DECLARE_NAPI_PROPERTY("PATTERN_TEXT",
             GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::TEXT))),
         DECLARE_NAPI_PROPERTY("PATTERN_NUMBER",
@@ -87,6 +87,13 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
 };
 
 napi_value JsInputMethodEngineSetting::GetJsConstProperty(napi_env env, uint32_t num)
+{
+    napi_value jsNumber = nullptr;
+    napi_create_uint32(env, num, &jsNumber);
+    return jsNumber;
+}
+
+napi_value JsInputMethodEngineSetting::GetIntJsConstProperty(napi_env env, int32_t num)
 {
     napi_value jsNumber = nullptr;
     napi_create_int32(env, num, &jsNumber);
@@ -181,7 +188,7 @@ std::string JsInputMethodEngineSetting::GetStringProperty(napi_env env, napi_val
 }
 
 void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::string type,
-    std::shared_ptr<JSCallbackObject> JSCallbackObject)
+    std::shared_ptr<JSCallbackObject> callbackObj)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
@@ -195,7 +202,7 @@ void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::stri
         }
     }
 
-    jsCbMap_[type].push_back(std::move(JSCallbackObject));
+    jsCbMap_[type].push_back(std::move(callbackObj));
 }
 
 void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::string type)

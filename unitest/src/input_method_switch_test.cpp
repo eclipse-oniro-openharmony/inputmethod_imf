@@ -71,7 +71,7 @@ HWTEST_F(InputMethodSwitchTest, intputMethodSwitch_sub_001, TestSize.Level0)
     target->mImeId = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(imeId);
     int32_t ret = InputMethodController::GetInstance()->SwitchInputMethod(target);
     delete target;
-    EXPECT_TRUE(0 == ret);
+    EXPECT_TRUE(ret == 0);
 }
 } // namespace MiscServices
 } // namespace OHOS
