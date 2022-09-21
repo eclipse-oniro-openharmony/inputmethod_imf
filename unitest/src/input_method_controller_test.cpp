@@ -352,7 +352,7 @@ namespace MiscServices {
     * @tc.name: testIMCHideCurrentInput
     * @tc.desc: IMC HideCurrentInput.
     * @tc.type: FUNC
-    * @tc.require: 
+    * @tc.require:
     */
     HWTEST_F(InputMethodControllerTest, testIMCHideCurrentInput, TestSize.Level0)
     {
@@ -367,7 +367,7 @@ namespace MiscServices {
     * @tc.name: testIMCGetTextBeforeCursor
     * @tc.desc: IMC testGetTextBeforeCursor.
     * @tc.type: FUNC
-    * @tc.require: 
+    * @tc.require:
     */
     HWTEST_F(InputMethodControllerTest, testIMCGetTextBeforeCursor, TestSize.Level2)
     {
@@ -383,7 +383,7 @@ namespace MiscServices {
     * @tc.name: testIMCGetTextAfterCursor
     * @tc.desc: IMC testGetTextAfterCursor.
     * @tc.type: FUNC
-    * @tc.require: 
+    * @tc.require:
     */
     HWTEST_F(InputMethodControllerTest, testIMCGetTextAfterCursor, TestSize.Level2)
     {
@@ -399,7 +399,7 @@ namespace MiscServices {
     * @tc.name: testIMCDisplayOptionalInputMethod
     * @tc.desc: IMC testDisplayOptionalInputMethod.
     * @tc.type: FUNC
-    * @tc.require: 
+    * @tc.require:
     */
     HWTEST_F(InputMethodControllerTest, testIMCDisplayOptionalInputMethod, TestSize.Level2)
     {
@@ -414,7 +414,7 @@ namespace MiscServices {
     * @tc.name: testIMCGetEnterKeyType
     * @tc.desc: IMC testGetEnterKeyType.
     * @tc.type: FUNC
-    * @tc.require: 
+    * @tc.require:
     */
     HWTEST_F(InputMethodControllerTest, testIMCGetEnterKeyType, TestSize.Level0)
     {
@@ -422,15 +422,15 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->GetEnterKeyType();
-        EXPECT_TRUE(ret >= static_cast<int32_t>(EnterKeyType::UNSPECIFIED) && 
-            ret <= static_cast<int32_t>(EnterKeyType::PREVIOUS));
+        EXPECT_TRUE(ret >= static_cast<int32_t>(EnterKeyType::UNSPECIFIED)
+                    && ret <= static_cast<int32_t>(EnterKeyType::PREVIOUS));
     }
 
     /**
     * @tc.name: testIMCGetInputPattern
     * @tc.desc: IMC testGetInputPattern.
     * @tc.type: FUNC
-    * @tc.require: 
+    * @tc.require:
     */
     HWTEST_F(InputMethodControllerTest, testIMCGetInputPattern, TestSize.Level0)
     {
@@ -438,22 +438,22 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->GetInputPattern();
-        EXPECT_TRUE(ret >= static_cast<int32_t>(TextInputType::NONE) && 
-            ret <= static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD));
+        EXPECT_TRUE(ret >= static_cast<int32_t>(TextInputType::NONE)
+                    && ret <= static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD));
     }
 
     /**
     * @tc.name: testIMCSwitchInputMethod
     * @tc.desc: IMC testSwitchInputMethod.
     * @tc.type: FUNC
-    * @tc.require: 
+    * @tc.require:
     */
     HWTEST_F(InputMethodControllerTest, testIMCSwitchInputMethod, TestSize.Level0)
     {
         IMSA_HILOGI("IMC SwitchInputMethod Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
-        int32_t ret = imc->SwitchInputMethod({"com.example.kikakeyboard", "ServiceExtAbility"});
+        int32_t ret = imc->SwitchInputMethod({ "com.example.kikakeyboard", "ServiceExtAbility" });
         EXPECT_TRUE(ret == 0);
     }
 
@@ -461,7 +461,7 @@ namespace MiscServices {
     * @tc.name: testIMCOnCursorUpdate
     * @tc.desc: IMC testOnCursorUpdate
     * @tc.type: FUNC
-    * @tc.require: 
+    * @tc.require:
     */
     HWTEST_F(InputMethodControllerTest, testIMCOnCursorUpdate, TestSize.Level0)
     {
@@ -476,7 +476,7 @@ namespace MiscServices {
     * @tc.name: testIMCOnSelectionChange
     * @tc.desc: IMC testOnSelectionChange
     * @tc.type: FUNC
-    * @tc.require: 
+    * @tc.require:
     */
     HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange, TestSize.Level0)
     {
@@ -491,7 +491,7 @@ namespace MiscServices {
     * @tc.name: testIMCOnConfigurationChange
     * @tc.desc: IMC testOnConfigurationChange.
     * @tc.type: FUNC
-    * @tc.require: 
+    * @tc.require:
     */
     HWTEST_F(InputMethodControllerTest, testIMCOnConfigurationChange, TestSize.Level0)
     {
@@ -510,7 +510,7 @@ namespace MiscServices {
     * @tc.name: testIMCSetCallingWindow
     * @tc.desc: IMC testSetCallingWindow.
     * @tc.type: FUNC
-    * @tc.require: 
+    * @tc.require:
     */
     HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
     {
