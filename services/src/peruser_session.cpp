@@ -307,10 +307,11 @@ namespace MiscServices {
         bool flag = false;
         std::unique_lock<std::mutex> lock(mtx);
         for (int i = 0; i < MAX_IME; i++) {
+            sptr<IInputClient> client = GetCurrentClient();
             if (currentIme[i] && currentIme[i]->mPackageName == packageName) {
-                if (currentClient && GetImeIndex(currentClient) == i) {
-                    needReshowClient = currentClient;
-                    HideKeyboard(currentClient);
+                if (client != nullptr && GetImeIndex(client) == i) {
+                    needReshowClient = client;
+                    HideKeyboard(client);
                 }
                 StopInputMethod(i);
                 currentIme[i] = nullptr;
@@ -482,19 +483,19 @@ namespace MiscServices {
         IMSA_HILOGI("PerUserSession::ShowKeyboard");
         ClientInfo *clientInfo = GetClientInfo(inputClient);
         int index = GetImeIndex(inputClient);
-        if (index == -1 || !clientInfo) {
+        if (index == -1 || clientInfo == nullptr) {
             IMSA_HILOGE("PerUserSession::ShowKeyboard Aborted! index = -1 or clientInfo is nullptr");
             return ErrorCode::ERROR_CLIENT_NOT_FOUND;
         }
 
-        if (!imsCore[0]) {
+        if (imsCore[0] == nullptr) {
             IMSA_HILOGE("PerUserSession::ShowKeyboard Aborted! imsCore[%{public}d] is nullptr", index);
             return ErrorCode::ERROR_NULL_POINTER;
         }
 
         imsCore[0]->showKeyboard(clientInfo->channel, isShowKeyboard);
 
-        currentClient = inputClient;
+        SetCurrentClient(inputClient);
         return ErrorCode::NO_ERROR;
     }
 
@@ -516,10 +517,10 @@ namespace MiscServices {
             return ErrorCode::ERROR_CLIENT_NOT_FOUND;
         }
         ClientInfo *clientInfo = GetClientInfo(inputClient);
-        if (!clientInfo) {
+        if (clientInfo == nullptr) {
             IMSA_HILOGE("PerUserSession::HideKeyboard GetClientInfo pointer nullptr");
         }
-        if (!imsCore[0]) {
+        if (imsCore[0] == nullptr) {
             IMSA_HILOGE("PerUserSession::HideKeyboard imsCore[index] is nullptr");
             return ErrorCode::ERROR_IME_NOT_STARTED;
         }
@@ -603,8 +604,14 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::RemoveClient client not found");
             return;
         }
-        if (currentClient->AsObject().GetRefPtr() == who) {
-            int ret = HideKeyboard(currentClient);
+        sptr<IInputClient> client = GetCurrentClient();
+        if (client == nullptr) {
+            IMSA_HILOGE("client is nullptr");
+            RemoveClient(it->first);
+            return;
+        }
+        if (client->AsObject().GetRefPtr() == who) {
+            int ret = HideKeyboard(client);
             IMSA_HILOGI("hide keyboard ret: %{public}s", ErrorCode::ToString(ret));
         }
         RemoveClient(it->first);
@@ -676,7 +683,7 @@ namespace MiscServices {
             IMSA_HILOGI("End...[%{public}d]\n", userId_);
             return ErrorCode::ERROR_SETTING_SAME_VALUE;
         }
-
+        sptr<IInputClient> client = GetCurrentClient();
         if (key == InputMethodSetting::CURRENT_KEYBOARD_TYPE_TAG) {
             return OnCurrentKeyboardTypeChanged(DEFAULT_IME, value);
         } else if (key == InputMethodSetting::CURRENT_SYS_KEYBOARD_TYPE_TAG) {
@@ -686,9 +693,9 @@ namespace MiscServices {
                 value == currentIme[DEFAULT_IME]->mImeId) {
                 return ErrorCode::NO_ERROR;
             }
-            if (currentClient && GetImeIndex(currentClient) == DEFAULT_IME) {
-                needReshowClient = currentClient;
-                HideKeyboard(currentClient);
+            if (client != nullptr && GetImeIndex(client) == DEFAULT_IME) {
+                needReshowClient = client;
+                HideKeyboard(client);
             }
             StopInputMethod(DEFAULT_IME);
             currentIme[DEFAULT_IME] = nullptr;
@@ -697,9 +704,9 @@ namespace MiscServices {
         } else if (key == InputMethodSetting::ENABLED_INPUT_METHODS_TAG) {
             if (currentIme[DEFAULT_IME] && currentIme[DEFAULT_IME] != currentIme[SECURITY_IME]
                 && value.find(currentIme[DEFAULT_IME]->mImeId) == std::string::npos) {
-                if (currentClient && GetImeIndex(currentClient) == DEFAULT_IME) {
-                    needReshowClient = currentClient;
-                    HideKeyboard(currentClient);
+                if (client != nullptr && GetImeIndex(client) == DEFAULT_IME) {
+                    needReshowClient = client;
+                    HideKeyboard(client);
                 }
                 StopInputMethod(DEFAULT_IME);
                 currentIme[DEFAULT_IME] = nullptr;
@@ -752,7 +759,8 @@ namespace MiscServices {
         }
         KeyboardType *type = GetKeyboardType(index, currentKbdIndex[index]);
         if (type) {
-            if (currentClient) {
+            sptr<IInputClient> client = GetCurrentClient();
+            if (client != nullptr) {
                 int ret = imsCore[index]->setKeyboardType(*type);
                 if (ret != ErrorCode::NO_ERROR) {
                     IMSA_HILOGE("setKeyboardType return : %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
@@ -778,20 +786,23 @@ namespace MiscServices {
     {
         IMSA_HILOGW("PerUserSession::OnHideKeyboardSelf");
         (void) flags;
-        HideKeyboard(currentClient);
+        sptr<IInputClient> client = GetCurrentClient();
+        HideKeyboard(client);
     }
 
     void PerUserSession::OnShowKeyboardSelf()
     {
         IMSA_HILOGI("PerUserSession::OnShowKeyboardSelf");
-        ShowKeyboard(currentClient, true);
+        sptr<IInputClient> client = GetCurrentClient();
+        ShowKeyboard(client, true);
     }
 
     /*! Switch to next keyboard type
     */
     void PerUserSession::OnAdvanceToNext()
     {
-        int index = GetImeIndex(currentClient);
+        sptr<IInputClient> client = GetCurrentClient();
+        int index = GetImeIndex(client);
         if (index == -1) {
             IMSA_HILOGW("%{public}s [%{public}d]\n", ErrorCode::ToString(ErrorCode::ERROR_CLIENT_NOT_FOUND), userId_);
             return;
@@ -838,7 +849,8 @@ namespace MiscServices {
     void PerUserSession::OnSetDisplayMode(int mode)
     {
         currentDisplayMode = mode;
-        ClientInfo *clientInfo = GetClientInfo(currentClient);
+        sptr<IInputClient> client = GetCurrentClient();
+        ClientInfo *clientInfo = GetClientInfo(client);
         if (!clientInfo) {
             IMSA_HILOGE("%{public}s [%{public}d]\n", ErrorCode::ToString(ErrorCode::ERROR_CLIENT_NOT_FOUND), userId_);
             return;
@@ -882,8 +894,9 @@ namespace MiscServices {
         }
         userState = UserState::USER_STATE_STARTED;
         // hide current keyboard
-        if (currentClient != nullptr) {
-            HideKeyboard(currentClient);
+        sptr<IInputClient> client = GetCurrentClient();
+        if (client != nullptr) {
+            HideKeyboard(client);
         }
         for (int i = 0; i < MIN_IME; i++) {
             StopInputMethod(i);
@@ -909,7 +922,7 @@ namespace MiscServices {
 
         // reset values
         inputMethodSetting = nullptr;
-        currentClient = nullptr;
+        SetCurrentClient(nullptr);
         needReshowClient = nullptr;
     }
 
@@ -1019,13 +1032,13 @@ namespace MiscServices {
     */
     int PerUserSession::GetImeIndex(const sptr<IInputClient>& inputClient)
     {
-        if (!inputClient) {
+        if (inputClient == nullptr) {
             IMSA_HILOGW("PerUserSession::GetImeIndex inputClient is nullptr");
             return -1;
         }
 
         ClientInfo *clientInfo = GetClientInfo(inputClient);
-        if (!clientInfo) {
+        if (clientInfo == nullptr) {
             IMSA_HILOGW("PerUserSession::GetImeIndex clientInfo is nullptr");
             return -1;
         }
@@ -1338,6 +1351,19 @@ namespace MiscServices {
         inputControlChannel[index] = nullptr;
         localControlChannel[index] = nullptr;
         inputMethodToken[index] = nullptr;
+    }
+
+    void PerUserSession::SetCurrentClient(sptr<IInputClient> client)
+    {
+        IMSA_HILOGI("set current client");
+        std::lock_guard<std::mutex> lck(clientLock_);
+        currentClient = client;
+    }
+
+    sptr<IInputClient> PerUserSession::GetCurrentClient()
+    {
+        std::lock_guard<std::mutex> lck(clientLock_);
+        return currentClient;
     }
 } // namespace MiscServices
 } // namespace OHOS

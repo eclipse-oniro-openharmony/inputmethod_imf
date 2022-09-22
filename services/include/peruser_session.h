@@ -129,6 +129,7 @@ namespace MiscServices {
         InputChannel *imsChannel; // the write channel created by input method service
         sptr<IInputClient> currentClient; // the current input client
         sptr<IInputClient> needReshowClient; // the input client for which keyboard need to re-show
+        std::mutex clientLock_;
 
         sptr<RemoteObjectDeathRecipient> imsDeathRecipient;
         MessageHandler *msgHandler = nullptr; // message handler working with Work Thread
@@ -176,6 +177,8 @@ namespace MiscServices {
         void ResetImeError(uint32_t index);
         bool IsRestartIme(uint32_t index);
         void ClearImeData(uint32_t index);
+        void SetCurrentClient(sptr<IInputClient> client);
+        sptr<IInputClient> GetCurrentClient();
     };
 } // namespace MiscServices
 } // namespace OHOS
