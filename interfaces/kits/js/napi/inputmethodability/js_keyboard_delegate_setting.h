@@ -99,20 +99,20 @@ private:
     static const std::string KDS_CLASS_NAME;
     static thread_local napi_ref KDSRef_;
     struct CursorPara {
-        int32_t positionX;
-        int32_t positionY;
-        int height;
+        int32_t positionX = 0;
+        int32_t positionY = 0;
+        int height = 0;
     };
     struct SelectionPara {
-        int32_t oldBegin;
-        int32_t oldEnd;
-        int32_t newBegin;
-        int32_t newEnd;
+        int32_t oldBegin = 0;
+        int32_t oldEnd = 0;
+        int32_t newBegin = 0;
+        int32_t newEnd = 0;
     };
     struct KeyEventPara {
-        int32_t keyCode;
-        int32_t keyStatus;
-        bool isOnKeyEvent;
+        int32_t keyCode = 0;
+        int32_t keyStatus = 0;
+        bool isOnKeyEvent = false;
     };
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
