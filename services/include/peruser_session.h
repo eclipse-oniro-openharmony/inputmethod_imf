@@ -127,9 +127,9 @@ namespace MiscServices {
 
         sptr<IInputMethodAgent> imsAgent;
         InputChannel *imsChannel; // the write channel created by input method service
+        std::mutex clientLock_;
         sptr<IInputClient> currentClient; // the current input client
         sptr<IInputClient> needReshowClient; // the input client for which keyboard need to re-show
-        std::mutex clientLock_;
 
         sptr<RemoteObjectDeathRecipient> imsDeathRecipient;
         MessageHandler *msgHandler = nullptr; // message handler working with Work Thread
