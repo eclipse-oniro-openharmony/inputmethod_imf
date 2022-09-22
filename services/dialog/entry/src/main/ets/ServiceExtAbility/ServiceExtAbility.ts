@@ -17,7 +17,7 @@ import window from '@ohos.window';
 import display from '@ohos.display';
 import inputMethod from '@ohos.inputmethod';
 
-let TAG = "[InputMethodSelect]"
+let TAG = "[InputMethodChooseDialog]"
 
 export default class ServiceExtAbility extends extension {
     onCreate(want) {
@@ -72,12 +72,6 @@ export default class ServiceExtAbility extends extension {
             let enableList = await inputMethod.getInputMethodSetting().listInputMethod(true)
             let disableList = await inputMethod.getInputMethodSetting().listInputMethod(false)
             globalThis.inputMethodList = [...enableList, ...disableList]
-//            for (let i = 0; i < enableList.length; i++) {
-//                globalThis.inputMethodList.push(enableList[i])
-//            }
-//            for (let i = 0; i < disableList.length; i++) {
-//                globalThis.inputMethodList.push(disableList[i])
-//            }
         } catch {
             console.log(TAG + "getInputMethods failed ");
         }

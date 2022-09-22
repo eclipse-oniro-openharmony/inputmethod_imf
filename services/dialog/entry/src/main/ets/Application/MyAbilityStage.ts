@@ -17,7 +17,7 @@ import AbilityStage from "@ohos.application.AbilityStage"
 
 export default class MyAbilityStage extends AbilityStage {
     onCreate() {
-        hilog.isLoggable(0x0000, '[InputMethodSelect]', hilog.LogLevel.INFO);
-        hilog.info(0x0000, '[InputMethodSelect]', '%{public}s', 'AbilityStage onCreate');
+        hilog.isLoggable(0x0000, '[InputMethodChooseDialog]', hilog.LogLevel.INFO);
+        hilog.info(0x0000, '[InputMethodChooseDialog]', '%{public}s', 'AbilityStage onCreate');
     }
 }

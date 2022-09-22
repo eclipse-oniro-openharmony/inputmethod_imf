@@ -24,9 +24,8 @@ struct Dialog {
   @State private context: any = undefined
   @State display: string = '所有输入法'
   @State btnColor: string = '#bbccaa';
-  private inputMethods :Array<inputMethod.InputMethodProperty> = null
-
-  private TAG = "[InputMethodSelect]"
+  private inputMethods: Array<inputMethod.InputMethodProperty> = null
+  private TAG = "[InputMethodChooseDialog]"
 
   aboutToAppear() {
     console.log(this.TAG, "dialog page appears")
@@ -79,10 +78,10 @@ struct Dialog {
                   await inputMethod.switchInputMethod(prop).then((err) => {
                     if (!err) {
                       console.log(this.TAG + "switchInputMethod failed, " + JSON.stringify(err))
-                      prompt.showToast({ message: 'switch failed', duration: 200})
+                      prompt.showToast({ message: 'switch failed', duration: 200 })
                     } else {
                       console.log(this.TAG + "switchInputMethod success ")
-                      prompt.showToast({ message: 'switch success', duration: 200})
+                      prompt.showToast({ message: 'switch success', duration: 200 })
                     }
                   })
                 }

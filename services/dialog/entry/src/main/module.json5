@@ -36,6 +36,11 @@
         "visible": true,
         "type": "service"
       }
+    ],
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.MANAGE_SECURE_SETTINGS"
+      }
     ]
   }
 }
