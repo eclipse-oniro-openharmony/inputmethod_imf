@@ -39,7 +39,7 @@
     ],
     "requestPermissions": [
       {
-        "name": "ohos.permission.MANAGE_SECURE_SETTINGS"
+        "name": "ohos.permission.CONNECT_IME_ABILITY"
       }
     ]
   }

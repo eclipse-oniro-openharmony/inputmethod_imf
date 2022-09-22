@@ -1,8 +1,8 @@
 {
   "color": [
     {
-      "name": "white",
-      "value": "#FFFFFF"
+      "name": "btn_default",
+      "value": "#bbccaa"
     }
   ]
 }

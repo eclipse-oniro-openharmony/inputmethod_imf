@@ -12,17 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import extension from '@ohos.application.ServiceExtensionAbility'
+import ServiceExtensionAbility from '@ohos.application.ServiceExtensionAbility'
 import window from '@ohos.window';
 import display from '@ohos.display';
 import inputMethod from '@ohos.inputmethod';
+import prompt from '@ohos.prompt';
 
 let TAG = "[InputMethodChooseDialog]"
 
-export default class ServiceExtAbility extends extension {
+export default class ServiceExtAbility extends ServiceExtensionAbility {
     onCreate(want) {
-        console.log(TAG, "InputMethod ServiceExtensionAbility onCreate")
-        globalThis.context = this.context
+        console.log(TAG, "onCreate")
         globalThis.windowNum = 0
     }
 
@@ -31,10 +31,10 @@ export default class ServiceExtAbility extends extension {
         globalThis.abilityWant = want
         display.getDefaultDisplay().then(() => {
             let dialogRect = {
-                left:50,
-                top:900,
-                width:300,
-                height:300,
+                left: 50,
+                top: 900,
+                width: 300,
+                height: 300,
             }
             this.getInputMethods().then(() => {
                 this.createWindow("inputmethod Dialog:" + startId, window.WindowType.TYPE_DIALOG, dialogRect)
@@ -42,6 +42,22 @@ export default class ServiceExtAbility extends extension {
         }).catch((err) => {
             console.log(TAG + "getDefaultDisplay err: " + JSON.stringify(err));
         });
+
+        globalThis.chooseInputMethods = ((prop: inputMethod.InputMethodProperty) => {
+            inputMethod.switchInputMethod(prop).then((err) => {
+                if (!err) {
+                    console.log(TAG + "switchInputMethod failed, " + JSON.stringify(err))
+                    prompt.showToast({
+                        message: 'switch failed', duration: 200
+                    })
+                } else {
+                    console.log(TAG + "switchInputMethod success ")
+                    prompt.showToast({
+                        message: 'switch success', duration: 200
+                    })
+                }
+            })
+        })
     }
 
     onDestroy() {
@@ -53,13 +69,19 @@ export default class ServiceExtAbility extends extension {
     private async createWindow(name: string, windowType: number, rect) {
         console.log(TAG + "createWindow execute")
         try {
+            if (globalThis.windowNum > 0) {
+                globalThis.windowNum = 0
+                globalThis.extensionWin.destroy()
+                globalThis.context.terminateSelf()
+            }
             const win = await window.create(this.context, name, windowType)
             globalThis.extensionWin = win
+            globalThis.context = this.context
             await win.moveTo(rect.left, rect.top)
             await win.resetSize(rect.width, rect.height)
             await win.loadContent('pages/index')
             await win.show()
-            globalThis.windowNum ++
+            globalThis.windowNum++
             console.log(TAG + "window create successfully")
         } catch {
             console.info(TAG + "window create failed")

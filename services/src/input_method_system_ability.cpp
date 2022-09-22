@@ -1073,10 +1073,10 @@ namespace MiscServices {
             return;
         }
         AAFwk::Want want;
-        want.SetAction("action.system.inputmethodselect");
+        want.SetAction(SELECT_DIALOG_ACTION);
         want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
         int32_t result = abilityManager->StartAbility(want);
-        if (result) {
+        if (result != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", result);
             return;
         }

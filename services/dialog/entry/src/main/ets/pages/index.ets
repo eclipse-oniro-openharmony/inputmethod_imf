@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 import inputMethod from '@ohos.inputmethod';
-import prompt from '@ohos.prompt';
 
 @Entry
 @Component
@@ -22,8 +21,6 @@ struct Dialog {
   private properityMap: Map<string, inputMethod.InputMethodProperty> = new Map();
   @State private win: any = undefined
   @State private context: any = undefined
-  @State display: string = '所有输入法'
-  @State btnColor: string = '#bbccaa';
   private inputMethods: Array<inputMethod.InputMethodProperty> = null
   private TAG = "[InputMethodChooseDialog]"
 
@@ -52,40 +49,28 @@ struct Dialog {
     Column() {
       List({ space: 1, initialIndex: 0 }) {
         ListItem() {
-          Text(this.display)
+          Text($r("app.string.dialogTitle"))
             .width('100%')
             .height(40)
             .fontSize(14)
             .textAlign(TextAlign.Center)
             .backgroundColor(Color.Pink)
-            .onClick(() => {
-              this.btnColor = '#aaaaaa'
-            })
         }.sticky(Sticky.Normal)
 
         ForEach(this.arr, (item, index) => {
           ListItem() {
-            Text(item.split('.')[2])
+            Text(item.split('.').length > 2 ? item.split('.')[2] : item.split('.')[-1])
               .width('100%')
               .height(60)
               .fontSize(16)
               .textAlign(TextAlign.Center)
               .borderRadius(10)
-              .backgroundColor(this.btnColor)
+              .backgroundColor($r("app.color.btn_default"))
               .onClick(async () => {
                 if (this.properityMap.has(item)) {
                   let prop = this.properityMap.get(item)
-                  await inputMethod.switchInputMethod(prop).then((err) => {
-                    if (!err) {
-                      console.log(this.TAG + "switchInputMethod failed, " + JSON.stringify(err))
-                      prompt.showToast({ message: 'switch failed', duration: 200 })
-                    } else {
-                      console.log(this.TAG + "switchInputMethod success ")
-                      prompt.showToast({ message: 'switch success', duration: 200 })
-                    }
-                  })
+                  globalThis.chooseInputMethods(prop)
                 }
-                this.btnColor = '#aaaaaa'
                 setTimeout(() => {
                   this.win.destroy()
                   this.context.terminateSelf()
