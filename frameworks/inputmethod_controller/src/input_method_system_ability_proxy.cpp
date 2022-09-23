@@ -494,5 +494,25 @@ namespace MiscServices {
         }
         return ErrorCode::NO_ERROR;
     }
+
+    int32_t InputMethodSystemAbilityProxy::HideCurrentInputDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInputDeprecated");
+        MessageParcel reply;
+        MessageOption option;
+
+        auto ret = Remote()->SendRequest(HIDE_CURRENT_INPUT_DEPRECATED, data, reply, option);
+        if (ret != NO_ERROR) {
+            IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInputDeprecated SendRequest failed");
+            return ErrorCode::ERROR_KBD_HIDE_FAILED;
+        }
+
+        ret = reply.ReadInt32();
+        if (ret != NO_ERROR) {
+            IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInputDeprecated reply failed");
+            return ErrorCode::ERROR_KBD_HIDE_FAILED;
+        }
+        return ErrorCode::NO_ERROR;
+    }
 } // namespace MiscServices
 } // namespace OHOS

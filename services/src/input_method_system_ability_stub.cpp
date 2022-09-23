@@ -164,6 +164,11 @@ namespace MiscServices {
                 reply.WriteInt32(ret);
                 break;
             }
+            case HIDE_CURRENT_INPUT_DEPRECATED: {
+                int32_t ret = HideCurrentInputDeprecated(data);
+                reply.WriteInt32(ret);
+                break;
+            }
             default: {
                 return BRemoteObject::OnRemoteRequest(code, data, reply, option);
             }
@@ -291,12 +296,22 @@ namespace MiscServices {
     int32_t InputMethodSystemAbilityStub::HideCurrentInput(MessageParcel& data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::HideCurrentInput");
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        int32_t userId = getUserId(uid);
-        MessageParcel *parcel = new MessageParcel();
-        parcel->WriteInt32(userId);
-
-        Message *msg = new Message(MSG_HIDE_CURRENT_INPUT, parcel);
+        if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
+            IMSA_HILOGE("Permission denied");
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
+        auto parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        parcel->WriteInt32(getUserId(IPCSkeleton::GetCallingUid()));
+        auto msg = new Message(MSG_HIDE_CURRENT_INPUT, parcel);
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
+            delete parcel;
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
         MessageHandler::Instance()->SendMessage(msg);
         return ErrorCode::NO_ERROR;
     }
@@ -304,7 +319,7 @@ namespace MiscServices {
     int32_t InputMethodSystemAbilityStub::ShowCurrentInput(MessageParcel &data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::ShowCurrentInput");
-        if (!CheckPermission()) {
+        if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
             IMSA_HILOGE("Permission denied");
             return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
         }
@@ -314,7 +329,6 @@ namespace MiscServices {
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
         parcel->WriteInt32(getUserId(IPCSkeleton::GetCallingUid()));
-
         auto *msg = new (std::nothrow) Message(MSG_SHOW_CURRENT_INPUT, parcel);
         if (msg == nullptr) {
             IMSA_HILOGE("msg is nullptr");
@@ -396,7 +410,27 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
-    bool InputMethodSystemAbilityStub::CheckPermission()
+    int32_t InputMethodSystemAbilityStub::HideCurrentInputDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityStub::HideCurrentInputDeprecated");
+        auto parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        parcel->WriteInt32(getUserId(IPCSkeleton::GetCallingUid()));
+
+        auto msg = new Message(MSG_HIDE_CURRENT_INPUT, parcel);
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
+            delete parcel;
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        MessageHandler::Instance()->SendMessage(msg);
+        return ErrorCode::NO_ERROR;
+    }
+
+    bool InputMethodSystemAbilityStub::CheckPermission(const std::string &permission)
     {
         IMSA_HILOGI("Check Permission");
         AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
@@ -405,7 +439,7 @@ namespace MiscServices {
             IMSA_HILOGE("invalid token id %{public}d", tokenId);
             return false;
         }
-        int result = AccessTokenKit::VerifyAccessToken(tokenId, PERMISSION_CONNECT_IME_ABILITY);
+        int result = AccessTokenKit::VerifyAccessToken(tokenId, permission);
         if (result != PERMISSION_GRANTED) {
             IMSA_HILOGE("grant failed, result: %{public}d", result);
         }

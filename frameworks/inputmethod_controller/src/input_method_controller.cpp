@@ -246,24 +246,28 @@ using namespace MessageID;
     int32_t InputMethodController::HideCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::HideCurrentInput");
-        if (!mImms) {
+        if (mImms == nullptr) {
+            IMSA_HILOGE("mImms is nullptr");
             return ErrorCode::ERROR_KBD_HIDE_FAILED;
         }
         MessageParcel data;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
+            IMSA_HILOGE("write descriptor failed");
             return ErrorCode::ERROR_KBD_HIDE_FAILED;
         }
-        return mImms->HideCurrentInput(data);
+        return mImms->HideCurrentInputDeprecated(data);
     }
 
     int32_t InputMethodController::ShowCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::ShowCurrentInput");
         if (mImms == nullptr) {
+            IMSA_HILOGE("mImms is nullptr");
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
         }
         MessageParcel data;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
+            IMSA_HILOGE("write descriptor failed");
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
         }
         return mImms->ShowCurrentInputDeprecated(data);
@@ -569,7 +573,7 @@ using namespace MessageID;
 
     int32_t InputMethodController::ShowSoftKeyboard()
     {
-        IMSA_HILOGI("InputMethodController ShowCurrentInput with permission check");
+        IMSA_HILOGI("InputMethodController ShowSoftKeyboard");
         if (mImms == nullptr) {
             IMSA_HILOGE("mImms is nullptr");
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
@@ -579,6 +583,20 @@ using namespace MessageID;
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
         }
         return mImms->ShowCurrentInput(data);
+    }
+
+    int32_t InputMethodController::HideSoftKeyboard()
+    {
+        IMSA_HILOGI("InputMethodController HideSoftKeyboard");
+        if (mImms == nullptr) {
+            IMSA_HILOGE("mImms is nullptr");
+            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+        }
+        MessageParcel data;
+        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
+            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+        }
+        return mImms->HideCurrentInput(data);
     }
 } // namespace MiscServices
 } // namespace OHOS

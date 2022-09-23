@@ -48,7 +48,7 @@ namespace MiscServices {
         int32_t SetCoreAndAgentDeprecated(MessageParcel &data) override;
 
     protected:
-        bool CheckPermission();
+        bool CheckPermission(const std::string &permission);
         int32_t getUserId(int32_t uid);
         int USER_ID_CHANGE_VALUE = 200000; // user range
     };
