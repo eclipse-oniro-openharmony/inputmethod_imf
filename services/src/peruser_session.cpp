@@ -689,8 +689,7 @@ namespace MiscServices {
         } else if (key == InputMethodSetting::CURRENT_SYS_KEYBOARD_TYPE_TAG) {
             return OnCurrentKeyboardTypeChanged(SECURITY_IME, value);
         } else if (key == InputMethodSetting::CURRENT_INPUT_METHOD_TAG) {
-            if (!currentIme[DEFAULT_IME] ||
-                value == currentIme[DEFAULT_IME]->mImeId) {
+            if (currentIme[DEFAULT_IME] == nullptr || value == currentIme[DEFAULT_IME]->mImeId) {
                 return ErrorCode::NO_ERROR;
             }
             if (client != nullptr && GetImeIndex(client) == DEFAULT_IME) {
@@ -702,7 +701,7 @@ namespace MiscServices {
             currentKbdIndex[DEFAULT_IME] = 0;
             inputMethodSetting->SetCurrentKeyboardType(-1);
         } else if (key == InputMethodSetting::ENABLED_INPUT_METHODS_TAG) {
-            if (currentIme[DEFAULT_IME] && currentIme[DEFAULT_IME] != currentIme[SECURITY_IME]
+            if (currentIme[DEFAULT_IME] != nullptr && currentIme[DEFAULT_IME] != currentIme[SECURITY_IME]
                 && value.find(currentIme[DEFAULT_IME]->mImeId) == std::string::npos) {
                 if (client != nullptr && GetImeIndex(client) == DEFAULT_IME) {
                     needReshowClient = client;
@@ -837,7 +836,7 @@ namespace MiscServices {
             num %= size;
         }
         KeyboardType *type = GetKeyboardType(index, num);
-        if (!type) {
+        if (type == nullptr) {
             IMSA_HILOGW("No next keyboard is available. [%{public}d]\n", userId_);
             return;
         }
@@ -867,7 +866,7 @@ namespace MiscServices {
             return;
         }
         ClientInfo *clientInfo = GetClientInfo(client);
-        if (!clientInfo) {
+        if (clientInfo == nullptr) {
             IMSA_HILOGE("%{public}s [%{public}d]\n", ErrorCode::ToString(ErrorCode::ERROR_CLIENT_NOT_FOUND), userId_);
             return;
         }
@@ -1372,13 +1371,13 @@ namespace MiscServices {
     void PerUserSession::SetCurrentClient(sptr<IInputClient> client)
     {
         IMSA_HILOGI("set current client");
-        std::lock_guard<std::mutex> lck(clientLock_);
+        std::lock_guard<std::mutex> lock(clientLock_);
         currentClient = client;
     }
 
     sptr<IInputClient> PerUserSession::GetCurrentClient()
     {
-        std::lock_guard<std::mutex> lck(clientLock_);
+        std::lock_guard<std::mutex> lock(clientLock_);
         return currentClient;
     }
 } // namespace MiscServices
