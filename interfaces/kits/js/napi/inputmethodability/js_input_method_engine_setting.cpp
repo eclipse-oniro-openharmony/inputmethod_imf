@@ -52,7 +52,7 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
             GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::PREVIOUS))),
 
         DECLARE_NAPI_PROPERTY("PATTERN_NULL",
-            GetJsConstProperty(env, static_cast<int32_t>(TextInputType::NONE))),
+            GetIntJsConstProperty(env, static_cast<int32_t>(TextInputType::NONE))),
         DECLARE_NAPI_PROPERTY("PATTERN_TEXT",
             GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::TEXT))),
         DECLARE_NAPI_PROPERTY("PATTERN_NUMBER",
