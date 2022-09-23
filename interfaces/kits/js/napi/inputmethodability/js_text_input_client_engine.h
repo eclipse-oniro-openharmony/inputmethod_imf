@@ -196,14 +196,14 @@ public:
     JsTextInputClientEngine() = default;
     ~JsTextInputClientEngine() = default;
     static napi_value Init(napi_env env, napi_value info);
-    static napi_value SendKeyFunction(napi_env env, napi_callback_info Info);
-    static napi_value DeleteForward(napi_env env, napi_callback_info Info);
-    static napi_value DeleteBackward(napi_env env, napi_callback_info Info);
-    static napi_value InsertText(napi_env env, napi_callback_info Info);
-    static napi_value GetForward(napi_env env, napi_callback_info Info);
-    static napi_value GetBackward(napi_env env, napi_callback_info Info);
+    static napi_value SendKeyFunction(napi_env env, napi_callback_info info);
+    static napi_value DeleteForward(napi_env env, napi_callback_info info);
+    static napi_value DeleteBackward(napi_env env, napi_callback_info info);
+    static napi_value InsertText(napi_env env, napi_callback_info info);
+    static napi_value GetForward(napi_env env, napi_callback_info info);
+    static napi_value GetBackward(napi_env env, napi_callback_info info);
     static napi_value MoveCursor(napi_env env, napi_callback_info info);
-    static napi_value GetEditorAttribute(napi_env env, napi_callback_info Info);
+    static napi_value GetEditorAttribute(napi_env env, napi_callback_info info);
     static napi_value GetTextInputClientInstance(napi_env env);
 private:
     static napi_status GetAction(napi_env env, napi_value argv,

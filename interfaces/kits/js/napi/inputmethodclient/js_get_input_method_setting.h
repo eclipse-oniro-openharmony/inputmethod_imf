@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace MiscServices {
 struct ListInputContext : public AsyncCall::Context {
-    InputMethodStatus inputMethodStatus;
+    InputMethodStatus inputMethodStatus = InputMethodStatus::ALL;
     std::vector<Property> properties;
     napi_status status = napi_generic_failure;
     ListInputContext() : Context(nullptr, nullptr) { };
