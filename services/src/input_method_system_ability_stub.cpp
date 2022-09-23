@@ -301,20 +301,23 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
-    int32_t InputMethodSystemAbilityStub::ShowCurrentInputDeprecated(MessageParcel &data)
+    int32_t InputMethodSystemAbilityStub::ShowCurrentInput(MessageParcel &data)
     {
-        IMSA_HILOGI("InputMethodSystemAbilityStub::ShowCurrentInputDeprecated");
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        int32_t userId = getUserId(uid);
-
+        IMSA_HILOGI("InputMethodSystemAbilityStub::ShowCurrentInput");
+        if (!CheckPermission()) {
+            IMSA_HILOGE("Permission denied");
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         auto *parcel = new (std::nothrow) MessageParcel();
         if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        parcel->WriteInt32(userId);
+        parcel->WriteInt32(getUserId(IPCSkeleton::GetCallingUid()));
 
         auto *msg = new (std::nothrow) Message(MSG_SHOW_CURRENT_INPUT, parcel);
         if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
             delete parcel;
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
@@ -373,21 +376,19 @@ namespace MiscServices {
         }
     }
 
-    int32_t InputMethodSystemAbilityStub::ShowCurrentInput(MessageParcel &data)
+    int32_t InputMethodSystemAbilityStub::ShowCurrentInputDeprecated(MessageParcel &data)
     {
-        IMSA_HILOGI("InputMethodSystemAbilityStub::ShowCurrentInput");
-        if (!CheckPermission()) {
-            IMSA_HILOGE("Permission denied");
-            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-        }
+        IMSA_HILOGI("InputMethodSystemAbilityStub::ShowCurrentInputDeprecated");
         auto *parcel = new (std::nothrow) MessageParcel();
         if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
         parcel->WriteInt32(getUserId(IPCSkeleton::GetCallingUid()));
 
         auto *msg = new (std::nothrow) Message(MSG_SHOW_CURRENT_INPUT, parcel);
         if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
             delete parcel;
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
