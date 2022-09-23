@@ -49,7 +49,7 @@ namespace MiscServices {
 
     protected:
         bool CheckPermission(const std::string &permission);
-        int32_t SendMessageToService(int32_t code, std::function<int32_t(MessageParcel &)> callback);
+        int32_t SendMessageToService(int32_t code, std::function<bool(MessageParcel &)> callback);
         int32_t getUserId(int32_t uid);
         int USER_ID_CHANGE_VALUE = 200000; // user range
     };
