@@ -606,7 +606,7 @@ namespace MiscServices {
         }
         sptr<IInputClient> client = GetCurrentClient();
         if (client == nullptr) {
-            IMSA_HILOGE("client is nullptr");
+            IMSA_HILOGE("current client is nullptr");
             RemoveClient(it->first);
             return;
         }
@@ -787,6 +787,10 @@ namespace MiscServices {
         IMSA_HILOGW("PerUserSession::OnHideKeyboardSelf");
         (void) flags;
         sptr<IInputClient> client = GetCurrentClient();
+        if (client == nullptr) {
+            IMSA_HILOGE("current client is nullptr");
+            return;
+        }
         HideKeyboard(client);
     }
 
@@ -794,6 +798,10 @@ namespace MiscServices {
     {
         IMSA_HILOGI("PerUserSession::OnShowKeyboardSelf");
         sptr<IInputClient> client = GetCurrentClient();
+        if (client == nullptr) {
+            IMSA_HILOGE("current client is nullptr");
+            return;
+        }
         ShowKeyboard(client, true);
     }
 
@@ -802,6 +810,10 @@ namespace MiscServices {
     void PerUserSession::OnAdvanceToNext()
     {
         sptr<IInputClient> client = GetCurrentClient();
+        if (client == nullptr) {
+            IMSA_HILOGE("current client is nullptr");
+            return;
+        }
         int index = GetImeIndex(client);
         if (index == -1) {
             IMSA_HILOGW("%{public}s [%{public}d]\n", ErrorCode::ToString(ErrorCode::ERROR_CLIENT_NOT_FOUND), userId_);
@@ -850,6 +862,10 @@ namespace MiscServices {
     {
         currentDisplayMode = mode;
         sptr<IInputClient> client = GetCurrentClient();
+        if (client == nullptr) {
+            IMSA_HILOGE("current client is nullptr");
+            return;
+        }
         ClientInfo *clientInfo = GetClientInfo(client);
         if (!clientInfo) {
             IMSA_HILOGE("%{public}s [%{public}d]\n", ErrorCode::ToString(ErrorCode::ERROR_CLIENT_NOT_FOUND), userId_);
