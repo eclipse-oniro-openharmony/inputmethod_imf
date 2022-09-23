@@ -259,14 +259,14 @@ using namespace MessageID;
     int32_t InputMethodController::ShowCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::ShowCurrentInput");
-        if (!mImms) {
+        if (mImms == nullptr) {
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
         }
         MessageParcel data;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
         }
-        return mImms->ShowCurrentInput(data);
+        return mImms->ShowCurrentInputDeprecated(data);
     }
 
     void InputMethodController::Close()
@@ -567,7 +567,7 @@ using namespace MessageID;
         return mAgent;
     }
 
-    int32_t InputMethodController::ShowCurrentInputCheckPermission()
+    int32_t InputMethodController::ShowSoftKeyboard()
     {
         IMSA_HILOGI("InputMethodController ShowCurrentInput with permission check");
         if (mImms == nullptr) {
@@ -578,7 +578,7 @@ using namespace MessageID;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
         }
-        return mImms->ShowCurrentInputCheckPermission(data);
+        return mImms->ShowCurrentInput(data);
     }
 } // namespace MiscServices
 } // namespace OHOS

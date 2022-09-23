@@ -155,21 +155,21 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
-    int32_t InputMethodSystemAbilityProxy::ShowCurrentInput(MessageParcel &data)
+    int32_t InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated(MessageParcel &data)
     {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInput");
+        IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated");
         MessageParcel reply;
         MessageOption option;
 
-        auto ret = Remote()->SendRequest(SHOW_CURRENT_INPUT, data, reply, option);
+        auto ret = Remote()->SendRequest(SHOW_CURRENT_INPUT_DEPRECATED, data, reply, option);
         if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInput SendRequest failed");
+            IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated SendRequest failed");
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
         }
 
         ret = reply.ReadInt32();
         if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInput reply failed");
+            IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated reply failed");
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
         }
         return ErrorCode::NO_ERROR;
@@ -475,13 +475,13 @@ namespace MiscServices {
         return ret;
     }
 
-    int32_t InputMethodSystemAbilityProxy::ShowCurrentInputCheckPermission(MessageParcel &data)
+    int32_t InputMethodSystemAbilityProxy::ShowCurrentInput(MessageParcel &data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityProxy ShowCurrentInputCheckPermission");
         MessageParcel reply;
         MessageOption option;
 
-        auto ret = Remote()->SendRequest(SHOW_CURRENT_INPUT_CHECK_PERMISSION, data, reply, option);
+        auto ret = Remote()->SendRequest(SHOW_CURRENT_INPUT, data, reply, option);
         if (ret != NO_ERROR) {
             IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInputCheckPermission SendRequest failed");
             return ErrorCode::ERROR_KBD_SHOW_FAILED;

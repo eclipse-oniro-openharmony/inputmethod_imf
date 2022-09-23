@@ -42,10 +42,10 @@ namespace MiscServices {
         virtual std::vector<InputMethodProperty> ListInputMethodByUserId(int32_t userId, InputMethodStatus status) = 0;
         int32_t OnSwitchInputMethod(MessageParcel &data);
 
-        int32_t DisplayOptionalInputMethodCheckPermission(MessageParcel &data) override;
-        int32_t HideCurrentInputCheckPermission(MessageParcel &data) override;
-        int32_t ShowCurrentInputCheckPermission(MessageParcel &data) override;
-        int32_t SetCoreAndAgentCheckPermission(MessageParcel &data) override;
+        int32_t DisplayOptionalInputMethodDeprecated(MessageParcel &data) override;
+        int32_t HideCurrentInputDeprecated(MessageParcel &data) override;
+        int32_t ShowCurrentInputDeprecated(MessageParcel &data) override;
+        int32_t SetCoreAndAgentDeprecated(MessageParcel &data) override;
 
     protected:
         bool CheckPermission();
