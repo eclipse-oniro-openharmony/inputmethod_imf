@@ -85,6 +85,10 @@ namespace MiscServices {
         void SetCallingWindow(uint32_t windowId);
         int32_t SwitchInputMethod(const Property &target);
 
+        int32_t ShowCurrentInputCheckPermission();
+        int32_t HideCurrentInputCheckPermission();
+        int32_t DisplayOptionalInputMethodCheckPermission();
+
     private:
         InputMethodController();
         ~InputMethodController();

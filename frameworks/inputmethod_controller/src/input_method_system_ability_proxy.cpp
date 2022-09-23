@@ -474,5 +474,25 @@ namespace MiscServices {
         ret = reply.ReadInt32();
         return ret;
     }
+
+    int32_t InputMethodSystemAbilityProxy::ShowCurrentInputCheckPermission(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityProxy ShowCurrentInputCheckPermission");
+        MessageParcel reply;
+        MessageOption option;
+
+        auto ret = Remote()->SendRequest(SHOW_CURRENT_INPUT_CHECK_PERMISSION, data, reply, option);
+        if (ret != NO_ERROR) {
+            IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInputCheckPermission SendRequest failed");
+            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+        }
+
+        ret = reply.ReadInt32();
+        if (ret != NO_ERROR) {
+            IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInputCheckPermission reply failed");
+            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+        }
+        return ErrorCode::NO_ERROR;
+    }
 } // namespace MiscServices
 } // namespace OHOS

@@ -17,12 +17,16 @@
 
 #include <memory>
 
+#include "access_token.h"
+#include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
 #include "message_handler.h"
 
 namespace OHOS {
 namespace MiscServices {
     using namespace MessageID;
+    using namespace Security::AccessToken;
+    static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
     /*! Handle the transaction from the remote binder
     \n Run in binder thread
     \param code transaction code number
@@ -153,6 +157,11 @@ namespace MiscServices {
             }
             case GET_CURRENT_INPUT_METHOD: {
                 OnGetCurrentInputMethod(reply);
+                break;
+            }
+            case SHOW_CURRENT_INPUT_CHECK_PERMISSION: {
+                int32_t ret = ShowCurrentInputCheckPermission(data);
+                reply.WriteInt32(ret);
                 break;
             }
             default: {
@@ -360,6 +369,32 @@ namespace MiscServices {
         for (const auto &property : properties) {
             reply.WriteParcelable(&property);
         }
+    }
+
+    int32_t InputMethodSystemAbilityStub::ShowCurrentInputCheckPermission(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityStub::ShowCurrentInputCheckPermission");
+        if (!CheckPermission()) {
+            IMSA_HILOGE("Permission denied");
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
+        return ShowCurrentInput(data);
+    }
+
+    bool InputMethodSystemAbilityStub::CheckPermission()
+    {
+        IMSA_HILOGI("Check Permission");
+        AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
+        TypeATokenTypeEnum tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
+        if (tokenType == TOKEN_INVALID) {
+            IMSA_HILOGE("invalid token id %{public}d", tokenId);
+            return false;
+        }
+        int result = AccessTokenKit::VerifyAccessToken(tokenId, PERMISSION_CONNECT_IME_ABILITY);
+        if (result != PERMISSION_GRANTED) {
+            IMSA_HILOGE("grant failed, result: %{public}d", result);
+        }
+        return result == PERMISSION_GRANTED;
     }
 
     /*! Get user id from uid

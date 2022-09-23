@@ -113,6 +113,8 @@ namespace MiscServices {
         void InitialInputWindow();
         void ShowInputWindow(bool isShowKeyboard);
         void DissmissInputWindow();
+
+        void SetCoreAndAgentCheckPermission();
     };
 } // namespace MiscServices
 } // namespace OHOS

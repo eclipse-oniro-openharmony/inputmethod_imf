@@ -42,7 +42,13 @@ namespace MiscServices {
         virtual std::vector<InputMethodProperty> ListInputMethodByUserId(int32_t userId, InputMethodStatus status) = 0;
         int32_t OnSwitchInputMethod(MessageParcel &data);
 
+        int32_t DisplayOptionalInputMethodCheckPermission(MessageParcel &data) override;
+        int32_t HideCurrentInputCheckPermission(MessageParcel &data) override;
+        int32_t ShowCurrentInputCheckPermission(MessageParcel &data) override;
+        int32_t SetCoreAndAgentCheckPermission(MessageParcel &data) override;
+
     protected:
+        bool CheckPermission();
         int32_t getUserId(int32_t uid);
         int USER_ID_CHANGE_VALUE = 200000; // user range
     };

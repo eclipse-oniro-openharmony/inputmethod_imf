@@ -53,6 +53,10 @@ namespace MiscServices {
             SET_CORE_AND_AGENT,
             DISPLAY_OPTIONAL_INPUT_METHOD,
             SWITCH_INPUT_METHOD,
+            SHOW_CURRENT_INPUT_CHECK_PERMISSION,
+            HIDE_CURRENT_INPUT_CHECK_PERMISSION,
+            DISPLAY_OPTIONAL_INPUT_METHOD_CHECK_PERMISSION,
+            SET_CORE_AND_AGENT_CHECK_PERMISSION,
         };
 
         DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
@@ -73,6 +77,11 @@ namespace MiscServices {
         virtual std::vector<InputMethodProperty> ListInputMethod(InputMethodStatus stauts) = 0;
         virtual int32_t listKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types) = 0;
         virtual int32_t SwitchInputMethod(const InputMethodProperty &target) = 0;
+
+        virtual int32_t SetCoreAndAgentCheckPermission(MessageParcel &data) = 0;
+        virtual int32_t HideCurrentInputCheckPermission(MessageParcel &data) = 0;
+        virtual int32_t ShowCurrentInputCheckPermission(MessageParcel &data) = 0;
+        virtual int32_t DisplayOptionalInputMethodCheckPermission(MessageParcel& data) = 0;
     };
 } // namespace MiscServices
 } // namespace OHOS

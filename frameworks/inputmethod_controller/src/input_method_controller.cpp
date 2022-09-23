@@ -566,5 +566,19 @@ using namespace MessageID;
         std::lock_guard<std::mutex> lock(agentLock_);
         return mAgent;
     }
+
+    int32_t InputMethodController::ShowCurrentInputCheckPermission()
+    {
+        IMSA_HILOGI("InputMethodController ShowCurrentInput with permission check");
+        if (mImms == nullptr) {
+            IMSA_HILOGE("mImms is nullptr");
+            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+        }
+        MessageParcel data;
+        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
+            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+        }
+        return mImms->ShowCurrentInputCheckPermission(data);
+    }
 } // namespace MiscServices
 } // namespace OHOS
