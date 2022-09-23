@@ -56,7 +56,7 @@ public:
     static napi_value GetJSInputMethodProperties(napi_env env, const std::vector<Property> &properties);
 
 private:
-    static std::string GetStringProperty(napi_env env, napi_value result);
+    static std::string GetStringProperty(napi_env env, napi_value obj);
     static napi_status GetInputMethodProperty(napi_env env, napi_value argv,
         std::shared_ptr<SwitchInputMethodContext> ctxt);
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
