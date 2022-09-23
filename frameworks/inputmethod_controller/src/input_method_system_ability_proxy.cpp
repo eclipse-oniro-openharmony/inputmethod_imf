@@ -469,9 +469,8 @@ namespace MiscServices {
         ret = reply.ReadInt32();
         if (ret != NO_ERROR) {
             IMSA_HILOGE("reply error");
-            return ret;
         }
-        return reply.ReadInt32();
+        return ret;
     }
 } // namespace MiscServices
 } // namespace OHOS
