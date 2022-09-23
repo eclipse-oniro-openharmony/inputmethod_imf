@@ -325,7 +325,7 @@ namespace MiscServices {
         }
         int userId = getUserId(IPCSkeleton::GetCallingUid());
         return SendMessageToService(
-            MSG_HIDE_CURRENT_INPUT, [userId](MessageParcel &parcel) -> int32_t { parcel.WriteInt32(userId); });
+            MSG_HIDE_CURRENT_INPUT, [userId](MessageParcel &parcel) -> bool { return parcel.WriteInt32(userId); });
     }
 
     int32_t InputMethodSystemAbilityStub::ShowCurrentInput(MessageParcel &data)
@@ -337,7 +337,7 @@ namespace MiscServices {
         }
         int userId = getUserId(IPCSkeleton::GetCallingUid());
         return SendMessageToService(
-            MSG_SHOW_CURRENT_INPUT, [userId](MessageParcel &parcel) -> int32_t { parcel.WriteInt32(userId); });
+            MSG_SHOW_CURRENT_INPUT, [userId](MessageParcel &parcel) -> bool { return parcel.WriteInt32(userId); });
     }
 
     int32_t InputMethodSystemAbilityStub::OnSwitchInputMethod(MessageParcel &data)
@@ -396,7 +396,7 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodSystemAbilityStub::ShowCurrentInputDeprecated");
         int userId = getUserId(IPCSkeleton::GetCallingUid());
         return SendMessageToService(
-            MSG_SHOW_CURRENT_INPUT, [userId](MessageParcel &parcel) -> int32_t { parcel.WriteInt32(userId); });
+            MSG_SHOW_CURRENT_INPUT, [userId](MessageParcel &parcel) -> bool { return parcel.WriteInt32(userId); });
     }
 
     int32_t InputMethodSystemAbilityStub::HideCurrentInputDeprecated(MessageParcel &data)
@@ -404,7 +404,7 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodSystemAbilityStub::HideCurrentInputDeprecated");
         int userId = getUserId(IPCSkeleton::GetCallingUid());
         return SendMessageToService(
-            MSG_HIDE_CURRENT_INPUT, [userId](MessageParcel &parcel) -> int32_t { parcel.WriteInt32(userId); });
+            MSG_HIDE_CURRENT_INPUT, [userId](MessageParcel &parcel) -> bool { return parcel.WriteInt32(userId); });
     }
 
     int32_t InputMethodSystemAbilityStub::DisplayOptionalInputMethodDeprecated(MessageParcel &data)
@@ -414,10 +414,8 @@ namespace MiscServices {
         int32_t uid = IPCSkeleton::GetCallingUid();
         int32_t userId = getUserId(uid);
         return SendMessageToService(
-            MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD, [pid, uid, userId](MessageParcel &parcel) -> int32_t {
-                parcel.WriteInt32(userId);
-                parcel.WriteInt32(pid);
-                parcel.WriteInt32(uid);
+            MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD, [pid, uid, userId](MessageParcel &parcel) -> bool {
+                return parcel.WriteInt32(userId) && parcel.WriteInt32(pid) && parcel.WriteInt32(uid);
             });
     }
 
@@ -425,10 +423,9 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::SetCoreAndAgentDeprecated");
         int32_t userId = getUserId(IPCSkeleton::GetCallingUid());
-        int32_t ret = SendMessageToService(MSG_ID_SET_CORE_AND_AGENT, [userId, &data](MessageParcel &parcel) -> int32_t {
-            parcel.WriteInt32(userId);
-            parcel.WriteRemoteObject(data.ReadRemoteObject());
-            parcel.WriteRemoteObject(data.ReadRemoteObject());
+        int32_t ret = SendMessageToService(MSG_ID_SET_CORE_AND_AGENT, [userId, &data](MessageParcel &parcel) -> bool {
+            return parcel.WriteInt32(userId) && parcel.WriteRemoteObject(data.ReadRemoteObject())
+                   && parcel.WriteRemoteObject(data.ReadRemoteObject());
         });
         if (ret != NO_ERROR) {
             IMSA_HILOGE("send message to service failed: %{public}s", ErrorCode::ToString(ret));
@@ -452,7 +449,7 @@ namespace MiscServices {
     }
 
     int32_t InputMethodSystemAbilityStub::SendMessageToService(
-        int32_t code, std::function<int32_t(MessageParcel &)> callback)
+        int32_t code, std::function<bool(MessageParcel &)> callback)
     {
         auto parcel = new (std::nothrow) MessageParcel();
         if (parcel == nullptr) {
