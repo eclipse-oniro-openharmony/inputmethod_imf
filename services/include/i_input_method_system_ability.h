@@ -78,7 +78,7 @@ namespace MiscServices {
         virtual int32_t listKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types) = 0;
         virtual int32_t SwitchInputMethod(const InputMethodProperty &target) = 0;
 
-        virtual int32_t SetCoreAndAgentDeprecated(MessageParcel &data) = 0;
+        virtual void SetCoreAndAgentDeprecated(MessageParcel &data) = 0;
         virtual int32_t HideCurrentInputDeprecated(MessageParcel &data) = 0;
         virtual int32_t ShowCurrentInputDeprecated(MessageParcel &data) = 0;
         virtual int32_t DisplayOptionalInputMethodDeprecated(MessageParcel &data) = 0;

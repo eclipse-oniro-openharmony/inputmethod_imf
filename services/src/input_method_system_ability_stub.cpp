@@ -69,9 +69,7 @@ namespace MiscServices {
                 break;
             }
             case SET_CORE_AND_AGENT: {
-                MessageParcel *msgParcel = (MessageParcel*) &data;
-                SetCoreAndAgent(*msgParcel);
-                reply.WriteInt32(NO_ERROR);
+                SetCoreAndAgent(data);
                 break;
             }
             case GET_DISPLAY_MODE: {
@@ -169,6 +167,15 @@ namespace MiscServices {
                 reply.WriteInt32(ret);
                 break;
             }
+            case DISPLAY_OPTIONAL_INPUT_METHOD_DEPRECATED: {
+                int ret = DisplayOptionalInputMethodDeprecated(data);
+                reply.WriteInt32(ret);
+                break;
+            }
+            case SET_CORE_AND_AGENT_DEPRECATED: {
+                SetCoreAndAgentDeprecated(data);
+                break;
+            }
             default: {
                 return BRemoteObject::OnRemoteRequest(code, data, reply, option);
             }
@@ -204,15 +211,27 @@ namespace MiscServices {
     int32_t InputMethodSystemAbilityStub::displayOptionalInputMethod(MessageParcel& data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::displayOptionalInputMethod");
+        if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
+            IMSA_HILOGE("Permission denied");
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         int32_t pid = IPCSkeleton::GetCallingPid();
         int32_t uid = IPCSkeleton::GetCallingUid();
         int32_t userId = getUserId(uid);
-        MessageParcel *parcel = new MessageParcel();
+        auto parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
         parcel->WriteInt32(userId);
         parcel->WriteInt32(pid);
         parcel->WriteInt32(uid);
-
-        Message *msg = new Message(MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD, parcel);
+        auto msg = new Message(MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD, parcel);
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
+            delete parcel;
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
         MessageHandler::Instance()->SendMessage(msg);
         return ErrorCode::NO_ERROR;
     }
@@ -282,6 +301,10 @@ namespace MiscServices {
     void InputMethodSystemAbilityStub::SetCoreAndAgent(MessageParcel& data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::SetCoreAndAgent");
+        if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
+            IMSA_HILOGE("Permission denied");
+            return;
+        }
         int32_t uid = IPCSkeleton::GetCallingUid();
         int32_t userId = getUserId(uid);
         MessageParcel *parcel = new MessageParcel();
@@ -300,20 +323,7 @@ namespace MiscServices {
             IMSA_HILOGE("Permission denied");
             return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
         }
-        auto parcel = new (std::nothrow) MessageParcel();
-        if (parcel == nullptr) {
-            IMSA_HILOGE("parcel is nullptr");
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        parcel->WriteInt32(getUserId(IPCSkeleton::GetCallingUid()));
-        auto msg = new Message(MSG_HIDE_CURRENT_INPUT, parcel);
-        if (msg == nullptr) {
-            IMSA_HILOGE("msg is nullptr");
-            delete parcel;
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        MessageHandler::Instance()->SendMessage(msg);
-        return ErrorCode::NO_ERROR;
+        return SendMessageToService(data, MSG_HIDE_CURRENT_INPUT);
     }
 
     int32_t InputMethodSystemAbilityStub::ShowCurrentInput(MessageParcel &data)
@@ -323,20 +333,7 @@ namespace MiscServices {
             IMSA_HILOGE("Permission denied");
             return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
         }
-        auto *parcel = new (std::nothrow) MessageParcel();
-        if (parcel == nullptr) {
-            IMSA_HILOGE("parcel is nullptr");
-            return ErrorCode::ERROR_EX_NULL_POINTER;
-        }
-        parcel->WriteInt32(getUserId(IPCSkeleton::GetCallingUid()));
-        auto *msg = new (std::nothrow) Message(MSG_SHOW_CURRENT_INPUT, parcel);
-        if (msg == nullptr) {
-            IMSA_HILOGE("msg is nullptr");
-            delete parcel;
-            return ErrorCode::ERROR_EX_NULL_POINTER;
-        }
-        MessageHandler::Instance()->SendMessage(msg);
-        return ErrorCode::NO_ERROR;
+        return SendMessageToService(data, MSG_SHOW_CURRENT_INPUT);
     }
 
     int32_t InputMethodSystemAbilityStub::OnSwitchInputMethod(MessageParcel &data)
@@ -393,34 +390,30 @@ namespace MiscServices {
     int32_t InputMethodSystemAbilityStub::ShowCurrentInputDeprecated(MessageParcel &data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::ShowCurrentInputDeprecated");
-        auto *parcel = new (std::nothrow) MessageParcel();
-        if (parcel == nullptr) {
-            IMSA_HILOGE("parcel is nullptr");
-            return ErrorCode::ERROR_EX_NULL_POINTER;
-        }
-        parcel->WriteInt32(getUserId(IPCSkeleton::GetCallingUid()));
-
-        auto *msg = new (std::nothrow) Message(MSG_SHOW_CURRENT_INPUT, parcel);
-        if (msg == nullptr) {
-            IMSA_HILOGE("msg is nullptr");
-            delete parcel;
-            return ErrorCode::ERROR_EX_NULL_POINTER;
-        }
-        MessageHandler::Instance()->SendMessage(msg);
-        return ErrorCode::NO_ERROR;
+        return SendMessageToService(data, MSG_SHOW_CURRENT_INPUT);
     }
 
     int32_t InputMethodSystemAbilityStub::HideCurrentInputDeprecated(MessageParcel &data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::HideCurrentInputDeprecated");
+        return SendMessageToService(data, MSG_HIDE_CURRENT_INPUT);
+    }
+
+    int32_t InputMethodSystemAbilityStub::DisplayOptionalInputMethodDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityStub::DisplayOptionalInputMethodDeprecated");
+        int32_t pid = IPCSkeleton::GetCallingPid();
+        int32_t uid = IPCSkeleton::GetCallingUid();
+        int32_t userId = getUserId(uid);
         auto parcel = new (std::nothrow) MessageParcel();
         if (parcel == nullptr) {
             IMSA_HILOGE("parcel is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        parcel->WriteInt32(getUserId(IPCSkeleton::GetCallingUid()));
-
-        auto msg = new Message(MSG_HIDE_CURRENT_INPUT, parcel);
+        parcel->WriteInt32(userId);
+        parcel->WriteInt32(pid);
+        parcel->WriteInt32(uid);
+        auto msg = new Message(MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD, parcel);
         if (msg == nullptr) {
             IMSA_HILOGE("msg is nullptr");
             delete parcel;
@@ -428,6 +421,20 @@ namespace MiscServices {
         }
         MessageHandler::Instance()->SendMessage(msg);
         return ErrorCode::NO_ERROR;
+    }
+
+    void InputMethodSystemAbilityStub::SetCoreAndAgentDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityStub::SetCoreAndAgentDeprecated");
+        int32_t uid = IPCSkeleton::GetCallingUid();
+        int32_t userId = getUserId(uid);
+        MessageParcel *parcel = new MessageParcel();
+        parcel->WriteInt32(userId);
+        parcel->WriteRemoteObject(data.ReadRemoteObject());
+        parcel->WriteRemoteObject(data.ReadRemoteObject());
+
+        Message *msg = new Message(MSG_ID_SET_CORE_AND_AGENT, parcel);
+        MessageHandler::Instance()->SendMessage(msg);
     }
 
     bool InputMethodSystemAbilityStub::CheckPermission(const std::string &permission)
@@ -444,6 +451,25 @@ namespace MiscServices {
             IMSA_HILOGE("grant failed, result: %{public}d", result);
         }
         return result == PERMISSION_GRANTED;
+    }
+
+    int32_t InputMethodSystemAbilityStub::SendMessageToService(MessageParcel &data, int32_t code)
+    {
+        auto parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        parcel->WriteInt32(getUserId(IPCSkeleton::GetCallingUid()));
+
+        auto msg = new Message(code, parcel);
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
+            delete parcel;
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        MessageHandler::Instance()->SendMessage(msg);
+        return ErrorCode::NO_ERROR;
     }
 
     /*! Get user id from uid

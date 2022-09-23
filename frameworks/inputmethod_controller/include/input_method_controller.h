@@ -103,6 +103,7 @@ namespace MiscServices {
         void SetInputMethodAgent(sptr<IRemoteObject> &object);
         std::shared_ptr<IInputMethodAgent> GetInputMethodAgent();
         void WorkThread();
+        int32_t SendDataByProxy(std::function<int32_t(sptr<IInputMethodSystemAbility> &, MessageParcel &)> callback);
 
         sptr<IInputDataChannel> mInputDataChannel;
         sptr<IInputClient> mClient;

@@ -246,31 +246,17 @@ using namespace MessageID;
     int32_t InputMethodController::HideCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::HideCurrentInput");
-        if (mImms == nullptr) {
-            IMSA_HILOGE("mImms is nullptr");
-            return ErrorCode::ERROR_KBD_HIDE_FAILED;
-        }
-        MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            IMSA_HILOGE("write descriptor failed");
-            return ErrorCode::ERROR_KBD_HIDE_FAILED;
-        }
-        return mImms->HideCurrentInputDeprecated(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
+            return service->HideCurrentInputDeprecated(data);
+        });
     }
 
     int32_t InputMethodController::ShowCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::ShowCurrentInput");
-        if (mImms == nullptr) {
-            IMSA_HILOGE("mImms is nullptr");
-            return ErrorCode::ERROR_KBD_SHOW_FAILED;
-        }
-        MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            IMSA_HILOGE("write descriptor failed");
-            return ErrorCode::ERROR_KBD_SHOW_FAILED;
-        }
-        return mImms->ShowCurrentInputDeprecated(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
+            return service->ShowCurrentInputDeprecated(data);
+        });
     }
 
     void InputMethodController::Close()
@@ -302,14 +288,9 @@ using namespace MessageID;
     int32_t InputMethodController::DisplayOptionalInputMethod()
     {
         IMSA_HILOGI("InputMethodController::DisplayOptionalInputMethod");
-        if (!mImms) {
-            return ErrorCode::ERROR_STATUS_BAD_VALUE;
-        }
-        MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            return ErrorCode::ERROR_STATUS_BAD_VALUE;
-        }
-        return mImms->displayOptionalInputMethod(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
+            return service->DisplayOptionalInputMethodDeprecated(data);
+        });
     }
 
     std::vector<Property> InputMethodController::ListInputMethodCommon(InputMethodStatus status)
@@ -574,29 +555,42 @@ using namespace MessageID;
     int32_t InputMethodController::ShowSoftKeyboard()
     {
         IMSA_HILOGI("InputMethodController ShowSoftKeyboard");
-        if (mImms == nullptr) {
-            IMSA_HILOGE("mImms is nullptr");
-            return ErrorCode::ERROR_KBD_SHOW_FAILED;
-        }
-        MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            return ErrorCode::ERROR_KBD_SHOW_FAILED;
-        }
-        return mImms->ShowCurrentInput(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
+            return service->ShowCurrentInput(data);
+        });
     }
 
     int32_t InputMethodController::HideSoftKeyboard()
     {
         IMSA_HILOGI("InputMethodController HideSoftKeyboard");
-        if (mImms == nullptr) {
-            IMSA_HILOGE("mImms is nullptr");
-            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
+            return service->HideCurrentInput(data);
+        });
+    }
+
+    int32_t InputMethodController::ShowOptionalInputMethod()
+    {
+        IMSA_HILOGI("InputMethodController::ShowOptionalInputMethod");
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
+            return service->displayOptionalInputMethod(data);
+        });
+    }
+
+    int32_t InputMethodController::SendDataByProxy(
+        std::function<int32_t(sptr<IInputMethodSystemAbility> &, MessageParcel &)> callback)
+    {
+        IMSA_HILOGI("InputMethodController::SendDataToByProxy");
+        sptr<IInputMethodSystemAbility> service = mImms;
+        if (service == nullptr) {
+            IMSA_HILOGE("service is nullptr");
+            return ErrorCode::ERROR_STATUS_BAD_VALUE;
         }
         MessageParcel data;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+            IMSA_HILOGE("write descriptor failed");
+            return ErrorCode::ERROR_STATUS_BAD_VALUE;
         }
-        return mImms->HideCurrentInput(data);
+        return callback(service, data);
     }
 } // namespace MiscServices
 } // namespace OHOS

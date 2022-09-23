@@ -45,10 +45,11 @@ namespace MiscServices {
         int32_t DisplayOptionalInputMethodDeprecated(MessageParcel &data) override;
         int32_t HideCurrentInputDeprecated(MessageParcel &data) override;
         int32_t ShowCurrentInputDeprecated(MessageParcel &data) override;
-        int32_t SetCoreAndAgentDeprecated(MessageParcel &data) override;
+        void SetCoreAndAgentDeprecated(MessageParcel &data) override;
 
     protected:
         bool CheckPermission(const std::string &permission);
+        int32_t SendMessageToService(MessageParcel &data, int32_t code);
         int32_t getUserId(int32_t uid);
         int USER_ID_CHANGE_VALUE = 200000; // user range
     };

@@ -70,10 +70,11 @@ namespace MiscServices {
         int32_t DisplayOptionalInputMethodDeprecated(MessageParcel &data) override;
         int32_t HideCurrentInputDeprecated(MessageParcel &data) override;
         int32_t ShowCurrentInputDeprecated(MessageParcel &data) override;
-        int32_t SetCoreAndAgentDeprecated(MessageParcel &data) override;
+        void SetCoreAndAgentDeprecated(MessageParcel &data) override;
 
     private:
         static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;
+        int32_t SendRequestToService(MessageParcel &data, uint32_t code);
     };
 } // namespace MiscServices
 } // namespace OHOS
