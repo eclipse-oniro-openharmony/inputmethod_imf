@@ -218,22 +218,10 @@ namespace MiscServices {
         int32_t pid = IPCSkeleton::GetCallingPid();
         int32_t uid = IPCSkeleton::GetCallingUid();
         int32_t userId = getUserId(uid);
-        auto parcel = new (std::nothrow) MessageParcel();
-        if (parcel == nullptr) {
-            IMSA_HILOGE("parcel is nullptr");
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        parcel->WriteInt32(userId);
-        parcel->WriteInt32(pid);
-        parcel->WriteInt32(uid);
-        auto msg = new Message(MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD, parcel);
-        if (msg == nullptr) {
-            IMSA_HILOGE("msg is nullptr");
-            delete parcel;
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        MessageHandler::Instance()->SendMessage(msg);
-        return ErrorCode::NO_ERROR;
+        return SendMessageToService(
+            MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD, [pid, uid, userId](MessageParcel &parcel) -> bool {
+                return parcel.WriteInt32(userId) && parcel.WriteInt32(pid) && parcel.WriteInt32(uid);
+            });
     }
 
     /*! Release input
