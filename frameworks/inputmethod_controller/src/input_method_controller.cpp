@@ -246,16 +246,16 @@ using namespace MessageID;
     int32_t InputMethodController::HideCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::HideCurrentInput");
-        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
-            return service->HideCurrentInputDeprecated(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->HideCurrentInputDeprecated(data);
         });
     }
 
     int32_t InputMethodController::ShowCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::ShowCurrentInput");
-        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
-            return service->ShowCurrentInputDeprecated(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->ShowCurrentInputDeprecated(data);
         });
     }
 
@@ -288,8 +288,8 @@ using namespace MessageID;
     int32_t InputMethodController::DisplayOptionalInputMethod()
     {
         IMSA_HILOGI("InputMethodController::DisplayOptionalInputMethod");
-        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
-            return service->DisplayOptionalInputMethodDeprecated(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->DisplayOptionalInputMethodDeprecated(data);
         });
     }
 
@@ -555,24 +555,24 @@ using namespace MessageID;
     int32_t InputMethodController::ShowSoftKeyboard()
     {
         IMSA_HILOGI("InputMethodController ShowSoftKeyboard");
-        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
-            return service->ShowCurrentInput(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->ShowCurrentInput(data);
         });
     }
 
     int32_t InputMethodController::HideSoftKeyboard()
     {
         IMSA_HILOGI("InputMethodController HideSoftKeyboard");
-        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
-            return service->HideCurrentInput(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->HideCurrentInput(data);
         });
     }
 
     int32_t InputMethodController::ShowOptionalInputMethod()
     {
         IMSA_HILOGI("InputMethodController::ShowOptionalInputMethod");
-        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &service, MessageParcel &data) -> int32_t {
-            return service->displayOptionalInputMethod(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->displayOptionalInputMethod(data);
         });
     }
 
@@ -580,17 +580,17 @@ using namespace MessageID;
         std::function<int32_t(sptr<IInputMethodSystemAbility> &, MessageParcel &)> callback)
     {
         IMSA_HILOGI("InputMethodController::SendDataToByProxy");
-        sptr<IInputMethodSystemAbility> service = mImms;
-        if (service == nullptr) {
-            IMSA_HILOGE("service is nullptr");
-            return ErrorCode::ERROR_STATUS_BAD_VALUE;
+        sptr<IInputMethodSystemAbility> proxy = mImms;
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor()))) {
             IMSA_HILOGE("write descriptor failed");
-            return ErrorCode::ERROR_STATUS_BAD_VALUE;
+            return ErrorCode::ERROR_STATUS_FAILED_TRANSACTION;
         }
-        return callback(service, data);
+        return callback(proxy, data);
     }
 } // namespace MiscServices
 } // namespace OHOS

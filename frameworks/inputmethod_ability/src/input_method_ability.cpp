@@ -105,7 +105,6 @@ namespace MiscServices {
         }
         sptr<InputMethodCoreStub> stub = new InputMethodCoreStub(0);
         stub->SetMessageHandler(msgHandler);
-        sptr<IInputMethodCore> stub2 = stub;
 
         sptr<InputMethodAgentStub> inputMethodAgentStub(new InputMethodAgentStub());
         inputMethodAgentStub->SetMessageHandler(msgHandler);
@@ -113,7 +112,7 @@ namespace MiscServices {
 
         MessageParcel data;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
-            && data.WriteRemoteObject(stub2->AsObject())
+            && data.WriteRemoteObject(stub->AsObject())
             && data.WriteRemoteObject(inputMethodAgent->AsObject()))) {
             return;
         }
@@ -554,7 +553,6 @@ namespace MiscServices {
         }
         sptr<InputMethodCoreStub> stub = new InputMethodCoreStub(0);
         stub->SetMessageHandler(msgHandler);
-        sptr<IInputMethodCore> stub2 = stub;
 
         sptr<InputMethodAgentStub> inputMethodAgentStub(new InputMethodAgentStub());
         inputMethodAgentStub->SetMessageHandler(msgHandler);
@@ -562,7 +560,7 @@ namespace MiscServices {
 
         MessageParcel data;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
-              && data.WriteRemoteObject(stub2->AsObject())
+              && data.WriteRemoteObject(stub->AsObject())
               && data.WriteRemoteObject(inputMethodAgent->AsObject()))) {
             return;
         }

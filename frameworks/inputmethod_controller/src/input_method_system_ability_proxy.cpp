@@ -460,7 +460,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbilityProxy::SendRequestToService");
         MessageParcel reply;
-        MessageOption option;
+        MessageOption option{ MessageOption::TF_SYNC };
         auto ret = Remote()->SendRequest(code, data, reply, option);
         if (ret != NO_ERROR) {
             IMSA_HILOGE("SendRequest failed");
