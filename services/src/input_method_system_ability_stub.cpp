@@ -134,13 +134,13 @@ namespace MiscServices {
                 break;
             }
             case DISPLAY_OPTIONAL_INPUT_METHOD: {
-                displayOptionalInputMethod(data);
-                reply.WriteInt32(NO_ERROR);
+                int32_t ret = displayOptionalInputMethod(data);
+                reply.WriteInt32(ret);
                 break;
             }
             case HIDE_CURRENT_INPUT: {
-                HideCurrentInput(data);
-                reply.WriteInt32(NO_ERROR);
+                int32_t ret = HideCurrentInput(data);
+                reply.WriteInt32(ret);
                 break;
             }
             case SHOW_CURRENT_INPUT: {
