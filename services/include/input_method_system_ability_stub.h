@@ -42,6 +42,7 @@ namespace MiscServices {
         virtual std::vector<InputMethodProperty> ListInputMethodByUserId(int32_t userId, InputMethodStatus status) = 0;
         int32_t OnSwitchInputMethod(MessageParcel &data);
 
+        // Deprecated because of no permission check, kept for compatibility
         int32_t DisplayOptionalInputMethodDeprecated(MessageParcel &data) override;
         int32_t HideCurrentInputDeprecated(MessageParcel &data) override;
         int32_t ShowCurrentInputDeprecated(MessageParcel &data) override;
