@@ -430,9 +430,6 @@ namespace MiscServices {
             return false;
         }
         int result = AccessTokenKit::VerifyAccessToken(tokenId, permission);
-        if (result != PERMISSION_GRANTED) {
-            IMSA_HILOGE("grant failed, result: %{public}d", result);
-        }
         IMSA_HILOGI("CheckPermission result: %{public}s", result == PERMISSION_GRANTED ? "success" : "failed");
         return result == PERMISSION_GRANTED;
     }
