@@ -17,12 +17,16 @@
 
 #include <memory>
 
+#include "access_token.h"
+#include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
 #include "message_handler.h"
 
 namespace OHOS {
 namespace MiscServices {
     using namespace MessageID;
+    using namespace Security::AccessToken;
+    static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
     /*! Handle the transaction from the remote binder
     \n Run in binder thread
     \param code transaction code number
@@ -65,9 +69,7 @@ namespace MiscServices {
                 break;
             }
             case SET_CORE_AND_AGENT: {
-                MessageParcel *msgParcel = (MessageParcel*) &data;
-                SetCoreAndAgent(*msgParcel);
-                reply.WriteInt32(NO_ERROR);
+                SetCoreAndAgent(data);
                 break;
             }
             case GET_DISPLAY_MODE: {
@@ -132,13 +134,13 @@ namespace MiscServices {
                 break;
             }
             case DISPLAY_OPTIONAL_INPUT_METHOD: {
-                displayOptionalInputMethod(data);
-                reply.WriteInt32(NO_ERROR);
+                int32_t ret = displayOptionalInputMethod(data);
+                reply.WriteInt32(ret);
                 break;
             }
             case HIDE_CURRENT_INPUT: {
-                HideCurrentInput(data);
-                reply.WriteInt32(NO_ERROR);
+                int32_t ret = HideCurrentInput(data);
+                reply.WriteInt32(ret);
                 break;
             }
             case SHOW_CURRENT_INPUT: {
@@ -153,6 +155,25 @@ namespace MiscServices {
             }
             case GET_CURRENT_INPUT_METHOD: {
                 OnGetCurrentInputMethod(reply);
+                break;
+            }
+            case SHOW_CURRENT_INPUT_DEPRECATED: {
+                int32_t ret = ShowCurrentInputDeprecated(data);
+                reply.WriteInt32(ret);
+                break;
+            }
+            case HIDE_CURRENT_INPUT_DEPRECATED: {
+                int32_t ret = HideCurrentInputDeprecated(data);
+                reply.WriteInt32(ret);
+                break;
+            }
+            case DISPLAY_OPTIONAL_INPUT_METHOD_DEPRECATED: {
+                int ret = DisplayOptionalInputMethodDeprecated(data);
+                reply.WriteInt32(ret);
+                break;
+            }
+            case SET_CORE_AND_AGENT_DEPRECATED: {
+                SetCoreAndAgentDeprecated(data);
                 break;
             }
             default: {
@@ -190,17 +211,17 @@ namespace MiscServices {
     int32_t InputMethodSystemAbilityStub::displayOptionalInputMethod(MessageParcel& data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::displayOptionalInputMethod");
+        if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
+            IMSA_HILOGE("Permission denied");
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         int32_t pid = IPCSkeleton::GetCallingPid();
         int32_t uid = IPCSkeleton::GetCallingUid();
         int32_t userId = getUserId(uid);
-        MessageParcel *parcel = new MessageParcel();
-        parcel->WriteInt32(userId);
-        parcel->WriteInt32(pid);
-        parcel->WriteInt32(uid);
-
-        Message *msg = new Message(MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD, parcel);
-        MessageHandler::Instance()->SendMessage(msg);
-        return ErrorCode::NO_ERROR;
+        return SendMessageToService(
+            MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD, [pid, uid, userId](MessageParcel &parcel) -> bool {
+                return parcel.WriteInt32(userId) && parcel.WriteInt32(pid) && parcel.WriteInt32(uid);
+            });
     }
 
     /*! Release input
@@ -268,6 +289,10 @@ namespace MiscServices {
     void InputMethodSystemAbilityStub::SetCoreAndAgent(MessageParcel& data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::SetCoreAndAgent");
+        if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
+            IMSA_HILOGE("Permission denied");
+            return;
+        }
         int32_t uid = IPCSkeleton::GetCallingUid();
         int32_t userId = getUserId(uid);
         MessageParcel *parcel = new MessageParcel();
@@ -279,37 +304,28 @@ namespace MiscServices {
         MessageHandler::Instance()->SendMessage(msg);
     }
 
-    int32_t InputMethodSystemAbilityStub::HideCurrentInput(MessageParcel& data)
+    int32_t InputMethodSystemAbilityStub::HideCurrentInput(MessageParcel &data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::HideCurrentInput");
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        int32_t userId = getUserId(uid);
-        MessageParcel *parcel = new MessageParcel();
-        parcel->WriteInt32(userId);
-
-        Message *msg = new Message(MSG_HIDE_CURRENT_INPUT, parcel);
-        MessageHandler::Instance()->SendMessage(msg);
-        return ErrorCode::NO_ERROR;
+        if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
+            IMSA_HILOGE("Permission denied");
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
+        int userId = getUserId(IPCSkeleton::GetCallingUid());
+        return SendMessageToService(
+            MSG_HIDE_CURRENT_INPUT, [userId](MessageParcel &parcel) -> bool { return parcel.WriteInt32(userId); });
     }
 
     int32_t InputMethodSystemAbilityStub::ShowCurrentInput(MessageParcel &data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityStub::ShowCurrentInput");
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        int32_t userId = getUserId(uid);
-
-        auto *parcel = new (std::nothrow) MessageParcel();
-        if (parcel == nullptr) {
-            return ErrorCode::ERROR_EX_NULL_POINTER;
+        if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
+            IMSA_HILOGE("Permission denied");
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
         }
-        parcel->WriteInt32(userId);
-
-        auto *msg = new (std::nothrow) Message(MSG_SHOW_CURRENT_INPUT, parcel);
-        if (msg == nullptr) {
-            return ErrorCode::ERROR_EX_NULL_POINTER;
-        }
-        MessageHandler::Instance()->SendMessage(msg);
-        return ErrorCode::NO_ERROR;
+        int userId = getUserId(IPCSkeleton::GetCallingUid());
+        return SendMessageToService(
+            MSG_SHOW_CURRENT_INPUT, [userId](MessageParcel &parcel) -> bool { return parcel.WriteInt32(userId); });
     }
 
     int32_t InputMethodSystemAbilityStub::OnSwitchInputMethod(MessageParcel &data)
@@ -329,6 +345,7 @@ namespace MiscServices {
 
         auto *msg = new (std::nothrow) Message(MSG_ID_SWITCH_INPUT_METHOD, parcel);
         if (msg == nullptr) {
+            delete parcel;
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
         MessageHandler::Instance()->SendMessage(msg);
@@ -360,6 +377,85 @@ namespace MiscServices {
         for (const auto &property : properties) {
             reply.WriteParcelable(&property);
         }
+    }
+
+    int32_t InputMethodSystemAbilityStub::ShowCurrentInputDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityStub::ShowCurrentInputDeprecated");
+        int userId = getUserId(IPCSkeleton::GetCallingUid());
+        return SendMessageToService(
+            MSG_SHOW_CURRENT_INPUT, [userId](MessageParcel &parcel) -> bool { return parcel.WriteInt32(userId); });
+    }
+
+    int32_t InputMethodSystemAbilityStub::HideCurrentInputDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityStub::HideCurrentInputDeprecated");
+        int userId = getUserId(IPCSkeleton::GetCallingUid());
+        return SendMessageToService(
+            MSG_HIDE_CURRENT_INPUT, [userId](MessageParcel &parcel) -> bool { return parcel.WriteInt32(userId); });
+    }
+
+    int32_t InputMethodSystemAbilityStub::DisplayOptionalInputMethodDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityStub::DisplayOptionalInputMethodDeprecated");
+        int32_t pid = IPCSkeleton::GetCallingPid();
+        int32_t uid = IPCSkeleton::GetCallingUid();
+        int32_t userId = getUserId(uid);
+        return SendMessageToService(
+            MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD, [pid, uid, userId](MessageParcel &parcel) -> bool {
+                return parcel.WriteInt32(userId) && parcel.WriteInt32(pid) && parcel.WriteInt32(uid);
+            });
+    }
+
+    void InputMethodSystemAbilityStub::SetCoreAndAgentDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityStub::SetCoreAndAgentDeprecated");
+        int32_t userId = getUserId(IPCSkeleton::GetCallingUid());
+        int32_t ret = SendMessageToService(MSG_ID_SET_CORE_AND_AGENT, [userId, &data](MessageParcel &parcel) -> bool {
+            return parcel.WriteInt32(userId) && parcel.WriteRemoteObject(data.ReadRemoteObject())
+                   && parcel.WriteRemoteObject(data.ReadRemoteObject());
+        });
+        if (ret != NO_ERROR) {
+            IMSA_HILOGE("send message to service failed: %{public}s", ErrorCode::ToString(ret));
+        }
+    }
+
+    bool InputMethodSystemAbilityStub::CheckPermission(const std::string &permission)
+    {
+        IMSA_HILOGI("Check Permission");
+        AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
+        TypeATokenTypeEnum tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
+        if (tokenType == TOKEN_INVALID) {
+            IMSA_HILOGE("invalid token id %{public}d", tokenId);
+            return false;
+        }
+        int result = AccessTokenKit::VerifyAccessToken(tokenId, permission);
+        IMSA_HILOGI("CheckPermission result: %{public}s", result == PERMISSION_GRANTED ? "success" : "failed");
+        return result == PERMISSION_GRANTED;
+    }
+
+    int32_t InputMethodSystemAbilityStub::SendMessageToService(
+        int32_t code, std::function<bool(MessageParcel &)> callback)
+    {
+        auto parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        bool ret = callback(*parcel);
+        if (!ret) {
+            IMSA_HILOGE("failed to write parcel");
+            delete parcel;
+            return ErrorCode::ERROR_STATUS_FAILED_TRANSACTION;
+        }
+        auto msg = new Message(code, parcel);
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
+            delete parcel;
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        MessageHandler::Instance()->SendMessage(msg);
+        return ErrorCode::NO_ERROR;
     }
 
     /*! Get user id from uid

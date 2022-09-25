@@ -67,8 +67,15 @@ namespace MiscServices {
         int32_t listKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types) override;
         int32_t SwitchInputMethod(const InputMethodProperty &target) override;
 
+        // Deprecated because of no permission check, kept for compatibility
+        int32_t DisplayOptionalInputMethodDeprecated(MessageParcel &data) override;
+        int32_t HideCurrentInputDeprecated(MessageParcel &data) override;
+        int32_t ShowCurrentInputDeprecated(MessageParcel &data) override;
+        void SetCoreAndAgentDeprecated(MessageParcel &data) override;
+
     private:
         static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;
+        int32_t SendRequestToService(MessageParcel &data, uint32_t code);
     };
 } // namespace MiscServices
 } // namespace OHOS

@@ -73,17 +73,22 @@ namespace MiscServices {
         void OnSelectionChange(std::u16string text, int start, int end);
         void OnConfigurationChange(Configuration info);
         bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
-        int32_t DisplayOptionalInputMethod();
         std::vector<Property> ListInputMethodCommon(InputMethodStatus status);
         std::vector<Property> ListInputMethod();
         std::vector<Property> ListInputMethod(bool enable);
         int32_t GetEnterKeyType();
         int32_t GetInputPattern();
         std::shared_ptr<Property> GetCurrentInputMethod();
-        int32_t HideCurrentInput();
-        int32_t ShowCurrentInput();
         void SetCallingWindow(uint32_t windowId);
         int32_t SwitchInputMethod(const Property &target);
+        int32_t ShowSoftKeyboard();
+        int32_t HideSoftKeyboard();
+        int32_t ShowOptionalInputMethod();
+
+        // Deprecated innerkits with no permission check, kept for compatibility
+        int32_t ShowCurrentInput();
+        int32_t HideCurrentInput();
+        int32_t DisplayOptionalInputMethod();
 
     private:
         InputMethodController();
@@ -99,6 +104,7 @@ namespace MiscServices {
         void SetInputMethodAgent(sptr<IRemoteObject> &object);
         std::shared_ptr<IInputMethodAgent> GetInputMethodAgent();
         void WorkThread();
+        int32_t SendDataByProxy(std::function<int32_t(sptr<IInputMethodSystemAbility> &, MessageParcel &)> callback);
 
         sptr<IInputDataChannel> mInputDataChannel;
         sptr<IInputClient> mClient;

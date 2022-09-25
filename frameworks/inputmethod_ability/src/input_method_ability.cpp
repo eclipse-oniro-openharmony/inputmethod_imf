@@ -105,7 +105,6 @@ namespace MiscServices {
         }
         sptr<InputMethodCoreStub> stub = new InputMethodCoreStub(0);
         stub->SetMessageHandler(msgHandler);
-        sptr<IInputMethodCore> stub2 = stub;
 
         sptr<InputMethodAgentStub> inputMethodAgentStub(new InputMethodAgentStub());
         inputMethodAgentStub->SetMessageHandler(msgHandler);
@@ -113,11 +112,11 @@ namespace MiscServices {
 
         MessageParcel data;
         if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
-            && data.WriteRemoteObject(stub2->AsObject())
+            && data.WriteRemoteObject(stub->AsObject())
             && data.WriteRemoteObject(inputMethodAgent->AsObject()))) {
             return;
         }
-        mImms->SetCoreAndAgent(data);
+        mImms->SetCoreAndAgentDeprecated(data);
     }
 
     void InputMethodAbility::Initialize()
@@ -542,6 +541,30 @@ namespace MiscServices {
         if (listener != nullptr) {
             listener->OnInputStop(ParaHandle::GetDefaultIme(Utils::ToUserId(IPCSkeleton::GetCallingUid())));
         }
+    }
+
+    void InputMethodAbility::BindServiceAndClient()
+    {
+        IMSA_HILOGI("InputMethodAbility::BindServiceAndClient");
+        mImms = GetImsaProxy();
+        if (mImms == nullptr) {
+            IMSA_HILOGI("mImms is nullptr");
+            return;
+        }
+        sptr<InputMethodCoreStub> stub = new InputMethodCoreStub(0);
+        stub->SetMessageHandler(msgHandler);
+
+        sptr<InputMethodAgentStub> inputMethodAgentStub(new InputMethodAgentStub());
+        inputMethodAgentStub->SetMessageHandler(msgHandler);
+        sptr<IInputMethodAgent> inputMethodAgent = sptr(new InputMethodAgentProxy(inputMethodAgentStub));
+
+        MessageParcel data;
+        if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
+              && data.WriteRemoteObject(stub->AsObject())
+              && data.WriteRemoteObject(inputMethodAgent->AsObject()))) {
+            return;
+        }
+        mImms->SetCoreAndAgent(data);
     }
 } // namespace MiscServices
 } // namespace OHOS

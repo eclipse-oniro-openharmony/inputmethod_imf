@@ -46,21 +46,8 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbilityProxy::displayOptionalInputMethod(MessageParcel& data)
     {
-        MessageParcel reply;
-        MessageOption option;
-
-        auto ret = Remote()->SendRequest(DISPLAY_OPTIONAL_INPUT_METHOD, data, reply, option);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::displayOptionalInputMethod SendRequest failed");
-            return ret;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::displayOptionalInputMethod reply failed");
-            return ret;
-        }
-        return ErrorCode::NO_ERROR;
+        IMSA_HILOGI("InputMethodSystemAbilityProxy::displayOptionalInputMethod");
+        return SendRequestToService(data, DISPLAY_OPTIONAL_INPUT_METHOD);
     }
 
     void InputMethodSystemAbilityProxy::releaseInput(MessageParcel& data)
@@ -119,60 +106,26 @@ namespace MiscServices {
         }
     }
 
-    void InputMethodSystemAbilityProxy::SetCoreAndAgent(MessageParcel& data)
+    void InputMethodSystemAbilityProxy::SetCoreAndAgent(MessageParcel &data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityProxy::SetCoreAndAgent");
-
-        auto remote = Remote();
-        if (!remote) {
-            return;
-        }
         MessageParcel reply;
-        MessageOption option {
-            MessageOption::TF_SYNC
-        };
-
-        Remote()->SendRequest(SET_CORE_AND_AGENT, data, reply, option);
+        MessageOption option{ MessageOption::TF_SYNC };
+        if (Remote()->SendRequest(SET_CORE_AND_AGENT, data, reply, option) != NO_ERROR) {
+            IMSA_HILOGE("SendRequest failed");
+        }
     }
 
     int32_t InputMethodSystemAbilityProxy::HideCurrentInput(MessageParcel& data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInput");
-        MessageParcel reply;
-        MessageOption option;
-
-        auto ret = Remote()->SendRequest(HIDE_CURRENT_INPUT, data, reply, option);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInput SendRequest failed");
-            return ErrorCode::ERROR_KBD_HIDE_FAILED;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInput reply failed");
-            return ErrorCode::ERROR_KBD_HIDE_FAILED;
-        }
-        return ErrorCode::NO_ERROR;
+        return SendRequestToService(data, HIDE_CURRENT_INPUT);
     }
 
     int32_t InputMethodSystemAbilityProxy::ShowCurrentInput(MessageParcel &data)
     {
         IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInput");
-        MessageParcel reply;
-        MessageOption option;
-
-        auto ret = Remote()->SendRequest(SHOW_CURRENT_INPUT, data, reply, option);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInput SendRequest failed");
-            return ErrorCode::ERROR_KBD_SHOW_FAILED;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInput reply failed");
-            return ErrorCode::ERROR_KBD_SHOW_FAILED;
-        }
-        return ErrorCode::NO_ERROR;
+        return SendRequestToService(data, SHOW_CURRENT_INPUT);
     }
 
     int32_t InputMethodSystemAbilityProxy::Prepare(int32_t displayId, sptr<InputClientStub> &client,
@@ -472,6 +425,51 @@ namespace MiscServices {
             return ERROR_STATUS_FAILED_TRANSACTION;
         }
         ret = reply.ReadInt32();
+        return ret;
+    }
+
+    int32_t InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated");
+        return SendRequestToService(data, SHOW_CURRENT_INPUT_DEPRECATED);
+    }
+
+    int32_t InputMethodSystemAbilityProxy::HideCurrentInputDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInputDeprecated");
+        return SendRequestToService(data, HIDE_CURRENT_INPUT_DEPRECATED);
+    }
+
+    int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethodDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityProxy::DisplayOptionalInputMethodDeprecated");
+        return SendRequestToService(data, DISPLAY_OPTIONAL_INPUT_METHOD_DEPRECATED);
+    }
+
+    void InputMethodSystemAbilityProxy::SetCoreAndAgentDeprecated(MessageParcel &data)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityProxy::SetCoreAndAgentDeprecated");
+        MessageParcel reply;
+        MessageOption option{ MessageOption::TF_SYNC };
+        if (Remote()->SendRequest(SET_CORE_AND_AGENT_DEPRECATED, data, reply, option) != NO_ERROR) {
+            IMSA_HILOGE("SendRequest failed");
+        }
+    }
+
+    int32_t InputMethodSystemAbilityProxy::SendRequestToService(MessageParcel &data, uint32_t code)
+    {
+        IMSA_HILOGI("InputMethodSystemAbilityProxy::SendRequestToService");
+        MessageParcel reply;
+        MessageOption option{ MessageOption::TF_SYNC };
+        auto ret = Remote()->SendRequest(code, data, reply, option);
+        if (ret != NO_ERROR) {
+            IMSA_HILOGE("SendRequest failed");
+            return ret;
+        }
+        ret = reply.ReadInt32();
+        if (ret != NO_ERROR) {
+            IMSA_HILOGE("reply error");
+        }
         return ret;
     }
 } // namespace MiscServices

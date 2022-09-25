@@ -246,27 +246,17 @@ using namespace MessageID;
     int32_t InputMethodController::HideCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::HideCurrentInput");
-        if (!mImms) {
-            return ErrorCode::ERROR_KBD_HIDE_FAILED;
-        }
-        MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            return ErrorCode::ERROR_KBD_HIDE_FAILED;
-        }
-        return mImms->HideCurrentInput(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->HideCurrentInputDeprecated(data);
+        });
     }
 
     int32_t InputMethodController::ShowCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::ShowCurrentInput");
-        if (!mImms) {
-            return ErrorCode::ERROR_KBD_SHOW_FAILED;
-        }
-        MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            return ErrorCode::ERROR_KBD_SHOW_FAILED;
-        }
-        return mImms->ShowCurrentInput(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->ShowCurrentInputDeprecated(data);
+        });
     }
 
     void InputMethodController::Close()
@@ -298,14 +288,9 @@ using namespace MessageID;
     int32_t InputMethodController::DisplayOptionalInputMethod()
     {
         IMSA_HILOGI("InputMethodController::DisplayOptionalInputMethod");
-        if (!mImms) {
-            return ErrorCode::ERROR_STATUS_BAD_VALUE;
-        }
-        MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
-            return ErrorCode::ERROR_STATUS_BAD_VALUE;
-        }
-        return mImms->displayOptionalInputMethod(data);
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->DisplayOptionalInputMethodDeprecated(data);
+        });
     }
 
     std::vector<Property> InputMethodController::ListInputMethodCommon(InputMethodStatus status)
@@ -565,6 +550,47 @@ using namespace MessageID;
     {
         std::lock_guard<std::mutex> lock(agentLock_);
         return mAgent;
+    }
+
+    int32_t InputMethodController::ShowSoftKeyboard()
+    {
+        IMSA_HILOGI("InputMethodController ShowSoftKeyboard");
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->ShowCurrentInput(data);
+        });
+    }
+
+    int32_t InputMethodController::HideSoftKeyboard()
+    {
+        IMSA_HILOGI("InputMethodController HideSoftKeyboard");
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->HideCurrentInput(data);
+        });
+    }
+
+    int32_t InputMethodController::ShowOptionalInputMethod()
+    {
+        IMSA_HILOGI("InputMethodController::ShowOptionalInputMethod");
+        return SendDataByProxy([](sptr<IInputMethodSystemAbility> &proxy, MessageParcel &data) -> int32_t {
+            return proxy->displayOptionalInputMethod(data);
+        });
+    }
+
+    int32_t InputMethodController::SendDataByProxy(
+        std::function<int32_t(sptr<IInputMethodSystemAbility> &, MessageParcel &)> callback)
+    {
+        IMSA_HILOGI("InputMethodController::SendDataToByProxy");
+        sptr<IInputMethodSystemAbility> proxy = mImms;
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        MessageParcel data;
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor()))) {
+            IMSA_HILOGE("write descriptor failed");
+            return ErrorCode::ERROR_STATUS_FAILED_TRANSACTION;
+        }
+        return callback(proxy, data);
     }
 } // namespace MiscServices
 } // namespace OHOS

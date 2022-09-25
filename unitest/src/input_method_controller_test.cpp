@@ -275,6 +275,48 @@ namespace MiscServices {
     }
 
     /**
+    * @tc.name: testShowSoftKeyboard
+    * @tc.desc: IMC ShowSoftKeyboard
+    * @tc.type: FUNC
+    */
+    HWTEST_F(InputMethodControllerTest, testShowSoftKeyboard, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_NE(imc, nullptr);
+        int32_t ret = imc->ShowSoftKeyboard();
+        EXPECT_NE(ret, 0);
+    }
+
+    /**
+     * @tc.name: testHideSoftKeyboard
+     * @tc.desc: IMC HideSoftKeyboard
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodControllerTest, testHideSoftKeyboard, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC HideSoftKeyboard Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_NE(imc, nullptr);
+        int32_t ret = imc->HideSoftKeyboard();
+        EXPECT_NE(ret, 0);
+    }
+
+    /**
+     * @tc.name: testShowOptionalInputMethod
+     * @tc.desc: IMC ShowOptionalInputMethod
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodControllerTest, testShowOptionalInputMethod, TestSize.Level2)
+    {
+        IMSA_HILOGI("IMC ShowOptionalInputMethod Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_NE(imc, nullptr);
+        int32_t ret = imc->ShowOptionalInputMethod();
+        EXPECT_NE(ret, 0);
+    }
+
+    /**
      * @tc.name: testIMCGetCurrentInputMethod
      * @tc.desc: IMC GetCurrentInputMethod
      * @tc.type: FUNC
@@ -323,28 +365,6 @@ namespace MiscServices {
         IMSA_HILOGI("Test list enabled input method");
         properties = imc->ListInputMethod(true);
         EXPECT_TRUE(!properties.empty());
-    }
-
-    /**
-    * @tc.name: testIMSAProxyShowCurrentInput
-    * @tc.desc: IMSAProxy ShowCurrentInput.
-    * @tc.type: FUNC
-    * @tc.require: issueI5NXHK
-    */
-    HWTEST_F(InputMethodControllerTest, testIMSAProxyShowCurrentInput, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMSAProxy ShowCurrentInput Test START");
-        sptr<ISystemAbilityManager> systemAbilityManager =
-            SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-
-        auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
-
-        sptr<InputMethodSystemAbilityProxy> imsaProxy = new InputMethodSystemAbilityProxy(systemAbility);
-
-        MessageParcel data;
-        data.WriteInterfaceToken(imsaProxy->GetDescriptor());
-        int32_t ret = imsaProxy->ShowCurrentInput(data);
-        EXPECT_TRUE(ret == 0);
     }
 
     /**
