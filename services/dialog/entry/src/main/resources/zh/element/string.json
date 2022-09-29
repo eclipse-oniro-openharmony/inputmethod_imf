@@ -1,0 +1,20 @@
+{
+  "string": [
+    {
+      "name": "entry_desc",
+      "value": "description"
+    },
+    {
+      "name": "ServiceExtAbility_desc",
+      "value": "InputMethodChoose Dialog"
+    },
+    {
+      "name": "ServiceExtAbility_label",
+      "value": "InputMethodChooseDialog"
+    },
+    {
+      "name": "dialogTitle",
+      "value": "选择输入法"
+    }
+  ]
+}

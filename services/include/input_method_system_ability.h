@@ -110,6 +110,9 @@ namespace MiscServices {
         static sptr<InputMethodSystemAbility> instance_;
         static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
         int32_t userId_;
+        static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
+        static constexpr const char *SELECT_DIALOG_HAP = "cn.openharmony.inputmethodchoosedialog";
+        static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
     };
 } // namespace MiscServices
 } // namespace OHOS

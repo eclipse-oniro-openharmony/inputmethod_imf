@@ -10,16 +10,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import("//foundation/arkui/ace_engine/build/ace_gen_sa_dialog_js.gni")
 
-gen_sa_dialog_js("dialog_ime_js_files_etc") {
-  project_path = "//base/inputmethod/imf/services/dialog/js/"
-  i18n_files = [
-    "i18n/en-US.json",
-    "i18n/zh-CN.json",
-  ]
-  common_files = []
-  dialog_name = "input_method_choose_dialog"
-  part_name = "imf"
-  subsystem_name = "inputmethod"
+import("//build/ohos.gni")
+
+ohos_prebuilt_etc("input_method_choose_hap") {
+  module_install_dir = "app/cn.openharmony.inputmethodchoosedialog"
+  source = "input_method_choose_dialog.hap"
+  part_name = "prebuilt_hap"
+  subsystem_name = "application"
+}
+
+group("input_method_choose_dialog") {
+  deps = [ ":input_method_choose_hap"]
 }
