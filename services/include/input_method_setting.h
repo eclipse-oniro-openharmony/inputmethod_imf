@@ -55,6 +55,7 @@ namespace MiscServices {
         void ClearData();
         bool FindKey(const std::u16string& key) const;
 
+        bool Marshalling(Parcel &parcel) const override;
     private:
         std::map<std::u16string, std::u16string> setting;
         const char16_t DELIM_IME = ':';

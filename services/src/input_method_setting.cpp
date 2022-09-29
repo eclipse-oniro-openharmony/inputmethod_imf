@@ -58,6 +58,15 @@ namespace MiscServices {
         return *this;
     }
 
+    /*! Write setting data to parcel
+    \param[out] parcel the setting data is written to parcel returned to caller.
+    \return ErrorCode::NO_ERROR
+    */
+    bool InputMethodSetting::Marshalling(OHOS::Parcel &parcel) const
+    {
+        return true;
+    }
+
     /*! Set setting data for an item
     \param key the name of setting item
     \param value the value of setting item
