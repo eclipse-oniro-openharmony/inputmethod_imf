@@ -89,7 +89,7 @@ namespace MiscServices {
 
         size_t readAbleSize = parcel.GetReadableBytes() / (sizeof(std::u16string) * 2);
         size_t len = static_cast<size_t>(size);
-        if((len > readAbleSize) || (len > mTypes.max_size())) {
+        if(len > readAbleSize) {
             return ims;
         }
 

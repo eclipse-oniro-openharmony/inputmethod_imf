@@ -138,7 +138,7 @@ namespace MiscServices {
 
         size_t readAbleSize = parcel.GetReadableBytes() / sizeof(KeyboardType);
         size_t len = static_cast<size_t>(size);
-        if((len > readAbleSize) || (len > mTypes.max_size())) {
+        if(len > readAbleSize) {
             return info;
         }
 
