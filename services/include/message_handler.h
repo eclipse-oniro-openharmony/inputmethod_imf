@@ -58,6 +58,7 @@ namespace MessageID {
         MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD,
         MSG_ID_ADVANCE_TO_NEXT, // switch to next
         MSG_ID_SET_DISPLAY_MODE, // set display mode
+        MSG_ID_START_INPUT_SERVICE,
 
         MSG_ID_SHELL_COMMAND, // shell command
         MSG_ID_EXIT_SERVICE, // exit service

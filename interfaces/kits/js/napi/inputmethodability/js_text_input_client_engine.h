@@ -24,7 +24,7 @@ namespace OHOS {
 namespace MiscServices {
 struct SendKeyFunctionContext : public AsyncCall::Context {
     bool isSendKeyFunction = false;
-    int32_t action;
+    int32_t action = 0;
     napi_status status = napi_generic_failure;
     SendKeyFunctionContext() : Context(nullptr, nullptr) { };
     SendKeyFunctionContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
@@ -66,7 +66,7 @@ struct MoveCursorContext : public AsyncCall::Context {
 
 struct DeleteForwardContext : public AsyncCall::Context {
     bool isDeleteForward = false;
-    int32_t length;
+    int32_t length = 0;
     napi_status status = napi_generic_failure;
     DeleteForwardContext() : Context(nullptr, nullptr) { };
     DeleteForwardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
@@ -87,7 +87,7 @@ struct DeleteForwardContext : public AsyncCall::Context {
 
 struct DeleteBackwardContext : public AsyncCall::Context {
     bool isDeleteBackward = false;
-    int32_t length;
+    int32_t length = 0;
     napi_status status = napi_generic_failure;
     DeleteBackwardContext() : Context(nullptr, nullptr) { };
     DeleteBackwardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
@@ -128,7 +128,7 @@ struct InsertTextContext : public AsyncCall::Context {
 };
 
 struct GetForwardContext : public AsyncCall::Context {
-    int32_t length;
+    int32_t length = 0;
     std::string text;
     napi_status status = napi_generic_failure;
     GetForwardContext() : Context(nullptr, nullptr) { };
@@ -149,7 +149,7 @@ struct GetForwardContext : public AsyncCall::Context {
 };
 
 struct GetBackwardContext : public AsyncCall::Context {
-    int32_t length;
+    int32_t length = 0;
     std::string text;
     napi_status status = napi_generic_failure;
     GetBackwardContext() : Context(nullptr, nullptr) { };
@@ -196,14 +196,14 @@ public:
     JsTextInputClientEngine() = default;
     ~JsTextInputClientEngine() = default;
     static napi_value Init(napi_env env, napi_value info);
-    static napi_value SendKeyFunction(napi_env env, napi_callback_info Info);
-    static napi_value DeleteForward(napi_env env, napi_callback_info Info);
-    static napi_value DeleteBackward(napi_env env, napi_callback_info Info);
-    static napi_value InsertText(napi_env env, napi_callback_info Info);
-    static napi_value GetForward(napi_env env, napi_callback_info Info);
-    static napi_value GetBackward(napi_env env, napi_callback_info Info);
+    static napi_value SendKeyFunction(napi_env env, napi_callback_info info);
+    static napi_value DeleteForward(napi_env env, napi_callback_info info);
+    static napi_value DeleteBackward(napi_env env, napi_callback_info info);
+    static napi_value InsertText(napi_env env, napi_callback_info info);
+    static napi_value GetForward(napi_env env, napi_callback_info info);
+    static napi_value GetBackward(napi_env env, napi_callback_info info);
     static napi_value MoveCursor(napi_env env, napi_callback_info info);
-    static napi_value GetEditorAttribute(napi_env env, napi_callback_info Info);
+    static napi_value GetEditorAttribute(napi_env env, napi_callback_info info);
     static napi_value GetTextInputClientInstance(napi_env env);
 private:
     static napi_status GetAction(napi_env env, napi_value argv,

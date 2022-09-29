@@ -16,6 +16,7 @@
 #ifndef SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_H
 #define SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_H
 
+#include <atomic>
 #include <thread>
 #include <map>
 #include "system_ability.h"
@@ -57,6 +58,7 @@ namespace MiscServices {
         std::vector<InputMethodProperty> ListInputMethod(InputMethodStatus stauts) override;
         std::vector<InputMethodProperty> ListInputMethodByUserId(int32_t userId, InputMethodStatus status) override;
         int32_t listKeyboardType(const std::u16string &imeId, std::vector<KeyboardType *> *types) override;
+        int32_t SwitchInputMethod(const InputMethodProperty &target) override;
         int Dump(int fd, const std::vector<std::u16string> &args) override;
         void DumpAllMethod(int fd);
 
@@ -103,6 +105,7 @@ namespace MiscServices {
         std::string GetInputMethodParam(const std::vector<InputMethodProperty> &properties);
         ServiceRunningState state_;
         void InitServiceHandler();
+        std::atomic_flag dialogLock_ = ATOMIC_FLAG_INIT;
         static std::mutex instanceLock_;
         static sptr<InputMethodSystemAbility> instance_;
         static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;

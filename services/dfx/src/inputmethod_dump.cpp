@@ -30,7 +30,7 @@ constexpr int32_t SUB_CMD_NAME = 0;
 constexpr int32_t CMD_ONE_PARAM = 1;
 constexpr const char *CMD_HELP = "-h";
 constexpr const char *CMD_ALL_DUMP = "-a";
-static const std::string illegalInfo = "input dump parameter error,enter '-h' for usage.\n";
+static const std::string ILLEGAL_INFO = "input dump parameter error,enter '-h' for usage.\n";
 
 void InputmethodDump::AddDumpAllMethod(const DumpNoParamFunc dumpAllMethod)
 {
@@ -86,7 +86,7 @@ void InputmethodDump::ShowHelp(int fd)
 
 void InputmethodDump::ShowIllealInfomation(int fd)
 {
-    dprintf(fd, "%s\n", illegalInfo.c_str());
+    dprintf(fd, "%s\n", ILLEGAL_INFO.c_str());
 }
 } // namespace MiscServices
 } // namespace OHOS

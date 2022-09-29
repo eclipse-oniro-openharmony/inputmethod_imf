@@ -471,6 +471,11 @@ namespace MiscServices {
         return properties;
     }
 
+    int32_t InputMethodSystemAbility::SwitchInputMethod(const InputMethodProperty &target)
+    {
+        return ErrorCode::NO_ERROR;
+    }
+
     /*! Get all of the input method engine list installed in the system
     \n Run in binder thread
     \param[out] properties input method engine list returned to the caller
@@ -483,9 +488,11 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodByUserId");
         if (status == InputMethodStatus::ALL) {
             return ListAllInputMethod(userId);
-        } else if (status == InputMethodStatus::ENABLE) {
+        }
+        if (status == InputMethodStatus::ENABLE) {
             return ListEnabledInputMethod();
-        } else if (status == InputMethodStatus::DISABLE) {
+        }
+        if (status == InputMethodStatus::DISABLE) {
             return ListDisabledInputMethod(userId);
         }
         return {};
@@ -550,18 +557,19 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
         std::string ime = ParaHandle::GetDefaultIme(MAIN_USER_ID);
         if (ime.empty()) {
-            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod propertyStr is empty");
+            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod ime is empty");
             return nullptr;
         }
 
-        int pos = ime.find('/');
+        std::string::size_type pos = ime.find('/');
         if (pos == -1) {
-            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod propertyStr can not find '/'");
+            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod ime can not find '/'");
             return nullptr;
         }
 
         auto property = std::make_shared<InputMethodProperty>();
         if (property == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility property is nullptr");
             return nullptr;
         }
         property->mPackageName = Str8ToStr16(ime.substr(0, pos));
@@ -688,6 +696,12 @@ namespace MiscServices {
                     auto target = data->ReadParcelable<InputMethodProperty>();
                     OnSwitchInputMethod(userId, *target);
                     delete target;
+                    break;
+                }
+                case MSG_ID_START_INPUT_SERVICE: {
+                    MessageParcel *data = msg->msgContent_;
+                    const auto &ime = data->ReadString();
+                    StartInputService(ime);
                     break;
                 }
                 default: {

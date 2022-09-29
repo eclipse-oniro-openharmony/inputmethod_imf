@@ -25,5 +25,4 @@ enum InputMethodStatus : uint32_t {
 };
 }
 } // namespace OHOS
-
-#endif //INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H
+#endif // INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H

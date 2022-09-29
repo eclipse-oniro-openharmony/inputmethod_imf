@@ -118,12 +118,8 @@ ohos_shared_library("inputmethod_extension") {
   ]
 
   public_deps = [
-    "//base/global/i18n/frameworks/intl:intl_util",
-    "//base/global/resource_management/frameworks/resmgr:global_resmgr",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
     "//foundation/arkui/napi:ace_napi",
-    "//foundation/window/window_manager/interfaces/kits/napi/window_runtime:windowstage_kit",
-    "//foundation/window/window_manager/wm:libwm",
   ]
 
   subsystem_name = "inputmethod"

@@ -116,10 +116,7 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
         } else {
             ctxt->properties = InputMethodController::GetInstance()->ListInputMethod(ctxt->inputMethodStatus == ENABLE);
         }
-        if (!ctxt->properties.empty()) {
-            IMSA_HILOGE("exec ---- ListInputMethod success");
-            ctxt->status = napi_ok;
-        }
+        ctxt->status = napi_ok;
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));

@@ -22,20 +22,18 @@
 
 #include "global.h"
 #include "i_input_method_agent.h"
-#include "input_client_stub.h"
-#include "input_data_channel_stub.h"
-#include "input_method_agent_proxy.h"
-#include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "key_event.h"
 #include "message_handler.h"
+#include "i_input_client.h"
+#include "input_method_property.h"
+#include "i_input_data_channel.h"
+#include "i_input_method_system_ability.h"
 
 namespace OHOS {
 namespace MiscServices {
-    class InputDataChannelStub;
-    class InputMethodSystemAbilityProxy;
     class OnTextChangedListener : public virtual RefBase {
     public:
         virtual void InsertText(const std::u16string& text) = 0;
@@ -75,39 +73,45 @@ namespace MiscServices {
         void OnSelectionChange(std::u16string text, int start, int end);
         void OnConfigurationChange(Configuration info);
         bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
-        int32_t DisplayOptionalInputMethod();
         std::vector<Property> ListInputMethodCommon(InputMethodStatus status);
         std::vector<Property> ListInputMethod();
         std::vector<Property> ListInputMethod(bool enable);
         int32_t GetEnterKeyType();
         int32_t GetInputPattern();
         std::shared_ptr<Property> GetCurrentInputMethod();
-        int32_t HideCurrentInput();
-        int32_t ShowCurrentInput();
         void SetCallingWindow(uint32_t windowId);
         int32_t SwitchInputMethod(const Property &target);
+        int32_t ShowSoftKeyboard();
+        int32_t HideSoftKeyboard();
+        int32_t ShowOptionalInputMethod();
+
+        // Deprecated innerkits with no permission check, kept for compatibility
+        int32_t ShowCurrentInput();
+        int32_t HideCurrentInput();
+        int32_t DisplayOptionalInputMethod();
 
     private:
         InputMethodController();
         ~InputMethodController();
 
         bool Initialize();
-        sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
-        void PrepareInput(int32_t displayId, sptr<InputClientStub> &client, sptr<InputDataChannelStub> &channel,
+        sptr<IInputMethodSystemAbility> GetImsaProxy();
+        void PrepareInput(int32_t displayId, sptr<IInputClient> &client, sptr<IInputDataChannel> &channel,
                           InputAttribute &attribute);
-        void StartInput(sptr<InputClientStub> &client, bool isShowKeyboard);
-        void StopInput(sptr<InputClientStub> &client);
-        void ReleaseInput(sptr<InputClientStub> &client);
+        void StartInput(sptr<IInputClient> &client, bool isShowKeyboard);
+        void StopInput(sptr<IInputClient> &client);
+        void ReleaseInput(sptr<IInputClient> &client);
         void SetInputMethodAgent(sptr<IRemoteObject> &object);
-        std::shared_ptr<InputMethodAgentProxy> GetInputMethodAgent();
+        std::shared_ptr<IInputMethodAgent> GetInputMethodAgent();
         void WorkThread();
+        int32_t SendDataByProxy(std::function<int32_t(sptr<IInputMethodSystemAbility> &, MessageParcel &)> callback);
 
-        sptr<InputDataChannelStub> mInputDataChannel;
-        sptr<InputClientStub> mClient;
-        sptr<InputMethodSystemAbilityProxy> mImms;
+        sptr<IInputDataChannel> mInputDataChannel;
+        sptr<IInputClient> mClient;
+        sptr<IInputMethodSystemAbility> mImms;
         sptr<ImsaDeathRecipient> deathRecipient_;
         std::mutex agentLock_;
-        std::shared_ptr<InputMethodAgentProxy> mAgent = nullptr;
+        std::shared_ptr<IInputMethodAgent> mAgent = nullptr;
         sptr<OnTextChangedListener> textListener;
         InputAttribute mAttribute;
         std::u16string mTextString;

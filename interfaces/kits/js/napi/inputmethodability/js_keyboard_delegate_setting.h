@@ -86,6 +86,7 @@ public:
 private:
     static napi_value GetResultOnKeyEvent(napi_env env, int32_t keyCode, int32_t keyStatus);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
+    static std::shared_ptr<JsKeyboardDelegateSetting> GetKeyboardDelegateSetting();
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsKeyboardDelegateSetting *GetNative(napi_env env, napi_callback_info info);
     static bool Equals(napi_env env, napi_value value, napi_ref copy);
@@ -98,20 +99,20 @@ private:
     static const std::string KDS_CLASS_NAME;
     static thread_local napi_ref KDSRef_;
     struct CursorPara {
-        int32_t positionX;
-        int32_t positionY;
-        int height;
+        int32_t positionX = 0;
+        int32_t positionY = 0;
+        int height = 0;
     };
     struct SelectionPara {
-        int32_t oldBegin;
-        int32_t oldEnd;
-        int32_t newBegin;
-        int32_t newEnd;
+        int32_t oldBegin = 0;
+        int32_t oldEnd = 0;
+        int32_t newBegin = 0;
+        int32_t newEnd = 0;
     };
     struct KeyEventPara {
-        int32_t keyCode;
-        int32_t keyStatus;
-        bool isOnKeyEvent;
+        int32_t keyCode = 0;
+        int32_t keyStatus = 0;
+        bool isOnKeyEvent = false;
     };
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
@@ -132,6 +133,8 @@ private:
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
+    static std::mutex keyboardMutex_;
+    static std::shared_ptr<JsKeyboardDelegateSetting> keyboardDelegate_;
 };
 } // namespace MiscServices
 } // namespace OHOS

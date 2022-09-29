@@ -84,6 +84,11 @@ namespace MiscServices {
 
         static sptr<InputMethodAbility> instance_;
         sptr<InputMethodSystemAbilityProxy> mImms;
+        struct ServiceDeathRecipient : public IRemoteObject::DeathRecipient {
+            std::shared_ptr<InputMethodEngineListener> listener{ nullptr };
+            void OnRemoteDied(const wptr<IRemoteObject> &object) override;
+        };
+        sptr<ServiceDeathRecipient> deathRecipientPtr_{ nullptr };
         sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
 
         void SetInputDataChannel(sptr<IRemoteObject> &object);
@@ -108,6 +113,8 @@ namespace MiscServices {
         void InitialInputWindow();
         void ShowInputWindow(bool isShowKeyboard);
         void DissmissInputWindow();
+
+        void BindServiceAndClient();
     };
 } // namespace MiscServices
 } // namespace OHOS

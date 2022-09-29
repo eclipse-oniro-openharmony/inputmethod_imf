@@ -19,6 +19,7 @@
 #include <map>
 #include <uv.h>
 #include <mutex>
+#include <memory>
 #include "napi/native_api.h"
 #include "global.h"
 #include "async_call.h"
@@ -43,15 +44,17 @@ public:
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsInputMethodEngineSetting *GetNative(napi_env env, napi_callback_info info);
+    static std::shared_ptr<JsInputMethodEngineSetting> GetInputMethodEngineSetting();
     static bool Equals(napi_env env, napi_value value, napi_ref copy);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
+    static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     void RegisterListener(napi_value callback, std::string type,
-        std::shared_ptr<JSCallbackObject> JSCallbackObject);
+        std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     uv_work_t *GetUVwork(std::string type);
     uv_work_t *GetStopInputUVwork(std::string type, std::string imeId);
     uv_work_t *GetWindowIDUVwork(std::string type, uint32_t windowid);
-    static std::string GetStringProperty(napi_env env, napi_value obj);
+    static std::string GetStringProperty(napi_env env, napi_value jsString);
     static constexpr int32_t MAX_VALUE_LEN = 1024;
     static const std::string IMES_CLASS_NAME;
     static thread_local napi_ref IMESRef_;
@@ -59,13 +62,15 @@ private:
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
         std::string imeid;
-        uint32_t windowid;
+        uint32_t windowid = 0;
         UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type)
             : vecCopy(cbVec), type(type) {}
     };
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
+    static std::mutex engineMutex_;
+    static std::shared_ptr<JsInputMethodEngineSetting> inputMethodEngine_;
 };
 }
 }

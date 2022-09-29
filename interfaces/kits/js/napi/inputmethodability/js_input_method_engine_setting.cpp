@@ -29,6 +29,10 @@ constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_MAX = 6;
 const std::string JsInputMethodEngineSetting::IMES_CLASS_NAME = "InputMethodEngine";
 thread_local napi_ref JsInputMethodEngineSetting::IMESRef_ = nullptr;
+
+std::mutex JsInputMethodEngineSetting::engineMutex_;
+std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::inputMethodEngine_ { nullptr };
+
 napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptor[] = {
@@ -48,7 +52,7 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
             GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::PREVIOUS))),
 
         DECLARE_NAPI_PROPERTY("PATTERN_NULL",
-            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NONE))),
+            GetIntJsConstProperty(env, static_cast<int32_t>(TextInputType::NONE))),
         DECLARE_NAPI_PROPERTY("PATTERN_TEXT",
             GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::TEXT))),
         DECLARE_NAPI_PROPERTY("PATTERN_NUMBER",
@@ -85,28 +89,52 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
 napi_value JsInputMethodEngineSetting::GetJsConstProperty(napi_env env, uint32_t num)
 {
     napi_value jsNumber = nullptr;
+    napi_create_uint32(env, num, &jsNumber);
+    return jsNumber;
+}
+
+napi_value JsInputMethodEngineSetting::GetIntJsConstProperty(napi_env env, int32_t num)
+{
+    napi_value jsNumber = nullptr;
     napi_create_int32(env, num, &jsNumber);
     return jsNumber;
 }
 
+std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInputMethodEngineSetting()
+{
+    if (inputMethodEngine_ == nullptr) {
+        std::lock_guard<std::mutex> lock(engineMutex_);
+        if (inputMethodEngine_ == nullptr) {
+            auto engine = std::make_shared<JsInputMethodEngineSetting>();
+            if (engine == nullptr) {
+                IMSA_HILOGE("input method engine nullptr");
+                return nullptr;
+            }
+            inputMethodEngine_ = engine;
+            InputMethodAbility::GetInstance()->setImeListener(inputMethodEngine_);
+        }
+    }
+    return inputMethodEngine_;
+}
+
 napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback_info info)
 {
-    napi_value thisVar = nullptr;
     IMSA_HILOGI("run in JsConstructor");
+    napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
-
-    std::shared_ptr<JsInputMethodEngineSetting> obj = std::make_shared<JsInputMethodEngineSetting>();
-    InputMethodAbility::GetInstance()->setImeListener(obj);
-    if (obj == nullptr) {
+    auto delegate = GetInputMethodEngineSetting();
+    if (delegate == nullptr) {
+        IMSA_HILOGE("get delegate nullptr");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
     }
-    
-    napi_wrap(env, thisVar, obj.get(), [](napi_env env, void *data, void *hint) {
-        IMSA_HILOGE("run in IMESobject delete");
+    napi_wrap(env, thisVar, delegate.get(), [](napi_env env, void *nativeObject, void *hint) {
+        IMSA_HILOGE("delete JsInputMethodEngineSetting");
     }, nullptr, nullptr);
-    napi_get_uv_event_loop(env, &obj->loop_);
+    if (delegate->loop_ == nullptr) {
+        napi_get_uv_event_loop(env, &delegate->loop_);
+    }
     return thisVar;
 };
 
@@ -160,7 +188,7 @@ std::string JsInputMethodEngineSetting::GetStringProperty(napi_env env, napi_val
 }
 
 void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::string type,
-    std::shared_ptr<JSCallbackObject> JSCallbackObject)
+    std::shared_ptr<JSCallbackObject> callbackObj)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
@@ -174,7 +202,7 @@ void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::stri
         }
     }
 
-    jsCbMap_[type].push_back(std::move(JSCallbackObject));
+    jsCbMap_[type].push_back(std::move(callbackObj));
 }
 
 void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::string type)

@@ -40,9 +40,17 @@ namespace MiscServices {
         void OnGetCurrentInputMethod(MessageParcel &reply);
         void OnListInputMethod(MessageParcel &data, MessageParcel &reply);
         virtual std::vector<InputMethodProperty> ListInputMethodByUserId(int32_t userId, InputMethodStatus status) = 0;
-        int32_t SwitchInputMethod(MessageParcel &data);
+        int32_t OnSwitchInputMethod(MessageParcel &data);
+
+        // Deprecated because of no permission check, kept for compatibility
+        int32_t DisplayOptionalInputMethodDeprecated(MessageParcel &data) override;
+        int32_t HideCurrentInputDeprecated(MessageParcel &data) override;
+        int32_t ShowCurrentInputDeprecated(MessageParcel &data) override;
+        void SetCoreAndAgentDeprecated(MessageParcel &data) override;
 
     protected:
+        bool CheckPermission(const std::string &permission);
+        int32_t SendMessageToService(int32_t code, std::function<bool(MessageParcel &)> callback);
         int32_t getUserId(int32_t uid);
         int USER_ID_CHANGE_VALUE = 200000; // user range
     };

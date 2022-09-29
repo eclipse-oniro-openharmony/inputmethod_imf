@@ -53,6 +53,10 @@ namespace MiscServices {
             SET_CORE_AND_AGENT,
             DISPLAY_OPTIONAL_INPUT_METHOD,
             SWITCH_INPUT_METHOD,
+            SHOW_CURRENT_INPUT_DEPRECATED,
+            HIDE_CURRENT_INPUT_DEPRECATED,
+            DISPLAY_OPTIONAL_INPUT_METHOD_DEPRECATED,
+            SET_CORE_AND_AGENT_DEPRECATED,
         };
 
         DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
@@ -72,6 +76,13 @@ namespace MiscServices {
         virtual int32_t getCurrentKeyboardType(KeyboardType *retType) = 0;
         virtual std::vector<InputMethodProperty> ListInputMethod(InputMethodStatus stauts) = 0;
         virtual int32_t listKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types) = 0;
+        virtual int32_t SwitchInputMethod(const InputMethodProperty &target) = 0;
+
+        // Deprecated because of no permission check, kept for compatibility
+        virtual void SetCoreAndAgentDeprecated(MessageParcel &data) = 0;
+        virtual int32_t HideCurrentInputDeprecated(MessageParcel &data) = 0;
+        virtual int32_t ShowCurrentInputDeprecated(MessageParcel &data) = 0;
+        virtual int32_t DisplayOptionalInputMethodDeprecated(MessageParcel &data) = 0;
     };
 } // namespace MiscServices
 } // namespace OHOS
