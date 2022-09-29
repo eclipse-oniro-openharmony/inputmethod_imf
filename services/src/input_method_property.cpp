@@ -133,13 +133,13 @@ namespace MiscServices {
 
         int32_t size = parcel.ReadInt32();
         if (size < 0) {
-            return false;
+            return info;
         }
 
         size_t readAbleSize = parcel.GetReadableBytes() / sizeof(KeyboardType);
         size_t len = static_cast<size_t>(size);
         if((len > readAbleSize) || (len > mTypes.max_size())) {
-            return false;
+            return info;
         }
 
         if (!size)

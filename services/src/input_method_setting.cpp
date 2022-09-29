@@ -84,13 +84,13 @@ namespace MiscServices {
         int32_t size = parcel.ReadInt32();
 
         if (size < 0) {
-            return false;
+            return ims;
         }
 
         size_t readAbleSize = parcel.GetReadableBytes() / (sizeof(std::u16string) * 2);
         size_t len = static_cast<size_t>(size);
         if((len > readAbleSize) || (len > mTypes.max_size())) {
-            return false;
+            return ims;
         }
 
         for (int i = 0; i < size; i++) {
