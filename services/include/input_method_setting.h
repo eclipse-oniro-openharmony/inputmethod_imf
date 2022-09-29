@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class InputMethodSetting : public Parcelable {
+    class InputMethodSetting {
     public:
 
         const static std::u16string CURRENT_INPUT_METHOD_TAG; // default IME
