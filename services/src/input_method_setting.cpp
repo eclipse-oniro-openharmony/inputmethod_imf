@@ -82,6 +82,17 @@ namespace MiscServices {
     {
         auto ims = new InputMethodSetting();
         int32_t size = parcel.ReadInt32();
+
+        if (size < 0) {
+            return false;
+        }
+
+        size_t readAbleSize = parcel.GetReadableBytes() / (sizeof(std::u16string) * 2);
+        size_t len = static_cast<size_t>(size);
+        if((len > readAbleSize) || (len > mTypes.max_size())) {
+            return false;
+        }
+
         for (int i = 0; i < size; i++) {
             std::u16string key = parcel.ReadString16();
             std::u16string value = parcel.ReadString16();
