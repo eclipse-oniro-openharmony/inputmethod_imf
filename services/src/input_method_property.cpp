@@ -90,7 +90,7 @@ namespace MiscServices {
     */
     bool InputMethodProperty::Marshalling(Parcel &parcel) const
     {
-        if (!(parcel.WriteString16(mImeId)
+        return parcel.WriteString16(mImeId)
             && parcel.WriteString16(mPackageName)
             && parcel.WriteString16(mAbilityName)
             && parcel.WriteString16(mConfigurationPage)
@@ -99,17 +99,7 @@ namespace MiscServices {
             && parcel.WriteInt32(labelId)
             && parcel.WriteInt32(descriptionId)
             && parcel.WriteString16(label)
-            && parcel.WriteString16(description)))
-            return false;
-        int32_t size = (int32_t)mTypes.size();
-        parcel.WriteInt32(size);
-        if (!size) {
-            return true;
-        }
-        for (int i = 0; i < size; i++) {
-            parcel.WriteParcelable(mTypes[i]);
-        }
-        return true;
+            && parcel.WriteString16(description);
     }
 
     /*! Get InputMethodProperty from parcel
@@ -131,22 +121,6 @@ namespace MiscServices {
         info->label = parcel.ReadString16();
         info->description = parcel.ReadString16();
 
-        int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            return info;
-        }
-
-        size_t readAbleSize = parcel.GetReadableBytes() / sizeof(KeyboardType);
-        size_t len = static_cast<size_t>(size);
-        if(len > readAbleSize) {
-            return info;
-        }
-
-        if (!size)
-            return info;
-        for (int i = 0; i < size; i++) {
-            info->mTypes.push_back(parcel.ReadParcelable<KeyboardType>());
-        }
         return info;
     }
 } // namespace MiscServices
