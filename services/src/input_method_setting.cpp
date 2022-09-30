@@ -58,38 +58,6 @@ namespace MiscServices {
         return *this;
     }
 
-    /*! Write setting data to parcel
-    \param[out] parcel the setting data is written to parcel returned to caller.
-    \return ErrorCode::NO_ERROR
-    */
-    bool InputMethodSetting::Marshalling(OHOS::Parcel &parcel) const
-    {
-        int32_t size = setting.size();
-        parcel.WriteInt32(size);
-        std::map<std::u16string, std::u16string>::const_iterator it;
-        for (it = setting.cbegin(); it != setting.cend(); ++it) {
-            parcel.WriteString16(it->first);
-            parcel.WriteString16(it->second);
-        }
-        return ErrorCode::NO_ERROR;
-    }
-
-    /*! Read setting data from parcel
-    \param parcel read the setting data from the given parcel
-    \return ErrorCode::NO_ERROR
-    */
-    InputMethodSetting *InputMethodSetting::Unmarshalling(OHOS::Parcel &parcel)
-    {
-        auto ims = new InputMethodSetting();
-        int32_t size = parcel.ReadInt32();
-        for (int i = 0; i < size; i++) {
-            std::u16string key = parcel.ReadString16();
-            std::u16string value = parcel.ReadString16();
-            ims->setting.insert(std::pair<std::u16string, std::u16string>(key, value));
-        }
-        return ims;
-    }
-
     /*! Set setting data for an item
     \param key the name of setting item
     \param value the value of setting item
