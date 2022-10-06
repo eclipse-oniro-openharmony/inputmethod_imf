@@ -136,6 +136,7 @@ namespace ErrorCode {
         ERROR_NO_NEXT_IME, // no next ime is available
         ERROR_CLIENTWINDOW_NOT_FOCUSED, // the input client window is not focused
         ERROR_CLIENT_NOT_WINDOW, // the input client is not from a valid window
+        ERROR_ADD_CLIENT_FAILED,
         ERROR_IME_PROPERTY_MARSHALL, // failed to marshall the ime property
         ERROR_GETTING_CURRENT_IME,
         ERROR_LIST_IME,

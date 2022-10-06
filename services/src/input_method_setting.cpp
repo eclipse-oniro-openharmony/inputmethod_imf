@@ -126,7 +126,7 @@ namespace MiscServices {
 
         std::u16string typeStr;
         for (int i = 0; i < (int)types.size(); i++) {
-            typeStr = typeStr + u";" + Utils::to_utf16(std::to_string(types[i]));
+            typeStr = typeStr + u";" + Utils::ToStr16(std::to_string(types[i]));
         }
         std::u16string imeStr = imeId + typeStr;
         bool flag = false;
@@ -202,7 +202,7 @@ namespace MiscServices {
         std::vector<std::u16string> tmp2 = Split(imeStr, DELIM_KBD_TYPE);
         for (int i = 1; i < (int)tmp2.size(); i++) {
             std::u16string str = tmp2[i];
-            retValue.push_back(std::atoi(Utils::to_utf8(str).c_str()));
+            retValue.push_back(std::atoi(Utils::ToStr8(str).c_str()));
         }
         tmp2.clear();
 
@@ -215,7 +215,7 @@ namespace MiscServices {
     int32_t InputMethodSetting::GetCurrentKeyboardType()
     {
         std::u16string value = GetValue(CURRENT_KEYBOARD_TYPE_TAG);
-        return std::atoi(Utils::to_utf8(value).c_str());
+        return std::atoi(Utils::ToStr8(value).c_str());
     }
 
     /*! Set the default keyboard type
@@ -223,7 +223,7 @@ namespace MiscServices {
     */
     void InputMethodSetting::SetCurrentKeyboardType(int32_t type)
     {
-        std::u16string str = Utils::to_utf16(std::to_string(type));
+        std::u16string str = Utils::ToStr16(std::to_string(type));
         SetValue(CURRENT_KEYBOARD_TYPE_TAG, str);
     }
 
@@ -233,7 +233,7 @@ namespace MiscServices {
     int32_t InputMethodSetting::GetCurrentSysKeyboardType()
     {
         std::u16string value = GetValue(CURRENT_SYS_KEYBOARD_TYPE_TAG);
-        return std::atoi(Utils::to_utf8(value).c_str());
+        return std::atoi(Utils::ToStr8(value).c_str());
     }
 
     /*! Set the default keyboard type for security IME
@@ -241,7 +241,7 @@ namespace MiscServices {
     */
     void InputMethodSetting::SetCurrentSysKeyboardType(int32_t type)
     {
-        std::u16string str = Utils::to_utf16(std::to_string(type));
+        std::u16string str = Utils::ToStr16(std::to_string(type));
         SetValue(CURRENT_SYS_KEYBOARD_TYPE_TAG, std::u16string(str));
     }
 

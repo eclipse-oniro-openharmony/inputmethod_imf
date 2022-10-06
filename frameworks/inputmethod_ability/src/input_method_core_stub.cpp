@@ -87,14 +87,10 @@ namespace MiscServices {
             }
             case START_INPUT: {
                 sptr<IInputDataChannel> inputDataChannel = iface_cast<IInputDataChannel>(data.ReadRemoteObject());
-                InputAttribute *editorAttribute = data.ReadParcelable<InputAttribute>();
+                InputAttribute editorAttribute;
+                InputAttribute::Unmarshalling(editorAttribute, data);
                 bool supportPhysicalKbd = data.ReadBool();
-
-                if (!inputDataChannel) {
-                    IMSA_HILOGI("InputMethodCoreStub::OnRemoteRequest START_INPUT inputDataChannel is nulltpr");
-                }
-                startInput(inputDataChannel, *editorAttribute, supportPhysicalKbd);
-                delete editorAttribute;
+                startInput(inputDataChannel, editorAttribute, supportPhysicalKbd);
                 reply.WriteNoException();
                 break;
             }
@@ -199,7 +195,7 @@ namespace MiscServices {
             IMSA_HILOGI("InputMethodCoreStub::startInput inputDataChannel is not nullptr");
             data->WriteRemoteObject(inputDataChannel->AsObject());
         }
-        data->WriteParcelable(&editorAttribute);
+        InputAttribute::Marshalling(editorAttribute, *data);
         data->WriteBool(supportPhysicalKbd);
         Message *msg = new Message(MessageID::MSG_ID_START_INPUT, data);
         msgHandler_->SendMessage(msg);

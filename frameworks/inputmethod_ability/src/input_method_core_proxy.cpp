@@ -147,7 +147,7 @@ namespace MiscServices {
         MessageParcel data;
         if (!(data.WriteInterfaceToken(GetDescriptor())
             && data.WriteRemoteObject(inputDataChannel->AsObject())
-            && data.WriteParcelable(&editorAttribute)
+            && InputAttribute::Marshalling(editorAttribute, data)
             && data.WriteBool(supportPhysicalKbd))) {
             IMSA_HILOGI("InputMethodCoreProxy::startInput write error");
             return false;

@@ -109,14 +109,7 @@ namespace MiscServices {
         sptr<InputMethodAgentStub> inputMethodAgentStub(new InputMethodAgentStub());
         inputMethodAgentStub->SetMessageHandler(msgHandler);
         sptr<IInputMethodAgent> inputMethodAgent = sptr(new InputMethodAgentProxy(inputMethodAgentStub));
-
-        MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
-            && data.WriteRemoteObject(stub->AsObject())
-            && data.WriteRemoteObject(inputMethodAgent->AsObject()))) {
-            return;
-        }
-        mImms->SetCoreAndAgentDeprecated(data);
+        mImms->SetCoreAndAgentDeprecated(stub, inputMethodAgent);
     }
 
     void InputMethodAbility::Initialize()
@@ -243,9 +236,9 @@ namespace MiscServices {
             return;
         }
         SetInputDataChannel(channelObject);
-        editorAttribute = data->ReadParcelable<InputAttribute>();
-        if (!editorAttribute) {
-            IMSA_HILOGI("InputMethodAbility::OnStartInput editorAttribute is nullptr");
+        bool ret = InputAttribute::Unmarshalling(editorAttribute, *data);
+        if (!ret) {
+            IMSA_HILOGE("InputMethodAbility::OnStartInput unmarshalling editorAttribute failed");
         }
         mSupportPhysicalKbd = data->ReadBool();
     }
@@ -384,7 +377,7 @@ namespace MiscServices {
             IMSA_HILOGI("InputMethodAbility::InsertText channel is nullptr");
             return false;
         }
-        return channel->InsertText(Utils::to_utf16(text));
+        return channel->InsertText(Utils::ToStr16(text));
     }
 
     void InputMethodAbility::DeleteForward(int32_t length)
@@ -539,7 +532,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("ServiceDeathRecipient::OnRemoteDied");
         if (listener != nullptr) {
-            listener->OnInputStop(ParaHandle::GetDefaultIme(Utils::ToUserId(IPCSkeleton::GetCallingUid())));
+            listener->OnInputStop(ParaHandle::GetDefaultIme(Utils::ToUserId(getuid())));
         }
     }
 
@@ -557,14 +550,7 @@ namespace MiscServices {
         sptr<InputMethodAgentStub> inputMethodAgentStub(new InputMethodAgentStub());
         inputMethodAgentStub->SetMessageHandler(msgHandler);
         sptr<IInputMethodAgent> inputMethodAgent = sptr(new InputMethodAgentProxy(inputMethodAgentStub));
-
-        MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
-              && data.WriteRemoteObject(stub->AsObject())
-              && data.WriteRemoteObject(inputMethodAgent->AsObject()))) {
-            return;
-        }
-        mImms->SetCoreAndAgent(data);
+        mImms->SetCoreAndAgent(stub, inputMethodAgent);
     }
 } // namespace MiscServices
 } // namespace OHOS

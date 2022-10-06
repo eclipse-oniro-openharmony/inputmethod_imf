@@ -82,46 +82,5 @@ namespace MiscServices {
         }
         return *this;
     }
-
-    /*! Write InputMethodProperty to parcel
-    \param[out] parcel the information is written to this parcel returned to caller
-    \return ErrorCode::NO_ERROR
-    \return ErrorCode::ERROR_NULL_POINTER parcel is null
-    */
-    bool InputMethodProperty::Marshalling(Parcel &parcel) const
-    {
-        return parcel.WriteString16(mImeId)
-            && parcel.WriteString16(mPackageName)
-            && parcel.WriteString16(mAbilityName)
-            && parcel.WriteString16(mConfigurationPage)
-            && parcel.WriteBool(isSystemIme)
-            && parcel.WriteInt32(mDefaultImeId)
-            && parcel.WriteInt32(labelId)
-            && parcel.WriteInt32(descriptionId)
-            && parcel.WriteString16(label)
-            && parcel.WriteString16(description);
-    }
-
-    /*! Get InputMethodProperty from parcel
-    \param parcel read InputMethodProperty from this parcel
-    \return ErrorCode::NO_ERROR
-    \return ErrorCode::ERROR_NULL_POINTER parcel is null
-    */
-    InputMethodProperty *InputMethodProperty::Unmarshalling(Parcel &parcel)
-    {
-        auto info = new InputMethodProperty();
-        info->mImeId = parcel.ReadString16();
-        info->mPackageName = parcel.ReadString16();
-        info->mAbilityName = parcel.ReadString16();
-        info->mConfigurationPage = parcel.ReadString16();
-        info->isSystemIme = parcel.ReadBool();
-        info->mDefaultImeId = parcel.ReadInt32();
-        info->labelId = parcel.ReadInt32();
-        info->descriptionId = parcel.ReadInt32();
-        info->label = parcel.ReadString16();
-        info->description = parcel.ReadString16();
-
-        return info;
-    }
 } // namespace MiscServices
 } // namespace OHOS
