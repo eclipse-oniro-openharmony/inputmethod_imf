@@ -23,6 +23,7 @@
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "input_method_utils.h"
+#include "input_method_status.h"
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "key_event.h"
@@ -43,11 +44,6 @@ namespace MiscServices {
         virtual void SendKeyboardInfo(const KeyboardInfo& info) = 0;
         virtual void SetKeyboardStatus(bool status) = 0;
         virtual void MoveCursor(const Direction direction) = 0;
-    };
-
-    struct Property {
-        std::string packageName;
-        std::string abilityName;
     };
 
     class ImsaDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -104,7 +100,6 @@ namespace MiscServices {
         void SetInputMethodAgent(sptr<IRemoteObject> &object);
         std::shared_ptr<IInputMethodAgent> GetInputMethodAgent();
         void WorkThread();
-        int32_t SendDataByProxy(std::function<int32_t(sptr<IInputMethodSystemAbility> &, MessageParcel &)> callback);
 
         sptr<IInputDataChannel> mInputDataChannel;
         sptr<IInputClient> mClient;

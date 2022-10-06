@@ -23,37 +23,44 @@
 #include <locale>
 #include <string>
 
-#include "input_method_controller.h"
 #include "input_method_property.h"
+#include "input_method_status.h"
 #include "string_ex.h"
 
-namespace OHOS {
-namespace MiscServices {
+namespace OHOS ::MiscServices {
     class Utils {
     public:
         static constexpr int USER_ID_CHANGE_VALUE = 200000;
-        static std::string to_utf8(std::u16string str16)
+
+        static std::string ToStr8(std::u16string str16)
         {
-            return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(str16);
+            return Str16ToStr8(str16);
         }
-        static std::u16string to_utf16(std::string str)
+
+        static std::u16string ToStr16(std::string str)
         {
-            return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(str);
+            return Str8ToStr16(str);
         }
-        static std::vector<Property> GetProperty(const std::vector<InputMethodProperty> &properties)
+
+        static std::vector<Property> ToProperty(const std::vector<InputMethodProperty> &properties)
         {
             std::vector<Property> props;
             for (const auto &property : properties) {
-                props.push_back({ Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) });
+                props.push_back({Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName)});
             }
             return props;
         }
+
+        static Property ToProperty(const InputMethodProperty &property)
+        {
+            return {Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName)};
+        }
+
         static uint32_t ToUserId(uint32_t uid)
         {
             return uid / USER_ID_CHANGE_VALUE;
         }
     };
-} // namespace MiscServices
-} // namespace OHOS
+}
 
 #endif // SERVICES_INCLUDE_UTILS_H

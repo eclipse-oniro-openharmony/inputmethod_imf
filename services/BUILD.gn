@@ -34,7 +34,6 @@ ohos_shared_library("inputmethod_service") {
     "${inputmethod_path}/frameworks/inputmethod_controller/src/input_client_proxy.cpp",
     "src/global.cpp",
     "src/im_common_event_manager.cpp",
-    "src/input_attribute.cpp",
     "src/input_channel.cpp",
     "src/input_control_channel_proxy.cpp",
     "src/input_control_channel_stub.cpp",

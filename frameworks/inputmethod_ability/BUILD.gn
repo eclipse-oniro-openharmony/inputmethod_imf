@@ -35,7 +35,6 @@ config("inputmethod_ability_native_public_config") {
 ohos_shared_library("inputmethod_ability") {
   sources = [
     "${inputmethod_path}/frameworks/inputmethod_controller/src/input_data_channel_proxy.cpp",
-    "${inputmethod_path}/services/src/input_attribute.cpp",
     "${inputmethod_path}/services/src/input_channel.cpp",
     "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
     "${inputmethod_path}/services/src/input_method_property.cpp",

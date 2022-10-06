@@ -157,14 +157,13 @@ namespace MiscServices {
     */
     HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
     {
-        sptr<InputAttribute> mInputAttribute = new InputAttribute();
-        mInputAttribute->SetInputPattern(InputAttribute::PATTERN_PASSWORD);
+        InputAttribute inAttribute;
+        inAttribute.inputPattern = InputAttribute::PATTERN_PASSWORD;
         MessageParcel data;
-        auto ret =  data.WriteParcelable(mInputAttribute);
-        EXPECT_TRUE(ret);
-        sptr<InputAttribute> deserialization = data.ReadParcelable<InputAttribute>();
-        EXPECT_TRUE(deserialization != nullptr);
-        EXPECT_TRUE(deserialization->GetSecurityFlag());
+        EXPECT_TRUE(InputAttribute::Marshalling(inAttribute, data));
+        InputAttribute outAttribute;
+        EXPECT_TRUE(InputAttribute::Unmarshalling(outAttribute, data));
+        EXPECT_TRUE(outAttribute.GetSecurityFlag());
     }
 
     /**

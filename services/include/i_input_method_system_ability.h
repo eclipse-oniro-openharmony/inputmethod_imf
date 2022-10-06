@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,6 @@
 #define SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H
 
 #include <errors.h>
-
 #include <memory>
 #include <vector>
 
@@ -34,56 +33,50 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class IInputMethodSystemAbility : public IRemoteBroker {
-    public:
-        enum {
-            PREPARE_INPUT = 0,
-            RELEASE_INPUT,
-            START_INPUT,
-            STOP_INPUT,
-            HIDE_CURRENT_INPUT,
-            SHOW_CURRENT_INPUT,
-            SET_INPUT_METHOD_CORE,
-            GET_DISPLAY_MODE,
-            GET_KEYBOARD_WINDOW_HEIGHT,
-            GET_CURRENT_INPUT_METHOD,
-            GET_CURRENT_KEYBOARD_TYPE,
-            LIST_INPUT_METHOD,
-            LIST_KEYBOARD_TYPE,
-            SET_CORE_AND_AGENT,
-            DISPLAY_OPTIONAL_INPUT_METHOD,
-            SWITCH_INPUT_METHOD,
-            SHOW_CURRENT_INPUT_DEPRECATED,
-            HIDE_CURRENT_INPUT_DEPRECATED,
-            DISPLAY_OPTIONAL_INPUT_METHOD_DEPRECATED,
-            SET_CORE_AND_AGENT_DEPRECATED,
-        };
-
-        DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
-
-        virtual void prepareInput(MessageParcel& data) = 0;
-        virtual void releaseInput(MessageParcel& data) = 0;
-        virtual void startInput(MessageParcel& data) = 0;
-        virtual void stopInput(MessageParcel& data) = 0;
-        virtual void SetCoreAndAgent(MessageParcel& data) = 0;
-        virtual int32_t HideCurrentInput(MessageParcel& data) = 0;
-        virtual int32_t ShowCurrentInput(MessageParcel& data) = 0;
-
-        virtual int32_t displayOptionalInputMethod(MessageParcel& data) = 0;
-        virtual int32_t getDisplayMode(int32_t &retMode) = 0;
-        virtual int32_t getKeyboardWindowHeight(int32_t &retHeight) = 0;
-        virtual std::shared_ptr<InputMethodProperty> GetCurrentInputMethod() = 0;
-        virtual int32_t getCurrentKeyboardType(KeyboardType *retType) = 0;
-        virtual std::vector<InputMethodProperty> ListInputMethod(InputMethodStatus stauts) = 0;
-        virtual int32_t listKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types) = 0;
-        virtual int32_t SwitchInputMethod(const InputMethodProperty &target) = 0;
-
-        // Deprecated because of no permission check, kept for compatibility
-        virtual void SetCoreAndAgentDeprecated(MessageParcel &data) = 0;
-        virtual int32_t HideCurrentInputDeprecated(MessageParcel &data) = 0;
-        virtual int32_t ShowCurrentInputDeprecated(MessageParcel &data) = 0;
-        virtual int32_t DisplayOptionalInputMethodDeprecated(MessageParcel &data) = 0;
+class IInputMethodSystemAbility : public IRemoteBroker {
+public:
+    enum CommandId : int32_t {
+        PREPARE_INPUT = 0,
+        START_INPUT,
+        SHOW_CURRENT_INPUT,
+        HIDE_CURRENT_INPUT,
+        STOP_INPUT,
+        RELEASE_INPUT,
+        GET_KEYBOARD_WINDOW_HEIGHT,
+        GET_CURRENT_INPUT_METHOD,
+        LIST_INPUT_METHOD,
+        SWITCH_INPUT_METHOD,
+        DISPLAY_OPTIONAL_INPUT_METHOD,
+        SET_CORE_AND_AGENT,
+        SHOW_CURRENT_INPUT_DEPRECATED,
+        HIDE_CURRENT_INPUT_DEPRECATED,
+        DISPLAY_OPTIONAL_INPUT_DEPRECATED,
+        SET_CORE_AND_AGENT_DEPRECATED,
+        INPUT_SERVICE_CMD_LAST
     };
+
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
+
+    virtual int32_t PrepareInput(int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel,
+        InputAttribute &attribute) = 0;
+    virtual int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) = 0;
+    virtual int32_t ShowCurrentInput() = 0;
+    virtual int32_t HideCurrentInput() = 0;
+    virtual int32_t StopInput(sptr<IInputClient> client) = 0;
+    virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
+    virtual int32_t GetKeyboardWindowHeight(int32_t &retHeight) = 0;
+    virtual std::shared_ptr<Property> GetCurrentInputMethod() = 0;
+    virtual std::vector<Property> ListInputMethod(InputMethodStatus status) = 0;
+    virtual int32_t SwitchInputMethod(const Property &target) = 0;
+    virtual int32_t DisplayOptionalInputMethod() = 0;
+    virtual int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) = 0;
+
+    // Deprecated because of no permission check, and keep for compatibility
+    virtual int32_t SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) = 0;
+    virtual int32_t HideCurrentInputDeprecated() = 0;
+    virtual int32_t ShowCurrentInputDeprecated() = 0;
+    virtual int32_t DisplayOptionalInputMethodDeprecated() = 0;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H

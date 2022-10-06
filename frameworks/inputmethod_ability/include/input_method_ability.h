@@ -63,7 +63,7 @@ namespace MiscServices {
         std::thread workThreadHandler;
         MessageHandler *msgHandler;
         bool mSupportPhysicalKbd = false;
-        InputAttribute *editorAttribute;
+        InputAttribute editorAttribute;
         int32_t displyId = 0;
         sptr<IRemoteObject> startInputToken;
         InputChannel *writeInputChannel;
@@ -102,7 +102,6 @@ namespace MiscServices {
         void OnInitialInput(Message *msg);
         void OnStartInput(Message *msg);
         void OnStopInput(Message *msg);
-        void OnSetKeyboardType(Message *msg);
         void OnShowKeyboard(Message *msg);
         void OnHideKeyboard(Message *msg);
         void OnInitInputControlChannel(Message *msg);

@@ -37,46 +37,38 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class InputDataChannelStub;
-    class InputMethodSystemAbilityProxy : public IRemoteProxy<IInputMethodSystemAbility> {
-    public:
-        explicit InputMethodSystemAbilityProxy(const sptr<IRemoteObject> &object);
-        ~InputMethodSystemAbilityProxy() = default;
-        DISALLOW_COPY_AND_MOVE(InputMethodSystemAbilityProxy);
+class InputDataChannelStub;
+class InputMethodSystemAbilityProxy : public IRemoteProxy<IInputMethodSystemAbility> {
+public:
+    explicit InputMethodSystemAbilityProxy(const sptr<IRemoteObject> &object);
+    ~InputMethodSystemAbilityProxy() = default;
+    DISALLOW_COPY_AND_MOVE(InputMethodSystemAbilityProxy);
 
-        void prepareInput(MessageParcel& data) override;
-        void releaseInput(MessageParcel& data) override;
-        void startInput(MessageParcel& data) override;
-        void stopInput(MessageParcel& data) override;
-        void SetCoreAndAgent(MessageParcel& data) override;
-        int32_t HideCurrentInput(MessageParcel& data) override;
-        int32_t ShowCurrentInput(MessageParcel& data) override;
+    int32_t PrepareInput(int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel,
+        InputAttribute &attribute) override;
+    int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) override;
+    int32_t ShowCurrentInput() override;
+    int32_t HideCurrentInput() override;
+    int32_t StopInput(sptr<IInputClient> client) override;
+    int32_t ReleaseInput(sptr<IInputClient> client) override;
+    int32_t GetKeyboardWindowHeight(int32_t &retHeight) override;
+    std::shared_ptr<Property> GetCurrentInputMethod() override;
+    std::vector<Property> ListInputMethod(InputMethodStatus status) override;
+    int32_t SwitchInputMethod(const Property &target) override;
+    int32_t DisplayOptionalInputMethod() override;
+    int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
 
-        int32_t Prepare(int32_t displayId, sptr<InputClientStub> &client, sptr<InputDataChannelStub> &channel,
-                        InputAttribute &attribute);
-        int32_t Release(sptr<InputClientStub> &client);
-        int32_t Start(sptr<InputClientStub> &client);
-        int32_t Stop(sptr<InputClientStub> &client);
+    // Deprecated because of no permission check, kept for compatibility
+    int32_t HideCurrentInputDeprecated() override;
+    int32_t ShowCurrentInputDeprecated() override;
+    int32_t DisplayOptionalInputMethodDeprecated() override;
+    int32_t SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
 
-        int32_t displayOptionalInputMethod(MessageParcel& data) override;
-        int32_t getDisplayMode(int32_t &retMode) override;
-        int32_t getKeyboardWindowHeight(int32_t &retHeight) override;
-        std::shared_ptr<InputMethodProperty> GetCurrentInputMethod() override;
-        int32_t getCurrentKeyboardType(KeyboardType *retType) override;
-        std::vector<InputMethodProperty> ListInputMethod(InputMethodStatus stauts) override;
-        int32_t listKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types) override;
-        int32_t SwitchInputMethod(const InputMethodProperty &target) override;
-
-        // Deprecated because of no permission check, kept for compatibility
-        int32_t DisplayOptionalInputMethodDeprecated(MessageParcel &data) override;
-        int32_t HideCurrentInputDeprecated(MessageParcel &data) override;
-        int32_t ShowCurrentInputDeprecated(MessageParcel &data) override;
-        void SetCoreAndAgentDeprecated(MessageParcel &data) override;
-
-    private:
-        static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;
-        int32_t SendRequestToService(MessageParcel &data, uint32_t code);
-    };
+private:
+    static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;
+    using ParcelHandler = std::function<bool(MessageParcel &)>;
+    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_PROXY_H
