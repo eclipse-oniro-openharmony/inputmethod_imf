@@ -80,6 +80,9 @@ namespace MiscServices {
             case EXCEPTION_IMMS: {
                 return "input method manager service error.";
             }
+            case EXCEPTION_OTHERS: {
+                return "others error.";
+            }
             default: {
                 return "error is out of definition.";
             }
