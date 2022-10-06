@@ -80,10 +80,6 @@ napi_value JsKeyboardControllerEngine::Hide(napi_env env, napi_callback_info inf
 {
     auto ctxt = std::make_shared<HideContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc != 0 && argc != 1) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should null or 1 parameters!");
-            return napi_generic_failure;
-        }
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {

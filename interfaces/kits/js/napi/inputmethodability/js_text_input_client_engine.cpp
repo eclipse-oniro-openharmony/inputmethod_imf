@@ -52,8 +52,14 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
     auto ctxt = std::make_shared<MoveCursorContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        if (argc != 1 && argc != 2) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        if (argc < 1) {
             JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        if (valueType == napi_number) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetMoveCursorParam(env, argv[0], ctxt);
@@ -243,8 +249,14 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
     auto ctxt = std::make_shared<SendKeyFunctionContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        if (argc != 1 && argc != 2) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        if (argc < 1) {
             JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        if (valueType == napi_number) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetAction(env, argv[0], ctxt);
@@ -274,8 +286,14 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
     auto ctxt = std::make_shared<DeleteForwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        if (argc != 1 && argc != 2) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        if (argc < 1) {
             JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        if (valueType == napi_number) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetDeleteForwardLength(env, argv[0], ctxt);
@@ -304,8 +322,14 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
     auto ctxt = std::make_shared<DeleteBackwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        if (argc != 1 && argc != 2) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        if (argc < 1) {
             JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        if (valueType == napi_number) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetDeleteBackwardLength(env, argv[0], ctxt);
@@ -335,8 +359,14 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
     auto ctxt = std::make_shared<InsertTextContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        if (argc != 1 && argc != 2) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        if (argc < 1) {
             JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        if (valueType == napi_string) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetInsertText(env, argv[0], ctxt);
@@ -366,8 +396,14 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
     auto ctxt = std::make_shared<GetForwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        if (argc != 1 && argc != 2) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        if (argc < 1) {
             JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        if (valueType == napi_number) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetForwardLength(env, argv[0], ctxt);
@@ -399,8 +435,14 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
     auto ctxt = std::make_shared<GetBackwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        if (argc != 1 && argc != 2) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        if (argc < 1) {
             JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        if (valueType == napi_number) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetBackwardLength(env, argv[0], ctxt);
@@ -431,10 +473,6 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
 {
     auto ctxt = std::make_shared<GetEditorAttributeContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc != 0 && argc != 1) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should null or 1 parameters!");
-            return napi_generic_failure;
-        }
         return napi_ok;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
