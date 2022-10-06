@@ -394,8 +394,9 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         constexpr int32_t TEXT_LENGTH = 1;
-        std::u16string ret = imc->GetTextBeforeCursor(TEXT_LENGTH);
-        EXPECT_TRUE(ret.size() == 0);
+        std::u16string text;
+        imc->GetTextBeforeCursor(TEXT_LENGTH, text);
+        EXPECT_TRUE(text.size() == 0);
     }
     
     /**
@@ -410,8 +411,9 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         constexpr int32_t TEXT_LENGTH = 1;
-        std::u16string ret = imc->GetTextAfterCursor(TEXT_LENGTH);
-        EXPECT_TRUE(ret.size() == 0);
+        std::u16string text;
+        imc->GetTextAfterCursor(TEXT_LENGTH, text);
+        EXPECT_TRUE(text.size() == 0);
     }
 
     /**
@@ -440,9 +442,10 @@ namespace MiscServices {
         IMSA_HILOGI("IMC GetEnterKeyType Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
-        int32_t ret = imc->GetEnterKeyType();
-        EXPECT_TRUE(ret >= static_cast<int32_t>(EnterKeyType::UNSPECIFIED)
-                    && ret <= static_cast<int32_t>(EnterKeyType::PREVIOUS));
+        int32_t keyType;
+        imc->GetEnterKeyType(keyType);
+        EXPECT_TRUE(keyType >= static_cast<int32_t>(EnterKeyType::UNSPECIFIED)
+                    && keyType <= static_cast<int32_t>(EnterKeyType::PREVIOUS));
     }
 
     /**
@@ -456,9 +459,10 @@ namespace MiscServices {
         IMSA_HILOGI("IMC GetInputPattern Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
-        int32_t ret = imc->GetInputPattern();
-        EXPECT_TRUE(ret >= static_cast<int32_t>(TextInputType::NONE)
-                    && ret <= static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD));
+        int32_t inputPattern;
+        imc->GetInputPattern(inputPattern);
+        EXPECT_TRUE(inputPattern >= static_cast<int32_t>(TextInputType::NONE)
+                    && inputPattern <= static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD));
     }
 
     /**
