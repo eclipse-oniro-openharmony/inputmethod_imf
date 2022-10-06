@@ -63,8 +63,8 @@ namespace MiscServices {
         static sptr<InputMethodController> GetInstance();
         void Attach(sptr<OnTextChangedListener> &listener);
         void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard);
-        std::u16string GetTextBeforeCursor(int32_t number);
-        std::u16string GetTextAfterCursor(int32_t number);
+        int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
+        int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
         void ShowTextInput();
         void HideTextInput();
         void Close();
@@ -76,8 +76,8 @@ namespace MiscServices {
         std::vector<Property> ListInputMethodCommon(InputMethodStatus status);
         std::vector<Property> ListInputMethod();
         std::vector<Property> ListInputMethod(bool enable);
-        int32_t GetEnterKeyType();
-        int32_t GetInputPattern();
+        int32_t GetEnterKeyType(int32_t &keyType);
+        int32_t GetInputPattern(int32_t &inputPattern);
         std::shared_ptr<Property> GetCurrentInputMethod();
         void SetCallingWindow(uint32_t windowId);
         int32_t SwitchInputMethod(const Property &target);

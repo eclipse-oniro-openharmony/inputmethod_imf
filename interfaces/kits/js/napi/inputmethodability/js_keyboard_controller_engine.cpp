@@ -17,6 +17,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "input_method_ability.h"
+#include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -26,6 +27,7 @@ napi_value JsKeyboardControllerEngine::Init(napi_env env, napi_value info)
 {
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("hideKeyboard", HideKeyboard),
+        DECLARE_NAPI_FUNCTION("hide", Hide),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, KCE_CLASS_NAME.c_str(), KCE_CLASS_NAME.size(),
@@ -72,6 +74,30 @@ napi_value JsKeyboardControllerEngine::GetKeyboardControllerInstance(napi_env en
     }
     IMSA_HILOGE("New the JsKeyboardControllerEngine instance complete");
     return instance;
+}
+
+napi_value JsKeyboardControllerEngine::Hide(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<HideContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        if (argc != 0 && argc != 1) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should null or 1 parameters!");
+            return napi_generic_failure;
+        }
+        return napi_ok;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t err = InputMethodAbility::GetInstance()->HideKeyboardSelf();
+        if (err == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
+            ctxt->SetErrorCode(err);
+        }
+    };
+    ctxt->SetAction(std::move(input));
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    return asyncCall.Call(env, exec);
 }
 
 napi_value JsKeyboardControllerEngine::HideKeyboard(napi_env env, napi_callback_info info)

@@ -40,7 +40,7 @@ namespace MiscServices {
     {
     }
 
-    void InputControlChannelProxy::hideKeyboardSelf(int flags)
+    int32_t InputControlChannelProxy::hideKeyboardSelf(int flags)
     {
         IMSA_HILOGI("InputControlChannelProxy::hideKeyboardSelf");
         MessageParcel data, reply;
@@ -48,6 +48,8 @@ namespace MiscServices {
         data.WriteInterfaceToken(GetDescriptor());
         data.WriteInt32(flags);
         Remote()->SendRequest(HIDE_KEYBOARD_SELF, data, reply, option);
+        auto result = reply.ReadInt32();
+        return result;
     }
 
     bool InputControlChannelProxy::advanceToNext(bool isCurrentIme)

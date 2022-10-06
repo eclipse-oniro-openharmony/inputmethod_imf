@@ -20,6 +20,7 @@
 #include "input_method_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -70,6 +71,7 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
 
         DECLARE_NAPI_FUNCTION("MoveCursor", MoveCursor),
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
+        DECLARE_NAPI_FUNCTION("getInputMethodAbility", GetInputMethodAbility),
     };
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -125,6 +127,7 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
     auto delegate = GetInputMethodEngineSetting();
     if (delegate == nullptr) {
         IMSA_HILOGE("get delegate nullptr");
+        JsUtils::ThrowError(env, static_cast<int32_t>(IMFErrorCode::EXCEPTION_IMENGINE), "get delegate nullptr");  // msy
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
@@ -137,6 +140,30 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
     }
     return thisVar;
 };
+
+napi_value JsInputMethodEngineSetting::GetInputMethodAbility(napi_env env, napi_callback_info info)
+{
+    napi_value instance = nullptr;
+    napi_value cons = nullptr;
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { nullptr };
+
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    if (argc != ARGC_ZERO) {
+        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0");
+        return nullptr;
+    }
+
+    if (napi_get_reference_value(env, IMESRef_, &cons) != napi_ok) {
+        return nullptr;
+    }
+
+    if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
+        return nullptr;
+    }
+
+    return instance;
+}
 
 napi_value JsInputMethodEngineSetting::GetInputMethodEngine(napi_env env, napi_callback_info info)
 {
@@ -158,19 +185,15 @@ napi_value JsInputMethodEngineSetting::MoveCursor(napi_env env, napi_callback_in
     size_t argc = ARGC_MAX;
     napi_value argv[ARGC_MAX] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    NAPI_ASSERT(env, argc == 1, "Wrong number of arguments, requires 1");
 
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
-    NAPI_ASSERT(env, valuetype == napi_number, "type is not a number");
-
     int32_t number;
     if (napi_get_value_int32(env, argv[ARGC_ZERO], &number) != napi_ok) {
         IMSA_HILOGE("GetNumberProperty error");
     }
 
     InputMethodAbility::GetInstance()->MoveCursor(number);
-
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
@@ -256,17 +279,26 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    NAPI_ASSERT(env, argc == ARGC_TWO, "Wrong number of arguments, requires 2");
+    if (argc != ARGC_TWO) {
+        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 2");
+        return nullptr;
+    }
     
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
-    NAPI_ASSERT(env, valuetype == napi_string, "type is not a string");
+    if (valuetype != napi_string) {
+        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter1", "napi_string");
+        return nullptr;
+    }
     std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
     IMSA_HILOGE("event type is: %{public}s", type.c_str());
     
     valuetype = napi_undefined;
     napi_typeof(env, argv[ARGC_ONE], &valuetype);
-    NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
+    if (valuetype != napi_function) {
+        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter2", "napi_function");
+        return nullptr;
+    }
     
     auto engine = GetNative(env, info);
     if (engine == nullptr) {
@@ -287,11 +319,17 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    NAPI_ASSERT(env, argc == ARGC_ONE || argc == ARGC_TWO, "Wrong number of arguments, requires 1 or 2");
+    if (argc != ARGC_ONE && argc != ARGC_TWO) {
+        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 1 or 2");
+        return nullptr;
+    }
     
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
-    NAPI_ASSERT(env, valuetype == napi_string, "type is not a string");
+    if (valuetype != napi_string) {
+        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter1", "napi_string");
+        return nullptr;
+    }
     std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
     IMSA_HILOGE("event type is: %{public}s", type.c_str());
 
@@ -303,7 +341,10 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     if (argc == ARGC_TWO) {
         valuetype = napi_undefined;
         napi_typeof(env, argv[ARGC_ONE], &valuetype);
-        NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
+        if (valuetype != napi_function) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter2", "napi_function");
+            return nullptr;
+        }
     }
     engine->UnRegisterListener(argv[ARGC_ONE], type);
     napi_value result = nullptr;

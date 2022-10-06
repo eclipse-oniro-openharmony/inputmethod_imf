@@ -18,6 +18,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
+#include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -50,13 +51,22 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
 {
     auto ctxt = std::make_shared<MoveCursorContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 1 || argc == 2, " should 1 or 2 parameters!", napi_invalid_arg);
-        napi_status status = GetMoveCursorParam(env, argv[0], ctxt);
+        napi_status status = napi_generic_failure;
+        if (argc != 1 && argc != 2) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        status = GetMoveCursorParam(env, argv[0], ctxt);
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        InputMethodAbility::GetInstance()->MoveCursor(ctxt->num);
-        ctxt->status = napi_ok;
+        int32_t err = InputMethodAbility::GetInstance()->MoveCursor(ctxt->num);
+        if (err == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
+            ctxt->SetErrorCode(err);
+        }
     };
     ctxt->SetAction(std::move(input));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
@@ -232,8 +242,12 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
 {
     auto ctxt = std::make_shared<SendKeyFunctionContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 1 || argc == 2, " should 1 or 2 parameters!", napi_invalid_arg);
-        napi_status status = GetAction(env, argv[0], ctxt);
+        napi_status status = napi_generic_failure;
+        if (argc != 1 && argc != 2) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        status = GetAction(env, argv[0], ctxt);
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
@@ -241,9 +255,14 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        InputMethodAbility::GetInstance()->SendFunctionKey(ctxt->action);   // msy
-        ctxt->status = napi_ok;
-        ctxt->isSendKeyFunction = true;
+        int32_t err = InputMethodAbility::GetInstance()->SendFunctionKey(ctxt->action);
+        if (err == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            ctxt->isSendKeyFunction = true;
+        } else {
+            ctxt->SetErrorCode(err);
+        }
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
@@ -254,8 +273,12 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
 {
     auto ctxt = std::make_shared<DeleteForwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 1 || argc == 2, " should 1 or 2 parameters!", napi_invalid_arg);
-        napi_status status = GetDeleteForwardLength(env, argv[0], ctxt);
+        napi_status status = napi_generic_failure;
+        if (argc != 1 && argc != 2) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        status = GetDeleteForwardLength(env, argv[0], ctxt);
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
@@ -263,8 +286,13 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        InputMethodAbility::GetInstance()->DeleteForward(ctxt->length);
-        ctxt->status = napi_ok;
+        int32_t err = InputMethodAbility::GetInstance()->DeleteForward(ctxt->length);
+        if (err == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
+            ctxt->SetErrorCode(err);
+        }
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
@@ -275,8 +303,12 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
 {
     auto ctxt = std::make_shared<DeleteBackwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 1 || argc == 2, " should 1 or 2 parameters!", napi_invalid_arg);
-        napi_status status = GetDeleteBackwardLength(env, argv[0], ctxt);
+        napi_status status = napi_generic_failure;
+        if (argc != 1 && argc != 2) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        status = GetDeleteBackwardLength(env, argv[0], ctxt);
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
@@ -284,9 +316,14 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        InputMethodAbility::GetInstance()->DeleteBackward(ctxt->length);
-        ctxt->status = napi_ok;
-        ctxt->isDeleteBackward = true;
+        int32_t err = InputMethodAbility::GetInstance()->DeleteBackward(ctxt->length);
+        if (err == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            ctxt->isDeleteBackward = true;
+        } else {
+            ctxt->SetErrorCode(err);
+        }
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
@@ -297,8 +334,12 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
 {
     auto ctxt = std::make_shared<InsertTextContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 1 || argc == 2, " should 1 or 2 parameters!", napi_invalid_arg);
-        napi_status status = GetInsertText(env, argv[0], ctxt);
+        napi_status status = napi_generic_failure;
+        if (argc != 1 && argc != 2) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        status = GetInsertText(env, argv[0], ctxt);
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
@@ -306,9 +347,13 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->isInsertText = InputMethodAbility::GetInstance()->InsertText(ctxt->text);
-        if (ctxt->isInsertText) {
+        int32_t err = InputMethodAbility::GetInstance()->InsertText(ctxt->text);
+        if (err == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            ctxt->isInsertText = true;
+        } else {
+            ctxt->SetErrorCode(err);
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
@@ -320,8 +365,12 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
 {
     auto ctxt = std::make_shared<GetForwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 1 || argc == 2, " should 1 or 2 parameters!", napi_invalid_arg);
-        napi_status status = GetForwardLength(env, argv[0], ctxt);
+        napi_status status = napi_generic_failure;
+        if (argc != 1 && argc != 2) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        status = GetForwardLength(env, argv[0], ctxt);
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
@@ -330,8 +379,15 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->text = Str16ToStr8(InputMethodAbility::GetInstance()->GetTextBeforeCursor(ctxt->length));
-        ctxt->status = napi_ok;
+        std::u16string temp;
+        int32_t err = InputMethodAbility::GetInstance()->GetTextBeforeCursor(ctxt->length, temp);
+        if (err == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            ctxt->text = Str16ToStr8(temp);
+        } else {
+            ctxt->SetErrorCode(err);
+        }
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
@@ -342,8 +398,12 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
 {
     auto ctxt = std::make_shared<GetBackwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 1 || argc == 2, " should 1 or 2 parameters!", napi_invalid_arg);
-        napi_status status = GetBackwardLength(env, argv[0], ctxt);
+        napi_status status = napi_generic_failure;
+        if (argc != 1 && argc != 2) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            return status;
+        }
+        status = GetBackwardLength(env, argv[0], ctxt);
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
@@ -352,8 +412,15 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->text = Str16ToStr8(InputMethodAbility::GetInstance()->GetTextAfterCursor(ctxt->length));
-        ctxt->status = napi_ok;
+        std::u16string temp;
+        int32_t err = InputMethodAbility::GetInstance()->GetTextAfterCursor(ctxt->length, temp);
+        if (err == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            ctxt->text = Str16ToStr8(temp);
+        } else {
+           ctxt->SetErrorCode(err);
+        }
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
@@ -364,7 +431,10 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
 {
     auto ctxt = std::make_shared<GetEditorAttributeContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 0 || argc == 1, " should null or 1 parameters!", napi_invalid_arg);
+        if (argc != 0 && argc != 1) {
+            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should null or 1 parameters!");
+            return napi_generic_failure;
+        }
         return napi_ok;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
@@ -373,9 +443,14 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->enterKeyType = InputMethodAbility::GetInstance()->GetEnterKeyType();
-        ctxt->inputPattern = InputMethodAbility::GetInstance()->GetInputPattern();
-        ctxt->status = napi_ok;
+        int32_t typeErr = InputMethodAbility::GetInstance()->GetEnterKeyType(ctxt->enterKeyType);
+        int32_t patternErr = InputMethodAbility::GetInstance()->GetInputPattern(ctxt->inputPattern);
+        if (typeErr == ErrorCode::NO_ERROR && patternErr == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
+            ctxt->SetErrorCode(typeErr);
+        }
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);

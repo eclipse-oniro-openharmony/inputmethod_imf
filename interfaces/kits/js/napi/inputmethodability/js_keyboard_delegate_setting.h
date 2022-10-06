@@ -76,6 +76,7 @@ public:
     ~JsKeyboardDelegateSetting() override = default;
     static napi_value Init(napi_env env, napi_value info);
     static napi_value CreateKeyboardDelegate(napi_env env, napi_callback_info info);
+    static napi_value GetKeyboardDelegate(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override;
