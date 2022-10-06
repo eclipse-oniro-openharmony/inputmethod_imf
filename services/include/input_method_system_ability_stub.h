@@ -79,8 +79,8 @@ private:
         [SWITCH_INPUT_METHOD] = &InputMethodSystemAbilityStub::SwitchInputMethodOnRemote,
         [DISPLAY_OPTIONAL_INPUT_METHOD] = &InputMethodSystemAbilityStub::DisplayOptionalInputMethodOnRemote,
         [SET_CORE_AND_AGENT] = &InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote,
-        [SHOW_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated,
-        [HIDE_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated,
+        [SHOW_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated,
+        [HIDE_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated,
         [DISPLAY_OPTIONAL_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated,
         [SET_CORE_AND_AGENT_DEPRECATED] = &InputMethodSystemAbilityStub::SetCoreAndAgentOnRemoteDeprecated,
     };

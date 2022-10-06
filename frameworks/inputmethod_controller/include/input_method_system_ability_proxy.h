@@ -37,7 +37,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-class InputDataChannelStub;
 class InputMethodSystemAbilityProxy : public IRemoteProxy<IInputMethodSystemAbility> {
 public:
     explicit InputMethodSystemAbilityProxy(const sptr<IRemoteObject> &object);
