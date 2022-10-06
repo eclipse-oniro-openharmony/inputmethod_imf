@@ -40,8 +40,8 @@ namespace MiscServices {
             IMSA_HILOGE("ErrorCode: %{public}d", iter->second);
             return iter->second;
         }
-        return ERROR_CODE_QUERY_FAILED;
         IMSA_HILOGE("GetIMEngineErrorCode end");
+        return ERROR_CODE_QUERY_FAILED;
     }
 
     const std::string JsUtils::ToString(int32_t errorCode)

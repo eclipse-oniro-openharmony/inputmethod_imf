@@ -185,15 +185,19 @@ napi_value JsInputMethodEngineSetting::MoveCursor(napi_env env, napi_callback_in
     size_t argc = ARGC_MAX;
     napi_value argv[ARGC_MAX] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    NAPI_ASSERT(env, argc == 1, "Wrong number of arguments, requires 1");
 
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
+    NAPI_ASSERT(env, valuetype == napi_number, "type is not a number");
+    
     int32_t number;
     if (napi_get_value_int32(env, argv[ARGC_ZERO], &number) != napi_ok) {
         IMSA_HILOGE("GetNumberProperty error");
     }
 
     InputMethodAbility::GetInstance()->MoveCursor(number);
+
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
