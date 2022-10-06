@@ -65,7 +65,7 @@ namespace MiscServices {
             case EXCEPTION_IMCLIENT: {
                 return "input method client error.";
             }
-            case EXCEPTION_KEY_EVENT_PROCESSING: {
+            case EXCEPTION_KEYEVENT: {
                 return "key event processing error.";
             }
             case EXCEPTION_CONFPERSIST: {
