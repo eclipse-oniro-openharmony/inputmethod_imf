@@ -83,8 +83,8 @@ namespace MiscServices {
             default: {
                 return "error is out of definition.";
             }
-            return "error is out of definition.";
         }
+        return "error is out of definition.";
     }
 }
 }
