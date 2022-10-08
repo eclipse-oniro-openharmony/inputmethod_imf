@@ -28,6 +28,8 @@ constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_MAX = 6;
+constexpr int32_t V9_FLAG = 1;
+constexpr int32_t ORIGINAL_FLAG = 2;
 const std::string JsInputMethodEngineSetting::IMES_CLASS_NAME = "InputMethodEngine";
 thread_local napi_ref JsInputMethodEngineSetting::IMESRef_ = nullptr;
 
@@ -143,32 +145,30 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
 
 napi_value JsInputMethodEngineSetting::GetInputMethodAbility(napi_env env, napi_callback_info info)
 {
-    napi_value instance = nullptr;
-    napi_value cons = nullptr;
-    size_t argc = ARGC_MAX;
-    napi_value argv[ARGC_MAX] = { nullptr };
-
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    if (argc != ARGC_ZERO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0", TypeCode::TYPE_NONE);
-        return nullptr;
-    }
-
-    if (napi_get_reference_value(env, IMESRef_, &cons) != napi_ok) {
-        return nullptr;
-    }
-
-    if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
-        return nullptr;
-    }
-
-    return instance;
+    return GetIMEInstance(env, info, V9_FLAG);
 }
 
 napi_value JsInputMethodEngineSetting::GetInputMethodEngine(napi_env env, napi_callback_info info)
 {
+    return GetIMEInstance(env, info, ORIGINAL_FLAG);
+}
+
+napi_value JsInputMethodEngineSetting::GetIMEInstance(napi_env env, napi_callback_info info, int flag)
+{
     napi_value instance = nullptr;
     napi_value cons = nullptr;
+    
+    if (flag == V9_FLAG) {
+        size_t argc = ARGC_MAX;
+        napi_value argv[ARGC_MAX] = { nullptr };
+
+        NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+        if (argc != ARGC_ZERO) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0", TypeCode::TYPE_NONE);
+            return nullptr;
+        }
+    }
+
     if (napi_get_reference_value(env, IMESRef_, &cons) != napi_ok) {
         return nullptr;
     }
@@ -190,7 +190,7 @@ napi_value JsInputMethodEngineSetting::MoveCursor(napi_env env, napi_callback_in
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     NAPI_ASSERT(env, valuetype == napi_number, "type is not a number");
-    
+
     int32_t number;
     if (napi_get_value_int32(env, argv[ARGC_ZERO], &number) != napi_ok) {
         IMSA_HILOGE("GetNumberProperty error");

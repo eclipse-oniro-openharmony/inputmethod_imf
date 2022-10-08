@@ -49,6 +49,7 @@ private:
     static bool Equals(napi_env env, napi_value value, napi_ref copy);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
+    static napi_value GetIMEInstance(napi_env env, napi_callback_info info, int flag);
     void RegisterListener(napi_value callback, std::string type,
         std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);

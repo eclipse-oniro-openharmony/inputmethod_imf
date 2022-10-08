@@ -122,30 +122,26 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
 
 napi_value JsKeyboardDelegateSetting::CreateKeyboardDelegate(napi_env env, napi_callback_info info)
 {
-    napi_value instance = nullptr;
-    napi_value cons = nullptr;
-    if (napi_get_reference_value(env, KDSRef_, &cons) != napi_ok) {
-        IMSA_HILOGE("napi_get_reference_value(env, KDSRef_, &cons) != napi_ok");
-        return nullptr;
-    }
-    IMSA_HILOGE("Get a reference to the global variable appAccountRef_ complete");
-    if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
-        IMSA_HILOGE("napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok");
-        return nullptr;
-    }
-    return instance;
+    return GetKDInstance(env, info, ORIGINAL_FLAG);
 }
 
 napi_value JsKeyboardDelegateSetting::GetKeyboardDelegate(napi_env env, napi_callback_info info)
 {
+    return GetKDInstance(env, info, V9_FLAG);
+}
+
+napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_info info, int flag)
+{
     napi_value instance = nullptr;
     napi_value cons = nullptr;
-    size_t argc = AsyncCall::ARGC_MAX;
-    napi_value argv[AsyncCall::ARGC_MAX] = { nullptr };
-
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    if (argc != ARGC_ZERO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0");
+    if (flag == V9_FLAG) {
+        size_t argc = AsyncCall::ARGC_MAX;
+        napi_value argv[AsyncCall::ARGC_MAX] = { nullptr };
+    
+        NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+        if (argc != ARGC_ZERO) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0");
+        }
     }
 
     if (napi_get_reference_value(env, KDSRef_, &cons) != napi_ok) {

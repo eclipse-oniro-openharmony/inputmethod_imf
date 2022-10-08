@@ -87,6 +87,7 @@ public:
 private:
     static napi_value GetResultOnKeyEvent(napi_env env, int32_t keyCode, int32_t keyStatus);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
+    static napi_value GetKDInstance(napi_env env, napi_callback_info info, int flag);
     static std::shared_ptr<JsKeyboardDelegateSetting> GetKeyboardDelegateSetting();
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsKeyboardDelegateSetting *GetNative(napi_env env, napi_callback_info info);
