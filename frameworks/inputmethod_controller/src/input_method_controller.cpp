@@ -530,14 +530,12 @@ using namespace MessageID;
     int32_t InputMethodController::SwitchInputMethod(const Property &target)
     {
         IMSA_HILOGI("InputMethodController::SwitchInputMethod");
-        if (!mImms) {
-            IMSA_HILOGE("InputMethodController mImms is nullptr");
-            return ErrorCode::ERROR_NULL_POINTER;
+        auto proxy = mImms;
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
+            return ErrorCode::ERROR_CLIENT_NULL_POINTER;;
         }
-        InputMethodProperty property;
-        property.mPackageName = Str8ToStr16(target.packageName);
-        property.mAbilityName = Str8ToStr16(target.abilityName);
-        return mImms->SwitchInputMethod(property);
+        return proxy->SwitchInputMethod(target);
     }
 
     void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
