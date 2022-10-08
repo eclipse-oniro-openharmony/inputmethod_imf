@@ -99,13 +99,13 @@ using namespace MessageID;
         IMSA_HILOGI("get input method service proxy");
         sptr<ISystemAbilityManager> systemAbilityManager =
             SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (!systemAbilityManager) {
-            IMSA_HILOGI("systemAbilityManager is nullptr");
+        if (systemAbilityManager == nullptr) {
+            IMSA_HILOGI("system ability manager is nullptr");
             return nullptr;
         }
         auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
         if (systemAbility == nullptr) {
-            IMSA_HILOGI("systemAbility is nullptr");
+            IMSA_HILOGI("system ability is nullptr");
             return nullptr;
         }
         if (deathRecipient_ == nullptr) {
