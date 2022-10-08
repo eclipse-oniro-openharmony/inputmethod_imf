@@ -17,103 +17,112 @@
 #define SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_H
 
 #include <atomic>
-#include <thread>
 #include <map>
-#include "system_ability.h"
-#include "input_method_system_ability_stub.h"
-#include "peruser_setting.h"
-#include "peruser_session.h"
-#include "event_handler.h"
-#include "bundle_mgr_proxy.h"
+#include <thread>
+
 #include "ability_manager_interface.h"
+#include "bundle_mgr_proxy.h"
+#include "event_handler.h"
+#include "input_method_status.h"
+#include "input_method_system_ability_stub.h"
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
+#include "peruser_session.h"
+#include "peruser_setting.h"
+#include "system_ability.h"
 
 namespace OHOS {
 namespace MiscServices {
-    class InputDataChannelStub;
-    using AbilityType = AppExecFwk::ExtensionAbilityType;
-    enum class ServiceRunningState {
-        STATE_NOT_START,
-        STATE_RUNNING
-    };
+using AbilityType = AppExecFwk::ExtensionAbilityType;
+enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
-    class InputMethodSystemAbility : public SystemAbility, public InputMethodSystemAbilityStub {
-        DECLARE_SYSTEM_ABILITY(InputMethodSystemAbility);
-    public:
-        DISALLOW_COPY_AND_MOVE(InputMethodSystemAbility);
-        InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate);
-        InputMethodSystemAbility();
-        ~InputMethodSystemAbility();
-        static sptr<InputMethodSystemAbility> GetInstance();
-        
-        int32_t GetUserState(int32_t userId);
+class InputMethodSystemAbility : public SystemAbility, public InputMethodSystemAbilityStub {
+    DECLARE_SYSTEM_ABILITY(InputMethodSystemAbility);
 
-        int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-                                MessageOption &option) override;
-        int32_t getDisplayMode(int32_t &retMode) override;
-        int32_t getKeyboardWindowHeight(int32_t &retHeight) override;
-        int32_t getCurrentKeyboardType(KeyboardType *retType) override;
-        std::shared_ptr<InputMethodProperty> GetCurrentInputMethod() override;
-        std::vector<InputMethodProperty> ListInputMethod(InputMethodStatus stauts) override;
-        std::vector<InputMethodProperty> ListInputMethodByUserId(int32_t userId, InputMethodStatus status) override;
-        int32_t listKeyboardType(const std::u16string &imeId, std::vector<KeyboardType *> *types) override;
-        int32_t SwitchInputMethod(const InputMethodProperty &target) override;
-        int Dump(int fd, const std::vector<std::u16string> &args) override;
-        void DumpAllMethod(int fd);
+public:
+    DISALLOW_COPY_AND_MOVE(InputMethodSystemAbility);
+    InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate);
+    InputMethodSystemAbility();
+    ~InputMethodSystemAbility();
 
-    protected:
-        void OnStart() override;
-        void OnStop() override;
+    int32_t GetUserState(int32_t userId);
 
-    private:
-        int32_t Init();
-        void Initialize();
-        
-        std::thread workThreadHandler; /*!< thread handler of the WorkThread */
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-        std::map<int32_t, PerUserSetting*> userSettings;
+    int32_t PrepareInput(int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel,
+        InputAttribute &attribute) override;
+    int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) override;
+    int32_t ShowCurrentInput() override;
+    int32_t HideCurrentInput() override;
+    int32_t StopInput(sptr<IInputClient> client) override;
+    int32_t ReleaseInput(sptr<IInputClient> client) override;
+    int32_t GetKeyboardWindowHeight(int32_t &retHeight) override;
+    std::shared_ptr<Property> GetCurrentInputMethod() override;
+    std::vector<Property> ListInputMethod(InputMethodStatus status) override;
+    int32_t SwitchInputMethod(const Property &target) override;
+    int32_t DisplayOptionalInputMethod() override;
+    int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
 
-        std::map<int32_t, PerUserSession*> userSessions;
-        std::map<int32_t, MessageHandler*> msgHandlers;
+    // Deprecated because of no permission check, kept for compatibility
+    int32_t SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
+    int32_t HideCurrentInputDeprecated() override;
+    int32_t ShowCurrentInputDeprecated() override;
+    int32_t DisplayOptionalInputMethodDeprecated() override;
 
-        void WorkThread();
-        PerUserSetting *GetUserSetting(int32_t userId);
-        PerUserSession *GetUserSession(int32_t userId);
-        bool StartInputService(std::string imeId);
-        void StopInputService(std::string imeId);
-        int32_t OnUserStarted(const Message *msg);
-        int32_t OnUserStopped(const Message *msg);
-        int32_t OnUserUnlocked(const Message *msg);
-        int32_t OnUserLocked(const Message *msg);
-        int32_t OnHandleMessage(Message *msg);
-        int32_t OnRemotePeerDied(const Message *msg);
-        int32_t OnSettingChanged(const Message *msg);
-        int32_t OnPackageRemoved(const Message *msg);
-        int32_t OnPackageAdded(const Message *msg);
-        int32_t OnDisableIms(const Message *msg);
-        int32_t OnAdvanceToNext(const Message *msg);
-        void OnDisplayOptionalInputMethod(int32_t userId);
-        static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
-        OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
-        std::vector<InputMethodProperty> listInputMethodByType(int32_t userId, AbilityType type);
-        std::vector<InputMethodProperty> ListAllInputMethod(int32_t userId);
-        std::vector<InputMethodProperty> ListEnabledInputMethod();
-        std::vector<InputMethodProperty> ListDisabledInputMethod(int32_t userId);
-        void StartUserIdListener();
-        int32_t OnSwitchInputMethod(int32_t userId, const InputMethodProperty &target);
-        std::string GetInputMethodParam(const std::vector<InputMethodProperty> &properties);
-        ServiceRunningState state_;
-        void InitServiceHandler();
-        std::atomic_flag dialogLock_ = ATOMIC_FLAG_INIT;
-        static std::mutex instanceLock_;
-        static sptr<InputMethodSystemAbility> instance_;
-        static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
-        int32_t userId_;
-        static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
-        static constexpr const char *SELECT_DIALOG_HAP = "cn.openharmony.inputmethodchoosedialog";
-        static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
-    };
+    std::vector<Property> ListInputMethodByUserId(int32_t userId, InputMethodStatus status);
+    int Dump(int fd, const std::vector<std::u16string> &args) override;
+    void DumpAllMethod(int fd);
+
+protected:
+    void OnStart() override;
+    void OnStop() override;
+
+private:
+    int32_t Init();
+    void Initialize();
+
+    std::thread workThreadHandler; /*!< thread handler of the WorkThread */
+
+    std::map<int32_t, PerUserSetting *> userSettings;
+
+    std::map<int32_t, std::shared_ptr<PerUserSession>> userSessions;
+    std::map<int32_t, MessageHandler *> msgHandlers;
+
+    void WorkThread();
+    PerUserSetting *GetUserSetting(int32_t userId);
+    std::shared_ptr<PerUserSession> GetUserSession(int32_t userId);
+    bool StartInputService(std::string imeId);
+    void StopInputService(std::string imeId);
+    int32_t OnUserStarted(const Message *msg);
+    int32_t OnUserStopped(const Message *msg);
+    int32_t OnUserUnlocked(const Message *msg);
+    int32_t OnUserLocked(const Message *msg);
+    int32_t OnHandleMessage(Message *msg);
+    int32_t OnSettingChanged(const Message *msg);
+    int32_t OnPackageRemoved(const Message *msg);
+    int32_t OnPackageAdded(const Message *msg);
+    int32_t OnDisableIms(const Message *msg);
+    int32_t OnAdvanceToNext(const Message *msg);
+    int32_t OnDisplayOptionalInputMethod(int32_t userId);
+    static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
+    OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
+    std::vector<InputMethodProperty> listInputMethodByType(int32_t userId, AbilityType type);
+    std::vector<InputMethodProperty> ListAllInputMethodCommon(int32_t userId);
+    std::vector<Property> ListAllInputMethod(int32_t userId);
+    std::vector<Property> ListEnabledInputMethod();
+    std::vector<Property> ListDisabledInputMethod(int32_t userId);
+    void StartUserIdListener();
+    int32_t OnSwitchInputMethod(int32_t userId, const Property &target);
+    std::string GetInputMethodParam(const std::vector<InputMethodProperty> &properties);
+    ServiceRunningState state_;
+    void InitServiceHandler();
+    std::atomic_flag dialogLock_ = ATOMIC_FLAG_INIT;
+    static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
+    int32_t userId_;
+    static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
+    static constexpr const char *SELECT_DIALOG_HAP = "cn.openharmony.inputmethodchoosedialog";
+    static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_H

@@ -21,11 +21,10 @@
 #include <vector>
 
 #include "keyboard_type.h"
-#include "parcel.h"
 
 namespace OHOS {
 namespace MiscServices {
-    class InputMethodProperty : public Parcelable {
+    class InputMethodProperty {
     public:
         std::u16string mImeId;
         std::u16string mPackageName;
@@ -43,8 +42,6 @@ namespace MiscServices {
         ~InputMethodProperty();
         InputMethodProperty(const InputMethodProperty& property);
         InputMethodProperty& operator =(const InputMethodProperty& property);
-        bool Marshalling(Parcel &parcel) const override;
-        static InputMethodProperty *Unmarshalling(Parcel &parcel);
     };
 } // namespace MiscServices
 } // namespace OHOS

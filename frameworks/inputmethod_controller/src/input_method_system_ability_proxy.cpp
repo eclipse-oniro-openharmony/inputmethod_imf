@@ -18,459 +18,187 @@
 #include "global.h"
 #include "message_option.h"
 
-namespace OHOS {
-namespace MiscServices {
-    using namespace ErrorCode;
-    InputMethodSystemAbilityProxy::InputMethodSystemAbilityProxy(const sptr<IRemoteObject> &object)
-        : IRemoteProxy<IInputMethodSystemAbility>(object)
-    {
-    }
+namespace OHOS ::MiscServices {
+using namespace ErrorCode;
 
-    void InputMethodSystemAbilityProxy::prepareInput(MessageParcel& data)
-    {
-        MessageParcel reply;
-        MessageOption option;
+InputMethodSystemAbilityProxy::InputMethodSystemAbilityProxy(const sptr<IRemoteObject> &object)
+    : IRemoteProxy<IInputMethodSystemAbility>(object)
+{
+}
 
-        auto ret = Remote()->SendRequest(PREPARE_INPUT, data, reply, option);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::prepareInput SendRequest failed");
-            return;
-        }
+int32_t InputMethodSystemAbilityProxy::PrepareInput(int32_t displayId, sptr<IInputClient> client,
+    sptr<IInputDataChannel> channel, InputAttribute &attribute)
+{
+    return SendRequest(PREPARE_INPUT, [displayId, client, channel, &attribute](MessageParcel &data) {
+        return data.WriteInt32(displayId) && data.WriteRemoteObject(client->AsObject()) &&
+               data.WriteRemoteObject(channel->AsObject()) && InputAttribute::Marshalling(attribute, data);
+    });
+}
 
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::prepareInput reply failed");
-            return;
-        }
-    }
+int32_t InputMethodSystemAbilityProxy::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(START_INPUT, [isShowKeyboard, client](MessageParcel &data) {
+        return data.WriteRemoteObject(client->AsObject()) && data.WriteBool(isShowKeyboard);
+    });
+}
 
-    int32_t InputMethodSystemAbilityProxy::displayOptionalInputMethod(MessageParcel& data)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::displayOptionalInputMethod");
-        return SendRequestToService(data, DISPLAY_OPTIONAL_INPUT_METHOD);
-    }
+int32_t InputMethodSystemAbilityProxy::ShowCurrentInput()
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(SHOW_CURRENT_INPUT);
+}
 
-    void InputMethodSystemAbilityProxy::releaseInput(MessageParcel& data)
-    {
-        MessageParcel reply;
-        MessageOption option;
+int32_t InputMethodSystemAbilityProxy::HideCurrentInput()
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(HIDE_CURRENT_INPUT);
+}
 
-        auto ret = Remote()->SendRequest(RELEASE_INPUT, data, reply, option);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::releaseInput SendRequest failed");
-            return;
-        }
+int32_t InputMethodSystemAbilityProxy::StopInput(sptr<IInputClient> client)
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(STOP_INPUT,
+        [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
+}
 
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::releaseInput reply failed");
-            return;
-        }
-    }
+int32_t InputMethodSystemAbilityProxy::ReleaseInput(sptr<IInputClient> client)
+{
+    return SendRequest(RELEASE_INPUT,
+        [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
+}
 
-    void InputMethodSystemAbilityProxy::startInput(MessageParcel &data)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::startInput");
-        MessageParcel reply;
-        MessageOption option;
+int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethod()
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(DISPLAY_OPTIONAL_INPUT_METHOD);
+}
 
-        auto ret = Remote()->SendRequest(START_INPUT, data, reply, option);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::startInput SendRequest failed");
-            return;
-        }
+int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(SET_CORE_AND_AGENT, [core, agent](MessageParcel &data) {
+        return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent->AsObject());
+    });
+}
 
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::startInput reply failed");
-            return;
-        }
-    }
+int32_t InputMethodSystemAbilityProxy::GetKeyboardWindowHeight(int32_t &retHeight)
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(GET_KEYBOARD_WINDOW_HEIGHT, nullptr,
+        [&retHeight](MessageParcel &reply) { return reply.ReadInt32(retHeight); });
+}
 
-    void InputMethodSystemAbilityProxy::stopInput(MessageParcel& data)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::stopInput");
-        MessageParcel reply;
-        MessageOption option;
-
-        auto ret = Remote()->SendRequest(STOP_INPUT, data, reply, option);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::stopInput SendRequest failed");
-            return;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodSystemAbilityProxy::stopInput reply failed");
-            return;
-        }
-    }
-
-    void InputMethodSystemAbilityProxy::SetCoreAndAgent(MessageParcel &data)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::SetCoreAndAgent");
-        MessageParcel reply;
-        MessageOption option{ MessageOption::TF_SYNC };
-        if (Remote()->SendRequest(SET_CORE_AND_AGENT, data, reply, option) != NO_ERROR) {
-            IMSA_HILOGE("SendRequest failed");
-        }
-    }
-
-    int32_t InputMethodSystemAbilityProxy::HideCurrentInput(MessageParcel& data)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInput");
-        return SendRequestToService(data, HIDE_CURRENT_INPUT);
-    }
-
-    int32_t InputMethodSystemAbilityProxy::ShowCurrentInput(MessageParcel &data)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInput");
-        return SendRequestToService(data, SHOW_CURRENT_INPUT);
-    }
-
-    int32_t InputMethodSystemAbilityProxy::Prepare(int32_t displayId, sptr<InputClientStub> &client,
-                                                   sptr<InputDataChannelStub> &channel, InputAttribute &attribute)
-    {
-        MessageParcel data, reply;
-        MessageOption option;
-        if (!data.WriteInterfaceToken(GetDescriptor())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        if (!(data.WriteInt32(displayId)
-            && data.WriteRemoteObject(client->AsObject())
-            && data.WriteRemoteObject(channel->AsObject())
-            && data.WriteParcelable(&attribute))) {
-                    return ERROR_EX_PARCELABLE;
-                }
-
-        auto ret = Remote()->SendRequest(PREPARE_INPUT, data, reply, option);
-        if (ret != NO_ERROR) {
-            return ERROR_STATUS_FAILED_TRANSACTION;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            return ret;
-        }
-
-        return NO_ERROR;
-    }
-
-    int32_t InputMethodSystemAbilityProxy::Release(sptr<InputClientStub> &client)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::Release");
-        MessageParcel data, reply;
-        MessageOption option;
-        if (!data.WriteInterfaceToken(GetDescriptor())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        if (!data.WriteRemoteObject(client->AsObject().GetRefPtr())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        auto ret = Remote()->SendRequest(RELEASE_INPUT, data, reply, option);
-        if (ret != NO_ERROR) {
-            return ERROR_STATUS_FAILED_TRANSACTION;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            return ret;
-        }
-
-        return NO_ERROR;
-    }
-
-    int32_t InputMethodSystemAbilityProxy::Start(sptr<InputClientStub> &client)
-    {
-        MessageParcel data, reply;
-        MessageOption option;
-        if (!data.WriteInterfaceToken(GetDescriptor())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        if (!data.WriteRemoteObject(client->AsObject().GetRefPtr())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        auto ret = Remote()->SendRequest(START_INPUT, data, reply, option);
-        if (ret != NO_ERROR) {
-            return ERROR_STATUS_FAILED_TRANSACTION;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            return ret;
-        }
-
-        return NO_ERROR;
-    }
-
-    int32_t InputMethodSystemAbilityProxy::Stop(sptr<InputClientStub> &client)
-    {
-        MessageParcel data, reply;
-        MessageOption option;
-        if (!data.WriteInterfaceToken(GetDescriptor())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        if (!data.WriteRemoteObject(client->AsObject().GetRefPtr())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        auto ret = Remote()->SendRequest(STOP_INPUT, data, reply, option);
-        if (ret != NO_ERROR) {
-            return ERROR_STATUS_FAILED_TRANSACTION;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            return ret;
-        }
-
-        return NO_ERROR;
-    }
-
-    int32_t InputMethodSystemAbilityProxy::getDisplayMode(int32_t &retMode)
-    {
-        MessageParcel data, reply;
-        MessageOption option;
-
-        if (!data.WriteInterfaceToken(GetDescriptor())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        auto ret = Remote()->SendRequest(GET_DISPLAY_MODE, data, reply, option);
-        if (ret != NO_ERROR) {
-            return ERROR_STATUS_FAILED_TRANSACTION;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            return ret;
-        }
-
-        if (!reply.ReadInt32(retMode)) {
-            return ERROR_STATUS_BAD_VALUE;
-        }
-        return NO_ERROR;
-    }
-
-    int32_t InputMethodSystemAbilityProxy::getKeyboardWindowHeight(int32_t &retHeight)
-    {
-        MessageParcel data, reply;
-        MessageOption option;
-
-        if (!data.WriteInterfaceToken(GetDescriptor())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        auto ret = Remote()->SendRequest(GET_KEYBOARD_WINDOW_HEIGHT, data, reply, option);
-        if (ret != NO_ERROR) {
-            return ERROR_STATUS_FAILED_TRANSACTION;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            return ret;
-        }
-
-        if (!reply.ReadInt32(retHeight)) {
-            return ERROR_STATUS_BAD_VALUE;
-        }
-        return NO_ERROR;
-    }
-
-    std::shared_ptr<InputMethodProperty> InputMethodSystemAbilityProxy::GetCurrentInputMethod()
-    {
-        MessageParcel data, reply;
-        MessageOption option;
-        if (!data.WriteInterfaceToken(GetDescriptor())) {
-            IMSA_HILOGE("InputMethodSystemAbilityProxy::GetCurrentInputMethod WriteInterfaceToken failed");
-            return nullptr;
-        }
-        auto ret = Remote()->SendRequest(GET_CURRENT_INPUT_METHOD, data, reply, option);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGE("InputMethodSystemAbilityProxy::GetCurrentInputMethod SendRequest failed: %{public}d", ret);
-            return nullptr;
-        }
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            IMSA_HILOGE("InputMethodSystemAbilityProxy::GetCurrentInputMethod reply error: %{public}d", ret);
-            return nullptr;
-        }
-        auto property = reply.ReadParcelable<InputMethodProperty>();
+std::shared_ptr<Property> InputMethodSystemAbilityProxy::GetCurrentInputMethod()
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    std::shared_ptr<Property> property = nullptr;
+    int32_t ret = SendRequest(GET_CURRENT_INPUT_METHOD, nullptr, [&property](MessageParcel &reply) {
+        property = std::make_shared<Property>();
         if (property == nullptr) {
-            IMSA_HILOGE("InputMethodSystemAbilityProxy::read parcel nullptr");
-            return nullptr;
+            IMSA_HILOGE("%{public}s make_shared nullptr", __func__);
+            return false;
         }
-        return { property, [](auto p) {} };
+        return Property::Unmarshalling(*property, reply);
+    });
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("%{public}s SendRequest failed, ret %{public}d", __func__, ret);
+        return nullptr;
     }
+    return property;
+}
 
-    int32_t InputMethodSystemAbilityProxy::getCurrentKeyboardType(KeyboardType *retType)
-    {
-        if (!retType) {
-            return ERROR_NULL_POINTER;
-        }
-
-        MessageParcel data, reply;
-        MessageOption option;
-
-        if (!data.WriteInterfaceToken(GetDescriptor())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        auto ret = Remote()->SendRequest(GET_CURRENT_KEYBOARD_TYPE, data, reply, option);
-        if (ret != NO_ERROR) {
-            return ERROR_STATUS_FAILED_TRANSACTION;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            return ret;
-        }
-
-        KeyboardType *keyType = reply.ReadParcelable<KeyboardType>();
-        if (!keyType) {
-            return ERROR_NULL_POINTER;
-        }
-        *retType = *keyType;
-        delete keyType;
-        keyType = nullptr;
-        return NO_ERROR;
+std::vector<Property> InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status)
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    std::vector<Property> properties;
+    int32_t ret = SendRequest(
+        LIST_INPUT_METHOD, [status](MessageParcel &data) { return data.WriteUint32(status); },
+        [&properties](MessageParcel &reply) {
+            auto size = reply.ReadUint32();
+            size_t availSize = reply.GetReadableBytes();
+            if (size > (availSize / sizeof(Property)) || (size > properties.max_size())) {
+                IMSA_HILOGE("%{public}s size %{public}u too large", __func__, size);
+                return false;
+            }
+            properties.resize(size);
+            for (auto &property : properties) {
+                if (!Property::Unmarshalling(property, reply)) {
+                    IMSA_HILOGE("%{public}s Unmarshalling fail", __func__);
+                    return false;
+                }
+            }
+            return true;
+        });
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("InputMethodSystemAbilityProxy::SendRequest failed, ret %{public}d", ret);
+        return {};
     }
+    return properties;
+}
 
-    std::vector<InputMethodProperty> InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::ListInputMethod");
-        MessageParcel data, reply;
-        MessageOption option;
+int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const Property &target)
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(SWITCH_INPUT_METHOD,
+        [&target](MessageParcel &data) { return Property::Marshalling(target, data); });
+}
 
-        if (!(data.WriteInterfaceToken(GetDescriptor()) && data.WriteUint32(status))) {
-            IMSA_HILOGE("Write InterfaceToken or Uint32 failed");
-            return {};
-        }
-        auto ret = Remote()->SendRequest(LIST_INPUT_METHOD, data, reply, option);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGE("InputMethodSystemAbilityProxy SendRequest failed: %{public}d", ret);
-            return {};
-        }
+int32_t InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated()
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(SHOW_CURRENT_INPUT_DEPRECATED);
+}
 
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            IMSA_HILOGE("InputMethodSystemAbilityProxy reply error: %{public}d", ret);
-            return {};
-        }
+int32_t InputMethodSystemAbilityProxy::HideCurrentInputDeprecated()
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(HIDE_CURRENT_INPUT_DEPRECATED);
+}
 
-        auto size = reply.ReadUint32();
+int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethodDeprecated()
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(DISPLAY_OPTIONAL_INPUT_DEPRECATED);
+}
 
-        std::vector<InputMethodProperty> properties;
-        while (size > 0) {
-            auto property = reply.ReadParcelable<InputMethodProperty>();
-            properties.push_back(*property);
-            delete property;
-            size--;
-        }
+int32_t InputMethodSystemAbilityProxy::SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core,
+    sptr<IInputMethodAgent> agent)
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    return SendRequest(SET_CORE_AND_AGENT_DEPRECATED, [core, agent](MessageParcel &data) {
+        return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent->AsObject());
+    });
+}
 
-        return properties;
+int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option{ MessageOption::TF_SYNC };
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        IMSA_HILOGE("write interface token failed");
+        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
     }
-
-    int32_t InputMethodSystemAbilityProxy::listKeyboardType(const std::u16string& imeId,
-        std::vector<KeyboardType*> *types)
-    {
-        if (!types) {
-            return ERROR_NULL_POINTER;
-        }
-
-        MessageParcel data, reply;
-        MessageOption option;
-
-        if (!(data.WriteInterfaceToken(GetDescriptor()) && data.WriteString16(imeId))) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        auto ret = Remote()->SendRequest(LIST_KEYBOARD_TYPE, data, reply, option);
-        if (ret != NO_ERROR) {
-            return ERROR_STATUS_FAILED_TRANSACTION;
-        }
-
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            return ret;
-        }
-
-        auto size = reply.ReadInt32();
-        while (size > 0) {
-            KeyboardType *kt = reply.ReadParcelable<KeyboardType>();
-            types->push_back(kt);
-            size--;
-        }
-        return NO_ERROR;
+    if (input != nullptr && (!input(data))) {
+        IMSA_HILOGE("write data failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
     }
-
-    int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const InputMethodProperty &target)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::SwitchInputMethod");
-        MessageParcel data, reply;
-        MessageOption option;
-        if (!data.WriteInterfaceToken(GetDescriptor())) {
-            return ERROR_EX_PARCELABLE;
-        }
-
-        data.WriteParcelable(&target);
-        auto ret = Remote()->SendRequest(SWITCH_INPUT_METHOD, data, reply, option);
-        if (ret != 0) {
-            return ERROR_STATUS_FAILED_TRANSACTION;
-        }
-        ret = reply.ReadInt32();
+    auto ret = Remote()->SendRequest(code, data, reply, option);
+    if (ret != NO_ERROR) {
+        IMSA_HILOGE("SendRequest failed, ret %{public}d", ret);
         return ret;
     }
-
-    int32_t InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated(MessageParcel &data)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated");
-        return SendRequestToService(data, SHOW_CURRENT_INPUT_DEPRECATED);
-    }
-
-    int32_t InputMethodSystemAbilityProxy::HideCurrentInputDeprecated(MessageParcel &data)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::HideCurrentInputDeprecated");
-        return SendRequestToService(data, HIDE_CURRENT_INPUT_DEPRECATED);
-    }
-
-    int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethodDeprecated(MessageParcel &data)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::DisplayOptionalInputMethodDeprecated");
-        return SendRequestToService(data, DISPLAY_OPTIONAL_INPUT_METHOD_DEPRECATED);
-    }
-
-    void InputMethodSystemAbilityProxy::SetCoreAndAgentDeprecated(MessageParcel &data)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::SetCoreAndAgentDeprecated");
-        MessageParcel reply;
-        MessageOption option{ MessageOption::TF_SYNC };
-        if (Remote()->SendRequest(SET_CORE_AND_AGENT_DEPRECATED, data, reply, option) != NO_ERROR) {
-            IMSA_HILOGE("SendRequest failed");
-        }
-    }
-
-    int32_t InputMethodSystemAbilityProxy::SendRequestToService(MessageParcel &data, uint32_t code)
-    {
-        IMSA_HILOGI("InputMethodSystemAbilityProxy::SendRequestToService");
-        MessageParcel reply;
-        MessageOption option{ MessageOption::TF_SYNC };
-        auto ret = Remote()->SendRequest(code, data, reply, option);
-        if (ret != NO_ERROR) {
-            IMSA_HILOGE("SendRequest failed");
-            return ret;
-        }
-        ret = reply.ReadInt32();
-        if (ret != NO_ERROR) {
-            IMSA_HILOGE("reply error");
-        }
+    ret = reply.ReadInt32();
+    if (ret != NO_ERROR) {
+        IMSA_HILOGE("reply error, ret %{public}d", ret);
         return ret;
     }
-} // namespace MiscServices
-} // namespace OHOS
+    if (output != nullptr && (!output(reply))) {
+        IMSA_HILOGE("reply parcel error");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ret;
+}
+} // namespace OHOS::MiscServices

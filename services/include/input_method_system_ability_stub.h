@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,46 +15,76 @@
 
 #ifndef SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_STUB_H
 #define SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_STUB_H
+
 #include <errors.h>
-#include "refbase.h"
+
+#include "global.h"
 #include "i_input_method_system_ability.h"
 #include "iremote_stub.h"
-#include "global.h"
 #include "message_parcel.h"
+#include "refbase.h"
 
-namespace OHOS {
-namespace MiscServices {
-    class InputMethodSystemAbilityStub : public IRemoteStub<IInputMethodSystemAbility> {
-    public:
-        int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-                                MessageOption &option) override;
+namespace OHOS ::MiscServices {
+class InputMethodSystemAbilityStub : public IRemoteStub<IInputMethodSystemAbility> {
+public:
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-        void prepareInput(MessageParcel& data) override;
-        void releaseInput(MessageParcel& data) override;
-        void startInput(MessageParcel& data) override;
-        void stopInput(MessageParcel& data) override;
-        void SetCoreAndAgent(MessageParcel& data) override;
-        int32_t HideCurrentInput(MessageParcel& data) override;
-        int32_t ShowCurrentInput(MessageParcel& data) override;
-        int32_t displayOptionalInputMethod(MessageParcel& data) override;
-        void OnGetCurrentInputMethod(MessageParcel &reply);
-        void OnListInputMethod(MessageParcel &data, MessageParcel &reply);
-        virtual std::vector<InputMethodProperty> ListInputMethodByUserId(int32_t userId, InputMethodStatus status) = 0;
-        int32_t OnSwitchInputMethod(MessageParcel &data);
+private:
+    int32_t PrepareInputOnRemote(MessageParcel &data, MessageParcel &reply);
 
-        // Deprecated because of no permission check, kept for compatibility
-        int32_t DisplayOptionalInputMethodDeprecated(MessageParcel &data) override;
-        int32_t HideCurrentInputDeprecated(MessageParcel &data) override;
-        int32_t ShowCurrentInputDeprecated(MessageParcel &data) override;
-        void SetCoreAndAgentDeprecated(MessageParcel &data) override;
+    int32_t StartInputOnRemote(MessageParcel &data, MessageParcel &reply);
 
-    protected:
-        bool CheckPermission(const std::string &permission);
-        int32_t SendMessageToService(int32_t code, std::function<bool(MessageParcel &)> callback);
-        int32_t getUserId(int32_t uid);
-        int USER_ID_CHANGE_VALUE = 200000; // user range
+    int32_t ShowCurrentInputOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t HideCurrentInputOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t StopInputOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t ReleaseInputOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t GetKeyboardWindowHeightOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t GetCurrentInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t ListInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t SwitchInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t DisplayOptionalInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t SetCoreAndAgentOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    // Deprecated because of no permission check, kept for compatibility
+    int32_t DisplayInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
+
+    int32_t HideCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
+
+    int32_t ShowCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
+
+    int32_t SetCoreAndAgentOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
+
+    bool CheckPermission(const std::string &permission);
+
+    using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
+    static constexpr RequestHandler HANDLERS[INPUT_SERVICE_CMD_LAST] = {
+        [PREPARE_INPUT] = &InputMethodSystemAbilityStub::PrepareInputOnRemote,
+        [START_INPUT] = &InputMethodSystemAbilityStub::StartInputOnRemote,
+        [SHOW_CURRENT_INPUT] = &InputMethodSystemAbilityStub::ShowCurrentInputOnRemote,
+        [HIDE_CURRENT_INPUT] = &InputMethodSystemAbilityStub::HideCurrentInputOnRemote,
+        [STOP_INPUT] = &InputMethodSystemAbilityStub::StopInputOnRemote,
+        [RELEASE_INPUT] = &InputMethodSystemAbilityStub::ReleaseInputOnRemote,
+        [GET_KEYBOARD_WINDOW_HEIGHT] = &InputMethodSystemAbilityStub::GetKeyboardWindowHeightOnRemote,
+        [GET_CURRENT_INPUT_METHOD] = &InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote,
+        [LIST_INPUT_METHOD] = &InputMethodSystemAbilityStub::ListInputMethodOnRemote,
+        [SWITCH_INPUT_METHOD] = &InputMethodSystemAbilityStub::SwitchInputMethodOnRemote,
+        [DISPLAY_OPTIONAL_INPUT_METHOD] = &InputMethodSystemAbilityStub::DisplayOptionalInputMethodOnRemote,
+        [SET_CORE_AND_AGENT] = &InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote,
+        [SHOW_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated,
+        [HIDE_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated,
+        [DISPLAY_OPTIONAL_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated,
+        [SET_CORE_AND_AGENT_DEPRECATED] = &InputMethodSystemAbilityStub::SetCoreAndAgentOnRemoteDeprecated,
     };
-} // namespace MiscServices
-} // namespace OHOS
+};
+} // namespace OHOS::MiscServices
 
 #endif // SERVICES_INCLUDE_INPUT_METHOD_SYSTEM_ABILITY_STUB_H

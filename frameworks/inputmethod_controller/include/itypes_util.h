@@ -136,7 +136,7 @@ bool ITypesUtil::Marshalling(const std::string &input, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(std::string &output, MessageParcel &data)
 {
-    return data.ReadString16(output);
+    return data.ReadString(output);
 }
 
 bool ITypesUtil::Marshalling(const std::u16string &input, MessageParcel &data)
@@ -146,7 +146,7 @@ bool ITypesUtil::Marshalling(const std::u16string &input, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(std::u16string &output, MessageParcel &data)
 {
-    return data.ReadString(output);
+    return data.ReadString16(output);
 }
 
 bool ITypesUtil::Marshalling(const std::vector<uint8_t> &input, MessageParcel &data)

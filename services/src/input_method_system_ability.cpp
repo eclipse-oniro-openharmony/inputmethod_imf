@@ -14,25 +14,29 @@
  */
 
 #include "input_method_system_ability.h"
-#include "message_handler.h"
-#include "system_ability.h"
-#include "system_ability_definition.h"
-#include "iservice_registry.h"
-#include "ipc_skeleton.h"
+
+#include <global.h>
+#include <utils.h>
+
+#include "ability_connect_callback_proxy.h"
+#include "ability_manager_interface.h"
+#include "application_info.h"
+#include "bundle_mgr_proxy.h"
+#include "common_event_support.h"
 #include "errors.h"
 #include "global.h"
-#include "ui_service_mgr_client.h"
-#include "bundle_mgr_proxy.h"
-#include "para_handle.h"
-#include "ability_manager_interface.h"
-#include "ability_connect_callback_proxy.h"
-#include "sa_mgr_client.h"
-#include "application_info.h"
-#include "common_event_support.h"
 #include "im_common_event_manager.h"
-#include "resource_manager.h"
-#include "os_account_manager.h"
 #include "input_method_status.h"
+#include "ipc_skeleton.h"
+#include "iservice_registry.h"
+#include "message_handler.h"
+#include "os_account_manager.h"
+#include "para_handle.h"
+#include "resource_manager.h"
+#include "sa_mgr_client.h"
+#include "system_ability.h"
+#include "system_ability_definition.h"
+#include "ui_service_mgr_client.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -41,8 +45,6 @@ namespace MiscServices {
     REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
     const std::int32_t INIT_INTERVAL = 10000L;
     const std::int32_t MAIN_USER_ID = 100;
-    std::mutex InputMethodSystemAbility::instanceLock_;
-    sptr<InputMethodSystemAbility> InputMethodSystemAbility::instance_;
 
     std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
@@ -71,14 +73,6 @@ namespace MiscServices {
         if (workThreadHandler.joinable()) {
             workThreadHandler.join();
         }
-
-        std::map<int32_t, PerUserSession*>::const_iterator it;
-        for (it = userSessions.cbegin(); it != userSessions.cend();) {
-            PerUserSession *session = it->second;
-            it = userSessions.erase(it);
-            delete session;
-            session = nullptr;
-        }
         userSessions.clear();
         std::map<int32_t, PerUserSetting*>::const_iterator it1;
         for (it1 = userSettings.cbegin(); it1 != userSettings.cend();) {
@@ -96,17 +90,6 @@ namespace MiscServices {
             handler = nullptr;
         }
         msgHandlers.clear();
-    }
-
-    sptr<InputMethodSystemAbility> InputMethodSystemAbility::GetInstance()
-    {
-        if (!instance_) {
-            std::lock_guard<std::mutex> autoLock(instanceLock_);
-            if (!instance_) {
-                instance_ = new InputMethodSystemAbility;
-            }
-        }
-        return instance_;
     }
 
     void InputMethodSystemAbility::OnStart()
@@ -176,7 +159,7 @@ namespace MiscServices {
         }
         dprintf(fd, "\n - DumpAllMethod get Active Id succeed,count=%zu,", ids.size());
         for (auto id : ids) {
-            const auto &properties = ListInputMethodByUserId(id, ALL);
+            const auto &properties = ListAllInputMethodCommon(id);
             if (properties.empty()) {
                 IMSA_HILOGI("The IME properties is empty.");
                 dprintf(fd, "\n - The IME properties about the Active Id %d is empty.\n", id);
@@ -190,7 +173,7 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::Init()
     {
-        bool ret = Publish(InputMethodSystemAbility::GetInstance());
+        bool ret = Publish(this);
         if (!ret) {
             IMSA_HILOGE("Publish failed.");
             return -1;
@@ -235,13 +218,10 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::Initialize");
         // init work thread to handle the messages
-        workThreadHandler = std::thread([this] {
-            WorkThread();
-        });
+        workThreadHandler = std::thread([this] { WorkThread(); });
         PerUserSetting *setting = new PerUserSetting(MAIN_USER_ID);
-        PerUserSession *session = new PerUserSession(MAIN_USER_ID);
-        userSettings.insert(std::pair<int32_t, PerUserSetting*>(MAIN_USER_ID, setting));
-        userSessions.insert(std::pair<int32_t, PerUserSession*>(MAIN_USER_ID, session));
+        userSettings.insert(std::pair<int32_t, PerUserSetting *>(MAIN_USER_ID, setting));
+        userSessions.insert({ MAIN_USER_ID, std::make_shared<PerUserSession>(MAIN_USER_ID) });
 
         userId_ = MAIN_USER_ID;
         setting->Initialize();
@@ -265,7 +245,7 @@ namespace MiscServices {
     {
         IMSA_HILOGE("InputMethodSystemAbility::StartInputService() ime:%{public}s", imeId.c_str());
 
-        PerUserSession *session = GetUserSession(MAIN_USER_ID);
+        auto session = GetUserSession(MAIN_USER_ID);
 
         std::map<int32_t, MessageHandler*>::const_iterator it = msgHandlers.find(MAIN_USER_ID);
         if (it == msgHandlers.end()) {
@@ -306,8 +286,8 @@ namespace MiscServices {
     void InputMethodSystemAbility::StopInputService(std::string imeId)
     {
         IMSA_HILOGE("InputMethodSystemAbility::StopInputService(%{public}s)", imeId.c_str());
-        PerUserSession *session = GetUserSession(MAIN_USER_ID);
-        if (!session){
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (!session) {
             IMSA_HILOGE("InputMethodSystemAbility::StopInputService abort session is nullptr");
             return;
         }
@@ -343,95 +323,111 @@ namespace MiscServices {
         return InputMethodSystemAbilityStub::OnRemoteRequest(code, data, reply, option);
     }
 
-    /*! Get the display mode of keyboard
-    \n Run in binder thread
-    \param[out] retMode the display mode returned to the caller
-    \return ErrorCode::NO_ERROR no error
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    */
-    int32_t InputMethodSystemAbility::getDisplayMode(int32_t &retMode)
+    int32_t InputMethodSystemAbility::PrepareInput(int32_t displayId, sptr<IInputClient> client,
+        sptr<IInputDataChannel> channel, InputAttribute &attribute)
     {
+        int32_t pid = IPCSkeleton::GetCallingPid();
         int32_t uid = IPCSkeleton::GetCallingUid();
-        int32_t userId = getUserId(uid);
-        PerUserSetting *setting = GetUserSetting(userId);
-        if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-            IMSA_HILOGE("%s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-            return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-        }
-        PerUserSession *session = GetUserSession(userId);
+        auto session = GetUserSession(MAIN_USER_ID);
         if (session == nullptr) {
-            IMSA_HILOGI("InputMethodSystemAbility::getDisplayMode session is nullptr");
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        retMode = session->GetDisplayMode();
-        return ErrorCode::NO_ERROR;
-    }
-
-    /*! Get the window height of the current keyboard
-    \n Run in binder thread
-    \param[out] retHeight the window height returned to the caller
-    \return ErrorCode::NO_ERROR no error
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    */
-    int32_t InputMethodSystemAbility::getKeyboardWindowHeight(int32_t &retHeight)
-    {
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        int32_t userId = getUserId(uid);
-        PerUserSetting *setting = GetUserSetting(userId);
-        if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-            IMSA_HILOGE("%s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-            return ErrorCode::ERROR_USER_NOT_UNLOCKED;
+        sptr<RemoteObjectDeathRecipient> clientDeathRecipient = new (std::nothrow) RemoteObjectDeathRecipient();
+        if (clientDeathRecipient == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput clientDeathRecipient is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
         }
+        return session->OnPrepareInput({ pid, uid, userId_, displayId, client, channel, clientDeathRecipient, attribute });
+    };
 
-        PerUserSession *session = GetUserSession(userId);
+    int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
+    {
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnReleaseInput(client);
+    };
+
+    int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
+    {
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnStartInput(client, isShowKeyboard);
+    };
+
+    int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
+    {
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnStopInput(client);
+    };
+
+    int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
+    {
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnSetCoreAndAgent(core, agent);
+    };
+
+    int32_t InputMethodSystemAbility::HideCurrentInput()
+    {
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnHideKeyboardSelf(0);
+    };
+
+    int32_t InputMethodSystemAbility::ShowCurrentInput()
+    {
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnShowKeyboardSelf();
+    };
+
+    int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
+    {
+        return OnDisplayOptionalInputMethod(MAIN_USER_ID);
+    };
+
+    int32_t InputMethodSystemAbility::GetKeyboardWindowHeight(int32_t &retHeight)
+    {
+        auto session = GetUserSession(MAIN_USER_ID);
         if (session == nullptr) {
             IMSA_HILOGI("InputMethodSystemAbility::getKeyboardWindowHeight session is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        int32_t ret = session->GetKeyboardWindowHeight(retHeight);
+        int32_t ret = session->OnGetKeyboardWindowHeight(retHeight);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("Failed to get keyboard window height. ErrorCode=%d\n", ret);
         }
         return ret;
     }
 
-    /*! Get the  current keyboard type
-    \n Run in binder thread
-    \param[out] retType the current keyboard type returned to the caller
-    \return ErrorCode::NO_ERROR no error
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    \return ErrorCode::ERROR_NULL_POINTER current keyboard type is null
-    */
-    int32_t InputMethodSystemAbility::getCurrentKeyboardType(KeyboardType *retType)
+    std::vector<Property> InputMethodSystemAbility::ListInputMethod(InputMethodStatus status)
     {
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        int32_t userId = getUserId(uid);
-        PerUserSetting *setting = GetUserSetting(userId);
-        if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-            IMSA_HILOGE("%s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-            return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-        }
-
-        PerUserSession *userSession = GetUserSession(userId);
-        if (!userSession) {
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        KeyboardType *type = userSession->GetCurrentKeyboardType();
-        if (!type) {
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        *retType = *type;
-        return ErrorCode::NO_ERROR;
+        return ListInputMethodByUserId(MAIN_USER_ID, status);
     }
 
-    std::vector<InputMethodProperty> InputMethodSystemAbility::ListInputMethod(InputMethodStatus status)
+    std::vector<InputMethodProperty> InputMethodSystemAbility::ListAllInputMethodCommon(int32_t userId)
     {
-        return {};
-    }
-
-    std::vector<InputMethodProperty> InputMethodSystemAbility::ListAllInputMethod(int32_t userId)
-    {
-        IMSA_HILOGI("InputMethodSystemAbility::listAllInputMethod");
+        IMSA_HILOGI("InputMethodSystemAbility::ListAllInputMethodCommon");
         std::vector<InputMethodProperty> properties;
         AbilityType types[] = { AbilityType::SERVICE, AbilityType::INPUTMETHOD };
         for (const auto &type : types) {
@@ -441,7 +437,13 @@ namespace MiscServices {
         return properties;
     }
 
-    std::vector<InputMethodProperty> InputMethodSystemAbility::ListEnabledInputMethod()
+    std::vector<Property> InputMethodSystemAbility::ListAllInputMethod(int32_t userId)
+    {
+        IMSA_HILOGI("InputMethodSystemAbility::listAllInputMethod");
+        return Utils::ToProperty(ListAllInputMethodCommon(userId));
+    }
+
+    std::vector<Property> InputMethodSystemAbility::ListEnabledInputMethod()
     {
         IMSA_HILOGI("InputMethodSystemAbility::listEnabledInputMethod");
         auto property = GetCurrentInputMethod();
@@ -452,7 +454,7 @@ namespace MiscServices {
         return { *property };
     }
 
-    std::vector<InputMethodProperty> InputMethodSystemAbility::ListDisabledInputMethod(int32_t userId)
+    std::vector<Property> InputMethodSystemAbility::ListDisabledInputMethod(int32_t userId)
     {
         IMSA_HILOGI("InputMethodSystemAbility::listDisabledInputMethod");
         auto properties = listInputMethodByType(userId, AbilityType::INPUTMETHOD);
@@ -462,19 +464,41 @@ namespace MiscServices {
             return {};
         }
         for (auto iter = properties.begin(); iter != properties.end();) {
-            if (iter->mPackageName == filter->mPackageName && iter->mAbilityName == filter->mAbilityName) {
+            if (Utils::ToStr8(iter->mPackageName) == filter->packageName &&
+                Utils::ToStr8(iter->mAbilityName) == filter->abilityName) {
                 iter = properties.erase(iter);
                 continue;
             }
             ++iter;
         }
-        return properties;
+        return Utils::ToProperty(properties);
     }
 
-    int32_t InputMethodSystemAbility::SwitchInputMethod(const InputMethodProperty &target)
+    int32_t InputMethodSystemAbility::SwitchInputMethod(const Property &target)
     {
-        return ErrorCode::NO_ERROR;
+        return OnSwitchInputMethod(MAIN_USER_ID, target);
     }
+
+    // Deprecated because of no permission check, kept for compatibility
+    int32_t InputMethodSystemAbility::SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
+    {
+        return SetCoreAndAgent(core, agent);
+    };
+
+    int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
+    {
+        return HideCurrentInput();
+    };
+
+    int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
+    {
+        return ShowCurrentInput();
+    };
+
+    int32_t InputMethodSystemAbility::DisplayOptionalInputMethodDeprecated()
+    {
+        return DisplayOptionalInputMethod();
+    };
 
     /*! Get all of the input method engine list installed in the system
     \n Run in binder thread
@@ -482,8 +506,7 @@ namespace MiscServices {
     \return ErrorCode::NO_ERROR no error
     \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
     */
-    std::vector<InputMethodProperty> InputMethodSystemAbility::ListInputMethodByUserId(
-        int32_t userId, InputMethodStatus status)
+    std::vector<Property> InputMethodSystemAbility::ListInputMethodByUserId(int32_t userId, InputMethodStatus status)
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodByUserId");
         if (status == InputMethodStatus::ALL) {
@@ -509,8 +532,7 @@ namespace MiscServices {
         }
         std::vector<InputMethodProperty> properties;
         for (auto extension : extensionInfos) {
-            std::shared_ptr<Global::Resource::ResourceManager> resourceManager(
-                Global::Resource::CreateResourceManager());
+            std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
             if (resourceManager == nullptr) {
                 IMSA_HILOGE("InputMethodSystemAbility::listInputMethodByType resourcemanager is nullptr");
                 break;
@@ -533,26 +555,7 @@ namespace MiscServices {
         return properties;
     }
 
-    /*! Get the keyboard type list for the given input method engine
-    \n Run in binder thread
-    \param imeId the id of the given input method engine
-    \param[out] types keyboard type list returned to the caller
-    \return ErrorCode::NO_ERROR no error
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    */
-    int32_t InputMethodSystemAbility::listKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types)
-    {
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        int32_t userId = getUserId(uid);
-        PerUserSetting *setting = GetUserSetting(userId);
-        if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-            IMSA_HILOGE("%s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-            return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-        }
-        return setting->ListKeyboardType(imeId, types);
-    }
-
-    std::shared_ptr<InputMethodProperty> InputMethodSystemAbility::GetCurrentInputMethod()
+    std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
     {
         IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
         std::string ime = ParaHandle::GetDefaultIme(MAIN_USER_ID);
@@ -561,19 +564,19 @@ namespace MiscServices {
             return nullptr;
         }
 
-        std::string::size_type pos = ime.find('/');
-        if (pos == -1) {
+        auto pos = ime.find('/');
+        if (pos == std::string::npos) {
             IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod ime can not find '/'");
             return nullptr;
         }
 
-        auto property = std::make_shared<InputMethodProperty>();
+        auto property = std::make_shared<Property>();
         if (property == nullptr) {
             IMSA_HILOGE("InputMethodSystemAbility property is nullptr");
             return nullptr;
         }
-        property->mPackageName = Str8ToStr16(ime.substr(0, pos));
-        property->mAbilityName = Str8ToStr16(ime.substr(pos + 1, ime.length() - pos - 1));
+        property->packageName = ime.substr(0, pos);
+        property->abilityName = ime.substr(pos + 1, ime.length() - pos - 1);
         return property;
     }
 
@@ -584,7 +587,7 @@ namespace MiscServices {
     */
     PerUserSetting *InputMethodSystemAbility::GetUserSetting(int32_t userId)
     {
-        std::map<int32_t, PerUserSetting*>::iterator it = userSettings.find(userId);
+        auto it = userSettings.find(userId);
         if (it == userSettings.end()) {
             return nullptr;
         }
@@ -596,10 +599,11 @@ namespace MiscServices {
     \return a pointer of the instance if the user is found
     \return null if the user is not found
     */
-    PerUserSession *InputMethodSystemAbility::GetUserSession(int32_t userId)
+    std::shared_ptr<PerUserSession> InputMethodSystemAbility::GetUserSession(int32_t userId)
     {
-        std::map<int32_t, PerUserSession*>::iterator it = userSessions.find(userId);
+        auto it = userSessions.find(userId);
         if (it == userSessions.end()) {
+            IMSA_HILOGE("not found session");
             return nullptr;
         }
         return it->second;
@@ -676,7 +680,7 @@ namespace MiscServices {
                         MessageHandler *handler = it->second;
                         Message *destMsg = new Message(MSG_ID_EXIT_SERVICE, nullptr);
                         handler->SendMessage(destMsg);
-                        PerUserSession *userSession = GetUserSession(it->first);
+                        auto userSession = GetUserSession(it->first);
                         if (!userSession) {
                             IMSA_HILOGE("getUserSession fail.");
                             return;
@@ -689,14 +693,6 @@ namespace MiscServices {
                     delete msg;
                     msg = nullptr;
                     return;
-                }
-                case MSG_ID_SWITCH_INPUT_METHOD: {
-                    MessageParcel *data = msg->msgContent_;
-                    int32_t userId = data->ReadInt32();
-                    auto target = data->ReadParcelable<InputMethodProperty>();
-                    OnSwitchInputMethod(userId, *target);
-                    delete target;
-                    break;
                 }
                 case MSG_ID_START_INPUT_SERVICE: {
                     MessageParcel *data = msg->msgContent_;
@@ -743,10 +739,9 @@ namespace MiscServices {
 
         setting = new PerUserSetting(userId);
         setting->Initialize();
-        PerUserSession *session = new PerUserSession(userId);
 
-        userSettings.insert(std::pair<int32_t, PerUserSetting*>(userId, setting));
-        userSessions.insert(std::pair<int32_t, PerUserSession*>(userId, session));
+        userSettings.insert(std::pair<int32_t, PerUserSetting *>(userId, setting));
+        userSessions.insert({ userId, std::make_shared<PerUserSession>(userId) });
         return ErrorCode::NO_ERROR;
     }
 
@@ -764,7 +759,7 @@ namespace MiscServices {
         }
         int32_t userId = msg->msgContent_->ReadInt32();
         PerUserSetting *setting = GetUserSetting(userId);
-        PerUserSession *session = GetUserSession(userId);
+        auto session = GetUserSession(userId);
         if (!setting || !session) {
             IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_STARTED), userId);
             return ErrorCode::ERROR_USER_NOT_STARTED;
@@ -773,12 +768,11 @@ namespace MiscServices {
             IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_LOCKED), userId);
             return ErrorCode::ERROR_USER_NOT_LOCKED;
         }
-        std::map<int32_t, PerUserSession*>::iterator itSession = userSessions.find(userId);
-        userSessions.erase(itSession);
-        delete session;
-        session = nullptr;
-
-        std::map<int32_t, PerUserSetting*>::iterator itSetting = userSettings.find(userId);
+        auto it = userSessions.find(userId);
+        if (it != userSessions.end()) {
+            userSessions.erase(it);
+        }
+        std::map<int32_t, PerUserSetting *>::iterator itSetting = userSettings.find(userId);
         userSettings.erase(itSetting);
         delete setting;
         setting = nullptr;
@@ -800,7 +794,7 @@ namespace MiscServices {
         }
         int32_t userId = msg->msgContent_->ReadInt32();
         PerUserSetting *setting = GetUserSetting(userId);
-        PerUserSession *session = GetUserSession(userId);
+        auto session = GetUserSession(userId);
         if (!setting || !session) {
             IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_STARTED), userId);
             return ErrorCode::ERROR_USER_NOT_STARTED;
@@ -845,7 +839,7 @@ namespace MiscServices {
             Message *destMsg = new Message(MSG_ID_USER_LOCK, nullptr);
             if (destMsg) {
                 handler->SendMessage(destMsg);
-                PerUserSession *userSession = GetUserSession(userId);
+                auto userSession = GetUserSession(userId);
                 if (userSession) {
                     userSession->JoinWorkThread();
                 }
@@ -919,7 +913,7 @@ namespace MiscServices {
         if (securityImeFlag) {
             InputMethodProperty *securityIme = setting->GetSecurityInputMethod();
             InputMethodProperty *defaultIme = setting->GetCurrentInputMethod();
-            PerUserSession *session = GetUserSession(userId);
+            auto session = GetUserSession(userId);
             if (session == nullptr) {
                 IMSA_HILOGI("InputMethodSystemAbility::OnPackageAdded session is nullptr");
                 return ErrorCode::ERROR_NULL_POINTER;
@@ -958,8 +952,8 @@ namespace MiscServices {
             IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
             return ErrorCode::ERROR_USER_NOT_UNLOCKED;
         }
-        PerUserSession *session = GetUserSession(userId);
-        if (!session) {
+        auto session = GetUserSession(userId);
+        if (session == nullptr) {
             IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved session is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
@@ -1002,8 +996,8 @@ namespace MiscServices {
             IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
             return ErrorCode::ERROR_USER_NOT_UNLOCKED;
         }
-        PerUserSession *session = GetUserSession(userId);
-        if (!session) {
+        auto session = GetUserSession(userId);
+        if (session == nullptr) {
             return ErrorCode::ERROR_NULL_POINTER;
         }
         int32_t ret = session->OnSettingChanged(updatedKey, updatedValue);
@@ -1032,7 +1026,7 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
-    int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const InputMethodProperty &target)
+    int32_t InputMethodSystemAbility::OnSwitchInputMethod(int32_t userId, const Property &target)
     {
         IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod");
         const auto &properties = ListInputMethodByUserId(userId, ALL);
@@ -1042,7 +1036,7 @@ namespace MiscServices {
         }
         bool isTargetFound = false;
         for (const auto &property : properties) {
-            if (property.mPackageName == target.mPackageName) {
+            if (property.packageName == target.packageName) {
                 isTargetFound = true;
                 IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod target is found in installed packages!");
             }
@@ -1052,8 +1046,8 @@ namespace MiscServices {
             return ErrorCode::ERROR_NOT_IME_PACKAGE;
         }
 
-        std::string defaultIme = ParaHandle::GetDefaultIme(userId_);
-        std::string targetIme = Str16ToStr8(target.mPackageName) + "/" + Str16ToStr8(target.mAbilityName);
+        std::string defaultIme = ParaHandle::GetDefaultIme(userId);
+        std::string targetIme = target.packageName + "/" + target.abilityName;
         IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod DefaultIme : %{public}s, TargetIme : %{public}s",
             defaultIme.c_str(), targetIme.c_str());
         if (defaultIme != targetIme) {
@@ -1078,23 +1072,24 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
-    void InputMethodSystemAbility::OnDisplayOptionalInputMethod(int32_t userId)
+    int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod(int32_t userId)
     {
         IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod");
         auto abilityManager = GetAbilityManagerService();
         if (abilityManager == nullptr) {
             IMSA_HILOGE("InputMethodSystemAbility::get ability manager failed");
-            return;
+            return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
         }
         AAFwk::Want want;
         want.SetAction(SELECT_DIALOG_ACTION);
         want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
-        int32_t result = abilityManager->StartAbility(want);
-        if (result != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", result);
-            return;
+        int32_t ret = abilityManager->StartAbility(want);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", ret);
+            return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
         }
         IMSA_HILOGI("InputMethodSystemAbility::Start InputMethod ability success.");
+        return ErrorCode::NO_ERROR;
     }
 
     /*! Disable input method service. Called from PerUserSession module

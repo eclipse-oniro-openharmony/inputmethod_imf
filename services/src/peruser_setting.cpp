@@ -25,7 +25,7 @@ namespace MiscServices {
     PerUserSetting::PerUserSetting(int userId)
     {
         userId_ = userId;
-        currentImeId = Utils::to_utf16("");
+        currentImeId = Utils::ToStr16("");
         userState = UserState::USER_STATE_STARTED;
     }
 
@@ -54,7 +54,7 @@ namespace MiscServices {
         }
         int size = inputMethodProperties.size();
         if (!size) {
-            currentImeId = Utils::to_utf16("");
+            currentImeId = Utils::ToStr16("");
         }
 
         ret = Platform::Instance()->GetInputMethodSetting(userId_, &inputMethodSetting);
@@ -212,7 +212,7 @@ namespace MiscServices {
         bool flag = false;
         std::u16string enabledInputMethods = inputMethodSetting.GetValue(InputMethodSetting::ENABLED_INPUT_METHODS_TAG);
         std::u16string imeId;
-        std::u16string nextImeId = Utils::to_utf16("");
+        std::u16string nextImeId = Utils::ToStr16("");
         InputMethodProperty *firstEnabledProperty = nullptr;
         for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
             imeId = inputMethodProperties[i]->mImeId;
@@ -255,7 +255,7 @@ namespace MiscServices {
             return;
         }
         userState = UserState::USER_STATE_STARTED;
-        currentImeId = Utils::to_utf16("");
+        currentImeId = Utils::ToStr16("");
 
         // release input method properties
         std::vector<InputMethodProperty*>::iterator it;
@@ -288,7 +288,7 @@ namespace MiscServices {
         size = imeList.size();
         dprintf(fd, "\n * Enabled IME count : %d\n", size);
         for (int i = 0; i < size; i++) {
-            dprintf(fd, "  [%d] ImeId = %s\n", i, Utils::to_utf8(imeList[i]).c_str());
+            dprintf(fd, "  [%d] ImeId = %s\n", i, Utils::ToStr8(imeList[i]).c_str());
             std::vector<int> hashCodeList = inputMethodSetting.GetEnabledKeyboardTypes(imeList[i]);
             for (int j = 0; j < (int)hashCodeList.size(); j++) {
                 dprintf(fd, "%d", hashCodeList[j]);
@@ -453,7 +453,7 @@ namespace MiscServices {
                 return property->mTypes[i]->getLanguage();
             }
         }
-        return Utils::to_utf16("");
+        return Utils::ToStr16("");
     }
 
     /*! Init input method setting data
@@ -532,7 +532,7 @@ namespace MiscServices {
             if (firstEnabledIme) {
                 currentImeId = firstEnabledIme->mImeId;
             } else {
-                currentImeId = Utils::to_utf16("");
+                currentImeId = Utils::ToStr16("");
             }
         }
         inputMethodSetting.SetCurrentInputMethod(currentImeId);
@@ -550,7 +550,7 @@ namespace MiscServices {
                 return inputMethodProperties[i]->mImeId;
             }
         }
-        return Utils::to_utf16("");
+        return Utils::ToStr16("");
     }
 
     /*! Check if the InputMethodProperty object is a security ime
