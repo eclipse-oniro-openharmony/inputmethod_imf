@@ -346,5 +346,10 @@ namespace MiscServices {
         MessageHandler::Instance()->SendMessage(msg);
         reply.WriteInt32(ErrorCode::NO_ERROR);
     }
+
+    int32_t InputMethodCoreStub::SetSubtype(const SubProperty &property)
+    {
+        return ErrorCode::NO_ERROR;
+    }
 } // namespace MiscServices
 } // namespace OHOS

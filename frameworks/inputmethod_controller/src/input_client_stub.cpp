@@ -132,5 +132,10 @@ namespace MiscServices {
     {
         msgHandler = handler;
     }
+
+    int32_t InputClientStub::OnSwitchInput(const Property &property, const SubProperty &subProperty)
+    {
+        return ErrorCode::NO_ERROR;
+    }
 } // namespace MiscServices
 } // namespace OHOS
