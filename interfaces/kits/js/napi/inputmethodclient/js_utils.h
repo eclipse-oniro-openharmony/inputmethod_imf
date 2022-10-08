@@ -40,7 +40,7 @@ enum IMFErrorCode : int32_t {
     EXCEPTION_IMMS,
 };
 
-const int32_t ERROR_CODE_QUERY_FAILED = 1;
+constexpr int32_t ERROR_CODE_QUERY_FAILED = 1;
 class JsUtils {
 public:
     static inline void ThrowException(napi_env env, int32_t err, const std::string &msg, const std::string &type = "")
