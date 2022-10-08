@@ -19,23 +19,25 @@
 #include "message_parcel.h"
 
 namespace OHOS ::MiscServices {
-    enum InputMethodStatus : uint32_t {
-        DISABLE = 0,
-        ENABLE,
-        ALL
-    };
+enum InputMethodStatus : uint32_t {
+    DISABLE = 0,
+    ENABLE,
+    ALL
+};
 
-    struct Property {
-        std::string packageName;
-        std::string abilityName;
+struct Property {
+    std::string packageName;
+    std::string abilityName;
 
-        static bool Marshalling(const Property &in, MessageParcel &data) {
-            return data.WriteString(in.packageName) && data.WriteString(in.abilityName);
-        }
+    static bool Marshalling(const Property &in, MessageParcel &data)
+    {
+        return data.WriteString(in.packageName) && data.WriteString(in.abilityName);
+    }
 
-        static bool Unmarshalling(Property &out, MessageParcel &data) {
-            return data.ReadString(out.packageName) && data.ReadString(out.abilityName);
-        }
-    };
-}
+    static bool Unmarshalling(Property &out, MessageParcel &data)
+    {
+        return data.ReadString(out.packageName) && data.ReadString(out.abilityName);
+    }
+};
+} // namespace OHOS::MiscServices
 #endif // namespace OHOS::INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H
