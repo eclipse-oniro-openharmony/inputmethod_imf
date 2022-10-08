@@ -91,7 +91,7 @@ namespace MiscServices {
         ~InputMethodController();
 
         bool Initialize();
-        sptr<IInputMethodSystemAbility> GetImsaProxy();
+        sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
         void PrepareInput(int32_t displayId, sptr<IInputClient> &client, sptr<IInputDataChannel> &channel,
                           InputAttribute &attribute);
         void StartInput(sptr<IInputClient> &client, bool isShowKeyboard);
@@ -103,7 +103,8 @@ namespace MiscServices {
 
         sptr<IInputDataChannel> mInputDataChannel;
         sptr<IInputClient> mClient;
-        sptr<IInputMethodSystemAbility> mImms;
+        std::mutex abilityLock_;
+        sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
         sptr<ImsaDeathRecipient> deathRecipient_;
         std::mutex agentLock_;
         std::shared_ptr<IInputMethodAgent> mAgent = nullptr;
