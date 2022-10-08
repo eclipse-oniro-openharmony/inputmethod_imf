@@ -16,14 +16,15 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_INPUT_METHOD_CORE_PROXY_H
 #define FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_INPUT_METHOD_CORE_PROXY_H
 
-#include "iremote_proxy.h"
-#include "iremote_object.h"
-#include "message_parcel.h"
-#include "message_option.h"
-#include "i_input_method_core.h"
 #include "i_input_control_channel.h"
 #include "i_input_data_channel.h"
+#include "i_input_method_core.h"
 #include "input_attribute.h"
+#include "input_method_property.h"
+#include "iremote_object.h"
+#include "iremote_proxy.h"
+#include "message_option.h"
+#include "message_parcel.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -47,9 +48,12 @@ namespace MiscServices {
         int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel) override;
         void SetClientState(bool state) override;
         void StopInputService(std::string imeId) override;
+        int32_t SetSubtype(const SubProperty &property) override;
 
     private:
         static inline BrokerDelegator<InputMethodCoreProxy> delegator_;
+        using ParcelHandler = std::function<bool(MessageParcel &)>;
+        int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
     };
 } // namespace MiscServices
 } // namespace OHOS

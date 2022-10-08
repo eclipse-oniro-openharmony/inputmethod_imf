@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class InputMethodProperty {
+    class InputMethodInfo {
     public:
         std::u16string mImeId;
         std::u16string mPackageName;
@@ -38,10 +38,10 @@ namespace MiscServices {
         std::u16string label;
         std::u16string description;
 
-        InputMethodProperty();
-        ~InputMethodProperty();
-        InputMethodProperty(const InputMethodProperty& property);
-        InputMethodProperty& operator =(const InputMethodProperty& property);
+        InputMethodInfo();
+        ~InputMethodInfo();
+        InputMethodInfo(const InputMethodInfo & property);
+        InputMethodInfo & operator =(const InputMethodInfo & property);
     };
 } // namespace MiscServices
 } // namespace OHOS

@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_CONTROLLER_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_CONTROLLER_H
 
@@ -21,17 +20,17 @@
 #include <thread>
 
 #include "global.h"
+#include "i_input_client.h"
+#include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
-#include "input_method_utils.h"
+#include "i_input_method_system_ability.h"
+#include "input_method_property.h"
 #include "input_method_status.h"
+#include "input_method_utils.h"
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "key_event.h"
 #include "message_handler.h"
-#include "i_input_client.h"
-#include "input_method_property.h"
-#include "i_input_data_channel.h"
-#include "i_input_method_system_ability.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -72,11 +71,13 @@ namespace MiscServices {
         std::vector<Property> ListInputMethodCommon(InputMethodStatus status);
         std::vector<Property> ListInputMethod();
         std::vector<Property> ListInputMethod(bool enable);
+        std::vector<SubProperty> ListInputMethodSubtype(const Property& property);
+        std::vector<SubProperty> ListCurrentInputMethodSubtype();
         int32_t GetEnterKeyType();
         int32_t GetInputPattern();
         std::shared_ptr<Property> GetCurrentInputMethod();
         void SetCallingWindow(uint32_t windowId);
-        int32_t SwitchInputMethod(const Property &target);
+        int32_t SwitchInputMethod(const std::string &name, const std::string &subName = "");
         int32_t ShowSoftKeyboard();
         int32_t HideSoftKeyboard();
         int32_t ShowOptionalInputMethod();
@@ -98,6 +99,7 @@ namespace MiscServices {
         void StopInput(sptr<IInputClient> &client);
         void ReleaseInput(sptr<IInputClient> &client);
         void SetInputMethodAgent(sptr<IRemoteObject> &object);
+        void OnSwitchInput(const Property &property, const SubProperty &subProperty);
         std::shared_ptr<IInputMethodAgent> GetInputMethodAgent();
         void WorkThread();
 

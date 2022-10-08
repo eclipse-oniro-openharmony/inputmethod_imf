@@ -16,6 +16,8 @@
 #ifndef INPUTMETHOD_IMF_INPUT_METHOD_ENGINE_LISTENER_H
 #define INPUTMETHOD_IMF_INPUT_METHOD_ENGINE_LISTENER_H
 
+#include "input_method_property.h"
+
 namespace OHOS {
 namespace MiscServices {
 class InputMethodEngineListener {
@@ -25,6 +27,7 @@ public:
     virtual void OnInputStart() = 0;
     virtual void OnInputStop(std::string imeId) = 0;
     virtual void OnSetCallingWindow(uint32_t windowId) = 0;
+    virtual void OnSetSubtype(SubProperty subProperty) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -43,6 +43,7 @@ namespace MiscServices {
 
     private:
         MessageHandler *msgHandler = nullptr;
+        void OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply);
     };
 } // namespace MiscServices
 } // namespace OHOS

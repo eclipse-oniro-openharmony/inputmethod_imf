@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-#include "input_method_property.h"
+#include "input_method_info.h"
 
 namespace OHOS {
 namespace MiscServices {
     using namespace std;
     /*! Constructor
     */
-    InputMethodProperty::InputMethodProperty()
+    InputMethodInfo::InputMethodInfo()
     {
     }
 
     /*! Destructor
     */
-    InputMethodProperty::~InputMethodProperty()
+    InputMethodInfo::~InputMethodInfo()
     {
         for (int32_t i = 0; i < (int32_t)mTypes.size(); i++) {
             delete mTypes[i];
@@ -37,7 +37,7 @@ namespace MiscServices {
     /*! Constructor
     \param property the source property will be copied to this instance.
     */
-    InputMethodProperty::InputMethodProperty(const InputMethodProperty& property)
+    InputMethodInfo::InputMethodInfo(const InputMethodInfo & property)
     {
         mImeId = property.mImeId;
         mPackageName = property.mPackageName;
@@ -60,7 +60,7 @@ namespace MiscServices {
     \param property the source property will be copied to this instance.
     \return return this
     */
-    InputMethodProperty& InputMethodProperty::operator =(const InputMethodProperty& property)
+    InputMethodInfo &InputMethodInfo::operator =(const InputMethodInfo & property)
     {
         if (this == &property) {
             return *this;

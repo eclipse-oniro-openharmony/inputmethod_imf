@@ -26,7 +26,8 @@
 #include "input_attribute.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
-#include "input_method_property.h"
+#include "input_method_info.h"
+#include "itypes_util.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "iremote_proxy.h"
@@ -53,9 +54,11 @@ public:
     int32_t GetKeyboardWindowHeight(int32_t &retHeight) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
     std::vector<Property> ListInputMethod(InputMethodStatus status) override;
-    int32_t SwitchInputMethod(const Property &target) override;
+    int32_t SwitchInputMethod(const std::string &name, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
+    std::vector<SubProperty> ListCurrentInputMethodSubtype() override;
+    std::vector<SubProperty> ListInputMethodSubtype(const std::string &name) override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;

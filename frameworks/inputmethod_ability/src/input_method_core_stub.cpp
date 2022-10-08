@@ -136,6 +136,10 @@ namespace MiscServices {
                 reply.WriteNoException();
                 break;
             }
+            case SET_SUBTYPE: {
+                SetSubtypeOnRemote(data, reply);
+                break;
+            }
             default: {
                 return IRemoteStub::OnRemoteRequest(code, data, reply, option);
             }
@@ -310,6 +314,37 @@ namespace MiscServices {
     void InputMethodCoreStub::SetMessageHandler(MessageHandler *msgHandler)
     {
         msgHandler_ = msgHandler;
+    }
+
+    void InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
+    {
+        IMSA_HILOGI("InputMethodCoreStub::SetSubtypeOnRemote");
+        auto *parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
+            reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
+            return;
+        }
+        SubProperty property;
+        if (!ITypesUtil::Unmarshal(data, property)) {
+            IMSA_HILOGE("read message parcel failed");
+            reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
+            return;
+        }
+        if (!ITypesUtil::Marshal(*parcel, property)) {
+            IMSA_HILOGE("write message parcel failed");
+            reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
+            return;
+        }
+        auto *msg = new (std::nothrow) Message(MessageID::MSG_ID_SET_SUBTYPE, parcel);
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
+            delete parcel;
+            reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
+            return;
+        }
+        MessageHandler::Instance()->SendMessage(msg);
+        reply.WriteInt32(ErrorCode::NO_ERROR);
     }
 } // namespace MiscServices
 } // namespace OHOS

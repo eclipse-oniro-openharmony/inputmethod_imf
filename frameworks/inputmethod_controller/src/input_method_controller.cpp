@@ -211,6 +211,16 @@ using namespace MessageID;
                     }
                     break;
                 }
+                case MSG_ID_ON_SWITCH_INPUT: {
+                    auto data = msg->msgContent_;
+                    Property property;
+                    SubProperty subProperty;
+                    if (!ITypesUtil::Unmarshal(*data, property, subProperty)) {
+                        IMSA_HILOGE("read property from message parcel failed");
+                        break;
+                    }
+                    OnSwitchInput(property, subProperty);
+                }
                 default: {
                     break;
                 }
@@ -511,17 +521,6 @@ using namespace MessageID;
         agent->SetCallingWindow(windowId);
     }
 
-    int32_t InputMethodController::SwitchInputMethod(const Property &target)
-    {
-        IMSA_HILOGI("InputMethodController::SwitchInputMethod");
-        auto proxy = GetSystemAbilityProxy();
-        if (proxy == nullptr) {
-            IMSA_HILOGE("proxy is nullptr");
-            return false;
-        }
-        return proxy->SwitchInputMethod(target);
-    }
-
     void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
     {
         IMSA_HILOGI("run in SetInputMethodAgent");
@@ -571,6 +570,39 @@ using namespace MessageID;
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
         return proxy->DisplayOptionalInputMethod();
+    }
+
+    std::vector<SubProperty> InputMethodController::ListInputMethodSubtype(const Property& property)
+    {
+        IMSA_HILOGI("InputMethodController::ListInputMethodSubtype");
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
+            return {};
+        }
+        return proxy->ListInputMethodSubtype(property.id);
+    }
+
+    std::vector<SubProperty> InputMethodController::ListCurrentInputMethodSubtype()
+    {
+        IMSA_HILOGI("InputMethodController::ListCurrentInputMethodSubtype");
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
+            return {};
+        }
+        return proxy->ListCurrentInputMethodSubtype();
+    }
+
+    int32_t InputMethodController::SwitchInputMethod(const std::string &name, const std::string &subName)
+    {
+        IMSA_HILOGI("InputMethodController::SwitchInputMethod");
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        return proxy->SwitchInputMethod(name, subName);
     }
 } // namespace MiscServices
 } // namespace OHOS

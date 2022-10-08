@@ -17,6 +17,7 @@
 #define SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H
 
 #include <errors.h>
+
 #include <memory>
 #include <vector>
 
@@ -45,6 +46,8 @@ public:
         GET_KEYBOARD_WINDOW_HEIGHT,
         GET_CURRENT_INPUT_METHOD,
         LIST_INPUT_METHOD,
+        LIST_INPUT_METHOD_SUBTYPE,
+        LIST_CURRENT_INPUT_METHOD_SUBTYPE,
         SWITCH_INPUT_METHOD,
         DISPLAY_OPTIONAL_INPUT_METHOD,
         SET_CORE_AND_AGENT,
@@ -57,8 +60,8 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
 
-    virtual int32_t PrepareInput(int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel,
-        InputAttribute &attribute) = 0;
+    virtual int32_t PrepareInput(
+        int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel, InputAttribute &attribute) = 0;
     virtual int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) = 0;
     virtual int32_t ShowCurrentInput() = 0;
     virtual int32_t HideCurrentInput() = 0;
@@ -67,9 +70,11 @@ public:
     virtual int32_t GetKeyboardWindowHeight(int32_t &retHeight) = 0;
     virtual std::shared_ptr<Property> GetCurrentInputMethod() = 0;
     virtual std::vector<Property> ListInputMethod(InputMethodStatus status) = 0;
-    virtual int32_t SwitchInputMethod(const Property &target) = 0;
     virtual int32_t DisplayOptionalInputMethod() = 0;
     virtual int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) = 0;
+    virtual std::vector<SubProperty> ListCurrentInputMethodSubtype() = 0;
+    virtual std::vector<SubProperty> ListInputMethodSubtype(const std::string &name) = 0;
+    virtual int32_t SwitchInputMethod(const std::string &bundleName, const std::string &name) = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) = 0;

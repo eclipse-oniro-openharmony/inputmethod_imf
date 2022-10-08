@@ -19,9 +19,10 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "input_method_property.h"
-#include "input_method_setting.h"
+
 #include "global.h"
+#include "input_method_info.h"
+#include "input_method_setting.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -33,11 +34,11 @@ namespace MiscServices {
 
         void Initialize();
         int32_t GetUserState();
-        InputMethodProperty *GetCurrentInputMethod();
-        InputMethodProperty *GetSecurityInputMethod();
-        InputMethodProperty *GetNextInputMethod();
+        InputMethodInfo *GetCurrentInputMethod();
+        InputMethodInfo *GetSecurityInputMethod();
+        InputMethodInfo *GetNextInputMethod();
         InputMethodSetting *GetInputMethodSetting();
-        InputMethodProperty *GetInputMethodProperty(const std::u16string& imeId);
+        InputMethodInfo *GetInputMethodProperty(const std::u16string& imeId);
 
         int32_t OnPackageAdded(std::u16string& packageName, bool &isSecurityIme);
         int32_t OnPackageRemoved(std::u16string& packageName, bool &isSecurityIme);
@@ -46,15 +47,15 @@ namespace MiscServices {
         void OnUserLocked();
         void Dump(int32_t fd);
 
-        int32_t ListInputMethod(std::vector<InputMethodProperty*> *properties);
+        int32_t ListInputMethod(std::vector<InputMethodInfo *> *properties);
         int32_t ListKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types);
 
-        static bool CheckIfSecurityIme(const InputMethodProperty& property);
+        static bool CheckIfSecurityIme(const InputMethodInfo & property);
 
     private:
         int32_t userId_; // the id of the user to whom the object is linking
         int32_t userState; // the state of the user to whom the object is linking
-        std::vector<InputMethodProperty*> inputMethodProperties; // a vector to save all IME installed for this user
+        std::vector<InputMethodInfo *> inputMethodProperties; // a vector to save all IME installed for this user
         std::u16string currentImeId; // the id of the default input method engine.
         InputMethodSetting inputMethodSetting; // the object to manage the setting data for this user
         int COMMON_COUNT_ONE_HUNDRED_THOUSAND = 100000;
@@ -65,7 +66,7 @@ namespace MiscServices {
         PerUserSetting& operator =(const PerUserSetting&&);
         void InitInputMethodSetting();
         void ResetCurrentInputMethod();
-        std::u16string GetKeyboardTypeLanguage(const InputMethodProperty *property, int32_t hashCode);
+        std::u16string GetKeyboardTypeLanguage(const InputMethodInfo *property, int32_t hashCode);
         std::u16string GetImeId(const std::u16string& packageName);
     };
 } // namespace MiscServices

@@ -72,6 +72,7 @@ namespace MessageID {
         MSG_ID_SEND_KEYBOARD_STATUS,
         MSG_ID_SEND_FUNCTION_KEY,
         MSG_ID_MOVE_CURSOR,
+        MSG_ID_ON_SWITCH_INPUT,
 
         // the request from IMSA to IMA
         MSG_ID_SET_CLIENT_STATE,
@@ -82,6 +83,7 @@ namespace MessageID {
         MSG_ID_STOP_INPUT_SERVICE,
         MSG_ID_GET_KEYBOARD_WINDOW_HEIGHT,
         MSG_ID_INIT_INPUT_CONTROL_CHANNEL,
+        MSG_ID_SET_SUBTYPE,
 
         // the request from IMC to IMA
         MSG_ID_ON_CURSOR_UPDATE,

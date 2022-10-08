@@ -15,9 +15,9 @@
 #ifndef ASYN_CALL_H
 #define ASYN_CALL_H
 
-#include "input_method_property.h"
-#include "napi/native_common.h"
+#include "input_method_info.h"
 #include "napi/native_api.h"
+#include "napi/native_common.h"
 #include "napi/native_node_api.h"
 
 namespace OHOS {

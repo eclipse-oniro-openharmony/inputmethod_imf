@@ -61,6 +61,7 @@ namespace MiscServices {
     private:
         int userId_;
         MessageHandler *msgHandler_;
+        void SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
     };
 } // namespace MiscServices
 } // namespace OHOS

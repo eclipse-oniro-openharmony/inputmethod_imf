@@ -15,14 +15,17 @@
 
 #include "input_method_system_ability_stub.h"
 
-#include <memory>
 #include <utils.h>
+
+#include <memory>
 
 #include "access_token.h"
 #include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
+#include "itypes_util.h"
 
-namespace OHOS ::MiscServices {
+namespace OHOS {
+namespace MiscServices {
 using namespace Security::AccessToken;
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 
@@ -177,8 +180,7 @@ int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote(MessageParce
         IMSA_HILOGE("%{public}s property is nullptr", __func__);
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    if (!(reply.WriteInt32(ErrorCode::NO_ERROR) && Property::Marshalling(*property, reply))) {
-        reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
+    if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, *property, ErrorCode::ERROR_EX_PARCELABLE)) {
         IMSA_HILOGE("%{public}s parcel failed", __func__);
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
@@ -195,7 +197,7 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodOnRemote(MessageParcel &dat
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     for (auto &property : properties) {
-        if (!Property::Marshalling(property, reply)) {
+        if (!ITypesUtil::Marshal(reply, property)) {
             reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
             IMSA_HILOGE("%{public}s parcel Marshalling failed", __func__);
             return ErrorCode::ERROR_EX_PARCELABLE;
@@ -204,15 +206,41 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodOnRemote(MessageParcel &dat
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    std::string bundleName;
+    if (!ITypesUtil::Unmarshal(data, bundleName)) {
+        IMSA_HILOGE("InputMethodSystemAbilityStub::read bundleName failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto property = ListInputMethodSubtype(bundleName);
+    if (!ITypesUtil::Marshal(reply, property)) {
+        IMSA_HILOGE("InputMethodSystemAbilityStub::write reply failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    auto property = ListCurrentInputMethodSubtype();
+    if (!ITypesUtil::Marshal(reply, property)) {
+        IMSA_HILOGE("InputMethodSystemAbilityStub::write reply failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    Property target;
-    if (!Property::Unmarshalling(target, data)) {
+    std::string name;
+    std::string subName;
+    if (!ITypesUtil::Unmarshal(data, name, subName)) {
         reply.WriteInt32(ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT);
         IMSA_HILOGE("%{public}s parcel failed", __func__);
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
     }
-    int32_t ret = SwitchInputMethod(target);
+    int32_t ret = SwitchInputMethod(name, subName);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -264,4 +292,5 @@ bool InputMethodSystemAbilityStub::CheckPermission(const std::string &permission
     IMSA_HILOGI("CheckPermission %{public}s", result == PERMISSION_GRANTED ? "success" : "failed");
     return result == PERMISSION_GRANTED;
 }
-} // namespace OHOS::MiscServices
+} // namespace MiscServices
+} // namespace OHOS

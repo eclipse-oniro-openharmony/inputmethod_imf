@@ -19,6 +19,7 @@
 #include <climits>
 #include <memory>
 
+#include "input_method_property.h"
 #include "message_parcel.h"
 #include "types.h"
 
@@ -51,6 +52,12 @@ public:
 
     static bool Marshalling(const sptr<IRemoteObject> &input, MessageParcel &data);
     static bool Unmarshalling(sptr<IRemoteObject> &output, MessageParcel &data);
+
+    static bool Marshalling(const Property &input, MessageParcel &data);
+    static bool Unmarshalling(Property &output, MessageParcel &data);
+
+    static bool Marshalling(const SubProperty &input, MessageParcel &data);
+    static bool Unmarshalling(SubProperty &output, MessageParcel &data);
 
     template<class T>
     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);
@@ -214,6 +221,43 @@ bool ITypesUtil::Unmarshalling(std::vector<T> &val, MessageParcel &parcel)
         }
     }
 
+    return true;
+}
+
+bool ITypesUtil::Marshalling(const Property &input, MessageParcel &data)
+{
+    if (!Marshal(data, input.packageName, input.abilityName, input.id, input.label, input.icon, input.iconId)) {
+        IMSA_HILOGE("ITypesUtil::write Property to message parcel failed");
+        return false;
+    }
+    return true;
+}
+
+bool ITypesUtil::Unmarshalling(Property &output, MessageParcel &data)
+{
+    if (!Unmarshal(data, output.packageName, output.abilityName, output.id, output.label, output.icon, output.iconId)) {
+        IMSA_HILOGE("ITypesUtil::read Property from message parcel failed");
+        return false;
+    }
+    return true;
+}
+
+bool ITypesUtil::Marshalling(const SubProperty &input, MessageParcel &data)
+{
+    if (!Marshal(data, input.label, input.name, input.id, input.mode, input.locale, input.language, input.icon, input.iconId)) {
+        IMSA_HILOGE("ITypesUtil::write SubProperty to message parcel failed");
+        return false;
+    }
+    return true;
+}
+
+bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
+{
+    if (!Unmarshal(data, output.label, output.name, output.id, output.mode, output.locale, output.language,
+            output.icon, output.iconId)) {
+        IMSA_HILOGE("ITypesUtil::read SubProperty from message parcel failed");
+        return false;
+    }
     return true;
 }
 

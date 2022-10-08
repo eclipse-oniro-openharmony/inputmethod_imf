@@ -18,6 +18,7 @@
 #include <string_ex.h>
 
 #include "input_attribute.h"
+#include "itypes_util.h"
 #include "message_option.h"
 #include "message_parcel.h"
 
@@ -310,6 +311,44 @@ namespace MiscServices {
         }
         retHeight = reply.ReadInt32();
         return ErrorCode::NO_ERROR;
+    }
+
+    int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)
+    {
+        IMSA_HILOGI("InputMethodCoreProxy::SetSubtype");
+        return SendRequest(
+            SET_SUBTYPE, [&property](MessageParcel &data) { return ITypesUtil::Marshal(data, property); });
+    }
+
+    int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
+    {
+        IMSA_HILOGI("InputMethodCoreProxy::%{public}s in", __func__);
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option{ MessageOption::TF_SYNC };
+        if (!data.WriteInterfaceToken(GetDescriptor())) {
+            IMSA_HILOGE("InputMethodCoreProxy::write interface token failed");
+            return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
+        }
+        if (input != nullptr && (!input(data))) {
+            IMSA_HILOGE("InputMethodCoreProxy::write data failed");
+            return ErrorCode::ERROR_EX_PARCELABLE;
+        }
+        auto ret = Remote()->SendRequest(code, data, reply, option);
+        if (ret != NO_ERROR) {
+            IMSA_HILOGE("InputMethodCoreProxy::SendRequest failed, ret %{public}d", ret);
+            return ret;
+        }
+        ret = reply.ReadInt32();
+        if (ret != NO_ERROR) {
+            IMSA_HILOGE("InputMethodCoreProxy::reply error, ret %{public}d", ret);
+            return ret;
+        }
+        if (output != nullptr && (!output(reply))) {
+            IMSA_HILOGE("InputMethodCoreProxy::reply parcel error");
+            return ErrorCode::ERROR_EX_PARCELABLE;
+        }
+        return ret;
     }
 } // namespace MiscServices
 } // namespace OHOS

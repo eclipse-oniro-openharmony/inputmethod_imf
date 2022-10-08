@@ -14,7 +14,9 @@
  */
 
 #include "input_client_proxy.h"
+
 #include "global.h"
+#include "itypes_util.h"
 #include "message_option.h"
 #include "message_parcel.h"
 
@@ -65,6 +67,46 @@ using namespace ErrorCode;
         data.WriteInt32(mode);
         auto status = Remote()->SendRequest(SET_DISPLAY_MODE, data, reply, option);
         return status;
+    }
+
+    int32_t InputClientProxy::OnSwitchInput(const Property &property, const SubProperty &subProperty)
+    {
+        IMSA_HILOGI("InputClientProxy::OnSwitchInput");
+        return SendRequest(
+            ON_SWITCH_INPUT,
+            [&property, &subProperty](MessageParcel &data) { return ITypesUtil::Marshal(data, property, subProperty); },
+            nullptr);
+    }
+
+    int32_t InputClientProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
+    {
+        IMSA_HILOGI("InputClientProxy::%{public}s in", __func__);
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option{ MessageOption::TF_SYNC };
+        if (!data.WriteInterfaceToken(GetDescriptor())) {
+            IMSA_HILOGE("InputClientProxy::write interface token failed");
+            return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
+        }
+        if (input != nullptr && (!input(data))) {
+            IMSA_HILOGE("InputClientProxy::write data failed");
+            return ErrorCode::ERROR_EX_PARCELABLE;
+        }
+        auto ret = Remote()->SendRequest(code, data, reply, option);
+        if (ret != NO_ERROR) {
+            IMSA_HILOGE("InputClientProxy::SendRequest failed, ret %{public}d", ret);
+            return ret;
+        }
+        ret = reply.ReadInt32();
+        if (ret != NO_ERROR) {
+            IMSA_HILOGE("InputClientProxy::reply error, ret %{public}d", ret);
+            return ret;
+        }
+        if (output != nullptr && (!output(reply))) {
+            IMSA_HILOGE("InputClientProxy::reply parcel error");
+            return ErrorCode::ERROR_EX_PARCELABLE;
+        }
+        return ret;
     }
 } // namespace MiscServices
 } // namespace OHOS

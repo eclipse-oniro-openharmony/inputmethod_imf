@@ -13,16 +13,33 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H
-#define INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H
+#include <mutex>
+#include <thread>
 
-#include "message_parcel.h"
+#ifndef INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
+#define INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
 
-namespace OHOS ::MiscServices {
-enum InputMethodStatus : uint32_t {
-    DISABLE = 0,
-    ENABLE,
-    ALL
+namespace OHOS {
+namespace MiscServices {
+struct Property {
+    std::string name;
+    std::string id;
+    std::string label;
+    std::string icon;
+    int32_t iconId;
 };
-}
-#endif // namespace OHOS::INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H
+
+struct SubProperty {
+    std::string label;
+    std::string name;
+    std::string id;
+    std::string mode;
+    std::string locale;
+    std::string language;
+    std::string icon;
+    int32_t iconId;
+};
+} // namespace MiscServices
+} // namespace OHOS
+
+#endif //INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H

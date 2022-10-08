@@ -16,10 +16,11 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_CLIENT_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_CLIENT_H
 
-#include "iremote_broker.h"
+#include "global.h"
 #include "i_input_method_agent.h"
 #include "input_channel.h"
-#include "global.h"
+#include "input_method_property.h"
+#include "iremote_broker.h"
 
 /**
  * brief Definition of interface IInputClient
@@ -33,6 +34,7 @@ namespace MiscServices {
             ON_INPUT_READY = 0,
             ON_INPUT_RELEASED,
             SET_DISPLAY_MODE,
+            ON_SWITCH_INPUT
         };
 
         DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputClient");
@@ -40,6 +42,7 @@ namespace MiscServices {
         virtual int32_t onInputReady(const sptr<IInputMethodAgent>& agent) = 0;
         virtual int32_t onInputReleased(int32_t retValue) = 0;
         virtual int32_t setDisplayMode(int32_t mode) = 0;
+        virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
     };
 } // namespace MiscServices
 } // namespace OHOS
