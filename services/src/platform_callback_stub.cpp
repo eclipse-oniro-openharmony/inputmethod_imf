@@ -42,8 +42,16 @@ namespace MiscServices {
             case NOTIFY_EVENT: {
                 int eventId = data.ReadInt32();
                 int userId = data.ReadInt32();
-                std::vector < std::u16string > eventContent;
-                int size = data.ReadInt32();
+                std::vector<std::u16string> eventContent; 
+                int size  = data.ReadInt32();
+                if (size < 0) {
+                    return ErrorCode::ERROR_STATUS_BAD_VALUE;
+                }
+                size_t availSize = data.GetReadableBytes();
+                if (static_cast<size_t>(size) > availSize) {
+                    return ErrorCode::ERROR_STATUS_BAD_VALUE;
+                }
+
                 for (int i = 0; i < size; i++) {
                     eventContent.push_back(data.ReadString16());
                 }
