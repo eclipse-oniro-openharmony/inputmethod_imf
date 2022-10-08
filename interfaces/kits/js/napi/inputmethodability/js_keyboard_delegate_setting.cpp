@@ -28,6 +28,8 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 constexpr size_t ARGC_FOUR = 4;
+constexpr int32_t V9_FLAG = 1;
+constexpr int32_t ORIGINAL_FLAG = 2;
 const std::string JsKeyboardDelegateSetting::KDS_CLASS_NAME = "KeyboardDelegate";
 thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
 
@@ -140,7 +142,7 @@ napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_
     
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
         if (argc != ARGC_ZERO) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0", TypeCode::TYPE_NONE);
         }
     }
 
@@ -235,7 +237,7 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     if (argc != ARGC_TWO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 2");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 2", TypeCode::TYPE_NONE);
     }
     
     napi_valuetype valuetype;
@@ -274,7 +276,7 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     if (argc != ARGC_ONE && argc != ARGC_TWO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 1 or 2");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 1 or 2", TypeCode::TYPE_NONE);
         return nullptr;
     }
     
