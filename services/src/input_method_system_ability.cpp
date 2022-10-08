@@ -639,7 +639,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodInfo userId = %{public}d", userId);
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-        bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(type, userId, AbilityType::INPUTMETHOD);
+        bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, extensionInfos);
         if (!ret) {
             IMSA_HILOGE("InputMethodSystemAbility::ListInputMethodInfo QueryExtensionAbilityInfos error");
             return {};
@@ -672,7 +672,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListProperty userId = %{public}d", userId);
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-        bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(type, userId, AbilityType::INPUTMETHOD);
+        bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, extensionInfos);
         if (!ret) {
             IMSA_HILOGE("InputMethodSystemAbility::ListProperty QueryExtensionAbilityInfos error");
             return {};
