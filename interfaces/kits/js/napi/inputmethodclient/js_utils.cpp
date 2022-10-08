@@ -72,15 +72,44 @@ namespace MiscServices {
         { EXCEPTION_OTHERS, "others error." },
     };
 
-    napi_value JsUtils::ToError(napi_env env, int32_t err)
+    const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
+        { TYPE_UNDEFINED, "napi_undefine." },
+        { TYPE_NULL, "napi_null." },
+        { TYPE_BOOLEAN, "napi_boolean." },
+        { TYPE_NUMBER, "napi_number." },
+        { TYPE_STRING, "napi_string." },
+        { TYPE_SYMBOL, "napi_symbol." },
+        { TYPE_OBJECT, "napi_object." },
+        { TYPE_FUNCTION, "napi_function." },
+        { TYPE_EXTERNAL, "napi_external." },
+        { TYPE_BIGINT, "napi_bigint." },
+    };
+
+    void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type)
+    {
+        std::string errMsg = ToMessage(err);
+        if (type == TypeCode::TYPE_NONE) {
+            errMsg = errMsg + msg;
+            IMSA_HILOGE("THROW_PARAMTER_ERROR message: %{public}s", errMsg.c_str());
+        } else {
+            auto iter = PARAMETER_TYPE.find(type);
+            if (iter != PARAMETER_TYPE.end()) {
+                errMsg = errMsg + "The type of " + msg + " must be " + iter->second;
+                IMSA_HILOGE("THROW_PARAMTER_TYPE_ERROR message: %{public}s", errMsg.c_str());
+            }
+        }
+        napi_throw_error(env, std::to_string(err).c_str(), errMsg.c_str());
+    }
+
+    napi_value JsUtils::ToError(napi_env env, int32_t code)
     {
         IMSA_HILOGE("ToError start");
         napi_value errorObj;
         NAPI_CALL(env, napi_create_object(env, &errorObj));
         napi_value errorCode = nullptr;
-        NAPI_CALL(env, napi_create_int32(env, err, &errorCode));
+        NAPI_CALL(env, napi_create_int32(env, Convert(code), &errorCode));
         napi_value errorMessage = nullptr;
-        NAPI_CALL(env, napi_create_string_utf8(env, ToMessage(err).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
+        NAPI_CALL(env, napi_create_string_utf8(env, ToMessage(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
         NAPI_CALL(env, napi_set_named_property(env, errorObj, "code", errorCode));
         NAPI_CALL(env, napi_set_named_property(env, errorObj, "message", errorMessage));
         IMSA_HILOGE("ToError end");

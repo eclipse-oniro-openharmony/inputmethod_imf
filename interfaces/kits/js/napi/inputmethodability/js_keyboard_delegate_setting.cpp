@@ -245,7 +245,7 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     if (valuetype != napi_string) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter1", "napi_string");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'type'", TypeCode::TYPE_STRING);
         return nullptr;
     }
     std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
@@ -254,7 +254,7 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     valuetype = napi_undefined;
     napi_typeof(env, argv[ARGC_ONE], &valuetype);
     if (valuetype != napi_function) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter2", "napi_function");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'callback'", TypeCode::TYPE_FUNCTION);
         return nullptr;
     }
     
@@ -285,7 +285,7 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     if (valuetype != napi_string) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter1", "napi_string");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'type'", TypeCode::TYPE_STRING);
         return nullptr;
     }
     std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
@@ -299,7 +299,7 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
         valuetype = napi_undefined;
         napi_typeof(env, argv[ARGC_ONE], &valuetype);
         if (valuetype != napi_function) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter2", "napi_function");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'callback'", TypeCode::TYPE_FUNCTION);
             return nullptr;
         }
     }

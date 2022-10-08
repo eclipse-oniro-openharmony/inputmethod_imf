@@ -38,9 +38,9 @@ public:
             output_ = output;
         }
 
-        void SetErrorCode(const int32_t &errorCode)
+        void SetErrorCode(int32_t errorCode)
         {
-            errorCode_ = JsUtils::Convert(errorCode);
+            errorCode_ = errorCode;
         }
         
         void SetState(const napi_status &status)

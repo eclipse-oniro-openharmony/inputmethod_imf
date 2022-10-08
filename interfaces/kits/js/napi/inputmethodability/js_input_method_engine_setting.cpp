@@ -127,7 +127,7 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
     auto delegate = GetInputMethodEngineSetting();
     if (delegate == nullptr) {
         IMSA_HILOGE("get delegate nullptr");
-        JsUtils::ThrowException(env, static_cast<int32_t>(IMFErrorCode::EXCEPTION_IMENGINE), "get delegate nullptr");  // msy
+        JsUtils::ThrowException(env, static_cast<int32_t>(IMFErrorCode::EXCEPTION_IMENGINE), "get delegate nullptr", TypeCode::TYPE_NONE);
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
@@ -150,7 +150,7 @@ napi_value JsInputMethodEngineSetting::GetInputMethodAbility(napi_env env, napi_
 
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     if (argc != ARGC_ZERO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0", TypeCode::TYPE_NONE);
         return nullptr;
     }
 
@@ -284,14 +284,14 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     if (argc != ARGC_TWO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 2");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 2", TypeCode::TYPE_NONE);
         return nullptr;
     }
     
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     if (valuetype != napi_string) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter1", "napi_string");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'type'", TypeCode::TYPE_STRING);
         return nullptr;
     }
     std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
@@ -300,7 +300,7 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     valuetype = napi_undefined;
     napi_typeof(env, argv[ARGC_ONE], &valuetype);
     if (valuetype != napi_function) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter2", "napi_function");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'callback'", TypeCode::TYPE_FUNCTION);
         return nullptr;
     }
     
@@ -324,14 +324,14 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     if (argc != ARGC_ONE && argc != ARGC_TWO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 1 or 2");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 1 or 2", TypeCode::TYPE_NONE);
         return nullptr;
     }
     
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     if (valuetype != napi_string) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter1", "napi_string");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'type'", TypeCode::TYPE_STRING);
         return nullptr;
     }
     std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
@@ -346,7 +346,7 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
         valuetype = napi_undefined;
         napi_typeof(env, argv[ARGC_ONE], &valuetype);
         if (valuetype != napi_function) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter2", "napi_function");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'callback'", TypeCode::TYPE_FUNCTION);
             return nullptr;
         }
     }

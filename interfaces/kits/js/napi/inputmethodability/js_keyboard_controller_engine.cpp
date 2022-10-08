@@ -83,12 +83,12 @@ napi_value JsKeyboardControllerEngine::Hide(napi_env env, napi_callback_info inf
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t err = InputMethodAbility::GetInstance()->HideKeyboardSelf();
-        if (err == ErrorCode::NO_ERROR) {
+        int32_t code = InputMethodAbility::GetInstance()->HideKeyboardSelf();
+        if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
         } else {
-            ctxt->SetErrorCode(err);
+            ctxt->SetErrorCode(code);
         }
     };
     ctxt->SetAction(std::move(input));

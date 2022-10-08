@@ -40,32 +40,38 @@ enum IMFErrorCode : int32_t {
     EXCEPTION_IMMS,
 };
 
-constexpr int32_t ERROR_CODE_QUERY_FAILED = 1;
+enum TypeCode : int32_t {
+    TYPE_NONE = 0,
+    TYPE_UNDEFINED,
+    TYPE_NULL,
+    TYPE_BOOLEAN,
+    TYPE_NUMBER,
+    TYPE_STRING,
+    TYPE_SYMBOL,
+    TYPE_OBJECT,
+    TYPE_FUNCTION,
+    TYPE_EXTERNAL,
+    TYPE_BIGINT,
+};
+
 class JsUtils {
 public:
-    static inline void ThrowException(napi_env env, int32_t err, const std::string &msg, const std::string &type = "")
-    {
-        std::string errMsg;
-        if (type == "") {
-            errMsg = ToMessage(err) + msg;
-            IMSA_HILOGE("THROW_PARAMTER_ERROR message: %{public}s", errMsg.c_str());
-        } else {
-            errMsg = ToMessage(err) + "The type of " + msg + " must be " + type;
-            IMSA_HILOGE("THROW_PARAMTER_TYPE_ERROR message: %{public}s", errMsg.c_str());
-        }
-        napi_throw_error(env, std::to_string(err).c_str(), errMsg.c_str());
-    }
+    static void ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type);
 
     static napi_value ToError(napi_env env, int32_t err);
 
+private:
     static int32_t Convert(int32_t code);
 
-private:
     static const std::string ToMessage(int32_t code);
 
     static const std::map<int32_t, int32_t> ERROR_CODE_MAP;
 
     static const std::map<int32_t, std::string> ERROR_CODE_CONVERT_MESSAGE_MAP;
+
+    static const std::map<int32_t, std::string> PARAMETER_TYPE;
+
+    static constexpr int32_t ERROR_CODE_QUERY_FAILED = 1;
 };
 }
 }
