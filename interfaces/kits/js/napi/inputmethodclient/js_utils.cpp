@@ -17,75 +17,95 @@
 
 namespace OHOS {
 namespace MiscServices {
-    napi_value JsUtils::GenerateError(napi_env env, int32_t err)
+    const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
+        { ErrorCode::ERROR_STATUS_PERMISSION_DENIED, EXCEPTION_PERMISSION },
+        { ErrorCode::ERROR_REMOTE_IME_DIED, EXCEPTION_IMENGINE },
+        { ErrorCode::ERROR_RESTART_IME_FAILED, EXCEPTION_IMENGINE },
+        { ErrorCode::ERROR_REMOTE_CLIENT_DIED, EXCEPTION_IMCLIENT },
+        { ErrorCode::ERROR_CLIENT_DUPLICATED, EXCEPTION_IMCLIENT },
+        { ErrorCode::ERROR_CLIENT_NOT_FOUND, EXCEPTION_IMCLIENT },
+        { ErrorCode::ERROR_CLIENT_NULL_POINTER, EXCEPTION_IMCLIENT },
+        { ErrorCode::ERROR_NOT_IME_PACKAGE, EXCEPTION_SETTINGS },
+        { ErrorCode::ERROR_IME_PACKAGE_DUPLICATED, EXCEPTION_SETTINGS },
+        { ErrorCode::ERROR_SETTING_SAME_VALUE, EXCEPTION_SETTINGS },
+        { ErrorCode::ERROR_NULL_POINTER, EXCEPTION_IMMS }, 
+        { ErrorCode::ERROR_BAD_PARAMETERS, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_SERVICE_START_FAILED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_USER_NOT_STARTED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_USER_ALREADY_STARTED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_USER_NOT_UNLOCKED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_USER_NOT_LOCKED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_IME_NOT_AVAILABLE, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_SECURITY_IME_NOT_AVAILABLE, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_TOKEN_CREATE_FAILED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_TOKEN_DESTROY_FAILED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_IME_BIND_FAILED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_IME_UNBIND_FAILED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_IME_START_FAILED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_IME_STOP_FAILED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_KBD_SHOW_FAILED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_KBD_HIDE_FAILED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_IME_NOT_STARTED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_KBD_IS_OCCUPIED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_KBD_IS_NOT_SHOWING, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_IME_ALREADY_STARTED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_NO_NEXT_IME, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_CLIENTWINDOW_NOT_FOCUSED, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_CLIENT_NOT_WINDOW, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_IME_PROPERTY_MARSHALL, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_GETTING_CURRENT_IME, EXCEPTION_IMMS },
+        { ErrorCode::ERROR_LIST_IME, EXCEPTION_IMMS },
+    };
+
+    const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
+        { EXCEPTION_PERMISSION, "the permissions check fails." },
+        { EXCEPTION_PARAMCHECK, "the parameters check fails." },
+        { EXCEPTION_UNSUPPORTED, "call unsupported api." },
+        { EXCEPTION_PACKAGEMANAGER, "package manager error." },
+        { EXCEPTION_IMENGINE, "input method engine error." },
+        { EXCEPTION_IMCLIENT, "input method client error." },
+        { EXCEPTION_KEYEVENT, "key event processing error." },
+        { EXCEPTION_CONFPERSIST, "configuration persisting error." },
+        { EXCEPTION_CONTROLLER, "input method controller error." },
+        { EXCEPTION_SETTINGS, "input method settings extension error." },
+        { EXCEPTION_IMMS, "input method manager service error." },
+        { EXCEPTION_OTHERS, "others error." },
+    };
+
+    napi_value JsUtils::ToError(napi_env env, int32_t err)
     {
-        IMSA_HILOGE("GenerateError start");
+        IMSA_HILOGE("ToError start");
         napi_value errorObj;
         NAPI_CALL(env, napi_create_object(env, &errorObj));
         napi_value errorCode = nullptr;
         NAPI_CALL(env, napi_create_int32(env, err, &errorCode));
         napi_value errorMessage = nullptr;
-        NAPI_CALL(env, napi_create_string_utf8(env, ToString(err).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
+        NAPI_CALL(env, napi_create_string_utf8(env, ToMessage(err).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
         NAPI_CALL(env, napi_set_named_property(env, errorObj, "code", errorCode));
         NAPI_CALL(env, napi_set_named_property(env, errorObj, "message", errorMessage));
-        IMSA_HILOGE("GenerateError end");
+        IMSA_HILOGE("ToError end");
         return errorObj;
     }
 
-    int32_t JsUtils::GetIMEngineErrorCode(int32_t innerErrorCode)
+    int32_t JsUtils::Convert(int32_t code)
     {
-        IMSA_HILOGE("GetIMEngineErrorCode");
-        auto iter = IMENGINE_ERROR_CODE_MAP.find(innerErrorCode);
-        if (iter != IMENGINE_ERROR_CODE_MAP.end()) {
+        IMSA_HILOGI("Convert start");
+        auto iter = ERROR_CODE_MAP.find(code);
+        if (iter != ERROR_CODE_MAP.end()) {
             IMSA_HILOGE("ErrorCode: %{public}d", iter->second);
             return iter->second;
         }
-        IMSA_HILOGE("GetIMEngineErrorCode end");
+        IMSA_HILOGI("Convert end");
         return ERROR_CODE_QUERY_FAILED;
     }
 
-    const std::string JsUtils::ToString(int32_t errorCode)
+    const std::string JsUtils::ToMessage(int32_t code)
     {
-        switch (errorCode) {
-            case EXCEPTION_PERMISSION: {
-                return "the permissions check fails.";
-            }
-            case EXCEPTION_PARAMCHECK: {
-                return "the parameters check fails.";
-            }
-            case EXCEPTION_UNSUPPORTED: {
-                return "call unsupported api.";
-            }
-            case EXCEPTION_PACKAGEMANAGER: {
-                return "package manager error.";
-            }
-            case EXCEPTION_IMENGINE: {
-                return "input method engine error.";
-            }
-            case EXCEPTION_IMCLIENT: {
-                return "input method client error.";
-            }
-            case EXCEPTION_KEYEVENT: {
-                return "key event processing error.";
-            }
-            case EXCEPTION_CONFPERSIST: {
-                return "configuration persisting error.";
-            }
-            case EXCEPTION_CONTROLLER: {
-                return "input method controller error.";
-            }
-            case EXCEPTION_SETTINGS: {
-                return "input method settings extension error.";
-            }
-            case EXCEPTION_IMMS: {
-                return "input method manager service error.";
-            }
-            case EXCEPTION_OTHERS: {
-                return "others error.";
-            }
-            default: {
-                return "error is out of definition.";
-            }
+        IMSA_HILOGI("ToMessage start");
+        auto iter = ERROR_CODE_CONVERT_MESSAGE_MAP.find(code);
+        if (iter != ERROR_CODE_CONVERT_MESSAGE_MAP.end()) {
+            IMSA_HILOGI("ErrorMessage: %{public}s", (iter->second).c_str());
+            return iter->second;
         }
         return "error is out of definition.";
     }

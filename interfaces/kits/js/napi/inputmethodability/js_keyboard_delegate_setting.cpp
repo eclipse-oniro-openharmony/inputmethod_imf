@@ -145,7 +145,7 @@ napi_value JsKeyboardDelegateSetting::GetKeyboardDelegate(napi_env env, napi_cal
 
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     if (argc != ARGC_ZERO) {
-        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0");
     }
 
     if (napi_get_reference_value(env, KDSRef_, &cons) != napi_ok) {
@@ -239,13 +239,13 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     if (argc != ARGC_TWO) {
-        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 2");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 2");
     }
     
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     if (valuetype != napi_string) {
-        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter1", "napi_string");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter1", "napi_string");
         return nullptr;
     }
     std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
@@ -254,7 +254,7 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     valuetype = napi_undefined;
     napi_typeof(env, argv[ARGC_ONE], &valuetype);
     if (valuetype != napi_function) {
-        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter2", "napi_function");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter2", "napi_function");
         return nullptr;
     }
     
@@ -278,14 +278,14 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     if (argc != ARGC_ONE && argc != ARGC_TWO) {
-        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 1 or 2");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 1 or 2");
         return nullptr;
     }
     
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     if (valuetype != napi_string) {
-        JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter1", "napi_string");
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter1", "napi_string");
         return nullptr;
     }
     std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
@@ -299,7 +299,7 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
         valuetype = napi_undefined;
         napi_typeof(env, argv[ARGC_ONE], &valuetype);
         if (valuetype != napi_function) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter2", "napi_function");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "parameter2", "napi_function");
             return nullptr;
         }
     }

@@ -118,7 +118,7 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
             napi_get_undefined(env, &result[ARG_DATA]);
         }
     } else {
-        result[ARG_ERROR] = JsUtils::GenerateError(env, context->ctx->errorCode_);
+        result[ARG_ERROR] = JsUtils::ToError(env, context->ctx->errorCode_);
         napi_get_undefined(env, &result[ARG_DATA]);
     }
     if (context->defer != nullptr) {

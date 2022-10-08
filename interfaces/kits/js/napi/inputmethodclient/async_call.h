@@ -40,7 +40,7 @@ public:
 
         void SetErrorCode(const int32_t &errorCode)
         {
-            errorCode_ = JsUtils::GetIMEngineErrorCode(errorCode);
+            errorCode_ = JsUtils::Convert(errorCode);
         }
         
         void SetState(const napi_status &status)

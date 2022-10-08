@@ -55,11 +55,11 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
             return status;
         }
         if (valueType == napi_number) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetMoveCursorParam(env, argv[0], ctxt);
@@ -252,11 +252,11 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
             return status;
         }
         if (valueType == napi_number) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetAction(env, argv[0], ctxt);
@@ -289,11 +289,11 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
             return status;
         }
         if (valueType == napi_number) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetDeleteForwardLength(env, argv[0], ctxt);
@@ -325,11 +325,11 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
             return status;
         }
         if (valueType == napi_number) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetDeleteBackwardLength(env, argv[0], ctxt);
@@ -362,11 +362,11 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
             return status;
         }
         if (valueType == napi_string) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetInsertText(env, argv[0], ctxt);
@@ -399,11 +399,11 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
             return status;
         }
         if (valueType == napi_number) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetForwardLength(env, argv[0], ctxt);
@@ -438,11 +438,11 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!");
             return status;
         }
         if (valueType == napi_number) {
-            JsUtils::ThrowError(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter1", "napi_number");
             return status;
         }
         status = GetBackwardLength(env, argv[0], ctxt);
@@ -487,7 +487,7 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
         } else {
-            ctxt->SetErrorCode(typeErr);
+            typeErr == ErrorCode::NO_ERROR ? ctxt->SetErrorCode(typeErr) : ctxt->SetErrorCode(patternErr);
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
