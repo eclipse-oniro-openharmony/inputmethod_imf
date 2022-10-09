@@ -1216,7 +1216,7 @@ namespace MiscServices {
             }
             int32_t ret = clientInfo->client->OnSwitchInput(property, subProperty);
             if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("PerUserSession::OnSwitchInput failed, ret: %{public}d", ret);
+                IMSA_HILOGE("PerUserSession::OnSwitchInput failed, ret %{public}d", ret);
                 return ret;
             }
         }
@@ -1226,7 +1226,7 @@ namespace MiscServices {
         }
         int32_t ret = imsCore[0]->SetSubtype(subProperty);
         if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("PerUserSession::SetSubtype failed, ret: %{public}d", ret);
+            IMSA_HILOGE("PerUserSession::SetSubtype failed, ret %{public}d", ret);
             return ret;
         }
         return ErrorCode::NO_ERROR;
