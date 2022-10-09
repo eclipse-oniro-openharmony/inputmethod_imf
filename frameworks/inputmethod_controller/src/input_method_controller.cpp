@@ -16,15 +16,16 @@
 #include "input_method_controller.h"
 
 #include "global.h"
+#include "input_client_stub.h"
+#include "input_data_channel_stub.h"
+#include "input_method_agent_proxy.h"
+#include "input_method_property.h"
 #include "input_method_status.h"
+#include "input_method_system_ability_proxy.h"
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
 #include "string_ex.h"
-#include "input_client_stub.h"
-#include "input_data_channel_stub.h"
-#include "input_method_agent_proxy.h"
-#include "input_method_system_ability_proxy.h"
 #include "system_ability_definition.h"
 #include "utils.h"
 
@@ -219,7 +220,6 @@ using namespace MessageID;
                         IMSA_HILOGE("read property from message parcel failed");
                         break;
                     }
-                    OnSwitchInput(property, subProperty);
                 }
                 default: {
                     break;
