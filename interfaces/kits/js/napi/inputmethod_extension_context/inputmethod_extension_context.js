@@ -50,6 +50,11 @@ class InputMethodExtensionContext extends ExtensionContext {
         console.log("terminateSelf");
         return this.__context_impl__.terminateSelf(callback);
     }
+
+    destroy(callback) {
+        console.log("destroy");
+        return this.__context_impl__.destroy(callback);
+    }
 }
 
 export default InputMethodExtensionContext
