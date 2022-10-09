@@ -723,6 +723,28 @@ namespace MiscServices {
         return property;
     }
 
+    std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
+    {
+        IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethodSubtype");
+        std::string ime = ParaHandle::GetDefaultIme(MAIN_USER_ID);
+        if (ime.empty()) {
+            IMSA_HILOGE("InputMethodSystemAbility ime is empty");
+            return nullptr;
+        }
+        auto pos = ime.find('/');
+        if (pos == std::string::npos) {
+            IMSA_HILOGE("InputMethodSystemAbility:: ime can not find '/'");
+            return nullptr;
+        }
+        auto property = std::make_shared<SubProperty>(
+            FindSubProperty(ime.substr(0, pos), ime.substr(pos + 1, ime.length() - pos - 1)));
+        if (property == nullptr) {
+            IMSA_HILOGE("property is nullptr");
+            return nullptr;
+        }
+        return property;
+    }
+
     /*! Get the instance of PerUserSetting for the given user
     \param userId the user id of the given user
     \return a pointer of the instance if the user is found

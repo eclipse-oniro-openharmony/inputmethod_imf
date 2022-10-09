@@ -220,6 +220,7 @@ using namespace MessageID;
                         IMSA_HILOGE("read property from message parcel failed");
                         break;
                     }
+                    OnSwitchInput(property, subProperty);
                 }
                 default: {
                     break;
@@ -344,6 +345,22 @@ using namespace MessageID;
         auto property = proxy->GetCurrentInputMethod();
         if (property == nullptr) {
             IMSA_HILOGE("InputMethodController::GetCurrentInputMethod property is nullptr");
+            return nullptr;
+        }
+        return property;
+    }
+
+    std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype()
+    {
+        IMSA_HILOGI("InputMethodController::GetCurrentInputMethod");
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
+            return nullptr;
+        }
+        auto property = proxy->GetCurrentInputMethodSubtype();
+        if (property == nullptr) {
+            IMSA_HILOGE("InputMethodController::GetCurrentInputMethodSubtype property is nullptr");
             return nullptr;
         }
         return property;
@@ -603,6 +620,16 @@ using namespace MessageID;
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
         return proxy->SwitchInputMethod(name, subName);
+    }
+
+    void InputMethodController::OnSwitchInput(const Property &property, const SubProperty &subProperty)
+    {
+        IMSA_HILOGI("InputMethodController::OnSwitchInput");
+        IMSA_HILOGI("%{public}s, %{public}s, %{public}s, %{public}s, %{public}d", property.name.c_str(),
+            property.id.c_str(), property.label.c_str(), property.icon.c_str(), property.iconId);
+        IMSA_HILOGI("%{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d",
+            subProperty.label.c_str(), subProperty.name.c_str(), subProperty.id.c_str(), subProperty.mode.c_str(),
+            subProperty.locale.c_str(), subProperty.language.c_str(), subProperty.icon.c_str(), subProperty.iconId);
     }
 } // namespace MiscServices
 } // namespace OHOS

@@ -187,6 +187,21 @@ int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote(MessageParce
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    auto property = GetCurrentInputMethodSubtype();
+    if (property == nullptr) {
+        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
+        IMSA_HILOGE("%{public}s property is nullptr", __func__);
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, *property, ErrorCode::ERROR_EX_PARCELABLE)) {
+        IMSA_HILOGE("%{public}s parcel failed", __func__);
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodSystemAbilityStub::ListInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     uint32_t status = data.ReadUint32();

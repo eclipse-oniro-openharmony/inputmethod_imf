@@ -110,6 +110,25 @@ std::shared_ptr<Property> InputMethodSystemAbilityProxy::GetCurrentInputMethod()
     return property;
 }
 
+std::shared_ptr<SubProperty> InputMethodSystemAbilityProxy::GetCurrentInputMethodSubtype()
+{
+    IMSA_HILOGI("%{public}s in", __func__);
+    std::shared_ptr<SubProperty> property = nullptr;
+    int32_t ret = SendRequest(GET_CURRENT_INPUT_METHOD_SUBTYPE, nullptr, [&property](MessageParcel &reply) {
+        property = std::make_shared<SubProperty>();
+        if (property == nullptr) {
+            IMSA_HILOGE("%{public}s make_shared nullptr", __func__);
+            return false;
+        }
+        return ITypesUtil::Unmarshal(reply, *property);
+    });
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("%{public}s SendRequest failed, ret %{public}d", __func__, ret);
+        return nullptr;
+    }
+    return property;
+}
+
 std::vector<Property> InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status)
 {
     IMSA_HILOGI("%{public}s in", __func__);

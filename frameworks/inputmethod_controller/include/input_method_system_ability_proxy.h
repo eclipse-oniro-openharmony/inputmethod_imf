@@ -53,6 +53,7 @@ public:
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     int32_t GetKeyboardWindowHeight(int32_t &retHeight) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
+    std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
     std::vector<Property> ListInputMethod(InputMethodStatus status) override;
     int32_t SwitchInputMethod(const std::string &name, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;

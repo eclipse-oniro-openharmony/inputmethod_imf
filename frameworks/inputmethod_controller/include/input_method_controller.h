@@ -76,6 +76,7 @@ namespace MiscServices {
         int32_t GetEnterKeyType();
         int32_t GetInputPattern();
         std::shared_ptr<Property> GetCurrentInputMethod();
+        std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype();
         void SetCallingWindow(uint32_t windowId);
         int32_t SwitchInputMethod(const std::string &name, const std::string &subName = "");
         int32_t ShowSoftKeyboard();
