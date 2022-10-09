@@ -477,6 +477,7 @@ NativeValue *CreateJsInputMethodExtensionContext(
 
     const char *moduleName = "JsInputMethodExtensionContext";
     BindNativeFunction(engine, *object, "startAbility", moduleName, JsInputMethodExtensionContext::StartAbility);
+    BindNativeFunction(engine, *object, "terminateSelf", moduleName, JsInputMethodExtensionContext::TerminateAbility);
     BindNativeFunction(engine, *object, "destroy", moduleName, JsInputMethodExtensionContext::TerminateAbility);
     BindNativeFunction(engine, *object, "connectAbility", moduleName, JsInputMethodExtensionContext::ConnectAbility);
     BindNativeFunction(engine, *object,
