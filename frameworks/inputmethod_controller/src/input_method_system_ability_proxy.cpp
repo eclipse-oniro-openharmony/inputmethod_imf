@@ -203,7 +203,7 @@ std::vector<SubProperty> InputMethodSystemAbilityProxy::ListCurrentInputMethodSu
 {
     IMSA_HILOGI("InputMethodSystemAbilityProxy::ListCurrentInputMethodSubtype");
     std::vector<SubProperty> properties;
-    int32_t ret = SendRequest(LIST_INPUT_METHOD_SUBTYPE, nullptr,
+    int32_t ret = SendRequest(LIST_CURRENT_INPUT_METHOD_SUBTYPE, nullptr,
         [&properties](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, properties); });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("InputMethodSystemAbilityProxy::SendRequest failed, ret %{public}d", ret);

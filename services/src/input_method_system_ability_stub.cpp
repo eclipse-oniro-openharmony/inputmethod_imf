@@ -229,7 +229,7 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote(MessageParc
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto property = ListInputMethodSubtype(bundleName);
-    if (!ITypesUtil::Marshal(reply, property)) {
+    if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, property)) {
         IMSA_HILOGE("InputMethodSystemAbilityStub::write reply failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
@@ -239,7 +239,7 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote(MessageParc
 int32_t InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     auto property = ListCurrentInputMethodSubtype();
-    if (!ITypesUtil::Marshal(reply, property)) {
+    if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, property)) {
         IMSA_HILOGE("InputMethodSystemAbilityStub::write reply failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }

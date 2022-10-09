@@ -597,7 +597,7 @@ using namespace MessageID;
             IMSA_HILOGE("proxy is nullptr");
             return {};
         }
-        return proxy->ListInputMethodSubtype(property.id);
+        return proxy->ListInputMethodSubtype(property.name);
     }
 
     std::vector<SubProperty> InputMethodController::ListCurrentInputMethodSubtype()

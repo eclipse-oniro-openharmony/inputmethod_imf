@@ -468,7 +468,7 @@ namespace MiscServices {
             IMSA_HILOGE("GetCurrentInputMethod failed");
             return {};
         }
-        return ListSubtypeByBundleName(MAIN_USER_ID, filter->id);
+        return ListSubtypeByBundleName(MAIN_USER_ID, filter->name);
     }
 
     std::vector<SubProperty> InputMethodSystemAbility::ListInputMethodSubtype(const std::string &name)
@@ -513,9 +513,9 @@ namespace MiscServices {
             return ErrorCode::ERROR_BAD_PARAMETERS;
         }
         for (const auto &property : properties) {
-            if (property.id == name) {
+            if (property.name == name) {
                 IMSA_HILOGI("target is installed, start switching");
-                return OnSwitchInputMethod(property.id, property.label);
+                return OnSwitchInputMethod(property.name, property.id);
             }
         }
         IMSA_HILOGE("target is not installed, switch failed");
