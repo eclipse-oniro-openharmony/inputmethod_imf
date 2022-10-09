@@ -220,7 +220,6 @@ using namespace MessageID;
                         IMSA_HILOGE("read property from message parcel failed");
                         break;
                     }
-                    OnSwitchInput(property, subProperty);
                 }
                 default: {
                     break;
