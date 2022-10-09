@@ -404,7 +404,7 @@ uv_work_t *JsInputMethodEngineSetting::GetWindowIDUVwork(std::string type, uint3
     return work;
 }
 
-uv_work_t *JsInputMethodEngineSetting::GetSubtypeUVwork(std::string type, SubProperty property)
+uv_work_t *JsInputMethodEngineSetting::GetSubtypeUVwork(std::string type, const SubProperty &property)
 {
     UvEntry *entry = nullptr;
     {
@@ -430,37 +430,37 @@ uv_work_t *JsInputMethodEngineSetting::GetSubtypeUVwork(std::string type, SubPro
     return work;
 }
 
-napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, SubProperty property)
+napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, const SubProperty &property)
 {
     napi_value subType = nullptr;
     napi_create_object(env, &subType);
 
     napi_value name = nullptr;
-    napi_create_string_utf8(env, property.name, &name);
+    napi_create_string_utf8(env, property.name.c_str(), property.name.size(), &name);
     napi_set_named_property(env, subType, "name", name);
 
     napi_value id = nullptr;
-    napi_create_string_utf8(env, property.id, &id);
+    napi_create_string_utf8(env, property.id.c_str(), property.id.size(), &id);
     napi_set_named_property(env, subType, "id", id);
 
     napi_value mode = nullptr;
-    napi_create_string_utf8(env, property.mode, &mode);
+    napi_create_string_utf8(env, property.mode.c_str(), property.mode.size(), &mode);
     napi_set_named_property(env, subType, "mode", mode);
 
     napi_value locale = nullptr;
-    napi_create_string_utf8(env, property.locale, &locale);
+    napi_create_string_utf8(env, property.locale.c_str(), property.locale.size(), &locale);
     napi_set_named_property(env, subType, "locale", locale);
 
     napi_value language = nullptr;
-    napi_create_string_utf8(env, property.language, &language);
+    napi_create_string_utf8(env, property.language.c_str(), property.language.size(), &language);
     napi_set_named_property(env, subType, "language", language);
 
     napi_value icon = nullptr;
-    napi_create_string_utf8(env, property.icon, &icon);
+    napi_create_string_utf8(env, property.icon.c_str(), property.icon.size(), &icon);
     napi_set_named_property(env, subType, "icon", icon);
 
     napi_value iconId = nullptr;
-    napi_create_string_utf8(env, property.iconId, &iconId);
+    napi_create_int32(env, property.iconId, &iconId);
     napi_set_named_property(env, subType, "iconId", iconId);
 
     napi_value extra = nullptr;
