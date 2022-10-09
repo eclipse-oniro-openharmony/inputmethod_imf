@@ -55,8 +55,7 @@ namespace MiscServices {
         switch (code) {
             case HIDE_KEYBOARD_SELF: {
                 int flag = data.ReadInt32();
-                hideKeyboardSelf(flag);
-                reply.WriteNoException();
+                reply.WriteInt32(hideKeyboardSelf(flag));
                 break;
             }
             case ADVANCE_TO_NEXT: {
@@ -103,7 +102,7 @@ namespace MiscServices {
     \see PerUserSession::OnHideKeyboardSelf
     \param flags the flag value of hiding keyboard
     */
-    void InputControlChannelStub::hideKeyboardSelf(int flags)
+    int32_t InputControlChannelStub::hideKeyboardSelf(int flags)
     {
         IMSA_HILOGI("InputControlChannelStub::hideKeyboardSelf flags = %{public}d", flags);
         MessageParcel *parcel = new MessageParcel();
@@ -112,6 +111,7 @@ namespace MiscServices {
 
         Message *msg = new Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, parcel);
         MessageHandler::Instance()->SendMessage(msg);
+        return ErrorCode::NO_ERROR;
     }
 
     /*! Send advanceToNext command to work thread.

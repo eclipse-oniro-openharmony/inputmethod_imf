@@ -440,26 +440,30 @@ using namespace MessageID;
         inputPattern_ = static_cast<uint32_t>(info.GetTextInputType());
     }
 
-    std::u16string InputMethodController::GetTextBeforeCursor(int32_t number)
+    int32_t InputMethodController::GetTextBeforeCursor(int32_t number, std::u16string &text)
     {
         IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
         if (!mTextString.empty()) {
             int32_t startPos = (mSelectNewBegin >= number ? (mSelectNewBegin - number + 1) : 0);
-            return mTextString.substr(startPos, mSelectNewBegin);
+            text = mTextString.substr(startPos, mSelectNewBegin);
+            return ErrorCode::NO_ERROR;
         }
-        return u"";
+        text = u"";
+        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
 
-    std::u16string InputMethodController::GetTextAfterCursor(int32_t number)
+    int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string &text)
     {
         IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
         if (!mTextString.empty() && mTextString.size() <= INT_MAX) {
             int32_t endPos = (mSelectNewEnd + number < static_cast<int32_t>(mTextString.size()))
                                  ? (mSelectNewEnd + number)
                                  : mTextString.size();
-            return mTextString.substr(mSelectNewEnd, endPos);
+            text = mTextString.substr(mSelectNewEnd, endPos);
+            return ErrorCode::NO_ERROR;
         }
-        return u"";
+        text = u"";
+        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
 
     bool InputMethodController::dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
@@ -484,16 +488,18 @@ using namespace MessageID;
         return agent->DispatchKeyEvent(data);
     }
 
-    int32_t InputMethodController::GetEnterKeyType()
+    int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
     {
         IMSA_HILOGI("InputMethodController::GetEnterKeyType");
-        return enterKeyType_;
+        keyType = enterKeyType_;
+        return ErrorCode::NO_ERROR;
     }
 
-    int32_t InputMethodController::GetInputPattern()
+    int32_t InputMethodController::GetInputPattern(int32_t &inputpattern)
     {
         IMSA_HILOGI("InputMethodController::GetInputPattern");
-        return inputPattern_;
+        inputpattern = inputPattern_;
+        return ErrorCode::NO_ERROR;
     }
 
     void InputMethodController::SetCallingWindow(uint32_t windowId)
@@ -517,7 +523,7 @@ using namespace MessageID;
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
             IMSA_HILOGE("proxy is nullptr");
-            return false;
+            return ErrorCode::ERROR_CLIENT_NULL_POINTER;;
         }
         return proxy->SwitchInputMethod(target);
     }

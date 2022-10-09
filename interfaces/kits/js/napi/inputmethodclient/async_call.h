@@ -19,6 +19,7 @@
 #include "napi/native_common.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -35,6 +36,16 @@ public:
         {
             input_ = input;
             output_ = output;
+        }
+
+        void SetErrorCode(int32_t errorCode)
+        {
+            errorCode_ = errorCode;
+        }
+        
+        void SetState(const napi_status &status)
+        {
+            status_ = status;
         }
 
         void SetAction(OutputAction output)
@@ -66,11 +77,14 @@ public:
             }
             exec_(this);
         };
+        
     protected:
         friend class AsyncCall;
         InputAction input_ = nullptr;
         OutputAction output_ = nullptr;
         ExecAction exec_ = nullptr;
+        napi_status status_ = napi_generic_failure;
+        int32_t errorCode_ = 0;
     };
     static constexpr size_t ARGC_MAX = 6;
     static constexpr size_t ASYNC_DEFAULT_POS = -1;

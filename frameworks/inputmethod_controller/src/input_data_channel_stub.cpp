@@ -46,12 +46,12 @@ namespace MiscServices {
         switch (code) {
             case INSERT_TEXT: {
                 auto text = data.ReadString16();
-                InsertText(text);
+                reply.WriteInt32(InsertText(text));
                 break;
             }
             case DELETE_FORWARD: {
                 auto length = data.ReadInt32();
-                DeleteForward(length);
+                reply.WriteInt32(DeleteForward(length));
                 break;
             }
             case DELETE_BACKWARD: {
@@ -65,12 +65,16 @@ namespace MiscServices {
             }
             case GET_TEXT_BEFORE_CURSOR: {
                 auto number = data.ReadInt32();
-                reply.WriteString16(GetTextBeforeCursor(number));
+                std::u16string text;
+                reply.WriteInt32(GetTextBeforeCursor(number, text));
+                reply.WriteString16(text);
                 break;
             }
             case GET_TEXT_AFTER_CURSOR: {
                 auto number = data.ReadInt32();
-                reply.WriteString16(GetTextAfterCursor(number));
+                std::u16string text;
+                reply.WriteInt32(GetTextAfterCursor(number, text));
+                reply.WriteString16(text);
                 break;
             }
             case SEND_KEYBOARD_STATUS: {
@@ -80,20 +84,24 @@ namespace MiscServices {
             }
             case SEND_FUNCTION_KEY: {
                 auto funcKey = data.ReadInt32();
-                SendFunctionKey(funcKey);
+                reply.WriteInt32(SendFunctionKey(funcKey));
                 break;
             }
             case MOVE_CURSOR: {
                 auto keyCode = data.ReadInt32();
-                MoveCursor(keyCode);
+                reply.WriteInt32(MoveCursor(keyCode));
                 break;
             }
             case GET_ENTER_KEY_TYPE: {
-                reply.WriteInt32(GetEnterKeyType());
+                int32_t keyType = 0;
+                reply.WriteInt32(GetEnterKeyType(keyType));
+                reply.WriteInt32(keyType);
                 break;
             }
             case GET_INPUT_PATTERN: {
-                reply.WriteInt32(GetInputPattern());
+                int32_t inputPattern = 0;
+                reply.WriteInt32(GetInputPattern(inputPattern));
+                reply.WriteInt32(inputPattern);
                 break;
             }
             case STOP_INPUT: {
@@ -106,7 +114,7 @@ namespace MiscServices {
         return NO_ERROR;
     }
 
-    bool InputDataChannelStub::InsertText(const std::u16string& text)
+    int32_t InputDataChannelStub::InsertText(const std::u16string& text)
     {
         IMSA_HILOGI("InputDataChannelStub::InsertText");
         if (msgHandler) {
@@ -115,26 +123,26 @@ namespace MiscServices {
             Message *msg = new Message(MessageID::MSG_ID_INSERT_CHAR, parcel);
             msgHandler->SendMessage(msg);
             IMSA_HILOGI("InputDataChannelStub::InsertText return true");
-            return true;
+            return ErrorCode::NO_ERROR;
         }
-        return false;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
 
-    bool InputDataChannelStub::DeleteForward(int32_t length)
+    int32_t InputDataChannelStub::DeleteForward(int32_t length)
     {
         IMSA_HILOGI("InputDataChannelStub::DeleteForward");
         if (!msgHandler) {
-            return false;
+            return ErrorCode::ERROR_CLIENT_NULL_POINTER;
         }
         MessageParcel *parcel = new MessageParcel;
         parcel->WriteInt32(length);
         Message *msg = new Message(MessageID::MSG_ID_DELETE_FORWARD, parcel);
         msgHandler->SendMessage(msg);
 
-        return true;
+        return ErrorCode::NO_ERROR;
     }
 
-    bool InputDataChannelStub::DeleteBackward(int32_t length)
+    int32_t InputDataChannelStub::DeleteBackward(int32_t length)
     {
         IMSA_HILOGI("InputDataChannelStub::DeleteBackward");
         if (msgHandler) {
@@ -142,37 +150,37 @@ namespace MiscServices {
             parcel->WriteInt32(length);
             Message *msg = new Message(MessageID::MSG_ID_DELETE_BACKWARD, parcel);
             msgHandler->SendMessage(msg);
-            return true;
+            return ErrorCode::NO_ERROR;
         }
-        return false;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
 
     void InputDataChannelStub::Close()
     {
     }
 
-    std::u16string InputDataChannelStub::GetTextBeforeCursor(int32_t number)
+    int32_t InputDataChannelStub::GetTextBeforeCursor(int32_t number, std::u16string &text)
     {
         IMSA_HILOGI("InputDataChannelStub::GetTextBeforeCursor");
-        return InputMethodController::GetInstance()->GetTextBeforeCursor(number);
+        return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
     }
 
-    std::u16string InputDataChannelStub::GetTextAfterCursor(int32_t number)
+    int32_t InputDataChannelStub::GetTextAfterCursor(int32_t number, std::u16string &text)
     {
         IMSA_HILOGI("InputDataChannelStub::GetTextAfterCursor");
-        return InputMethodController::GetInstance()->GetTextAfterCursor(number);
+        return InputMethodController::GetInstance()->GetTextAfterCursor(number, text);
     }
 
-    int32_t InputDataChannelStub::GetEnterKeyType()
+    int32_t InputDataChannelStub::GetEnterKeyType(int32_t &keyType)
     {
         IMSA_HILOGI("InputDataChannelStub::GetEnterKeyType");
-        return InputMethodController::GetInstance()->GetEnterKeyType();
+        return InputMethodController::GetInstance()->GetEnterKeyType(keyType);
     }
 
-    int32_t InputDataChannelStub::GetInputPattern()
+    int32_t InputDataChannelStub::GetInputPattern(int32_t &inputPattern)
     {
         IMSA_HILOGI("InputDataChannelStub::GetInputPattern");
-        return InputMethodController::GetInstance()->GetInputPattern();
+        return InputMethodController::GetInstance()->GetInputPattern(inputPattern);
     }
 
     void InputDataChannelStub::StopInput()
@@ -192,7 +200,7 @@ namespace MiscServices {
         }
     }
 
-    void InputDataChannelStub::SendFunctionKey(int32_t funcKey)
+    int32_t InputDataChannelStub::SendFunctionKey(int32_t funcKey)
     {
         IMSA_HILOGI("InputDataChannelStub::SendFunctionKey");
         if (msgHandler) {
@@ -200,10 +208,12 @@ namespace MiscServices {
             parcel->WriteInt32(funcKey);
             Message *msg = new Message(MessageID::MSG_ID_SEND_FUNCTION_KEY, parcel);
             msgHandler->SendMessage(msg);
+            return ErrorCode::NO_ERROR;
         }
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
 
-    void InputDataChannelStub::MoveCursor(int32_t keyCode)
+    int32_t InputDataChannelStub::MoveCursor(int32_t keyCode)
     {
         IMSA_HILOGI("InputDataChannelStub::MoveCursor");
         if (msgHandler) {
@@ -211,7 +221,9 @@ namespace MiscServices {
             parcel->WriteInt32(keyCode);
             Message *msg = new Message(MessageID::MSG_ID_MOVE_CURSOR, parcel);
             msgHandler->SendMessage(msg);
+            return ErrorCode::NO_ERROR;
         }
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
 
     void InputDataChannelStub::SetHandler(MessageHandler *handler)

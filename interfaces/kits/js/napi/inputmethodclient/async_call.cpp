@@ -15,6 +15,7 @@
 
 #include "async_call.h"
 #include "global.h"
+#include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -26,7 +27,6 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
     napi_value self = nullptr;
     napi_value argv[ARGC_MAX] = {nullptr};
     NAPI_CALL_RETURN_VOID(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
-    NAPI_ASSERT_BASE(env, pos <= argc || pos == ASYNC_DEFAULT_POS, " Invalid Args!", NAPI_RETVAL_NOTHING);
     pos = ((pos == ASYNC_DEFAULT_POS) ? (argc - 1) : pos);
     if (pos >= 0 && pos < argc) {
         napi_valuetype valueType = napi_undefined;
@@ -91,7 +91,7 @@ napi_value AsyncCall::SyncCall(napi_env env, AsyncCall::Context::ExecAction exec
         napi_get_undefined(env, &promise);
     }
     AsyncCall::OnExecute(env, context_);
-    AsyncCall::OnComplete(env, napi_ok, context_);
+    AsyncCall::OnComplete(env, context_->ctx->status_, context_);
     return promise;
 }
 
@@ -118,9 +118,7 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
             napi_get_undefined(env, &result[ARG_DATA]);
         }
     } else {
-        napi_value message = nullptr;
-        napi_create_string_utf8(env, "async call failed", NAPI_AUTO_LENGTH, &message);
-        napi_create_error(env, nullptr, message, &result[ARG_ERROR]);
+        result[ARG_ERROR] = JsUtils::ToError(env, context->ctx->errorCode_);
         napi_get_undefined(env, &result[ARG_DATA]);
     }
     if (context->defer != nullptr) {

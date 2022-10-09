@@ -143,10 +143,14 @@ namespace ErrorCode {
         // error from ime
         ERROR_REMOTE_IME_DIED, // remote input method service died abnormally
         ERROR_RESTART_IME_FAILED, // failed to restart input method service
+        ERROR_IME_NULL_POINTER, // null pointer
         // error from client
         ERROR_REMOTE_CLIENT_DIED,  // remote client died abnormally
         ERROR_CLIENT_DUPLICATED,  // duplicated client
         ERROR_CLIENT_NOT_FOUND, // client is not found
+        ERROR_CLIENT_NULL_POINTER, // null pointer
+
+        ERROR_CONTROLLER_INVOKING_FAILED,
     };
     const char* ToString(int errorCode);
 }; // namespace ErrorCode

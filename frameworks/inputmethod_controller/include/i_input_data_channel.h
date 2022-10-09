@@ -45,17 +45,17 @@ namespace MiscServices {
 
         DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputDataChannel");
 
-        virtual bool InsertText(const std::u16string& text) = 0;
-        virtual bool DeleteForward(int32_t length) = 0;
-        virtual bool DeleteBackward(int32_t length) = 0;
+        virtual int32_t InsertText(const std::u16string& text) = 0;
+        virtual int32_t DeleteForward(int32_t length) = 0;
+        virtual int32_t DeleteBackward(int32_t length) = 0;
         virtual void Close() = 0;
-        virtual std::u16string GetTextBeforeCursor(int32_t number) = 0;
-        virtual std::u16string GetTextAfterCursor(int32_t number) = 0;
+        virtual int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) = 0;
+        virtual int32_t GetTextAfterCursor(int32_t number, std::u16string &text) = 0;
         virtual void SendKeyboardStatus(int32_t status) = 0;
-        virtual void SendFunctionKey(int32_t funcKey) = 0;
-        virtual void MoveCursor(int32_t keyCode) = 0;
-        virtual int32_t GetEnterKeyType() = 0;
-        virtual int32_t GetInputPattern() = 0;
+        virtual int32_t SendFunctionKey(int32_t funcKey) = 0;
+        virtual int32_t MoveCursor(int32_t keyCode) = 0;
+        virtual int32_t GetEnterKeyType(int32_t &keyType) = 0;
+        virtual int32_t GetInputPattern(int32_t &inputPattern) = 0;
         virtual void StopInput() = 0;
     };
 } // namespace MiscServices

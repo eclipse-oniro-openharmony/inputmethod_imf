@@ -34,7 +34,7 @@ namespace OHOS {
 
             DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputControlChannel");
 
-            virtual void hideKeyboardSelf(int flags) = 0;
+            virtual int32_t hideKeyboardSelf(int flags) = 0;
             virtual bool advanceToNext(bool isCurrentIme) = 0;
             virtual void setDisplayMode(int mode) = 0;
             virtual void onKeyboardShowed() = 0;

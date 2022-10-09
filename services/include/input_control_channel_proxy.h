@@ -33,7 +33,7 @@ namespace MiscServices {
         InputControlChannelProxy(const sptr<IRemoteObject> &impl);
         ~InputControlChannelProxy();
 
-        void hideKeyboardSelf(int flags) override;
+        int32_t hideKeyboardSelf(int flags) override;
         bool advanceToNext(bool isCurrentIme) override;
         void setDisplayMode(int mode) override;
         void onKeyboardShowed() override;
