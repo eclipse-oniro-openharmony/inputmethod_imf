@@ -16,15 +16,18 @@
 #ifndef INTERFACE_KITS_JS_INPUT_METHOD_ENGINE_SETTING_H
 #define INTERFACE_KITS_JS_INPUT_METHOD_ENGINE_SETTING_H
 
-#include <map>
 #include <uv.h>
-#include <mutex>
+
+#include <map>
 #include <memory>
-#include "napi/native_api.h"
-#include "global.h"
+#include <mutex>
+
 #include "async_call.h"
-#include "js_callback_object.h"
+#include "global.h"
 #include "input_method_engine_listener.h"
+#include "input_method_property.h"
+#include "js_callback_object.h"
+#include "napi/native_api.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -41,6 +44,8 @@ public:
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStop(std::string imeId) override;
     void OnSetCallingWindow(uint32_t windowId) override;
+    void OnSetSubtype(SubProperty property) override;
+
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsInputMethodEngineSetting *GetNative(napi_env env, napi_callback_info info);
@@ -54,6 +59,8 @@ private:
     uv_work_t *GetUVwork(std::string type);
     uv_work_t *GetStopInputUVwork(std::string type, std::string imeId);
     uv_work_t *GetWindowIDUVwork(std::string type, uint32_t windowid);
+    uv_work_t *GetSubtypeUVwork(std::string type, SubProperty property);
+    static napi_value GetResultOnSetSubtype(napi_env env, SubProperty property);
     static std::string GetStringProperty(napi_env env, napi_value jsString);
     static constexpr int32_t MAX_VALUE_LEN = 1024;
     static const std::string IMES_CLASS_NAME;
@@ -63,6 +70,7 @@ private:
         std::string type;
         std::string imeid;
         uint32_t windowid = 0;
+        SubProperty subProperty;
         UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type)
             : vecCopy(cbVec), type(type) {}
     };

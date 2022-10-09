@@ -14,10 +14,12 @@
  */
 
 #include "js_input_method_engine_setting.h"
+
+#include "input_method_ability.h"
+#include "input_method_property.h"
+#include "input_method_utils.h"
 #include "js_keyboard_controller_engine.h"
 #include "js_text_input_client_engine.h"
-#include "input_method_ability.h"
-#include "input_method_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -402,6 +404,72 @@ uv_work_t *JsInputMethodEngineSetting::GetWindowIDUVwork(std::string type, uint3
     return work;
 }
 
+uv_work_t *JsInputMethodEngineSetting::GetSubtypeUVwork(std::string type, SubProperty property)
+{
+    UvEntry *entry = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+        if (jsCbMap_[type].empty()) {
+            IMSA_HILOGE("OnSetSubtype cb-vector is empty");
+            return nullptr;
+        }
+        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
+        if (entry == nullptr) {
+            IMSA_HILOGE("entry ptr is nullptr!");
+            return nullptr;
+        }
+        entry->subProperty = property;
+    }
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        IMSA_HILOGE("entry ptr is nullptr!");
+        return nullptr;
+    }
+    work->data = entry;
+    return work;
+}
+
+napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, SubProperty property)
+{
+    napi_value subType = nullptr;
+    napi_create_object(env, &subType);
+
+    napi_value name = nullptr;
+    napi_create_string_utf8(env, property.name, &name);
+    napi_set_named_property(env, subType, "name", name);
+
+    napi_value id = nullptr;
+    napi_create_string_utf8(env, property.id, &id);
+    napi_set_named_property(env, subType, "id", id);
+
+    napi_value mode = nullptr;
+    napi_create_string_utf8(env, property.mode, &mode);
+    napi_set_named_property(env, subType, "mode", mode);
+
+    napi_value locale = nullptr;
+    napi_create_string_utf8(env, property.locale, &locale);
+    napi_set_named_property(env, subType, "locale", locale);
+
+    napi_value language = nullptr;
+    napi_create_string_utf8(env, property.language, &language);
+    napi_set_named_property(env, subType, "language", language);
+
+    napi_value icon = nullptr;
+    napi_create_string_utf8(env, property.icon, &icon);
+    napi_set_named_property(env, subType, "icon", icon);
+
+    napi_value iconId = nullptr;
+    napi_create_string_utf8(env, property.iconId, &iconId);
+    napi_set_named_property(env, subType, "iconId", iconId);
+
+    napi_value extra = nullptr;
+    napi_create_object(env, &extra);
+    napi_set_named_property(env, subType, "extra", extra);
+
+    return subType;
+}
+
 void JsInputMethodEngineSetting::OnInputStart()
 {
     std::string type = "inputStart";
@@ -561,11 +629,55 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
                 napi_value global = nullptr;
                 napi_get_global(item->env_, &global);
                 napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_ONE, args,
-                    &result);
+                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_ONE, args, &result);
                 if (callStatus != napi_ok) {
-                    IMSA_HILOGE("notify data change failed callStatus:%{public}d callback:%{public}p", callStatus,
-                        callback);
+                    IMSA_HILOGE(
+                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
+                }
+            }
+        });
+}
+
+void JsInputMethodEngineSetting::OnSetSubtype(SubProperty property)
+{
+    IMSA_HILOGI("run in OnSetSubtype");
+    std::string type = "setSubtype";
+    uv_work_t *work = GetSubtypeUVwork(type, property);
+    if (work == nullptr) {
+        return;
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("OnSetSubtype:: entryptr is null");
+                return;
+            }
+
+            for (auto item : entry->vecCopy) {
+                napi_value jsObject = GetResultOnSetSubtype(item->env_, entry->subProperty);
+                if (jsObject == nullptr) {
+                    IMSA_HILOGE("get GetResultOnSetSubtype failed: %{punlic}p", jsObject);
+                    continue;
+                }
+                napi_value callback = nullptr;
+                napi_value args[] = { jsObject };
+                napi_get_reference_value(item->env_, item->callback_, &callback);
+                if (callback == nullptr) {
+                    IMSA_HILOGE("callback is nullptr");
+                    continue;
+                }
+                napi_value global = nullptr;
+                napi_get_global(item->env_, &global);
+                napi_value result;
+                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_ONE, args, &result);
+                if (callStatus != napi_ok) {
+                    IMSA_HILOGE(
+                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
                 }
             }
         });

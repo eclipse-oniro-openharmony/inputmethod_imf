@@ -289,6 +289,7 @@ namespace MiscServices {
             IMSA_HILOGI("InputMethodAbility::OnSetSubtype imeListener_ is nullptr");
             return;
         }
+        imeListener_->OnSetSubtype(subProperty);
     }
 
     bool InputMethodAbility::DispatchKeyEvent(int32_t keyCode, int32_t keyStatus)
