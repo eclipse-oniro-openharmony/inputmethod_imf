@@ -46,11 +46,12 @@ public:
     JsGetInputMethodController() = default;
     ~JsGetInputMethodController() = default;
     static napi_value Init(napi_env env, napi_value info);
-    static napi_value GetInputMethodController(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetController(napi_env env, napi_callback_info cbInfo);
     static napi_value HandleSoftKeyboard(
-        napi_env env, napi_callback_info info, std::function<int32_t()> callback, bool isOutput);
+        napi_env env, napi_callback_info info, std::function<int32_t()> callback, bool isOutput, bool v9Flag);
     static napi_value HideSoftKeyboard(napi_env env, napi_callback_info info);
     static napi_value ShowSoftKeyboard(napi_env env, napi_callback_info info);
+    static napi_value StopInputSession(napi_env env, napi_callback_info info);
     static napi_value StopInput(napi_env env, napi_callback_info info);
 
 private:

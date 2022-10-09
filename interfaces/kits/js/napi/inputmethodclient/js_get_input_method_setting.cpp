@@ -33,7 +33,8 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
         napi_create_int32(env, MAX_TYPE_NUM, &maxTypeNumber);
         
         napi_property_descriptor descriptor[] = {
-        DECLARE_NAPI_FUNCTION("getInputMethodSetting", GetInputMethodSetting),
+        DECLARE_NAPI_FUNCTION("getInputMethodSetting", GetSetting),
+        DECLARE_NAPI_FUNCTION("getSetting", GetSetting),
         DECLARE_NAPI_PROPERTY("MAX_TYPE_NUM", maxTypeNumber),
     };
     NAPI_CALL(
@@ -41,7 +42,9 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
 
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("listInputMethod", ListInputMethod),
+        DECLARE_NAPI_FUNCTION("getInputMethods", GetInputMethods),
         DECLARE_NAPI_FUNCTION("displayOptionalInputMethod", DisplayOptionalInputMethod),
+        DECLARE_NAPI_FUNCTION("showOptionalInputMethods", ShowOptionalInputMethods),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, IMS_CLASS_NAME.c_str(), IMS_CLASS_NAME.size(),
@@ -74,7 +77,7 @@ napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_in
     return thisVar;
 }
 
-napi_value JsGetInputMethodSetting::GetInputMethodSetting(napi_env env, napi_callback_info info)
+napi_value JsGetInputMethodSetting::GetSetting(napi_env env, napi_callback_info info)
 {
     napi_value instance = nullptr;
     napi_value cons = nullptr;
@@ -93,18 +96,42 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
 {
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 0 || argc == 1, " Parameter number error", napi_invalid_arg);
+        ctxt->inputMethodStatus = InputMethodStatus::ALL;
+        return napi_ok;
+    };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        *result = JsInputMethod::GetJSInputMethodProperties(env, ctxt->properties);
+        return napi_ok;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        ctxt->properties = InputMethodController::GetInstance()->ListInputMethod();
+        ctxt->status = napi_ok;
+        ctxt->SetState(ctxt->status);
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    return asyncCall.Call(env, exec);
+}
+
+napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<ListInputContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        // parameter:1. null; 2.enable
         if (argc == 0) {
             ctxt->inputMethodStatus = InputMethodStatus::ALL;
             return napi_ok;
         }
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        NAPI_ASSERT_BASE(env, valueType == napi_boolean, " Parameter type error", napi_invalid_arg);
-        bool enable = false;
-        napi_get_value_bool(env, argv[0], &enable);
-        ctxt->inputMethodStatus = enable ? InputMethodStatus::ENABLE : InputMethodStatus::DISABLE;
-        return napi_ok;
+        if (valueType == napi_boolean) {
+            bool enable = false;
+            napi_get_value_bool(env, argv[0], &enable);
+            ctxt->inputMethodStatus = enable ? InputMethodStatus::ENABLE : InputMethodStatus::DISABLE;
+            return napi_ok;
+        }
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter's type is wrong.", TYPE_BOOLEAN);
+        return napi_generic_failure;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         *result = JsInputMethod::GetJSInputMethodProperties(env, ctxt->properties);
@@ -117,6 +144,7 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
             ctxt->properties = InputMethodController::GetInstance()->ListInputMethod(ctxt->inputMethodStatus == ENABLE);
         }
         ctxt->status = napi_ok;
+        ctxt->SetState(ctxt->status);
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
@@ -125,21 +153,35 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
 
 napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, napi_callback_info info)
 {
+    return DisplayInputMethod(env, info, false);
+}
+
+napi_value JsGetInputMethodSetting::DisplayInputMethod(napi_env env, napi_callback_info info, bool flag)
+{
     auto ctxt = std::make_shared<DisplayOptionalInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 0 || argc == 1, " should null or 1 parameters!", napi_invalid_arg);
         return napi_ok;
     };
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
+    auto exec = [ctxt, flag](AsyncCall::Context *ctx) {
         int32_t errCode = InputMethodController::GetInstance()->DisplayOptionalInputMethod();
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGE("exec ---- DisplayOptionalInputMethod success");
             ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            return;
+        }
+        if (flag) {
+            ctxt->SetErrorCode(errCode);
         }
     };
     ctxt->SetAction(std::move(input));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
     return asyncCall.Call(env, exec);
+}
+
+napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_callback_info info)
+{
+    return DisplayInputMethod(env, info, true);
 }
 }
 }

@@ -89,11 +89,14 @@ public:
     JsGetInputMethodSetting() = default;
     ~JsGetInputMethodSetting() = default;
     static napi_value Init(napi_env env, napi_value info);
-    static napi_value GetInputMethodSetting(napi_env env, napi_callback_info info);
+    static napi_value GetSetting(napi_env env, napi_callback_info info);
     static napi_value ListInputMethod(napi_env env, napi_callback_info info);
+    static napi_value GetInputMethods(napi_env env, napi_callback_info info);
     static napi_value DisplayOptionalInputMethod(napi_env env, napi_callback_info info);
+    static napi_value ShowOptionalInputMethods(napi_env env, napi_callback_info info);
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
+    static napi_value DisplayInputMethod(napi_env env, napi_callback_info info, bool flag);
     static const std::string IMS_CLASS_NAME;
     static thread_local napi_ref IMSRef_;
     };
