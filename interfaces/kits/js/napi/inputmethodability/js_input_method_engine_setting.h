@@ -44,7 +44,7 @@ public:
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStop(std::string imeId) override;
     void OnSetCallingWindow(uint32_t windowId) override;
-    void OnSetSubtype(SubProperty property) override;
+    void OnSetSubtype(const SubProperty &property) override;
 
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);

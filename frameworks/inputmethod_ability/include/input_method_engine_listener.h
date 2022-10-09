@@ -27,7 +27,7 @@ public:
     virtual void OnInputStart() = 0;
     virtual void OnInputStop(std::string imeId) = 0;
     virtual void OnSetCallingWindow(uint32_t windowId) = 0;
-    virtual void OnSetSubtype(SubProperty property) = 0;
+    virtual void OnSetSubtype(const SubProperty &property) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

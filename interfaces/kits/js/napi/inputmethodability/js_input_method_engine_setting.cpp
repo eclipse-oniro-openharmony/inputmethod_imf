@@ -638,7 +638,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
         });
 }
 
-void JsInputMethodEngineSetting::OnSetSubtype(SubProperty property)
+void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
 {
     IMSA_HILOGI("run in OnSetSubtype");
     std::string type = "setSubtype";
