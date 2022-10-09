@@ -627,15 +627,5 @@ using namespace MessageID;
         }
         return proxy->SwitchInputMethod(name, subName);
     }
-
-    void InputMethodController::OnSwitchInput(const Property &property, const SubProperty &subProperty)
-    {
-        IMSA_HILOGI("InputMethodController::OnSwitchInput");
-        IMSA_HILOGI("%{public}s, %{public}s, %{public}s, %{public}s, %{public}d", property.name.c_str(),
-            property.id.c_str(), property.label.c_str(), property.icon.c_str(), property.iconId);
-        IMSA_HILOGI("%{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d",
-            subProperty.label.c_str(), subProperty.name.c_str(), subProperty.id.c_str(), subProperty.mode.c_str(),
-            subProperty.locale.c_str(), subProperty.language.c_str(), subProperty.icon.c_str(), subProperty.iconId);
-    }
 } // namespace MiscServices
 } // namespace OHOS
