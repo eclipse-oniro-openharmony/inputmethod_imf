@@ -319,6 +319,10 @@ namespace MiscServices {
     void InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
     {
         IMSA_HILOGI("InputMethodCoreStub::SetSubtypeOnRemote");
+        if (msgHandler_ == nullptr) {
+            IMSA_HILOGE("InputMethodCoreStub::msgHandler_ is nullptr");
+            return;
+        }
         auto *parcel = new (std::nothrow) MessageParcel();
         if (parcel == nullptr) {
             IMSA_HILOGE("parcel is nullptr");
@@ -343,7 +347,7 @@ namespace MiscServices {
             reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
             return;
         }
-        MessageHandler::Instance()->SendMessage(msg);
+        msgHandler_->SendMessage(msg);
         reply.WriteInt32(ErrorCode::NO_ERROR);
     }
 

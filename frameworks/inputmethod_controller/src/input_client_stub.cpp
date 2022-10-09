@@ -84,6 +84,10 @@ namespace MiscServices {
     void InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply)
     {
         IMSA_HILOGI("InputClientStub::OnSwitchInputOnRemote");
+        if (msgHandler == nullptr) {
+            IMSA_HILOGE("InputClientStub::msgHandler is nullptr");
+            return;
+        }
         auto *parcel = new (std::nothrow) MessageParcel();
         if (parcel == nullptr) {
             IMSA_HILOGE("parcel is nullptr");
@@ -109,7 +113,7 @@ namespace MiscServices {
             reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
             return;
         }
-        MessageHandler::Instance()->SendMessage(msg);
+        msgHandler->SendMessage(msg);
         reply.WriteInt32(ErrorCode::NO_ERROR);
     }
 
