@@ -43,20 +43,20 @@ namespace MiscServices {
         ~InputMethodAbility();
         static sptr<InputMethodAbility> GetInstance();
         sptr<IInputMethodCore> OnConnect();
-        bool InsertText(const std::string text);
+        int32_t InsertText(const std::string text);
         void setImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
         void setKdListener(std::shared_ptr<KeyboardListener> kdListener);
-        void DeleteForward(int32_t length);
-        void DeleteBackward(int32_t length);
-        void HideKeyboardSelf();
-        std::u16string GetTextBeforeCursor(int32_t number);
-        std::u16string GetTextAfterCursor(int32_t number);
-        void SendFunctionKey(int32_t funcKey);
-        void MoveCursor(int32_t keyCode);
+        int32_t DeleteForward(int32_t length);
+        int32_t DeleteBackward(int32_t length);
+        int32_t HideKeyboardSelf();
+        int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
+        int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
+        int32_t SendFunctionKey(int32_t funcKey);
+        int32_t MoveCursor(int32_t keyCode);
         bool DispatchKeyEvent(int32_t keyCode, int32_t keyStatus);
         void SetCallingWindow(uint32_t windowId);
-        int32_t GetEnterKeyType();
-        int32_t GetInputPattern();
+        int32_t GetEnterKeyType(int32_t &keyType);
+        int32_t GetInputPattern(int32_t &inputPattern);
         void StopInput();
 
     private:

@@ -40,17 +40,17 @@ namespace MiscServices {
         ~InputDataChannelStub();
         void SetHandler(MessageHandler *handler);
 
-        bool InsertText(const std::u16string& text) override;
-        bool DeleteForward(int32_t length) override;
-        bool DeleteBackward(int32_t length) override;
+        int32_t InsertText(const std::u16string& text) override;
+        int32_t DeleteForward(int32_t length) override;
+        int32_t DeleteBackward(int32_t length) override;
         void Close() override;
-        std::u16string GetTextBeforeCursor(int32_t number) override;
-        std::u16string GetTextAfterCursor(int32_t number) override;
+        int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) override;
+        int32_t GetTextAfterCursor(int32_t number, std::u16string &text) override;
         void SendKeyboardStatus(int32_t status) override;
-        void SendFunctionKey(int32_t funcKey) override;
-        void MoveCursor(int32_t keyCode) override;
-        int32_t GetEnterKeyType() override;
-        int32_t GetInputPattern() override;
+        int32_t SendFunctionKey(int32_t funcKey) override;
+        int32_t MoveCursor(int32_t keyCode) override;
+        int32_t GetEnterKeyType(int32_t &keyType) override;
+        int32_t GetInputPattern(int32_t &inputPattern) override;
         void StopInput() override;
 
     private:

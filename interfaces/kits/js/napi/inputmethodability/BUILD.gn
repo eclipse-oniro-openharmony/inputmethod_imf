@@ -43,6 +43,7 @@ config("inputmethodengine_native_public_config") {
 ohos_shared_library("inputmethodengine") {
   sources = [
     "${inputmethod_path}/interfaces/kits/js/napi/inputmethodclient/async_call.cpp",
+    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodclient/js_utils.cpp",
     "//base/inputmethod/imf/services/src/global.cpp",
     "input_method_engine_module.cpp",
     "js_callback_object.cpp",

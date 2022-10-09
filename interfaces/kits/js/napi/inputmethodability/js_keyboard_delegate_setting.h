@@ -76,6 +76,7 @@ public:
     ~JsKeyboardDelegateSetting() override = default;
     static napi_value Init(napi_env env, napi_value info);
     static napi_value CreateKeyboardDelegate(napi_env env, napi_callback_info info);
+    static napi_value GetKeyboardDelegate(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override;
@@ -86,6 +87,7 @@ public:
 private:
     static napi_value GetResultOnKeyEvent(napi_env env, int32_t keyCode, int32_t keyStatus);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
+    static napi_value GetKDInstance(napi_env env, napi_callback_info info, int flag);
     static std::shared_ptr<JsKeyboardDelegateSetting> GetKeyboardDelegateSetting();
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsKeyboardDelegateSetting *GetNative(napi_env env, napi_callback_info info);
