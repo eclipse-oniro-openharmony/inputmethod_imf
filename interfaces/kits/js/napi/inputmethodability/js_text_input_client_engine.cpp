@@ -487,7 +487,7 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
         } else {
-            typeCode == ErrorCode::NO_ERROR ? ctxt->SetErrorCode(typeCode) : ctxt->SetErrorCode(patternCode);
+            typeCode == ErrorCode::NO_ERROR ? ctxt->SetErrorCode(patternCode) : ctxt->SetErrorCode(typeCode);
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
