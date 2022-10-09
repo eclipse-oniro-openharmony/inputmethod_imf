@@ -46,9 +46,9 @@ class InputMethodExtensionContext extends ExtensionContext {
         return this.__context_impl__.disconnectAbility(connection, callback);
     }
 
-    terminateSelf(callback) {
-        console.log("terminateSelf");
-        return this.__context_impl__.terminateSelf(callback);
+    destroy(callback) {
+        console.log("destroy");
+        return this.__context_impl__.destroy(callback);
     }
 }
 
