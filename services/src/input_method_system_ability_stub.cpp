@@ -248,6 +248,11 @@ int32_t InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote(Mess
 
 int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
+        reply.WriteInt32(ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+        IMSA_HILOGE("%{public}s Permission denied", __func__);
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
     std::string name;
     std::string subName;
     if (!ITypesUtil::Unmarshal(data, name, subName)) {
