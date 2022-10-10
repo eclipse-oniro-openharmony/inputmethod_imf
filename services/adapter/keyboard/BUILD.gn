@@ -23,20 +23,17 @@ config("inputmethod_adapter_native_config") {
 }
 
 ohos_static_library("keboard_event_static") {
-  sources = [
-    "keyboard_event.cpp",
-  ]
+  sources = [ "keyboard_event.cpp" ]
 
   configs = [ ":inputmethod_adapter_native_config" ]
 
-  deps = [
-  ]
+  deps = []
 
   cflags_cc = [ "-fvisibility=hidden" ]
 
   external_deps = [
-    "input:libmmi-client",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
   ]
 
   subsystem_name = "inputmethod"
