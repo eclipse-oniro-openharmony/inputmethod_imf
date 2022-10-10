@@ -16,31 +16,31 @@
 #ifndef SERVICES_INCLUDE_PERUSER_SESSION_H
 #define SERVICES_INCLUDE_PERUSER_SESSION_H
 
-#include <thread>
-#include <mutex>
+#include <functional>
 #include <map>
 #include <memory>
-#include <functional>
+#include <mutex>
+#include <thread>
 
-#include "iremote_object.h"
-#include "i_input_control_channel.h"
+#include "ability_connect_callback_proxy.h"
+#include "ability_manager_interface.h"
+#include "global.h"
 #include "i_input_client.h"
-#include "i_input_method_core.h"
+#include "i_input_control_channel.h"
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
+#include "i_input_method_core.h"
 #include "input_attribute.h"
+#include "input_control_channel_stub.h"
+#include "input_method_info.h"
 #include "input_method_property.h"
 #include "input_method_setting.h"
-#include "input_control_channel_stub.h"
+#include "inputmethod_sysevent.h"
+#include "iremote_object.h"
+#include "keyboard_type.h"
 #include "message.h"
 #include "message_handler.h"
-#include "global.h"
 #include "platform.h"
-#include "keyboard_type.h"
-#include "ability_manager_interface.h"
-#include "ability_connect_callback_proxy.h"
-#include "global.h"
-#include "inputmethod_sysevent.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -85,10 +85,10 @@ namespace MiscServices {
         explicit PerUserSession(int userId);
         ~PerUserSession();
 
-        void SetCurrentIme(InputMethodProperty *ime);
-        void SetSecurityIme(InputMethodProperty *ime);
+        void SetCurrentIme(InputMethodInfo *ime);
+        void SetSecurityIme(InputMethodInfo *ime);
         void SetInputMethodSetting(InputMethodSetting *setting);
-        void ResetIme(InputMethodProperty *defaultIme, InputMethodProperty *securityIme);
+        void ResetIme(InputMethodInfo *defaultIme, InputMethodInfo *securityIme);
         void OnPackageRemoved(const std::u16string& packageName);
         int32_t OnPrepareInput(const ClientInfo &clientInfo);
         int32_t OnStartInput(sptr<IInputClient> client, bool isShowKeyboard);
@@ -105,6 +105,7 @@ namespace MiscServices {
         void JoinWorkThread();
         void StopInputService(std::string imeId);
         static bool StartInputService();
+        int32_t OnInputMethodSwitched(const Property &property, const SubProperty &subProperty);
 
     private:
         int userId_; // the id of the user to whom the object is linking
@@ -118,7 +119,7 @@ namespace MiscServices {
         static const int MAX_RESET_WAIT_TIME = 1600000;
         static const int SLEEP_TIME = 300000;
 
-        InputMethodProperty *currentIme[MAX_IME] = {nullptr, nullptr}; // 0 - the default ime. 1 - security ime
+        InputMethodInfo *currentIme[MAX_IME] = {nullptr, nullptr}; // 0 - the default ime. 1 - security ime
 
         InputControlChannelStub *localControlChannel[MAX_IME];
         sptr<IInputControlChannel> inputControlChannel[MAX_IME];

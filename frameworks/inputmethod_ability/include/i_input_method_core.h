@@ -15,14 +15,16 @@
 
 #ifndef FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_I_INPUT_METHOD_CORE_H
 #define FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_I_INPUT_METHOD_CORE_H
-#include "iremote_broker.h"
-#include "i_input_data_channel.h"
-#include "i_input_control_channel.h"
-#include "ipc_types.h"
-#include "input_attribute.h"
-#include "keyboard_type.h"
-#include "input_channel.h"
+
 #include "global.h"
+#include "i_input_control_channel.h"
+#include "i_input_data_channel.h"
+#include "input_attribute.h"
+#include "input_channel.h"
+#include "input_method_property.h"
+#include "ipc_types.h"
+#include "iremote_broker.h"
+#include "keyboard_type.h"
 
 /**
  * brief Definition of interface IInputMethodCore
@@ -42,7 +44,8 @@ namespace MiscServices {
             HIDE_KEYBOARD,
             SET_KEYBOARD_TYPE,
             GET_KEYBOARD_WINDOW_HEIGHT,
-            INIT_INPUT_CONTROL_CHANNEL
+            INIT_INPUT_CONTROL_CHANNEL,
+            SET_SUBTYPE
         };
 
         DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodCore");
@@ -60,6 +63,7 @@ namespace MiscServices {
         virtual int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel) = 0;
         virtual void SetClientState(bool state) = 0;
         virtual void StopInputService(std::string imeId) = 0;
+        virtual int32_t SetSubtype(const SubProperty &property) = 0;
     };
 } // namespace MiscServices
 } // namespace OHOS

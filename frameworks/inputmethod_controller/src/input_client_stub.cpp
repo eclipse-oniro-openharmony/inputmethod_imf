@@ -18,6 +18,7 @@
 #include "global.h"
 #include "ipc_object_stub.h"
 #include "ipc_types.h"
+#include "itypes_util.h"
 #include "message.h"
 
 namespace OHOS {
@@ -70,10 +71,50 @@ namespace MiscServices {
                 msgHandler->SendMessage(msg);
                 break;
             }
+            case ON_SWITCH_INPUT: {
+                OnSwitchInputOnRemote(data, reply);
+                break;
+            }
             default:
                 return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
         return NO_ERROR;
+    }
+
+    void InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply)
+    {
+        IMSA_HILOGI("InputClientStub::OnSwitchInputOnRemote");
+        if (msgHandler == nullptr) {
+            IMSA_HILOGE("InputClientStub::msgHandler is nullptr");
+            return;
+        }
+        auto *parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
+            reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
+            return;
+        }
+        Property property;
+        SubProperty subProperty;
+        if (!ITypesUtil::Unmarshal(data, property, subProperty)) {
+            IMSA_HILOGE("read message parcel failed");
+            reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
+            return;
+        }
+        if (!ITypesUtil::Marshal(*parcel, property, subProperty)) {
+            IMSA_HILOGE("write message parcel failed");
+            reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
+            return;
+        }
+        auto *msg = new (std::nothrow) Message(MessageID::MSG_ID_ON_SWITCH_INPUT, parcel);
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
+            delete parcel;
+            reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
+            return;
+        }
+        msgHandler->SendMessage(msg);
+        reply.WriteInt32(ErrorCode::NO_ERROR);
     }
 
     int32_t InputClientStub::onInputReady(const sptr<IInputMethodAgent>& agent)
@@ -94,6 +135,11 @@ namespace MiscServices {
     void InputClientStub::SetHandler(MessageHandler *handler)
     {
         msgHandler = handler;
+    }
+
+    int32_t InputClientStub::OnSwitchInput(const Property &property, const SubProperty &subProperty)
+    {
+        return ErrorCode::NO_ERROR;
     }
 } // namespace MiscServices
 } // namespace OHOS

@@ -24,20 +24,5 @@ enum InputMethodStatus : uint32_t {
     ENABLE,
     ALL
 };
-
-struct Property {
-    std::string packageName;
-    std::string abilityName;
-
-    static bool Marshalling(const Property &in, MessageParcel &data)
-    {
-        return data.WriteString(in.packageName) && data.WriteString(in.abilityName);
-    }
-
-    static bool Unmarshalling(Property &out, MessageParcel &data)
-    {
-        return data.ReadString(out.packageName) && data.ReadString(out.abilityName);
-    }
-};
-} // namespace OHOS::MiscServices
+}
 #endif // namespace OHOS::INPUTMETHOD_IMF_INPUT_METHOD_STATUS_H

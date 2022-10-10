@@ -85,14 +85,14 @@ napi_value JsInputMethod::GetJsInputMethodProperty(napi_env env, const Property 
     napi_create_object(env, &prop);
 
     napi_value packageName = nullptr;
-    napi_create_string_utf8(env, property.packageName.c_str(), NAPI_AUTO_LENGTH, &packageName);
+    napi_create_string_utf8(env, property.name.c_str(), NAPI_AUTO_LENGTH, &packageName);
     napi_set_named_property(env, prop, "packageName", packageName);
     if (packageName == nullptr) {
         napi_set_named_property(env, prop, "name", packageName);
     }
 
     napi_value methodId = nullptr;
-    napi_create_string_utf8(env, property.abilityName.c_str(), NAPI_AUTO_LENGTH, &methodId);
+    napi_create_string_utf8(env, property.id.c_str(), NAPI_AUTO_LENGTH, &methodId);
     napi_set_named_property(env, prop, "methodId", methodId);
     if (methodId == nullptr) {
         napi_set_named_property(env, prop, "id", methodId);
@@ -143,10 +143,7 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod({
-            .packageName = ctxt->packageName,
-            .abilityName = ctxt->methodId
-        });
+        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->packageName);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec SwitchInputMethod success");
             ctxt->status = napi_ok;
@@ -170,7 +167,7 @@ napi_value JsInputMethod::GetCurrentInputMethod(napi_env env, napi_callback_info
         napi_get_null(env, &result);
         return result;
     }
-    return GetJsInputMethodProperty(env, { property->packageName, property->abilityName });
+    return GetJsInputMethodProperty(env, { property->name, property->id });
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -16,15 +16,16 @@
 #ifndef SERVICES_INCLUDE_PLATFORM_H
 #define SERVICES_INCLUDE_PLATFORM_H
 
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
+
+#include "i_input_method_core.h"
+#include "i_platform_api.h"
+#include "input_method_info.h"
+#include "input_method_setting.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
-#include "i_platform_api.h"
-#include "i_input_method_core.h"
-#include "input_method_property.h"
-#include "input_method_setting.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -37,9 +38,8 @@ namespace MiscServices {
         int UnbindInputMethodService(int userId, const std::u16string& packageName);
         sptr<IRemoteObject> CreateWindowToken(int userId, int displayId, const std::u16string& packageName);
         int DestroyWindowToken(int userId, const std::u16string& packageName);
-        int ListInputMethod(int userId, std::vector<InputMethodProperty*> *properties);
-        int GetInputMethodProperty(int userId, const std::u16string& packageName,
-                                   InputMethodProperty *inputMethodProperty);
+        int ListInputMethod(int userId, std::vector<InputMethodInfo *> *properties);
+        int GetInputMethodProperty(int userId, const std::u16string& packageName, InputMethodInfo *inputMethodProperty);
         int GetInputMethodSetting(int userId, InputMethodSetting *inputMethodSetting);
         int SetInputMethodSetting(int userId, const InputMethodSetting& inputMethodSetting);
         bool CheckPhysicalKeyboard();

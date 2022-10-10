@@ -18,6 +18,7 @@
 
 #include <string>
 
+#include "input_method_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
 #include "string_ex.h"
@@ -37,7 +38,7 @@ public:
         return Str8ToStr16(str);
     }
 
-    static std::vector<Property> ToProperty(const std::vector<InputMethodProperty> &properties)
+    static std::vector<Property> ToProperty(const std::vector<InputMethodInfo> &properties)
     {
         std::vector<Property> props;
         for (const auto &property : properties) {
@@ -46,7 +47,7 @@ public:
         return props;
     }
 
-    static Property ToProperty(const InputMethodProperty &property)
+    static Property ToProperty(const InputMethodInfo &property)
     {
         return { Str16ToStr8(property.mPackageName), Str16ToStr8(property.mAbilityName) };
     }

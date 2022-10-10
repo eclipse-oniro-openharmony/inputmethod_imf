@@ -109,7 +109,7 @@ namespace MiscServices {
       \param[out] inputMethodProperties the input method engine list installed in the system for the given user
       \return ErrorCode
     */
-    int Platform::ListInputMethod(int userId, std::vector<InputMethodProperty*> *inputMethodProperties)
+    int Platform::ListInputMethod(int userId, std::vector<InputMethodInfo *> *inputMethodProperties)
     {
         return 0;
     }
@@ -120,8 +120,7 @@ namespace MiscServices {
       \param[out] inputMethodProperty the input method engine information for the given package
       \return ErrorCode
     */
-    int Platform::GetInputMethodProperty(int userId, const std::u16string& packageName,
-                                         InputMethodProperty *inputMethodProperty)
+    int Platform::GetInputMethodProperty(int userId, const std::u16string& packageName, InputMethodInfo *inputMethodProperty)
     {
         if (!platformApi) {
             return ErrorCode::ERROR_NULL_POINTER;

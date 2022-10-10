@@ -16,16 +16,16 @@
 #ifndef SERVICES_INCLUDE_I_PLATFORM_API_H
 #define SERVICES_INCLUDE_I_PLATFORM_API_H
 
-#include <vector>
 #include <string>
-#include "iremote_broker.h"
-#include "ipc_types.h"
+#include <vector>
 
-#include "i_platform_callback.h"
-#include "input_method_property.h"
-#include "input_method_setting.h"
-#include "i_input_method_core.h"
 #include "global.h"
+#include "i_input_method_core.h"
+#include "i_platform_callback.h"
+#include "input_method_info.h"
+#include "input_method_setting.h"
+#include "ipc_types.h"
+#include "iremote_broker.h"
 
 namespace OHOS {
     namespace MiscServices {
@@ -51,9 +51,8 @@ namespace OHOS {
         virtual int32_t unbindInputMethodService(int userId, const std::u16string& packageName) = 0;
         virtual sptr<IRemoteObject> createWindowToken(int userId, int displayId, const std::u16string& packageName) = 0;
         virtual int32_t destroyWindowToken(int userId, const std::u16string& packageName) = 0;
-        virtual int32_t listInputMethod(int userId, std::vector<InputMethodProperty*> *properties) = 0;
-        virtual int32_t getInputMethodProperty(int userId, const std::u16string& packageName,
-                                                InputMethodProperty *inputMethodProperty) = 0;
+        virtual int32_t listInputMethod(int userId, std::vector<InputMethodInfo *> *properties) = 0;
+        virtual int32_t getInputMethodProperty(int userId, const std::u16string& packageName, InputMethodInfo *inputMethodProperty) = 0;
         virtual int32_t getInputMethodSetting(int userId, InputMethodSetting *inputMethodSetting) = 0;
         virtual int32_t setInputMethodSetting(int userId, const InputMethodSetting& inputMethodSetting) = 0;
     };

@@ -87,7 +87,7 @@ namespace MiscServices {
             return ErrorCode::ERROR_IME_PACKAGE_DUPLICATED;
         }
         // retake the input method list installed in the system.
-        InputMethodProperty *property = new InputMethodProperty();
+        InputMethodInfo *property = new InputMethodInfo();
         int ret = Platform::Instance()->GetInputMethodProperty(userId_, packageName, property);
         if (ret != ErrorCode::NO_ERROR) {
             delete property;
@@ -137,9 +137,9 @@ namespace MiscServices {
             return ErrorCode::ERROR_NOT_IME_PACKAGE;
         }
         bool securityFlag = false;
-        std::vector<InputMethodProperty*>::iterator it;
+        std::vector<InputMethodInfo *>::iterator it;
         for (it = inputMethodProperties.begin(); it < inputMethodProperties.end(); ++it) {
-            InputMethodProperty *node = (InputMethodProperty*)*it;
+            InputMethodInfo *node = (InputMethodInfo *)*it;
             if (node->mImeId == imeId) {
                 if (CheckIfSecurityIme(*node)) {
                     securityFlag = true;
@@ -213,7 +213,7 @@ namespace MiscServices {
         std::u16string enabledInputMethods = inputMethodSetting.GetValue(InputMethodSetting::ENABLED_INPUT_METHODS_TAG);
         std::u16string imeId;
         std::u16string nextImeId = Utils::ToStr16("");
-        InputMethodProperty *firstEnabledProperty = nullptr;
+        InputMethodInfo *firstEnabledProperty = nullptr;
         for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
             imeId = inputMethodProperties[i]->mImeId;
             if (imeId == currentImeId) {
@@ -258,9 +258,9 @@ namespace MiscServices {
         currentImeId = Utils::ToStr16("");
 
         // release input method properties
-        std::vector<InputMethodProperty*>::iterator it;
+        std::vector<InputMethodInfo *>::iterator it;
         for (it = inputMethodProperties.begin(); it < inputMethodProperties.end();) {
-            InputMethodProperty *node = (InputMethodProperty*)*it;
+            InputMethodInfo *node = (InputMethodInfo *)*it;
             if (node) {
                 it = inputMethodProperties.erase(it);
                 delete node;
@@ -312,11 +312,11 @@ namespace MiscServices {
     }
 
     /*! Get the current IME
-    \return a pointer of InputMethodProperty when an IME is available.
+    \return a pointer of InputMethodInfo when an IME is available.
     \return null when there is no enabled IME in the system.
     \note The returned pointer should NOT be freed by caller
     */
-    InputMethodProperty *PerUserSetting::GetCurrentInputMethod()
+    InputMethodInfo *PerUserSetting::GetCurrentInputMethod()
     {
         for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
             if (currentImeId == inputMethodProperties[i]->mImeId) {
@@ -328,16 +328,16 @@ namespace MiscServices {
     }
 
     /*! Get the system security IME
-    \return a pointer of InputMethodProperty when an system security IME is available.
+    \return a pointer of InputMethodInfo when an system security IME is available.
     \return null when there is no security IME in the system.
     \note The returned pointer should NOT be freed by caller
     */
-    InputMethodProperty *PerUserSetting::GetSecurityInputMethod()
+    InputMethodInfo *PerUserSetting::GetSecurityInputMethod()
     {
-        InputMethodProperty *ime = nullptr;
+        InputMethodInfo *ime = nullptr;
         std::u16string systemLocales = inputMethodSetting.GetValue(InputMethodSetting::SYSTEM_LOCALE_TAG);
         for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
-            InputMethodProperty *imp = inputMethodProperties[i];
+            InputMethodInfo *imp = inputMethodProperties[i];
             if (!CheckIfSecurityIme(*imp)) {
                 continue;
             }
@@ -360,16 +360,16 @@ namespace MiscServices {
     }
 
     /*! Get the next enabled IME
-    \return a pointer of InputMethodProperty when the next enabled IME is available.
+    \return a pointer of InputMethodInfo when the next enabled IME is available.
     \return null when the next enabled IME is not available.
     \note The returned pointer should NOT be freed by caller
     */
-    InputMethodProperty *PerUserSetting::GetNextInputMethod()
+    InputMethodInfo *PerUserSetting::GetNextInputMethod()
     {
         bool flag = false;
         std::u16string enabledInputMethods = inputMethodSetting.GetValue(InputMethodSetting::ENABLED_INPUT_METHODS_TAG);
         std::u16string imeId;
-        InputMethodProperty *firstEnabledProperty = nullptr;
+        InputMethodInfo *firstEnabledProperty = nullptr;
         for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
             imeId = inputMethodProperties[i]->mImeId;
             if (imeId == currentImeId) {
@@ -398,7 +398,7 @@ namespace MiscServices {
     \param[out] properties the details will be written to the param properties
     \return ErrorCode::NO_ERROR
     */
-    int32_t PerUserSetting::ListInputMethod(std::vector<InputMethodProperty*> *properties)
+    int32_t PerUserSetting::ListInputMethod(std::vector<InputMethodInfo *> *properties)
     {
         for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
             properties->push_back(inputMethodProperties[i]);
@@ -426,11 +426,11 @@ namespace MiscServices {
 
     /*! Get the input method engine details of the given imeId
     \param imeId the id of the given IME
-    \return a pointer of InputMethodProperty when the given IME exists.
+    \return a pointer of InputMethodInfo when the given IME exists.
     \return null when the given IME is not available
     \note the returned pointer should not be freed by the caller.
     */
-    InputMethodProperty *PerUserSetting::GetInputMethodProperty(const std::u16string& imeId)
+    InputMethodInfo *PerUserSetting::GetInputMethodProperty(const std::u16string& imeId)
     {
         for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
             if (inputMethodProperties[i]->mImeId == imeId) {
@@ -446,7 +446,7 @@ namespace MiscServices {
     \return language value when the given hashCode is found
     \return an empty string when the given hashCode is not found
     */
-    std::u16string PerUserSetting::GetKeyboardTypeLanguage(const InputMethodProperty *property, int hashCode)
+    std::u16string PerUserSetting::GetKeyboardTypeLanguage(const InputMethodInfo *property, int hashCode)
     {
         for (int i = 0; i < (int)property->mTypes.size(); i++) {
             if (property->mTypes[i]->getHashCode() == hashCode) {
@@ -500,7 +500,7 @@ namespace MiscServices {
         std::u16string systemLocales = inputMethodSetting.GetValue(InputMethodSetting::SYSTEM_LOCALE_TAG);
         std::u16string enabledInputMethods = inputMethodSetting.GetValue(InputMethodSetting::ENABLED_INPUT_METHODS_TAG);
         std::u16string imeId;
-        InputMethodProperty *firstEnabledIme = nullptr;
+        InputMethodInfo *firstEnabledIme = nullptr;
         bool flag = false;
 
         for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
@@ -553,12 +553,12 @@ namespace MiscServices {
         return Utils::ToStr16("");
     }
 
-    /*! Check if the InputMethodProperty object is a security ime
-    \param property the InputMethodProperty object needed to be checked
+    /*! Check if the InputMethodInfo object is a security ime
+    \param property the InputMethodInfo object needed to be checked
     \return true - It's a security Ime
     \n      false - It's not a security Ime
     */
-    bool PerUserSetting::CheckIfSecurityIme(const InputMethodProperty& property)
+    bool PerUserSetting::CheckIfSecurityIme(const InputMethodInfo & property)
     {
         return property.isSystemIme;
     }

@@ -13,23 +13,33 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_INPUT_METHOD_ENGINE_LISTENER_H
-#define INPUTMETHOD_IMF_INPUT_METHOD_ENGINE_LISTENER_H
+#include <mutex>
+#include <thread>
 
-#include "input_method_property.h"
+#ifndef INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
+#define INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
 
 namespace OHOS {
 namespace MiscServices {
-class InputMethodEngineListener {
-public:
-    virtual ~InputMethodEngineListener() = default;
-    virtual void OnKeyboardStatus(bool isShow) = 0;
-    virtual void OnInputStart() = 0;
-    virtual void OnInputStop(std::string imeId) = 0;
-    virtual void OnSetCallingWindow(uint32_t windowId) = 0;
-    virtual void OnSetSubtype(const SubProperty &property) = 0;
+struct Property {
+    std::string name;
+    std::string id;
+    std::string label;
+    std::string icon;
+    int32_t iconId;
+};
+
+struct SubProperty {
+    std::string label;
+    std::string name;
+    std::string id;
+    std::string mode;
+    std::string locale;
+    std::string language;
+    std::string icon;
+    int32_t iconId;
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif // INPUTMETHOD_IMF_INPUT_METHOD_ENGINE_LISTENER_H
+#endif //INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H

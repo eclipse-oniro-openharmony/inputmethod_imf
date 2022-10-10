@@ -140,6 +140,7 @@ namespace ErrorCode {
         ERROR_IME_PROPERTY_MARSHALL, // failed to marshall the ime property
         ERROR_GETTING_CURRENT_IME,
         ERROR_LIST_IME,
+        ERROR_SWITCH_IME,
         // error from ime
         ERROR_REMOTE_IME_DIED, // remote input method service died abnormally
         ERROR_RESTART_IME_FAILED, // failed to restart input method service

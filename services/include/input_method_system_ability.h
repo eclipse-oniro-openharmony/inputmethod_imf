@@ -58,8 +58,11 @@ public:
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     int32_t GetKeyboardWindowHeight(int32_t &retHeight) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
+    std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
     std::vector<Property> ListInputMethod(InputMethodStatus status) override;
-    int32_t SwitchInputMethod(const Property &target) override;
+    std::vector<SubProperty> ListCurrentInputMethodSubtype() override;
+    std::vector<SubProperty> ListInputMethodSubtype(const std::string &name) override;
+    int32_t SwitchInputMethod(const std::string &name, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
 
@@ -106,14 +109,19 @@ private:
     int32_t OnDisplayOptionalInputMethod(int32_t userId);
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
-    std::vector<InputMethodProperty> listInputMethodByType(int32_t userId, AbilityType type);
-    std::vector<InputMethodProperty> ListAllInputMethodCommon(int32_t userId);
+    std::vector<InputMethodInfo> ListInputMethodInfo(int32_t userId);
     std::vector<Property> ListAllInputMethod(int32_t userId);
     std::vector<Property> ListEnabledInputMethod();
     std::vector<Property> ListDisabledInputMethod(int32_t userId);
+    std::vector<Property> ListProperty(int32_t userId);
+    std::vector<SubProperty> ListSubtypeByBundleName(int32_t userId, const std::string &name);
     void StartUserIdListener();
-    int32_t OnSwitchInputMethod(int32_t userId, const Property &target);
-    std::string GetInputMethodParam(const std::vector<InputMethodProperty> &properties);
+    int32_t SwitchInputMethodType(const std::string &name);
+    int32_t SwitchInputMethodSubtype(const std::string &name, const std::string &subName);
+    int32_t OnSwitchInputMethod(const std::string &bundleName, const std::string &name);
+    Property FindProperty(const std::string &name);
+    SubProperty FindSubProperty(const std::string &bundleName, const std::string &name);
+    std::string GetInputMethodParam(const std::vector<InputMethodInfo> &properties);
     ServiceRunningState state_;
     void InitServiceHandler();
     std::atomic_flag dialogLock_ = ATOMIC_FLAG_INIT;

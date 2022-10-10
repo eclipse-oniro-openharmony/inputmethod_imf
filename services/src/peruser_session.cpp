@@ -148,7 +148,7 @@ namespace MiscServices {
     /*! Set the current input method engine
     \param ime the current (default) IME pointer referred to the instance in PerUserSetting.
     */
-    void PerUserSession::SetCurrentIme(InputMethodProperty *ime)
+    void PerUserSession::SetCurrentIme(InputMethodInfo *ime)
     {
         currentIme[DEFAULT_IME] = ime;
         userState = UserState::USER_STATE_UNLOCKED;
@@ -157,7 +157,7 @@ namespace MiscServices {
     /*! Set the system security input method engine
     \param ime system security IME pointer referred to the instance in PerUserSetting.
     */
-    void PerUserSession::SetSecurityIme(InputMethodProperty *ime)
+    void PerUserSession::SetSecurityIme(InputMethodInfo *ime)
     {
         currentIme[SECURITY_IME] = ime;
     }
@@ -176,11 +176,11 @@ namespace MiscServices {
     \n Two input method engines can be running at the same time for one user.
     \n One is the default ime, another is security ime
     */
-    void PerUserSession::ResetIme(InputMethodProperty *defaultIme, InputMethodProperty *securityIme)
+    void PerUserSession::ResetIme(InputMethodInfo *defaultIme, InputMethodInfo *securityIme)
     {
         IMSA_HILOGI("PerUserSession::ResetIme");
         std::unique_lock<std::mutex> lock(mtx);
-        InputMethodProperty *ime[] = {defaultIme, securityIme};
+        InputMethodInfo *ime[] = {defaultIme, securityIme};
         for (int i = 0; i < MIN_IME; i++) {
             if (currentIme[i] == ime[i] && ime[i]) {
                 continue;
@@ -1203,6 +1203,33 @@ namespace MiscServices {
     {
         std::lock_guard<std::mutex> lock(clientLock_);
         return currentClient;
+    }
+
+    int32_t PerUserSession::OnInputMethodSwitched(const Property &property, const SubProperty &subProperty)
+    {
+        IMSA_HILOGI("PerUserSession::OnInputMethodSwitched");
+        for (const auto &client : mapClients) {
+            auto clientInfo = client.second;
+            if (clientInfo == nullptr) {
+                IMSA_HILOGD("PerUserSession::clientInfo is nullptr");
+                continue;
+            }
+            int32_t ret = clientInfo->client->OnSwitchInput(property, subProperty);
+            if (ret != ErrorCode::NO_ERROR) {
+                IMSA_HILOGE("PerUserSession::OnSwitchInput failed, ret %{public}d", ret);
+                return ret;
+            }
+        }
+        if (imsCore[0] == nullptr) {
+            IMSA_HILOGE("imsCore is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        int32_t ret = imsCore[0]->SetSubtype(subProperty);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("PerUserSession::SetSubtype failed, ret %{public}d", ret);
+            return ret;
+        }
+        return ErrorCode::NO_ERROR;
     }
 } // namespace MiscServices
 } // namespace OHOS

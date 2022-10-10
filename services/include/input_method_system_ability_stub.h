@@ -46,6 +46,8 @@ private:
 
     int32_t GetCurrentInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t GetCurrentInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
+
     int32_t ListInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t SwitchInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -53,6 +55,10 @@ private:
     int32_t DisplayOptionalInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t SetCoreAndAgentOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t ListInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t ListCurrentInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t DisplayInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
@@ -75,7 +81,10 @@ private:
         [RELEASE_INPUT] = &InputMethodSystemAbilityStub::ReleaseInputOnRemote,
         [GET_KEYBOARD_WINDOW_HEIGHT] = &InputMethodSystemAbilityStub::GetKeyboardWindowHeightOnRemote,
         [GET_CURRENT_INPUT_METHOD] = &InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote,
+        [GET_CURRENT_INPUT_METHOD_SUBTYPE] = &InputMethodSystemAbilityStub::GetCurrentInputMethodSubtypeOnRemote,
         [LIST_INPUT_METHOD] = &InputMethodSystemAbilityStub::ListInputMethodOnRemote,
+        [LIST_INPUT_METHOD_SUBTYPE] =&InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote,
+        [LIST_CURRENT_INPUT_METHOD_SUBTYPE] =&InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote,
         [SWITCH_INPUT_METHOD] = &InputMethodSystemAbilityStub::SwitchInputMethodOnRemote,
         [DISPLAY_OPTIONAL_INPUT_METHOD] = &InputMethodSystemAbilityStub::DisplayOptionalInputMethodOnRemote,
         [SET_CORE_AND_AGENT] = &InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote,
