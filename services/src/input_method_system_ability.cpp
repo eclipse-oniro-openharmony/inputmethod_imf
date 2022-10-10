@@ -17,7 +17,9 @@
 
 #include <global.h>
 #include <utils.h>
+#include <key_event.h>
 
+#include "../adapter/keyboard/keyboard_event.h"
 #include "ability_connect_callback_proxy.h"
 #include "ability_manager_interface.h"
 #include "application_info.h"
@@ -173,9 +175,8 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::Init()
     {
-        bool ret = Publish(this);
-        if (!ret) {
-            IMSA_HILOGE("Publish failed.");
+        bool isSuccess = Publish(this);
+        if (!isSuccess) {
             return -1;
         }
         IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
@@ -183,6 +184,8 @@ namespace MiscServices {
         std::string defaultIme = ParaHandle::GetDefaultIme(userId_);
         StartInputService(defaultIme);
         StartUserIdListener();
+        int32_t ret = SubscribeKeyboardEvent();
+        IMSA_HILOGI("subscribe key event ret %{public}d", ret);
         return ErrorCode::NO_ERROR;
     }
 
@@ -1292,5 +1295,26 @@ namespace MiscServices {
         }
         return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
     }
-} // namespace MiscServices
+
+    int32_t InputMethodSystemAbility::SubscribeKeyboardEvent()
+    {
+        ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
+            { { {
+                    .preKeys = {},
+                    .finalKey = MMI::KeyEvent::KEYCODE_CAPS_LOCK,
+                },
+                  []() { IMSA_HILOGE("KEYCODE_CAPS_LOCK press"); } },
+                { {
+                      .preKeys = {},
+                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
+                  },
+                    []() { IMSA_HILOGE("KEYCODE_SHIFT_LEFT press"); } },
+                { {
+                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
+                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
+                  },
+                    []() { IMSA_HILOGE("KEYCODE_CTRL_LEFT_SHIFT_LEFT press"); } } });
+        return 0;
+    }
+    } // namespace MiscServices
 } // namespace OHOS

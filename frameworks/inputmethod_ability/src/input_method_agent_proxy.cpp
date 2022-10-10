@@ -27,13 +27,12 @@ namespace MiscServices {
 
     bool InputMethodAgentProxy::DispatchKeyEvent(MessageParcel& data)
     {
-        IMSA_HILOGI("InputMethodAgentProxy::DispatchKeyEvent");
         MessageParcel reply;
         MessageOption option;
 
         auto ret = Remote()->SendRequest(DISPATCH_KEY_EVENT, data, reply, option);
         if (ret != NO_ERROR) {
-            IMSA_HILOGI("InputMethodAgentProxy::DispatchKeyEvent SendRequest failed");
+            IMSA_HILOGE("InputMethodAgentProxy::DispatchKeyEvent SendRequest failed");
         }
         ret = reply.ReadBool();
         return ret;
@@ -41,11 +40,10 @@ namespace MiscServices {
 
     void InputMethodAgentProxy::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
     {
-        IMSA_HILOGI("InputMethodAgentProxy::OnCursorUpdate");
         MessageParcel data, reply;
         MessageOption option;
         if (!data.WriteInterfaceToken(GetDescriptor())) {
-            IMSA_HILOGI("InputMethodAgentProxy::OnCursorUpdate descriptor is not match");
+            IMSA_HILOGE("InputMethodAgentProxy::OnCursorUpdate descriptor is not match");
             return;
         }
 
@@ -59,11 +57,10 @@ namespace MiscServices {
     void InputMethodAgentProxy::OnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd,
                                                   int32_t newBegin, int32_t newEnd)
     {
-        IMSA_HILOGI("InputMethodAgentProxy::OnSelectionChange");
         MessageParcel data, reply;
         MessageOption option;
         if (!data.WriteInterfaceToken(GetDescriptor())) {
-            IMSA_HILOGI("InputMethodAgentProxy::OnSelectionChange descriptor is not match");
+            IMSA_HILOGE("InputMethodAgentProxy::OnSelectionChange descriptor is not match");
             return;
         }
 
@@ -78,11 +75,10 @@ namespace MiscServices {
 
     void InputMethodAgentProxy::SetCallingWindow(uint32_t windowId)
     {
-        IMSA_HILOGI("InputMethodAgentProxy::SetCallingWindow");
         MessageParcel data, reply;
         MessageOption option;
         if (!data.WriteInterfaceToken(GetDescriptor())) {
-            IMSA_HILOGI("InputMethodAgentProxy::SetCallingWindow descriptor is not match");
+            IMSA_HILOGE("InputMethodAgentProxy::SetCallingWindow descriptor is not match");
             return;
         }
 

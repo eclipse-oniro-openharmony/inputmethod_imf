@@ -16,8 +16,11 @@
 #ifndef SERVICES_INCLUDE_IM_COMMON_EVENT_MANAGER_H
 #define SERVICES_INCLUDE_IM_COMMON_EVENT_MANAGER_H
 
+#include <functional>
 #include <mutex>
+#include <vector>
 
+#include "../adapter/keyboard/keyboard_event.h"
 #include "common_event_data.h"
 #include "common_event_manager.h"
 #include "common_event_subscribe_info.h"
@@ -34,8 +37,9 @@ public:
     ~ImCommonEventManager();
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvent(const std::string &event);
-    bool UnsubscribeEvent();
+    bool SubscribeKeyboardEvent(const std::vector<KeyboardEventHandler> &handlers);
 
+    bool UnsubscribeEvent();
     class EventSubscriber : public EventFwk::CommonEventSubscriber {
     public:
         EventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
@@ -46,19 +50,20 @@ public:
 private:
     class SystemAbilityStatusChangeListener : public SystemAbilityStatusChangeStub {
     public:
-        explicit SystemAbilityStatusChangeListener(std::shared_ptr<EventSubscriber> &subscriber);
+        explicit SystemAbilityStatusChangeListener(std::function<void()>);
         ~SystemAbilityStatusChangeListener() = default;
         virtual void OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
         virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
 
     private:
-        std::shared_ptr<EventSubscriber> sub_ = nullptr;
+        std::function<void()> func_ = nullptr;
     };
 private:
     static std::mutex instanceLock_;
-    static sptr<ImCommonEventManager> instance_;
 
+    static sptr<ImCommonEventManager> instance_;
     sptr<ISystemAbilityStatusChange> statusChangeListener_ = nullptr;
+    sptr<ISystemAbilityStatusChange> keyboardEventListener_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS

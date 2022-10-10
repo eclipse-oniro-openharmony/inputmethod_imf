@@ -130,6 +130,8 @@ private:
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
     static constexpr const char *SELECT_DIALOG_HAP = "cn.openharmony.inputmethodchoosedialog";
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
+
+    int32_t SubscribeKeyboardEvent();
 };
 } // namespace MiscServices
 } // namespace OHOS
