@@ -424,6 +424,7 @@ namespace MiscServices {
 
     std::vector<Property> InputMethodSystemAbility::ListInputMethod(InputMethodStatus status)
     {
+        IMSA_HILOGI("InputMethodSystemAbility::ListInputMethod status: %{public}d", status);
         return ListInputMethodByUserId(MAIN_USER_ID, status);
     }
 
@@ -436,12 +437,13 @@ namespace MiscServices {
     std::vector<Property> InputMethodSystemAbility::ListEnabledInputMethod()
     {
         IMSA_HILOGI("InputMethodSystemAbility::listEnabledInputMethod");
-        auto property = GetCurrentInputMethod();
-        if (property == nullptr) {
-            IMSA_HILOGE("GetCurrentInputMethod property is nullptr");
+        auto current = GetCurrentInputMethod();
+        if (current == nullptr) {
+            IMSA_HILOGE("GetCurrentInputMethod current is nullptr");
             return {};
         }
-        return { *property };
+        auto property = FindProperty(current->name);
+        return { property };
     }
 
     std::vector<Property> InputMethodSystemAbility::ListDisabledInputMethod(int32_t userId)

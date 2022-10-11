@@ -134,22 +134,8 @@ std::vector<Property> InputMethodSystemAbilityProxy::ListInputMethod(InputMethod
     IMSA_HILOGI("%{public}s in", __func__);
     std::vector<Property> properties;
     int32_t ret = SendRequest(
-        LIST_INPUT_METHOD, [status](MessageParcel &data) { return data.WriteUint32(status); },
-        [&properties](MessageParcel &reply) {
-            auto size = reply.ReadUint32();
-            size_t availSize = reply.GetReadableBytes();
-            if (size > (availSize / sizeof(Property)) || (size > properties.max_size())) {
-                IMSA_HILOGE("%{public}s size %{public}u too large", __func__, size);
-                return false;
-            }
-            properties.resize(size);
-            for (auto &property : properties) {
-                if (!ITypesUtil::Unmarshal(reply, property)) {
-                    IMSA_HILOGE("%{public}s Unmarshalling fail", __func__);
-                    return false;
-                }
-            }
-            return true;
+        LIST_INPUT_METHOD, [status](MessageParcel &data) { return ITypesUtil::Marshal(data, uint32_t(status)); },
+        [&properties](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, properties);
         });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("InputMethodSystemAbilityProxy::SendRequest failed, ret %{public}d", ret);
