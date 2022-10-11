@@ -204,19 +204,14 @@ int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodSubtypeOnRemote(Messa
 
 int32_t InputMethodSystemAbilityStub::ListInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    uint32_t status = data.ReadUint32();
-    std::vector<Property> properties = ListInputMethod(InputMethodStatus(status));
-    if (!(reply.WriteInt32(ErrorCode::NO_ERROR) && reply.WriteUint32(properties.size()))) {
-        reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
-        IMSA_HILOGE("%{public}s parcel failed", __func__);
-        return ErrorCode::ERROR_EX_PARCELABLE;
+    uint32_t status;
+    if (!ITypesUtil::Unmarshal(data, status)) {
+        IMSA_HILOGE("read status failed");
     }
-    for (auto &property : properties) {
-        if (!ITypesUtil::Marshal(reply, property)) {
-            reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
-            IMSA_HILOGE("%{public}s parcel Marshalling failed", __func__);
-            return ErrorCode::ERROR_EX_PARCELABLE;
-        }
+    auto properties = ListInputMethod(InputMethodStatus(status));
+    if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, properties)) {
+        IMSA_HILOGE("write reply failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
 }
