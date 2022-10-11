@@ -424,7 +424,6 @@ namespace MiscServices {
 
     std::vector<Property> InputMethodSystemAbility::ListInputMethod(InputMethodStatus status)
     {
-        IMSA_HILOGI("InputMethodSystemAbility::ListInputMethod status: %{public}d", status);
         return ListInputMethodByUserId(MAIN_USER_ID, status);
     }
 
@@ -484,7 +483,7 @@ namespace MiscServices {
 
     std::vector<SubProperty> InputMethodSystemAbility::ListSubtypeByBundleName(int32_t userId, const std::string &name)
     {
-        IMSA_HILOGI("InputMethodSystemAbility::ListAllInputMethodSubtype");
+        IMSA_HILOGI("InputMethodSystemAbility::ListSubtypeByBundleName");
         std::vector<AppExecFwk::ExtensionAbilityInfo> subtypeInfos;
         if (!GetBundleMgr()->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, subtypeInfos)) {
             IMSA_HILOGE("QueryExtensionAbilityInfos failed");
@@ -1349,7 +1348,7 @@ namespace MiscServices {
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
         if (keyCode == CombineKeyCode::COMBINE_KEYCODE_CAPS) {
-            IMSA_HILOGI("KEYCODE_CTRL_LEFT press");
+            IMSA_HILOGI("KEYCODE_CAPS press");
             auto target = current->mode == "upper"
                               ? FindSubPropertyByCompare(current->id,
                                   [&current](const SubProperty &property) { return property.mode == "lower"; })
@@ -1370,7 +1369,7 @@ namespace MiscServices {
             IMSA_HILOGI("KEYCODE_CTRL_LEFT_SHIFT_LEFT press");
             auto properties = ListProperty(MAIN_USER_ID);
             for (const auto &property : properties) {
-                if (property.name != current->name) {
+                if (property.name != current->id) {
                     return SwitchInputMethod(current->name, current->id);
                 }
             }

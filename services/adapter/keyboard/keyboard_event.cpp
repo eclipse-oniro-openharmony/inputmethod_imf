@@ -42,11 +42,9 @@ int32_t KeyboardEvent::SubscribeKeyboardEvent(const CombineKey &combine, KeyHand
     auto ret = InputManager::GetInstance()->SubscribeKeyEvent(keyOption,
         [this, handle](std::shared_ptr<KeyEvent> keyEvent) {
             auto pressKeys = keyEvent->GetPressedKeys();
-            IMSA_HILOGI("press key num: %{public}d", pressKeys.size());
             for (auto &key : pressKeys) {
                 IMSA_HILOGI("key code: %{public}d", key);
             }
-            IMSA_HILOGI("press key num end");
             if (handle != nullptr) {
                 handle();
             }
