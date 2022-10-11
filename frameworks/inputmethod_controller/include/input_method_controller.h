@@ -25,6 +25,7 @@
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
 #include "input_method_property.h"
+#include "input_method_setting_listener.h"
 #include "input_method_status.h"
 #include "input_method_utils.h"
 #include "ipc_skeleton.h"
@@ -67,6 +68,7 @@ namespace MiscServices {
         void OnCursorUpdate(CursorInfo cursorInfo);
         void OnSelectionChange(std::u16string text, int start, int end);
         void OnConfigurationChange(Configuration info);
+        void setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
         bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
         std::vector<Property> ListInputMethodCommon(InputMethodStatus status);
         std::vector<Property> ListInputMethod();
@@ -105,6 +107,7 @@ namespace MiscServices {
         void WorkThread();
 
         sptr<IInputDataChannel> mInputDataChannel;
+        std::shared_ptr<InputMethodSettingListener> imeListener_;
         sptr<IInputClient> mClient;
         std::mutex abilityLock_;
         sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
