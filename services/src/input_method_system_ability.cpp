@@ -424,7 +424,6 @@ namespace MiscServices {
 
     std::vector<Property> InputMethodSystemAbility::ListInputMethod(InputMethodStatus status)
     {
-        IMSA_HILOGI("InputMethodSystemAbility::ListInputMethod status: %{public}d", status);
         return ListInputMethodByUserId(MAIN_USER_ID, status);
     }
 
@@ -484,7 +483,7 @@ namespace MiscServices {
 
     std::vector<SubProperty> InputMethodSystemAbility::ListSubtypeByBundleName(int32_t userId, const std::string &name)
     {
-        IMSA_HILOGI("InputMethodSystemAbility::ListAllInputMethodSubtype");
+        IMSA_HILOGI("InputMethodSystemAbility::ListSubtypeByBundleName");
         std::vector<AppExecFwk::ExtensionAbilityInfo> subtypeInfos;
         if (!GetBundleMgr()->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, subtypeInfos)) {
             IMSA_HILOGE("QueryExtensionAbilityInfos failed");
@@ -492,15 +491,44 @@ namespace MiscServices {
         }
         std::vector<SubProperty> properties;
         for (const auto &subtypeInfo : subtypeInfos) {
-            SubProperty property;
             if (subtypeInfo.bundleName == name) {
+                std::vector<Metadata> extends = subtypeInfo.metadata;
+                auto property = GetExtends(extends);
                 properties.push_back({ .id = subtypeInfo.bundleName,
                     .label = subtypeInfo.name,
                     .name = subtypeInfo.moduleName,
-                    .iconId = subtypeInfo.iconId });
+                    .iconId = subtypeInfo.iconId,
+                    .language = property.language,
+                    .mode = property.mode,
+                    .locale = property.locale,
+                    .icon = property.icon });
             }
         }
         return properties;
+    }
+
+    SubProperty InputMethodSystemAbility::GetExtends(const std::vector<Metadata> &metaData)
+    {
+        IMSA_HILOGI("InputMethodSystemAbility::GetExtends");
+        SubProperty property;
+        for (const auto &data : metaData) {
+            if (data.name == "language") {
+                property.language = data.value;
+                continue;
+            }
+            if (data.name == "mode") {
+                property.mode = data.value;
+                continue;
+            }
+            if (data.name == "locale") {
+                property.locale = data.value;
+                continue;
+            }
+            if (data.name == "icon") {
+                property.icon = data.value;
+            }
+        }
+        return property;
     }
 
     int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &name, const std::string &subName)
@@ -1298,6 +1326,59 @@ namespace MiscServices {
         return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
     }
 
+    SubProperty InputMethodSystemAbility::FindSubPropertyByCompare(
+        const std::string &bundleName, CompareHandler compare)
+    {
+        IMSA_HILOGI("InputMethodSystemAbility::FindSubPropertyByCompare");
+        const auto &properties = ListSubtypeByBundleName(MAIN_USER_ID, bundleName);
+        for (const auto &property : properties) {
+            if (compare(property)) {
+                return property;
+            }
+        }
+        IMSA_HILOGE("InputMethodSystemAbility::FindSubPropertyByCompare failed");
+        return {};
+    }
+
+    int32_t InputMethodSystemAbility::SwitchByCombinedKey(const CombineKeyCode &keyCode)
+    {
+        IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinedKey");
+        auto current = GetCurrentInputMethodSubtype();
+        if (current == nullptr) {
+            IMSA_HILOGE("GetCurrentInputMethodSubtype failed");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        if (keyCode == CombineKeyCode::COMBINE_KEYCODE_CAPS) {
+            IMSA_HILOGI("KEYCODE_CAPS press");
+            auto target = current->mode == "upper"
+                              ? FindSubPropertyByCompare(current->id,
+                                  [&current](const SubProperty &property) { return property.mode == "lower"; })
+                              : FindSubPropertyByCompare(current->id,
+                                  [&current](const SubProperty &property) { return property.mode == "upper"; });
+            return SwitchInputMethod(target.id, target.label);
+        }
+        if (keyCode == CombineKeyCode::COMBINE_KEYCODE_SHIFT) {
+            IMSA_HILOGI("KEYCODE_SHIFT_LEFT press");
+            auto target = current->language == "chinese"
+                              ? FindSubPropertyByCompare(current->id,
+                                  [&current](const SubProperty &property) { return property.language == "english"; })
+                              : FindSubPropertyByCompare(current->id,
+                                  [&current](const SubProperty &property) { return property.language == "chinese"; });
+            return SwitchInputMethod(target.id, target.label);
+        }
+        if (keyCode == CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT) {
+            IMSA_HILOGI("KEYCODE_CTRL_LEFT_SHIFT_LEFT press");
+            auto properties = ListProperty(MAIN_USER_ID);
+            for (const auto &property : properties) {
+                if (property.name != current->id) {
+                    return SwitchInputMethod(current->name, current->id);
+                }
+            }
+        }
+        IMSA_HILOGI("keycode undefined");
+        return {};
+    }
+
     int32_t InputMethodSystemAbility::SubscribeKeyboardEvent()
     {
         ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
@@ -1305,18 +1386,18 @@ namespace MiscServices {
                     .preKeys = {},
                     .finalKey = MMI::KeyEvent::KEYCODE_CAPS_LOCK,
                 },
-                  []() { IMSA_HILOGE("KEYCODE_CAPS_LOCK press"); } },
+                  [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CAPS); } },
                 { {
                       .preKeys = {},
                       .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
                   },
-                    []() { IMSA_HILOGE("KEYCODE_SHIFT_LEFT press"); } },
+                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
                 { {
                       .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
                       .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
                   },
-                    []() { IMSA_HILOGE("KEYCODE_CTRL_LEFT_SHIFT_LEFT press"); } } });
+                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } } });
         return 0;
     }
-    } // namespace MiscServices
+} // namespace MiscServices
 } // namespace OHOS
