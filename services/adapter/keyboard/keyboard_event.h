@@ -27,6 +27,12 @@ struct CombineKey {
     int32_t finalKey;
 };
 
+enum CombineKeyCode : uint32_t {
+    COMBINE_KEYCODE_CAPS = 0,
+    COMBINE_KEYCODE_SHIFT,
+    COMBINE_KEYCODE_CTRL_SHIFT
+};
+
 using KeyHandle = std::function<void()>;
 
 class KeyboardEvent {
