@@ -163,7 +163,7 @@ napi_value JsGetInputMethodSetting::DisplayInputMethod(napi_env env, napi_callba
         return napi_ok;
     };
     auto exec = [ctxt, flag](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->DisplayOptionalInputMethod();
+        int32_t errCode = InputMethodController::GetInstance()->ShowOptionalInputMethod();
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGE("exec ---- DisplayOptionalInputMethod success");
             ctxt->status = napi_ok;
