@@ -150,7 +150,7 @@ namespace ErrorCode {
         ERROR_CLIENT_DUPLICATED,  // duplicated client
         ERROR_CLIENT_NOT_FOUND, // client is not found
         ERROR_CLIENT_NULL_POINTER, // null pointer
-
+        ERROR_SUBSCRIBE_KEYBOARD_EVENT,
         ERROR_CONTROLLER_INVOKING_FAILED,
     };
     const char* ToString(int errorCode);

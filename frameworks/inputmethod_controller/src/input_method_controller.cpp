@@ -517,7 +517,6 @@ using namespace MessageID;
             IMSA_HILOGD("InputMethodController::dispatchKeyEvent isStopInput");
             return false;
         }
-        IMSA_HILOGI("InputMethodController::dispatchKeyEvent");
         std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::dispatchKeyEvent agent is nullptr");

@@ -15,6 +15,9 @@
 
 #include "im_common_event_manager.h"
 
+#include <utility>
+
+#include "../adapter/keyboard/keyboard_event.h"
 #include "global.h"
 #include "input_method_system_ability_stub.h"
 #include "ipc_skeleton.h"
@@ -58,22 +61,55 @@ namespace MiscServices {
         EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
 
         std::shared_ptr<EventSubscriber> subscriber = std::make_shared<EventSubscriber>(subscriberInfo);
-        if (!subscriber) {
+        if (subscriber == nullptr) {
             IMSA_HILOGI("ImCommonEventManager::SubscribeEvent subscriber is nullptr");
             return false;
         }
-        auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        sptr<ISystemAbilityStatusChange> status = new (std::nothrow) SystemAbilityStatusChangeListener(subscriber);
-        if (samgrProxy == nullptr || status == nullptr) {
-            IMSA_HILOGE("SubscribeEvent samgrProxy or statusChangeListener_ is nullptr");
+        auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (abilityManager == nullptr) {
+            IMSA_HILOGE("SubscribeEvent abilityManager is nullptr");
             return false;
         }
-        int32_t ret = samgrProxy->SubscribeSystemAbility(COMMON_EVENT_SERVICE_ID, status);
+        sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([subscriber](){
+            bool subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
+            IMSA_HILOGI("ImCommonEventManager::OnAddSystemAbility subscribeResult = %{public}d", subscribeResult);
+        });
+        if (listener == nullptr) {
+            IMSA_HILOGE("SubscribeEvent listener is nullptr");
+            return false;
+        }
+        int32_t ret = abilityManager->SubscribeSystemAbility(COMMON_EVENT_SERVICE_ID, listener);
         if (ret != ERR_OK) {
             IMSA_HILOGE("SubscribeEvent SubscribeSystemAbility failed. ret = %{public}d", ret);
             return false;
         }
-        statusChangeListener_ = status;
+        statusChangeListener_ = listener;
+        return true;
+    }
+
+    bool ImCommonEventManager::SubscribeKeyboardEvent(const std::vector<KeyboardEventHandler> &handlers)
+    {
+        auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (abilityManager == nullptr) {
+            IMSA_HILOGE("SubscribeEvent abilityManager is nullptr");
+            return false;
+        }
+        sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handlers](){
+            for (const auto &handler : handlers) {
+                int32_t ret = KeyboardEvent::GetInstance().SubscribeKeyboardEvent(handler.combine, handler.handle);
+                IMSA_HILOGI("subscribe %{public}d key event %{public}s", handler.combine.finalKey, ret == ErrorCode::NO_ERROR ? "OK" : "ERROR");
+            }
+        });
+        if (listener == nullptr) {
+            IMSA_HILOGE("SubscribeEvent listener is nullptr");
+            return false;
+        }
+        int32_t ret = abilityManager->SubscribeSystemAbility(MULTIMODAL_INPUT_SERVICE_ID, listener);
+        if (ret != ERR_OK) {
+            IMSA_HILOGE("SubscribeEvent SubscribeSystemAbility failed. ret = %{public}d", ret);
+            return false;
+        }
+        keyboardEventListener_ = listener;
         return true;
     }
 
@@ -107,24 +143,20 @@ namespace MiscServices {
     }
 
     ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(
-        std::shared_ptr<EventSubscriber> &sub)
-        : sub_(sub)
+        std::function<void()> func) : func_(std::move(func))
     {
     }
 
     void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility(
         int32_t systemAbilityId, const std::string& deviceId)
     {
-        if (systemAbilityId != COMMON_EVENT_SERVICE_ID) {
-            IMSA_HILOGE("ImCommonEventManager::OnAddSystemAbility systemAbilityId is not COMMON_EVENT_SERVICE_ID");
+        if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID) {
+            IMSA_HILOGE("ImCommonEventManager::OnAddSystemAbility systemAbilityId %{public}d", systemAbilityId);
             return;
         }
-        if (sub_ == nullptr) {
-            IMSA_HILOGE("ImCommonEventManager::OnAddSystemAbility COMMON_EVENT_SERVICE_ID sub_ is nullptr");
-            return;
+        if (func_ != nullptr) {
+            func_();
         }
-        bool subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(sub_);
-        IMSA_HILOGI("ImCommonEventManager::OnAddSystemAbility subscribeResult = %{public}d", subscribeResult);
     }
     
     void ImCommonEventManager::SystemAbilityStatusChangeListener::OnRemoveSystemAbility(

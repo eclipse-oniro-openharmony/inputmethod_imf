@@ -55,7 +55,6 @@ namespace MiscServices {
 
     sptr<InputMethodAbility> InputMethodAbility::GetInstance()
     {
-        IMSA_HILOGI("InputMethodAbility::GetInstance");
         if (!instance_) {
             std::lock_guard<std::mutex> autoLock(instanceLock_);
             if (!instance_) {
@@ -295,9 +294,8 @@ namespace MiscServices {
 
     bool InputMethodAbility::DispatchKeyEvent(int32_t keyCode, int32_t keyStatus)
     {
-        IMSA_HILOGI("InputMethodAbility::DispatchKeyEvent: key = %{public}d, status = %{public}d", keyCode, keyStatus);
+        IMSA_HILOGI("key = %{public}d, status = %{public}d", keyCode, keyStatus);
         if (!isBindClient) {
-            IMSA_HILOGI("InputMethodAbility::DispatchKeyEvent abort. no client");
             return false;
         }
         if (!kdListener_) {
