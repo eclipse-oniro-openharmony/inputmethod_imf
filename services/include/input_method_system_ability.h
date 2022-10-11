@@ -20,7 +20,9 @@
 #include <map>
 #include <thread>
 
+#include "../adapter/keyboard/keyboard_event.h"
 #include "ability_manager_interface.h"
+#include "application_info.h"
 #include "bundle_mgr_proxy.h"
 #include "event_handler.h"
 #include "input_method_status.h"
@@ -34,6 +36,7 @@
 namespace OHOS {
 namespace MiscServices {
 using AbilityType = AppExecFwk::ExtensionAbilityType;
+using namespace AppExecFwk;
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
 class InputMethodSystemAbility : public SystemAbility, public InputMethodSystemAbilityStub {
@@ -132,6 +135,10 @@ private:
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
 
     int32_t SubscribeKeyboardEvent();
+    using CompareHandler = std::function<bool(const SubProperty &)>;
+    SubProperty FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare);
+    SubProperty GetExtends(const std::vector<Metadata> &metaData);
+    int32_t SwitchByCombinedKey(const CombineKeyCode &property);
 };
 } // namespace MiscServices
 } // namespace OHOS
