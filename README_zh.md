@@ -9,6 +9,21 @@
 #### 仓路径
 /base/inputmethod/imf
 
+## 目录
+
+```
+/base/inputmethod/imf
+├── figures                              # 构架图
+├── frameworks/inputmethod_ability       # 对输入法客户端提供的接口
+├── frameworks/inputmethod_controller    # 对客户端提供的接口
+├── interfaces/kits/js                   # 组件对外提供的接口代码
+│   └── napi                             # 输入法框架napi接口
+├── profile                              # 组件包含的系统服务的配置文件和进程的配置文件
+├── services                             # 输入法框架服务
+├── test                                 # 接口的Fuzz测试和js单元测试
+└── unitest                              # 接口的单元测试
+```
+
 #### 框架代码介绍
 输入法框架目前有四大模块，具体如下：
 
@@ -93,7 +108,7 @@ let inputMethodSetting = inputmethod.getInputMethodSetting();
 
 // 切换输入法callback
 inputmethod.switchInputMethod({packageName:"com.example.kikakeyboard", methodId:"com.example.kikakeyboard"} ,(err,result) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.info("switchInputMethod callback result---err: " + err.msg);
         return;
     }
@@ -167,7 +182,7 @@ let inputMethodController = inputmethod.getInputMethodController();
 
 // 隐藏输入法callback
 inputMethodController.stopInput((err, result) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("stopInput callback result---err: " + err.msg);
         return;
     }
@@ -191,7 +206,7 @@ await inputMethodController.stopInput().then((result)=>{
 
 // 显示软键盘callback
 inputMethodController.showSoftKeyboard((err) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("showSoftKeyboard callback result---err: " + err.msg);
         return;
     }
@@ -207,7 +222,7 @@ await inputMethodController.showSoftKeyboard().then(()=>{
 
 // 隐藏软键盘callback
 inputMethodController.hideSoftKeyboard((err) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("hideSoftKeyboard callback result---err: " + err.msg);
         return;
     }
@@ -265,7 +280,7 @@ let inputMethodSetting = inputmethod.getInputMethodSetting();
 
 // 查询已安装的输入法列表callback
 inputMethodSetting.listInputMethod((err,data) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("listInputMethod callback result---err: " + err.msg);
         return;
     }
@@ -281,7 +296,7 @@ await inputMethodSetting.listInputMethod().then((data)=>{
 
 // 显示输入法选择对话框callback
 inputMethodSetting.displayOptionalInputMethod((err) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("displayOptionalInputMethod callback---err: " + err.msg);
         return;
     }
@@ -590,7 +605,7 @@ inputMethodEngine.on('inputStart', (kbController, textInputClient) => {
 
 // 隐藏输入法callback
 kbCtrl.hideKeyboard((err) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("hideKeyboard callback result---err: " + err.msg);
         return;
     }
@@ -706,7 +721,7 @@ inputMethodEngine.on('inputStart', (kbController, textInputClient) => {
 
 // 获取光标前固定长度的文本callback
 client.getForward(length, (err, text) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("getForward callback result---err: " + err.msg);
         return;
     }
@@ -722,7 +737,7 @@ await client.getForward(length).then((text) => {
 
 // 获取光标后固定长度的文本callback
 client.getBackward(length, (err, text) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("getBackward callback result---err: " + err.msg);
         return;
     }
@@ -738,7 +753,7 @@ await client.getBackward(length).then((text) => {
 
 // 删除光标前固定长度的文本callback
 client.deleteForward(length, (err, result) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error('deleteForward callback result---err: ' + err.msg);
         return;
     }
@@ -762,7 +777,7 @@ await client.deleteForward(length).then((result) => {
 
 // 删除光标前固定长度的文本callback
 client.deleteBackward(length, (err, result) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("deleteBackward callback result---err: " + err.msg);
         return;
     }
@@ -786,7 +801,7 @@ await client.deleteBackward(length).then((result) => {
 
 // 发送功能键callback
 client.sendKeyFunction(keyFunction, (err, result) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("sendKeyFunction callback result---err: " + err.msg);
         return;
     }
@@ -810,7 +825,7 @@ await client.sendKeyFunction(keyFunction).then((result) => {
 
 // 插入文本callback
 client.insertText('test', (err, result) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("insertText callback result---err: " + err.msg);
         return;
     }
@@ -834,7 +849,7 @@ await client.insertText('test').then((result) => {
 
 // 获取编辑框属性值callback
 client.getEditorAttribute((err, editorAttribute) => {
-    if (err == undefined) {
+    if (err != undefined) {
         console.error("getEditorAttribute callback result---err: " + err.msg);
         return;
     }
