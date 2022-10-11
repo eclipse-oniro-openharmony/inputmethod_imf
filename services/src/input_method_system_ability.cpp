@@ -1326,7 +1326,8 @@ namespace MiscServices {
         return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
     }
 
-    SubProperty InputMethodSystemAbility::FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare)
+    SubProperty InputMethodSystemAbility::FindSubPropertyByCompare(
+        const std::string &bundleName, CompareHandler compare)
     {
         IMSA_HILOGI("InputMethodSystemAbility::FindSubPropertyByCompare");
         const auto &properties = ListSubtypeByBundleName(MAIN_USER_ID, bundleName);
