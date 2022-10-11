@@ -62,6 +62,14 @@ using namespace MessageID;
         return instance_;
     }
 
+    void InputMethodController::setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener)
+    {
+        IMSA_HILOGI("InputMethodController::setImeListener");
+        if (imeListener_ == nullptr) {
+            imeListener_ = imeListener;
+        }
+    }
+
     bool InputMethodController::Initialize()
     {
         msgHandler = new MessageHandler();
@@ -220,6 +228,7 @@ using namespace MessageID;
                         IMSA_HILOGE("read property from message parcel failed");
                         break;
                     }
+                    OnSwitchInput(property, subProperty);
                 }
                 default: {
                     break;
@@ -228,6 +237,16 @@ using namespace MessageID;
             delete msg;
             msg = nullptr;
         }
+    }
+
+    void InputMethodController::OnSwitchInput(const Property &property, const SubProperty &subProperty)
+    {
+        IMSA_HILOGE("InputMethodController::OnSwitchInput");
+        if (imeListener_ == nullptr) {
+            IMSA_HILOGE("imeListener_ is nullptr");
+            return;
+        }
+        imeListener_->OnImeChange(property, subProperty);
     }
 
     void InputMethodController::Attach(sptr<OnTextChangedListener> &listener)

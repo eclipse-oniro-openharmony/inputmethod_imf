@@ -27,6 +27,8 @@ struct SwitchInputMethodContext : public AsyncCall::Context {
     bool isSwitchInput = false;
     std::string packageName;
     std::string methodId;
+    std::string id;
+    std::string label;
     napi_status status = napi_generic_failure;
     SwitchInputMethodContext() : Context(nullptr, nullptr) { };
     SwitchInputMethodContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
@@ -51,14 +53,22 @@ public:
     ~JsInputMethod() = default;
     static napi_value Init(napi_env env, napi_value exports);
     static napi_value SwitchInputMethod(napi_env env, napi_callback_info info);
+    static napi_value SwitchCurrentInputMethodSubtype(napi_env env, napi_callback_info info);
+    static napi_value SwitchCurrentInputMethodAndSubtype(napi_env env, napi_callback_info info);
+    static napi_value GetCurrentInputMethodSubtype(napi_env env, napi_callback_info info);
     static napi_value GetCurrentInputMethod(napi_env env, napi_callback_info info);
+    static int32_t GetNumberProperty(napi_env env, napi_value obj);
     static napi_value GetJsInputMethodProperty(napi_env env, const Property &property);
+    static napi_value GetJSInputMethodSubProperties(napi_env env, const std::vector<SubProperty> &properties);
     static napi_value GetJSInputMethodProperties(napi_env env, const std::vector<Property> &properties);
+    static std::string GetStringProperty(napi_env env, napi_value obj);
+    static napi_value GetJsInputMethodSubProperty(napi_env env, const SubProperty &subProperty);
 
 private:
-    static std::string GetStringProperty(napi_env env, napi_value obj);
-    static napi_status GetInputMethodProperty(napi_env env, napi_value argv,
-        std::shared_ptr<SwitchInputMethodContext> ctxt);
+    static napi_status GetInputMethodProperty(
+        napi_env env, napi_value argv, std::shared_ptr<SwitchInputMethodContext> ctxt);
+    static napi_status GetInputMethodSubProperty(
+        napi_env env, napi_value argv, std::shared_ptr<SwitchInputMethodContext> ctxt);
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
 };
 }
