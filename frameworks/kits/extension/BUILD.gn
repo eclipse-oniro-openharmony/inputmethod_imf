@@ -20,6 +20,7 @@ config("ability_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "${inputmethod_path}/frameworks/kits/extension/include",
+    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodclient",
     "//commonlibrary/c_utils/base/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/app",
@@ -95,6 +96,7 @@ ohos_shared_library("inputmethod_extension") {
     "${inputmethod_path}/frameworks/kits/extension/src/inputmethod_extension_context.cpp",
     "${inputmethod_path}/frameworks/kits/extension/src/js_inputmethod_extension.cpp",
     "${inputmethod_path}/frameworks/kits/extension/src/js_inputmethod_extension_context.cpp",
+    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodclient/js_utils.cpp",
   ]
   configs = [ ":ability_config" ]
   public_configs = [
