@@ -28,6 +28,7 @@
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
 #include "start_options.h"
+#include "js_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
