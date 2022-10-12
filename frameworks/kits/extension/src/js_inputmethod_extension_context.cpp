@@ -28,7 +28,6 @@
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
 #include "start_options.h"
-#include "js_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -216,9 +215,6 @@ private:
         // only support one or zero params
         if (info.argc != ARGC_ZERO && info.argc != ARGC_ONE) {
             IMSA_HILOGE("Not enough params");
-            MiscServices::JsUtils::ThrowException(reinterpret_cast<napi_env>(&engine),
-                MiscServices::IMFErrorCode::EXCEPTION_PARAMCHECK, " should 0 or 1 parameters!",
-                MiscServices::TypeCode::TYPE_NONE);
             return engine.CreateUndefined();
         }
 
