@@ -108,7 +108,7 @@ let inputMethodSetting = inputmethod.getInputMethodSetting();
 
 // 切换输入法callback
 inputmethod.switchInputMethod({packageName:"com.example.kikakeyboard", methodId:"com.example.kikakeyboard"} ,(err,result) => {
-    if (err != undefined) {
+    if (err) {
         console.info("switchInputMethod callback result---err: " + err.msg);
         return;
     }
@@ -182,7 +182,7 @@ let inputMethodController = inputmethod.getInputMethodController();
 
 // 隐藏输入法callback
 inputMethodController.stopInput((err, result) => {
-    if (err != undefined) {
+    if (err) {
         console.error("stopInput callback result---err: " + err.msg);
         return;
     }
@@ -206,7 +206,7 @@ await inputMethodController.stopInput().then((result)=>{
 
 // 显示软键盘callback
 inputMethodController.showSoftKeyboard((err) => {
-    if (err != undefined) {
+    if (err) {
         console.error("showSoftKeyboard callback result---err: " + err.msg);
         return;
     }
@@ -222,7 +222,7 @@ await inputMethodController.showSoftKeyboard().then(()=>{
 
 // 隐藏软键盘callback
 inputMethodController.hideSoftKeyboard((err) => {
-    if (err != undefined) {
+    if (err) {
         console.error("hideSoftKeyboard callback result---err: " + err.msg);
         return;
     }
@@ -280,7 +280,7 @@ let inputMethodSetting = inputmethod.getInputMethodSetting();
 
 // 查询已安装的输入法列表callback
 inputMethodSetting.listInputMethod((err,data) => {
-    if (err != undefined) {
+    if (err) {
         console.error("listInputMethod callback result---err: " + err.msg);
         return;
     }
@@ -296,7 +296,7 @@ await inputMethodSetting.listInputMethod().then((data)=>{
 
 // 显示输入法选择对话框callback
 inputMethodSetting.displayOptionalInputMethod((err) => {
-    if (err != undefined) {
+    if (err) {
         console.error("displayOptionalInputMethod callback---err: " + err.msg);
         return;
     }
@@ -605,7 +605,7 @@ inputMethodEngine.on('inputStart', (kbController, textInputClient) => {
 
 // 隐藏输入法callback
 kbCtrl.hideKeyboard((err) => {
-    if (err != undefined) {
+    if (err) {
         console.error("hideKeyboard callback result---err: " + err.msg);
         return;
     }
@@ -721,7 +721,7 @@ inputMethodEngine.on('inputStart', (kbController, textInputClient) => {
 
 // 获取光标前固定长度的文本callback
 client.getForward(length, (err, text) => {
-    if (err != undefined) {
+    if (err) {
         console.error("getForward callback result---err: " + err.msg);
         return;
     }
@@ -737,7 +737,7 @@ await client.getForward(length).then((text) => {
 
 // 获取光标后固定长度的文本callback
 client.getBackward(length, (err, text) => {
-    if (err != undefined) {
+    if (err) {
         console.error("getBackward callback result---err: " + err.msg);
         return;
     }
@@ -753,7 +753,7 @@ await client.getBackward(length).then((text) => {
 
 // 删除光标前固定长度的文本callback
 client.deleteForward(length, (err, result) => {
-    if (err != undefined) {
+    if (err) {
         console.error('deleteForward callback result---err: ' + err.msg);
         return;
     }
@@ -777,7 +777,7 @@ await client.deleteForward(length).then((result) => {
 
 // 删除光标前固定长度的文本callback
 client.deleteBackward(length, (err, result) => {
-    if (err != undefined) {
+    if (err) {
         console.error("deleteBackward callback result---err: " + err.msg);
         return;
     }
@@ -801,7 +801,7 @@ await client.deleteBackward(length).then((result) => {
 
 // 发送功能键callback
 client.sendKeyFunction(keyFunction, (err, result) => {
-    if (err != undefined) {
+    if (err) {
         console.error("sendKeyFunction callback result---err: " + err.msg);
         return;
     }
@@ -825,7 +825,7 @@ await client.sendKeyFunction(keyFunction).then((result) => {
 
 // 插入文本callback
 client.insertText('test', (err, result) => {
-    if (err != undefined) {
+    if (err) {
         console.error("insertText callback result---err: " + err.msg);
         return;
     }
@@ -849,7 +849,7 @@ await client.insertText('test').then((result) => {
 
 // 获取编辑框属性值callback
 client.getEditorAttribute((err, editorAttribute) => {
-    if (err != undefined) {
+    if (err) {
         console.error("getEditorAttribute callback result---err: " + err.msg);
         return;
     }
