@@ -246,10 +246,18 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
 {
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 1 || argc == 2, " Parameter number error", napi_invalid_arg);
+        // one parameter: InputMethodProperty
+        if (argc < 1) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                                    "should has one parameter.", TYPE_NONE);
+            return napi_invalid_arg;
+        }
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        NAPI_ASSERT_BASE(env, valueType == napi_object, " Parameter type error", napi_invalid_arg);
+        if (valueType != napi_object) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " inputMethodProperty: ", TYPE_OBJECT);
+            return napi_object_expected;
+        }
         napi_status status = JsGetInputMethodSetting::GetInputMethodProperty(env, argv[0], ctxt);
         return status;
     };
@@ -260,6 +268,7 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         ctxt->subProperties = InputMethodController::GetInstance()->ListInputMethodSubtype(ctxt->property);
         ctxt->status = napi_ok;
+        ctxt->SetState(ctxt->status);
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
@@ -270,7 +279,6 @@ napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, 
 {
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        NAPI_ASSERT_BASE(env, argc == 0 || argc == 1, " Parameter number error", napi_invalid_arg);
         return napi_ok;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
@@ -280,6 +288,7 @@ napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         ctxt->subProperties = InputMethodController::GetInstance()->ListCurrentInputMethodSubtype();
         ctxt->status = napi_ok;
+        ctxt->SetState(ctxt->status);
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
