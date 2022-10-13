@@ -201,7 +201,9 @@ describe('appInfoTest_input_2', function () {
     it('inputmethod_test_switchInputMethod_001', 0, async function (done) {
       let inputMethodProperty = {
         packageName:"com.example.kikakeyboard",
-        methodId:"ServiceExtAbility"
+        methodId:"ServiceExtAbility",
+        name:"com.example.kikakeyboard",
+        id:"ServiceExtAbility"
       }
       inputMethod.switchInputMethod(inputMethodProperty).then((data) => {
         console.info("inputmethod_test_switchInputMethod_001 data:" + data)
@@ -221,7 +223,9 @@ describe('appInfoTest_input_2', function () {
     it('inputmethod_test_switchInputMethod_002', 0, async function (done) {
       let inputMethodProperty = {
         packageName:"com.example.kikakeyboard",
-        methodId:"ServiceExtAbility"
+        methodId:"ServiceExtAbility",
+        name:"com.example.kikakeyboard",
+        id:"ServiceExtAbility"
       }
       inputMethod.switchInputMethod(inputMethodProperty, (err, data)=>{
         if(err){
@@ -233,4 +237,189 @@ describe('appInfoTest_input_2', function () {
       });
       done();
     });
+
+    /*
+     * @tc.number  inputmethod_test_getCurrentInputMethodSubtype_001
+     * @tc.name    Test Indicates the input method which will replace the current one.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+    it('inputmethod_test_getCurrentInputMethodSubtype_001', 0, async function (done) {
+      let inputMethodSubtype = inputMethod.getCurrentInputMethodSubtype();
+      console.info("inputmethod_test_getCurrentInputMethodSubtype_001 result:" + JSON.stringify(inputMethodSubtype));
+      expect(inputMethodSubtype).assertTrue();
+      done();
+    });
+
+    /*
+     * @tc.number  inputmethod_test_getCurrentInputMethodSubtype_001
+     * @tc.name    Test Indicates the input method which will replace the current one.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+    it('inputmethod_test_switchCurrentInputMethodSubtype_001', 0, async function (done) {
+      let inputMethodSubProperty = {
+        id: "com.example.kikainput",
+        label: "ServiceExtAbility"
+      }
+      await inputMethod.switchCurrentInputMethodSubtype(inputMethodSubProperty).then((data) => {
+        console.info("inputmethod_test_switchCurrentInputMethodSubtype_001 data:" + data)
+        expect(data).assertEqual(true);
+      }).catch((err) => {
+        console.error('inputmethod_test_switchCurrentInputMethodSubtype_001 failed because ' + JSON.stringify(err));
+      });
+      done();
+    });
+
+    /*
+     * @tc.number  inputmethod_test_switchCurrentInputMethodSubtype_002
+     * @tc.name    Test Indicates the input method which will replace the current one.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+    it('inputmethod_test_switchCurrentInputMethodSubtype_002', 0, async function (done) {
+      let inputMethodSubProperty = {
+        id: "com.example.kikainput",
+        label: "ServiceExtAbility"
+      }
+      inputMethod.switchCurrentInputMethodSubtype(inputMethodSubProperty, (err, data)=>{
+        if(err){
+          console.info("inputmethod_test_switchCurrentInputMethodSubtype_002 error:" + err);
+          expect().assertFail()
+        }
+        console.info("inputmethod_test_switchCurrentInputMethodSubtype_002 data:" + data)
+        expect(data == true).assertTrue();
+      });
+    });
+
+    /*
+     * @tc.number  inputmethod_test_getCurrentInputMethodSubtype_001
+     * @tc.name    Test Indicates the input method which will replace the current one.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+    it('inputmethod_test_switchCurrentInputMethodAndSubtype_001', 0, async function (done) {
+      let inputMethodSubProperty = {
+        id: "com.example.kikainput",
+        label: "ServiceExtAbility"
+      }
+      await inputMethod.switchCurrentInputMethodAndSubtype(inputMethodProperty, inputMethodSubProperty).then((data) => {
+        console.info("inputmethod_test_switchCurrentInputMethodAndSubtype_001 data:" + data)
+        expect(data).assertEqual(true);
+      }).catch((err) => {
+        console.error('inputmethod_test_switchCurrentInputMethodAndSubtype_001 failed because ' + JSON.stringify(err));
+      });
+      done();
+    });
+    
+    /*
+     * @tc.number  inputmethod_test_switchCurrentInputMethodAndSubtype_002
+     * @tc.name    Test Indicates the input method which will replace the current one.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+    it('inputmethod_test_switchCurrentInputMethodAndSubtype_002', 0, async function (done) {
+      let inputMethodProperty = {
+        packageName:"com.example.kikakeyboard",
+        methodId:"ServiceExtAbility"
+      }
+      let inputMethodSubProperty = {
+        id: "com.example.kikainput",
+        label: "ServiceExtAbility"
+      }
+      inputMethod.switchCurrentInputMethodAndSubtype(inputMethodProperty, inputMethodSubProperty, (err, data)=>{
+        if(err){
+          console.info("inputmethod_test_switchCurrentInputMethodAndSubtype_002 error:" + err);
+          expect().assertFail()
+        }
+        console.info("inputmethod_test_switchCurrentInputMethodAndSubtype_002 data:" + data)
+        expect(data == true).assertTrue();
+      });
+    });
+
+    /*
+    * @tc.number  inputmethod_test_ListInputMethodSubtype_001
+    * @tc.name    Test Indicates the input method which will replace the current one.
+    * @tc.desc    Function test
+    * @tc.level   2
+    */
+    it('inputmethod_test_ListInputMethodSubtype_001', 0, async function (done) {
+      let inputMethodProperty = {
+        packageName:"com.example.kikakeyboard",
+        methodId:"ServiceExtAbility",
+        name:"com.example.kikakeyboard",
+        id:"ServiceExtAbility",
+      }
+      let inputMethodSetting = inputMethod.getInputMethodSetting();
+      console.info("inputmethod_test_ListInputMethodSubtype_001 result:" + JSON.stringify(inputMethodSetting));
+      inputMethodSetting.listInputMethodSubtype(inputMethodProperty, (err, data) => {
+          console.info("inputmethod_test_ListInputMethodSubtype_001 result" + JSON.stringify(data));
+          expect(err==undefined).assertTrue();
+      });
+       done();
+    });
+
+    /*
+     * @tc.number  inputmethod_test_ListInputMethodSubtype_002
+     * @tc.name    Test Indicates the input method which will replace the current one.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+    it('inputmethod_test_ListInputMethodSubtype_002', 0, async function (done) {
+      let inputMethodProperty = {
+        packageName:"com.example.kikakeyboard",
+        methodId:"ServiceExtAbility",
+        name:"com.example.kikakeyboard",
+        id:"ServiceExtAbility",
+      }
+      let inputMethodSetting = inputMethod.getInputMethodSetting();
+      console.info("inputmethod_test_ListInputMethodSubtype_002 result:" + JSON.stringify(inputMethodSetting));
+      await inputMethodSetting.listInputMethodSubtype(inputMethodProperty).then((data)=>{
+          console.info("inputmethod_test_ListInputMethodSubtype_002 result" + JSON.stringify(data));
+          expect(data.length > 0).assertTrue();
+      }).catch((err) => {
+          console.info('inputmethod_test_ListInputMethodSubtype_002 listInputMethod err ' + err);
+          expect(null).assertFail();
+      });
+      done();
+    });
+
+    /*
+    * @tc.number  inputmethod_test_ListCurrentInputMethodSubtype_001
+    * @tc.name    Test Indicates the input method which will replace the current one.
+    * @tc.desc    Function test
+    * @tc.level   2
+    */
+    it('inputmethod_test_ListCurrentInputMethodSubtype_001', 0, async function (done) {
+      let inputMethodSetting = inputMethod.getInputMethodSetting();
+      console.info("inputmethod_test_ListCurrentInputMethodSubtype_001 result:" + JSON.stringify(inputMethodSetting));
+      inputMethodSetting.listCurrentInputMethodSubtype((err, data) => {
+          console.info("inputmethod_test_ListCurrentInputMethodSubtype_001 result" + JSON.stringify(data));
+          expect(err==undefined).assertTrue();
+      });
+       done();
+    });
+
+    /*
+    * @tc.number  inputmethod_test_ListCurrentInputMethodSubtype_002
+    * @tc.name    Test Indicates the input method which will replace the current one.
+    * @tc.desc    Function test
+    * @tc.level   2
+    */
+    it('inputmethod_test_ListCurrentInputMethodSubtype_002', 0, async function (done) {
+      let inputMethodSetting = inputMethod.getInputMethodSetting();
+      console.info("inputmethod_test_ListCurrentInputMethodSubtype_002 result:" + JSON.stringify(inputMethodSetting));
+      await inputMethodSetting.listCurrentInputMethodSubtype().then((data)=>{
+          console.info("inputmethod_test_ListCurrentInputMethodSubtype_002 result" + JSON.stringify(data));
+          expect(data.length > 0).assertTrue();
+      }).catch((err) => {
+          console.info('inputmethod_test_ListCurrentInputMethodSubtype_002 err ' + err);
+          expect(null).assertFail();
+      });
+      done();
+    });
+
+
+    
+
 })
