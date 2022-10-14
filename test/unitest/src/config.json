@@ -34,8 +34,12 @@
       {
         "name": "ohos.permission.DISTRIBUTED_DATASYNC",
         "reason": "ceshi"
+      },
+      {
+        "name": "ohos.permission.CONNECT_IME_ABILITY",
+        "reason": "ceshi"
       }
-    ],
+    ],   
     "abilities": [
       {
         "visible": true,
