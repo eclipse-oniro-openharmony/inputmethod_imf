@@ -39,7 +39,7 @@
         "name": "ohos.permission.CONNECT_IME_ABILITY",
         "reason": "ceshi"
       }
-    ],   
+    ],
     "abilities": [
       {
         "visible": true,
