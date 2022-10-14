@@ -374,9 +374,11 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 }
                 napi_value global = nullptr;
                 napi_get_global(item->env_, &global);
-                napi_value result;
+                napi_value result = nullptr;
                 napi_status callStatus = napi_call_function(item->env_, global, callback, 1, args, &result);
-                napi_get_value_bool(item->env_, result, &isResult);
+                if (result != nullptr) {
+                    napi_get_value_bool(item->env_, result, &isResult);
+                }
                 if (isResult) {
                     isOnKeyEvent = true;
                 }
