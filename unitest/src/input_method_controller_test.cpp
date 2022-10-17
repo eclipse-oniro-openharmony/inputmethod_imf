@@ -61,7 +61,7 @@ namespace MiscServices {
         if (res == 0) {
             IMSA_HILOGI("SetSelfTokenID success!");
         } else {
-            IMSA_HILOGE("SetSelfTokenID fail!")
+            IMSA_HILOGE("SetSelfTokenID fail!");
         }
         AccessTokenKit::ReloadNativeTokenInfo();
         delete[] perms;
