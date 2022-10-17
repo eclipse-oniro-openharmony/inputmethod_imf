@@ -17,7 +17,7 @@ import("//build/test.gni")
 config("module_private_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [ "include"]
+  include_dirs = [ "include" ]
 }
 
 module_output_path = "imf/inputmethod_service"

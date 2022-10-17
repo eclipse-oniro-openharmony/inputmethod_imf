@@ -67,7 +67,7 @@ namespace MiscServices {
         ~TextListener() {}
         void InsertText(const std::u16string& text)
         {
-            IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", MiscServices::Utils::to_utf8(text).c_str());
+            IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", MiscServices::Utils::ToStr8(text).c_str());
         }
 
         void DeleteBackward(int32_t length)
