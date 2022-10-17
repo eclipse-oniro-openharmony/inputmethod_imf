@@ -70,7 +70,6 @@ namespace MiscServices {
         void OnConfigurationChange(Configuration info);
         void setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
         bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
-        std::vector<Property> ListInputMethodCommon(InputMethodStatus status);
         std::vector<Property> ListInputMethod();
         std::vector<Property> ListInputMethod(bool enable);
         std::vector<SubProperty> ListInputMethodSubtype(const Property& property);
@@ -105,6 +104,7 @@ namespace MiscServices {
         void OnSwitchInput(const Property &property, const SubProperty &subProperty);
         std::shared_ptr<IInputMethodAgent> GetInputMethodAgent();
         void WorkThread();
+        std::vector<Property> ListInputMethodCommon(InputMethodStatus status);
 
         sptr<IInputDataChannel> mInputDataChannel;
         std::shared_ptr<InputMethodSettingListener> imeListener_;
