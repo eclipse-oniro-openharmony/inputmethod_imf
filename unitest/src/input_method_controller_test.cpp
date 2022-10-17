@@ -308,6 +308,10 @@ namespace MiscServices {
         IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
+
+        sptr<OnTextChangedListener> textListener = new TextListener();
+        imc->Attach(textListener);
+
         int32_t ret = imc->ShowSoftKeyboard();
         EXPECT_NE(ret, 0);
     }
@@ -322,6 +326,10 @@ namespace MiscServices {
         IMSA_HILOGI("IMC HideSoftKeyboard Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
+
+        sptr<OnTextChangedListener> textListener = new TextListener();
+        imc->Attach(textListener);
+
         int32_t ret = imc->HideSoftKeyboard();
         EXPECT_NE(ret, 0);
     }
@@ -336,6 +344,10 @@ namespace MiscServices {
         IMSA_HILOGI("IMC ShowOptionalInputMethod Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
+
+        sptr<OnTextChangedListener> textListener = new TextListener();
+        imc->Attach(textListener);
+
         int32_t ret = imc->ShowOptionalInputMethod();
         EXPECT_NE(ret, 0);
     }
