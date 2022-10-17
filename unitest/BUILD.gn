@@ -17,7 +17,7 @@ import("//build/test.gni")
 config("module_private_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [ "include" ]
+  include_dirs = [ "include"]
 }
 
 module_output_path = "imf/inputmethod_service"
@@ -41,12 +41,15 @@ ohos_unittest("InputMethodControllerTest") {
     "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
   ]
 
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
   ]
 }
 

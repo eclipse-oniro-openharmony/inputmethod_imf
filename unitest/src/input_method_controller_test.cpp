@@ -34,17 +34,40 @@
 #include "system_ability_definition.h"
 #include "utils.h"
 #include "message_parcel.h"
+#include "token_setproc.h"
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 
 using namespace testing::ext;
+using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace MiscServices {
+    void GrantPermissionNative()
+    {
+        const char **perms = new const char *[2];
+        perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
+        TokenInfoParams infoInstance = {
+            .dcapsNum = 0,
+            .permsNum = 1,
+            .aclsNum = 0,
+            .dcaps = nullptr,
+            .perms = perms,
+            .acls = nullptr,
+            .processName = "distributed_object",
+            .aplStr = "system_core",
+        };
+        uint64_t tokenId = GetAccessTokenId(&infoInstance);
+        SetSelfTokenID(tokenId);
+        AccessTokenKit::ReloadNativeTokenInfo();
+    }
+
     class TextListener : public OnTextChangedListener {
     public:
         TextListener() {}
         ~TextListener() {}
         void InsertText(const std::u16string& text)
         {
-            IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", MiscServices::Utils::ToStr8(text).c_str());
+            IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", MiscServices::Utils::to_utf8(text).c_str());
         }
 
         void DeleteBackward(int32_t length)
@@ -93,6 +116,7 @@ namespace MiscServices {
 
     void InputMethodControllerTest::SetUp(void)
     {
+        GrantPermissionNative();
         IMSA_HILOGI("InputMethodControllerTest::SetUp");
     }
 
