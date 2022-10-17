@@ -57,7 +57,12 @@ namespace MiscServices {
             .aplStr = "system_core",
         };
         uint64_t tokenId = GetAccessTokenId(&infoInstance);
-        SetSelfTokenID(tokenId);
+        int res = SetSelfTokenID(tokenId);
+        if (res == 0) {
+            IMSA_HILOGI("SetSelfTokenID success!");
+        } else {
+            IMSA_HILOGE("SetSelfTokenID fail!")
+        }
         AccessTokenKit::ReloadNativeTokenInfo();
         delete[] perms;
     }
