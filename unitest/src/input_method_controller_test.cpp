@@ -450,21 +450,6 @@ namespace MiscServices {
     }
 
     /**
-    * @tc.name: testIMCDisplayOptionalInputMethod
-    * @tc.desc: IMC testDisplayOptionalInputMethod.
-    * @tc.type: FUNC
-    * @tc.require:
-    */
-    HWTEST_F(InputMethodControllerTest, testIMCDisplayOptionalInputMethod, TestSize.Level2)
-    {
-        IMSA_HILOGI("IMC DisplayOptionalInputMethod Test START");
-        sptr<InputMethodController> imc = InputMethodController::GetInstance();
-        EXPECT_TRUE(imc != nullptr);
-        int32_t ret = imc->DisplayOptionalInputMethod();
-        EXPECT_TRUE(ret == 0);
-    }
-
-    /**
     * @tc.name: testIMCGetEnterKeyType
     * @tc.desc: IMC testGetEnterKeyType.
     * @tc.type: FUNC
