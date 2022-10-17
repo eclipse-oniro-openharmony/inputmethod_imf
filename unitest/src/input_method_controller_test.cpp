@@ -42,7 +42,7 @@ using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace MiscServices {
-    void GrantPermissionNative()
+    void GrantNativePermission()
     {
         const char **perms = new const char *[2];
         perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
@@ -53,12 +53,13 @@ namespace MiscServices {
             .dcaps = nullptr,
             .perms = perms,
             .acls = nullptr,
-            .processName = "distributed_object",
+            .processName = "inputmethod_imf",
             .aplStr = "system_core",
         };
         uint64_t tokenId = GetAccessTokenId(&infoInstance);
         SetSelfTokenID(tokenId);
         AccessTokenKit::ReloadNativeTokenInfo();
+        delete[] perms;
     }
 
     class TextListener : public OnTextChangedListener {
@@ -116,7 +117,7 @@ namespace MiscServices {
 
     void InputMethodControllerTest::SetUp(void)
     {
-        GrantPermissionNative();
+        GrantNativePermission();
         IMSA_HILOGI("InputMethodControllerTest::SetUp");
     }
 
@@ -310,7 +311,7 @@ namespace MiscServices {
         EXPECT_NE(imc, nullptr);
 
         int32_t ret = imc->ShowSoftKeyboard();
-        EXPECT_TRUE(ret == 0);
+        EXPECT_EQ(ret, 0);
     }
 
     /**
@@ -325,7 +326,7 @@ namespace MiscServices {
         EXPECT_NE(imc, nullptr);
 
         int32_t ret = imc->HideSoftKeyboard();
-        EXPECT_TRUE(ret == 0);
+        EXPECT_EQ(ret, 0);
     }
 
     /**
@@ -340,7 +341,7 @@ namespace MiscServices {
         EXPECT_NE(imc, nullptr);
 
         int32_t ret = imc->ShowOptionalInputMethod();
-        EXPECT_TRUE(ret == 0);
+        EXPECT_EQ(ret, 0);
     }
 
     /**
