@@ -1387,33 +1387,33 @@ namespace MiscServices {
                 },
                   [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CAPS); } },
                 { {
-                      .preKeys = {},
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
+                       .preKeys = {},
+                       .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
                   },
                     [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
                 { {
-                      .preKeys = {},
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
+                       .preKeys = {},
+                       .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
                   },
                     [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
                 { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
+                       .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
+                       .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
                   },
                     [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
                 { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
+                       .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
+                       .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
                   },
                     [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
                 { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
+                       .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
+                       .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
                   },
                     [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
                 { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
+                       .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
+                       .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
                   },
                     [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } } });
         return 0;
