@@ -34,10 +34,39 @@
 #include "system_ability_definition.h"
 #include "utils.h"
 #include "message_parcel.h"
+#include "token_setproc.h"
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 
 using namespace testing::ext;
+using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace MiscServices {
+    void GrantNativePermission()
+    {
+        const char **perms = new const char *[1];
+        perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
+        TokenInfoParams infoInstance = {
+            .dcapsNum = 0,
+            .permsNum = 1,
+            .aclsNum = 0,
+            .dcaps = nullptr,
+            .perms = perms,
+            .acls = nullptr,
+            .processName = "inputmethod_imf",
+            .aplStr = "system_core",
+        };
+        uint64_t tokenId = GetAccessTokenId(&infoInstance);
+        int res = SetSelfTokenID(tokenId);
+        if (res == 0) {
+            IMSA_HILOGI("SetSelfTokenID success!");
+        } else {
+            IMSA_HILOGE("SetSelfTokenID fail!");
+        }
+        AccessTokenKit::ReloadNativeTokenInfo();
+        delete[] perms;
+    }
+
     class TextListener : public OnTextChangedListener {
     public:
         TextListener() {}
@@ -93,6 +122,7 @@ namespace MiscServices {
 
     void InputMethodControllerTest::SetUp(void)
     {
+        GrantNativePermission();
         IMSA_HILOGI("InputMethodControllerTest::SetUp");
     }
 
@@ -284,8 +314,9 @@ namespace MiscServices {
         IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
+
         int32_t ret = imc->ShowSoftKeyboard();
-        EXPECT_NE(ret, 0);
+        EXPECT_EQ(ret, 0);
     }
 
     /**
@@ -298,8 +329,9 @@ namespace MiscServices {
         IMSA_HILOGI("IMC HideSoftKeyboard Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
+
         int32_t ret = imc->HideSoftKeyboard();
-        EXPECT_NE(ret, 0);
+        EXPECT_EQ(ret, 0);
     }
 
     /**
@@ -312,8 +344,9 @@ namespace MiscServices {
         IMSA_HILOGI("IMC ShowOptionalInputMethod Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
+
         int32_t ret = imc->ShowOptionalInputMethod();
-        EXPECT_NE(ret, 0);
+        EXPECT_EQ(ret, 0);
     }
 
     /**
@@ -414,21 +447,6 @@ namespace MiscServices {
         std::u16string text;
         imc->GetTextAfterCursor(TEXT_LENGTH, text);
         EXPECT_TRUE(text.size() == 0);
-    }
-
-    /**
-    * @tc.name: testIMCDisplayOptionalInputMethod
-    * @tc.desc: IMC testDisplayOptionalInputMethod.
-    * @tc.type: FUNC
-    * @tc.require:
-    */
-    HWTEST_F(InputMethodControllerTest, testIMCDisplayOptionalInputMethod, TestSize.Level2)
-    {
-        IMSA_HILOGI("IMC DisplayOptionalInputMethod Test START");
-        sptr<InputMethodController> imc = InputMethodController::GetInstance();
-        EXPECT_TRUE(imc != nullptr);
-        int32_t ret = imc->DisplayOptionalInputMethod();
-        EXPECT_TRUE(ret == 0);
     }
 
     /**
