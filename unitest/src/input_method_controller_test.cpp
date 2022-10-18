@@ -44,7 +44,7 @@ namespace OHOS {
 namespace MiscServices {
     void GrantNativePermission()
     {
-        const char **perms = new const char *[2];
+        const char **perms = new const char *[1];
         perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
         TokenInfoParams infoInstance = {
             .dcapsNum = 0,
