@@ -517,9 +517,9 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->SwitchInputMethod("com.example.kikakeyboard");
-        EXPECT_NE(ret, 0);
+        EXPECT_EQ(ret, 0);
         ret = imc->SwitchInputMethod("com.example.kikakeyboard", "ServiceExtAbility");
-        EXPECT_NE(ret, 0);
+        EXPECT_EQ(ret, 0);
     }
 
     /**
