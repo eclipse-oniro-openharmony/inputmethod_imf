@@ -246,7 +246,6 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
 {
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        // one parameter: InputMethodProperty
         if (argc < 1) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
                                     "should has one parameter.", TYPE_NONE);

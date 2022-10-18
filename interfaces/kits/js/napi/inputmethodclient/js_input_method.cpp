@@ -221,7 +221,6 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
 {
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        // required 1 arguments :: <InputMethodProperty>
         if (argc < 1) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
                                     "should has 1 parameters!", TYPE_NONE);
@@ -285,7 +284,6 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
 {
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        // parameter: (target: InputMethodSubtype)
         if (argc < 1) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
                                     "should has one parameter.", TYPE_NONE);
@@ -306,7 +304,7 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->packageName);
+        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->id, ctxt->label);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec SwitchInputMethod success");
             ctxt->status = napi_ok;
@@ -325,7 +323,6 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
 {
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        // two parameter: InputMethodProperty, InputMethodSubtype
         if (argc < 2) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
                                     "should has two parameter.", TYPE_NONE);
@@ -337,6 +334,7 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " inputMethodProperty: ", TYPE_OBJECT);
             return napi_object_expected;
         }
+        napi_typeof(env, argv[1], &valueType);
         if (valueType != napi_object) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " inputMethodSubtype: ", TYPE_OBJECT);
             return napi_object_expected;
@@ -350,7 +348,7 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->packageName);
+        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->id, ctxt->label);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec SwitchInputMethod success");
             ctxt->status = napi_ok;
