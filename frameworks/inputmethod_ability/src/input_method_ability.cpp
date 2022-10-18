@@ -18,16 +18,17 @@
 #include <para_handle.h>
 #include <unistd.h>
 
+#include "global.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_agent_stub.h"
 #include "input_method_core_proxy.h"
 #include "input_method_core_stub.h"
 #include "input_method_utils.h"
 #include "iservice_registry.h"
+#include "itypes_util.h"
 #include "message_parcel.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
-#include "global.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -192,10 +193,6 @@ namespace MiscServices {
                     }
                     break;
                 }
-                case MSG_ID_SET_SUBTYPE: {
-                    OnSetSubtype(msg);
-                    break;
-                }
                 default: {
                     break;
                 }
@@ -251,14 +248,19 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodAbility::OnShowKeyboard");
         MessageParcel *data = msg->msgContent_;
-        sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
+        sptr<IRemoteObject> channelObject;
+        bool isShowKeyboard = false;
+        SubProperty subProperty;
+        if (!ITypesUtil::Unmarshal(*data, channelObject, isShowKeyboard, subProperty)) {
+            IMSA_HILOGE("InputMethodAbility::OnShowKeyboard read message parcel failed");
+            return;
+        }
         if (channelObject == nullptr) {
             IMSA_HILOGI("InputMethodAbility::OnShowKeyboard channelObject is nullptr");
             return;
         }
         SetInputDataChannel(channelObject);
-        bool isShowKeyboard = data->ReadBool();
-        ShowInputWindow(isShowKeyboard);
+        ShowInputWindow(isShowKeyboard, subProperty);
     }
 
     void InputMethodAbility::OnHideKeyboard(Message *msg)
@@ -274,22 +276,6 @@ namespace MiscServices {
             delete writeInputChannel;
             writeInputChannel = nullptr;
         }
-    }
-
-    void InputMethodAbility::OnSetSubtype(Message *msg)
-    {
-        IMSA_HILOGI("InputMethodAbility::OnSetSubtype");
-        auto data = msg->msgContent_;
-        SubProperty subProperty;
-        if (!ITypesUtil::Unmarshal(*data, subProperty)) {
-            IMSA_HILOGE("read message parcel failed");
-            return;
-        }
-        if (imeListener_ == nullptr) {
-            IMSA_HILOGI("InputMethodAbility::OnSetSubtype imeListener_ is nullptr");
-            return;
-        }
-        imeListener_->OnSetSubtype(subProperty);
     }
 
     bool InputMethodAbility::DispatchKeyEvent(int32_t keyCode, int32_t keyStatus)
@@ -351,14 +337,15 @@ namespace MiscServices {
         kdListener_->OnSelectionChange(oldBegin, oldEnd, newBegin, newEnd);
     }
 
-    void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
+    void InputMethodAbility::ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty)
     {
         IMSA_HILOGI("InputMethodAbility::ShowInputWindow");
-        if (!imeListener_) {
+        if (imeListener_ == nullptr) {
             IMSA_HILOGI("InputMethodAbility::ShowInputWindow imeListener_ is nullptr");
             return;
         }
         imeListener_->OnInputStart();
+        imeListener_->OnSetSubtype(subProperty);
         if (!isShowKeyboard) {
             IMSA_HILOGI("InputMethodAbility::ShowInputWindow will not show keyboard");
             return;

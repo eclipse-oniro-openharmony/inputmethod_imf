@@ -179,6 +179,11 @@ namespace MiscServices {
         void ClearImeData(uint32_t index);
         void SetCurrentClient(sptr<IInputClient> client);
         sptr<IInputClient> GetCurrentClient();
+
+        std::mutex propertyLock_;
+        SubProperty currentSubProperty;
+        void SetCurrentSubProperty(const SubProperty &subProperty);
+        SubProperty GetCurrentSubProperty();
     };
 } // namespace MiscServices
 } // namespace OHOS

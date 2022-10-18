@@ -403,7 +403,12 @@ namespace MiscServices {
             return ErrorCode::ERROR_NULL_POINTER;
         }
 
-        imsCore[0]->showKeyboard(clientInfo->channel, isShowKeyboard);
+        auto subProperty = GetCurrentSubProperty();
+        int32_t ret = imsCore[0]->showKeyboard(clientInfo->channel, isShowKeyboard, subProperty);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("PerUserSession::showKeyboard failed ret: %{public}d", ret);
+            return ErrorCode::ERROR_KBD_SHOW_FAILED;
+        }
 
         SetCurrentClient(inputClient);
         return ErrorCode::NO_ERROR;
@@ -1220,16 +1225,22 @@ namespace MiscServices {
                 return ret;
             }
         }
-        if (imsCore[0] == nullptr) {
-            IMSA_HILOGE("imsCore is nullptr");
-            return ErrorCode::ERROR_EX_NULL_POINTER;
-        }
-        int32_t ret = imsCore[0]->SetSubtype(subProperty);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("PerUserSession::SetSubtype failed, ret %{public}d", ret);
-            return ret;
-        }
+        SetCurrentSubProperty(subProperty);
         return ErrorCode::NO_ERROR;
+    }
+
+    SubProperty PerUserSession::GetCurrentSubProperty()
+    {
+        IMSA_HILOGI("PerUserSession::GetCurrentSubProperty");
+        std::lock_guard<std::mutex> lock(propertyLock_);
+        return currentSubProperty;
+    }
+
+    void PerUserSession::SetCurrentSubProperty(const SubProperty &subProperty)
+    {
+        IMSA_HILOGI("PerUserSession::SetCurrentSubProperty");
+        std::lock_guard<std::mutex> lock(propertyLock_);
+        currentSubProperty = subProperty;
     }
 } // namespace MiscServices
 } // namespace OHOS

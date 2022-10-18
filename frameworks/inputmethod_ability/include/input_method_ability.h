@@ -105,13 +105,12 @@ namespace MiscServices {
         void OnShowKeyboard(Message *msg);
         void OnHideKeyboard(Message *msg);
         void OnInitInputControlChannel(Message *msg);
-        void OnSetSubtype(Message *msg);
 
         void OnCursorUpdate(Message *msg);
         void OnSelectionChange(Message *msg);
 
         void InitialInputWindow();
-        void ShowInputWindow(bool isShowKeyboard);
+        void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
         void DissmissInputWindow();
 
         void BindServiceAndClient();

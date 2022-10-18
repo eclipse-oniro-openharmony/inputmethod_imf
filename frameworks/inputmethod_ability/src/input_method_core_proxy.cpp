@@ -194,28 +194,13 @@ namespace MiscServices {
         return reply.ReadInt32();
     }
 
-    bool InputMethodCoreProxy::showKeyboard(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard)
+    int32_t InputMethodCoreProxy::showKeyboard(
+        const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty)
     {
         IMSA_HILOGI("InputMethodCoreProxy::showKeyboard");
-        auto remote = Remote();
-        if (!remote) {
-            IMSA_HILOGI("InputMethodCoreProxy::showKeyboard remote is nullptr");
-            return false;
-        }
-
-        MessageParcel data;
-        if (!(data.WriteInterfaceToken(GetDescriptor()) && data.WriteRemoteObject(inputDataChannel->AsObject())
-                && data.WriteBool(isShowKeyboard))) {
-            return false;
-        }
-        MessageParcel reply;
-        MessageOption option { MessageOption::TF_SYNC };
-
-        int32_t res = remote->SendRequest(SHOW_KEYBOARD, data, reply, option);
-        if (res != ErrorCode::NO_ERROR) {
-            return false;
-        }
-        return true;
+        return SendRequest(SHOW_KEYBOARD, [&inputDataChannel, &isShowKeyboard, &subProperty](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, inputDataChannel->AsObject(), isShowKeyboard, subProperty);
+        });
     }
 
     void InputMethodCoreProxy::StopInputService(std::string imeId)
@@ -311,13 +296,6 @@ namespace MiscServices {
         }
         retHeight = reply.ReadInt32();
         return ErrorCode::NO_ERROR;
-    }
-
-    int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)
-    {
-        IMSA_HILOGI("InputMethodCoreProxy::SetSubtype");
-        return SendRequest(
-            SET_SUBTYPE, [&property](MessageParcel &data) { return ITypesUtil::Marshal(data, property); });
     }
 
     int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
