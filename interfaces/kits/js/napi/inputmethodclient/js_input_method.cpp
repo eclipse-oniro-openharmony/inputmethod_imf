@@ -102,7 +102,7 @@ napi_status JsInputMethod::GetInputMethodSubProperty(
     status = napi_typeof(env, argv, &valueType);
     if (valueType == napi_object) {
         napi_value result = nullptr;
-        napi_status status = napi_get_named_property(env, argv, "id", &result);
+        status = napi_get_named_property(env, argv, "id", &result);
         if (status != napi_ok) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
                                     "missing id parameter.", TYPE_STRING);
