@@ -297,7 +297,7 @@ namespace MiscServices {
             });
         reply.WriteInt32(ret);
     }
-    
+
     int32_t InputMethodCoreStub::showKeyboard(
         const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty)
     {
@@ -318,6 +318,7 @@ namespace MiscServices {
         }
         if (input != nullptr && (!input(*parcel))) {
             IMSA_HILOGE("write data failed");
+            delete parcel;
             return ErrorCode::ERROR_EX_PARCELABLE;
         }
         auto *msg = new (std::nothrow) Message(code, parcel);
