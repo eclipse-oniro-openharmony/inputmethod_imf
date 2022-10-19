@@ -1226,6 +1226,15 @@ namespace MiscServices {
             }
         }
         SetCurrentSubProperty(subProperty);
+        if (imsCore[0] == nullptr) {
+            IMSA_HILOGE("imsCore is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        int32_t ret = imsCore[0]->SetSubtype(subProperty);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("PerUserSession::SetSubtype failed, ret %{public}d", ret);
+            return ret;
+        }
         return ErrorCode::NO_ERROR;
     }
 

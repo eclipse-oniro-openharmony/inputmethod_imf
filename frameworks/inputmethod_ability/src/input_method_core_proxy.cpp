@@ -298,6 +298,13 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
+    int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)
+    {
+        IMSA_HILOGI("InputMethodCoreProxy::SetSubtype");
+        return SendRequest(
+            SET_SUBTYPE, [&property](MessageParcel &data) { return ITypesUtil::Marshal(data, property); });
+    }
+
     int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
     {
         IMSA_HILOGI("InputMethodCoreProxy::%{public}s in", __func__);

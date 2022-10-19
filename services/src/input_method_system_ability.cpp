@@ -224,7 +224,9 @@ namespace MiscServices {
         workThreadHandler = std::thread([this] { WorkThread(); });
         PerUserSetting *setting = new PerUserSetting(MAIN_USER_ID);
         userSettings.insert(std::pair<int32_t, PerUserSetting *>(MAIN_USER_ID, setting));
-        userSessions.insert({ MAIN_USER_ID, std::make_shared<PerUserSession>(MAIN_USER_ID) });
+        auto session = std::make_shared<PerUserSession>(MAIN_USER_ID);
+        session->SetCurrentSubProperty(*GetCurrentInputMethodSubtype());
+        userSessions.insert({ MAIN_USER_ID, session });
 
         userId_ = MAIN_USER_ID;
         setting->Initialize();
@@ -939,7 +941,9 @@ namespace MiscServices {
         setting->Initialize();
 
         userSettings.insert(std::pair<int32_t, PerUserSetting *>(userId, setting));
-        userSessions.insert({ userId, std::make_shared<PerUserSession>(userId) });
+        auto session = std::make_shared<PerUserSession>(MAIN_USER_ID);
+        session->SetCurrentSubProperty(*GetCurrentInputMethodSubtype());
+        userSessions.insert({ MAIN_USER_ID, session });
         return ErrorCode::NO_ERROR;
     }
 
@@ -1382,40 +1386,40 @@ namespace MiscServices {
     {
         ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
             { { {
-                    .preKeys = {},
-                    .finalKey = MMI::KeyEvent::KEYCODE_CAPS_LOCK,
+                     .preKeys = {},
+                     .finalKey = MMI::KeyEvent::KEYCODE_CAPS_LOCK,
                 },
-                  [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CAPS); } },
+                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CAPS); } },
                 { {
                        .preKeys = {},
                        .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
                   },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
+                      [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
                 { {
                        .preKeys = {},
                        .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
                   },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
+                      [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
                 { {
                        .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
                        .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
                   },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
+                      [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
                 { {
                        .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
                        .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
                   },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
+                      [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
                 { {
                        .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
                        .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
                   },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
+                      [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
                 { {
                        .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
                        .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
                   },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } } });
+                      [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } } });
         return 0;
     }
 } // namespace MiscServices

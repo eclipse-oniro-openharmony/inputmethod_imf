@@ -193,6 +193,10 @@ namespace MiscServices {
                     }
                     break;
                 }
+                case MSG_ID_SET_SUBTYPE: {
+                    OnSetSubtype(msg);
+                    break;
+                }
                 default: {
                     break;
                 }
@@ -276,6 +280,22 @@ namespace MiscServices {
             delete writeInputChannel;
             writeInputChannel = nullptr;
         }
+    }
+
+    void InputMethodAbility::OnSetSubtype(Message *msg)
+    {
+        IMSA_HILOGI("InputMethodAbility::OnSetSubtype");
+        auto data = msg->msgContent_;
+        SubProperty subProperty;
+        if (!ITypesUtil::Unmarshal(*data, subProperty)) {
+            IMSA_HILOGE("read message parcel failed");
+            return;
+        }
+        if (imeListener_ == nullptr) {
+            IMSA_HILOGI("InputMethodAbility::OnSetSubtype imeListener_ is nullptr");
+            return;
+        }
+        imeListener_->OnSetSubtype(subProperty);
     }
 
     bool InputMethodAbility::DispatchKeyEvent(int32_t keyCode, int32_t keyStatus)

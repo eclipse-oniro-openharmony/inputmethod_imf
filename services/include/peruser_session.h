@@ -107,6 +107,9 @@ namespace MiscServices {
         static bool StartInputService();
         int32_t OnInputMethodSwitched(const Property &property, const SubProperty &subProperty);
 
+        void SetCurrentSubProperty(const SubProperty &subProperty);
+        SubProperty GetCurrentSubProperty();
+
     private:
         int userId_; // the id of the user to whom the object is linking
         int userState = UserState::USER_STATE_STARTED; // the state of the user to whom the object is linking
@@ -182,8 +185,6 @@ namespace MiscServices {
 
         std::mutex propertyLock_;
         SubProperty currentSubProperty;
-        void SetCurrentSubProperty(const SubProperty &subProperty);
-        SubProperty GetCurrentSubProperty();
     };
 } // namespace MiscServices
 } // namespace OHOS

@@ -64,6 +64,7 @@ namespace MiscServices {
         virtual int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel) = 0;
         virtual void SetClientState(bool state) = 0;
         virtual void StopInputService(std::string imeId) = 0;
+        virtual int32_t SetSubtype(const SubProperty &property) = 0;
     };
 } // namespace MiscServices
 } // namespace OHOS

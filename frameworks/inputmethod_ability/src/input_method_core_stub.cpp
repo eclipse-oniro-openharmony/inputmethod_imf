@@ -133,6 +133,10 @@ namespace MiscServices {
                 reply.WriteNoException();
                 break;
             }
+            case SET_SUBTYPE: {
+                SetSubtypeOnRemote(data, reply);
+                break;
+            }
             default: {
                 return IRemoteStub::OnRemoteRequest(code, data, reply, option);
             }
@@ -298,8 +302,23 @@ namespace MiscServices {
         reply.WriteInt32(ret);
     }
 
+    void InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
+    {
+        IMSA_HILOGI("InputMethodCoreStub::SetSubtypeOnRemote");
+        SubProperty property;
+        int32_t ret = SendMessage(MessageID::MSG_ID_SET_SUBTYPE, [&data, &property](MessageParcel &parcel) {
+            return ITypesUtil::Unmarshal(data, property) && ITypesUtil::Marshal(parcel, property);
+        });
+        reply.WriteInt32(ret);
+    }
+
     int32_t InputMethodCoreStub::showKeyboard(
         const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty)
+    {
+        return ErrorCode::NO_ERROR;
+    }
+
+    int32_t InputMethodCoreStub::SetSubtype(const SubProperty &property)
     {
         return ErrorCode::NO_ERROR;
     }

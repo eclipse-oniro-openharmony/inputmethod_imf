@@ -49,6 +49,7 @@ namespace MiscServices {
         int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel) override;
         void SetClientState(bool state) override;
         void StopInputService(std::string imeId) override;
+        int32_t SetSubtype(const SubProperty &property) override;
 
     private:
         static inline BrokerDelegator<InputMethodCoreProxy> delegator_;

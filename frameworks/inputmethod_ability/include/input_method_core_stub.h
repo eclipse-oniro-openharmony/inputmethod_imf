@@ -57,11 +57,13 @@ namespace MiscServices {
         int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel) override;
         void SetClientState(bool state) override;
         void StopInputService(std::string imeId) override;
+        int32_t SetSubtype(const SubProperty &property) override;
         void SetMessageHandler(MessageHandler *msgHandler);
 
     private:
         int userId_;
         MessageHandler *msgHandler_;
+        void SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
         void ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply);
         using ParcelHandler = std::function<bool(MessageParcel &)>;
         int32_t SendMessage(int code, ParcelHandler input = nullptr);
