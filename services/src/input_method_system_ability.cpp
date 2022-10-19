@@ -939,10 +939,15 @@ namespace MiscServices {
 
         setting = new PerUserSetting(userId);
         setting->Initialize();
-
         userSettings.insert(std::pair<int32_t, PerUserSetting *>(userId, setting));
+
         auto session = std::make_shared<PerUserSession>(MAIN_USER_ID);
-        session->SetCurrentSubProperty(*GetCurrentInputMethodSubtype());
+        auto currentSubtype = GetCurrentInputMethodSubtype();
+        if (currentSubtype == nullptr) {
+            IMSA_HILOGE("currentSubtype is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        session->SetCurrentSubProperty(*currentSubtype);
         userSessions.insert({ MAIN_USER_ID, session });
         return ErrorCode::NO_ERROR;
     }

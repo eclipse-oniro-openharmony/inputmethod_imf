@@ -252,7 +252,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodAbility::OnShowKeyboard");
         MessageParcel *data = msg->msgContent_;
-        sptr<IRemoteObject> channelObject;
+        sptr<IRemoteObject> channelObject = nullptr;
         bool isShowKeyboard = false;
         SubProperty subProperty;
         if (!ITypesUtil::Unmarshal(*data, channelObject, isShowKeyboard, subProperty)) {
