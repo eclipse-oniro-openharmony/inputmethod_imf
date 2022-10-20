@@ -18,6 +18,7 @@
 #include "input_method_controller.h"
 #include "input_method_status.h"
 #include "js_input_method.h"
+#include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
@@ -36,12 +37,37 @@ std::mutex JsGetInputMethodSetting::msMutex_;
 std::shared_ptr<JsGetInputMethodSetting> JsGetInputMethodSetting::inputMethod_{ nullptr };
 napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
 {
-        napi_value maxTypeNumber = nullptr;
-        napi_create_int32(env, MAX_TYPE_NUM, &maxTypeNumber);
+    napi_value maxTypeNumber = nullptr;
+    napi_create_int32(env, MAX_TYPE_NUM, &maxTypeNumber);
         
-        napi_property_descriptor descriptor[] = {
+    napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getInputMethodSetting", GetSetting),
         DECLARE_NAPI_FUNCTION("getSetting", GetSetting),
+
+        DECLARE_NAPI_PROPERTY("EXCEPTION_PERMISSION",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PERMISSION))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_PARAMCHECK",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PARAMCHECK))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_UNSUPPORTED",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_UNSUPPORTED))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_PACKAGEMANAGER",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PACKAGEMANAGER))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_IMENGINE",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMENGINE))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_IMCLIENT",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMCLIENT))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_KEYEVENT",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_KEYEVENT))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_CONFPERSIST",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_CONFPERSIST))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_CONTROLLER",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_CONTROLLER))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_SETTINGS",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_SETTINGS))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_IMMS",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMMS))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_OTHERS",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_OTHERS))),
         DECLARE_NAPI_PROPERTY("MAX_TYPE_NUM", maxTypeNumber),
     };
     NAPI_CALL(
@@ -84,6 +110,13 @@ napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_in
         napi_get_uv_event_loop(env, &delegate->loop_);
     }
     return thisVar;
+}
+
+napi_value JsGetInputMethodSetting::GetJsConstProperty(napi_env env, uint32_t num)
+{
+    napi_value jsNumber = nullptr;
+    napi_create_int32(env, num, &jsNumber);
+    return jsNumber;
 }
 
 std::shared_ptr<JsGetInputMethodSetting> JsGetInputMethodSetting::GetInputMethodSettingInstance()
