@@ -1392,8 +1392,28 @@ namespace MiscServices {
                   },
                     [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
                 { {
+                      .preKeys = {},
+                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
+                  },
+                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
+                { {
                       .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
                       .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
+                  },
+                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
+                { {
+                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
+                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
+                  },
+                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
+                { {
+                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
+                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
+                  },
+                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
+                { {
+                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
+                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
                   },
                     [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } } });
         return 0;
