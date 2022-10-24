@@ -224,14 +224,7 @@ namespace MiscServices {
         workThreadHandler = std::thread([this] { WorkThread(); });
         PerUserSetting *setting = new PerUserSetting(MAIN_USER_ID);
         userSettings.insert(std::pair<int32_t, PerUserSetting *>(MAIN_USER_ID, setting));
-        auto session = std::make_shared<PerUserSession>(MAIN_USER_ID);
-        auto currentSubtype = GetCurrentInputMethodSubtype();
-        if (currentSubtype == nullptr) {
-            IMSA_HILOGE("currentSubtype is nullptr");
-            return;
-        }
-        session->SetCurrentSubProperty(*currentSubtype);
-        userSessions.insert({ MAIN_USER_ID, session });
+        userSessions.insert({ MAIN_USER_ID, std::make_shared<PerUserSession>(MAIN_USER_ID) });
 
         userId_ = MAIN_USER_ID;
         setting->Initialize();
@@ -367,6 +360,12 @@ namespace MiscServices {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
+        auto currentSubtype = GetCurrentInputMethodSubtype();
+        if (currentSubtype == nullptr) {
+            IMSA_HILOGE("currentSubtype is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        session->SetCurrentSubProperty(*currentSubtype);
         return session->OnStartInput(client, isShowKeyboard);
     };
 
@@ -944,16 +943,9 @@ namespace MiscServices {
 
         setting = new PerUserSetting(userId);
         setting->Initialize();
-        userSettings.insert(std::pair<int32_t, PerUserSetting *>(userId, setting));
 
-        auto session = std::make_shared<PerUserSession>(MAIN_USER_ID);
-        auto currentSubtype = GetCurrentInputMethodSubtype();
-        if (currentSubtype == nullptr) {
-            IMSA_HILOGE("currentSubtype is nullptr");
-            return ErrorCode::ERROR_EX_NULL_POINTER;
-        }
-        session->SetCurrentSubProperty(*currentSubtype);
-        userSessions.insert({ MAIN_USER_ID, session });
+        userSettings.insert(std::pair<int32_t, PerUserSetting *>(userId, setting));
+        userSessions.insert({ userId, std::make_shared<PerUserSession>(userId) });
         return ErrorCode::NO_ERROR;
     }
 
