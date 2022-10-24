@@ -1225,6 +1225,10 @@ namespace MiscServices {
                 return ret;
             }
         }
+        if (subProperty.id != currentSubProperty.id) {
+            SetCurrentSubProperty(subProperty);
+            return ErrorCode::NO_ERROR;
+        }
         SetCurrentSubProperty(subProperty);
         if (imsCore[0] == nullptr) {
             IMSA_HILOGE("imsCore is nullptr");
