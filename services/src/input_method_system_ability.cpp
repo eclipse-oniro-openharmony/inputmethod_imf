@@ -373,6 +373,11 @@ namespace MiscServices {
         return session->OnStopInput(client);
     };
 
+    int32_t InputMethodSystemAbility::StopInputSession()
+    {
+        return HideCurrentInput();
+    }
+
     int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
     {
         auto session = GetUserSession(MAIN_USER_ID);
@@ -422,79 +427,86 @@ namespace MiscServices {
         return ret;
     }
 
-    std::vector<Property> InputMethodSystemAbility::ListInputMethod(InputMethodStatus status)
+    int32_t InputMethodSystemAbility::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
     {
-        return ListInputMethodByUserId(MAIN_USER_ID, status);
+        return ListInputMethodByUserId(MAIN_USER_ID, status, props);
     }
 
-    std::vector<Property> InputMethodSystemAbility::ListAllInputMethod(int32_t userId)
+    int32_t InputMethodSystemAbility::ListAllInputMethod(int32_t userId, std::vector<Property> &props)
     {
         IMSA_HILOGI("InputMethodSystemAbility::listAllInputMethod");
-        return ListProperty(userId);
+        return ListProperty(userId, props);
     }
 
-    std::vector<Property> InputMethodSystemAbility::ListEnabledInputMethod()
+    int32_t InputMethodSystemAbility::ListEnabledInputMethod(std::vector<Property> &props)
     {
         IMSA_HILOGI("InputMethodSystemAbility::listEnabledInputMethod");
         auto current = GetCurrentInputMethod();
         if (current == nullptr) {
             IMSA_HILOGE("GetCurrentInputMethod current is nullptr");
-            return {};
+            return ErrorCode::ERROR_NULL_POINTER;
         }
         auto property = FindProperty(current->name);
-        return { property };
+        props = { property };
+        return ErrorCode::NO_ERROR;
     }
 
-    std::vector<Property> InputMethodSystemAbility::ListDisabledInputMethod(int32_t userId)
+    int32_t InputMethodSystemAbility::ListDisabledInputMethod(int32_t userId, std::vector<Property> &props)
     {
         IMSA_HILOGI("InputMethodSystemAbility::listDisabledInputMethod");
-        auto properties = ListProperty(userId);
+        auto ret = ListProperty(userId, props);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("list property is failed, ret = %{public}d", ret);
+            return ret;
+        }
         auto filter = GetCurrentInputMethod();
         if (filter == nullptr) {
             IMSA_HILOGE("GetCurrentInputMethod property is nullptr");
-            return {};
+            return ErrorCode::ERROR_NULL_POINTER;
         }
-        for (auto iter = properties.begin(); iter != properties.end();) {
+        for (auto iter = props.begin(); iter != props.end();) {
             if (iter->name == filter->name && iter->id == filter->id) {
-                iter = properties.erase(iter);
+                iter = props.erase(iter);
                 continue;
             }
             ++iter;
         }
-        return properties;
+        return ErrorCode::NO_ERROR;
     }
 
-    std::vector<SubProperty> InputMethodSystemAbility::ListCurrentInputMethodSubtype()
+    int32_t InputMethodSystemAbility::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListCurrentInputMethodSubtype");
         auto filter = GetCurrentInputMethod();
         if (filter == nullptr) {
             IMSA_HILOGE("GetCurrentInputMethod failed");
-            return {};
+            return ErrorCode::ERROR_NULL_POINTER;
         }
-        return ListSubtypeByBundleName(MAIN_USER_ID, filter->name);
+        return ListSubtypeByBundleName(MAIN_USER_ID, filter->name, subProps);
     }
 
-    std::vector<SubProperty> InputMethodSystemAbility::ListInputMethodSubtype(const std::string &name)
+    int32_t InputMethodSystemAbility::ListInputMethodSubtype(
+        const std::string &name, std::vector<SubProperty> &subProps)
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodSubtype");
-        return ListSubtypeByBundleName(MAIN_USER_ID, name);
+        return ListSubtypeByBundleName(MAIN_USER_ID, name, subProps);
     }
 
-    std::vector<SubProperty> InputMethodSystemAbility::ListSubtypeByBundleName(int32_t userId, const std::string &name)
+    int32_t InputMethodSystemAbility::ListSubtypeByBundleName(
+        int32_t userId, const std::string &name, std::vector<SubProperty> &subProps)
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListSubtypeByBundleName");
         std::vector<AppExecFwk::ExtensionAbilityInfo> subtypeInfos;
         if (!GetBundleMgr()->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, subtypeInfos)) {
             IMSA_HILOGE("QueryExtensionAbilityInfos failed");
-            return {};
+            return ErrorCode::ERROR_PACKAGE_MANAGER;
         }
         std::vector<SubProperty> properties;
         for (const auto &subtypeInfo : subtypeInfos) {
             if (subtypeInfo.bundleName == name) {
                 std::vector<Metadata> extends = subtypeInfo.metadata;
                 auto property = GetExtends(extends);
-                properties.push_back({ .id = subtypeInfo.bundleName,
+                subProps.push_back({ .id = subtypeInfo.bundleName,
                     .label = subtypeInfo.name,
                     .name = subtypeInfo.moduleName,
                     .iconId = subtypeInfo.iconId,
@@ -504,7 +516,7 @@ namespace MiscServices {
                     .icon = property.icon });
             }
         }
-        return properties;
+        return ErrorCode::NO_ERROR;
     }
 
     SubProperty InputMethodSystemAbility::GetExtends(const std::vector<Metadata> &metaData)
@@ -540,7 +552,12 @@ namespace MiscServices {
     int32_t InputMethodSystemAbility::SwitchInputMethodType(const std::string &name)
     {
         IMSA_HILOGI("InputMethodSystemAbility::SwitchInputMethodType");
-        const auto &properties = ListInputMethodByUserId(MAIN_USER_ID, ALL);
+        std::vector<Property> properties = {};
+        auto ret = ListInputMethodByUserId(MAIN_USER_ID, ALL, properties);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("ListInputMethodByUserId failed, ret = %{public}d", ret);
+            return ret;
+        }
         if (properties.empty()) {
             IMSA_HILOGE("InputMethodSystemAbility::SwitchInputMethodType has no ime");
             return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -558,13 +575,18 @@ namespace MiscServices {
     int32_t InputMethodSystemAbility::SwitchInputMethodSubtype(const std::string &bundleName, const std::string &name)
     {
         IMSA_HILOGI("InputMethodSystemAbility::SwitchInputMethodSubtype");
-        const auto &properties = ListSubtypeByBundleName(MAIN_USER_ID, bundleName);
-        if (properties.empty()) {
+        std::vector<SubProperty> subProps = {};
+        auto ret = ListSubtypeByBundleName(MAIN_USER_ID, bundleName, subProps);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("ListSubtypeByBundleName failed, ret = %{public}d", ret);
+            return ret;
+        }
+        if (subProps.empty()) {
             IMSA_HILOGE("InputMethodSystemAbility::SwitchInputMethodSubtype has no ime");
             return ErrorCode::ERROR_BAD_PARAMETERS;
         }
-        for (const auto &property : properties) {
-            if (property.label == name) {
+        for (const auto &subProp : subProps) {
+            if (subProp.label == name) {
                 IMSA_HILOGI("target is installed, start switching");
                 return OnSwitchInputMethod(bundleName, name);
             }
@@ -590,7 +612,7 @@ namespace MiscServices {
         }
         if (!ParaHandle::SetDefaultIme(userId_, targetIme)) {
             IMSA_HILOGE("set default ime failed");
-            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+            return ErrorCode::ERROR_PERSIST_CONFIG;
         }
         auto session = GetUserSession(MAIN_USER_ID);
         if (session == nullptr) {
@@ -603,10 +625,15 @@ namespace MiscServices {
     Property InputMethodSystemAbility::FindProperty(const std::string &name)
     {
         IMSA_HILOGI("InputMethodSystemAbility::FindProperty");
-        const auto &properties = ListAllInputMethod(MAIN_USER_ID);
-        for (const auto &property : properties) {
-            if (property.name == name) {
-                return property;
+        std::vector<Property> props = {};
+        auto ret = ListAllInputMethod(MAIN_USER_ID, props);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("ListAllInputMethod failed");
+            return {};
+        }
+        for (const auto &prop : props) {
+            if (prop.name == name) {
+                return prop;
             }
         }
         IMSA_HILOGE("InputMethodSystemAbility::FindProperty failed");
@@ -616,10 +643,15 @@ namespace MiscServices {
     SubProperty InputMethodSystemAbility::FindSubProperty(const std::string &bundleName, const std::string &name)
     {
         IMSA_HILOGI("InputMethodSystemAbility::FindSubProperty");
-        const auto &properties = ListSubtypeByBundleName(MAIN_USER_ID, bundleName);
-        for (const auto &property : properties) {
-            if (property.label == name) {
-                return property;
+        std::vector<SubProperty> subProps = {};
+        auto ret = ListSubtypeByBundleName(MAIN_USER_ID, bundleName, subProps);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("ListSubtypeByBundleName failed, ret = %{public}d", ret);
+            return {};
+        }
+        for (const auto &subProp : subProps) {
+            if (subProp.label == name) {
+                return subProp;
             }
         }
         IMSA_HILOGE("InputMethodSystemAbility::FindSubProperty failed");
@@ -653,19 +685,20 @@ namespace MiscServices {
     \return ErrorCode::NO_ERROR no error
     \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
     */
-    std::vector<Property> InputMethodSystemAbility::ListInputMethodByUserId(int32_t userId, InputMethodStatus status)
+    int32_t InputMethodSystemAbility::ListInputMethodByUserId(
+        int32_t userId, InputMethodStatus status, std::vector<Property> &props)
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodByUserId");
         if (status == InputMethodStatus::ALL) {
-            return ListAllInputMethod(userId);
+            return ListAllInputMethod(userId, props);
         }
         if (status == InputMethodStatus::ENABLE) {
-            return ListEnabledInputMethod();
+            return ListEnabledInputMethod(props);
         }
         if (status == InputMethodStatus::DISABLE) {
-            return ListDisabledInputMethod(userId);
+            return ListDisabledInputMethod(userId, props);
         }
-        return {};
+        return ErrorCode::ERROR_BAD_PARAMETERS;
     }
 
     std::vector<InputMethodInfo> InputMethodSystemAbility::ListInputMethodInfo(int32_t userId)
@@ -679,7 +712,8 @@ namespace MiscServices {
         }
         std::vector<InputMethodInfo> properties;
         for (auto extension : extensionInfos) {
-            std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
+            std::shared_ptr<Global::Resource::ResourceManager> resourceManager(
+                Global::Resource::CreateResourceManager());
             if (resourceManager == nullptr) {
                 IMSA_HILOGE("InputMethodSystemAbility::ListInputMethodInfo resourcemanager is nullptr");
                 break;
@@ -701,20 +735,19 @@ namespace MiscServices {
         return properties;
     }
 
-    std::vector<Property> InputMethodSystemAbility::ListProperty(int32_t userId)
+    int32_t InputMethodSystemAbility::ListProperty(int32_t userId, std::vector<Property> &props)
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListProperty userId = %{public}d", userId);
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
         bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, extensionInfos);
         if (!ret) {
             IMSA_HILOGE("InputMethodSystemAbility::ListProperty QueryExtensionAbilityInfos error");
-            return {};
+            return ErrorCode::ERROR_PACKAGE_MANAGER;
         }
-        std::vector<Property> properties;
         for (const auto &extension : extensionInfos) {
             bool isInVector = false;
-            for (const auto &property : properties) {
-                if (extension.bundleName == property.name) {
+            for (const auto &prop : props) {
+                if (extension.bundleName == prop.name) {
                     isInVector = true;
                     break;
                 }
@@ -722,13 +755,13 @@ namespace MiscServices {
             if (isInVector) {
                 continue;
             }
-            properties.push_back({ .name = extension.bundleName,
+            props.push_back({ .name = extension.bundleName,
                 .id = extension.name,
                 .label = extension.applicationInfo.label,
                 .icon = extension.applicationInfo.icon,
                 .iconId = extension.applicationInfo.iconId });
         }
-        return properties;
+        return ErrorCode::NO_ERROR;
     }
 
     std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
@@ -1329,10 +1362,15 @@ namespace MiscServices {
     SubProperty InputMethodSystemAbility::FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare)
     {
         IMSA_HILOGI("InputMethodSystemAbility::FindSubPropertyByCompare");
-        const auto &properties = ListSubtypeByBundleName(MAIN_USER_ID, bundleName);
-        for (const auto &property : properties) {
-            if (compare(property)) {
-                return property;
+        std::vector<SubProperty> subProps = {};
+        auto ret = ListSubtypeByBundleName(MAIN_USER_ID, bundleName, subProps);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("ListSubtypeByBundleName failed, ret = %{public}d", ret);
+            return {};
+        }
+        for (const auto &subProp : subProps) {
+            if (compare(subProp)) {
+                return subProp;
             }
         }
         IMSA_HILOGE("InputMethodSystemAbility::FindSubPropertyByCompare failed");
@@ -1367,15 +1405,20 @@ namespace MiscServices {
         }
         if (keyCode == CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT) {
             IMSA_HILOGI("COMBINE_KEYCODE_CTRL_SHIFT press");
-            auto properties = ListProperty(MAIN_USER_ID);
-            for (const auto &property : properties) {
-                if (property.name != current->id) {
+            std::vector<Property> props = {};
+            auto ret = ListProperty(MAIN_USER_ID, props);
+            if (ret != ErrorCode::NO_ERROR) {
+                IMSA_HILOGE("ListProperty failed");
+                return ret;
+            }
+            for (const auto &prop : props) {
+                if (prop.name != current->id) {
                     return SwitchInputMethod(current->name, current->id);
                 }
             }
         }
         IMSA_HILOGI("keycode undefined");
-        return {};
+        return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
     }
 
     int32_t InputMethodSystemAbility::SubscribeKeyboardEvent()

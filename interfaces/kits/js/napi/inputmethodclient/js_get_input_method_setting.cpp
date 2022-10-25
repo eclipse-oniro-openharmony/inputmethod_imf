@@ -41,7 +41,7 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
     napi_create_int32(env, MAX_TYPE_NUM, &maxTypeNumber);
         
     napi_property_descriptor descriptor[] = {
-        DECLARE_NAPI_FUNCTION("getInputMethodSetting", GetSetting),
+        DECLARE_NAPI_FUNCTION("getInputMethodSetting", GetInputMethodSetting),
         DECLARE_NAPI_FUNCTION("getSetting", GetSetting),
 
         DECLARE_NAPI_PROPERTY("EXCEPTION_PERMISSION",
@@ -138,14 +138,32 @@ std::shared_ptr<JsGetInputMethodSetting> JsGetInputMethodSetting::GetInputMethod
 
 napi_value JsGetInputMethodSetting::GetSetting(napi_env env, napi_callback_info info)
 {
+    return GetIMSetting(env, info, true);
+}
+
+napi_value JsGetInputMethodSetting::GetInputMethodSetting(napi_env env, napi_callback_info info)
+{
+    return GetIMSetting(env, info, false);
+}
+
+napi_value JsGetInputMethodSetting::GetIMSetting(napi_env env, napi_callback_info info, bool needThrowException)
+{
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, IMSRef_, &cons) != napi_ok) {
         IMSA_HILOGE("GetSetting::napi_get_reference_value not ok");
+        if (needThrowException) {
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_SETTINGS, "", TYPE_OBJECT);
+        }
         return nullptr;
     }
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
         IMSA_HILOGE("GetSetting::napi_new_instance not ok");
+        if (needThrowException) {
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_SETTINGS, "", TYPE_OBJECT);
+        }
         return nullptr;
     }
     return instance;
@@ -195,9 +213,14 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->properties = InputMethodController::GetInstance()->ListInputMethod();
-        ctxt->status = napi_ok;
-        ctxt->SetState(ctxt->status);
+        int32_t errCode = InputMethodController::GetInstance()->ListInputMethod(ctxt->properties);
+        if (errCode == ErrorCode::NO_ERROR) {
+            IMSA_HILOGI("exec ---- ListInputMethod success");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            return;
+        }
+        ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
@@ -208,10 +231,10 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
 {
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        // parameter:1. null; 2.enable
-        if (argc == 0) {
-            ctxt->inputMethodStatus = InputMethodStatus::ALL;
-            return napi_ok;
+        if (argc < 1) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                "should has one parameter.", TYPE_NONE);
+            return napi_invalid_arg;
         }
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
@@ -229,13 +252,15 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        if (ctxt->inputMethodStatus == ALL) {
-            ctxt->properties = InputMethodController::GetInstance()->ListInputMethod();
-        } else {
-            ctxt->properties = InputMethodController::GetInstance()->ListInputMethod(ctxt->inputMethodStatus == ENABLE);
+        int32_t errCode =
+            InputMethodController::GetInstance()->ListInputMethod(ctxt->inputMethodStatus == ENABLE, ctxt->properties);
+        if (errCode == ErrorCode::NO_ERROR) {
+            IMSA_HILOGI("exec ---- GetInputMethods success");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            return;
         }
-        ctxt->status = napi_ok;
-        ctxt->SetState(ctxt->status);
+        ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
@@ -247,25 +272,36 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
     return DisplayInputMethod(env, info, false);
 }
 
-napi_value JsGetInputMethodSetting::DisplayInputMethod(napi_env env, napi_callback_info info, bool flag)
+napi_value JsGetInputMethodSetting::DisplayInputMethod(napi_env env, napi_callback_info info, bool needThrowException)
 {
     auto ctxt = std::make_shared<DisplayOptionalInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         return napi_ok;
     };
-    auto exec = [ctxt, flag](AsyncCall::Context *ctx) {
+    auto output = [ctxt, needThrowException](napi_env env, napi_value *result) -> napi_status {
+        if (needThrowException) {
+            napi_status status = napi_get_boolean(env, ctxt->isDisplayed, result);
+            IMSA_HILOGE("output napi_get_boolean != nullptr[%{public}d]", result != nullptr);
+            return status;
+        }
+        return napi_ok;
+    };
+    auto exec = [ctxt, needThrowException](AsyncCall::Context *ctx) {
         int32_t errCode = InputMethodController::GetInstance()->ShowOptionalInputMethod();
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGE("exec ---- DisplayOptionalInputMethod success");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
+            if (needThrowException) {
+                ctxt->isDisplayed = true;
+            }
             return;
         }
-        if (flag) {
+        if (needThrowException) {
             ctxt->SetErrorCode(errCode);
         }
     };
-    ctxt->SetAction(std::move(input));
+    ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
     return asyncCall.Call(env, exec);
 }
@@ -298,9 +334,15 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->subProperties = InputMethodController::GetInstance()->ListInputMethodSubtype(ctxt->property);
-        ctxt->status = napi_ok;
-        ctxt->SetState(ctxt->status);
+        int32_t errCode =
+            InputMethodController::GetInstance()->ListInputMethodSubtype(ctxt->property, ctxt->subProperties);
+        if (errCode == ErrorCode::NO_ERROR) {
+            IMSA_HILOGI("exec ---- ListInputMethodSubtype success");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            return;
+        }
+        ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
@@ -318,9 +360,14 @@ napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, 
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->subProperties = InputMethodController::GetInstance()->ListCurrentInputMethodSubtype();
-        ctxt->status = napi_ok;
-        ctxt->SetState(ctxt->status);
+        int32_t errCode = InputMethodController::GetInstance()->ListCurrentInputMethodSubtype(ctxt->subProperties);
+        if (errCode == ErrorCode::NO_ERROR) {
+            IMSA_HILOGI("exec ---- ListCurrentInputMethodSubtype success");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            return;
+        }
+        ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
@@ -514,7 +561,6 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
             for (auto item : entry->vecCopy) {
                 napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
                 napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
-
                 if (subProperty == nullptr || property == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
                     break;

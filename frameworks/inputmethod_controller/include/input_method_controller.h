@@ -70,10 +70,10 @@ namespace MiscServices {
         void OnConfigurationChange(Configuration info);
         void setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
         bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
-        std::vector<Property> ListInputMethod();
-        std::vector<Property> ListInputMethod(bool enable);
-        std::vector<SubProperty> ListInputMethodSubtype(const Property& property);
-        std::vector<SubProperty> ListCurrentInputMethodSubtype();
+        int32_t ListInputMethod(std::vector<Property> &props);
+        int32_t ListInputMethod(bool enable, std::vector<Property> &props);
+        int32_t ListInputMethodSubtype(const Property &property, std::vector<SubProperty> &subProperties);
+        int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProperties);
         int32_t GetEnterKeyType(int32_t &keyType);
         int32_t GetInputPattern(int32_t &inputPattern);
         std::shared_ptr<Property> GetCurrentInputMethod();
@@ -82,6 +82,7 @@ namespace MiscServices {
         int32_t SwitchInputMethod(const std::string &name, const std::string &subName = "");
         int32_t ShowSoftKeyboard();
         int32_t HideSoftKeyboard();
+        int32_t StopInputSession();
         int32_t ShowOptionalInputMethod();
 
         // Deprecated innerkits with no permission check, kept for compatibility
@@ -104,7 +105,7 @@ namespace MiscServices {
         void OnSwitchInput(const Property &property, const SubProperty &subProperty);
         std::shared_ptr<IInputMethodAgent> GetInputMethodAgent();
         void WorkThread();
-        std::vector<Property> ListInputMethodCommon(InputMethodStatus status);
+        int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
 
         sptr<IInputDataChannel> mInputDataChannel;
         std::shared_ptr<InputMethodSettingListener> imeListener_;
