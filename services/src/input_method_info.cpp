@@ -37,7 +37,7 @@ namespace MiscServices {
     /*! Constructor
     \param property the source property will be copied to this instance.
     */
-    InputMethodInfo::InputMethodInfo(const InputMethodInfo & property)
+    InputMethodInfo::InputMethodInfo(const InputMethodInfo &property)
     {
         mImeId = property.mImeId;
         mPackageName = property.mPackageName;
@@ -60,7 +60,7 @@ namespace MiscServices {
     \param property the source property will be copied to this instance.
     \return return this
     */
-    InputMethodInfo &InputMethodInfo::operator =(const InputMethodInfo & property)
+    InputMethodInfo &InputMethodInfo::operator =(const InputMethodInfo &property)
     {
         if (this == &property) {
             return *this;

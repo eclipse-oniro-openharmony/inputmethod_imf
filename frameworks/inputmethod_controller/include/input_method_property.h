@@ -42,4 +42,4 @@ struct SubProperty {
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif //INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
+#endif // INPUTMETHOD_IMF_INPUT_METHOD_PROPERTY_H
