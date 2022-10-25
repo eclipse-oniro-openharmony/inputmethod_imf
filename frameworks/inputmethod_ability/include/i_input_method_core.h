@@ -56,7 +56,8 @@ namespace MiscServices {
                                 const InputAttribute& editorAttribute,
                                 bool supportPhysicalKbd) = 0;
         virtual int32_t stopInput() = 0;
-        virtual bool showKeyboard(const sptr<IInputDataChannel>& inputDataChannel, bool isShowKeyboard) = 0;
+        virtual int32_t showKeyboard(
+            const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty) = 0;
         virtual bool hideKeyboard(int32_t flags) = 0;
         virtual int32_t setKeyboardType(const KeyboardType& type) = 0;
         virtual int32_t getKeyboardWindowHeight(int32_t &retHeight) = 0;

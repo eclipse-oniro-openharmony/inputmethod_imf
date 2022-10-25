@@ -105,10 +105,7 @@ namespace MiscServices {
                 break;
             }
             case SHOW_KEYBOARD: {
-                sptr<IInputDataChannel> inputDataChannel = iface_cast<IInputDataChannel>(data.ReadRemoteObject());
-                bool isShowKeyboard = data.ReadBool();
-                showKeyboard(inputDataChannel, isShowKeyboard);
-                reply.WriteNoException();
+                ShowKeyboardOnRemote(data, reply);
                 break;
             }
             case HIDE_KEYBOARD: {
@@ -231,31 +228,6 @@ namespace MiscServices {
         msgHandler_->SendMessage(msg);
     }
 
-    bool InputMethodCoreStub::showKeyboard(const sptr<IInputDataChannel>& inputDataChannel, bool isShowKeyboard)
-    {
-        IMSA_HILOGI("InputMethodCoreStub::showKeyboard");
-        if (!msgHandler_) {
-            return false;
-        }
-        auto *data = new (std::nothrow) MessageParcel();
-        if (data == nullptr) {
-            return false;
-        }
-        IMSA_HILOGI("InputMethodCoreStub::showKeyboard isShowKeyboard %{public}s", isShowKeyboard ? "true" : "false");
-        if (inputDataChannel) {
-            IMSA_HILOGI("InputMethodCoreStub::showKeyboard inputDataChannel is not nullptr");
-            data->WriteRemoteObject(inputDataChannel->AsObject());
-            data->WriteBool(isShowKeyboard);
-        }
-
-        Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_SHOW_KEYBOARD, data);
-        if (msg == nullptr) {
-            return false;
-        }
-        msgHandler_->SendMessage(msg);
-        return true;
-    }
-
     bool InputMethodCoreStub::hideKeyboard(int32_t flags)
     {
         IMSA_HILOGI("InputMethodCoreStub::hideKeyboard");
@@ -316,43 +288,65 @@ namespace MiscServices {
         msgHandler_ = msgHandler;
     }
 
+    void InputMethodCoreStub::ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply)
+    {
+        IMSA_HILOGI("InputMethodCoreStub::ShowKeyboardOnRemote");
+        sptr<IRemoteObject> channel;
+        bool isShowKeyboard = false;
+        SubProperty subProperty;
+        int32_t ret = SendMessage(
+            MessageID::MSG_ID_SHOW_KEYBOARD, [&data, &channel, &isShowKeyboard, &subProperty](MessageParcel &parcel) {
+                return ITypesUtil::Unmarshal(data, channel, isShowKeyboard, subProperty)
+                       && ITypesUtil::Marshal(parcel, channel, isShowKeyboard, subProperty);
+            });
+        reply.WriteInt32(ret);
+    }
+
     void InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
     {
         IMSA_HILOGI("InputMethodCoreStub::SetSubtypeOnRemote");
-        if (msgHandler_ == nullptr) {
-            IMSA_HILOGE("InputMethodCoreStub::msgHandler_ is nullptr");
-            return;
-        }
-        auto *parcel = new (std::nothrow) MessageParcel();
-        if (parcel == nullptr) {
-            IMSA_HILOGE("parcel is nullptr");
-            reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-            return;
-        }
         SubProperty property;
-        if (!ITypesUtil::Unmarshal(data, property)) {
-            IMSA_HILOGE("read message parcel failed");
-            reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
-            return;
-        }
-        if (!ITypesUtil::Marshal(*parcel, property)) {
-            IMSA_HILOGE("write message parcel failed");
-            reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
-            return;
-        }
-        auto *msg = new (std::nothrow) Message(MessageID::MSG_ID_SET_SUBTYPE, parcel);
-        if (msg == nullptr) {
-            IMSA_HILOGE("msg is nullptr");
-            delete parcel;
-            reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-            return;
-        }
-        msgHandler_->SendMessage(msg);
-        reply.WriteInt32(ErrorCode::NO_ERROR);
+        int32_t ret = SendMessage(MessageID::MSG_ID_SET_SUBTYPE, [&data, &property](MessageParcel &parcel) {
+            return ITypesUtil::Unmarshal(data, property) && ITypesUtil::Marshal(parcel, property);
+        });
+        reply.WriteInt32(ret);
+    }
+
+    int32_t InputMethodCoreStub::showKeyboard(
+        const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty)
+    {
+        return ErrorCode::NO_ERROR;
     }
 
     int32_t InputMethodCoreStub::SetSubtype(const SubProperty &property)
     {
+        return ErrorCode::NO_ERROR;
+    }
+
+    int32_t InputMethodCoreStub::SendMessage(int code, ParcelHandler input)
+    {
+        IMSA_HILOGI("InputMethodCoreStub::SendMessage");
+        if (msgHandler_ == nullptr) {
+            IMSA_HILOGE("InputMethodCoreStub::msgHandler_ is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        auto *parcel = new (std::nothrow) MessageParcel();
+        if (parcel == nullptr) {
+            IMSA_HILOGE("parcel is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        if (input != nullptr && (!input(*parcel))) {
+            IMSA_HILOGE("write data failed");
+            delete parcel;
+            return ErrorCode::ERROR_EX_PARCELABLE;
+        }
+        auto *msg = new (std::nothrow) Message(code, parcel);
+        if (msg == nullptr) {
+            IMSA_HILOGE("msg is nullptr");
+            delete parcel;
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        msgHandler_->SendMessage(msg);
         return ErrorCode::NO_ERROR;
     }
 } // namespace MiscServices

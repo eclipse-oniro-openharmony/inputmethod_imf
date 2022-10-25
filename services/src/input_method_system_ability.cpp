@@ -360,6 +360,12 @@ namespace MiscServices {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
+        auto currentSubtype = GetCurrentInputMethodSubtype();
+        if (currentSubtype == nullptr) {
+            IMSA_HILOGE("currentSubtype is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        session->SetCurrentSubProperty(*currentSubtype);
         return session->OnStartInput(client, isShowKeyboard);
     };
 
