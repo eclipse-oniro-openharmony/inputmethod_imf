@@ -117,8 +117,9 @@ namespace MiscServices {
 
         sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
         sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
-        auto ret = coreProxy->showKeyboard(channelProxy, true);
-        EXPECT_TRUE(ret);
+        SubProperty subProperty;
+        auto ret = coreProxy->showKeyboard(channelProxy, true, subProperty);
+        EXPECT_EQ(ret, 0);
     }
 
     /**
@@ -130,8 +131,9 @@ namespace MiscServices {
     HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreStub, TestSize.Level0)
     {
         sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
-        auto ret = coreStub->showKeyboard(nullptr, true);
-        EXPECT_TRUE(!ret);
+        SubProperty subProperty;
+        auto ret = coreStub->showKeyboard(nullptr, true, subProperty);
+        EXPECT_EQ(ret, 0);
     }
 
     /**
