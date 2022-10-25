@@ -50,6 +50,7 @@ struct ListInputContext : public AsyncCall::Context {
 
 struct DisplayOptionalInputMethodContext : public AsyncCall::Context {
     napi_status status = napi_generic_failure;
+    bool isDisplayed = false;
     DisplayOptionalInputMethodContext() : Context(nullptr, nullptr) { };
     DisplayOptionalInputMethodContext(InputAction input, OutputAction output)
         : Context(std::move(input), std::move(output)) { };
@@ -95,6 +96,7 @@ public:
     ~JsGetInputMethodSetting() = default;
     static napi_value Init(napi_env env, napi_value info);
     static napi_value GetSetting(napi_env env, napi_callback_info info);
+    static napi_value GetInputMethodSetting(napi_env env, napi_callback_info info);
     static napi_value ListInputMethod(napi_env env, napi_callback_info info);
     static napi_value ListInputMethodSubtype(napi_env env, napi_callback_info info);
     static napi_value ListCurrentInputMethodSubtype(napi_env env, napi_callback_info info);
@@ -107,13 +109,12 @@ public:
     void OnImeChange(const Property &property, const SubProperty &subProperty) override;
 
 private:
-    static std::string GetStringProperty(napi_env env, napi_value obj);
     static napi_status GetInputMethodProperty(napi_env env, napi_value argv, std::shared_ptr<ListInputContext> ctxt);
     static JsGetInputMethodSetting *GetNative(napi_env env, napi_callback_info info);
     uv_work_t *GetImeChangeUVwork(std::string type, const Property &property, const SubProperty &subProperty);
-    static int32_t GetNumberProperty(napi_env env, napi_value obj);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
-    static napi_value DisplayInputMethod(napi_env env, napi_callback_info info, bool flag);
+    static napi_value DisplayInputMethod(napi_env env, napi_callback_info info, bool needThrowException);
+    static napi_value GetIMSetting(napi_env env, napi_callback_info info, bool needThrowException);
     static bool Equals(napi_env env, napi_value value, napi_ref copy);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);

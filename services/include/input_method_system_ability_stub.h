@@ -38,6 +38,8 @@ private:
 
     int32_t HideCurrentInputOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t StopInputSessionOnRemote(MessageParcel &data, MessageParcel &reply);
+
     int32_t StopInputOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t ReleaseInputOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -92,6 +94,7 @@ private:
         [HIDE_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated,
         [DISPLAY_OPTIONAL_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated,
         [SET_CORE_AND_AGENT_DEPRECATED] = &InputMethodSystemAbilityStub::SetCoreAndAgentOnRemoteDeprecated,
+        [STOP_INPUT_SESSION] = &InputMethodSystemAbilityStub::StopInputSessionOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

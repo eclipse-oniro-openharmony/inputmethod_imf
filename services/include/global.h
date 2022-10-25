@@ -152,6 +152,8 @@ namespace ErrorCode {
         ERROR_CLIENT_NULL_POINTER, // null pointer
         ERROR_SUBSCRIBE_KEYBOARD_EVENT,
         ERROR_CONTROLLER_INVOKING_FAILED,
+        ERROR_PERSIST_CONFIG,
+        ERROR_PACKAGE_MANAGER,
     };
     const char* ToString(int errorCode);
 }; // namespace ErrorCode

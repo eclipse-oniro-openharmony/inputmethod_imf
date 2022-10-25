@@ -329,27 +329,27 @@ using namespace MessageID;
         return proxy->DisplayOptionalInputMethodDeprecated();
     }
 
-    std::vector<Property> InputMethodController::ListInputMethodCommon(InputMethodStatus status)
+    int32_t InputMethodController::ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props)
     {
         IMSA_HILOGI("InputMethodController::ListInputMethodCommon");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
             IMSA_HILOGE("proxy is nullptr");
-            return {};
+            return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        return proxy->ListInputMethod(status);
+        return proxy->ListInputMethod(status, props);
     }
 
-    std::vector<Property> InputMethodController::ListInputMethod()
+    int32_t InputMethodController::ListInputMethod(std::vector<Property> &props)
     {
         IMSA_HILOGI("InputMethodController::listInputMethod");
-        return ListInputMethodCommon(ALL);
+        return ListInputMethodCommon(ALL, props);
     }
 
-    std::vector<Property> InputMethodController::ListInputMethod(bool enable)
+    int32_t InputMethodController::ListInputMethod(bool enable, std::vector<Property> &props)
     {
         IMSA_HILOGI("InputMethodController::listInputMethod enable = %{public}s", enable ? "ENABLE" : "DISABLE");
-        return ListInputMethodCommon(enable ? ENABLE : DISABLE);
+        return ListInputMethodCommon(enable ? ENABLE : DISABLE, props);
     }
 
     std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
@@ -601,6 +601,18 @@ using namespace MessageID;
         return proxy->HideCurrentInput();
     }
 
+    int32_t InputMethodController::StopInputSession()
+    {
+        IMSA_HILOGI("InputMethodController HideSoftKeyboard");
+        isStopInput = true;
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        return proxy->StopInputSession();
+    }
+
     int32_t InputMethodController::ShowOptionalInputMethod()
     {
         IMSA_HILOGI("InputMethodController::ShowOptionalInputMethod");
@@ -612,26 +624,26 @@ using namespace MessageID;
         return proxy->DisplayOptionalInputMethod();
     }
 
-    std::vector<SubProperty> InputMethodController::ListInputMethodSubtype(const Property& property)
+    int32_t InputMethodController::ListInputMethodSubtype(const Property &property, std::vector<SubProperty> &subProps)
     {
         IMSA_HILOGI("InputMethodController::ListInputMethodSubtype");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
             IMSA_HILOGE("proxy is nullptr");
-            return {};
+            return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        return proxy->ListInputMethodSubtype(property.name);
+        return proxy->ListInputMethodSubtype(property.name, subProps);
     }
 
-    std::vector<SubProperty> InputMethodController::ListCurrentInputMethodSubtype()
+    int32_t InputMethodController::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
     {
         IMSA_HILOGI("InputMethodController::ListCurrentInputMethodSubtype");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
             IMSA_HILOGE("proxy is nullptr");
-            return {};
+            return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        return proxy->ListCurrentInputMethodSubtype();
+        return proxy->ListCurrentInputMethodSubtype(subProps);
     }
 
     int32_t InputMethodController::SwitchInputMethod(const std::string &name, const std::string &subName)
