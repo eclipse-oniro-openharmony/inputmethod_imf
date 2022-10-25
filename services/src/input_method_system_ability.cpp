@@ -1348,7 +1348,7 @@ namespace MiscServices {
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
         if (keyCode == CombineKeyCode::COMBINE_KEYCODE_CAPS) {
-            IMSA_HILOGI("KEYCODE_CAPS press");
+            IMSA_HILOGI("COMBINE_KEYCODE_CAPS press");
             auto target = current->mode == "upper"
                               ? FindSubPropertyByCompare(current->id,
                                   [&current](const SubProperty &property) { return property.mode == "lower"; })
@@ -1357,7 +1357,7 @@ namespace MiscServices {
             return SwitchInputMethod(target.id, target.label);
         }
         if (keyCode == CombineKeyCode::COMBINE_KEYCODE_SHIFT) {
-            IMSA_HILOGI("KEYCODE_SHIFT_LEFT press");
+            IMSA_HILOGI("COMBINE_KEYCODE_SHIFT press");
             auto target = current->language == "chinese"
                               ? FindSubPropertyByCompare(current->id,
                                   [&current](const SubProperty &property) { return property.language == "english"; })
@@ -1366,7 +1366,7 @@ namespace MiscServices {
             return SwitchInputMethod(target.id, target.label);
         }
         if (keyCode == CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT) {
-            IMSA_HILOGI("KEYCODE_CTRL_LEFT_SHIFT_LEFT press");
+            IMSA_HILOGI("COMBINE_KEYCODE_CTRL_SHIFT press");
             auto properties = ListProperty(MAIN_USER_ID);
             for (const auto &property : properties) {
                 if (property.name != current->id) {
@@ -1392,8 +1392,28 @@ namespace MiscServices {
                   },
                     [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
                 { {
+                      .preKeys = {},
+                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
+                  },
+                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
+                { {
                       .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
                       .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
+                  },
+                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
+                { {
+                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
+                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
+                  },
+                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
+                { {
+                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
+                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
+                  },
+                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
+                { {
+                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
+                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
                   },
                     [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } } });
         return 0;
