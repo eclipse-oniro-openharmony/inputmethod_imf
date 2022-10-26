@@ -37,3 +37,9 @@ ohos_prebuilt_etc("inputmethod.para") {
   part_name = "imf"
   module_install_dir = "etc/param"
 }
+
+ohos_prebuilt_etc("inputmethod.para.dac") {
+  source = "//base/inputmethod/imf/etc/para/inputmethod.para.dac"
+  part_name = "imf"
+  module_install_dir = "etc/param"
+}
