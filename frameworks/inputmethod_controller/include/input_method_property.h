@@ -26,7 +26,7 @@ struct Property {
     std::string id;
     std::string label;
     std::string icon;
-    int32_t iconId;
+    int32_t iconId = 0;
 };
 
 struct SubProperty {
@@ -37,7 +37,7 @@ struct SubProperty {
     std::string locale;
     std::string language;
     std::string icon;
-    int32_t iconId;
+    int32_t iconId = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
