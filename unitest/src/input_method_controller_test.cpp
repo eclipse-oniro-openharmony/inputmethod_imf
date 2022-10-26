@@ -368,11 +368,11 @@ namespace MiscServices {
      * @tc.type: FUNC
      * @tc.require: issueI5U8FZ
      */
-    HWTEST_F(InputMethodControllerTest, testIMCGetCurrentInputMethodSubtype, TestSize.Level0)
+     HWTEST_F(InputMethodControllerTest, testIMCGetCurrentInputMethodSubtype, TestSize.Level0)
     {
-        IMSA_HILOGI("IMC GetCurrentInputMethodSubtype Test Start");
-        auto property = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
-        EXPECT_TRUE(property != nullptr);
+         IMSA_HILOGI("IMC GetCurrentInputMethodSubtype Test Start");
+         auto property = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
+         EXPECT_TRUE(property != nullptr);
     }
 
     /**
