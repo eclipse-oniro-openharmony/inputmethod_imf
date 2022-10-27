@@ -612,6 +612,20 @@ namespace MiscServices {
     }
 
     /**
+     * @tc.name: testIMCSetImeListener
+     * @tc.desc: IMC testSetImeListener.
+     * @tc.type: FUNC
+     * @tc.require: issueI5U8FZ
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCSetImeListener, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC SetImeListener Test START");
+        auto listener = std::make_shared<InputMethodSettingListenerImpl>();
+        auto imc = InputMethodController::GetInstance();
+        imc->SetImeListener(listener);
+    }
+
+    /**
     * @tc.name: testIMCSetCallingWindow
     * @tc.desc: IMC testSetCallingWindow.
     * @tc.type: FUNC
@@ -625,20 +639,6 @@ namespace MiscServices {
         EXPECT_TRUE(imc != nullptr);
 
         imc->SetCallingWindow(WINDOW_ID);
-    }
-
-    /**
-     * @tc.name: testIMCSetImeListener
-     * @tc.desc: IMC testSetImeListener.
-     * @tc.type: FUNC
-     * @tc.require: issueI5U8FZ
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCSetImeListener, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC SetImeListener Test START");
-        auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-        auto imc = InputMethodController::GetInstance();
-        imc->SetImeListener(listener);
     }
 
     * @tc.name: testIMCInputStopSession
