@@ -40,8 +40,8 @@ namespace MiscServices {
 
         InputMethodInfo();
         ~InputMethodInfo();
-        InputMethodInfo(const InputMethodInfo & property);
-        InputMethodInfo & operator =(const InputMethodInfo & property);
+        InputMethodInfo(const InputMethodInfo &property);
+        InputMethodInfo & operator =(const InputMethodInfo &property);
     };
 } // namespace MiscServices
 } // namespace OHOS
