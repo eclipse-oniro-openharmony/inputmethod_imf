@@ -558,7 +558,7 @@ namespace MiscServices {
     \return true - It's a security Ime
     \n      false - It's not a security Ime
     */
-    bool PerUserSetting::CheckIfSecurityIme(const InputMethodInfo & property)
+    bool PerUserSetting::CheckIfSecurityIme(const InputMethodInfo &property)
     {
         return property.isSystemIme;
     }
