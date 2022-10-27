@@ -68,6 +68,21 @@ namespace MiscServices {
         delete[] perms;
     }
 
+    class InputMethodSettingListenerImpl : public InputMethodSettingListener {
+    public:
+        InputMethodSettingListenerImpl()
+        {
+            isImeChanged = false;
+        }
+        ~InputMethodSettingListenerImpl() = default;
+        void OnImeChange(const Property &property, const SubProperty &subProperty)
+        {
+            IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
+        }
+
+        static bool isImeChanged;
+    };
+
     class TextListener : public OnTextChangedListener {
     public:
         TextListener() {}
@@ -622,7 +637,7 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testIMCSetImeListener, TestSize.Level0)
     {
         IMSA_HILOGI("IMC SetImeListener Test START");
-        auto listener = std::make_shared<JsGetInputMethodSetting>();
+        auto listener = std::make_shared<InputMethodSettingListenerImpl>();
         auto imc = InputMethodController::GetInstance();
         imc->SetImeListener(listener);
     }
