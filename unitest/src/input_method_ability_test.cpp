@@ -98,6 +98,34 @@ namespace MiscServices {
     }
 
     /**
+     * @tc.name: testShowKeyboardInputMethodCoreProxy
+     * @tc.desc: Test InputMethodCoreProxy ShowKeyboard
+     * @tc.type: FUNC
+     * @tc.require: issueI5NXHK
+     */
+    HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.Level0)
+    {
+        sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
+        sptr<IInputMethodCore> core = coreStub;
+        auto msgHandler = new (std::nothrow) MessageHandler();
+        coreStub->SetMessageHandler(msgHandler);
+        sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
+
+        MessageParcel data;
+        data.WriteRemoteObject(core->AsObject());
+        data.WriteRemoteObject(channelStub->AsObject());
+        sptr<IRemoteObject> coreObject = data.ReadRemoteObject();
+        sptr<IRemoteObject> channelObject = data.ReadRemoteObject();
+
+        sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
+        sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
+        SubProperty subProperty;
+        auto ret = coreProxy->showKeyboard(channelProxy, true, subProperty);
+        delete msgHandler;
+        EXPECT_EQ(ret, 0);
+    }
+
+    /**
      * @tc.name: testShowKeyboardInputMethodCoreStub
      * @tc.desc: Test InputMethodCoreStub ShowKeyboard
      * @tc.type: FUNC
