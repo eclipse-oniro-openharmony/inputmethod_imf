@@ -438,8 +438,9 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testIMCListInputMethodSubtype, TestSize.Level0)
     {
         IMSA_HILOGI("IMC ListInputMethodSubtype Test START");
-        auto properties = InputMethodController::GetInstance()->ListInputMethodSubtype({ .name = "com.example."
-                                                                                                 "kikakeyboard" });
+        std::vector<SubProperty> subProps = {};
+        auto properties = InputMethodController::GetInstance()->ListInputMethodSubtype(
+            { .name = "com.example.kikakeyboard" }, subProps);
         EXPECT_TRUE(!properties.empty());
     }
 
