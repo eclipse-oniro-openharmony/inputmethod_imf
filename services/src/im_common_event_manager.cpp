@@ -70,10 +70,11 @@ namespace MiscServices {
             IMSA_HILOGE("SubscribeEvent abilityManager is nullptr");
             return false;
         }
-        sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([subscriber](){
-            bool subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
-            IMSA_HILOGI("ImCommonEventManager::OnAddSystemAbility subscribeResult = %{public}d", subscribeResult);
-        });
+        sptr<ISystemAbilityStatusChange> listener = new (std::nothrow)
+            SystemAbilityStatusChangeListener([subscriber]() {
+                bool subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
+                IMSA_HILOGI("ImCommonEventManager::OnAddSystemAbility subscribeResult = %{public}d", subscribeResult);
+            });
         if (listener == nullptr) {
             IMSA_HILOGE("SubscribeEvent listener is nullptr");
             return false;
@@ -94,10 +95,11 @@ namespace MiscServices {
             IMSA_HILOGE("SubscribeEvent abilityManager is nullptr");
             return false;
         }
-        sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handlers](){
+        sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handlers]() {
             for (const auto &handler : handlers) {
                 int32_t ret = KeyboardEvent::GetInstance().SubscribeKeyboardEvent(handler.combine, handler.handle);
-                IMSA_HILOGI("subscribe %{public}d key event %{public}s", handler.combine.finalKey, ret == ErrorCode::NO_ERROR ? "OK" : "ERROR");
+                IMSA_HILOGI("subscribe %{public}d key event %{public}s", handler.combine.finalKey,
+                    ret == ErrorCode::NO_ERROR ? "OK" : "ERROR");
             }
         });
         if (listener == nullptr) {

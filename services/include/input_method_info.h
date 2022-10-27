@@ -30,18 +30,18 @@ namespace MiscServices {
         std::u16string mPackageName;
         std::u16string mAbilityName;
         std::u16string mConfigurationPage;
-        bool isSystemIme;
-        int32_t mDefaultImeId;
+        bool isSystemIme = false;
+        int32_t mDefaultImeId = 0;
         std::vector<KeyboardType*> mTypes;
-        int32_t labelId;
-        int32_t descriptionId;
+        int32_t labelId = 0;
+        int32_t descriptionId = 0;
         std::u16string label;
         std::u16string description;
 
         InputMethodInfo();
         ~InputMethodInfo();
-        InputMethodInfo(const InputMethodInfo & property);
-        InputMethodInfo & operator =(const InputMethodInfo & property);
+        InputMethodInfo(const InputMethodInfo &property);
+        InputMethodInfo & operator =(const InputMethodInfo &property);
     };
 } // namespace MiscServices
 } // namespace OHOS

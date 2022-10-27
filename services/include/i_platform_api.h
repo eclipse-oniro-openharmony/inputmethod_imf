@@ -49,10 +49,11 @@ namespace OHOS {
         virtual sptr<IInputMethodCore> bindInputMethodService(const std::u16string& packageName,
                                                               const std::u16string& intention, int userId) = 0;
         virtual int32_t unbindInputMethodService(int userId, const std::u16string& packageName) = 0;
-        virtual sptr<IRemoteObject> createWindowToken(int userId, int displayId, const std::u16string& packageName) = 0;
+        virtual sptr<IRemoteObject> createWindowToken(int userId, int displayId, const std::u16string &packageName) = 0;
         virtual int32_t destroyWindowToken(int userId, const std::u16string& packageName) = 0;
         virtual int32_t listInputMethod(int userId, std::vector<InputMethodInfo *> *properties) = 0;
-        virtual int32_t getInputMethodProperty(int userId, const std::u16string& packageName, InputMethodInfo *inputMethodProperty) = 0;
+        virtual int32_t getInputMethodProperty(
+            int userId, const std::u16string &packageName, InputMethodInfo *inputMethodProperty) = 0;
         virtual int32_t getInputMethodSetting(int userId, InputMethodSetting *inputMethodSetting) = 0;
         virtual int32_t setInputMethodSetting(int userId, const InputMethodSetting& inputMethodSetting) = 0;
     };
