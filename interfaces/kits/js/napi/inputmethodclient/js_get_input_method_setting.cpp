@@ -514,7 +514,6 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
             for (auto item : entry->vecCopy) {
                 napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
                 napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
-
                 if (subProperty == nullptr || property == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
                     break;

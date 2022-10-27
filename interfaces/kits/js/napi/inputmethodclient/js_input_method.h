@@ -70,6 +70,8 @@ private:
     static napi_status GetInputMethodSubProperty(
         napi_env env, napi_value argv, std::shared_ptr<SwitchInputMethodContext> ctxt);
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
+    static constexpr size_t PARAM_POS_TWO = 2;
+    static constexpr size_t PARAM_POS_ONE = 1;
 };
 }
 }

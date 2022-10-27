@@ -55,7 +55,8 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
             return status;
         }
         if (valueType != napi_number) {
@@ -252,7 +253,8 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
             return status;
         }
         if (valueType != napi_number) {
@@ -289,7 +291,8 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
             return status;
         }
         if (valueType != napi_number) {
@@ -325,7 +328,8 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
             return status;
         }
         if (valueType != napi_number) {
@@ -362,7 +366,8 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
             return status;
         }
         if (valueType != napi_string) {
@@ -399,7 +404,8 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
             return status;
         }
         if (valueType != napi_number) {
@@ -438,7 +444,8 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
             return status;
         }
         if (valueType != napi_number) {
@@ -461,7 +468,7 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
             ctxt->SetState(ctxt->status);
             ctxt->text = Str16ToStr8(temp);
         } else {
-           ctxt->SetErrorCode(code);
+            ctxt->SetErrorCode(code);
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));

@@ -50,7 +50,7 @@ namespace MiscServices {
         int32_t ListInputMethod(std::vector<InputMethodInfo *> *properties);
         int32_t ListKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types);
 
-        static bool CheckIfSecurityIme(const InputMethodInfo & property);
+        static bool CheckIfSecurityIme(const InputMethodInfo &property);
 
     private:
         int32_t userId_; // the id of the user to whom the object is linking

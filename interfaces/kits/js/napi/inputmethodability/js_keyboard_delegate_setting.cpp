@@ -142,7 +142,8 @@ napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_
     
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
         if (argc != ARGC_ZERO) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0", TypeCode::TYPE_NONE);
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0", TypeCode::TYPE_NONE);
         }
     }
 
@@ -237,9 +238,10 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     if (argc != ARGC_TWO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 2", TypeCode::TYPE_NONE);
+        JsUtils::ThrowException(
+            env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 2", TypeCode::TYPE_NONE);
     }
-    
+
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     if (valuetype != napi_string) {
@@ -276,10 +278,11 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     if (argc != ARGC_ONE && argc != ARGC_TWO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 1 or 2", TypeCode::TYPE_NONE);
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 1 or 2",
+            TypeCode::TYPE_NONE);
         return nullptr;
     }
-    
+
     napi_valuetype valuetype;
     NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
     if (valuetype != napi_string) {
@@ -341,7 +344,7 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
 bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
     IMSA_HILOGI("run in OnKeyEvent");
-    KeyEventPara para { keyCode, keyStatus, false };
+    KeyEventPara para{ keyCode, keyStatus, false };
     std::string type = (keyStatus == ARGC_TWO ? "keyDown" : "keyUp");
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
     uv_work_t *work = GetKeyEventUVwork(type, para, isDone);
