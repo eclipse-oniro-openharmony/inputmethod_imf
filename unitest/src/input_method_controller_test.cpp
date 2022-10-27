@@ -69,17 +69,12 @@ namespace MiscServices {
 
     class InputMethodSettingListenerImpl : public InputMethodSettingListener {
     public:
-        InputMethodSettingListenerImpl()
-        {
-            isImeChanged = false;
-        }
+        InputMethodSettingListenerImpl() = default;
         ~InputMethodSettingListenerImpl() = default;
         void OnImeChange(const Property &property, const SubProperty &subProperty)
         {
             IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
         }
-
-        static bool isImeChanged;
     };
 
     class TextListener : public OnTextChangedListener {
