@@ -111,7 +111,7 @@ namespace MiscServices {
         void OnSelectionChange(Message *msg);
 
         void InitialInputWindow();
-        void ShowInputWindow(bool isShowKeyboard);
+        void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
         void DissmissInputWindow();
 
         void BindServiceAndClient();

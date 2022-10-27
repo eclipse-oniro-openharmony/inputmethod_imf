@@ -235,7 +235,7 @@ namespace MiscServices {
         setting.SetCurrentKeyboardType(curType);
         EXPECT_EQ(setting.GetCurrentKeyboardType(), curType);
     }
-    
+
     /**
     * @tc.name: testIMCdispatchKeyEvent
     * @tc.desc: IMC testdispatchKeyEvent.
@@ -247,7 +247,7 @@ namespace MiscServices {
         IMSA_HILOGI("IMC dispatchKeyEvent Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
-        
+
         std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
         EXPECT_TRUE(keyEvent != nullptr);
 
@@ -365,6 +365,19 @@ namespace MiscServices {
     }
 
     /**
+     * @tc.name: testIMCGetCurrentInputMethodSubtype
+     * @tc.desc: IMC GetCurrentInputMethodSubtype
+     * @tc.type: FUNC
+     * @tc.require: issueI5U8FZ
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCGetCurrentInputMethodSubtype, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC GetCurrentInputMethodSubtype Test Start");
+        auto property = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
+        EXPECT_TRUE(property != nullptr);
+    }
+
+    /**
     * @tc.name: testIMCShowCurrentInput
     * @tc.desc: IMC ShowCurrentInput.
     * @tc.type: FUNC
@@ -404,6 +417,33 @@ namespace MiscServices {
     }
 
     /**
+     * @tc.name: testIMCListCurrentInputMethodSubtype
+     * @tc.desc: IMC ListCurrentInputMethodSubtype
+     * @tc.type: FUNC
+     * @tc.require: issueI5U8FZ
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCListCurrentInputMethodSubtype, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC ListCurrentInputMethodSubtype Test START");
+        auto properties = InputMethodController::GetInstance()->ListCurrentInputMethodSubtype();
+        EXPECT_TRUE(!properties.empty());
+    }
+
+    /**
+     * @tc.name: testIMCListInputMethodSubtype
+     * @tc.desc: IMC ListInputMethodSubtype
+     * @tc.type: FUNC
+     * @tc.require: issueI5U8FZ
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCListInputMethodSubtype, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC ListInputMethodSubtype Test START");
+        auto properties = InputMethodController::GetInstance()->ListInputMethodSubtype({ .name = "com.example."
+                                                                                                 "kikakeyboard" });
+        EXPECT_TRUE(!properties.empty());
+    }
+
+    /**
     * @tc.name: testIMCHideCurrentInput
     * @tc.desc: IMC HideCurrentInput.
     * @tc.type: FUNC
@@ -434,7 +474,7 @@ namespace MiscServices {
         imc->GetTextBeforeCursor(TEXT_LENGTH, text);
         EXPECT_TRUE(text.size() == 0);
     }
-    
+
     /**
     * @tc.name: testIMCGetTextAfterCursor
     * @tc.desc: IMC testGetTextAfterCursor.
@@ -490,7 +530,7 @@ namespace MiscServices {
     * @tc.name: testIMCSwitchInputMethod
     * @tc.desc: IMC testSwitchInputMethod.
     * @tc.type: FUNC
-    * @tc.require:
+    * @tc.require: issueI5U8FZ
     */
     HWTEST_F(InputMethodControllerTest, testIMCSwitchInputMethod, TestSize.Level0)
     {
@@ -498,7 +538,9 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->SwitchInputMethod("com.example.kikakeyboard");
-        EXPECT_TRUE(ret == 0);
+        EXPECT_EQ(ret, 0);
+        ret = imc->SwitchInputMethod("com.example.kikakeyboard", "ServiceExtAbility");
+        EXPECT_EQ(ret, 0);
     }
 
     /**
@@ -542,7 +584,7 @@ namespace MiscServices {
         IMSA_HILOGI("IMC OnConfigurationChange Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
-        
+
         Configuration info;
         info.SetEnterKeyType(EnterKeyType::NONE);
         info.SetTextInputType(TextInputType::TEXT);
@@ -562,7 +604,7 @@ namespace MiscServices {
         constexpr uint32_t WINDOW_ID = 0;
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
-        
+
         imc->SetCallingWindow(WINDOW_ID);
     }
 
