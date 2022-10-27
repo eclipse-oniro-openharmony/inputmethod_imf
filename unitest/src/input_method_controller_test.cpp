@@ -315,7 +315,8 @@ namespace MiscServices {
         IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
-
+        sptr<OnTextChangedListener> textListener = new TextListener();
+        imc->Attach(textListener);
         int32_t ret = imc->ShowSoftKeyboard();
         EXPECT_EQ(ret, 0);
     }
@@ -330,7 +331,8 @@ namespace MiscServices {
         IMSA_HILOGI("IMC HideSoftKeyboard Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
-
+        sptr<OnTextChangedListener> textListener = new TextListener();
+        imc->Attach(textListener);
         int32_t ret = imc->HideSoftKeyboard();
         EXPECT_EQ(ret, 0);
     }
@@ -404,13 +406,14 @@ namespace MiscServices {
         EXPECT_NE(imc, nullptr);
 
         IMSA_HILOGI("Test list all input method");
-        std::vector<Property> properties = imc->ListInputMethod();
+        std::vector<Property> properties = {};
+        auto ret = imc->ListInputMethod(properties);
         EXPECT_TRUE(!properties.empty());
 
         IMSA_HILOGI("Test list disabled input method");
-        properties = imc->ListInputMethod(false);
+        ret = imc->ListInputMethod(false, properties);
         IMSA_HILOGI("Test list enabled input method");
-        properties = imc->ListInputMethod(true);
+        ret = imc->ListInputMethod(true, properties);
         EXPECT_TRUE(!properties.empty());
     }
 
@@ -423,7 +426,9 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testIMCListCurrentInputMethodSubtype, TestSize.Level0)
     {
         IMSA_HILOGI("IMC ListCurrentInputMethodSubtype Test START");
-        auto properties = InputMethodController::GetInstance()->ListCurrentInputMethodSubtype();
+        std::vector<SubProperty> properties = {};
+        auto ret = InputMethodController::GetInstance()->ListCurrentInputMethodSubtype(properties);
+        EXPECT_TRUE(ret == ErrorCode::NO_ERROR);
         EXPECT_TRUE(!properties.empty());
     }
 
@@ -436,8 +441,10 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testIMCListInputMethodSubtype, TestSize.Level0)
     {
         IMSA_HILOGI("IMC ListInputMethodSubtype Test START");
-        auto properties = InputMethodController::GetInstance()->ListInputMethodSubtype({ .name = "com.example."
-                                                                                                 "kikakeyboard" });
+        std::vector<SubProperty> properties = {};
+        auto ret = InputMethodController::GetInstance()->ListInputMethodSubtype(
+            { .name = "com.example.kikakeyboard" }, properties);
+        EXPECT_TRUE(ret == ErrorCode::NO_ERROR);
         EXPECT_TRUE(!properties.empty());
     }
 
@@ -618,6 +625,22 @@ namespace MiscServices {
         auto listener = std::make_shared<JsGetInputMethodSetting>();
         auto imc = InputMethodController::GetInstance();
         imc->SetImeListener(listener);
+    }
+
+    * @tc.name: testIMCInputStopSession
+    * @tc.desc: IMC testInputStopSession.
+    * @tc.type: FUNC
+    * @tc.require: issueI5U8FZ
+    * @tc.author: Hollokin
+    */
+    HWTEST_F(InputMethodControllerTest, testIMCInputStopSession, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC InputStopSession Test START");
+        sptr<InputMethodController> imc = InputMethodController::GetInstance();
+        EXPECT_TRUE(imc != nullptr);
+        sptr<OnTextChangedListener> textListener = new TextListener();
+        imc->Attach(textListener);
+        imc->StopInputSession();
     }
 } // namespace MiscServices
 } // namespace OHOS

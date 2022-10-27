@@ -55,24 +55,24 @@ namespace MiscServices {
         switch (code) {
             case HIDE_KEYBOARD_SELF: {
                 int flag = data.ReadInt32();
-                reply.WriteInt32(hideKeyboardSelf(flag));
+                reply.WriteInt32(HideKeyboardSelf(flag));
                 break;
             }
             case ADVANCE_TO_NEXT: {
                 bool isCurrentIme = data.ReadInt32();
-                bool ret = advanceToNext(isCurrentIme);
+                bool ret = AdvanceToNext(isCurrentIme);
                 reply.WriteNoException();
                 reply.WriteBool(ret);
                 break;
             }
             case SET_DISPLAY_MODE:  {
                 int mode = data.ReadInt32();
-                setDisplayMode(mode);
+                SetDisplayMode(mode);
                 reply.WriteNoException();
                 break;
             }
             case ON_KEYBOARD_SHOWED: {
-                onKeyboardShowed();
+                OnKeyboardShowed();
                 reply.WriteNoException();
                 break;
             }
@@ -86,7 +86,7 @@ namespace MiscServices {
     /*! Called when input method service showed keyboard
     \n This call is running in binder thread
     */
-    void InputControlChannelStub::onKeyboardShowed()
+    void InputControlChannelStub::OnKeyboardShowed()
     {
         IMSA_HILOGI("InputControlChannelStub::onKeyboardShowed");
         {
@@ -96,15 +96,15 @@ namespace MiscServices {
         cv.notify_one();
     }
 
-    /*! Send hideKeyboardSelf command to work thread.
+    /*! Send HideKeyboardSelf command to work thread.
     \n This call is running in binder thread,
-        but the handling of hideKeyboardSelf is in the work thread of PerUserSession.
+        but the handling of HideKeyboardSelf is in the work thread of PerUserSession.
     \see PerUserSession::OnHideKeyboardSelf
     \param flags the flag value of hiding keyboard
     */
-    int32_t InputControlChannelStub::hideKeyboardSelf(int flags)
+    int32_t InputControlChannelStub::HideKeyboardSelf(int flags)
     {
-        IMSA_HILOGI("InputControlChannelStub::hideKeyboardSelf flags = %{public}d", flags);
+        IMSA_HILOGI("InputControlChannelStub::HideKeyboardSelf flags = %{public}d", flags);
         MessageParcel *parcel = new MessageParcel();
         parcel->WriteInt32(userId_);
         parcel->WriteInt32(flags);
@@ -124,7 +124,7 @@ namespace MiscServices {
                     \n false - switch to next input method engine
     \return true
     */
-    bool InputControlChannelStub::advanceToNext(bool isCurrentIme)
+    bool InputControlChannelStub::AdvanceToNext(bool isCurrentIme)
     {
         IMSA_HILOGI("InputControlChannelStub::advanceToNext");
         MessageParcel *parcel = new MessageParcel();
@@ -136,15 +136,15 @@ namespace MiscServices {
         return true;
     }
 
-    /*! Send setDisplayMode command to work thread.
+    /*! Send SetDisplayMode command to work thread.
     \n This call is running in binder thread,
-        but the handling of setDisplayMode is in the work thread of PerUserSession.
+        but the handling of SetDisplayMode is in the work thread of PerUserSession.
     \see PerUserSession::OnSetDisplayMode
     \param mode 0 - part screen mode, 1 - full screen mode
     */
-    void InputControlChannelStub::setDisplayMode(int mode)
+    void InputControlChannelStub::SetDisplayMode(int mode)
     {
-        IMSA_HILOGI("InputControlChannelStub::setDisplayMode start");
+        IMSA_HILOGI("InputControlChannelStub::SetDisplayMode start");
         MessageParcel *parcel = new MessageParcel();
         parcel->WriteInt32(userId_);
         parcel->WriteInt32(mode);

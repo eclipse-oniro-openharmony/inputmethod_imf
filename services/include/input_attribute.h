@@ -25,9 +25,9 @@ namespace OHOS {
         struct InputAttribute {
             static const int32_t PATTERN_TEXT = 0x00000001;
             static const int32_t PATTERN_PASSWORD = 0x00000007;
-            int32_t inputPattern;
-            int32_t enterKeyType;
-            int32_t inputOption;
+            int32_t inputPattern = 0;
+            int32_t enterKeyType = 0;
+            int32_t inputOption = 0;
 
             static bool Marshalling(const InputAttribute &in, MessageParcel &data) {
                 return data.WriteInt32(in.inputPattern)

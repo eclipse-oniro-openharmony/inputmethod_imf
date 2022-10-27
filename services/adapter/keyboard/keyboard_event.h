@@ -55,4 +55,4 @@ struct KeyboardEventHandler {
 };
 
 } // namespace OHOS::MiscServices
-#endif //IMF_KEYBOARD_EVENT_H
+#endif // IMF_KEYBOARD_EVENT_H

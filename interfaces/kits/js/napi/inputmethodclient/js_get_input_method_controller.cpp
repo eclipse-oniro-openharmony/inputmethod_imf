@@ -25,7 +25,7 @@ const std::string JsGetInputMethodController::IMC_CLASS_NAME = "InputMethodContr
 napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
 {
     napi_property_descriptor descriptor[] = {
-        DECLARE_NAPI_FUNCTION("getInputMethodController", GetController),
+        DECLARE_NAPI_FUNCTION("getInputMethodController", GetInputMethodController),
         DECLARE_NAPI_FUNCTION("getController", GetController),
     };
     NAPI_CALL(
@@ -69,24 +69,40 @@ napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback
     return thisVar;
 }
 
+napi_value JsGetInputMethodController::GetInputMethodController(napi_env env, napi_callback_info cbInfo)
+{
+    return GetIMController(env, cbInfo, false);
+}
+
 napi_value JsGetInputMethodController::GetController(napi_env env, napi_callback_info cbInfo)
+{
+    return GetIMController(env, cbInfo, true);
+}
+
+napi_value JsGetInputMethodController::GetIMController(napi_env env, napi_callback_info cbInfo, bool needThrowException)
 {
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, IMCRef_, &cons) != napi_ok) {
         IMSA_HILOGE("GetInputMethodSetting::napi_get_reference_value not ok");
+        if (needThrowException) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_CONTROLLER, "", TYPE_OBJECT);
+        }
         return nullptr;
     }
 
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
         IMSA_HILOGE("GetInputMethodSetting::napi_new_instance not ok");
+        if (needThrowException) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_CONTROLLER, "", TYPE_OBJECT);
+        }
         return nullptr;
     }
     return instance;
 }
 
 napi_value JsGetInputMethodController::HandleSoftKeyboard(
-    napi_env env, napi_callback_info info, std::function<int32_t()> callback, bool isOutput, bool v9Flag)
+    napi_env env, napi_callback_info info, std::function<int32_t()> callback, bool isOutput, bool needThrowException)
 {
     auto ctxt = std::make_shared<HandleContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
@@ -97,9 +113,8 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
         IMSA_HILOGE("output napi_get_boolean != nullptr[%{public}d]", result != nullptr);
         return status;
     };
-    auto exec = [ctxt, callback, v9Flag](AsyncCall::Context *ctx) {
+    auto exec = [ctxt, callback, needThrowException](AsyncCall::Context *ctx) {
         int errCode = callback();
-        IMSA_HILOGI("exec %{public}d", errCode);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec success");
             ctxt->status = napi_ok;
@@ -107,7 +122,8 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
             ctxt->SetState(ctxt->status);
             return;
         }
-        if (v9Flag) {
+        IMSA_HILOGI("exec %{public}d", errCode);
+        if (needThrowException) {
             ctxt->SetErrorCode(errCode);
         }
     };
@@ -135,13 +151,13 @@ napi_value JsGetInputMethodController::HideSoftKeyboard(napi_env env, napi_callb
 napi_value JsGetInputMethodController::StopInputSession(napi_env env, napi_callback_info info)
 {
     return HandleSoftKeyboard(
-        env, info, [] { return InputMethodController::GetInstance()->HideSoftKeyboard(); }, true, true);
+        env, info, [] { return InputMethodController::GetInstance()->StopInputSession(); }, true, true);
 }
 
 napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_info info)
 {
     return HandleSoftKeyboard(
-            env, info, [] { return InputMethodController::GetInstance()->HideSoftKeyboard(); }, true, false);
+        env, info, [] { return InputMethodController::GetInstance()->HideSoftKeyboard(); }, true, false);
 }
 } // namespace MiscServices
 } // namespace OHOS

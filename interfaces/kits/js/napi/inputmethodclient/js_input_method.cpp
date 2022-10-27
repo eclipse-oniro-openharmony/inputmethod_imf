@@ -247,12 +247,17 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;
+        } else if (errCode == ErrorCode::ERROR_SWITCH_IME) {
+            IMSA_HILOGE("exec SwitchInputMethod failed");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            ctxt->isSwitchInput = false;
         } else {
             ctxt->SetErrorCode(errCode);
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), PARAM_POS_ONE);
     return asyncCall.Call(env, exec);
 }
 
@@ -310,12 +315,17 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;
+        } else if (errCode == ErrorCode::ERROR_SWITCH_IME) {
+            IMSA_HILOGE("exec SwitchInputMethod failed");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            ctxt->isSwitchInput = false;
         } else {
             ctxt->SetErrorCode(errCode);
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), PARAM_POS_ONE);
     return asyncCall.Call(env, exec);
 }
 
@@ -354,12 +364,17 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;
+        } else if (errCode == ErrorCode::ERROR_SWITCH_IME) {
+            IMSA_HILOGE("exec SwitchInputMethod failed");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            ctxt->isSwitchInput = false;
         } else {
             ctxt->SetErrorCode(errCode);
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 2);
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), PARAM_POS_TWO);
     return asyncCall.Call(env, exec);
 }
 } // namespace MiscServices

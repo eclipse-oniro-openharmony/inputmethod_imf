@@ -659,7 +659,7 @@ namespace MiscServices {
             if (client != nullptr) {
                 int ret = imsCore[index]->setKeyboardType(*type);
                 if (ret != ErrorCode::NO_ERROR) {
-                    IMSA_HILOGE("setKeyboardType return : %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
+                    IMSA_HILOGE("setKeyboardType ret: %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
                 }
             }
             if (imsCore[index] == imsCore[1 - index]) {
@@ -687,8 +687,7 @@ namespace MiscServices {
             IMSA_HILOGE("current client is nullptr");
             return ErrorCode::ERROR_CLIENT_NOT_FOUND;
         }
-        HideKeyboard(client);
-        return ErrorCode::NO_ERROR;
+        return HideKeyboard(client);
     }
 
     int PerUserSession::OnShowKeyboardSelf()
@@ -699,8 +698,7 @@ namespace MiscServices {
             IMSA_HILOGE("current client is nullptr");
             return ErrorCode::ERROR_CLIENT_NOT_FOUND;
         }
-        ShowKeyboard(client, true);
-        return ErrorCode::NO_ERROR;
+        return ShowKeyboard(client, true);
     }
 
     /*! Switch to next keyboard type
