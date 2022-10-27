@@ -106,6 +106,12 @@ int32_t InputMethodSystemAbilityStub::HideCurrentInputOnRemote(MessageParcel &da
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodSystemAbilityStub::StopInputSessionOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = HideCurrentInput();
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodSystemAbilityStub::StopInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     auto clientObject = data.ReadRemoteObject();
@@ -208,12 +214,17 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodOnRemote(MessageParcel &dat
     if (!ITypesUtil::Unmarshal(data, status)) {
         IMSA_HILOGE("read status failed");
     }
-    auto properties = ListInputMethod(InputMethodStatus(status));
-    if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, properties)) {
+    std::vector<Property> properties = {};
+    auto ret = ListInputMethod(InputMethodStatus(status), properties);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("ListInputMethod failed");
+        return ret;
+    }
+    if (!ITypesUtil::Marshal(reply, ret, properties)) {
         IMSA_HILOGE("write reply failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return ErrorCode::NO_ERROR;
+    return ret;
 }
 
 int32_t InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -223,22 +234,32 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote(MessageParc
         IMSA_HILOGE("InputMethodSystemAbilityStub::read bundleName failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto property = ListInputMethodSubtype(bundleName);
-    if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, property)) {
+    std::vector<SubProperty> subProps = {};
+    auto ret = ListInputMethodSubtype(bundleName, subProps);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("ListInputMethodSubtype failed");
+        return ret;
+    }
+    if (!ITypesUtil::Marshal(reply, ret, subProps)) {
         IMSA_HILOGE("InputMethodSystemAbilityStub::write reply failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return ErrorCode::NO_ERROR;
+    return ret;
 }
 
 int32_t InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    auto property = ListCurrentInputMethodSubtype();
-    if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, property)) {
+    std::vector<SubProperty> subProps = {};
+    auto ret = ListCurrentInputMethodSubtype(subProps);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("ListCurrentInputMethodSubtype failed");
+        return ret;
+    }
+    if (!ITypesUtil::Marshal(reply, ret, subProps)) {
         IMSA_HILOGE("InputMethodSystemAbilityStub::write reply failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return ErrorCode::NO_ERROR;
+    return ret;
 }
 
 int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)

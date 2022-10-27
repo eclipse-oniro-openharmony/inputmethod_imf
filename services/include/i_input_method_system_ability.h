@@ -42,6 +42,7 @@ public:
         SHOW_CURRENT_INPUT,
         HIDE_CURRENT_INPUT,
         STOP_INPUT,
+        STOP_INPUT_SESSION,
         RELEASE_INPUT,
         GET_KEYBOARD_WINDOW_HEIGHT,
         GET_CURRENT_INPUT_METHOD,
@@ -66,16 +67,17 @@ public:
     virtual int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) = 0;
     virtual int32_t ShowCurrentInput() = 0;
     virtual int32_t HideCurrentInput() = 0;
+    virtual int32_t StopInputSession() = 0;
     virtual int32_t StopInput(sptr<IInputClient> client) = 0;
     virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
     virtual int32_t GetKeyboardWindowHeight(int32_t &retHeight) = 0;
     virtual std::shared_ptr<Property> GetCurrentInputMethod() = 0;
     virtual std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() = 0;
-    virtual std::vector<Property> ListInputMethod(InputMethodStatus status) = 0;
+    virtual int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) = 0;
     virtual int32_t DisplayOptionalInputMethod() = 0;
     virtual int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) = 0;
-    virtual std::vector<SubProperty> ListCurrentInputMethodSubtype() = 0;
-    virtual std::vector<SubProperty> ListInputMethodSubtype(const std::string &name) = 0;
+    virtual int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) = 0;
+    virtual int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) = 0;
     virtual int32_t SwitchInputMethod(const std::string &bundleName, const std::string &name) = 0;
 
     // Deprecated because of no permission check, and keep for compatibility

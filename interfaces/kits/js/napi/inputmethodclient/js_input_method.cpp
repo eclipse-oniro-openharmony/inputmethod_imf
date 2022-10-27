@@ -247,6 +247,11 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;
+        } else if (errCode == ErrorCode::ERROR_SWITCH_IME) {
+            IMSA_HILOGE("exec SwitchInputMethod failed");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            ctxt->isSwitchInput = false;
         } else {
             ctxt->SetErrorCode(errCode);
         }
@@ -310,6 +315,11 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;
+        } else if (errCode == ErrorCode::ERROR_SWITCH_IME) {
+            IMSA_HILOGE("exec SwitchInputMethod failed");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            ctxt->isSwitchInput = false;
         } else {
             ctxt->SetErrorCode(errCode);
         }
@@ -354,6 +364,11 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;
+        } else if (errCode == ErrorCode::ERROR_SWITCH_IME) {
+            IMSA_HILOGE("exec SwitchInputMethod failed");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            ctxt->isSwitchInput = false;
         } else {
             ctxt->SetErrorCode(errCode);
         }

@@ -35,10 +35,10 @@ namespace OHOS {
                                       MessageParcel &data,
                                       MessageParcel &reply,
                                       MessageOption &option) override;
-        int32_t hideKeyboardSelf(int flags) override;
-        bool advanceToNext(bool isCurrentIme) override;
-        void setDisplayMode(int mode) override;
-        void onKeyboardShowed() override;
+        int32_t HideKeyboardSelf(int flags) override;
+        bool AdvanceToNext(bool isCurrentIme) override;
+        void SetDisplayMode(int mode) override;
+        void OnKeyboardShowed() override;
 
         void ResetFlag();
         bool WaitKeyboardReady();

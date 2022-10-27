@@ -40,9 +40,9 @@ namespace MiscServices {
     {
     }
 
-    int32_t InputControlChannelProxy::hideKeyboardSelf(int flags)
+    int32_t InputControlChannelProxy::HideKeyboardSelf(int flags)
     {
-        IMSA_HILOGI("InputControlChannelProxy::hideKeyboardSelf");
+        IMSA_HILOGI("InputControlChannelProxy::HideKeyboardSelf");
         MessageParcel data, reply;
         MessageOption option;
         data.WriteInterfaceToken(GetDescriptor());
@@ -52,7 +52,7 @@ namespace MiscServices {
         return result;
     }
 
-    bool InputControlChannelProxy::advanceToNext(bool isCurrentIme)
+    bool InputControlChannelProxy::AdvanceToNext(bool isCurrentIme)
     {
         MessageParcel data, reply;
         MessageOption option;
@@ -64,7 +64,7 @@ namespace MiscServices {
         return true;
     }
 
-    void InputControlChannelProxy::setDisplayMode(int mode)
+    void InputControlChannelProxy::SetDisplayMode(int mode)
     {
         MessageParcel data, reply;
         MessageOption option;
@@ -75,7 +75,7 @@ namespace MiscServices {
         IMSA_HILOGI("InputControlChannelProxy::setDisplayMode.");
     }
 
-    void InputControlChannelProxy::onKeyboardShowed()
+    void InputControlChannelProxy::OnKeyboardShowed()
     {
         MessageParcel data, reply;
         MessageOption option;
