@@ -32,6 +32,10 @@ ohos_fuzztest("InputClientStubFuzzTest") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//commonlibrary/c_utils/base/include",
+    "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
+    "//third_party/jsoncpp/include",
+    "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager/include/appmgr",
+    "//foundation/ability/ability_runtime/services/abilitymgr/include",
   ]
 
   cflags = [
@@ -45,16 +49,20 @@ ohos_fuzztest("InputClientStubFuzzTest") {
 
   deps = [
     "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
+    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
     "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/ability/ability_runtime/services/abilitymgr:abilityms",
   ]
 
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core"
   ]
 }
 
