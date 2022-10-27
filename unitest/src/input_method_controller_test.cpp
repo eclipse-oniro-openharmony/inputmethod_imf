@@ -314,6 +314,8 @@ namespace MiscServices {
         IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
+        sptr<OnTextChangedListener> textListener = new TextListener();
+        imc->Attach(textListener);
 
         int32_t ret = imc->ShowSoftKeyboard();
         EXPECT_EQ(ret, 0);
@@ -329,6 +331,8 @@ namespace MiscServices {
         IMSA_HILOGI("IMC HideSoftKeyboard Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
+        sptr<OnTextChangedListener> textListener = new TextListener();
+        imc->Attach(textListener);
 
         int32_t ret = imc->HideSoftKeyboard();
         EXPECT_EQ(ret, 0);
@@ -368,11 +372,11 @@ namespace MiscServices {
      * @tc.type: FUNC
      * @tc.require: issueI5U8FZ
      */
-     HWTEST_F(InputMethodControllerTest, testIMCGetCurrentInputMethodSubtype, TestSize.Level0)
+    HWTEST_F(InputMethodControllerTest, testIMCGetCurrentInputMethodSubtype, TestSize.Level0)
     {
-         IMSA_HILOGI("IMC GetCurrentInputMethodSubtype Test Start");
-         auto property = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
-         EXPECT_TRUE(property != nullptr);
+        IMSA_HILOGI("IMC GetCurrentInputMethodSubtype Test Start");
+        auto property = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
+        EXPECT_TRUE(property != nullptr);
     }
 
     /**
