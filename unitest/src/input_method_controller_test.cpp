@@ -75,6 +75,8 @@ namespace MiscServices {
         {
             IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
         }
+
+        static bool isImeChanged;
     };
 
     class TextListener : public OnTextChangedListener {
@@ -636,6 +638,7 @@ namespace MiscServices {
         imc->SetCallingWindow(WINDOW_ID);
     }
 
+    /**
     * @tc.name: testIMCInputStopSession
     * @tc.desc: IMC testInputStopSession.
     * @tc.type: FUNC
