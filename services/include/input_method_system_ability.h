@@ -16,6 +16,7 @@
 #ifndef FM_IMMS_PROJECT_INPUTMETHODSYSTEMABILITY_H
 #define FM_IMMS_PROJECT_INPUTMETHODSYSTEMABILITY_H
 
+#include <atomic>
 #include <thread>
 #include <map>
 #include "system_ability.h"
@@ -91,6 +92,7 @@ namespace MiscServices {
 
         ServiceRunningState state_;
         void InitServiceHandler();
+        std::atomic_flag dialogLock_ = ATOMIC_FLAG_INIT;
         static std::mutex instanceLock_;
         static sptr<InputMethodSystemAbility> instance_;
         static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
