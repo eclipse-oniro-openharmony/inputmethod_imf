@@ -108,7 +108,6 @@ namespace MiscServices {
         sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
         sptr<IInputMethodCore> core = coreStub;
         auto msgHandler = new (std::nothrow) MessageHandler();
-
         coreStub->SetMessageHandler(msgHandler);
         msgHandler = new MessageHandler();
         coreStub->SetMessageHandler(msgHandler);
