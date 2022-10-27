@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class InputMethodSetting : public Parcelable {
+    class InputMethodSetting {
     public:
 
         const static std::u16string CURRENT_INPUT_METHOD_TAG; // default IME
@@ -54,9 +54,6 @@ namespace MiscServices {
         void SetCurrentSysKeyboardType(int32_t type);
         void ClearData();
         bool FindKey(const std::u16string& key) const;
-
-        virtual bool Marshalling(Parcel &parcel) const override;
-        static InputMethodSetting *Unmarshalling(Parcel &parcel);
 
     private:
         std::map<std::u16string, std::u16string> setting;
