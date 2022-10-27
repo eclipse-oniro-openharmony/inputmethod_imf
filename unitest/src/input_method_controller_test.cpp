@@ -616,8 +616,8 @@ namespace MiscServices {
     {
         IMSA_HILOGI("IMC SetImeListener Test START");
         auto listener = std::make_shared<JsGetInputMethodSetting>();
-        EXPECT_TRUE(listener != nullptr);
-        InputMethodController::GetInstance()->SetImeListener(listener);
+        auto imc = InputMethodController::GetInstance();
+        imc->SetImeListener(listener);
     }
 } // namespace MiscServices
 } // namespace OHOS
