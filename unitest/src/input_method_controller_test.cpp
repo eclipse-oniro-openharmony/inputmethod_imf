@@ -32,7 +32,6 @@
 #include "input_method_setting.h"
 #include "input_method_system_ability_proxy.h"
 #include "iservice_registry.h"
-#include "js_get_input_method_setting.h"
 #include "message_parcel.h"
 #include "nativetoken_kit.h"
 #include "system_ability_definition.h"
