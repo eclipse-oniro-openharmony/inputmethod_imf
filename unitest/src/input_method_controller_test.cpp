@@ -23,6 +23,7 @@
 #include <thread>
 #include <vector>
 
+#include "accesstoken_kit.h"
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
@@ -31,12 +32,12 @@
 #include "input_method_setting.h"
 #include "input_method_system_ability_proxy.h"
 #include "iservice_registry.h"
-#include "system_ability_definition.h"
-#include "utils.h"
+#include "js_get_input_method_setting.h"
 #include "message_parcel.h"
-#include "token_setproc.h"
-#include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
+#include "system_ability_definition.h"
+#include "token_setproc.h"
+#include "utils.h"
 
 using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
@@ -603,6 +604,20 @@ namespace MiscServices {
         EXPECT_TRUE(imc != nullptr);
 
         imc->SetCallingWindow(WINDOW_ID);
+    }
+
+    /**
+     * @tc.name: testIMCSetImeListener
+     * @tc.desc: IMC testSetImeListener.
+     * @tc.type: FUNC
+     * @tc.require: issueI5U8FZ
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCSetImeListener, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC SetImeListener Test START");
+        auto listener = std::make_shared<JsGetInputMethodSetting>();
+        EXPECT_TRUE(listener != nullptr);
+        InputMethodController::GetInstance()->SetImeListener(listener);
     }
 } // namespace MiscServices
 } // namespace OHOS

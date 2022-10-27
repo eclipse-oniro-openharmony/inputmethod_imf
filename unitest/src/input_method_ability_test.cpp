@@ -109,8 +109,6 @@ namespace MiscServices {
         sptr<IInputMethodCore> core = coreStub;
         auto msgHandler = new (std::nothrow) MessageHandler();
         coreStub->SetMessageHandler(msgHandler);
-        msgHandler = new MessageHandler();
-        coreStub->SetMessageHandler(msgHandler);
         sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
 
         MessageParcel data;
@@ -123,6 +121,7 @@ namespace MiscServices {
         sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
         SubProperty subProperty;
         auto ret = coreProxy->showKeyboard(channelProxy, true, subProperty);
+        delete msgHandler;
         EXPECT_EQ(ret, 0);
     }
 
