@@ -47,8 +47,9 @@ public:
     ~JsGetInputMethodController() = default;
     static napi_value Init(napi_env env, napi_value info);
     static napi_value GetController(napi_env env, napi_callback_info cbInfo);
-    static napi_value HandleSoftKeyboard(
-        napi_env env, napi_callback_info info, std::function<int32_t()> callback, bool isOutput, bool v9Flag);
+    static napi_value GetInputMethodController(napi_env env, napi_callback_info cbInfo);
+    static napi_value HandleSoftKeyboard(napi_env env, napi_callback_info info, std::function<int32_t()> callback,
+        bool isOutput, bool needThrowException);
     static napi_value HideSoftKeyboard(napi_env env, napi_callback_info info);
     static napi_value ShowSoftKeyboard(napi_env env, napi_callback_info info);
     static napi_value StopInputSession(napi_env env, napi_callback_info info);
@@ -56,6 +57,7 @@ public:
 
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
+    static napi_value GetIMController(napi_env env, napi_callback_info cbInfo, bool needThrowException);
     static const std::string IMC_CLASS_NAME;
     static thread_local napi_ref IMCRef_;
 };

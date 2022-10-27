@@ -58,13 +58,14 @@ public:
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
     int32_t StopInput(sptr<IInputClient> client) override;
+    int32_t StopInputSession() override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     int32_t GetKeyboardWindowHeight(int32_t &retHeight) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
     std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
-    std::vector<Property> ListInputMethod(InputMethodStatus status) override;
-    std::vector<SubProperty> ListCurrentInputMethodSubtype() override;
-    std::vector<SubProperty> ListInputMethodSubtype(const std::string &name) override;
+    int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;
+    int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) override;
+    int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) override;
     int32_t SwitchInputMethod(const std::string &name, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
@@ -75,7 +76,7 @@ public:
     int32_t ShowCurrentInputDeprecated() override;
     int32_t DisplayOptionalInputMethodDeprecated() override;
 
-    std::vector<Property> ListInputMethodByUserId(int32_t userId, InputMethodStatus status);
+    int32_t ListInputMethodByUserId(int32_t userId, InputMethodStatus status, std::vector<Property> &props);
     int Dump(int fd, const std::vector<std::u16string> &args) override;
     void DumpAllMethod(int fd);
 
@@ -113,11 +114,11 @@ private:
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
     std::vector<InputMethodInfo> ListInputMethodInfo(int32_t userId);
-    std::vector<Property> ListAllInputMethod(int32_t userId);
-    std::vector<Property> ListEnabledInputMethod();
-    std::vector<Property> ListDisabledInputMethod(int32_t userId);
-    std::vector<Property> ListProperty(int32_t userId);
-    std::vector<SubProperty> ListSubtypeByBundleName(int32_t userId, const std::string &name);
+    int32_t ListAllInputMethod(int32_t userId, std::vector<Property> &props);
+    int32_t ListEnabledInputMethod(std::vector<Property> &props);
+    int32_t ListDisabledInputMethod(int32_t userId, std::vector<Property> &props);
+    int32_t ListProperty(int32_t userId, std::vector<Property> &props);
+    int32_t ListSubtypeByBundleName(int32_t userId, const std::string &name, std::vector<SubProperty> &subProps);
     void StartUserIdListener();
     int32_t SwitchInputMethodType(const std::string &name);
     int32_t SwitchInputMethodSubtype(const std::string &name, const std::string &subName);

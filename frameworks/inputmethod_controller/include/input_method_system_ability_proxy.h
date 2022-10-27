@@ -49,17 +49,18 @@ public:
     int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) override;
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
+    int32_t StopInputSession() override;
     int32_t StopInput(sptr<IInputClient> client) override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     int32_t GetKeyboardWindowHeight(int32_t &retHeight) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
     std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
-    std::vector<Property> ListInputMethod(InputMethodStatus status) override;
+    int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;
     int32_t SwitchInputMethod(const std::string &name, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
-    std::vector<SubProperty> ListCurrentInputMethodSubtype() override;
-    std::vector<SubProperty> ListInputMethodSubtype(const std::string &name) override;
+    int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) override;
+    int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;
