@@ -75,8 +75,6 @@ namespace MiscServices {
         {
             IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
         }
-
-        static bool isImeChanged;
     };
 
     class TextListener : public OnTextChangedListener {
