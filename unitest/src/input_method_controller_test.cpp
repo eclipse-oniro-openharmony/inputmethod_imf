@@ -617,7 +617,7 @@ namespace MiscServices {
         IMSA_HILOGI("IMC SetImeListener Test START");
         auto listener = std::make_shared<InputMethodSettingListenerImpl>();
         auto imc = InputMethodController::GetInstance();
-        imc->SetImeListener(listener);
+        imc->setImeListener(listener);
     }
 
     /**
