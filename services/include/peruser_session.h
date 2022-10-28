@@ -142,7 +142,7 @@ namespace MiscServices {
         sptr<RemoteObjectDeathRecipient> imsDeathRecipient = nullptr;
         MessageHandler *msgHandler = nullptr; // message handler working with Work Thread
         std::thread workThreadHandler; // work thread handler
-        std::mutex mtx; // mutex to lock the operations among multi work threads
+        std::recursive_mutex mtx; // mutex to lock the operations among multi work threads
         sptr<AAFwk::AbilityConnectionProxy> connCallback;
         std::mutex resetLock;
         ResetManager manager[MAX_IME];
