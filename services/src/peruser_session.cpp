@@ -99,7 +99,7 @@ namespace MiscServices {
         }
         while (1) {
             Message *msg = msgHandler->GetMessage();
-            std::unique_lock<std::mutex> lock(mtx);
+            std::lock_guard<std::recursive_mutex> lock(mtx);
             switch (msg->msgId_) {
                 case MSG_ID_USER_LOCK:
                 case MSG_ID_EXIT_SERVICE: {
@@ -179,7 +179,7 @@ namespace MiscServices {
     void PerUserSession::ResetIme(InputMethodInfo *defaultIme, InputMethodInfo *securityIme)
     {
         IMSA_HILOGI("PerUserSession::ResetIme");
-        std::unique_lock<std::mutex> lock(mtx);
+        std::lock_guard<std::recursive_mutex> lock(mtx);
         InputMethodInfo *ime[] = {defaultIme, securityIme};
         for (int i = 0; i < MIN_IME; i++) {
             if (currentIme[i] == ime[i] && ime[i]) {
@@ -227,7 +227,7 @@ namespace MiscServices {
         IMSA_HILOGI("PerUserSession::OnPackageRemoved");
         InputMethodSetting tmpSetting;
         bool flag = false;
-        std::unique_lock<std::mutex> lock(mtx);
+        std::lock_guard<std::recursive_mutex> lock(mtx);
         for (int i = 0; i < MAX_IME; i++) {
             sptr<IInputClient> client = GetCurrentClient();
             if (currentIme[i] && currentIme[i]->mPackageName == packageName) {
@@ -256,6 +256,7 @@ namespace MiscServices {
     int PerUserSession::AddClient(sptr<IRemoteObject> inputClient, const ClientInfo &clientInfo)
     {
         IMSA_HILOGI("PerUserSession::AddClient");
+        std::lock_guard<std::recursive_mutex> lock(mtx);
         auto cacheClient = GetClientInfo(inputClient);
         if (cacheClient != nullptr) {
             IMSA_HILOGE("PerUserSession::AddClient info is exist, not need add.");
@@ -287,6 +288,7 @@ namespace MiscServices {
     void PerUserSession::RemoveClient(sptr<IRemoteObject> inputClient)
     {
         IMSA_HILOGE("PerUserSession::RemoveClient");
+        std::lock_guard<std::recursive_mutex> lock(mtx);
         auto it = mapClients.find(inputClient);
         if (it == mapClients.end()) {
             IMSA_HILOGE("PerUserSession::RemoveClient client not found");
@@ -566,7 +568,7 @@ namespace MiscServices {
     int PerUserSession::OnSettingChanged(const std::u16string& key, const std::u16string& value)
     {
         IMSA_HILOGI("Start...[%{public}d]\n", userId_);
-        std::unique_lock<std::mutex> lock(mtx);
+        std::lock_guard<std::recursive_mutex> lock(mtx);
         if (!inputMethodSetting) {
             return ErrorCode::ERROR_NULL_POINTER;
         }
@@ -800,6 +802,7 @@ namespace MiscServices {
     void PerUserSession::OnUserLocked()
     {
         IMSA_HILOGI("PerUserSession::OnUserLocked");
+        std::lock_guard<std::recursive_mutex> lock(mtx);
         if (userState == UserState::USER_STATE_STARTED) {
             IMSA_HILOGI("End...[%{public}d]\n", userId_);
             return;
@@ -993,6 +996,7 @@ namespace MiscServices {
     */
     std::shared_ptr<ClientInfo> PerUserSession::GetClientInfo(sptr<IRemoteObject> inputClient)
     {
+        std::lock_guard<std::recursive_mutex> lock(mtx);
         if (inputClient == nullptr) {
             IMSA_HILOGE("PerUserSession::GetClientInfo inputClient is nullptr");
             return nullptr;
@@ -1118,6 +1122,7 @@ namespace MiscServices {
     void PerUserSession::SendAgentToAllClients()
     {
         IMSA_HILOGI("PerUserSession::SendAgentToAllClients");
+        std::lock_guard<std::recursive_mutex> lock(mtx);
         if (imsAgent == nullptr) {
             IMSA_HILOGE("PerUserSession::SendAgentToAllClients imsAgent is nullptr");
             return;
@@ -1211,6 +1216,7 @@ namespace MiscServices {
     int32_t PerUserSession::OnInputMethodSwitched(const Property &property, const SubProperty &subProperty)
     {
         IMSA_HILOGI("PerUserSession::OnInputMethodSwitched");
+        std::lock_guard<std::recursive_mutex> lock(mtx);
         for (const auto &client : mapClients) {
             auto clientInfo = client.second;
             if (clientInfo == nullptr) {
