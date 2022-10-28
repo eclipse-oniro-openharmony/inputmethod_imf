@@ -23,6 +23,7 @@
 #include <thread>
 #include <vector>
 
+#include "accesstoken_kit.h"
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
@@ -31,12 +32,11 @@
 #include "input_method_setting.h"
 #include "input_method_system_ability_proxy.h"
 #include "iservice_registry.h"
-#include "system_ability_definition.h"
-#include "utils.h"
 #include "message_parcel.h"
-#include "token_setproc.h"
-#include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
+#include "system_ability_definition.h"
+#include "token_setproc.h"
+#include "utils.h"
 
 using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
@@ -66,6 +66,16 @@ namespace MiscServices {
         AccessTokenKit::ReloadNativeTokenInfo();
         delete[] perms;
     }
+
+    class InputMethodSettingListenerImpl : public InputMethodSettingListener {
+    public:
+        InputMethodSettingListenerImpl() = default;
+        ~InputMethodSettingListenerImpl() = default;
+        void OnImeChange(const Property &property, const SubProperty &subProperty)
+        {
+            IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
+        }
+    };
 
     class TextListener : public OnTextChangedListener {
     public:
@@ -370,11 +380,11 @@ namespace MiscServices {
      * @tc.type: FUNC
      * @tc.require: issueI5U8FZ
      */
-     HWTEST_F(InputMethodControllerTest, testIMCGetCurrentInputMethodSubtype, TestSize.Level0)
+    HWTEST_F(InputMethodControllerTest, testIMCGetCurrentInputMethodSubtype, TestSize.Level0)
     {
-         IMSA_HILOGI("IMC GetCurrentInputMethodSubtype Test Start");
-         auto property = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
-         EXPECT_TRUE(property != nullptr);
+        IMSA_HILOGI("IMC GetCurrentInputMethodSubtype Test Start");
+        auto property = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
+        EXPECT_TRUE(property != nullptr);
     }
 
     /**
@@ -597,6 +607,20 @@ namespace MiscServices {
     }
 
     /**
+     * @tc.name: testIMCSetImeListener
+     * @tc.desc: IMC testSetImeListener.
+     * @tc.type: FUNC
+     * @tc.require: issueI5U8FZ
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCSetImeListener, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC SetImeListener Test START");
+        auto listener = std::make_shared<InputMethodSettingListenerImpl>();
+        auto imc = InputMethodController::GetInstance();
+        imc->setImeListener(listener);
+    }
+
+    /**
     * @tc.name: testIMCSetCallingWindow
     * @tc.desc: IMC testSetCallingWindow.
     * @tc.type: FUNC
@@ -616,7 +640,7 @@ namespace MiscServices {
     * @tc.name: testIMCInputStopSession
     * @tc.desc: IMC testInputStopSession.
     * @tc.type: FUNC
-    * @tc.require:
+    * @tc.require: issueI5U8FZ
     * @tc.author: Hollokin
     */
     HWTEST_F(InputMethodControllerTest, testIMCInputStopSession, TestSize.Level0)
