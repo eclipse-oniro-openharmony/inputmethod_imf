@@ -503,7 +503,12 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListSubtypeByBundleName");
         std::vector<AppExecFwk::ExtensionAbilityInfo> subtypeInfos;
-        if (!GetBundleMgr()->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, subtypeInfos)) {
+        auto bundleMgr = GetBundleMgr();
+        if (bundleMgr == nullptr) {
+            IMSA_HILOGE("Failed to GetBundleMgr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        if (!bundleMgr->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, subtypeInfos)) {
             IMSA_HILOGE("QueryExtensionAbilityInfos failed");
             return ErrorCode::ERROR_PACKAGE_MANAGER;
         }
@@ -711,7 +716,12 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodInfo userId = %{public}d", userId);
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-        bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, extensionInfos);
+        auto bundleMgr = GetBundleMgr();
+        if (bundleMgr == nullptr) {
+            IMSA_HILOGE("Failed to GetBundleMgr");
+            return {};
+        }
+        bool ret = bundleMgr->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, extensionInfos);
         if (!ret) {
             IMSA_HILOGE("InputMethodSystemAbility::ListInputMethodInfo QueryExtensionAbilityInfos error");
             return {};
@@ -745,7 +755,12 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListProperty userId = %{public}d", userId);
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-        bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, extensionInfos);
+        auto bundleMgr = GetBundleMgr();
+        if (bundleMgr == nullptr) {
+            IMSA_HILOGE("Failed to GetBundleMgr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        bool ret = bundleMgr->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, extensionInfos);
         if (!ret) {
             IMSA_HILOGE("InputMethodSystemAbility::ListProperty QueryExtensionAbilityInfos error");
             return ErrorCode::ERROR_PACKAGE_MANAGER;
