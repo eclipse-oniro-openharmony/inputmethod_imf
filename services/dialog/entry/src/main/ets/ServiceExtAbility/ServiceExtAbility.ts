@@ -91,8 +91,8 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
     private async getInputMethods() {
         globalThis.inputMethodList = []
         try {
-            let enableList = await inputMethod.getInputMethodSetting().listInputMethod(true)
-            let disableList = await inputMethod.getInputMethodSetting().listInputMethod(false)
+            let enableList = await inputMethod.getSetting().getInputMethods(true)
+            let disableList = await inputMethod.getSetting().getInputMethods(false)
             globalThis.inputMethodList = [...enableList, ...disableList]
         } catch {
             console.log(TAG + "getInputMethods failed ");

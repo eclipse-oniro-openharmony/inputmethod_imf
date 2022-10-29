@@ -13,13 +13,38 @@
 
 import("//build/ohos.gni")
 
-ohos_prebuilt_etc("input_method_choose_hap") {
-  module_install_dir = "app/cn.openharmony.inputmethodchoosedialog"
-  source = "input_method_choose_dialog.hap"
-  part_name = "prebuilt_hap"
-  subsystem_name = "applications"
-}
-
 group("input_method_choose_dialog") {
   deps = [ ":input_method_choose_hap" ]
+}
+
+ohos_hap("input_method_choose_hap") {
+  hap_profile = "entry/src/main/module.json"
+
+  deps = [
+    ":input_method_choose_dialog_js_assets",
+    ":input_method_choose_dialog_resources",
+  ]
+
+  certificate_profile = "signature/openharmony_sx.p7b"
+  hap_name = "input_method_choose_dialog"
+  subsystem_name = "application"
+  part_name = "prebuilt_hap"
+  module_install_dir = "app/cn.openharmony.inputmethodchoosedialog"
+}
+
+ohos_js_assets("input_method_choose_dialog_js_assets") {
+  hap_profile = "entry/src/main/module.json"
+  ets2abc = true
+  source_dir = "entry/src/main/ets"
+}
+
+ohos_app_scope("input_method_choose_dialog_app_profile") {
+  app_profile = "AppScope/app.json"
+  sources = [ "AppScope/resources" ]
+}
+
+ohos_resources("input_method_choose_dialog_resources") {
+  sources = [ "entry/src/main/resources" ]
+  deps = [ ":input_method_choose_dialog_app_profile" ]
+  hap_profile = "entry/src/main/module.json"
 }
