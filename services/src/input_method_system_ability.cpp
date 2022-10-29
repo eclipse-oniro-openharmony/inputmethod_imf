@@ -1266,6 +1266,7 @@ namespace MiscServices {
     int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod(int32_t userId)
     {
         IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod");
+        constexpr int32_t START_SERVICE_ABILITY_ACTICATING = 2097172;
         auto abilityManager = GetAbilityManagerService();
         if (abilityManager == nullptr) {
             IMSA_HILOGE("InputMethodSystemAbility::get ability manager failed");
@@ -1275,7 +1276,7 @@ namespace MiscServices {
         want.SetAction(SELECT_DIALOG_ACTION);
         want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
         int32_t ret = abilityManager->StartAbility(want);
-        if (ret != ErrorCode::NO_ERROR) {
+        if (ret != ErrorCode::NO_ERROR || ret != START_SERVICE_ABILITY_ACTICATING) {
             IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", ret);
             return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
         }
