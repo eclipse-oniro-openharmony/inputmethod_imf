@@ -1276,7 +1276,7 @@ namespace MiscServices {
         want.SetAction(SELECT_DIALOG_ACTION);
         want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
         int32_t ret = abilityManager->StartAbility(want);
-        if (ret != ErrorCode::NO_ERROR || ret != START_SERVICE_ABILITY_ACTICATING) {
+        if (ret != ErrorCode::NO_ERROR && ret != START_SERVICE_ABILITY_ACTICATING) {
             IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", ret);
             return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
         }
