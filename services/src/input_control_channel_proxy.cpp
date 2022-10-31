@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-#include "parcel.h"
-#include "iremote_broker.h"
-#include "message_parcel.h"
-#include "message_handler.h"
+#include "input_control_channel_proxy.h"
 
 #include "global.h"
-#include "iremote_proxy.h"
 #include "i_input_control_channel.h"
 #include "i_input_method_agent.h"
-#include "input_control_channel_proxy.h"
+#include "iremote_broker.h"
+#include "iremote_proxy.h"
+#include "message_handler.h"
+#include "message_parcel.h"
+#include "parcel.h"
 
 /*! \class InputControlChannelProxy
   \brief The proxy implementation of IInputControlChannel
@@ -31,58 +31,58 @@
 */
 namespace OHOS {
 namespace MiscServices {
-    InputControlChannelProxy::InputControlChannelProxy(const sptr<IRemoteObject> &impl)
-        : IRemoteProxy<IInputControlChannel>(impl)
-    {
-    }
+InputControlChannelProxy::InputControlChannelProxy(const sptr<IRemoteObject> &impl)
+    : IRemoteProxy<IInputControlChannel>(impl)
+{
+}
 
-    InputControlChannelProxy::~InputControlChannelProxy()
-    {
-    }
+InputControlChannelProxy::~InputControlChannelProxy()
+{
+}
 
-    int32_t InputControlChannelProxy::HideKeyboardSelf(int flags)
-    {
-        IMSA_HILOGI("InputControlChannelProxy::HideKeyboardSelf");
-        MessageParcel data, reply;
-        MessageOption option;
-        data.WriteInterfaceToken(GetDescriptor());
-        data.WriteInt32(flags);
-        Remote()->SendRequest(HIDE_KEYBOARD_SELF, data, reply, option);
-        auto result = reply.ReadInt32();
-        return result;
-    }
+int32_t InputControlChannelProxy::HideKeyboardSelf(int flags)
+{
+    IMSA_HILOGI("InputControlChannelProxy::HideKeyboardSelf");
+    MessageParcel data, reply;
+    MessageOption option;
+    data.WriteInterfaceToken(GetDescriptor());
+    data.WriteInt32(flags);
+    Remote()->SendRequest(HIDE_KEYBOARD_SELF, data, reply, option);
+    auto result = reply.ReadInt32();
+    return result;
+}
 
-    bool InputControlChannelProxy::AdvanceToNext(bool isCurrentIme)
-    {
-        MessageParcel data, reply;
-        MessageOption option;
+bool InputControlChannelProxy::AdvanceToNext(bool isCurrentIme)
+{
+    MessageParcel data, reply;
+    MessageOption option;
 
-        data.WriteInterfaceToken(GetDescriptor());
-        data.WriteBool(isCurrentIme);
-        Remote()->SendRequest(MessageID::MSG_ID_ADVANCE_TO_NEXT, data, reply, option);
-        IMSA_HILOGI("InputControlChannelProxy::advanceToNext.");
-        return true;
-    }
+    data.WriteInterfaceToken(GetDescriptor());
+    data.WriteBool(isCurrentIme);
+    Remote()->SendRequest(MessageID::MSG_ID_ADVANCE_TO_NEXT, data, reply, option);
+    IMSA_HILOGI("InputControlChannelProxy::advanceToNext.");
+    return true;
+}
 
-    void InputControlChannelProxy::SetDisplayMode(int mode)
-    {
-        MessageParcel data, reply;
-        MessageOption option;
+void InputControlChannelProxy::SetDisplayMode(int mode)
+{
+    MessageParcel data, reply;
+    MessageOption option;
 
-        data.WriteInterfaceToken(GetDescriptor());
-        data.WriteInt32(mode);
-        Remote()->SendRequest(MessageID::MSG_ID_SET_DISPLAY_MODE, data, reply, option);
-        IMSA_HILOGI("InputControlChannelProxy::setDisplayMode.");
-    }
+    data.WriteInterfaceToken(GetDescriptor());
+    data.WriteInt32(mode);
+    Remote()->SendRequest(MessageID::MSG_ID_SET_DISPLAY_MODE, data, reply, option);
+    IMSA_HILOGI("InputControlChannelProxy::setDisplayMode.");
+}
 
-    void InputControlChannelProxy::OnKeyboardShowed()
-    {
-        MessageParcel data, reply;
-        MessageOption option;
+void InputControlChannelProxy::OnKeyboardShowed()
+{
+    MessageParcel data, reply;
+    MessageOption option;
 
-        data.WriteInterfaceToken(GetDescriptor());
-        Remote()->SendRequest(ON_KEYBOARD_SHOWED, data, reply, option);
-        IMSA_HILOGI("InputControlChannelProxy::onKeyboardShowed.");
-    }
+    data.WriteInterfaceToken(GetDescriptor());
+    Remote()->SendRequest(ON_KEYBOARD_SHOWED, data, reply, option);
+    IMSA_HILOGI("InputControlChannelProxy::onKeyboardShowed.");
+}
 } // namespace MiscServices
 } // namespace OHOS
