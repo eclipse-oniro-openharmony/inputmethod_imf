@@ -36,7 +36,8 @@ const std::string JsInputMethodEngineSetting::IMES_CLASS_NAME = "InputMethodEngi
 thread_local napi_ref JsInputMethodEngineSetting::IMESRef_ = nullptr;
 
 std::mutex JsInputMethodEngineSetting::engineMutex_;
-std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::inputMethodEngine_ { nullptr };
+std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::inputMethodEngine_{ nullptr };
+thread_local std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> JsInputMethodEngineSetting::jsCbMap_;
 
 napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
 {
@@ -218,10 +219,10 @@ std::string JsInputMethodEngineSetting::GetStringProperty(napi_env env, napi_val
     return std::string(propValue);
 }
 
-void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::string type,
-    std::shared_ptr<JSCallbackObject> callbackObj)
+void JsInputMethodEngineSetting::RegisterListener(
+    napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    IMSA_HILOGI("JsInputMethodEngineSetting::RegisterListener");
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGE("methodName: %{public}s not registertd!", type.c_str());
     }
@@ -238,7 +239,7 @@ void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::stri
 
 void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::string type)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    IMSA_HILOGI("JsInputMethodEngineSetting::UnRegisterListener");
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGE("methodName: %{public}s already unRegisterted!", type.c_str());
         return;
@@ -282,8 +283,9 @@ JsInputMethodEngineSetting *JsInputMethodEngineSetting::GetNative(napi_env env, 
 
 napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_info info)
 {
+    IMSA_HILOGI("JsInputMethodEngineSetting::Subscribe");
     size_t argc = ARGC_TWO;
-    napi_value argv[ARGC_TWO] = {nullptr};
+    napi_value argv[ARGC_TWO] = { nullptr };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
@@ -301,14 +303,14 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     }
     std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
     IMSA_HILOGE("event type is: %{public}s", type.c_str());
-    
+
     valuetype = napi_undefined;
     napi_typeof(env, argv[ARGC_ONE], &valuetype);
     if (valuetype != napi_function) {
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'callback'", TypeCode::TYPE_FUNCTION);
         return nullptr;
     }
-    
+
     auto engine = GetNative(env, info);
     if (engine == nullptr) {
         return nullptr;
@@ -323,8 +325,9 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
 
 napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_info info)
 {
+    IMSA_HILOGI("JsInputMethodEngineSetting::UnSubscribe");
     size_t argc = ARGC_TWO;
-    napi_value argv[ARGC_TWO] = {nullptr};
+    napi_value argv[ARGC_TWO] = { nullptr };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
@@ -364,6 +367,7 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
 
 bool JsInputMethodEngineSetting::Equals(napi_env env, napi_value value, napi_ref copy)
 {
+    IMSA_HILOGI("JsInputMethodEngineSetting::Equals");
     if (copy == nullptr) {
         return (value == nullptr);
     }
@@ -380,8 +384,6 @@ uv_work_t *JsInputMethodEngineSetting::GetUVwork(std::string type)
 {
     UvEntry *entry = nullptr;
     {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnInputStart cb-vector is empty");
             return nullptr;
@@ -405,8 +407,6 @@ uv_work_t *JsInputMethodEngineSetting::GetStopInputUVwork(std::string type, std:
 {
     UvEntry *entry = nullptr;
     {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnInputStart cb-vector is empty");
             return nullptr;
@@ -431,8 +431,6 @@ uv_work_t *JsInputMethodEngineSetting::GetWindowIDUVwork(std::string type, uint3
 {
     UvEntry *entry = nullptr;
     {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnInputStart cb-vector is empty");
             return nullptr;
@@ -457,8 +455,6 @@ uv_work_t *JsInputMethodEngineSetting::GetSubtypeUVwork(std::string type, const 
 {
     UvEntry *entry = nullptr;
     {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGE("OnSetSubtype cb-vector is empty");
             return nullptr;
