@@ -503,14 +503,10 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListSubtypeByBundleName");
         std::vector<AppExecFwk::ExtensionAbilityInfo> subtypeInfos;
-        auto bundleMgr = GetBundleMgr();
-        if (bundleMgr == nullptr) {
-            IMSA_HILOGE("Failed to GetBundleMgr");
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        if (!bundleMgr->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, subtypeInfos)) {
-            IMSA_HILOGE("QueryExtensionAbilityInfos failed");
-            return ErrorCode::ERROR_PACKAGE_MANAGER;
+        int32_t ret = QueryImeInfos(userId, subtypeInfos);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("Failed to query inputmethod infos");
+            return ret;
         }
         std::vector<SubProperty> properties;
         for (const auto &subtypeInfo : subtypeInfos) {
@@ -716,14 +712,8 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodInfo userId = %{public}d", userId);
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-        auto bundleMgr = GetBundleMgr();
-        if (bundleMgr == nullptr) {
-            IMSA_HILOGE("Failed to GetBundleMgr");
-            return {};
-        }
-        bool ret = bundleMgr->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, extensionInfos);
-        if (!ret) {
-            IMSA_HILOGE("InputMethodSystemAbility::ListInputMethodInfo QueryExtensionAbilityInfos error");
+        if (QueryImeInfos(userId, extensionInfos) != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("Failed to query inputmethod infos");
             return {};
         }
         std::vector<InputMethodInfo> properties;
@@ -755,15 +745,10 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::ListProperty userId = %{public}d", userId);
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-        auto bundleMgr = GetBundleMgr();
-        if (bundleMgr == nullptr) {
-            IMSA_HILOGE("Failed to GetBundleMgr");
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        bool ret = bundleMgr->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, extensionInfos);
-        if (!ret) {
-            IMSA_HILOGE("InputMethodSystemAbility::ListProperty QueryExtensionAbilityInfos error");
-            return ErrorCode::ERROR_PACKAGE_MANAGER;
+        int32_t ret = QueryImeInfos(userId, extensionInfos);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("Failed to query inputmethod infos");
+            return ret;
         }
         for (const auto &extension : extensionInfos) {
             bool isInVector = false;
@@ -1366,6 +1351,22 @@ namespace MiscServices {
         sptr<IRemoteObject> remoteObject =
         systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
         return iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    }
+
+    int32_t InputMethodSystemAbility::QueryImeInfos(
+        int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &infos)
+    {
+        IMSA_HILOGI("InputMethodSystemAbility::QueryImeInfos");
+        auto bundleMgr = GetBundleMgr();
+        if (bundleMgr == nullptr) {
+            IMSA_HILOGE("Failed to GetBundleMgr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        if (!bundleMgr->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, infos)) {
+            IMSA_HILOGE("QueryExtensionAbilityInfos failed");
+            return ErrorCode::ERROR_PACKAGE_MANAGER;
+        }
+        return ErrorCode::NO_ERROR;
     }
 
     sptr<AAFwk::IAbilityManager> InputMethodSystemAbility::GetAbilityManagerService()
