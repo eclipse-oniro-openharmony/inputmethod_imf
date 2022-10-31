@@ -11,176 +11,177 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+  */
 
-#include "message_handler.h"
 #include "input_control_channel_stub.h"
+
 #include "i_input_control_channel.h"
 #include "input_channel.h"
 #include "input_method_agent_proxy.h"
+#include "message_handler.h"
 #include "message_parcel.h"
 
 namespace OHOS {
 namespace MiscServices {
-    /*! Constructor
-    \param userId the id of the user to whom the object is linking
-    */
-    InputControlChannelStub::InputControlChannelStub(int userId)
-    {
-        userId_ = userId;
-    }
+/** Constructor
+ * @param userId the id of the user to whom the object is linking
+ */
+InputControlChannelStub::InputControlChannelStub(int userId)
+{
+    userId_ = userId;
+}
 
-    /*! Destructor
-    */
-    InputControlChannelStub::~InputControlChannelStub()
-    {
-    }
+/** Destructor
+ */
+InputControlChannelStub::~InputControlChannelStub()
+{
+}
 
-    /*! Handle the transaction from the remote binder
-    \n Run in binder thread
-    \param code transaction code number
-    \param data the params from remote binder
-    \param[out] reply the result of the transaction replied to the remote binder
-    \param flags the flags of handling transaction
-    \return int32_t
-    */
-    int32_t InputControlChannelStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
-                                                     MessageParcel& reply, MessageOption& option)
-    {
-        IMSA_HILOGI("InputControlChannelStub::OnRemoteRequest code = %{public}u", code);
-        auto descriptorToken = data.ReadInterfaceToken();
-        if (descriptorToken != GetDescriptor()) {
-            return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
+/** Handle the transaction from the remote binder
+ * @n Run in binder thread
+ * @param code transaction code number
+ * @param data the params from remote binder
+ * @param[out] reply the result of the transaction replied to the remote binder
+ * @param flags the flags of handling transaction
+ * @return int32_t
+ */
+/*
+ * @
+  */
+int32_t InputControlChannelStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    IMSA_HILOGI("InputControlChannelStub::OnRemoteRequest code = %{public}u", code);
+    auto descriptorToken = data.ReadInterfaceToken();
+    if (descriptorToken != GetDescriptor()) {
+        return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
+    }
+    switch (code) {
+        case HIDE_KEYBOARD_SELF: {
+            int flag = data.ReadInt32();
+            reply.WriteInt32(HideKeyboardSelf(flag));
+            break;
         }
-        switch (code) {
-            case HIDE_KEYBOARD_SELF: {
-                int flag = data.ReadInt32();
-                reply.WriteInt32(HideKeyboardSelf(flag));
-                break;
-            }
-            case ADVANCE_TO_NEXT: {
-                bool isCurrentIme = data.ReadInt32();
-                bool ret = AdvanceToNext(isCurrentIme);
-                reply.WriteNoException();
-                reply.WriteBool(ret);
-                break;
-            }
-            case SET_DISPLAY_MODE:  {
-                int mode = data.ReadInt32();
-                SetDisplayMode(mode);
-                reply.WriteNoException();
-                break;
-            }
-            case ON_KEYBOARD_SHOWED: {
-                OnKeyboardShowed();
-                reply.WriteNoException();
-                break;
-            }
-            default: {
-                return IRemoteStub::OnRemoteRequest(code, data, reply, option);
-            }
+        case ADVANCE_TO_NEXT: {
+            bool isCurrentIme = data.ReadInt32();
+            bool ret = AdvanceToNext(isCurrentIme);
+            reply.WriteNoException();
+            reply.WriteBool(ret);
+            break;
         }
-        return NO_ERROR;
-    }
-
-    /*! Called when input method service showed keyboard
-    \n This call is running in binder thread
-    */
-    void InputControlChannelStub::OnKeyboardShowed()
-    {
-        IMSA_HILOGI("InputControlChannelStub::onKeyboardShowed");
-        {
-            std::unique_lock<std::mutex> lck(mtx);
-            keyboardReadyFlag = true;
+        case SET_DISPLAY_MODE: {
+            int mode = data.ReadInt32();
+            SetDisplayMode(mode);
+            reply.WriteNoException();
+            break;
         }
-        cv.notify_one();
+        case ON_KEYBOARD_SHOWED: {
+            OnKeyboardShowed();
+            reply.WriteNoException();
+            break;
+        }
+        default: {
+            return IRemoteStub::OnRemoteRequest(code, data, reply, option);
+        }
     }
+    return NO_ERROR;
+}
 
-    /*! Send HideKeyboardSelf command to work thread.
-    \n This call is running in binder thread,
-        but the handling of HideKeyboardSelf is in the work thread of PerUserSession.
-    \see PerUserSession::OnHideKeyboardSelf
-    \param flags the flag value of hiding keyboard
-    */
-    int32_t InputControlChannelStub::HideKeyboardSelf(int flags)
+/** Called when input method service showed keyboard
+ * @n This call is running in binder thread
+ */
+void InputControlChannelStub::OnKeyboardShowed()
+{
+    IMSA_HILOGI("InputControlChannelStub::onKeyboardShowed");
     {
-        IMSA_HILOGI("InputControlChannelStub::HideKeyboardSelf flags = %{public}d", flags);
-        MessageParcel *parcel = new MessageParcel();
-        parcel->WriteInt32(userId_);
-        parcel->WriteInt32(flags);
-
-        Message *msg = new Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, parcel);
-        MessageHandler::Instance()->SendMessage(msg);
-        return ErrorCode::NO_ERROR;
-    }
-
-    /*! Send advanceToNext command to work thread.
-    \n This call is running in binder thread,
-        but the handling of advanceToNext is in the work thread of InputMethodSystemAbility service
-    \n or in the work thread of PerUserSession
-    \see InputMethodSystemAbility::OnAdvanceToNext PerUserSession::OnAdvanceToNext
-    \see PerUserSetting::OnAdvanceToNext
-    \param isCurrentIme true - switch to next keyboard type within current input method engine
-                    \n false - switch to next input method engine
-    \return true
-    */
-    bool InputControlChannelStub::AdvanceToNext(bool isCurrentIme)
-    {
-        IMSA_HILOGI("InputControlChannelStub::advanceToNext");
-        MessageParcel *parcel = new MessageParcel();
-        parcel->WriteInt32(userId_);
-        parcel->WriteBool(isCurrentIme);
-
-        Message *msg = new Message(MessageID::MSG_ID_ADVANCE_TO_NEXT, parcel);
-        MessageHandler::Instance()->SendMessage(msg);
-        return true;
-    }
-
-    /*! Send SetDisplayMode command to work thread.
-    \n This call is running in binder thread,
-        but the handling of SetDisplayMode is in the work thread of PerUserSession.
-    \see PerUserSession::OnSetDisplayMode
-    \param mode 0 - part screen mode, 1 - full screen mode
-    */
-    void InputControlChannelStub::SetDisplayMode(int mode)
-    {
-        IMSA_HILOGI("InputControlChannelStub::SetDisplayMode start");
-        MessageParcel *parcel = new MessageParcel();
-        parcel->WriteInt32(userId_);
-        parcel->WriteInt32(mode);
-
-        Message *msg = new Message(MessageID::MSG_ID_SET_DISPLAY_MODE, parcel);
-        MessageHandler::Instance()->SendMessage(msg);
-    }
-
-    /*! Reset ready flag to be false
-    \n This should be called before imsCore->startInput() in work thread of PerUserSession
-    */
-    void InputControlChannelStub::ResetFlag()
-    {
-        IMSA_HILOGI("InputControlChannelStub::ResetFlag");
         std::unique_lock<std::mutex> lck(mtx);
-        keyboardReadyFlag = false;
-        agentReadyFlag = false;
+        keyboardReadyFlag = true;
     }
+    cv.notify_one();
+}
+/**
+ * @n This call is running in binder thread,
+ *    but the handling of HideKeyboardSelf is in the work thread of PerUserSession.
+ * @see PerUserSession::OnHideKeyboardSelf
+ * @param flags the flag value of hiding keyboard
+  */
+int32_t InputControlChannelStub::HideKeyboardSelf(int flags)
+{
+    IMSA_HILOGI("InputControlChannelStub::HideKeyboardSelf flags = %{public}d", flags);
+    MessageParcel *parcel = new MessageParcel();
+    parcel->WriteInt32(userId_);
+    parcel->WriteInt32(flags);
 
-    /*! Wait for keyboard to be ready
-    \n This should be called in work thread of PerUserSession
-    \return true - onKeyboardShowed is called by input method service in time
-    \n false - onKeyboardShowed is not called by input method service in time
-    */
-    bool InputControlChannelStub::WaitKeyboardReady()
+    Message *msg = new Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, parcel);
+    MessageHandler::Instance()->SendMessage(msg);
+    return ErrorCode::NO_ERROR;
+}
+
+/** Send advanceToNext command to work thread.
+ * @n This call is running in binder thread,
+        but the handling of advanceToNext is in the work thread of InputMethodSystemAbility service
+ * @n or in the work thread of PerUserSession
+ * @see InputMethodSystemAbility::OnAdvanceToNext PerUserSession::OnAdvanceToNext
+ * @see PerUserSetting::OnAdvanceToNext
+ * @param isCurrentIme true - switch to next keyboard type within current input method engine
+                 * @n false - switch to next input method engine
+ * @return true
+ */
+bool InputControlChannelStub::AdvanceToNext(bool isCurrentIme)
+{
+    IMSA_HILOGI("InputControlChannelStub::advanceToNext");
+    MessageParcel *parcel = new MessageParcel();
+    parcel->WriteInt32(userId_);
+    parcel->WriteBool(isCurrentIme);
+
+    Message *msg = new Message(MessageID::MSG_ID_ADVANCE_TO_NEXT, parcel);
+    MessageHandler::Instance()->SendMessage(msg);
+    return true;
+}
+
+/** Send SetDisplayMode command to work thread.
+ * @n This call is running in binder thread,
+        but the handling of SetDisplayMode is in the work thread of PerUserSession.
+ * @see PerUserSession::OnSetDisplayMode
+ * @param mode 0 - part screen mode, 1 - full screen mode
+ */
+void InputControlChannelStub::SetDisplayMode(int mode)
+{
+    IMSA_HILOGI("InputControlChannelStub::SetDisplayMode start");
+    MessageParcel *parcel = new MessageParcel();
+    parcel->WriteInt32(userId_);
+    parcel->WriteInt32(mode);
+
+    Message *msg = new Message(MessageID::MSG_ID_SET_DISPLAY_MODE, parcel);
+    MessageHandler::Instance()->SendMessage(msg);
+}
+
+/** Reset ready flag to be false
+ * @n This should be called before imsCore->startInput() in work thread of PerUserSession
+ */
+void InputControlChannelStub::ResetFlag()
+{
+    IMSA_HILOGI("InputControlChannelStub::ResetFlag");
+    std::unique_lock<std::mutex> lck(mtx);
+    keyboardReadyFlag = false;
+    agentReadyFlag = false;
+}
+
+/** Wait for keyboard to be ready
+ * @n This should be called in work thread of PerUserSession
+ * @return true - onKeyboardShowed is called by input method service in time
+ * @n false - onKeyboardShowed is not called by input method service in time
+ */
+bool InputControlChannelStub::WaitKeyboardReady()
+{
+    IMSA_HILOGI("InputControlChannelStub::WaitKeyboardReady");
+    std::chrono::milliseconds millsec(sleepTime);
+    bool ret = false;
     {
-        IMSA_HILOGI("InputControlChannelStub::WaitKeyboardReady");
-        std::chrono::milliseconds millsec(sleepTime);
-        bool ret = false;
-        {
-            std::unique_lock<std::mutex> lck(mtx);
-            ret = cv.wait_for(lck, millsec, [this] {
-                return keyboardReadyFlag;
-            });
-        }
-        return ret;
+        std::unique_lock<std::mutex> lck(mtx);
+        ret = cv.wait_for(lck, millsec, [this] { return keyboardReadyFlag; });
     }
+    return ret;
+}
 } // namespace MiscServices
 } // namespace OHOS
