@@ -40,8 +40,7 @@ using namespace AppExecFwk;
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
 class InputMethodSystemAbility
-    : public SystemAbility
-    , public InputMethodSystemAbilityStub {
+    : public SystemAbility, public InputMethodSystemAbilityStub {
     DECLARE_SYSTEM_ABILITY(InputMethodSystemAbility);
 
 public:

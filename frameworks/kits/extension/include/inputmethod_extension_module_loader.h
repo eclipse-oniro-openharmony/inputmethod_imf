@@ -20,8 +20,7 @@
 
 namespace OHOS::AbilityRuntime {
 class InputMethodExtensionModuleLoader
-    : public ExtensionModuleLoader
-    , public Singleton<InputMethodExtensionModuleLoader> {
+    : public ExtensionModuleLoader, public Singleton<InputMethodExtensionModuleLoader> {
     DECLARE_SINGLETON(InputMethodExtensionModuleLoader);
 
 public:
