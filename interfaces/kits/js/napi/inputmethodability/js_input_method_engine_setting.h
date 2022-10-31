@@ -78,7 +78,7 @@ private:
     };
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
-    std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
+    static thread_local std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
     static std::mutex engineMutex_;
     static std::shared_ptr<JsInputMethodEngineSetting> inputMethodEngine_;
 };
