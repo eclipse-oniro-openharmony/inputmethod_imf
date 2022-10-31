@@ -120,7 +120,8 @@ namespace MiscServices {
       \param[out] inputMethodProperty the input method engine information for the given package
       \return ErrorCode
     */
-    int Platform::GetInputMethodProperty(int userId, const std::u16string& packageName, InputMethodInfo *inputMethodProperty)
+    int Platform::GetInputMethodProperty(
+        int userId, const std::u16string &packageName, InputMethodInfo *inputMethodProperty)
     {
         if (!platformApi) {
             return ErrorCode::ERROR_NULL_POINTER;
