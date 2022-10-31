@@ -29,28 +29,28 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class InputDataChannelProxy : public IRemoteProxy<IInputDataChannel> {
-    public:
-        explicit InputDataChannelProxy(const sptr<IRemoteObject> &object);
-        ~InputDataChannelProxy() = default;
-        DISALLOW_COPY_AND_MOVE(InputDataChannelProxy);
+class InputDataChannelProxy : public IRemoteProxy<IInputDataChannel> {
+public:
+    explicit InputDataChannelProxy(const sptr<IRemoteObject> &object);
+    ~InputDataChannelProxy() = default;
+    DISALLOW_COPY_AND_MOVE(InputDataChannelProxy);
 
-        int32_t InsertText(const std::u16string& text) override;
-        int32_t DeleteForward(int32_t length) override;
-        int32_t DeleteBackward(int32_t length) override;
-        void Close() override;
-        int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) override;
-        int32_t GetTextAfterCursor(int32_t number, std::u16string &text) override;
-        void SendKeyboardStatus(int32_t status) override;
-        int32_t SendFunctionKey(int32_t funcKey) override;
-        int32_t MoveCursor(int32_t keyCode) override;
-        int32_t GetEnterKeyType(int32_t &keyType) override;
-        int32_t GetInputPattern(int32_t &inputPattern) override;
-        void StopInput() override;
+    int32_t InsertText(const std::u16string &text) override;
+    int32_t DeleteForward(int32_t length) override;
+    int32_t DeleteBackward(int32_t length) override;
+    void Close() override;
+    int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) override;
+    int32_t GetTextAfterCursor(int32_t number, std::u16string &text) override;
+    void SendKeyboardStatus(int32_t status) override;
+    int32_t SendFunctionKey(int32_t funcKey) override;
+    int32_t MoveCursor(int32_t keyCode) override;
+    int32_t GetEnterKeyType(int32_t &keyType) override;
+    int32_t GetInputPattern(int32_t &inputPattern) override;
+    void StopInput() override;
 
-    private:
-        static inline BrokerDelegator<InputDataChannelProxy> delegator_;
-    };
+private:
+    static inline BrokerDelegator<InputDataChannelProxy> delegator_;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_DATA_CHANNEL_PROXY_H
