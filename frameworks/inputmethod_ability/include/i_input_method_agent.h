@@ -16,8 +16,8 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_I_INPUT_METHOD_AGENT_H
 #define FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_I_INPUT_METHOD_AGENT_H
 
-#include "iremote_broker.h"
 #include "global.h"
+#include "iremote_broker.h"
 
 /**
  * brief Definition of interface IInputMethodAgent
@@ -25,23 +25,23 @@
  */
 namespace OHOS {
 namespace MiscServices {
-    class IInputMethodAgent : public IRemoteBroker {
-    public:
-        enum {
-            DISPATCH_KEY_EVENT = FIRST_CALL_TRANSACTION,
-            ON_CURSOR_UPDATE,
-            ON_SELECTION_CHANGE,
-            SET_CALLING_WINDOW_ID,
-        };
-
-        DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodAgent");
-
-        virtual bool DispatchKeyEvent(MessageParcel& data) = 0;
-        virtual void OnCursorUpdate(int32_t positionX, int32_t positionY, int height) = 0;
-        virtual void OnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd,
-                                       int32_t newBegin, int32_t newEnd) = 0;
-        virtual void SetCallingWindow(uint32_t windowId) = 0;
+class IInputMethodAgent : public IRemoteBroker {
+public:
+    enum {
+        DISPATCH_KEY_EVENT = FIRST_CALL_TRANSACTION,
+        ON_CURSOR_UPDATE,
+        ON_SELECTION_CHANGE,
+        SET_CALLING_WINDOW_ID,
     };
+
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodAgent");
+
+    virtual bool DispatchKeyEvent(MessageParcel &data) = 0;
+    virtual void OnCursorUpdate(int32_t positionX, int32_t positionY, int height) = 0;
+    virtual void OnSelectionChange(
+        std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) = 0;
+    virtual void SetCallingWindow(uint32_t windowId) = 0;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_I_INPUT_METHOD_AGENT_H

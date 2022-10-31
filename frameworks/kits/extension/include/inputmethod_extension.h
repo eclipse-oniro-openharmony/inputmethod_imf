@@ -26,7 +26,8 @@ namespace AbilityRuntime {
  * @brief Basic inputmethod components.
  */
 class InputMethodExtension
-    : public ExtensionBase<InputMethodExtensionContext>, public std::enable_shared_from_this<InputMethodExtension> {
+    : public ExtensionBase<InputMethodExtensionContext>
+    , public std::enable_shared_from_this<InputMethodExtension> {
 public:
     InputMethodExtension() = default;
     virtual ~InputMethodExtension() = default;

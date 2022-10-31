@@ -26,7 +26,8 @@ namespace AbilityRuntime {
  * @brief Basic inputmethod components.
  */
 class JsInputMethodExtension
-    : public InputMethodExtension, public std::enable_shared_from_this<JsInputMethodExtension> {
+    : public InputMethodExtension
+    , public std::enable_shared_from_this<JsInputMethodExtension> {
 public:
     JsInputMethodExtension(JsRuntime &jsRuntime);
     virtual ~JsInputMethodExtension() override;
@@ -107,7 +108,7 @@ public:
 private:
     NativeValue *CallObjectMethod(const char *name, NativeValue *const *argv = nullptr, size_t argc = 0);
 
-    void BindContext(NativeEngine& engine, NativeObject* obj);
+    void BindContext(NativeEngine &engine, NativeObject *obj);
 
     void GetSrcPath(std::string &srcPath);
 
