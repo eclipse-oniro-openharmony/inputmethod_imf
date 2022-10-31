@@ -16,11 +16,10 @@
 #ifndef INTERFACE_KITS_JS_INPUT_METHOD_ENGINE_SETTING_H
 #define INTERFACE_KITS_JS_INPUT_METHOD_ENGINE_SETTING_H
 
-#include <uv.h>
-
 #include <map>
 #include <memory>
 #include <mutex>
+#include <uv.h>
 
 #include "async_call.h"
 #include "global.h"
@@ -55,8 +54,7 @@ private:
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     static napi_value GetIMEInstance(napi_env env, napi_callback_info info, int flag);
-    void RegisterListener(napi_value callback, std::string type,
-        std::shared_ptr<JSCallbackObject> callbackObj);
+    void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     uv_work_t *GetUVwork(std::string type);
     uv_work_t *GetStopInputUVwork(std::string type, std::string imeId);
@@ -73,8 +71,9 @@ private:
         std::string imeid;
         uint32_t windowid = 0;
         SubProperty subProperty;
-        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type)
-            : vecCopy(cbVec), type(type) {}
+        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : vecCopy(cbVec), type(type)
+        {
+        }
     };
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
@@ -82,6 +81,6 @@ private:
     static std::mutex engineMutex_;
     static std::shared_ptr<JsInputMethodEngineSetting> inputMethodEngine_;
 };
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
 #endif // INTERFACE_KITS_JS_INPUT_METHOD_ENGINE_SETTING_H

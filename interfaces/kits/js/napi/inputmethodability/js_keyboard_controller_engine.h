@@ -22,8 +22,8 @@ namespace OHOS {
 namespace MiscServices {
 struct HideKeyboardContext : public AsyncCall::Context {
     napi_status status = napi_generic_failure;
-    HideKeyboardContext() : Context(nullptr, nullptr) { };
-    HideKeyboardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
+    HideKeyboardContext() : Context(nullptr, nullptr){};
+    HideKeyboardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -41,8 +41,8 @@ struct HideKeyboardContext : public AsyncCall::Context {
 
 struct HideContext : public AsyncCall::Context {
     napi_status status = napi_generic_failure;
-    HideContext() : Context(nullptr, nullptr) { };
-    HideContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
+    HideContext() : Context(nullptr, nullptr){};
+    HideContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -66,11 +66,12 @@ public:
     static napi_value GetKeyboardControllerInstance(napi_env env);
     static napi_value HideKeyboard(napi_env env, napi_callback_info info);
     static napi_value Hide(napi_env env, napi_callback_info info);
+
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info info);
     static const std::string KCE_CLASS_NAME;
     static thread_local napi_ref KCERef_;
-    };
-}
-}
+};
+} // namespace MiscServices
+} // namespace OHOS
 #endif // INTERFACE_KITS_JS_KEYBOARD_CONTROLLER_H

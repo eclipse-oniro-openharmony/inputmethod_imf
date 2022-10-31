@@ -17,6 +17,7 @@
 #define INPUTMETHOD_SYSEVENT_H
 
 #include <string>
+
 #include "global.h"
 
 namespace OHOS {

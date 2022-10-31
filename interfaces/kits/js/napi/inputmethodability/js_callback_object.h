@@ -25,8 +25,8 @@ public:
     JSCallbackObject(napi_env env, napi_value callback);
     ~JSCallbackObject();
     napi_ref callback_ = nullptr;
-    napi_env env_ {};
+    napi_env env_{};
 };
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
 #endif // CALLBAKC_OBJECT_H
