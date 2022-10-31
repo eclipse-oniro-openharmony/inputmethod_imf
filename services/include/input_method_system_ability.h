@@ -140,6 +140,8 @@ private:
     SubProperty FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare);
     SubProperty GetExtends(const std::vector<Metadata> &metaData);
     int32_t SwitchByCombinedKey(const CombineKeyCode &property);
+
+    int32_t QueryImeInfos(int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &infos);
 };
 } // namespace MiscServices
 } // namespace OHOS
