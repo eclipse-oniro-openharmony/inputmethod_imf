@@ -29,8 +29,8 @@ namespace MiscServices {
 using namespace Security::AccessToken;
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 
-int32_t InputMethodSystemAbilityStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-    MessageOption &option)
+int32_t InputMethodSystemAbilityStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     IMSA_HILOGE("code:%{public}u, callingPid:%{public}d", code, IPCSkeleton::GetCallingPid());
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
@@ -66,8 +66,8 @@ int32_t InputMethodSystemAbilityStub::PrepareInputOnRemote(MessageParcel &data, 
         IMSA_HILOGE("%{public}s illegal argument", __func__);
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
     }
-    int32_t ret = PrepareInput(displayId, iface_cast<IInputClient>(clientObject),
-        iface_cast<IInputDataChannel>(channelObject), attribute);
+    int32_t ret = PrepareInput(
+        displayId, iface_cast<IInputClient>(clientObject), iface_cast<IInputDataChannel>(channelObject), attribute);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
