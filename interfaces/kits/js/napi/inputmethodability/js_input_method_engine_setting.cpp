@@ -161,7 +161,7 @@ napi_value JsInputMethodEngineSetting::GetIMEInstance(napi_env env, napi_callbac
 {
     napi_value instance = nullptr;
     napi_value cons = nullptr;
-    
+
     if (flag == V9_FLAG) {
         size_t argc = ARGC_MAX;
         napi_value argv[ARGC_MAX] = { nullptr };
@@ -383,16 +383,14 @@ bool JsInputMethodEngineSetting::Equals(napi_env env, napi_value value, napi_ref
 uv_work_t *JsInputMethodEngineSetting::GetUVwork(std::string type)
 {
     UvEntry *entry = nullptr;
-    {
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("OnInputStart cb-vector is empty");
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
+    if (jsCbMap_[type].empty()) {
+        IMSA_HILOGE("OnInputStart cb-vector is empty");
+        return nullptr;
+    }
+    entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
+    if (entry == nullptr) {
+        IMSA_HILOGE("entry ptr is nullptr!");
+        return nullptr;
     }
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
@@ -406,18 +404,16 @@ uv_work_t *JsInputMethodEngineSetting::GetUVwork(std::string type)
 uv_work_t *JsInputMethodEngineSetting::GetStopInputUVwork(std::string type, std::string imeId)
 {
     UvEntry *entry = nullptr;
-    {
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("OnInputStart cb-vector is empty");
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
-        entry->imeid = imeId;
+    if (jsCbMap_[type].empty()) {
+        IMSA_HILOGE("OnInputStart cb-vector is empty");
+        return nullptr;
     }
+    entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
+    if (entry == nullptr) {
+        IMSA_HILOGE("entry ptr is nullptr!");
+        return nullptr;
+    }
+    entry->imeid = imeId;
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         IMSA_HILOGE("entry ptr is nullptr!");
@@ -430,18 +426,16 @@ uv_work_t *JsInputMethodEngineSetting::GetStopInputUVwork(std::string type, std:
 uv_work_t *JsInputMethodEngineSetting::GetWindowIDUVwork(std::string type, uint32_t windowid)
 {
     UvEntry *entry = nullptr;
-    {
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("OnInputStart cb-vector is empty");
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
-        entry->windowid = windowid;
+    if (jsCbMap_[type].empty()) {
+        IMSA_HILOGE("OnInputStart cb-vector is empty");
+        return nullptr;
     }
+    entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
+    if (entry == nullptr) {
+        IMSA_HILOGE("entry ptr is nullptr!");
+        return nullptr;
+    }
+    entry->windowid = windowid;
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         IMSA_HILOGE("entry ptr is nullptr!");
@@ -454,18 +448,16 @@ uv_work_t *JsInputMethodEngineSetting::GetWindowIDUVwork(std::string type, uint3
 uv_work_t *JsInputMethodEngineSetting::GetSubtypeUVwork(std::string type, const SubProperty &property)
 {
     UvEntry *entry = nullptr;
-    {
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("OnSetSubtype cb-vector is empty");
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
-        entry->subProperty = property;
+    if (jsCbMap_[type].empty()) {
+        IMSA_HILOGE("OnSetSubtype cb-vector is empty");
+        return nullptr;
     }
+    entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
+    if (entry == nullptr) {
+        IMSA_HILOGE("entry ptr is nullptr!");
+        return nullptr;
+    }
+    entry->subProperty = property;
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         IMSA_HILOGE("entry ptr is nullptr!");
@@ -625,7 +617,7 @@ void JsInputMethodEngineSetting::OnInputStop(std::string imeId)
             for (auto item : entry->vecCopy) {
                 napi_value args[ARGC_ONE] = {nullptr};
                 napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[0]);
-            
+
                 napi_value callback = nullptr;
                 napi_get_reference_value(item->env_, item->callback_, &callback);
                 if (callback == nullptr) {
@@ -668,7 +660,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
             for (auto item : entry->vecCopy) {
                 napi_value args[ARGC_ONE] = {nullptr};
                 napi_create_int32(item->env_, entry->windowid, &args[0]);
-            
+
                 napi_value callback = nullptr;
                 napi_get_reference_value(item->env_, item->callback_, &callback);
                 if (callback == nullptr) {
