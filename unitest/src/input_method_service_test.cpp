@@ -146,7 +146,7 @@ std::shared_ptr<MMI::KeyEvent> InputMethodServiceTest::SetCombineKeyEvent(int32_
     keyItem2.SetDownTime(downTime);
 
     keyEvent->SetKeyCode(finalKey);
-    keyEvent->SetKeyCode(MMI::KeyEvent::KEY_ACTION_DOWN);
+    keyEvent->SetKeyAction(MMI::KeyEvent::KEY_ACTION_DOWN);
     keyEvent->AddPressedKeyItems(keyItem1);
     keyEvent->AddPressedKeyItems(keyItem2);
 
