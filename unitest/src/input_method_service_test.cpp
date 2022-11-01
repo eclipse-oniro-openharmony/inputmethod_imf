@@ -60,33 +60,33 @@ public:
     }
     void InsertText(const std::u16string &text)
     {
-        IMSA_HILOGI("IMC TEST TextListener InsertText");
+        IMSA_HILOGI("SERVICE TEST TextListener InsertText");
     }
 
     void DeleteBackward(int32_t length)
     {
-        IMSA_HILOGI("IMC TEST TextListener DeleteBackward length: %{public}d", length);
+        IMSA_HILOGI("SERVICE TEST TextListener DeleteBackward length: %{public}d", length);
     }
 
     void SetKeyboardStatus(bool status)
     {
-        IMSA_HILOGI("IMC TEST TextListener SetKeyboardStatus %{public}d", status);
+        IMSA_HILOGI("SERVICE TEST TextListener SetKeyboardStatus %{public}d", status);
     }
     void DeleteForward(int32_t length)
     {
-        IMSA_HILOGI("IMC TEST TextListener DeleteForward length: %{public}d", length);
+        IMSA_HILOGI("SERVICE TEST TextListener DeleteForward length: %{public}d", length);
     }
     void SendKeyEventFromInputMethod(const KeyEvent &event)
     {
-        IMSA_HILOGI("IMC TEST TextListener sendKeyEventFromInputMethod");
+        IMSA_HILOGI("SERVICE TEST TextListener sendKeyEventFromInputMethod");
     }
     void SendKeyboardInfo(const KeyboardInfo &status)
     {
-        IMSA_HILOGI("IMC TEST TextListener SendKeyboardInfo");
+        IMSA_HILOGI("SERVICE TEST TextListener SendKeyboardInfo");
     }
     void MoveCursor(const Direction direction)
     {
-        IMSA_HILOGI("IMC TEST TextListener MoveCursor");
+        IMSA_HILOGI("SERVICE TEST TextListener MoveCursor");
     }
 };
 
