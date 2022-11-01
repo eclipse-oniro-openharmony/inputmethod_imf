@@ -43,21 +43,25 @@ public:
     class EventSubscriber : public EventFwk::CommonEventSubscriber {
     public:
         EventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
-            : EventFwk::CommonEventSubscriber(subscribeInfo) {}
+            : EventFwk::CommonEventSubscriber(subscribeInfo)
+        {
+        }
         void OnReceiveEvent(const EventFwk::CommonEventData &data);
         void startUser(int32_t newUserId);
     };
+
 private:
     class SystemAbilityStatusChangeListener : public SystemAbilityStatusChangeStub {
     public:
         explicit SystemAbilityStatusChangeListener(std::function<void()>);
         ~SystemAbilityStatusChangeListener() = default;
-        virtual void OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
-        virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
+        virtual void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+        virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
 
     private:
         std::function<void()> func_ = nullptr;
     };
+
 private:
     static std::mutex instanceLock_;
 

@@ -16,28 +16,27 @@
 #ifndef SERVICES_INCLUDE_INPUT_CONTROL_CHANNEL_PROXY_H
 #define SERVICES_INCLUDE_INPUT_CONTROL_CHANNEL_PROXY_H
 
-#include "parcel.h"
-#include "iremote_broker.h"
-#include "message_parcel.h"
-#include "message_handler.h"
-
 #include "global.h"
-#include "iremote_proxy.h"
 #include "i_input_control_channel.h"
 #include "i_input_method_agent.h"
+#include "iremote_broker.h"
+#include "iremote_proxy.h"
+#include "message_handler.h"
+#include "message_parcel.h"
+#include "parcel.h"
 
 namespace OHOS {
 namespace MiscServices {
-    class InputControlChannelProxy : public IRemoteProxy<IInputControlChannel> {
-    public:
-        InputControlChannelProxy(const sptr<IRemoteObject> &impl);
-        ~InputControlChannelProxy();
+class InputControlChannelProxy : public IRemoteProxy<IInputControlChannel> {
+public:
+    InputControlChannelProxy(const sptr<IRemoteObject> &impl);
+    ~InputControlChannelProxy();
 
-        int32_t HideKeyboardSelf(int flags) override;
-        bool AdvanceToNext(bool isCurrentIme) override;
-        void SetDisplayMode(int mode) override;
-        void OnKeyboardShowed() override;
-    };
+    int32_t HideKeyboardSelf(int flags) override;
+    bool AdvanceToNext(bool isCurrentIme) override;
+    void SetDisplayMode(int mode) override;
+    void OnKeyboardShowed() override;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_INPUT_CONTROL_CHANNEL_PROXY_H

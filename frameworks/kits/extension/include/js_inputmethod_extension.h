@@ -107,7 +107,7 @@ public:
 private:
     NativeValue *CallObjectMethod(const char *name, NativeValue *const *argv = nullptr, size_t argc = 0);
 
-    void BindContext(NativeEngine& engine, NativeObject* obj);
+    void BindContext(NativeEngine &engine, NativeObject *obj);
 
     void GetSrcPath(std::string &srcPath);
 

@@ -20,111 +20,95 @@
 
 namespace OHOS {
 namespace MiscServices {
-    enum class EnterKeyType {
-        UNSPECIFIED = 0,
-        NONE,
-        GO,
-        SEARCH,
-        SEND,
-        NEXT,
-        DONE,
-        PREVIOUS
-    };
+enum class EnterKeyType { UNSPECIFIED = 0, NONE, GO, SEARCH, SEND, NEXT, DONE, PREVIOUS };
 
-    enum class TextInputType {
-        NONE = -1,
-        TEXT = 0,
-        MULTILINE,
-        NUMBER,
-        PHONE,
-        DATETIME,
-        EMAIL_ADDRESS,
-        URL,
-        VISIBLE_PASSWORD,
-    };
+enum class TextInputType {
+    NONE = -1,
+    TEXT = 0,
+    MULTILINE,
+    NUMBER,
+    PHONE,
+    DATETIME,
+    EMAIL_ADDRESS,
+    URL,
+    VISIBLE_PASSWORD,
+};
 
-    enum class Direction {
-        NONE = 0,
-        UP = 1,
-        DOWN,
-        LEFT,
-        RIGHT,
-    };
+enum class Direction {
+    NONE = 0,
+    UP = 1,
+    DOWN,
+    LEFT,
+    RIGHT,
+};
 
-    class Configuration {
-    public:
-        EnterKeyType GetEnterKeyType() const
-        {
-            return enterKeyType;
-        }
+class Configuration {
+public:
+    EnterKeyType GetEnterKeyType() const
+    {
+        return enterKeyType;
+    }
 
-        void SetEnterKeyType(EnterKeyType keyType)
-        {
-            enterKeyType = keyType;
-        }
+    void SetEnterKeyType(EnterKeyType keyType)
+    {
+        enterKeyType = keyType;
+    }
 
-        TextInputType GetTextInputType() const
-        {
-            return textInputType;
-        }
+    TextInputType GetTextInputType() const
+    {
+        return textInputType;
+    }
 
-        void SetTextInputType(TextInputType textType)
-        {
-            textInputType = textType;
-        }
+    void SetTextInputType(TextInputType textType)
+    {
+        textInputType = textType;
+    }
 
-    private:
-        EnterKeyType enterKeyType = EnterKeyType::UNSPECIFIED;
-        TextInputType textInputType = TextInputType::TEXT;
-    };
+private:
+    EnterKeyType enterKeyType = EnterKeyType::UNSPECIFIED;
+    TextInputType textInputType = TextInputType::TEXT;
+};
 
-    struct CursorInfo {
-        double left = 0.0;
-        double top = 0.0;
-        double width = 0.0;
-        double height = 0.0;
-    };
+struct CursorInfo {
+    double left = 0.0;
+    double top = 0.0;
+    double width = 0.0;
+    double height = 0.0;
+};
 
-    class KeyEvent {
-    };
+class KeyEvent {
+};
 
-    enum class KeyboardStatus {
-        NONE = 0,
-        HIDE,
-        SHOW
-    };
+enum class KeyboardStatus { NONE = 0, HIDE, SHOW };
 
-    enum class FunctionKey {
-        NONE = 0,
-        CONFIRM
-    };
+enum class FunctionKey { NONE = 0, CONFIRM };
 
-    class KeyboardInfo {
-    public:
-        KeyboardStatus GetKeyboardStatus() const
-        {
-            return keyboardStatus;
-        }
+class KeyboardInfo {
+public:
+    KeyboardStatus GetKeyboardStatus() const
+    {
+        return keyboardStatus;
+    }
 
-        void SetKeyboardStatus(int32_t status)
-        {
-            keyboardStatus = static_cast<KeyboardStatus>(status);
-        }
+    void SetKeyboardStatus(int32_t status)
+    {
+        keyboardStatus = static_cast<KeyboardStatus>(status);
+    }
 
-        FunctionKey GetFunctionKey() const
-        {
-            return functionKey;
-        }
+    FunctionKey GetFunctionKey() const
+    {
+        return functionKey;
+    }
 
-        void SetFunctionKey(int32_t key)
-        {
-            functionKey = static_cast<FunctionKey>(key);
-        }
+    void SetFunctionKey(int32_t key)
+    {
+        functionKey = static_cast<FunctionKey>(key);
+    }
 
-    private:
-        KeyboardStatus keyboardStatus = KeyboardStatus::NONE;
-        FunctionKey functionKey = FunctionKey::NONE;
-    };
+private:
+    KeyboardStatus keyboardStatus = KeyboardStatus::NONE;
+    FunctionKey functionKey = FunctionKey::NONE;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_UTILS_H

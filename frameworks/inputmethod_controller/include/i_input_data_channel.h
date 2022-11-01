@@ -16,9 +16,10 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_DATA_CHANNEL_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_DATA_CHANNEL_H
 #include <errors.h>
-#include "iremote_broker.h"
+
 #include "global.h"
 #include "input_method_utils.h"
+#include "iremote_broker.h"
 
 /**
  * brief Definition of interface IInputDataChannel
@@ -26,38 +27,38 @@
  */
 namespace OHOS {
 namespace MiscServices {
-    class IInputDataChannel : public IRemoteBroker {
-    public:
-        enum {
-            INSERT_TEXT = 0,
-            DELETE_FORWARD,
-            DELETE_BACKWARD,
-            CLOSE,
-            GET_TEXT_BEFORE_CURSOR,
-            GET_TEXT_AFTER_CURSOR,
-            GET_ENTER_KEY_TYPE,
-            GET_INPUT_PATTERN,
-            STOP_INPUT,
-            SEND_KEYBOARD_STATUS,
-            SEND_FUNCTION_KEY,
-            MOVE_CURSOR,
-        };
-
-        DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputDataChannel");
-
-        virtual int32_t InsertText(const std::u16string& text) = 0;
-        virtual int32_t DeleteForward(int32_t length) = 0;
-        virtual int32_t DeleteBackward(int32_t length) = 0;
-        virtual void Close() = 0;
-        virtual int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) = 0;
-        virtual int32_t GetTextAfterCursor(int32_t number, std::u16string &text) = 0;
-        virtual void SendKeyboardStatus(int32_t status) = 0;
-        virtual int32_t SendFunctionKey(int32_t funcKey) = 0;
-        virtual int32_t MoveCursor(int32_t keyCode) = 0;
-        virtual int32_t GetEnterKeyType(int32_t &keyType) = 0;
-        virtual int32_t GetInputPattern(int32_t &inputPattern) = 0;
-        virtual void StopInput() = 0;
+class IInputDataChannel : public IRemoteBroker {
+public:
+    enum {
+        INSERT_TEXT = 0,
+        DELETE_FORWARD,
+        DELETE_BACKWARD,
+        CLOSE,
+        GET_TEXT_BEFORE_CURSOR,
+        GET_TEXT_AFTER_CURSOR,
+        GET_ENTER_KEY_TYPE,
+        GET_INPUT_PATTERN,
+        STOP_INPUT,
+        SEND_KEYBOARD_STATUS,
+        SEND_FUNCTION_KEY,
+        MOVE_CURSOR,
     };
+
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputDataChannel");
+
+    virtual int32_t InsertText(const std::u16string &text) = 0;
+    virtual int32_t DeleteForward(int32_t length) = 0;
+    virtual int32_t DeleteBackward(int32_t length) = 0;
+    virtual void Close() = 0;
+    virtual int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) = 0;
+    virtual int32_t GetTextAfterCursor(int32_t number, std::u16string &text) = 0;
+    virtual void SendKeyboardStatus(int32_t status) = 0;
+    virtual int32_t SendFunctionKey(int32_t funcKey) = 0;
+    virtual int32_t MoveCursor(int32_t keyCode) = 0;
+    virtual int32_t GetEnterKeyType(int32_t &keyType) = 0;
+    virtual int32_t GetInputPattern(int32_t &inputPattern) = 0;
+    virtual void StopInput() = 0;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_DATA_CHANNEL_H

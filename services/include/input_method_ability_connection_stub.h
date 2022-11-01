@@ -15,32 +15,32 @@
 #ifndef SERVICES_INCLUDE_INPUT_METHOD_ABILITY_CONNECTION_STUB_H
 #define SERVICES_INCLUDE_INPUT_METHOD_ABILITY_CONNECTION_STUB_H
 #include "ability_connect_callback_stub.h"
-#include "want.h"
 #include "element_name.h"
-#include "message_handler.h"
-#include "iremote_object.h"
 #include "global.h"
+#include "iremote_object.h"
+#include "message_handler.h"
+#include "want.h"
 
 namespace OHOS {
 namespace MiscServices {
-    class InputMethodAbilityConnectionStub : public AAFwk::AbilityConnectionStub {
-    public:
-        enum MessageID {
-            MSG_ID_ABILITY_CONNECT_DONE = 1,
-            MSG_ID_ABILITY_DISCONNECT_DONE,
-        };
-
-        InputMethodAbilityConnectionStub(const int index);
-        ~InputMethodAbilityConnectionStub();
-        void OnAbilityConnectDone(const AppExecFwk::ElementName &element,
-                                  const sptr<IRemoteObject> &remoteObject, int resultCode) override;
-        void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
-        void SetHandler(MessageHandler *handler);
-
-    private:
-        MessageHandler *messageHandler;
-        int mIndex;
+class InputMethodAbilityConnectionStub : public AAFwk::AbilityConnectionStub {
+public:
+    enum MessageID {
+        MSG_ID_ABILITY_CONNECT_DONE = 1,
+        MSG_ID_ABILITY_DISCONNECT_DONE,
     };
+
+    InputMethodAbilityConnectionStub(const int index);
+    ~InputMethodAbilityConnectionStub();
+    void OnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode) override;
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+    void SetHandler(MessageHandler *handler);
+
+private:
+    MessageHandler *messageHandler;
+    int mIndex;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_INPUT_METHOD_ABILITY_CONNECTION_STUB_H

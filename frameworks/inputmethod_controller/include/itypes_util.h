@@ -61,35 +61,25 @@ public:
     static bool Marshalling(const SubProperty &input, MessageParcel &data);
     static bool Unmarshalling(SubProperty &output, MessageParcel &data);
 
-    template<class T>
-    static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);
-    template<class T>
-    static bool Unmarshalling(std::vector<T> &val, MessageParcel &parcel);
+    template<class T> static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);
+    template<class T> static bool Unmarshalling(std::vector<T> &val, MessageParcel &parcel);
 
-    template<class K, class V>
-    static bool Marshalling(const std::map<K, V> &val, MessageParcel &parcel);
-    template<class K, class V>
-    static bool Unmarshalling(std::map<K, V> &val, MessageParcel &parcel);
+    template<class K, class V> static bool Marshalling(const std::map<K, V> &val, MessageParcel &parcel);
+    template<class K, class V> static bool Unmarshalling(std::map<K, V> &val, MessageParcel &parcel);
 
     template<typename T, typename... Types>
-    static bool Marshal(MessageParcel &parcel, const T &first, const Types &...others);
-    template<typename T, typename... Types>
-    static bool Unmarshal(MessageParcel &parcel, T &first, Types &...others);
+    static bool Marshal(MessageParcel &parcel, const T &first, const Types &... others);
+    template<typename T, typename... Types> static bool Unmarshal(MessageParcel &parcel, T &first, Types &... others);
 
-    template<typename T>
-    static int32_t MarshalToBuffer(const T &input, int size, MessageParcel &data);
+    template<typename T> static int32_t MarshalToBuffer(const T &input, int size, MessageParcel &data);
 
-    template<typename T>
-    static int32_t MarshalToBuffer(const std::vector<T> &input, int size, MessageParcel &data);
+    template<typename T> static int32_t MarshalToBuffer(const std::vector<T> &input, int size, MessageParcel &data);
 
-    template<typename T>
-    static int32_t UnmarshalFromBuffer(MessageParcel &data, int size, T &output);
-    template<typename T>
-    static int32_t UnmarshalFromBuffer(MessageParcel &data, int size, std::vector<T> &output);
+    template<typename T> static int32_t UnmarshalFromBuffer(MessageParcel &data, int size, T &output);
+    template<typename T> static int32_t UnmarshalFromBuffer(MessageParcel &data, int size, std::vector<T> &output);
 };
 
-template<class T>
-bool ITypesUtil::Marshalling(const std::vector<T> &val, MessageParcel &parcel)
+template<class T> bool ITypesUtil::Marshalling(const std::vector<T> &val, MessageParcel &parcel)
 {
     if (val.size() > INT_MAX) {
         return false;
@@ -107,8 +97,7 @@ bool ITypesUtil::Marshalling(const std::vector<T> &val, MessageParcel &parcel)
     return true;
 }
 
-template<class T>
-bool ITypesUtil::Unmarshalling(std::vector<T> &val, MessageParcel &parcel)
+template<class T> bool ITypesUtil::Unmarshalling(std::vector<T> &val, MessageParcel &parcel)
 {
     int32_t len = parcel.ReadInt32();
     if (len < 0) {
@@ -135,8 +124,7 @@ bool ITypesUtil::Unmarshalling(std::vector<T> &val, MessageParcel &parcel)
     return true;
 }
 
-template<typename T>
-int32_t ITypesUtil::MarshalToBuffer(const T &input, int size, MessageParcel &data)
+template<typename T> int32_t ITypesUtil::MarshalToBuffer(const T &input, int size, MessageParcel &data)
 {
     std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(size);
     if (!data.WriteBool(buffer != nullptr)) {
@@ -154,8 +142,7 @@ int32_t ITypesUtil::MarshalToBuffer(const T &input, int size, MessageParcel &dat
     return data.WriteRawData(buffer.get(), size) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-template<typename T>
-int32_t ITypesUtil::MarshalToBuffer(const std::vector<T> &input, int size, MessageParcel &data)
+template<typename T> int32_t ITypesUtil::MarshalToBuffer(const std::vector<T> &input, int size, MessageParcel &data)
 {
     std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(size);
     if (!data.WriteBool(buffer != nullptr)) {
@@ -176,8 +163,7 @@ int32_t ITypesUtil::MarshalToBuffer(const std::vector<T> &input, int size, Messa
     return data.WriteRawData(buffer.get(), size) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-template<typename T>
-int32_t ITypesUtil::UnmarshalFromBuffer(MessageParcel &data, int size, T &output)
+template<typename T> int32_t ITypesUtil::UnmarshalFromBuffer(MessageParcel &data, int size, T &output)
 {
     if (size < 0) {
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
@@ -192,8 +178,7 @@ int32_t ITypesUtil::UnmarshalFromBuffer(MessageParcel &data, int size, T &output
     return output.ReadFromBuffer(buffer, size) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-template<typename T>
-int32_t ITypesUtil::UnmarshalFromBuffer(MessageParcel &data, int size, std::vector<T> &output)
+template<typename T> int32_t ITypesUtil::UnmarshalFromBuffer(MessageParcel &data, int size, std::vector<T> &output)
 {
     if (size < 0) {
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
@@ -218,7 +203,7 @@ int32_t ITypesUtil::UnmarshalFromBuffer(MessageParcel &data, int size, std::vect
 }
 
 template<typename T, typename... Types>
-bool ITypesUtil::Marshal(MessageParcel &parcel, const T &first, const Types &...others)
+bool ITypesUtil::Marshal(MessageParcel &parcel, const T &first, const Types &... others)
 {
     if (!Marshalling(first, parcel)) {
         return false;
@@ -226,8 +211,7 @@ bool ITypesUtil::Marshal(MessageParcel &parcel, const T &first, const Types &...
     return Marshal(parcel, others...);
 }
 
-template<typename T, typename... Types>
-bool ITypesUtil::Unmarshal(MessageParcel &parcel, T &first, Types &...others)
+template<typename T, typename... Types> bool ITypesUtil::Unmarshal(MessageParcel &parcel, T &first, Types &... others)
 {
     if (!Unmarshalling(first, parcel)) {
         return false;
@@ -235,8 +219,7 @@ bool ITypesUtil::Unmarshal(MessageParcel &parcel, T &first, Types &...others)
     return Unmarshal(parcel, others...);
 }
 
-template<class K, class V>
-bool ITypesUtil::Marshalling(const std::map<K, V> &result, MessageParcel &parcel)
+template<class K, class V> bool ITypesUtil::Marshalling(const std::map<K, V> &result, MessageParcel &parcel)
 {
     if (!parcel.WriteInt32(static_cast<int32_t>(result.size()))) {
         return false;
@@ -252,8 +235,7 @@ bool ITypesUtil::Marshalling(const std::map<K, V> &result, MessageParcel &parcel
     return true;
 }
 
-template<class K, class V>
-bool ITypesUtil::Unmarshalling(std::map<K, V> &val, MessageParcel &parcel)
+template<class K, class V> bool ITypesUtil::Unmarshalling(std::map<K, V> &val, MessageParcel &parcel)
 {
     int32_t size = 0;
     if (!parcel.ReadInt32(size)) {

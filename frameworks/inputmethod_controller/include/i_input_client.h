@@ -28,22 +28,17 @@
  */
 namespace OHOS {
 namespace MiscServices {
-    class IInputClient : public IRemoteBroker {
-    public:
-        enum {
-            ON_INPUT_READY = 0,
-            ON_INPUT_RELEASED,
-            SET_DISPLAY_MODE,
-            ON_SWITCH_INPUT
-        };
+class IInputClient : public IRemoteBroker {
+public:
+    enum { ON_INPUT_READY = 0, ON_INPUT_RELEASED, SET_DISPLAY_MODE, ON_SWITCH_INPUT };
 
-        DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputClient");
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputClient");
 
-        virtual int32_t onInputReady(const sptr<IInputMethodAgent>& agent) = 0;
-        virtual int32_t onInputReleased(int32_t retValue) = 0;
-        virtual int32_t setDisplayMode(int32_t mode) = 0;
-        virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
-    };
+    virtual int32_t onInputReady(const sptr<IInputMethodAgent> &agent) = 0;
+    virtual int32_t onInputReleased(int32_t retValue) = 0;
+    virtual int32_t setDisplayMode(int32_t mode) = 0;
+    virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_CLIENT_H

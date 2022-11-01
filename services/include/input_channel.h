@@ -23,19 +23,19 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class InputChannel : public Parcelable {
-    public:
-        InputChannel();
-        ~InputChannel();
-        bool Marshalling(Parcel &parcel) const override;
-        static InputChannel *Unmarshalling(Parcel &parcel);
+class InputChannel : public Parcelable {
+public:
+    InputChannel();
+    ~InputChannel();
+    bool Marshalling(Parcel &parcel) const override;
+    static InputChannel *Unmarshalling(Parcel &parcel);
 
-    private:
-        std::u16string name;
-        MessageParcel inputChannelParcel;
-        InputChannel(const InputChannel& channel);
-        InputChannel& operator =(const InputChannel& channel);
-    };
+private:
+    std::u16string name;
+    MessageParcel inputChannelParcel;
+    InputChannel(const InputChannel &channel);
+    InputChannel &operator=(const InputChannel &channel);
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_INPUT_CHANNEL_H
