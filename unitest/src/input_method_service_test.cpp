@@ -27,7 +27,6 @@
 #include "input_manager.h"
 #include "input_method_controller.h"
 #include "key_event.h"
-#include "keyboard_event.h"
 #include "pointer_event.h"
 
 namespace OHOS {
@@ -161,7 +160,7 @@ std::shared_ptr<MMI::KeyEvent> InputMethodServiceTest::SetCombineKeyEvent(int32_
  */
 HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback001, TestSize.Level0)
 {
-    IMSA_HILOGI("SubscribeKeyboardEvent TEST START");
+    IMSA_HILOGI("SubscribeKeyboardEvent001 TEST START");
     sptr<OnTextChangedListener> textListener = new TextListener();
     InputMethodController::GetInstance()->Attach(textListener);
     auto keyEvent = InputMethodServiceTest::SetKeyEvent(MMI::KeyEvent::KEYCODE_CAPS_LOCK);
@@ -177,7 +176,7 @@ HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback001, TestSize.Level0)
  */
 HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback002, TestSize.Level0)
 {
-    IMSA_HILOGI("SubscribeKeyboardEvent TEST START");
+    IMSA_HILOGI("SubscribeKeyboardEvent002 TEST START");
     sptr<OnTextChangedListener> textListener = new TextListener();
     InputMethodController::GetInstance()->Attach(textListener);
     auto keyEvent = InputMethodServiceTest::SetKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_LEFT);
@@ -193,7 +192,7 @@ HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback002, TestSize.Level0)
  */
 HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback003, TestSize.Level0)
 {
-    IMSA_HILOGI("SubscribeKeyboardEvent TEST START");
+    IMSA_HILOGI("SubscribeKeyboardEvent003 TEST START");
     sptr<OnTextChangedListener> textListener = new TextListener();
     InputMethodController::GetInstance()->Attach(textListener);
     auto keyEvent = InputMethodServiceTest::SetKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_RIGHT);
@@ -209,11 +208,62 @@ HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback003, TestSize.Level0)
  */
 HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback004, TestSize.Level0)
 {
-    IMSA_HILOGI("SubscribeKeyboardEvent TEST START");
+    IMSA_HILOGI("SubscribeKeyboardEvent004 TEST START");
     sptr<OnTextChangedListener> textListener = new TextListener();
     InputMethodController::GetInstance()->Attach(textListener);
     auto keyEvent = InputMethodServiceTest::SetCombineKeyEvent(
         MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT);
+    EXPECT_TRUE(keyEvent != nullptr);
+    InputManager::GetInstance()->SimulateInputEvent(keyEvent);
+    sleep(TIME_WAIT_FOR_STATUS_OK);
+}
+
+/**
+ * @tc.name: testtestKeyboardEventCallback005
+ * @tc.desc: test KeyboardEvent Callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback005, TestSize.Level0)
+{
+    IMSA_HILOGI("SubscribeKeyboardEvent005 TEST START");
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    InputMethodController::GetInstance()->Attach(textListener);
+    auto keyEvent = InputMethodServiceTest::SetCombineKeyEvent(
+        MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT);
+    EXPECT_TRUE(keyEvent != nullptr);
+    InputManager::GetInstance()->SimulateInputEvent(keyEvent);
+    sleep(TIME_WAIT_FOR_STATUS_OK);
+}
+
+/**
+ * @tc.name: testtestKeyboardEventCallback006
+ * @tc.desc: test KeyboardEvent Callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback006, TestSize.Level0)
+{
+    IMSA_HILOGI("SubscribeKeyboardEvent006 TEST START");
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    InputMethodController::GetInstance()->Attach(textListener);
+    auto keyEvent = InputMethodServiceTest::SetCombineKeyEvent(
+        MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT);
+    EXPECT_TRUE(keyEvent != nullptr);
+    InputManager::GetInstance()->SimulateInputEvent(keyEvent);
+    sleep(TIME_WAIT_FOR_STATUS_OK);
+}
+
+/**
+ * @tc.name: testtestKeyboardEventCallback007
+ * @tc.desc: test KeyboardEvent Callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback007, TestSize.Level0)
+{
+    IMSA_HILOGI("SubscribeKeyboardEvent007 TEST START");
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    InputMethodController::GetInstance()->Attach(textListener);
+    auto keyEvent = InputMethodServiceTest::SetCombineKeyEvent(
+        MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT);
     EXPECT_TRUE(keyEvent != nullptr);
     InputManager::GetInstance()->SimulateInputEvent(keyEvent);
     sleep(TIME_WAIT_FOR_STATUS_OK);
