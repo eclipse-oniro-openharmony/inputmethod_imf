@@ -81,6 +81,37 @@ ohos_unittest("InputMethodAbilityTest") {
   ]
 }
 
+ohos_unittest("InputMethodServiceTest") {
+  module_out_path = module_output_path
+
+  sources = [ "src/input_method_service_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
+
+  deps = [
+    "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
+    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
+    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
+    "//base/inputmethod/imf/services:inputmethod_service",
+    "//foundation/arkui/napi/:ace_napi",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
+    "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
+    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
+  ]
+}
+
 group("unittest") {
   testonly = true
 
@@ -89,5 +120,6 @@ group("unittest") {
   deps += [
     ":InputMethodAbilityTest",
     ":InputMethodControllerTest",
+    ":InputMethodServiceTest",
   ]
 }
