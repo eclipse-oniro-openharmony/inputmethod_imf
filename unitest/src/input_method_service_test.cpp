@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "global.h"
-#include "im_common_event_manager.h"
 #include "input_manager.h"
 #include "input_method_controller.h"
 #include "key_event.h"
