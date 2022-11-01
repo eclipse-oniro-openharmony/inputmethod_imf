@@ -356,7 +356,8 @@ namespace MiscServices {
         IMSA_HILOGI("IMC ShowOptionalInputMethod Test START");
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
-
+   
+        sleep(2);
         int32_t ret = imc->ShowOptionalInputMethod();
         EXPECT_EQ(ret, 0);
     }
