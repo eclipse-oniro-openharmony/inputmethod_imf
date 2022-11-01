@@ -70,7 +70,6 @@ void InputMethodAgentProxy::OnSelectionChange(
     data.WriteInt32(oldEnd);
     data.WriteInt32(newBegin);
     data.WriteInt32(newEnd);
-
     Remote()->SendRequest(ON_SELECTION_CHANGE, data, reply, option);
 }
 
