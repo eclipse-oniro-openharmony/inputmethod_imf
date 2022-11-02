@@ -25,9 +25,8 @@ ohos_fuzztest("DataChannelStubFuzzTest") {
   fuzz_config_file =
       "//base/inputmethod/imf/test/fuzztest/datachannelstub_fuzzer"
 
-  include_dirs = [
-    "//base/inputmethod/imf/frameworks/inputmethod_controller/include",
-  ]
+  include_dirs =
+      [ "//base/inputmethod/imf/frameworks/inputmethod_controller/include" ]
 
   cflags = [
     "-g",

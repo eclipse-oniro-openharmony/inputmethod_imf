@@ -22,8 +22,7 @@ import("//build/test.gni")
 ohos_fuzztest("CoreStubFuzzTest") {
   module_out_path = "inputmethod/inputmethod"
 
-  fuzz_config_file =
-      "//base/inputmethod/imf/test/fuzztest/corestub_fuzzer"
+  fuzz_config_file = "//base/inputmethod/imf/test/fuzztest/corestub_fuzzer"
 
   include_dirs = [
     "//base/inputmethod/imf/frameworks/inputmethod_controller/include",

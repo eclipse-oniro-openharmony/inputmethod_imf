@@ -25,9 +25,7 @@ ohos_fuzztest("PlatformCallbackStubFuzzTest") {
   fuzz_config_file =
       "//base/inputmethod/imf/test/fuzztest/platformcallbackstub_fuzzer"
 
-  include_dirs = [
-    "//base/inputmethod/imf/services/include",
-  ]
+  include_dirs = [ "//base/inputmethod/imf/services/include" ]
 
   cflags = [
     "-g",
