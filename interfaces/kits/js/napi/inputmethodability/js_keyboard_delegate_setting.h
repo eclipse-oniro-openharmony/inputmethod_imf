@@ -17,18 +17,20 @@
 #define INTERFACE_KITS_JS_KEYBOARD_DELEGATE_SETTING_H
 
 #include <map>
-#include <uv.h>
-#include <mutex>
 #include <memory>
-#include "napi/native_api.h"
-#include "global.h"
+#include <mutex>
+#include <uv.h>
+
 #include "async_call.h"
-#include "keyboard_listener.h"
+#include "global.h"
 #include "js_callback_object.h"
+#include "keyboard_listener.h"
+#include "napi/native_api.h"
 
 namespace OHOS {
 namespace MiscServices {
-template<typename T> class BlockData {
+template<typename T>
+class BlockData {
 public:
     explicit BlockData(uint32_t interval, const T &invalid = T()) : INTERVAL(interval), data_(invalid)
     {

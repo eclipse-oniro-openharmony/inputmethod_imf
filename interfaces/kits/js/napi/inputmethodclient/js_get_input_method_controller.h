@@ -24,8 +24,8 @@ namespace MiscServices {
 struct HandleContext : public AsyncCall::Context {
     bool isHandle = false;
     napi_status status = napi_generic_failure;
-    HandleContext() : Context(nullptr, nullptr) { };
-    HandleContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
+    HandleContext() : Context(nullptr, nullptr){};
+    HandleContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
