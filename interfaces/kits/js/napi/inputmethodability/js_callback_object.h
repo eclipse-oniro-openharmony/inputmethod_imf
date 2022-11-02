@@ -28,7 +28,7 @@ public:
     ~JSCallbackObject();
     napi_ref callback_ = nullptr;
     napi_env env_ {};
-    std::thread::id threadId_ = -1;
+    std::thread::id threadId_;
 };
 }
 }

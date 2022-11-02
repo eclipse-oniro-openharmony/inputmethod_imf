@@ -178,7 +178,7 @@ void JsKeyboardDelegateSetting::RegisterListener(napi_value callback, std::strin
     }
 
     for (auto &item : jsCbMap_[type]) {
-        if (Equals(item->env_, callback, item->callback_)) {
+        if (Equals(item->env_, callback, item->callback_, item->threadId_)) {
             IMSA_HILOGE("JsKeyboardDelegateSetting::RegisterListener callback already registered!");
             return;
         }
@@ -202,7 +202,7 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
     }
 
     for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end();) {
-        if ((callback != nullptr) && (Equals((*item)->env_, callback, (*item)->callback_))) {
+        if ((callback != nullptr) && (Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
             jsCbMap_[type].erase(item);
             break;
         }
@@ -233,7 +233,7 @@ JsKeyboardDelegateSetting *JsKeyboardDelegateSetting::GetNative(napi_env env, na
 napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_TWO;
-    napi_value argv[ARGC_TWO] = {nullptr};
+    napi_value argv[ARGC_TWO] = { nullptr };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
@@ -257,12 +257,13 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'callback'", TypeCode::TYPE_FUNCTION);
         return nullptr;
     }
-    
+
     auto engine = GetNative(env, info);
     if (engine == nullptr) {
         return nullptr;
     }
-    std::shared_ptr<JSCallbackObject> callback = std::make_shared<JSCallbackObject>(env, argv[1]);
+    std::shared_ptr<JSCallbackObject> callback =
+        std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id());
     engine->RegisterListener(argv[ARGC_ONE], type, callback);
 
     napi_value result = nullptr;
@@ -310,10 +311,15 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     return result;
 }
 
-bool JsKeyboardDelegateSetting::Equals(napi_env env, napi_value value, napi_ref copy)
+bool JsKeyboardDelegateSetting::Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId)
 {
     if (copy == nullptr) {
         return (value == nullptr);
+    }
+
+    if (threadId != std::this_thread::get_id()) {
+        IMSA_HILOGD("napi_value can not be compared");
+        return false;
     }
 
     napi_value copyValue = nullptr;
