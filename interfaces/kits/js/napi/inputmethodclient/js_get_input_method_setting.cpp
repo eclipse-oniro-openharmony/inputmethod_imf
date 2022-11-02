@@ -392,10 +392,15 @@ JsGetInputMethodSetting *JsGetInputMethodSetting::GetNative(napi_env env, napi_c
     return reinterpret_cast<JsGetInputMethodSetting *>(native);
 }
 
-bool JsGetInputMethodSetting::Equals(napi_env env, napi_value value, napi_ref copy)
+bool JsGetInputMethodSetting::Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId)
 {
     if (copy == nullptr) {
         return (value == nullptr);
+    }
+
+    if (threadId != std::this_thread::get_id()) {
+        IMSA_HILOGD("napi_value can not be compared");
+        return false;
     }
 
     napi_value copyValue = nullptr;
@@ -415,7 +420,7 @@ void JsGetInputMethodSetting::RegisterListener(
     }
 
     for (auto &item : jsCbMap_[type]) {
-        if (Equals(item->env_, callback, item->callback_)) {
+        if (Equals(item->env_, callback, item->callback_, item->threadId_)) {
             IMSA_HILOGE("JsInputMethodEngineListener::IfCallbackRegistered callback already registered!");
             return;
         }
@@ -447,7 +452,8 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     if (engine == nullptr) {
         return nullptr;
     }
-    std::shared_ptr<JSCallbackObject> callback = std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE]);
+    std::shared_ptr<JSCallbackObject> callback =
+        std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
     engine->RegisterListener(argv[ARGC_ONE], type, callback);
 
     napi_value result = nullptr;
@@ -470,7 +476,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     }
 
     for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end();) {
-        if (Equals((*item)->env_, callback, (*item)->callback_)) {
+        if (Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_)) {
             jsCbMap_[type].erase(item);
             break;
         }

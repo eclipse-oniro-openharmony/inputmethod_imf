@@ -91,7 +91,7 @@ private:
     static std::shared_ptr<JsKeyboardDelegateSetting> GetKeyboardDelegateSetting();
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsKeyboardDelegateSetting *GetNative(napi_env env, napi_callback_info info);
-    static bool Equals(napi_env env, napi_value value, napi_ref copy);
+    static bool Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
 

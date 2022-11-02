@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <thread>
 
 #include "async_call.h"
 #include "global.h"
@@ -51,7 +52,7 @@ private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsInputMethodEngineSetting *GetNative(napi_env env, napi_callback_info info);
     static std::shared_ptr<JsInputMethodEngineSetting> GetInputMethodEngineSetting();
-    static bool Equals(napi_env env, napi_value value, napi_ref copy);
+    static bool Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     static napi_value GetIMEInstance(napi_env env, napi_callback_info info, int flag);
@@ -78,7 +79,7 @@ private:
     };
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
-    static thread_local std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
+    std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
     static std::mutex engineMutex_;
     static std::shared_ptr<JsInputMethodEngineSetting> inputMethodEngine_;
 };
