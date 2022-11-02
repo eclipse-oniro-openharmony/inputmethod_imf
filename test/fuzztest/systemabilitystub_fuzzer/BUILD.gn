@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2002 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -19,14 +19,18 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("InputClientStubFuzzTest") {
+ohos_fuzztest("SystemAbilityStubFuzzTest") {
   module_out_path = "inputmethod/inputmethod"
 
   fuzz_config_file =
-      "//base/inputmethod/imf/test/fuzztest/inputclientstub_fuzzer"
+      "//base/inputmethod/imf/test/fuzztest/systemabilitystub_fuzzer"
 
   include_dirs = [
     "//base/inputmethod/imf/services/include",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+    "//commonlibrary/c_utils/base/include",
+    "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
+    "//third_party/jsoncpp/include",
     "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager/include/appmgr",
     "//foundation/ability/ability_runtime/services/abilitymgr/include",
   ]
@@ -38,16 +42,17 @@ ohos_fuzztest("InputClientStubFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "inputclientstub_fuzzer.cpp" ]
+  sources = [ "systemabilitystub_fuzzer.cpp" ]
 
   deps = [
-    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//foundation/ability/ability_runtime/services/abilitymgr:abilityms",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
   ]
 
   external_deps = [
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
   ]
@@ -59,7 +64,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":InputClientStubFuzzTest",
+    ":SystemAbilityStubFuzzTest",
   ]
 }
 ###############################################################################
