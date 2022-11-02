@@ -63,8 +63,6 @@ using namespace MessageID;
 
     bool InputMethodController::Initialize()
     {
-        mImms = GetImsaProxy();
-
         msgHandler = new MessageHandler();
 
         InputClientStub *client = new (std::nothrow) InputClientStub();
@@ -92,31 +90,37 @@ using namespace MessageID;
         return true;
     }
 
-    sptr<IInputMethodSystemAbility> InputMethodController::GetImsaProxy()
+    sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
     {
-        IMSA_HILOGI("InputMethodController::GetImsaProxy");
+        std::lock_guard<std::mutex> lock(abilityLock_);
+        if (abilityManager_ != nullptr) {
+            return abilityManager_;
+        }
+        IMSA_HILOGI("get input method service proxy");
         sptr<ISystemAbilityManager> systemAbilityManager =
             SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (!systemAbilityManager) {
-            IMSA_HILOGI("InputMethodController::GetImsaProxy systemAbilityManager is nullptr");
+        if (systemAbilityManager == nullptr) {
+            IMSA_HILOGI("system ability manager is nullptr");
             return nullptr;
         }
-
-        int32_t uid = IPCSkeleton::GetCallingUid();
-        std::string strBundleName = "com.inputmethod.default";
         auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
-        if (!systemAbility) {
-            IMSA_HILOGI("InputMethodController::GetImsaProxy systemAbility is nullptr");
-            FaultReporter(uid, strBundleName, ErrorCode::ERROR_NULL_POINTER);
+        if (systemAbility == nullptr) {
+            IMSA_HILOGI("system ability is nullptr");
             return nullptr;
         }
-
-        if (!deathRecipient_) {
-            deathRecipient_ = new ImsaDeathRecipient();
+        if (deathRecipient_ == nullptr) {
+            deathRecipient_ = new (std::nothrow)ImsaDeathRecipient();
+            if (deathRecipient_ == nullptr) {
+                IMSA_HILOGE("new death recipient failed");
+                return nullptr;
+            }
         }
-        systemAbility->AddDeathRecipient(deathRecipient_);
-
-        return iface_cast<IInputMethodSystemAbility>(systemAbility);
+        if ((systemAbility->IsProxyObject()) && (!systemAbility->AddDeathRecipient(deathRecipient_))) {
+            IMSA_HILOGE("failed to add death recipient.");
+            return nullptr;
+        }
+        abilityManager_ = iface_cast<IInputMethodSystemAbility>(systemAbility);
+        return abilityManager_;
     }
 
     void InputMethodController::WorkThread()
@@ -227,8 +231,8 @@ using namespace MessageID;
         IMSA_HILOGI("InputMethodController::Attach");
         InputmethodTrace tracer("InputMethodController Attach trace.");
         IMSA_HILOGI("InputMethodController::Attach isShowKeyboard %{public}s", isShowKeyboard ? "true" : "false");
-        StartInput(mClient, isShowKeyboard);
         PrepareInput(0, mClient, mInputDataChannel, mAttribute);
+        StartInput(mClient, isShowKeyboard);
     }
 
     void InputMethodController::ShowTextInput()
@@ -271,7 +275,9 @@ using namespace MessageID;
                                              sptr<IInputDataChannel> &channel, InputAttribute &attribute)
     {
         IMSA_HILOGI("InputMethodController::PrepareInput");
-        if (!mImms) {
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
             return;
         }
         MessageParcel data;
@@ -282,7 +288,7 @@ using namespace MessageID;
             && data.WriteParcelable(&attribute))) {
             return;
         }
-        mImms->prepareInput(data);
+        proxy->prepareInput(data);
     }
 
     int32_t InputMethodController::DisplayOptionalInputMethod()
@@ -296,11 +302,12 @@ using namespace MessageID;
     std::vector<Property> InputMethodController::ListInputMethodCommon(InputMethodStatus status)
     {
         IMSA_HILOGI("InputMethodController::ListInputMethodCommon");
-        if (mImms == nullptr) {
-            IMSA_HILOGE("mImms is nullptr");
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
             return {};
         }
-        auto property = mImms->ListInputMethod(status);
+        auto property = proxy->ListInputMethod(status);
         return Utils::GetProperty(property);
     }
 
