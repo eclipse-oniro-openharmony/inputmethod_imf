@@ -18,6 +18,7 @@
 #include <global.h>
 #include <input_manager.h>
 #include <key_event.h>
+
 #include <memory>
 
 #include "global.h"
@@ -39,8 +40,8 @@ int32_t KeyboardEvent::SubscribeKeyboardEvent(const CombineKey &combine, KeyHand
     keyOption->SetFinalKey(combine.finalKey);
     keyOption->SetFinalKeyDown(true);
     keyOption->SetFinalKeyDownDuration(0);
-    auto ret = InputManager::GetInstance()->SubscribeKeyEvent(keyOption,
-        [this, handle](std::shared_ptr<KeyEvent> keyEvent) {
+    auto ret =
+        InputManager::GetInstance()->SubscribeKeyEvent(keyOption, [this, handle](std::shared_ptr<KeyEvent> keyEvent) {
             auto pressKeys = keyEvent->GetPressedKeys();
             for (auto &key : pressKeys) {
                 IMSA_HILOGI("key code: %{public}d", key);
@@ -53,4 +54,3 @@ int32_t KeyboardEvent::SubscribeKeyboardEvent(const CombineKey &combine, KeyHand
     return ret >= 0 ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SUBSCRIBE_KEYBOARD_EVENT;
 }
 } // namespace OHOS::MiscServices
-

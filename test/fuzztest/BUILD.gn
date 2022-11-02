@@ -16,5 +16,13 @@ import("//base/inputmethod/imf/inputmethod.gni")
 group("fuzztest") {
   testonly = true
 
-  deps = [ "inputclientstub_fuzzer:fuzztest" ]
+  deps = [
+    "agentstub_fuzzer:fuzztest",
+    "controlchannelstub_fuzzer:fuzztest",
+    "corestub_fuzzer:fuzztest",
+    "datachannelstub_fuzzer:fuzztest",
+    "inputclientstub_fuzzer:fuzztest",
+    "platformcallbackstub_fuzzer:fuzztest",
+    "systemabilitystub_fuzzer:fuzztest",
+  ]
 }

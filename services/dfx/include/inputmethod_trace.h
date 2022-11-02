@@ -25,7 +25,7 @@ constexpr uint64_t HITRACE_TAG_MISC = (1ULL << 41); // Notification module tag.
 void InitHiTrace();
 void ValueTrace(const std::string &name, int64_t count);
 
-void StartAsync(uint64_t label, const std::string& value, int32_t taskId);
+void StartAsync(uint64_t label, const std::string &value, int32_t taskId);
 void FinishAsync(uint64_t label, const std::string &value, int32_t taskId);
 
 class InputmethodTrace {

@@ -17,51 +17,51 @@
 #define SERVICES_INCLUDE_INPUT_METHOD_SETTING_H
 #include <map>
 #include <vector>
-#include "string.h"
+
 #include "global.h"
 #include "parcel.h"
+#include "string.h"
 
 namespace OHOS {
 namespace MiscServices {
-    class InputMethodSetting {
-    public:
+class InputMethodSetting {
+public:
+    const static std::u16string CURRENT_INPUT_METHOD_TAG;      // default IME
+    const static std::u16string ENABLED_INPUT_METHODS_TAG;     // enabled IME list
+    const static std::u16string CURRENT_KEYBOARD_TYPE_TAG;     // default keyboard type
+    const static std::u16string CURRENT_SYS_KEYBOARD_TYPE_TAG; // default keyboard type for security IME
+    const static std::u16string SYSTEM_LOCALE_TAG;             // locale list supported in the system
 
-        const static std::u16string CURRENT_INPUT_METHOD_TAG; // default IME
-        const static std::u16string ENABLED_INPUT_METHODS_TAG; // enabled IME list
-        const static std::u16string CURRENT_KEYBOARD_TYPE_TAG; // default keyboard type
-        const static std::u16string CURRENT_SYS_KEYBOARD_TYPE_TAG; // default keyboard type for security IME
-        const static std::u16string SYSTEM_LOCALE_TAG;  // locale list supported in the system
+    InputMethodSetting();
+    ~InputMethodSetting();
+    InputMethodSetting(const InputMethodSetting &inputMethodSetting);
+    InputMethodSetting &operator=(const InputMethodSetting &inputMethodSetting);
 
-        InputMethodSetting();
-        ~InputMethodSetting();
-        InputMethodSetting(const InputMethodSetting& inputMethodSetting);
-        InputMethodSetting& operator =(const InputMethodSetting& inputMethodSetting);
+    void SetValue(const std::u16string &key, const std::u16string &value);
+    std::u16string GetValue(const std::u16string &key) const;
 
-        void SetValue(const std::u16string& key, const std::u16string& value);
-        std::u16string GetValue(const std::u16string& key) const;
+    std::u16string GetCurrentInputMethod() const;
+    void SetCurrentInputMethod(const std::u16string &imeId);
 
-        std::u16string GetCurrentInputMethod() const;
-        void SetCurrentInputMethod(const std::u16string& imeId);
+    std::vector<std::u16string> GetEnabledInputMethodList();
+    bool AddEnabledInputMethod(const std::u16string &imeId, const std::vector<int32_t> &types);
+    bool RemoveEnabledInputMethod(const std::u16string &imdId);
 
-        std::vector<std::u16string> GetEnabledInputMethodList();
-        bool AddEnabledInputMethod(const std::u16string& imeId, const std::vector<int32_t>& types);
-        bool RemoveEnabledInputMethod(const std::u16string& imdId);
+    std::vector<int32_t> GetEnabledKeyboardTypes(const std::u16string &imeId);
+    int32_t GetCurrentKeyboardType();
+    void SetCurrentKeyboardType(int32_t type);
+    int32_t GetCurrentSysKeyboardType();
+    void SetCurrentSysKeyboardType(int32_t type);
+    void ClearData();
+    bool FindKey(const std::u16string &key) const;
 
-        std::vector<int32_t> GetEnabledKeyboardTypes(const std::u16string& imeId);
-        int32_t GetCurrentKeyboardType();
-        void SetCurrentKeyboardType(int32_t type);
-        int32_t GetCurrentSysKeyboardType();
-        void SetCurrentSysKeyboardType(int32_t type);
-        void ClearData();
-        bool FindKey(const std::u16string& key) const;
-        
-    private:
-        std::map<std::u16string, std::u16string> setting;
-        const char16_t DELIM_IME = ':';
-        const char16_t DELIM_KBD_TYPE = ';';
-        std::vector<std::u16string> Split(const std::u16string& str, char16_t delim);
-        std::u16string BuildString(const std::vector<std::u16string>& vector, char16_t delim);
-    };
+private:
+    std::map<std::u16string, std::u16string> setting;
+    const char16_t DELIM_IME = ':';
+    const char16_t DELIM_KBD_TYPE = ';';
+    std::vector<std::u16string> Split(const std::u16string &str, char16_t delim);
+    std::u16string BuildString(const std::vector<std::u16string> &vector, char16_t delim);
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_INPUT_METHOD_SETTING_H

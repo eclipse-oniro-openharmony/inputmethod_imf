@@ -28,35 +28,35 @@
 #include "iremote_broker.h"
 
 namespace OHOS {
-    namespace MiscServices {
-    class IPlatformApi : public IRemoteBroker {
-    public:
-        enum {
-            REGISTER_CALLBACK = FIRST_CALL_TRANSACTION,
-            BIND_IMS,
-            UNBIND_IMS,
-            CREATE_WINDOW_TOKEN,
-            DESTROY_WINDOW_TOKEN,
-            LIST_INPUT_METHOD,
-            GET_INPUT_METHOD_PROPERTY,
-            GET_INPUT_METHOD_SETTING,
-            SET_INPUT_METHOD_SETTING,
-        };
-
-        DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IPlatformApi");
-
-        virtual int32_t registerCallback(const sptr<IPlatformCallback>& cb) = 0;
-        virtual sptr<IInputMethodCore> bindInputMethodService(const std::u16string& packageName,
-                                                              const std::u16string& intention, int userId) = 0;
-        virtual int32_t unbindInputMethodService(int userId, const std::u16string& packageName) = 0;
-        virtual sptr<IRemoteObject> createWindowToken(int userId, int displayId, const std::u16string &packageName) = 0;
-        virtual int32_t destroyWindowToken(int userId, const std::u16string& packageName) = 0;
-        virtual int32_t listInputMethod(int userId, std::vector<InputMethodInfo *> *properties) = 0;
-        virtual int32_t getInputMethodProperty(
-            int userId, const std::u16string &packageName, InputMethodInfo *inputMethodProperty) = 0;
-        virtual int32_t getInputMethodSetting(int userId, InputMethodSetting *inputMethodSetting) = 0;
-        virtual int32_t setInputMethodSetting(int userId, const InputMethodSetting& inputMethodSetting) = 0;
+namespace MiscServices {
+class IPlatformApi : public IRemoteBroker {
+public:
+    enum {
+        REGISTER_CALLBACK = FIRST_CALL_TRANSACTION,
+        BIND_IMS,
+        UNBIND_IMS,
+        CREATE_WINDOW_TOKEN,
+        DESTROY_WINDOW_TOKEN,
+        LIST_INPUT_METHOD,
+        GET_INPUT_METHOD_PROPERTY,
+        GET_INPUT_METHOD_SETTING,
+        SET_INPUT_METHOD_SETTING,
     };
+
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IPlatformApi");
+
+    virtual int32_t registerCallback(const sptr<IPlatformCallback> &cb) = 0;
+    virtual sptr<IInputMethodCore> bindInputMethodService(
+        const std::u16string &packageName, const std::u16string &intention, int userId) = 0;
+    virtual int32_t unbindInputMethodService(int userId, const std::u16string &packageName) = 0;
+    virtual sptr<IRemoteObject> createWindowToken(int userId, int displayId, const std::u16string &packageName) = 0;
+    virtual int32_t destroyWindowToken(int userId, const std::u16string &packageName) = 0;
+    virtual int32_t listInputMethod(int userId, std::vector<InputMethodInfo *> *properties) = 0;
+    virtual int32_t getInputMethodProperty(
+        int userId, const std::u16string &packageName, InputMethodInfo *inputMethodProperty) = 0;
+    virtual int32_t getInputMethodSetting(int userId, InputMethodSetting *inputMethodSetting) = 0;
+    virtual int32_t setInputMethodSetting(int userId, const InputMethodSetting &inputMethodSetting) = 0;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_I_PLATFORM_API_H

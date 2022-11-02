@@ -29,33 +29,32 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class InputMethodController;
+class InputMethodController;
 
-    class InputDataChannelStub : public IRemoteStub<IInputDataChannel> {
-    public:
-        DISALLOW_COPY_AND_MOVE(InputDataChannelStub);
-        int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-                                MessageOption &option) override;
-        InputDataChannelStub();
-        ~InputDataChannelStub();
-        void SetHandler(MessageHandler *handler);
+class InputDataChannelStub : public IRemoteStub<IInputDataChannel> {
+public:
+    DISALLOW_COPY_AND_MOVE(InputDataChannelStub);
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
+    InputDataChannelStub();
+    ~InputDataChannelStub();
+    void SetHandler(MessageHandler *handler);
 
-        int32_t InsertText(const std::u16string& text) override;
-        int32_t DeleteForward(int32_t length) override;
-        int32_t DeleteBackward(int32_t length) override;
-        void Close() override;
-        int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) override;
-        int32_t GetTextAfterCursor(int32_t number, std::u16string &text) override;
-        void SendKeyboardStatus(int32_t status) override;
-        int32_t SendFunctionKey(int32_t funcKey) override;
-        int32_t MoveCursor(int32_t keyCode) override;
-        int32_t GetEnterKeyType(int32_t &keyType) override;
-        int32_t GetInputPattern(int32_t &inputPattern) override;
-        void StopInput() override;
+    int32_t InsertText(const std::u16string &text) override;
+    int32_t DeleteForward(int32_t length) override;
+    int32_t DeleteBackward(int32_t length) override;
+    void Close() override;
+    int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) override;
+    int32_t GetTextAfterCursor(int32_t number, std::u16string &text) override;
+    void SendKeyboardStatus(int32_t status) override;
+    int32_t SendFunctionKey(int32_t funcKey) override;
+    int32_t MoveCursor(int32_t keyCode) override;
+    int32_t GetEnterKeyType(int32_t &keyType) override;
+    int32_t GetInputPattern(int32_t &inputPattern) override;
+    void StopInput() override;
 
-    private:
-        MessageHandler *msgHandler;
-    };
+private:
+    MessageHandler *msgHandler;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_DATA_CHANNEL_STUB_H

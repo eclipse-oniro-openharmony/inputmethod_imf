@@ -16,24 +16,25 @@
 #ifndef SERVICES_INCLUDE_I_PLATFORM_CALLBACK_H
 #define SERVICES_INCLUDE_I_PLATFORM_CALLBACK_H
 
-#include <vector>
 #include <string>
-#include "iremote_broker.h"
-#include "ipc_types.h"
+#include <vector>
+
 #include "global.h"
+#include "ipc_types.h"
+#include "iremote_broker.h"
 
 namespace OHOS {
 namespace MiscServices {
-    class IPlatformCallback : public IRemoteBroker {
-    public:
-        enum {
-            NOTIFY_EVENT = OHOS::FIRST_CALL_TRANSACTION,
-        };
-
-        DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IPlatformCallback");
-
-        virtual void notifyEvent(int eventId, int userId, const std::vector<std::u16string>& eventContent) = 0;
+class IPlatformCallback : public IRemoteBroker {
+public:
+    enum {
+        NOTIFY_EVENT = OHOS::FIRST_CALL_TRANSACTION,
     };
+
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IPlatformCallback");
+
+    virtual void notifyEvent(int eventId, int userId, const std::vector<std::u16string> &eventContent) = 0;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_I_PLATFORM_CALLBACK_H

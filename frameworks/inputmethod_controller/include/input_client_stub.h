@@ -17,6 +17,7 @@
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_CLIENT_STUB_H
 
 #include <cstdint>
+
 #include "i_input_client.h"
 #include "i_input_method_agent.h"
 #include "iremote_stub.h"
@@ -28,24 +29,23 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class InputClientStub : public IRemoteStub<IInputClient> {
-    public:
-        DISALLOW_COPY_AND_MOVE(InputClientStub);
-        int32_t OnRemoteRequest(uint32_t code, MessageParcel &data,
-                                MessageParcel &reply, MessageOption &option) override;
-        InputClientStub();
-        ~InputClientStub();
-        void SetHandler(MessageHandler *handler);
+class InputClientStub : public IRemoteStub<IInputClient> {
+public:
+    DISALLOW_COPY_AND_MOVE(InputClientStub);
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
+    InputClientStub();
+    ~InputClientStub();
+    void SetHandler(MessageHandler *handler);
 
-        int32_t onInputReady(const sptr<IInputMethodAgent>& agent) override;
-        int32_t onInputReleased(int32_t retValue) override;
-        int32_t setDisplayMode(int32_t mode) override;
-        int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
+    int32_t onInputReady(const sptr<IInputMethodAgent> &agent) override;
+    int32_t onInputReleased(int32_t retValue) override;
+    int32_t setDisplayMode(int32_t mode) override;
+    int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
 
-    private:
-        MessageHandler *msgHandler = nullptr;
-        void OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply);
-    };
+private:
+    MessageHandler *msgHandler = nullptr;
+    void OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply);
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_CLIENT_STUB_H

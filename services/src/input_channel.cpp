@@ -14,49 +14,49 @@
  */
 
 #include "input_channel.h"
-#include "input_attribute.h"
+
 #include "global.h"
 
 namespace OHOS {
 namespace MiscServices {
-    /*! Constructor
+/*! Constructor
     */
-    InputChannel::InputChannel()
-    {
-    }
+InputChannel::InputChannel()
+{
+}
 
-    /*! Destructor
+/*! Destructor
     */
-    InputChannel::~InputChannel()
-    {
-    }
+InputChannel::~InputChannel()
+{
+}
 
-    /*! Write InputChannel to parcel
+/*! Write InputChannel to parcel
       \param[out] parcel the data of InputChannel is written to this parcel returned to caller
       \return ErrorCode::NO_ERROR
       \return ErrorCode::ERROR_NULL_POINTER parcel is null
     */
-    bool InputChannel::Marshalling(Parcel &parcel) const
-    {
-        parcel.ParseFrom(inputChannelParcel.GetData(), inputChannelParcel.GetDataSize());
-        return NO_ERROR;
-    }
+bool InputChannel::Marshalling(Parcel &parcel) const
+{
+    parcel.ParseFrom(inputChannelParcel.GetData(), inputChannelParcel.GetDataSize());
+    return NO_ERROR;
+}
 
-    /*! Get InputChannel from parcel
+/*! Get InputChannel from parcel
       \param parcel get the data of InputChannel from this parcel
       \return ErrorCode::NO_ERROR
       \return ErrorCode::ERROR_NULL_POINTER parcel is null
     */
-    InputChannel *InputChannel::Unmarshalling(Parcel &parcel)
-    {
-        auto inputChannel = new InputChannel();
-        inputChannel->inputChannelParcel.RewindRead(0);
-        inputChannel->inputChannelParcel.ParseFrom(parcel.GetData(), parcel.GetDataSize());
-        inputChannel->inputChannelParcel.RewindRead(0);
+InputChannel *InputChannel::Unmarshalling(Parcel &parcel)
+{
+    auto inputChannel = new InputChannel();
+    inputChannel->inputChannelParcel.RewindRead(0);
+    inputChannel->inputChannelParcel.ParseFrom(parcel.GetData(), parcel.GetDataSize());
+    inputChannel->inputChannelParcel.RewindRead(0);
 
-        inputChannel->name = inputChannel->inputChannelParcel.ReadString16();
-        inputChannel->inputChannelParcel.RewindRead(0);
-        return inputChannel;
-    }
+    inputChannel->name = inputChannel->inputChannelParcel.ReadString16();
+    inputChannel->inputChannelParcel.RewindRead(0);
+    return inputChannel;
+}
 } // namespace MiscServices
 } // namespace OHOS

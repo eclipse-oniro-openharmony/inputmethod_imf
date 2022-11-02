@@ -29,22 +29,22 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class InputClientProxy : public IRemoteProxy<IInputClient> {
-    public:
-        explicit InputClientProxy(const sptr<IRemoteObject> &object);
-        ~InputClientProxy() = default;
-        DISALLOW_COPY_AND_MOVE(InputClientProxy);
+class InputClientProxy : public IRemoteProxy<IInputClient> {
+public:
+    explicit InputClientProxy(const sptr<IRemoteObject> &object);
+    ~InputClientProxy() = default;
+    DISALLOW_COPY_AND_MOVE(InputClientProxy);
 
-        int32_t onInputReady(const sptr<IInputMethodAgent>& agent) override;
-        int32_t onInputReleased(int32_t retValue) override;
-        int32_t setDisplayMode(int32_t mode) override;
-        int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
+    int32_t onInputReady(const sptr<IInputMethodAgent> &agent) override;
+    int32_t onInputReleased(int32_t retValue) override;
+    int32_t setDisplayMode(int32_t mode) override;
+    int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
 
-    private:
-        static inline BrokerDelegator<InputClientProxy> delegator_;
-        using ParcelHandler = std::function<bool(MessageParcel &)>;
-        int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
-    };
+private:
+    static inline BrokerDelegator<InputClientProxy> delegator_;
+    using ParcelHandler = std::function<bool(MessageParcel &)>;
+    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_CLIENT_PROXY_H

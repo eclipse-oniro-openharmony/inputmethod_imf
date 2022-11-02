@@ -17,22 +17,22 @@
 #define SERVICES_INCLUDE_PLATFORM_CALLBACK_STUB_H
 
 #include <string>
+
+#include "i_platform_callback.h"
 #include "iremote_stub.h"
 #include "message_option.h"
 #include "message_parcel.h"
-#include "i_platform_callback.h"
 
 namespace OHOS {
 namespace MiscServices {
-    class PlatformCallbackStub : public IRemoteStub<IPlatformCallback> {
-    public:
-        PlatformCallbackStub();
-        ~PlatformCallbackStub();
+class PlatformCallbackStub : public IRemoteStub<IPlatformCallback> {
+public:
+    PlatformCallbackStub();
+    ~PlatformCallbackStub();
 
-        int  OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
-                                     MessageOption &option) override;
-        void notifyEvent(int eventId, int userId, const std::vector<std::u16string>& eventContent) override;
-    };
+    int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
+    void notifyEvent(int eventId, int userId, const std::vector<std::u16string> &eventContent) override;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_PLATFORM_CALLBACK_STUB_H

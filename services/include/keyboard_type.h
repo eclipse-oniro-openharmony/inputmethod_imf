@@ -18,46 +18,47 @@
 
 #include <cstdint>
 #include <string>
+
 #include "parcel.h"
 
 namespace OHOS {
 namespace MiscServices {
-    class KeyboardType : public Parcelable {
-    public:
-        KeyboardType();
-        KeyboardType(const KeyboardType& type);
-        ~KeyboardType();
-        KeyboardType& operator =(const KeyboardType& type);
-        bool Marshalling(Parcel &parcel) const override;
-        static KeyboardType *Unmarshalling(Parcel &parcel);
-        void setId(int32_t typeId);
-        void setLabelId(int32_t labelId);
-        void setIconId(int32_t iconId);
-        void setAsciiCapability(bool isAsciiCapable);
-        void setLanguage(std::u16string language);
-        void setInputSource(std::u16string inputSource);
-        void setCustomizedValue(std::u16string customizedValue);
-        int32_t getId() const;
-        int32_t getLabelId() const;
-        int32_t getIconId() const;
-        int32_t getHashCode() const;
-        std::u16string getLanguage() const;
-        std::u16string getInputSource() const;
-        std::u16string getCustomizedValue() const;
-        bool supportsAscii();
+class KeyboardType : public Parcelable {
+public:
+    KeyboardType();
+    KeyboardType(const KeyboardType &type);
+    ~KeyboardType();
+    KeyboardType &operator=(const KeyboardType &type);
+    bool Marshalling(Parcel &parcel) const override;
+    static KeyboardType *Unmarshalling(Parcel &parcel);
+    void setId(int32_t typeId);
+    void setLabelId(int32_t labelId);
+    void setIconId(int32_t iconId);
+    void setAsciiCapability(bool isAsciiCapable);
+    void setLanguage(std::u16string language);
+    void setInputSource(std::u16string inputSource);
+    void setCustomizedValue(std::u16string customizedValue);
+    int32_t getId() const;
+    int32_t getLabelId() const;
+    int32_t getIconId() const;
+    int32_t getHashCode() const;
+    std::u16string getLanguage() const;
+    std::u16string getInputSource() const;
+    std::u16string getCustomizedValue() const;
+    bool supportsAscii();
 
-    private:
-        int32_t mId;
-        int32_t mHashCode;
-        int32_t mLabelId;
-        int32_t mIconId;
-        bool mIsAsciiCapable;
-        std::u16string mLanguage;
-        std::u16string mInputSource;
-        std::u16string mCustomizedValue;
+private:
+    int32_t mId;
+    int32_t mHashCode;
+    int32_t mLabelId;
+    int32_t mIconId;
+    bool mIsAsciiCapable;
+    std::u16string mLanguage;
+    std::u16string mInputSource;
+    std::u16string mCustomizedValue;
 
-        const int32_t ID_NONE = 0;
-    };
+    const int32_t ID_NONE = 0;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_KEYBOARD_TYPE_H

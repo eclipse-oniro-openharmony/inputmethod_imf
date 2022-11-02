@@ -16,12 +16,13 @@
 #ifndef INTERFACE_KITS_JS_UTILS_H
 #define INTERFACE_KITS_JS_UTILS_H
 
+#include <map>
+
+#include "global.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
-#include "global.h"
-#include <map>
 
 namespace OHOS {
 namespace MiscServices {
@@ -73,6 +74,6 @@ private:
 
     static constexpr int32_t ERROR_CODE_QUERY_FAILED = 1;
 };
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
 #endif // INTERFACE_KITS_JS_UTILS_H

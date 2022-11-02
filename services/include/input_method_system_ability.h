@@ -39,7 +39,8 @@ using AbilityType = AppExecFwk::ExtensionAbilityType;
 using namespace AppExecFwk;
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
-class InputMethodSystemAbility : public SystemAbility, public InputMethodSystemAbilityStub {
+class InputMethodSystemAbility
+    : public SystemAbility, public InputMethodSystemAbilityStub {
     DECLARE_SYSTEM_ABILITY(InputMethodSystemAbility);
 
 public:
@@ -140,6 +141,8 @@ private:
     SubProperty FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare);
     SubProperty GetExtends(const std::vector<Metadata> &metaData);
     int32_t SwitchByCombinedKey(const CombineKeyCode &property);
+
+    int32_t QueryImeInfos(int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &infos);
 };
 } // namespace MiscServices
 } // namespace OHOS
