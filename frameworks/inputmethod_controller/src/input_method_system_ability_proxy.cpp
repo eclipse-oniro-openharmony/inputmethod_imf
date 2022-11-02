@@ -140,8 +140,7 @@ int32_t InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status,
     IMSA_HILOGI("%{public}s in", __func__);
     int32_t ret = SendRequest(
         LIST_INPUT_METHOD, [status](MessageParcel &data) { return ITypesUtil::Marshal(data, uint32_t(status)); },
-        [&props](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, props);
-        });
+        [&props](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, props); });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("InputMethodSystemAbilityProxy::SendRequest failed, ret %{public}d", ret);
     }

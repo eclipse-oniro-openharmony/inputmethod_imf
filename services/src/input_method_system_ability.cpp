@@ -340,7 +340,8 @@ namespace MiscServices {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput clientDeathRecipient is nullptr");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        return session->OnPrepareInput({ pid, uid, userId_, displayId, client, channel, clientDeathRecipient, attribute });
+        return session->OnPrepareInput(
+            { pid, uid, userId_, displayId, client, channel, clientDeathRecipient, attribute });
     };
 
     int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
@@ -666,7 +667,8 @@ namespace MiscServices {
     }
 
     // Deprecated because of no permission check, kept for compatibility
-    int32_t InputMethodSystemAbility::SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
+    int32_t InputMethodSystemAbility::SetCoreAndAgentDeprecated(
+        sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
     {
         return SetCoreAndAgent(core, agent);
     };
@@ -1381,7 +1383,8 @@ namespace MiscServices {
         return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
     }
 
-    SubProperty InputMethodSystemAbility::FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare)
+    SubProperty InputMethodSystemAbility::FindSubPropertyByCompare(
+        const std::string &bundleName, CompareHandler compare)
     {
         IMSA_HILOGI("InputMethodSystemAbility::FindSubPropertyByCompare");
         std::vector<SubProperty> subProps = {};
