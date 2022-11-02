@@ -25,9 +25,7 @@ ohos_fuzztest("ControlChannelStubFuzzTest") {
   fuzz_config_file =
       "//base/inputmethod/imf/test/fuzztest/controlchannelstub_fuzzer"
 
-  include_dirs = [
-    "//base/inputmethod/imf/services/include",
-  ]
+  include_dirs = [ "//base/inputmethod/imf/services/include" ]
 
   cflags = [
     "-g",
