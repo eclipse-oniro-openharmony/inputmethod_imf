@@ -93,6 +93,7 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
 
 napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_info cbinfo)
 {
+    IMSA_HILOGI("run in JsConstructor")
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
 
@@ -203,6 +204,7 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
 
 napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_info info)
 {
+    IMSA_HILOGI("run in ListInputMethod")
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         ctxt->inputMethodStatus = InputMethodStatus::ALL;
@@ -229,6 +231,7 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
 
 napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_info info)
 {
+    IMSA_HILOGI("run in GetInputMethods")
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         if (argc < 1) {
@@ -274,6 +277,7 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
 
 napi_value JsGetInputMethodSetting::DisplayInputMethod(napi_env env, napi_callback_info info, bool needThrowException)
 {
+    IMSA_HILOGI("run in DisplayInputMethod");
     auto ctxt = std::make_shared<DisplayOptionalInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         return napi_ok;
@@ -313,6 +317,7 @@ napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_
 
 napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_callback_info info)
 {
+    IMSA_HILOGI("run in ListInputMethodSubtype");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         if (argc < 1) {
@@ -351,10 +356,10 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
 
 napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, napi_callback_info info)
 {
+    IMSA_HILOGI("run in ListCurrentInputMethodSubtype");
     auto ctxt = std::make_shared<ListInputContext>();
-    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        return napi_ok;
-    };
+    auto input = [ctxt](
+                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         *result = JsInputMethod::GetJSInputMethodSubProperties(env, ctxt->subProperties);
         return napi_ok;
@@ -408,12 +413,14 @@ bool JsGetInputMethodSetting::Equals(napi_env env, napi_value value, napi_ref co
 
     bool isEquals = false;
     napi_strict_equals(env, value, copyValue, &isEquals);
+    IMSA_HILOGE("run in Equals::isEquals is %{public}d", isEquals);
     return isEquals;
 }
 
 void JsGetInputMethodSetting::RegisterListener(
     napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
+    IMSA_HILOGI("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGE("methodName: %{public}s not registertd!", type.c_str());
@@ -426,6 +433,7 @@ void JsGetInputMethodSetting::RegisterListener(
         }
     }
 
+    IMSA_HILOGI("Add %{public}s callbackObj into jsCbMap_", type.c_str());
     jsCbMap_[type].push_back(std::move(callbackObj));
 }
 
@@ -463,6 +471,7 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
 
 void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::string type)
 {
+    IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGE("methodName: %{public}s already unRegisterted!", type.c_str());
@@ -521,12 +530,13 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
 uv_work_t *JsGetInputMethodSetting::GetImeChangeUVwork(
     std::string type, const Property &property, const SubProperty &subProperty)
 {
+    IMSA_HILOGI("run in GetImeChangeUVwork");
     UvEntry *entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("OnImeChange cb-vector is empty");
+            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
@@ -548,6 +558,7 @@ uv_work_t *JsGetInputMethodSetting::GetImeChangeUVwork(
 
 void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
+    IMSA_HILOGI("run in OnImeChange");
     std::string type = "imeChange";
     uv_work_t *work = GetImeChangeUVwork(type, property, subProperty);
     if (work == nullptr) {

@@ -14,12 +14,13 @@
  */
 
 #include "js_keyboard_delegate_setting.h"
+
+#include "input_method_ability.h"
 #include "js_keyboard_controller_engine.h"
 #include "js_text_input_client_engine.h"
-#include "input_method_ability.h"
+#include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -39,7 +40,6 @@ std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::keyboardDe
 napi_value JsKeyboardDelegateSetting::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptor[] = {
-        
         DECLARE_NAPI_PROPERTY("OPTION_ASCII", GetJsConstProperty(env, static_cast<uint32_t>(20))),
         DECLARE_NAPI_PROPERTY("OPTION_NONE", GetJsConstProperty(env, static_cast<uint32_t>(0))),
         DECLARE_NAPI_PROPERTY("OPTION_AUTO_CAP_CHARACTERS", GetJsConstProperty(env, static_cast<uint32_t>(2))),
@@ -70,8 +70,8 @@ napi_value JsKeyboardDelegateSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
     };
     napi_value cons = nullptr;
-    NAPI_CALL(env, napi_define_class(env, KDS_CLASS_NAME.c_str(), KDS_CLASS_NAME.size(),
-        JsConstructor, nullptr, sizeof(properties) / sizeof(napi_property_descriptor), properties, &cons));
+    NAPI_CALL(env, napi_define_class(env, KDS_CLASS_NAME.c_str(), KDS_CLASS_NAME.size(), JsConstructor, nullptr,
+                       sizeof(properties) / sizeof(napi_property_descriptor), properties, &cons));
     NAPI_CALL(env, napi_create_reference(env, cons, 1, &KDSRef_));
     NAPI_CALL(env, napi_set_named_property(env, exports, KDS_CLASS_NAME.c_str(), cons));
     return exports;
@@ -113,9 +113,10 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(env, thisVar, delegate.get(), [](napi_env env, void *nativeObject, void *hint) {
-        IMSA_HILOGE("delete JsKeyboardDelegateSetting");
-    }, nullptr, nullptr);
+    napi_wrap(
+        env, thisVar, delegate.get(),
+        [](napi_env env, void *nativeObject, void *hint) { IMSA_HILOGE("delete JsKeyboardDelegateSetting"); }, nullptr,
+        nullptr);
     if (delegate->loop_ == nullptr) {
         napi_get_uv_event_loop(env, &delegate->loop_);
     }
@@ -139,7 +140,7 @@ napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_
     if (flag == V9_FLAG) {
         size_t argc = AsyncCall::ARGC_MAX;
         napi_value argv[AsyncCall::ARGC_MAX] = { nullptr };
-    
+
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
         if (argc != ARGC_ZERO) {
             JsUtils::ThrowException(
@@ -161,7 +162,7 @@ napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_
 
 std::string JsKeyboardDelegateSetting::GetStringProperty(napi_env env, napi_value jsString)
 {
-    char propValue[MAX_VALUE_LEN] = {0};
+    char propValue[MAX_VALUE_LEN] = { 0 };
     size_t propLen;
     if (napi_get_value_string_utf8(env, jsString, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
         IMSA_HILOGE("GetStringProperty error");
@@ -169,9 +170,10 @@ std::string JsKeyboardDelegateSetting::GetStringProperty(napi_env env, napi_valu
     return std::string(propValue);
 }
 
-void JsKeyboardDelegateSetting::RegisterListener(napi_value callback, std::string type,
-    std::shared_ptr<JSCallbackObject> callbackObj)
+void JsKeyboardDelegateSetting::RegisterListener(
+    napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
+    IMSA_HILOGI("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGE("methodName %{public}s not registered!", type.c_str());
@@ -184,17 +186,19 @@ void JsKeyboardDelegateSetting::RegisterListener(napi_value callback, std::strin
         }
     }
 
+    IMSA_HILOGI("Add %{public}s callbackObj into jsCbMap_", type.c_str());
     jsCbMap_[type].push_back(std::move(callbackObj));
 }
 
 void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::string type)
 {
+    IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGE("methodName %{public}s not unRegisterted!", type.c_str());
         return;
     }
-    
+
     if (callback == nullptr) {
         jsCbMap_.erase(type);
         IMSA_HILOGE("callback is nullptr");
@@ -227,7 +231,7 @@ JsKeyboardDelegateSetting *JsKeyboardDelegateSetting::GetNative(napi_env env, na
 
     status = napi_unwrap(env, self, &native);
     NAPI_ASSERT(env, (status == napi_ok && native != nullptr), "napi_unwrap failed!");
-    return reinterpret_cast<JsKeyboardDelegateSetting*>(native);
+    return reinterpret_cast<JsKeyboardDelegateSetting *>(native);
 }
 
 napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info info)
@@ -274,7 +278,7 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
 napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_TWO;
-    napi_value argv[ARGC_TWO] = {nullptr};
+    napi_value argv[ARGC_TWO] = { nullptr };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
@@ -405,12 +409,13 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 uv_work_t *JsKeyboardDelegateSetting::GetKeyEventUVwork(
     std::string type, KeyEventPara para, std::shared_ptr<BlockData<bool>> &isDone)
 {
+    IMSA_HILOGI("run in GetKeyEventUVwork");
     UvEntry *entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("cb-vector is empty");
+            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
@@ -433,12 +438,13 @@ uv_work_t *JsKeyboardDelegateSetting::GetKeyEventUVwork(
 
 uv_work_t *JsKeyboardDelegateSetting::GetCursorUVwork(std::string type, CursorPara para)
 {
+    IMSA_HILOGI("run in GetCursorUVwork");
     UvEntry *entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("OnInputStart cb-vector is empty");
+            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
@@ -461,12 +467,13 @@ uv_work_t *JsKeyboardDelegateSetting::GetCursorUVwork(std::string type, CursorPa
 
 uv_work_t *JsKeyboardDelegateSetting::GetSelectionUVwork(std::string type, SelectionPara para)
 {
+    IMSA_HILOGI("run in GetSelectionUVwork");
     UvEntry *entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("OnInputStart cb-vector is empty");
+            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
@@ -490,12 +497,13 @@ uv_work_t *JsKeyboardDelegateSetting::GetSelectionUVwork(std::string type, Selec
 
 uv_work_t *JsKeyboardDelegateSetting::GetTextUVwork(std::string type, std::string text)
 {
+    IMSA_HILOGI("run in GetTextUVwork");
     UvEntry *entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("OnInputStart cb-vector is empty");
+            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
@@ -516,14 +524,15 @@ uv_work_t *JsKeyboardDelegateSetting::GetTextUVwork(std::string type, std::strin
 
 void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
-    CursorPara para {positionX, positionY, height};
+    IMSA_HILOGI("run in OnCursorUpdate");
+    CursorPara para{ positionX, positionY, height };
     std::string type = "cursorContextChange";
     uv_work_t *work = GetCursorUVwork(type, para);
     if (work == nullptr) {
         return;
     }
-    uv_queue_work(loop_, work,
-        [](uv_work_t *work) {},
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
                 delete data;
@@ -531,11 +540,11 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
             });
 
             for (auto item : entry->vecCopy) {
-                napi_value args[ARGC_THREE] = {nullptr};
+                napi_value args[ARGC_THREE] = { nullptr };
                 napi_create_int32(item->env_, entry->curPara.positionX, &args[ARGC_ZERO]);
                 napi_create_int32(item->env_, entry->curPara.positionY, &args[ARGC_ONE]);
                 napi_create_int32(item->env_, entry->curPara.height, &args[ARGC_TWO]);
-                
+
                 napi_value callback = nullptr;
                 napi_get_reference_value(item->env_, item->callback_, &callback);
                 if (callback == nullptr) {
@@ -545,11 +554,10 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
                 napi_value global = nullptr;
                 napi_get_global(item->env_, &global);
                 napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_THREE, args,
-                    &result);
+                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_THREE, args, &result);
                 if (callStatus != napi_ok) {
-                    IMSA_HILOGE("notify data change failed callStatus:%{public}d callback:%{public}p", callStatus,
-                        callback);
+                    IMSA_HILOGE(
+                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
                 }
             }
         });
@@ -557,23 +565,23 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
 
 void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
-    SelectionPara para {oldBegin, oldEnd, newBegin, newEnd};
+    IMSA_HILOGI("run in OnSelectionChange");
+    SelectionPara para{ oldBegin, oldEnd, newBegin, newEnd };
     std::string type = "selectionChange";
     uv_work_t *work = GetSelectionUVwork(type, para);
     if (work == nullptr) {
         return;
     }
-    uv_queue_work(loop_, work,
-        [](uv_work_t *work) {},
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data),
-                [work](UvEntry *data) {
-                    delete data;
-                    delete work;
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
             });
 
             for (auto item : entry->vecCopy) {
-                napi_value args[ARGC_FOUR] = {nullptr};
+                napi_value args[ARGC_FOUR] = { nullptr };
                 napi_create_int32(item->env_, entry->selPara.oldBegin, &args[ARGC_ZERO]);
                 napi_create_int32(item->env_, entry->selPara.oldEnd, &args[ARGC_ONE]);
                 napi_create_int32(item->env_, entry->selPara.newBegin, &args[ARGC_TWO]);
@@ -588,11 +596,10 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
                 napi_value global = nullptr;
                 napi_get_global(item->env_, &global);
                 napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_FOUR, args,
-                    &result);
+                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_FOUR, args, &result);
                 if (callStatus != napi_ok) {
-                    IMSA_HILOGE("notify data change failed callStatus:%{public}d callback:%{public}p", callStatus,
-                        callback);
+                    IMSA_HILOGE(
+                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
                 }
             }
         });
@@ -600,13 +607,14 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
 
 void JsKeyboardDelegateSetting::OnTextChange(std::string text)
 {
+    IMSA_HILOGI("run in OnTextChange");
     std::string type = "cursorContextChange";
     uv_work_t *work = GetTextUVwork(type, text);
     if (work == nullptr) {
         return;
     }
-    uv_queue_work(loop_, work,
-        [](uv_work_t *work) {},
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
                 delete data;
@@ -614,9 +622,9 @@ void JsKeyboardDelegateSetting::OnTextChange(std::string text)
             });
 
             for (auto item : entry->vecCopy) {
-                napi_value args[ARGC_ONE] = {nullptr};
+                napi_value args[ARGC_ONE] = { nullptr };
                 napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
-                
+
                 napi_value callback = nullptr;
                 napi_get_reference_value(item->env_, item->callback_, &callback);
                 if (callback == nullptr) {
@@ -626,14 +634,13 @@ void JsKeyboardDelegateSetting::OnTextChange(std::string text)
                 napi_value global = nullptr;
                 napi_get_global(item->env_, &global);
                 napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_ONE, args,
-                    &result);
+                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_ONE, args, &result);
                 if (callStatus != napi_ok) {
-                    IMSA_HILOGE("notify data change failed callStatus:%{public}d callback:%{public}p", callStatus,
-                        callback);
+                    IMSA_HILOGE(
+                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
                 }
             }
         });
 }
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
