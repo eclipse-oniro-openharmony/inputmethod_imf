@@ -30,6 +30,6 @@ public:
     napi_env env_ {};
     std::thread::id threadId_;
 };
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
 #endif // CALLBAKC_OBJECT_H
