@@ -395,7 +395,9 @@ using namespace MessageID;
 
     void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
     {
-        mImms = GetImsaProxy();
+        IMSA_HILOGE("input method service death");
+        std::lock_guard<std::mutex> lock(abilityLock_);
+        abilityManager_ = nullptr;
     }
 
     ImsaDeathRecipient::ImsaDeathRecipient()
