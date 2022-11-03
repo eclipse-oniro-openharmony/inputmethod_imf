@@ -31,7 +31,7 @@
 #include "para_handle.h"
 #include "parcel.h"
 #include "platform.h"
-#include "sa_mgr_client.h"
+#include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "unistd.h"
 #include "utils.h"
@@ -1030,12 +1030,18 @@ namespace MiscServices {
     sptr<AAFwk::IAbilityManager> PerUserSession::GetAbilityManagerService()
     {
         IMSA_HILOGE("GetAbilityManagerService start");
-        sptr<IRemoteObject> abilityMsObj =
-        OHOS::DelayedSingleton<AAFwk::SaMgrClient>::GetInstance()->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
-        if (!abilityMsObj) {
-            IMSA_HILOGE("failed to get ability manager service");
+        auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (systemAbilityManager == nullptr) {
+            IMSA_HILOGE("SystemAbilityManager is nullptr.");
             return nullptr;
         }
+
+        auto abilityMsObj = systemAbilityManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
+        if (abilityMsObj == nullptr) {
+            IMSA_HILOGE("Failed to get ability manager service.");
+            return nullptr;
+        }
+
         return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
     }
 
