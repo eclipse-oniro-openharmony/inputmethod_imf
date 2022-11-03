@@ -154,8 +154,7 @@ void ImCommonEventManager::EventSubscriber::DealWithRemoveEvent(const AAFwk::Wan
     auto element = want.GetElement();
     std::string bundleName = element.GetBundleName();
     int32_t userId = want.GetIntParam("userId", 0);
-    int32_t appIndex = 0;
-    IMSA_HILOGI("bundleName = %{public}s. appIndex = %{public}d, userId = %{public}d", bundleName.c_str(), appIndex, userId);
+    IMSA_HILOGI("bundleName = %{public}s, userId = %{public}d", bundleName.c_str(), userId);
     
     MessageParcel *parcel = new MessageParcel();
     parcel->WriteInt32(userId);
