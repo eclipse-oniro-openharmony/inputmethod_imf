@@ -15,8 +15,6 @@
 
 #include "js_callback_object.h"
 
-#include <thread>
-
 namespace OHOS {
 namespace MiscServices {
 JSCallbackObject::JSCallbackObject(napi_env env, napi_value callback, std::thread::id threadId)
