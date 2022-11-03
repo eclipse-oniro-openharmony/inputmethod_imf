@@ -502,7 +502,12 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::listInputMethodByType userId = %{public}d", userId);
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-        bool ret = GetBundleMgr()->QueryExtensionAbilityInfos(type, userId, extensionInfos);
+        auto bundleMgr = GetBundleMgr();
+        if (bundleMgr == nullptr) {
+          IMSA_HILOGE("Failed to GetBundleMgr");
+          return {};
+        }
+        bool ret = bundleMgr->QueryExtensionAbilityInfos(type, userId, extensionInfos);
         if (!ret) {
             IMSA_HILOGE("InputMethodSystemAbility::listInputMethodByType QueryExtensionAbilityInfos error");
             return {};
