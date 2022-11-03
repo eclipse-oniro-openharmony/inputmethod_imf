@@ -281,7 +281,7 @@ using namespace MessageID;
             return;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor())
             && data.WriteInt32(displayId)
             && data.WriteRemoteObject(client->AsObject())
             && data.WriteRemoteObject(channel->AsObject())
@@ -326,12 +326,13 @@ using namespace MessageID;
     std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
     {
         IMSA_HILOGI("InputMethodController::GetCurrentInputMethod");
-        if (mImms == nullptr) {
-            IMSA_HILOGE("InputMethodController::GetCurrentInputMethod mImms is nullptr");
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
             return nullptr;
         }
 
-        auto property = mImms->GetCurrentInputMethod();
+        auto property = proxy->GetCurrentInputMethod();
         if (property == nullptr) {
             IMSA_HILOGE("InputMethodController::GetCurrentInputMethod property is nullptr");
             return nullptr;
@@ -344,46 +345,52 @@ using namespace MessageID;
     void InputMethodController::StartInput(sptr<IInputClient> &client, bool isShowKeyboard)
     {
         IMSA_HILOGI("InputMethodController::StartInput");
-        if (!mImms) {
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
             return;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()) && data.WriteRemoteObject(client->AsObject())
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor()) && data.WriteRemoteObject(client->AsObject())
                 && data.WriteBool(isShowKeyboard))) {
             return;
         }
         isStopInput = false;
-        mImms->startInput(data);
+        proxy->startInput(data);
     }
 
     void InputMethodController::ReleaseInput(sptr<IInputClient> &client)
     {
         IMSA_HILOGI("InputMethodController::ReleaseInput");
-        if (!mImms) {
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
             return;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor())
             && data.WriteRemoteObject(client->AsObject().GetRefPtr()))) {
             return;
         }
         isStopInput = true;
-        mImms->releaseInput(data);
+        proxy->releaseInput(data);
     }
 
     void InputMethodController::StopInput(sptr<IInputClient> &client)
     {
         IMSA_HILOGI("InputMethodController::StopInput");
-        if (!mImms) {
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
             return;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor())
             && data.WriteRemoteObject(client->AsObject().GetRefPtr()))) {
             return;
         }
         isStopInput = true;
-        mImms->stopInput(data);
+        proxy->stopInput(data);
     }
 
     void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
@@ -531,14 +538,15 @@ using namespace MessageID;
     int32_t InputMethodController::SwitchInputMethod(const Property &target)
     {
         IMSA_HILOGI("InputMethodController::SwitchInputMethod");
-        if (!mImms) {
-            IMSA_HILOGE("InputMethodController mImms is nullptr");
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr");
             return false;
         }
         InputMethodProperty property;
         property.mPackageName = Str8ToStr16(target.packageName);
         property.mAbilityName = Str8ToStr16(target.abilityName);
-        return mImms->SwitchInputMethod(property);
+        return proxy->SwitchInputMethod(property);
     }
 
     void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
@@ -587,7 +595,7 @@ using namespace MessageID;
         std::function<int32_t(sptr<IInputMethodSystemAbility> &, MessageParcel &)> callback)
     {
         IMSA_HILOGI("InputMethodController::SendDataToByProxy");
-        sptr<IInputMethodSystemAbility> proxy = mImms;
+        auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
             IMSA_HILOGE("proxy is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
