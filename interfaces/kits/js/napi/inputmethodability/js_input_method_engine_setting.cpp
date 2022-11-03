@@ -384,7 +384,7 @@ bool JsInputMethodEngineSetting::Equals(napi_env env, napi_value value, napi_ref
 
     bool isEquals = false;
     napi_strict_equals(env, value, copyValue, &isEquals);
-    IMSA_HILOGE("run in Equals::isEquals is %{public}d", isEquals);
+    IMSA_HILOGD("value compare result: %{public}d", isEquals);
     return isEquals;
 }
 
@@ -396,7 +396,7 @@ uv_work_t *JsInputMethodEngineSetting::GetUVwork(std::string type)
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("%{public}s cb-vector is empty",type.c_str());
+            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);

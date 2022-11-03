@@ -331,7 +331,7 @@ bool JsKeyboardDelegateSetting::Equals(napi_env env, napi_value value, napi_ref 
 
     bool isEquals = false;
     napi_strict_equals(env, value, copyValue, &isEquals);
-    IMSA_HILOGE("run in Equals::isEquals is %{public}d", isEquals);
+    IMSA_HILOGD("value compare result: %{public}d", isEquals);
     return isEquals;
 }
 
