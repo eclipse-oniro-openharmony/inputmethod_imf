@@ -1191,7 +1191,6 @@ namespace MiscServices {
         std::string::size_type pos = defaultIme.find("/");
         std::u16string currentIme = Str8ToStr16(defaultIme.substr(0, pos));
         if (packageName == currentIme) {
-            InputMethodProperty target;
             std::string packageName = "com.example.kikakeyboard";
             std::string abilityName = "ServiceExtAbility";
             int32_t ret = OnSwitchInputMethod(packageName, abilityName);
