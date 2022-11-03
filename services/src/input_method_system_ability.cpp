@@ -879,6 +879,10 @@ namespace MiscServices {
     void InputMethodSystemAbility::OnDisplayOptionalInputMethod(int32_t userId)
     {
         IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod");
+        if (dialogLock_.test_and_set()) {
+            IMSA_HILOGE("Dialog is showing, no need to display again");
+            return;
+        }
         std::vector<InputMethodProperty*> properties;
         listInputMethodByUserId(userId, &properties);
         if (properties.size() == 0) {
@@ -932,8 +936,10 @@ namespace MiscServices {
                         ParaHandle::SetDefaultIme(userId_, params);
                     }
                     Ace::UIServiceMgrClient::GetInstance()->CancelDialog(id);
+                    dialogLock_.clear();
                 } else if (event == "EVENT_START_IME_SETTING") {
                     Ace::UIServiceMgrClient::GetInstance()->CancelDialog(id);
+                    dialogLock_.clear();
                 }
         });
     }
