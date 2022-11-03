@@ -59,6 +59,7 @@ bool ImCommonEventManager::SubscribeEvent(const std::string &event)
 {
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(event);
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
 
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
 
@@ -129,6 +130,9 @@ void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::Commo
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
         IMSA_HILOGI("ImCommonEventManager::OnReceiveEvent user switched!!!");
         startUser(data.GetCode());
+    } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
+        IMSA_HILOGI("ImCommonEventManager::OnReceiveEvent package removed!!!");
+        DealWithRemoveEvent(want, action);
     }
 }
 
@@ -143,6 +147,21 @@ void ImCommonEventManager::EventSubscriber::startUser(int newUserId)
     Message *msg = new Message(MessageID::MSG_ID_USER_START, parcel);
     MessageHandler::Instance()->SendMessage(msg);
     IMSA_HILOGI("ImCommonEventManager::startUser 3");
+}
+
+void ImCommonEventManager::EventSubscriber::DealWithRemoveEvent(const AAFwk::Want &want, const std::string action)
+{
+    auto element = want.GetElement();
+    std::string bundleName = element.GetBundleName();
+    int32_t userId = want.GetIntParam("userId", 0);
+    int32_t appIndex = 0;
+    IMSA_HILOGI("bundleName = %{public}s. appIndex = %{public}d, userId = %{public}d", bundleName.c_str(), appIndex, userId);
+    
+    MessageParcel *parcel = new MessageParcel();
+    parcel->WriteInt32(userId);
+    parcel->WriteString16(Str8ToStr16(bundleName));
+    Message *msg = new Message(MessageID::MSG_ID_PACKAGE_REMOVED, parcel);
+    MessageHandler::Instance()->SendMessage(msg);
 }
 
 ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(std::function<void()> func)

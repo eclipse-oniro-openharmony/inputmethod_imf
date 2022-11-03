@@ -1179,34 +1179,23 @@ namespace MiscServices {
             return ErrorCode::ERROR_NULL_POINTER;
         }
         int32_t userId = data->ReadInt32();
-        int32_t size = data->ReadInt32();
-
-        if (size <= 0) {
-            IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
-            return ErrorCode::ERROR_BAD_PARAMETERS;
-        }
         std::u16string packageName = data->ReadString16();
+
         PerUserSetting *setting = GetUserSetting(userId);
         if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
             IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
             return ErrorCode::ERROR_USER_NOT_UNLOCKED;
         }
-        auto session = GetUserSession(userId);
-        if (session == nullptr) {
-            IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved session is nullptr");
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        session->OnPackageRemoved(packageName);
-        bool securityImeFlag = false;
-        int32_t ret = setting->OnPackageRemoved(packageName, securityImeFlag);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGI("End...\n");
-            return ret;
-        }
-        if (securityImeFlag) {
-            InputMethodInfo *securityIme = setting->GetSecurityInputMethod();
-            InputMethodInfo *defaultIme = setting->GetCurrentInputMethod();
-            session->ResetIme(defaultIme, securityIme);
+        
+        std::string defaultIme = ParaHandle::GetDefaultIme(userId);
+        std::string::size_type pos = defaultIme.find("/");
+        std::u16string currentIme = Str8ToStr16(defaultIme.substr(0, pos));
+        if (packageName == currentIme) {
+            InputMethodProperty target;
+            std::string packageName = "com.example.kikakeyboard";
+            std::string abilityName = "ServiceExtAbility";
+            int32_t ret = OnSwitchInputMethod(packageName, abilityName);
+            IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
         }
         return 0;
     }
