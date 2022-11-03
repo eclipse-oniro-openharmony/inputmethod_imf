@@ -14,6 +14,9 @@
  */
 
 #include "js_input_method_engine_setting.h"
+
+#include <thread>
+
 #include "js_keyboard_controller_engine.h"
 #include "js_text_input_client_engine.h"
 #include "input_method_ability.h"
@@ -196,12 +199,13 @@ void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::stri
     }
 
     for (auto &item : jsCbMap_[type]) {
-        if (Equals(item->env_, callback, item->callback_)) {
+        if (Equals(item->env_, callback, item->callback_, item->threadId_)) {
             IMSA_HILOGE("JsInputMethodEngineListener::IfCallbackRegistered callback already registered!");
             return;
         }
     }
 
+    IMSA_HILOGI("Add %{public}s callbackObj into jsCbMap_", type.c_str());
     jsCbMap_[type].push_back(std::move(callbackObj));
 }
 
@@ -220,7 +224,7 @@ void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::st
     }
 
     for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end();) {
-        if (Equals((*item)->env_, callback, (*item)->callback_)) {
+        if (Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_)) {
             jsCbMap_[type].erase(item);
             break;
         }
@@ -272,7 +276,8 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     if (engine == nullptr) {
         return nullptr;
     }
-    std::shared_ptr<JSCallbackObject> callback = std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE]);
+    std::shared_ptr<JSCallbackObject> callback =
+        std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
     engine->RegisterListener(argv[ARGC_ONE], type, callback);
 
     napi_value result = nullptr;
@@ -311,10 +316,15 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     return result;
 }
 
-bool JsInputMethodEngineSetting::Equals(napi_env env, napi_value value, napi_ref copy)
+bool JsInputMethodEngineSetting::Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId)
 {
     if (copy == nullptr) {
         return (value == nullptr);
+    }
+
+    if (threadId != std::this_thread::get_id()) {
+        IMSA_HILOGD("napi_value can not be compared");
+        return false;
     }
 
     napi_value copyValue = nullptr;
@@ -322,6 +332,7 @@ bool JsInputMethodEngineSetting::Equals(napi_env env, napi_value value, napi_ref
 
     bool isEquals = false;
     napi_strict_equals(env, value, copyValue, &isEquals);
+    IMSA_HILOGD("value compare result: %{public}d", isEquals);
     return isEquals;
 }
 

@@ -153,12 +153,13 @@ void JsKeyboardDelegateSetting::RegisterListener(napi_value callback, std::strin
     }
 
     for (auto &item : jsCbMap_[type]) {
-        if (Equals(item->env_, callback, item->callback_)) {
+        if (Equals(item->env_, callback, item->callback_, item->threadId_)) {
             IMSA_HILOGE("JsKeyboardDelegateSetting::RegisterListener callback already registered!");
             return;
         }
     }
 
+    IMSA_HILOGI("Add %{public}s callbackObj into jsCbMap_", type.c_str());
     jsCbMap_[type].push_back(std::move(callbackObj));
 }
 
@@ -169,7 +170,7 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
         IMSA_HILOGE("methodName %{public}s not unRegisterted!", type.c_str());
         return;
     }
-    
+
     if (callback == nullptr) {
         jsCbMap_.erase(type);
         IMSA_HILOGE("callback is nullptr");
@@ -177,7 +178,7 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
     }
 
     for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end();) {
-        if ((callback != nullptr) && (Equals((*item)->env_, callback, (*item)->callback_))) {
+        if ((callback != nullptr) && (Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
             jsCbMap_[type].erase(item);
             break;
         }
@@ -228,7 +229,8 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     if (engine == nullptr) {
         return nullptr;
     }
-    std::shared_ptr<JSCallbackObject> callback = std::make_shared<JSCallbackObject>(env, argv[1]);
+    std::shared_ptr<JSCallbackObject> callback =
+        std::make_shared<JSCallbackObject>(env, argv[1], std::this_thread::get_id());
     engine->RegisterListener(argv[ARGC_ONE], type, callback);
 
     napi_value result = nullptr;
@@ -266,10 +268,15 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     return result;
 }
 
-bool JsKeyboardDelegateSetting::Equals(napi_env env, napi_value value, napi_ref copy)
+bool JsKeyboardDelegateSetting::Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId)
 {
     if (copy == nullptr) {
         return (value == nullptr);
+    }
+
+    if (threadId != std::this_thread::get_id()) {
+        IMSA_HILOGD("napi_value can not be compared");
+        return false;
     }
 
     napi_value copyValue = nullptr;
@@ -277,7 +284,7 @@ bool JsKeyboardDelegateSetting::Equals(napi_env env, napi_value value, napi_ref 
 
     bool isEquals = false;
     napi_strict_equals(env, value, copyValue, &isEquals);
-    IMSA_HILOGE("run in Equals::isEquals is %{public}d", isEquals);
+    IMSA_HILOGD("value compare result: %{public}d", isEquals);
     return isEquals;
 }
 

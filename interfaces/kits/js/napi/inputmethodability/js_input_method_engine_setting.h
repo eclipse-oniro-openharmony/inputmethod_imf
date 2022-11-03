@@ -20,6 +20,8 @@
 #include <uv.h>
 #include <mutex>
 #include <memory>
+#include <thread>
+
 #include "napi/native_api.h"
 #include "global.h"
 #include "async_call.h"
@@ -45,7 +47,7 @@ private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static JsInputMethodEngineSetting *GetNative(napi_env env, napi_callback_info info);
     static std::shared_ptr<JsInputMethodEngineSetting> GetInputMethodEngineSetting();
-    static bool Equals(napi_env env, napi_value value, napi_ref copy);
+    static bool Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     void RegisterListener(napi_value callback, std::string type,
