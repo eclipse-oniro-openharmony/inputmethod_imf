@@ -92,7 +92,7 @@
 | ------------ | -------- | ---- | ---- | ------------------------ |
 | MAX_TYPE_NUM | number   | 是   | 否   | 可支持的最大输入法个数。 |
 
-##### 使用说明
+**使用说明**
 
 ```
 // 导入模块
@@ -171,7 +171,7 @@ await inputMethod.switchInputMethod({packageName:"com.example.kikakeyboard", met
 </table>
 
 
-##### 使用说明
+**使用说明**
 
 ```
 // 导入模块
@@ -269,7 +269,7 @@ await inputMethodController.hideSoftKeyboard().then(()=>{
 </tbody>
 </table>
 
-##### 使用说明
+**使用说明**
 
 ```
 // 导入模块
