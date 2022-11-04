@@ -504,8 +504,8 @@ namespace MiscServices {
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
         auto bundleMgr = GetBundleMgr();
         if (bundleMgr == nullptr) {
-          IMSA_HILOGE("Failed to GetBundleMgr");
-          return {};
+            IMSA_HILOGE("Failed to GetBundleMgr");
+            return {};
         }
         bool ret = bundleMgr->QueryExtensionAbilityInfos(type, userId, extensionInfos);
         if (!ret) {
