@@ -39,6 +39,7 @@
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "ui_service_mgr_client.h"
+#include "itypes_util.h"
 
 namespace OHOS {
 namespace MiscServices {
