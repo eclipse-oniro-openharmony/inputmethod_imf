@@ -1178,11 +1178,15 @@ namespace MiscServices {
             IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved data is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        int32_t userId = data->ReadInt32();
-        std::u16string packageName = data->ReadString16();
+        int32_t userId;
+        std::u16string packageName;
+        if (!ITypesUtil::Unmarshal(*parcel, userId, packageName)) {
+            IMSA_HILOGE("Failed to write message parcel");
+            return ErrorCode::ERROR_EX_PARCELABLE;
+        }
 
         PerUserSetting *setting = GetUserSetting(userId);
-        if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
+        if (setting == nullptr || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
             IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
             return ErrorCode::ERROR_USER_NOT_UNLOCKED;
         }
