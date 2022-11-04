@@ -34,8 +34,6 @@ namespace MiscServices {
 using namespace MessageID;
     sptr<InputMethodController> InputMethodController::instance_;
     std::mutex InputMethodController::instanceLock_;
-    std::mutex InputMethodController::abilityLock_;
-    std::mutex InputMethodController::agentLock_;
 
     InputMethodController::InputMethodController() : stop_(false)
     {
@@ -49,6 +47,9 @@ using namespace MessageID;
             delete msgHandler;
             msgHandler = nullptr;
             stop_ = false;
+        }
+        if (workThreadHandler.joinable()) {
+            workThreadHandler.join();
         }
     }
 

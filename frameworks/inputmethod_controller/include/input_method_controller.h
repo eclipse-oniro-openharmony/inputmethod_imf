@@ -110,10 +110,10 @@ private:
     sptr<IInputDataChannel> mInputDataChannel;
     std::shared_ptr<InputMethodSettingListener> imeListener_;
     sptr<IInputClient> mClient;
-    static std::mutex abilityLock_;
+    std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
     sptr<ImsaDeathRecipient> deathRecipient_;
-    static std::mutex agentLock_;
+    std::mutex agentLock_;
     std::shared_ptr<IInputMethodAgent> mAgent = nullptr;
     sptr<OnTextChangedListener> textListener;
     InputAttribute mAttribute;
