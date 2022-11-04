@@ -90,6 +90,13 @@ namespace MiscServices {
             && parcel.WriteInt32(mDefaultImeId)))
             return false;
         int32_t size = (int32_t)mTypes.size();
+        if (size < 0) {
+            return false;
+        }
+        size_t availSize = parcel.GetReadableBytes();
+        if (static_cast<size_t>(size) > availSize) {
+            return false;
+        }
         parcel.WriteInt32(size);
         if (size == 0) {
             return true;
@@ -116,6 +123,13 @@ namespace MiscServices {
         info->mDefaultImeId = parcel.ReadInt32();
 
         int32_t size = parcel.ReadInt32();
+        if (size < 0) {
+            return nullptr;
+        }
+        size_t availSize = parcel.GetReadableBytes();
+        if (static_cast<size_t>(size) > availSize) {
+            return nullptr;
+        }
         if (size == 0)
             return info;
         for (int i = 0; i < size; i++) {
