@@ -24,6 +24,7 @@
 #include "iservice_registry.h"
 #include "message_handler.h"
 #include "system_ability_definition.h"
+#include "itypes_util.h"
 
 namespace OHOS {
 namespace MiscServices {
