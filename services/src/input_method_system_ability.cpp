@@ -1180,7 +1180,7 @@ namespace MiscServices {
         }
         int32_t userId;
         std::u16string packageName;
-        if (!ITypesUtil::Unmarshal(*parcel, userId, packageName)) {
+        if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
             IMSA_HILOGE("Failed to write message parcel");
             return ErrorCode::ERROR_EX_PARCELABLE;
         }
