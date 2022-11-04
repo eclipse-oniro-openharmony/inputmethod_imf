@@ -24,7 +24,7 @@
 └── unitest                              # 接口的单元测试
 ```
 
-#### 框架代码介绍
+## 框架代码介绍
 输入法框架目前有四大模块，具体如下：
 
 1.  应用客户端
@@ -92,7 +92,7 @@
 | ------------ | -------- | ---- | ---- | ------------------------ |
 | MAX_TYPE_NUM | number   | 是   | 否   | 可支持的最大输入法个数。 |
 
-##### 使用说明
+**使用说明**
 
 ```
 // 导入模块
@@ -171,7 +171,7 @@ await inputMethod.switchInputMethod({packageName:"com.example.kikakeyboard", met
 </table>
 
 
-##### 使用说明
+**使用说明**
 
 ```
 // 导入模块
@@ -269,7 +269,7 @@ await inputMethodController.hideSoftKeyboard().then(()=>{
 </tbody>
 </table>
 
-##### 使用说明
+**使用说明**
 
 ```
 // 导入模块
@@ -888,13 +888,13 @@ await client.getEditorAttribute().then((editorAttribute) => {
 
 
 
-#### 框架主要支持功能
+## 框架主要支持功能
 
 1.在编辑属性的控件中进行点击操作，即可通过输入法框架调起默认输入法应用
 
 2.通过输入法应用可以进行打字，并上屏输入字符到应用客户端
 
-#### 本框架编译调试方法
+## 本框架编译调试方法
 
 1.   编译命令
 
@@ -907,7 +907,7 @@ libinputmethod_service.z.so libinputmethod_para.z.so推送到system/lib，将lib
 
 3.  重启设备
 
-#### 参与贡献
+## 参与贡献
 
 1.  Fork 本仓库
 2.  提交代码
