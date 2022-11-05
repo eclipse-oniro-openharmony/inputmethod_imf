@@ -1175,14 +1175,14 @@ namespace MiscServices {
     {
         IMSA_HILOGI("Start...\n");
         MessageParcel *data = msg->msgContent_;
-        if (!data) {
+        if (data == nullptr) {
             IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved data is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        int32_t userId;
-        std::u16string packageName;
+        int32_t userId = 0;
+        std::u16string packageName = "";
         if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
-            IMSA_HILOGE("Failed to write message parcel");
+            IMSA_HILOGE("Failed to read message parcel");
             return ErrorCode::ERROR_EX_PARCELABLE;
         }
 
