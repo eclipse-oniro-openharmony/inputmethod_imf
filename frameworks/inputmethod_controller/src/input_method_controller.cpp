@@ -48,6 +48,9 @@ using namespace MessageID;
             msgHandler = nullptr;
             stop_ = false;
         }
+        if (workThreadHandler.joinable()) {
+            workThreadHandler.join();
+        }
     }
 
     sptr<InputMethodController> InputMethodController::GetInstance()
