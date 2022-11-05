@@ -1180,7 +1180,7 @@ namespace MiscServices {
             return ErrorCode::ERROR_NULL_POINTER;
         }
         int32_t userId = 0;
-        std::u16string packageName = "";
+        std::u16string packageName = Utils::ToStr16("");
         if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
             IMSA_HILOGE("Failed to read message parcel");
             return ErrorCode::ERROR_EX_PARCELABLE;
