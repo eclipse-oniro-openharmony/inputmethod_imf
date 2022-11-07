@@ -1180,7 +1180,7 @@ namespace MiscServices {
             return ErrorCode::ERROR_NULL_POINTER;
         }
         int32_t userId = 0;
-        std::u16string packageName = Utils::ToStr16("");
+        std::string packageName = "";
         if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
             IMSA_HILOGE("Failed to read message parcel");
             return ErrorCode::ERROR_EX_PARCELABLE;
@@ -1194,7 +1194,7 @@ namespace MiscServices {
         
         std::string defaultIme = ParaHandle::GetDefaultIme(userId);
         std::string::size_type pos = defaultIme.find("/");
-        std::u16string currentIme = Str8ToStr16(defaultIme.substr(0, pos));
+        std::string currentIme = defaultIme.substr(0, pos);
         if (packageName == currentIme) {
             std::string packageName = "com.example.kikakeyboard";
             std::string abilityName = "ServiceExtAbility";
