@@ -158,7 +158,7 @@ void ImCommonEventManager::EventSubscriber::DealWithRemoveEvent(const AAFwk::Wan
     IMSA_HILOGI("bundleName = %{public}s, userId = %{public}d", bundleName.c_str(), userId);
     
     MessageParcel *parcel = new MessageParcel();
-    if (!ITypesUtil::Marshal(*parcel, userId,bundleName)) {
+    if (!ITypesUtil::Marshal(*parcel, userId, bundleName)) {
         IMSA_HILOGE("Failed to write message parcel");
         return;
     }
