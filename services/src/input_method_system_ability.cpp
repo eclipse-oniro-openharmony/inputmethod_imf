@@ -879,7 +879,9 @@ namespace MiscServices {
                 }
                 case MSG_ID_PACKAGE_REMOVED: {
                     OnPackageRemoved(msg);
-                    break;
+                    delete msg;
+                    msg = nullptr;
+                    return;
                 }
                 case MSG_ID_SETTING_CHANGED: {
                     OnSettingChanged(msg);
