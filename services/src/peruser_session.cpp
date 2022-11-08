@@ -31,6 +31,7 @@
 #include "para_handle.h"
 #include "parcel.h"
 #include "platform.h"
+#include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "unistd.h"
 #include "utils.h"
