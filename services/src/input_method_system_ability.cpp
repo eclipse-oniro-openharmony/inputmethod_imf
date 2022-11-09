@@ -1198,7 +1198,7 @@ namespace MiscServices {
         std::string::size_type pos = defaultIme.find("/");
         std::string currentIme = defaultIme.substr(0, pos);
         if (packageName == currentIme) {
-            int32_t ret = OnSwitchInputMethod(ParaHandle::CURRENT_PACKAGE_NAME, ParaHandle::CURRRET_ABILITY_NAME);
+            int32_t ret = OnSwitchInputMethod(ParaHandle::GetPackageName(), ParaHandle::GetAbilityName());
             IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
         }
         return 0;

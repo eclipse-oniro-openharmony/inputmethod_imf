@@ -46,5 +46,15 @@ namespace OHOS {
             SetDefaultIme(userId, defaultName);
             return defaultName;
         }
+
+        static std::string GetPackageName()
+        {
+            return CURRENT_PACKAGE_NAME;
+        }
+
+        static std::string GetAbilityName()
+        {
+            return CURRRET_ABILITY_NAME;
+        }
     } // namespace MiscServices
 } // namespace OHOS
