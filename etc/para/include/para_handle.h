@@ -24,13 +24,11 @@ namespace OHOS {
             virtual ~ParaHandle() = default;
             static bool SetDefaultIme(int32_t userId, const std::string &imeName);
             static std::string GetDefaultIme(int32_t userId);
-            static std::string GetPackageName();
-            static std::string GetAbilityName();
 
+            static constexpr const char *DEFAULT_PACKAGE_NAME;
+            static constexpr const char *DEFAULT_ABILITY_NAME;
         private:
             static const char *DEFAULT_IME_KEY;
-            static const std::string CURRENT_PACKAGE_NAME;
-            static const std::string CURRRET_ABILITY_NAME;
             static constexpr int CONFIG_LEN = 128;
             static const int32_t main_userId = 100;
         };

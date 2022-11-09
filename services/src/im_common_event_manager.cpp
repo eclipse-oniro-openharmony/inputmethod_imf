@@ -133,7 +133,7 @@ void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::Commo
         startUser(data.GetCode());
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
         IMSA_HILOGI("ImCommonEventManager::OnReceiveEvent package removed!!!");
-        DealWithRemoveEvent(want, action);
+        HandlePackageRemove(want, action);
     }
 }
 
@@ -150,7 +150,7 @@ void ImCommonEventManager::EventSubscriber::startUser(int newUserId)
     IMSA_HILOGI("ImCommonEventManager::startUser 3");
 }
 
-void ImCommonEventManager::EventSubscriber::DealWithRemoveEvent(const AAFwk::Want &want, const std::string action)
+void ImCommonEventManager::EventSubscriber::HandlePackageRemove(const AAFwk::Want &want, const std::string action)
 {
     auto element = want.GetElement();
     std::string bundleName = element.GetBundleName();
