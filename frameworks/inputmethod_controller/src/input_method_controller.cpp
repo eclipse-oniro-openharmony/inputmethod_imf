@@ -43,14 +43,9 @@ using namespace MessageID;
 
     InputMethodController::~InputMethodController()
     {
-        if (msgHandler) {
-            delete msgHandler;
-            msgHandler = nullptr;
-            stop_ = false;
-        }
-        if (workThreadHandler.joinable()) {
-            workThreadHandler.join();
-        }
+        QuitWorkThread();
+        delete msgHandler;
+        msgHandler = nullptr;
     }
 
     sptr<InputMethodController> InputMethodController::GetInstance()
@@ -93,8 +88,8 @@ using namespace MessageID;
         channel->SetHandler(msgHandler);
         mInputDataChannel = channel;
 
-        workThreadHandler = std::thread([this] {WorkThread();});
-            mAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
+        workThreadHandler = std::thread([this] { WorkThread(); });
+        mAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
 
         textListener = nullptr;
         IMSA_HILOGI("InputMethodController::Initialize textListener is nullptr");
@@ -232,13 +227,26 @@ using namespace MessageID;
                         break;
                     }
                     OnSwitchInput(property, subProperty);
+                    break;
                 }
                 default: {
+                    IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                     break;
                 }
             }
             delete msg;
             msg = nullptr;
+        }
+    }
+
+    void InputMethodController::QuitWorkThread()
+    {
+        stop_ = true;
+        MessageParcel *parcel = new MessageParcel();
+        Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, parcel);
+        msgHandler->SendMessage(msg);
+        if (workThreadHandler.joinable()) {
+            workThreadHandler.join();
         }
     }
 
