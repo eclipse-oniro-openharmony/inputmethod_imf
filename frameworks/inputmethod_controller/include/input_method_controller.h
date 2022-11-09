@@ -94,7 +94,6 @@ private:
     InputMethodController();
     ~InputMethodController();
 
-    void ExitSubThread();
     bool Initialize();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
     void PrepareInput(
@@ -106,6 +105,7 @@ private:
     void OnSwitchInput(const Property &property, const SubProperty &subProperty);
     std::shared_ptr<IInputMethodAgent> GetInputMethodAgent();
     void WorkThread();
+    void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
 
     sptr<IInputDataChannel> mInputDataChannel;

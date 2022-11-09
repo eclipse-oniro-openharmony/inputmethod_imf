@@ -43,22 +43,9 @@ using namespace MessageID;
 
     InputMethodController::~InputMethodController()
     {
-        ExitSubThread();
-        if (msgHandler != nullptr) {
-            delete msgHandler;
-            msgHandler = nullptr;
-        }
-    }
-
-    void InputMethodController::ExitSubThread()
-    {
-        stop_ = true;
-        MessageParcel *parcel = new MessageParcel();
-        Message *msg = new Message(MessageID::MSG_ID_EXIT_SUB_THREAD, parcel);
-        msgHandler->SendMessage(msg);
-        if (workThreadHandler.joinable()) {
-            workThreadHandler.join();
-        }
+        QuitWorkThread();
+        delete msgHandler;
+        msgHandler = nullptr;
     }
 
     sptr<InputMethodController> InputMethodController::GetInstance()
@@ -249,6 +236,17 @@ using namespace MessageID;
             }
             delete msg;
             msg = nullptr;
+        }
+    }
+
+    void InputMethodController::QuitWorkThread()
+    {
+        stop_ = true;
+        MessageParcel *parcel = new MessageParcel();
+        Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, parcel);
+        msgHandler->SendMessage(msg);
+        if (workThreadHandler.joinable()) {
+            workThreadHandler.join();
         }
     }
 
