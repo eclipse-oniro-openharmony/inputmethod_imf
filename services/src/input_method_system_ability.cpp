@@ -1198,9 +1198,7 @@ namespace MiscServices {
         std::string::size_type pos = defaultIme.find("/");
         std::string currentIme = defaultIme.substr(0, pos);
         if (packageName == currentIme) {
-            std::string packageName = "com.example.kikakeyboard";
-            std::string abilityName = "ServiceExtAbility";
-            int32_t ret = OnSwitchInputMethod(packageName, abilityName);
+            int32_t ret = OnSwitchInputMethod(ParaHandle::CURRENT_PACKAGE_NAME, ParaHandle::CURRRET_ABILITY_NAME);
             IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
         }
         return 0;
