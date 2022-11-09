@@ -19,8 +19,8 @@
 namespace OHOS {
     namespace MiscServices {
         const char *ParaHandle::DEFAULT_IME_KEY = "persist.sys.default_ime";
-        constexpr const char *ParaHandle::CURRENT_PACKAGE_NAME = "com.example.kikakeyboard";
-        constexpr const char *ParaHandle::CURRRET_ABILITY_NAME = "ServiceExtAbility";
+        constexpr const char *ParaHandle::DEFAULT_PACKAGE_NAME = "com.example.kikakeyboard";
+        constexpr const char *ParaHandle::DEFAULT_ABILITY_NAME = "ServiceExtAbility";
         bool ParaHandle::SetDefaultIme(int32_t userId, const std::string &imeName)
         {
             if (userId != main_userId) {
@@ -42,7 +42,7 @@ namespace OHOS {
             if (code > 0) {
                 return value;
             }
-            std::string defaultName = std::string(CURRENT_PACKAGE_NAME) + "/" + std::string(CURRRET_ABILITY_NAME);
+            std::string defaultName = std::string(DEFAULT_PACKAGE_NAME) + "/" + std::string(DEFAULT_ABILITY_NAME);
             SetDefaultIme(userId, defaultName);
             return defaultName;
         }
