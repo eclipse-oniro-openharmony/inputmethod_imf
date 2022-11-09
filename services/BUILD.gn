@@ -62,6 +62,7 @@ ohos_shared_library("inputmethod_service") {
     "//base/global/resource_management/frameworks/resmgr:global_resmgr",
     "//base/inputmethod/imf/etc/para:inputmethod_para",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
+    "//foundation/arkui/ace_engine/interfaces/inner_api/ui_service_manager:ui_service_mgr",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
