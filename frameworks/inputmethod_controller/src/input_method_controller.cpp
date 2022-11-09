@@ -242,11 +242,8 @@ using namespace MessageID;
                     OnSwitchInput(property, subProperty);
                     break;
                 }
-                case MSG_ID_EXIT_SUB_THREAD: {
-                    IMSA_HILOGD("the message is used to exit sub thread");
-                    break;
-                }
                 default: {
+                    IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                     break;
                 }
             }
