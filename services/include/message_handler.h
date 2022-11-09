@@ -89,6 +89,8 @@ enum {
     // the request from IMC to IMA
     MSG_ID_ON_CURSOR_UPDATE,
     MSG_ID_ON_SELECTION_CHANGE,
+
+    MSG_ID_EXIT_SUB_THREAD,
 };
 }
 

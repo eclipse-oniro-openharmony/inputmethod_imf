@@ -43,11 +43,19 @@ using namespace MessageID;
 
     InputMethodController::~InputMethodController()
     {
-        if (msgHandler) {
+        ExitSubThread();
+        if (msgHandler != nullptr) {
             delete msgHandler;
             msgHandler = nullptr;
-            stop_ = false;
         }
+    }
+
+    void InputMethodController::ExitSubThread()
+    {
+        stop_ = true;
+        MessageParcel *parcel = new MessageParcel();
+        Message *msg = new Message(MessageID::MSG_ID_EXIT_SUB_THREAD, parcel);
+        msgHandler->SendMessage(msg);
         if (workThreadHandler.joinable()) {
             workThreadHandler.join();
         }
@@ -93,8 +101,8 @@ using namespace MessageID;
         channel->SetHandler(msgHandler);
         mInputDataChannel = channel;
 
-        workThreadHandler = std::thread([this] {WorkThread();});
-            mAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
+        workThreadHandler = std::thread([this] { WorkThread(); });
+        mAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
 
         textListener = nullptr;
         IMSA_HILOGI("InputMethodController::Initialize textListener is nullptr");
@@ -232,6 +240,11 @@ using namespace MessageID;
                         break;
                     }
                     OnSwitchInput(property, subProperty);
+                    break;
+                }
+                case MSG_ID_EXIT_SUB_THREAD: {
+                    IMSA_HILOGD("the message is used to exit sub thread");
+                    break;
                 }
                 default: {
                     break;

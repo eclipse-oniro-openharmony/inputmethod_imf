@@ -94,6 +94,7 @@ private:
     InputMethodController();
     ~InputMethodController();
 
+    void ExitSubThread();
     bool Initialize();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
     void PrepareInput(
