@@ -47,12 +47,12 @@ namespace OHOS {
             return defaultName;
         }
 
-        static std::string GetPackageName()
+        static std::string ParaHandle::GetPackageName()
         {
             return CURRENT_PACKAGE_NAME;
         }
 
-        static std::string GetAbilityName()
+        static std::string ParaHandle::GetAbilityName()
         {
             return CURRRET_ABILITY_NAME;
         }
