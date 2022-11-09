@@ -27,7 +27,8 @@ namespace OHOS {
 
         private:
             static const char *DEFAULT_IME_KEY;
-            static const char *DEFAULT_IME_NAME;
+            static const std::string CURRENT_PACKAGE_NAME;
+            static const std::string CURRRET_ABILITY_NAME;
             static constexpr int CONFIG_LEN = 128;
             static const int32_t main_userId = 100;
         };
