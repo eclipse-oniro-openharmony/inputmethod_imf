@@ -24,6 +24,7 @@
 #include "iservice_registry.h"
 #include "message_handler.h"
 #include "system_ability_definition.h"
+#include "itypes_util.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -59,6 +60,7 @@ bool ImCommonEventManager::SubscribeEvent(const std::string &event)
 {
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(event);
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
 
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
 
@@ -129,6 +131,9 @@ void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::Commo
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
         IMSA_HILOGI("ImCommonEventManager::OnReceiveEvent user switched!!!");
         startUser(data.GetCode());
+    } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
+        IMSA_HILOGI("ImCommonEventManager::OnReceiveEvent package removed!!!");
+        HandlePackageRemove(want, action);
     }
 }
 
@@ -143,6 +148,22 @@ void ImCommonEventManager::EventSubscriber::startUser(int newUserId)
     Message *msg = new Message(MessageID::MSG_ID_USER_START, parcel);
     MessageHandler::Instance()->SendMessage(msg);
     IMSA_HILOGI("ImCommonEventManager::startUser 3");
+}
+
+void ImCommonEventManager::EventSubscriber::HandlePackageRemove(const AAFwk::Want &want, const std::string action)
+{
+    auto element = want.GetElement();
+    std::string bundleName = element.GetBundleName();
+    int32_t userId = want.GetIntParam("userId", 0);
+    IMSA_HILOGI("bundleName = %{public}s, userId = %{public}d", bundleName.c_str(), userId);
+    
+    MessageParcel *parcel = new MessageParcel();
+    if (!ITypesUtil::Marshal(*parcel, userId, bundleName)) {
+        IMSA_HILOGE("Failed to write message parcel");
+        return;
+    }
+    Message *msg = new Message(MessageID::MSG_ID_PACKAGE_REMOVED, parcel);
+    MessageHandler::Instance()->SendMessage(msg);
 }
 
 ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(std::function<void()> func)

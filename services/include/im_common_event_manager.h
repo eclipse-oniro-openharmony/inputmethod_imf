@@ -47,6 +47,7 @@ public:
         {
         }
         void OnReceiveEvent(const EventFwk::CommonEventData &data);
+        void HandlePackageRemove(const AAFwk::Want &want, const std::string action);
         void startUser(int32_t newUserId);
     };
 

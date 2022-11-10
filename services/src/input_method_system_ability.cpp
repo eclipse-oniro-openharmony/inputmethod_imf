@@ -38,6 +38,7 @@
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "ui_service_mgr_client.h"
+#include "itypes_util.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -877,7 +878,9 @@ namespace MiscServices {
                 }
                 case MSG_ID_PACKAGE_REMOVED: {
                     OnPackageRemoved(msg);
-                    break;
+                    delete msg;
+                    msg = nullptr;
+                    return;
                 }
                 case MSG_ID_SETTING_CHANGED: {
                     OnSettingChanged(msg);
@@ -1173,39 +1176,29 @@ namespace MiscServices {
     {
         IMSA_HILOGI("Start...\n");
         MessageParcel *data = msg->msgContent_;
-        if (!data) {
+        if (data == nullptr) {
             IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved data is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        int32_t userId = data->ReadInt32();
-        int32_t size = data->ReadInt32();
-
-        if (size <= 0) {
-            IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
-            return ErrorCode::ERROR_BAD_PARAMETERS;
+        int32_t userId = 0;
+        std::string packageName = "";
+        if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
+            IMSA_HILOGE("Failed to read message parcel");
+            return ErrorCode::ERROR_EX_PARCELABLE;
         }
-        std::u16string packageName = data->ReadString16();
+
         PerUserSetting *setting = GetUserSetting(userId);
-        if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
+        if (setting == nullptr || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
             IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
             return ErrorCode::ERROR_USER_NOT_UNLOCKED;
         }
-        auto session = GetUserSession(userId);
-        if (session == nullptr) {
-            IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved session is nullptr");
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        session->OnPackageRemoved(packageName);
-        bool securityImeFlag = false;
-        int32_t ret = setting->OnPackageRemoved(packageName, securityImeFlag);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGI("End...\n");
-            return ret;
-        }
-        if (securityImeFlag) {
-            InputMethodInfo *securityIme = setting->GetSecurityInputMethod();
-            InputMethodInfo *defaultIme = setting->GetCurrentInputMethod();
-            session->ResetIme(defaultIme, securityIme);
+        
+        std::string defaultIme = ParaHandle::GetDefaultIme(userId);
+        std::string::size_type pos = defaultIme.find("/");
+        std::string currentIme = defaultIme.substr(0, pos);
+        if (packageName == currentIme) {
+            int32_t ret = OnSwitchInputMethod(ParaHandle::DEFAULT_PACKAGE_NAME, ParaHandle::DEFAULT_ABILITY_NAME);
+            IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
         }
         return 0;
     }
