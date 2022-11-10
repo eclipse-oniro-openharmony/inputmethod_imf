@@ -159,6 +159,7 @@ enum {
     ERROR_CONTROLLER_INVOKING_FAILED,
     ERROR_PERSIST_CONFIG,
     ERROR_PACKAGE_MANAGER,
+    ERROR_ABILITY_ACTIVATING,
 };
 const char *ToString(int errorCode);
 }; // namespace ErrorCode
