@@ -17,7 +17,6 @@
 
 #include <utility>
 
-#include "../adapter/keyboard/keyboard_event.h"
 #include "global.h"
 #include "input_method_system_ability_stub.h"
 #include "ipc_skeleton.h"
@@ -91,19 +90,17 @@ bool ImCommonEventManager::SubscribeEvent(const std::string &event)
     return true;
 }
 
-bool ImCommonEventManager::SubscribeKeyboardEvent(const std::vector<KeyboardEventHandler> &handlers)
+bool ImCommonEventManager::SubscribeKeyboardEvent()
 {
+    IMSA_HILOGI("ImCommonEventManager::SubscribeKeyboardEvent");
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (abilityManager == nullptr) {
         IMSA_HILOGE("SubscribeEvent abilityManager is nullptr");
         return false;
     }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handlers]() {
-        for (const auto &handler : handlers) {
-            int32_t ret = KeyboardEvent::GetInstance().SubscribeKeyboardEvent(handler.combine, handler.handle);
-            IMSA_HILOGI("subscribe %{public}d key event %{public}s", handler.combine.finalKey,
-                ret == ErrorCode::NO_ERROR ? "OK" : "ERROR");
-        }
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([]() {
+        int32_t ret = KeyboardEvent::GetInstance().InitKeyEventMonitor();
+        IMSA_HILOGI("InitKeyEventMonitor init monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
     });
     if (listener == nullptr) {
         IMSA_HILOGE("SubscribeEvent listener is nullptr");

@@ -16,8 +16,8 @@
 #include "input_method_system_ability.h"
 
 #include <global.h>
-#include <utils.h>
 #include <key_event.h>
+#include <utils.h>
 
 #include "../adapter/keyboard/keyboard_event.h"
 #include "ability_connect_callback_proxy.h"
@@ -185,7 +185,7 @@ namespace MiscServices {
         StartInputService(defaultIme);
         StartUserIdListener();
         int32_t ret = SubscribeKeyboardEvent();
-        IMSA_HILOGI("subscribe key event ret %{public}d", ret);
+        IMSA_HILOGI("subscribe key event ret %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
         return ErrorCode::NO_ERROR;
     }
 
@@ -1446,43 +1446,9 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::SubscribeKeyboardEvent()
     {
-        ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
-            { { {
-                    .preKeys = {},
-                    .finalKey = MMI::KeyEvent::KEYCODE_CAPS_LOCK,
-                },
-                  [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CAPS); } },
-                { {
-                      .preKeys = {},
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
-                { {
-                      .preKeys = {},
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } } });
-        return 0;
+        IMSA_HILOGI("InputMethodSystemAbility::SubscribeKeyboardEvent");
+        bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent();
+        return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
     }
 } // namespace MiscServices
 } // namespace OHOS

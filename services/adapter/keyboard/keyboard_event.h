@@ -16,12 +16,16 @@
 #ifndef IMF_KEYBOARD_EVENT_H
 #define IMF_KEYBOARD_EVENT_H
 
+#include <key_event.h>
+
 #include <cstdint>
 #include <functional>
 #include <set>
 
-namespace OHOS ::MiscServices {
+#include "global.h"
 
+namespace OHOS {
+namespace MiscServices {
 struct CombineKey {
     std::set<int32_t> preKeys;
     int32_t finalKey;
@@ -35,6 +39,7 @@ class KeyboardEvent {
 public:
     static KeyboardEvent &GetInstance();
     int32_t SubscribeKeyboardEvent(const CombineKey &combine, KeyHandle handle);
+    int32_t InitKeyEventMonitor();
 
 private:
     static constexpr int32_t PRESS_KEY_DELAY_MS = 200;
@@ -50,5 +55,6 @@ struct KeyboardEventHandler {
     KeyHandle handle;
 };
 
-} // namespace OHOS::MiscServices
+} // namespace MiscServices
+} // namespace OHOS
 #endif // IMF_KEYBOARD_EVENT_H
