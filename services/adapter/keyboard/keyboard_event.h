@@ -38,7 +38,7 @@ using KeyHandle = std::function<int32_t(const CombineKeyCode &)>;
 class KeyboardEvent {
 public:
     static KeyboardEvent &GetInstance();
-    static int32_t AddKeyEventMonitor(const KeyHandle& handle);
+    static int32_t AddKeyEventMonitor(KeyHandle handle);
 
 private:
     static constexpr int32_t PRESS_KEY_DELAY_MS = 200;

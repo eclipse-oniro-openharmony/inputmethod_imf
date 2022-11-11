@@ -60,6 +60,10 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
         IMSA_HILOGD("keyEvent undefined");
         return;
     }
+    if (keyHandler_ == nullptr) {
+        IMSA_HILOGE("keyHandler_ is nullptr");
+        return;
+    }
     int32_t ret = keyHandler_(it->second);
     IMSA_HILOGI("handle keyevent %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
 }
@@ -74,6 +78,7 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::AxisEvent> axisEvent)
 
 void InputEventCallback::SetKeyHandle(KeyHandle handle)
 {
+    IMSA_HILOGI("set key handle");
     keyHandler_ = std::move(handle);
 }
 } // namespace MiscServices

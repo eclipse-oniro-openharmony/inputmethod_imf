@@ -33,7 +33,7 @@ KeyboardEvent &KeyboardEvent::GetInstance()
     return keyboardEvent;
 }
 
-int32_t KeyboardEvent::AddKeyEventMonitor(const KeyHandle &handle)
+int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
 {
     IMSA_HILOGI("KeyboardEvent::AddKeyEventMonitor");
     std::shared_ptr<InputEventCallback> callback = std::make_shared<InputEventCallback>();
