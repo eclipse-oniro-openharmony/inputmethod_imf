@@ -1447,7 +1447,8 @@ namespace MiscServices {
     int32_t InputMethodSystemAbility::InitKeyEventMonitor()
     {
         IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor");
-        bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent();
+        bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
+            [this](const CombineKeyCode &keyCode) { return SwitchByCombinedKey(keyCode); });
         return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
     }
 } // namespace MiscServices
