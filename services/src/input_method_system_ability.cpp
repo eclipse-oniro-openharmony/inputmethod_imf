@@ -184,8 +184,8 @@ namespace MiscServices {
         std::string defaultIme = ParaHandle::GetDefaultIme(userId_);
         StartInputService(defaultIme);
         StartUserIdListener();
-        int32_t ret = SubscribeKeyboardEvent();
-        IMSA_HILOGI("subscribe key event ret %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
+        int32_t ret = InitKeyEventMonitor();
+        IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
         return ErrorCode::NO_ERROR;
     }
 
@@ -1440,13 +1440,13 @@ namespace MiscServices {
                 }
             }
         }
-        IMSA_HILOGI("keycode undefined");
+        IMSA_HILOGD("keycode undefined");
         return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
     }
 
-    int32_t InputMethodSystemAbility::SubscribeKeyboardEvent()
+    int32_t InputMethodSystemAbility::InitKeyEventMonitor()
     {
-        IMSA_HILOGI("InputMethodSystemAbility::SubscribeKeyboardEvent");
+        IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor");
         bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent();
         return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
     }

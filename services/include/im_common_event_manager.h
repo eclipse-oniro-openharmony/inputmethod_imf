@@ -37,7 +37,7 @@ public:
     ~ImCommonEventManager();
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvent(const std::string &event);
-    bool SubscribeKeyboardEvent();
+    bool SubscribeKeyboardEvent(KeyHandle handle);
 
     bool UnsubscribeEvent();
     class EventSubscriber : public EventFwk::CommonEventSubscriber {

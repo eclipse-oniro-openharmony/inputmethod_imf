@@ -90,25 +90,25 @@ bool ImCommonEventManager::SubscribeEvent(const std::string &event)
     return true;
 }
 
-bool ImCommonEventManager::SubscribeKeyboardEvent()
+bool ImCommonEventManager::SubscribeKeyboardEvent(KeyHandle handle)
 {
     IMSA_HILOGI("ImCommonEventManager::SubscribeKeyboardEvent");
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (abilityManager == nullptr) {
-        IMSA_HILOGE("SubscribeEvent abilityManager is nullptr");
+        IMSA_HILOGE("SubscribeKeyboardEvent abilityManager is nullptr");
         return false;
     }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([]() {
-        int32_t ret = KeyboardEvent::GetInstance().InitKeyEventMonitor();
-        IMSA_HILOGI("InitKeyEventMonitor init monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([&handle]() {
+        int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(handle);
+        IMSA_HILOGI("SubscribeKeyboardEvent add monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
     });
     if (listener == nullptr) {
-        IMSA_HILOGE("SubscribeEvent listener is nullptr");
+        IMSA_HILOGE("SubscribeKeyboardEvent listener is nullptr");
         return false;
     }
     int32_t ret = abilityManager->SubscribeSystemAbility(MULTIMODAL_INPUT_SERVICE_ID, listener);
     if (ret != ERR_OK) {
-        IMSA_HILOGE("SubscribeEvent SubscribeSystemAbility failed. ret = %{public}d", ret);
+        IMSA_HILOGE("SubscribeKeyboardEvent SubscribeSystemAbility failed. ret = %{public}d", ret);
         return false;
     }
     keyboardEventListener_ = listener;

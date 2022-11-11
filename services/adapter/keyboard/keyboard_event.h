@@ -33,13 +33,12 @@ struct CombineKey {
 
 enum CombineKeyCode : uint32_t { COMBINE_KEYCODE_CAPS = 0, COMBINE_KEYCODE_SHIFT, COMBINE_KEYCODE_CTRL_SHIFT };
 
-using KeyHandle = std::function<void()>;
+using KeyHandle = std::function<int32_t(const CombineKeyCode &)>;
 
 class KeyboardEvent {
 public:
     static KeyboardEvent &GetInstance();
-    int32_t SubscribeKeyboardEvent(const CombineKey &combine, KeyHandle handle);
-    int32_t InitKeyEventMonitor();
+    static int32_t AddKeyEventMonitor(const KeyHandle& handle);
 
 private:
     static constexpr int32_t PRESS_KEY_DELAY_MS = 200;
