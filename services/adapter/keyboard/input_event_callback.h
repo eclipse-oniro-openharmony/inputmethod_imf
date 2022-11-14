@@ -55,6 +55,7 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
 {
     IMSA_HILOGI("InputEventCallback::OnInputEvent");
     auto pressKeys = keyEvent->GetPressedKeys();
+    }
     auto it = keyMap_.find(pressKeys);
     if (it == keyMap_.end()) {
         IMSA_HILOGD("keyEvent undefined");
@@ -84,4 +85,4 @@ void InputEventCallback::SetKeyHandle(KeyHandle handle)
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif //INPUTMETHOD_IMF_INPUT_EVENT_CALLBACK_H
+#endif // INPUTMETHOD_IMF_INPUT_EVENT_CALLBACK_H
