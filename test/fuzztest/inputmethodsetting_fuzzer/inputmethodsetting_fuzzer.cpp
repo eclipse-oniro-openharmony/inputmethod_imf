@@ -34,27 +34,13 @@ namespace OHOS {
     public:
         TextListener() {}
         ~TextListener() {}
-        void InsertText(const std::u16string& text)
-        {
-        }
-        void DeleteBackward(int32_t length)
-        {
-        }
-        void SetKeyboardStatus(bool status)
-        {
-        }
-        void DeleteForward(int32_t length)
-        {
-        }
-        void SendKeyEventFromInputMethod(const KeyEvent& event)
-        {
-        }
-        void SendKeyboardInfo(const KeyboardInfo& status)
-        {
-        }
-        void MoveCursor(const Direction direction)
-        {
-        }
+        void InsertText(const std::u16string& text) {}
+        void DeleteBackward(int32_t length) {}
+        void SetKeyboardStatus(bool status) {}
+        void DeleteForward(int32_t length) {}
+        void SendKeyEventFromInputMethod(const KeyEvent& event) {}
+        void SendKeyboardInfo(const KeyboardInfo& status) {}
+        void MoveCursor(const Direction direction) {}
     };
     bool FuzzInputMethodSetting(const uint8_t* rawData, size_t size)
     {
@@ -85,6 +71,8 @@ namespace OHOS {
         setting_.FindKey(imeId);
         setting_.ClearData();
 
+        delete setting;
+        setting = nullptr;
         return true;
     }
 }
