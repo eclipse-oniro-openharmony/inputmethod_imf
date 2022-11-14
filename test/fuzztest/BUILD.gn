@@ -22,6 +22,7 @@ group("fuzztest") {
     "corestub_fuzzer:fuzztest",
     "datachannelstub_fuzzer:fuzztest",
     "inputclientstub_fuzzer:fuzztest",
+    "inputmethodsetting_fuzzer:fuzztest",
     "platformcallbackstub_fuzzer:fuzztest",
     "systemabilitystub_fuzzer:fuzztest",
   ]
