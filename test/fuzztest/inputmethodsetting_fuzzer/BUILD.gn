@@ -48,6 +48,7 @@ ohos_fuzztest("InputMethodSettingFuzzTest") {
     "//base/inputmethod/imf/services:inputmethod_service",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
+    "//foundation/ability/ability_runtime/services/abilitymgr:abilityms",
   ]
 
   external_deps = [
