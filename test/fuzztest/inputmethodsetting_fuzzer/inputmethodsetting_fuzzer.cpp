@@ -33,27 +33,13 @@ namespace OHOS {
     public:
         TextListener() {}
         ~TextListener() {}
-        void InsertText(const std::u16string& text)
-        {
-        }
-        void DeleteBackward(int32_t length)
-        {
-        }
-        void SetKeyboardStatus(bool status)
-        {
-        }
-        void DeleteForward(int32_t length)
-        {
-        }
-        void SendKeyEventFromInputMethod(const KeyEvent& event)
-        {
-        }
-        void SendKeyboardInfo(const KeyboardInfo& status)
-        {
-        }
-        void MoveCursor(const Direction direction)
-        {
-        }
+        void InsertText(const std::u16string& text) {}
+        void DeleteBackward(int32_t length) {}
+        void SetKeyboardStatus(bool status) {}
+        void DeleteForward(int32_t length) {}
+        void SendKeyEventFromInputMethod(const KeyEvent& event) {}
+        void SendKeyboardInfo(const KeyboardInfo& status) {}
+        void MoveCursor(const Direction direction) {}
     };
     bool FuzzInputMethodSetting(const uint8_t* rawData, size_t size)
     {
@@ -62,25 +48,30 @@ namespace OHOS {
         imc->Attach(textListener);
 
         constexpr int32_t MAIN_USER_ID = 100;
-        sptr<InputMethodSetting> setting = new InputMethodSetting();
+        PerUserSetting *setting = new PerUserSetting(MAIN_USER_ID);
+        InputMethodSetting *methodSetting = setting->GetInputMethodSetting();
+
+        InputMethodSetting setting_ = *methodSetting;
         std::u16string imeId = Str8ToStr16(std::string(rawData, rawData + size));
         std::vector<int32_t> types;
         for (size_t i = 0; i < size; ++i) {
             types.push_back(static_cast<int32_t>(*rawData));
         }
-        setting->GetCurrentInputMethod();
-        setting->SetCurrentInputMethod(imeId);
-        setting->GetEnabledInputMethodList();
-        setting->AddEnabledInputMethod(imeId, types);
-        setting->RemoveEnabledInputMethod(imeId);
-        setting->GetEnabledKeyboardTypes(imeId);
-        setting->GetCurrentKeyboardType();
-        setting->SetCurrentKeyboardType(static_cast<int32_t>(*rawData));
-        setting->GetCurrentSysKeyboardType();
-        setting->SetCurrentSysKeyboardType(static_cast<int32_t>(*rawData));
-        setting->FindKey(imeId);
-        setting->ClearData();
+        setting_.GetCurrentInputMethod();
+        setting_.SetCurrentInputMethod(imeId);
+        setting_.GetEnabledInputMethodList();
+        setting_.AddEnabledInputMethod(imeId, types);
+        setting_.RemoveEnabledInputMethod(imeId);
+        setting_.GetEnabledKeyboardTypes(imeId);
+        setting_.GetCurrentKeyboardType();
+        setting_.SetCurrentKeyboardType(static_cast<int32_t>(*rawData));
+        setting_.GetCurrentSysKeyboardType();
+        setting_.SetCurrentSysKeyboardType(static_cast<int32_t>(*rawData));
+        setting_.FindKey(imeId);
+        setting_.ClearData();
 
+        delete setting;
+        setting = nullptr;
         return true;
     }
 }
