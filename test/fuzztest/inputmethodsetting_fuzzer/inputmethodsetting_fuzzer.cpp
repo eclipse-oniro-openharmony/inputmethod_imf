@@ -62,27 +62,24 @@ namespace OHOS {
         imc->Attach(textListener);
 
         constexpr int32_t MAIN_USER_ID = 100;
-        PerUserSetting *setting = new PerUserSetting(MAIN_USER_ID);
-        InputMethodSetting *methodSetting = setting->GetInputMethodSetting();
-
-        InputMethodSetting setting_ = *methodSetting;
+        sptr<InputMethodSetting> setting = new InputMethodSetting();
         std::u16string imeId = Str8ToStr16(std::string(rawData, rawData + size));
         std::vector<int32_t> types;
         for (size_t i = 0; i < size; ++i) {
             types.push_back(static_cast<int32_t>(*rawData));
         }
-        setting_.GetCurrentInputMethod();
-        setting_.SetCurrentInputMethod(imeId);
-        setting_.GetEnabledInputMethodList();
-        setting_.AddEnabledInputMethod(imeId, types);
-        setting_.RemoveEnabledInputMethod(imeId);
-        setting_.GetEnabledKeyboardTypes(imeId);
-        setting_.GetCurrentKeyboardType();
-        setting_.SetCurrentKeyboardType(static_cast<int32_t>(*rawData));
-        setting_.GetCurrentSysKeyboardType();
-        setting_.SetCurrentSysKeyboardType(static_cast<int32_t>(*rawData));
-        setting_.FindKey(imeId);
-        setting_.ClearData();
+        setting->GetCurrentInputMethod();
+        setting->SetCurrentInputMethod(imeId);
+        setting->GetEnabledInputMethodList();
+        setting->AddEnabledInputMethod(imeId, types);
+        setting->RemoveEnabledInputMethod(imeId);
+        setting->GetEnabledKeyboardTypes(imeId);
+        setting->GetCurrentKeyboardType();
+        setting->SetCurrentKeyboardType(static_cast<int32_t>(*rawData));
+        setting->GetCurrentSysKeyboardType();
+        setting->SetCurrentSysKeyboardType(static_cast<int32_t>(*rawData));
+        setting->FindKey(imeId);
+        setting->ClearData();
 
         return true;
     }
