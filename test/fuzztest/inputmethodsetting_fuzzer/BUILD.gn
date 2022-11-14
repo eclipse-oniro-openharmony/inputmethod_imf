@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2002 Huawei Device Co., Ltd.
+# Copyright (c) 2021 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -19,20 +19,20 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("SystemAbilityStubFuzzTest") {
+ohos_fuzztest("InputMethodSettingFuzzTest") {
   module_out_path = "inputmethod/inputmethod"
 
   fuzz_config_file =
-      "//base/inputmethod/imf/test/fuzztest/systemabilitystub_fuzzer"
+      "//base/inputmethod/imf/test/fuzztest/inputmethodsetting_fuzzer"
 
   include_dirs = [
     "//base/inputmethod/imf/services/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//commonlibrary/c_utils/base/include",
-    "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
-    "//third_party/jsoncpp/include",
     "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager/include/appmgr",
     "//foundation/ability/ability_runtime/services/abilitymgr/include",
+    "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include/",
+    "//third_party/jsoncpp/include/",
+    "//foundation/bundlemanager/bundle_framework/interfaces/inner_api/appexecfwk_core/include/bundlemgr",
+    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
   ]
 
   cflags = [
@@ -42,23 +42,18 @@ ohos_fuzztest("SystemAbilityStubFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "systemabilitystub_fuzzer.cpp" ]
+  sources = [ "inputmethodsetting_fuzzer.cpp" ]
 
   deps = [
     "//base/inputmethod/imf/services:inputmethod_service",
-    "//foundation/ability/ability_runtime/services/abilitymgr:abilityms",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
     "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
   ]
 
   external_deps = [
-    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "access_token:libaccesstoken_sdk",
-    "access_token:libnativetoken",
+    "bundle_framework:appexecfwk_core",
   ]
 }
 
@@ -68,7 +63,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":SystemAbilityStubFuzzTest",
+    ":InputMethodSettingFuzzTest",
   ]
 }
 ###############################################################################
