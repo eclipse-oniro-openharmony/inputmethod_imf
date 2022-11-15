@@ -49,8 +49,14 @@ namespace OHOS {
         imc->Attach(textListener);
 
         constexpr int32_t MAIN_USER_ID = 100;
-        PerUserSetting *setting = new PerUserSetting(MAIN_USER_ID);
+        PerUserSetting *setting = new (std::nothrow) PerUserSetting(MAIN_USER_ID);
+        if (setting == nullptr) {
+            return true;
+        }
         InputMethodSetting *methodSetting = setting->GetInputMethodSetting();
+        if (methodSetting == nullptr) {
+            return true;
+        }
 
         InputMethodSetting setting_ = *methodSetting;
         std::u16string imeId = Str8ToStr16(std::string(rawData, rawData + size));
