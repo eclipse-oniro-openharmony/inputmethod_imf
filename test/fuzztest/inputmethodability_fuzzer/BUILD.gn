@@ -19,11 +19,11 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("InputClientStubFuzzTest") {
+ohos_fuzztest("InputMethodAbilityFuzzTest") {
   module_out_path = "inputmethod/inputmethod"
 
   fuzz_config_file =
-      "//base/inputmethod/imf/test/fuzztest/inputclientstub_fuzzer"
+      "//base/inputmethod/imf/test/fuzztest/inputmethodability_fuzzer"
 
   include_dirs = [
     "//base/inputmethod/imf/services/include",
@@ -38,11 +38,10 @@ ohos_fuzztest("InputClientStubFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "inputclientstub_fuzzer.cpp" ]
+  sources = [ "inputmethodability_fuzzer.cpp" ]
 
   deps = [
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
-    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//foundation/ability/ability_runtime/services/abilitymgr:abilityms",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
@@ -58,9 +57,6 @@ ohos_fuzztest("InputClientStubFuzzTest") {
 group("fuzztest") {
   testonly = true
   deps = []
-  deps += [
-    # deps file
-    ":InputClientStubFuzzTest",
-  ]
+  deps += [ ":InputMethodAbilityFuzzTest" ]
 }
 ###############################################################################
