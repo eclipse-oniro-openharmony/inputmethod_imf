@@ -30,6 +30,7 @@
 #include "input_method_core_proxy.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
+#include "iremote_broker.h"
 #include "message_parcel.h"
 #include "peruser_session.h"
 #include "peruser_setting.h"
@@ -46,29 +47,22 @@ namespace OHOS {
         uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
         return bigVar;
     }
-    bool perUserSession(const uint8_t *rawData, size_t size)
+
+    bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     {
-        MessageParcel data;
-        ClientInfo clientInfo;
         Property property;
         SubProperty subProperty;
 
-        int retHeight = static_cast<int32_t>(*rawData);
         int flags = static_cast<int32_t>(*rawData);
-        std::string str(reinterpret_cast<const char *>(rawData), size);
+        std::string str(rawData, rawData + size);
         std::u16string packageName = Str8ToStr16(str);
-        std::u16string key = Str8ToStr16(str);
-        std::u16string value = Str8ToStr16(str);
         bool isShowKeyboard = true;
         constexpr int32_t MAIN_USER_ID = 100;
-        sptr<IRemoteObject> object = data.ReadRemoteObject();
-        sptr<IInputClient> client = new InputClientProxy(object);
-
+        sptr<IInputClient> client = new (std::nothrow) InputClientStub();
+        sptr<IRemoteObject> object = client->AsObject();
         std::shared_ptr<PerUserSession> userSessions = std::make_shared<PerUserSession>(MAIN_USER_ID);
-        std::shared_ptr<PerUserSetting> userSetting = std::make_shared<PerUserSetting>(MAIN_USER_ID);
         sptr<IInputMethodCore> core = new InputMethodCoreProxy(object);
         sptr<IInputMethodAgent> agent = new InputMethodAgentProxy(object);
-        InputMethodSetting *setting = userSetting->GetInputMethodSetting();
         InputMethodInfo *ime = new InputMethodInfo();
 
         userSessions->OnPackageRemoved(packageName);
@@ -79,8 +73,6 @@ namespace OHOS {
         userSessions->SetCurrentSubProperty(subProperty);
         userSessions->StopInputService(str);
         userSessions->JoinWorkThread();
-        userSessions->OnSettingChanged(key, value);
-        userSessions->OnGetKeyboardWindowHeight(retHeight);
         userSessions->OnHideKeyboardSelf(flags);
         userSessions->OnStartInput(client, isShowKeyboard);
         userSessions->OnStopInput(client);
@@ -88,8 +80,6 @@ namespace OHOS {
         userSessions->SetCurrentIme(ime);
         userSessions->SetSecurityIme(ime);
         userSessions->ResetIme(ime, ime);
-        userSessions->SetInputMethodSetting(setting);
-        userSessions->OnPrepareInput(clientInfo);
         userSessions->OnSetCoreAndAgent(core, agent);
 
         delete ime;
@@ -104,6 +94,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
     /* Run your code on data */
-    OHOS::perUserSession(data, size);
+    OHOS::FuzzPerUserSession(data, size);
     return 0;
 }
