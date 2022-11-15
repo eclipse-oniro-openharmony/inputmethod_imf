@@ -205,7 +205,7 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
         return;
     }
 
-    for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end();) {
+    for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end(); item++) {
         if ((callback != nullptr) && (Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
             jsCbMap_[type].erase(item);
             break;

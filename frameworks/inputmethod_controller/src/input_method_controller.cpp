@@ -242,8 +242,7 @@ using namespace MessageID;
     void InputMethodController::QuitWorkThread()
     {
         stop_ = true;
-        MessageParcel *parcel = new MessageParcel();
-        Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, parcel);
+        Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
         msgHandler->SendMessage(msg);
         if (workThreadHandler.joinable()) {
             workThreadHandler.join();
