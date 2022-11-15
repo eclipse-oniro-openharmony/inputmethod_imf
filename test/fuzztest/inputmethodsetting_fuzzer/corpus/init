@@ -11,19 +11,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/inputmethod/imf/inputmethod.gni")
-
-group("fuzztest") {
-  testonly = true
-
-  deps = [
-    "agentstub_fuzzer:fuzztest",
-    "controlchannelstub_fuzzer:fuzztest",
-    "corestub_fuzzer:fuzztest",
-    "datachannelstub_fuzzer:fuzztest",
-    "inputclientstub_fuzzer:fuzztest",
-    "inputmethodsetting_fuzzer:fuzztest",
-    "platformcallbackstub_fuzzer:fuzztest",
-    "systemabilitystub_fuzzer:fuzztest",
-  ]
-}
+FUZZ
