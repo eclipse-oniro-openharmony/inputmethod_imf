@@ -17,8 +17,8 @@
 
 namespace OHOS {
 namespace MiscServices {
-JSCallbackObject::JSCallbackObject(napi_env env, napi_value callback)
-    : env_(env)
+JSCallbackObject::JSCallbackObject(napi_env env, napi_value callback, std::thread::id threadId)
+    : env_(env), threadId_(threadId)
 {
     napi_create_reference(env, callback, 1, &callback_);
 }
@@ -30,5 +30,5 @@ JSCallbackObject::~JSCallbackObject()
     }
     env_ = nullptr;
 }
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
