@@ -60,17 +60,17 @@ bool InputMethodDfxTest::ExecuteCmd(const std::string &cmd, std::string &result)
 {
     char buff[EACH_LINE_LENGTH] = { 0x00 };
     char output[TOTAL_LENGTH] = { 0x00 };
-    FILE *ptr = NULL;
-    if ((ptr = popen(cmd.c_str(), "r")) != NULL) {
+    FILE *ptr = popen(cmd.c_str(), "r");
+    if (ptr != nullptr) {
         while (fgets(buff, sizeof(buff), ptr) != nullptr) {
             if (strcat_s(output, sizeof(output), buff) != 0) {
                 pclose(ptr);
-                ptr = NULL;
+                ptr = nullptr;
                 return false;
             }
         }
         pclose(ptr);
-        ptr = NULL;
+        ptr = nullptr;
     } else {
         return false;
     }
@@ -88,8 +88,8 @@ bool InputMethodDfxTest::ExecuteCmd(const std::string &cmd, std::string &result)
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Level0)
 {
     std::string result;
-    constexpr const char *CMD = "hidumper -s 3703 -a -a";
-    auto ret = InputMethodDfxTest::ExecuteCmd(CMD, result);
+    constexpr const char *TEST_CMD = "hidumper -s 3703 -a -a";
+    auto ret = InputMethodDfxTest::ExecuteCmd(TEST_CMD, result);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(result.find("get input method") != std::string::npos);
     EXPECT_TRUE(result.find("imeList") != std::string::npos);
@@ -106,8 +106,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Leve
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Level0)
 {
     std::string result;
-    constexpr const char *CMD = "hidumper -s 3703 -a -h";
-    auto ret = InputMethodDfxTest::ExecuteCmd(CMD, result);
+    constexpr const char *TEST_CMD = "hidumper -s 3703 -a -h";
+    auto ret = InputMethodDfxTest::ExecuteCmd(TEST_CMD, result);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(result.find("Description:") != std::string::npos);
     EXPECT_TRUE(result.find("-h show help") != std::string::npos);
@@ -124,8 +124,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Leve
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInfomation_001, TestSize.Level0)
 {
     std::string result;
-    constexpr const char *CMD = "hidumper -s 3703 -a -test";
-    auto ret = InputMethodDfxTest::ExecuteCmd(CMD, result);
+    constexpr const char *TEST_CMD = "hidumper -s 3703 -a -test";
+    auto ret = InputMethodDfxTest::ExecuteCmd(TEST_CMD, result);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(result.find("input dump parameter error,enter '-h' for usage.") != std::string::npos);
 }
