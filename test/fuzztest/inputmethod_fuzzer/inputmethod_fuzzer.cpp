@@ -27,6 +27,7 @@
 #include "message_parcel.h"
 #include "para_handle.h"
 #include "platform.h"
+#include "utils.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {

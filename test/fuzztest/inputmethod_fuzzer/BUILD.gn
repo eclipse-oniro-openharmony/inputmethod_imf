@@ -22,8 +22,7 @@ import("//build/test.gni")
 ohos_fuzztest("InputMethodFuzzTest") {
   module_out_path = "inputmethod/inputmethod"
 
-  fuzz_config_file =
-      "//base/inputmethod/imf/test/fuzztest/inputmethod_fuzzer"
+  fuzz_config_file = "//base/inputmethod/imf/test/fuzztest/inputmethod_fuzzer"
 
   include_dirs = [
     "//base/inputmethod/imf/services/include",
@@ -44,12 +43,12 @@ ohos_fuzztest("InputMethodFuzzTest") {
   sources = [ "inputmethod_fuzzer.cpp" ]
 
   deps = [
+    "//base/inputmethod/imf/etc/para:inputmethod_para",
     "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
     "//base/inputmethod/imf/services:inputmethod_service",
+    "//foundation/ability/ability_base:want",
     "//foundation/ability/ability_runtime/services/abilitymgr:abilityms",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//base/inputmethod/imf/etc/para:inputmethod_para",
-    "//foundation/ability/ability_base:want",
   ]
 
   external_deps = [
