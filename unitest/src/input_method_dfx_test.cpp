@@ -93,9 +93,9 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Leve
     std::string result;
     auto ret = InputMethodDfxTest::ExecuteCmd(CMD1, result);
     EXPECT_TRUE(ret);
-    EXPECT_TRUE(result.find("get input method") != std::string::npos);
-    EXPECT_TRUE(result.find("imeList") != std::string::npos);
-    EXPECT_TRUE(result.find("isDefaultIme") != std::string::npos);
+    EXPECT_NE(result.find("get input method"), std::string::npos);
+    EXPECT_NE(result.find("imeList"), std::string::npos);
+    EXPECT_NE(result.find("isDefaultIme"), std::string::npos);
 }
 
 /**
@@ -110,9 +110,9 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Leve
     std::string result;
     auto ret = InputMethodDfxTest::ExecuteCmd(CMD2, result);
     EXPECT_TRUE(ret);
-    EXPECT_TRUE(result.find("Description:") != std::string::npos);
-    EXPECT_TRUE(result.find("-h show help") != std::string::npos);
-    EXPECT_TRUE(result.find("-a dump all input methods") != std::string::npos);
+    EXPECT_NE(result.find("Description:"), std::string::npos);
+    EXPECT_NE(result.find("-h show help"), std::string::npos);
+    EXPECT_NE(result.find("-a dump all input methods"), std::string::npos);
 }
 
 /**
@@ -127,7 +127,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInfomation_001, T
     std::string result;
     auto ret = InputMethodDfxTest::ExecuteCmd(CMD3, result);
     EXPECT_TRUE(ret);
-    EXPECT_TRUE(result.find("input dump parameter error,enter '-h' for usage.") != std::string::npos);
+    EXPECT_NE(result.find("input dump parameter error,enter '-h' for usage."), std::string::npos);
 }
 } // namespace MiscServices
 } // namespace OHOS
