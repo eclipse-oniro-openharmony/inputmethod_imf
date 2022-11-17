@@ -136,7 +136,7 @@ group("unittest") {
   deps += [
     ":InputMethodAbilityTest",
     ":InputMethodControllerTest",
-    ":InputMethodServiceTest",
     ":InputMethodDfxTest",
+    ":InputMethodServiceTest",
   ]
 }
