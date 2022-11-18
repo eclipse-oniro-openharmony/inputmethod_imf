@@ -46,12 +46,12 @@ namespace MiscServices {
     InputMethodAbility::~InputMethodAbility()
     {
         IMSA_HILOGI("InputMethodAbility::~InputMethodAbility");
-        instance_ = nullptr;
+        QuitWorkThread();
         if (msgHandler) {
             delete msgHandler;
             msgHandler = nullptr;
         }
-        stop_ = true;
+        instance_ = nullptr;
     }
 
     sptr<InputMethodAbility> InputMethodAbility::GetInstance()
@@ -198,6 +198,7 @@ namespace MiscServices {
                     break;
                 }
                 default: {
+                    IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                     break;
                 }
             }
@@ -576,6 +577,16 @@ namespace MiscServices {
         inputMethodAgentStub->SetMessageHandler(msgHandler);
         sptr<IInputMethodAgent> inputMethodAgent = sptr(new InputMethodAgentProxy(inputMethodAgentStub));
         mImms->SetCoreAndAgent(stub, inputMethodAgent);
+    }
+
+    void InputMethodAbility::QuitWorkThread()
+    {
+        stop_ = true;
+        Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
+        msgHandler->SendMessage(msg);
+        if (workThreadHandler.joinable()) {
+            workThreadHandler.join();
+        }
     }
 } // namespace MiscServices
 } // namespace OHOS
