@@ -51,7 +51,7 @@ void TestListInputMethod(sptr<InputMethodController> imc)
     imc->DisplayOptionalInputMethod();
 }
 
-void TestListInputMethodSubtype(sptr<InputMethodController> imc,const std::string fuzzedString, int32_t fuzzedInt32)
+void TestListInputMethodSubtype(sptr<InputMethodController> imc, const std::string &fuzzedString, int32_t fuzzedInt32)
 {
     std::vector<SubProperty> subProperties = {};
     Property property;
