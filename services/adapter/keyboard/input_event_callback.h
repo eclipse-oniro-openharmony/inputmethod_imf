@@ -54,7 +54,11 @@ private:
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const
 {
     IMSA_HILOGI("InputEventCallback::OnInputEvent");
+    IMSA_HILOGI("KeyCode: %{public}d, KeyAction: %{public}d", keyEvent->GetKeyCode(), keyEvent->GetKeyAction());
     auto pressKeys = keyEvent->GetPressedKeys();
+    for (const auto &key : pressKeys) {
+        IMSA_HILOGI("pressedkey: %{public}d", key);
+    }
     auto it = keyMap_.find(pressKeys);
     if (it == keyMap_.end()) {
         IMSA_HILOGD("keyEvent undefined");
