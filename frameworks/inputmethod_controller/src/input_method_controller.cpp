@@ -91,7 +91,10 @@ using namespace MessageID;
         workThreadHandler = std::thread([this] { WorkThread(); });
         mAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
 
-        textListener = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(textListenerLock_);
+            textListener = nullptr;
+        }
         IMSA_HILOGI("InputMethodController::Initialize textListener is nullptr");
         PrepareInput(0, mClient, mInputDataChannel, mAttribute);
         return true;
@@ -134,6 +137,7 @@ using namespace MessageID;
     {
         while (!stop_) {
             Message *msg = msgHandler->GetMessage();
+            std::lock_guard<std::mutex> lock(textListenerLock_);
             switch (msg->msgId_) {
                 case MSG_ID_INSERT_CHAR: {
                     MessageParcel *data = msg->msgContent_;
@@ -312,7 +316,10 @@ using namespace MessageID;
     {
         ReleaseInput(mClient);
         InputmethodTrace tracer("InputMethodController Close trace.");
-        textListener = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(textListenerLock_);
+            textListener = nullptr;
+        }
         IMSA_HILOGI("InputMethodController::Close");
     }
 
