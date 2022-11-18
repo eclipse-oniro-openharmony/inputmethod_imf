@@ -99,6 +99,7 @@ private:
 
     void Initialize();
     void WorkThread();
+    void QuitWorkThread();
 
     void OnInitialInput(Message *msg);
     void OnStartInput(Message *msg);
