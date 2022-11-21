@@ -98,7 +98,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     }
     /* Run your code on data */
     auto fuzzedInt32 = static_cast<int32_t>(size);
-    std::string fuzzedString(reinterpret_cast<const char *>(data), size);
 
     OHOS::FuzzInputClientStub(data, size);
     OHOS::TextOnInputReady();
