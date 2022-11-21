@@ -1280,6 +1280,7 @@ namespace MiscServices {
             return ErrorCode::ERROR_IME_NOT_AVAILABLE;
         }
         imsCore[0]->SetClientState(state);
+        return ErrorCode::NO_ERROR;
     }
 } // namespace MiscServices
 } // namespace OHOS
