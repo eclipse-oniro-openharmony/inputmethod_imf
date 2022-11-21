@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 XXXX Device Co., Ltd.
+ * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -242,13 +242,13 @@ describe("InputMethodTest", function () {
       it('inputmethod_test_listInputMethod_004', 0, async function (done) {
         console.info("************* inputmethod_test_listInputMethod_004 Test start*************");
         let inputMethodSetting = inputMethod.getInputMethodSetting();
-        console.info("inputmethoh_test_004 result:" + JSON.stringify(inputMethodSetting));
+        console.info("inputmethod_test_004 result:" + JSON.stringify(inputMethodSetting));
         inputMethodSetting.listInputMethod(true, (err, data) => {
           if (err) {
             console.error("listInputMethod callback result---err: " + JSON.stringify(err.message));
             expect().assertFail();
           }
-            console.info("inputmethoh_test_004 listInputMethod result" + JSON.stringify(data));
+            console.info("inputmethod_test_004 listInputMethod result" + JSON.stringify(data));
             expect(err === undefined).assertTrue();
         });
         console.info("************* inputmethod_test_listInputMethod_004 Test end*************");
@@ -598,7 +598,7 @@ describe("InputMethodTest", function () {
 
     /*
      * @tc.number  inputmethod_test_showSoftKeyboard_001
-     * @tc.name    Test Indicates the input method which will show softboard with calback.
+     * @tc.name    Test Indicates the input method which will show softboard with callback.
      * @tc.desc    Function test
      * @tc.level   2
      */
@@ -607,9 +607,9 @@ describe("InputMethodTest", function () {
       let inputMethodCtrl = inputMethod.getInputMethodController()
       inputMethodCtrl.showSoftKeyboard((err)=>{
         if (err === undefined) {
-          console.info("showSoftKeyboard callbace success" );
+          console.info("showSoftKeyboard callback success" );
         } else {
-          console.info('showSoftKeyboard callbace failed : ' + JSON.stringify(err.message));
+          console.info('showSoftKeyboard callback failed : ' + JSON.stringify(err.message));
           expect().assertFail();
         }
       });
@@ -638,7 +638,7 @@ describe("InputMethodTest", function () {
 
     /*
      * @tc.number  inputmethod_test_hideSoftKeyboard_001
-     * @tc.name    Test Indicates the input method which will hide softboard with calback.
+     * @tc.name    Test Indicates the input method which will hide softboard with callback.
      * @tc.desc    Function test
      * @tc.level   2
      */
@@ -647,9 +647,9 @@ describe("InputMethodTest", function () {
       let inputMethodCtrl = inputMethod.getInputMethodController()
       inputMethodCtrl.hideSoftKeyboard((data)=>{
         if(data === undefined){
-          console.info("hideSoftKeyboard callbace success" );
+          console.info("hideSoftKeyboard callback success" );
         }else{
-          console.info('hideSoftKeyboard callbace failed : ' + JSON.stringify(err.message))
+          console.info('hideSoftKeyboard callback failed : ' + JSON.stringify(err.message))
           expect().assertFail();
         }
       });
@@ -1156,7 +1156,7 @@ describe("InputMethodTest", function () {
           if (err === undefined) {
             console.info("inputMethodEngine_test_039 hideKeyboard success.");
           } else {
-            console.info('inputMethodEngine_test_039 hideKeyboard callbace failed : ' + JSON.stringify(err.message));
+            console.info('inputMethodEngine_test_039 hideKeyboard callback failed : ' + JSON.stringify(err.message));
             expect().assertFail();
           }
         });
@@ -1276,7 +1276,7 @@ describe("InputMethodTest", function () {
           if (err === undefined) {
             console.info("inputMethodEngine_test_048 hide success.");
           } else {
-            console.info('inputMethodEngine_test_048 hide callbace failed : ' + JSON.stringify(err.message));
+            console.info('inputMethodEngine_test_048 hide callback failed : ' + JSON.stringify(err.message));
             expect().assertFail();
           }
         });

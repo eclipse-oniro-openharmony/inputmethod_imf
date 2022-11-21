@@ -38,7 +38,7 @@ public:
 
 private:
     void ShowHelp(int fd);
-    void ShowIllealInfomation(int fd);
+    void ShowIllealInformation(int fd);
     mutable std::mutex hidumperMutex_;
     std::list<std::string> errorInfo_;
     DumpNoParamFunc dumpAllMethod_;

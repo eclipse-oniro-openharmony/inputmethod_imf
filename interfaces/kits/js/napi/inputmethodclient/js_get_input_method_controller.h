@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef INTERFACE_KITS_JS_GETINPUT_METHOD_CCONTROLLER_H
-#define INTERFACE_KITS_JS_GETINPUT_METHOD_CCONTROLLER_H
+#ifndef INTERFACE_KITS_JS_GETINPUT_METHOD_CONTROLLER_H
+#define INTERFACE_KITS_JS_GETINPUT_METHOD_CONTROLLER_H
 
 #include "async_call.h"
 #include "global.h"
@@ -63,4 +63,4 @@ private:
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // INTERFACE_KITS_JS_GETINPUT_METHOD_CCONTROLLER_H
+#endif // INTERFACE_KITS_JS_GETINPUT_METHOD_CONTROLLER_H

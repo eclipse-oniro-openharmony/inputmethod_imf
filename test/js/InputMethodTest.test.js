@@ -25,9 +25,9 @@ describe('appInfoTest_input_2', function () {
     */
     it('inputmethod_test_listInputMethod_001', 0, async function (done) {
       let inputMethodSetting = inputMethod.getInputMethodSetting();
-      console.info("inputmethoh_test_001 result:" + JSON.stringify(inputMethodSetting));
+      console.info("inputmethod_test_001 result:" + JSON.stringify(inputMethodSetting));
       inputMethodSetting.listInputMethod((err, data) => {
-          console.info("inputmethoh_test_001 listInputMethod result" + JSON.stringify(data));
+          console.info("inputmethod_test_001 listInputMethod result" + JSON.stringify(data));
           expect(err===undefined).assertTrue();
       });
        done();
@@ -41,16 +41,16 @@ describe('appInfoTest_input_2', function () {
      */
     it('inputmethod_test_listInputMethod_002', 0, async function (done) {
       let inputMethodSetting = inputMethod.getInputMethodSetting();
-      console.info("inputmethoh_test_002 result:" + JSON.stringify(inputMethodSetting));
+      console.info("inputmethod_test_002 result:" + JSON.stringify(inputMethodSetting));
       let promise = await inputMethodSetting.listInputMethod();
-      console.info("inputmethoh_test_002 listInputMethod result" + JSON.stringify(promise));
+      console.info("inputmethod_test_002 listInputMethod result" + JSON.stringify(promise));
       if (promise.length > 0){
         let obj = promise[0]
-        console.info("inputmethoh_test_002 listInputMethod obj" + JSON.stringify(obj));
+        console.info("inputmethod_test_002 listInputMethod obj" + JSON.stringify(obj));
         expect(obj.packageName != null).assertTrue();
         expect(obj.methodId != null).assertTrue();
       }else{
-        console.info("inputmethoh_test_002 listInputMethod is null");
+        console.info("inputmethod_test_002 listInputMethod is null");
         expect().assertFail();
       }
       done();
