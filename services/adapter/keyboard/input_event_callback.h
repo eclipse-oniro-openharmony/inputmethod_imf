@@ -57,17 +57,17 @@ private:
 std::mutex InputEventCallback::statusMapLock_;
 std::map<int32_t, bool> InputEventCallback::keyStatusMap_ = {
     { MMI::KeyEvent::KEYCODE_CAPS_LOCK, false },
-    { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, false },
-    { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, false },
     { MMI::KeyEvent::KEYCODE_CTRL_LEFT, false },
     { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, false },
+    { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, false },
+    { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, false },
 };
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const
 {
     auto keyCode = keyEvent->GetKeyCode();
     auto keyAction = keyEvent->GetKeyAction();
-    IMSA_HILOGD("OnInputEvent keyCode: %{public}d, keyAction: %{public}d", keyCode, keyAction);
+    IMSA_HILOGD("keyCode: %{public}d, keyAction: %{public}d", keyCode, keyAction);
 
     std::lock_guard<std::mutex> lock(statusMapLock_);
     if (keyStatusMap_.find(keyCode) == keyStatusMap_.end() || keyAction == MMI::KeyEvent::KEY_ACTION_UNKNOWN) {
@@ -99,7 +99,7 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
         return;
     }
     int32_t ret = keyHandler_(combinedKey->second);
-    IMSA_HILOGI("handle keyevent ret: %{public}d", ret);
+    IMSA_HILOGI("handle keyevent ret: %{public}s", ErrorCode::ToString(ret));
 }
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::PointerEvent> pointerEvent) const
