@@ -507,6 +507,7 @@ namespace MiscServices {
     void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     {
         IMSA_HILOGI("PerUserSession::OnClientDied Start...[%{public}d]\n", userId_);
+        SetClientState(false);
         sptr<IInputClient> client = GetCurrentClient();
         if (client == nullptr) {
             IMSA_HILOGE("current client is nullptr");
@@ -1081,11 +1082,16 @@ namespace MiscServices {
     int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
     {
         IMSA_HILOGI("PerUserSession::OnReleaseInput Start\n");
-        if (imsCore[0] == nullptr) {
-            return ErrorCode::ERROR_IME_NOT_AVAILABLE;
+        int ret = SetClientState(false);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to set client state, ret %{public}d", ret);
+            return ret;
         }
-        imsCore[0]->SetClientState(false);
-        HideKeyboard(client);
+        ret = HideKeyboard(client);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to hide keyboard ret %{public}d", ret);
+            return ret;
+        }
         RemoveClient(client->AsObject());
         IMSA_HILOGI("PerUserSession::OnReleaseInput End...[%{public}d]\n", userId_);
         return ErrorCode::NO_ERROR;
@@ -1099,10 +1105,11 @@ namespace MiscServices {
     int32_t PerUserSession::OnStartInput(sptr<IInputClient> client, bool isShowKeyboard)
     {
         IMSA_HILOGI("PerUserSession::OnStartInput");
-        if (imsCore[0] == nullptr) {
-            return ErrorCode::ERROR_IME_NOT_AVAILABLE;
+        int32_t ret = SetClientState(true);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to set client state");
+            return ret;
         }
-        imsCore[0]->SetClientState(true);
         return ShowKeyboard(client, isShowKeyboard);
     }
 
@@ -1264,6 +1271,15 @@ namespace MiscServices {
         IMSA_HILOGI("PerUserSession::SetCurrentSubProperty");
         std::lock_guard<std::mutex> lock(propertyLock_);
         currentSubProperty = subProperty;
+    }
+
+    int32_t PerUserSession::SetClientState(bool state)
+    {
+        IMSA_HILOGI("set client state: %{public}s", state ? "true" : "false");
+        if (imsCore[0] == nullptr) {
+            return ErrorCode::ERROR_IME_NOT_AVAILABLE;
+        }
+        imsCore[0]->SetClientState(state);
     }
 } // namespace MiscServices
 } // namespace OHOS

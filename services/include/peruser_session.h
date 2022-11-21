@@ -183,6 +183,7 @@ private:
     void ClearImeData(uint32_t index);
     void SetCurrentClient(sptr<IInputClient> client);
     sptr<IInputClient> GetCurrentClient();
+    int32_t SetClientState(bool state);
 
     std::mutex propertyLock_;
     SubProperty currentSubProperty;
