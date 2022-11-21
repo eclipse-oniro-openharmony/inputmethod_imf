@@ -43,13 +43,13 @@ private:
         { { MMI::KeyEvent::KEYCODE_CAPS_LOCK }, CombineKeyCode::COMBINE_KEYCODE_CAPS },
         { { MMI::KeyEvent::KEYCODE_SHIFT_LEFT }, CombineKeyCode::COMBINE_KEYCODE_SHIFT },
         { { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT }, CombineKeyCode::COMBINE_KEYCODE_SHIFT },
-        { { MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT },
+        { { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, MMI::KeyEvent::KEYCODE_CTRL_LEFT },
             CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT },
-        { { MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT },
+        { { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
             CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT },
-        { { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT },
+        { { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, MMI::KeyEvent::KEYCODE_CTRL_LEFT },
             CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT },
-        { { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT },
+        { { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
             CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT },
     };
 };
@@ -84,7 +84,6 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
     std::vector<int32_t> pressedKeys;
     for (auto &key : keyStatusMap_) {
         if (key.second) {
-            IMSA_HILOGD("key %{public}d is pressed", key.first);
             pressedKeys.push_back(key.first);
             key.second = false;
         }
@@ -99,7 +98,7 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
         return;
     }
     int32_t ret = keyHandler_(combinedKey->second);
-    IMSA_HILOGI("handle keyevent ret: %{public}s", ErrorCode::ToString(ret));
+    IMSA_HILOGI("handle keyevent ret: %{public}d", ret);
 }
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::PointerEvent> pointerEvent) const
