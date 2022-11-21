@@ -33,10 +33,13 @@ public:
     virtual void OnInputEvent(std::shared_ptr<MMI::PointerEvent> pointerEvent) const;
     virtual void OnInputEvent(std::shared_ptr<MMI::AxisEvent> axisEvent) const;
     void SetKeyHandle(KeyHandle handle);
+    void InitStatusMap();
 
 private:
     KeyHandle keyHandler_ = nullptr;
-    std::map<std::vector<int32_t>, CombineKeyCode> keyMap_ = {
+    std::mutex statusMapLock_;
+    static std::map<int32_t, bool> keyStatusMap_;
+    std::map<std::vector<int32_t>, CombineKeyCode> combinedKeyMap_ = {
         { { MMI::KeyEvent::KEYCODE_CAPS_LOCK }, CombineKeyCode::COMBINE_KEYCODE_CAPS },
         { { MMI::KeyEvent::KEYCODE_SHIFT_LEFT }, CombineKeyCode::COMBINE_KEYCODE_SHIFT },
         { { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT }, CombineKeyCode::COMBINE_KEYCODE_SHIFT },
@@ -53,23 +56,40 @@ private:
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const
 {
-    IMSA_HILOGI("InputEventCallback::OnInputEvent");
-    IMSA_HILOGI("KeyCode: %{public}d, KeyAction: %{public}d", keyEvent->GetKeyCode(), keyEvent->GetKeyAction());
-    auto pressKeys = keyEvent->GetPressedKeys();
-    for (const auto &key : pressKeys) {
-        IMSA_HILOGI("pressedkey: %{public}d", key);
+    IMSA_HILOGI("OnInputEvent");
+    std::lock_guard<std::mutex> lock(statusMapLock_);
+    auto keyCode = keyEvent->GetKeyCode();
+    auto keyAction = keyEvent->GetKeyAction();
+
+    if (keyStatusMap_.find(keyCode) == keyStatusMap_.end() || keyAction == MMI::KeyEvent::KEY_ACTION_UNKNOWN) {
+        IMSA_HILOGD("keycode undefined");
+        return;
     }
-    auto it = keyMap_.find(pressKeys);
-    if (it == keyMap_.end()) {
-        IMSA_HILOGD("keyEvent undefined");
+    if (keyAction == MMI::KeyEvent::KEY_ACTION_DOWN) {
+        IMSA_HILOGD("key %{public}d pressed down", keyCode);
+        keyStatusMap_[keyCode] = true;
+        return;
+    }
+
+    // keyUp event occurs
+    std::vector<int32_t> pressedKeys;
+    for (auto &key : keyStatusMap_) {
+        if (key.second) {
+            pressedKeys.push_back(key.first);
+        }
+    }
+    auto combinedKey = combinedKeyMap_.find(pressedKeys);
+    if (combinedKey == combinedKeyMap_.end()) {
+        IMSA_HILOGD("undefined combinedkey");
+        keyStatusMap_[keyCode] = false;
         return;
     }
     if (keyHandler_ == nullptr) {
         IMSA_HILOGE("keyHandler_ is nullptr");
         return;
     }
-    int32_t ret = keyHandler_(it->second);
-    IMSA_HILOGI("handle keyevent %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
+    int32_t ret = keyHandler_(combinedKey->second);
+    IMSA_HILOGI("handle keyevent ret: %{public}d", ret);
 }
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::PointerEvent> pointerEvent) const
@@ -84,6 +104,18 @@ void InputEventCallback::SetKeyHandle(KeyHandle handle)
 {
     IMSA_HILOGI("set key handle");
     keyHandler_ = std::move(handle);
+}
+
+void InputEventCallback::InitStatusMap()
+{
+    std::lock_guard<std::mutex> lock(statusMapLock_);
+    keyStatusMap_ = {
+        { MMI::KeyEvent::KEYCODE_CAPS_LOCK, false },
+        { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, false },
+        { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, false },
+        { MMI::KeyEvent::KEYCODE_CTRL_LEFT, false },
+        { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, false },
+    };
 }
 } // namespace MiscServices
 } // namespace OHOS
