@@ -34,11 +34,10 @@ public:
     virtual void OnInputEvent(std::shared_ptr<MMI::PointerEvent> pointerEvent) const;
     virtual void OnInputEvent(std::shared_ptr<MMI::AxisEvent> axisEvent) const;
     void SetKeyHandle(KeyHandle handle);
-    void InitStatusMap();
 
 private:
     KeyHandle keyHandler_ = nullptr;
-    std::mutex statusMapLock_;
+    static std::mutex statusMapLock_;
     static std::map<int32_t, bool> keyStatusMap_;
     std::map<std::vector<int32_t>, CombineKeyCode> combinedKeyMap_ = {
         { { MMI::KeyEvent::KEYCODE_CAPS_LOCK }, CombineKeyCode::COMBINE_KEYCODE_CAPS },
@@ -55,15 +54,24 @@ private:
     };
 };
 
+std::mutex InputEventCallback::statusMapLock_;
+std::map<int32_t, bool> InputEventCallback::keyStatusMap_ = {
+    { MMI::KeyEvent::KEYCODE_CAPS_LOCK, false },
+    { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, false },
+    { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, false },
+    { MMI::KeyEvent::KEYCODE_CTRL_LEFT, false },
+    { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, false },
+};
+
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const
 {
-    IMSA_HILOGI("OnInputEvent");
-    std::lock_guard<std::mutex> lock(statusMapLock_);
     auto keyCode = keyEvent->GetKeyCode();
     auto keyAction = keyEvent->GetKeyAction();
+    IMSA_HILOGD("OnInputEvent keyCode: %{public}d, keyAction: %{public}d", keyCode, keyAction);
 
+    std::lock_guard<std::mutex> lock(statusMapLock_);
     if (keyStatusMap_.find(keyCode) == keyStatusMap_.end() || keyAction == MMI::KeyEvent::KEY_ACTION_UNKNOWN) {
-        IMSA_HILOGD("keycode undefined");
+        IMSA_HILOGD("keyevent undefined");
         return;
     }
     if (keyAction == MMI::KeyEvent::KEY_ACTION_DOWN) {
@@ -72,7 +80,7 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
         return;
     }
 
-    // keyUp event occurs
+    IMSA_HILOGI("key %{public}d pressed up", keyCode);
     std::vector<int32_t> pressedKeys;
     for (auto &key : keyStatusMap_) {
         if (key.second) {
@@ -103,20 +111,8 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::AxisEvent> axisEvent)
 
 void InputEventCallback::SetKeyHandle(KeyHandle handle)
 {
-    IMSA_HILOGI("set key handle");
+    IMSA_HILOGD("set key handle");
     keyHandler_ = std::move(handle);
-}
-
-void InputEventCallback::InitStatusMap()
-{
-    std::lock_guard<std::mutex> lock(statusMapLock_);
-    keyStatusMap_ = {
-        { MMI::KeyEvent::KEYCODE_CAPS_LOCK, false },
-        { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, false },
-        { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, false },
-        { MMI::KeyEvent::KEYCODE_CTRL_LEFT, false },
-        { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, false },
-    };
 }
 } // namespace MiscServices
 } // namespace OHOS
