@@ -84,7 +84,9 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
     std::vector<int32_t> pressedKeys;
     for (auto &key : keyStatusMap_) {
         if (key.second) {
+            IMSA_HILOGD("key %{public}d is pressed", key.first);
             pressedKeys.push_back(key.first);
+            key.second = false;
         }
     }
     auto combinedKey = combinedKeyMap_.find(pressedKeys);
