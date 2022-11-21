@@ -92,7 +92,6 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
     auto combinedKey = combinedKeyMap_.find(pressedKeys);
     if (combinedKey == combinedKeyMap_.end()) {
         IMSA_HILOGD("undefined combinedkey");
-        keyStatusMap_[keyCode] = false;
         return;
     }
     if (keyHandler_ == nullptr) {
