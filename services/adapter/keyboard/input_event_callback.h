@@ -38,7 +38,7 @@ public:
 private:
     KeyHandle keyHandler_ = nullptr;
     static std::mutex statusMapLock_;
-    static std::map<int32_t, bool> keyStatusMap_;
+    static std::map<int32_t, bool> statusMap_;
     std::map<std::vector<int32_t>, CombineKeyCode> combinedKeyMap_ = {
         { { MMI::KeyEvent::KEYCODE_CAPS_LOCK }, CombineKeyCode::COMBINE_KEYCODE_CAPS },
         { { MMI::KeyEvent::KEYCODE_SHIFT_LEFT }, CombineKeyCode::COMBINE_KEYCODE_SHIFT },
@@ -55,12 +55,12 @@ private:
 };
 
 std::mutex InputEventCallback::statusMapLock_;
-std::map<int32_t, bool> InputEventCallback::keyStatusMap_ = {
-    { MMI::KeyEvent::KEYCODE_CAPS_LOCK, false },
-    { MMI::KeyEvent::KEYCODE_CTRL_LEFT, false },
-    { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, false },
+std::map<int32_t, bool> InputEventCallback::statusMap_ = {
     { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, false },
     { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, false },
+    { MMI::KeyEvent::KEYCODE_CTRL_LEFT, false },
+    { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, false },
+    { MMI::KeyEvent::KEYCODE_CAPS_LOCK, false },
 };
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const
@@ -70,25 +70,25 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
     IMSA_HILOGD("keyCode: %{public}d, keyAction: %{public}d", keyCode, keyAction);
 
     std::lock_guard<std::mutex> lock(statusMapLock_);
-    if (keyStatusMap_.find(keyCode) == keyStatusMap_.end() || keyAction == MMI::KeyEvent::KEY_ACTION_UNKNOWN) {
+    if (statusMap_.find(keyCode) == statusMap_.end() || keyAction == MMI::KeyEvent::KEY_ACTION_UNKNOWN) {
         IMSA_HILOGD("keyevent undefined");
         return;
     }
     if (keyAction == MMI::KeyEvent::KEY_ACTION_DOWN) {
         IMSA_HILOGD("key %{public}d pressed down", keyCode);
-        keyStatusMap_[keyCode] = true;
+        statusMap_[keyCode] = true;
         return;
     }
 
-    IMSA_HILOGI("key %{public}d pressed up", keyCode);
-    std::vector<int32_t> pressedKeys;
-    for (auto &key : keyStatusMap_) {
+    IMSA_HILOGD("key %{public}d pressed up", keyCode);
+    std::vector<int32_t> downKeys;
+    for (auto &key : statusMap_) {
         if (key.second) {
-            pressedKeys.push_back(key.first);
+            downKeys.push_back(key.first);
             key.second = false;
         }
     }
-    auto combinedKey = combinedKeyMap_.find(pressedKeys);
+    auto combinedKey = combinedKeyMap_.find(downKeys);
     if (combinedKey == combinedKeyMap_.end()) {
         IMSA_HILOGD("undefined combinedkey");
         return;
