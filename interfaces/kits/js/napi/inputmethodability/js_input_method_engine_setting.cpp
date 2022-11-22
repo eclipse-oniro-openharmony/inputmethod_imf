@@ -734,7 +734,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
             for (auto item : entry->vecCopy) {
                 napi_value jsObject = GetResultOnSetSubtype(item->env_, entry->subProperty);
                 if (jsObject == nullptr) {
-                    IMSA_HILOGE("get GetResultOnSetSubtype failed: %{public}p", jsObject);
+                    IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
                     continue;
                 }
                 napi_value callback = nullptr;

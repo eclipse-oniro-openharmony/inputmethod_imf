@@ -375,7 +375,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 napi_value jsObject =
                     GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
-                    IMSA_HILOGE("get GetResultOnKeyEvent failed: %{public}p", jsObject);
+                    IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
                     continue;
                 }
                 napi_value callback = nullptr;

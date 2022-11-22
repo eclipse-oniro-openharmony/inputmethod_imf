@@ -28,11 +28,11 @@ describe('appInfoTest_input_2', function () {
       console.info("inputmethod_test_001 result:" + JSON.stringify(inputMethodSetting));
       inputMethodSetting.listInputMethod((err, data) => {
           console.info("inputmethod_test_001 listInputMethod result" + JSON.stringify(data));
-          expect(err===undefined).assertTrue();
+          expect(err === undefined).assertTrue();
       });
        done();
     });
-    
+
     /*
      * @tc.number  inputmethod_test_listInputMethod_002
      * @tc.name    Test Indicates the input method which will replace the current one.
@@ -86,7 +86,7 @@ describe('appInfoTest_input_2', function () {
         console.info("inputmethod_test_displayOptionalInputMethod_001 result:" + JSON.stringify(inputMethodSetting));
         inputMethodSetting.displayOptionalInputMethod((err) => {
             console.info("inputmethod_test_displayOptionalInputMethod_001 err:" + err);
-            expect(err===undefined).assertTrue();
+            expect(err === undefined).assertTrue();
         });
        done();
     });
@@ -140,7 +140,7 @@ describe('appInfoTest_input_2', function () {
             console.info("inputmethod_test_stopInput_001 stopInput result" + res);
             console.info("inputmethod_test_stopInput_001 stopInput result" + err);
             expect(res === true).assertTrue();
-            expect(err===undefined).assertTrue();
+            expect(err === undefined).assertTrue();
         });
        done();
     });
@@ -311,7 +311,7 @@ describe('appInfoTest_input_2', function () {
       });
       done();
     });
-    
+
     /*
      * @tc.number  inputmethod_test_switchCurrentInputMethodAndSubtype_002
      * @tc.name    Test Indicates the input method which will replace the current one.
@@ -354,7 +354,7 @@ describe('appInfoTest_input_2', function () {
       console.info("inputmethod_test_ListInputMethodSubtype_001 result:" + JSON.stringify(inputMethodSetting));
       inputMethodSetting.listInputMethodSubtype(inputMethodProperty, (err, data) => {
           console.info("inputmethod_test_ListInputMethodSubtype_001 result" + JSON.stringify(data));
-          expect(err===undefined).assertTrue();
+          expect(err === undefined).assertTrue();
       });
        done();
     });
@@ -395,7 +395,7 @@ describe('appInfoTest_input_2', function () {
       console.info("inputmethod_test_ListCurrentInputMethodSubtype_001 result:" + JSON.stringify(inputMethodSetting));
       inputMethodSetting.listCurrentInputMethodSubtype((err, data) => {
           console.info("inputmethod_test_ListCurrentInputMethodSubtype_001 result" + JSON.stringify(data));
-          expect(err===undefined).assertTrue();
+          expect(err === undefined).assertTrue();
       });
        done();
     });
@@ -418,8 +418,5 @@ describe('appInfoTest_input_2', function () {
       });
       done();
     });
-
-
-    
 
 })
