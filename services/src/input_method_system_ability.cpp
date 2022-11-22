@@ -553,7 +553,8 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &name, const std::string &subName)
     {
-        IMSA_HILOGI("InputMethodSystemAbility::SwitchInputMethod");
+        IMSA_HILOGD("InputMethodSystemAbility name: %{public}s, subName: %{public}s", name.c_str(),
+            subName.c_str());
         return subName.empty() ? SwitchInputMethodType(name) : SwitchInputMethodSubtype(name, subName);
     }
 
@@ -1436,7 +1437,7 @@ namespace MiscServices {
             }
             for (const auto &prop : props) {
                 if (prop.name != current->id) {
-                    return SwitchInputMethod(current->name, current->id);
+                    return SwitchInputMethod(prop.name, prop.id);
                 }
             }
         }
