@@ -666,8 +666,8 @@ namespace MiscServices {
         KeyboardType *type = GetKeyboardType(index, currentKbdIndex[index]);
         if (type) {
             sptr<IInputClient> client = GetCurrentClient();
+            sptr<IInputMethodCore> core = GetImsCore(index);
             if (client != nullptr) {
-                sptr<IInputMethodCore> core = GetImsCore(index);
                 int ret = core->setKeyboardType(*type);
                 if (ret != ErrorCode::NO_ERROR) {
                     IMSA_HILOGE("setKeyboardType ret: %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
@@ -1132,7 +1132,7 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::SetCoreAndAgent core or agent nullptr");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        SetImsCore(index, core);
+        SetImsCore(0, core);
         if (imsDeathRecipient != nullptr) {
             imsDeathRecipient->SetDeathRecipient([this, core](const wptr<IRemoteObject> &) { this->OnImsDied(core); });
             bool ret = core->AsObject()->AddDeathRecipient(imsDeathRecipient);
