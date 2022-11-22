@@ -457,15 +457,15 @@ namespace MiscServices {
     */
     int PerUserSession::OnGetKeyboardWindowHeight(int &retHeight)
     {
-        if (imsCore[lastImeIndex]) {
-            int ret = imsCore[lastImeIndex]->getKeyboardWindowHeight(retHeight);
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("getKeyboardWindowHeight return : %{public}s", ErrorCode::ToString(ret));
-            }
-            return ret;
+        if (imsCore[lastImeIndex] == nullptr) {
+            IMSA_HILOGE("imsCore[0] is nullptr");
+            return ErrorCode::ERROR_IME_NOT_AVAILABLE;
         }
-        IMSA_HILOGW("No IME is started [%{public}d]\n", userId_);
-        return ErrorCode::ERROR_IME_NOT_STARTED;
+        int ret = imsCore[lastImeIndex]->getKeyboardWindowHeight(retHeight);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("getKeyboardWindowHeight return : %{public}s", ErrorCode::ToString(ret));
+        }
+        return ret;
     }
 
     /*! Get the current keyboard type
