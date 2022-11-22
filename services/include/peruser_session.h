@@ -127,6 +127,7 @@ private:
 
     InputControlChannelStub *localControlChannel[MAX_IME];
     sptr<IInputControlChannel> inputControlChannel[MAX_IME];
+    std::mutex imsCoreLock_;
     sptr<IInputMethodCore> imsCore[MAX_IME];       // the remote handlers of input method service
     sptr<IRemoteObject> inputMethodToken[MAX_IME]; // the window token of keyboard
     int currentKbdIndex[MAX_IME];                  // current keyboard index
@@ -182,6 +183,8 @@ private:
     bool IsRestartIme(uint32_t index);
     void ClearImeData(uint32_t index);
     void SetCurrentClient(sptr<IInputClient> client);
+    sptr<IInputMethodCore> GetImsCore(int32_t index); 
+    void SetImsCore(int32_t index, sptr<IInputMethodCore> &core);
     sptr<IInputClient> GetCurrentClient();
 
     std::mutex propertyLock_;
