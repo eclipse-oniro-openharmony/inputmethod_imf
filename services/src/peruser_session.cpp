@@ -660,7 +660,7 @@ namespace MiscServices {
                     IMSA_HILOGE("setKeyboardType ret: %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
                 }
             }
-            if (CompareCore(index)) {
+            if (CompareCore()) {
                 inputMethodSetting->SetCurrentKeyboardType(type->getHashCode());
                 inputMethodSetting->SetCurrentSysKeyboardType(type->getHashCode());
                 currentKbdIndex[1 - index] = currentKbdIndex[index];
