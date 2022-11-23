@@ -664,7 +664,7 @@ namespace MiscServices {
         if (type) {
             sptr<IInputClient> client = GetCurrentClient();
             if (client != nullptr) {
-                int ret = core->setKeyboardType(*type);
+                int ret = GetImsCore(index)->setKeyboardType(*type);
                 if (ret != ErrorCode::NO_ERROR) {
                     IMSA_HILOGE("setKeyboardType ret: %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
                 }
@@ -1294,7 +1294,7 @@ namespace MiscServices {
         return imsCore[index];
     }
 
-    void PerUserSession::SetImsCore(int32_t index, sptr<IInputMethodCore> &core)
+    void PerUserSession::SetImsCore(int32_t index, sptr<IInputMethodCore> core)
     {
         std::lock_guard<std::mutex> lock(imsCoreLock_);
         imsCore[index] = core;

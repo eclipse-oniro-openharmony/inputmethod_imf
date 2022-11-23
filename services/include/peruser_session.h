@@ -184,7 +184,7 @@ private:
     void ClearImeData(uint32_t index);
     void SetCurrentClient(sptr<IInputClient> client);
     sptr<IInputClient> GetCurrentClient();
-    void SetImsCore(int32_t index, sptr<IInputMethodCore> &core);
+    void SetImsCore(int32_t index, sptr<IInputMethodCore> core);
     sptr<IInputMethodCore> GetImsCore(int32_t index);
     bool CompareCore(int32_t index);
 
