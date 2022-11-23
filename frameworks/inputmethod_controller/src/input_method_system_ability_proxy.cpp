@@ -39,7 +39,7 @@ int32_t InputMethodSystemAbilityProxy::PrepareInput(int32_t displayId, sptr<IInp
 
 int32_t InputMethodSystemAbilityProxy::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(START_INPUT, [isShowKeyboard, client](MessageParcel &data) {
         return data.WriteRemoteObject(client->AsObject()) && data.WriteBool(isShowKeyboard);
     });
@@ -47,25 +47,25 @@ int32_t InputMethodSystemAbilityProxy::StartInput(sptr<IInputClient> client, boo
 
 int32_t InputMethodSystemAbilityProxy::ShowCurrentInput()
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(SHOW_CURRENT_INPUT);
 }
 
 int32_t InputMethodSystemAbilityProxy::HideCurrentInput()
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(HIDE_CURRENT_INPUT);
 }
 
 int32_t InputMethodSystemAbilityProxy::StopInputSession()
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(STOP_INPUT_SESSION);
 }
 
 int32_t InputMethodSystemAbilityProxy::StopInput(sptr<IInputClient> client)
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(STOP_INPUT,
         [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
 }
@@ -84,7 +84,7 @@ int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethod()
 
 int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(SET_CORE_AND_AGENT, [core, agent](MessageParcel &data) {
         return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent->AsObject());
     });
@@ -92,14 +92,14 @@ int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(sptr<IInputMethodCore> co
 
 int32_t InputMethodSystemAbilityProxy::GetKeyboardWindowHeight(int32_t &retHeight)
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(GET_KEYBOARD_WINDOW_HEIGHT, nullptr,
         [&retHeight](MessageParcel &reply) { return reply.ReadInt32(retHeight); });
 }
 
 std::shared_ptr<Property> InputMethodSystemAbilityProxy::GetCurrentInputMethod()
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     std::shared_ptr<Property> property = nullptr;
     int32_t ret = SendRequest(GET_CURRENT_INPUT_METHOD, nullptr, [&property](MessageParcel &reply) {
         property = std::make_shared<Property>();
@@ -118,7 +118,7 @@ std::shared_ptr<Property> InputMethodSystemAbilityProxy::GetCurrentInputMethod()
 
 std::shared_ptr<SubProperty> InputMethodSystemAbilityProxy::GetCurrentInputMethodSubtype()
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     std::shared_ptr<SubProperty> property = nullptr;
     int32_t ret = SendRequest(GET_CURRENT_INPUT_METHOD_SUBTYPE, nullptr, [&property](MessageParcel &reply) {
         property = std::make_shared<SubProperty>();
@@ -137,7 +137,7 @@ std::shared_ptr<SubProperty> InputMethodSystemAbilityProxy::GetCurrentInputMetho
 
 int32_t InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     int32_t ret = SendRequest(
         LIST_INPUT_METHOD, [status](MessageParcel &data) { return ITypesUtil::Marshal(data, uint32_t(status)); },
         [&props](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, props); });
@@ -149,26 +149,26 @@ int32_t InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status,
 
 int32_t InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated()
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(SHOW_CURRENT_INPUT_DEPRECATED);
 }
 
 int32_t InputMethodSystemAbilityProxy::HideCurrentInputDeprecated()
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(HIDE_CURRENT_INPUT_DEPRECATED);
 }
 
 int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethodDeprecated()
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(DISPLAY_OPTIONAL_INPUT_DEPRECATED);
 }
 
 int32_t InputMethodSystemAbilityProxy::SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core,
     sptr<IInputMethodAgent> agent)
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(SET_CORE_AND_AGENT_DEPRECATED, [core, agent](MessageParcel &data) {
         return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent->AsObject());
     });
@@ -177,7 +177,7 @@ int32_t InputMethodSystemAbilityProxy::SetCoreAndAgentDeprecated(sptr<IInputMeth
 int32_t InputMethodSystemAbilityProxy::ListInputMethodSubtype(
     const std::string &name, std::vector<SubProperty> &subProps)
 {
-    IMSA_HILOGI("InputMethodSystemAbilityProxy::ListInputMethodSubtype");
+    IMSA_HILOGD("InputMethodSystemAbilityProxy::ListInputMethodSubtype");
     int32_t ret = SendRequest(
         LIST_INPUT_METHOD_SUBTYPE, [&name](MessageParcel &data) { return ITypesUtil::Marshal(data, name); },
         [&subProps](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, subProps); });
@@ -189,7 +189,7 @@ int32_t InputMethodSystemAbilityProxy::ListInputMethodSubtype(
 
 int32_t InputMethodSystemAbilityProxy::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
 {
-    IMSA_HILOGI("InputMethodSystemAbilityProxy::ListCurrentInputMethodSubtype");
+    IMSA_HILOGD("InputMethodSystemAbilityProxy::ListCurrentInputMethodSubtype");
     int32_t ret = SendRequest(LIST_CURRENT_INPUT_METHOD_SUBTYPE, nullptr,
         [&subProps](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, subProps); });
     if (ret != ErrorCode::NO_ERROR) {
@@ -200,14 +200,14 @@ int32_t InputMethodSystemAbilityProxy::ListCurrentInputMethodSubtype(std::vector
 
 int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const std::string &name, const std::string &subName)
 {
-    IMSA_HILOGI("InputMethodSystemAbilityProxy::SwitchInputMethod");
+    IMSA_HILOGD("InputMethodSystemAbilityProxy::SwitchInputMethod");
     return SendRequest(SWITCH_INPUT_METHOD,
         [&name, &subName](MessageParcel &data) { return ITypesUtil::Marshal(data, name, subName); });
 }
 
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGI("%{public}s in", __func__);
+    IMSA_HILOGD("%{public}s in", __func__);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_SYNC };
