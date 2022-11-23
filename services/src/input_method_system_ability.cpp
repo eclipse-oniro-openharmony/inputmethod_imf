@@ -1365,7 +1365,7 @@ namespace MiscServices {
 
     sptr<AAFwk::IAbilityManager> InputMethodSystemAbility::GetAbilityManagerService()
     {
-        IMSA_HILOGE("InputMethodSystemAbility::GetAbilityManagerService start");
+        IMSA_HILOGD("InputMethodSystemAbility::GetAbilityManagerService start");
         auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (systemAbilityManager == nullptr) {
             IMSA_HILOGE("SystemAbilityManager is nullptr.");

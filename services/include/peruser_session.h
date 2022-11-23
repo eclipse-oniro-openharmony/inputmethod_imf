@@ -114,13 +114,11 @@ namespace MiscServices {
         int userId_; // the id of the user to whom the object is linking
         int userState = UserState::USER_STATE_STARTED; // the state of the user to whom the object is linking
         int displayId; // the id of the display screen on which the user is
-        int currentIndex;
         std::map<sptr<IRemoteObject>, std::shared_ptr<ClientInfo>> mapClients;
         static const int MIN_IME = 2;
         static const int MAX_RESTART_NUM = 3;
         static const int IME_RESET_TIME_OUT = 300;
         static const int MAX_RESET_WAIT_TIME = 1600000;
-        static const int SLEEP_TIME = 300000;
 
         InputMethodInfo *currentIme[MAX_IME] = {nullptr, nullptr}; // 0 - the default ime. 1 - security ime
 
@@ -131,10 +129,8 @@ namespace MiscServices {
         int currentKbdIndex[MAX_IME]; // current keyboard index
         int lastImeIndex; // The last ime which showed keyboard
         InputMethodSetting *inputMethodSetting; // The pointer referred to the object in PerUserSetting
-        int currentDisplayMode; // the display mode of the current keyboard
 
         sptr<IInputMethodAgent> imsAgent;
-        InputChannel *imsChannel; // the write channel created by input method service
         std::mutex clientLock_;
         sptr<IInputClient> currentClient; // the current input client
         sptr<IInputClient> needReshowClient = nullptr; // the input client for which keyboard need to re-show
@@ -143,7 +139,6 @@ namespace MiscServices {
         MessageHandler *msgHandler = nullptr; // message handler working with Work Thread
         std::thread workThreadHandler; // work thread handler
         std::recursive_mutex mtx; // mutex to lock the operations among multi work threads
-        sptr<AAFwk::AbilityConnectionProxy> connCallback;
         std::mutex resetLock;
         ResetManager manager[MAX_IME];
 
@@ -171,7 +166,6 @@ namespace MiscServices {
         int StopInputMethod(int index);
         int ShowKeyboard(const sptr<IInputClient>& inputClient, bool isShowKeyboard);
         int HideKeyboard(const sptr<IInputClient>& inputClient);
-        void SetDisplayId(int displayId);
         int GetImeIndex(const sptr<IInputClient>& inputClient);
         static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
         void SendAgentToSingleClient(const ClientInfo &clientInfo);
