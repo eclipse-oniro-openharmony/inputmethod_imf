@@ -39,19 +39,20 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
 {
     auto keyCode = keyEvent->GetKeyCode();
     auto keyAction = keyEvent->GetKeyAction();
-    if (MASK_MAP.find(keyCode) == MASK_MAP.end() || keyAction == MMI::KeyEvent::KEY_ACTION_UNKNOWN) {
+    auto currKey = MASK_MAP.find(keyCode);
+    if (currKey == MASK_MAP.end() || keyAction == MMI::KeyEvent::KEY_ACTION_UNKNOWN) {
         IMSA_HILOGD("key event unknown");
         return;
     }
     IMSA_HILOGD("keyCode: %{public}d, keyAction: %{public}d", keyCode, keyAction);
     if (keyAction == MMI::KeyEvent::KEY_ACTION_DOWN) {
         IMSA_HILOGD("key %{public}d pressed down", keyCode);
-        keyState = keyState | MASK_MAP[keyCode];
+        keyState = keyState | currKey->second;
         return;
     }
 
     CombinationKey key = FindCombinationKey(keyState);
-    keyState = keyState & ~MASK_MAP[keyCode];
+    keyState = keyState & ~currKey->second;
     if (key == CombinationKey::UNKNOWN) {
         IMSA_HILOGE("combination key unknown");
         return;
