@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-#include "../include/input_event_callback.h"
+#include "input_event_callback.h"
 
 #include "global.h"
 
 namespace OHOS {
 namespace MiscServices {
-constexpr uint32_t SHIFT_LEFT_POS = 0X1;
-constexpr uint32_t SHIFT_RIGHT_POS = 0X1 << 1;
-constexpr uint32_t CTRL_LEFT_POS = 0X1 << 2;
-constexpr uint32_t CTRL_RIGHT_POS = 0X1 << 3;
-constexpr uint32_t CAPS_POS = 0X1 << 4;
+constexpr uint32_t SHIFT_LEFT_MASK = 0X1;
+constexpr uint32_t SHIFT_RIGHT_MASK = 0X1 << 1;
+constexpr uint32_t CTRL_LEFT_MASK = 0X1 << 2;
+constexpr uint32_t CTRL_RIGHT_MASK = 0X1 << 3;
+constexpr uint32_t CAPS_MASK = 0X1 << 4;
 
 uint32_t InputEventCallback::keyState = 0;
 
 std::map<int32_t, uint32_t> POS_MAP{
-    { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, SHIFT_LEFT_POS },
-    { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, SHIFT_RIGHT_POS },
-    { MMI::KeyEvent::KEYCODE_CTRL_LEFT, CTRL_LEFT_POS },
-    { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, CTRL_RIGHT_POS },
-    { MMI::KeyEvent::KEYCODE_CAPS_LOCK, CAPS_POS },
+    { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, SHIFT_LEFT_MASK },
+    { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, SHIFT_RIGHT_MASK },
+    { MMI::KeyEvent::KEYCODE_CTRL_LEFT, CTRL_LEFT_MASK },
+    { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, CTRL_RIGHT_MASK },
+    { MMI::KeyEvent::KEYCODE_CAPS_LOCK, CAPS_MASK },
 };
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const
@@ -79,14 +79,14 @@ void InputEventCallback::SetKeyHandle(KeyHandle handle)
 
 CombinationKey InputEventCallback::FindCombinationKey(uint32_t state)
 {
-    if (state == CAPS_POS) {
+    if (state == CAPS_MASK) {
         return CombinationKey::CAPS;
     }
-    if (state == SHIFT_LEFT_POS || state == SHIFT_RIGHT_POS) {
+    if (state == SHIFT_LEFT_MASK || state == SHIFT_RIGHT_MASK) {
         return CombinationKey::SHIFT;
     }
-    if ((state == (CTRL_LEFT_POS | SHIFT_LEFT_POS)) || (state == (CTRL_LEFT_POS | SHIFT_RIGHT_POS))
-        || (state == (CTRL_RIGHT_POS | SHIFT_LEFT_POS)) || (state == (CTRL_RIGHT_POS | SHIFT_RIGHT_POS))) {
+    if ((state == (CTRL_LEFT_MASK | SHIFT_LEFT_MASK)) || (state == (CTRL_LEFT_MASK | SHIFT_RIGHT_MASK))
+        || (state == (CTRL_RIGHT_MASK | SHIFT_LEFT_MASK)) || (state == (CTRL_RIGHT_MASK | SHIFT_RIGHT_MASK))) {
         return CombinationKey::CTRL_SHIFT;
     }
     return CombinationKey::UNKNOWN;

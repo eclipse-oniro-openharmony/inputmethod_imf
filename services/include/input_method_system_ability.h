@@ -20,7 +20,6 @@
 #include <map>
 #include <thread>
 
-#include "../adapter/keyboard/include/keyboard_event.h"
 #include "ability_manager_interface.h"
 #include "application_info.h"
 #include "bundle_mgr_proxy.h"
@@ -29,6 +28,7 @@
 #include "input_method_system_ability_stub.h"
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
+#include "keyboard_event.h"
 #include "peruser_session.h"
 #include "peruser_setting.h"
 #include "system_ability.h"

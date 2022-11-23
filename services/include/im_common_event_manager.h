@@ -20,12 +20,12 @@
 #include <mutex>
 #include <vector>
 
-#include "../adapter/keyboard/include/keyboard_event.h"
 #include "common_event_data.h"
 #include "common_event_manager.h"
 #include "common_event_subscribe_info.h"
 #include "common_event_subscriber.h"
 #include "common_event_support.h"
+#include "keyboard_event.h"
 #include "matching_skills.h"
 #include "system_ability_status_change_stub.h"
 

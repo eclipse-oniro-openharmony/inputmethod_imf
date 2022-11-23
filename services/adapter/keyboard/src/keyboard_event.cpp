@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#include "../include/keyboard_event.h"
+#include "keyboard_event.h"
 
 #include <global.h>
 
 #include <memory>
 
-#include "../include/input_event_callback.h"
 #include "global.h"
+#include "input_event_callback.h"
 #include "key_event.h"
 
 namespace OHOS {
