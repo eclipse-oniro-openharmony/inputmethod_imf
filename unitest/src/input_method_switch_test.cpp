@@ -58,11 +58,11 @@ void InputMethodSwitchTest::TearDown(void)
 }
 
 /**
-* @tc.name: intputMethodSwitch_sub_001
+* @tc.name: inputMethodSwitch_sub_001
 * @tc.desc: Checkout SwitchInputMethod.
 * @tc.type: FUNC
 */
-HWTEST_F(InputMethodSwitchTest, intputMethodSwitch_sub_001, TestSize.Level0)
+HWTEST_F(InputMethodSwitchTest, inputMethodSwitch_sub_001, TestSize.Level0)
 {
     InputMethodProperty *target = new InputMethodProperty();
     std::string packageName = "com.ohos.inputApp";

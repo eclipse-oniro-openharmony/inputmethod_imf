@@ -28,7 +28,7 @@ using namespace OHOS::MiscServices;
 namespace OHOS {
     constexpr size_t THRESHOLD = 10;
     constexpr int32_t OFFSET = 4;
-    const std::u16string CONTROLLCHANNEL_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.InputControlChannel";
+    const std::u16string CONTROLCHANNEL_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.InputControlChannel";
 
     uint32_t ConvertToUint32(const uint8_t *ptr)
     {
@@ -46,14 +46,14 @@ namespace OHOS {
         size = size - OFFSET;
 
         MessageParcel data;
-        data.WriteInterfaceToken(CONTROLLCHANNEL_INTERFACE_TOKEN);
+        data.WriteInterfaceToken(CONTROLCHANNEL_INTERFACE_TOKEN);
         data.WriteBuffer(rawData, size);
         data.RewindRead(0);
         MessageParcel reply;
         MessageOption option;
 
-        sptr<InputControlChannelStub> controllChannel = new InputControlChannelStub(MAIN_USER_ID);
-        controllChannel->OnRemoteRequest(code, data, reply, option);
+        sptr<InputControlChannelStub> controlChannel = new InputControlChannelStub(MAIN_USER_ID);
+        controlChannel->OnRemoteRequest(code, data, reply, option);
 
         return true;
     }
