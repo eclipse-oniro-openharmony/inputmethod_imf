@@ -22,9 +22,9 @@
 #include "input_method_system_ability_stub.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "itypes_util.h"
 #include "message_handler.h"
 #include "system_ability_definition.h"
-#include "itypes_util.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -34,15 +34,11 @@ std::mutex ImCommonEventManager::instanceLock_;
 
 /*! Constructor
     */
-ImCommonEventManager::ImCommonEventManager()
-{
-}
+ImCommonEventManager::ImCommonEventManager() {}
 
 /*! Destructor
     */
-ImCommonEventManager::~ImCommonEventManager()
-{
-}
+ImCommonEventManager::~ImCommonEventManager() {}
 
 sptr<ImCommonEventManager> ImCommonEventManager::GetInstance()
 {
@@ -155,8 +151,7 @@ void ImCommonEventManager::EventSubscriber::HandlePackageRemove(const AAFwk::Wan
     auto element = want.GetElement();
     std::string bundleName = element.GetBundleName();
     int32_t userId = want.GetIntParam("userId", 0);
-    IMSA_HILOGI("bundleName = %{public}s, userId = %{public}d", bundleName.c_str(), userId);
-    
+    IMSA_HILOGD("bundleName = %{public}s, userId = %{public}d", bundleName.c_str(), userId);
     MessageParcel *parcel = new MessageParcel();
     if (!ITypesUtil::Marshal(*parcel, userId, bundleName)) {
         IMSA_HILOGE("Failed to write message parcel");

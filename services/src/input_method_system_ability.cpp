@@ -739,7 +739,6 @@ namespace MiscServices {
             property.descriptionId = applicationInfo.descriptionId;
             property.label = Str8ToStr16(labelString);
             property.description = Str8ToStr16(descriptionString);
-            properties.emplace_back(property);
         }
         return properties;
     }
@@ -881,7 +880,7 @@ namespace MiscServices {
                     OnPackageRemoved(msg);
                     delete msg;
                     msg = nullptr;
-                    return;
+                    break;
                 }
                 case MSG_ID_SETTING_CHANGED: {
                     OnSettingChanged(msg);
@@ -1366,7 +1365,7 @@ namespace MiscServices {
 
     sptr<AAFwk::IAbilityManager> InputMethodSystemAbility::GetAbilityManagerService()
     {
-        IMSA_HILOGE("InputMethodSystemAbility::GetAbilityManagerService start");
+        IMSA_HILOGD("InputMethodSystemAbility::GetAbilityManagerService start");
         auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (systemAbilityManager == nullptr) {
             IMSA_HILOGE("SystemAbilityManager is nullptr.");
