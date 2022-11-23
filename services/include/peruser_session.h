@@ -183,9 +183,10 @@ private:
     bool IsRestartIme(uint32_t index);
     void ClearImeData(uint32_t index);
     void SetCurrentClient(sptr<IInputClient> client);
-    sptr<IInputMethodCore> GetImsCore(int32_t index); 
-    void SetImsCore(int32_t index, sptr<IInputMethodCore> &core);
     sptr<IInputClient> GetCurrentClient();
+    void SetImsCore(int32_t index, sptr<IInputMethodCore> &core);
+    sptr<IInputMethodCore> GetImsCore(int32_t index);
+    bool CompareCore(int32_t index);
 
     std::mutex propertyLock_;
     SubProperty currentSubProperty;

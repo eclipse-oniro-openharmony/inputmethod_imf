@@ -665,15 +665,13 @@ namespace MiscServices {
         KeyboardType *type = GetKeyboardType(index, currentKbdIndex[index]);
         if (type) {
             sptr<IInputClient> client = GetCurrentClient();
-            sptr<IInputMethodCore> core = GetImsCore(index);
-            sptr<IInputMethodCore> core_ = GetImsCore((1 - index));
             if (client != nullptr) {
                 int ret = core->setKeyboardType(*type);
                 if (ret != ErrorCode::NO_ERROR) {
                     IMSA_HILOGE("setKeyboardType ret: %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
                 }
             }
-            if (core == core_) {
+            if (CompareCore(index)) {
                 inputMethodSetting->SetCurrentKeyboardType(type->getHashCode());
                 inputMethodSetting->SetCurrentSysKeyboardType(type->getHashCode());
                 currentKbdIndex[1 - index] = currentKbdIndex[index];
@@ -1303,6 +1301,16 @@ namespace MiscServices {
     {
         std::lock_guard<std::mutex> lock(imsCoreLock_);
         imsCore[index] = core;
+    }
+
+    bool PerUserSession::CompareCore(int32_t index)
+    {
+        sptr<IInputMethodCore> core = GetImsCore(index);
+        sptr<IInputMethodCore> core_ = GetImsCore((1 - index));
+        if (core == core_) {
+            return true;
+        }
+        return false;
     }
 } // namespace MiscServices
 } // namespace OHOS
