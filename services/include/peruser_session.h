@@ -185,7 +185,14 @@ namespace MiscServices {
         sptr<IInputClient> GetCurrentClient();
         void SetImsCore(int32_t index, sptr<IInputMethodCore> core);
         sptr<IInputMethodCore> GetImsCore(int32_t index);
-        bool CompareCore(int32_t index);
+        bool CompareCore();
+        inline bool CheckCoreIndex(int32_t index)
+        {
+            if (index < DEFAULT_IME || index > SECURITY_IME) {
+               return false;
+            }
+            return true;
+        }
 
         std::mutex propertyLock_;
         SubProperty currentSubProperty;
