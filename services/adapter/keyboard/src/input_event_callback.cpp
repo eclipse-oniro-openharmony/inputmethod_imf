@@ -19,15 +19,13 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr uint32_t SHIFT_LEFT_MASK = 0X1;
-constexpr uint32_t SHIFT_RIGHT_MASK = 0X1 << 1;
-constexpr uint32_t CTRL_LEFT_MASK = 0X1 << 2;
-constexpr uint32_t CTRL_RIGHT_MASK = 0X1 << 3;
-constexpr uint32_t CAPS_MASK = 0X1 << 4;
+constexpr uint8_t SHIFT_LEFT_MASK = 0X1;
+constexpr uint8_t SHIFT_RIGHT_MASK = 0X1 << 1;
+constexpr uint8_t CTRL_LEFT_MASK = 0X1 << 2;
+constexpr uint8_t CTRL_RIGHT_MASK = 0X1 << 3;
+constexpr uint8_t CAPS_MASK = 0X1 << 4;
 
-uint32_t InputEventCallback::keyState = 0;
-
-std::map<int32_t, uint32_t> POS_MAP{
+const std::map<int32_t, uint8_t> MASK_MAP{
     { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, SHIFT_LEFT_MASK },
     { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, SHIFT_RIGHT_MASK },
     { MMI::KeyEvent::KEYCODE_CTRL_LEFT, CTRL_LEFT_MASK },
@@ -35,23 +33,25 @@ std::map<int32_t, uint32_t> POS_MAP{
     { MMI::KeyEvent::KEYCODE_CAPS_LOCK, CAPS_MASK },
 };
 
+uint32_t InputEventCallback::keyState = 0;
+
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const
 {
     auto keyCode = keyEvent->GetKeyCode();
     auto keyAction = keyEvent->GetKeyAction();
-    if (POS_MAP.find(keyCode) == POS_MAP.end() || keyAction == MMI::KeyEvent::KEY_ACTION_UNKNOWN) {
+    if (MASK_MAP.find(keyCode) == MASK_MAP.end() || keyAction == MMI::KeyEvent::KEY_ACTION_UNKNOWN) {
         IMSA_HILOGD("key event unknown");
         return;
     }
     IMSA_HILOGD("keyCode: %{public}d, keyAction: %{public}d", keyCode, keyAction);
     if (keyAction == MMI::KeyEvent::KEY_ACTION_DOWN) {
         IMSA_HILOGD("key %{public}d pressed down", keyCode);
-        keyState = keyState | POS_MAP[keyCode];
+        keyState = keyState | MASK_MAP[keyCode];
         return;
     }
 
     CombinationKey key = FindCombinationKey(keyState);
-    keyState = keyState & ~POS_MAP[keyCode];
+    keyState = keyState & ~MASK_MAP[keyCode];
     if (key == CombinationKey::UNKNOWN) {
         IMSA_HILOGE("combination key unknown");
         return;
