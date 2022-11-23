@@ -16,12 +16,12 @@
 #include "../include/keyboard_event.h"
 
 #include <global.h>
-#include <key_event.h>
 
 #include <memory>
 
-#include "global.h"
 #include "../include/input_event_callback.h"
+#include "global.h"
+#include "key_event.h"
 
 namespace OHOS {
 namespace MiscServices {

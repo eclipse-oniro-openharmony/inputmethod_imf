@@ -16,7 +16,6 @@
 #include "input_method_system_ability.h"
 
 #include <global.h>
-#include <key_event.h>
 #include <utils.h>
 
 #include "ability_connect_callback_proxy.h"
@@ -31,6 +30,7 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
+#include "key_event.h"
 #include "message_handler.h"
 #include "os_account_manager.h"
 #include "para_handle.h"
