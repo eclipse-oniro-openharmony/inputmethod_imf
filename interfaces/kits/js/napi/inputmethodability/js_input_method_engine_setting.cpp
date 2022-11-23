@@ -226,7 +226,7 @@ void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::stri
     IMSA_HILOGI("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName: %{public}s not registertd!", type.c_str());
+        IMSA_HILOGE("methodName: %{public}s not registered!", type.c_str());
     }
 
     for (auto &item : jsCbMap_[type]) {
@@ -245,7 +245,7 @@ void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::st
     IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName: %{public}s already unRegisterted!", type.c_str());
+        IMSA_HILOGE("methodName: %{public}s already unRegistered!", type.c_str());
         return;
     }
 
@@ -255,7 +255,7 @@ void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::st
         return;
     }
 
-    for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end();) {
+    for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end(); item++) {
         if (Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_)) {
             jsCbMap_[type].erase(item);
             break;
@@ -734,7 +734,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
             for (auto item : entry->vecCopy) {
                 napi_value jsObject = GetResultOnSetSubtype(item->env_, entry->subProperty);
                 if (jsObject == nullptr) {
-                    IMSA_HILOGE("get GetResultOnSetSubtype failed: %{punlic}p", jsObject);
+                    IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
                     continue;
                 }
                 napi_value callback = nullptr;

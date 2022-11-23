@@ -65,7 +65,7 @@ private:
     MessageHandler *msgHandler;
     bool mSupportPhysicalKbd = false;
     InputAttribute editorAttribute;
-    int32_t displyId = 0;
+    int32_t displayId = 0;
     sptr<IRemoteObject> startInputToken;
     InputChannel *writeInputChannel;
     bool stop_;
@@ -99,6 +99,7 @@ private:
 
     void Initialize();
     void WorkThread();
+    void QuitWorkThread();
 
     void OnInitialInput(Message *msg);
     void OnStartInput(Message *msg);
@@ -113,7 +114,7 @@ private:
 
     void InitialInputWindow();
     void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
-    void DissmissInputWindow();
+    void DismissInputWindow();
 
     void BindServiceAndClient();
 };

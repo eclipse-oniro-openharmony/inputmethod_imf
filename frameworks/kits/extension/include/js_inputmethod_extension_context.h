@@ -47,19 +47,19 @@ private:
     std::unique_ptr<NativeReference> jsConnectionObject_ = nullptr;
 };
 
-struct ConnecttionKey {
+struct ConnectionKey {
     AAFwk::Want want;
     int64_t id;
 };
 
 struct key_compare {
-    bool operator()(const ConnecttionKey &key1, const ConnecttionKey &key2) const
+    bool operator()(const ConnectionKey &key1, const ConnectionKey &key2) const
     {
         return key1.id < key2.id;
     }
 };
 
-static std::map<ConnecttionKey, sptr<JSInputMethodExtensionConnection>, key_compare> connects_;
+static std::map<ConnectionKey, sptr<JSInputMethodExtensionConnection>, key_compare> connects_;
 static int64_t serialNumber_ = 0;
 static std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 } // namespace AbilityRuntime

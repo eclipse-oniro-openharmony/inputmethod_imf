@@ -423,7 +423,7 @@ void JsGetInputMethodSetting::RegisterListener(
     IMSA_HILOGI("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName: %{public}s not registertd!", type.c_str());
+        IMSA_HILOGE("methodName: %{public}s not registered!", type.c_str());
     }
 
     for (auto &item : jsCbMap_[type]) {
@@ -474,7 +474,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName: %{public}s already unRegisterted!", type.c_str());
+        IMSA_HILOGE("methodName: %{public}s already unRegistered!", type.c_str());
         return;
     }
 
@@ -484,7 +484,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
         return;
     }
 
-    for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end();) {
+    for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end(); item++) {
         if (Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_)) {
             jsCbMap_[type].erase(item);
             break;

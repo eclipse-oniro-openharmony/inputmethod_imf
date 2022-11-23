@@ -53,6 +53,8 @@ namespace OHOS {
         MessageOption option;
 
         sptr<InputMethodCoreStub> stub = new InputMethodCoreStub(MAIN_USER_ID);
+        MessageHandler *handler = MessageHandler::Instance();
+        stub->SetMessageHandler(handler);
         stub->OnRemoteRequest(code, data, reply, option);
 
         return true;

@@ -739,6 +739,7 @@ namespace MiscServices {
             property.descriptionId = applicationInfo.descriptionId;
             property.label = Str8ToStr16(labelString);
             property.description = Str8ToStr16(descriptionString);
+            properties.emplace_back(property);
         }
         return properties;
     }

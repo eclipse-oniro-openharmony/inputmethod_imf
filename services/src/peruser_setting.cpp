@@ -167,7 +167,7 @@ namespace MiscServices {
             return ErrorCode::NO_ERROR;
         }
         Platform::Instance()->SetInputMethodSetting(userId_, imSetting);
-        // wait for some time so that the setting change will not be overrided by the followed transact
+        // wait for some time so that the setting change will not be override by the followed transact
         usleep(COMMON_COUNT_ONE_HUNDRED_THOUSAND);
         return ErrorCode::NO_ERROR;
     }

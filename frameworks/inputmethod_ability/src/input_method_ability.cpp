@@ -46,12 +46,12 @@ InputMethodAbility::InputMethodAbility() : stop_(false)
 InputMethodAbility::~InputMethodAbility()
 {
     IMSA_HILOGI("InputMethodAbility::~InputMethodAbility");
-    instance_ = nullptr;
+    QuitWorkThread();
     if (msgHandler) {
         delete msgHandler;
         msgHandler = nullptr;
     }
-    stop_ = true;
+    instance_ = nullptr;
 }
 
 sptr<InputMethodAbility> InputMethodAbility::GetInstance()
@@ -196,6 +196,7 @@ void InputMethodAbility::WorkThread()
                 break;
             }
             default: {
+                IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
             }
         }
@@ -208,7 +209,7 @@ void InputMethodAbility::OnInitialInput(Message *msg)
 {
     IMSA_HILOGI("InputMethodAbility::OnInitialInput");
     MessageParcel *data = msg->msgContent_;
-    displyId = data->ReadInt32();
+    displayId = data->ReadInt32();
     sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
     if (channelObject == nullptr) {
         IMSA_HILOGI("InputMethodAbility::OnInitialInput channelObject is nullptr");
@@ -268,7 +269,7 @@ void InputMethodAbility::OnShowKeyboard(Message *msg)
 void InputMethodAbility::OnHideKeyboard(Message *msg)
 {
     IMSA_HILOGI("InputMethodAbility::OnHideKeyboard");
-    DissmissInputWindow();
+    DismissInputWindow();
 }
 
 void InputMethodAbility::OnStopInput(Message *msg)
@@ -376,17 +377,17 @@ void InputMethodAbility::ShowInputWindow(bool isShowKeyboard, const SubProperty 
     channel->SendKeyboardStatus(KEYBOARD_SHOW);
 }
 
-void InputMethodAbility::DissmissInputWindow()
+void InputMethodAbility::DismissInputWindow()
 {
-    IMSA_HILOGI("InputMethodAbility::DissmissInputWindow");
+    IMSA_HILOGI("InputMethodAbility::DismissInputWindow");
     if (!imeListener_) {
-        IMSA_HILOGI("InputMethodAbility::DissmissInputWindow imeListener_ is nullptr");
+        IMSA_HILOGI("InputMethodAbility::DismissInputWindow imeListener_ is nullptr");
         return;
     }
     imeListener_->OnKeyboardStatus(false);
     std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
     if (channel == nullptr) {
-        IMSA_HILOGI("InputMethodAbility::DissmissInputWindow channel is nullptr");
+        IMSA_HILOGI("InputMethodAbility::DismissInputWindow channel is nullptr");
         return;
     }
     channel->SendKeyboardStatus(KEYBOARD_HIDE);
@@ -518,12 +519,12 @@ void InputMethodAbility::SetInputDataChannel(sptr<IRemoteObject> &object)
 {
     IMSA_HILOGI("run in SetInputDataChannel");
     std::lock_guard<std::mutex> lock(dataChannelLock_);
-    std::shared_ptr<InputDataChannelProxy> channalProxy = std::make_shared<InputDataChannelProxy>(object);
-    if (channalProxy == nullptr) {
+    std::shared_ptr<InputDataChannelProxy> channelProxy = std::make_shared<InputDataChannelProxy>(object);
+    if (channelProxy == nullptr) {
         IMSA_HILOGI("InputMethodAbility::SetInputDataChannel inputDataChannel is nullptr");
         return;
     }
-    dataChannel_ = channalProxy;
+    dataChannel_ = channelProxy;
 }
 
 std::shared_ptr<InputDataChannelProxy> InputMethodAbility::GetInputDataChannel()
@@ -536,12 +537,12 @@ void InputMethodAbility::SetInputControlChannel(sptr<IRemoteObject> &object)
 {
     IMSA_HILOGI("run in SetInputControlChannel");
     std::lock_guard<std::mutex> lock(controlChannelLock_);
-    std::shared_ptr<InputControlChannelProxy> channalProxy = std::make_shared<InputControlChannelProxy>(object);
-    if (channalProxy == nullptr) {
+    std::shared_ptr<InputControlChannelProxy> channelProxy = std::make_shared<InputControlChannelProxy>(object);
+    if (channelProxy == nullptr) {
         IMSA_HILOGI("InputMethodAbility::SetInputControlChannel inputDataChannel is nullptr");
         return;
     }
-    controlChannel_ = channalProxy;
+    controlChannel_ = channelProxy;
 }
 
 std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlChannel()
@@ -573,6 +574,16 @@ void InputMethodAbility::BindServiceAndClient()
     inputMethodAgentStub->SetMessageHandler(msgHandler);
     sptr<IInputMethodAgent> inputMethodAgent = sptr(new InputMethodAgentProxy(inputMethodAgentStub));
     mImms->SetCoreAndAgent(stub, inputMethodAgent);
+}
+
+void InputMethodAbility::QuitWorkThread()
+{
+    stop_ = true;
+    Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
+    msgHandler->SendMessage(msg);
+    if (workThreadHandler.joinable()) {
+        workThreadHandler.join();
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS
