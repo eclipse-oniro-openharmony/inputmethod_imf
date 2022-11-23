@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "keyboard_event.h"
+#include "../include/keyboard_event.h"
 
 #include <global.h>
 #include <key_event.h>
@@ -21,7 +21,7 @@
 #include <memory>
 
 #include "global.h"
-#include "input_event_callback.h"
+#include "../include/input_event_callback.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -42,7 +42,7 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
         InputManager::GetInstance()->AddMonitor(std::static_pointer_cast<MMI::IInputEventConsumer>(callback));
     if (monitorId < 0) {
         IMSA_HILOGE("add monitor failed, id: %{public}d", monitorId);
-        return ErrorCode::ERROR_STATUS_UNKNOWN_ERROR;
+        return ErrorCode::ERROR_SUBSCRIBE_KEYBOARD_EVENT;
     }
     IMSA_HILOGD("add monitor success, id: %{public}d", monitorId);
     return ErrorCode::NO_ERROR;

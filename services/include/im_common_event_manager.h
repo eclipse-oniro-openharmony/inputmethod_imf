@@ -20,7 +20,7 @@
 #include <mutex>
 #include <vector>
 
-#include "../adapter/keyboard/keyboard_event.h"
+#include "../adapter/keyboard/include/keyboard_event.h"
 #include "common_event_data.h"
 #include "common_event_manager.h"
 #include "common_event_subscribe_info.h"

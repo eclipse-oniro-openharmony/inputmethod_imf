@@ -20,7 +20,7 @@
 #include <map>
 #include <thread>
 
-#include "../adapter/keyboard/keyboard_event.h"
+#include "../adapter/keyboard/include/keyboard_event.h"
 #include "ability_manager_interface.h"
 #include "application_info.h"
 #include "bundle_mgr_proxy.h"
@@ -140,7 +140,7 @@ private:
     using CompareHandler = std::function<bool(const SubProperty &)>;
     SubProperty FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare);
     SubProperty GetExtends(const std::vector<Metadata> &metaData);
-    int32_t SwitchByCombinedKey(const CombineKeyCode &property);
+    int32_t SwitchByCombinationKey(const CombinationKey &key);
 
     int32_t QueryImeInfos(int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &infos);
 };

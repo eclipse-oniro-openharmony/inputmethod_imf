@@ -26,14 +26,14 @@
 
 namespace OHOS {
 namespace MiscServices {
-struct CombineKey {
-    std::set<int32_t> preKeys;
-    int32_t finalKey;
+enum CombinationKey : uint32_t {
+    UNKNOWN = 0,
+    CAPS,
+    SHIFT,
+    CTRL_SHIFT
 };
 
-enum CombineKeyCode : uint32_t { COMBINE_KEYCODE_CAPS = 0, COMBINE_KEYCODE_SHIFT, COMBINE_KEYCODE_CTRL_SHIFT };
-
-using KeyHandle = std::function<int32_t(const CombineKeyCode &)>;
+using KeyHandle = std::function<int32_t(const CombinationKey &)>;
 
 class KeyboardEvent {
 public:
@@ -48,12 +48,6 @@ private:
     KeyboardEvent &operator=(const KeyboardEvent &) = delete;
     KeyboardEvent &operator=(KeyboardEvent &&) = delete;
 };
-
-struct KeyboardEventHandler {
-    CombineKey combine;
-    KeyHandle handle;
-};
-
 } // namespace MiscServices
 } // namespace OHOS
 #endif // IMF_KEYBOARD_EVENT_H
