@@ -1291,17 +1291,29 @@ namespace MiscServices {
     sptr<IInputMethodCore> PerUserSession::GetImsCore(int32_t index)
     {
         std::lock_guard<std::mutex> lock(imsCoreLock_);
+        if (index < DEFAULT_IME || index > SECURITY_IME) {
+            IMSA_HILOGE("PerUserSession::SetImsCore out of index. index = %{public}d", index);
+            return nullptr;
+        }
         return imsCore[index];
     }
 
     void PerUserSession::SetImsCore(int32_t index, sptr<IInputMethodCore> core)
     {
         std::lock_guard<std::mutex> lock(imsCoreLock_);
+        if (index < DEFAULT_IME || index > SECURITY_IME) {
+            IMSA_HILOGE("PerUserSession::SetImsCore out of index. index = %{public}d", index);
+            return;
+        }
         imsCore[index] = core;
     }
 
     bool PerUserSession::CompareCore(int32_t index)
     {
+        if (index < DEFAULT_IME || index > SECURITY_IME) {
+            IMSA_HILOGE("PerUserSession::SetImsCore out of index. index = %{public}d", index);
+            return false;
+        }
         sptr<IInputMethodCore> core = GetImsCore(index);
         sptr<IInputMethodCore> core_ = GetImsCore((1 - index));
         if (core == core_) {
