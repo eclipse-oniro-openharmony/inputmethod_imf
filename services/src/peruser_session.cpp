@@ -352,10 +352,8 @@ namespace MiscServices {
             IMSA_HILOGE("Aborted! %{public}s", ErrorCode::ToString(ErrorCode::ERROR_IME_NOT_STARTED));
             return ErrorCode::ERROR_IME_NOT_STARTED;
         }
-        sptr<IInputMethodCore> core_ = GetImsCore((1 - index));
-        sptr<IInputMethodCore> nullCore = nullptr;
-        if (currentIme[index] == currentIme[1 - index] && core_ != nullptr) {
-            SetImsCore(index, nullCore);
+        if (currentIme[index] == currentIme[1 - index] && GetImsCore((1 - index)) != nullptr) {
+            SetImsCore(index, nullptr);
             inputControlChannel[index] = nullptr;
             localControlChannel[index] = nullptr;
             IMSA_HILOGI("End...[%{public}d]\n", userId_);
@@ -377,7 +375,7 @@ namespace MiscServices {
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("RemoveDeathRecipient return : %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
         }
-        SetImsCore(index, nullCore);
+        SetImsCore(index, nullptr);
         inputControlChannel[index] = nullptr;
         localControlChannel[index] = nullptr;
         IMSA_HILOGI("End...[%{public}d]\n", userId_);
@@ -1222,8 +1220,7 @@ namespace MiscServices {
         sptr<IInputMethodCore> core = GetImsCore(index);
         if (core != nullptr) {
             core->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
-            sptr<IInputMethodCore> nullCore = nullptr;
-            SetImsCore(index, nullCore);
+            SetImsCore(index, nullptr);
         }
         inputControlChannel[index] = nullptr;
         localControlChannel[index] = nullptr;
