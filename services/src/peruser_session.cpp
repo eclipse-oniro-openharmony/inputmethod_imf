@@ -736,9 +736,7 @@ namespace MiscServices {
             return;
         }
         InputMethodSetting tmpSetting;
-        sptr<IInputMethodCore> core = GetImsCore(index);
-        sptr<IInputMethodCore> core_ = GetImsCore((1- index));
-        if (core == core_) {
+        if (CompareCore()) {
             tmpSetting.SetCurrentKeyboardType(type->getHashCode());
             tmpSetting.SetCurrentSysKeyboardType(type->getHashCode());
         }
@@ -907,20 +905,16 @@ namespace MiscServices {
                     }
                 }
             }
-            sptr<IInputMethodCore> core = GetImsCore(imeIndex);
-            sptr<IInputMethodCore> core_ = GetImsCore((1 - imeIndex));
             if (!flag) {
                 IMSA_HILOGW("The current keyboard type is not found in the current IME. Reset it!");
                 type = GetKeyboardType(imeIndex, currentKbdIndex[imeIndex]);
-            } else if (core == core_) {
+            } else if (CompareCore()) {
                 currentKbdIndex[1 - imeIndex] = currentKbdIndex[imeIndex];
             }
         }
         if (type) {
             InputMethodSetting tmpSetting;
-            sptr<IInputMethodCore> core = GetImsCore(imeIndex);
-            sptr<IInputMethodCore> core_ = GetImsCore((1 - imeIndex));
-            if (core == core_) {
+            if (CompareCore()) {
                 inputMethodSetting->SetCurrentKeyboardType(type->getHashCode());
                 inputMethodSetting->SetCurrentSysKeyboardType(type->getHashCode());
                 currentKbdIndex[1 - imeIndex] = currentKbdIndex[imeIndex];
@@ -1281,8 +1275,7 @@ namespace MiscServices {
     sptr<IInputMethodCore> PerUserSession::GetImsCore(int32_t index)
     {
         std::lock_guard<std::mutex> lock(imsCoreLock_);
-        if (index < DEFAULT_IME || index > SECURITY_IME) {
-            IMSA_HILOGE("PerUserSession::SetImsCore out of index. index = %{public}d", index);
+        if (CheckCoreIndex(index)) {
             return nullptr;
         }
         return imsCore[index];
@@ -1291,21 +1284,16 @@ namespace MiscServices {
     void PerUserSession::SetImsCore(int32_t index, sptr<IInputMethodCore> core)
     {
         std::lock_guard<std::mutex> lock(imsCoreLock_);
-        if (index < DEFAULT_IME || index > SECURITY_IME) {
-            IMSA_HILOGE("PerUserSession::SetImsCore out of index. index = %{public}d", index);
+        if (CheckCoreIndex(index)) {
             return;
         }
         imsCore[index] = core;
     }
 
-    bool PerUserSession::CompareCore(int32_t index)
+    bool PerUserSession::CompareCore()
     {
-        if (index < DEFAULT_IME || index > SECURITY_IME) {
-            IMSA_HILOGE("PerUserSession::SetImsCore out of index. index = %{public}d", index);
-            return false;
-        }
-        sptr<IInputMethodCore> core = GetImsCore(index);
-        sptr<IInputMethodCore> core_ = GetImsCore((1 - index));
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
+        sptr<IInputMethodCore> core_ = GetImsCore(SECURITY_IME);
         if (core == core_) {
             return true;
         }
