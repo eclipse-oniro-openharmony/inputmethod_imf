@@ -403,15 +403,14 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::ShowKeyboard Aborted! index = -1 or clientInfo is nullptr");
             return ErrorCode::ERROR_CLIENT_NOT_FOUND;
         }
-        sptr<IInputMethodCore> core = GetImsCore(index);
+        sptr<IInputMethodCore> core = GetImsCore(0);
         if (core == nullptr) {
             IMSA_HILOGE("PerUserSession::ShowKeyboard Aborted! imsCore[%{public}d] is nullptr", index);
             return ErrorCode::ERROR_NULL_POINTER;
         }
 
         auto subProperty = GetCurrentSubProperty();
-        sptr<IInputMethodCore> core_ = GetImsCore(0);
-        int32_t ret = core_->showKeyboard(clientInfo->channel, isShowKeyboard, subProperty);
+        int32_t ret = core->showKeyboard(clientInfo->channel, isShowKeyboard, subProperty);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("PerUserSession::showKeyboard failed ret: %{public}d", ret);
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
@@ -667,13 +666,13 @@ namespace MiscServices {
         if (type) {
             sptr<IInputClient> client = GetCurrentClient();
             sptr<IInputMethodCore> core = GetImsCore(index);
+            sptr<IInputMethodCore> core_ = GetImsCore((1 - index));
             if (client != nullptr) {
                 int ret = core->setKeyboardType(*type);
                 if (ret != ErrorCode::NO_ERROR) {
                     IMSA_HILOGE("setKeyboardType ret: %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
                 }
             }
-            sptr<IInputMethodCore> core_ = GetImsCore((1 - index));
             if (core == core_) {
                 inputMethodSetting->SetCurrentKeyboardType(type->getHashCode());
                 inputMethodSetting->SetCurrentSysKeyboardType(type->getHashCode());
