@@ -281,13 +281,13 @@ using namespace MessageID;
 
     void InputMethodController::HideTextInput()
     {
-        IMSA_HILOGI("InputMethodController::HideTextInput");
+        IMSA_HILOGD("InputMethodController::HideTextInput");
         StopInput(mClient);
     }
 
     int32_t InputMethodController::HideCurrentInput()
     {
-        IMSA_HILOGI("InputMethodController::HideCurrentInput");
+        IMSA_HILOGD("InputMethodController::HideCurrentInput");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
             IMSA_HILOGE("proxy is nullptr");
@@ -363,7 +363,7 @@ using namespace MessageID;
 
     std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
     {
-        IMSA_HILOGI("InputMethodController::GetCurrentInputMethod");
+        IMSA_HILOGD("InputMethodController::GetCurrentInputMethod");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
             IMSA_HILOGE("proxy is nullptr");
@@ -379,7 +379,7 @@ using namespace MessageID;
 
     std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype()
     {
-        IMSA_HILOGI("InputMethodController::GetCurrentInputMethod");
+        IMSA_HILOGD("InputMethodController::GetCurrentInputMethod");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
             IMSA_HILOGE("proxy is nullptr");
@@ -407,7 +407,7 @@ using namespace MessageID;
 
     void InputMethodController::ReleaseInput(sptr<IInputClient> &client)
     {
-        IMSA_HILOGI("InputMethodController::ReleaseInput");
+        IMSA_HILOGD("InputMethodController::ReleaseInput");
         isStopInput = true;
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
@@ -419,7 +419,7 @@ using namespace MessageID;
 
     void InputMethodController::StopInput(sptr<IInputClient> &client)
     {
-        IMSA_HILOGI("InputMethodController::StopInput");
+        IMSA_HILOGD("InputMethodController::StopInput");
         isStopInput = true;
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {

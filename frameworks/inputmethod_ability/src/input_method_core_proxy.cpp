@@ -34,7 +34,7 @@ namespace MiscServices {
     int32_t InputMethodCoreProxy::initializeInput(sptr<IRemoteObject> &startInputToken, int32_t displayId,
                                                   sptr<IInputControlChannel> &inputControlChannel)
     {
-        IMSA_HILOGI("InputMethodCoreProxy::initializeInput");
+        IMSA_HILOGD("InputMethodCoreProxy::initializeInput");
         auto remote = Remote();
         if (!remote) {
             IMSA_HILOGI("remote is nullptr");
@@ -77,7 +77,7 @@ namespace MiscServices {
 
     int32_t InputMethodCoreProxy::InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel)
     {
-        IMSA_HILOGI("InputMethodCoreProxy::InitInputControlChannel");
+        IMSA_HILOGD("InputMethodCoreProxy::InitInputControlChannel");
         auto remote = Remote();
         if (!remote) {
             IMSA_HILOGI("remote is nullptr");
@@ -109,7 +109,7 @@ namespace MiscServices {
 
     void InputMethodCoreProxy::SetClientState(bool state)
     {
-        IMSA_HILOGI("InputMethodCoreProxy::SetClientState");
+    IMSA_HILOGD("InputMethodCoreProxy::SetClientState");
         auto remote = Remote();
         if (!remote) {
             IMSA_HILOGI("remote is nullptr");
@@ -134,7 +134,7 @@ namespace MiscServices {
     bool InputMethodCoreProxy::startInput(const sptr<IInputDataChannel> &inputDataChannel,
                                           const InputAttribute& editorAttribute, bool supportPhysicalKbd)
     {
-        IMSA_HILOGI("InputMethodCoreProxy::startInput");
+        IMSA_HILOGD("InputMethodCoreProxy::startInput");
         auto remote = Remote();
         if (!remote) {
             IMSA_HILOGI("remote is nullptr");
@@ -170,7 +170,7 @@ namespace MiscServices {
 
     int32_t InputMethodCoreProxy::stopInput()
     {
-        IMSA_HILOGI("InputMethodCoreProxy::stopInput");
+        IMSA_HILOGD("InputMethodCoreProxy::stopInput");
         auto remote = Remote();
         if (!remote) {
             IMSA_HILOGI("remote is nullptr");
@@ -197,7 +197,7 @@ namespace MiscServices {
     int32_t InputMethodCoreProxy::showKeyboard(
         const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty)
     {
-        IMSA_HILOGI("InputMethodCoreProxy::showKeyboard");
+        IMSA_HILOGD("InputMethodCoreProxy::showKeyboard");
         return SendRequest(SHOW_KEYBOARD, [&inputDataChannel, &isShowKeyboard, &subProperty](MessageParcel &data) {
             return ITypesUtil::Marshal(data, inputDataChannel->AsObject(), isShowKeyboard, subProperty);
         });
@@ -205,7 +205,7 @@ namespace MiscServices {
 
     void InputMethodCoreProxy::StopInputService(std::string imeId)
     {
-        IMSA_HILOGI("InputMethodCoreProxy::StopInputService");
+        IMSA_HILOGD("InputMethodCoreProxy::StopInputService");
         auto remote = Remote();
         if (!remote) {
             IMSA_HILOGI("InputMethodCoreProxy::StopInputService remote is nullptr");
@@ -229,7 +229,7 @@ namespace MiscServices {
 
     bool InputMethodCoreProxy::hideKeyboard(int32_t flags)
     {
-        IMSA_HILOGI("InputMethodCoreProxy::hideKeyboard");
+        IMSA_HILOGD("InputMethodCoreProxy::hideKeyboard");
         auto remote = Remote();
         if (!remote) {
             return false;
@@ -253,7 +253,7 @@ namespace MiscServices {
 
     int32_t InputMethodCoreProxy::setKeyboardType(const KeyboardType& type)
     {
-        IMSA_HILOGI("InputMethodCoreProxy::setKeyboardType");
+        IMSA_HILOGD("InputMethodCoreProxy::setKeyboardType");
         auto remote = Remote();
         if (!remote) {
             IMSA_HILOGI("remote is nullptr");
@@ -275,7 +275,7 @@ namespace MiscServices {
 
     int32_t InputMethodCoreProxy::getKeyboardWindowHeight(int32_t &retHeight)
     {
-        IMSA_HILOGI("InputMethodCoreProxy::getKeyboardWindowHeight");
+        IMSA_HILOGD("InputMethodCoreProxy::getKeyboardWindowHeight");
         auto remote = Remote();
         if (!remote) {
             IMSA_HILOGI("remote is nullptr");
@@ -300,14 +300,14 @@ namespace MiscServices {
 
     int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)
     {
-        IMSA_HILOGI("InputMethodCoreProxy::SetSubtype");
+	    IMSA_HILOGD("InputMethodCoreProxy::SetSubtype");
         return SendRequest(
             SET_SUBTYPE, [&property](MessageParcel &data) { return ITypesUtil::Marshal(data, property); });
     }
 
     int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
     {
-        IMSA_HILOGI("InputMethodCoreProxy::%{public}s in", __func__);
+        IMSA_HILOGD("InputMethodCoreProxy::%{public}s in", __func__);
         MessageParcel data;
         MessageParcel reply;
         MessageOption option{ MessageOption::TF_SYNC };

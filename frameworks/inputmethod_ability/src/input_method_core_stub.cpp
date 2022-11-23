@@ -47,7 +47,6 @@ namespace MiscServices {
     int32_t InputMethodCoreStub::OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply,
                                                  MessageOption& option)
     {
-        IMSA_HILOGI("InputMethodCoreStub::OnRemoteRequest");
         auto descriptorToken = data.ReadInterfaceToken();
         if (descriptorToken != GetDescriptor()) {
             IMSA_HILOGI("InputMethodCoreStub::OnRemoteRequest descriptorToken is invalid");
@@ -147,7 +146,7 @@ namespace MiscServices {
     int32_t InputMethodCoreStub::initializeInput(sptr<IRemoteObject>& startInputToken, int32_t displayId,
         sptr<IInputControlChannel>& inputControlChannel)
     {
-        IMSA_HILOGI("InputMethodCoreStub::initializeInput");
+        IMSA_HILOGD("InputMethodCoreStub::initializeInput");
         if (!msgHandler_) {
             return ErrorCode::ERROR_NULL_POINTER;
         }
@@ -169,7 +168,7 @@ namespace MiscServices {
 
     int32_t InputMethodCoreStub::InitInputControlChannel(sptr<IInputControlChannel>& inputControlChannel)
     {
-        IMSA_HILOGI("InputMethodCoreStub::initializeInput");
+        IMSA_HILOGD("InputMethodCoreStub::initializeInput");
         if (!msgHandler_) {
             return ErrorCode::ERROR_NULL_POINTER;
         }
@@ -187,7 +186,7 @@ namespace MiscServices {
     bool InputMethodCoreStub::startInput(const sptr<IInputDataChannel>& inputDataChannel,
         const InputAttribute& editorAttribute, bool supportPhysicalKbd)
     {
-        IMSA_HILOGI("InputMethodCoreStub::startInput");
+        IMSA_HILOGD("InputMethodCoreStub::startInput");
         if (!msgHandler_) {
             return ErrorCode::ERROR_NULL_POINTER;
         }
@@ -205,7 +204,7 @@ namespace MiscServices {
 
     int32_t InputMethodCoreStub::stopInput()
     {
-        IMSA_HILOGI("InputMethodCoreStub::stopInput");
+        IMSA_HILOGD("InputMethodCoreStub::stopInput");
         if (!msgHandler_) {
             return ErrorCode::ERROR_NULL_POINTER;
         }
@@ -217,7 +216,7 @@ namespace MiscServices {
 
     void InputMethodCoreStub::SetClientState(bool state)
     {
-        IMSA_HILOGI("InputMethodCoreStub::SetClientState");
+        IMSA_HILOGD("InputMethodCoreStub::SetClientState");
         if (!msgHandler_) {
             return;
         }
@@ -230,7 +229,7 @@ namespace MiscServices {
 
     bool InputMethodCoreStub::hideKeyboard(int32_t flags)
     {
-        IMSA_HILOGI("InputMethodCoreStub::hideKeyboard");
+        IMSA_HILOGD("InputMethodCoreStub::hideKeyboard");
         if (!msgHandler_) {
             return ErrorCode::ERROR_NULL_POINTER;
         }
@@ -245,7 +244,7 @@ namespace MiscServices {
 
     int32_t InputMethodCoreStub::setKeyboardType(const KeyboardType& type)
     {
-        IMSA_HILOGI("InputMethodCoreStub::setKeyboardType");
+        IMSA_HILOGD("InputMethodCoreStub::setKeyboardType");
         if (!msgHandler_) {
             return ErrorCode::ERROR_NULL_POINTER;
         }
@@ -259,7 +258,7 @@ namespace MiscServices {
 
     void InputMethodCoreStub::StopInputService(std::string imeId)
     {
-        IMSA_HILOGI("InputMethodCoreStub::StopInputService");
+        IMSA_HILOGD("InputMethodCoreStub::StopInputService");
         if (!msgHandler_) {
             return;
         }
@@ -272,7 +271,7 @@ namespace MiscServices {
 
     int32_t InputMethodCoreStub::getKeyboardWindowHeight(int32_t &retHeight)
     {
-        IMSA_HILOGI("InputMethodCoreStub::getKeyboardWindowHeight");
+        IMSA_HILOGD("InputMethodCoreStub::getKeyboardWindowHeight");
         if (!msgHandler_) {
             return ErrorCode::ERROR_NULL_POINTER;
         }
@@ -290,7 +289,7 @@ namespace MiscServices {
 
     void InputMethodCoreStub::ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply)
     {
-        IMSA_HILOGI("InputMethodCoreStub::ShowKeyboardOnRemote");
+        IMSA_HILOGD("InputMethodCoreStub::ShowKeyboardOnRemote");
         sptr<IRemoteObject> channel;
         bool isShowKeyboard = false;
         SubProperty subProperty;
@@ -304,7 +303,7 @@ namespace MiscServices {
 
     void InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
     {
-        IMSA_HILOGI("InputMethodCoreStub::SetSubtypeOnRemote");
+        IMSA_HILOGD("InputMethodCoreStub::SetSubtypeOnRemote");
         SubProperty property;
         int32_t ret = SendMessage(MessageID::MSG_ID_SET_SUBTYPE, [&data, &property](MessageParcel &parcel) {
             return ITypesUtil::Unmarshal(data, property) && ITypesUtil::Marshal(parcel, property);
@@ -325,7 +324,7 @@ namespace MiscServices {
 
     int32_t InputMethodCoreStub::SendMessage(int code, ParcelHandler input)
     {
-        IMSA_HILOGI("InputMethodCoreStub::SendMessage");
+        IMSA_HILOGD("InputMethodCoreStub::SendMessage");
         if (msgHandler_ == nullptr) {
             IMSA_HILOGE("InputMethodCoreStub::msgHandler_ is nullptr");
             return ErrorCode::ERROR_EX_NULL_POINTER;
