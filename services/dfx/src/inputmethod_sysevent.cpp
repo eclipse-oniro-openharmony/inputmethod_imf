@@ -24,10 +24,10 @@ using HiSysEventNameSpace = OHOS::HiviewDFX::HiSysEvent;
 const std::string DOMAIN_STR = std::string(HiSysEventNameSpace::Domain::INPUTMETHOD);
 } // namespace
 
-void FaultReporter(int32_t userId, std::string bundname, int32_t errCode)
+void FaultReporter(int32_t userId, std::string bundleName, int32_t errCode)
 {
     int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "SERVICE_INIT_FAILED", HiSysEventNameSpace::EventType::FAULT,
-        "USER_ID", userId, "COMPONENT_ID", bundname, "ERROR_CODE", errCode);
+        "USER_ID", userId, "COMPONENT_ID", bundleName, "ERROR_CODE", errCode);
     if (ret != 0) {
         IMSA_HILOGE("hisysevent FaultReporter failed! ret %{public}d,errCode %{public}d", ret, errCode);
     }

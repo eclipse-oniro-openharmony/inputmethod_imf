@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-void FaultReporter(int32_t userId, std::string bundname, int32_t errCode);
+void FaultReporter(int32_t userId, std::string bundleName, int32_t errCode);
 void CreateComponentFailed(int32_t userId, int32_t errCode);
 void BehaviourReporter(std::string ActiveName, const std::string &inputmethodName);
 } // namespace MiscServices

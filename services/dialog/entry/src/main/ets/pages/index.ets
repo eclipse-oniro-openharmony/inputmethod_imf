@@ -18,7 +18,7 @@ import inputMethod from '@ohos.inputmethod';
 @Component
 struct Dialog {
   private arr: string[] = []
-  private properityMap: Map<string, inputMethod.InputMethodProperty> = new Map();
+  private propertyMap: Map<string, inputMethod.InputMethodProperty> = new Map();
   @State private win: any = undefined
   @State private context: any = undefined
   private inputMethods: Array<inputMethod.InputMethodProperty> = null
@@ -33,7 +33,7 @@ struct Dialog {
     for (let inputmethod of this.inputMethods) {
       let name = inputmethod.packageName
       this.arr.push(name)
-      this.properityMap.set(name, inputmethod)
+      this.propertyMap.set(name, inputmethod)
     }
   }
 
@@ -67,8 +67,8 @@ struct Dialog {
               .borderRadius(10)
               .backgroundColor($r("app.color.btn_default"))
               .onClick(async () => {
-                if (this.properityMap.has(item)) {
-                  let prop = this.properityMap.get(item)
+                if (this.propertyMap.has(item)) {
+                  let prop = this.propertyMap.get(item)
                   globalThis.chooseInputMethods(prop)
                 }
                 setTimeout(() => {
