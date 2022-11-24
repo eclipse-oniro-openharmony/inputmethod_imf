@@ -21,11 +21,11 @@ namespace OHOS {
 namespace MiscServices {
 uint32_t InputEventCallback::keyState_ = static_cast<uint32_t>(0);
 const std::map<int32_t, uint8_t> MASK_MAP{
-    { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, SHIFT_LEFT_MASK },
-    { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, SHIFT_RIGHT_MASK },
-    { MMI::KeyEvent::KEYCODE_CTRL_LEFT, CTRL_LEFT_MASK },
-    { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, CTRL_RIGHT_MASK },
-    { MMI::KeyEvent::KEYCODE_CAPS_LOCK, CAPS_MASK },
+    { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, KeyboardEvent::SHIFT_LEFT_MASK },
+    { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, KeyboardEvent::SHIFT_RIGHT_MASK },
+    { MMI::KeyEvent::KEYCODE_CTRL_LEFT, KeyboardEvent::CTRL_LEFT_MASK },
+    { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, KeyboardEvent::CTRL_RIGHT_MASK },
+    { MMI::KeyEvent::KEYCODE_CAPS_LOCK, KeyboardEvent::CAPS_MASK },
 };
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const
@@ -33,25 +33,28 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
     auto keyCode = keyEvent->GetKeyCode();
     auto keyAction = keyEvent->GetKeyAction();
     auto currKey = MASK_MAP.find(keyCode);
-    if (currKey == MASK_MAP.end() || keyAction == MMI::KeyEvent::KEY_ACTION_UNKNOWN) {
-        IMSA_HILOGD("key event unknown");
+    if (currKey == MASK_MAP.end()) {
+        IMSA_HILOGD("key code unknown");
         return;
     }
     IMSA_HILOGD("keyCode: %{public}d, keyAction: %{public}d", keyCode, keyAction);
+
     if (keyAction == MMI::KeyEvent::KEY_ACTION_DOWN) {
         IMSA_HILOGD("key %{public}d pressed down", keyCode);
         keyState_ = static_cast<uint32_t>(keyState_ | currKey->second);
         return;
     }
 
-    if (keyHandler_ == nullptr) {
-        IMSA_HILOGE("keyHandler_ is nullptr");
+    if (keyAction == MMI::KeyEvent::KEY_ACTION_UP) {
+        if (keyHandler_ == nullptr) {
+            IMSA_HILOGE("keyHandler_ is nullptr");
+            keyState_ = static_cast<uint32_t>(keyState_ & ~currKey->second);
+            return;
+        }
+        int32_t ret = keyHandler_(keyState_);
         keyState_ = static_cast<uint32_t>(keyState_ & ~currKey->second);
-        return;
+        IMSA_HILOGI("handle key event ret: %{public}d", ret);
     }
-    int32_t ret = keyHandler_(keyState_);
-    keyState_ = static_cast<uint32_t>(keyState_ & ~currKey->second);
-    IMSA_HILOGI("handle key event ret: %{public}d", ret);
 }
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::PointerEvent> pointerEvent) const

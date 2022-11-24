@@ -1401,7 +1401,7 @@ namespace MiscServices {
         return {};
     }
 
-    int32_t InputMethodSystemAbility::SwitchByCombinationKey(const uint32_t &state)
+    int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     {
         IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinationKey");
         auto current = GetCurrentInputMethodSubtype();
@@ -1409,7 +1409,7 @@ namespace MiscServices {
             IMSA_HILOGE("GetCurrentInputMethodSubtype failed");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        if (IS_KEYS_DOWN(state, CAPS_MASK)) {
+        if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CAPS_MASK)) {
             IMSA_HILOGI("CAPS press");
             auto target = current->mode == "upper"
                               ? FindSubPropertyByCompare(current->id,
@@ -1418,7 +1418,8 @@ namespace MiscServices {
                                   [&current](const SubProperty &property) { return property.mode == "upper"; });
             return SwitchInputMethod(target.id, target.label);
         }
-        if (IS_KEYS_DOWN(state, SHIFT_LEFT_MASK) || IS_KEYS_DOWN(state, SHIFT_RIGHT_MASK)) {
+        if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::SHIFT_LEFT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::SHIFT_RIGHT_MASK)) {
             IMSA_HILOGI("SHIFT press");
             auto target = current->language == "chinese"
                               ? FindSubPropertyByCompare(current->id,
@@ -1427,10 +1428,10 @@ namespace MiscServices {
                                   [&current](const SubProperty &property) { return property.language == "chinese"; });
             return SwitchInputMethod(target.id, target.label);
         }
-        if (IS_KEYS_DOWN(state, CTRL_LEFT_MASK | SHIFT_LEFT_MASK) ||
-            IS_KEYS_DOWN(state, CTRL_LEFT_MASK | SHIFT_RIGHT_MASK)||
-            IS_KEYS_DOWN(state, CTRL_RIGHT_MASK | SHIFT_LEFT_MASK) ||
-            IS_KEYS_DOWN(state, CTRL_RIGHT_MASK | SHIFT_RIGHT_MASK)) {
+        if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_LEFT_MASK | KeyboardEvent::SHIFT_LEFT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_LEFT_MASK | KeyboardEvent::SHIFT_RIGHT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_RIGHT_MASK | KeyboardEvent::SHIFT_LEFT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_RIGHT_MASK | KeyboardEvent::SHIFT_RIGHT_MASK)) {
             IMSA_HILOGI("CTRL_SHIFT press");
             std::vector<Property> props = {};
             auto ret = ListProperty(MAIN_USER_ID, props);
