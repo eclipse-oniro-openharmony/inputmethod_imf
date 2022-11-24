@@ -1428,7 +1428,10 @@ namespace MiscServices {
                                   [&current](const SubProperty &property) { return property.language == "chinese"; });
             return SwitchInputMethod(target.id, target.label);
         }
-        if (IS_KEYS_DOWN(state, CTRL_LEFT_MASK)) {
+        if (IS_KEYS_DOWN(state, CTRL_LEFT_MASK | SHIFT_LEFT_MASK) ||
+            IS_KEYS_DOWN(state, CTRL_LEFT_MASK | SHIFT_RIGHT_MASK)||
+            IS_KEYS_DOWN(state, CTRL_RIGHT_MASK | SHIFT_LEFT_MASK) ||
+            IS_KEYS_DOWN(state, CTRL_RIGHT_MASK | SHIFT_RIGHT_MASK)) {
             IMSA_HILOGI("CTRL_SHIFT press");
             std::vector<Property> props = {};
             auto ret = ListProperty(MAIN_USER_ID, props);
