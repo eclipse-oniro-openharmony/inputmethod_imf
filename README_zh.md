@@ -583,7 +583,7 @@ keyboardDelegate.off('textChange', (text) => {
 </tr>
 <tr id="row204321219393"><td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.1 "><p id="p1893413268144"><a name="p1893413268144"></a><a name="p1893413268144"></a>hideKeyboard(): Promise&lt;void&gt;;</p>
 </td>
-<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>隐藏输入法，使用peomise形式返回结果。参数个数为0，否则抛出异常。</p>
+<td class="cellrowborder" valign="top" width="50%" headers="mcps1.2.3.1.2 "><p id="p18761104812149"><a name="p18761104812149"></a><a name="p18761104812149"></a>隐藏输入法，使用promise形式返回结果。参数个数为0，否则抛出异常。</p>
 </td>
 </tr>
 </tbody>

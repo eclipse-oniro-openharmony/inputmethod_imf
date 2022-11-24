@@ -116,13 +116,13 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Leve
 }
 
 /**
-* @tc.name: InputMethodDfxTest_Dump_ShowIllealInfomation_001
-* @tc.desc: Dump ShowIllealInfomation.
+* @tc.name: InputMethodDfxTest_Dump_ShowIllealInformation_001
+* @tc.desc: Dump ShowIllealInformation.
 * @tc.type: FUNC
 * @tc.require: issueI61PMG
 * @tc.author: chenyu
 */
-HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInfomation_001, TestSize.Level0)
+HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, TestSize.Level0)
 {
     std::string result;
     auto ret = InputMethodDfxTest::ExecuteCmd(CMD3, result);

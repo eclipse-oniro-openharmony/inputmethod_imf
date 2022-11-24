@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t MAX_RECORED_ERROR = 10;
+constexpr int32_t MAX_RECORD_ERROR = 10;
 constexpr int32_t SUB_CMD_NAME = 0;
 constexpr int32_t CMD_ONE_PARAM = 1;
 constexpr const char *CMD_HELP = "-h";
@@ -43,7 +43,7 @@ void InputmethodDump::AddDumpAllMethod(const DumpNoParamFunc dumpAllMethod)
 void InputmethodDump::AddErrorInfo(const std::string &error)
 {
     std::lock_guard<std::mutex> lock(hidumperMutex_);
-    if (errorInfo_.size() + 1 > MAX_RECORED_ERROR) {
+    if (errorInfo_.size() + 1 > MAX_RECORD_ERROR) {
         errorInfo_.pop_front();
         errorInfo_.push_back(error);
     } else {
@@ -58,7 +58,7 @@ bool InputmethodDump::Dump(int fd, const std::vector<std::string> &args)
     if (args.size() == CMD_ONE_PARAM) {
         command = args.at(SUB_CMD_NAME);
     } else {
-        ShowIllealInfomation(fd);
+        ShowIllealInformation(fd);
     }
     if (command == CMD_HELP) {
         ShowHelp(fd);
@@ -68,7 +68,7 @@ bool InputmethodDump::Dump(int fd, const std::vector<std::string> &args)
         }
         dumpAllMethod_(fd);
     } else {
-        ShowIllealInfomation(fd);
+        ShowIllealInformation(fd);
     }
     IMSA_HILOGI("InputmethodDump::Dump command=%{public}s.", command.c_str());
     return true;
@@ -84,7 +84,7 @@ void InputmethodDump::ShowHelp(int fd)
     dprintf(fd, "%s\n", result.c_str());
 }
 
-void InputmethodDump::ShowIllealInfomation(int fd)
+void InputmethodDump::ShowIllealInformation(int fd)
 {
     dprintf(fd, "%s\n", ILLEGAL_INFO.c_str());
 }

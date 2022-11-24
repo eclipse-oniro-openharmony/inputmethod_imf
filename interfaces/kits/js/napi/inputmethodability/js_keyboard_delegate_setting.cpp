@@ -195,7 +195,7 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
     IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName %{public}s not unRegisterted!", type.c_str());
+        IMSA_HILOGE("methodName %{public}s not unRegistered!", type.c_str());
         return;
     }
 
@@ -375,7 +375,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 napi_value jsObject =
                     GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
-                    IMSA_HILOGE("get GetResultOnKeyEvent failed: %{punlic}p", jsObject);
+                    IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
                     continue;
                 }
                 napi_value callback = nullptr;
