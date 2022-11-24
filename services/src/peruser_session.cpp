@@ -1087,6 +1087,7 @@ namespace MiscServices {
             IMSA_HILOGE("failed to hide keyboard ret %{public}d", ret);
             return ret;
         }
+        RemoveClient(client->AsObject());
         IMSA_HILOGD("PerUserSession::OnReleaseInput End...[%{public}d]\n", userId_);
         return ErrorCode::NO_ERROR;
     }
