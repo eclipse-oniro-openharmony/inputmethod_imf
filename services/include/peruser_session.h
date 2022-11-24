@@ -184,6 +184,10 @@ namespace MiscServices {
         {
             return index >= DEFAULT_IME && index <= SECURITY_IME;
         }
+        inline bool IsIMEEqual()
+        {
+            return GetImsCore(DEFAULT_IME) == GetImsCore(SECURITY_IME);
+        }
 
         std::mutex propertyLock_;
         SubProperty currentSubProperty;

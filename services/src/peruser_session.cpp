@@ -660,7 +660,7 @@ namespace MiscServices {
                     IMSA_HILOGE("setKeyboardType ret: %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
                 }
             }
-            if (CompareCore()) {
+            if (IsIMEEqual()) {
                 inputMethodSetting->SetCurrentKeyboardType(type->getHashCode());
                 inputMethodSetting->SetCurrentSysKeyboardType(type->getHashCode());
                 currentKbdIndex[1 - index] = currentKbdIndex[index];
@@ -736,7 +736,7 @@ namespace MiscServices {
             return;
         }
         InputMethodSetting tmpSetting;
-        if (CompareCore()) {
+        if (IsIMEEqual()) {
             tmpSetting.SetCurrentKeyboardType(type->getHashCode());
             tmpSetting.SetCurrentSysKeyboardType(type->getHashCode());
         }
@@ -908,13 +908,13 @@ namespace MiscServices {
             if (!flag) {
                 IMSA_HILOGW("The current keyboard type is not found in the current IME. Reset it!");
                 type = GetKeyboardType(imeIndex, currentKbdIndex[imeIndex]);
-            } else if (CompareCore()) {
+            } else if (IsIMEEqual()) {
                 currentKbdIndex[1 - imeIndex] = currentKbdIndex[imeIndex];
             }
         }
         if (type) {
             InputMethodSetting tmpSetting;
-            if (CompareCore()) {
+            if (IsIMEEqual()) {
                 inputMethodSetting->SetCurrentKeyboardType(type->getHashCode());
                 inputMethodSetting->SetCurrentSysKeyboardType(type->getHashCode());
                 currentKbdIndex[1 - imeIndex] = currentKbdIndex[imeIndex];
@@ -962,8 +962,7 @@ namespace MiscServices {
     */
     void PerUserSession::CopyInputMethodService(int imeIndex)
     {
-        sptr<IInputMethodCore> core = GetImsCore((1 - imeIndex));
-        SetImsCore(imeIndex, core);
+        SetImsCore(imeIndex, GetImsCore((1 - imeIndex)));
         localControlChannel[imeIndex] = localControlChannel[1 - imeIndex];
         inputControlChannel[imeIndex] = inputControlChannel[1 - imeIndex];
         inputMethodToken[imeIndex] = inputMethodToken[1 - imeIndex];
@@ -1111,7 +1110,7 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::SetCoreAndAgent core or agent nullptr");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        SetImsCore(0, core);
+        SetImsCore(DEFAULT_IME, core);
         if (imsDeathRecipient != nullptr) {
             imsDeathRecipient->SetDeathRecipient([this, core](const wptr<IRemoteObject> &) { this->OnImsDied(core); });
             bool ret = core->AsObject()->AddDeathRecipient(imsDeathRecipient);
@@ -1288,16 +1287,6 @@ namespace MiscServices {
             return;
         }
         imsCore[index] = core;
-    }
-
-    bool PerUserSession::CompareCore()
-    {
-        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
-        sptr<IInputMethodCore> core_ = GetImsCore(SECURITY_IME);
-        if (core == core_) {
-            return true;
-        }
-        return false;
     }
 } // namespace MiscServices
 } // namespace OHOS
