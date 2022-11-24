@@ -36,7 +36,6 @@ public:
 private:
     KeyHandle keyHandler_ = nullptr;
     static uint32_t keyState_;
-    static uint32_t FindCombinationKey(uint32_t state);
 };
 } // namespace MiscServices
 } // namespace OHOS
