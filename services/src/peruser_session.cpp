@@ -177,7 +177,8 @@ namespace MiscServices {
             if (currentIme[i] == ime[i] && ime[i]) {
                 continue;
             }
-            if (imsCore[i]) {
+            sptr<IInputMethodCore> core = GetImsCore(i);
+            if (core != nullptr) {
                 StopInputMethod(i);
             }
             ResetImeError(i);
@@ -303,17 +304,17 @@ namespace MiscServices {
     int PerUserSession::StartInputMethod(int index)
     {
         IMSA_HILOGI("PerUserSession::StartInputMethod index = %{public}d [%{public}d]\n", index, userId_);
-
-        if (!imsCore[index]) {
+        sptr<IInputMethodCore> core = GetImsCore(index);
+        if (core == nullptr) {
             IMSA_HILOGI("PerUserSession::StartInputMethod imscore is null");
             return ErrorCode::ERROR_IME_BIND_FAILED;
         }
 
-        sptr<IRemoteObject> b = imsCore[index]->AsObject();
+        sptr<IRemoteObject> b = core->AsObject();
         inputMethodToken[index] = IPCSkeleton::GetInstance().GetContextObject();
         localControlChannel[index] = new InputControlChannelStub(userId_);
         inputControlChannel[index] = localControlChannel[index];
-        int ret_init = imsCore[index]->initializeInput(inputMethodToken[index], displayId, inputControlChannel[index]);
+        int ret_init = core->initializeInput(inputMethodToken[index], displayId, inputControlChannel[index]);
         if (ret_init != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("PerUserSession::StartInputMethod initializeInput fail %{public}s", ErrorCode::ToString(ret_init));
             localControlChannel[index] = nullptr;
@@ -338,12 +339,13 @@ namespace MiscServices {
             IMSA_HILOGE("Aborted! %{public}s", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
             return ErrorCode::ERROR_BAD_PARAMETERS;
         }
-        if (!imsCore[index] || !currentIme[index]) {
+        sptr<IInputMethodCore> core = GetImsCore(index);
+        if (core == nullptr || currentIme[index] == nullptr) {
             IMSA_HILOGE("Aborted! %{public}s", ErrorCode::ToString(ErrorCode::ERROR_IME_NOT_STARTED));
             return ErrorCode::ERROR_IME_NOT_STARTED;
         }
-        if (currentIme[index] == currentIme[1 - index] && imsCore[1 - index]) {
-            imsCore[index] = nullptr;
+        if (currentIme[index] == currentIme[1 - index] && GetImsCore((1 - index)) != nullptr) {
+            SetImsCore(index, nullptr);
             inputControlChannel[index] = nullptr;
             localControlChannel[index] = nullptr;
             IMSA_HILOGI("End...[%{public}d]\n", userId_);
@@ -360,12 +362,12 @@ namespace MiscServices {
             IMSA_HILOGE("destroyWindowTaskId return : %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
             errorCode = ErrorCode::ERROR_TOKEN_DESTROY_FAILED;
         }
-        sptr<IRemoteObject> b = imsCore[index]->AsObject();
+        sptr<IRemoteObject> b = core->AsObject();
         ret = b->RemoveDeathRecipient(imsDeathRecipient);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("RemoveDeathRecipient return : %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
         }
-        imsCore[index] = nullptr;
+        SetImsCore(index, nullptr);
         inputControlChannel[index] = nullptr;
         localControlChannel[index] = nullptr;
         IMSA_HILOGI("End...[%{public}d]\n", userId_);
@@ -391,14 +393,14 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::ShowKeyboard Aborted! index = -1 or clientInfo is nullptr");
             return ErrorCode::ERROR_CLIENT_NOT_FOUND;
         }
-
-        if (imsCore[0] == nullptr) {
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
+        if (core == nullptr) {
             IMSA_HILOGE("PerUserSession::ShowKeyboard Aborted! imsCore[%{public}d] is nullptr", index);
             return ErrorCode::ERROR_NULL_POINTER;
         }
 
         auto subProperty = GetCurrentSubProperty();
-        int32_t ret = imsCore[0]->showKeyboard(clientInfo->channel, isShowKeyboard, subProperty);
+        int32_t ret = core->showKeyboard(clientInfo->channel, isShowKeyboard, subProperty);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("PerUserSession::showKeyboard failed ret: %{public}d", ret);
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
@@ -429,12 +431,13 @@ namespace MiscServices {
         if (clientInfo == nullptr) {
             IMSA_HILOGE("PerUserSession::HideKeyboard GetClientInfo pointer nullptr");
         }
-        if (imsCore[0] == nullptr) {
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
+        if (core == nullptr) {
             IMSA_HILOGE("PerUserSession::HideKeyboard imsCore[index] is nullptr");
             return ErrorCode::ERROR_IME_NOT_STARTED;
         }
 
-        bool ret = imsCore[0]->hideKeyboard(1);
+        bool ret = core->hideKeyboard(1);
         if (!ret) {
             IMSA_HILOGE("PerUserSession::HideKeyboard [imsCore->hideKeyboard] failed");
             return ErrorCode::ERROR_KBD_HIDE_FAILED;
@@ -449,15 +452,16 @@ namespace MiscServices {
     */
     int PerUserSession::OnGetKeyboardWindowHeight(int &retHeight)
     {
-        if (imsCore[lastImeIndex]) {
-            int ret = imsCore[lastImeIndex]->getKeyboardWindowHeight(retHeight);
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("getKeyboardWindowHeight return : %{public}s", ErrorCode::ToString(ret));
-            }
-            return ret;
+        sptr<IInputMethodCore> core = GetImsCore(lastImeIndex);
+        if (core == nullptr) {
+            IMSA_HILOGE("imsCore[0] is nullptr");
+            return ErrorCode::ERROR_IME_NOT_AVAILABLE;
         }
-        IMSA_HILOGW("No IME is started [%{public}d]\n", userId_);
-        return ErrorCode::ERROR_IME_NOT_STARTED;
+        int ret = core->getKeyboardWindowHeight(retHeight);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("getKeyboardWindowHeight return : %{public}s", ErrorCode::ToString(ret));
+        }
+        return ret;
     }
 
     /*! Get the current keyboard type
@@ -522,7 +526,8 @@ namespace MiscServices {
         IMSA_HILOGI("Start...[%{public}d]\n", userId_);
         int index = 0;
         for (int i = 0; i < MAX_IME; i++) {
-            if (imsCore[i] == remote) {
+            sptr<IInputMethodCore> core = GetImsCore(i);
+            if (core == remote) {
                 index = i;
                 break;
             }
@@ -650,12 +655,12 @@ namespace MiscServices {
         if (type) {
             sptr<IInputClient> client = GetCurrentClient();
             if (client != nullptr) {
-                int ret = imsCore[index]->setKeyboardType(*type);
+                int ret = GetImsCore(index)->setKeyboardType(*type);
                 if (ret != ErrorCode::NO_ERROR) {
                     IMSA_HILOGE("setKeyboardType ret: %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
                 }
             }
-            if (imsCore[index] == imsCore[1 - index]) {
+            if (IsIMEEqual()) {
                 inputMethodSetting->SetCurrentKeyboardType(type->getHashCode());
                 inputMethodSetting->SetCurrentSysKeyboardType(type->getHashCode());
                 currentKbdIndex[1 - index] = currentKbdIndex[index];
@@ -731,7 +736,7 @@ namespace MiscServices {
             return;
         }
         InputMethodSetting tmpSetting;
-        if (imsCore[index] == imsCore[1 - index]) {
+        if (IsIMEEqual()) {
             tmpSetting.SetCurrentKeyboardType(type->getHashCode());
             tmpSetting.SetCurrentSysKeyboardType(type->getHashCode());
         }
@@ -903,13 +908,13 @@ namespace MiscServices {
             if (!flag) {
                 IMSA_HILOGW("The current keyboard type is not found in the current IME. Reset it!");
                 type = GetKeyboardType(imeIndex, currentKbdIndex[imeIndex]);
-            } else if (imsCore[imeIndex] == imsCore[1 - imeIndex]) {
+            } else if (IsIMEEqual()) {
                 currentKbdIndex[1 - imeIndex] = currentKbdIndex[imeIndex];
             }
         }
         if (type) {
             InputMethodSetting tmpSetting;
-            if (imsCore[imeIndex] == imsCore[1 - imeIndex]) {
+            if (IsIMEEqual()) {
                 inputMethodSetting->SetCurrentKeyboardType(type->getHashCode());
                 inputMethodSetting->SetCurrentSysKeyboardType(type->getHashCode());
                 currentKbdIndex[1 - imeIndex] = currentKbdIndex[imeIndex];
@@ -957,7 +962,7 @@ namespace MiscServices {
     */
     void PerUserSession::CopyInputMethodService(int imeIndex)
     {
-        imsCore[imeIndex] = imsCore[1 - imeIndex];
+        SetImsCore(imeIndex, GetImsCore((1 - imeIndex)));
         localControlChannel[imeIndex] = localControlChannel[1 - imeIndex];
         inputControlChannel[imeIndex] = inputControlChannel[1 - imeIndex];
         inputMethodToken[imeIndex] = inputMethodToken[1 - imeIndex];
@@ -1070,11 +1075,12 @@ namespace MiscServices {
     */
     int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
     {
-        IMSA_HILOGD("PerUserSession::OnReleaseInput Start\n");
-        if (imsCore[0] == nullptr) {
+        IMSA_HILOGI("PerUserSession::OnReleaseInput Start\n");
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
+        if (core == nullptr) {
             return ErrorCode::ERROR_IME_NOT_AVAILABLE;
         }
-        imsCore[0]->SetClientState(false);
+        core->SetClientState(false);
         HideKeyboard(client);
         RemoveClient(client->AsObject());
         IMSA_HILOGD("PerUserSession::OnReleaseInput End...[%{public}d]\n", userId_);
@@ -1088,11 +1094,12 @@ namespace MiscServices {
     */
     int32_t PerUserSession::OnStartInput(sptr<IInputClient> client, bool isShowKeyboard)
     {
-        IMSA_HILOGD("PerUserSession::OnStartInput");
-        if (imsCore[0] == nullptr) {
+        IMSA_HILOGI("PerUserSession::OnStartInput");
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
+        if (core == nullptr) {
             return ErrorCode::ERROR_IME_NOT_AVAILABLE;
         }
-        imsCore[0]->SetClientState(true);
+        core->SetClientState(true);
         return ShowKeyboard(client, isShowKeyboard);
     }
 
@@ -1103,7 +1110,7 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::SetCoreAndAgent core or agent nullptr");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        imsCore[0] = core;
+        SetImsCore(DEFAULT_IME, core);
         if (imsDeathRecipient != nullptr) {
             imsDeathRecipient->SetDeathRecipient([this, core](const wptr<IRemoteObject> &) { this->OnImsDied(core); });
             bool ret = core->AsObject()->AddDeathRecipient(imsDeathRecipient);
@@ -1136,7 +1143,12 @@ namespace MiscServices {
     {
         IMSA_HILOGD("PerUserSession::InitInputControlChannel");
         sptr<IInputControlChannel> inputControlChannel = new InputControlChannelStub(userId_);
-        int ret = imsCore[0]->InitInputControlChannel(inputControlChannel);
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
+        if (core == nullptr) {
+            IMSA_HILOGE("PerUserSession::InitInputControlChannel core is nullptr");
+            return;
+        }
+        int ret = core->InitInputControlChannel(inputControlChannel);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGI("PerUserSession::InitInputControlChannel fail %{public}s", ErrorCode::ToString(ret));
         }
@@ -1155,14 +1167,15 @@ namespace MiscServices {
 
     void PerUserSession::StopInputService(std::string imeId)
     {
-        IMSA_HILOGD("PerUserSession::StopInputService");
-        if (imsCore[0] == nullptr) {
+        IMSA_HILOGI("PerUserSession::StopInputService");
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
+        if (core == nullptr) {
             IMSA_HILOGE("imsCore[0] is nullptr");
             return;
         }
         IMSA_HILOGI("Remove death recipient");
-        imsCore[0]->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
-        imsCore[0]->StopInputService(imeId);
+        core->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
+        core->StopInputService(imeId);
     }
 
     bool PerUserSession::IsRestartIme(uint32_t index)
@@ -1187,9 +1200,10 @@ namespace MiscServices {
     void PerUserSession::ClearImeData(uint32_t index)
     {
         IMSA_HILOGI("Clear ime...index = %{public}d", index);
-        if (imsCore[index] != nullptr) {
-            imsCore[index]->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
-            imsCore[index] = nullptr;
+        sptr<IInputMethodCore> core = GetImsCore(index);
+        if (core != nullptr) {
+            core->AsObject()->RemoveDeathRecipient(imsDeathRecipient);
+            SetImsCore(index, nullptr);
         }
         inputControlChannel[index] = nullptr;
         localControlChannel[index] = nullptr;
@@ -1230,11 +1244,12 @@ namespace MiscServices {
             return ErrorCode::NO_ERROR;
         }
         SetCurrentSubProperty(subProperty);
-        if (imsCore[0] == nullptr) {
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
+        if (core == nullptr) {
             IMSA_HILOGE("imsCore is nullptr");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        int32_t ret = imsCore[0]->SetSubtype(subProperty);
+        int32_t ret = core->SetSubtype(subProperty);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("PerUserSession::SetSubtype failed, ret %{public}d", ret);
             return ret;
@@ -1254,6 +1269,24 @@ namespace MiscServices {
         IMSA_HILOGD("PerUserSession::SetCurrentSubProperty");
         std::lock_guard<std::mutex> lock(propertyLock_);
         currentSubProperty = subProperty;
+    }
+
+    sptr<IInputMethodCore> PerUserSession::GetImsCore(int32_t index)
+    {
+        std::lock_guard<std::mutex> lock(imsCoreLock_);
+        if (!IsValid(index)) {
+            return nullptr;
+        }
+        return imsCore[index];
+    }
+
+    void PerUserSession::SetImsCore(int32_t index, sptr<IInputMethodCore> core)
+    {
+        std::lock_guard<std::mutex> lock(imsCoreLock_);
+        if (!IsValid(index)) {
+            return;
+        }
+        imsCore[index] = core;
     }
 } // namespace MiscServices
 } // namespace OHOS

@@ -124,10 +124,11 @@ namespace MiscServices {
 
         InputControlChannelStub *localControlChannel[MAX_IME];
         sptr<IInputControlChannel> inputControlChannel[MAX_IME];
+        std::mutex imsCoreLock_;
         sptr<IInputMethodCore> imsCore[MAX_IME]; // the remote handlers of input method service
         sptr<IRemoteObject> inputMethodToken[MAX_IME]; // the window token of keyboard
         int currentKbdIndex[MAX_IME]; // current keyboard index
-        int lastImeIndex; // The last ime which showed keyboard
+        int lastImeIndex = DEFAULT_IME; // The last ime which showed keyboard
         InputMethodSetting *inputMethodSetting; // The pointer referred to the object in PerUserSetting
 
         sptr<IInputMethodAgent> imsAgent;
@@ -176,6 +177,16 @@ namespace MiscServices {
         void ClearImeData(uint32_t index);
         void SetCurrentClient(sptr<IInputClient> client);
         sptr<IInputClient> GetCurrentClient();
+        void SetImsCore(int32_t index, sptr<IInputMethodCore> core);
+        sptr<IInputMethodCore> GetImsCore(int32_t index);
+        static inline bool IsValid(int32_t index)
+        {
+            return index >= DEFAULT_IME && index <= SECURITY_IME;
+        }
+        inline bool IsIMEEqual()
+        {
+            return GetImsCore(DEFAULT_IME) == GetImsCore(SECURITY_IME);
+        }
 
         std::mutex propertyLock_;
         SubProperty currentSubProperty;
