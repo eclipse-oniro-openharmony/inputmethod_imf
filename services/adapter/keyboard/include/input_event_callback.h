@@ -20,12 +20,23 @@
 #include <mutex>
 #include <utility>
 
-#include "keyboard_event.h"
 #include "input_manager.h"
 #include "key_event.h"
+#include "keyboard_event.h"
 
 namespace OHOS {
 namespace MiscServices {
+constexpr uint8_t SHIFT_LEFT_MASK = 0X1;
+constexpr uint8_t SHIFT_RIGHT_MASK = 0X1 << 1;
+constexpr uint8_t CTRL_LEFT_MASK = 0X1 << 2;
+constexpr uint8_t CTRL_RIGHT_MASK = 0X1 << 3;
+constexpr uint8_t CAPS_MASK = 0X1 << 4;
+
+constexpr bool IS_KEYS_DOWN(uint32_t state, uint8_t mask)
+{
+    return (state & mask) == state;
+}
+
 class InputEventCallback : public MMI::IInputEventConsumer {
 public:
     virtual void OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const;
@@ -35,8 +46,8 @@ public:
 
 private:
     KeyHandle keyHandler_ = nullptr;
-    static uint32_t keyState;
-    static CombinationKey FindCombinationKey(uint32_t state) ;
+    static uint32_t keyState_;
+    static uint32_t FindCombinationKey(uint32_t state);
 };
 } // namespace MiscServices
 } // namespace OHOS

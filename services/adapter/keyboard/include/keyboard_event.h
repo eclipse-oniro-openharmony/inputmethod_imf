@@ -25,14 +25,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-enum CombinationKey : uint32_t {
-    UNKNOWN = 0,
-    CAPS,
-    SHIFT,
-    CTRL_SHIFT
-};
-
-using KeyHandle = std::function<int32_t(const CombinationKey &)>;
+using KeyHandle = std::function<int32_t(const uint32_t &)>;
 
 class KeyboardEvent {
 public:

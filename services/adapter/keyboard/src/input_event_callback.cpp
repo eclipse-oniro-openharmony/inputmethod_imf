@@ -19,21 +19,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr uint8_t SHIFT_LEFT_MASK = 0X1;
-constexpr uint8_t SHIFT_RIGHT_MASK = 0X1 << 1;
-constexpr uint8_t CTRL_LEFT_MASK = 0X1 << 2;
-constexpr uint8_t CTRL_RIGHT_MASK = 0X1 << 3;
-constexpr uint8_t CAPS_MASK = 0X1 << 4;
-
-const std::map<int32_t, uint8_t> MASK_MAP{
-    { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, SHIFT_LEFT_MASK },
-    { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, SHIFT_RIGHT_MASK },
-    { MMI::KeyEvent::KEYCODE_CTRL_LEFT, CTRL_LEFT_MASK },
-    { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, CTRL_RIGHT_MASK },
-    { MMI::KeyEvent::KEYCODE_CAPS_LOCK, CAPS_MASK },
-};
-
-uint32_t InputEventCallback::keyState = 0;
+uint32_t InputEventCallback::keyState_ = static_cast<uint32_t>(0);
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const
 {
@@ -47,21 +33,17 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
     IMSA_HILOGD("keyCode: %{public}d, keyAction: %{public}d", keyCode, keyAction);
     if (keyAction == MMI::KeyEvent::KEY_ACTION_DOWN) {
         IMSA_HILOGD("key %{public}d pressed down", keyCode);
-        keyState = keyState | currKey->second;
+        keyState_ = static_cast<uint32_t>(keyState_ | currKey->second);
         return;
     }
 
-    CombinationKey key = FindCombinationKey(keyState);
-    keyState = keyState & ~currKey->second;
-    if (key == CombinationKey::UNKNOWN) {
-        IMSA_HILOGE("combination key unknown");
-        return;
-    }
     if (keyHandler_ == nullptr) {
         IMSA_HILOGE("keyHandler_ is nullptr");
+        keyState_ = static_cast<uint32_t>(keyState_ & ~currKey->second);
         return;
     }
-    int32_t ret = keyHandler_(key);
+    int32_t ret = keyHandler_(keyState_);
+    keyState_ = static_cast<uint32_t>(keyState_ & ~currKey->second);
     IMSA_HILOGI("handle key event ret: %{public}d", ret);
 }
 
@@ -76,21 +58,6 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::AxisEvent> axisEvent)
 void InputEventCallback::SetKeyHandle(KeyHandle handle)
 {
     keyHandler_ = std::move(handle);
-}
-
-CombinationKey InputEventCallback::FindCombinationKey(uint32_t state)
-{
-    if (state == CAPS_MASK) {
-        return CombinationKey::CAPS;
-    }
-    if (state == SHIFT_LEFT_MASK || state == SHIFT_RIGHT_MASK) {
-        return CombinationKey::SHIFT;
-    }
-    if ((state == (CTRL_LEFT_MASK | SHIFT_LEFT_MASK)) || (state == (CTRL_LEFT_MASK | SHIFT_RIGHT_MASK))
-        || (state == (CTRL_RIGHT_MASK | SHIFT_LEFT_MASK)) || (state == (CTRL_RIGHT_MASK | SHIFT_RIGHT_MASK))) {
-        return CombinationKey::CTRL_SHIFT;
-    }
-    return CombinationKey::UNKNOWN;
 }
 } // namespace MiscServices
 } // namespace OHOS

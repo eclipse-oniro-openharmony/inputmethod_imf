@@ -26,6 +26,7 @@
 #include "errors.h"
 #include "global.h"
 #include "im_common_event_manager.h"
+#include "input_event_callback.h"
 #include "input_method_status.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -1401,7 +1402,7 @@ namespace MiscServices {
         return {};
     }
 
-    int32_t InputMethodSystemAbility::SwitchByCombinationKey(const CombinationKey &key)
+    int32_t InputMethodSystemAbility::SwitchByCombinationKey(const uint32_t &state)
     {
         IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinationKey");
         auto current = GetCurrentInputMethodSubtype();
@@ -1409,7 +1410,7 @@ namespace MiscServices {
             IMSA_HILOGE("GetCurrentInputMethodSubtype failed");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        if (key == CombinationKey::CAPS) {
+        if (IS_KEYS_DOWN(state, CAPS_MASK)) {
             IMSA_HILOGI("CAPS press");
             auto target = current->mode == "upper"
                               ? FindSubPropertyByCompare(current->id,
@@ -1418,7 +1419,7 @@ namespace MiscServices {
                                   [&current](const SubProperty &property) { return property.mode == "upper"; });
             return SwitchInputMethod(target.id, target.label);
         }
-        if (key == CombinationKey::SHIFT) {
+        if (IS_KEYS_DOWN(state, SHIFT_LEFT_MASK) || IS_KEYS_DOWN(state, SHIFT_RIGHT_MASK)) {
             IMSA_HILOGI("SHIFT press");
             auto target = current->language == "chinese"
                               ? FindSubPropertyByCompare(current->id,
@@ -1427,7 +1428,7 @@ namespace MiscServices {
                                   [&current](const SubProperty &property) { return property.language == "chinese"; });
             return SwitchInputMethod(target.id, target.label);
         }
-        if (key == CombinationKey::CTRL_SHIFT) {
+        if (IS_KEYS_DOWN(state, CTRL_LEFT_MASK)) {
             IMSA_HILOGI("CTRL_SHIFT press");
             std::vector<Property> props = {};
             auto ret = ListProperty(MAIN_USER_ID, props);
@@ -1449,7 +1450,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor");
         bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
-            [this](const CombinationKey &keyCode) { return SwitchByCombinationKey(keyCode); });
+            [this](const uint32_t &keyCode) { return SwitchByCombinationKey(keyCode); });
         return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
     }
 } // namespace MiscServices
