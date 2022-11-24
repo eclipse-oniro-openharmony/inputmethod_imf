@@ -179,7 +179,6 @@ namespace MiscServices {
         sptr<IInputClient> GetCurrentClient();
         void SetImsCore(int32_t index, sptr<IInputMethodCore> core);
         sptr<IInputMethodCore> GetImsCore(int32_t index);
-        bool CompareCore();
         static inline bool IsValid(int32_t index)
         {
             return index >= DEFAULT_IME && index <= SECURITY_IME;
