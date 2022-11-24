@@ -1076,7 +1076,7 @@ namespace MiscServices {
     */
     int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
     {
-        IMSA_HILOGI("PerUserSession::OnReleaseInput Start\n");
+        IMSA_HILOGI("PerUserSession::OnReleaseInput Start");
         int ret = SetClientState(false);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("failed to set client state, ret %{public}d", ret);
@@ -1275,18 +1275,6 @@ namespace MiscServices {
         currentSubProperty = subProperty;
     }
 
-    int32_t PerUserSession::SetClientState(bool state)
-    {
-        IMSA_HILOGI("set client state: %{public}s", state ? "true" : "false");
-        auto core = GetImsCore(DEFAULT_IME);
-        if (core == nullptr) {
-            IMSA_HILOGE("imsCore is nullptr");
-            return ErrorCode::ERROR_EX_NULL_POINTER;
-        }
-        core->SetClientState(state);
-        return ErrorCode::NO_ERROR;
-    }
-
     sptr<IInputMethodCore> PerUserSession::GetImsCore(int32_t index)
     {
         std::lock_guard<std::mutex> lock(imsCoreLock_);
@@ -1303,6 +1291,18 @@ namespace MiscServices {
             return;
         }
         imsCore[index] = core;
+    }
+
+    int32_t PerUserSession::SetClientState(bool isAlive)
+    {
+        IMSA_HILOGD("set client state %{public}s", isAlive ? "alive" : "dead");
+        auto core = GetImsCore(DEFAULT_IME);
+        if (core == nullptr) {
+            IMSA_HILOGE("imsCore is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        core->SetClientState(isAlive);
+        return ErrorCode::NO_ERROR;
     }
 } // namespace MiscServices
 } // namespace OHOS
