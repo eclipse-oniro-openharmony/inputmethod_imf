@@ -181,12 +181,9 @@ private:
     void SetImsCore(int32_t index, sptr<IInputMethodCore> core);
     sptr<IInputMethodCore> GetImsCore(int32_t index);
     bool CompareCore();
-    inline bool CheckCoreIndex(int32_t index)
+    static inline bool IsValid(int32_t index)
     {
-        if (index < DEFAULT_IME || index > SECURITY_IME) {
-            return false;
-        }
-        return true;
+        return index >= DEFAULT_IME && index <= SECURITY_IME;
     }
 
     std::mutex propertyLock_;

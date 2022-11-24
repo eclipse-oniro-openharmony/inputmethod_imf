@@ -393,7 +393,7 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::ShowKeyboard Aborted! index = -1 or clientInfo is nullptr");
             return ErrorCode::ERROR_CLIENT_NOT_FOUND;
         }
-        sptr<IInputMethodCore> core = GetImsCore(0);
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
         if (core == nullptr) {
             IMSA_HILOGE("PerUserSession::ShowKeyboard Aborted! imsCore[%{public}d] is nullptr", index);
             return ErrorCode::ERROR_NULL_POINTER;
@@ -431,7 +431,7 @@ namespace MiscServices {
         if (clientInfo == nullptr) {
             IMSA_HILOGE("PerUserSession::HideKeyboard GetClientInfo pointer nullptr");
         }
-        sptr<IInputMethodCore> core = GetImsCore(0);
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
         if (core == nullptr) {
             IMSA_HILOGE("PerUserSession::HideKeyboard imsCore[index] is nullptr");
             return ErrorCode::ERROR_IME_NOT_STARTED;
@@ -1077,7 +1077,7 @@ namespace MiscServices {
     int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
     {
         IMSA_HILOGI("PerUserSession::OnReleaseInput Start\n");
-        sptr<IInputMethodCore> core = GetImsCore(0);
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
         if (core == nullptr) {
             return ErrorCode::ERROR_IME_NOT_AVAILABLE;
         }
@@ -1096,7 +1096,7 @@ namespace MiscServices {
     int32_t PerUserSession::OnStartInput(sptr<IInputClient> client, bool isShowKeyboard)
     {
         IMSA_HILOGI("PerUserSession::OnStartInput");
-        sptr<IInputMethodCore> core = GetImsCore(0);
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
         if (core == nullptr) {
             return ErrorCode::ERROR_IME_NOT_AVAILABLE;
         }
@@ -1144,7 +1144,7 @@ namespace MiscServices {
     {
         IMSA_HILOGD("PerUserSession::InitInputControlChannel");
         sptr<IInputControlChannel> inputControlChannel = new InputControlChannelStub(userId_);
-        sptr<IInputMethodCore> core = GetImsCore(0);
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
         if (core == nullptr) {
             IMSA_HILOGE("PerUserSession::InitInputControlChannel core is nullptr");
             return;
@@ -1169,7 +1169,7 @@ namespace MiscServices {
     void PerUserSession::StopInputService(std::string imeId)
     {
         IMSA_HILOGI("PerUserSession::StopInputService");
-        sptr<IInputMethodCore> core = GetImsCore(0);
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
         if (core == nullptr) {
             IMSA_HILOGE("imsCore[0] is nullptr");
             return;
@@ -1245,7 +1245,7 @@ namespace MiscServices {
             return ErrorCode::NO_ERROR;
         }
         SetCurrentSubProperty(subProperty);
-        sptr<IInputMethodCore> core = GetImsCore(0);
+        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
         if (core == nullptr) {
             IMSA_HILOGE("imsCore is nullptr");
             return ErrorCode::ERROR_EX_NULL_POINTER;
@@ -1275,7 +1275,7 @@ namespace MiscServices {
     sptr<IInputMethodCore> PerUserSession::GetImsCore(int32_t index)
     {
         std::lock_guard<std::mutex> lock(imsCoreLock_);
-        if (CheckCoreIndex(index)) {
+        if (!IsValid(index)) {
             return nullptr;
         }
         return imsCore[index];
@@ -1284,7 +1284,7 @@ namespace MiscServices {
     void PerUserSession::SetImsCore(int32_t index, sptr<IInputMethodCore> core)
     {
         std::lock_guard<std::mutex> lock(imsCoreLock_);
-        if (CheckCoreIndex(index)) {
+        if (!IsValid(index)) {
             return;
         }
         imsCore[index] = core;
