@@ -84,9 +84,7 @@
               }
           ], 
           "test": [
-              "//base/inputmethod/imf/unitest:InputMethodControllerTest", 
-              "//base/inputmethod/imf/unitest:InputMethodAbilityTest", 
-              "//base/inputmethod/imf/unitest:InputMethodServiceTest",
+              "//base/inputmethod/imf/unitest:unittest",
               "//base/inputmethod/imf/test/fuzztest:fuzztest",
               "//base/inputmethod/imf/test/unitest/src:unittest"
           ]

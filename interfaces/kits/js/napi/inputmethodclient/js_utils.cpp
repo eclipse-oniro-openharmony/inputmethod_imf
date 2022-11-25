@@ -105,12 +105,12 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
     std::string errMsg = ToMessage(err);
     if (type == TypeCode::TYPE_NONE) {
         errMsg = errMsg + msg;
-        IMSA_HILOGE("THROW_PARAMTER_ERROR message: %{public}s", errMsg.c_str());
+        IMSA_HILOGE("THROW_PARAMETER_ERROR message: %{public}s", errMsg.c_str());
     } else {
         auto iter = PARAMETER_TYPE.find(type);
         if (iter != PARAMETER_TYPE.end()) {
             errMsg = errMsg + "The type of " + msg + " must be " + iter->second;
-            IMSA_HILOGE("THROW_PARAMTER_TYPE_ERROR message: %{public}s", errMsg.c_str());
+            IMSA_HILOGE("THROW_PARAMETER_TYPE_ERROR message: %{public}s", errMsg.c_str());
         }
     }
     napi_throw_error(env, std::to_string(err).c_str(), errMsg.c_str());

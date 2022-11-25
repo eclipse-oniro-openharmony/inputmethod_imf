@@ -20,12 +20,12 @@
 #include <mutex>
 #include <vector>
 
-#include "../adapter/keyboard/keyboard_event.h"
 #include "common_event_data.h"
 #include "common_event_manager.h"
 #include "common_event_subscribe_info.h"
 #include "common_event_subscriber.h"
 #include "common_event_support.h"
+#include "keyboard_event.h"
 #include "matching_skills.h"
 #include "system_ability_status_change_stub.h"
 
@@ -37,7 +37,7 @@ public:
     ~ImCommonEventManager();
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvent(const std::string &event);
-    bool SubscribeKeyboardEvent(const std::vector<KeyboardEventHandler> &handlers);
+    bool SubscribeKeyboardEvent(KeyHandle handle);
 
     bool UnsubscribeEvent();
     class EventSubscriber : public EventFwk::CommonEventSubscriber {
@@ -47,6 +47,7 @@ public:
         {
         }
         void OnReceiveEvent(const EventFwk::CommonEventData &data);
+        void HandlePackageRemove(const AAFwk::Want &want, const std::string action);
         void startUser(int32_t newUserId);
     };
 

@@ -105,6 +105,7 @@ private:
     void OnSwitchInput(const Property &property, const SubProperty &subProperty);
     std::shared_ptr<IInputMethodAgent> GetInputMethodAgent();
     void WorkThread();
+    void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
 
     sptr<IInputDataChannel> mInputDataChannel;
@@ -115,6 +116,7 @@ private:
     sptr<ImsaDeathRecipient> deathRecipient_;
     std::mutex agentLock_;
     std::shared_ptr<IInputMethodAgent> mAgent = nullptr;
+    std::mutex textListenerLock_;
     sptr<OnTextChangedListener> textListener;
     InputAttribute mAttribute;
     std::u16string mTextString;

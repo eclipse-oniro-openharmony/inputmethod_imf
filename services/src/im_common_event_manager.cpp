@@ -17,11 +17,11 @@
 
 #include <utility>
 
-#include "../adapter/keyboard/keyboard_event.h"
 #include "global.h"
 #include "input_method_system_ability_stub.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "itypes_util.h"
 #include "message_handler.h"
 #include "system_ability_definition.h"
 
@@ -33,15 +33,11 @@ std::mutex ImCommonEventManager::instanceLock_;
 
 /*! Constructor
     */
-ImCommonEventManager::ImCommonEventManager()
-{
-}
+ImCommonEventManager::ImCommonEventManager() {}
 
 /*! Destructor
     */
-ImCommonEventManager::~ImCommonEventManager()
-{
-}
+ImCommonEventManager::~ImCommonEventManager() {}
 
 sptr<ImCommonEventManager> ImCommonEventManager::GetInstance()
 {
@@ -59,6 +55,7 @@ bool ImCommonEventManager::SubscribeEvent(const std::string &event)
 {
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(event);
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
 
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
 
@@ -89,27 +86,25 @@ bool ImCommonEventManager::SubscribeEvent(const std::string &event)
     return true;
 }
 
-bool ImCommonEventManager::SubscribeKeyboardEvent(const std::vector<KeyboardEventHandler> &handlers)
+bool ImCommonEventManager::SubscribeKeyboardEvent(KeyHandle handle)
 {
+    IMSA_HILOGI("ImCommonEventManager::SubscribeKeyboardEvent");
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (abilityManager == nullptr) {
-        IMSA_HILOGE("SubscribeEvent abilityManager is nullptr");
+        IMSA_HILOGE("SubscribeKeyboardEvent abilityManager is nullptr");
         return false;
     }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handlers]() {
-        for (const auto &handler : handlers) {
-            int32_t ret = KeyboardEvent::GetInstance().SubscribeKeyboardEvent(handler.combine, handler.handle);
-            IMSA_HILOGI("subscribe %{public}d key event %{public}s", handler.combine.finalKey,
-                ret == ErrorCode::NO_ERROR ? "OK" : "ERROR");
-        }
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([&handle]() {
+        int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(handle);
+        IMSA_HILOGI("SubscribeKeyboardEvent add monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
     });
     if (listener == nullptr) {
-        IMSA_HILOGE("SubscribeEvent listener is nullptr");
+        IMSA_HILOGE("SubscribeKeyboardEvent listener is nullptr");
         return false;
     }
     int32_t ret = abilityManager->SubscribeSystemAbility(MULTIMODAL_INPUT_SERVICE_ID, listener);
     if (ret != ERR_OK) {
-        IMSA_HILOGE("SubscribeEvent SubscribeSystemAbility failed. ret = %{public}d", ret);
+        IMSA_HILOGE("SubscribeKeyboardEvent SubscribeSystemAbility failed. ret = %{public}d", ret);
         return false;
     }
     keyboardEventListener_ = listener;
@@ -129,6 +124,9 @@ void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::Commo
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
         IMSA_HILOGI("ImCommonEventManager::OnReceiveEvent user switched!!!");
         startUser(data.GetCode());
+    } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
+        IMSA_HILOGI("ImCommonEventManager::OnReceiveEvent package removed!!!");
+        HandlePackageRemove(want, action);
     }
 }
 
@@ -143,6 +141,21 @@ void ImCommonEventManager::EventSubscriber::startUser(int newUserId)
     Message *msg = new Message(MessageID::MSG_ID_USER_START, parcel);
     MessageHandler::Instance()->SendMessage(msg);
     IMSA_HILOGI("ImCommonEventManager::startUser 3");
+}
+
+void ImCommonEventManager::EventSubscriber::HandlePackageRemove(const AAFwk::Want &want, const std::string action)
+{
+    auto element = want.GetElement();
+    std::string bundleName = element.GetBundleName();
+    int32_t userId = want.GetIntParam("userId", 0);
+    IMSA_HILOGD("bundleName = %{public}s, userId = %{public}d", bundleName.c_str(), userId);
+    MessageParcel *parcel = new MessageParcel();
+    if (!ITypesUtil::Marshal(*parcel, userId, bundleName)) {
+        IMSA_HILOGE("Failed to write message parcel");
+        return;
+    }
+    Message *msg = new Message(MessageID::MSG_ID_PACKAGE_REMOVED, parcel);
+    MessageHandler::Instance()->SendMessage(msg);
 }
 
 ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(std::function<void()> func)

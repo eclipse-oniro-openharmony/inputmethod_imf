@@ -43,14 +43,9 @@ using namespace MessageID;
 
     InputMethodController::~InputMethodController()
     {
-        if (msgHandler) {
-            delete msgHandler;
-            msgHandler = nullptr;
-            stop_ = false;
-        }
-        if (workThreadHandler.joinable()) {
-            workThreadHandler.join();
-        }
+        QuitWorkThread();
+        delete msgHandler;
+        msgHandler = nullptr;
     }
 
     sptr<InputMethodController> InputMethodController::GetInstance()
@@ -93,10 +88,12 @@ using namespace MessageID;
         channel->SetHandler(msgHandler);
         mInputDataChannel = channel;
 
-        workThreadHandler = std::thread([this] {WorkThread();});
-            mAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
-
-        textListener = nullptr;
+        workThreadHandler = std::thread([this] { WorkThread(); });
+        mAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
+        {
+            std::lock_guard<std::mutex> lock(textListenerLock_);
+            textListener = nullptr;
+        }
         IMSA_HILOGI("InputMethodController::Initialize textListener is nullptr");
         PrepareInput(0, mClient, mInputDataChannel, mAttribute);
         return true;
@@ -139,6 +136,7 @@ using namespace MessageID;
     {
         while (!stop_) {
             Message *msg = msgHandler->GetMessage();
+            std::lock_guard<std::mutex> lock(textListenerLock_);
             switch (msg->msgId_) {
                 case MSG_ID_INSERT_CHAR: {
                     MessageParcel *data = msg->msgContent_;
@@ -232,13 +230,25 @@ using namespace MessageID;
                         break;
                     }
                     OnSwitchInput(property, subProperty);
+                    break;
                 }
                 default: {
+                    IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                     break;
                 }
             }
             delete msg;
             msg = nullptr;
+        }
+    }
+
+    void InputMethodController::QuitWorkThread()
+    {
+        stop_ = true;
+        Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
+        msgHandler->SendMessage(msg);
+        if (workThreadHandler.joinable()) {
+            workThreadHandler.join();
         }
     }
 
@@ -259,6 +269,7 @@ using namespace MessageID;
 
     void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard)
     {
+        std::lock_guard<std::mutex> lock(textListenerLock_);
         textListener = listener;
         IMSA_HILOGI("InputMethodController::Attach");
         InputmethodTrace tracer("InputMethodController Attach trace.");
@@ -275,13 +286,13 @@ using namespace MessageID;
 
     void InputMethodController::HideTextInput()
     {
-        IMSA_HILOGI("InputMethodController::HideTextInput");
+        IMSA_HILOGD("InputMethodController::HideTextInput");
         StopInput(mClient);
     }
 
     int32_t InputMethodController::HideCurrentInput()
     {
-        IMSA_HILOGI("InputMethodController::HideCurrentInput");
+        IMSA_HILOGD("InputMethodController::HideCurrentInput");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
             IMSA_HILOGE("proxy is nullptr");
@@ -305,8 +316,11 @@ using namespace MessageID;
     {
         ReleaseInput(mClient);
         InputmethodTrace tracer("InputMethodController Close trace.");
-        textListener = nullptr;
-        IMSA_HILOGI("InputMethodController::Close");
+        {
+            std::lock_guard<std::mutex> lock(textListenerLock_);
+            textListener = nullptr;
+        }
+        IMSA_HILOGD("InputMethodController::Close");
     }
 
     void InputMethodController::PrepareInput(int32_t displayId, sptr<IInputClient> &client,
@@ -357,7 +371,7 @@ using namespace MessageID;
 
     std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
     {
-        IMSA_HILOGI("InputMethodController::GetCurrentInputMethod");
+        IMSA_HILOGD("InputMethodController::GetCurrentInputMethod");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
             IMSA_HILOGE("proxy is nullptr");
@@ -373,7 +387,7 @@ using namespace MessageID;
 
     std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype()
     {
-        IMSA_HILOGI("InputMethodController::GetCurrentInputMethod");
+        IMSA_HILOGD("InputMethodController::GetCurrentInputMethod");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
             IMSA_HILOGE("proxy is nullptr");
@@ -401,7 +415,7 @@ using namespace MessageID;
 
     void InputMethodController::ReleaseInput(sptr<IInputClient> &client)
     {
-        IMSA_HILOGI("InputMethodController::ReleaseInput");
+        IMSA_HILOGD("InputMethodController::ReleaseInput");
         isStopInput = true;
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
@@ -413,7 +427,7 @@ using namespace MessageID;
 
     void InputMethodController::StopInput(sptr<IInputClient> &client)
     {
-        IMSA_HILOGI("InputMethodController::StopInput");
+        IMSA_HILOGD("InputMethodController::StopInput");
         isStopInput = true;
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {

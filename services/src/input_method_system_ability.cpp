@@ -17,9 +17,7 @@
 
 #include <global.h>
 #include <utils.h>
-#include <key_event.h>
 
-#include "../adapter/keyboard/keyboard_event.h"
 #include "ability_connect_callback_proxy.h"
 #include "ability_manager_interface.h"
 #include "application_info.h"
@@ -31,11 +29,12 @@
 #include "input_method_status.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "itypes_util.h"
+#include "key_event.h"
 #include "message_handler.h"
 #include "os_account_manager.h"
 #include "para_handle.h"
 #include "resource_manager.h"
-#include "sa_mgr_client.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "ui_service_mgr_client.h"
@@ -184,8 +183,8 @@ namespace MiscServices {
         std::string defaultIme = ParaHandle::GetDefaultIme(userId_);
         StartInputService(defaultIme);
         StartUserIdListener();
-        int32_t ret = SubscribeKeyboardEvent();
-        IMSA_HILOGI("subscribe key event ret %{public}d", ret);
+        int32_t ret = InitKeyEventMonitor();
+        IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
         return ErrorCode::NO_ERROR;
     }
 
@@ -553,7 +552,8 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &name, const std::string &subName)
     {
-        IMSA_HILOGI("InputMethodSystemAbility::SwitchInputMethod");
+        IMSA_HILOGD("InputMethodSystemAbility name: %{public}s, subName: %{public}s", name.c_str(),
+            subName.c_str());
         return subName.empty() ? SwitchInputMethodType(name) : SwitchInputMethodSubtype(name, subName);
     }
 
@@ -739,6 +739,7 @@ namespace MiscServices {
             property.descriptionId = applicationInfo.descriptionId;
             property.label = Str8ToStr16(labelString);
             property.description = Str8ToStr16(descriptionString);
+            properties.emplace_back(property);
         }
         return properties;
     }
@@ -878,6 +879,8 @@ namespace MiscServices {
                 }
                 case MSG_ID_PACKAGE_REMOVED: {
                     OnPackageRemoved(msg);
+                    delete msg;
+                    msg = nullptr;
                     break;
                 }
                 case MSG_ID_SETTING_CHANGED: {
@@ -1174,39 +1177,29 @@ namespace MiscServices {
     {
         IMSA_HILOGI("Start...\n");
         MessageParcel *data = msg->msgContent_;
-        if (!data) {
+        if (data == nullptr) {
             IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved data is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        int32_t userId = data->ReadInt32();
-        int32_t size = data->ReadInt32();
-
-        if (size <= 0) {
-            IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
-            return ErrorCode::ERROR_BAD_PARAMETERS;
+        int32_t userId = 0;
+        std::string packageName = "";
+        if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
+            IMSA_HILOGE("Failed to read message parcel");
+            return ErrorCode::ERROR_EX_PARCELABLE;
         }
-        std::u16string packageName = data->ReadString16();
+
         PerUserSetting *setting = GetUserSetting(userId);
-        if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
+        if (setting == nullptr || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
             IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
             return ErrorCode::ERROR_USER_NOT_UNLOCKED;
         }
-        auto session = GetUserSession(userId);
-        if (session == nullptr) {
-            IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved session is nullptr");
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        session->OnPackageRemoved(packageName);
-        bool securityImeFlag = false;
-        int32_t ret = setting->OnPackageRemoved(packageName, securityImeFlag);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGI("End...\n");
-            return ret;
-        }
-        if (securityImeFlag) {
-            InputMethodInfo *securityIme = setting->GetSecurityInputMethod();
-            InputMethodInfo *defaultIme = setting->GetCurrentInputMethod();
-            session->ResetIme(defaultIme, securityIme);
+        
+        std::string defaultIme = ParaHandle::GetDefaultIme(userId);
+        std::string::size_type pos = defaultIme.find("/");
+        std::string currentIme = defaultIme.substr(0, pos);
+        if (packageName == currentIme) {
+            int32_t ret = OnSwitchInputMethod(ParaHandle::DEFAULT_PACKAGE_NAME, ParaHandle::DEFAULT_ABILITY_NAME);
+            IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
         }
         return 0;
     }
@@ -1373,13 +1366,19 @@ namespace MiscServices {
 
     sptr<AAFwk::IAbilityManager> InputMethodSystemAbility::GetAbilityManagerService()
     {
-        IMSA_HILOGE("InputMethodSystemAbility::GetAbilityManagerService start");
-        sptr<IRemoteObject> abilityMsObj =
-        OHOS::DelayedSingleton<AAFwk::SaMgrClient>::GetInstance()->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
-        if (!abilityMsObj) {
-            IMSA_HILOGE("failed to get ability manager service");
+        IMSA_HILOGD("InputMethodSystemAbility::GetAbilityManagerService start");
+        auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (systemAbilityManager == nullptr) {
+            IMSA_HILOGE("SystemAbilityManager is nullptr.");
             return nullptr;
         }
+
+        auto abilityMsObj = systemAbilityManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
+        if (abilityMsObj == nullptr) {
+            IMSA_HILOGE("Failed to get ability manager service.");
+            return nullptr;
+        }
+
         return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
     }
 
@@ -1402,16 +1401,16 @@ namespace MiscServices {
         return {};
     }
 
-    int32_t InputMethodSystemAbility::SwitchByCombinedKey(const CombineKeyCode &keyCode)
+    int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     {
-        IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinedKey");
+        IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinationKey");
         auto current = GetCurrentInputMethodSubtype();
         if (current == nullptr) {
             IMSA_HILOGE("GetCurrentInputMethodSubtype failed");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        if (keyCode == CombineKeyCode::COMBINE_KEYCODE_CAPS) {
-            IMSA_HILOGI("COMBINE_KEYCODE_CAPS press");
+        if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CAPS_MASK)) {
+            IMSA_HILOGI("CAPS press");
             auto target = current->mode == "upper"
                               ? FindSubPropertyByCompare(current->id,
                                   [&current](const SubProperty &property) { return property.mode == "lower"; })
@@ -1419,8 +1418,9 @@ namespace MiscServices {
                                   [&current](const SubProperty &property) { return property.mode == "upper"; });
             return SwitchInputMethod(target.id, target.label);
         }
-        if (keyCode == CombineKeyCode::COMBINE_KEYCODE_SHIFT) {
-            IMSA_HILOGI("COMBINE_KEYCODE_SHIFT press");
+        if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::SHIFT_LEFT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::SHIFT_RIGHT_MASK)) {
+            IMSA_HILOGI("SHIFT press");
             auto target = current->language == "chinese"
                               ? FindSubPropertyByCompare(current->id,
                                   [&current](const SubProperty &property) { return property.language == "english"; })
@@ -1428,8 +1428,11 @@ namespace MiscServices {
                                   [&current](const SubProperty &property) { return property.language == "chinese"; });
             return SwitchInputMethod(target.id, target.label);
         }
-        if (keyCode == CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT) {
-            IMSA_HILOGI("COMBINE_KEYCODE_CTRL_SHIFT press");
+        if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_LEFT_MASK | KeyboardEvent::SHIFT_LEFT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_LEFT_MASK | KeyboardEvent::SHIFT_RIGHT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_RIGHT_MASK | KeyboardEvent::SHIFT_LEFT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_RIGHT_MASK | KeyboardEvent::SHIFT_RIGHT_MASK)) {
+            IMSA_HILOGI("CTRL_SHIFT press");
             std::vector<Property> props = {};
             auto ret = ListProperty(MAIN_USER_ID, props);
             if (ret != ErrorCode::NO_ERROR) {
@@ -1438,53 +1441,20 @@ namespace MiscServices {
             }
             for (const auto &prop : props) {
                 if (prop.name != current->id) {
-                    return SwitchInputMethod(current->name, current->id);
+                    return SwitchInputMethod(prop.name, prop.id);
                 }
             }
         }
-        IMSA_HILOGI("keycode undefined");
+        IMSA_HILOGD("keycode undefined");
         return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
     }
 
-    int32_t InputMethodSystemAbility::SubscribeKeyboardEvent()
+    int32_t InputMethodSystemAbility::InitKeyEventMonitor()
     {
-        ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
-            { { {
-                    .preKeys = {},
-                    .finalKey = MMI::KeyEvent::KEYCODE_CAPS_LOCK,
-                },
-                  [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CAPS); } },
-                { {
-                      .preKeys = {},
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
-                { {
-                      .preKeys = {},
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } } });
-        return 0;
+        IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor");
+        bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
+            [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode); });
+        return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
     }
 } // namespace MiscServices
 } // namespace OHOS
