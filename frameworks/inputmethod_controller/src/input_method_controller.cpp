@@ -502,7 +502,7 @@ using namespace MessageID;
 
     int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string &text)
     {
-        IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
+        IMSA_HILOGI("InputMethodController::GetTextAfterCursor");
         if (!mTextString.empty() && mTextString.size() <= INT_MAX) {
             int32_t endPos = (mSelectNewEnd + number < static_cast<int32_t>(mTextString.size()))
                                  ? (mSelectNewEnd + number)
