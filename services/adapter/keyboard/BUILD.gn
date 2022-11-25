@@ -23,7 +23,10 @@ config("inputmethod_adapter_native_config") {
 }
 
 ohos_static_library("keboard_event_static") {
-  sources = [ "keyboard_event.cpp" ]
+  sources = [
+    "src/input_event_callback.cpp",
+    "src/keyboard_event.cpp",
+  ]
 
   configs = [ ":inputmethod_adapter_native_config" ]
 
