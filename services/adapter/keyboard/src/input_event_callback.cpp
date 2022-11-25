@@ -46,14 +46,11 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
     }
 
     if (keyAction == MMI::KeyEvent::KEY_ACTION_UP) {
-        if (keyHandler_ == nullptr) {
-            IMSA_HILOGE("keyHandler_ is nullptr");
-            keyState_ = static_cast<uint32_t>(keyState_ & ~currKey->second);
-            return;
+        if (keyHandler_ != nullptr) {
+            int32_t ret = keyHandler_(keyState_);
+            IMSA_HILOGI("handle key event ret: %{public}d", ret);
         }
-        int32_t ret = keyHandler_(keyState_);
         keyState_ = static_cast<uint32_t>(keyState_ & ~currKey->second);
-        IMSA_HILOGI("handle key event ret: %{public}d", ret);
     }
 }
 

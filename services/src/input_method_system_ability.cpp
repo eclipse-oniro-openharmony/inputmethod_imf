@@ -1,4 +1,4 @@
-/*
+-/*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1453,7 +1453,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor");
         bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
-            [this](const uint32_t &keyCode) { return SwitchByCombinationKey(keyCode); });
+            [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode); });
         return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
     }
 } // namespace MiscServices

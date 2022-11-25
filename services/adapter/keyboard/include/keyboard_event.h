@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-using KeyHandle = std::function<int32_t(const uint32_t &)>;
+using KeyHandle = std::function<int32_t(uint32_t)>;
 
 class KeyboardEvent {
 public:
@@ -38,7 +38,7 @@ public:
     static constexpr uint8_t CAPS_MASK = 0X1 << 4;
     static constexpr bool IS_KEYS_DOWN(uint32_t state, uint8_t mask)
     {
-        return (state & mask) == state;
+        return state == mask;
     }
 
 private:
