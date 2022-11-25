@@ -20,21 +20,26 @@
 #include <functional>
 #include <set>
 
-namespace OHOS ::MiscServices {
+#include "global.h"
+#include "key_event.h"
 
-struct CombineKey {
-    std::set<int32_t> preKeys;
-    int32_t finalKey;
-};
-
-enum CombineKeyCode : uint32_t { COMBINE_KEYCODE_CAPS = 0, COMBINE_KEYCODE_SHIFT, COMBINE_KEYCODE_CTRL_SHIFT };
-
-using KeyHandle = std::function<void()>;
+namespace OHOS {
+namespace MiscServices {
+using KeyHandle = std::function<int32_t(uint32_t)>;
 
 class KeyboardEvent {
 public:
     static KeyboardEvent &GetInstance();
-    int32_t SubscribeKeyboardEvent(const CombineKey &combine, KeyHandle handle);
+    static int32_t AddKeyEventMonitor(KeyHandle handle);
+    static constexpr uint8_t SHIFT_LEFT_MASK = 0X1;
+    static constexpr uint8_t SHIFT_RIGHT_MASK = 0X1 << 1;
+    static constexpr uint8_t CTRL_LEFT_MASK = 0X1 << 2;
+    static constexpr uint8_t CTRL_RIGHT_MASK = 0X1 << 3;
+    static constexpr uint8_t CAPS_MASK = 0X1 << 4;
+    static constexpr bool IS_KEYS_DOWN(uint32_t state, uint8_t mask)
+    {
+        return state == mask;
+    }
 
 private:
     static constexpr int32_t PRESS_KEY_DELAY_MS = 200;
@@ -44,11 +49,6 @@ private:
     KeyboardEvent &operator=(const KeyboardEvent &) = delete;
     KeyboardEvent &operator=(KeyboardEvent &&) = delete;
 };
-
-struct KeyboardEventHandler {
-    CombineKey combine;
-    KeyHandle handle;
-};
-
-} // namespace OHOS::MiscServices
+} // namespace MiscServices
+} // namespace OHOS
 #endif // IMF_KEYBOARD_EVENT_H

@@ -20,7 +20,6 @@
 #include <map>
 #include <thread>
 
-#include "../adapter/keyboard/keyboard_event.h"
 #include "ability_manager_interface.h"
 #include "application_info.h"
 #include "bundle_mgr_proxy.h"
@@ -29,6 +28,7 @@
 #include "input_method_system_ability_stub.h"
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
+#include "keyboard_event.h"
 #include "peruser_session.h"
 #include "peruser_setting.h"
 #include "system_ability.h"
@@ -136,11 +136,11 @@ private:
     static constexpr const char *SELECT_DIALOG_HAP = "cn.openharmony.inputmethodchoosedialog";
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
 
-    int32_t SubscribeKeyboardEvent();
+    int32_t InitKeyEventMonitor();
     using CompareHandler = std::function<bool(const SubProperty &)>;
     SubProperty FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare);
     SubProperty GetExtends(const std::vector<Metadata> &metaData);
-    int32_t SwitchByCombinedKey(const CombineKeyCode &property);
+    int32_t SwitchByCombinationKey(uint32_t state);
 
     int32_t QueryImeInfos(int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &infos);
 };

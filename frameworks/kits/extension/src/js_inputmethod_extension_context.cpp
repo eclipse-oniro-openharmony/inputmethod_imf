@@ -260,7 +260,7 @@ private:
         sptr<JSInputMethodExtensionConnection> connection = new JSInputMethodExtensionConnection(engine);
         connection->SetJsConnectionObject(info.argv[1]);
         int64_t connectId = serialNumber_;
-        ConnecttionKey key;
+        ConnectionKey key;
         key.id = serialNumber_;
         key.want = want;
         connects_.emplace(key, connection);
@@ -316,7 +316,7 @@ private:
         sptr<JSInputMethodExtensionConnection> connection = new JSInputMethodExtensionConnection(engine);
         connection->SetJsConnectionObject(info.argv[1]);
         int64_t connectId = serialNumber_;
-        ConnecttionKey key;
+        ConnectionKey key;
         key.id = serialNumber_;
         key.want = want;
         connects_.emplace(key, connection);
@@ -363,7 +363,7 @@ private:
             reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ZERO]), &connectId);
         IMSA_HILOGI("OnDisconnectAbility connection:%{public}d", static_cast<int32_t>(connectId));
         auto item = std::find_if(connects_.begin(), connects_.end(),
-            [&connectId](const std::map<ConnecttionKey,
+            [&connectId](const std::map<ConnectionKey,
                 sptr<JSInputMethodExtensionConnection>>::value_type &obj) {
                 return connectId == obj.first.id;
             });
@@ -596,7 +596,7 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(
     std::string abilityName = element.GetAbilityName();
     auto item = std::find_if(connects_.begin(), connects_.end(),
         [bundleName, abilityName](
-            const std::map<ConnecttionKey, sptr<JSInputMethodExtensionConnection>>::value_type &obj) {
+            const std::map<ConnectionKey, sptr<JSInputMethodExtensionConnection>>::value_type &obj) {
             return (bundleName == obj.first.want.GetBundle())
                    && (abilityName == obj.first.want.GetElement().GetAbilityName());
         });

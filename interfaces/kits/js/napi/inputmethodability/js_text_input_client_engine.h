@@ -45,7 +45,7 @@ struct SendKeyFunctionContext : public AsyncCall::Context {
 };
 
 struct MoveCursorContext : public AsyncCall::Context {
-    bool num = false;
+    int32_t num = 0;
     napi_status status = napi_generic_failure;
     MoveCursorContext() : Context(nullptr, nullptr){};
     MoveCursorContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};

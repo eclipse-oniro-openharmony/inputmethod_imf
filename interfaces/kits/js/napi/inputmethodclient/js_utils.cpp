@@ -20,9 +20,7 @@ namespace MiscServices {
 const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_STATUS_PERMISSION_DENIED, EXCEPTION_PERMISSION },
     { ErrorCode::ERROR_REMOTE_IME_DIED, EXCEPTION_IMENGINE },
-    { ErrorCode::ERROR_RESTART_IME_FAILED, EXCEPTION_IMENGINE },
     { ErrorCode::ERROR_REMOTE_CLIENT_DIED, EXCEPTION_IMCLIENT },
-    { ErrorCode::ERROR_CLIENT_DUPLICATED, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NOT_FOUND, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NULL_POINTER, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_NOT_IME_PACKAGE, EXCEPTION_SETTINGS },
@@ -42,19 +40,11 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_IME_BIND_FAILED, EXCEPTION_IMMS },
     { ErrorCode::ERROR_IME_UNBIND_FAILED, EXCEPTION_IMMS },
     { ErrorCode::ERROR_IME_START_FAILED, EXCEPTION_IMMS },
-    { ErrorCode::ERROR_IME_STOP_FAILED, EXCEPTION_IMMS },
     { ErrorCode::ERROR_KBD_SHOW_FAILED, EXCEPTION_IMMS },
     { ErrorCode::ERROR_KBD_HIDE_FAILED, EXCEPTION_IMMS },
     { ErrorCode::ERROR_IME_NOT_STARTED, EXCEPTION_IMMS },
     { ErrorCode::ERROR_KBD_IS_OCCUPIED, EXCEPTION_IMMS },
     { ErrorCode::ERROR_KBD_IS_NOT_SHOWING, EXCEPTION_IMMS },
-    { ErrorCode::ERROR_IME_ALREADY_STARTED, EXCEPTION_IMMS },
-    { ErrorCode::ERROR_NO_NEXT_IME, EXCEPTION_IMMS },
-    { ErrorCode::ERROR_CLIENTWINDOW_NOT_FOCUSED, EXCEPTION_IMMS },
-    { ErrorCode::ERROR_CLIENT_NOT_WINDOW, EXCEPTION_IMMS },
-    { ErrorCode::ERROR_IME_PROPERTY_MARSHALL, EXCEPTION_IMMS },
-    { ErrorCode::ERROR_GETTING_CURRENT_IME, EXCEPTION_IMMS },
-    { ErrorCode::ERROR_LIST_IME, EXCEPTION_IMMS },
     { ErrorCode::ERROR_EX_NULL_POINTER, EXCEPTION_IMMS },
     { ErrorCode::ERROR_PERSIST_CONFIG, EXCEPTION_CONFPERSIST },
     { ErrorCode::ERROR_PACKAGE_MANAGER, EXCEPTION_PACKAGEMANAGER },
@@ -83,86 +73,85 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
-        { EXCEPTION_PERMISSION, "the permissions check fails." },
-        { EXCEPTION_PARAMCHECK, "the parameters check fails." },
-        { EXCEPTION_UNSUPPORTED, "call unsupported api." },
-        { EXCEPTION_PACKAGEMANAGER, "package manager error." },
-        { EXCEPTION_IMENGINE, "input method engine error." },
-        { EXCEPTION_IMCLIENT, "input method client error." },
-        { EXCEPTION_KEYEVENT, "key event processing error." },
-        { EXCEPTION_CONFPERSIST, "configuration persisting error." },
-        { EXCEPTION_CONTROLLER, "input method controller error." },
-        { EXCEPTION_SETTINGS, "input method settings extension error." },
-        { EXCEPTION_IMMS, "input method manager service error." },
-        { EXCEPTION_OTHERS, "others error." },
-    };
+    { EXCEPTION_PERMISSION, "the permissions check fails." },
+    { EXCEPTION_PARAMCHECK, "the parameters check fails." },
+    { EXCEPTION_UNSUPPORTED, "call unsupported api." },
+    { EXCEPTION_PACKAGEMANAGER, "package manager error." },
+    { EXCEPTION_IMENGINE, "input method engine error." },
+    { EXCEPTION_IMCLIENT, "input method client error." },
+    { EXCEPTION_KEYEVENT, "key event processing error." },
+    { EXCEPTION_CONFPERSIST, "configuration persisting error." },
+    { EXCEPTION_CONTROLLER, "input method controller error." },
+    { EXCEPTION_SETTINGS, "input method settings extension error." },
+    { EXCEPTION_IMMS, "input method manager service error." },
+    { EXCEPTION_OTHERS, "others error." },
+};
 
-    const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
-        { TYPE_UNDEFINED, "napi_undefine." },
-        { TYPE_NULL, "napi_null." },
-        { TYPE_BOOLEAN, "napi_boolean." },
-        { TYPE_NUMBER, "napi_number." },
-        { TYPE_STRING, "napi_string." },
-        { TYPE_SYMBOL, "napi_symbol." },
-        { TYPE_OBJECT, "napi_object." },
-        { TYPE_FUNCTION, "napi_function." },
-        { TYPE_EXTERNAL, "napi_external." },
-        { TYPE_BIGINT, "napi_bigint." },
-    };
+const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
+    { TYPE_UNDEFINED, "napi_undefine." },
+    { TYPE_NULL, "napi_null." },
+    { TYPE_BOOLEAN, "napi_boolean." },
+    { TYPE_NUMBER, "napi_number." },
+    { TYPE_STRING, "napi_string." },
+    { TYPE_SYMBOL, "napi_symbol." },
+    { TYPE_OBJECT, "napi_object." },
+    { TYPE_FUNCTION, "napi_function." },
+    { TYPE_EXTERNAL, "napi_external." },
+    { TYPE_BIGINT, "napi_bigint." },
+};
 
-    void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type)
-    {
-        std::string errMsg = ToMessage(err);
-        if (type == TypeCode::TYPE_NONE) {
-            errMsg = errMsg + msg;
-            IMSA_HILOGE("THROW_PARAMTER_ERROR message: %{public}s", errMsg.c_str());
-        } else {
-            auto iter = PARAMETER_TYPE.find(type);
-            if (iter != PARAMETER_TYPE.end()) {
-                errMsg = errMsg + "The type of " + msg + " must be " + iter->second;
-                IMSA_HILOGE("THROW_PARAMTER_TYPE_ERROR message: %{public}s", errMsg.c_str());
-            }
+void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type)
+{
+    std::string errMsg = ToMessage(err);
+    if (type == TypeCode::TYPE_NONE) {
+        errMsg = errMsg + msg;
+        IMSA_HILOGE("THROW_PARAMETER_ERROR message: %{public}s", errMsg.c_str());
+    } else {
+        auto iter = PARAMETER_TYPE.find(type);
+        if (iter != PARAMETER_TYPE.end()) {
+            errMsg = errMsg + "The type of " + msg + " must be " + iter->second;
+            IMSA_HILOGE("THROW_PARAMETER_TYPE_ERROR message: %{public}s", errMsg.c_str());
         }
-        napi_throw_error(env, std::to_string(err).c_str(), errMsg.c_str());
     }
-
-    napi_value JsUtils::ToError(napi_env env, int32_t code)
-    {
-        IMSA_HILOGE("ToError start");
-        napi_value errorObj;
-        NAPI_CALL(env, napi_create_object(env, &errorObj));
-        napi_value errorCode = nullptr;
-        NAPI_CALL(
-            env, napi_create_string_utf8(env, std::to_string(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorCode));
-        napi_value errorMessage = nullptr;
-        NAPI_CALL(env, napi_create_string_utf8(env, ToMessage(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
-        NAPI_CALL(env, napi_set_named_property(env, errorObj, "code", errorCode));
-        NAPI_CALL(env, napi_set_named_property(env, errorObj, "message", errorMessage));
-        IMSA_HILOGE("ToError end");
-        return errorObj;
-    }
-
-    int32_t JsUtils::Convert(int32_t code)
-    {
-        IMSA_HILOGI("Convert start");
-        auto iter = ERROR_CODE_MAP.find(code);
-        if (iter != ERROR_CODE_MAP.end()) {
-            IMSA_HILOGE("ErrorCode: %{public}d", iter->second);
-            return iter->second;
-        }
-        IMSA_HILOGI("Convert end");
-        return ERROR_CODE_QUERY_FAILED;
-    }
-
-    const std::string JsUtils::ToMessage(int32_t code)
-    {
-        IMSA_HILOGI("ToMessage start");
-        auto iter = ERROR_CODE_CONVERT_MESSAGE_MAP.find(code);
-        if (iter != ERROR_CODE_CONVERT_MESSAGE_MAP.end()) {
-            IMSA_HILOGI("ErrorMessage: %{public}s", (iter->second).c_str());
-            return iter->second;
-        }
-        return "error is out of definition.";
-    }
+    napi_throw_error(env, std::to_string(err).c_str(), errMsg.c_str());
 }
+
+napi_value JsUtils::ToError(napi_env env, int32_t code)
+{
+    IMSA_HILOGE("ToError start");
+    napi_value errorObj;
+    NAPI_CALL(env, napi_create_object(env, &errorObj));
+    napi_value errorCode = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, std::to_string(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorCode));
+    napi_value errorMessage = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, ToMessage(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
+    NAPI_CALL(env, napi_set_named_property(env, errorObj, "code", errorCode));
+    NAPI_CALL(env, napi_set_named_property(env, errorObj, "message", errorMessage));
+    IMSA_HILOGE("ToError end");
+    return errorObj;
 }
+
+int32_t JsUtils::Convert(int32_t code)
+{
+    IMSA_HILOGI("Convert start");
+    auto iter = ERROR_CODE_MAP.find(code);
+    if (iter != ERROR_CODE_MAP.end()) {
+        IMSA_HILOGE("ErrorCode: %{public}d", iter->second);
+        return iter->second;
+    }
+    IMSA_HILOGI("Convert end");
+    return ERROR_CODE_QUERY_FAILED;
+}
+
+const std::string JsUtils::ToMessage(int32_t code)
+{
+    IMSA_HILOGI("ToMessage start");
+    auto iter = ERROR_CODE_CONVERT_MESSAGE_MAP.find(code);
+    if (iter != ERROR_CODE_CONVERT_MESSAGE_MAP.end()) {
+        IMSA_HILOGI("ErrorMessage: %{public}s", (iter->second).c_str());
+        return iter->second;
+    }
+    return "error is out of definition.";
+}
+} // namespace MiscServices
+} // namespace OHOS

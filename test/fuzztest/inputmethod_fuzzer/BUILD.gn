@@ -1,0 +1,69 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//base/inputmethod/imf/inputmethod.gni")
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
+import("//build/ohos.gni")
+import("//build/test.gni")
+
+##############################fuzztest##########################################
+ohos_fuzztest("InputMethodFuzzTest") {
+  module_out_path = "inputmethod/inputmethod"
+
+  fuzz_config_file = "//base/inputmethod/imf/test/fuzztest/inputmethod_fuzzer"
+
+  include_dirs = [
+    "//base/inputmethod/imf/services/include",
+    "//base/inputmethod/imf/services/adapter/keyboard/include",
+    "//base/inputmethod/imf/etc/para/include",
+    "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager/include/appmgr",
+    "//foundation/ability/ability_runtime/services/abilitymgr/include",
+    "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
+  ]
+
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-fno-omit-frame-pointer",
+  ]
+
+  sources = [ "inputmethod_fuzzer.cpp" ]
+
+  deps = [
+    "//base/inputmethod/imf/etc/para:inputmethod_para",
+    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
+    "//base/inputmethod/imf/services:inputmethod_service",
+    "//foundation/ability/ability_base:want",
+    "//foundation/ability/ability_runtime/services/abilitymgr:abilityms",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
+}
+
+###############################################################################
+group("fuzztest") {
+  testonly = true
+  deps = []
+  deps += [
+    # deps file
+    ":InputMethodFuzzTest",
+  ]
+}
+###############################################################################
