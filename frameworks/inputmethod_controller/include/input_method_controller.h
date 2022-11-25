@@ -116,6 +116,7 @@ namespace MiscServices {
         sptr<ImsaDeathRecipient> deathRecipient_;
         std::mutex agentLock_;
         std::shared_ptr<IInputMethodAgent> mAgent = nullptr;
+        std::mutex textListenerLock_;
         sptr<OnTextChangedListener> textListener;
         InputAttribute mAttribute;
         std::u16string mTextString;

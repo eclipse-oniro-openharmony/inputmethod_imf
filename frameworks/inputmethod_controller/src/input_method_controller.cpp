@@ -90,7 +90,10 @@ using namespace MessageID;
 
         workThreadHandler = std::thread([this] { WorkThread(); });
         mAttribute.inputPattern = InputAttribute::PATTERN_TEXT;
-        textListener = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(textListenerLock_);
+            textListener = nullptr;
+        }
         IMSA_HILOGI("InputMethodController::Initialize textListener is nullptr");
         PrepareInput(0, mClient, mInputDataChannel, mAttribute);
         return true;
@@ -138,6 +141,7 @@ using namespace MessageID;
                     MessageParcel *data = msg->msgContent_;
                     std::u16string text = data->ReadString16();
                     IMSA_HILOGI("InputMethodController::WorkThread InsertText");
+                    std::lock_guard<std::mutex> lock(textListenerLock_);
                     if (textListener) {
                         textListener->InsertText(text);
                     }
@@ -148,6 +152,7 @@ using namespace MessageID;
                     MessageParcel *data = msg->msgContent_;
                     int32_t length = data->ReadInt32();
                     IMSA_HILOGI("InputMethodController::WorkThread DeleteForward");
+                    std::lock_guard<std::mutex> lock(textListenerLock_);
                     if (textListener) {
                         textListener->DeleteForward(length);
                     }
@@ -157,6 +162,7 @@ using namespace MessageID;
                     MessageParcel *data = msg->msgContent_;
                     int32_t length = data->ReadInt32();
                     IMSA_HILOGI("InputMethodController::WorkThread DeleteBackward");
+                    std::lock_guard<std::mutex> lock(textListenerLock_);
                     if (textListener) {
                         textListener->DeleteBackward(length);
                     }
@@ -179,6 +185,7 @@ using namespace MessageID;
                 case MSG_ID_EXIT_SERVICE: {
                     MessageParcel *data = msg->msgContent_;
                     int32_t ret = data->ReadInt32();
+                    std::lock_guard<std::mutex> lock(textListenerLock_);
                     textListener = nullptr;
                     IMSA_HILOGI("InputMethodController::WorkThread MSG_ID_EXIT_SERVICE : %{public}d", ret);
                     break;
@@ -189,6 +196,7 @@ using namespace MessageID;
                     KeyboardInfo *info = new KeyboardInfo();
                     info->SetKeyboardStatus(ret);
                     IMSA_HILOGI("InputMethodController::WorkThread SendKeyboardInfo");
+                    std::lock_guard<std::mutex> lock(textListenerLock_);
                     if (textListener) {
                         textListener->SendKeyboardInfo(*info);
                     }
@@ -201,6 +209,7 @@ using namespace MessageID;
                     KeyboardInfo *info = new KeyboardInfo();
                     info->SetFunctionKey(ret);
                     IMSA_HILOGI("InputMethodController::WorkThread SendKeyboardInfo");
+                    std::lock_guard<std::mutex> lock(textListenerLock_);
                     if (textListener) {
                         textListener->SendKeyboardInfo(*info);
                     }
@@ -211,6 +220,7 @@ using namespace MessageID;
                     MessageParcel *data = msg->msgContent_;
                     int32_t ret = data->ReadInt32();
                     IMSA_HILOGI("InputMethodController::WorkThread MoveCursor");
+                    std::lock_guard<std::mutex> lock(textListenerLock_);
                     if (textListener) {
                         Direction direction = static_cast<Direction>(ret);
                         textListener->MoveCursor(direction);
@@ -265,7 +275,10 @@ using namespace MessageID;
 
     void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard)
     {
-        textListener = listener;
+        {
+            std::lock_guard<std::mutex> lock(textListenerLock_);
+            textListener = listener;
+        } 
         IMSA_HILOGI("InputMethodController::Attach");
         InputmethodTrace tracer("InputMethodController Attach trace.");
         IMSA_HILOGI("InputMethodController::Attach isShowKeyboard %{public}s", isShowKeyboard ? "true" : "false");
@@ -311,7 +324,10 @@ using namespace MessageID;
     {
         ReleaseInput(mClient);
         InputmethodTrace tracer("InputMethodController Close trace.");
-        textListener = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(textListenerLock_);
+            textListener = nullptr;
+        }
         IMSA_HILOGI("InputMethodController::Close");
     }
 
