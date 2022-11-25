@@ -82,8 +82,8 @@ const char *ToString(int errorCode)
         case ERROR_IME_START_FAILED: {
             return "failed to start input";
         }
-        case ERROR_IME_STOP_FAILED: {
-            return "failed to stop input";
+        case ERROR_ADD_CLIENT_FAILED: {
+            return "failed fo add client";
         }
         case ERROR_KBD_SHOW_FAILED: {
             return "failed to show keyboard";
@@ -100,9 +100,6 @@ const char *ToString(int errorCode)
         case ERROR_KBD_IS_NOT_SHOWING: {
             return "keyboard is not showing";
         }
-        case ERROR_IME_ALREADY_STARTED: {
-            return "input method service has already started";
-        }
         case ERROR_NOT_IME_PACKAGE: {
             return "not an input method engine package";
         }
@@ -112,26 +109,11 @@ const char *ToString(int errorCode)
         case ERROR_SETTING_SAME_VALUE: {
             return "same setting value";
         }
-        case ERROR_NO_NEXT_IME: {
-            return "next input method engine is not available";
-        }
-        case ERROR_CLIENTWINDOW_NOT_FOCUSED: {
-            return "input client window is not focused";
-        }
-        case ERROR_CLIENT_NOT_WINDOW: {
-            return "input client is not from a valid window";
-        }
         case ERROR_REMOTE_IME_DIED: {
             return "input method service died";
         }
-        case ERROR_RESTART_IME_FAILED: {
-            return "failed to restart input method service";
-        }
         case ERROR_REMOTE_CLIENT_DIED: {
             return "input client died";
-        }
-        case ERROR_CLIENT_DUPLICATED: {
-            return "duplicated client";
         }
         case ERROR_CLIENT_NOT_FOUND: {
             return "client is not found";
