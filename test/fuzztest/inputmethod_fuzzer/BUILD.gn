@@ -26,7 +26,7 @@ ohos_fuzztest("InputMethodFuzzTest") {
 
   include_dirs = [
     "//base/inputmethod/imf/services/include",
-    "//base/inputmethod/imf/services/adapter/keyboard",
+    "//base/inputmethod/imf/services/adapter/keyboard/include",
     "//base/inputmethod/imf/etc/para/include",
     "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager/include/appmgr",
     "//foundation/ability/ability_runtime/services/abilitymgr/include",

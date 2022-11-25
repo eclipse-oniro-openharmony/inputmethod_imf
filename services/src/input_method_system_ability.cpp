@@ -17,9 +17,7 @@
 
 #include <global.h>
 #include <utils.h>
-#include <key_event.h>
 
-#include "../adapter/keyboard/keyboard_event.h"
 #include "ability_connect_callback_proxy.h"
 #include "ability_manager_interface.h"
 #include "application_info.h"
@@ -31,6 +29,8 @@
 #include "input_method_status.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "itypes_util.h"
+#include "key_event.h"
 #include "message_handler.h"
 #include "os_account_manager.h"
 #include "para_handle.h"
@@ -38,7 +38,6 @@
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "ui_service_mgr_client.h"
-#include "itypes_util.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -184,8 +183,8 @@ namespace MiscServices {
         std::string defaultIme = ParaHandle::GetDefaultIme(userId_);
         StartInputService(defaultIme);
         StartUserIdListener();
-        int32_t ret = SubscribeKeyboardEvent();
-        IMSA_HILOGI("subscribe key event ret %{public}d", ret);
+        int32_t ret = InitKeyEventMonitor();
+        IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
         return ErrorCode::NO_ERROR;
     }
 
@@ -553,7 +552,8 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &name, const std::string &subName)
     {
-        IMSA_HILOGI("InputMethodSystemAbility::SwitchInputMethod");
+        IMSA_HILOGD("InputMethodSystemAbility name: %{public}s, subName: %{public}s", name.c_str(),
+            subName.c_str());
         return subName.empty() ? SwitchInputMethodType(name) : SwitchInputMethodSubtype(name, subName);
     }
 
@@ -1401,16 +1401,16 @@ namespace MiscServices {
         return {};
     }
 
-    int32_t InputMethodSystemAbility::SwitchByCombinedKey(const CombineKeyCode &keyCode)
+    int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     {
-        IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinedKey");
+        IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinationKey");
         auto current = GetCurrentInputMethodSubtype();
         if (current == nullptr) {
             IMSA_HILOGE("GetCurrentInputMethodSubtype failed");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        if (keyCode == CombineKeyCode::COMBINE_KEYCODE_CAPS) {
-            IMSA_HILOGI("COMBINE_KEYCODE_CAPS press");
+        if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CAPS_MASK)) {
+            IMSA_HILOGI("CAPS press");
             auto target = current->mode == "upper"
                               ? FindSubPropertyByCompare(current->id,
                                   [&current](const SubProperty &property) { return property.mode == "lower"; })
@@ -1418,8 +1418,9 @@ namespace MiscServices {
                                   [&current](const SubProperty &property) { return property.mode == "upper"; });
             return SwitchInputMethod(target.id, target.label);
         }
-        if (keyCode == CombineKeyCode::COMBINE_KEYCODE_SHIFT) {
-            IMSA_HILOGI("COMBINE_KEYCODE_SHIFT press");
+        if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::SHIFT_LEFT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::SHIFT_RIGHT_MASK)) {
+            IMSA_HILOGI("SHIFT press");
             auto target = current->language == "chinese"
                               ? FindSubPropertyByCompare(current->id,
                                   [&current](const SubProperty &property) { return property.language == "english"; })
@@ -1427,8 +1428,11 @@ namespace MiscServices {
                                   [&current](const SubProperty &property) { return property.language == "chinese"; });
             return SwitchInputMethod(target.id, target.label);
         }
-        if (keyCode == CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT) {
-            IMSA_HILOGI("COMBINE_KEYCODE_CTRL_SHIFT press");
+        if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_LEFT_MASK | KeyboardEvent::SHIFT_LEFT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_LEFT_MASK | KeyboardEvent::SHIFT_RIGHT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_RIGHT_MASK | KeyboardEvent::SHIFT_LEFT_MASK)
+            || KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_RIGHT_MASK | KeyboardEvent::SHIFT_RIGHT_MASK)) {
+            IMSA_HILOGI("CTRL_SHIFT press");
             std::vector<Property> props = {};
             auto ret = ListProperty(MAIN_USER_ID, props);
             if (ret != ErrorCode::NO_ERROR) {
@@ -1437,53 +1441,20 @@ namespace MiscServices {
             }
             for (const auto &prop : props) {
                 if (prop.name != current->id) {
-                    return SwitchInputMethod(current->name, current->id);
+                    return SwitchInputMethod(prop.name, prop.id);
                 }
             }
         }
-        IMSA_HILOGI("keycode undefined");
+        IMSA_HILOGD("keycode undefined");
         return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
     }
 
-    int32_t InputMethodSystemAbility::SubscribeKeyboardEvent()
+    int32_t InputMethodSystemAbility::InitKeyEventMonitor()
     {
-        ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
-            { { {
-                    .preKeys = {},
-                    .finalKey = MMI::KeyEvent::KEYCODE_CAPS_LOCK,
-                },
-                  [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CAPS); } },
-                { {
-                      .preKeys = {},
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
-                { {
-                      .preKeys = {},
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_LEFT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_LEFT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } },
-                { {
-                      .preKeys = { MMI::KeyEvent::KEYCODE_CTRL_RIGHT },
-                      .finalKey = MMI::KeyEvent::KEYCODE_SHIFT_RIGHT,
-                  },
-                    [this]() { SwitchByCombinedKey(CombineKeyCode::COMBINE_KEYCODE_CTRL_SHIFT); } } });
-        return 0;
+        IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor");
+        bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
+            [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode); });
+        return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
     }
 } // namespace MiscServices
 } // namespace OHOS
