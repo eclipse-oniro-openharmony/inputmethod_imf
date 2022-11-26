@@ -51,7 +51,6 @@ namespace MiscServices {
             delete msgHandler;
             msgHandler = nullptr;
         }
-        instance_ = nullptr;
     }
 
     sptr<InputMethodAbility> InputMethodAbility::GetInstance()
