@@ -96,66 +96,55 @@ namespace ErrorCode {
         ERROR_STATUS_UNEXPECTED_NULL = ERROR_STATUS_UNKNOWN_ERROR + 8, // unexpected null,
 
         // binder exception error code from Status.h
-        ERROR_EX_ILLEGAL_ARGUMENT = -3, // illegal argument exception
-        ERROR_EX_NULL_POINTER = -4, // null pointer exception
-        ERROR_EX_ILLEGAL_STATE = -5, // illegal state exception
-        ERROR_EX_NETWORK_MAIN_THREAD = -6, // network main thread exception
-        ERROR_EX_UNSUPPORTED_OPERATION = -7, // unsupported operation exception
-        ERROR_EX_SERVICE_SPECIFIC = -8, // service specific exception
-        ERROR_EX_PARCELABLE = -9, // parcelable exception
+        ERROR_EX_ILLEGAL_ARGUMENT           = -3,   // illegal argument exception
+        ERROR_EX_NULL_POINTER               = -4,   // null pointer exception
+        ERROR_EX_ILLEGAL_STATE              = -5,   // illegal state exception
+        ERROR_EX_NETWORK_MAIN_THREAD        = -6,   // network main thread exception
+        ERROR_EX_UNSUPPORTED_OPERATION      = -7,   // unsupported operation exception
+        ERROR_EX_SERVICE_SPECIFIC           = -8,   // service specific exception
+        ERROR_EX_PARCELABLE                 = -9,   // parcelable exception
         // no error
-        NO_ERROR = 0, // no error
+        NO_ERROR                            = 0,    // no error
 
         // system service error
-        ERROR_NULL_POINTER, // null pointer
-        ERROR_BAD_PARAMETERS,  // bad parameters
-        ERROR_SERVICE_START_FAILED, // failed to start service
-        ERROR_USER_NOT_STARTED, // user is not started
-        ERROR_USER_ALREADY_STARTED, // user has already started
-        ERROR_USER_NOT_UNLOCKED, // user is not unlocked
-        ERROR_USER_ALREADY_UNLOCKED, // user has already unlocked
-        ERROR_USER_NOT_LOCKED, // user is not locked
+        ERROR_NULL_POINTER                  = 1,    // null pointer
+        ERROR_BAD_PARAMETERS                = 2,    // bad parameters
+        ERROR_USER_NOT_STARTED              = 3,    // user is not started
+        ERROR_USER_ALREADY_STARTED          = 4,    // user has already started
+        ERROR_USER_NOT_UNLOCKED             = 5,    // user is not unlocked
+        ERROR_USER_ALREADY_UNLOCKED         = 6,    // user has already unlocked
+        ERROR_USER_NOT_LOCKED               = 7,    // user is not locked
 
-        ERROR_IME_NOT_AVAILABLE, // input method engine is not available
-        ERROR_SECURITY_IME_NOT_AVAILABLE, // security input method engine is not available
-        ERROR_TOKEN_CREATE_FAILED, // failed to create window token
-        ERROR_TOKEN_DESTROY_FAILED, // failed to destroy window token
-        ERROR_IME_BIND_FAILED, // failed to bind IME service
-        ERROR_IME_UNBIND_FAILED, // failed to unbind IME service
-        ERROR_IME_START_FAILED, // failed to start IME service
-        ERROR_IME_STOP_FAILED, // failed to stop IME service
-        ERROR_KBD_SHOW_FAILED, // failed to show keyboard
-        ERROR_KBD_HIDE_FAILED, // failed to hide keyboard
-        ERROR_IME_NOT_STARTED, // input method service is not started
-        ERROR_KBD_IS_OCCUPIED, // keyboard is showing by other client
-        ERROR_KBD_IS_NOT_SHOWING, // keyboard is not showing
-        ERROR_IME_ALREADY_STARTED, // input method service has already started
-        ERROR_NOT_IME_PACKAGE, // not an IME package
-        ERROR_IME_PACKAGE_DUPLICATED, // duplicated IME package
-        ERROR_SETTING_SAME_VALUE, // same setting value
-        ERROR_NO_NEXT_IME, // no next ime is available
-        ERROR_CLIENTWINDOW_NOT_FOCUSED, // the input client window is not focused
-        ERROR_CLIENT_NOT_WINDOW, // the input client is not from a valid window
-        ERROR_ADD_CLIENT_FAILED,
-        ERROR_IME_PROPERTY_MARSHALL, // failed to marshall the ime property
-        ERROR_GETTING_CURRENT_IME,
-        ERROR_LIST_IME,
-        ERROR_SWITCH_IME,
+        ERROR_IME_NOT_AVAILABLE             = 8,    // input method engine is not available
+        ERROR_SECURITY_IME_NOT_AVAILABLE    = 9,    // security input method engine is not available
+        ERROR_TOKEN_CREATE_FAILED           = 10,   // failed to create window token
+        ERROR_TOKEN_DESTROY_FAILED          = 11,   // failed to destroy window token
+        ERROR_IME_BIND_FAILED               = 12,   // failed to bind IME service
+        ERROR_IME_UNBIND_FAILED             = 13,   // failed to unbind IME service
+        ERROR_IME_START_FAILED              = 14,   // failed to start IME service
+        ERROR_KBD_SHOW_FAILED               = 15,   // failed to show keyboard
+        ERROR_KBD_HIDE_FAILED               = 16,   // failed to hide keyboard
+        ERROR_IME_NOT_STARTED               = 17,   // input method service is not started
+        ERROR_KBD_IS_OCCUPIED               = 18,   // keyboard is showing by other client
+        ERROR_KBD_IS_NOT_SHOWING            = 19,   // keyboard is not showing
+        ERROR_NOT_IME_PACKAGE               = 20,   // not an IME package
+        ERROR_IME_PACKAGE_DUPLICATED        = 21,   // duplicated IME package
+        ERROR_SETTING_SAME_VALUE            = 22,   // same setting value
+        ERROR_ADD_CLIENT_FAILED             = 23,   // add client failed
+        ERROR_SWITCH_IME                    = 24,
         // error from ime
-        ERROR_REMOTE_IME_DIED, // remote input method service died abnormally
-        ERROR_RESTART_IME_FAILED, // failed to restart input method service
-        ERROR_IME_NULL_POINTER, // null pointer
+        ERROR_REMOTE_IME_DIED               = 25,   // remote input method service died abnormally
         // error from client
-        ERROR_REMOTE_CLIENT_DIED,  // remote client died abnormally
-        ERROR_CLIENT_DUPLICATED,  // duplicated client
-        ERROR_CLIENT_NOT_FOUND, // client is not found
-        ERROR_CLIENT_NULL_POINTER, // null pointer
-        ERROR_SUBSCRIBE_KEYBOARD_EVENT,
-        ERROR_CONTROLLER_INVOKING_FAILED,
-        ERROR_PERSIST_CONFIG,
-        ERROR_PACKAGE_MANAGER,
+        ERROR_REMOTE_CLIENT_DIED            = 26,   // remote client died abnormally
+        ERROR_CLIENT_NOT_FOUND              = 27,   // client is not found
+        ERROR_CLIENT_NULL_POINTER           = 28,   // null pointer
+        ERROR_SUBSCRIBE_KEYBOARD_EVENT      = 29,
+        ERROR_CONTROLLER_INVOKING_FAILED    = 30,
+        ERROR_PERSIST_CONFIG                = 31,
+        ERROR_PACKAGE_MANAGER               = 32,
+        ERROR_SERVICE_START_FAILED          = 33,
     };
-    const char* ToString(int errorCode);
+    const char *ToString(int errorCode);
 }; // namespace ErrorCode
 
 static constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = {
