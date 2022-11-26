@@ -503,6 +503,7 @@ namespace MiscServices {
     void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     {
         IMSA_HILOGI("PerUserSession::OnClientDied Start...[%{public}d]\n", userId_);
+        SetClientState(false);
         sptr<IInputClient> client = GetCurrentClient();
         if (client == nullptr) {
             IMSA_HILOGE("current client is nullptr");
@@ -1075,13 +1076,17 @@ namespace MiscServices {
     */
     int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
     {
-        IMSA_HILOGI("PerUserSession::OnReleaseInput Start\n");
-        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
-        if (core == nullptr) {
-            return ErrorCode::ERROR_IME_NOT_AVAILABLE;
+        IMSA_HILOGI("PerUserSession::OnReleaseInput Start");
+        int ret = SetClientState(false);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to set client state, ret %{public}d", ret);
+            return ret;
         }
-        core->SetClientState(false);
-        HideKeyboard(client);
+        ret = HideKeyboard(client);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to hide keyboard ret %{public}d", ret);
+            return ret;
+        }
         RemoveClient(client->AsObject());
         IMSA_HILOGD("PerUserSession::OnReleaseInput End...[%{public}d]\n", userId_);
         return ErrorCode::NO_ERROR;
@@ -1095,11 +1100,11 @@ namespace MiscServices {
     int32_t PerUserSession::OnStartInput(sptr<IInputClient> client, bool isShowKeyboard)
     {
         IMSA_HILOGI("PerUserSession::OnStartInput");
-        sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
-        if (core == nullptr) {
-            return ErrorCode::ERROR_IME_NOT_AVAILABLE;
+        int32_t ret = SetClientState(true);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to set client state");
+            return ret;
         }
-        core->SetClientState(true);
         return ShowKeyboard(client, isShowKeyboard);
     }
 
@@ -1287,6 +1292,18 @@ namespace MiscServices {
             return;
         }
         imsCore[index] = core;
+    }
+
+    int32_t PerUserSession::SetClientState(bool isAlive)
+    {
+        IMSA_HILOGD("set client state %{public}d", isAlive);
+        auto core = GetImsCore(DEFAULT_IME);
+        if (core == nullptr) {
+            IMSA_HILOGE("imsCore is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        core->SetClientState(isAlive);
+        return ErrorCode::NO_ERROR;
     }
 } // namespace MiscServices
 } // namespace OHOS
