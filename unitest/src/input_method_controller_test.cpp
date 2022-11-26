@@ -29,6 +29,7 @@
 #include "i_input_method_system_ability.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
+#include "input_method_ability.h"
 #include "input_method_setting.h"
 #include "input_method_system_ability_proxy.h"
 #include "iservice_registry.h"
@@ -322,6 +323,7 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testShowSoftKeyboard, TestSize.Level0)
     {
         IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
+        InputMethodAbility::GetInstance();
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
         sptr<OnTextChangedListener> textListener = new TextListener();
@@ -338,6 +340,7 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testHideSoftKeyboard, TestSize.Level0)
     {
         IMSA_HILOGI("IMC HideSoftKeyboard Test START");
+        InputMethodAbility::GetInstance();
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_NE(imc, nullptr);
         sptr<OnTextChangedListener> textListener = new TextListener();
@@ -397,10 +400,11 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testIMCShowCurrentInput, TestSize.Level0)
     {
         IMSA_HILOGI("IMC ShowCurrentInput Test START");
+        InputMethodAbility::GetInstance();
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->ShowCurrentInput();
-        EXPECT_TRUE(ret == 0);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     }
 
     /**
@@ -467,10 +471,11 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testIMCHideCurrentInput, TestSize.Level0)
     {
         IMSA_HILOGI("IMC HideCurrentInput Test START");
+        InputMethodAbility::GetInstance();
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->HideCurrentInput();
-        EXPECT_TRUE(ret == 0);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     }
 
     /**
