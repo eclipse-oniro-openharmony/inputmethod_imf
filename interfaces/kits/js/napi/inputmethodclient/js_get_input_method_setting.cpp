@@ -426,11 +426,13 @@ void JsGetInputMethodSetting::RegisterListener(
         IMSA_HILOGE("methodName: %{public}s not registered!", type.c_str());
     }
 
-    for (auto &item : jsCbMap_[type]) {
-        if (Equals(item->env_, callback, item->callback_, item->threadId_)) {
-            IMSA_HILOGE("JsInputMethodEngineListener::IfCallbackRegistered callback already registered!");
-            return;
-        }
+    auto callbacks = jsCbMap_[type];
+    bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
+        return Equals(cb->env_, callback, cb->callback_, cb->threadId_);
+    });
+    if (ret) {
+        IMSA_HILOGE("JsGetInputMethodSetting::RegisterListener callback already registered!");
+        return;
     }
 
     IMSA_HILOGI("Add %{public}s callbackObj into jsCbMap_", type.c_str());

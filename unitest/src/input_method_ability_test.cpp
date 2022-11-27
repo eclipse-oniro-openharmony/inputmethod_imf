@@ -67,7 +67,7 @@ public:
         void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
         {
         }
-        void OnTextChange(std::string text)
+        void OnTextChange(const std::string &text)
         {
         }
     };
@@ -87,7 +87,7 @@ public:
             IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStart");
         }
 
-        void OnInputStop(std::string imeId)
+        void OnInputStop(const std::string &imeId)
         {
             imeIdStopped_ = imeId;
             IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStop");
