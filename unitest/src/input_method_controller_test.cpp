@@ -271,50 +271,6 @@ namespace MiscServices {
     }
 
     /**
-    * @tc.name: testInputMethodWholeProcess
-    * @tc.desc: Bind IMSA.
-    * @tc.type: FUNC
-    * @tc.require: issueI5NXHK
-    */
-    HWTEST_F(InputMethodControllerTest, testInputMethodWholeProcess, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC TEST START");
-        sptr<InputMethodController> imc = InputMethodController::GetInstance();
-        EXPECT_TRUE(imc != nullptr);
-        sptr<OnTextChangedListener> textListener = new TextListener();
-
-        IMSA_HILOGI("IMC Attach START");
-        imc->Attach(textListener);
-        int waitForStatusOk = 2;
-        sleep(waitForStatusOk);
-
-        IMSA_HILOGI("IMC Attach isShowKeyboard true START");
-        imc->Attach(textListener, true);
-        sleep(waitForStatusOk);
-
-        IMSA_HILOGI("IMC Attach isShowKeyboard false START");
-        imc->Attach(textListener, false);
-        sleep(waitForStatusOk);
-
-        IMSA_HILOGI("IMC ShowCurrentInput START");
-        imc->ShowCurrentInput();
-        sleep(waitForStatusOk);
-
-        IMSA_HILOGI("IMC ShowTextInput START");
-        imc->ShowTextInput();
-        sleep(10);
-
-        IMSA_HILOGI("IMC HideTextInput START");
-        imc->HideTextInput();
-        sleep(waitForStatusOk);
-
-        IMSA_HILOGI("IMC Close START");
-        imc->Close();
-        sleep(waitForStatusOk);
-        IMSA_HILOGI("IMC TEST OVER");
-    }
-
-    /**
     * @tc.name: testShowSoftKeyboard
     * @tc.desc: IMC ShowSoftKeyboard
     * @tc.type: FUNC
