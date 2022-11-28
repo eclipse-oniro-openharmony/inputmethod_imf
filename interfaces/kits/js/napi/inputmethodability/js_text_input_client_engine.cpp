@@ -76,7 +76,7 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
         }
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
     return asyncCall.Call(env, exec);
 }
 
