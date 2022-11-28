@@ -131,6 +131,22 @@ ohos_unittest("InputMethodDfxTest") {
   ]
 }
 
+ohos_unittest("InputMethodUtilsTest") {
+  module_out_path = module_output_path
+
+  sources = [ "src/input_method_utils_test.cpp" ]
+
+  deps = [
+    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
+}
+
 group("unittest") {
   testonly = true
 
@@ -141,5 +157,6 @@ group("unittest") {
     ":InputMethodControllerTest",
     ":InputMethodDfxTest",
     ":InputMethodServiceTest",
+    ":InputMethodUtilsTest",
   ]
 }
