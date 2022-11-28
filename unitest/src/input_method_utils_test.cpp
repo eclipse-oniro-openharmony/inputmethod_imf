@@ -68,11 +68,11 @@ HWTEST_F(InputMethodUtilsTest, inputMethodUtils_keyboardStatus_001, TestSize.Lev
 }
 
 /**
-* @tc.name: inputMethodUtils_FunctionKey_001
+* @tc.name: inputMethodUtils_functionKey_001
 * @tc.desc: Checkout FunctionKey.
 * @tc.type: FUNC
 */
-HWTEST_F(InputMethodUtilsTest, inputMethodUtils_FunctionKey_001, TestSize.Level0)
+HWTEST_F(InputMethodUtilsTest, inputMethodUtils_functionKey_001, TestSize.Level0)
 {
     KeyboardInfo info;
     info.SetFunctionKey(int32_t(FunctionKey::CONFIRM));

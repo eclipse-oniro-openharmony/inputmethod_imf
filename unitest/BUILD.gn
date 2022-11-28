@@ -157,5 +157,6 @@ group("unittest") {
     ":InputMethodControllerTest",
     ":InputMethodDfxTest",
     ":InputMethodServiceTest",
+    ":InputMethodUtilsTest",
   ]
 }
