@@ -300,7 +300,7 @@ namespace MiscServices {
 
     int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)
     {
-	    IMSA_HILOGD("InputMethodCoreProxy::SetSubtype");
+        IMSA_HILOGD("InputMethodCoreProxy::SetSubtype");
         return SendRequest(
             SET_SUBTYPE, [&property](MessageParcel &data) { return ITypesUtil::Marshal(data, property); });
     }

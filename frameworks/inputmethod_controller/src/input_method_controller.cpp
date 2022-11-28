@@ -278,7 +278,7 @@ using namespace MessageID;
         {
             std::lock_guard<std::mutex> lock(textListenerLock_);
             textListener = listener;
-        } 
+        }
         IMSA_HILOGI("InputMethodController::Attach");
         InputmethodTrace tracer("InputMethodController Attach trace.");
         IMSA_HILOGI("InputMethodController::Attach isShowKeyboard %{public}s", isShowKeyboard ? "true" : "false");
