@@ -64,7 +64,7 @@ HWTEST_F(InputMethodUtilsTest, inputMethodUtils_keyboardStatus_001, TestSize.Lev
     KeyboardInfo info;
     info.SetKeyboardStatus(int32_t(KeyboardStatus::SHOW));
     KeyboardStatus status = info.GetKeyboardStatus();
-    EXPECT_EQ(status, KeyboardStatus::HIDE);
+    EXPECT_EQ(status, KeyboardStatus::SHOW);
 }
 
 /**
