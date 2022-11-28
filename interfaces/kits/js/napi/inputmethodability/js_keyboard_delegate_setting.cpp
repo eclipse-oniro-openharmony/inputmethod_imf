@@ -178,12 +178,13 @@ void JsKeyboardDelegateSetting::RegisterListener(
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGE("methodName %{public}s not registered!", type.c_str());
     }
-
-    for (auto &item : jsCbMap_[type]) {
-        if (Equals(item->env_, callback, item->callback_, item->threadId_)) {
-            IMSA_HILOGE("JsKeyboardDelegateSetting::RegisterListener callback already registered!");
-            return;
-        }
+    auto callbacks = jsCbMap_[type];
+    bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
+        return Equals(cb->env_, callback, cb->callback_, cb->threadId_);
+    });
+    if (ret) {
+        IMSA_HILOGE("JsKeyboardDelegateSetting::RegisterListener callback already registered!");
+        return;
     }
 
     IMSA_HILOGI("Add %{public}s callbackObj into jsCbMap_", type.c_str());
@@ -605,7 +606,7 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
         });
 }
 
-void JsKeyboardDelegateSetting::OnTextChange(std::string text)
+void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 {
     IMSA_HILOGI("run in OnTextChange");
     std::string type = "cursorContextChange";
