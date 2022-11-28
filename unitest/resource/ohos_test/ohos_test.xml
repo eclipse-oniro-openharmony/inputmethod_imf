@@ -20,7 +20,7 @@
             <option name="shell" value="bm install -r -p /data/test/resource/imf/extImf.hap"/>
         </preparer>
         <cleaner>
-            <option name="shell" value="bm uninstall -n com.example.startabilitytest"/>
+            <option name="shell" value="bm uninstall -n com.example.testIme"/>
         </cleaner>
     </target>
 </configuration>

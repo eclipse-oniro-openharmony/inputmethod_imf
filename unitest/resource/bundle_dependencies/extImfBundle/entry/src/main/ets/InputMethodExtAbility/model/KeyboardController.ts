@@ -19,7 +19,6 @@ globalThis.inputEngine = inputMethodEngine.getInputMethodAbility()
 
 export class KeyboardController {
     private TAG: string = 'inputDemo: KeyboardController ';
-    mContext
 
     constructor(context) {
         this.addLog('constructor');

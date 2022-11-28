@@ -41,7 +41,7 @@ public:
     static std::string extBundleName;
     static std::string extAbilityName;
 };
-std::string InputMethodSwitchTest::extBundleName = "com.example.startabilitytest";
+std::string InputMethodSwitchTest::extBundleName = "com.example.testIme";
 std::string InputMethodSwitchTest::extAbilityName = "InputMethodExtAbility";
 constexpr int32_t DEALY_TIME = 10;
 constexpr int32_t MINIMUM_INSTALL_INPUTMETHOD_NUM = 2;
