@@ -43,7 +43,7 @@ public:
     static napi_value MoveCursor(napi_env env, napi_callback_info info);
     void OnInputStart() override;
     void OnKeyboardStatus(bool isShow) override;
-    void OnInputStop(std::string imeId) override;
+    void OnInputStop(const std::string &imeId) override;
     void OnSetCallingWindow(uint32_t windowId) override;
     void OnSetSubtype(const SubProperty &property) override;
 

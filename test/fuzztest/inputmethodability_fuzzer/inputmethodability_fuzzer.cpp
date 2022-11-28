@@ -24,7 +24,7 @@ namespace OHOS {
 class EngineListener : public InputMethodEngineListener {
     void OnKeyboardStatus(bool isShow) {}
     void OnInputStart() {}
-    void OnInputStop(std::string imeId) {}
+    void OnInputStop(const std::string &imeId) {}
     void OnSetCallingWindow(uint32_t windowId) {}
     void OnSetSubtype(const SubProperty &property) {}
 };
@@ -36,7 +36,7 @@ class KeyboardListenerImpl : public KeyboardListener {
     }
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) {}
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) {}
-    void OnTextChange(std::string text) {}
+    void OnTextChange(const std::string &text) {}
 };
 
 void TestInsertText(std::string fuzzedString)

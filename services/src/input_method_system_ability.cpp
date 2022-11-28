@@ -1439,10 +1439,10 @@ namespace MiscServices {
                 IMSA_HILOGE("ListProperty failed");
                 return ret;
             }
-            for (const auto &prop : props) {
-                if (prop.name != current->id) {
-                    return SwitchInputMethod(prop.name, prop.id);
-                }
+            auto iter = std::find_if(props.begin(), props.end(),
+                [&current](const Property &property) { return property.name != current->id; });
+            if (iter != props.end()) {
+                return SwitchInputMethod(iter->name, iter->id);
             }
         }
         IMSA_HILOGD("keycode undefined");
