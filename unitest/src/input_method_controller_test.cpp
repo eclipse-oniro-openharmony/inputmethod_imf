@@ -321,31 +321,6 @@ namespace MiscServices {
         EXPECT_EQ(ret, 0);
     }
 
-    /**
-     * @tc.name: testIMCGetCurrentInputMethod
-     * @tc.desc: IMC GetCurrentInputMethod
-     * @tc.type: FUNC
-     * @tc.require: issueI5OX20
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCGetCurrentInputMethod, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC GetCurrentInputMethod Test Start");
-        std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
-        EXPECT_TRUE(property != nullptr);
-    }
-
-    /**
-     * @tc.name: testIMCGetCurrentInputMethodSubtype
-     * @tc.desc: IMC GetCurrentInputMethodSubtype
-     * @tc.type: FUNC
-     * @tc.require: issueI5U8FZ
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCGetCurrentInputMethodSubtype, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC GetCurrentInputMethodSubtype Test Start");
-        auto property = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
-        EXPECT_TRUE(property != nullptr);
-    }
 
     /**
     * @tc.name: testIMCShowCurrentInput
@@ -360,77 +335,6 @@ namespace MiscServices {
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
         int32_t ret = imc->ShowCurrentInput();
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    }
-
-    /**
-     * @tc.name: testIMCListInputMethod
-     * @tc.desc: IMC ListInputMethod
-     * @tc.type: FUNC
-     * @tc.require: issueI5OX20
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCListInputMethod, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC ListInputMethod Test START");
-        sptr<InputMethodController> imc = InputMethodController::GetInstance();
-        EXPECT_NE(imc, nullptr);
-
-        IMSA_HILOGI("Test list all input method");
-        std::vector<Property> properties = {};
-        auto ret = imc->ListInputMethod(properties);
-        EXPECT_TRUE(!properties.empty());
-
-        IMSA_HILOGI("Test list disabled input method");
-        ret = imc->ListInputMethod(false, properties);
-        IMSA_HILOGI("Test list enabled input method");
-        ret = imc->ListInputMethod(true, properties);
-        EXPECT_TRUE(!properties.empty());
-    }
-
-    /**
-     * @tc.name: testIMCListCurrentInputMethodSubtype
-     * @tc.desc: IMC ListCurrentInputMethodSubtype
-     * @tc.type: FUNC
-     * @tc.require: issueI5U8FZ
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCListCurrentInputMethodSubtype, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC ListCurrentInputMethodSubtype Test START");
-        std::vector<SubProperty> subProps = {};
-        auto ret = InputMethodController::GetInstance()->ListCurrentInputMethodSubtype(subProps);
-        EXPECT_TRUE(ret == 0);
-        EXPECT_TRUE(!subProps.empty());
-    }
-
-    /**
-     * @tc.name: testIMCListInputMethodSubtype
-     * @tc.desc: IMC ListInputMethodSubtype
-     * @tc.type: FUNC
-     * @tc.require: issueI5U8FZ
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCListInputMethodSubtype, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC ListInputMethodSubtype Test START");
-        std::vector<SubProperty> subProps = {};
-        auto ret = InputMethodController::GetInstance()->ListInputMethodSubtype(
-            { .name = "com.example.kikakeyboard" }, subProps);
-        EXPECT_TRUE(ret == 0);
-        EXPECT_TRUE(!subProps.empty());
-    }
-
-    /**
-    * @tc.name: testIMCHideCurrentInput
-    * @tc.desc: IMC HideCurrentInput.
-    * @tc.type: FUNC
-    * @tc.require:
-    */
-    HWTEST_F(InputMethodControllerTest, testIMCHideCurrentInput, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC HideCurrentInput Test START");
-        InputMethodAbility::GetInstance();
-        sptr<InputMethodController> imc = InputMethodController::GetInstance();
-        EXPECT_TRUE(imc != nullptr);
-        int32_t ret = imc->HideCurrentInput();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     }
 
@@ -503,20 +407,19 @@ namespace MiscServices {
     }
 
     /**
-    * @tc.name: testIMCSwitchInputMethod
-    * @tc.desc: IMC testSwitchInputMethod.
+    * @tc.name: testIMCHideCurrentInput
+    * @tc.desc: IMC HideCurrentInput.
     * @tc.type: FUNC
-    * @tc.require: issueI5U8FZ
+    * @tc.require:
     */
-    HWTEST_F(InputMethodControllerTest, testIMCSwitchInputMethod, TestSize.Level0)
+    HWTEST_F(InputMethodControllerTest, testIMCHideCurrentInput, TestSize.Level0)
     {
-        IMSA_HILOGI("IMC SwitchInputMethod Test START");
+        IMSA_HILOGI("IMC HideCurrentInput Test START");
+        InputMethodAbility::GetInstance();
         sptr<InputMethodController> imc = InputMethodController::GetInstance();
         EXPECT_TRUE(imc != nullptr);
-        int32_t ret = imc->SwitchInputMethod("com.example.kikakeyboard");
-        EXPECT_EQ(ret, 0);
-        ret = imc->SwitchInputMethod("com.example.kikakeyboard", "ServiceExtAbility");
-        EXPECT_EQ(ret, 0);
+        int32_t ret = imc->HideCurrentInput();
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     }
 
     /**
