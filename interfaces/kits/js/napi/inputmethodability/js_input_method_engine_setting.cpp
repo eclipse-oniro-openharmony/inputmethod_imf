@@ -220,22 +220,22 @@ std::string JsInputMethodEngineSetting::GetStringProperty(napi_env env, napi_val
     return std::string(propValue);
 }
 
-void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::string type,
-    std::shared_ptr<JSCallbackObject> callbackObj)
+void JsInputMethodEngineSetting::RegisterListener(
+    napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
     IMSA_HILOGI("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGE("methodName: %{public}s not registertd!", type.c_str());
     }
-     auto callbacks = jsCbMap_[type];
-     bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
-         return Equals(cb->env_, callback, cb->callback_, cb->threadId_);
-     });
-     if (ret) {
-         IMSA_HILOGE("JsInputMethodEngineListener::RegisterListener callback already registered!");
-         return;
-     }
+    auto callbacks = jsCbMap_[type];
+    bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
+        return Equals(cb->env_, callback, cb->callback_, cb->threadId_);
+    });
+    if (ret) {
+        IMSA_HILOGE("JsInputMethodEngineListener::RegisterListener callback already registered!");
+        return;
+    }
 
     IMSA_HILOGI("Add %{public}s callbackObj into jsCbMap_", type.c_str());
     jsCbMap_[type].push_back(std::move(callbackObj));
