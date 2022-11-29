@@ -97,9 +97,10 @@ namespace MiscServices {
             IMSA_HILOGE("SubscribeKeyboardEvent abilityManager is nullptr");
             return false;
         }
-      sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([&handle]() {
-          int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(handle);
-          IMSA_HILOGI("SubscribeKeyboardEvent add monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
+        sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([&handle]() {
+            int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(handle);
+            IMSA_HILOGI(
+                "SubscribeKeyboardEvent add monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
         });
         if (listener == nullptr) {
             IMSA_HILOGE("SubscribeKeyboardEvent listener is nullptr");
