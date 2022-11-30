@@ -14,11 +14,14 @@
  */
 #include "input_method_controller.h"
 
+#include <event_handler.h>
 #include <gtest/gtest.h>
 #include <sys/time.h>
 
+#include <condition_variable>
 #include <cstdint>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -83,9 +86,24 @@ namespace MiscServices {
 
     class TextListener : public OnTextChangedListener {
     public:
-        TextListener() {}
-        ~TextListener() {}
-        void InsertText(const std::u16string& text)
+        TextListener()
+        {
+            std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("TextListenerNotifier");
+            serviceHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+        }
+        ~TextListener()
+        {
+        }
+        static KeyboardInfo keyboardInfo_;
+        static std::mutex cvMutex_;
+        static std::condition_variable cv_;
+        std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
+        static bool WaitIMACallback()
+        {
+            std::unique_lock<std::mutex> lock(TextListener::cvMutex_);
+            return TextListener::cv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
+        }
+        void InsertText(const std::u16string &text)
         {
             IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", MiscServices::Utils::ToStr8(text).c_str());
         }
@@ -103,19 +121,29 @@ namespace MiscServices {
         {
             IMSA_HILOGI("IMC TEST TextListener DeleteForward length: %{public}d", length);
         }
-        void SendKeyEventFromInputMethod(const KeyEvent& event)
+        void SendKeyEventFromInputMethod(const KeyEvent &event)
         {
             IMSA_HILOGI("IMC TEST TextListener sendKeyEventFromInputMethod");
         }
-        void SendKeyboardInfo(const KeyboardInfo& status)
+        void SendKeyboardInfo(const KeyboardInfo &status)
         {
-            IMSA_HILOGI("IMC TEST TextListener SendKeyboardInfo");
+            IMSA_HILOGD("TextListener::SendKeyboardInfo %{public}d", status.GetKeyboardStatus());
+            {
+                std::unique_lock<std::mutex> lock(cvMutex_);
+                IMSA_HILOGD("TextListener::SendKeyboardInfo lock");
+                keyboardInfo_ = status;
+            }
+            serviceHandler_->PostTask([this]() { cv_.notify_all(); }, 20);
+            IMSA_HILOGD("TextListener::SendKeyboardInfo notify_all");
         }
         void MoveCursor(const Direction direction)
         {
             IMSA_HILOGI("IMC TEST TextListener MoveCursor");
         }
     };
+    KeyboardInfo TextListener::keyboardInfo_;
+    std::mutex TextListener::cvMutex_;
+    std::condition_variable TextListener::cv_;
 
     class KeyboardListenerImpl : public KeyboardListener {
     public:
@@ -202,12 +230,14 @@ namespace MiscServices {
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
         static std::shared_ptr<KeyboardListenerImpl> kbListener_;
         static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
+        static sptr<OnTextChangedListener> textListener_;
     };
     sptr<InputMethodController> InputMethodControllerTest::inputMethodController_;
     sptr<InputMethodAbility> InputMethodControllerTest::inputMethodAbility_;
     std::shared_ptr<MMI::KeyEvent> InputMethodControllerTest::keyEvent_;
     std::shared_ptr<KeyboardListenerImpl> InputMethodControllerTest::kbListener_;
     std::shared_ptr<InputMethodEngineListenerImpl> InputMethodControllerTest::imeListener_;
+    sptr<OnTextChangedListener> InputMethodControllerTest::textListener_;
 
     void InputMethodControllerTest::SetUpTestCase(void)
     {
@@ -222,9 +252,11 @@ namespace MiscServices {
     void InputMethodControllerTest::SetUp(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::SetUp");
+        GrantNativePermission();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         kbListener_ = std::make_shared<KeyboardListenerImpl>();
         imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
+        textListener_ = new TextListener();
         inputMethodAbility_->setKdListener(kbListener_);
         inputMethodAbility_->setImeListener(imeListener_);
         inputMethodController_ = InputMethodController::GetInstance();
@@ -232,8 +264,6 @@ namespace MiscServices {
         keyEvent_ = MMI::KeyEvent::Create();
         keyEvent_->SetKeyAction(2);
         keyEvent_->SetKeyCode(2001);
-
-        GrantNativePermission();
     }
 
     void InputMethodControllerTest::TearDown(void)
@@ -250,13 +280,11 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testIMCAttach, TestSize.Level0)
     {
         IMSA_HILOGD("IMC Attach Test START");
-        sptr<OnTextChangedListener> textListener = new TextListener();
-        inputMethodController_->Attach(textListener, false);
-        usleep(200);
-        EXPECT_TRUE(imeListener_->isInputStart_);
-        inputMethodController_->Attach(textListener);
-        inputMethodController_->Attach(textListener, true);
-        usleep(200);
+        imeListener_->isInputStart_ = false;
+        inputMethodController_->Attach(textListener_, false);
+        inputMethodController_->Attach(textListener_);
+        inputMethodController_->Attach(textListener_, true);
+        EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_TRUE(imeListener_->isInputStart_ && imeListener_->keyboardState_);
     }
 
@@ -420,9 +448,10 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testShowTextInput, TestSize.Level0)
     {
         IMSA_HILOGI("IMC ShowTextInput Test START");
-        imeListener_->keyboardState_ = false;
+        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         inputMethodController_->ShowTextInput();
-        EXPECT_TRUE(imeListener_->keyboardState_);
+        EXPECT_TRUE(TextListener::WaitIMACallback());
+        EXPECT_TRUE(TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::SHOW);
     }
 
     /**
@@ -434,9 +463,12 @@ namespace MiscServices {
     {
         IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
         imeListener_->keyboardState_ = false;
+        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         int32_t ret = inputMethodController_->ShowSoftKeyboard();
+        EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(imeListener_->keyboardState_);
+        EXPECT_TRUE(
+            imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::SHOW);
     }
 
     /**
@@ -448,9 +480,12 @@ namespace MiscServices {
     {
         IMSA_HILOGI("IMC ShowCurrentInput Test START");
         imeListener_->keyboardState_ = false;
+        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         int32_t ret = inputMethodController_->ShowCurrentInput();
+        EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(imeListener_->keyboardState_);
+        EXPECT_TRUE(
+            imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::SHOW);
     }
 
     /**
@@ -461,7 +496,6 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testShowOptionalInputMethod, TestSize.Level2)
     {
         IMSA_HILOGI("IMC ShowOptionalInputMethod Test START");
-        sleep(2);
         int32_t ret = inputMethodController_->ShowOptionalInputMethod();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     }
@@ -583,10 +617,12 @@ namespace MiscServices {
     {
         IMSA_HILOGI("IMC HideSoftKeyboard Test START");
         imeListener_->keyboardState_ = true;
+        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         int32_t ret = inputMethodController_->HideSoftKeyboard();
-        usleep(300);
+        EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(!imeListener_->keyboardState_);
+        EXPECT_TRUE(
+            !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
     }
 
     /**
@@ -599,10 +635,12 @@ namespace MiscServices {
     {
         IMSA_HILOGI("IMC HideCurrentInput Test START");
         imeListener_->keyboardState_ = true;
+        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         int32_t ret = inputMethodController_->HideCurrentInput();
-        usleep(300);
+        EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(!imeListener_->keyboardState_);
+        EXPECT_TRUE(
+            !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
     }
 
     /**
@@ -616,9 +654,12 @@ namespace MiscServices {
     {
         IMSA_HILOGI("IMC StopInputSession Test START");
         imeListener_->keyboardState_ = true;
+        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         int32_t ret = inputMethodController_->StopInputSession();
+        EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(!imeListener_->keyboardState_);
+        EXPECT_TRUE(
+            !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
     }
 
     /**
@@ -630,9 +671,11 @@ namespace MiscServices {
     {
         IMSA_HILOGI("IMC InputStopSession Test START");
         imeListener_->keyboardState_ = true;
+        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         inputMethodController_->HideTextInput();
-        usleep(300);
-        EXPECT_TRUE(!imeListener_->keyboardState_);
+        EXPECT_TRUE(TextListener::WaitIMACallback());
+        EXPECT_TRUE(
+            !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
     }
 
     /**
@@ -644,9 +687,10 @@ namespace MiscServices {
     {
         IMSA_HILOGI("IMC Close Test START");
         imeListener_->keyboardState_ = true;
+        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         inputMethodController_->Close();
-        usleep(300);
-        EXPECT_TRUE(!imeListener_->keyboardState_);
+        bool ret = inputMethodController_->dispatchKeyEvent(keyEvent_);
+        EXPECT_FALSE(ret);
     }
 
     /**
