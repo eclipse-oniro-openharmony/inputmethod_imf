@@ -14,35 +14,36 @@
  */
 
 #include "para_handle.h"
+
 #include "parameter.h"
 
 namespace OHOS {
-    namespace MiscServices {
-        const char *ParaHandle::DEFAULT_IME_KEY = "persist.sys.default_ime";
-        bool ParaHandle::SetDefaultIme(int32_t userId, const std::string &imeName)
-        {
-            if (userId != main_userId) {
-                return !SetParameter(DEFAULT_IME_KEY + userId, imeName.data());
-            } else {
-                return !SetParameter(DEFAULT_IME_KEY, imeName.data());
-            }
-        }
+namespace MiscServices {
+const char *ParaHandle::DEFAULT_IME_KEY = "persist.sys.default_ime";
+bool ParaHandle::SetDefaultIme(int32_t userId, const std::string &imeName)
+{
+    if (userId != main_userId) {
+        return !SetParameter(DEFAULT_IME_KEY + userId, imeName.data());
+    } else {
+        return !SetParameter(DEFAULT_IME_KEY, imeName.data());
+    }
+}
 
-        std::string ParaHandle::GetDefaultIme(int32_t userId)
-        {
-            char value[CONFIG_LEN] = {0};
-            int code = 0;
-            if (userId != main_userId) {
-                code = GetParameter(DEFAULT_IME_KEY + userId, "", value, CONFIG_LEN);
-            } else {
-                code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
-            }
-            if (code > 0) {
-                return value;
-            }
-            std::string defaultName = std::string(DEFAULT_PACKAGE_NAME) + "/" + std::string(DEFAULT_ABILITY_NAME);
-            SetDefaultIme(userId, defaultName);
-            return defaultName;
-        }
-    } // namespace MiscServices
+std::string ParaHandle::GetDefaultIme(int32_t userId)
+{
+    char value[CONFIG_LEN] = { 0 };
+    int code = 0;
+    if (userId != main_userId) {
+        code = GetParameter(DEFAULT_IME_KEY + userId, "", value, CONFIG_LEN);
+    } else {
+        code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
+    }
+    if (code > 0) {
+        return value;
+    }
+    std::string defaultName = std::string(DEFAULT_PACKAGE_NAME) + "/" + std::string(DEFAULT_ABILITY_NAME);
+    SetDefaultIme(userId, defaultName);
+    return defaultName;
+}
+} // namespace MiscServices
 } // namespace OHOS

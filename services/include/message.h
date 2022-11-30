@@ -23,19 +23,19 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class Message {
-    public:
-        int32_t msgId_ {0}; // message id
-        MessageParcel *msgContent_ = nullptr; // message content
-        Message(int32_t msgId, MessageParcel *msgContent);
-        explicit Message(const Message& msg);
-        Message& operator =(const Message& msg);
-        ~Message();
+class Message {
+public:
+    int32_t msgId_{ 0 };                  // message id
+    MessageParcel *msgContent_ = nullptr; // message content
+    Message(int32_t msgId, MessageParcel *msgContent);
+    explicit Message(const Message &msg);
+    Message &operator=(const Message &msg);
+    ~Message();
 
-    private:
-        Message(const Message&&);
-        Message& operator =(const Message&&);
-    };
+private:
+    Message(const Message &&);
+    Message &operator=(const Message &&);
+};
 } // namespace MiscServices
 } // namespace OHOS
 

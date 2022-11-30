@@ -14,6 +14,7 @@
  */
 
 #include "inputmethod_trace.h"
+
 #include "hitrace_meter.h"
 
 namespace OHOS {
@@ -28,7 +29,7 @@ void ValueTrace(const std::string &name, int64_t count)
     CountTrace(HITRACE_TAG_MISC, name, count);
 }
 
-void StartAsync(uint64_t label, const std::string& value, int32_t taskId)
+void StartAsync(uint64_t label, const std::string &value, int32_t taskId)
 {
     StartAsyncTrace(label, value, taskId);
 }

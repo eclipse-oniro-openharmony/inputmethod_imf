@@ -14,18 +14,18 @@
  */
 
 #include "async_call.h"
+
 #include "global.h"
 #include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
-AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t pos)
-    : env_(env)
+AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t pos) : env_(env)
 {
     context_ = new AsyncContext();
     size_t argc = ARGC_MAX;
     napi_value self = nullptr;
-    napi_value argv[ARGC_MAX] = {nullptr};
+    napi_value argv[ARGC_MAX] = { nullptr };
     NAPI_CALL_RETURN_VOID(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
     pos = ((pos == ASYNC_DEFAULT_POS) ? (argc - 1) : pos);
     if (pos >= 0 && pos < argc) {
@@ -145,5 +145,5 @@ void AsyncCall::DeleteContext(napi_env env, AsyncContext *context)
     }
     delete context;
 }
-}
-}
+} // namespace MiscServices
+} // namespace OHOS

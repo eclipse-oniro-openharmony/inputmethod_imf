@@ -1,4 +1,4 @@
-    /*
+/*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,64 +17,62 @@
 
 namespace OHOS {
 namespace MiscServices {
-    /*! Constructor
+/*! Constructor
     */
-    MessageHandler::MessageHandler()
-    {
-    }
+MessageHandler::MessageHandler()
+{
+}
 
-    /*! Destructor
+/*! Destructor
     */
-    MessageHandler::~MessageHandler()
-    {
-        std::unique_lock<std::mutex> lock(mMutex);
-        while (!mQueue.empty()) {
-            Message *msg = mQueue.front();
-            mQueue.pop();
-            delete msg;
-            msg = nullptr;
-        }
+MessageHandler::~MessageHandler()
+{
+    std::unique_lock<std::mutex> lock(mMutex);
+    while (!mQueue.empty()) {
+        Message *msg = mQueue.front();
+        mQueue.pop();
+        delete msg;
+        msg = nullptr;
     }
+}
 
-    /*! Send a message
+/*! Send a message
       \param msg a message to be sent
       \note the msg pointer should not be freed by the caller
     */
-    void MessageHandler::SendMessage(Message *msg)
+void MessageHandler::SendMessage(Message *msg)
+{
     {
-        {
-            std::unique_lock<std::mutex> lock(mMutex);
-            mQueue.push(msg);
-        }
-        mCV.notify_one();
+        std::unique_lock<std::mutex> lock(mMutex);
+        mQueue.push(msg);
     }
+    mCV.notify_one();
+}
 
-    /*! Get a message
+/*! Get a message
       \return a pointer referred to an object of message
       \note the returned pointer should be freed by the caller.
     */
-    Message *MessageHandler::GetMessage()
-    {
-        std::unique_lock<std::mutex> lock(mMutex);
-        mCV.wait(lock, [this] {
-            return !this->mQueue.empty();
-        });
+Message *MessageHandler::GetMessage()
+{
+    std::unique_lock<std::mutex> lock(mMutex);
+    mCV.wait(lock, [this] { return !this->mQueue.empty(); });
 
-        Message *msg = (Message*) mQueue.front();
-        mQueue.pop();
-        return msg;
-    }
+    Message *msg = (Message *)mQueue.front();
+    mQueue.pop();
+    return msg;
+}
 
-    /*! The single instance of MessageHandler in the service
+/*! The single instance of MessageHandler in the service
       \return the pointer referred to an object.
     */
-    MessageHandler *MessageHandler::Instance()
-    {
-        static MessageHandler *handler = nullptr;
-        if (!handler) {
-            handler = new MessageHandler();
-        }
-        return handler;
+MessageHandler *MessageHandler::Instance()
+{
+    static MessageHandler *handler = nullptr;
+    if (!handler) {
+        handler = new MessageHandler();
     }
+    return handler;
+}
 } // namespace MiscServices
 } // namespace OHOS

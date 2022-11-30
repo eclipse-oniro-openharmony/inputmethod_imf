@@ -19,8 +19,8 @@
 #include "extension_module_loader.h"
 
 namespace OHOS::AbilityRuntime {
-class InputMethodExtensionModuleLoader
-    : public ExtensionModuleLoader, public Singleton<InputMethodExtensionModuleLoader> {
+class InputMethodExtensionModuleLoader : public ExtensionModuleLoader,
+                                         public Singleton<InputMethodExtensionModuleLoader> {
     DECLARE_SINGLETON(InputMethodExtensionModuleLoader);
 
 public:

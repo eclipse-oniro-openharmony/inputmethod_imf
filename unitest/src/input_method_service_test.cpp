@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-#include <sys/time.h>
-
 #include <cstdint>
 #include <functional>
+#include <gtest/gtest.h>
 #include <string>
+#include <sys/time.h>
 #include <thread>
 #include <vector>
 

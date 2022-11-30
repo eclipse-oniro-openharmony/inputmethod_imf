@@ -35,7 +35,7 @@ const std::string JsKeyboardDelegateSetting::KDS_CLASS_NAME = "KeyboardDelegate"
 thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
 
 std::mutex JsKeyboardDelegateSetting::keyboardMutex_;
-std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::keyboardDelegate_ { nullptr };
+std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::keyboardDelegate_{ nullptr };
 
 napi_value JsKeyboardDelegateSetting::Init(napi_env env, napi_value exports)
 {

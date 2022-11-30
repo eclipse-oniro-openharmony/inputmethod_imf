@@ -129,7 +129,7 @@ private:
     sptr<IInputMethodCore> imsCore[MAX_IME];       // the remote handlers of input method service
     sptr<IRemoteObject> inputMethodToken[MAX_IME]; // the window token of keyboard
     int currentKbdIndex[MAX_IME];                  // current keyboard index
-    int lastImeIndex = DEFAULT_IME;                          // The last ime which showed keyboard
+    int lastImeIndex = DEFAULT_IME;                // The last ime which showed keyboard
     InputMethodSetting *inputMethodSetting;        // The pointer referred to the object in PerUserSetting
 
     sptr<IInputMethodAgent> imsAgent;

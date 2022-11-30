@@ -17,21 +17,22 @@
 #define ETC_PARA_INCLUDE_PARA_HANDLE_H
 #include <string>
 namespace OHOS {
-    namespace MiscServices {
-        class ParaHandle {
-        public:
-            ParaHandle() = default;
-            virtual ~ParaHandle() = default;
-            static bool SetDefaultIme(int32_t userId, const std::string &imeName);
-            static std::string GetDefaultIme(int32_t userId);
+namespace MiscServices {
+class ParaHandle {
+public:
+    ParaHandle() = default;
+    virtual ~ParaHandle() = default;
+    static bool SetDefaultIme(int32_t userId, const std::string &imeName);
+    static std::string GetDefaultIme(int32_t userId);
 
-            static constexpr const char *DEFAULT_PACKAGE_NAME = "com.example.kikakeyboard";
-            static constexpr const char *DEFAULT_ABILITY_NAME = "ServiceExtAbility";
-        private:
-            static const char *DEFAULT_IME_KEY;
-            static constexpr int CONFIG_LEN = 128;
-            static const int32_t main_userId = 100;
-        };
-    } // namespace MiscServices
+    static constexpr const char *DEFAULT_PACKAGE_NAME = "com.example.kikakeyboard";
+    static constexpr const char *DEFAULT_ABILITY_NAME = "ServiceExtAbility";
+
+private:
+    static const char *DEFAULT_IME_KEY;
+    static constexpr int CONFIG_LEN = 128;
+    static const int32_t main_userId = 100;
+};
+} // namespace MiscServices
 } // namespace OHOS
 #endif // ETC_PARA_INCLUDE_PARA_HANDLE_H

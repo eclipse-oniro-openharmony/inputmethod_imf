@@ -13,104 +13,105 @@
  * limitations under the License.
  */
 
-#include "message_handler.h"
-#include "message.h"
-#include "message_parcel.h"
-#include "message_option.h"
-#include "global.h"
 #include "platform_callback_stub.h"
+
+#include "global.h"
+#include "message.h"
+#include "message_handler.h"
+#include "message_option.h"
+#include "message_parcel.h"
 
 namespace OHOS {
 namespace MiscServices {
-    using namespace MessageID;
-    PlatformCallbackStub::PlatformCallbackStub()
-    {
+using namespace MessageID;
+PlatformCallbackStub::PlatformCallbackStub()
+{
+}
+
+PlatformCallbackStub::~PlatformCallbackStub()
+{
+}
+
+int PlatformCallbackStub::OnRemoteRequest(
+    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    auto descriptorToken = data.ReadInterfaceToken();
+    if (descriptorToken != GetDescriptor()) {
+        return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
+    }
+    switch (code) {
+        case NOTIFY_EVENT: {
+            int eventId = data.ReadInt32();
+            int userId = data.ReadInt32();
+            std::vector<std::u16string> eventContent;
+            int size = data.ReadInt32();
+            if (size < 0) {
+                return ErrorCode::ERROR_STATUS_BAD_VALUE;
+            }
+            size_t availSize = data.GetReadableBytes();
+            if (static_cast<size_t>(size) > availSize) {
+                return ErrorCode::ERROR_STATUS_BAD_VALUE;
+            }
+
+            for (int i = 0; i < size; i++) {
+                eventContent.push_back(data.ReadString16());
+            }
+            notifyEvent(eventId, userId, eventContent);
+            break;
+        }
+        default: {
+            return IRemoteStub::OnRemoteRequest(code, data, reply, option);
+        }
+    }
+    return NO_ERROR;
+}
+
+void PlatformCallbackStub::notifyEvent(int eventId, int userId, const std::vector<std::u16string> &eventContent)
+{
+    int msgId = 0;
+    switch (eventId) {
+        case CommonEvent::COMMON_EVENT_USER_STARTED: {
+            msgId = MSG_ID_USER_START;
+            break;
+        }
+        case CommonEvent::COMMON_EVENT_USER_STOPPED: {
+            msgId = MSG_ID_USER_STOP;
+            break;
+        }
+        case CommonEvent::COMMON_EVENT_USER_UNLOCKED: {
+            msgId = MSG_ID_USER_UNLOCK;
+            break;
+        }
+        case CommonEvent::COMMON_EVENT_USER_LOCKED: {
+            msgId = MSG_ID_USER_LOCK;
+            break;
+        }
+        case CommonEvent::COMMON_EVENT_SETTING_CHANGED: {
+            msgId = MSG_ID_SETTING_CHANGED;
+            break;
+        }
+        case CommonEvent::COMMON_EVENT_PACKAGE_ADDED: {
+            msgId = MSG_ID_PACKAGE_ADDED;
+            break;
+        }
+        case CommonEvent::COMMON_EVENT_PACKAGE_REMOVED: {
+            msgId = MSG_ID_PACKAGE_REMOVED;
+            break;
+        }
+        default: {
+            return;
+        }
     }
 
-    PlatformCallbackStub::~PlatformCallbackStub()
-    {
+    MessageParcel *parcel = new MessageParcel();
+    parcel->WriteInt32(userId);
+    int size = eventContent.size();
+    parcel->WriteInt32(size);
+    for (int i = 0; i < size; i++) {
+        parcel->WriteString16(eventContent[i]);
     }
-
-    int PlatformCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply,
-                                              MessageOption& option)
-    {
-        auto descriptorToken = data.ReadInterfaceToken();
-        if (descriptorToken != GetDescriptor()) {
-            return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
-        }
-        switch (code) {
-            case NOTIFY_EVENT: {
-                int eventId = data.ReadInt32();
-                int userId = data.ReadInt32();
-                std::vector<std::u16string> eventContent;
-                int size  = data.ReadInt32();
-                if (size < 0) {
-                    return ErrorCode::ERROR_STATUS_BAD_VALUE;
-                }
-                size_t availSize = data.GetReadableBytes();
-                if (static_cast<size_t>(size) > availSize) {
-                    return ErrorCode::ERROR_STATUS_BAD_VALUE;
-                }
-
-                for (int i = 0; i < size; i++) {
-                    eventContent.push_back(data.ReadString16());
-                }
-                notifyEvent(eventId, userId, eventContent);
-                break;
-            }
-            default: {
-                return IRemoteStub::OnRemoteRequest(code, data, reply, option);
-            }
-        }
-        return NO_ERROR;
-    }
-
-    void PlatformCallbackStub::notifyEvent(int eventId, int userId, const std::vector<std::u16string>& eventContent)
-    {
-        int msgId = 0;
-        switch (eventId) {
-            case CommonEvent::COMMON_EVENT_USER_STARTED: {
-                msgId = MSG_ID_USER_START;
-                break;
-            }
-            case CommonEvent::COMMON_EVENT_USER_STOPPED: {
-                msgId = MSG_ID_USER_STOP;
-                break;
-            }
-            case CommonEvent::COMMON_EVENT_USER_UNLOCKED: {
-                msgId = MSG_ID_USER_UNLOCK;
-                break;
-            }
-            case CommonEvent::COMMON_EVENT_USER_LOCKED: {
-                msgId = MSG_ID_USER_LOCK;
-                break;
-            }
-            case CommonEvent::COMMON_EVENT_SETTING_CHANGED: {
-                msgId = MSG_ID_SETTING_CHANGED;
-                break;
-            }
-            case CommonEvent::COMMON_EVENT_PACKAGE_ADDED: {
-                msgId = MSG_ID_PACKAGE_ADDED;
-                break;
-            }
-            case CommonEvent::COMMON_EVENT_PACKAGE_REMOVED: {
-                msgId = MSG_ID_PACKAGE_REMOVED;
-                break;
-            }
-            default: {
-                return;
-            }
-        }
-
-        MessageParcel *parcel = new MessageParcel();
-        parcel->WriteInt32(userId);
-        int size = eventContent.size();
-        parcel->WriteInt32(size);
-        for (int i = 0; i < size; i++) {
-            parcel->WriteString16(eventContent[i]);
-        }
-        Message *msg = new Message(msgId, parcel);
-        MessageHandler::Instance()->SendMessage(msg);
-    }
+    Message *msg = new Message(msgId, parcel);
+    MessageHandler::Instance()->SendMessage(msg);
+}
 } // namespace MiscServices
 } // namespace OHOS

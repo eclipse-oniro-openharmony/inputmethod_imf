@@ -15,9 +15,8 @@
 
 #include "input_method_system_ability_stub.h"
 
-#include <utils.h>
-
 #include <memory>
+#include <utils.h>
 
 #include "access_token.h"
 #include "accesstoken_kit.h"

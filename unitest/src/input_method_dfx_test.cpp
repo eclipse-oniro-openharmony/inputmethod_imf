@@ -12,12 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cstdint>
 #include <gtest/gtest.h>
+#include <string>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include <cstdint>
-#include <string>
 
 #include "global.h"
 #include "securec.h"
