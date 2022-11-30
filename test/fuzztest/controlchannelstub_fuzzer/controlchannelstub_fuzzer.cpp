@@ -13,53 +13,51 @@
  * limitations under the License.
  */
 
-
 #include "controlchannelstub_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 
-#include "input_control_channel_stub.h"
 #include "global.h"
-
+#include "input_control_channel_stub.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
-    constexpr size_t THRESHOLD = 10;
-    constexpr int32_t OFFSET = 4;
-    const std::u16string CONTROLCHANNEL_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.InputControlChannel";
+constexpr size_t THRESHOLD = 10;
+constexpr int32_t OFFSET = 4;
+const std::u16string CONTROLCHANNEL_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.InputControlChannel";
 
-    uint32_t ConvertToUint32(const uint8_t *ptr)
-    {
-        if (ptr == nullptr) {
-            return 0;
-        }
-        uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
-        return bigVar;
+uint32_t ConvertToUint32(const uint8_t *ptr)
+{
+    if (ptr == nullptr) {
+        return 0;
     }
-    bool FuzzControlChannel(const uint8_t* rawData, size_t size)
-    {
-        constexpr int32_t MAIN_USER_ID = 100;
-        uint32_t code = ConvertToUint32(rawData);
-        rawData = rawData + OFFSET;
-        size = size - OFFSET;
-
-        MessageParcel data;
-        data.WriteInterfaceToken(CONTROLCHANNEL_INTERFACE_TOKEN);
-        data.WriteBuffer(rawData, size);
-        data.RewindRead(0);
-        MessageParcel reply;
-        MessageOption option;
-
-        sptr<InputControlChannelStub> controlChannel = new InputControlChannelStub(MAIN_USER_ID);
-        controlChannel->OnRemoteRequest(code, data, reply, option);
-
-        return true;
-    }
+    uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
+    return bigVar;
 }
+bool FuzzControlChannel(const uint8_t *rawData, size_t size)
+{
+    constexpr int32_t MAIN_USER_ID = 100;
+    uint32_t code = ConvertToUint32(rawData);
+    rawData = rawData + OFFSET;
+    size = size - OFFSET;
+
+    MessageParcel data;
+    data.WriteInterfaceToken(CONTROLCHANNEL_INTERFACE_TOKEN);
+    data.WriteBuffer(rawData, size);
+    data.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+
+    sptr<InputControlChannelStub> controlChannel = new InputControlChannelStub(MAIN_USER_ID);
+    controlChannel->OnRemoteRequest(code, data, reply, option);
+
+    return true;
+}
+} // namespace OHOS
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     if (size < OHOS::THRESHOLD) {
         return 0;

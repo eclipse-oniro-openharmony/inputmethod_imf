@@ -13,52 +13,50 @@
  * limitations under the License.
  */
 
-
 #include "platformcallbackstub_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 
-#include "platform_callback_stub.h"
 #include "global.h"
-
 #include "message_parcel.h"
+#include "platform_callback_stub.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
-    constexpr size_t THRESHOLD = 10;
-    constexpr int32_t OFFSET = 4;
-    const std::u16string PLATFORM_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.IPlatformCallback";
+constexpr size_t THRESHOLD = 10;
+constexpr int32_t OFFSET = 4;
+const std::u16string PLATFORM_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.IPlatformCallback";
 
-    uint32_t ConvertToUint32(const uint8_t *ptr)
-    {
-        if (ptr == nullptr) {
-            return 0;
-        }
-        uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
-        return bigVar;
+uint32_t ConvertToUint32(const uint8_t *ptr)
+{
+    if (ptr == nullptr) {
+        return 0;
     }
-    bool FuzzPlatformCallbackStub(const uint8_t* rawData, size_t size)
-    {
-        uint32_t code = ConvertToUint32(rawData);
-        rawData = rawData + OFFSET;
-        size = size - OFFSET;
-
-        MessageParcel data;
-        data.WriteInterfaceToken(PLATFORM_INTERFACE_TOKEN);
-        data.WriteBuffer(rawData, size);
-        data.RewindRead(0);
-        MessageParcel reply;
-        MessageOption option;
-
-        sptr<PlatformCallbackStub> cb = new PlatformCallbackStub();
-        cb->OnRemoteRequest(code, data, reply, option);
-
-        return true;
-    }
+    uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
+    return bigVar;
 }
+bool FuzzPlatformCallbackStub(const uint8_t *rawData, size_t size)
+{
+    uint32_t code = ConvertToUint32(rawData);
+    rawData = rawData + OFFSET;
+    size = size - OFFSET;
+
+    MessageParcel data;
+    data.WriteInterfaceToken(PLATFORM_INTERFACE_TOKEN);
+    data.WriteBuffer(rawData, size);
+    data.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+
+    sptr<PlatformCallbackStub> cb = new PlatformCallbackStub();
+    cb->OnRemoteRequest(code, data, reply, option);
+
+    return true;
+}
+} // namespace OHOS
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     if (size < OHOS::THRESHOLD) {
         return 0;

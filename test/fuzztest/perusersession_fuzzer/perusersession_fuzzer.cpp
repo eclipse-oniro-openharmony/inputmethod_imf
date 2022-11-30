@@ -37,58 +37,58 @@
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
-    constexpr size_t THRESHOLD = 10;
+constexpr size_t THRESHOLD = 10;
 
-    uint32_t ConvertToUint32(const uint8_t *ptr)
-    {
-        if (ptr == nullptr) {
-            return 0;
-        }
-        uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
-        return bigVar;
+uint32_t ConvertToUint32(const uint8_t *ptr)
+{
+    if (ptr == nullptr) {
+        return 0;
     }
-
-    bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
-    {
-        Property property;
-        SubProperty subProperty;
-
-        int flags = static_cast<int32_t>(*rawData);
-        std::string str(rawData, rawData + size);
-        std::u16string packageName = Str8ToStr16(str);
-        bool isShowKeyboard = true;
-        constexpr int32_t MAIN_USER_ID = 100;
-        sptr<IInputClient> client = new (std::nothrow) InputClientStub();
-        sptr<IRemoteObject> object = client->AsObject();
-        std::shared_ptr<PerUserSession> userSessions = std::make_shared<PerUserSession>(MAIN_USER_ID);
-        sptr<IInputMethodCore> core = new InputMethodCoreProxy(object);
-        sptr<IInputMethodAgent> agent = new InputMethodAgentProxy(object);
-        InputMethodInfo *ime = new InputMethodInfo();
-
-        userSessions->OnPackageRemoved(packageName);
-        userSessions->OnShowKeyboardSelf();
-        userSessions->OnInputMethodSwitched(property, subProperty);
-        userSessions->GetCurrentSubProperty();
-        userSessions->StartInputService();
-        userSessions->SetCurrentSubProperty(subProperty);
-        userSessions->StopInputService(str);
-        userSessions->JoinWorkThread();
-        userSessions->OnHideKeyboardSelf(flags);
-        userSessions->OnStartInput(client, isShowKeyboard);
-        userSessions->OnStopInput(client);
-        userSessions->OnReleaseInput(client);
-        userSessions->SetCurrentIme(ime);
-        userSessions->SetSecurityIme(ime);
-        userSessions->ResetIme(ime, ime);
-        userSessions->OnSetCoreAndAgent(core, agent);
-
-        delete ime;
-        ime = nullptr;
-        return true;
-    }
+    uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
+    return bigVar;
 }
+
+bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
+{
+    Property property;
+    SubProperty subProperty;
+
+    int flags = static_cast<int32_t>(*rawData);
+    std::string str(rawData, rawData + size);
+    std::u16string packageName = Str8ToStr16(str);
+    bool isShowKeyboard = true;
+    constexpr int32_t MAIN_USER_ID = 100;
+    sptr<IInputClient> client = new (std::nothrow) InputClientStub();
+    sptr<IRemoteObject> object = client->AsObject();
+    std::shared_ptr<PerUserSession> userSessions = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    sptr<IInputMethodCore> core = new InputMethodCoreProxy(object);
+    sptr<IInputMethodAgent> agent = new InputMethodAgentProxy(object);
+    InputMethodInfo *ime = new InputMethodInfo();
+
+    userSessions->OnPackageRemoved(packageName);
+    userSessions->OnShowKeyboardSelf();
+    userSessions->OnInputMethodSwitched(property, subProperty);
+    userSessions->GetCurrentSubProperty();
+    userSessions->StartInputService();
+    userSessions->SetCurrentSubProperty(subProperty);
+    userSessions->StopInputService(str);
+    userSessions->JoinWorkThread();
+    userSessions->OnHideKeyboardSelf(flags);
+    userSessions->OnStartInput(client, isShowKeyboard);
+    userSessions->OnStopInput(client);
+    userSessions->OnReleaseInput(client);
+    userSessions->SetCurrentIme(ime);
+    userSessions->SetSecurityIme(ime);
+    userSessions->ResetIme(ime, ime);
+    userSessions->OnSetCoreAndAgent(core, agent);
+
+    delete ime;
+    ime = nullptr;
+    return true;
+}
+} // namespace OHOS
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     if (size < OHOS::THRESHOLD) {
         return 0;
