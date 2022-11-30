@@ -1407,21 +1407,21 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     }
     if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CAPS_MASK)) {
         IMSA_HILOGI("CAPS press");
-        auto target = current->mode == "upper"
-                          ? FindSubPropertyByCompare(current->id,
-                                [&current](const SubProperty &property) { return property.mode == "lower"; })
-                          : FindSubPropertyByCompare(current->id,
-                                [&current](const SubProperty &property) { return property.mode == "upper"; });
+        auto target = current->mode == "upper" ?
+                      FindSubPropertyByCompare(current->id,
+                          [&current](const SubProperty &property) { return property.mode == "lower"; }) :
+                      FindSubPropertyByCompare(current->id,
+                          [&current](const SubProperty &property) { return property.mode == "upper"; });
         return SwitchInputMethod(target.id, target.label);
     }
     if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::SHIFT_LEFT_MASK) ||
         KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::SHIFT_RIGHT_MASK)) {
         IMSA_HILOGI("SHIFT press");
-        auto target = current->language == "chinese"
-                          ? FindSubPropertyByCompare(current->id,
-                                [&current](const SubProperty &property) { return property.language == "english"; })
-                          : FindSubPropertyByCompare(current->id,
-                                [&current](const SubProperty &property) { return property.language == "chinese"; });
+        auto target = current->language == "chinese" ?
+                      FindSubPropertyByCompare(current->id,
+                          [&current](const SubProperty &property) { return property.language == "english"; }) :
+                      FindSubPropertyByCompare(current->id,
+                          [&current](const SubProperty &property) { return property.language == "chinese"; });
         return SwitchInputMethod(target.id, target.label);
     }
     if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_LEFT_MASK | KeyboardEvent::SHIFT_LEFT_MASK) ||
