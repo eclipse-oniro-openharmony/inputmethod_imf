@@ -332,6 +332,7 @@ HWTEST_F(InputMethodAbilityTest, testSetImeListener, TestSize.Level0)
     EXPECT_EQ(showKeyboard_, true);
 
     ret = imc_->HideSoftKeyboard();
+    usleep(500);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(showKeyboard_, false);
 }
