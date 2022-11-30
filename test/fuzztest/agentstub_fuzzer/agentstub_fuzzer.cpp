@@ -13,54 +13,52 @@
  * limitations under the License.
  */
 
-
 #include "agentstub_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 
-#include "input_method_agent_stub.h"
 #include "global.h"
-
+#include "input_method_agent_stub.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
-    constexpr size_t THRESHOLD = 10;
-    constexpr int32_t OFFSET = 4;
-    const std::u16string AGENTSTUB_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.IInputMethodAgent";
+constexpr size_t THRESHOLD = 10;
+constexpr int32_t OFFSET = 4;
+const std::u16string AGENTSTUB_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.IInputMethodAgent";
 
-    uint32_t ConvertToUint32(const uint8_t *ptr)
-    {
-        if (ptr == nullptr) {
-            return 0;
-        }
-        uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
-        return bigVar;
+uint32_t ConvertToUint32(const uint8_t *ptr)
+{
+    if (ptr == nullptr) {
+        return 0;
     }
-    bool FuzzAgentStub(const uint8_t* rawData, size_t size)
-    {
-        uint32_t code = ConvertToUint32(rawData);
-        rawData = rawData + OFFSET;
-        size = size - OFFSET;
-
-        MessageParcel data;
-        data.WriteInterfaceToken(AGENTSTUB_INTERFACE_TOKEN);
-        data.WriteBuffer(rawData, size);
-        data.RewindRead(0);
-        MessageParcel reply;
-        MessageOption option;
-
-        sptr<InputMethodAgentStub> stub = new InputMethodAgentStub();
-        MessageHandler *handler = MessageHandler::Instance();
-        stub->SetMessageHandler(handler);
-        stub->OnRemoteRequest(code, data, reply, option);
-
-        return true;
-    }
+    uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
+    return bigVar;
 }
+bool FuzzAgentStub(const uint8_t *rawData, size_t size)
+{
+    uint32_t code = ConvertToUint32(rawData);
+    rawData = rawData + OFFSET;
+    size = size - OFFSET;
+
+    MessageParcel data;
+    data.WriteInterfaceToken(AGENTSTUB_INTERFACE_TOKEN);
+    data.WriteBuffer(rawData, size);
+    data.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+
+    sptr<InputMethodAgentStub> stub = new InputMethodAgentStub();
+    MessageHandler *handler = MessageHandler::Instance();
+    stub->SetMessageHandler(handler);
+    stub->OnRemoteRequest(code, data, reply, option);
+
+    return true;
+}
+} // namespace OHOS
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     if (size < OHOS::THRESHOLD) {
         return 0;

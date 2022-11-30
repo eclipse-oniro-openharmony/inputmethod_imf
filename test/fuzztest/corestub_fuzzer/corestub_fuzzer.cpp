@@ -13,55 +13,53 @@
  * limitations under the License.
  */
 
-
 #include "corestub_fuzzer.h"
 
 #include <cstddef>
 #include <cstdint>
 
-#include "input_method_core_stub.h"
 #include "global.h"
-
+#include "input_method_core_stub.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
-    constexpr size_t THRESHOLD = 10;
-    constexpr int32_t OFFSET = 4;
-    const std::u16string CORESTUB_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.IInputMethodCore";
+constexpr size_t THRESHOLD = 10;
+constexpr int32_t OFFSET = 4;
+const std::u16string CORESTUB_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.IInputMethodCore";
 
-    uint32_t ConvertToUint32(const uint8_t *ptr)
-    {
-        if (ptr == nullptr) {
-            return 0;
-        }
-        uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
-        return bigVar;
+uint32_t ConvertToUint32(const uint8_t *ptr)
+{
+    if (ptr == nullptr) {
+        return 0;
     }
-    bool FuzzCoreStub(const uint8_t* rawData, size_t size)
-    {
-        constexpr int32_t MAIN_USER_ID = 0;
-        uint32_t code = ConvertToUint32(rawData);
-        rawData = rawData + OFFSET;
-        size = size - OFFSET;
-
-        MessageParcel data;
-        data.WriteInterfaceToken(CORESTUB_INTERFACE_TOKEN);
-        data.WriteBuffer(rawData, size);
-        data.RewindRead(0);
-        MessageParcel reply;
-        MessageOption option;
-
-        sptr<InputMethodCoreStub> stub = new InputMethodCoreStub(MAIN_USER_ID);
-        MessageHandler *handler = MessageHandler::Instance();
-        stub->SetMessageHandler(handler);
-        stub->OnRemoteRequest(code, data, reply, option);
-
-        return true;
-    }
+    uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
+    return bigVar;
 }
+bool FuzzCoreStub(const uint8_t *rawData, size_t size)
+{
+    constexpr int32_t MAIN_USER_ID = 0;
+    uint32_t code = ConvertToUint32(rawData);
+    rawData = rawData + OFFSET;
+    size = size - OFFSET;
+
+    MessageParcel data;
+    data.WriteInterfaceToken(CORESTUB_INTERFACE_TOKEN);
+    data.WriteBuffer(rawData, size);
+    data.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+
+    sptr<InputMethodCoreStub> stub = new InputMethodCoreStub(MAIN_USER_ID);
+    MessageHandler *handler = MessageHandler::Instance();
+    stub->SetMessageHandler(handler);
+    stub->OnRemoteRequest(code, data, reply, option);
+
+    return true;
+}
+} // namespace OHOS
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     if (size < OHOS::THRESHOLD) {
         return 0;

@@ -28,46 +28,46 @@
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
-    constexpr size_t THRESHOLD = 10;
+constexpr size_t THRESHOLD = 10;
 
-    uint32_t ConvertToUint32(const uint8_t *ptr)
-    {
-        if (ptr == nullptr) {
-            return 0;
-        }
-        uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
-        return bigVar;
+uint32_t ConvertToUint32(const uint8_t *ptr)
+{
+    if (ptr == nullptr) {
+        return 0;
     }
-    bool FuzzPerUserSetting(const uint8_t *rawData, size_t size)
-    {
-        std::string str(reinterpret_cast<const char *>(rawData), size);
-        std::u16string imeId = Str8ToStr16(str);
-        std::u16string packageName = Str8ToStr16(str);
-        std::u16string key = Str8ToStr16(str);
-        std::u16string value = Str8ToStr16(str);
-        bool isSecurityIme = true;
-        constexpr int32_t MAIN_USER_ID = 100;
-
-        std::shared_ptr<PerUserSetting> userSetting = std::make_shared<PerUserSetting>(MAIN_USER_ID);
-
-        userSetting->Initialize();
-        userSetting->GetUserState();
-        userSetting->GetCurrentInputMethod();
-        userSetting->GetSecurityInputMethod();
-        userSetting->GetNextInputMethod();
-        userSetting->GetInputMethodSetting();
-        userSetting->GetInputMethodProperty(imeId);
-        userSetting->OnPackageAdded(packageName, isSecurityIme);
-        userSetting->OnPackageRemoved(packageName, isSecurityIme);
-        userSetting->OnSettingChanged(key, value);
-        userSetting->OnAdvanceToNext();
-        userSetting->OnUserLocked();
-
-        return true;
-    }
+    uint32_t bigVar = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | (ptr[3]);
+    return bigVar;
 }
+bool FuzzPerUserSetting(const uint8_t *rawData, size_t size)
+{
+    std::string str(reinterpret_cast<const char *>(rawData), size);
+    std::u16string imeId = Str8ToStr16(str);
+    std::u16string packageName = Str8ToStr16(str);
+    std::u16string key = Str8ToStr16(str);
+    std::u16string value = Str8ToStr16(str);
+    bool isSecurityIme = true;
+    constexpr int32_t MAIN_USER_ID = 100;
+
+    std::shared_ptr<PerUserSetting> userSetting = std::make_shared<PerUserSetting>(MAIN_USER_ID);
+
+    userSetting->Initialize();
+    userSetting->GetUserState();
+    userSetting->GetCurrentInputMethod();
+    userSetting->GetSecurityInputMethod();
+    userSetting->GetNextInputMethod();
+    userSetting->GetInputMethodSetting();
+    userSetting->GetInputMethodProperty(imeId);
+    userSetting->OnPackageAdded(packageName, isSecurityIme);
+    userSetting->OnPackageRemoved(packageName, isSecurityIme);
+    userSetting->OnSettingChanged(key, value);
+    userSetting->OnAdvanceToNext();
+    userSetting->OnUserLocked();
+
+    return true;
+}
+} // namespace OHOS
 /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     if (size < OHOS::THRESHOLD) {
         return 0;
