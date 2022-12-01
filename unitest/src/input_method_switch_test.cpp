@@ -48,7 +48,7 @@ std::condition_variable InputMethodSwitchTest::conditionVar;
 bool InputMethodSwitchTest::imeChangeFlag = false;
 std::string InputMethodSwitchTest::extBundleName = "com.example.testIme";
 std::string InputMethodSwitchTest::extAbilityName = "InputMethodExtAbility";
-
+constexpr uint32_t DEALY_TIME = 1;
 class InputMethodSettingListenerImpl : public InputMethodSettingListener {
 public:
     InputMethodSettingListenerImpl() = default;
@@ -316,15 +316,14 @@ HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethod, TestSize.Level0)
     // switch to ext inputmethod
     auto ret = imc->SwitchInputMethod(InputMethodSwitchTest::extBundleName, InputMethodSwitchTest::extAbilityName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unique_lock<std::mutex> lock(InputMethodSwitchTest::imeChangeFlagLock);
+    InputMethodSwitchTest::conditionVar.wait_for(lock, std::chrono::seconds(DEALY_TIME), []{return InputMethodSwitchTest::imeChangeFlag == true;});
     std::shared_ptr<Property> extProperty = imc->GetCurrentInputMethod();
     ASSERT_TRUE(extProperty != nullptr);
     EXPECT_EQ(extProperty->name, InputMethodSwitchTest::extBundleName);
     std::shared_ptr<SubProperty> extSubProperty = imc->GetCurrentInputMethodSubtype();
     ASSERT_TRUE(extSubProperty != nullptr);
     EXPECT_EQ(extSubProperty->label, InputMethodSwitchTest::extAbilityName);
-
-    std::unique_lock<std::mutex> lock(InputMethodSwitchTest::imeChangeFlagLock);
-    InputMethodSwitchTest::conditionVar.wait(lock, []{return InputMethodSwitchTest::imeChangeFlag == true;});
 
     // Switch to default inputmethod
     ret = imc->SwitchInputMethod(defaultProperty->name, defaultSubProperty->label);
