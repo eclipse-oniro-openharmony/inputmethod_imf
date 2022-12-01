@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <string>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include <string>
 #include <vector>
 
 #include "accesstoken_kit.h"
@@ -317,7 +316,8 @@ HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethod, TestSize.Level0)
     auto ret = imc->SwitchInputMethod(InputMethodSwitchTest::extBundleName, InputMethodSwitchTest::extAbilityName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     std::unique_lock<std::mutex> lock(InputMethodSwitchTest::imeChangeFlagLock);
-    InputMethodSwitchTest::conditionVar.wait_for(lock, std::chrono::seconds(DEALY_TIME), []{return InputMethodSwitchTest::imeChangeFlag == true;});
+    InputMethodSwitchTest::conditionVar.wait_for(
+        lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodSwitchTest::imeChangeFlag == true; });
     std::shared_ptr<Property> extProperty = imc->GetCurrentInputMethod();
     ASSERT_TRUE(extProperty != nullptr);
     EXPECT_EQ(extProperty->name, InputMethodSwitchTest::extBundleName);
