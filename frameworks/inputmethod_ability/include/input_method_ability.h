@@ -62,10 +62,8 @@ public:
 private:
     std::thread workThreadHandler;
     MessageHandler *msgHandler;
-    bool mSupportPhysicalKbd = false;
     InputAttribute editorAttribute;
     int32_t displayId = 0;
-    sptr<IRemoteObject> startInputToken;
     InputChannel *writeInputChannel;
     bool stop_;
     int32_t KEYBOARD_HIDE = 1;
@@ -110,12 +108,8 @@ private:
 
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
-
-    void InitialInputWindow();
     void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
     void DismissInputWindow();
-
-    void BindServiceAndClient();
 };
 } // namespace MiscServices
 } // namespace OHOS

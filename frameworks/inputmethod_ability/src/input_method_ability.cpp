@@ -243,7 +243,6 @@ void InputMethodAbility::OnStartInput(Message *msg)
     if (!ret) {
         IMSA_HILOGE("InputMethodAbility::OnStartInput unmarshalling editorAttribute failed");
     }
-    mSupportPhysicalKbd = data->ReadBool();
 }
 
 void InputMethodAbility::OnShowKeyboard(Message *msg)
@@ -556,23 +555,6 @@ void InputMethodAbility::ServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteO
     if (listener != nullptr) {
         listener->OnInputStop(ParaHandle::GetDefaultIme(Utils::ToUserId(getuid())));
     }
-}
-
-void InputMethodAbility::BindServiceAndClient()
-{
-    IMSA_HILOGI("InputMethodAbility::BindServiceAndClient");
-    mImms = GetImsaProxy();
-    if (mImms == nullptr) {
-        IMSA_HILOGI("mImms is nullptr");
-        return;
-    }
-    sptr<InputMethodCoreStub> stub = new InputMethodCoreStub(0);
-    stub->SetMessageHandler(msgHandler);
-
-    sptr<InputMethodAgentStub> inputMethodAgentStub(new InputMethodAgentStub());
-    inputMethodAgentStub->SetMessageHandler(msgHandler);
-    sptr<IInputMethodAgent> inputMethodAgent = sptr(new InputMethodAgentProxy(inputMethodAgentStub));
-    mImms->SetCoreAndAgent(stub, inputMethodAgent);
 }
 
 void InputMethodAbility::QuitWorkThread()

@@ -432,5 +432,19 @@ HWTEST_F(InputMethodAbilityTest, testGetEnterKeyType, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(inputPattern, (int)textInputType);
 }
+
+/**
+* @tc.name: testHideKeyboardSelf
+* @tc.desc: InputMethodAbility HideKeyboardSelf
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: Hollokin
+*/
+HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
+    auto ret = inputMethodAbility_->HideKeyboardSelf();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS
