@@ -74,16 +74,6 @@ namespace MiscServices {
         delete[] perms;
     }
 
-    class InputMethodSettingListenerImpl : public InputMethodSettingListener {
-    public:
-        InputMethodSettingListenerImpl() = default;
-        ~InputMethodSettingListenerImpl() = default;
-        void OnImeChange(const Property &property, const SubProperty &subProperty)
-        {
-            IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
-        }
-    };
-
     class TextListener : public OnTextChangedListener {
     public:
         TextListener()
@@ -596,19 +586,6 @@ namespace MiscServices {
     }
 
     /**
-     * @tc.name: testIMCSetImeListener
-     * @tc.desc: IMC testSetImeListener.
-     * @tc.type: FUNC
-     * @tc.require: issueI5U8FZ
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCSetImeListener, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC SetImeListener Test START");
-        auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-        inputMethodController_->setImeListener(listener);
-    }
-
-    /**
      * @tc.name: testHideSoftKeyboard
      * @tc.desc: IMC HideSoftKeyboard
      * @tc.type: FUNC
@@ -689,8 +666,18 @@ namespace MiscServices {
         imeListener_->keyboardState_ = true;
         TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         inputMethodController_->Close();
+
         bool ret = inputMethodController_->dispatchKeyEvent(keyEvent_);
         EXPECT_FALSE(ret);
+
+        auto ret1 = inputMethodController_->ShowSoftKeyboard();
+        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
+
+        ret1 = inputMethodController_->HideSoftKeyboard();
+        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
+
+        ret1 = inputMethodController_->StopInputSession();
+        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     }
 
     /**

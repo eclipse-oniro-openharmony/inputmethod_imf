@@ -36,13 +36,32 @@ public:
     void SetUp();
     void TearDown();
     static void GrantNativePermission();
-
+    static std::mutex imeChangeFlagLock;
+    static std::condition_variable conditionVar;
+    static bool imeChangeFlag;
     static std::string extBundleName;
     static std::string extAbilityName;
 };
+std::mutex InputMethodSwitchTest::imeChangeFlagLock;
+std::condition_variable InputMethodSwitchTest::conditionVar;
+bool InputMethodSwitchTest::imeChangeFlag = false;
 std::string InputMethodSwitchTest::extBundleName = "com.example.testIme";
 std::string InputMethodSwitchTest::extAbilityName = "InputMethodExtAbility";
-constexpr int32_t DEALY_TIME = 10;
+constexpr uint32_t DEALY_TIME = 1;
+class InputMethodSettingListenerImpl : public InputMethodSettingListener {
+public:
+    InputMethodSettingListenerImpl() = default;
+    ~InputMethodSettingListenerImpl() = default;
+    void OnImeChange(const Property &property, const SubProperty &subProperty)
+    {
+        {
+            std::unique_lock<std::mutex> lock(InputMethodSwitchTest::imeChangeFlagLock);
+            InputMethodSwitchTest::imeChangeFlag = true;
+        }
+        InputMethodSwitchTest::conditionVar.notify_one();
+        IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
+    }
+};
 constexpr int32_t MINIMUM_INSTALL_INPUTMETHOD_NUM = 2;
 constexpr int32_t MINIMUM_DISABLE_INPUTMETHOD_NUM = 1;
 constexpr int32_t EXT_INPUTMETHOD_SUBTYPE_NUM = 1;
@@ -90,6 +109,21 @@ void InputMethodSwitchTest::GrantNativePermission()
     }
     AccessTokenKit::ReloadNativeTokenInfo();
     delete[] perms;
+}
+
+/**
+* @tc.name: testIMCSetImeListener
+* @tc.desc: IMC testSetImeListener.
+* @tc.type: FUNC
+* @tc.require: issuesI640YZ
+*/
+HWTEST_F(InputMethodSwitchTest, testIMCSetImeListener, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC SetImeListener Test START");
+    auto imc = InputMethodController::GetInstance();
+    ASSERT_TRUE(imc != nullptr);
+    auto listener = std::make_shared<InputMethodSettingListenerImpl>();
+    imc->setImeListener(listener);
 }
 
 /**
@@ -281,6 +315,9 @@ HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethod, TestSize.Level0)
     // switch to ext inputmethod
     auto ret = imc->SwitchInputMethod(InputMethodSwitchTest::extBundleName, InputMethodSwitchTest::extAbilityName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unique_lock<std::mutex> lock(InputMethodSwitchTest::imeChangeFlagLock);
+    InputMethodSwitchTest::conditionVar.wait_for(
+        lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodSwitchTest::imeChangeFlag == true; });
     std::shared_ptr<Property> extProperty = imc->GetCurrentInputMethod();
     ASSERT_TRUE(extProperty != nullptr);
     EXPECT_EQ(extProperty->name, InputMethodSwitchTest::extBundleName);
@@ -289,7 +326,6 @@ HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethod, TestSize.Level0)
     EXPECT_EQ(extSubProperty->label, InputMethodSwitchTest::extAbilityName);
 
     // Switch to default inputmethod
-    sleep(DEALY_TIME);
     ret = imc->SwitchInputMethod(defaultProperty->name, defaultSubProperty->label);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     std::shared_ptr<Property> defaultProperty1 = imc->GetCurrentInputMethod();
