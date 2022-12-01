@@ -666,8 +666,18 @@ namespace MiscServices {
         imeListener_->keyboardState_ = true;
         TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         inputMethodController_->Close();
+
         bool ret = inputMethodController_->dispatchKeyEvent(keyEvent_);
         EXPECT_FALSE(ret);
+
+        auto ret1 = inputMethodController_->ShowSoftKeyboard();
+        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
+
+        ret1 = inputMethodController_->HideSoftKeyboard();
+        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
+
+        ret1 = inputMethodController_->StopInputSession();
+        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     }
 
     /**
