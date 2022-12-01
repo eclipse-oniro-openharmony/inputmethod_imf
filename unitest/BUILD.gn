@@ -172,6 +172,29 @@ ohos_unittest("InputMethodSwitchTest") {
   ]
 }
 
+ohos_unittest("InputMethodPrivateMemberTest") {
+  module_out_path = module_output_path
+
+  sources = [ "src/input_method_private_member_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
+
+  deps = [
+    "//base/inputmethod/imf/services:inputmethod_service",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_runtime:ability_manager",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "ipc:ipc_core",
+    "ipc:ipc_single",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
+}
+
 group("unittest") {
   testonly = true
 
@@ -181,6 +204,7 @@ group("unittest") {
     ":InputMethodAbilityTest",
     ":InputMethodControllerTest",
     ":InputMethodDfxTest",
+    ":InputMethodPrivateMemberTest",
     ":InputMethodServiceTest",
     ":InputMethodSwitchTest",
     ":InputMethodUtilsTest",
