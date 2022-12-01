@@ -74,16 +74,6 @@ namespace MiscServices {
         delete[] perms;
     }
 
-    class InputMethodSettingListenerImpl : public InputMethodSettingListener {
-    public:
-        InputMethodSettingListenerImpl() = default;
-        ~InputMethodSettingListenerImpl() = default;
-        void OnImeChange(const Property &property, const SubProperty &subProperty)
-        {
-            IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
-        }
-    };
-
     class TextListener : public OnTextChangedListener {
     public:
         TextListener()
@@ -593,19 +583,6 @@ namespace MiscServices {
         inputMethodController_->GetInputPattern(inputPattern);
         EXPECT_TRUE(static_cast<OHOS::MiscServices::EnterKeyType>(keyType) == EnterKeyType::GO
                     && static_cast<OHOS::MiscServices::TextInputType>(inputPattern) == TextInputType::TEXT);
-    }
-
-    /**
-     * @tc.name: testIMCSetImeListener
-     * @tc.desc: IMC testSetImeListener.
-     * @tc.type: FUNC
-     * @tc.require: issueI5U8FZ
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCSetImeListener, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC SetImeListener Test START");
-        auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-        inputMethodController_->setImeListener(listener);
     }
 
     /**
