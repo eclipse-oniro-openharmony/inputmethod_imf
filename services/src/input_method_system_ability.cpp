@@ -507,7 +507,6 @@ int32_t InputMethodSystemAbility::ListSubtypeByBundleName(
         IMSA_HILOGE("Failed to query inputmethod infos");
         return ret;
     }
-    std::vector<SubProperty> properties;
     for (const auto &subtypeInfo : subtypeInfos) {
         if (subtypeInfo.bundleName == name) {
             std::vector<Metadata> extends = subtypeInfo.metadata;
