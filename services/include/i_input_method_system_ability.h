@@ -17,7 +17,6 @@
 #define SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H
 
 #include <errors.h>
-
 #include <memory>
 #include <vector>
 

@@ -14,12 +14,11 @@
  */
 #include "input_method_utils.h"
 
+#include <cstdint>
 #include <gtest/gtest.h>
+#include <string>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include <cstdint>
-#include <string>
 
 #include "global.h"
 

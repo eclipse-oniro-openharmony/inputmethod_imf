@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <string>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include <string>
 #include <vector>
 
 #include "accesstoken_kit.h"

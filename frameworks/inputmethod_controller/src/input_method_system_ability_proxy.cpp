@@ -28,8 +28,8 @@ InputMethodSystemAbilityProxy::InputMethodSystemAbilityProxy(const sptr<IRemoteO
 {
 }
 
-int32_t InputMethodSystemAbilityProxy::PrepareInput(int32_t displayId, sptr<IInputClient> client,
-    sptr<IInputDataChannel> channel, InputAttribute &attribute)
+int32_t InputMethodSystemAbilityProxy::PrepareInput(
+    int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel, InputAttribute &attribute)
 {
     return SendRequest(PREPARE_INPUT, [displayId, client, channel, &attribute](MessageParcel &data) {
         return data.WriteInt32(displayId) && data.WriteRemoteObject(client->AsObject()) &&
@@ -66,14 +66,14 @@ int32_t InputMethodSystemAbilityProxy::StopInputSession()
 int32_t InputMethodSystemAbilityProxy::StopInput(sptr<IInputClient> client)
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(STOP_INPUT,
-        [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
+    return SendRequest(
+        STOP_INPUT, [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
 }
 
 int32_t InputMethodSystemAbilityProxy::ReleaseInput(sptr<IInputClient> client)
 {
-    return SendRequest(RELEASE_INPUT,
-        [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
+    return SendRequest(
+        RELEASE_INPUT, [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
 }
 
 int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethod()
@@ -165,8 +165,8 @@ int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethodDeprecated()
     return SendRequest(DISPLAY_OPTIONAL_INPUT_DEPRECATED);
 }
 
-int32_t InputMethodSystemAbilityProxy::SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core,
-    sptr<IInputMethodAgent> agent)
+int32_t InputMethodSystemAbilityProxy::SetCoreAndAgentDeprecated(
+    sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
 {
     IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(SET_CORE_AND_AGENT_DEPRECATED, [core, agent](MessageParcel &data) {

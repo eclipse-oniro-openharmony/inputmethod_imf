@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
+#include "js_input_method_engine_setting.h"
+#include "js_keyboard_controller_engine.h"
+#include "js_keyboard_delegate_setting.h"
+#include "js_text_input_client_engine.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "js_input_method_engine_setting.h"
-#include "js_keyboard_delegate_setting.h"
-#include "js_keyboard_controller_engine.h"
-#include "js_text_input_client_engine.h"
 
 EXTERN_C_START
 /*
@@ -36,15 +36,13 @@ EXTERN_C_END
 /*
  * module define
  */
-static napi_module _module = {
-    .nm_version = 1,
+static napi_module _module = { .nm_version = 1,
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = Init,
     .nm_modname = "inputMethodEngine",
     .nm_priv = ((void *)0),
-    .reserved = {0}
-};
+    .reserved = { 0 } };
 /*
  * module register
  */

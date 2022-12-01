@@ -17,60 +17,60 @@
 
 namespace OHOS {
 namespace MiscServices {
-    /*! Constructor
+/*! Constructor
     \param msgId a message Id
     \param msgContent the content of a message
     */
-    Message::Message(int32_t msgId, MessageParcel *msgContent)
-    {
-        msgId_ = msgId;
-        msgContent_ = msgContent;
-        if (msgContent_) {
-            msgContent_->RewindRead(0);
-        }
+Message::Message(int32_t msgId, MessageParcel *msgContent)
+{
+    msgId_ = msgId;
+    msgContent_ = msgContent;
+    if (msgContent_) {
+        msgContent_->RewindRead(0);
     }
+}
 
-    /*! Constructor
+/*! Constructor
     \param msg a source message
     */
-    Message::Message(const Message& msg)
-    {
-        msgId_ = msg.msgId_;
-        if (msgContent_) {
-            delete msgContent_;
-            msgContent_ = nullptr;
-        }
-        MessageParcel *src = msg.msgContent_;
-        if (src) {
-            msgContent_ = new MessageParcel();
-            msgContent_->ParseFrom(src->GetData(), src->GetDataSize());
-        }
+Message::Message(const Message &msg)
+{
+    msgId_ = msg.msgId_;
+    if (msgContent_) {
+        delete msgContent_;
+        msgContent_ = nullptr;
     }
+    MessageParcel *src = msg.msgContent_;
+    if (src) {
+        msgContent_ = new MessageParcel();
+        msgContent_->ParseFrom(src->GetData(), src->GetDataSize());
+    }
+}
 
-    Message& Message::operator =(const Message& msg)
-    {
-        if (this == &msg) {
-            return *this;
-        }
-        msgId_ = msg.msgId_;
-        if (msgContent_) {
-            delete msgContent_;
-            msgContent_ = nullptr;
-        }
-        if (msg.msgContent_) {
-            msgContent_ = new MessageParcel();
-            msgContent_->ParseFrom(msg.msgContent_->GetData(), msg.msgContent_->GetDataSize());
-            msgContent_->RewindRead(0);
-        }
+Message &Message::operator=(const Message &msg)
+{
+    if (this == &msg) {
         return *this;
     }
-
-    Message::~Message()
-    {
-        if (msgContent_) {
-            delete msgContent_;
-            msgContent_ = nullptr;
-        }
+    msgId_ = msg.msgId_;
+    if (msgContent_) {
+        delete msgContent_;
+        msgContent_ = nullptr;
     }
+    if (msg.msgContent_) {
+        msgContent_ = new MessageParcel();
+        msgContent_->ParseFrom(msg.msgContent_->GetData(), msg.msgContent_->GetDataSize());
+        msgContent_->RewindRead(0);
+    }
+    return *this;
+}
+
+Message::~Message()
+{
+    if (msgContent_) {
+        delete msgContent_;
+        msgContent_ = nullptr;
+    }
+}
 } // namespace MiscServices
 } // namespace OHOS

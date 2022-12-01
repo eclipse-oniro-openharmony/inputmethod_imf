@@ -166,8 +166,8 @@ private:
         unwrapArgc++;
 
         int32_t accountId = 0;
-        if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(reinterpret_cast<napi_env>(&engine),
-            reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), accountId)) {
+        if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(
+                reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), accountId)) {
             IMSA_HILOGI("%{public}s called, the second parameter is invalid.", __func__);
             return engine.CreateUndefined();
         }
@@ -307,8 +307,8 @@ private:
             want.GetElement().GetAbilityName().c_str());
 
         int32_t accountId = 0;
-        if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(
-            reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), accountId)) {
+        if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(reinterpret_cast<napi_env>(&engine),
+            reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), accountId)) {
             IMSA_HILOGI("%{public}s called, the second parameter is invalid.", __func__);
             return engine.CreateUndefined();
         }
@@ -363,8 +363,7 @@ private:
             reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ZERO]), &connectId);
         IMSA_HILOGI("OnDisconnectAbility connection:%{public}d", static_cast<int32_t>(connectId));
         auto item = std::find_if(connects_.begin(), connects_.end(),
-            [&connectId](const std::map<ConnectionKey,
-                sptr<JSInputMethodExtensionConnection>>::value_type &obj) {
+            [&connectId](const std::map<ConnectionKey, sptr<JSInputMethodExtensionConnection>>::value_type &obj) {
                 return connectId == obj.first.id;
             });
         if (item != connects_.end()) {
@@ -480,16 +479,18 @@ NativeValue *CreateJsInputMethodExtensionContext(
     BindNativeFunction(engine, *object, "terminateSelf", moduleName, JsInputMethodExtensionContext::TerminateAbility);
     BindNativeFunction(engine, *object, "destroy", moduleName, JsInputMethodExtensionContext::TerminateAbility);
     BindNativeFunction(engine, *object, "connectAbility", moduleName, JsInputMethodExtensionContext::ConnectAbility);
-    BindNativeFunction(engine, *object,
-        "disconnectAbility", moduleName, JsInputMethodExtensionContext::DisconnectAbility);
-    BindNativeFunction(engine, *object,
-        "startAbilityWithAccount", moduleName, JsInputMethodExtensionContext::StartAbilityWithAccount);
-    BindNativeFunction(engine, *object,
-        "connectAbilityWithAccount", moduleName, JsInputMethodExtensionContext::ConnectAbilityWithAccount);
+    BindNativeFunction(
+        engine, *object, "disconnectAbility", moduleName, JsInputMethodExtensionContext::DisconnectAbility);
+    BindNativeFunction(engine, *object, "startAbilityWithAccount", moduleName,
+        JsInputMethodExtensionContext::StartAbilityWithAccount);
+    BindNativeFunction(engine, *object, "connectAbilityWithAccount", moduleName,
+        JsInputMethodExtensionContext::ConnectAbilityWithAccount);
     return objValue;
 }
 
-JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(NativeEngine &engine) : engine_(engine) {}
+JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(NativeEngine &engine) : engine_(engine)
+{
+}
 
 JSInputMethodExtensionConnection::~JSInputMethodExtensionConnection() = default;
 
@@ -597,8 +598,8 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(
     auto item = std::find_if(connects_.begin(), connects_.end(),
         [bundleName, abilityName](
             const std::map<ConnectionKey, sptr<JSInputMethodExtensionConnection>>::value_type &obj) {
-            return (bundleName == obj.first.want.GetBundle())
-                   && (abilityName == obj.first.want.GetElement().GetAbilityName());
+            return (bundleName == obj.first.want.GetBundle()) &&
+                   (abilityName == obj.first.want.GetElement().GetAbilityName());
         });
     if (item != connects_.end()) {
         // match bundlename && abilityname

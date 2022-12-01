@@ -27,7 +27,7 @@ public:
     JSCallbackObject(napi_env env, napi_value callback, std::thread::id threadId);
     ~JSCallbackObject();
     napi_ref callback_ = nullptr;
-    napi_env env_ {};
+    napi_env env_{};
     std::thread::id threadId_;
 };
 } // namespace MiscServices

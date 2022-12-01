@@ -21,8 +21,7 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-const size_t InputMethodExtensionContext::CONTEXT_TYPE_ID(
-    std::hash<const char *> {}("InputMethodExtensionContext"));
+const size_t InputMethodExtensionContext::CONTEXT_TYPE_ID(std::hash<const char *>{}("InputMethodExtensionContext"));
 int InputMethodExtensionContext::ILLEGAL_REQUEST_CODE(-1);
 
 ErrCode InputMethodExtensionContext::StartAbility(const AAFwk::Want &want) const

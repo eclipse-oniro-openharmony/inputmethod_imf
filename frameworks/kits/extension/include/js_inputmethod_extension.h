@@ -25,8 +25,8 @@ namespace AbilityRuntime {
 /**
  * @brief Basic inputmethod components.
  */
-class JsInputMethodExtension
-    : public InputMethodExtension, public std::enable_shared_from_this<JsInputMethodExtension> {
+class JsInputMethodExtension : public InputMethodExtension,
+                               public std::enable_shared_from_this<JsInputMethodExtension> {
 public:
     JsInputMethodExtension(JsRuntime &jsRuntime);
     virtual ~JsInputMethodExtension() override;

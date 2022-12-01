@@ -17,70 +17,70 @@
 
 namespace OHOS {
 namespace MiscServices {
-    using namespace std;
-    /*! Constructor
+using namespace std;
+/*! Constructor
     */
-    InputMethodInfo::InputMethodInfo()
-    {
-    }
+InputMethodInfo::InputMethodInfo()
+{
+}
 
-    /*! Destructor
+/*! Destructor
     */
-    InputMethodInfo::~InputMethodInfo()
-    {
-        for (int32_t i = 0; i < (int32_t)mTypes.size(); i++) {
-            delete mTypes[i];
-        }
-        mTypes.clear();
+InputMethodInfo::~InputMethodInfo()
+{
+    for (int32_t i = 0; i < (int32_t)mTypes.size(); i++) {
+        delete mTypes[i];
     }
+    mTypes.clear();
+}
 
-    /*! Constructor
+/*! Constructor
     \param property the source property will be copied to this instance.
     */
-    InputMethodInfo::InputMethodInfo(const InputMethodInfo &property)
-    {
-        mImeId = property.mImeId;
-        mPackageName = property.mPackageName;
-        mAbilityName = property.mAbilityName;
-        mConfigurationPage = property.mConfigurationPage;
-        isSystemIme = property.isSystemIme;
-        mDefaultImeId = property.mDefaultImeId;
-        labelId = property.labelId;
-        descriptionId = property.descriptionId;
-        label = property.label;
-        description = property.description;
+InputMethodInfo::InputMethodInfo(const InputMethodInfo &property)
+{
+    mImeId = property.mImeId;
+    mPackageName = property.mPackageName;
+    mAbilityName = property.mAbilityName;
+    mConfigurationPage = property.mConfigurationPage;
+    isSystemIme = property.isSystemIme;
+    mDefaultImeId = property.mDefaultImeId;
+    labelId = property.labelId;
+    descriptionId = property.descriptionId;
+    label = property.label;
+    description = property.description;
 
-        for (int i = 0; i < (int)mTypes.size(); i++) {
-            KeyboardType *type = new KeyboardType(*property.mTypes[i]);
-            mTypes.push_back(type);
-        }
+    for (int i = 0; i < (int)mTypes.size(); i++) {
+        KeyboardType *type = new KeyboardType(*property.mTypes[i]);
+        mTypes.push_back(type);
     }
+}
 
-    /*! operator=
+/*! operator=
     \param property the source property will be copied to this instance.
     \return return this
     */
-    InputMethodInfo &InputMethodInfo::operator =(const InputMethodInfo &property)
-    {
-        if (this == &property) {
-            return *this;
-        }
-        mImeId = property.mImeId;
-        mPackageName = property.mPackageName;
-        mAbilityName = property.mAbilityName;
-        mConfigurationPage = property.mConfigurationPage;
-        isSystemIme = property.isSystemIme;
-        mDefaultImeId = property.mDefaultImeId;
-        labelId = property.labelId;
-        descriptionId = property.descriptionId;
-        label = property.label;
-        description = property.description;
-
-        for (int i = 0; i < (int)mTypes.size(); i++) {
-            KeyboardType *type = new KeyboardType(*property.mTypes[i]);
-            mTypes.push_back(type);
-        }
+InputMethodInfo &InputMethodInfo::operator=(const InputMethodInfo &property)
+{
+    if (this == &property) {
         return *this;
     }
+    mImeId = property.mImeId;
+    mPackageName = property.mPackageName;
+    mAbilityName = property.mAbilityName;
+    mConfigurationPage = property.mConfigurationPage;
+    isSystemIme = property.isSystemIme;
+    mDefaultImeId = property.mDefaultImeId;
+    labelId = property.labelId;
+    descriptionId = property.descriptionId;
+    label = property.label;
+    description = property.description;
+
+    for (int i = 0; i < (int)mTypes.size(); i++) {
+        KeyboardType *type = new KeyboardType(*property.mTypes[i]);
+        mTypes.push_back(type);
+    }
+    return *this;
+}
 } // namespace MiscServices
 } // namespace OHOS

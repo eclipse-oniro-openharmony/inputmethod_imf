@@ -33,11 +33,15 @@ std::mutex ImCommonEventManager::instanceLock_;
 
 /*! Constructor
     */
-ImCommonEventManager::ImCommonEventManager() {}
+ImCommonEventManager::ImCommonEventManager()
+{
+}
 
 /*! Destructor
     */
-ImCommonEventManager::~ImCommonEventManager() {}
+ImCommonEventManager::~ImCommonEventManager()
+{
+}
 
 sptr<ImCommonEventManager> ImCommonEventManager::GetInstance()
 {
