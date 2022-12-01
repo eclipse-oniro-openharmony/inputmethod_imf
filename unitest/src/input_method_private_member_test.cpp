@@ -18,10 +18,9 @@
 #undef private
 
 #include <gtest/gtest.h>
+#include <string>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include <string>
 #include <vector>
 
 #include "application_info.h"
