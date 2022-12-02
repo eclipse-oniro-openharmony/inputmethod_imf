@@ -33,9 +33,6 @@ public:
     ~InputControlChannelProxy();
 
     int32_t HideKeyboardSelf(int flags) override;
-    bool AdvanceToNext(bool isCurrentIme) override;
-    void SetDisplayMode(int mode) override;
-    void OnKeyboardShowed() override;
 };
 } // namespace MiscServices
 } // namespace OHOS

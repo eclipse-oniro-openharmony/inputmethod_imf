@@ -61,16 +61,6 @@ int32_t InputClientStub::OnRemoteRequest(
             msgHandler->SendMessage(msg);
             break;
         }
-        case SET_DISPLAY_MODE: {
-            if (!msgHandler) {
-                break;
-            }
-            MessageParcel *parcel = new MessageParcel();
-            parcel->WriteInt32(data.ReadInt32());
-            Message *msg = new Message(MessageID::MSG_ID_SET_DISPLAY_MODE, parcel);
-            msgHandler->SendMessage(msg);
-            break;
-        }
         case ON_SWITCH_INPUT: {
             OnSwitchInputOnRemote(data, reply);
             break;
@@ -123,11 +113,6 @@ int32_t InputClientStub::onInputReady(const sptr<IInputMethodAgent> &agent)
 }
 
 int32_t InputClientStub::onInputReleased(int32_t retValue)
-{
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputClientStub::setDisplayMode(int32_t mode)
 {
     return ErrorCode::NO_ERROR;
 }

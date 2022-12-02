@@ -112,15 +112,6 @@ void PerUserSession::WorkThread()
                 OnHideKeyboardSelf(flag);
                 break;
             }
-            case MSG_ID_ADVANCE_TO_NEXT: {
-                OnAdvanceToNext();
-                break;
-            }
-            case MSG_ID_SET_DISPLAY_MODE: {
-                int mode = msg->msgContent_->ReadInt32();
-                OnSetDisplayMode(mode);
-                break;
-            }
             case MSG_ID_RESTART_IMS: {
                 int index = msg->msgContent_->ReadInt32();
                 std::u16string imeId = msg->msgContent_->ReadString16();
@@ -699,76 +690,6 @@ int PerUserSession::OnShowKeyboardSelf()
     return ShowKeyboard(client, true);
 }
 
-/*! Switch to next keyboard type
-    */
-void PerUserSession::OnAdvanceToNext()
-{
-    sptr<IInputClient> client = GetCurrentClient();
-    if (client == nullptr) {
-        IMSA_HILOGE("current client is nullptr");
-        return;
-    }
-    int index = GetImeIndex(client);
-    if (index == -1) {
-        IMSA_HILOGW("%{public}s [%{public}d]\n", ErrorCode::ToString(ErrorCode::ERROR_CLIENT_NOT_FOUND), userId_);
-        return;
-    }
-    int size = 0;
-    if (index == SECURITY_IME || currentIme[DEFAULT_IME] == currentIme[SECURITY_IME]) {
-        size = currentIme[index]->mTypes.size();
-    } else {
-        std::u16string imeId = currentIme[index]->mImeId;
-        std::vector<int> currentKbdTypes = inputMethodSetting->GetEnabledKeyboardTypes(imeId);
-        size = currentKbdTypes.size();
-    }
-    if (size < MIN_IME) {
-        IMSA_HILOGW("No next keyboard is available. [%{public}d]\n", userId_);
-        return;
-    }
-
-    int num = currentKbdIndex[index] + 1;
-    if (size) {
-        num %= size;
-    }
-    KeyboardType *type = GetKeyboardType(index, num);
-    if (type == nullptr) {
-        IMSA_HILOGW("No next keyboard is available. [%{public}d]\n", userId_);
-        return;
-    }
-    InputMethodSetting tmpSetting;
-    if (IsIMEEqual()) {
-        tmpSetting.SetCurrentKeyboardType(type->getHashCode());
-        tmpSetting.SetCurrentSysKeyboardType(type->getHashCode());
-    } else if (index == DEFAULT_IME) {
-        tmpSetting.SetCurrentKeyboardType(type->getHashCode());
-    } else {
-        tmpSetting.SetCurrentSysKeyboardType(type->getHashCode());
-    }
-    Platform::Instance()->SetInputMethodSetting(userId_, tmpSetting);
-}
-
-/*! Set display mode
-    \param mode the display mode of soft keyboard UI.
-    \n 0 - part screen mode, 1 - full screen mode
-    */
-void PerUserSession::OnSetDisplayMode(int mode)
-{
-    sptr<IInputClient> client = GetCurrentClient();
-    if (client == nullptr) {
-        IMSA_HILOGE("current client is nullptr");
-        return;
-    }
-    auto clientInfo = GetClientInfo(client->AsObject());
-    if (clientInfo == nullptr) {
-        IMSA_HILOGE("%{public}s [%{public}d]\n", ErrorCode::ToString(ErrorCode::ERROR_CLIENT_NOT_FOUND), userId_);
-        return;
-    }
-    int ret = clientInfo->client->setDisplayMode(mode);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("setDisplayMode return : %{public}s [%{public}d]\n", ErrorCode::ToString(ret), userId_);
-    }
-}
-
 /*! Restart input method service
     \param index it can be DEFAULT_IME or SECURITY_IME
     \param imeId the id of the input method service going to restart
@@ -866,70 +787,6 @@ KeyboardType *PerUserSession::GetKeyboardType(int imeIndex, int typeIndex)
     return nullptr;
 }
 
-/*! Reset current keyboard type
-    \param imeIndex it can be 0 or 1. 0 - default ime, 1 - security ime
-    */
-void PerUserSession::ResetCurrentKeyboardType(int imeIndex)
-{
-    if (imeIndex < 0 || imeIndex > 1) {
-        return;
-    }
-    currentKbdIndex[imeIndex] = 0;
-    int hashCode = 0;
-    if (imeIndex == DEFAULT_IME) {
-        hashCode = inputMethodSetting->GetCurrentKeyboardType();
-    } else {
-        hashCode = inputMethodSetting->GetCurrentSysKeyboardType();
-    }
-    KeyboardType *type = nullptr;
-    if (hashCode == -1) {
-        type = GetKeyboardType(imeIndex, currentKbdIndex[imeIndex]);
-    } else {
-        bool flag = false;
-        if (imeIndex == SECURITY_IME || currentIme[DEFAULT_IME] == currentIme[SECURITY_IME]) {
-            for (int i = 0; i < (int)currentIme[imeIndex]->mTypes.size(); i++) {
-                if (currentIme[imeIndex]->mTypes[i]->getHashCode() == hashCode) {
-                    currentKbdIndex[imeIndex] = i;
-                    flag = true;
-                    break;
-                }
-            }
-        } else {
-            std::vector<int> hashCodeList = inputMethodSetting->GetEnabledKeyboardTypes(currentIme[imeIndex]->mImeId);
-            for (int i = 0; i < (int)hashCodeList.size(); i++) {
-                if (hashCode == hashCodeList[i]) {
-                    currentKbdIndex[imeIndex] = i;
-                    flag = true;
-                    break;
-                }
-            }
-        }
-        if (!flag) {
-            IMSA_HILOGW("The current keyboard type is not found in the current IME. Reset it!");
-            type = GetKeyboardType(imeIndex, currentKbdIndex[imeIndex]);
-        } else if (IsIMEEqual()) {
-            currentKbdIndex[1 - imeIndex] = currentKbdIndex[imeIndex];
-        }
-    }
-    if (type) {
-        InputMethodSetting tmpSetting;
-        if (IsIMEEqual()) {
-            inputMethodSetting->SetCurrentKeyboardType(type->getHashCode());
-            inputMethodSetting->SetCurrentSysKeyboardType(type->getHashCode());
-            currentKbdIndex[1 - imeIndex] = currentKbdIndex[imeIndex];
-            tmpSetting.SetCurrentKeyboardType(type->getHashCode());
-            tmpSetting.SetCurrentSysKeyboardType(type->getHashCode());
-        } else if (imeIndex == DEFAULT_IME) {
-            tmpSetting.SetCurrentKeyboardType(type->getHashCode());
-            inputMethodSetting->SetCurrentKeyboardType(type->getHashCode());
-        } else {
-            tmpSetting.SetCurrentSysKeyboardType(type->getHashCode());
-            inputMethodSetting->SetCurrentSysKeyboardType(type->getHashCode());
-        }
-        Platform::Instance()->SetInputMethodSetting(userId_, tmpSetting);
-    }
-}
-
 /*! Get ime index for the input client
     \param inputClient the remote object handler of an input client.
     \return 0 - default ime
@@ -953,33 +810,6 @@ int PerUserSession::GetImeIndex(const sptr<IInputClient> &inputClient)
         return SECURITY_IME;
     }
     return DEFAULT_IME;
-}
-
-/*! Copy session data from one IME to another IME
-    \param imeIndex it can be 0 or 1.
-    \n 0 - default ime, 1 - security ime
-    */
-void PerUserSession::CopyInputMethodService(int imeIndex)
-{
-    SetImsCore(imeIndex, GetImsCore((1 - imeIndex)));
-    localControlChannel[imeIndex] = localControlChannel[1 - imeIndex];
-    inputControlChannel[imeIndex] = inputControlChannel[1 - imeIndex];
-    inputMethodToken[imeIndex] = inputMethodToken[1 - imeIndex];
-    currentKbdIndex[imeIndex] = currentKbdIndex[1 - imeIndex];
-    int hashCode[2];
-    hashCode[0] = inputMethodSetting->GetCurrentKeyboardType();
-    hashCode[1] = inputMethodSetting->GetCurrentSysKeyboardType();
-    if (hashCode[imeIndex] != hashCode[1 - imeIndex]) {
-        hashCode[imeIndex] = hashCode[1 - imeIndex];
-        inputMethodSetting->SetCurrentKeyboardType(hashCode[0]);
-        inputMethodSetting->SetCurrentSysKeyboardType(hashCode[1]);
-
-        InputMethodSetting tmpSetting;
-        tmpSetting.ClearData();
-        tmpSetting.SetCurrentKeyboardType(hashCode[0]);
-        tmpSetting.SetCurrentSysKeyboardType(hashCode[1]);
-        Platform::Instance()->SetInputMethodSetting(userId_, tmpSetting);
-    }
 }
 
 /*! Get ClientInfo

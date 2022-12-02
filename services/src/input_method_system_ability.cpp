@@ -896,7 +896,6 @@ void InputMethodSystemAbility::WorkThread()
             case MSG_SHOW_CURRENT_INPUT:
             case MSG_ID_SET_CORE_AND_AGENT:
             case MSG_ID_HIDE_KEYBOARD_SELF:
-            case MSG_ID_SET_DISPLAY_MODE:
             case MSG_ID_CLIENT_DIED:
             case MSG_ID_IMS_DIED:
             case MSG_ID_RESTART_IMS: {
@@ -905,10 +904,6 @@ void InputMethodSystemAbility::WorkThread()
             }
             case MSG_ID_DISABLE_IMS: {
                 OnDisableIms(msg);
-                break;
-            }
-            case MSG_ID_ADVANCE_TO_NEXT: {
-                OnAdvanceToNext(msg);
                 break;
             }
             case MSG_ID_EXIT_SERVICE: {
@@ -1298,36 +1293,6 @@ int32_t InputMethodSystemAbility::OnDisableIms(const Message *msg)
     std::u16string key = InputMethodSetting::ENABLED_INPUT_METHODS_TAG;
     tmpSetting.SetValue(key, setting->GetInputMethodSetting()->GetValue(key));
     tmpSetting.RemoveEnabledInputMethod(imeId);
-    IMSA_HILOGI("End...\n");
-    return ErrorCode::NO_ERROR;
-}
-
-/*! Switch to next ime or next keyboard type. It's called by input method service
-    \n Run in work thread of input method management service or the work thread of PerUserSession
-    \param msg the parameters from remote binder are saved in msg->msgContent_
-    \return ErrorCode::NO_ERROR
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    */
-int32_t InputMethodSystemAbility::OnAdvanceToNext(const Message *msg)
-{
-    IMSA_HILOGI("Start...\n");
-    MessageParcel *data = msg->msgContent_;
-    int32_t userId = data->ReadInt32();
-    bool isCurrentIme = data->ReadBool();
-    PerUserSetting *setting = GetUserSetting(userId);
-    if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-        return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-    }
-    if (isCurrentIme) {
-        std::map<int32_t, MessageHandler *>::const_iterator it = msgHandlers.find(userId);
-        if (it != msgHandlers.end()) {
-            Message *destMsg = new Message(msg->msgId_, nullptr);
-            it->second->SendMessage(destMsg);
-        }
-    } else {
-        setting->OnAdvanceToNext();
-    }
     IMSA_HILOGI("End...\n");
     return ErrorCode::NO_ERROR;
 }

@@ -20,13 +20,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-void Platform::SetPlatform(const sptr<IPlatformApi> &platformApi)
-{
-    this->platformApi = platformApi;
-    sptr<IPlatformCallback> cb = new PlatformCallbackStub();
-    this->platformApi->registerCallback(cb);
-}
-
 /*! Constructor
     */
 Platform::Platform()
@@ -48,48 +41,6 @@ Platform *Platform::Instance()
         platform = new Platform();
     }
     return platform;
-}
-
-/*! Start an input method service
-      \param userId the id of the given user.
-      \param packageName the packageName of the given input method engine which is going to start
-      \param intention the intention to start the service
-      \return the remote object handler of started input method service.
-    */
-sptr<IInputMethodCore> Platform::BindInputMethodService(
-    int userId, const std::u16string &packageName, const std::u16string &intention)
-{
-    if (!platformApi) {
-        return nullptr;
-    }
-    return platformApi->bindInputMethodService(packageName, intention, userId);
-}
-
-/*! Stop an input method service
-      \param userId the id of the given user.
-      \param packageName the packageName of the given input method engine which is going to stop
-      \return ErrorCode
-    */
-int Platform::UnbindInputMethodService(int userId, const std::u16string &packageName)
-{
-    if (!platformApi) {
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    return platformApi->unbindInputMethodService(userId, packageName);
-}
-
-/*! Create window token
-      \param userId the id of the given user.
-      \param displayId the id of display screen
-      \param packageName the packageName of the given input method engine
-      \return ErrorCode
-    */
-sptr<IRemoteObject> Platform::CreateWindowToken(int userId, int displayId, const std::u16string &packageName)
-{
-    if (!platformApi) {
-        return nullptr;
-    }
-    return platformApi->createWindowToken(userId, displayId, packageName);
 }
 
 /*! Destroy window token
@@ -152,39 +103,6 @@ int Platform::SetInputMethodSetting(int userId, const InputMethodSetting &inputM
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return platformApi->setInputMethodSetting(userId, inputMethodSetting);
-}
-
-/*! Check if a physical keyboard is connected to the system
-      \return true - a physical keyboard is connected
-      \n      false - no physical keyboard
-    */
-bool Platform::CheckPhysicalKeyboard()
-{
-    return true;
-}
-
-/*! Check if the remote caller is from a valid window
-      \return true - the remote caller is from a valid window
-      \n      false - the remote caller is not from a valid window
-    */
-bool Platform::IsValidWindow(int uid, int pid, int displayId)
-{
-    (void)uid;
-    (void)pid;
-    (void)displayId;
-    return true;
-}
-
-/*! Check if the remote caller is from a focused window
-      \return true - the remote caller is from a focused window
-      \n      false - the remote caller is not from a focused window
-    */
-bool Platform::IsWindowFocused(int uid, int pid, int displayId)
-{
-    (void)uid;
-    (void)pid;
-    (void)displayId;
-    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS

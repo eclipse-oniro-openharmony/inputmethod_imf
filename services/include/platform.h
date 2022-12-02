@@ -32,24 +32,11 @@ namespace MiscServices {
 class Platform {
 public:
     static Platform *Instance();
-    void SetPlatform(const sptr<IPlatformApi> &platformApi);
-    sptr<IInputMethodCore> BindInputMethodService(
-        int userId, const std::u16string &packageName, const std::u16string &intention);
-    int UnbindInputMethodService(int userId, const std::u16string &packageName);
-    sptr<IRemoteObject> CreateWindowToken(int userId, int displayId, const std::u16string &packageName);
     int DestroyWindowToken(int userId, const std::u16string &packageName);
     int ListInputMethod(int userId, std::vector<InputMethodInfo *> *properties);
     int GetInputMethodProperty(int userId, const std::u16string &packageName, InputMethodInfo *inputMethodProperty);
     int GetInputMethodSetting(int userId, InputMethodSetting *inputMethodSetting);
     int SetInputMethodSetting(int userId, const InputMethodSetting &inputMethodSetting);
-    bool CheckPhysicalKeyboard();
-    bool IsValidWindow(int uid, int pid, int displayId);
-    bool IsWindowFocused(int uid, int pid, int displayId);
-
-    static inline sptr<IRemoteObject> RemoteBrokerToObject(const sptr<IRemoteBroker> &broker)
-    {
-        return broker->AsObject();
-    }
 
 private:
     sptr<IPlatformApi> platformApi;

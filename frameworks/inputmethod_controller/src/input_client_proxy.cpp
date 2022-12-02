@@ -58,17 +58,6 @@ int32_t InputClientProxy::onInputReleased(int32_t retValue)
     return status;
 }
 
-int32_t InputClientProxy::setDisplayMode(int32_t mode)
-{
-    MessageParcel data, reply;
-    MessageOption option;
-
-    data.WriteInterfaceToken(GetDescriptor());
-    data.WriteInt32(mode);
-    auto status = Remote()->SendRequest(SET_DISPLAY_MODE, data, reply, option);
-    return status;
-}
-
 int32_t InputClientProxy::OnSwitchInput(const Property &property, const SubProperty &subProperty)
 {
     IMSA_HILOGI("InputClientProxy::OnSwitchInput");

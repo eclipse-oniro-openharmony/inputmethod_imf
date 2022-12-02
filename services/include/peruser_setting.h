@@ -43,12 +43,10 @@ public:
     int32_t OnPackageAdded(std::u16string &packageName, bool &isSecurityIme);
     int32_t OnPackageRemoved(std::u16string &packageName, bool &isSecurityIme);
     int32_t OnSettingChanged(const std::u16string &key, const std::u16string &value);
-    void OnAdvanceToNext();
     void OnUserLocked();
     void Dump(int32_t fd);
 
     int32_t ListInputMethod(std::vector<InputMethodInfo *> *properties);
-    int32_t ListKeyboardType(const std::u16string &imeId, std::vector<KeyboardType *> *types);
 
     static bool CheckIfSecurityIme(const InputMethodInfo &property);
 

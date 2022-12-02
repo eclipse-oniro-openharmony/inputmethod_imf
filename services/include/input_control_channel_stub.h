@@ -34,21 +34,9 @@ public:
     virtual ~InputControlChannelStub();
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     int32_t HideKeyboardSelf(int flags) override;
-    bool AdvanceToNext(bool isCurrentIme) override;
-    void SetDisplayMode(int mode) override;
-    void OnKeyboardShowed() override;
-
-    void ResetFlag();
-    bool WaitKeyboardReady();
 
 private:
     int userId_;
-
-    std::mutex mtx;
-    std::condition_variable cv;
-    bool agentReadyFlag = false;
-    bool keyboardReadyFlag = false;
-    const int32_t sleepTime = 300;
 };
 } // namespace MiscServices
 } // namespace OHOS

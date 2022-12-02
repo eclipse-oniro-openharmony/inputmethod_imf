@@ -109,7 +109,6 @@ private:
     int32_t OnPackageRemoved(const Message *msg);
     int32_t OnPackageAdded(const Message *msg);
     int32_t OnDisableIms(const Message *msg);
-    int32_t OnAdvanceToNext(const Message *msg);
     int32_t OnDisplayOptionalInputMethod(int32_t userId);
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();

@@ -149,17 +149,13 @@ private:
     PerUserSession(const PerUserSession &&);
     PerUserSession &operator=(const PerUserSession &&);
     KeyboardType *GetKeyboardType(int imeIndex, int typeIndex);
-    void ResetCurrentKeyboardType(int imeIndex);
     int OnCurrentKeyboardTypeChanged(int index, const std::u16string &value);
-    void CopyInputMethodService(int imeIndex);
     std::shared_ptr<ClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     void WorkThread();
 
     void OnClientDied(sptr<IInputClient> remote);
     void OnImsDied(sptr<IInputMethodCore> remote);
 
-    void OnAdvanceToNext();
-    void OnSetDisplayMode(int mode);
     void OnRestartIms(int index, const std::u16string &imeId);
     void OnUserLocked();
     int AddClient(sptr<IRemoteObject> inputClient, const ClientInfo &clientInfo);

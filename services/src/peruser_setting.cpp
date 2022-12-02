@@ -205,45 +205,6 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
-    /*! Switch to the next input method service.
-    */
-    void PerUserSetting::OnAdvanceToNext()
-    {
-        bool flag = false;
-        std::u16string enabledInputMethods = inputMethodSetting.GetValue(InputMethodSetting::ENABLED_INPUT_METHODS_TAG);
-        std::u16string imeId;
-        std::u16string nextImeId = Utils::ToStr16("");
-        InputMethodInfo *firstEnabledProperty = nullptr;
-        for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
-            imeId = inputMethodProperties[i]->mImeId;
-            if (imeId == currentImeId) {
-                flag = true;
-            } else if (enabledInputMethods.find(imeId) != std::string::npos) {
-                if (flag) {
-                    nextImeId = imeId;
-                    break;
-                } else if (!firstEnabledProperty) {
-                    firstEnabledProperty = inputMethodProperties[i];
-                }
-            }
-        }
-
-        if (!nextImeId.size() && firstEnabledProperty) {
-            nextImeId = firstEnabledProperty->mImeId;
-        }
-
-        // next enabled ime is not available.
-        if (!nextImeId.size()) {
-            IMSA_HILOGW("No next IME is available. [%d]\n", userId_);
-            return;
-        }
-
-        InputMethodSetting tmpSetting;
-        tmpSetting.SetCurrentInputMethod(nextImeId);
-        tmpSetting.SetCurrentKeyboardType(-1);
-        Platform::Instance()->SetInputMethodSetting(userId_, tmpSetting);
-    }
-
     /* It's Called when this user is locked.
      * Release data for this user including:
      * release input method engine information
@@ -402,24 +363,6 @@ namespace MiscServices {
     {
         for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
             properties->push_back(inputMethodProperties[i]);
-        }
-        return ErrorCode::NO_ERROR;
-    }
-
-    /*! List the keyboard types of given input method engine
-    \param imeId the id of the given IME
-    \param[out] types the data of type list of the given IME will be written to types
-    \return ErrorCode::NO_ERROR
-    */
-    int32_t PerUserSetting::ListKeyboardType(const std::u16string& imeId, std::vector<KeyboardType*> *types)
-    {
-        for (int i = 0; i < (int)inputMethodProperties.size(); i++) {
-            if (imeId == inputMethodProperties[i]->mImeId) {
-                for (int j = 0; j < (int)inputMethodProperties[i]->mTypes.size(); j++) {
-                    types->push_back(inputMethodProperties[i]->mTypes[j]);
-                }
-                break;
-            }
         }
         return ErrorCode::NO_ERROR;
     }
