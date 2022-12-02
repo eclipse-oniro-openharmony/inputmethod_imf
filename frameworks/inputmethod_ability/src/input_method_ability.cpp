@@ -502,17 +502,6 @@ int32_t InputMethodAbility::GetInputPattern(int32_t &inputPattern)
     return channel->GetInputPattern(inputPattern);
 }
 
-void InputMethodAbility::StopInput()
-{
-    IMSA_HILOGI("InputMethodAbility::StopInput");
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
-    if (channel == nullptr) {
-        IMSA_HILOGI("InputMethodAbility::StopInput channel is nullptr");
-        return;
-    }
-    channel->StopInput();
-}
-
 void InputMethodAbility::SetInputDataChannel(sptr<IRemoteObject> &object)
 {
     IMSA_HILOGI("run in SetInputDataChannel");
