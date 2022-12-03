@@ -35,7 +35,6 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
     auto currKey = MASK_MAP.find(keyCode);
     if (currKey == MASK_MAP.end()) {
         IMSA_HILOGD("key code unknown");
-        keyState_ = static_cast<uint32_t>(0);
         return;
     }
     IMSA_HILOGD("keyCode: %{public}d, keyAction: %{public}d", keyCode, keyAction);
