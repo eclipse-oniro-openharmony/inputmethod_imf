@@ -111,7 +111,10 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
     auto ctxt = std::make_shared<HandleContext>();
     auto input = [ctxt](
                      napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
-    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+    auto output = [ctxt, &isOutput](napi_env env, napi_value *result) -> napi_status {
+        if (!isOutput) {
+            return napi_ok;
+        }
         napi_status status = napi_get_boolean(env, ctxt->isHandle, result);
         IMSA_HILOGE("output napi_get_boolean != nullptr[%{public}d]", result != nullptr);
         return status;
@@ -130,11 +133,6 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
             ctxt->SetErrorCode(errCode);
         }
     };
-    if (isOutput) {
-        ctxt->SetAction(std::move(input), std::move(output));
-    } else {
-        ctxt->SetAction(std::move(input));
-    }
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
     return asyncCall.Call(env, exec);
 }
