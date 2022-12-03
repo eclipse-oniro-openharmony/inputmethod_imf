@@ -90,13 +90,6 @@ int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(sptr<IInputMethodCore> co
     });
 }
 
-int32_t InputMethodSystemAbilityProxy::GetKeyboardWindowHeight(int32_t &retHeight)
-{
-    IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(GET_KEYBOARD_WINDOW_HEIGHT, nullptr,
-        [&retHeight](MessageParcel &reply) { return reply.ReadInt32(retHeight); });
-}
-
 std::shared_ptr<Property> InputMethodSystemAbilityProxy::GetCurrentInputMethod()
 {
     IMSA_HILOGD("%{public}s in", __func__);

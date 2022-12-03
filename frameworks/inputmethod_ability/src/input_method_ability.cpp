@@ -145,10 +145,6 @@ void InputMethodAbility::WorkThread()
     while (!stop_) {
         Message *msg = msgHandler->GetMessage();
         switch (msg->msgId_) {
-            case MSG_ID_INITIALIZE_INPUT: {
-                OnInitialInput(msg);
-                break;
-            }
             case MSG_ID_INIT_INPUT_CONTROL_CHANNEL: {
                 OnInitInputControlChannel(msg);
                 break;
@@ -156,14 +152,6 @@ void InputMethodAbility::WorkThread()
             case MSG_ID_SET_CLIENT_STATE: {
                 MessageParcel *data = msg->msgContent_;
                 isBindClient = data->ReadBool();
-                break;
-            }
-            case MSG_ID_START_INPUT: {
-                OnStartInput(msg);
-                break;
-            }
-            case MSG_ID_STOP_INPUT: {
-                OnStopInput(msg);
                 break;
             }
             case MSG_ID_SHOW_KEYBOARD: {
@@ -204,19 +192,6 @@ void InputMethodAbility::WorkThread()
     }
 }
 
-void InputMethodAbility::OnInitialInput(Message *msg)
-{
-    IMSA_HILOGI("InputMethodAbility::OnInitialInput");
-    MessageParcel *data = msg->msgContent_;
-    displayId = data->ReadInt32();
-    sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
-    if (channelObject == nullptr) {
-        IMSA_HILOGI("InputMethodAbility::OnInitialInput channelObject is nullptr");
-        return;
-    }
-    SetInputControlChannel(channelObject);
-}
-
 void InputMethodAbility::OnInitInputControlChannel(Message *msg)
 {
     IMSA_HILOGI("InputMethodAbility::OnInitInputControlChannel");
@@ -227,22 +202,6 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
         return;
     }
     SetInputControlChannel(channelObject);
-}
-
-void InputMethodAbility::OnStartInput(Message *msg)
-{
-    IMSA_HILOGI("InputMethodAbility::OnStartInput");
-    MessageParcel *data = msg->msgContent_;
-    sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
-    if (channelObject == nullptr) {
-        IMSA_HILOGI("InputMethodAbility::OnStartInput channelObject is nullptr");
-        return;
-    }
-    SetInputDataChannel(channelObject);
-    bool ret = InputAttribute::Unmarshalling(editorAttribute, *data);
-    if (!ret) {
-        IMSA_HILOGE("InputMethodAbility::OnStartInput unmarshalling editorAttribute failed");
-    }
 }
 
 void InputMethodAbility::OnShowKeyboard(Message *msg)
@@ -268,15 +227,6 @@ void InputMethodAbility::OnHideKeyboard(Message *msg)
 {
     IMSA_HILOGI("InputMethodAbility::OnHideKeyboard");
     DismissInputWindow();
-}
-
-void InputMethodAbility::OnStopInput(Message *msg)
-{
-    IMSA_HILOGI("InputMethodAbility::OnStopInput");
-    if (writeInputChannel) {
-        delete writeInputChannel;
-        writeInputChannel = nullptr;
-    }
 }
 
 void InputMethodAbility::OnSetSubtype(Message *msg)

@@ -30,7 +30,6 @@
 #include "inputmethod_trace.h"
 #include "keyboard_event.h"
 #include "peruser_session.h"
-#include "peruser_setting.h"
 #include "system_ability.h"
 
 namespace OHOS {
@@ -48,8 +47,6 @@ public:
     InputMethodSystemAbility();
     ~InputMethodSystemAbility();
 
-    int32_t GetUserState(int32_t userId);
-
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
     int32_t PrepareInput(int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel,
@@ -60,7 +57,6 @@ public:
     int32_t StopInput(sptr<IInputClient> client) override;
     int32_t StopInputSession() override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
-    int32_t GetKeyboardWindowHeight(int32_t &retHeight) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
     std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
     int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;
@@ -89,26 +85,16 @@ private:
     void Initialize();
 
     std::thread workThreadHandler; /*!< thread handler of the WorkThread */
-
-    std::map<int32_t, PerUserSetting *> userSettings;
-
     std::map<int32_t, std::shared_ptr<PerUserSession>> userSessions;
     std::map<int32_t, MessageHandler *> msgHandlers;
 
     void WorkThread();
-    PerUserSetting *GetUserSetting(int32_t userId);
     std::shared_ptr<PerUserSession> GetUserSession(int32_t userId);
     bool StartInputService(std::string imeId);
     void StopInputService(std::string imeId);
     int32_t OnUserStarted(const Message *msg);
-    int32_t OnUserStopped(const Message *msg);
-    int32_t OnUserUnlocked(const Message *msg);
-    int32_t OnUserLocked(const Message *msg);
     int32_t OnHandleMessage(Message *msg);
-    int32_t OnSettingChanged(const Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
-    int32_t OnPackageAdded(const Message *msg);
-    int32_t OnDisableIms(const Message *msg);
     int32_t OnDisplayOptionalInputMethod(int32_t userId);
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();

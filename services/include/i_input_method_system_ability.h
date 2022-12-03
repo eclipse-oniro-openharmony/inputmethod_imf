@@ -43,7 +43,6 @@ public:
         STOP_INPUT,
         STOP_INPUT_SESSION,
         RELEASE_INPUT,
-        GET_KEYBOARD_WINDOW_HEIGHT,
         GET_CURRENT_INPUT_METHOD,
         GET_CURRENT_INPUT_METHOD_SUBTYPE,
         LIST_INPUT_METHOD,
@@ -69,7 +68,6 @@ public:
     virtual int32_t StopInputSession() = 0;
     virtual int32_t StopInput(sptr<IInputClient> client) = 0;
     virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
-    virtual int32_t GetKeyboardWindowHeight(int32_t &retHeight) = 0;
     virtual std::shared_ptr<Property> GetCurrentInputMethod() = 0;
     virtual std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() = 0;
     virtual int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) = 0;

@@ -174,13 +174,6 @@ void InputMethodController::WorkThread()
                 }
                 break;
             }
-            case MSG_ID_EXIT_SERVICE: {
-                MessageParcel *data = msg->msgContent_;
-                int32_t ret = data->ReadInt32();
-                textListener = nullptr;
-                IMSA_HILOGI("InputMethodController::WorkThread MSG_ID_EXIT_SERVICE : %{public}d", ret);
-                break;
-            }
             case MSG_ID_SEND_KEYBOARD_STATUS: {
                 MessageParcel *data = msg->msgContent_;
                 int32_t ret = data->ReadInt32();

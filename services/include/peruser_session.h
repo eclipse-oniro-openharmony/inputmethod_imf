@@ -40,7 +40,6 @@
 #include "keyboard_type.h"
 #include "message.h"
 #include "message_handler.h"
-#include "platform.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -86,11 +85,6 @@ public:
     explicit PerUserSession(int userId);
     ~PerUserSession();
 
-    void SetCurrentIme(InputMethodInfo *ime);
-    void SetSecurityIme(InputMethodInfo *ime);
-    void SetInputMethodSetting(InputMethodSetting *setting);
-    void ResetIme(InputMethodInfo *defaultIme, InputMethodInfo *securityIme);
-    void OnPackageRemoved(const std::u16string &packageName);
     int32_t OnPrepareInput(const ClientInfo &clientInfo);
     int32_t OnStartInput(sptr<IInputClient> client, bool isShowKeyboard);
     int32_t OnStopInput(sptr<IInputClient> client);
@@ -98,14 +92,9 @@ public:
     int32_t OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
     int OnHideKeyboardSelf(int flags);
     int OnShowKeyboardSelf();
-    int OnGetKeyboardWindowHeight(int &retHeight);
-    KeyboardType *GetCurrentKeyboardType();
-
-    int OnSettingChanged(const std::u16string &key, const std::u16string &value);
     void CreateWorkThread(MessageHandler &handler);
     void JoinWorkThread();
     void StopInputService(std::string imeId);
-    static bool StartInputService();
     int32_t OnInputMethodSwitched(const Property &property, const SubProperty &subProperty);
 
     void SetCurrentSubProperty(const SubProperty &subProperty);
@@ -116,26 +105,17 @@ private:
     int userState = UserState::USER_STATE_STARTED; // the state of the user to whom the object is linking
     int displayId;                                 // the id of the display screen on which the user is
     std::map<sptr<IRemoteObject>, std::shared_ptr<ClientInfo>> mapClients;
-    static const int MIN_IME = 2;
     static const int MAX_RESTART_NUM = 3;
     static const int IME_RESET_TIME_OUT = 300;
     static const int MAX_RESET_WAIT_TIME = 1600000;
 
-    InputMethodInfo *currentIme[MAX_IME] = { nullptr, nullptr }; // 0 - the default ime. 1 - security ime
-
-    InputControlChannelStub *localControlChannel[MAX_IME];
     sptr<IInputControlChannel> inputControlChannel[MAX_IME];
     std::mutex imsCoreLock_;
     sptr<IInputMethodCore> imsCore[MAX_IME];       // the remote handlers of input method service
-    sptr<IRemoteObject> inputMethodToken[MAX_IME]; // the window token of keyboard
-    int currentKbdIndex[MAX_IME];                  // current keyboard index
-    int lastImeIndex = DEFAULT_IME;                // The last ime which showed keyboard
-    InputMethodSetting *inputMethodSetting;        // The pointer referred to the object in PerUserSetting
 
     sptr<IInputMethodAgent> imsAgent;
     std::mutex clientLock_;
     sptr<IInputClient> currentClient;              // the current input client
-    sptr<IInputClient> needReshowClient = nullptr; // the input client for which keyboard need to re-show
 
     sptr<RemoteObjectDeathRecipient> imsDeathRecipient = nullptr;
     MessageHandler *msgHandler = nullptr; // message handler working with Work Thread
@@ -148,28 +128,20 @@ private:
     PerUserSession &operator=(const PerUserSession &);
     PerUserSession(const PerUserSession &&);
     PerUserSession &operator=(const PerUserSession &&);
-    KeyboardType *GetKeyboardType(int imeIndex, int typeIndex);
-    int OnCurrentKeyboardTypeChanged(int index, const std::u16string &value);
     std::shared_ptr<ClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     void WorkThread();
 
     void OnClientDied(sptr<IInputClient> remote);
     void OnImsDied(sptr<IInputMethodCore> remote);
 
-    void OnRestartIms(int index, const std::u16string &imeId);
-    void OnUserLocked();
     int AddClient(sptr<IRemoteObject> inputClient, const ClientInfo &clientInfo);
     void RemoveClient(sptr<IRemoteObject> inputClient);
-    int StartInputMethod(int index);
-    int StopInputMethod(int index);
     int ShowKeyboard(const sptr<IInputClient> &inputClient, bool isShowKeyboard);
     int HideKeyboard(const sptr<IInputClient> &inputClient);
     int GetImeIndex(const sptr<IInputClient> &inputClient);
-    static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     void SendAgentToSingleClient(const ClientInfo &clientInfo);
     void InitInputControlChannel();
     void SendAgentToAllClients();
-    void ResetImeError(uint32_t index);
     bool IsRestartIme(uint32_t index);
     void ClearImeData(uint32_t index);
     void SetCurrentClient(sptr<IInputClient> client);
@@ -180,10 +152,6 @@ private:
     static inline bool IsValid(int32_t index)
     {
         return index >= DEFAULT_IME && index <= SECURITY_IME;
-    }
-    inline bool IsIMEEqual()
-    {
-        return GetImsCore(DEFAULT_IME) == GetImsCore(SECURITY_IME);
     }
 
     std::mutex propertyLock_;

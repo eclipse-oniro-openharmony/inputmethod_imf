@@ -38,7 +38,6 @@ public:
     void SetHandler(MessageHandler *handler);
 
     int32_t onInputReady(const sptr<IInputMethodAgent> &agent) override;
-    int32_t onInputReleased(int32_t retValue) override;
     int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
 
 private:

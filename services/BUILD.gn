@@ -47,9 +47,6 @@ ohos_shared_library("inputmethod_service") {
     "src/message.cpp",
     "src/message_handler.cpp",
     "src/peruser_session.cpp",
-    "src/peruser_setting.cpp",
-    "src/platform.cpp",
-    "src/platform_callback_stub.cpp",
   ]
 
   configs = [ ":inputmethod_services_native_config" ]
