@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "global.h"
+#include "im_common_event_manager.h"
 #include "input_manager.h"
 #include "input_method_controller.h"
 #include "key_event.h"
@@ -33,7 +34,8 @@ namespace MiscServices {
 using namespace testing::ext;
 using namespace MMI;
 namespace {
-constexpr int32_t TIME_WAIT_FOR_STATUS_OK = 2;
+constexpr int32_t TIME_WAIT_FOR_STATUS_OK = 50;
+constexpr int32_t TIME_WAIT_FOR_HANDLE_KEY_EVENT = 10000;
 constexpr int32_t SEC_TO_NANOSEC = 1000000000;
 constexpr int32_t NANOSECOND_TO_MILLISECOND = 1000000;
 } // namespace
@@ -45,8 +47,9 @@ public:
     void SetUp();
     void TearDown();
 
-    static std::shared_ptr<MMI::KeyEvent> SetKeyEvent(int32_t keyCode);
-    static std::shared_ptr<MMI::KeyEvent> SetCombineKeyEvent(int32_t preKey, int32_t finalKey);
+    static std::shared_ptr<MMI::KeyEvent> SetKeyEvent(int32_t keyCode, int32_t keyAction);
+    static bool SimulateKeyEvent(int32_t keyCode);
+    static bool SimulateCombinationKeyEvent(int32_t preKey, int32_t finalKey);
 };
 
 class TextListener : public OnTextChangedListener {
@@ -116,7 +119,7 @@ void InputMethodServiceTest::TearDown(void)
     IMSA_HILOGI("InputMethodServiceTest::TearDown");
 }
 
-std::shared_ptr<MMI::KeyEvent> InputMethodServiceTest::SetKeyEvent(int32_t keyCode)
+std::shared_ptr<MMI::KeyEvent> InputMethodServiceTest::SetKeyEvent(int32_t keyCode, int32_t keyAction)
 {
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
     int64_t downTime = GetNanoTime() / NANOSECOND_TO_MILLISECOND;
@@ -125,147 +128,185 @@ std::shared_ptr<MMI::KeyEvent> InputMethodServiceTest::SetKeyEvent(int32_t keyCo
     keyItem.SetPressed(true);
     keyItem.SetDownTime(downTime);
     keyEvent->SetKeyCode(keyCode);
-    keyEvent->SetKeyAction(MMI::KeyEvent::KEY_ACTION_DOWN);
+    keyEvent->SetKeyAction(keyAction);
     keyEvent->AddPressedKeyItems(keyItem);
 
     return keyEvent;
 }
 
-std::shared_ptr<MMI::KeyEvent> InputMethodServiceTest::SetCombineKeyEvent(int32_t preKey, int32_t finalKey)
+bool InputMethodServiceTest::SimulateKeyEvent(int32_t keyCode)
 {
-    std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
-    int64_t downTime = GetNanoTime() / NANOSECOND_TO_MILLISECOND;
-    MMI::KeyEvent::KeyItem keyItem1;
-    MMI::KeyEvent::KeyItem keyItem2;
-    keyItem1.SetKeyCode(preKey);
-    keyItem1.SetPressed(true);
-    keyItem1.SetDownTime(downTime);
-    keyItem2.SetKeyCode(finalKey);
-    keyItem2.SetPressed(true);
-    keyItem2.SetDownTime(downTime);
+    auto keyDown = InputMethodServiceTest::SetKeyEvent(keyCode, MMI::KeyEvent::KEY_ACTION_DOWN);
+    auto keyUp = InputMethodServiceTest::SetKeyEvent(keyCode, MMI::KeyEvent::KEY_ACTION_UP);
+    bool result = keyDown != nullptr && keyUp != nullptr;
+    InputManager::GetInstance()->SimulateInputEvent(keyDown);
+    usleep(TIME_WAIT_FOR_STATUS_OK);
+    InputManager::GetInstance()->SimulateInputEvent(keyUp);
+    return result;
+}
 
-    keyEvent->SetKeyCode(finalKey);
-    keyEvent->SetKeyAction(MMI::KeyEvent::KEY_ACTION_DOWN);
-    keyEvent->AddPressedKeyItems(keyItem1);
-    keyEvent->AddPressedKeyItems(keyItem2);
-
-    return keyEvent;
+bool InputMethodServiceTest::SimulateCombinationKeyEvent(int32_t preKey, int32_t finalKey)
+{
+    auto preDown = InputMethodServiceTest::SetKeyEvent(preKey, MMI::KeyEvent::KEY_ACTION_DOWN);
+    auto finalDown = InputMethodServiceTest::SetKeyEvent(finalKey, MMI::KeyEvent::KEY_ACTION_DOWN);
+    auto preUp = InputMethodServiceTest::SetKeyEvent(finalKey, MMI::KeyEvent::KEY_ACTION_UP);
+    auto finalUp = InputMethodServiceTest::SetKeyEvent(preKey, MMI::KeyEvent::KEY_ACTION_UP);
+    InputManager::GetInstance()->SimulateInputEvent(preDown);
+    usleep(TIME_WAIT_FOR_STATUS_OK);
+    InputManager::GetInstance()->SimulateInputEvent(finalDown);
+    usleep(TIME_WAIT_FOR_STATUS_OK);
+    InputManager::GetInstance()->SimulateInputEvent(preUp);
+    usleep(TIME_WAIT_FOR_STATUS_OK);
+    InputManager::GetInstance()->SimulateInputEvent(finalUp);
+    bool result = preDown != nullptr && finalDown != nullptr && preUp != nullptr && finalUp != nullptr;
+    return result;
 }
 
 /**
- * @tc.name: testtestKeyboardEventCallback001
- * @tc.desc: test KeyboardEvent Callback.
+ * @tc.name: test_KeyEvent_UNKNOWN_001
+ * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback001, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_001, TestSize.Level0)
 {
-    IMSA_HILOGI("SubscribeKeyboardEvent001 TEST START");
-    sptr<OnTextChangedListener> textListener = new TextListener();
-    InputMethodController::GetInstance()->Attach(textListener);
-    auto keyEvent = InputMethodServiceTest::SetKeyEvent(MMI::KeyEvent::KEYCODE_CAPS_LOCK);
-    EXPECT_TRUE(keyEvent != nullptr);
-    InputManager::GetInstance()->SimulateInputEvent(keyEvent);
-    sleep(TIME_WAIT_FOR_STATUS_OK);
+    IMSA_HILOGI("test_KeyEvent_UNKNOWN_001 TEST START");
+    bool result = InputMethodServiceTest::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_0);
+    EXPECT_TRUE(result);
+    usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
 
 /**
- * @tc.name: testtestKeyboardEventCallback002
- * @tc.desc: test KeyboardEvent Callback.
+ * @tc.name: test_KeyEvent_UNKNOWN_002
+ * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback002, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_002, TestSize.Level0)
 {
-    IMSA_HILOGI("SubscribeKeyboardEvent002 TEST START");
-    sptr<OnTextChangedListener> textListener = new TextListener();
-    InputMethodController::GetInstance()->Attach(textListener);
-    auto keyEvent = InputMethodServiceTest::SetKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_LEFT);
-    EXPECT_TRUE(keyEvent != nullptr);
-    InputManager::GetInstance()->SimulateInputEvent(keyEvent);
-    sleep(TIME_WAIT_FOR_STATUS_OK);
+    IMSA_HILOGI("test_KeyEvent_UNKNOWN_002 TEST START");
+    bool result =
+        InputMethodServiceTest::SimulateCombinationKeyEvent(MMI::KeyEvent::KEYCODE_0, MMI::KeyEvent::KEYCODE_1);
+    EXPECT_TRUE(result);
+    usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
 
 /**
- * @tc.name: testtestKeyboardEventCallback003
- * @tc.desc: test KeyboardEvent Callback.
+ * @tc.name: test_KeyEvent_CAPS_001
+ * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback003, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CAPS_001, TestSize.Level0)
 {
-    IMSA_HILOGI("SubscribeKeyboardEvent003 TEST START");
-    sptr<OnTextChangedListener> textListener = new TextListener();
-    InputMethodController::GetInstance()->Attach(textListener);
-    auto keyEvent = InputMethodServiceTest::SetKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_RIGHT);
-    EXPECT_TRUE(keyEvent != nullptr);
-    InputManager::GetInstance()->SimulateInputEvent(keyEvent);
-    sleep(TIME_WAIT_FOR_STATUS_OK);
+    IMSA_HILOGI("test_KeyEvent_CAPS_001 TEST START");
+    bool result = InputMethodServiceTest::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CAPS_LOCK);
+    EXPECT_TRUE(result);
+    usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
 
 /**
- * @tc.name: testtestKeyboardEventCallback004
- * @tc.desc: test KeyboardEvent Callback.
+ * @tc.name: test_KeyEvent_CTRL_001
+ * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback004, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_001, TestSize.Level0)
 {
-    IMSA_HILOGI("SubscribeKeyboardEvent004 TEST START");
-    sptr<OnTextChangedListener> textListener = new TextListener();
-    InputMethodController::GetInstance()->Attach(textListener);
-    auto keyEvent = InputMethodServiceTest::SetCombineKeyEvent(
+    IMSA_HILOGI("test_KeyEvent_CTRL_001 TEST START");
+    bool result = InputMethodServiceTest::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CTRL_LEFT);
+    EXPECT_TRUE(result);
+    usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
+}
+
+/**
+ * @tc.name: test_KeyEvent_CTRL_002
+ * @tc.desc: test KeyEvent Callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_002, TestSize.Level0)
+{
+    IMSA_HILOGI("test_KeyEvent_CTRL_002 TEST START");
+    bool result = InputMethodServiceTest::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CTRL_RIGHT);
+    EXPECT_TRUE(result);
+    usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
+}
+
+/**
+ * @tc.name: test_KeyEvent_SHIFT_001
+ * @tc.desc: test KeyEvent Callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_001, TestSize.Level0)
+{
+    IMSA_HILOGI("test_KeyEvent_SHIFT_001 TEST START");
+    bool result = InputMethodServiceTest::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_LEFT);
+    EXPECT_TRUE(result);
+    usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
+}
+
+/**
+ * @tc.name: test_KeyEvent_SHIFT_002
+ * @tc.desc: test KeyEvent Callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_002, TestSize.Level0)
+{
+    IMSA_HILOGI("test_KeyEvent_SHIFT_002 TEST START");
+    bool result = InputMethodServiceTest::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_RIGHT);
+    EXPECT_TRUE(result);
+    usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
+}
+
+/**
+ * @tc.name: test_KeyEvent_CTRL_SHIFT_001
+ * @tc.desc: test KeyEvent Callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_001, TestSize.Level0)
+{
+    IMSA_HILOGI("test_KeyEvent_CTRL_SHIFT_001 TEST START");
+    bool result = InputMethodServiceTest::SimulateCombinationKeyEvent(
         MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT);
-    EXPECT_TRUE(keyEvent != nullptr);
-    InputManager::GetInstance()->SimulateInputEvent(keyEvent);
-    sleep(TIME_WAIT_FOR_STATUS_OK);
+    EXPECT_TRUE(result);
+    usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
 
 /**
- * @tc.name: testtestKeyboardEventCallback005
- * @tc.desc: test KeyboardEvent Callback.
+ * @tc.name: test_KeyEvent_CTRL_SHIFT_002
+ * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback005, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_002, TestSize.Level0)
 {
-    IMSA_HILOGI("SubscribeKeyboardEvent005 TEST START");
-    sptr<OnTextChangedListener> textListener = new TextListener();
-    InputMethodController::GetInstance()->Attach(textListener);
-    auto keyEvent = InputMethodServiceTest::SetCombineKeyEvent(
+    IMSA_HILOGI("test_KeyEvent_CTRL_SHIFT_002 TEST START");
+    bool result = InputMethodServiceTest::SimulateCombinationKeyEvent(
         MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT);
-    EXPECT_TRUE(keyEvent != nullptr);
-    InputManager::GetInstance()->SimulateInputEvent(keyEvent);
-    sleep(TIME_WAIT_FOR_STATUS_OK);
+    EXPECT_TRUE(result);
+    usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
 
 /**
- * @tc.name: testtestKeyboardEventCallback006
- * @tc.desc: test KeyboardEvent Callback.
+ * @tc.name: test_KeyEvent_CTRL_SHIFT_003
+ * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback006, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_003, TestSize.Level0)
 {
-    IMSA_HILOGI("SubscribeKeyboardEvent006 TEST START");
-    sptr<OnTextChangedListener> textListener = new TextListener();
-    InputMethodController::GetInstance()->Attach(textListener);
-    auto keyEvent = InputMethodServiceTest::SetCombineKeyEvent(
+    IMSA_HILOGI("test_KeyEvent_CTRL_SHIFT_003 TEST START");
+    bool result = InputMethodServiceTest::SimulateCombinationKeyEvent(
         MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT);
-    EXPECT_TRUE(keyEvent != nullptr);
-    InputManager::GetInstance()->SimulateInputEvent(keyEvent);
-    sleep(TIME_WAIT_FOR_STATUS_OK);
+    EXPECT_TRUE(result);
+    usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
 
 /**
- * @tc.name: testtestKeyboardEventCallback007
- * @tc.desc: test KeyboardEvent Callback.
+ * @tc.name: test_KeyEvent_CTRL_SHIFT_004
+ * @tc.desc: test KeyEvent Callback.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodServiceTest, testKeyboardEventCallback007, TestSize.Level0)
+HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_004, TestSize.Level0)
 {
     IMSA_HILOGI("SubscribeKeyboardEvent007 TEST START");
-    sptr<OnTextChangedListener> textListener = new TextListener();
-    InputMethodController::GetInstance()->Attach(textListener);
-    auto keyEvent = InputMethodServiceTest::SetCombineKeyEvent(
+    bool result = InputMethodServiceTest::SimulateCombinationKeyEvent(
         MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT);
-    EXPECT_TRUE(keyEvent != nullptr);
-    InputManager::GetInstance()->SimulateInputEvent(keyEvent);
-    sleep(TIME_WAIT_FOR_STATUS_OK);
+    EXPECT_TRUE(result);
 }
 } // namespace MiscServices
 } // namespace OHOS
