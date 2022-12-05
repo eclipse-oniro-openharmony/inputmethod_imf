@@ -34,15 +34,12 @@ namespace MessageID {
         MSG_ID_USER_START, //  a user started
         MSG_ID_USER_STOP, // a user stopped
         MSG_ID_USER_UNLOCK, // a user unlocked
-        MSG_ID_USER_LOCK, // a user locked
         MSG_ID_PACKAGE_ADDED, // a package is installed
         MSG_ID_PACKAGE_REMOVED, // a package is removed
         MSG_ID_SETTING_CHANGED, // input method setting is changed
 
         // the request from client
         MSG_ID_PREPARE_INPUT, // prepare input
-        MSG_ID_START_INPUT, // start input
-        MSG_ID_STOP_INPUT, // stop input
         MSG_ID_RELEASE_INPUT, // release input
         MSG_ID_SET_CORE_AND_AGENT,
         MSG_HIDE_CURRENT_INPUT,
@@ -56,8 +53,6 @@ namespace MessageID {
         MSG_ID_RESTART_IMS, // restart input method service
         MSG_ID_HIDE_KEYBOARD_SELF, // hide the current keyboard
         MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD,
-        MSG_ID_ADVANCE_TO_NEXT, // switch to next
-        MSG_ID_SET_DISPLAY_MODE, // set display mode
         MSG_ID_START_INPUT_SERVICE,
 
         MSG_ID_SHELL_COMMAND, // shell command
@@ -77,9 +72,7 @@ namespace MessageID {
         // the request from IMSA to IMA
         MSG_ID_SET_CLIENT_STATE,
         MSG_ID_SHOW_KEYBOARD,
-        MSG_ID_INITIALIZE_INPUT,
         MSG_ID_HIDE_KEYBOARD,
-        MSG_ID_SET_KEYBOARD_TYPE,
         MSG_ID_STOP_INPUT_SERVICE,
         MSG_ID_GET_KEYBOARD_WINDOW_HEIGHT,
         MSG_ID_INIT_INPUT_CONTROL_CHANNEL,

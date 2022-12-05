@@ -28,7 +28,6 @@
 #include "i_input_data_channel.h"
 #include "i_input_method_core.h"
 #include "i_input_control_channel.h"
-#include "keyboard_type.h"
 #include "message_handler.h"
 
 namespace OHOS {
@@ -43,17 +42,9 @@ namespace MiscServices {
                                     MessageParcel &reply,
                                     MessageOption &option) override;
 
-        int32_t initializeInput(sptr<IRemoteObject>& startInputToken, int32_t displayId,
-                                        sptr<IInputControlChannel>& inputControlChannel) override;
-        bool startInput(const sptr<IInputDataChannel>& inputDataChannel,
-                                const InputAttribute& editorAttribute,
-                                bool supportPhysicalKbd) override;
-        int32_t stopInput() override;
         int32_t showKeyboard(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard,
             const SubProperty &subProperty) override;
         bool hideKeyboard(int32_t flags) override;
-        int32_t setKeyboardType(const KeyboardType& type) override;
-        int32_t getKeyboardWindowHeight(int32_t &retHeight) override;
         int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel) override;
         void SetClientState(bool state) override;
         void StopInputService(std::string imeId) override;

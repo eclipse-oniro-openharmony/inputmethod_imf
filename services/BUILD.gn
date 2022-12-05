@@ -38,18 +38,12 @@ ohos_shared_library("inputmethod_service") {
     "src/input_channel.cpp",
     "src/input_control_channel_proxy.cpp",
     "src/input_control_channel_stub.cpp",
-    "src/input_method_ability_connection_stub.cpp",
     "src/input_method_info.cpp",
-    "src/input_method_setting.cpp",
     "src/input_method_system_ability.cpp",
     "src/input_method_system_ability_stub.cpp",
-    "src/keyboard_type.cpp",
     "src/message.cpp",
     "src/message_handler.cpp",
     "src/peruser_session.cpp",
-    "src/peruser_setting.cpp",
-    "src/platform.cpp",
-    "src/platform_callback_stub.cpp",
   ]
 
   configs = [ ":inputmethod_services_native_config" ]

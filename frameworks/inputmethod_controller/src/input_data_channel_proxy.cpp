@@ -74,17 +74,6 @@ namespace MiscServices {
         return result;
     }
 
-    void InputDataChannelProxy::Close()
-    {
-        IMSA_HILOGI("InputDataChannelProxy::Close");
-        MessageParcel data, reply;
-        MessageOption option;
-        data.WriteInterfaceToken(GetDescriptor());
-
-        auto ret = Remote()->SendRequest(CLOSE, data, reply, option);
-        if (ret != NO_ERROR) {
-        }
-    }
 
     int32_t InputDataChannelProxy::GetTextBeforeCursor(int32_t number, std::u16string &text)
     {
@@ -176,16 +165,6 @@ namespace MiscServices {
         auto result = reply.ReadInt32();
         inputPattern = reply.ReadInt32();
         return result;
-    }
-
-    void InputDataChannelProxy::StopInput()
-    {
-        IMSA_HILOGI("InputDataChannelProxy::StopInput");
-        MessageParcel data, reply;
-        MessageOption option;
-        data.WriteInterfaceToken(GetDescriptor());
-
-        Remote()->SendRequest(STOP_INPUT, data, reply, option);
     }
 } // namespace MiscServices
 } // namespace OHOS

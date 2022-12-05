@@ -129,12 +129,6 @@ void TestGetInputPattern()
     ability->GetInputPattern(inputPattern);
 }
 
-void TestStopInput()
-{
-    sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->StopInput();
-}
-
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -168,6 +162,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestGetEnterKeyType();
     OHOS::TestGetInputPattern();
 
-    OHOS::TestStopInput();
     return 0;
 }

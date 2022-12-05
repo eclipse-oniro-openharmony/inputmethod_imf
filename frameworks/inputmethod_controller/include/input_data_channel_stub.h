@@ -43,7 +43,6 @@ namespace MiscServices {
         int32_t InsertText(const std::u16string& text) override;
         int32_t DeleteForward(int32_t length) override;
         int32_t DeleteBackward(int32_t length) override;
-        void Close() override;
         int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) override;
         int32_t GetTextAfterCursor(int32_t number, std::u16string &text) override;
         void SendKeyboardStatus(int32_t status) override;
@@ -51,7 +50,6 @@ namespace MiscServices {
         int32_t MoveCursor(int32_t keyCode) override;
         int32_t GetEnterKeyType(int32_t &keyType) override;
         int32_t GetInputPattern(int32_t &inputPattern) override;
-        void StopInput() override;
 
     private:
         MessageHandler *msgHandler;
