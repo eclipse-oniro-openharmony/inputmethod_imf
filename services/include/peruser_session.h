@@ -34,10 +34,8 @@
 #include "input_control_channel_stub.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
-#include "input_method_setting.h"
 #include "inputmethod_sysevent.h"
 #include "iremote_object.h"
-#include "keyboard_type.h"
 #include "message.h"
 #include "message_handler.h"
 

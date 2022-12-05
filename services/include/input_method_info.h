@@ -20,8 +20,6 @@
 #include <string>
 #include <vector>
 
-#include "keyboard_type.h"
-
 namespace OHOS {
 namespace MiscServices {
 class InputMethodInfo {
@@ -32,7 +30,6 @@ public:
     std::u16string mConfigurationPage;
     bool isSystemIme = false;
     int32_t mDefaultImeId = 0;
-    std::vector<KeyboardType *> mTypes;
     int32_t labelId = 0;
     int32_t descriptionId = 0;
     std::u16string label;

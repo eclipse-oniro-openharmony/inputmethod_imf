@@ -28,7 +28,6 @@
 #include "input_channel.h"
 #include "iremote_broker.h"
 #include "iremote_stub.h"
-#include "keyboard_type.h"
 #include "message_handler.h"
 #include "message_parcel.h"
 

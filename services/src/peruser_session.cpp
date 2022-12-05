@@ -23,7 +23,6 @@
 #include "input_client_proxy.h"
 #include "input_control_channel_proxy.h"
 #include "input_data_channel_proxy.h"
-#include "input_method_ability_connection_stub.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_core_proxy.h"
 #include "ipc_skeleton.h"

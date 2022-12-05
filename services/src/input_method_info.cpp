@@ -28,10 +28,6 @@ InputMethodInfo::InputMethodInfo()
     */
 InputMethodInfo::~InputMethodInfo()
 {
-    for (int32_t i = 0; i < (int32_t)mTypes.size(); i++) {
-        delete mTypes[i];
-    }
-    mTypes.clear();
 }
 
 /*! Constructor
@@ -49,11 +45,6 @@ InputMethodInfo::InputMethodInfo(const InputMethodInfo &property)
     descriptionId = property.descriptionId;
     label = property.label;
     description = property.description;
-
-    for (int i = 0; i < (int)mTypes.size(); i++) {
-        KeyboardType *type = new KeyboardType(*property.mTypes[i]);
-        mTypes.push_back(type);
-    }
 }
 
 /*! operator=
@@ -76,10 +67,6 @@ InputMethodInfo &InputMethodInfo::operator=(const InputMethodInfo &property)
     label = property.label;
     description = property.description;
 
-    for (int i = 0; i < (int)mTypes.size(); i++) {
-        KeyboardType *type = new KeyboardType(*property.mTypes[i]);
-        mTypes.push_back(type);
-    }
     return *this;
 }
 } // namespace MiscServices

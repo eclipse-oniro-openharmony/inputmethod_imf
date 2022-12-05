@@ -24,7 +24,6 @@
 #include "input_method_property.h"
 #include "ipc_types.h"
 #include "iremote_broker.h"
-#include "keyboard_type.h"
 
 /**
  * brief Definition of interface IInputMethodCore

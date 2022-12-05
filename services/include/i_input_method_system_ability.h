@@ -28,7 +28,6 @@
 #include "input_method_property.h"
 #include "input_method_status.h"
 #include "iremote_broker.h"
-#include "keyboard_type.h"
 #include "message_parcel.h"
 
 namespace OHOS {

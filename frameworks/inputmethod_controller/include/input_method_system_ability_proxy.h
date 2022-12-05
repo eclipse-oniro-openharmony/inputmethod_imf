@@ -31,7 +31,6 @@
 #include "iremote_object.h"
 #include "iremote_proxy.h"
 #include "itypes_util.h"
-#include "keyboard_type.h"
 #include "message_parcel.h"
 #include "nocopyable.h"
 #include "refbase.h"
