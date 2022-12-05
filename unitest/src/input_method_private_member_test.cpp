@@ -120,7 +120,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testOnHandleMessage, TestSize.Level0)
     parcel->WriteInt32(MAIN_USER_ID);
     auto *msg = new Message(messageId, parcel);
     auto ret = service.OnHandleMessage(msg);
-    EXPECT_EQ(ret, ErrorCode::ERROR_USER_NOT_UNLOCKED);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     delete msg;
     msg = nullptr;
 }
