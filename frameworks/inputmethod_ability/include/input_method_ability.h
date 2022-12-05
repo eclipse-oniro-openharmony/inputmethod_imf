@@ -57,13 +57,11 @@ public:
     void SetCallingWindow(uint32_t windowId);
     int32_t GetEnterKeyType(int32_t &keyType);
     int32_t GetInputPattern(int32_t &inputPattern);
-    void StopInput();
 
 private:
     std::thread workThreadHandler;
     MessageHandler *msgHandler;
     InputAttribute editorAttribute;
-    int32_t displayId = 0;
     InputChannel *writeInputChannel;
     bool stop_;
     int32_t KEYBOARD_HIDE = 1;
@@ -98,9 +96,6 @@ private:
     void WorkThread();
     void QuitWorkThread();
 
-    void OnInitialInput(Message *msg);
-    void OnStartInput(Message *msg);
-    void OnStopInput(Message *msg);
     void OnShowKeyboard(Message *msg);
     void OnHideKeyboard(Message *msg);
     void OnInitInputControlChannel(Message *msg);

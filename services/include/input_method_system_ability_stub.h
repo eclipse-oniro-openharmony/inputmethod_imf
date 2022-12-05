@@ -44,8 +44,6 @@ private:
 
     int32_t ReleaseInputOnRemote(MessageParcel &data, MessageParcel &reply);
 
-    int32_t GetKeyboardWindowHeightOnRemote(MessageParcel &data, MessageParcel &reply);
-
     int32_t GetCurrentInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t GetCurrentInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -81,7 +79,6 @@ private:
         [HIDE_CURRENT_INPUT] = &InputMethodSystemAbilityStub::HideCurrentInputOnRemote,
         [STOP_INPUT] = &InputMethodSystemAbilityStub::StopInputOnRemote,
         [RELEASE_INPUT] = &InputMethodSystemAbilityStub::ReleaseInputOnRemote,
-        [GET_KEYBOARD_WINDOW_HEIGHT] = &InputMethodSystemAbilityStub::GetKeyboardWindowHeightOnRemote,
         [GET_CURRENT_INPUT_METHOD] = &InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote,
         [GET_CURRENT_INPUT_METHOD_SUBTYPE] = &InputMethodSystemAbilityStub::GetCurrentInputMethodSubtypeOnRemote,
         [LIST_INPUT_METHOD] = &InputMethodSystemAbilityStub::ListInputMethodOnRemote,

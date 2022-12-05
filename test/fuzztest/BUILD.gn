@@ -25,10 +25,7 @@ group("fuzztest") {
     "inputmethod_fuzzer:fuzztest",
     "inputmethodability_fuzzer:fuzztest",
     "inputmethodcontroller_fuzzer:fuzztest",
-    "inputmethodsetting_fuzzer:fuzztest",
     "perusersession_fuzzer:fuzztest",
-    "perusersetting_fuzzer:fuzztest",
-    "platformcallbackstub_fuzzer:fuzztest",
     "systemabilitystub_fuzzer:fuzztest",
   ]
 }

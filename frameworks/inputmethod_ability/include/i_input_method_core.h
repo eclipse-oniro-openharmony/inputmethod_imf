@@ -24,7 +24,6 @@
 #include "input_method_property.h"
 #include "ipc_types.h"
 #include "iremote_broker.h"
-#include "keyboard_type.h"
 
 /**
  * brief Definition of interface IInputMethodCore
@@ -35,31 +34,19 @@ namespace MiscServices {
 class IInputMethodCore : public IRemoteBroker {
 public:
     enum {
-        INITIALIZE_INPUT = FIRST_CALL_TRANSACTION,
-        SET_CLIENT_STATE,
-        START_INPUT,
-        STOP_INPUT,
+        SET_CLIENT_STATE = FIRST_CALL_TRANSACTION,
         SHOW_KEYBOARD,
         STOP_INPUT_SERVICE,
         HIDE_KEYBOARD,
-        SET_KEYBOARD_TYPE,
-        GET_KEYBOARD_WINDOW_HEIGHT,
         INIT_INPUT_CONTROL_CHANNEL,
         SET_SUBTYPE
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodCore");
 
-    virtual int32_t initializeInput(
-        sptr<IRemoteObject> &startInputToken, int32_t displayId, sptr<IInputControlChannel> &inputControlChannel) = 0;
-    virtual bool startInput(const sptr<IInputDataChannel> &startInputToken, const InputAttribute &editorAttribute,
-        bool supportPhysicalKbd) = 0;
-    virtual int32_t stopInput() = 0;
     virtual int32_t showKeyboard(
         const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty) = 0;
     virtual bool hideKeyboard(int32_t flags) = 0;
-    virtual int32_t setKeyboardType(const KeyboardType &type) = 0;
-    virtual int32_t getKeyboardWindowHeight(int32_t &retHeight) = 0;
     virtual int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel) = 0;
     virtual void SetClientState(bool state) = 0;
     virtual void StopInputService(std::string imeId) = 0;

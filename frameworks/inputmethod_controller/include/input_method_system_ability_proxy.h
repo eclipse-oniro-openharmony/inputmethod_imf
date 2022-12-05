@@ -31,7 +31,6 @@
 #include "iremote_object.h"
 #include "iremote_proxy.h"
 #include "itypes_util.h"
-#include "keyboard_type.h"
 #include "message_parcel.h"
 #include "nocopyable.h"
 #include "refbase.h"
@@ -52,7 +51,6 @@ public:
     int32_t StopInputSession() override;
     int32_t StopInput(sptr<IInputClient> client) override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
-    int32_t GetKeyboardWindowHeight(int32_t &retHeight) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
     std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
     int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;

@@ -261,24 +261,6 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSerializedKeyboardType
-* @tc.desc: Checkout the serialization of KeyboardType.
-* @tc.type: FUNC
-*/
-HWTEST_F(InputMethodAbilityTest, testSerializedKeyboardType, TestSize.Level0)
-{
-    int32_t def_value = 2021;
-    sptr<KeyboardType> mKeyboardType = new KeyboardType();
-    mKeyboardType->setId(def_value);
-    MessageParcel data;
-    auto ret = data.WriteParcelable(mKeyboardType);
-    EXPECT_TRUE(ret);
-    sptr<KeyboardType> deserialization = data.ReadParcelable<KeyboardType>();
-    ASSERT_TRUE(deserialization != nullptr);
-    EXPECT_TRUE(deserialization->getId() == def_value);
-}
-
-/**
 * @tc.name: testMoveCursor
 * @tc.desc: InputMethodAbility MoveCursor
 * @tc.type: FUNC

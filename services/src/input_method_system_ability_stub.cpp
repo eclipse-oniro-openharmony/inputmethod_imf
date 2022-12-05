@@ -169,14 +169,6 @@ int32_t InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote(MessageParcel &dat
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputMethodSystemAbilityStub::GetKeyboardWindowHeightOnRemote(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t height = 0;
-    int32_t value = GetKeyboardWindowHeight(height);
-    bool ret = reply.WriteInt32(value) && reply.WriteInt32(height);
-    return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
 int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     auto property = GetCurrentInputMethod();

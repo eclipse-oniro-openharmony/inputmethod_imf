@@ -76,14 +76,6 @@ InputMethodSystemAbility::~InputMethodSystemAbility()
         workThreadHandler.join();
     }
     userSessions.clear();
-    std::map<int32_t, PerUserSetting *>::const_iterator it1;
-    for (it1 = userSettings.cbegin(); it1 != userSettings.cend();) {
-        PerUserSetting *setting = it1->second;
-        it1 = userSettings.erase(it1);
-        delete setting;
-        setting = nullptr;
-    }
-    userSettings.clear();
     std::map<int32_t, MessageHandler *>::const_iterator it2;
     for (it2 = msgHandlers.cbegin(); it2 != msgHandlers.cend();) {
         MessageHandler *handler = it2->second;
@@ -222,12 +214,8 @@ void InputMethodSystemAbility::Initialize()
     IMSA_HILOGI("InputMethodSystemAbility::Initialize");
     // init work thread to handle the messages
     workThreadHandler = std::thread([this] { WorkThread(); });
-    PerUserSetting *setting = new PerUserSetting(MAIN_USER_ID);
-    userSettings.insert(std::pair<int32_t, PerUserSetting *>(MAIN_USER_ID, setting));
     userSessions.insert({ MAIN_USER_ID, std::make_shared<PerUserSession>(MAIN_USER_ID) });
-
     userId_ = MAIN_USER_ID;
-    setting->Initialize();
 }
 
 void InputMethodSystemAbility::StartUserIdListener()
@@ -295,20 +283,6 @@ void InputMethodSystemAbility::StopInputService(std::string imeId)
         return;
     }
     session->StopInputService(imeId);
-}
-
-/*! Get the state of user
-    \n This API is added for unit test.
-    \param userID the id of given user
-    \return user state can be one of the values of UserState
-    */
-int32_t InputMethodSystemAbility::GetUserState(int32_t userId)
-{
-    PerUserSetting *setting = GetUserSetting(userId);
-    if (!setting) {
-        return UserState::USER_STATE_NOT_AVAILABLE;
-    }
-    return setting->GetUserState();
 }
 
 /*! Handle the transaction from the remote binder
@@ -418,20 +392,6 @@ int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
 {
     return OnDisplayOptionalInputMethod(MAIN_USER_ID);
 };
-
-int32_t InputMethodSystemAbility::GetKeyboardWindowHeight(int32_t &retHeight)
-{
-    auto session = GetUserSession(MAIN_USER_ID);
-    if (session == nullptr) {
-        IMSA_HILOGI("InputMethodSystemAbility::getKeyboardWindowHeight session is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    int32_t ret = session->OnGetKeyboardWindowHeight(retHeight);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("Failed to get keyboard window height. ErrorCode=%d\n", ret);
-    }
-    return ret;
-}
 
 int32_t InputMethodSystemAbility::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
@@ -815,20 +775,6 @@ std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubt
     return property;
 }
 
-/*! Get the instance of PerUserSetting for the given user
-    \param userId the user id of the given user
-    \return a pointer of the instance if the user is found
-    \return null if the user is not found
-    */
-PerUserSetting *InputMethodSystemAbility::GetUserSetting(int32_t userId)
-{
-    auto it = userSettings.find(userId);
-    if (it == userSettings.end()) {
-        return nullptr;
-    }
-    return it->second;
-}
-
 /*! Get the instance of PerUserSession for the given user
     \param userId the user id of the given user
     \return a pointer of the instance if the user is found
@@ -856,80 +802,15 @@ void InputMethodSystemAbility::WorkThread()
                 OnUserStarted(msg);
                 break;
             }
-            case MSG_ID_USER_STOP: {
-                OnUserStopped(msg);
-                break;
-            }
-            case MSG_ID_USER_UNLOCK: {
-                OnUserUnlocked(msg);
-                break;
-            }
-            case MSG_ID_USER_LOCK: {
-                OnUserLocked(msg);
-                break;
-            }
-            case MSG_ID_PACKAGE_ADDED: {
-                OnPackageAdded(msg);
-                break;
-            }
             case MSG_ID_PACKAGE_REMOVED: {
                 OnPackageRemoved(msg);
                 delete msg;
                 msg = nullptr;
                 break;
             }
-            case MSG_ID_SETTING_CHANGED: {
-                OnSettingChanged(msg);
-                break;
-            }
-            case MSG_ID_DISPLAY_OPTIONAL_INPUT_METHOD: {
-                MessageParcel *data = msg->msgContent_;
-                int32_t userId = data->ReadInt32();
-                OnDisplayOptionalInputMethod(userId);
-                break;
-            }
-            case MSG_ID_PREPARE_INPUT:
-            case MSG_ID_RELEASE_INPUT:
-            case MSG_ID_START_INPUT:
-            case MSG_ID_STOP_INPUT:
-            case MSG_HIDE_CURRENT_INPUT:
-            case MSG_SHOW_CURRENT_INPUT:
-            case MSG_ID_SET_CORE_AND_AGENT:
-            case MSG_ID_HIDE_KEYBOARD_SELF:
-            case MSG_ID_SET_DISPLAY_MODE:
-            case MSG_ID_CLIENT_DIED:
-            case MSG_ID_IMS_DIED:
-            case MSG_ID_RESTART_IMS: {
+            case MSG_ID_HIDE_KEYBOARD_SELF:{
                 OnHandleMessage(msg);
                 break;
-            }
-            case MSG_ID_DISABLE_IMS: {
-                OnDisableIms(msg);
-                break;
-            }
-            case MSG_ID_ADVANCE_TO_NEXT: {
-                OnAdvanceToNext(msg);
-                break;
-            }
-            case MSG_ID_EXIT_SERVICE: {
-                std::map<int32_t, MessageHandler *>::const_iterator it;
-                for (it = msgHandlers.cbegin(); it != msgHandlers.cend();) {
-                    MessageHandler *handler = it->second;
-                    Message *destMsg = new Message(MSG_ID_EXIT_SERVICE, nullptr);
-                    handler->SendMessage(destMsg);
-                    auto userSession = GetUserSession(it->first);
-                    if (!userSession) {
-                        IMSA_HILOGE("getUserSession fail.");
-                        return;
-                    }
-                    userSession->JoinWorkThread();
-                    it = msgHandlers.erase(it);
-                    delete handler;
-                    handler = nullptr;
-                }
-                delete msg;
-                msg = nullptr;
-                return;
             }
             case MSG_ID_START_INPUT_SERVICE: {
                 MessageParcel *data = msg->msgContent_;
@@ -967,126 +848,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         StopInputService(currentDefaultIme);
         StartInputService(newDefaultIme);
     }
-
-    PerUserSetting *setting = GetUserSetting(userId);
-    if (setting) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_ALREADY_STARTED), userId);
-        return ErrorCode::ERROR_USER_ALREADY_STARTED;
-    }
-
-    setting = new PerUserSetting(userId);
-    setting->Initialize();
-
-    userSettings.insert(std::pair<int32_t, PerUserSetting *>(userId, setting));
     userSessions.insert({ userId, std::make_shared<PerUserSession>(userId) });
-    return ErrorCode::NO_ERROR;
-}
-
-/*! Called when a user is stopped. (EVENT_USER_STOPPED is received)
-    \n Run in work thread of input method management service
-    \param msg the parameters are saved in msg->msgContent_
-    \return ErrorCode
-    */
-int32_t InputMethodSystemAbility::OnUserStopped(const Message *msg)
-{
-    IMSA_HILOGI("Start...\n");
-    if (!msg->msgContent_) {
-        IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    int32_t userId = msg->msgContent_->ReadInt32();
-    PerUserSetting *setting = GetUserSetting(userId);
-    auto session = GetUserSession(userId);
-    if (!setting || !session) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_STARTED), userId);
-        return ErrorCode::ERROR_USER_NOT_STARTED;
-    }
-    if (setting->GetUserState() == UserState::USER_STATE_UNLOCKED) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_LOCKED), userId);
-        return ErrorCode::ERROR_USER_NOT_LOCKED;
-    }
-    auto it = userSessions.find(userId);
-    if (it != userSessions.end()) {
-        userSessions.erase(it);
-    }
-    std::map<int32_t, PerUserSetting *>::iterator itSetting = userSettings.find(userId);
-    userSettings.erase(itSetting);
-    delete setting;
-    setting = nullptr;
-    IMSA_HILOGI("End...[%d]\n", userId);
-    return ErrorCode::NO_ERROR;
-}
-
-/*! Called when a user is unlocked. (EVENT_USER_UNLOCKED is received)
-    \n Run in work thread of input method management service
-    \param msg the parameters are saved in msg->msgContent_
-    \return ErrorCode
-    */
-int32_t InputMethodSystemAbility::OnUserUnlocked(const Message *msg)
-{
-    IMSA_HILOGI("Start...\n");
-    if (!msg->msgContent_) {
-        IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    int32_t userId = msg->msgContent_->ReadInt32();
-    PerUserSetting *setting = GetUserSetting(userId);
-    auto session = GetUserSession(userId);
-    if (!setting || !session) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_STARTED), userId);
-        return ErrorCode::ERROR_USER_NOT_STARTED;
-    }
-    if (setting->GetUserState() == UserState::USER_STATE_UNLOCKED) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_ALREADY_UNLOCKED), userId);
-        return ErrorCode::ERROR_USER_ALREADY_UNLOCKED;
-    }
-
-    setting->Initialize();
-
-    InputMethodInfo *ime = setting->GetSecurityInputMethod();
-    session->SetSecurityIme(ime);
-    ime = setting->GetCurrentInputMethod();
-    session->SetCurrentIme(ime);
-    session->SetInputMethodSetting(setting->GetInputMethodSetting());
-    IMSA_HILOGI("End...[%d]\n", userId);
-    return ErrorCode::NO_ERROR;
-}
-
-/*! Called when a user is locked. (EVENT_USER_LOCKED is received)
-    \n Run in work thread of input method management service
-    \param msg the parameters are saved in msg->msgContent_
-    \return ErrorCode
-    */
-int32_t InputMethodSystemAbility::OnUserLocked(const Message *msg)
-{
-    IMSA_HILOGI("Start...\n");
-    if (!msg->msgContent_) {
-        IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    int32_t userId = msg->msgContent_->ReadInt32();
-    PerUserSetting *setting = GetUserSetting(userId);
-    if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-        return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-    }
-    std::map<int32_t, MessageHandler *>::iterator it = msgHandlers.find(userId);
-    if (it != msgHandlers.end()) {
-        MessageHandler *handler = it->second;
-        Message *destMsg = new Message(MSG_ID_USER_LOCK, nullptr);
-        if (destMsg) {
-            handler->SendMessage(destMsg);
-            auto userSession = GetUserSession(userId);
-            if (userSession) {
-                userSession->JoinWorkThread();
-            }
-            msgHandlers.erase(it);
-            delete handler;
-            handler = nullptr;
-        }
-    }
-    setting->OnUserLocked();
-    IMSA_HILOGI("End...[%d]\n", userId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1098,67 +860,12 @@ int32_t InputMethodSystemAbility::OnUserLocked(const Message *msg)
     */
 int32_t InputMethodSystemAbility::OnHandleMessage(Message *msg)
 {
-    MessageParcel *data = msg->msgContent_;
-    int32_t userId = data->ReadInt32();
-    PerUserSetting *setting = GetUserSetting(MAIN_USER_ID);
-    if (!setting) {
-        IMSA_HILOGE("InputMethodSystemAbility::OnHandleMessage Aborted! setting is nullptr");
-    }
-    if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-        IMSA_HILOGE("InputMethodSystemAbility::OnHandleMessage Aborted! userId = %{public}d,", userId);
-        return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-    }
-
     std::map<int32_t, MessageHandler *>::const_iterator it = msgHandlers.find(MAIN_USER_ID);
     if (it != msgHandlers.end()) {
         MessageHandler *handler = it->second;
         handler->SendMessage(msg);
     }
     return ErrorCode::NO_ERROR;
-}
-
-/*! Called when a package is installed.
-    \n Run in work thread of input method management service
-    \param msg the parameters are saved in msg->msgContent_
-    \return ErrorCode::NO_ERROR
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    \return ErrorCode::ERROR_BAD_PARAMETERS bad parameter
-    */
-int32_t InputMethodSystemAbility::OnPackageAdded(const Message *msg)
-{
-    IMSA_HILOGI("Start...\n");
-    MessageParcel *data = msg->msgContent_;
-    int32_t userId = data->ReadInt32();
-    int32_t size = data->ReadInt32();
-
-    if (size <= 0) {
-        IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    std::u16string packageName = data->ReadString16();
-    PerUserSetting *setting = GetUserSetting(userId);
-    if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-        return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-    }
-    bool securityImeFlag = false;
-    int32_t ret = setting->OnPackageAdded(packageName, securityImeFlag);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGI("End...\n");
-        return ret;
-    }
-    if (securityImeFlag) {
-        InputMethodInfo *securityIme = setting->GetSecurityInputMethod();
-        InputMethodInfo *defaultIme = setting->GetCurrentInputMethod();
-        auto session = GetUserSession(userId);
-        if (session == nullptr) {
-            IMSA_HILOGI("InputMethodSystemAbility::OnPackageAdded session is nullptr");
-            return ErrorCode::ERROR_NULL_POINTER;
-        }
-        session->ResetIme(defaultIme, securityIme);
-    }
-    IMSA_HILOGI("End...\n");
-    return 0;
 }
 
 /*! Called when a package is removed.
@@ -1183,12 +890,6 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
 
-    PerUserSetting *setting = GetUserSetting(userId);
-    if (setting == nullptr || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-        return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-    }
-
     std::string defaultIme = ParaHandle::GetDefaultIme(userId);
     std::string::size_type pos = defaultIme.find("/");
     std::string currentIme = defaultIme.substr(0, pos);
@@ -1197,60 +898,6 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
     }
     return 0;
-}
-
-/*! Called when input method setting data is changed.
-    \n Run in work thread of input method management service
-    \param msg the parameters from remote binder are saved in msg->msgContent_
-    \return ErrorCode::NO_ERROR
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    \return ErrorCode::ERROR_BAD_PARAMETERS bad parameter
-    */
-int32_t InputMethodSystemAbility::OnSettingChanged(const Message *msg)
-{
-    IMSA_HILOGI("Start...\n");
-    MessageParcel *data = msg->msgContent_;
-    int32_t userId = data->ReadInt32();
-    int32_t size = data->ReadInt32();
-    if (size < 2) {
-        IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    std::u16string updatedKey = data->ReadString16();
-    std::u16string updatedValue = data->ReadString16();
-    PerUserSetting *setting = GetUserSetting(userId);
-    if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-        return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-    }
-    auto session = GetUserSession(userId);
-    if (session == nullptr) {
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    int32_t ret = session->OnSettingChanged(updatedKey, updatedValue);
-    if (ret == ErrorCode::ERROR_SETTING_SAME_VALUE) {
-        IMSA_HILOGI("End...No need to update\n");
-        return ret;
-    }
-
-    // PerUserSetting does not need handle keyboard type change notification
-    if (updatedKey == InputMethodSetting::CURRENT_KEYBOARD_TYPE_TAG ||
-        updatedKey == InputMethodSetting::CURRENT_SYS_KEYBOARD_TYPE_TAG) {
-        IMSA_HILOGI("End...\n");
-        return ErrorCode::NO_ERROR;
-    }
-
-    ret = setting->OnSettingChanged(updatedKey, updatedValue);
-    if (ret) {
-        IMSA_HILOGI("End...No need to update\n");
-        return ret;
-    }
-
-    InputMethodInfo *securityIme = setting->GetSecurityInputMethod();
-    InputMethodInfo *defaultIme = setting->GetCurrentInputMethod();
-    session->ResetIme(defaultIme, securityIme);
-    IMSA_HILOGI("End...\n");
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod(int32_t userId)
@@ -1273,62 +920,6 @@ int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod(int32_t userId)
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
     }
     IMSA_HILOGI("InputMethodSystemAbility::Start InputMethod ability success.");
-    return ErrorCode::NO_ERROR;
-}
-
-/*! Disable input method service. Called from PerUserSession module
-    \n Run in work thread of input method management service
-    \param msg the parameters are saved in msg->msgContent_
-    \return ErrorCode::NO_ERROR
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    */
-int32_t InputMethodSystemAbility::OnDisableIms(const Message *msg)
-{
-    IMSA_HILOGI("Start...\n");
-    MessageParcel *data = msg->msgContent_;
-    int32_t userId = data->ReadInt32();
-    std::u16string imeId = data->ReadString16();
-    PerUserSetting *setting = GetUserSetting(userId);
-    if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-        return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-    }
-
-    InputMethodSetting tmpSetting;
-    std::u16string key = InputMethodSetting::ENABLED_INPUT_METHODS_TAG;
-    tmpSetting.SetValue(key, setting->GetInputMethodSetting()->GetValue(key));
-    tmpSetting.RemoveEnabledInputMethod(imeId);
-    IMSA_HILOGI("End...\n");
-    return ErrorCode::NO_ERROR;
-}
-
-/*! Switch to next ime or next keyboard type. It's called by input method service
-    \n Run in work thread of input method management service or the work thread of PerUserSession
-    \param msg the parameters from remote binder are saved in msg->msgContent_
-    \return ErrorCode::NO_ERROR
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    */
-int32_t InputMethodSystemAbility::OnAdvanceToNext(const Message *msg)
-{
-    IMSA_HILOGI("Start...\n");
-    MessageParcel *data = msg->msgContent_;
-    int32_t userId = data->ReadInt32();
-    bool isCurrentIme = data->ReadBool();
-    PerUserSetting *setting = GetUserSetting(userId);
-    if (!setting || setting->GetUserState() != UserState::USER_STATE_UNLOCKED) {
-        IMSA_HILOGE("Aborted! %s %d\n", ErrorCode::ToString(ErrorCode::ERROR_USER_NOT_UNLOCKED), userId);
-        return ErrorCode::ERROR_USER_NOT_UNLOCKED;
-    }
-    if (isCurrentIme) {
-        std::map<int32_t, MessageHandler *>::const_iterator it = msgHandlers.find(userId);
-        if (it != msgHandlers.end()) {
-            Message *destMsg = new Message(msg->msgId_, nullptr);
-            it->second->SendMessage(destMsg);
-        }
-    } else {
-        setting->OnAdvanceToNext();
-    }
-    IMSA_HILOGI("End...\n");
     return ErrorCode::NO_ERROR;
 }
 

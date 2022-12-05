@@ -62,24 +62,6 @@ int32_t InputControlChannelStub::OnRemoteRequest(
             reply.WriteInt32(HideKeyboardSelf(flag));
             break;
         }
-        case ADVANCE_TO_NEXT: {
-            bool isCurrentIme = data.ReadInt32();
-            bool ret = AdvanceToNext(isCurrentIme);
-            reply.WriteNoException();
-            reply.WriteBool(ret);
-            break;
-        }
-        case SET_DISPLAY_MODE: {
-            int mode = data.ReadInt32();
-            SetDisplayMode(mode);
-            reply.WriteNoException();
-            break;
-        }
-        case ON_KEYBOARD_SHOWED: {
-            OnKeyboardShowed();
-            reply.WriteNoException();
-            break;
-        }
         default: {
             return IRemoteStub::OnRemoteRequest(code, data, reply, option);
         }
@@ -87,18 +69,6 @@ int32_t InputControlChannelStub::OnRemoteRequest(
     return NO_ERROR;
 }
 
-/** Called when input method service showed keyboard
- * @n This call is running in binder thread
- */
-void InputControlChannelStub::OnKeyboardShowed()
-{
-    IMSA_HILOGI("InputControlChannelStub::onKeyboardShowed");
-    {
-        std::unique_lock<std::mutex> lck(mtx);
-        keyboardReadyFlag = true;
-    }
-    cv.notify_one();
-}
 /**
  * @n This call is running in binder thread,
  *    but the handling of HideKeyboardSelf is in the work thread of PerUserSession.
@@ -115,73 +85,6 @@ int32_t InputControlChannelStub::HideKeyboardSelf(int flags)
     Message *msg = new Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, parcel);
     MessageHandler::Instance()->SendMessage(msg);
     return ErrorCode::NO_ERROR;
-}
-
-/** Send advanceToNext command to work thread.
- * @n This call is running in binder thread,
-        but the handling of advanceToNext is in the work thread of InputMethodSystemAbility service
- * @n or in the work thread of PerUserSession
- * @see InputMethodSystemAbility::OnAdvanceToNext PerUserSession::OnAdvanceToNext
- * @see PerUserSetting::OnAdvanceToNext
- * @param isCurrentIme true - switch to next keyboard type within current input method engine
-                 * @n false - switch to next input method engine
- * @return true
- */
-bool InputControlChannelStub::AdvanceToNext(bool isCurrentIme)
-{
-    IMSA_HILOGI("InputControlChannelStub::advanceToNext");
-    MessageParcel *parcel = new MessageParcel();
-    parcel->WriteInt32(userId_);
-    parcel->WriteBool(isCurrentIme);
-
-    Message *msg = new Message(MessageID::MSG_ID_ADVANCE_TO_NEXT, parcel);
-    MessageHandler::Instance()->SendMessage(msg);
-    return true;
-}
-
-/** Send SetDisplayMode command to work thread.
- * @n This call is running in binder thread,
-        but the handling of SetDisplayMode is in the work thread of PerUserSession.
- * @see PerUserSession::OnSetDisplayMode
- * @param mode 0 - part screen mode, 1 - full screen mode
- */
-void InputControlChannelStub::SetDisplayMode(int mode)
-{
-    IMSA_HILOGI("InputControlChannelStub::SetDisplayMode start");
-    MessageParcel *parcel = new MessageParcel();
-    parcel->WriteInt32(userId_);
-    parcel->WriteInt32(mode);
-
-    Message *msg = new Message(MessageID::MSG_ID_SET_DISPLAY_MODE, parcel);
-    MessageHandler::Instance()->SendMessage(msg);
-}
-
-/** Reset ready flag to be false
- * @n This should be called before imsCore->startInput() in work thread of PerUserSession
- */
-void InputControlChannelStub::ResetFlag()
-{
-    IMSA_HILOGI("InputControlChannelStub::ResetFlag");
-    std::unique_lock<std::mutex> lck(mtx);
-    keyboardReadyFlag = false;
-    agentReadyFlag = false;
-}
-
-/** Wait for keyboard to be ready
- * @n This should be called in work thread of PerUserSession
- * @return true - onKeyboardShowed is called by input method service in time
- * @n false - onKeyboardShowed is not called by input method service in time
- */
-bool InputControlChannelStub::WaitKeyboardReady()
-{
-    IMSA_HILOGI("InputControlChannelStub::WaitKeyboardReady");
-    std::chrono::milliseconds millsec(sleepTime);
-    bool ret = false;
-    {
-        std::unique_lock<std::mutex> lck(mtx);
-        ret = cv.wait_for(lck, millsec, [this] { return keyboardReadyFlag; });
-    }
-    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS
