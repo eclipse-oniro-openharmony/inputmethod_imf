@@ -70,7 +70,6 @@ HWTEST_F(InputMethodPrivateMemberTest, testInputMethodServiceStartAbnormal, Test
     service->OnStart();
 
     EXPECT_NE(service->userId_, MAIN_USER_ID);
-    EXPECT_TRUE(service->userSettings.empty());
     EXPECT_TRUE(service->userSessions.empty());
     EXPECT_TRUE(InputMethodSystemAbility::serviceHandler_ == nullptr);
     EXPECT_TRUE(service->msgHandlers.empty());
@@ -107,84 +106,6 @@ HWTEST_F(InputMethodPrivateMemberTest, testSystemAbilityGetExtends, TestSize.Lev
 }
 
 /**
-* @tc.name: testOnUserStopped
-* @tc.desc: SystemAbility OnUserStopped.
-* @tc.type: FUNC
-* @tc.require: issuesI640YZ
-*/
-HWTEST_F(InputMethodPrivateMemberTest, testOnUserStopped, TestSize.Level0)
-{
-    IMSA_HILOGI("SystemAbility testOnUserStopped Test START");
-    constexpr int32_t messageId = 5;
-    InputMethodSystemAbility service;
-    auto *msg = new Message(messageId, nullptr);
-    auto ret = service.OnUserStopped(msg);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
-    delete msg;
-    msg = nullptr;
-
-    auto *parcel = new MessageParcel();
-    parcel->WriteInt32(MAIN_USER_ID);
-    auto *msg1 = new Message(messageId, parcel);
-    ret = service.OnUserStopped(msg1);
-    EXPECT_EQ(ret, ErrorCode::ERROR_USER_NOT_STARTED);
-    delete msg1;
-    msg1 = nullptr;
-}
-
-/**
-* @tc.name: testOnUserUnlocked
-* @tc.desc: SystemAbility OnUserUnlocked.
-* @tc.type: FUNC
-* @tc.require: issuesI640YZ
-*/
-HWTEST_F(InputMethodPrivateMemberTest, testOnUserUnlocked, TestSize.Level0)
-{
-    IMSA_HILOGI("SystemAbility testOnUserUnlocked Test START");
-    constexpr int32_t messageId = 5;
-    InputMethodSystemAbility service;
-    auto *msg = new Message(messageId, nullptr);
-    auto ret = service.OnUserUnlocked(msg);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
-    delete msg;
-    msg = nullptr;
-
-    auto *parcel = new MessageParcel();
-    parcel->WriteInt32(MAIN_USER_ID);
-    auto *msg1 = new Message(messageId, parcel);
-    ret = service.OnUserUnlocked(msg1);
-    EXPECT_EQ(ret, ErrorCode::ERROR_USER_NOT_STARTED);
-    delete msg1;
-    msg1 = nullptr;
-}
-
-/**
-* @tc.name: testOnUserLocked
-* @tc.desc: SystemAbility OnUserLocked.
-* @tc.type: FUNC
-* @tc.require: issuesI640YZ
-*/
-HWTEST_F(InputMethodPrivateMemberTest, testOnUserLocked, TestSize.Level0)
-{
-    IMSA_HILOGI("SystemAbility testOnUserLocked Test START");
-    constexpr int32_t messageId = 5;
-    InputMethodSystemAbility service;
-    auto *msg = new Message(messageId, nullptr);
-    auto ret = service.OnUserLocked(msg);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
-    delete msg;
-    msg = nullptr;
-
-    auto *parcel = new MessageParcel();
-    parcel->WriteInt32(MAIN_USER_ID);
-    auto *msg1 = new Message(messageId, parcel);
-    ret = service.OnUserLocked(msg1);
-    EXPECT_EQ(ret, ErrorCode::ERROR_USER_NOT_UNLOCKED);
-    delete msg1;
-    msg1 = nullptr;
-}
-
-/**
 * @tc.name: testOnHandleMessage
 * @tc.desc: SystemAbility OnHandleMessage.
 * @tc.type: FUNC
@@ -199,28 +120,6 @@ HWTEST_F(InputMethodPrivateMemberTest, testOnHandleMessage, TestSize.Level0)
     parcel->WriteInt32(MAIN_USER_ID);
     auto *msg = new Message(messageId, parcel);
     auto ret = service.OnHandleMessage(msg);
-    EXPECT_EQ(ret, ErrorCode::ERROR_USER_NOT_UNLOCKED);
-    delete msg;
-    msg = nullptr;
-}
-
-/**
-* @tc.name: testOnPackageAdded
-* @tc.desc: SystemAbility OnPackageAdded.
-* @tc.type: FUNC
-* @tc.require: issuesI640YZ
-*/
-HWTEST_F(InputMethodPrivateMemberTest, testOnPackageAdded, TestSize.Level0)
-{
-    IMSA_HILOGI("SystemAbility testOnPackageAdded Test START");
-    constexpr int32_t messageId = 5;
-    constexpr int32_t size = 1;
-    InputMethodSystemAbility service;
-    auto *parcel = new MessageParcel();
-    parcel->WriteInt32(MAIN_USER_ID);
-    parcel->WriteInt32(size);
-    auto *msg = new Message(messageId, parcel);
-    auto ret = service.OnPackageAdded(msg);
     EXPECT_EQ(ret, ErrorCode::ERROR_USER_NOT_UNLOCKED);
     delete msg;
     msg = nullptr;
