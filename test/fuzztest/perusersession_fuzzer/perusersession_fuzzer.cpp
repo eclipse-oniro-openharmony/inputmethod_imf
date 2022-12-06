@@ -54,7 +54,6 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
 
     int flags = static_cast<int32_t>(*rawData);
     std::string str(rawData, rawData + size);
-    std::u16string packageName = Str8ToStr16(str);
     bool isShowKeyboard = true;
     constexpr int32_t MAIN_USER_ID = 100;
     sptr<IInputClient> client = new (std::nothrow) InputClientStub();
