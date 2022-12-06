@@ -32,12 +32,10 @@ namespace MiscServices {
             INSERT_TEXT = 0,
             DELETE_FORWARD,
             DELETE_BACKWARD,
-            CLOSE,
             GET_TEXT_BEFORE_CURSOR,
             GET_TEXT_AFTER_CURSOR,
             GET_ENTER_KEY_TYPE,
             GET_INPUT_PATTERN,
-            STOP_INPUT,
             SEND_KEYBOARD_STATUS,
             SEND_FUNCTION_KEY,
             MOVE_CURSOR,
@@ -48,7 +46,6 @@ namespace MiscServices {
         virtual int32_t InsertText(const std::u16string& text) = 0;
         virtual int32_t DeleteForward(int32_t length) = 0;
         virtual int32_t DeleteBackward(int32_t length) = 0;
-        virtual void Close() = 0;
         virtual int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) = 0;
         virtual int32_t GetTextAfterCursor(int32_t number, std::u16string &text) = 0;
         virtual void SendKeyboardStatus(int32_t status) = 0;
@@ -56,7 +53,6 @@ namespace MiscServices {
         virtual int32_t MoveCursor(int32_t keyCode) = 0;
         virtual int32_t GetEnterKeyType(int32_t &keyType) = 0;
         virtual int32_t GetInputPattern(int32_t &inputPattern) = 0;
-        virtual void StopInput() = 0;
     };
 } // namespace MiscServices
 } // namespace OHOS

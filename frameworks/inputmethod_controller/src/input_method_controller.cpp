@@ -168,26 +168,12 @@ using namespace MessageID;
                     }
                     break;
                 }
-                case MSG_ID_SET_DISPLAY_MODE: {
-                    MessageParcel *data = msg->msgContent_;
-                    int32_t ret = data->ReadInt32();
-                    IMSA_HILOGI("MSG_ID_SET_DISPLAY_MODE : %{public}d", ret);
-                    break;
-                }
                 case MSG_ID_ON_INPUT_READY: {
                     MessageParcel *data = msg->msgContent_;
                     sptr<IRemoteObject> object = data->ReadRemoteObject();
                     if (object) {
                         SetInputMethodAgent(object);
                     }
-                    break;
-                }
-                case MSG_ID_EXIT_SERVICE: {
-                    MessageParcel *data = msg->msgContent_;
-                    int32_t ret = data->ReadInt32();
-                    std::lock_guard<std::mutex> lock(textListenerLock_);
-                    textListener = nullptr;
-                    IMSA_HILOGI("InputMethodController::WorkThread MSG_ID_EXIT_SERVICE : %{public}d", ret);
                     break;
                 }
                 case MSG_ID_SEND_KEYBOARD_STATUS: {

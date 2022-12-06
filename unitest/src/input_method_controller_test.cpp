@@ -34,7 +34,6 @@
 #include "input_data_channel_stub.h"
 #include "input_method_ability.h"
 #include "input_method_engine_listener.h"
-#include "input_method_setting.h"
 #include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "iservice_registry.h"
@@ -338,66 +337,6 @@ namespace MiscServices {
         auto remoteObject = data.ReadRemoteObject();
         sptr<IInputClient> iface = iface_cast<IInputClient>(remoteObject);
         EXPECT_TRUE(iface != nullptr);
-    }
-
-    /**
-     * @tc.name: testInputMethodSettingValue
-     * @tc.desc: Checkout setting.
-     * @tc.type: FUNC
-     * @tc.require: issueI5JPMG
-     */
-    HWTEST_F(InputMethodControllerTest, testInputMethodSettingValue, TestSize.Level0)
-    {
-        InputMethodSetting setting;
-        std::u16string key = InputMethodSetting::CURRENT_INPUT_METHOD_TAG;
-        std::u16string oldValue = setting.GetValue(key);
-        std::u16string newValue = u"testCurrentImeId";
-        setting.SetValue(key, newValue);
-        EXPECT_EQ(setting.GetValue(key), newValue);
-
-        setting.SetValue(key, oldValue);
-        EXPECT_EQ(setting.GetValue(key), oldValue);
-    }
-
-    /**
-     * @tc.name: testInputMethodSettingCurrentInputMethod
-     * @tc.desc: Checkout setting.
-     * @tc.type: FUNC
-     */
-    HWTEST_F(InputMethodControllerTest, testInputMethodSettingCurrentInputMethod, TestSize.Level0)
-    {
-        InputMethodSetting setting;
-        std::u16string curIme = setting.GetCurrentInputMethod();
-        std::u16string testIme = u"testCurrentImeId";
-        setting.SetCurrentInputMethod(testIme);
-        EXPECT_EQ(setting.GetCurrentInputMethod(), testIme);
-
-        setting.SetCurrentInputMethod(curIme);
-        EXPECT_EQ(setting.GetCurrentInputMethod(), curIme);
-    }
-
-    /**
-     * @tc.name: testInputMethodSettingCurrentKeyboard
-     * @tc.desc: Checkout setting.
-     * @tc.type: FUNC
-     */
-    HWTEST_F(InputMethodControllerTest, testInputMethodSettingCurrentKeyboard, TestSize.Level0)
-    {
-        InputMethodSetting setting;
-        int32_t curType = setting.GetCurrentKeyboardType();
-        int32_t testType = 10;
-        setting.SetCurrentKeyboardType(testType);
-        EXPECT_EQ(setting.GetCurrentKeyboardType(), testType);
-
-        setting.SetCurrentKeyboardType(curType);
-        EXPECT_EQ(setting.GetCurrentKeyboardType(), curType);
-
-        curType = setting.GetCurrentKeyboardType();
-        setting.SetCurrentKeyboardType(testType);
-        EXPECT_EQ(setting.GetCurrentKeyboardType(), testType);
-
-        setting.SetCurrentKeyboardType(curType);
-        EXPECT_EQ(setting.GetCurrentKeyboardType(), curType);
     }
 
     /**

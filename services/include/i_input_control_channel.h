@@ -27,17 +27,12 @@ namespace OHOS {
         public:
             enum {
                 HIDE_KEYBOARD_SELF = FIRST_CALL_TRANSACTION,
-                ADVANCE_TO_NEXT,
-                SET_DISPLAY_MODE,
-                ON_KEYBOARD_SHOWED,
+                NONE,
             };
 
             DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputControlChannel");
 
             virtual int32_t HideKeyboardSelf(int flags) = 0;
-            virtual bool AdvanceToNext(bool isCurrentIme) = 0;
-            virtual void SetDisplayMode(int mode) = 0;
-            virtual void OnKeyboardShowed() = 0;
         };
     } // namespace MiscServices
 } // namespace OHOS

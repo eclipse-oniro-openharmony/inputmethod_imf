@@ -38,7 +38,6 @@ ohos_shared_library("inputmethod_ability") {
     "${inputmethod_path}/frameworks/inputmethod_controller/src/itypes_util.cpp",
     "${inputmethod_path}/services/src/input_channel.cpp",
     "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
-    "${inputmethod_path}/services/src/keyboard_type.cpp",
     "${inputmethod_path}/services/src/message.cpp",
     "${inputmethod_path}/services/src/message_handler.cpp",
     "../inputmethod_controller/src/input_method_system_ability_proxy.cpp",

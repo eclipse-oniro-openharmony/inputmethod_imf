@@ -68,18 +68,6 @@ void TextOnInputReady()
     mClient->onInputReady(iface);
 }
 
-void TestOnInputReleased(int32_t fuzzedInt32)
-{
-    sptr<InputClientStub> mClient = new InputClientStub();
-    mClient->onInputReleased(fuzzedInt32);
-}
-
-void TestSetDisplayMode(int32_t fuzzedInt32)
-{
-    sptr<InputClientStub> mClient = new InputClientStub();
-    mClient->setDisplayMode(fuzzedInt32);
-}
-
 void TestOnSwitchInput()
 {
     sptr<InputClientStub> mClient = new InputClientStub();
@@ -97,12 +85,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         return 0;
     }
     /* Run your code on data */
-    auto fuzzedInt32 = static_cast<int32_t>(size);
-
     OHOS::FuzzInputClientStub(data, size);
     OHOS::TextOnInputReady();
-    OHOS::TestOnInputReleased(fuzzedInt32);
-    OHOS::TestSetDisplayMode(fuzzedInt32);
     OHOS::TestOnSwitchInput();
     return 0;
 }

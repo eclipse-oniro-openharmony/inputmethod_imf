@@ -51,38 +51,5 @@ namespace MiscServices {
         auto result = reply.ReadInt32();
         return result;
     }
-
-    bool InputControlChannelProxy::AdvanceToNext(bool isCurrentIme)
-    {
-        MessageParcel data, reply;
-        MessageOption option;
-
-        data.WriteInterfaceToken(GetDescriptor());
-        data.WriteBool(isCurrentIme);
-        Remote()->SendRequest(MessageID::MSG_ID_ADVANCE_TO_NEXT, data, reply, option);
-        IMSA_HILOGI("InputControlChannelProxy::advanceToNext.");
-        return true;
-    }
-
-    void InputControlChannelProxy::SetDisplayMode(int mode)
-    {
-        MessageParcel data, reply;
-        MessageOption option;
-
-        data.WriteInterfaceToken(GetDescriptor());
-        data.WriteInt32(mode);
-        Remote()->SendRequest(MessageID::MSG_ID_SET_DISPLAY_MODE, data, reply, option);
-        IMSA_HILOGI("InputControlChannelProxy::setDisplayMode.");
-    }
-
-    void InputControlChannelProxy::OnKeyboardShowed()
-    {
-        MessageParcel data, reply;
-        MessageOption option;
-
-        data.WriteInterfaceToken(GetDescriptor());
-        Remote()->SendRequest(ON_KEYBOARD_SHOWED, data, reply, option);
-        IMSA_HILOGI("InputControlChannelProxy::onKeyboardShowed.");
-    }
 } // namespace MiscServices
 } // namespace OHOS

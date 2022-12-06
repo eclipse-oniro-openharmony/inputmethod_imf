@@ -33,7 +33,6 @@
 #include "iremote_broker.h"
 #include "message_parcel.h"
 #include "peruser_session.h"
-#include "peruser_setting.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
@@ -65,11 +64,9 @@ namespace OHOS {
         sptr<IInputMethodAgent> agent = new InputMethodAgentProxy(object);
         InputMethodInfo *ime = new InputMethodInfo();
 
-        userSessions->OnPackageRemoved(packageName);
         userSessions->OnShowKeyboardSelf();
         userSessions->OnInputMethodSwitched(property, subProperty);
         userSessions->GetCurrentSubProperty();
-        userSessions->StartInputService();
         userSessions->SetCurrentSubProperty(subProperty);
         userSessions->StopInputService(str);
         userSessions->JoinWorkThread();
@@ -77,9 +74,6 @@ namespace OHOS {
         userSessions->OnStartInput(client, isShowKeyboard);
         userSessions->OnStopInput(client);
         userSessions->OnReleaseInput(client);
-        userSessions->SetCurrentIme(ime);
-        userSessions->SetSecurityIme(ime);
-        userSessions->ResetIme(ime, ime);
         userSessions->OnSetCoreAndAgent(core, agent);
 
         delete ime;

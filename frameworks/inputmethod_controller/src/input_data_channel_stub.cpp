@@ -29,10 +29,6 @@ namespace MiscServices {
 
     InputDataChannelStub::~InputDataChannelStub()
     {
-        if (msgHandler) {
-            delete msgHandler;
-            msgHandler = nullptr;
-        }
     }
 
     int32_t InputDataChannelStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
@@ -57,10 +53,6 @@ namespace MiscServices {
             case DELETE_BACKWARD: {
                 auto length = data.ReadInt32();
                 DeleteBackward(length);
-                break;
-            }
-            case CLOSE: {
-                Close();
                 break;
             }
             case GET_TEXT_BEFORE_CURSOR: {
@@ -102,10 +94,6 @@ namespace MiscServices {
                 int32_t inputPattern = 0;
                 reply.WriteInt32(GetInputPattern(inputPattern));
                 reply.WriteInt32(inputPattern);
-                break;
-            }
-            case STOP_INPUT: {
-                StopInput();
                 break;
             }
             default:
@@ -155,9 +143,6 @@ namespace MiscServices {
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
 
-    void InputDataChannelStub::Close()
-    {
-    }
 
     int32_t InputDataChannelStub::GetTextBeforeCursor(int32_t number, std::u16string &text)
     {
@@ -183,11 +168,6 @@ namespace MiscServices {
         return InputMethodController::GetInstance()->GetInputPattern(inputPattern);
     }
 
-    void InputDataChannelStub::StopInput()
-    {
-        IMSA_HILOGI("InputDataChannelStub::StopInput");
-        InputMethodController::GetInstance()->HideTextInput();
-    }
 
     void InputDataChannelStub::SendKeyboardStatus(int32_t status)
     {
