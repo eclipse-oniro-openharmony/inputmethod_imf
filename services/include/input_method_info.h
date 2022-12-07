@@ -22,24 +22,24 @@
 
 namespace OHOS {
 namespace MiscServices {
-    class InputMethodInfo {
-    public:
-        std::u16string mImeId;
-        std::u16string mPackageName;
-        std::u16string mAbilityName;
-        std::u16string mConfigurationPage;
-        bool isSystemIme = false;
-        int32_t mDefaultImeId = 0;
-        int32_t labelId = 0;
-        int32_t descriptionId = 0;
-        std::u16string label;
-        std::u16string description;
+class InputMethodInfo {
+public:
+    std::u16string mImeId;
+    std::u16string mPackageName;
+    std::u16string mAbilityName;
+    std::u16string mConfigurationPage;
+    bool isSystemIme = false;
+    int32_t mDefaultImeId = 0;
+    int32_t labelId = 0;
+    int32_t descriptionId = 0;
+    std::u16string label;
+    std::u16string description;
 
-        InputMethodInfo();
-        ~InputMethodInfo();
-        InputMethodInfo(const InputMethodInfo &property);
-        InputMethodInfo &operator=(const InputMethodInfo &property);
-    };
+    InputMethodInfo();
+    ~InputMethodInfo();
+    InputMethodInfo(const InputMethodInfo &property);
+    InputMethodInfo &operator=(const InputMethodInfo &property);
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_INPUT_METHOD_PROPERTY_H

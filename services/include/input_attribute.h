@@ -21,32 +21,30 @@
 #include "message_parcel.h"
 
 namespace OHOS {
-    namespace MiscServices {
-        struct InputAttribute {
-            static const int32_t PATTERN_TEXT = 0x00000001;
-            static const int32_t PATTERN_PASSWORD = 0x00000007;
-            int32_t inputPattern = 0;
-            int32_t enterKeyType = 0;
-            int32_t inputOption = 0;
+namespace MiscServices {
+struct InputAttribute {
+    static const int32_t PATTERN_TEXT = 0x00000001;
+    static const int32_t PATTERN_PASSWORD = 0x00000007;
+    int32_t inputPattern = 0;
+    int32_t enterKeyType = 0;
+    int32_t inputOption = 0;
 
-            static bool Marshalling(const InputAttribute &in, MessageParcel &data)
-            {
-                return data.WriteInt32(in.inputPattern) && data.WriteInt32(in.enterKeyType)
-                       && data.WriteInt32(in.inputOption);
-            }
+    static bool Marshalling(const InputAttribute &in, MessageParcel &data)
+    {
+        return data.WriteInt32(in.inputPattern) && data.WriteInt32(in.enterKeyType) && data.WriteInt32(in.inputOption);
+    }
 
-            static bool Unmarshalling(InputAttribute &out, MessageParcel &data)
-            {
-                return data.ReadInt32(out.inputPattern) && data.ReadInt32(out.enterKeyType)
-                       && data.ReadInt32(out.inputOption);
-            }
+    static bool Unmarshalling(InputAttribute &out, MessageParcel &data)
+    {
+        return data.ReadInt32(out.inputPattern) && data.ReadInt32(out.enterKeyType) && data.ReadInt32(out.inputOption);
+    }
 
-            bool GetSecurityFlag()
-            {
-                return inputPattern == PATTERN_PASSWORD;
-            }
-        };
-    } // namespace MiscServices
+    bool GetSecurityFlag()
+    {
+        return inputPattern == PATTERN_PASSWORD;
+    }
+};
+} // namespace MiscServices
 } // namespace OHOS
 
 #endif // SERVICES_INCLUDE_INPUT_ATTRIBUTE_H
