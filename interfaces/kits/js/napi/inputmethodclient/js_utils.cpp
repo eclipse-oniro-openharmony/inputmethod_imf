@@ -129,7 +129,7 @@ napi_value JsUtils::ToError(napi_env env, int32_t code)
     napi_value errorObj;
     NAPI_CALL(env, napi_create_object(env, &errorObj));
     napi_value errorCode = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, std::to_string(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorCode));
+    NAPI_CALL(env, napi_create_int32(env, Convert(code), &errorCode));
     napi_value errorMessage = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, ToMessage(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
     NAPI_CALL(env, napi_set_named_property(env, errorObj, "code", errorCode));
