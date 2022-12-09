@@ -198,15 +198,17 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
         GetPropertyString(env, argv, "label", ctxt->property.label);
         GetPropertyString(env, argv, "icon", ctxt->property.icon);
         GetPropertyNumber(env, argv, "iconId", ctxt->property.iconId);
-        isName == false ? IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s", 
-            ctxt->property.id.c_str(), ctxt->property.name.c_str()) : 
-            IMSA_HILOGI("id:%{public}s and name:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
+        isName == false
+            ? IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s", ctxt->property.id.c_str(),
+                ctxt->property.name.c_str())
+            : IMSA_HILOGI("id:%{public}s and name:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
     }
     IMSA_HILOGI("status = %{public}d, ", status);
     return status;
 }
 
-napi_status JsGetInputMethodSetting::GetPropertyString(napi_env env, napi_value argv, const std::string &type, std::string &result)
+napi_status JsGetInputMethodSetting::GetPropertyString(
+    napi_env env, napi_value argv, const std::string &type, std::string &result)
 {
     bool hasProperty = false;
     napi_status status = napi_has_named_property(env, argv, type.c_str(), &hasProperty);
@@ -225,7 +227,8 @@ napi_status JsGetInputMethodSetting::GetPropertyString(napi_env env, napi_value 
     return status;
 }
 
-napi_status JsGetInputMethodSetting::GetPropertyNumber(napi_env env, napi_value argv, const std::string &type, int32_t &result)
+napi_status JsGetInputMethodSetting::GetPropertyNumber(
+    napi_env env, napi_value argv, const std::string &type, int32_t &result)
 {
     bool hasProperty = false;
     napi_status status = napi_has_named_property(env, argv, type.c_str(), &hasProperty);
