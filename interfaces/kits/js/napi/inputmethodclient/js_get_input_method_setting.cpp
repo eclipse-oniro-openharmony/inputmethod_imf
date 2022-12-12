@@ -176,9 +176,7 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
     bool isName = false;
     status = napi_typeof(env, argv, &valueType);
     if (valueType == napi_object) {
-        napi_value result = nullptr;
         status = GetPropertyString(env, argv, "packageName", ctxt->property.name);
-        IMSA_HILOGI("status = %{public}d", status);
         if (status != napi_ok) {
             status = GetPropertyString(env, argv, "name", ctxt->property.name);
             isName = true;
@@ -186,9 +184,7 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
         if (status != napi_ok) {
             return status;
         }
-        result = nullptr;
         status = GetPropertyString(env, argv, "methodId", ctxt->property.id);
-        IMSA_HILOGI("status = %{public}d", status);
         if (status != napi_ok) {
             status = GetPropertyString(env, argv, "id", ctxt->property.id);
         }
@@ -203,7 +199,6 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
                 ctxt->property.name.c_str())
             : IMSA_HILOGI("id:%{public}s and name:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
     }
-    IMSA_HILOGI("status = %{public}d, ", status);
     return status;
 }
 
