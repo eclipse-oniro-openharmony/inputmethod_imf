@@ -185,9 +185,9 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
             GetPropertyString(env, argv, "name", ctxt->property.name);
             GetPropertyString(env, argv, "id", ctxt->property.id);
             isName = true;
-            if (sctxt->property.name == "" || ctxt->property.id == "") {
-                return napi_invalid_arg;
-            }
+        }
+        if (sctxt->property.name == "" || ctxt->property.id == "") {
+            return napi_invalid_arg;
         }
         GetPropertyString(env, argv, "label", ctxt->property.label);
         GetPropertyString(env, argv, "icon", ctxt->property.icon);
