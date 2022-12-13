@@ -187,6 +187,8 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
             isName = true;
         }
         if (ctxt->property.name == "" || ctxt->property.id == "") {
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Parameter error.", TYPE_NONE);
             return napi_invalid_arg;
         }
         GetPropertyString(env, argv, "label", ctxt->property.label);
@@ -205,8 +207,8 @@ napi_status JsGetInputMethodSetting::GetPropertyString(
 {
     bool hasProperty = false;
     napi_status status = napi_has_named_property(env, argv, type.c_str(), &hasProperty);
-    IMSA_HILOGI("GetPropertyString status = %{public}d", status);
     IMSA_HILOGI("type = %{public}s", type.c_str());
+    IMSA_HILOGI("GetPropertyString status = %{public}d", status);
     if ((status == napi_ok) && hasProperty) {
         napi_value inner = nullptr;
         status = napi_get_named_property(env, argv, type.c_str(), &inner);
