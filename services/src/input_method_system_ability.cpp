@@ -682,7 +682,8 @@ std::vector<InputMethodInfo> InputMethodSystemAbility::ListInputMethodInfo(int32
             break;
         }
         AppExecFwk::ApplicationInfo applicationInfo = extension.applicationInfo;
-        resourceManager->AddResource(extension.hapPath.c_str());
+        std::string path = extension.hapPath.empty() ? extension.resourcePath : extension.hapPath;
+        resourceManager->AddResource(path.c_str());
         std::string labelString;
         resourceManager->GetStringById(applicationInfo.labelId, labelString);
         std::string descriptionString;
