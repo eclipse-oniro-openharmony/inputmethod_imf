@@ -93,7 +93,7 @@ ohos_unittest("InputMethodServiceTest") {
 
   sources = [
     "src/input_method_service_test.cpp",
-    "src/permission_verification_execption_test.cpp"
+    "src/permission_verification_execption_test.cpp",
   ]
 
   configs = [ ":module_private_config" ]
@@ -186,7 +186,6 @@ ohos_unittest("InputMethodPrivateMemberTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//third_party/googletest:gtest_main",
   ]
@@ -197,6 +196,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "imf:inputmethod_client",
     "ipc:ipc_core",
     "ipc:ipc_single",
   ]
