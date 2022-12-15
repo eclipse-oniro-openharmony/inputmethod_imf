@@ -103,6 +103,9 @@ const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
 void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type)
 {
     std::string errMsg = ToMessage(err);
+    napi_value error;
+    napi_value code;
+    napi_value message;
     if (type == TypeCode::TYPE_NONE) {
         errMsg = errMsg + msg;
         IMSA_HILOGE("THROW_PARAMTER_ERROR message: %{public}s", errMsg.c_str());
@@ -113,7 +116,11 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
             IMSA_HILOGE("THROW_PARAMTER_TYPE_ERROR message: %{public}s", errMsg.c_str());
         }
     }
-    napi_throw_error(env, std::to_string(err).c_str(), errMsg.c_str());
+    NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, errMsg.c_str(), NAPI_AUTO_LENGTH, &message));
+    NAPI_CALL_RETURN_VOID(env, napi_create_error(env, nullptr, message, &error));
+    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, err, &code));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, error, "code", code));
+    NAPI_CALL_RETURN_VOID(env, napi_throw(env, error));
 }
 
 napi_value JsUtils::ToError(napi_env env, int32_t code)
@@ -122,7 +129,7 @@ napi_value JsUtils::ToError(napi_env env, int32_t code)
     napi_value errorObj;
     NAPI_CALL(env, napi_create_object(env, &errorObj));
     napi_value errorCode = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, std::to_string(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorCode));
+    NAPI_CALL(env, napi_create_int32(env, Convert(code), &errorCode));
     napi_value errorMessage = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, ToMessage(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
     NAPI_CALL(env, napi_set_named_property(env, errorObj, "code", errorCode));
