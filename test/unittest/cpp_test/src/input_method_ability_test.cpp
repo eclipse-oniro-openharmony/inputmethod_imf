@@ -308,6 +308,7 @@ HWTEST_F(InputMethodAbilityTest, testSetImeListener, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(imeIdStopped_, "");
 
+    //没有注册回调，会导致等待5s,但是流程执行完后，ima实例释放了，导致线程无法退出，卡死
     ret = imc_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     usleep(500);

@@ -84,9 +84,8 @@
               }
           ], 
           "test": [
-              "//base/inputmethod/imf/unitest:unittest",
               "//base/inputmethod/imf/test/fuzztest:fuzztest",
-              "//base/inputmethod/imf/test/unitest/src:unittest"
+              "//base/inputmethod/imf/test/unittest:unittest"
           ]
       }
   }
