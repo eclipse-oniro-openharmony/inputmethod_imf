@@ -224,6 +224,35 @@ using namespace MessageID;
                     OnSwitchInput(property, subProperty);
                     break;
                 }
+                case MSG_ID_HANDLE_SET_SELECTION: {
+                    MessageParcel *data = msg->msgContent_;
+                    int32_t start = data->ReadInt32();
+                    int32_t end = data->ReadInt32();
+                    IMSA_HILOGI("InputMethodController::WorkThread HandleSetSelection");
+                    if (textListener) {
+                        textListener->HandleSetSelection(start, end);
+                    }
+                    break;
+                }
+                case MSG_ID_HANDLE_EXTEND_ACTION: {
+                    MessageParcel *data = msg->msgContent_;
+                    int32_t action = data->ReadInt32();
+                    IMSA_HILOGI("InputMethodController::WorkThread HandleExtendAction");
+                    if (textListener) {
+                        textListener->HandleExtendAction(action);
+                    }
+                    break;
+                }
+                case MSG_ID_HANDLE_SELECT: {
+                    MessageParcel *data = msg->msgContent_;
+                    int32_t keyCode = data->ReadInt32();
+                    int32_t cursorMoveSkip = data->ReadInt32();
+                    IMSA_HILOGI("InputMethodController::WorkThread HandleSelect");
+                    if (textListener) {
+                        textListener->HandleSelect(keyCode, cursorMoveSkip);
+                    }
+                    break;
+                }
                 default: {
                     IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                     break;
@@ -261,6 +290,14 @@ using namespace MessageID;
 
     void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard)
     {
+        InputAttribute attribute;
+        attribute.inputPattern = InputAttribute::PATTERN_TEXT;
+        Attach(listener, isShowKeyboard, attribute);  
+    }
+
+   void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard,
+                                        InputAttribute &attribute)
+    {
         {
             std::lock_guard<std::mutex> lock(textListenerLock_);
             textListener = listener;
@@ -268,6 +305,7 @@ using namespace MessageID;
         IMSA_HILOGI("InputMethodController::Attach");
         InputmethodTrace tracer("InputMethodController Attach trace.");
         IMSA_HILOGI("InputMethodController::Attach isShowKeyboard %{public}s", isShowKeyboard ? "true" : "false");
+        mAttribute = attribute;
         PrepareInput(0, mClient, mInputDataChannel, mAttribute);
         StartInput(mClient, isShowKeyboard);
     }

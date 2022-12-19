@@ -144,6 +144,15 @@ public:
             direction_ = (int)direction;
             IMSA_HILOGI("TextChangeListener: MoveCursor, direction is: %{public}d", direction);
         }
+        void HandleSetSelection(int32_t start, int32_t end) override
+        {
+        }
+        void HandleExtendAction(int32_t action) override
+        {
+        }
+        void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override
+        {
+        }
     };
     void GrantPermission()
     {
