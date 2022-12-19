@@ -179,11 +179,15 @@ public:
         IMSA_HILOGI("InputMethodAbilityTest::SetUpTestCase");
         GrantPermission();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
+        usleep(500);
         inputMethodAbility_->setImeListener(std::make_shared<InputMethodEngineListenerImpl>());
         sptr<OnTextChangedListener> textListener = new TextChangeListener();
         imc_ = InputMethodController::GetInstance();
-        ASSERT_TRUE(imc_ != nullptr);
+        usleep(500);
         imc_->Attach(textListener);
+        std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+        InputMethodAbilityTest::cv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [] { return showKeyboard_; });
+        EXPECT_TRUE(showKeyboard_);
     }
     static void TearDownTestCase(void)
     {
