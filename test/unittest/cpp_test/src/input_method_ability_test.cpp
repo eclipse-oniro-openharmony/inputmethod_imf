@@ -19,6 +19,7 @@
 #include <functional>
 #include <gtest/gtest.h>
 #include <string>
+#include <string_ex.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
@@ -42,13 +43,15 @@ using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace MiscServices {
-constexpr uint32_t DEALY_TIME = 6;
+constexpr uint32_t DEALY_TIME = 1;
 class InputMethodAbilityTest : public testing::Test {
 public:
     static std::string imeIdStopped_;
     static std::mutex imeListenerCallbackLock_;
-    static std::condition_variable cv_;
+    static std::condition_variable imeListenerCv_;
     static bool showKeyboard_;
+    static std::mutex textListenerCallbackLock_;
+    static std::condition_variable textListenerCv_;
     static int direction_;
     static int deleteForwardLength_;
     static int deleteBackwardLength_;
@@ -59,21 +62,6 @@ public:
     static sptr<InputMethodController> imc_;
     static sptr<InputMethodAbility> inputMethodAbility_;
 
-    class KeyboardListenerTestImpl : public KeyboardListener {
-        bool OnKeyEvent(int32_t keyCode, int32_t keyStatus)
-        {
-            return true;
-        }
-        void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
-        {
-        }
-        void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
-        {
-        }
-        void OnTextChange(const std::string &text)
-        {
-        }
-    };
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
         InputMethodEngineListenerImpl() = default;
@@ -82,7 +70,7 @@ public:
         void OnKeyboardStatus(bool isShow)
         {
             showKeyboard_ = isShow;
-            InputMethodAbilityTest::cv_.notify_one();
+            InputMethodAbilityTest::imeListenerCv_.notify_one();
             IMSA_HILOGI("InputMethodEngineListenerImpl OnKeyboardStatus");
         }
 
@@ -113,17 +101,20 @@ public:
         void InsertText(const std::u16string &text) override
         {
             insertText_ = text;
+            InputMethodAbilityTest::textListenerCv_.notify_one();
         }
 
         void DeleteForward(int32_t length) override
         {
             deleteForwardLength_ = length;
+            InputMethodAbilityTest::textListenerCv_.notify_one();
             IMSA_HILOGI("TextChangeListener: DeleteForward, length is: %{public}d", length);
         }
 
         void DeleteBackward(int32_t length) override
         {
             deleteBackwardLength_ = length;
+            InputMethodAbilityTest::textListenerCv_.notify_one();
             IMSA_HILOGI("TextChangeListener: DeleteBackward, direction is: %{public}d", length);
         }
 
@@ -137,6 +128,7 @@ public:
             KeyboardStatus keyboardStatus = info.GetKeyboardStatus();
             key_ = (int)functionKey;
             keyboardStatus_ = (int)keyboardStatus;
+            InputMethodAbilityTest::textListenerCv_.notify_one();
         }
 
         void SetKeyboardStatus(bool status) override
@@ -147,6 +139,7 @@ public:
         void MoveCursor(const Direction direction) override
         {
             direction_ = (int)direction;
+            InputMethodAbilityTest::textListenerCv_.notify_one();
             IMSA_HILOGI("TextChangeListener: MoveCursor, direction is: %{public}d", direction);
         }
     };
@@ -179,14 +172,13 @@ public:
         IMSA_HILOGI("InputMethodAbilityTest::SetUpTestCase");
         GrantPermission();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
-        usleep(500);
         inputMethodAbility_->setImeListener(std::make_shared<InputMethodEngineListenerImpl>());
         sptr<OnTextChangedListener> textListener = new TextChangeListener();
         imc_ = InputMethodController::GetInstance();
-        usleep(500);
         imc_->Attach(textListener);
         std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
-        InputMethodAbilityTest::cv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [] { return showKeyboard_; });
+        InputMethodAbilityTest::imeListenerCv_.wait_for(
+            lock, std::chrono::seconds(DEALY_TIME), [] { return showKeyboard_; });
         EXPECT_TRUE(showKeyboard_);
     }
     static void TearDownTestCase(void)
@@ -205,13 +197,15 @@ public:
 
 std::string InputMethodAbilityTest::imeIdStopped_;
 std::mutex InputMethodAbilityTest::imeListenerCallbackLock_;
-std::condition_variable InputMethodAbilityTest::cv_;
+std::condition_variable InputMethodAbilityTest::imeListenerCv_;
 bool InputMethodAbilityTest::showKeyboard_ = false;
+std::mutex InputMethodAbilityTest::textListenerCallbackLock_;
+std::condition_variable InputMethodAbilityTest::textListenerCv_;
 int InputMethodAbilityTest::direction_;
-int InputMethodAbilityTest::deleteForwardLength_;
-int InputMethodAbilityTest::deleteBackwardLength_;
+int InputMethodAbilityTest::deleteForwardLength_ = 0;
+int InputMethodAbilityTest::deleteBackwardLength_ = 0;
 std::u16string InputMethodAbilityTest::insertText_;
-int InputMethodAbilityTest::key_;
+int InputMethodAbilityTest::key_ = 0;
 int InputMethodAbilityTest::keyboardStatus_;
 bool InputMethodAbilityTest::status_;
 sptr<InputMethodController> InputMethodAbilityTest::imc_;
@@ -234,38 +228,6 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 }
 
 /**
-* @tc.name: testMoveCursor
-* @tc.desc: InputMethodAbility MoveCursor
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
-HWTEST_F(InputMethodAbilityTest, testMoveCursor, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility MoveCursor Test START");
-    auto ret = inputMethodAbility_->MoveCursor(4); // move cursor right
-    usleep(500);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(direction_, 4);
-}
-
-/**
-* @tc.name: testInsertText
-* @tc.desc: InputMethodAbility InsertText
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
-HWTEST_F(InputMethodAbilityTest, testInsertText, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility InsertText Test START");
-    auto ret = inputMethodAbility_->InsertText("text");
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    usleep(500);
-    EXPECT_EQ(insertText_, u"text");
-}
-
-/**
 * @tc.name: testHideKeyboardSelf
 * @tc.desc: InputMethodAbility HideKeyboardSelf
 * @tc.type: FUNC
@@ -277,10 +239,10 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
     auto ret = inputMethodAbility_->HideKeyboardSelf();
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
-    InputMethodAbilityTest::cv_.wait_for(
+    InputMethodAbilityTest::imeListenerCv_.wait_for(
         lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_ == false; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(showKeyboard_);
+    EXPECT_FALSE(InputMethodAbilityTest::showKeyboard_);
 }
 
 /**
@@ -310,24 +272,49 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
     auto ret = coreProxy->showKeyboard(channelProxy, true, subProperty);
     delete msgHandler;
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
-    InputMethodAbilityTest::cv_.wait_for(
+    InputMethodAbilityTest::imeListenerCv_.wait_for(
         lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_ == false; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(showKeyboard_);
+    EXPECT_FALSE(InputMethodAbilityTest::showKeyboard_);
 }
 
 /**
-* @tc.name: testSetKdListener
-* @tc.desc: InputMethodAbility SetKdListener
+* @tc.name: testMoveCursor
+* @tc.desc: InputMethodAbility MoveCursor
 * @tc.type: FUNC
 * @tc.require:
 * @tc.author: Hollokin
 */
-HWTEST_F(InputMethodAbilityTest, testSetKdListener, TestSize.Level0)
+HWTEST_F(InputMethodAbilityTest, testMoveCursor, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbility SetKdListener Test START");
-    auto keyBoardListener = std::make_shared<KeyboardListenerTestImpl>();
-    inputMethodAbility_->setKdListener(keyBoardListener);
+    IMSA_HILOGI("InputMethodAbility MoveCursor Test START");
+    constexpr int32_t keyCode = 4;
+    auto ret = inputMethodAbility_->MoveCursor(keyCode); // move cursor right
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::textListenerCallbackLock_);
+    InputMethodAbilityTest::textListenerCv_.wait_for(
+        lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::direction_ == keyCode; });
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodAbilityTest::direction_, keyCode);
+}
+
+/**
+* @tc.name: testInsertText
+* @tc.desc: InputMethodAbility InsertText
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: Hollokin
+*/
+HWTEST_F(InputMethodAbilityTest, testInsertText, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility InsertText Test START");
+    std::string text = "text";
+    std::u16string u16Text = Str8ToStr16(text);
+    auto ret = inputMethodAbility_->InsertText(text);
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::textListenerCallbackLock_);
+    InputMethodAbilityTest::textListenerCv_.wait_for(
+        lock, std::chrono::seconds(DEALY_TIME), [u16Text] { return InputMethodAbilityTest::insertText_ == u16Text; });
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodAbilityTest::insertText_, u16Text);
 }
 
 /**
@@ -340,8 +327,13 @@ HWTEST_F(InputMethodAbilityTest, testSetKdListener, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testSendFunctionKey, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility SendFunctionKey Test START");
-    auto ret = inputMethodAbility_->SendFunctionKey(0);
+    constexpr int32_t funcKey = 1;
+    auto ret = inputMethodAbility_->SendFunctionKey(funcKey);
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::textListenerCallbackLock_);
+    InputMethodAbilityTest::textListenerCv_.wait_for(
+        lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::key_ == funcKey; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodAbilityTest::key_, funcKey);
 }
 
 /**
@@ -356,14 +348,18 @@ HWTEST_F(InputMethodAbilityTest, testDeleteText, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testDelete Test START");
     int32_t deleteForwardLenth = 1;
     auto ret = inputMethodAbility_->DeleteForward(deleteForwardLenth);
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::textListenerCallbackLock_);
+    InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
+        [deleteForwardLenth] { return InputMethodAbilityTest::deleteForwardLength_ == deleteForwardLenth; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    usleep(500);
-    EXPECT_EQ(deleteForwardLength_, deleteForwardLenth);
+    EXPECT_EQ(InputMethodAbilityTest::deleteForwardLength_, deleteForwardLenth);
+
     int32_t deleteBackwardLenth = 2;
     ret = inputMethodAbility_->DeleteBackward(deleteBackwardLenth);
+    InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
+        [deleteBackwardLenth] { return InputMethodAbilityTest::deleteBackwardLength_ == deleteBackwardLenth; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    usleep(500);
-    EXPECT_EQ(deleteBackwardLength_, deleteBackwardLenth);
+    EXPECT_EQ(InputMethodAbilityTest::deleteBackwardLength_, deleteBackwardLenth);
 }
 
 /**
