@@ -22,8 +22,3 @@ ohos_js_unittest("GetInputMethodJsTest") {
 
   certificate_profile = "./openharmony_sx.p7b"
 }
-
-group("unittest") {
-  testonly = true
-  deps = [ ":GetInputMethodJsTest" ]
-}
