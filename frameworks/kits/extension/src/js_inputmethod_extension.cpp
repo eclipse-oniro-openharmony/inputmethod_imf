@@ -17,6 +17,7 @@
 
 #include "ability_info.h"
 #include "global.h"
+#include "input_method_ability.h"
 #include "inputmethod_trace.h"
 #include "js_inputmethod_extension_context.h"
 #include "js_runtime.h"
@@ -161,6 +162,7 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
     NativeValue *argv[] = { nativeWant };
     StartAsync(HITRACE_TAG_MISC, "onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
     CallObjectMethod("onCreate", argv, ARGC_ONE);
+    InputMethodAbility::GetInstance()->IMAReadyNotify();
     FinishAsync(HITRACE_TAG_MISC, "onCreate", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
 }
 

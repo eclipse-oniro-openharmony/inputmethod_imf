@@ -34,8 +34,7 @@ namespace MiscServices {
 class IInputMethodCore : public IRemoteBroker {
 public:
     enum {
-        SET_CLIENT_STATE = FIRST_CALL_TRANSACTION,
-        SHOW_KEYBOARD,
+        SHOW_KEYBOARD = FIRST_CALL_TRANSACTION,
         STOP_INPUT_SERVICE,
         HIDE_KEYBOARD,
         INIT_INPUT_CONTROL_CHANNEL,
@@ -48,7 +47,6 @@ public:
         const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty) = 0;
     virtual bool hideKeyboard(int32_t flags) = 0;
     virtual int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel) = 0;
-    virtual void SetClientState(bool state) = 0;
     virtual void StopInputService(std::string imeId) = 0;
     virtual int32_t SetSubtype(const SubProperty &property) = 0;
 };

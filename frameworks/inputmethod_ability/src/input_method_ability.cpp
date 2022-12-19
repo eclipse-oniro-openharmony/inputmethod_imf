@@ -65,6 +65,11 @@ sptr<InputMethodAbility> InputMethodAbility::GetInstance()
     return instance_;
 }
 
+void InputMethodAbility::IMAReadyNotify()
+{
+    iMAReady_.notify_one();
+}
+
 sptr<InputMethodSystemAbilityProxy> InputMethodAbility::GetImsaProxy()
 {
     IMSA_HILOGI("InputMethodAbility::GetImsaProxy");
@@ -147,11 +152,6 @@ void InputMethodAbility::WorkThread()
         switch (msg->msgId_) {
             case MSG_ID_INIT_INPUT_CONTROL_CHANNEL: {
                 OnInitInputControlChannel(msg);
-                break;
-            }
-            case MSG_ID_SET_CLIENT_STATE: {
-                MessageParcel *data = msg->msgContent_;
-                isBindClient = data->ReadBool();
                 break;
             }
             case MSG_ID_SHOW_KEYBOARD: {
@@ -248,9 +248,6 @@ void InputMethodAbility::OnSetSubtype(Message *msg)
 bool InputMethodAbility::DispatchKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
     IMSA_HILOGI("key = %{public}d, status = %{public}d", keyCode, keyStatus);
-    if (!isBindClient) {
-        return false;
-    }
     if (!kdListener_) {
         IMSA_HILOGI("InputMethodAbility::DispatchKeyEvent kdListener_ is nullptr");
         return false;
@@ -306,11 +303,16 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
 void InputMethodAbility::ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty)
 {
     IMSA_HILOGI("InputMethodAbility::ShowInputWindow");
+    constexpr int32_t dealyTime = 5;
+    std::unique_lock<std::mutex> lock(iMAReadyLock_);
+    iMAReady_.wait_for(lock, std::chrono::seconds(dealyTime),
+        [this] { return imeListener_ != nullptr && imeListener_->OnInputStart(); });
+    IMSA_HILOGI("InputMethodAbility::IMA Ready");
+
     if (imeListener_ == nullptr) {
         IMSA_HILOGI("InputMethodAbility::ShowInputWindow imeListener_ is nullptr");
         return;
     }
-    imeListener_->OnInputStart();
     imeListener_->OnSetSubtype(subProperty);
     if (!isShowKeyboard) {
         IMSA_HILOGI("InputMethodAbility::ShowInputWindow will not show keyboard");

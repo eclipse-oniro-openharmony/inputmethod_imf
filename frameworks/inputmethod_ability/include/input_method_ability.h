@@ -57,6 +57,7 @@ public:
     void SetCallingWindow(uint32_t windowId);
     int32_t GetEnterKeyType(int32_t &keyType);
     int32_t GetInputPattern(int32_t &inputPattern);
+    void IMAReadyNotify();
 
 private:
     std::thread workThreadHandler;
@@ -66,7 +67,6 @@ private:
     bool stop_;
     int32_t KEYBOARD_HIDE = 1;
     int32_t KEYBOARD_SHOW = 2;
-    bool isBindClient = false;
 
     std::mutex controlChannelLock_;
     std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;
@@ -105,6 +105,9 @@ private:
     void OnSelectionChange(Message *msg);
     void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
     void DismissInputWindow();
+
+    std::mutex iMAReadyLock_;
+    std::condition_variable iMAReady_;
 };
 } // namespace MiscServices
 } // namespace OHOS

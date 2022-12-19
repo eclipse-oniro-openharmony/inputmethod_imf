@@ -42,9 +42,12 @@ using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace MiscServices {
+constexpr uint32_t DEALY_TIME = 6;
 class InputMethodAbilityTest : public testing::Test {
 public:
     static std::string imeIdStopped_;
+    static std::mutex imeListenerCallbackLock_;
+    static std::condition_variable cv_;
     static bool showKeyboard_;
     static int direction_;
     static int deleteForwardLength_;
@@ -79,12 +82,14 @@ public:
         void OnKeyboardStatus(bool isShow)
         {
             showKeyboard_ = isShow;
+            InputMethodAbilityTest::cv_.notify_one();
             IMSA_HILOGI("InputMethodEngineListenerImpl OnKeyboardStatus");
         }
 
-        void OnInputStart()
+        bool OnInputStart()
         {
             IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStart");
+            return true;
         }
 
         void OnInputStop(const std::string &imeId)
@@ -145,7 +150,7 @@ public:
             IMSA_HILOGI("TextChangeListener: MoveCursor, direction is: %{public}d", direction);
         }
     };
-    void GrantPermission()
+    static void GrantPermission()
     {
         const char **perms = new const char *[1];
         perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
@@ -171,27 +176,33 @@ public:
     }
     static void SetUpTestCase(void)
     {
+        IMSA_HILOGI("InputMethodAbilityTest::SetUpTestCase");
+        GrantPermission();
+        inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->setImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+        sptr<OnTextChangedListener> textListener = new TextChangeListener();
         imc_ = InputMethodController::GetInstance();
         ASSERT_TRUE(imc_ != nullptr);
+        imc_->Attach(textListener);
     }
     static void TearDownTestCase(void)
     {
+        IMSA_HILOGI("InputMethodAbilityTest::TearDownTestCase");
     }
     void SetUp()
     {
-        inputMethodAbility_ = InputMethodAbility::GetInstance();
-        GrantPermission();
         IMSA_HILOGI("InputMethodAbilityTest::SetUp");
-        sptr<OnTextChangedListener> textListener = new TextChangeListener();
-        imc_->Attach(textListener);
     }
     void TearDown()
     {
+        IMSA_HILOGI("InputMethodAbilityTest::TearDown");
     }
 };
 
 std::string InputMethodAbilityTest::imeIdStopped_;
-bool InputMethodAbilityTest::showKeyboard_;
+std::mutex InputMethodAbilityTest::imeListenerCallbackLock_;
+std::condition_variable InputMethodAbilityTest::cv_;
+bool InputMethodAbilityTest::showKeyboard_ = false;
 int InputMethodAbilityTest::direction_;
 int InputMethodAbilityTest::deleteForwardLength_;
 int InputMethodAbilityTest::deleteBackwardLength_;
@@ -201,48 +212,6 @@ int InputMethodAbilityTest::keyboardStatus_;
 bool InputMethodAbilityTest::status_;
 sptr<InputMethodController> InputMethodAbilityTest::imc_;
 sptr<InputMethodAbility> InputMethodAbilityTest::inputMethodAbility_;
-
-/**
-* @tc.name: testShowKeyboardInputMethodCoreProxy
-* @tc.desc: Test InputMethodCoreProxy ShowKeyboard
-* @tc.type: FUNC
-* @tc.require: issueI5NXHK
-*/
-HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.Level0)
-{
-    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
-    sptr<IInputMethodCore> core = coreStub;
-    auto msgHandler = new (std::nothrow) MessageHandler();
-    coreStub->SetMessageHandler(msgHandler);
-    sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
-
-    MessageParcel data;
-    data.WriteRemoteObject(core->AsObject());
-    data.WriteRemoteObject(channelStub->AsObject());
-    sptr<IRemoteObject> coreObject = data.ReadRemoteObject();
-    sptr<IRemoteObject> channelObject = data.ReadRemoteObject();
-
-    sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
-    sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
-    SubProperty subProperty;
-    auto ret = coreProxy->showKeyboard(channelProxy, true, subProperty);
-    delete msgHandler;
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-}
-
-/**
-* @tc.name: testShowKeyboardInputMethodCoreStub
-* @tc.desc: Test InputMethodCoreStub ShowKeyboard
-* @tc.type: FUNC
-* @tc.require: issueI5NXHK
-*/
-HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreStub, TestSize.Level0)
-{
-    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
-    SubProperty subProperty;
-    auto ret = coreStub->showKeyboard(nullptr, true, subProperty);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-}
 
 /**
 * @tc.name: testSerializedInputAttribute
@@ -293,30 +262,54 @@ HWTEST_F(InputMethodAbilityTest, testInsertText, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetImeListener
-* @tc.desc: InputMethodAbility SetImeListener
+* @tc.name: testHideKeyboardSelf
+* @tc.desc: InputMethodAbility HideKeyboardSelf
 * @tc.type: FUNC
 * @tc.require:
 * @tc.author: Hollokin
 */
-HWTEST_F(InputMethodAbilityTest, testSetImeListener, TestSize.Level0)
+HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbility SetImeListener Test START");
-    auto listener = std::make_shared<InputMethodEngineListenerImpl>();
-    inputMethodAbility_->setImeListener(listener);
-    auto ret = imc_->StopInputSession();
+    IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
+    auto ret = inputMethodAbility_->HideKeyboardSelf();
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    InputMethodAbilityTest::cv_.wait_for(
+        lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_ == false; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(imeIdStopped_, "");
+    EXPECT_FALSE(showKeyboard_);
+}
 
-    ret = imc_->ShowSoftKeyboard();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    usleep(500);
-    EXPECT_EQ(showKeyboard_, true);
+/**
+* @tc.name: testShowKeyboardInputMethodCoreProxy
+* @tc.desc: Test InputMethodCoreProxy ShowKeyboard
+* @tc.type: FUNC
+* @tc.require: issueI5NXHK
+*/
+HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.Level0)
+{
+    inputMethodAbility_->setImeListener(nullptr);
+    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
+    sptr<IInputMethodCore> core = coreStub;
+    auto msgHandler = new (std::nothrow) MessageHandler();
+    coreStub->SetMessageHandler(msgHandler);
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
 
-    ret = imc_->HideSoftKeyboard();
-    usleep(500);
+    MessageParcel data;
+    data.WriteRemoteObject(core->AsObject());
+    data.WriteRemoteObject(channelStub->AsObject());
+    sptr<IRemoteObject> coreObject = data.ReadRemoteObject();
+    sptr<IRemoteObject> channelObject = data.ReadRemoteObject();
+
+    sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
+    sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
+    SubProperty subProperty;
+    auto ret = coreProxy->showKeyboard(channelProxy, true, subProperty);
+    delete msgHandler;
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    InputMethodAbilityTest::cv_.wait_for(
+        lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_ == false; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(showKeyboard_, false);
+    EXPECT_FALSE(showKeyboard_);
 }
 
 /**
@@ -413,20 +406,6 @@ HWTEST_F(InputMethodAbilityTest, testGetEnterKeyType, TestSize.Level0)
     ret = inputMethodAbility_->GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(inputPattern, (int)textInputType);
-}
-
-/**
-* @tc.name: testHideKeyboardSelf
-* @tc.desc: InputMethodAbility HideKeyboardSelf
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
-HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
-    auto ret = inputMethodAbility_->HideKeyboardSelf();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

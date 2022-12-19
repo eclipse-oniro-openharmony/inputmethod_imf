@@ -134,7 +134,7 @@ private:
     int32_t enterKeyType_ = 0;
     int32_t inputPattern_ = 0;
 
-    bool isStopInput{ false };
+    bool isStopInput{ true };
 };
 } // namespace MiscServices
 } // namespace OHOS
