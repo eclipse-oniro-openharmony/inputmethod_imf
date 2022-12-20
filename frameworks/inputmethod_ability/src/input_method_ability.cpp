@@ -130,13 +130,27 @@ void InputMethodAbility::setImeListener(std::shared_ptr<InputMethodEngineListene
 {
     IMSA_HILOGI("InputMethodAbility::setImeListener");
     if (imeListener_ == nullptr) {
-        imeListener_ = imeListener;
+        imeListener_ = std::move(imeListener);
     }
     if (deathRecipientPtr_ != nullptr && deathRecipientPtr_->listener == nullptr) {
         deathRecipientPtr_->listener = imeListener_;
     }
+    WaitIMAReady();
 }
 
+void InputMethodAbility::WaitIMAReady()
+{
+    constexpr int32_t waitIMAReadyTime = 5;
+    std::unique_lock<std::mutex> lock(iMAReadyLock_);
+    iMAReady_.wait_for(lock, std::chrono::seconds(waitIMAReadyTime));
+    if (!info_.isNeedProcessed) {
+        IMSA_HILOGI("InputMethodAbility::IMA Ready, don't need to deal");
+       return;
+    }
+    IMSA_HILOGI("InputMethodAbility::IMA Ready");
+    ShowInputWindow(info_.isShowKeyboard, info_.subProperty);
+    info_.isNeedProcessed = false;
+}
 void InputMethodAbility::setKdListener(std::shared_ptr<KeyboardListener> kdListener)
 {
     IMSA_HILOGI("InputMethodAbility::setKdListener");
@@ -264,7 +278,6 @@ void InputMethodAbility::SetCallingWindow(uint32_t windowId)
         return;
     }
     imeListener_->OnSetCallingWindow(windowId);
-    return;
 }
 
 void InputMethodAbility::OnCursorUpdate(Message *msg)
@@ -303,14 +316,11 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
 void InputMethodAbility::ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty)
 {
     IMSA_HILOGI("InputMethodAbility::ShowInputWindow");
-    constexpr int32_t dealyTime = 5;
-    std::unique_lock<std::mutex> lock(iMAReadyLock_);
-    iMAReady_.wait_for(lock, std::chrono::seconds(dealyTime),
-        [this] { return imeListener_ != nullptr && imeListener_->OnInputStart(); });
-    IMSA_HILOGI("InputMethodAbility::IMA Ready");
-
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGI("InputMethodAbility::ShowInputWindow imeListener_ is nullptr");
+    if (imeListener_ == nullptr || !imeListener_->OnInputStart()) {
+        IMSA_HILOGI("InputMethodAbility::IMA not ready");
+        info_.isNeedProcessed = true;
+        info_.isShowKeyboard = isShowKeyboard;
+        info_.subProperty = subProperty;
         return;
     }
     imeListener_->OnSetSubtype(subProperty);

@@ -37,6 +37,11 @@
 
 namespace OHOS {
 namespace MiscServices {
+struct IMAReadyDealInfo {
+    bool isNeedProcessed{ false };
+    bool isShowKeyboard{};
+    SubProperty subProperty{};
+};
 class MessageHandler;
 class InputMethodAbility : public RefBase {
 public:
@@ -105,9 +110,11 @@ private:
     void OnSelectionChange(Message *msg);
     void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
     void DismissInputWindow();
-
+    void WaitIMAReady();
     std::mutex iMAReadyLock_;
     std::condition_variable iMAReady_;
+    IMAReadyDealInfo info_;
+
 };
 } // namespace MiscServices
 } // namespace OHOS

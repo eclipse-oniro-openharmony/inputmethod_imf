@@ -578,7 +578,7 @@ bool JsInputMethodEngineSetting::OnInputStart()
                 }
             }
         });
-        return true;
+    return true;
 }
 
 void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
