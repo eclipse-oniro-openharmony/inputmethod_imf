@@ -166,5 +166,40 @@ int32_t InputDataChannelProxy::GetInputPattern(int32_t &inputPattern)
     inputPattern = reply.ReadInt32();
     return result;
 }
+
+void InputDataChannelProxy::HandleSetSelection(int32_t start, int32_t end)
+{
+    IMSA_HILOGI("InputDataChannelProxy::HandleSetSelection");
+    MessageParcel data, reply;
+    MessageOption option;
+    data.WriteInterfaceToken(GetDescriptor());
+    data.WriteInt32(start);
+    data.WriteInt32(end);
+
+    Remote()->SendRequest(HANDLE_SET_SELECTION, data, reply, option);
+}
+
+void InputDataChannelProxy::HandleExtendAction(int32_t action)
+{
+    IMSA_HILOGI("InputDataChannelProxy::HandleExtendAction");
+    MessageParcel data, reply;
+    MessageOption option;
+    data.WriteInterfaceToken(GetDescriptor());
+    data.WriteInt32(action);
+
+    Remote()->SendRequest(HANDLE_EXTEND_ACTION, data, reply, option);
+}
+
+void InputDataChannelProxy::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
+{
+    IMSA_HILOGI("InputDataChannelProxy::HandleSelect");
+    MessageParcel data, reply;
+    MessageOption option;
+    data.WriteInterfaceToken(GetDescriptor());
+    data.WriteInt32(keyCode);
+    data.WriteInt32(cursorMoveSkip);
+
+    Remote()->SendRequest(HANDLE_SELECT, data, reply, option);
+}
 } // namespace MiscServices
 } // namespace OHOS

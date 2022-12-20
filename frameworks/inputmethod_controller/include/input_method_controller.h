@@ -44,6 +44,9 @@ public:
     virtual void SendKeyboardInfo(const KeyboardInfo &info) = 0;
     virtual void SetKeyboardStatus(bool status) = 0;
     virtual void MoveCursor(const Direction direction) = 0;
+    virtual void HandleSetSelection(int32_t start, int32_t end) = 0;
+    virtual void HandleExtendAction(int32_t action) = 0;
+    virtual void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) = 0;
 };
 
 class ImsaDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -59,6 +62,7 @@ public:
     static sptr<InputMethodController> GetInstance();
     void Attach(sptr<OnTextChangedListener> &listener);
     void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard);
+    void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, InputAttribute &attribute);
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
     void ShowTextInput();
