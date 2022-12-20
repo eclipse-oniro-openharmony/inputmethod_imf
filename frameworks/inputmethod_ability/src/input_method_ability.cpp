@@ -65,11 +65,6 @@ sptr<InputMethodAbility> InputMethodAbility::GetInstance()
     return instance_;
 }
 
-void InputMethodAbility::IMAReadyNotify()
-{
-    iMAReady_.notify_one();
-}
-
 sptr<InputMethodSystemAbilityProxy> InputMethodAbility::GetImsaProxy()
 {
     IMSA_HILOGI("InputMethodAbility::GetImsaProxy");
@@ -135,14 +130,10 @@ void InputMethodAbility::setImeListener(std::shared_ptr<InputMethodEngineListene
     if (deathRecipientPtr_ != nullptr && deathRecipientPtr_->listener == nullptr) {
         deathRecipientPtr_->listener = imeListener_;
     }
-    WaitIMAReady();
 }
 
-void InputMethodAbility::WaitIMAReady()
+void InputMethodAbility::IMAReadyHandle()
 {
-    constexpr int32_t waitIMAReadyTime = 5;
-    std::unique_lock<std::mutex> lock(iMAReadyLock_);
-    iMAReady_.wait_for(lock, std::chrono::seconds(waitIMAReadyTime));
     if (!info_.isNeedProcessed) {
         IMSA_HILOGI("InputMethodAbility::IMA Ready, don't need to deal");
        return;
@@ -151,6 +142,7 @@ void InputMethodAbility::WaitIMAReady()
     ShowInputWindow(info_.isShowKeyboard, info_.subProperty);
     info_.isNeedProcessed = false;
 }
+
 void InputMethodAbility::setKdListener(std::shared_ptr<KeyboardListener> kdListener)
 {
     IMSA_HILOGI("InputMethodAbility::setKdListener");

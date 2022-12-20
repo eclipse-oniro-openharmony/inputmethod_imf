@@ -162,7 +162,7 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
     NativeValue *argv[] = { nativeWant };
     StartAsync(HITRACE_TAG_MISC, "onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
     CallObjectMethod("onCreate", argv, ARGC_ONE);
-    InputMethodAbility::GetInstance()->IMAReadyNotify();
+    InputMethodAbility::GetInstance()->IMAReadyHandle();
     FinishAsync(HITRACE_TAG_MISC, "onCreate", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
 }
 
