@@ -39,6 +39,9 @@ namespace MiscServices {
             SEND_KEYBOARD_STATUS,
             SEND_FUNCTION_KEY,
             MOVE_CURSOR,
+            HANDLE_SET_SELECTION,
+            HANDLE_EXTEND_ACTION,
+            HANDLE_SELECT,
         };
 
         DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputDataChannel");
@@ -53,6 +56,9 @@ namespace MiscServices {
         virtual int32_t MoveCursor(int32_t keyCode) = 0;
         virtual int32_t GetEnterKeyType(int32_t &keyType) = 0;
         virtual int32_t GetInputPattern(int32_t &inputPattern) = 0;
+        virtual void HandleSetSelection(int32_t start, int32_t end) = 0;
+        virtual void HandleExtendAction(int32_t action) = 0;
+        virtual void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) = 0;
     };
 } // namespace MiscServices
 } // namespace OHOS

@@ -96,6 +96,23 @@ namespace MiscServices {
                 reply.WriteInt32(inputPattern);
                 break;
             }
+            case HANDLE_SET_SELECTION: {
+                auto start = data.ReadInt32();
+                auto end = data.ReadInt32();
+                HandleSetSelection(start, end);
+                break;
+            }
+            case HANDLE_EXTEND_ACTION: {
+                auto action = data.ReadInt32();
+                HandleExtendAction(action);
+                break;
+            }
+            case HANDLE_SELECT: {
+                auto keyCode = data.ReadInt32();
+                auto cursorMoveSkip = data.ReadInt32();
+                HandleSelect(keyCode, cursorMoveSkip);
+                break;
+            }
             default:
                 return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
@@ -204,6 +221,41 @@ namespace MiscServices {
             return ErrorCode::NO_ERROR;
         }
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+
+    void InputDataChannelStub::HandleSetSelection(int32_t start, int32_t end)
+    {
+        IMSA_HILOGI("InputDataChannelStub::HandleSetSelection");
+        if (msgHandler) {
+            MessageParcel *parcel = new MessageParcel;
+            parcel->WriteInt32(start);
+            parcel->WriteInt32(end);
+            Message *msg = new Message(MessageID::MSG_ID_HANDLE_SET_SELECTION, parcel);
+            msgHandler->SendMessage(msg);
+        }
+    }
+
+    void InputDataChannelStub::HandleExtendAction(int32_t action)
+    {
+        IMSA_HILOGI("InputDataChannelStub::HandleExtendAction");
+        if (msgHandler) {
+            MessageParcel *parcel = new MessageParcel;
+            parcel->WriteInt32(action);
+            Message *msg = new Message(MessageID::MSG_ID_HANDLE_EXTEND_ACTION, parcel);
+            msgHandler->SendMessage(msg);
+        }
+    }
+
+    void InputDataChannelStub::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
+    {
+        IMSA_HILOGI("InputDataChannelStub::HandleSelect");
+        if (msgHandler) {
+            MessageParcel *parcel = new MessageParcel;
+            parcel->WriteInt32(keyCode);
+            parcel->WriteInt32(cursorMoveSkip);
+            Message *msg = new Message(MessageID::MSG_ID_HANDLE_SELECT, parcel);
+            msgHandler->SendMessage(msg);
+        }
     }
 
     void InputDataChannelStub::SetHandler(MessageHandler *handler)

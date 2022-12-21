@@ -68,6 +68,9 @@ namespace MessageID {
         MSG_ID_SEND_FUNCTION_KEY,
         MSG_ID_MOVE_CURSOR,
         MSG_ID_ON_SWITCH_INPUT,
+        MSG_ID_HANDLE_SET_SELECTION,
+        MSG_ID_HANDLE_EXTEND_ACTION,
+        MSG_ID_HANDLE_SELECT,
 
         // the request from IMSA to IMA
         MSG_ID_SET_CLIENT_STATE,
