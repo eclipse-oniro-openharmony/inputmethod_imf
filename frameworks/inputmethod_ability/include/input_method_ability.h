@@ -111,7 +111,6 @@ private:
     void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
     void DismissInputWindow();
     IMAReadyHandleInfo info_;
-
 };
 } // namespace MiscServices
 } // namespace OHOS

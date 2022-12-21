@@ -136,7 +136,7 @@ void InputMethodAbility::IMAReadyHandle()
 {
     if (!info_.isNeedProcessed) {
         IMSA_HILOGI("InputMethodAbility::IMA Ready, don't need to deal");
-       return;
+        return;
     }
     IMSA_HILOGI("InputMethodAbility::IMA Ready");
     ShowInputWindow(info_.isShowKeyboard, info_.subProperty);
