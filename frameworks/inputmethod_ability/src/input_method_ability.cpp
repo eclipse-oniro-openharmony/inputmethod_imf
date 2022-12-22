@@ -132,15 +132,15 @@ void InputMethodAbility::setImeListener(std::shared_ptr<InputMethodEngineListene
     }
 }
 
-void InputMethodAbility::IMAReadyHandle()
+void InputMethodAbility::ImeReadyHandle()
 {
-    if (!info_.isNeedProcessed) {
-        IMSA_HILOGI("InputMethodAbility::IMA Ready, don't need to deal");
+    isImeReady_ = true;
+    if (!imeNotifier_.isNotifier) {
+        IMSA_HILOGI("InputMethodAbility::Ime Ready, don't need to notify");
         return;
     }
-    IMSA_HILOGI("InputMethodAbility::IMA Ready");
-    ShowInputWindow(info_.isShowKeyboard, info_.subProperty);
-    info_.isNeedProcessed = false;
+    IMSA_HILOGI("InputMethodAbility::IMA Ready, notify StartInput");
+    ShowInputWindow(imeNotifier_.isShowKeyboard, imeNotifier_.subProperty);
 }
 
 void InputMethodAbility::setKdListener(std::shared_ptr<KeyboardListener> kdListener)
@@ -308,13 +308,18 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
 void InputMethodAbility::ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty)
 {
     IMSA_HILOGI("InputMethodAbility::ShowInputWindow");
-    if (imeListener_ == nullptr || !imeListener_->OnInputStart()) {
-        IMSA_HILOGI("InputMethodAbility::IMA not ready");
-        info_.isNeedProcessed = true;
-        info_.isShowKeyboard = isShowKeyboard;
-        info_.subProperty = subProperty;
+    if (!isImeReady_) {
+        IMSA_HILOGI("InputMethodAbility::ime is unready, stores imeNotifier_");
+        imeNotifier_.isNotifier = true;
+        imeNotifier_.isShowKeyboard = isShowKeyboard;
+        imeNotifier_.subProperty = subProperty;
         return;
     }
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGI("InputMethodAbility::ShowInputWindow imeListener_ is nullptr");
+        return;
+    }
+    imeListener_->OnInputStart();
     imeListener_->OnSetSubtype(subProperty);
     if (!isShowKeyboard) {
         IMSA_HILOGI("InputMethodAbility::ShowInputWindow will not show keyboard");

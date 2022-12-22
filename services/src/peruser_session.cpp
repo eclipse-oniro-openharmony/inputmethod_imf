@@ -453,7 +453,7 @@ int32_t PerUserSession::OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInp
     if (client != nullptr) {
         auto it = mapClients.find(client->AsObject());
         if (it != mapClients.end()) {
-            IMSA_HILOGI("PerUserSession::Bind IMC to IMA");
+            IMSA_HILOGI("PerUserSession::Bind IMC to IMA, and notify StartInput to IME");
             OnStartInput(it->second->client, it->second->isShowKeyBoard);
         }
     }

@@ -227,6 +227,38 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 }
 
 /**
+* @tc.name: testShowKeyboardInputMethodCoreProxy
+* @tc.desc: Test InputMethodCoreProxy ShowKeyboard
+* @tc.type: FUNC
+* @tc.require: issueI5NXHK
+*/
+HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.Level0)
+{
+    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
+    sptr<IInputMethodCore> core = coreStub;
+    auto msgHandler = new (std::nothrow) MessageHandler();
+    coreStub->SetMessageHandler(msgHandler);
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
+
+    MessageParcel data;
+    data.WriteRemoteObject(core->AsObject());
+    data.WriteRemoteObject(channelStub->AsObject());
+    sptr<IRemoteObject> coreObject = data.ReadRemoteObject();
+    sptr<IRemoteObject> channelObject = data.ReadRemoteObject();
+
+    sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
+    sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
+    SubProperty subProperty;
+    auto ret = coreProxy->showKeyboard(channelProxy, false, subProperty);
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    auto cvStatus = InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME));
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(cvStatus, std::cv_status::timeout);
+    EXPECT_TRUE(InputMethodAbilityTest::showKeyboard_);
+    delete msgHandler;
+}
+
+/**
 * @tc.name: testHideKeyboardSelfWithoutImeListener
 * @tc.desc: InputMethodAbility HideKeyboardSelf Without ImeListener
 * @tc.type: FUNC
