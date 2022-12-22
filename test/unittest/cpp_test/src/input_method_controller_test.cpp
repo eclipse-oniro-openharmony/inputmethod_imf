@@ -234,6 +234,7 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodControllerTest::SetUpTestCase");
         GrantNativePermission();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->ImeReadyHandle();
         kbListener_ = std::make_shared<KeyboardListenerImpl>();
         imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
         textListener_ = new TextListener();

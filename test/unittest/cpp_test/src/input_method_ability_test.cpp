@@ -171,6 +171,7 @@ public:
         IMSA_HILOGI("InputMethodAbilityTest::SetUpTestCase");
         GrantPermission();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->ImeReadyHandle();
         sptr<OnTextChangedListener> textListener = new TextChangeListener();
         imc_ = InputMethodController::GetInstance();
         imc_->Attach(textListener);
@@ -282,7 +283,6 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
     inputMethodAbility_->setImeListener(std::make_shared<InputMethodEngineListenerImpl>());
-    inputMethodAbility_->ImeReadyHandle();
     auto ret = inputMethodAbility_->HideKeyboardSelf();
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
     InputMethodAbilityTest::imeListenerCv_.wait_for(
