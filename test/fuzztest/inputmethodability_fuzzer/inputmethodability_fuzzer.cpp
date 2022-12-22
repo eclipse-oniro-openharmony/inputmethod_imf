@@ -23,10 +23,7 @@ using namespace OHOS::MiscServices;
 namespace OHOS {
 class EngineListener : public InputMethodEngineListener {
     void OnKeyboardStatus(bool isShow) {}
-    bool OnInputStart()
-    {
-        return true;
-    }
+    void OnInputStart() {}
     void OnInputStop(const std::string &imeId) {}
     void OnSetCallingWindow(uint32_t windowId) {}
     void OnSetSubtype(const SubProperty &property) {}

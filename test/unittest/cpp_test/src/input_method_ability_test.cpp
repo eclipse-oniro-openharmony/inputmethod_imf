@@ -74,10 +74,9 @@ public:
             IMSA_HILOGI("InputMethodEngineListenerImpl OnKeyboardStatus");
         }
 
-        bool OnInputStart()
+        void OnInputStart()
         {
             IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStart");
-            return true;
         }
 
         void OnInputStop(const std::string &imeId)
@@ -175,10 +174,6 @@ public:
         sptr<OnTextChangedListener> textListener = new TextChangeListener();
         imc_ = InputMethodController::GetInstance();
         imc_->Attach(textListener);
-        std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
-        InputMethodAbilityTest::imeListenerCv_.wait_for(
-            lock, std::chrono::seconds(DEALY_TIME), [] { return showKeyboard_; });
-        EXPECT_TRUE(showKeyboard_);
     }
     static void TearDownTestCase(void)
     {
@@ -287,6 +282,7 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
     inputMethodAbility_->setImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    inputMethodAbility_->ImeReadyHandle();
     auto ret = inputMethodAbility_->HideKeyboardSelf();
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
     InputMethodAbilityTest::imeListenerCv_.wait_for(

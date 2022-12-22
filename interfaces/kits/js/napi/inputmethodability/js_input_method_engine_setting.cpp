@@ -535,13 +535,13 @@ napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, const
     return subType;
 }
 
-bool JsInputMethodEngineSetting::OnInputStart()
+void JsInputMethodEngineSetting::OnInputStart()
 {
     IMSA_HILOGI("run in OnInputStart");
     std::string type = "inputStart";
     uv_work_t *work = GetUVwork(type);
     if (work == nullptr) {
-        return false;
+        return;
     }
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
@@ -578,7 +578,6 @@ bool JsInputMethodEngineSetting::OnInputStart()
                 }
             }
         });
-    return true;
 }
 
 void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)

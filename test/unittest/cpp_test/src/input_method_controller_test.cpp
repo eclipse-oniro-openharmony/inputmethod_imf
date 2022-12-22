@@ -179,7 +179,7 @@ namespace MiscServices {
         static bool isInputStart_;
         static uint32_t windowId_;
         void OnKeyboardStatus(bool isShow) override;
-        bool OnInputStart() override;
+        void OnInputStart() override;
         void OnInputStop(const std::string &imeId) override;
         void OnSetCallingWindow(uint32_t windowId) override;
         void OnSetSubtype(const SubProperty &property) override;
@@ -192,10 +192,9 @@ namespace MiscServices {
     {
         keyboardState_ = isShow;
     }
-    bool InputMethodEngineListenerImpl::OnInputStart()
+    void InputMethodEngineListenerImpl::OnInputStart()
     {
         isInputStart_ = true;
-        return true;
     }
     void InputMethodEngineListenerImpl::OnInputStop(const std::string &imeId)
     {
