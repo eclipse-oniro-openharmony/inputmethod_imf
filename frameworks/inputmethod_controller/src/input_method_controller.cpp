@@ -549,15 +549,18 @@ using namespace MessageID;
     int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string &text)
     {
         IMSA_HILOGI("InputMethodController::GetTextAfterCursor");
-        if (!mTextString.empty() && mTextString.size() <= INT_MAX) {
-            int32_t endPos = (mSelectNewEnd + number < static_cast<int32_t>(mTextString.size()))
-                                 ? (mSelectNewEnd + number)
-                                 : mTextString.size();
-            text = mTextString.substr(mSelectNewEnd, endPos);
+        if (mTextString.empty() || mTextString.size() > INT_MAX) {
+            text = u"";
+            return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+        }
+        if (mSelectNewEnd >= static_cast<int32_t>(mTextString.size())) {
+            text = u"";
             return ErrorCode::NO_ERROR;
         }
-        text = u"";
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+        int32_t endPos = (mSelectNewEnd + number < static_cast<int32_t>(mTextString.size())) ? (mSelectNewEnd + number)
+                                                                                             : mTextString.size();
+        text = mTextString.substr(mSelectNewEnd, endPos);
+        return ErrorCode::NO_ERROR;
     }
 
     bool InputMethodController::dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
