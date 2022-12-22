@@ -171,7 +171,7 @@ public:
         IMSA_HILOGI("InputMethodAbilityTest::SetUpTestCase");
         GrantPermission();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
-        inputMethodAbility_->ImeReadyHandle();
+        inputMethodAbility_->OnImeReady();
         sptr<OnTextChangedListener> textListener = new TextChangeListener();
         imc_ = InputMethodController::GetInstance();
         imc_->Attach(textListener);

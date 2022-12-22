@@ -37,8 +37,8 @@
 
 namespace OHOS {
 namespace MiscServices {
-struct StartInputImeNotifier {
-    bool isNotifier{ false };
+struct InputStartNotifier {
+    bool isNotify{ false };
     bool isShowKeyboard{};
     SubProperty subProperty{};
 };
@@ -62,7 +62,7 @@ public:
     void SetCallingWindow(uint32_t windowId);
     int32_t GetEnterKeyType(int32_t &keyType);
     int32_t GetInputPattern(int32_t &inputPattern);
-    void ImeReadyHandle();
+    void OnImeReady();
 
 private:
     std::thread workThreadHandler;
@@ -111,7 +111,7 @@ private:
     void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
     void DismissInputWindow();
     bool isImeReady_{ false };
-    StartInputImeNotifier imeNotifier_;
+    InputStartNotifier notifier_;
 };
 } // namespace MiscServices
 } // namespace OHOS
