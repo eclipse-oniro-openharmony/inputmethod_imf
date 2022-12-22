@@ -330,7 +330,7 @@ using namespace MessageID;
 
     void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
     {
-	    std::shared_ptr<InputMethodAgentProxy> agent = GetInputMethodAgent();
+        std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::OnCursorUpdate agent is nullptr");
             return;
@@ -431,18 +431,18 @@ using namespace MessageID;
         agent->SetCallingWindow(windowId);
         return;
     }
-	
-	std::shared_ptr<InputMethodAgentProxy> InputMethodController::GetInputMethodAgent()
+
+    std::shared_ptr<IInputMethodAgent> InputMethodController::GetInputMethodAgent()
     {
         std::lock_guard<std::mutex> lock(agentLock_);
         return mAgent;
     }
-	
-	void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
+
+    void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
     {
         IMSA_HILOGI("run in SetInputMethodAgent");
         std::lock_guard<std::mutex> lock(agentLock_);
-        std::shared_ptr<InputMethodAgentProxy> agent = std::make_shared<InputMethodAgentProxy>(object);
+        std::shared_ptr<IInputMethodAgent> agent = std::make_shared<InputMethodAgentProxy>(object);
         if (agent == nullptr) {
             IMSA_HILOGI("InputMethodController::SetInputMethodAgent agent is nullptr");
             return;

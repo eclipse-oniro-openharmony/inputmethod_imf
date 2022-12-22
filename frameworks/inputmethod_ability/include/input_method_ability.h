@@ -29,7 +29,7 @@
 #include "input_attribute.h"
 #include "message_handler.h"
 #include "input_channel.h"
-#include "input_control_channel_proxy.h"
+#include "input_data_channel_proxy.h"
 #include "message.h"
 #include "utils.h"
 #include "input_method_system_ability_proxy.h"

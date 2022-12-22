@@ -221,14 +221,13 @@ namespace MiscServices {
         IMSA_HILOGI("InputMethodAbility::OnStartInput");
         MessageParcel *data = msg->msgContent_;
         sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
-        inputDataChannel = channalProxy;
         if (channelObject == nullptr) {
             IMSA_HILOGI("InputMethodAbility::OnStartInput channelObject is nullptr");
             return;
         }
         SetInputDataChannel(channelObject);
         editorAttribute = data->ReadParcelable<InputAttribute>();
-        if (editorAttribute == nullptr) {
+        if (!editorAttribute) {
             IMSA_HILOGI("InputMethodAbility::OnStartInput editorAttribute is nullptr");
         }
         mSupportPhysicalKbd = data->ReadBool();
@@ -238,12 +237,12 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodAbility::OnShowKeyboard");
         MessageParcel *data = msg->msgContent_;
-		sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
+        sptr<IRemoteObject> channelObject = data->ReadRemoteObject();
         if (channelObject == nullptr) {
             IMSA_HILOGI("InputMethodAbility::OnShowKeyboard channelObject is nullptr");
-			return;
+            return;
         }
-		SetInputDataChannel(channelObject);
+        SetInputDataChannel(channelObject);
         ShowInputWindow();
     }
 
@@ -331,7 +330,7 @@ namespace MiscServices {
         }
         imeListener_->OnInputStart();
         imeListener_->OnKeyboardStatus(true);
-		std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+        std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::ShowInputWindow channel is nullptr");
             return;
@@ -358,7 +357,7 @@ namespace MiscServices {
     bool InputMethodAbility::InsertText(const std::string text)
     {
         IMSA_HILOGI("InputMethodAbility::InsertText");
-		std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+        std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::InsertText channel is nullptr");
             return false;
@@ -370,7 +369,7 @@ namespace MiscServices {
     void InputMethodAbility::DeleteForward(int32_t length)
     {
         IMSA_HILOGI("InputMethodAbility::DeleteForward");
-		std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+        std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::DeleteForward channel is nullptr");
             return;
@@ -381,7 +380,7 @@ namespace MiscServices {
     void InputMethodAbility::DeleteBackward(int32_t length)
     {
         IMSA_HILOGI("InputMethodAbility::DeleteBackward");
-		std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+        std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
         if (channel == nullptr) {
             IMSA_HILOGI("InputMethodAbility::DeleteBackward channel is nullptr");
             return;
@@ -403,11 +402,11 @@ namespace MiscServices {
     void InputMethodAbility::HideKeyboardSelf()
     {
         IMSA_HILOGI("InputMethodAbility::HideKeyboardSelf");
-		std::shared_ptr<InputControlChannelProxy> channel = GetInputControlChannel();
-		if (channel == nullptr) {
-		    IMSA_HILOGI("InputMethodAbility::HideKeyboardSelf channel is nullptr");
-			return;
-		}
+        std::shared_ptr<InputControlChannelProxy> channel = GetInputControlChannel();
+        if (channel == nullptr) {
+            IMSA_HILOGI("InputMethodAbility::HideKeyboardSelf channel is nullptr");
+            return;
+        }
         channel->hideKeyboardSelf(1);
     }
 
@@ -477,7 +476,7 @@ namespace MiscServices {
         }
         channel->StopInput();
     }
-	
+
     void InputMethodAbility::SetInputDataChannel(sptr<IRemoteObject> &object)
     {
         IMSA_HILOGI("run in SetInputDataChannel");
@@ -489,13 +488,13 @@ namespace MiscServices {
         }
         dataChannel_ = channelProxy;
     }
-	
+
     std::shared_ptr<InputDataChannelProxy> InputMethodAbility::GetInputDataChannel()
     {
         std::lock_guard<std::mutex> lock(dataChannelLock_);
         return dataChannel_;
     }
-	
+
     void InputMethodAbility::SetInputControlChannel(sptr<IRemoteObject> &object)
     {
         IMSA_HILOGI("run in SetInputControlChannel");
@@ -507,7 +506,7 @@ namespace MiscServices {
         }
         controlChannel_ = channelProxy;
 	}
-	
+
     std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlChannel()
     {
         std::lock_guard<std::mutex> lock(controlChannelLock_);

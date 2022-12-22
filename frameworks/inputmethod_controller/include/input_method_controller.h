@@ -93,7 +93,7 @@ namespace MiscServices {
         sptr<InputMethodSystemAbilityProxy> mImms;
         sptr<ImsaDeathRecipient> deathRecipient_;
         std::mutex agentLock_;
-        std::shared_ptr<InputMethodAgentProxy> mAgent = nullptr;
+        std::shared_ptr<IInputMethodAgent> mAgent = nullptr;
         sptr<OnTextChangedListener> textListener;
         InputAttribute mAttribute;
         std::u16string mTextString;
