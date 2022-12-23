@@ -17,13 +17,14 @@
 #define SERVICES_INCLUDE_GLOBAL_H
 
 #include <errno.h>
-#include <time.h>
 #include <sys/time.h>
+#include <time.h>
+
+#include "hilog/log.h"
+#include "ipc_object_stub.h"
 #include "iremote_broker.h"
 #include "peer_holder.h"
-#include "ipc_object_stub.h"
 #include "refbase.h"
-#include "hilog/log.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -163,6 +164,6 @@ static constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = {
     "line: %{public}d, function: %{public}s," fmt, __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #define IMSA_HILOGW(fmt, ...) (void)OHOS::HiviewDFX::HiLog::Warn(OHOS::MiscServices::g_SMALL_SERVICES_LABEL, \
     "line: %{public}d, function: %{public}s," fmt, __LINE__, __FUNCTION__, ##__VA_ARGS__)
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
 #endif // SERVICES_INCLUDE_GLOBAL_H

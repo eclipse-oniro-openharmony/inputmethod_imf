@@ -16,24 +16,24 @@
 #ifndef SERVICES_INCLUDE_I_INPUT_CONTROL_CHANNEL_H
 #define SERVICES_INCLUDE_I_INPUT_CONTROL_CHANNEL_H
 
-#include "iremote_broker.h"
-#include "input_channel.h"
-#include "i_input_method_agent.h"
 #include "global.h"
+#include "i_input_method_agent.h"
+#include "input_channel.h"
+#include "iremote_broker.h"
 
 namespace OHOS {
-    namespace MiscServices {
-        class IInputControlChannel : public IRemoteBroker {
-        public:
-            enum {
-                HIDE_KEYBOARD_SELF = FIRST_CALL_TRANSACTION,
-                NONE,
-            };
+namespace MiscServices {
+class IInputControlChannel : public IRemoteBroker {
+public:
+    enum {
+        HIDE_KEYBOARD_SELF = FIRST_CALL_TRANSACTION,
+        NONE,
+    };
 
-            DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputControlChannel");
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputControlChannel");
 
-            virtual int32_t HideKeyboardSelf(int flags) = 0;
-        };
-    } // namespace MiscServices
+    virtual int32_t HideKeyboardSelf(int flags) = 0;
+};
+} // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_I_INPUT_CONTROL_CHANNEL_H
