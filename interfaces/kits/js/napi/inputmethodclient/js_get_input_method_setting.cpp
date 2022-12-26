@@ -187,8 +187,7 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
             isName = true;
         }
         if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Parameter error.", TYPE_NONE);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Parameter error.", TYPE_NONE);
             return napi_invalid_arg;
         }
         GetPropertyString(env, argv, "label", ctxt->property.label);
