@@ -173,62 +173,45 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
-    bool isName = false;
     status = napi_typeof(env, argv, &valueType);
-    if (status != napi_ok) {
-        return status;
-    }
     if (valueType == napi_object) {
-        GetPropertyString(env, argv, "packageName", ctxt->property.name);
-        GetPropertyString(env, argv, "methodId", ctxt->property.id);
+        napi_value result = nullptr;
+        napi_get_named_property(env, argv, "packageName", &result);
+        ctxt->property.name = JsInputMethod::GetStringProperty(env, result);
+
+        result = nullptr;
+        napi_get_named_property(env, argv, "methodId", &result);
+        ctxt->property.id = JsInputMethod::GetStringProperty(env, result);
+
         if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
-            GetPropertyString(env, argv, "name", ctxt->property.name);
-            GetPropertyString(env, argv, "id", ctxt->property.id);
-            isName = true;
+            result = nullptr;
+            napi_get_named_property(env, argv, "name", &result);
+            ctxt->property.name = JsInputMethod::GetStringProperty(env, result);
+
+            result = nullptr;
+            napi_get_named_property(env, argv, "id", &result);
+            ctxt->property.id = JsInputMethod::GetStringProperty(env, result);
         }
         if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Parameter error.", TYPE_NONE);
             return napi_invalid_arg;
         }
-        GetPropertyString(env, argv, "label", ctxt->property.label);
-        GetPropertyString(env, argv, "icon", ctxt->property.icon);
-        GetPropertyNumber(env, argv, "iconId", ctxt->property.iconId);
-        isName == false
-            ? IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s", ctxt->property.id.c_str(),
-                ctxt->property.name.c_str())
-            : IMSA_HILOGI("id:%{public}s and name:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
-    }
-    return napi_ok;
-}
 
-void JsGetInputMethodSetting::GetPropertyString(
-    napi_env env, napi_value argv, const std::string &type, std::string &result)
-{
-    bool hasProperty = false;
-    napi_status status = napi_has_named_property(env, argv, type.c_str(), &hasProperty);
-    IMSA_HILOGI("GetPropertyString type = %{public}s, status = %{public}d", type.c_str(), status);
-    if ((status == napi_ok) && hasProperty) {
-        napi_value inner = nullptr;
-        status = napi_get_named_property(env, argv, type.c_str(), &inner);
-        if ((status == napi_ok) && (inner != nullptr)) {
-            result = JsInputMethod::GetStringProperty(env, inner);
-        }
-    }
-}
+        result = nullptr;
+        napi_get_named_property(env, argv, "label", &result);
+        ctxt->property.label = JsInputMethod::GetStringProperty(env, result);
 
-void JsGetInputMethodSetting::GetPropertyNumber(
-    napi_env env, napi_value argv, const std::string &type, int32_t &result)
-{
-    bool hasProperty = false;
-    napi_status status = napi_has_named_property(env, argv, type.c_str(), &hasProperty);
-    IMSA_HILOGI("GetPropertyNumber type = %{public}s, status = %{public}d", type.c_str(), status);
-    if ((status == napi_ok) && hasProperty) {
-        napi_value inner = nullptr;
-        status = napi_get_named_property(env, argv, type.c_str(), &inner);
-        if ((status == napi_ok) && (inner != nullptr)) {
-            result = JsInputMethod::GetNumberProperty(env, inner);
-        }
+        result = nullptr;
+        napi_get_named_property(env, argv, "icon", &result);
+        ctxt->property.icon = JsInputMethod::GetStringProperty(env, result);
+
+        result = nullptr;
+        napi_get_named_property(env, argv, "iconId", &result);
+        ctxt->property.iconId = JsInputMethod::GetNumberProperty(env, result);
+        IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(),
+                ctxt->property.name.c_str());
     }
+    return status;
 }
 
 napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_info info)

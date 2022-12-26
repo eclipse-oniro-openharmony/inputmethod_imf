@@ -109,8 +109,6 @@ public:
     void OnImeChange(const Property &property, const SubProperty &subProperty) override;
 
 private:
-    static void GetPropertyString(napi_env env, napi_value argv, const std::string &type, std::string &result);
-    static void GetPropertyNumber(napi_env env, napi_value argv, const std::string &type, int32_t &result);
     static napi_status GetInputMethodProperty(napi_env env, napi_value argv, std::shared_ptr<ListInputContext> ctxt);
     static JsGetInputMethodSetting *GetNative(napi_env env, napi_callback_info info);
     uv_work_t *GetImeChangeUVwork(std::string type, const Property &property, const SubProperty &subProperty);
