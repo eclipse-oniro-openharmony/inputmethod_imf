@@ -127,11 +127,22 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodAbility::setImeListener");
         if (imeListener_ == nullptr) {
-            imeListener_ = imeListener;
+            imeListener_ = std::move(imeListener);
         }
         if (deathRecipientPtr_ != nullptr && deathRecipientPtr_->listener == nullptr) {
             deathRecipientPtr_->listener = imeListener_;
         }
+    }
+
+    void InputMethodAbility::OnImeReady()
+    {
+        isImeReady_ = true;
+        if (!notifier_.isNotify) {
+            IMSA_HILOGI("InputMethodAbility::Ime Ready, don't need to notify");
+            return;
+        }
+        IMSA_HILOGI("InputMethodAbility::Ime Ready, notify InputStart");
+        ShowInputWindow(notifier_.isShowKeyboard, notifier_.subProperty);
     }
 
     void InputMethodAbility::setKdListener(std::shared_ptr<KeyboardListener> kdListener)
@@ -149,11 +160,6 @@ namespace MiscServices {
             switch (msg->msgId_) {
                 case MSG_ID_INIT_INPUT_CONTROL_CHANNEL: {
                     OnInitInputControlChannel(msg);
-                    break;
-                }
-                case MSG_ID_SET_CLIENT_STATE: {
-                    MessageParcel *data = msg->msgContent_;
-                    isBindClient = data->ReadBool();
                     break;
                 }
                 case MSG_ID_SHOW_KEYBOARD: {
@@ -252,9 +258,6 @@ namespace MiscServices {
     bool InputMethodAbility::DispatchKeyEvent(int32_t keyCode, int32_t keyStatus)
     {
         IMSA_HILOGI("key = %{public}d, status = %{public}d", keyCode, keyStatus);
-        if (!isBindClient) {
-            return false;
-        }
         if (!kdListener_) {
             IMSA_HILOGI("InputMethodAbility::DispatchKeyEvent kdListener_ is nullptr");
             return false;
@@ -271,7 +274,6 @@ namespace MiscServices {
             return;
         }
         imeListener_->OnSetCallingWindow(windowId);
-        return;
     }
 
  
@@ -311,6 +313,13 @@ namespace MiscServices {
     void InputMethodAbility::ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty)
     {
         IMSA_HILOGI("InputMethodAbility::ShowInputWindow");
+        if (!isImeReady_) {
+            IMSA_HILOGI("InputMethodAbility::ime is unready, store notifier_");
+            notifier_.isNotify = true;
+            notifier_.isShowKeyboard = isShowKeyboard;
+            notifier_.subProperty = subProperty;
+            return;
+        }
         if (imeListener_ == nullptr) {
             IMSA_HILOGI("InputMethodAbility::ShowInputWindow imeListener_ is nullptr");
             return;

@@ -85,6 +85,7 @@ config("ability_public_config") {
 ohos_shared_library("inputmethod_extension") {
   include_dirs = [
     "${inputmethod_path}/frameworks/kits/extension/include",
+    "${inputmethod_path}/frameworks/inputmethod_controller/include",
     "//base/global/i18n/frameworks/intl/include",
     "${inputmethod_path}/services/include",
     "${inputmethod_path}/services/dfx/include",
@@ -104,6 +105,7 @@ ohos_shared_library("inputmethod_extension") {
 
   deps = [
     "${ability_runtime_path}/frameworks/native/appkit:app_context",
+    "${inputmethod_path}/frameworks/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
   ]
 

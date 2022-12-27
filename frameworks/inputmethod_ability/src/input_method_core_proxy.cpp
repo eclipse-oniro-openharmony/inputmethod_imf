@@ -64,31 +64,6 @@ namespace MiscServices {
         return code;
     }
 
-    void InputMethodCoreProxy::SetClientState(bool state)
-    {
-    IMSA_HILOGD("InputMethodCoreProxy::SetClientState");
-        auto remote = Remote();
-        if (!remote) {
-            IMSA_HILOGI("remote is nullptr");
-            return;
-        }
-        MessageParcel data;
-        if (!(data.WriteInterfaceToken(GetDescriptor())
-            && data.WriteBool(state))) {
-            IMSA_HILOGI("InputMethodCoreProxy::SetClientState write error");
-            return;
-        }
-        MessageParcel reply;
-        MessageOption option {
-            MessageOption::TF_SYNC
-        };
-
-        int32_t status = remote->SendRequest(SET_CLIENT_STATE, data, reply, option);
-        if (status != ErrorCode::NO_ERROR) {
-            IMSA_HILOGI("InputMethodCoreProxy::SetClientState status = %{public}d", status);
-        }
-    }
-
     int32_t InputMethodCoreProxy::showKeyboard(
         const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty)
     {
