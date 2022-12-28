@@ -554,6 +554,7 @@ int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string
 
 bool InputMethodController::dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
+    IMSA_HILOGI("InputMethodController::start");
     if (isStopInput) {
         IMSA_HILOGD("InputMethodController::dispatchKeyEvent isStopInput");
         return false;

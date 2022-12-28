@@ -66,11 +66,6 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
             reply.WriteNoException();
             break;
         }
-        case SET_CLIENT_STATE: {
-            bool state = data.ReadBool();
-            SetClientState(state);
-            break;
-        }
         case SHOW_KEYBOARD: {
             ShowKeyboardOnRemote(data, reply);
             break;
@@ -113,19 +108,6 @@ int32_t InputMethodCoreStub::InitInputControlChannel(sptr<IInputControlChannel> 
     Message *msg = new Message(MessageID::MSG_ID_INIT_INPUT_CONTROL_CHANNEL, data);
     msgHandler_->SendMessage(msg);
     return ErrorCode::NO_ERROR;
-}
-
-void InputMethodCoreStub::SetClientState(bool state)
-{
-    IMSA_HILOGD("InputMethodCoreStub::SetClientState");
-    if (!msgHandler_) {
-        return;
-    }
-    MessageParcel *data = new MessageParcel();
-
-    data->WriteBool(state);
-    Message *msg = new Message(MessageID::MSG_ID_SET_CLIENT_STATE, data);
-    msgHandler_->SendMessage(msg);
 }
 
 bool InputMethodCoreStub::hideKeyboard(int32_t flags)
