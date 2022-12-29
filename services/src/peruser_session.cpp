@@ -137,6 +137,18 @@ namespace MiscServices {
         return ErrorCode::NO_ERROR;
     }
 
+    void PerUserSession::UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard)
+    {
+        IMSA_HILOGD("PerUserSession::start");
+        std::lock_guard<std::recursive_mutex> lock(mtx);
+        auto it = mapClients.find(inputClient);
+        if (it == mapClients.end()) {
+            IMSA_HILOGE("PerUserSession::client not found");
+            return;
+        }
+        it->second->isShowKeyBoard = isShowKeyboard;
+    }
+
     /*! Remove an input client
     \param inputClient remote object handler of the input client
     \return ErrorCode::NO_ERROR no error
@@ -145,6 +157,10 @@ namespace MiscServices {
     void PerUserSession::RemoveClient(sptr<IRemoteObject> inputClient)
     {
         IMSA_HILOGD("PerUserSession::RemoveClient");
+        auto client = GetCurrentClient();
+        if (client != nullptr && client->AsObject() == inputClient) {
+            SetCurrentClient(nullptr);
+        }
         std::lock_guard<std::recursive_mutex> lock(mtx);
         auto it = mapClients.find(inputClient);
         if (it == mapClients.end()) {
@@ -187,7 +203,7 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::showKeyboard failed ret: %{public}d", ret);
             return ErrorCode::ERROR_KBD_SHOW_FAILED;
         }
-
+        UpdateClient(inputClient->AsObject(), isShowKeyboard);
         SetCurrentClient(inputClient);
         return ErrorCode::NO_ERROR;
     }
@@ -224,6 +240,7 @@ namespace MiscServices {
             IMSA_HILOGE("PerUserSession::HideKeyboard [imsCore->hideKeyboard] failed");
             return ErrorCode::ERROR_KBD_HIDE_FAILED;
         }
+        UpdateClient(inputClient->AsObject(), false);
 
         return ErrorCode::NO_ERROR;
     }
@@ -235,7 +252,6 @@ namespace MiscServices {
     void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     {
         IMSA_HILOGI("PerUserSession::OnClientDied Start...[%{public}d]\n", userId_);
-        SetClientState(false);
         sptr<IInputClient> client = GetCurrentClient();
         if (client == nullptr) {
             IMSA_HILOGE("current client is nullptr");
@@ -397,12 +413,7 @@ namespace MiscServices {
     int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
     {
         IMSA_HILOGI("PerUserSession::OnReleaseInput Start");
-        int ret = SetClientState(false);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("failed to set client state, ret %{public}d", ret);
-            return ret;
-        }
-        ret = HideKeyboard(client);
+        auto ret = HideKeyboard(client);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("failed to hide keyboard ret %{public}d", ret);
             return ret;
@@ -420,11 +431,6 @@ namespace MiscServices {
     int32_t PerUserSession::OnStartInput(sptr<IInputClient> client, bool isShowKeyboard)
     {
         IMSA_HILOGI("PerUserSession::OnStartInput");
-        int32_t ret = SetClientState(true);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("failed to set client state");
-            return ret;
-        }
         return ShowKeyboard(client, isShowKeyboard);
     }
 
@@ -444,6 +450,14 @@ namespace MiscServices {
         imsAgent = agent;
         InitInputControlChannel();
         SendAgentToAllClients();
+        auto client = GetCurrentClient();
+        if (client != nullptr) {
+            auto it = mapClients.find(client->AsObject());
+            if (it != mapClients.end()) {
+                IMSA_HILOGI("PerUserSession::Bind IMC to IMA");
+                OnStartInput(it->second->client, it->second->isShowKeyBoard);
+            }
+        }
         return ErrorCode::NO_ERROR;
     }
 
@@ -603,18 +617,6 @@ namespace MiscServices {
             return;
         }
         imsCore[index] = core;
-    }
-
-    int32_t PerUserSession::SetClientState(bool isAlive)
-    {
-        IMSA_HILOGD("set client state %{public}d", isAlive);
-        auto core = GetImsCore(DEFAULT_IME);
-        if (core == nullptr) {
-            IMSA_HILOGE("imsCore is nullptr");
-            return ErrorCode::ERROR_EX_NULL_POINTER;
-        }
-        core->SetClientState(isAlive);
-        return ErrorCode::NO_ERROR;
     }
 } // namespace MiscServices
 } // namespace OHOS

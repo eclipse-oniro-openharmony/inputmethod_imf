@@ -36,6 +36,11 @@
 
 namespace OHOS {
 namespace MiscServices {
+struct InputStartNotifier {
+    bool isNotify{ false };
+    bool isShowKeyboard{};
+    SubProperty subProperty{};
+};
     class MessageHandler;
     class InputMethodAbility : public RefBase {
     public:
@@ -56,6 +61,7 @@ namespace MiscServices {
         void SetCallingWindow(uint32_t windowId);
         int32_t GetEnterKeyType(int32_t &keyType);
         int32_t GetInputPattern(int32_t &inputPattern);
+        void OnImeReady();
 
     private:
         std::thread workThreadHandler;
@@ -65,7 +71,6 @@ namespace MiscServices {
         bool stop_;
         int32_t KEYBOARD_HIDE = 1;
         int32_t KEYBOARD_SHOW = 2;
-        bool isBindClient = false;
 
         std::mutex controlChannelLock_;
         std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;
@@ -104,6 +109,8 @@ namespace MiscServices {
         void OnSelectionChange(Message *msg);
         void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
         void DissmissInputWindow();
+        bool isImeReady_{ false };
+        InputStartNotifier notifier_;
     };
 } // namespace MiscServices
 } // namespace OHOS

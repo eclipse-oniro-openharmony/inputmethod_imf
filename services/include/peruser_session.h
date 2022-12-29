@@ -59,6 +59,7 @@ namespace MiscServices {
         sptr<IInputDataChannel> channel; // the remote object handler for IMSA callback to input client
         sptr<RemoteObjectDeathRecipient> deathRecipient;
         InputAttribute attribute; // the input attribute of the input client
+        bool isShowKeyBoard{ false };
     };
 
     struct ResetManager {
@@ -133,6 +134,7 @@ namespace MiscServices {
         void OnImsDied(sptr<IInputMethodCore> remote);
 
         int AddClient(sptr<IRemoteObject> inputClient, const ClientInfo &clientInfo);
+        void UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard);
         void RemoveClient(sptr<IRemoteObject> inputClient);
         int ShowKeyboard(const sptr<IInputClient>& inputClient, bool isShowKeyboard);
         int HideKeyboard(const sptr<IInputClient>& inputClient);
@@ -146,7 +148,6 @@ namespace MiscServices {
         sptr<IInputClient> GetCurrentClient();
         void SetImsCore(int32_t index, sptr<IInputMethodCore> core);
         sptr<IInputMethodCore> GetImsCore(int32_t index);
-        int32_t SetClientState(bool isAlive);
         static inline bool IsValid(int32_t index)
         {
             return index >= DEFAULT_IME && index <= SECURITY_IME;

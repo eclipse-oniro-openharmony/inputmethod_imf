@@ -241,18 +241,9 @@ namespace MiscServices {
     void InputMethodControllerTest::SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::SetUpTestCase");
-    }
-
-    void InputMethodControllerTest::TearDownTestCase(void)
-    {
-        IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
-    }
-
-    void InputMethodControllerTest::SetUp(void)
-    {
-        IMSA_HILOGI("InputMethodControllerTest::SetUp");
         GrantNativePermission();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->OnImeReady();
         kbListener_ = std::make_shared<KeyboardListenerImpl>();
         imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
         textListener_ = new TextListener();
@@ -265,6 +256,16 @@ namespace MiscServices {
         constexpr int32_t KEY_CODE = 2001;
         keyEvent_->SetKeyAction(KEY_ACTION);
         keyEvent_->SetKeyCode(KEY_CODE);
+    }
+
+    void InputMethodControllerTest::TearDownTestCase(void)
+    {
+        IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
+    }
+
+    void InputMethodControllerTest::SetUp(void)
+    {
+        IMSA_HILOGI("InputMethodControllerTest::SetUp");
     }
 
     void InputMethodControllerTest::TearDown(void)
