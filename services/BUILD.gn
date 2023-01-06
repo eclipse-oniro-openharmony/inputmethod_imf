@@ -53,6 +53,7 @@ ohos_shared_library("inputmethod_service") {
   deps = [
     "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
     "${inputmethod_path}/services/adapter/keyboard:keboard_event_static",
+    "${inputmethod_path}/services/userImeCfg:userImeCfg_json",
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
     "//base/global/resource_management/frameworks/resmgr:global_resmgr",
     "//base/inputmethod/imf/etc/para:inputmethod_para",

@@ -92,6 +92,7 @@ private:
     bool StartInputService(std::string imeId);
     void StopInputService(std::string imeId);
     int32_t OnUserStarted(const Message *msg);
+    int32_t OnUserStopped(const Message *msg);
     int32_t OnHandleMessage(Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
     int32_t OnDisplayOptionalInputMethod(int32_t userId);

@@ -40,6 +40,7 @@
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "ui_service_mgr_client.h"
+#include "userImeCfg_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -123,7 +124,7 @@ int InputMethodSystemAbility::Dump(int fd, const std::vector<std::u16string> &ar
 
 std::string InputMethodSystemAbility::GetInputMethodParam(const std::vector<InputMethodInfo> &properties)
 {
-    std::string defaultIme = ParaHandle::GetDefaultIme(userId_);
+    std::string currentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
     bool isBegin = true;
     std::string params = "{\"imeList\":[";
     for (const auto &property : properties) {
@@ -134,8 +135,8 @@ std::string InputMethodSystemAbility::GetInputMethodParam(const std::vector<Inpu
         params += "{\"ime\": \"" + imeId + "\",";
         params += "\"labelId\": \"" + std::to_string(property.labelId) + "\",";
         params += "\"descriptionId\": \"" + std::to_string(property.descriptionId) + "\",";
-        std::string isDefaultIme = defaultIme == imeId ? "true" : "false";
-        params += "\"isDefaultIme\": \"" + isDefaultIme + "\",";
+        std::string isCurrentIme = currentIme == imeId ? "true" : "false";
+        params += "\"isCurrentIme\": \"" + isCurrentIme + "\",";
         params += "\"label\": \"" + Str16ToStr8(property.label) + "\",";
         params += "\"description\": \"" + Str16ToStr8(property.description) + "\"";
     }
@@ -174,11 +175,10 @@ int32_t InputMethodSystemAbility::Init()
     }
     IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
     state_ = ServiceRunningState::STATE_RUNNING;
-    std::string defaultIme = ParaHandle::GetDefaultIme(userId_);
-    StartInputService(defaultIme);
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
+    UserImeCfgManager::GetInstance()->Init();
     return ErrorCode::NO_ERROR;
 }
 
@@ -215,7 +215,6 @@ void InputMethodSystemAbility::Initialize()
     IMSA_HILOGI("InputMethodSystemAbility::Initialize");
     // init work thread to handle the messages
     workThreadHandler = std::thread([this] { WorkThread(); });
-    userSessions.insert({ MAIN_USER_ID, std::make_shared<PerUserSession>(MAIN_USER_ID) });
     userId_ = MAIN_USER_ID;
 }
 
@@ -572,21 +571,24 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleN
 {
     IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod");
     std::string targetIme = bundleName + "/" + name;
-    std::string defaultIme = ParaHandle::GetDefaultIme(userId_);
-    IMSA_HILOGI("DefaultIme : %{public}s, TargetIme : %{public}s", defaultIme.c_str(), targetIme.c_str());
-    if (defaultIme == targetIme) {
-        IMSA_HILOGI("DefaultIme and TargetIme are the same one");
+    std::string currentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+    if (currentIme.empty()) {
+        IMSA_HILOGE("currentIme is empty");
+        return ErrorCode::ERROR_PERSIST_CONFIG;
+    }
+
+    IMSA_HILOGI("DefaultIme : %{public}s, TargetIme : %{public}s", currentIme.c_str(), targetIme.c_str());
+    if (currentIme == targetIme) {
+        IMSA_HILOGI("currentIme and TargetIme are the same one");
         return ErrorCode::NO_ERROR;
     }
-    StopInputService(defaultIme);
+    StopInputService(currentIme);
     if (!StartInputService(targetIme)) {
         IMSA_HILOGE("start input method failed");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
-    if (!ParaHandle::SetDefaultIme(userId_, targetIme)) {
-        IMSA_HILOGE("set default ime failed");
-        return ErrorCode::ERROR_PERSIST_CONFIG;
-    }
+    UserImeCfgManager::GetInstance()->ModifyCurrentIme(userId_, targetIme);
+
     auto session = GetUserSession(MAIN_USER_ID);
     if (session == nullptr) {
         IMSA_HILOGE("session is nullptr");
@@ -740,15 +742,15 @@ int32_t InputMethodSystemAbility::ListProperty(int32_t userId, std::vector<Prope
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
     IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
-    std::string ime = ParaHandle::GetDefaultIme(MAIN_USER_ID);
-    if (ime.empty()) {
-        IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod ime is empty");
+    std::string currentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+    if (currentIme.empty()) {
+        IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme is empty");
         return nullptr;
     }
 
-    auto pos = ime.find('/');
+    auto pos = currentIme.find('/');
     if (pos == std::string::npos) {
-        IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod ime can not find '/'");
+        IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme can not find '/'");
         return nullptr;
     }
 
@@ -757,26 +759,26 @@ std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
         IMSA_HILOGE("InputMethodSystemAbility property is nullptr");
         return nullptr;
     }
-    property->name = ime.substr(0, pos);
-    property->id = ime.substr(pos + 1, ime.length() - pos - 1);
+    property->name = currentIme.substr(0, pos);
+    property->id = currentIme.substr(pos + 1, currentIme.length() - pos - 1);
     return property;
 }
 
 std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
 {
     IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethodSubtype");
-    std::string ime = ParaHandle::GetDefaultIme(MAIN_USER_ID);
-    if (ime.empty()) {
-        IMSA_HILOGE("InputMethodSystemAbility ime is empty");
+    std::string currentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+    if (currentIme.empty()) {
+        IMSA_HILOGE("InputMethodSystemAbility currentIme is empty");
         return nullptr;
     }
-    auto pos = ime.find('/');
+    auto pos = currentIme.find('/');
     if (pos == std::string::npos) {
-        IMSA_HILOGE("InputMethodSystemAbility:: ime can not find '/'");
+        IMSA_HILOGE("InputMethodSystemAbility:: currentIme can not find '/'");
         return nullptr;
     }
     auto property = std::make_shared<SubProperty>(
-        FindSubProperty(ime.substr(0, pos), ime.substr(pos + 1, ime.length() - pos - 1)));
+        FindSubProperty(currentIme.substr(0, pos), currentIme.substr(pos + 1, currentIme.length() - pos - 1)));
     if (property == nullptr) {
         IMSA_HILOGE("property is nullptr");
         return nullptr;
@@ -846,18 +848,43 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    std::string currentDefaultIme = ParaHandle::GetDefaultIme(userId_);
-    int32_t userId = msg->msgContent_->ReadInt32();
-    userId_ = userId;
-    IMSA_HILOGI("InputMethodSystemAbility::OnUserStarted userId = %{public}u", userId);
-
-    std::string newDefaultIme = ParaHandle::GetDefaultIme(userId_);
-
-    if (newDefaultIme != currentDefaultIme) {
-        StopInputService(currentDefaultIme);
-        StartInputService(newDefaultIme);
+    int32_t lastUser = userId_;
+    std::string lastUserCurrentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+    if (lastUserCurrentIme.empty()) {
+        lastUserCurrentIme = ParaHandle::GetDefaultIme();
     }
-    userSessions.insert({ userId, std::make_shared<PerUserSession>(userId) });
+
+    int32_t newUserId = msg->msgContent_->ReadInt32();
+    std::string newUserCurrentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(newUserId);;
+    if (newUserCurrentIme.empty()) {
+        newUserCurrentIme = ParaHandle::GetDefaultIme();
+        UserImeCfgManager::GetInstance()->AddCurrentIme(newUserId, newUserCurrentIme);
+    }
+
+    if (lastUserCurrentIme != newUserCurrentIme) {
+        StopInputService(lastUserCurrentIme);
+        StartInputService(newUserCurrentIme);
+    }
+    if (lastUserCurrentIme == newUserCurrentIme && (lastUser == newUserId) && (newUserId == MAIN_USER_ID)) {
+        StartInputService(newUserCurrentIme);
+    }
+
+    userId_ = newUserId;
+    userSessions.insert({ newUserId, std::make_shared<PerUserSession>(newUserId) });
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::OnUserStopped(const Message *msg)
+{
+    IMSA_HILOGI("InputMethodSystemAbility::OnUserStopped Start...\n");
+    if (!msg->msgContent_) {
+        IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    auto userId = msg->msgContent_->ReadInt32();
+    //TODO 一系列操作
+
+    UserImeCfgManager::GetInstance()->DeleteCurrentIme(userId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -899,11 +926,17 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
 
-    std::string defaultIme = ParaHandle::GetDefaultIme(userId);
-    std::string::size_type pos = defaultIme.find("/");
-    std::string currentIme = defaultIme.substr(0, pos);
-    if (packageName == currentIme) {
-        int32_t ret = OnSwitchInputMethod(ParaHandle::DEFAULT_PACKAGE_NAME, ParaHandle::DEFAULT_ABILITY_NAME);
+    auto currentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId);
+    if (currentIme.empty()) {
+        IMSA_HILOGE("currentIme is empty");
+        return ErrorCode::ERROR_PERSIST_CONFIG;
+    }
+    std::string::size_type pos = currentIme.find("/");
+    std::string currentImeBundle = currentIme.substr(0, pos);
+    if (packageName == currentImeBundle) {
+        std::string defaultIme = ParaHandle::GetDefaultIme();
+        int32_t ret =
+            OnSwitchInputMethod(defaultIme.substr(0, pos), defaultIme.substr(pos + 1, defaultIme.length() - pos - 1));
         IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
     }
     return 0;

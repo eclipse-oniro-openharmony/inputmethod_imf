@@ -14,8 +14,6 @@
  */
 
 #include "input_method_ability.h"
-
-#include <para_handle.h>
 #include <unistd.h>
 
 #include "global.h"
@@ -29,6 +27,7 @@
 #include "message_parcel.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
+#include "userImeCfg_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -501,7 +500,7 @@ void InputMethodAbility::ServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteO
 {
     IMSA_HILOGI("ServiceDeathRecipient::OnRemoteDied");
     if (listener != nullptr) {
-        listener->OnInputStop(ParaHandle::GetDefaultIme(Utils::ToUserId(getuid())));
+        listener->OnInputStop(UserImeCfgManager::GetInstance()->GetCurrentIme(Utils::ToUserId(getuid())));
     }
 }
 
