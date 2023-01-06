@@ -133,6 +133,7 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
             ctxt->SetErrorCode(errCode);
         }
     };
+    ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
     return asyncCall.Call(env, exec);
 }
