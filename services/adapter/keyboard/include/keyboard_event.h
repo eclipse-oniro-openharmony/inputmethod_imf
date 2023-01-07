@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-using KeyHandle = std::function<int32_t(uint32_t, uint8_t lastDownKey)>;
+using KeyHandle = std::function<int32_t(uint32_t, int32_t)>;
 
 class KeyboardEvent {
 public:

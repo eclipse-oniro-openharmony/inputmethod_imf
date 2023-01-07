@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace MiscServices {
 uint32_t InputEventCallback::keyState_ = static_cast<uint32_t>(0);
-int32_t InputEventCallback::lastPressedKey_ = MMI::KeyEvent::KEYCODE_UNKNOWN;
+bool InputEventCallback::isKeyHandled_ = false;
 const std::map<int32_t, uint8_t> MASK_MAP{
     { MMI::KeyEvent::KEYCODE_SHIFT_LEFT, KeyboardEvent::SHIFT_LEFT_MASK },
     { MMI::KeyEvent::KEYCODE_SHIFT_RIGHT, KeyboardEvent::SHIFT_RIGHT_MASK },
@@ -33,12 +33,11 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
 {
     auto keyCode = keyEvent->GetKeyCode();
     auto keyAction = keyEvent->GetKeyAction();
+    int32_t pressedKeyNums = keyEvent->GetPressedKeys().size();
     auto currKey = MASK_MAP.find(keyCode);
     if (currKey == MASK_MAP.end()) {
         IMSA_HILOGD("key code unknown");
-        if (keyAction == MMI::KeyEvent::KEY_ACTION_DOWN) {
-            lastPressedKey_ = MMI::KeyEvent::KEYCODE_UNKNOWN;
-        }
+        keyState_ = 0;
         return;
     }
     IMSA_HILOGD("keyCode: %{public}d, keyAction: %{public}d", keyCode, keyAction);
@@ -46,22 +45,24 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
     if (keyAction == MMI::KeyEvent::KEY_ACTION_DOWN) {
         IMSA_HILOGD("key %{public}d pressed down", keyCode);
         keyState_ = static_cast<uint32_t>(keyState_ | currKey->second);
-        lastPressedKey_ = keyCode;
         if (keyCode == MMI::KeyEvent::KEYCODE_CAPS_LOCK) {
             if (keyHandler_ != nullptr) {
-                int32_t ret = keyHandler_(keyState_, KeyboardEvent::CAPS_MASK);
+                int32_t ret = keyHandler_(keyState_, pressedKeyNums);
                 IMSA_HILOGI("handle key event ret: %{public}d", ret);
             }
+            isKeyHandled_ = true;
+            return;
         }
+        isKeyHandled_ = false;
         return;
     }
 
     if (keyAction == MMI::KeyEvent::KEY_ACTION_UP) {
-        auto lastPressedKey = MASK_MAP.find(lastPressedKey_);
-        if (keyHandler_ != nullptr && lastPressedKey != MASK_MAP.end()) {
-            int32_t ret = keyHandler_(keyState_, lastPressedKey->second);
+        if (keyHandler_ != nullptr && !isKeyHandled_) {
+            int32_t ret = keyHandler_(keyState_, pressedKeyNums);
             IMSA_HILOGI("handle key event ret: %{public}d", ret);
         }
+        isKeyHandled_ = true;
         keyState_ = static_cast<uint32_t>(keyState_ & ~currKey->second);
     }
 }

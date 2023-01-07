@@ -23,7 +23,6 @@
 #include "ability_manager_interface.h"
 #include "application_info.h"
 #include "bundle_mgr_proxy.h"
-#include "combination_key.h"
 #include "event_handler.h"
 #include "input_method_status.h"
 #include "input_method_system_ability_stub.h"
@@ -124,7 +123,7 @@ private:
     using CompareHandler = std::function<bool(const SubProperty &)>;
     SubProperty FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare);
     SubProperty GetExtends(const std::vector<Metadata> &metaData);
-    int32_t SwitchByCombinationKey(uint32_t state, uint8_t lastPressedKey);
+    int32_t SwitchByCombinationKey(uint32_t state, int32_t pressedKeyNum);
 
     int32_t QueryImeInfos(int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &infos);
 };
