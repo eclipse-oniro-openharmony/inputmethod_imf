@@ -24,6 +24,7 @@ config("inputmethod_adapter_native_config") {
 
 ohos_static_library("keboard_event_static") {
   sources = [
+    "src/combination_key.cpp",
     "src/input_event_callback.cpp",
     "src/keyboard_event.cpp",
   ]
