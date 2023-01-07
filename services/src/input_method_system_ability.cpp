@@ -215,7 +215,7 @@ void InputMethodSystemAbility::Initialize()
     IMSA_HILOGI("InputMethodSystemAbility::Initialize");
     // init work thread to handle the messages
     workThreadHandler = std::thread([this] { WorkThread(); });
-    userId_ = MAIN_USER_ID;
+    userId_ = INVALID_USERID_VALUE;
 }
 
 void InputMethodSystemAbility::StartUserIdListener()
@@ -848,29 +848,33 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    int32_t lastUser = userId_;
-    std::string lastUserCurrentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
-    if (lastUserCurrentIme.empty()) {
-        lastUserCurrentIme = ParaHandle::GetDefaultIme();
+    bool serviceStart = true;
+    std::string lastUserIme;
+    if (userId_ != INVALID_USERID_VALUE) {
+        serviceStart = false;
+        lastUserIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+        if (lastUserIme.empty()) {
+            lastUserIme = ParaHandle::GetDefaultIme();
+        }
     }
 
     int32_t newUserId = msg->msgContent_->ReadInt32();
-    std::string newUserCurrentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(newUserId);;
-    if (newUserCurrentIme.empty()) {
-        newUserCurrentIme = ParaHandle::GetDefaultIme();
-        UserImeCfgManager::GetInstance()->AddCurrentIme(newUserId, newUserCurrentIme);
-    }
-
-    if (lastUserCurrentIme != newUserCurrentIme) {
-        StopInputService(lastUserCurrentIme);
-        StartInputService(newUserCurrentIme);
-    }
-    if (lastUserCurrentIme == newUserCurrentIme && (lastUser == newUserId) && (newUserId == MAIN_USER_ID)) {
-        StartInputService(newUserCurrentIme);
-    }
-
     userId_ = newUserId;
     userSessions.insert({ newUserId, std::make_shared<PerUserSession>(newUserId) });
+    std::string newUserIme = UserImeCfgManager::GetInstance()->GetCurrentIme(newUserId);;
+    if (newUserIme.empty()) {
+        newUserIme = ParaHandle::GetDefaultIme();
+        UserImeCfgManager::GetInstance()->AddCurrentIme(newUserId, newUserIme);
+    }
+
+    if (serviceStart) {
+        StartInputService(newUserIme);
+        return ErrorCode::NO_ERROR;
+    }
+    if (lastUserIme != newUserIme) {
+        StopInputService(lastUserIme);
+        StartInputService(newUserIme);
+    }
     return ErrorCode::NO_ERROR;
 }
 
