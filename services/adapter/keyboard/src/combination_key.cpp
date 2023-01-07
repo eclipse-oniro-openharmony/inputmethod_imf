@@ -30,15 +30,19 @@ const std::map<CombinationKeyFunction, std::vector<uint8_t>> COMBINATION_KEY_MAP
 
 bool CombinationKey::IsMatch(CombinationKeyFunction combinationKey, uint32_t state, int32_t pressedKeyNum)
 {
+    IMSA_HILOGD("combinationKey: %{public}d", combinationKey);
     auto expectedKeys = COMBINATION_KEY_MAP.find(combinationKey);
     if (expectedKeys == COMBINATION_KEY_MAP.end()) {
+        IMSA_HILOGD("known key function");
         return false;
     }
     if (expectedKeys->second.size() != pressedKeyNum) {
+        IMSA_HILOGD("pressed key num not match");
         return false;
     }
     for (const auto &key : expectedKeys->second) {
         if ((key & state) == 0) {
+            IMSA_HILOGD("key not match");
             return false;
         }
     }
