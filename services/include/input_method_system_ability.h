@@ -28,7 +28,6 @@
 #include "input_method_system_ability_stub.h"
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
-#include "keyboard_event.h"
 #include "peruser_session.h"
 #include "system_ability.h"
 

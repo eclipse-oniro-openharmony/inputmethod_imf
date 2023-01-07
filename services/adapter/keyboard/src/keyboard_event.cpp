@@ -16,7 +16,6 @@
 #include "keyboard_event.h"
 
 #include <global.h>
-
 #include <memory>
 
 #include "global.h"
