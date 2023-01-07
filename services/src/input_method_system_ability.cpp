@@ -1037,7 +1037,7 @@ int32_t InputMethodSystemAbility::InitKeyEventMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor");
     bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
-        [this](uint32_t keyCode, int32_t pressedKeyNum) { return SwitchByCombinationKey(keyCode, pressedKeyNum); });
+        [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode); });
     return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
 }
 } // namespace MiscServices
