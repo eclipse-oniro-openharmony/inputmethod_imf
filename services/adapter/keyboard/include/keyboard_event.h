@@ -18,14 +18,13 @@
 
 #include <cstdint>
 #include <functional>
-#include <set>
 
 #include "global.h"
 #include "key_event.h"
 
 namespace OHOS {
 namespace MiscServices {
-using KeyHandle = std::function<int32_t(uint32_t)>;
+using KeyHandle = std::function<int32_t(uint32_t, uint8_t lastDownKey)>;
 
 class KeyboardEvent {
 public:
@@ -36,10 +35,6 @@ public:
     static constexpr uint8_t CTRL_LEFT_MASK = 0X1 << 2;
     static constexpr uint8_t CTRL_RIGHT_MASK = 0X1 << 3;
     static constexpr uint8_t CAPS_MASK = 0X1 << 4;
-    static constexpr bool IS_KEYS_DOWN(uint32_t state, uint8_t mask)
-    {
-        return state == mask;
-    }
 
 private:
     static constexpr int32_t PRESS_KEY_DELAY_MS = 200;
