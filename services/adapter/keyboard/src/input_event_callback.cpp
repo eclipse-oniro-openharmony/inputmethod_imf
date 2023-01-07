@@ -59,7 +59,7 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
 
     if (keyAction == MMI::KeyEvent::KEY_ACTION_UP) {
         if (keyHandler_ != nullptr && !isKeyHandled_) {
-            int32_t ret = keyHandler_(keyState_, pressedKeyNums);
+            int32_t ret = keyHandler_(keyState_, pressedKeyNums + 1);
             IMSA_HILOGI("handle key event ret: %{public}d", ret);
         }
         isKeyHandled_ = true;
