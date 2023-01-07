@@ -989,7 +989,7 @@ SubProperty InputMethodSystemAbility::FindSubPropertyByCompare(const std::string
     return {};
 }
 
-int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state, int32_t pressedKeyNum)
+int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
 {
     IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinationKey");
     auto current = GetCurrentInputMethodSubtype();
@@ -997,7 +997,7 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state, int32_t
         IMSA_HILOGE("GetCurrentInputMethodSubtype failed");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_MODE, state, pressedKeyNum)) {
+    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_MODE, state)) {
         IMSA_HILOGI("switch mode");
         auto target = current->mode == "upper"
                           ? FindSubPropertyByCompare(current->id,
@@ -1006,7 +1006,7 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state, int32_t
                               [&current](const SubProperty &property) { return property.mode == "upper"; });
         return SwitchInputMethod(target.id, target.label);
     }
-    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_LANGUAGE, state, pressedKeyNum)) {
+    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_LANGUAGE, state)) {
         IMSA_HILOGI("switch language");
         auto target = current->language == "chinese"
                           ? FindSubPropertyByCompare(current->id,
@@ -1015,7 +1015,7 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state, int32_t
                               [&current](const SubProperty &property) { return property.language == "chinese"; });
         return SwitchInputMethod(target.id, target.label);
     }
-    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state, pressedKeyNum)) {
+    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime");
         std::vector<Property> props = {};
         auto ret = ListProperty(MAIN_USER_ID, props);

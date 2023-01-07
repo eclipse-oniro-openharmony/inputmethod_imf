@@ -123,7 +123,7 @@ private:
     using CompareHandler = std::function<bool(const SubProperty &)>;
     SubProperty FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare);
     SubProperty GetExtends(const std::vector<Metadata> &metaData);
-    int32_t SwitchByCombinationKey(uint32_t state, int32_t pressedKeyNum);
+    int32_t SwitchByCombinationKey(uint32_t state);
 
     int32_t QueryImeInfos(int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &infos);
 };

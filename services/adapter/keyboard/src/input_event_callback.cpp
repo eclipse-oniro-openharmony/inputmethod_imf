@@ -33,7 +33,6 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
 {
     auto keyCode = keyEvent->GetKeyCode();
     auto keyAction = keyEvent->GetKeyAction();
-    int32_t pressedKeyNums = keyEvent->GetPressedKeys().size();
     auto currKey = MASK_MAP.find(keyCode);
     if (currKey == MASK_MAP.end()) {
         IMSA_HILOGD("key code unknown");
@@ -47,7 +46,7 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
         keyState_ = static_cast<uint32_t>(keyState_ | currKey->second);
         if (keyCode == MMI::KeyEvent::KEYCODE_CAPS_LOCK) {
             if (keyHandler_ != nullptr) {
-                int32_t ret = keyHandler_(keyState_, pressedKeyNums);
+                int32_t ret = keyHandler_(keyState_);
                 IMSA_HILOGI("handle key event ret: %{public}d", ret);
             }
             isKeyHandled_ = true;
@@ -59,7 +58,7 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
 
     if (keyAction == MMI::KeyEvent::KEY_ACTION_UP) {
         if (keyHandler_ != nullptr && !isKeyHandled_) {
-            int32_t ret = keyHandler_(keyState_, pressedKeyNums + 1);
+            int32_t ret = keyHandler_(keyState_);
             IMSA_HILOGI("handle key event ret: %{public}d", ret);
         }
         isKeyHandled_ = true;

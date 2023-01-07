@@ -24,7 +24,7 @@ enum class CombinationKeyFunction { SWITCH_LANGUAGE = 0, SWITCH_MODE, SWITCH_IME
 
 class CombinationKey {
 public:
-    static bool IsMatch(CombinationKeyFunction combinationKey, uint32_t state, int32_t pressedKeyNum);
+    static bool IsMatch(CombinationKeyFunction combinationKey, uint32_t state);
 };
 } // namespace MiscServices
 } // namespace OHOS
