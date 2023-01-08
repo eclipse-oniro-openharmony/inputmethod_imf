@@ -23,6 +23,7 @@
 #include "ability_manager_interface.h"
 #include "application_info.h"
 #include "bundle_mgr_proxy.h"
+#include "combination_key.h"
 #include "common_event_support.h"
 #include "errors.h"
 #include "global.h"
@@ -431,7 +432,7 @@ int32_t InputMethodSystemAbility::ListDisabledInputMethod(int32_t userId, std::v
         return ErrorCode::ERROR_NULL_POINTER;
     }
     for (auto iter = props.begin(); iter != props.end();) {
-        if (iter->name == filter->name && iter->id == filter->id) {
+        if (iter->name == filter->name) {
             iter = props.erase(iter);
             continue;
         }
@@ -996,30 +997,26 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
         IMSA_HILOGE("GetCurrentInputMethodSubtype failed");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CAPS_MASK)) {
-        IMSA_HILOGI("CAPS press");
-        auto target = current->mode == "upper" ?
-                      FindSubPropertyByCompare(current->id,
-                          [&current](const SubProperty &property) { return property.mode == "lower"; }) :
-                      FindSubPropertyByCompare(current->id,
-                          [&current](const SubProperty &property) { return property.mode == "upper"; });
+    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_MODE, state)) {
+        IMSA_HILOGI("switch mode");
+        auto target = current->mode == "upper"
+                          ? FindSubPropertyByCompare(current->id,
+                              [&current](const SubProperty &property) { return property.mode == "lower"; })
+                          : FindSubPropertyByCompare(current->id,
+                              [&current](const SubProperty &property) { return property.mode == "upper"; });
         return SwitchInputMethod(target.id, target.label);
     }
-    if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::SHIFT_LEFT_MASK) ||
-        KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::SHIFT_RIGHT_MASK)) {
-        IMSA_HILOGI("SHIFT press");
-        auto target = current->language == "chinese" ?
-                      FindSubPropertyByCompare(current->id,
-                          [&current](const SubProperty &property) { return property.language == "english"; }) :
-                      FindSubPropertyByCompare(current->id,
-                          [&current](const SubProperty &property) { return property.language == "chinese"; });
+    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_LANGUAGE, state)) {
+        IMSA_HILOGI("switch language");
+        auto target = current->language == "chinese"
+                          ? FindSubPropertyByCompare(current->id,
+                              [&current](const SubProperty &property) { return property.language == "english"; })
+                          : FindSubPropertyByCompare(current->id,
+                              [&current](const SubProperty &property) { return property.language == "chinese"; });
         return SwitchInputMethod(target.id, target.label);
     }
-    if (KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_LEFT_MASK | KeyboardEvent::SHIFT_LEFT_MASK) ||
-        KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_LEFT_MASK | KeyboardEvent::SHIFT_RIGHT_MASK) ||
-        KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_RIGHT_MASK | KeyboardEvent::SHIFT_LEFT_MASK) ||
-        KeyboardEvent::IS_KEYS_DOWN(state, KeyboardEvent::CTRL_RIGHT_MASK | KeyboardEvent::SHIFT_RIGHT_MASK)) {
-        IMSA_HILOGI("CTRL_SHIFT press");
+    if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
+        IMSA_HILOGI("switch ime");
         std::vector<Property> props = {};
         auto ret = ListProperty(MAIN_USER_ID, props);
         if (ret != ErrorCode::NO_ERROR) {

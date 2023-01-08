@@ -36,6 +36,7 @@ public:
 private:
     KeyHandle keyHandler_ = nullptr;
     static uint32_t keyState_;
+    static bool isKeyHandled_;
 };
 } // namespace MiscServices
 } // namespace OHOS
