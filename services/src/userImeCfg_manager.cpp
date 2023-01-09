@@ -29,26 +29,26 @@ sptr<UserImeCfgManager> UserImeCfgManager::instance_;
 
 void UserImeCfgManager::Init()
 {
+    //TODO 加载json文件，存入userCurrentIme_
 }
 
 void UserImeCfgManager::AddCurrentIme(int32_t userId, const std::string &currentImeCfg)
 {
-    //TODO 修改json文件处理
+    //TODO json文件添加对应userId的value
 
     userCurrentIme_.insert_or_assign(userId, currentImeCfg);
 }
 
 void UserImeCfgManager::ModifyCurrentIme(int32_t userId, const std::string &currentImeCfg)
 {
-    //TODO 修改json文件处理
+    //TODO json文件修改对应userId的value
 
     userCurrentIme_.insert_or_assign(userId, currentImeCfg);
 }
 
 void UserImeCfgManager::DeleteCurrentIme(int32_t userId)
 {
-    IMSA_HILOGD("UserImeCfgManager::start");
-    //TODO 修改json文件处理
+    //TODO json文件删除对应userId的value
 
     auto it = userCurrentIme_.find(userId);
     if (it != userCurrentIme_.end()) {
@@ -61,7 +61,7 @@ std::string UserImeCfgManager::GetCurrentIme(int32_t userId)
     IMSA_HILOGD("UserImeCfgManager::start");
     auto it = userCurrentIme_.find(userId);
     if (it == userCurrentIme_.end()) {
-        IMSA_HILOGE("UserImeCfgManager::CurrentIme not found");
+        IMSA_HILOGD("UserImeCfgManager::CurrentIme not found");
         return "";
     }
     return it->second;
@@ -72,7 +72,7 @@ sptr<UserImeCfgManager> UserImeCfgManager::GetInstance()
     if (!instance_) {
         std::lock_guard<std::mutex> autoLock(instanceLock_);
         if (!instance_) {
-            IMSA_HILOGI("UserImeCfgManager::GetInstance instance_ is nullptr");
+            IMSA_HILOGD("UserImeCfgManager::GetInstance instance_ is nullptr");
             instance_ = new UserImeCfgManager();
         }
     }
