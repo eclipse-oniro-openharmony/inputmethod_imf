@@ -175,7 +175,7 @@ int32_t InputMethodSystemAbility::Init()
     }
     IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
     state_ = ServiceRunningState::STATE_RUNNING;
-
+    userSessions.insert({ MAIN_USER_ID, std::make_shared<PerUserSession>(MAIN_USER_ID) });
     UserImeCfgManager::GetInstance()->Init();
     //服务异常重启后不会走OnUserStarted，但是可以获取到当前userId
     //设备启动时可能获取不到当前userId,如果获取不到，则等OnUserStarted的时候处理.
@@ -189,7 +189,6 @@ int32_t InputMethodSystemAbility::Init()
             newUserIme = ParaHandle::GetDefaultIme();
             UserImeCfgManager::GetInstance()->AddCurrentIme(userId_, newUserIme);
         }
-        userSessions.insert({ userId_, std::make_shared<PerUserSession>(userId_) });
         StartInputService(newUserIme);
     }
 
@@ -406,12 +405,12 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
 
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
 {
-    return OnDisplayOptionalInputMethod(MAIN_USER_ID);
+    return OnDisplayOptionalInputMethod(userId_);
 };
 
 int32_t InputMethodSystemAbility::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
-    return ListInputMethodByUserId(MAIN_USER_ID, status, props);
+    return ListInputMethodByUserId(userId_, status, props);
 }
 
 int32_t InputMethodSystemAbility::ListAllInputMethod(int32_t userId, std::vector<Property> &props)
@@ -464,13 +463,13 @@ int32_t InputMethodSystemAbility::ListCurrentInputMethodSubtype(std::vector<SubP
         IMSA_HILOGE("GetCurrentInputMethod failed");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return ListSubtypeByBundleName(MAIN_USER_ID, filter->name, subProps);
+    return ListSubtypeByBundleName(userId_, filter->name, subProps);
 }
 
 int32_t InputMethodSystemAbility::ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps)
 {
     IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodSubtype");
-    return ListSubtypeByBundleName(MAIN_USER_ID, name, subProps);
+    return ListSubtypeByBundleName(userId_, name, subProps);
 }
 
 int32_t InputMethodSystemAbility::ListSubtypeByBundleName(
@@ -541,7 +540,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethodType(const std::string &name)
 {
     IMSA_HILOGI("InputMethodSystemAbility::SwitchInputMethodType");
     std::vector<Property> properties = {};
-    auto ret = ListInputMethodByUserId(MAIN_USER_ID, ALL, properties);
+    auto ret = ListInputMethodByUserId(userId_, ALL, properties);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("ListInputMethodByUserId failed, ret = %{public}d", ret);
         return ret;
@@ -564,7 +563,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethodSubtype(const std::string &bu
 {
     IMSA_HILOGI("InputMethodSystemAbility::SwitchInputMethodSubtype");
     std::vector<SubProperty> subProps = {};
-    auto ret = ListSubtypeByBundleName(MAIN_USER_ID, bundleName, subProps);
+    auto ret = ListSubtypeByBundleName(userId_, bundleName, subProps);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("ListSubtypeByBundleName failed, ret = %{public}d", ret);
         return ret;
@@ -617,7 +616,7 @@ Property InputMethodSystemAbility::FindProperty(const std::string &name)
 {
     IMSA_HILOGI("InputMethodSystemAbility::FindProperty");
     std::vector<Property> props = {};
-    auto ret = ListAllInputMethod(MAIN_USER_ID, props);
+    auto ret = ListAllInputMethod(userId_, props);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("ListAllInputMethod failed");
         return {};
@@ -635,7 +634,7 @@ SubProperty InputMethodSystemAbility::FindSubProperty(const std::string &bundleN
 {
     IMSA_HILOGI("InputMethodSystemAbility::FindSubProperty");
     std::vector<SubProperty> subProps = {};
-    auto ret = ListSubtypeByBundleName(MAIN_USER_ID, bundleName, subProps);
+    auto ret = ListSubtypeByBundleName(userId_, bundleName, subProps);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("ListSubtypeByBundleName failed, ret = %{public}d", ret);
         return {};
@@ -878,10 +877,6 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
 
     int32_t newUserId = msg->msgContent_->ReadInt32();
     userId_ = newUserId;
-    auto it = userSessions.find(userId_);
-    if (it == userSessions.end()){
-        userSessions.insert({ userId_, std::make_shared<PerUserSession>(userId_) });
-    }
     std::string newUserIme = UserImeCfgManager::GetInstance()->GetCurrentIme(newUserId);
     if (newUserIme.empty()) {
         newUserIme = ParaHandle::GetDefaultIme();
@@ -1049,7 +1044,7 @@ SubProperty InputMethodSystemAbility::FindSubPropertyByCompare(const std::string
 {
     IMSA_HILOGI("InputMethodSystemAbility::FindSubPropertyByCompare");
     std::vector<SubProperty> subProps = {};
-    auto ret = ListSubtypeByBundleName(MAIN_USER_ID, bundleName, subProps);
+    auto ret = ListSubtypeByBundleName(userId_, bundleName, subProps);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("ListSubtypeByBundleName failed, ret = %{public}d", ret);
         return {};
@@ -1092,7 +1087,7 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime");
         std::vector<Property> props = {};
-        auto ret = ListProperty(MAIN_USER_ID, props);
+        auto ret = ListProperty(userId_, props);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("ListProperty failed");
             return ret;
