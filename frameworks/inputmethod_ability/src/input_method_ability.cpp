@@ -500,7 +500,7 @@ void InputMethodAbility::ServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteO
 {
     IMSA_HILOGI("ServiceDeathRecipient::OnRemoteDied");
     if (listener != nullptr) {
-        listener->OnInputStop(UserImeCfgManager::GetInstance()->GetCurrentIme(Utils::ToUserId(getuid())));
+        listener->OnInputStop("");
     }
 }
 
