@@ -16,14 +16,16 @@
 #ifndef SERVICES_INCLUDE_USERIMECFG_MANAGER_H
 #define SERVICES_INCLUDE_USERIMECFG_MANAGER_H
 
+#include <map>
+#include <mutex>
 #include <string>
 #include <unordered_set>
-#include <mutex>
-#include "nlohmann/json.hpp"
-#include <map>
+
+//#include "nlohmann/json.hpp"
+#include "refbase.h"
 namespace OHOS {
 namespace MiscServices {
-class UserImeCfgManager {
+class UserImeCfgManager: public RefBase {
 public:
     static sptr<UserImeCfgManager> GetInstance();
     void Init();
@@ -33,7 +35,7 @@ public:
     std::string GetCurrentIme(int32_t userId);
 
 private:
-    bool LoadUserImeCfg(const std::string &filePath, nlohmann::json &userImeCfgJson);
+    //bool LoadUserImeCfg(const std::string &filePath, nlohmann::json &userImeCfgJson);
     static std::mutex instanceLock_;
     static sptr<UserImeCfgManager> instance_;
     std::map<int32_t, std::string> userCurrentIme_;

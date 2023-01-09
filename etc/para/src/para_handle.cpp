@@ -16,18 +16,15 @@
 #include "para_handle.h"
 
 #include "parameter.h"
-#include "global.h"
 namespace OHOS {
 namespace MiscServices {
 const char *ParaHandle::DEFAULT_IME_KEY = "persist.sys.default_ime";
 std::string ParaHandle::GetDefaultIme()
 {
-    IMSA_HILOGI("GetDefaultIme::BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
     char value[CONFIG_LEN] = { 0 };
     int code = 0;
     code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
     if (code > 0) {
-        IMSA_HILOGI("GetDefaultIme::CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
         return value;
     }
     return "";

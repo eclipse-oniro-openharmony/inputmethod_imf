@@ -25,6 +25,7 @@ config("inputmethod_services_native_config") {
     "//foundation/multimodalinput/input/interfaces/native/innerkits/event/include",
     "${inputmethod_path}/services/adapter/keyboard/include",
     "${inputmethod_path}/services/dfx/include",
+    "//third_party/json/include",
   ]
 
   cflags_cc = [ "-fexceptions" ]
@@ -44,6 +45,7 @@ ohos_shared_library("inputmethod_service") {
     "src/message.cpp",
     "src/message_handler.cpp",
     "src/peruser_session.cpp",
+    "src/userImeCfg_manager.cpp",
   ]
 
   configs = [ ":inputmethod_services_native_config" ]

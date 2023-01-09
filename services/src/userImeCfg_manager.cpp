@@ -16,29 +16,19 @@
 #include "userImeCfg_manager.h"
 
 #include <fstream>
-#include "file_ex.h"
 
+#include "file_ex.h"
+#include "global.h"
 namespace OHOS {
 namespace MiscServices {
 namespace {
 const std::string USER_IME_CFG_JSON_PATH = "/system/etc/imf/currentIme.json";
 }
+std::mutex UserImeCfgManager::instanceLock_;
+sptr<UserImeCfgManager> UserImeCfgManager::instance_;
 
 void UserImeCfgManager::Init()
 {
-    nlohmann::json userImeCfgJson;
-    if (!LoadUserImeCfg(USER_IME_CFG_JSON_PATH, userImeCfgJson)) {
-        return;
-    }
-    for (auto iter = userImeCfgJson.begin(); iter != userImeCfgJson.end();) {
-        for (auto &[userId, currentImeCfg] : iter.value().items()) {
-            for (auto &[key, value] : currentImeCfg.value().items()) {
-                if (key == "currentIme") {
-                    userCurrentIme_.insert({ userId.stoi(), value });
-                }
-            }
-        }
-    }
 }
 
 void UserImeCfgManager::AddCurrentIme(int32_t userId, const std::string &currentImeCfg)
@@ -87,22 +77,6 @@ sptr<UserImeCfgManager> UserImeCfgManager::GetInstance()
         }
     }
     return instance_;
-}
-
-bool UserImeCfgManager::LoadUserImeCfg(const std::string& filePath, nlohmann::json &userImeCfgJson)
-{
-    std::ifstream ifs(filePath.c_str());
-    if (!ifs.good()) {
-        IMSA_HILOGE("load json file failed");
-        return false;
-    }
-    userImeCfgJson = nlohmann::json::parse(ifs, nullptr, false);
-    if (userImeCfgJson.is_discarded()) {
-        IMSA_HILOGE("parse failed");
-        return false;
-    }
-    IMSA_HILOGI("userImeCfg json %{public}s", userImeCfgJson.dump().c_str());
-    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS
