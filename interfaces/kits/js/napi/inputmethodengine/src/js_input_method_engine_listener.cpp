@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 #include "js_input_method_engine_listener.h"
+
 #include "global.h"
-#include "js_runtime_utils.h"
 #include "js_input_method_engine_utils.h"
+#include "js_runtime_utils.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -152,6 +155,8 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnKeyboardStatus");
 
         auto task = [this, isShow] () {
+            napi_handle_scope scope = nullptr;
+            napi_open_handle_scope(item->env_, &scope);
             NativeValue* nativeValue = engine_->CreateObject();
             NativeObject* object = ConvertNativeValueTo < NativeObject >(nativeValue);
             if (object == nullptr) {
@@ -166,6 +171,7 @@ namespace MiscServices {
                 methodName = "keyboardHide";
             }
             CallJsMethod(methodName, argv, ArraySize(argv));
+            napi_close_handle_scope(item->env_, scope);
         };
         mainHandler_->PostTask(task);
     }
@@ -175,11 +181,14 @@ namespace MiscServices {
         std::lock_guard<std::mutex> lock(mMutex);
         IMSA_HILOGI("JsInputMethodEngineListener::OnInputStart");
         auto task = [this] () {
+            napi_handle_scope scope = nullptr;
+            napi_open_handle_scope(item->env_, &scope);
             NativeValue *nativeValuekb = CreateKeyboardController(*engine_);
             NativeValue *nativeValuetx = CreateTextInputClient(*engine_);
             NativeValue* argv[] = {nativeValuekb, nativeValuetx};
             std::string methodName = "inputStart";
             CallJsMethod(methodName, argv, ArraySize(argv));
+            napi_close_handle_scope(item->env_, scope);
         };
         mainHandler_->PostTask(task);
     }
@@ -190,11 +199,14 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnInputStop");
 
         auto task = [this, imeId] () {
+            napi_handle_scope scope = nullptr;
+            napi_open_handle_scope(item->env_, &scope);
             NativeValue* nativeValue = CreateJsValue(*engine_, imeId);
 
             NativeValue* argv[] = { nativeValue };
             std::string methodName = "inputStop";
             CallJsMethod(methodName, argv, ArraySize(argv));
+            napi_close_handle_scope(item->env_, scope);s
         };
         mainHandler_->PostTask(task);
     }
@@ -205,10 +217,13 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnSetCallingWindow");
 
         auto task = [this, windowId] () {
+            napi_handle_scope scope = nullptr;
+            napi_open_handle_scope(item->env_, &scope);
             NativeValue* nativeValue = CreateJsValue(*engine_, windowId);
             NativeValue* argv[] = { nativeValue };
             std::string methodName = "setCallingWindow";
             CallJsMethod(methodName, argv, ArraySize(argv));
+            napi_close_handle_scope(item->env_, scope);
         };
         mainHandler_->PostTask(task);
     }
