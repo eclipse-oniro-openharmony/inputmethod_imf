@@ -591,6 +591,10 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 return;
             }
             for (auto item : entry->vecCopy) {
+                if (item->threadId_ != std::this_thread::get_id()) {
+                    IMSA_HILOGD("differ threadId.");
+                    continue;
+                }
                 napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
                 napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
                 if (subProperty == nullptr || property == nullptr) {

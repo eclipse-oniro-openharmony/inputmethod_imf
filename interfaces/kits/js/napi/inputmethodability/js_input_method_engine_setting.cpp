@@ -555,6 +555,10 @@ void JsInputMethodEngineSetting::OnInputStart()
                 return;
             }
             for (auto item : entry->vecCopy) {
+                if (item->threadId_ != std::this_thread::get_id()) {
+                    IMSA_HILOGD("differ threadId.");
+                    continue;
+                }
                 napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(item->env_);
                 napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(item->env_);
                 if (keyBoardController == nullptr || textInput == nullptr) {
@@ -597,6 +601,10 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
             });
 
             for (auto &item : entry->vecCopy) {
+                if (item->threadId_ != std::this_thread::get_id()) {
+                    IMSA_HILOGD("differ threadId.");
+                    continue;
+                }
                 napi_value callback = nullptr;
                 napi_value args[ARGC_ONE] = { nullptr };
                 napi_get_reference_value(item->env_, item->callback_, &callback);
@@ -637,6 +645,10 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
             }
 
             for (auto item : entry->vecCopy) {
+                if (item->threadId_ != std::this_thread::get_id()) {
+                    IMSA_HILOGD("differ threadId.");
+                    continue;
+                }
                 napi_value args[ARGC_ONE] = { nullptr };
                 napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[0]);
 
@@ -679,6 +691,10 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
             }
 
             for (auto item : entry->vecCopy) {
+                if (item->threadId_ != std::this_thread::get_id()) {
+                    IMSA_HILOGD("differ threadId.");
+                    continue;
+                }
                 napi_value args[ARGC_ONE] = { nullptr };
                 napi_create_int32(item->env_, entry->windowid, &args[0]);
 
@@ -721,6 +737,10 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
             }
 
             for (auto item : entry->vecCopy) {
+                if (item->threadId_ != std::this_thread::get_id()) {
+                    IMSA_HILOGD("differ threadId.");
+                    continue;
+                }
                 napi_value jsObject = GetResultOnSetSubtype(item->env_, entry->subProperty);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");

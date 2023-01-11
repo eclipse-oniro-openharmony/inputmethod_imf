@@ -373,6 +373,10 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
             });
             bool isOnKeyEvent = false;
             for (auto item : entry->vecCopy) {
+                if (item->threadId_ != std::this_thread::get_id()) {
+                    IMSA_HILOGD("differ threadId.");
+                    continue;
+                }
                 napi_value jsObject =
                     GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
@@ -541,6 +545,10 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
             });
 
             for (auto item : entry->vecCopy) {
+                if (item->threadId_ != std::this_thread::get_id()) {
+                    IMSA_HILOGD("differ threadId.");
+                    continue;
+                }
                 napi_value args[ARGC_THREE] = { nullptr };
                 napi_create_int32(item->env_, entry->curPara.positionX, &args[ARGC_ZERO]);
                 napi_create_int32(item->env_, entry->curPara.positionY, &args[ARGC_ONE]);
@@ -582,6 +590,10 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
             });
 
             for (auto item : entry->vecCopy) {
+                if (item->threadId_ != std::this_thread::get_id()) {
+                    IMSA_HILOGD("differ threadId.");
+                    continue;
+                }
                 napi_value args[ARGC_FOUR] = { nullptr };
                 napi_create_int32(item->env_, entry->selPara.oldBegin, &args[ARGC_ZERO]);
                 napi_create_int32(item->env_, entry->selPara.oldEnd, &args[ARGC_ONE]);
@@ -623,6 +635,10 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
             });
 
             for (auto item : entry->vecCopy) {
+                if (item->threadId_ != std::this_thread::get_id()) {
+                    IMSA_HILOGD("differ threadId.");
+                    continue;
+                }
                 napi_value args[ARGC_ONE] = { nullptr };
                 napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
 
