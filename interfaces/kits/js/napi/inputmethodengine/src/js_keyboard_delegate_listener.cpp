@@ -17,8 +17,6 @@
 #include "global.h"
 #include "js_input_method_engine_utils.h"
 #include "js_runtime_utils.h"
-#include "napi/native_api.h"
-#include "napi/native_node_api.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -154,8 +152,7 @@ namespace MiscServices {
 
         auto result = false;
         auto task = [this, keyCode, keyStatus, &result] () {
-            napi_handle_scope scope = nullptr;
-            napi_open_handle_scope(item->env_, &scope);
+            HandleScope handleScope(engine_);
             NativeValue* nativeValue = engine_->CreateObject();
             NativeObject* object = ConvertNativeValueTo<NativeObject>(nativeValue);
             if (object == nullptr) {
@@ -172,7 +169,6 @@ namespace MiscServices {
             object->SetProperty("keyCode", CreateJsValue(*engine_, static_cast<uint32_t>(keyCode)));
             object->SetProperty("keyAction", CreateJsValue(*engine_, static_cast<uint32_t>(keyStatus)));
             result = CallJsMethodReturnBool(methodName, argv, ArraySize(argv));
-            napi_close_handle_scope(item->env_, scope);
         };
 
         mainHandler_->PostSyncTask(task);
@@ -185,8 +181,7 @@ namespace MiscServices {
         IMSA_HILOGI("JsKeyboardDelegateListener::OnCursorUpdate");
 
         auto task = [this, positionX, positionY, height] () {
-            napi_handle_scope scope = nullptr;
-            napi_open_handle_scope(item->env_, &scope);
+            HandleScope handleScope(engine_);
             NativeValue* nativeXValue = CreateJsValue(*engine_, static_cast<uint32_t>(positionX));
             NativeValue* nativeYValue = CreateJsValue(*engine_, static_cast<uint32_t>(positionY));
             NativeValue* nativeHValue = CreateJsValue(*engine_, static_cast<uint32_t>(height));
@@ -194,7 +189,6 @@ namespace MiscServices {
             NativeValue* argv[] = {nativeXValue, nativeYValue, nativeHValue};
             std::string methodName = "cursorContextChange";
             CallJsMethod(methodName, argv, ArraySize(argv));
-            napi_close_handle_scope(item->env_, scope);
         };
         mainHandler_->PostTask(task);
     }
@@ -205,8 +199,7 @@ namespace MiscServices {
         IMSA_HILOGI("JsKeyboardDelegateListener::OnSelectionChange");
 
         auto task = [this, oldBegin, oldEnd, newBegin, newEnd] () {
-            napi_handle_scope scope = nullptr;
-            napi_open_handle_scope(item->env_, &scope);
+            HandleScope handleScope(engine_);
             NativeValue* nativeOBValue = CreateJsValue(*engine_, static_cast<uint32_t>(oldBegin));
             NativeValue* nativeOEValue = CreateJsValue(*engine_, static_cast<uint32_t>(oldEnd));
             NativeValue* nativeNBHValue = CreateJsValue(*engine_, static_cast<uint32_t>(newBegin));
@@ -215,7 +208,6 @@ namespace MiscServices {
             NativeValue* argv[] = {nativeOBValue, nativeOEValue, nativeNBHValue, nativeNEValue};
             std::string methodName = "selectionChange";
             CallJsMethod(methodName, argv, ArraySize(argv));
-            napi_close_handle_scope(item->env_, scope);
         };
 
         mainHandler_->PostTask(task);
@@ -226,14 +218,12 @@ namespace MiscServices {
         std::lock_guard<std::mutex> lock(mMutex);
         IMSA_HILOGI("JsKeyboardDelegateListener::OnTextChange");
         auto task = [this, text] () {
-            napi_handle_scope scope = nullptr;
-            napi_open_handle_scope(item->env_, &scope);
+            HandleScope handleScope(engine_);
             NativeValue* nativeValue = CreateJsValue(*engine_, text);
 
             NativeValue* argv[] = {nativeValue};
             std::string methodName = "textChange";
             CallJsMethod(methodName, argv, ArraySize(argv));
-            napi_close_handle_scope(item->env_, scope);
         };
         mainHandler_->PostTask(task);
     }

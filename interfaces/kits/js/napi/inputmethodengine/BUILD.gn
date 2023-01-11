@@ -61,7 +61,6 @@ ohos_shared_library("inputmethodengine") {
   ]
 
   external_deps = [
-    "ability_runtime:abilitykit_native",
     "ability_runtime:runtime",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
