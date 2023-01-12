@@ -21,11 +21,9 @@ void VecCopyVisitor::Next(const int type)
 {
     if (cur_ < data_.size()) {
         cur_++;
-        if (type == NextType::THREAD) {
-            while (data_[cur_]->threadId_ != std::this_thread::get_id()) {
-                IMSA_HILOGD("differ threadId.");
-                cur_++;
-            }
+        while (type == NextType::THREAD && cur_ < data_.size() && data_[cur_]->threadId_ != std::this_thread::get_id() ) {
+            IMSA_HILOGD("differ threadId.");
+            cur_++;
         }
     }
 }

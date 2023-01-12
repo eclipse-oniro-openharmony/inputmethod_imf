@@ -16,7 +16,6 @@
 #ifndef INTERFACE_KITS_VEC_COPY_VISITOR_H
 #define INTERFACE_KITS_VEC_COPY_VISITOR_H
 
-#include <climits>
 #include <memory>
 #include <vector>
 
