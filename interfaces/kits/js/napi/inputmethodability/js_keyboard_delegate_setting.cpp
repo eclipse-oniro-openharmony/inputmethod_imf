@@ -387,8 +387,6 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                     if (isResult) {
                         isOnKeyEvent = true;
                     }
-                } else {
-                    continue;
                 }
             }
             entry->isDone->SetValue(isOnKeyEvent);
