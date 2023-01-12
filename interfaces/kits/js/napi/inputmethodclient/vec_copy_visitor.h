@@ -35,7 +35,7 @@ class VecCopyVisitor {
 public:
     explicit VecCopyVisitor(std::vector<std::shared_ptr<JSCallbackObject>> VecCopy) : data_(VecCopy){}
     ~VecCopyVisitor() = default;
-    void Next(const int type);
+    void Next(const int type = NextType::NORMAL);
     void First();
     void Clear();
     bool IsDone();
