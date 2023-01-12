@@ -590,32 +590,15 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            for (auto item : entry->vecCopy) {
-                if (item->threadId_ != std::this_thread::get_id()) {
-                    IMSA_HILOGD("differ threadId.");
-                    continue;
-                }
-                napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
-                napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
+            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
+                napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(entry->vecVisitor->GetCurElement()->env_, entry->subProperty);
+                napi_value property = JsInputMethod::GetJsInputMethodProperty(entry->vecVisitor->GetCurElement()->env_, entry->property);
                 if (subProperty == nullptr || property == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
                     break;
                 }
-                napi_value callback = nullptr;
                 napi_value args[] = { property, subProperty };
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_TWO, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
+                entry->vecVisitor->CallJsFunction(args, ARGC_TWO);
             }
         });
 }

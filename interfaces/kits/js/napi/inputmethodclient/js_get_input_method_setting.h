@@ -22,6 +22,7 @@
 #include "input_method_controller.h"
 #include "input_method_status.h"
 #include "js_callback_object.h"
+#include "vec_copy_visitor.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -120,12 +121,13 @@ private:
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     struct UvEntry {
-        std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
+        std::shared_ptr<VecCopyVisitor> vecVisitor;
         std::string type;
         Property property;
         SubProperty subProperty;
-        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : vecCopy(cbVec), type(type)
+        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : type(type)
         {
+            vecVisitor = std::make_shared<VecCopyVisitor>(cbVec);
         }
     };
     static const std::string IMS_CLASS_NAME;

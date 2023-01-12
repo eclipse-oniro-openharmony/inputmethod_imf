@@ -372,38 +372,23 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 delete work;
             });
             bool isOnKeyEvent = false;
-            for (auto item : entry->vecCopy) {
-                if (item->threadId_ != std::this_thread::get_id()) {
-                    IMSA_HILOGD("differ threadId.");
-                    continue;
-                }
+            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
                 napi_value jsObject =
-                    GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
+                    GetResultOnKeyEvent(entry->vecVisitor->GetCurElement()->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
                     continue;
                 }
-                napi_value callback = nullptr;
                 napi_value args[] = { jsObject };
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result = nullptr;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, 1, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                    continue;
-                }
+
+                napi_value result = entry->vecVisitor->CallJsFunction(args, ARGC_ONE);
                 if (result != nullptr) {
-                    napi_get_value_bool(item->env_, result, &isResult);
+                    napi_get_value_bool(entry->vecVisitor->GetCurElement()->env_, result, &isResult);
                     if (isResult) {
                         isOnKeyEvent = true;
                     }
+                } else {
+                    continue;
                 }
             }
             entry->isDone->SetValue(isOnKeyEvent);
@@ -544,30 +529,12 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
                 delete work;
             });
 
-            for (auto item : entry->vecCopy) {
-                if (item->threadId_ != std::this_thread::get_id()) {
-                    IMSA_HILOGD("differ threadId.");
-                    continue;
-                }
+            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
                 napi_value args[ARGC_THREE] = { nullptr };
-                napi_create_int32(item->env_, entry->curPara.positionX, &args[ARGC_ZERO]);
-                napi_create_int32(item->env_, entry->curPara.positionY, &args[ARGC_ONE]);
-                napi_create_int32(item->env_, entry->curPara.height, &args[ARGC_TWO]);
-
-                napi_value callback = nullptr;
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_THREE, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
+                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->curPara.positionX, &args[ARGC_ZERO]);
+                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->curPara.positionY, &args[ARGC_ONE]);
+                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->curPara.height, &args[ARGC_TWO]);
+                entry->vecVisitor->CallJsFunction(args, ARGC_THREE);
             }
         });
 }
@@ -589,31 +556,13 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
                 delete work;
             });
 
-            for (auto item : entry->vecCopy) {
-                if (item->threadId_ != std::this_thread::get_id()) {
-                    IMSA_HILOGD("differ threadId.");
-                    continue;
-                }
+            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
                 napi_value args[ARGC_FOUR] = { nullptr };
-                napi_create_int32(item->env_, entry->selPara.oldBegin, &args[ARGC_ZERO]);
-                napi_create_int32(item->env_, entry->selPara.oldEnd, &args[ARGC_ONE]);
-                napi_create_int32(item->env_, entry->selPara.newBegin, &args[ARGC_TWO]);
-                napi_create_int32(item->env_, entry->selPara.newEnd, &args[ARGC_THREE]);
-
-                napi_value callback = nullptr;
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_FOUR, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
+                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->selPara.oldBegin, &args[ARGC_ZERO]);
+                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->selPara.oldEnd, &args[ARGC_ONE]);
+                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->selPara.newBegin, &args[ARGC_TWO]);
+                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->selPara.newEnd, &args[ARGC_THREE]);
+                entry->vecVisitor->CallJsFunction(args, ARGC_FOUR);
             }
         });
 }
@@ -634,28 +583,10 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
                 delete work;
             });
 
-            for (auto item : entry->vecCopy) {
-                if (item->threadId_ != std::this_thread::get_id()) {
-                    IMSA_HILOGD("differ threadId.");
-                    continue;
-                }
+            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
                 napi_value args[ARGC_ONE] = { nullptr };
-                napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
-
-                napi_value callback = nullptr;
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_ONE, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
+                napi_create_string_utf8(entry->vecVisitor->GetCurElement()->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                entry->vecVisitor->CallJsFunction(args, ARGC_ONE);
             }
         });
 }

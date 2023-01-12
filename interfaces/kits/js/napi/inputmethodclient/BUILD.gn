@@ -42,6 +42,7 @@ ohos_shared_library("inputmethod") {
     "js_get_input_method_setting.cpp",
     "js_input_method.cpp",
     "js_utils.cpp",
+    "vec_copy_visitor.cpp",
   ]
 
   configs = [ ":imf_config" ]

@@ -26,6 +26,7 @@
 #include "js_callback_object.h"
 #include "keyboard_listener.h"
 #include "napi/native_api.h"
+#include "vec_copy_visitor.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -119,15 +120,16 @@ private:
         bool isOnKeyEvent = false;
     };
     struct UvEntry {
-        std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
+        std::shared_ptr<VecCopyVisitor> vecVisitor;
         std::string type;
         CursorPara curPara;
         SelectionPara selPara;
         KeyEventPara keyEventPara;
         std::shared_ptr<BlockData<bool>> isDone;
         std::string text;
-        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : vecCopy(cbVec), type(type)
+        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : type(type)
         {
+            vecVisitor = std::make_shared<VecCopyVisitor>(cbVec);
         }
     };
     uv_work_t *GetCursorUVwork(std::string type, CursorPara para);
