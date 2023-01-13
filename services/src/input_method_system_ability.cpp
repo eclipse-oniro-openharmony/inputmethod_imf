@@ -1025,8 +1025,8 @@ namespace MiscServices {
                 IMSA_HILOGE("ListProperty failed");
                 return ret;
             }
-            auto iter = std::find_if(
-                props.begin(), props.end(), [&current](const Property &property) { return property.name != current->id; });
+            auto iter = std::find_if(props.begin(), props.end(),
+                [&current](const Property &property) { return property.name != current->id; });
             if (iter != props.end()) {
                 return SwitchInputMethod(iter->name, iter->id);
             }
