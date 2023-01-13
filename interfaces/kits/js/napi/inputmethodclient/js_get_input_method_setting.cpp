@@ -590,15 +590,16 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
-                napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(entry->vecVisitor->GetCurElement()->env_, entry->subProperty);
-                napi_value property = JsInputMethod::GetJsInputMethodProperty(entry->vecVisitor->GetCurElement()->env_, entry->property);
+            for (size_t i = 0; i < entry->vecCopy.size(); ) {
+                JsUtils::CompareThread(i, entry->vecCopy);
+                napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(entry->vecCopy[i]->env_, entry->subProperty);
+                napi_value property = JsInputMethod::GetJsInputMethodProperty(entry->vecCopy[i]->env_, entry->property);
                 if (subProperty == nullptr || property == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
                     break;
                 }
                 napi_value args[] = { property, subProperty };
-                entry->vecVisitor->CallJsFunction(args, ARGC_TWO);
+                JsUtils::CallJsFunction(args, ARGC_TWO, entry->vecCopy[i]);
             }
         });
 }

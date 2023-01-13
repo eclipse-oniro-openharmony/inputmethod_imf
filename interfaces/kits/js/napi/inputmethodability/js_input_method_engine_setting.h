@@ -28,7 +28,6 @@
 #include "input_method_property.h"
 #include "js_callback_object.h"
 #include "napi/native_api.h"
-#include "vec_copy_visitor.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -68,14 +67,13 @@ private:
     static const std::string IMES_CLASS_NAME;
     static thread_local napi_ref IMESRef_;
     struct UvEntry {
-        std::shared_ptr<VecCopyVisitor> vecVisitor;
+        std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
         std::string imeid;
         uint32_t windowid = 0;
         SubProperty subProperty;
-        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : type(type)
+        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : vecCopy(cbVec), type(type)
         {
-            vecVisitor = std::make_shared<VecCopyVisitor>(cbVec);
         }
     };
     uv_loop_s *loop_ = nullptr;

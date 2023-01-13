@@ -372,18 +372,19 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 delete work;
             });
             bool isOnKeyEvent = false;
-            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
+            for (size_t i = 0; i < entry->vecCopy.size(); ) {
+                JsUtils::CompareThread(i, entry->vecCopy);
                 napi_value jsObject =
-                    GetResultOnKeyEvent(entry->vecVisitor->GetCurElement()->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
+                    GetResultOnKeyEvent(entry->vecCopy[i]->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
                     continue;
                 }
                 napi_value args[] = { jsObject };
 
-                napi_value result = entry->vecVisitor->CallJsFunction(args, ARGC_ONE);
+                napi_value result = JsUtils::CallJsFunction(args, ARGC_ONE, entry->vecCopy[i]);
                 if (result != nullptr) {
-                    napi_get_value_bool(entry->vecVisitor->GetCurElement()->env_, result, &isResult);
+                    napi_get_value_bool(entry->vecCopy[i]->env_, result, &isResult);
                     if (isResult) {
                         isOnKeyEvent = true;
                     }
@@ -527,12 +528,13 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
                 delete work;
             });
 
-            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
+            for (size_t i = 0; i < entry->vecCopy.size(); ) {
+                JsUtils::CompareThread(i, entry->vecCopy);
                 napi_value args[ARGC_THREE] = { nullptr };
-                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->curPara.positionX, &args[ARGC_ZERO]);
-                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->curPara.positionY, &args[ARGC_ONE]);
-                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->curPara.height, &args[ARGC_TWO]);
-                entry->vecVisitor->CallJsFunction(args, ARGC_THREE);
+                napi_create_int32(entry->vecCopy[i]->env_, entry->curPara.positionX, &args[ARGC_ZERO]);
+                napi_create_int32(entry->vecCopy[i]->env_, entry->curPara.positionY, &args[ARGC_ONE]);
+                napi_create_int32(entry->vecCopy[i]->env_, entry->curPara.height, &args[ARGC_TWO]);
+                JsUtils::CallJsFunction(args, ARGC_THREE, entry->vecCopy[i]);
             }
         });
 }
@@ -554,13 +556,14 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
                 delete work;
             });
 
-            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
+            for (size_t i = 0; i < entry->vecCopy.size(); ) {
+                JsUtils::CompareThread(i, entry->vecCopy);
                 napi_value args[ARGC_FOUR] = { nullptr };
-                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->selPara.oldBegin, &args[ARGC_ZERO]);
-                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->selPara.oldEnd, &args[ARGC_ONE]);
-                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->selPara.newBegin, &args[ARGC_TWO]);
-                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->selPara.newEnd, &args[ARGC_THREE]);
-                entry->vecVisitor->CallJsFunction(args, ARGC_FOUR);
+                napi_create_int32(entry->vecCopy[i]->env_, entry->selPara.oldBegin, &args[ARGC_ZERO]);
+                napi_create_int32(entry->vecCopy[i]->env_, entry->selPara.oldEnd, &args[ARGC_ONE]);
+                napi_create_int32(entry->vecCopy[i]->env_, entry->selPara.newBegin, &args[ARGC_TWO]);
+                napi_create_int32(entry->vecCopy[i]->env_, entry->selPara.newEnd, &args[ARGC_THREE]);
+                JsUtils::CallJsFunction(args, ARGC_FOUR, entry->vecCopy[i]);
             }
         });
 }
@@ -581,10 +584,11 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
                 delete work;
             });
 
-            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
+            for (size_t i = 0; i < entry->vecCopy.size(); ) {
+                JsUtils::CompareThread(i, entry->vecCopy);
                 napi_value args[ARGC_ONE] = { nullptr };
-                napi_create_string_utf8(entry->vecVisitor->GetCurElement()->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
-                entry->vecVisitor->CallJsFunction(args, ARGC_ONE);
+                napi_create_string_utf8(entry->vecCopy[i]->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                JsUtils::CallJsFunction(args, ARGC_ONE, entry->vecCopy[i]);
             }
         });
 }

@@ -554,15 +554,16 @@ void JsInputMethodEngineSetting::OnInputStart()
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
-                napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(entry->vecVisitor->GetCurElement()->env_);
-                napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(entry->vecVisitor->GetCurElement()->env_);
+            for (size_t i = 0; i < entry->vecCopy.size(); ) {
+                JsUtils::CompareThread(i, entry->vecCopy);
+                napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(entry->vecCopy[i]->env_);
+                napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(entry->vecCopy[i]->env_);
                 if (keyBoardController == nullptr || textInput == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
                     break;
                 }
                 napi_value args[] = { keyBoardController, textInput };
-                entry->vecVisitor->CallJsFunction(args, ARGC_TWO);
+                JsUtils::CallJsFunction(args, ARGC_TWO, entry->vecCopy[i]);
             }
         });
 }
@@ -583,9 +584,10 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
                 delete work;
             });
 
-            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
+            for (size_t i = 0; i < entry->vecCopy.size(); ) {
+                JsUtils::CompareThread(i, entry->vecCopy);
                 napi_value args[ARGC_ONE] = { nullptr };
-                entry->vecVisitor->CallJsFunction(args, ARGC_ZERO);
+                JsUtils::CallJsFunction(args, ARGC_ZERO, entry->vecCopy[i]);
             }
         });
 }
@@ -610,10 +612,11 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
                 return;
             }
 
-            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
+            for (size_t i = 0; i < entry->vecCopy.size(); ) {
+                JsUtils::CompareThread(i, entry->vecCopy);
                 napi_value args[ARGC_ONE] = { nullptr };
-                napi_create_string_utf8(entry->vecVisitor->GetCurElement()->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[0]);
-                entry->vecVisitor->CallJsFunction(args, ARGC_ONE);
+                napi_create_string_utf8(entry->vecCopy[i]->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[0]);
+                JsUtils::CallJsFunction(args, ARGC_ONE, entry->vecCopy[i]);
             }
         });
 }
@@ -638,10 +641,11 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
                 return;
             }
 
-            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
+            for (size_t i = 0; i < entry->vecCopy.size(); ) {
+                JsUtils::CompareThread(i, entry->vecCopy);
                 napi_value args[ARGC_ONE] = { nullptr };
-                napi_create_int32(entry->vecVisitor->GetCurElement()->env_, entry->windowid, &args[0]);
-                entry->vecVisitor->CallJsFunction(args, ARGC_ONE);
+                napi_create_int32(entry->vecCopy[i]->env_, entry->windowid, &args[0]);
+                JsUtils::CallJsFunction(args, ARGC_ONE, entry->vecCopy[i]);
             }
         });
 }
@@ -666,14 +670,15 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
                 return;
             }
 
-            for (entry->vecVisitor->First(); !entry->vecVisitor->IsDone(); entry->vecVisitor->Next(NextType::THREAD)) {
-                napi_value jsObject = GetResultOnSetSubtype(entry->vecVisitor->GetCurElement()->env_, entry->subProperty);
+            for (size_t i = 0; i < entry->vecCopy.size(); ) {
+                JsUtils::CompareThread(i, entry->vecCopy);
+                napi_value jsObject = GetResultOnSetSubtype(entry->vecCopy[i]->env_, entry->subProperty);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
                     continue;
                 }
                 napi_value args[] = { jsObject };
-                entry->vecVisitor->CallJsFunction(args, ARGC_ONE);
+                JsUtils::CallJsFunction(args, ARGC_ONE, entry->vecCopy[i]);
             }
         });
 }

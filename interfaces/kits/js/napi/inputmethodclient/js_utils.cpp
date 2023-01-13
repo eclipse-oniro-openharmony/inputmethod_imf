@@ -160,5 +160,25 @@ const std::string JsUtils::ToMessage(int32_t code)
     }
     return "error is out of definition.";
 }
+
+napi_value JsUtils::CallJsFunction(const napi_value* param, int paramNum, std::shared_ptr<JSCallbackObject> element)
+{
+    napi_value callback = nullptr;
+    napi_get_reference_value(element->env_, element->callback_, &callback);
+    if (callback == nullptr) {
+        IMSA_HILOGE("callback is nullptr");
+        return nullptr;
+    }
+    napi_value global = nullptr;
+    napi_get_global(element->env_, &global);
+    napi_value result;
+    napi_status callStatus = napi_call_function(element->env_, global, callback, paramNum, param, &result);
+    if (callStatus != napi_ok) {
+        IMSA_HILOGE(
+            "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
+        return nullptr;
+    }
+    return result == nullptr ? nullptr : result;
+}
 } // namespace MiscServices
 } // namespace OHOS
