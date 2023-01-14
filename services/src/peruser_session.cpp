@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "ime_cfg_manager.h"
 #include "ability_connect_callback_proxy.h"
 #include "ability_manager_interface.h"
 #include "element_name.h"
@@ -32,7 +33,6 @@
 #include "parcel.h"
 #include "system_ability_definition.h"
 #include "unistd.h"
-#include "userImeCfg_manager.h"
 #include "utils.h"
 #include "want.h"
 
@@ -276,7 +276,8 @@ void PerUserSession::OnImsDied(sptr<IInputMethodCore> remote)
         return;
     }
     IMSA_HILOGI("IME died. Restart input method...[%{public}d]\n", userId_);
-    const auto & currentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
+    auto currentIme = cfg.currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("currentIme is empty");
         return;
@@ -296,6 +297,11 @@ void PerUserSession::OnImsDied(sptr<IInputMethodCore> remote)
     usleep(MAX_RESET_WAIT_TIME);
     MessageHandler::Instance()->SendMessage(msg);
     IMSA_HILOGD("End...[%{public}d]\n", userId_);
+}
+
+void PerUserSession::UpdateCurrentUserId(int32_t userId)
+{
+    userId_ = userId;
 }
 
 /*! Hide current keyboard

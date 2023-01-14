@@ -98,6 +98,7 @@ public:
 
     void SetCurrentSubProperty(const SubProperty &subProperty);
     SubProperty GetCurrentSubProperty();
+    void UpdateCurrentUserId(int32_t userId);
 
 private:
     int userId_;                                   // the id of the user to whom the object is linking

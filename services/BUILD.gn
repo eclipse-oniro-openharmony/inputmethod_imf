@@ -45,7 +45,7 @@ ohos_shared_library("inputmethod_service") {
     "src/message.cpp",
     "src/message_handler.cpp",
     "src/peruser_session.cpp",
-    "src/userImeCfg_manager.cpp",
+    "src/ime_cfg_manager.cpp",
   ]
 
   configs = [ ":inputmethod_services_native_config" ]
@@ -55,8 +55,8 @@ ohos_shared_library("inputmethod_service") {
   deps = [
     "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
     "${inputmethod_path}/services/adapter/keyboard:keboard_event_static",
-    "${inputmethod_path}/services/userImeCfg:userImeCfg_json",
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
+    "${inputmethod_path}/utils:inputmethod_utils",
     "//base/global/resource_management/frameworks/resmgr:global_resmgr",
     "//base/inputmethod/imf/etc/para:inputmethod_para",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",

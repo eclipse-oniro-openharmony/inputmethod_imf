@@ -28,6 +28,7 @@
 #include "errors.h"
 #include "global.h"
 #include "im_common_event_manager.h"
+#include "ime_cfg_manager.h"
 #include "input_method_status.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -40,7 +41,6 @@
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "ui_service_mgr_client.h"
-#include "userImeCfg_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -124,7 +124,8 @@ int InputMethodSystemAbility::Dump(int fd, const std::vector<std::u16string> &ar
 
 std::string InputMethodSystemAbility::GetInputMethodParam(const std::vector<InputMethodInfo> &properties)
 {
-    std::string currentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
+    auto currentIme = cfg.currentIme;
     bool isBegin = true;
     std::string params = "{\"imeList\":[";
     for (const auto &property : properties) {
@@ -176,7 +177,7 @@ int32_t InputMethodSystemAbility::Init()
     IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
     state_ = ServiceRunningState::STATE_RUNNING;
     userSessions.insert({ MAIN_USER_ID, std::make_shared<PerUserSession>(MAIN_USER_ID) });
-    UserImeCfgManager::GetInstance()->Init();
+    ImeCfgManager::GetInstance().Init();
     //服务异常重启后不会走OnUserStarted，但是可以获取到当前userId
     //设备启动时可能获取不到当前userId,如果获取不到，则等OnUserStarted的时候处理.
     userId_ = INVALID_USERID_VALUE;
@@ -184,10 +185,12 @@ int32_t InputMethodSystemAbility::Init()
     if ((OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK) && !userIds.empty()) {
         userId_ = userIds[0];
         IMSA_HILOGI("InputMethodSystemAbility::get current userId success, userId: %{public}d", userId_);
-        std::string newUserIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+
+        auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
+        auto newUserIme = cfg.currentIme;
         if (newUserIme.empty()) {
             newUserIme = ParaHandle::GetDefaultIme();
-            UserImeCfgManager::GetInstance()->AddCurrentIme(userId_, newUserIme);
+            ImeCfgManager::GetInstance().AddImeCfg({ userId_, newUserIme });
         }
         StartInputService(newUserIme);
     }
@@ -586,7 +589,8 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleN
 {
     IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod");
     std::string targetIme = bundleName + "/" + name;
-    std::string currentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
+    auto currentIme = cfg.currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("currentIme is empty");
         return ErrorCode::ERROR_PERSIST_CONFIG;
@@ -602,7 +606,7 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleN
         IMSA_HILOGE("start input method failed");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
-    UserImeCfgManager::GetInstance()->ModifyCurrentIme(userId_, targetIme);
+    ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetIme });
 
     auto session = GetUserSession(MAIN_USER_ID);
     if (session == nullptr) {
@@ -757,7 +761,8 @@ int32_t InputMethodSystemAbility::ListProperty(int32_t userId, std::vector<Prope
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
     IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
-    std::string currentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
+    auto currentIme = cfg.currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme is empty");
         return nullptr;
@@ -782,7 +787,9 @@ std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
 {
     IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethodSubtype");
-    std::string currentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+
+    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
+    auto currentIme = cfg.currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("InputMethodSystemAbility currentIme is empty");
         return nullptr;
@@ -828,6 +835,10 @@ void InputMethodSystemAbility::WorkThread()
                 OnUserStarted(msg);
                 break;
             }
+            case MSG_ID_USER_REMOVED: {
+                OnUserRemoved(msg);
+                break;
+            }
             case MSG_ID_PACKAGE_REMOVED: {
                 OnPackageRemoved(msg);
                 delete msg;
@@ -868,7 +879,9 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     std::string lastUserIme;
     if (userId_ != INVALID_USERID_VALUE) {
         deviceStart = false;
-        lastUserIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId_);
+
+        auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
+        lastUserIme = cfg.currentIme;
         if (lastUserIme.empty()) {
             IMSA_HILOGE("InputMethodSystemAbility::lastUserIme is empty");
             return ErrorCode::ERROR_PERSIST_CONFIG;
@@ -877,14 +890,20 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
 
     int32_t newUserId = msg->msgContent_->ReadInt32();
     userId_ = newUserId;
-    std::string newUserIme = UserImeCfgManager::GetInstance()->GetCurrentIme(newUserId);
+    // 需要更新PerUserSession 中的userId_
+    auto it = userSessions.find(MAIN_USER_ID);
+    if (it != userSessions.end()) {
+        it->second->UpdateCurrentUserId(newUserId);
+    }
+    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(newUserId);
+    auto newUserIme = cfg.currentIme;
     if (newUserIme.empty()) {
         newUserIme = ParaHandle::GetDefaultIme();
         if (newUserIme.empty()) {
             IMSA_HILOGE("InputMethodSystemAbility::defaultIme is empty");
             return ErrorCode::ERROR_PERSIST_CONFIG;
         }
-        UserImeCfgManager::GetInstance()->AddCurrentIme(newUserId, newUserIme);
+        ImeCfgManager::GetInstance().AddImeCfg({ newUserId, newUserIme });
     }
 
     if (deviceStart) {
@@ -892,24 +911,22 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         StartInputService(newUserIme);
         return ErrorCode::NO_ERROR;
     }
-    if (lastUserIme != newUserIme) {
-        StopInputService(lastUserIme);
-        StartInputService(newUserIme);
-    }
+    StopInputService(lastUserIme);
+    StartInputService(newUserIme);
+
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodSystemAbility::OnUserStopped(const Message *msg)
+int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
 {
-    IMSA_HILOGI("InputMethodSystemAbility::OnUserStopped Start...\n");
+    IMSA_HILOGI("InputMethodSystemAbility::OnUserRemoved Start...\n");
     if (!msg->msgContent_) {
         IMSA_HILOGE("Aborted! %s\n", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto userId = msg->msgContent_->ReadInt32();
     //TODO 一系列操作
-
-    UserImeCfgManager::GetInstance()->DeleteCurrentIme(userId);
+    ImeCfgManager::GetInstance().DeleteImeCfg(userId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -951,7 +968,8 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
 
-    auto currentIme = UserImeCfgManager::GetInstance()->GetCurrentIme(userId);
+    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId);
+    auto currentIme = cfg.currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("InputMethodSystemAbility::currentIme is empty");
         return ErrorCode::ERROR_PERSIST_CONFIG;

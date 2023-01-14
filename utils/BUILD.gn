@@ -11,12 +11,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//base/inputmethod/imf/inputmethod.gni")
 import("//build/ohos.gni")
 
-ohos_prebuilt_etc("userImeCfg_json") {
-  install_enable = true
-  source = "userImeCfg.json"
-  relative_install_dir = "imf"
-  part_name = "imf"
+config("inputmethod_utils_native_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "include",
+    "${inputmethod_path}/services/include",
+    "//third_party/json/include",
+  ]
+}
+
+ohos_shared_library("inputmethod_utils") {
+  sources = [
+    "src/file_manager.cpp",
+  ]
+
+  configs = [ ":inputmethod_utils_native_config" ]
+
+  deps = [
+      "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
+
   subsystem_name = "inputmethod"
+  part_name = "imf"
 }
