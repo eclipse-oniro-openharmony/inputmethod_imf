@@ -220,28 +220,17 @@ namespace MiscServices {
     int PerUserSession::HideKeyboard(const sptr<IInputClient>& inputClient)
     {
         IMSA_HILOGD("PerUserSession::HideKeyboard");
-        int index = GetImeIndex(inputClient);
-        if (index == -1) {
-            IMSA_HILOGE("PerUserSession::HideKeyboard Aborted! ErrorCode::ERROR_CLIENT_NOT_FOUND");
-            return ErrorCode::ERROR_CLIENT_NOT_FOUND;
-        }
-        auto clientInfo = GetClientInfo(inputClient->AsObject());
-        if (clientInfo == nullptr) {
-            IMSA_HILOGE("PerUserSession::HideKeyboard GetClientInfo pointer nullptr");
-        }
         sptr<IInputMethodCore> core = GetImsCore(DEFAULT_IME);
         if (core == nullptr) {
-            IMSA_HILOGE("PerUserSession::HideKeyboard imsCore[index] is nullptr");
+            IMSA_HILOGE("PerUserSession::HideKeyboard imsCore is nullptr");
             return ErrorCode::ERROR_IME_NOT_STARTED;
         }
-
+        UpdateClient(inputClient->AsObject(), false);
         bool ret = core->hideKeyboard(1);
         if (!ret) {
             IMSA_HILOGE("PerUserSession::HideKeyboard [imsCore->hideKeyboard] failed");
             return ErrorCode::ERROR_KBD_HIDE_FAILED;
         }
-        UpdateClient(inputClient->AsObject(), false);
-
         return ErrorCode::NO_ERROR;
     }
 
@@ -412,13 +401,13 @@ namespace MiscServices {
     */
     int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
     {
-        IMSA_HILOGI("PerUserSession::OnReleaseInput Start");
+        IMSA_HILOGI("PerUserSession::OnReleaseInput Start zll");
+        RemoveClient(client->AsObject());
         auto ret = HideKeyboard(client);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("failed to hide keyboard ret %{public}d", ret);
             return ret;
         }
-        RemoveClient(client->AsObject());
         IMSA_HILOGD("PerUserSession::OnReleaseInput End...[%{public}d]\n", userId_);
         return ErrorCode::NO_ERROR;
     }
