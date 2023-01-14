@@ -17,8 +17,6 @@
 #include "global.h"
 #include "js_input_method_engine_utils.h"
 #include "js_runtime_utils.h"
-#include "napi/native_api.h"
-#include "napi/native_node_api.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -120,7 +118,7 @@ namespace MiscServices {
         }
 
         for (auto iter = jsCbMap_[methodName].begin(); iter != jsCbMap_[methodName].end(); iter++) {
-            engine_->CallFunction(engine_->CreateUndefined(), (*iter)->Get(), argv, argc);
+            engine_->CallFunction(nullptr, (*iter)->Get(), argv, argc);
         }
     }
 
@@ -140,7 +138,7 @@ namespace MiscServices {
 
         bool result = false;
         for (auto iter = jsCbMap_[methodName].begin(); iter != jsCbMap_[methodName].end(); iter++) {
-            NativeValue* nativeValue = engine_->CallFunction(engine_->CreateUndefined(), (*iter)->Get(), argv, argc);
+            NativeValue* nativeValue = engine_->CallFunction(nullptr, (*iter)->Get(), argv, argc);
             bool ret = false;
             if (ConvertFromJsValue(*engine_, nativeValue, ret) && ret) {
                 result = true;
@@ -155,6 +153,7 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnKeyboardStatus");
 
         auto task = [this, isShow] () {
+            ContainerScope containerScope(containerScopeId_);
             HandleScope handleScope(*engine_);
             NativeValue* nativeValue = engine_->CreateObject();
             NativeObject* object = ConvertNativeValueTo < NativeObject >(nativeValue);
@@ -179,6 +178,7 @@ namespace MiscServices {
         std::lock_guard<std::mutex> lock(mMutex);
         IMSA_HILOGI("JsInputMethodEngineListener::OnInputStart");
         auto task = [this] () {
+            ContainerScope containerScope(containerScopeId_);
             HandleScope handleScope(*engine_);
             NativeValue *nativeValuekb = CreateKeyboardController(*engine_);
             NativeValue *nativeValuetx = CreateTextInputClient(*engine_);
@@ -195,6 +195,7 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnInputStop");
 
         auto task = [this, imeId] () {
+            ContainerScope containerScope(containerScopeId_);
             HandleScope handleScope(*engine_);
             NativeValue* nativeValue = CreateJsValue(*engine_, imeId);
 
@@ -211,6 +212,7 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnSetCallingWindow");
 
         auto task = [this, windowId] () {
+            ContainerScope containerScope(containerScopeId_);
             HandleScope handleScope(*engine_);
             NativeValue* nativeValue = CreateJsValue(*engine_, windowId);
             NativeValue* argv[] = { nativeValue };

@@ -15,23 +15,33 @@
 #ifndef FM_IMMS_PROJECT_JS_KEYBOARD_DELEGATE_LISTENER_H
 #define FM_IMMS_PROJECT_JS_KEYBOARD_DELEGATE_LISTENER_H
 
+#include <refbase.h>
+
+#include <condition_variable>
 #include <map>
 #include <mutex>
-#include <unordered_set>
 #include <queue>
-#include <condition_variable>
-#include <refbase.h>
-#include "native_engine/native_engine.h"
-#include "native_engine/native_value.h"
+#include <unordered_set>
+
+#include "container_scope.h"
 #include "event_handler.h"
 #include "event_runner.h"
+#include "native_engine/native_engine.h"
+#include "native_engine/native_value.h"
+
 namespace OHOS {
 namespace MiscServices {
     class JsKeyboardDelegateListener : virtual public RefBase {
     public:
-        explicit JsKeyboardDelegateListener(NativeEngine* engine) : engine_(engine) {}
-        JsKeyboardDelegateListener(NativeEngine* engine, std::shared_ptr<AppExecFwk::EventHandler> &handler)
-            : engine_(engine), mainHandler_(handler) {}
+        explicit JsKeyboardDelegateListener(NativeEngine *engine) : engine_(engine)
+        {
+            containerScopeId_ = ContainerScope::CurrentId();
+        }
+        JsKeyboardDelegateListener(NativeEngine *engine, std::shared_ptr<AppExecFwk::EventHandler> &handler)
+            : engine_(engine), mainHandler_(handler)
+        {
+            containerScopeId_ = ContainerScope::CurrentId();
+        }
         virtual ~JsKeyboardDelegateListener() = default;
         void RegisterListenerWithType(NativeEngine& engine, std::string type, NativeValue* value);
         void UnregisterListenerWithType(std::string type, NativeValue* value);
@@ -50,6 +60,7 @@ namespace MiscServices {
         std::mutex mMutex;
         std::map<std::string, std::vector<std::unique_ptr<NativeReference>>> jsCbMap_;
         std::shared_ptr<AppExecFwk::EventHandler> mainHandler_ = nullptr;
+        int32_t containerScopeId_ = 0;
     };
 }
 }
