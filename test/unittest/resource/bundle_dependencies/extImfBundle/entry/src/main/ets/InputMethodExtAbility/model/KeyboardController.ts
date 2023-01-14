@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import inputMethodEngine from '@ohos.inputmethodengine'
+import inputMethodEngine from '@ohos.inputMethodEngine'
 
 globalThis.inputEngine = inputMethodEngine.getInputMethodAbility()
 

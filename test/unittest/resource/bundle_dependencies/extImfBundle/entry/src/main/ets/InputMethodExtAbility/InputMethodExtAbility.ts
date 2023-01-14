@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import ImeExtension from '@ohos.inputmethodextensionability'
+import ImeExtension from '@ohos.InputMethodExtensionAbility'
 import {KeyboardController} from './model/KeyboardController'
 
 export default class InputMethodExtAbility extends ImeExtension {

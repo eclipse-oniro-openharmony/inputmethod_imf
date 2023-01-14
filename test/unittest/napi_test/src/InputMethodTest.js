@@ -14,8 +14,8 @@
  */
 
 import app from '@system.app'
-import inputMethod from '@ohos.inputmethod'
-import inputMethodEngine from '@ohos.inputmethodengine'
+import inputMethod from '@ohos.inputMethod'
+import inputMethodEngine from '@ohos.inputMethodEngine'
 import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from 'deccjsunit/index'
 
 describe("InputMethodTest", function () {

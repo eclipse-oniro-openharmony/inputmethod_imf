@@ -15,7 +15,7 @@
 import ServiceExtensionAbility from '@ohos.app.ability.ServiceExtensionAbility'
 import window from '@ohos.window';
 import display from '@ohos.display';
-import inputMethod from '@ohos.inputmethod';
+import inputMethod from '@ohos.inputMethod';
 import prompt from '@ohos.prompt';
 
 let TAG = "[InputMethodChooseDialog]"
