@@ -16,11 +16,12 @@
 #ifndef SERVICES_INCLUDE_USERIMECFG_MANAGER_H
 #define SERVICES_INCLUDE_USERIMECFG_MANAGER_H
 
+#include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
-#include <memory>
-#include "third_party/json/include/nlohmann/json.hpp"
+
+#include "nlohmann/json.hpp"
 struct ImeCfg {
     int32_t userId;
     std::string currentIme;

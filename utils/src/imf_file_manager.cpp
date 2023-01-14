@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "file_manager.h"
+#include "imf_file_manager.h"
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -37,7 +37,8 @@ FileManager &FileManager::GetInstance()
 int32_t FileManager::CreateCacheFile(FileInfo &info)
 {
     if (!isCachePathExit(info.path)) {
-        auto errCode = mkdir(info.path.c_str(), info.pathMode);
+        IMSA_HILOGI("FileManager::dir = %{public}s", info.path.c_str());
+        auto errCode = mkdir(info.path.c_str(), info.pathMode); //需要增加selinux权限才能创建成功
         if (errCode != SUCCESS) {
             IMSA_HILOGE("FileManager::CreateDirFailed");
             return errCode;
@@ -45,6 +46,7 @@ int32_t FileManager::CreateCacheFile(FileInfo &info)
     }
 
     std::string fileName = info.path + "/" + info.fileName;
+    IMSA_HILOGI("FileManager::fileName = %{public}s", fileName.c_str());
     if (isCachePathExit(fileName)) {
         IMSA_HILOGI("FileManager::file: %{public}s exist", info.fileName.c_str());
         return SUCCESS;
@@ -64,13 +66,12 @@ bool FileManager::ReadJsonFile(const std::string &path, json &jsonCfg)
         IMSA_HILOGE("ImeCfgManager:file read open failed");
         return false;
     }
-    json cfgJson;
-    cfgJson = json::parse(jsonFs, nullptr, false);
-    if (cfgJson.is_null() || cfgJson.is_discarded()) {
+    jsonCfg = json::parse(jsonFs, nullptr, false);
+    if (jsonCfg.is_null() || jsonCfg.is_discarded()) {
         IMSA_HILOGE("parse failed");
         return false;
     }
-    IMSA_HILOGI("ImeCfgManager::json %{public}s", cfgJson.dump().c_str());
+    IMSA_HILOGI("ImeCfgManager::json %{public}s", jsonCfg.dump().c_str());
     return true;
 }
 bool FileManager::WriteJsonFile(const std::string &path, const nlohmann::json &jsonCfg)
@@ -80,7 +81,8 @@ bool FileManager::WriteJsonFile(const std::string &path, const nlohmann::json &j
         IMSA_HILOGE("ImeCfgManager:file write open failed");
         return false;
     }
-    jsonFs << jsonCfg;
+    constexpr int32_t weight = 2;
+    jsonFs << std::setw(weight) << jsonCfg << std::endl;
     return true;
 }
 } // namespace MiscServices

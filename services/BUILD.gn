@@ -25,7 +25,7 @@ config("inputmethod_services_native_config") {
     "//foundation/multimodalinput/input/interfaces/native/innerkits/event/include",
     "${inputmethod_path}/services/adapter/keyboard/include",
     "${inputmethod_path}/services/dfx/include",
-    "//third_party/json/include",
+    "${inputmethod_path}/utils/include",
   ]
 
   cflags_cc = [ "-fexceptions" ]

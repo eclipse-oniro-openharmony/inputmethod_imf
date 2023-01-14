@@ -19,16 +19,16 @@
 
 #include <fstream>
 
-#include "../../utils/include/file_manager.h"
 #include "file_ex.h"
 #include "global.h"
+#include "imf_file_manager.h"
 namespace OHOS {
 namespace MiscServices {
 namespace {
 constexpr const char *IME_CFG_DIR = "/data/service/el1/public/imf/ime_cfg";
 constexpr const char *IME_CFG_FILENAME = "ime_cfg.json";
 constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg/ime_cfg.json";
-constexpr const int32_t SUCCESS = 0;
+constexpr const int32_t ERROR = -1;
 using json = nlohmann::json;
 } // namespace
 ImeCfgManager &ImeCfgManager::GetInstance()
@@ -49,7 +49,7 @@ bool ImeCfgManager::CreateCfgFile()
 {
     FileInfo info{ IME_CFG_DIR, IME_CFG_FILENAME, S_IRWXU, S_IRWXU };
     auto errCode = FileManager::GetInstance().CreateCacheFile(info);
-    if (errCode != SUCCESS) {
+    if (errCode == ERROR) {
         IMSA_HILOGE("ImeCfgManager::CreateCacheFile failed");
         return false;
     }

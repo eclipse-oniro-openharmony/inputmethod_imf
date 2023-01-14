@@ -25,13 +25,14 @@ config("inputmethod_utils_native_config") {
 
 ohos_shared_library("inputmethod_utils") {
   sources = [
-    "src/file_manager.cpp",
+    "src/imf_file_manager.cpp",
   ]
 
   configs = [ ":inputmethod_utils_native_config" ]
 
   deps = [
       "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+      "//third_party/jsoncpp:jsoncpp",
   ]
 
   external_deps = [

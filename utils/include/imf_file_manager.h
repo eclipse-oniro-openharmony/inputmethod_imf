@@ -15,7 +15,7 @@
 
 #ifndef SERVICES_INCLUDE_FILE_MANAGER_H
 #define SERVICES_INCLUDE_FILE_MANAGER_H
-#include "third_party/json/include/nlohmann/json.hpp"
+#include "nlohmann/json.hpp"
 namespace OHOS {
 namespace MiscServices {
 struct FileInfo {
