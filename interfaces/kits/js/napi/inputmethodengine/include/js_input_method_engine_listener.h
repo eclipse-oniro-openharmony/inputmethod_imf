@@ -23,7 +23,7 @@
 #include <queue>
 #include <unordered_set>
 
-#include "container_scope.h"
+#include "core/common/container_scope.h"
 #include "event_handler.h"
 #include "event_runner.h"
 #include "native_engine/native_engine.h"
