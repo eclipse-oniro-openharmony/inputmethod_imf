@@ -26,7 +26,6 @@ config("inputmethod_ability_native_public_config") {
   visibility = []
   include_dirs = [
     "include",
-    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodengine/include",
     "${inputmethod_path}/services/include",
   ]
 }
