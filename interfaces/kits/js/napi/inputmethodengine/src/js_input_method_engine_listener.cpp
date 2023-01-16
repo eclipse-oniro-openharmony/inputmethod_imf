@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 #include "js_input_method_engine_listener.h"
-
 #include "global.h"
-#include "js_input_method_engine_utils.h"
 #include "js_runtime_utils.h"
+#include "js_input_method_engine_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -153,7 +152,6 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnKeyboardStatus");
 
         auto task = [this, isShow] () {
-            ContainerScope containerScope(containerScopeId_);
             HandleScope handleScope(*engine_);
             NativeValue* nativeValue = engine_->CreateObject();
             NativeObject* object = ConvertNativeValueTo < NativeObject >(nativeValue);
@@ -178,7 +176,6 @@ namespace MiscServices {
         std::lock_guard<std::mutex> lock(mMutex);
         IMSA_HILOGI("JsInputMethodEngineListener::OnInputStart");
         auto task = [this] () {
-            ContainerScope containerScope(containerScopeId_);
             HandleScope handleScope(*engine_);
             NativeValue *nativeValuekb = CreateKeyboardController(*engine_);
             NativeValue *nativeValuetx = CreateTextInputClient(*engine_);
@@ -195,7 +192,6 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnInputStop");
 
         auto task = [this, imeId] () {
-            ContainerScope containerScope(containerScopeId_);
             HandleScope handleScope(*engine_);
             NativeValue* nativeValue = CreateJsValue(*engine_, imeId);
 
@@ -212,7 +208,6 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnSetCallingWindow");
 
         auto task = [this, windowId] () {
-            ContainerScope containerScope(containerScopeId_);
             HandleScope handleScope(*engine_);
             NativeValue* nativeValue = CreateJsValue(*engine_, windowId);
             NativeValue* argv[] = { nativeValue };
