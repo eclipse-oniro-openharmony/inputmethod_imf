@@ -401,7 +401,7 @@ namespace MiscServices {
     */
     int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
     {
-        IMSA_HILOGI("PerUserSession::OnReleaseInput Start zll");
+        IMSA_HILOGI("PerUserSession::OnReleaseInput Start");
         RemoveClient(client->AsObject());
         auto ret = HideKeyboard(client);
         if (ret != ErrorCode::NO_ERROR) {
