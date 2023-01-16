@@ -31,6 +31,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+    using OHOS::Ace::ContainerScope;
     class JsInputMethodEngineListener : virtual public RefBase {
     public:
         explicit JsInputMethodEngineListener(NativeEngine *engine) : engine_(engine)

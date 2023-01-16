@@ -31,6 +31,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+    using OHOS::Ace::ContainerScope;
     class JsKeyboardDelegateListener : virtual public RefBase {
     public:
         explicit JsKeyboardDelegateListener(NativeEngine *engine) : engine_(engine)
