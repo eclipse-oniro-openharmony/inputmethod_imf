@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from 'hypium/index';
-import inputMethod from '@ohos.inputmethod';
+import inputMethod from '@ohos.inputMethod';
 
 describe('appInfoTest_input_2', function () {
 
