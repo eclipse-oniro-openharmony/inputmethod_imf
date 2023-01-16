@@ -116,7 +116,7 @@ namespace MiscServices {
         }
 
         for (auto iter = jsCbMap_[methodName].begin(); iter != jsCbMap_[methodName].end(); iter++) {
-            engine_->CallFunction(nullptr, (*iter)->Get(), argv, argc);
+            engine_->CallFunction(engine_->CreateUndefined(), (*iter)->Get(), argv, argc);
         }
     }
 
@@ -136,7 +136,7 @@ namespace MiscServices {
 
         bool result = false;
         for (auto iter = jsCbMap_[methodName].begin(); iter != jsCbMap_[methodName].end(); iter++) {
-            NativeValue* nativeValue = engine_->CallFunction(nullptr, (*iter)->Get(), argv, argc);
+            NativeValue* nativeValue = engine_->CallFunction(engine_->CreateUndefined(), (*iter)->Get(), argv, argc);
             bool ret = false;
             if (ConvertFromJsValue(*engine_, nativeValue, ret) && ret) {
                 result = true;
