@@ -477,7 +477,7 @@ namespace MiscServices {
                 auto property = GetExtends(extends);
                 subProps.push_back({ .id = subtypeInfo.bundleName,
                     .label = subtypeInfo.name,
-                    .name = subtypeInfo.moduleName,
+                    .name = subtypeInfo.label,
                     .iconId = subtypeInfo.iconId,
                     .language = property.language,
                     .mode = property.mode,
