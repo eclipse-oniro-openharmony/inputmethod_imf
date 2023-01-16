@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 #include "js_keyboard_delegate_listener.h"
-
 #include "global.h"
-#include "js_input_method_engine_utils.h"
 #include "js_runtime_utils.h"
+#include "js_input_method_engine_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
