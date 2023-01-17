@@ -590,29 +590,19 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            for (const auto &item : entry->vecCopy) {
-                if (item->threadId_ != std::this_thread::get_id()) {
-                    continue;
+            auto getImeChangeProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> TypeForCircle {
+                napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
+                napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
+                if (subProperty == nullptr || property == nullptr) {
+                    IMSA_HILOGE("get KBCins or TICins failed:");
+                    return TypeForCircle::TYPE_BREAK;
                 }
-                if (!GetImeChangeProperty(item->env_, entry, item)) {
-                    break;
-                }
-            }
+                args[ARGC_ZERO] = property;
+                args[ARGC_ONE] = subProperty;
+                return TypeForCircle::TYPE_GO;
+            };
+            JsUtils::CallJsFunction(entry->vecCopy, ARGC_TWO, getImeChangeProperty);
         });
-}
-
-bool JsGetInputMethodSetting::GetImeChangeProperty(
-    napi_env env, std::shared_ptr<UvEntry> entry, std::shared_ptr<JSCallbackObject> item)
-{
-    napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
-    napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
-    if (subProperty == nullptr || property == nullptr) {
-        IMSA_HILOGE("get KBCins or TICins failed:");
-        return false;
-    }
-    napi_value args[] = { property, subProperty };
-    JsUtils::CallJsFunction(args, ARGC_TWO, item);
-    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS

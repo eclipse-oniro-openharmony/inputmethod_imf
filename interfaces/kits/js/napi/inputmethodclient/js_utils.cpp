@@ -161,24 +161,50 @@ const std::string JsUtils::ToMessage(int32_t code)
     return "error is out of definition.";
 }
 
-napi_value JsUtils::CallJsFunction(const napi_value* param, int paramNum, std::shared_ptr<JSCallbackObject> element)
+bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum, GetValue getValue)
 {
-    napi_value callback = nullptr;
-    napi_get_reference_value(element->env_, element->callback_, &callback);
-    if (callback == nullptr) {
-        IMSA_HILOGE("callback is nullptr");
-        return nullptr;
+    bool isResult = false;
+    bool isOnKeyEvent = false;
+    for (const auto &item : vecCopy) {
+        if (item->threadId_ != std::this_thread::get_id()) {
+            continue;
+        }
+
+        napi_value args[paramNum];
+        if (getValue(args, item) == TypeForCircle::TYPE_BREAK) {
+            break;
+        } else if (getValue(args, item) == TypeForCircle::TYPE_CONTINUE) {
+            continue;
+        }
+
+        napi_value callback = nullptr;
+        napi_get_reference_value(item->env_, item->callback_, &callback);
+        if (callback == nullptr) {
+            IMSA_HILOGE("callback is nullptr");
+            continue;//return nullptr;
+        }
+        napi_value global = nullptr;
+        napi_get_global(item->env_, &global);
+        napi_value result = nullptr;
+        napi_status callStatus = napi_call_function(item->env_, global, callback, paramNum, args, &result);
+        if (callStatus != napi_ok) {
+            IMSA_HILOGE(
+                "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
+            continue;
+        }
+        if (result != nullptr) {
+            napi_valuetype valueType = napi_undefined;
+            napi_typeof(item->env_, result, &valueType);
+            if (valueType != napi_boolean) {
+                continue;
+            }
+            napi_get_value_bool(item->env_, result, &isResult);
+            if (isResult) {
+                isOnKeyEvent = true;
+            }
+        }
     }
-    napi_value global = nullptr;
-    napi_get_global(element->env_, &global);
-    napi_value result;
-    napi_status callStatus = napi_call_function(element->env_, global, callback, paramNum, param, &result);
-    if (callStatus != napi_ok) {
-        IMSA_HILOGE(
-            "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-        return nullptr;
-    }
-    return result == nullptr ? nullptr : result;
+    return isOnKeyEvent;
 }
 } // namespace MiscServices
 } // namespace OHOS

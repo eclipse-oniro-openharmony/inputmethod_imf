@@ -554,19 +554,19 @@ void JsInputMethodEngineSetting::OnInputStart()
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            for (const auto &item : entry->vecCopy) {
-                if (item->threadId_ != std::this_thread::get_id()) {
-                    continue;
-                }
+
+            auto getInputStartProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> TypeForCircle {
                 napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(item->env_);
                 napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(item->env_);
                 if (keyBoardController == nullptr || textInput == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
-                    break;
+                    return TypeForCircle::TYPE_BREAK;
                 }
-                napi_value args[] = { keyBoardController, textInput };
-                JsUtils::CallJsFunction(args, ARGC_TWO, item);
-            }
+                args[ARGC_ZERO] = keyBoardController;
+                args[ARGC_ONE] = textInput;
+                return TypeForCircle::TYPE_GO;
+            };
+            JsUtils::CallJsFunction(entry->vecCopy, ARGC_TWO, getInputStartProperty);
         });
 }
 
@@ -586,13 +586,10 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
                 delete work;
             });
 
-            for (const auto &item : entry->vecCopy) {
-                if (item->threadId_ != std::this_thread::get_id()) {
-                    continue;
-                }
-                napi_value args[ARGC_ONE] = { nullptr };
-                JsUtils::CallJsFunction(args, ARGC_ZERO, item);
-            }
+            auto getKeyboardStatusProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> TypeForCircle {
+                return TypeForCircle::TYPE_GO;
+            };
+            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ZERO, getKeyboardStatusProperty);
         });
 }
 
@@ -616,14 +613,12 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
                 return;
             }
 
-            for (const auto &item : entry->vecCopy) {
-                if (item->threadId_ != std::this_thread::get_id()) {
-                    continue;
-                }
-                napi_value args[ARGC_ONE] = { nullptr };
+            auto getInputStopProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> TypeForCircle {
                 napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
-                JsUtils::CallJsFunction(args, ARGC_ONE, item);
-            }
+                return TypeForCircle::TYPE_GO;
+            };
+            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getInputStopProperty);
+
         });
 }
 
@@ -646,15 +641,12 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
                 IMSA_HILOGE("setCallingWindow:: entryptr is null");
                 return;
             }
-
-            for (const auto &item : entry->vecCopy) {
-                if (item->threadId_ != std::this_thread::get_id()) {
-                    continue;
-                }
-                napi_value args[ARGC_ONE] = { nullptr };
+            
+            auto getCallingWindowProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> TypeForCircle {
                 napi_create_int32(item->env_, entry->windowid, &args[ARGC_ZERO]);
-                JsUtils::CallJsFunction(args, ARGC_ONE, item);
-            }
+                return TypeForCircle::TYPE_GO;
+            };
+            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getCallingWindowProperty);
         });
 }
 
@@ -678,18 +670,15 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
                 return;
             }
 
-            for (const auto &item : entry->vecCopy) {
-                if (item->threadId_ != std::this_thread::get_id()) {
-                    continue;
-                }
+            auto getSubtypeProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> TypeForCircle {
                 napi_value jsObject = GetResultOnSetSubtype(item->env_, entry->subProperty);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
-                    continue;
+                    return TypeForCircle::TYPE_CONTINUE;
                 }
-                napi_value args[] = { jsObject };
-                JsUtils::CallJsFunction(args, ARGC_ONE, item);
-            }
+                return TypeForCircle::TYPE_GO;
+            };
+            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getSubtypeProperty);
         });
 }
 } // namespace MiscServices

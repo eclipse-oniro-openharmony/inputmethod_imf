@@ -56,13 +56,20 @@ enum TypeCode : int32_t {
     TYPE_BIGINT,
 };
 
+enum TypeForCircle : int32_t {
+    TYPE_GO = 0,
+    TYPE_CONTINUE,
+    TYPE_BREAK,
+};
 class JsUtils {
 public:
+    using GetValue = std::function<TypeForCircle(napi_value *, std::shared_ptr<JSCallbackObject>)>;
+
     static void ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type);
 
     static napi_value ToError(napi_env env, int32_t err);
 
-    static napi_value CallJsFunction(const napi_value* param, int paramNum, std::shared_ptr<JSCallbackObject> element);
+    static bool CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum, GetValue getValue);
 
 private:
     static int32_t Convert(int32_t code);
