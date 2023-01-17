@@ -601,7 +601,8 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
         });
 }
 
-bool JsGetInputMethodSetting::GetImeChangeProperty(napi_env env, std::shared_ptr<UvEntry> entry, std::shared_ptr<JSCallbackObject> item) 
+bool JsGetInputMethodSetting::GetImeChangeProperty(
+    napi_env env, std::shared_ptr<UvEntry> entry, std::shared_ptr<JSCallbackObject> item)
 {
     napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
     napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
@@ -612,7 +613,6 @@ bool JsGetInputMethodSetting::GetImeChangeProperty(napi_env env, std::shared_ptr
     napi_value args[] = { property, subProperty };
     JsUtils::CallJsFunction(args, ARGC_TWO, item);
     return true;
-
 }
 } // namespace MiscServices
 } // namespace OHOS

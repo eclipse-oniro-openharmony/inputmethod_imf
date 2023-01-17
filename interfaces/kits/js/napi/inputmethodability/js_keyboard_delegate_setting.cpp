@@ -586,11 +586,11 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
         });
 }
 
-void JsKeyboardDelegateSetting::GetKeyEventResult(std::shared_ptr<UvEntry> entry, bool &isOnKeyEvent, std::shared_ptr<JSCallbackObject> item)
+void JsKeyboardDelegateSetting::GetKeyEventResult(
+    std::shared_ptr<UvEntry> entry, bool &isOnKeyEvent, std::shared_ptr<JSCallbackObject> item)
 {
     bool isResult = false;
-    napi_value jsObject =
-        GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
+    napi_value jsObject = GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
     if (jsObject == nullptr) {
         IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
         return;

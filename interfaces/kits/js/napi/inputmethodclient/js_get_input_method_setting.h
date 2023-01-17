@@ -128,7 +128,8 @@ private:
         {
         }
     };
-    static bool GetImeChangeProperty(napi_env env, std::shared_ptr<UvEntry> entry, std::shared_ptr<JSCallbackObject> item);
+    static bool GetImeChangeProperty(
+        napi_env env, std::shared_ptr<UvEntry> entry, std::shared_ptr<JSCallbackObject> item);
     static const std::string IMS_CLASS_NAME;
     static thread_local napi_ref IMSRef_;
     uv_loop_s *loop_ = nullptr;

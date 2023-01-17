@@ -134,7 +134,8 @@ private:
     uv_work_t *GetSelectionUVwork(std::string type, SelectionPara para);
     uv_work_t *GetTextUVwork(std::string type, std::string text);
     uv_work_t *GetKeyEventUVwork(std::string type, KeyEventPara para, std::shared_ptr<BlockData<bool>> &isDone);
-    static void GetKeyEventResult(std::shared_ptr<UvEntry> entry, bool &isOnKeyEvent, std::shared_ptr<JSCallbackObject> item);
+    static void GetKeyEventResult(
+        std::shared_ptr<UvEntry> entry, bool &isOnKeyEvent, std::shared_ptr<JSCallbackObject> item);
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
