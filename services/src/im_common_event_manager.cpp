@@ -124,9 +124,9 @@ bool ImCommonEventManager::UnsubscribeEvent()
 ImCommonEventManager::EventSubscriber::EventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
     : EventFwk::CommonEventSubscriber(subscribeInfo)
 {
-    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_SWITCHED] = &EventSubscriber::startUser;
-    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_REMOVED] = &EventSubscriber::HandlePackageRemove;
-    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED] = &EventSubscriber::RemoveUser;
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_SWITCHED] = &EventSubscriber::StartUser;
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_REMOVED] = &EventSubscriber::RemoveUser;
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED] = &EventSubscriber::RemovePackage;
 }
 
 void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
@@ -144,17 +144,14 @@ void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::Commo
     }
 }
 
-void ImCommonEventManager::EventSubscriber::startUser(const CommonEventData &data)
+void ImCommonEventManager::EventSubscriber::StartUser(const CommonEventData &data)
 {
     auto newUserId = data.GetCode();
-    IMSA_HILOGI("ImCommonEventManager::startUser, userId = %{public}d", newUserId);
+    IMSA_HILOGI("ImCommonEventManager::StartUser, userId = %{public}d", newUserId);
     MessageParcel *parcel = new MessageParcel();
     parcel->WriteInt32(newUserId);
-
-    IMSA_HILOGI("ImCommonEventManager::startUser 2");
     Message *msg = new Message(MessageID::MSG_ID_USER_START, parcel);
     MessageHandler::Instance()->SendMessage(msg);
-    IMSA_HILOGI("ImCommonEventManager::startUser 3");
 }
 
 void ImCommonEventManager::EventSubscriber::RemoveUser(const CommonEventData &data)
@@ -163,19 +160,18 @@ void ImCommonEventManager::EventSubscriber::RemoveUser(const CommonEventData &da
     IMSA_HILOGI("ImCommonEventManager::RemoveUser, userId = %{public}d", userId);
     MessageParcel *parcel = new MessageParcel();
     parcel->WriteInt32(userId);
-
     Message *msg = new Message(MessageID::MSG_ID_USER_REMOVED, parcel);
     MessageHandler::Instance()->SendMessage(msg);
 }
 
-void ImCommonEventManager::EventSubscriber::HandlePackageRemove(const CommonEventData &data)
+void ImCommonEventManager::EventSubscriber::RemovePackage(const CommonEventData &data)
 {
     auto const &want = data.GetWant();
     std::string action = want.GetAction();
     auto element = want.GetElement();
     std::string bundleName = element.GetBundleName();
     int32_t userId = want.GetIntParam("userId", 0);
-    IMSA_HILOGD("ImCommonEventManager::HandlePackageRemove, bundleName = %{public}s, userId = %{public}d",
+    IMSA_HILOGD("ImCommonEventManager::RemovePackage, bundleName = %{public}s, userId = %{public}d",
         bundleName.c_str(), userId);
     MessageParcel *parcel = new MessageParcel();
     if (!ITypesUtil::Marshal(*parcel, userId, bundleName)) {

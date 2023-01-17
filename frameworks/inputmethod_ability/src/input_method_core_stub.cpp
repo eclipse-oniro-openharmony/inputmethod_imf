@@ -61,8 +61,7 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
             if (!inputControlChannel) {
                 IMSA_HILOGI("InputMethodCoreStub::OnRemoteRequest inputControlChannel is nullptr");
             }
-
-            InitInputControlChannel(inputControlChannel);
+            InitInputControlChannel(inputControlChannel, data.ReadString());
             reply.WriteNoException();
             break;
         }
@@ -93,7 +92,8 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
     return NO_ERROR;
 }
 
-int32_t InputMethodCoreStub::InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel)
+int32_t InputMethodCoreStub::InitInputControlChannel(
+    sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId)
 {
     IMSA_HILOGD("InputMethodCoreStub::InitInputControlChannel");
     if (!msgHandler_) {
@@ -105,6 +105,7 @@ int32_t InputMethodCoreStub::InitInputControlChannel(sptr<IInputControlChannel> 
         IMSA_HILOGI("InputMethodCoreStub::InitInputControlChannel. inputControlChannel is not nullptr");
         data->WriteRemoteObject(inputControlChannel->AsObject());
     }
+    data->WriteString(imeId);
     Message *msg = new Message(MessageID::MSG_ID_INIT_INPUT_CONTROL_CHANNEL, data);
     msgHandler_->SendMessage(msg);
     return ErrorCode::NO_ERROR;

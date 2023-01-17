@@ -44,8 +44,8 @@ public:
     public:
         EventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo);
         void OnReceiveEvent(const EventFwk::CommonEventData &data);
-        void HandlePackageRemove(const EventFwk::CommonEventData &data);
-        void startUser(const EventFwk::CommonEventData &data);
+        void RemovePackage(const EventFwk::CommonEventData &data);
+        void StartUser(const EventFwk::CommonEventData &data);
         void RemoveUser(const EventFwk::CommonEventData &data);
 
     private:

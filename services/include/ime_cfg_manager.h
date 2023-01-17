@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef SERVICES_INCLUDE_USERIMECFG_MANAGER_H
-#define SERVICES_INCLUDE_USERIMECFG_MANAGER_H
+#ifndef SERVICES_INCLUDE_IME_CFG_MANAGER_H
+#define SERVICES_INCLUDE_IME_CFG_MANAGER_H
 
 #include <memory>
 #include <mutex>
@@ -22,13 +22,18 @@
 #include <vector>
 
 #include "nlohmann/json.hpp"
+namespace OHOS {
+namespace MiscServices {
 struct ImeCfg {
     int32_t userId;
     std::string currentIme;
 };
-
-namespace OHOS {
-namespace MiscServices {
+struct FileInfo {
+    std::string path;
+    std::string fileName;
+    mode_t pathMode;
+    int32_t fileMode;
+};
 class ImeCfgManager {
 public:
     static ImeCfgManager &GetInstance();
@@ -37,25 +42,34 @@ public:
     void ModifyImeCfg(const ImeCfg &cfg);
     void DeleteImeCfg(int32_t userId);
     ImeCfg GetImeCfg(int32_t userId);
+    static ImeCfg GetImeCfgFromFile(int32_t userId);
+    static std::string GetDefaultIme();
 
 private:
-    bool CreateCfgFile() ;
-    void ReadCfgFile();
-    void WriteCfgFile();
-    inline void from_json(const nlohmann::json &jsonCfg, ImeCfg &cfg)
+    static constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
+    static constexpr int CONFIG_LEN = 128;
+    static constexpr const int32_t ERROR = -1;
+    static constexpr const int32_t SUCCESS = 0;
+    void ReadImeCfgFile();
+    void WriteImeCfgFile();
+    static int32_t CreateCacheFile(FileInfo &info);
+    static bool isCachePathExit(std::string &path);
+    static bool ReadCacheFile(const std::string &path, nlohmann::json &jsonCfg);
+    static bool WriteCacheFile(const std::string &path, const nlohmann::json &jsonCfg);
+    inline static void from_json(const nlohmann::json &jsonCfg, ImeCfg &cfg)
     {
         jsonCfg.at("userId").get_to(cfg.userId);
         jsonCfg.at("currentIme").get_to(cfg.currentIme);
     }
-    inline void to_json(nlohmann::json &jsonCfg, const ImeCfg &cfg)
+    inline static void to_json(nlohmann::json &jsonCfg, const ImeCfg &cfg)
     {
         jsonCfg = nlohmann::json{ { "userId", cfg.userId }, { "currentIme", cfg.currentIme } };
     }
-    void from_json(const nlohmann::json &jsonConfigs, std::vector<ImeCfg> &configs);
-    void to_json(nlohmann::json &jsonConfigs, const std::vector<ImeCfg> &configs);
+    static void from_json(const nlohmann::json &jsonConfigs, std::vector<ImeCfg> &configs);
+    static void to_json(nlohmann::json &jsonConfigs, const std::vector<ImeCfg> &configs);
     std::recursive_mutex imeCfgLock_;
     std::vector<ImeCfg> imeConfigs_;
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // SERVICES_INCLUDE_USERIMECFG_MANAGER_H
+#endif // SERVICES_INCLUDE_IME_CFG_MANAGER_H

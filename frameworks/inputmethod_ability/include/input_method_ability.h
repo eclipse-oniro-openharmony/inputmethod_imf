@@ -111,6 +111,7 @@ private:
     void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
     void DismissInputWindow();
     bool isImeReady_{ false };
+    static std::string currentIme_;
     InputStartNotifier notifier_;
 };
 } // namespace MiscServices

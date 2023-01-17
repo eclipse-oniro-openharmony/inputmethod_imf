@@ -31,7 +31,8 @@ InputMethodCoreProxy::InputMethodCoreProxy(const OHOS::sptr<OHOS::IRemoteObject>
 
 InputMethodCoreProxy::~InputMethodCoreProxy() = default;
 
-int32_t InputMethodCoreProxy::InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel)
+int32_t InputMethodCoreProxy::InitInputControlChannel(
+    sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId)
 {
     IMSA_HILOGD("InputMethodCoreProxy::InitInputControlChannel");
     auto remote = Remote();
@@ -51,6 +52,7 @@ int32_t InputMethodCoreProxy::InitInputControlChannel(sptr<IInputControlChannel>
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     data.WriteRemoteObject(channelObject);
+    data.WriteString(imeId);
     MessageOption option{ MessageOption::TF_SYNC };
     int32_t status = remote->SendRequest(INIT_INPUT_CONTROL_CHANNEL, data, reply, option);
     if (status != ErrorCode::NO_ERROR) {

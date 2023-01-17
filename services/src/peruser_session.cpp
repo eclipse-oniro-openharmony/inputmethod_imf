@@ -29,7 +29,6 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "message_parcel.h"
-#include "para_handle.h"
 #include "parcel.h"
 #include "system_ability_definition.h"
 #include "unistd.h"
@@ -486,7 +485,8 @@ void PerUserSession::InitInputControlChannel()
         IMSA_HILOGE("PerUserSession::InitInputControlChannel core is nullptr");
         return;
     }
-    int ret = core->InitInputControlChannel(inputControlChannel);
+    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
+    int ret = core->InitInputControlChannel(inputControlChannel, cfg.currentIme);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGI("PerUserSession::InitInputControlChannel fail %{public}s", ErrorCode::ToString(ret));
     }

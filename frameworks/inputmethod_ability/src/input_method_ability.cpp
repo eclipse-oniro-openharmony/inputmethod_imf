@@ -14,6 +14,7 @@
  */
 
 #include "input_method_ability.h"
+
 #include <unistd.h>
 
 #include "global.h"
@@ -27,7 +28,6 @@
 #include "message_parcel.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
-//#include "userImeCfg_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -35,7 +35,7 @@ class MessageHandler;
 using namespace MessageID;
 sptr<InputMethodAbility> InputMethodAbility::instance_;
 std::mutex InputMethodAbility::instanceLock_;
-
+std::string InputMethodAbility::currentIme_;
 InputMethodAbility::InputMethodAbility() : stop_(false)
 {
     writeInputChannel = nullptr;
@@ -206,6 +206,8 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
         IMSA_HILOGI("InputMethodAbility::OnInitInputControlChannel channelObject is nullptr");
         return;
     }
+    currentIme_ = data->ReadString();
+    IMSA_HILOGI("currentIme_: %{public}s", currentIme_.c_str());
     SetInputControlChannel(channelObject);
 }
 
@@ -498,9 +500,8 @@ std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlCha
 
 void InputMethodAbility::ServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 {
-    IMSA_HILOGI("ServiceDeathRecipient::OnRemoteDied");
     if (listener != nullptr) {
-        listener->OnInputStop("");
+        listener->OnInputStop(currentIme_);
     }
 }
 
