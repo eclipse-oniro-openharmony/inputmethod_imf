@@ -468,13 +468,20 @@ int32_t InputMethodSystemAbility::ListSubtypeByBundleName(
         IMSA_HILOGE("Failed to query inputmethod infos");
         return ret;
     }
+    auto bundleMgr = GetBundleMgr();
+    if (bundleMgr == nullptr) {
+        IMSA_HILOGE("Failed to GetBundleMgr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     for (const auto &subtypeInfo : subtypeInfos) {
         if (subtypeInfo.bundleName == name) {
             std::vector<Metadata> extends = subtypeInfo.metadata;
             auto property = GetExtends(extends);
+            auto label =
+                bundleMgr->GetStringById(subtypeInfo.bundleName, subtypeInfo.moduleName, subtypeInfo.labelId, userId);
             subProps.push_back({ .id = subtypeInfo.bundleName,
                 .label = subtypeInfo.name,
-                .name = subtypeInfo.moduleName,
+                .name = label,
                 .iconId = subtypeInfo.iconId,
                 .language = property.language,
                 .mode = property.mode,
