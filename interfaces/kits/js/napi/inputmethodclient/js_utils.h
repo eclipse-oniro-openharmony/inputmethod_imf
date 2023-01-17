@@ -64,15 +64,6 @@ public:
 
     static napi_value CallJsFunction(const napi_value* param, int paramNum, std::shared_ptr<JSCallbackObject> element);
 
-    static inline void CompareThread(size_t &i, std::vector<std::shared_ptr<JSCallbackObject>> &element)
-    {
-        while (i < element.size() && element[i]->threadId_ != std::this_thread::get_id()) {
-            IMSA_HILOGD("differ threadId.");
-            ++i;
-        }
-    }
-
-
 private:
     static int32_t Convert(int32_t code);
 

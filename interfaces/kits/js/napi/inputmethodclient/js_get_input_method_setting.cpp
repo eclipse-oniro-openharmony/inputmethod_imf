@@ -590,18 +590,29 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            for (size_t i = 0; i < entry->vecCopy.size(); ) {
-                JsUtils::CompareThread(i, entry->vecCopy);
-                napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(entry->vecCopy[i]->env_, entry->subProperty);
-                napi_value property = JsInputMethod::GetJsInputMethodProperty(entry->vecCopy[i]->env_, entry->property);
-                if (subProperty == nullptr || property == nullptr) {
-                    IMSA_HILOGE("get KBCins or TICins failed:");
+            for (const auto &item : entry->vecCopy) {
+                if (item->threadId_ != std::this_thread::get_id()) {
+                    continue;
+                }
+                if (!GetImeChangeProperty(item->env_, entry, item)) {
                     break;
                 }
-                napi_value args[] = { property, subProperty };
-                JsUtils::CallJsFunction(args, ARGC_TWO, entry->vecCopy[i]);
             }
         });
+}
+
+bool JsGetInputMethodSetting::GetImeChangeProperty(napi_env env, std::shared_ptr<UvEntry> entry, std::shared_ptr<JSCallbackObject> item) 
+{
+    napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
+    napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
+    if (subProperty == nullptr || property == nullptr) {
+        IMSA_HILOGE("get KBCins or TICins failed:");
+        return false;
+    }
+    napi_value args[] = { property, subProperty };
+    JsUtils::CallJsFunction(args, ARGC_TWO, item);
+    return true;
+
 }
 } // namespace MiscServices
 } // namespace OHOS
