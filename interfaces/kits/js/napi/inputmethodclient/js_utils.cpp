@@ -171,9 +171,10 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
         }
 
         napi_value args[paramNum];
-        if (getValue(args, item) == TypeForCircle::TYPE_BREAK) {
+        int32_t type = getValue(args, item);
+        if (type == static_cast<int32_t>TypeForCircle::TYPE_BREAK) {
             break;
-        } else if (getValue(args, item) == TypeForCircle::TYPE_CONTINUE) {
+        } else if (type == static_cast<int32_t>TypeForCircle::TYPE_CONTINUE) {
             continue;
         }
 
