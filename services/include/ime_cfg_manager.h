@@ -45,27 +45,23 @@ public:
     static std::string GetDefaultIme();
 
 private:
-    static constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
-    static constexpr int CONFIG_LEN = 128;
-    static constexpr const int32_t ERROR = -1;
-    static constexpr const int32_t SUCCESS = 0;
     void ReadImeCfgFile();
     void WriteImeCfgFile();
     static int32_t CreateCacheFile(FileInfo &info);
-    static bool isCachePathExit(std::string &path);
+    static bool IsCachePathExit(std::string &path);
     static bool ReadCacheFile(const std::string &path, nlohmann::json &jsonCfg);
     static bool WriteCacheFile(const std::string &path, const nlohmann::json &jsonCfg);
-    inline static void from_json(const nlohmann::json &jsonCfg, ImeCfg &cfg)
+    inline static void FromJson(const nlohmann::json &jsonCfg, ImeCfg &cfg)
     {
         jsonCfg.at("userId").get_to(cfg.userId);
         jsonCfg.at("currentIme").get_to(cfg.currentIme);
     }
-    inline static void to_json(nlohmann::json &jsonCfg, const ImeCfg &cfg)
+    inline static void ToJson(nlohmann::json &jsonCfg, const ImeCfg &cfg)
     {
         jsonCfg = nlohmann::json{ { "userId", cfg.userId }, { "currentIme", cfg.currentIme } };
     }
-    static void from_json(const nlohmann::json &jsonConfigs, std::vector<ImeCfg> &configs);
-    static void to_json(nlohmann::json &jsonConfigs, const std::vector<ImeCfg> &configs);
+    static void FromJson(const nlohmann::json &jsonConfigs, std::vector<ImeCfg> &configs);
+    static void ToJson(nlohmann::json &jsonConfigs, const std::vector<ImeCfg> &configs);
     std::recursive_mutex imeCfgLock_;
     std::vector<ImeCfg> imeConfigs_;
 };

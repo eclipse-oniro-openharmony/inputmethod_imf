@@ -17,10 +17,10 @@
 
 #include <vector>
 
-#include "ime_cfg_manager.h"
 #include "ability_connect_callback_proxy.h"
 #include "ability_manager_interface.h"
 #include "element_name.h"
+#include "ime_cfg_manager.h"
 #include "input_client_proxy.h"
 #include "input_control_channel_proxy.h"
 #include "input_data_channel_proxy.h"
@@ -277,7 +277,7 @@ namespace MiscServices {
         }
         IMSA_HILOGI("IME died. Restart input method...[%{public}d]\n", userId_);
         auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-        auto currentIme = cfg.currentIme;
+        auto &currentIme = cfg.currentIme;
         if (currentIme.empty()) {
             IMSA_HILOGE("currentIme is empty");
             return;
