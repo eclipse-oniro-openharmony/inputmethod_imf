@@ -15,7 +15,6 @@
 
 #include "input_method_ability.h"
 
-#include <para_handle.h>
 #include <unistd.h>
 
 #include "global.h"
@@ -36,7 +35,7 @@ namespace MiscServices {
     using namespace MessageID;
     sptr<InputMethodAbility> InputMethodAbility::instance_;
     std::mutex InputMethodAbility::instanceLock_;
-
+    std::string InputMethodAbility::currentIme_;
     InputMethodAbility::InputMethodAbility() : stop_(false)
     {
         writeInputChannel = nullptr;
@@ -210,6 +209,8 @@ namespace MiscServices {
             IMSA_HILOGI("InputMethodAbility::OnInitInputControlChannel channelObject is nullptr");
             return;
         }
+        currentIme_ = data->ReadString();
+        IMSA_HILOGI("currentIme_: %{public}s", currentIme_.c_str());
         SetInputControlChannel(channelObject);
     }
 
@@ -507,7 +508,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("ServiceDeathRecipient::OnRemoteDied");
         if (listener != nullptr) {
-            listener->OnInputStop(ParaHandle::GetDefaultIme(Utils::ToUserId(getuid())));
+            listener->OnInputStop(currentIme_);
         }
     }
 

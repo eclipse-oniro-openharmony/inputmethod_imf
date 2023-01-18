@@ -42,11 +42,15 @@ public:
     bool UnsubscribeEvent();
     class EventSubscriber : public EventFwk::CommonEventSubscriber {
     public:
-        EventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
-            : EventFwk::CommonEventSubscriber(subscribeInfo) {}
+        EventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo);
         void OnReceiveEvent(const EventFwk::CommonEventData &data);
-        void HandlePackageRemove(const AAFwk::Want &want, const std::string action);
-        void startUser(int32_t newUserId);
+        void RemovePackage(const EventFwk::CommonEventData &data);
+        void StartUser(const EventFwk::CommonEventData &data);
+        void RemoveUser(const EventFwk::CommonEventData &data);
+
+    private:
+        using EventListenerFunc = void (EventSubscriber::*)(const EventFwk::CommonEventData &data);
+        std::map<std::string, EventListenerFunc> EventManagerFunc_;
     };
 private:
     class SystemAbilityStatusChangeListener : public SystemAbilityStatusChangeStub {

@@ -92,6 +92,7 @@ private:
     bool StartInputService(std::string imeId);
     void StopInputService(std::string imeId);
     int32_t OnUserStarted(const Message *msg);
+    int32_t OnUserRemoved(const Message *msg);
     int32_t OnHandleMessage(Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
     int32_t OnDisplayOptionalInputMethod(int32_t userId);
@@ -126,6 +127,7 @@ private:
     int32_t SwitchByCombinationKey(uint32_t state);
 
     int32_t QueryImeInfos(int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &infos);
+    bool IsImeInstalled(int32_t userId, std::string &imeId);
 };
 } // namespace MiscServices
 } // namespace OHOS

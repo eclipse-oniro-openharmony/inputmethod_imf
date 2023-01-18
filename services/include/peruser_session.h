@@ -74,9 +74,9 @@ namespace MiscServices {
     */
     class PerUserSession {
         enum : int32_t {
-            DEFAULT_IME = 0, // index for default input method service
-            SECURITY_IME,    // index for security input method service
-            MAX_IME          // the maximum count of ims started for a user
+            CURRENT_IME = 0, // index for current ime
+            SECURITY_IME,    // index for security ime
+            MAX_IME          // the maximum count of ime started for a user
         };
 
     public:
@@ -98,6 +98,7 @@ namespace MiscServices {
 
         void SetCurrentSubProperty(const SubProperty &subProperty);
         SubProperty GetCurrentSubProperty();
+        void UpdateCurrentUserId(int32_t userId);
 
     private:
         int userId_; // the id of the user to whom the object is linking
@@ -150,7 +151,7 @@ namespace MiscServices {
         sptr<IInputMethodCore> GetImsCore(int32_t index);
         static inline bool IsValid(int32_t index)
         {
-            return index >= DEFAULT_IME && index <= SECURITY_IME;
+            return index >= CURRENT_IME && index <= SECURITY_IME;
         }
 
         std::mutex propertyLock_;

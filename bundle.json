@@ -65,7 +65,6 @@
                   "//base/inputmethod/imf/etc/init:inputmethodservice.cfg", 
                   "//base/inputmethod/imf/etc/para:inputmethod.para", 
                   "//base/inputmethod/imf/etc/para:inputmethod.para.dac",
-                  "//base/inputmethod/imf/etc/para:inputmethod_para", 
                   "//base/inputmethod/imf/profile:inputmethod_inputmethod_sa_profiles", 
                   "//base/inputmethod/imf/services:inputmethod_service"
               ]

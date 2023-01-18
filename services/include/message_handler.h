@@ -34,6 +34,7 @@ namespace MessageID {
         MSG_ID_USER_START, //  a user started
         MSG_ID_USER_STOP, // a user stopped
         MSG_ID_USER_UNLOCK, // a user unlocked
+        MSG_ID_USER_REMOVED,     // a user removed
         MSG_ID_PACKAGE_ADDED, // a package is installed
         MSG_ID_PACKAGE_REMOVED, // a package is removed
         MSG_ID_SETTING_CHANGED, // input method setting is changed
