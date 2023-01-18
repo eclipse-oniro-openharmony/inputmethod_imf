@@ -30,12 +30,10 @@ namespace OHOS {
 namespace MiscServices {
 namespace {
 constexpr const char *IME_CFG_DIR = "/data/service/el1/public/imf/ime_cfg";
-constexpr const char *IME_CFG_FILENAME = "ime_cfg.json";
 constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg/ime_cfg.json";
 static constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
 static constexpr int32_t CONFIG_LEN = 128;
 static constexpr int32_t SUCCESS = 0;
-static constexpr int32_t ERROR = -1;
 using json = nlohmann::json;
 } // namespace
 ImeCfgManager &ImeCfgManager::GetInstance()
@@ -46,9 +44,9 @@ ImeCfgManager &ImeCfgManager::GetInstance()
 
 void ImeCfgManager::Init()
 {
-    FileInfo info{ IME_CFG_DIR, IME_CFG_FILENAME, S_IRWXU, S_IRWXU };
-    if (CreateCacheFile(info) == ERROR) {
-        IMSA_HILOGE("CreateCacheFile failed");
+    std::string path(IME_CFG_DIR);
+    if (CreateCachePath(path, S_IRWXU) != SUCCESS) {
+        IMSA_HILOGE("CreateCachePath failed");
         return;
     }
     ReadImeCfgFile();
@@ -142,22 +140,13 @@ void ImeCfgManager::ToJson(json &jsonConfigs, const std::vector<ImeCfg> &configs
     }
 }
 
-int32_t ImeCfgManager::CreateCacheFile(FileInfo &info)
+int32_t ImeCfgManager::CreateCachePath(std::string &path, mode_t pathMode)
 {
-    if (!IsCachePathExit(info.path)) {
-        IMSA_HILOGI("dir: %{public}s not exist", info.path.c_str());
-        auto errCode = mkdir(info.path.c_str(), info.pathMode);
-        if (errCode == ERROR) {
-            IMSA_HILOGE("CreateDirFailed");
-            return ERROR;
-        }
-    }
-    std::string fileName = info.path + "/" + info.fileName;
-    if (IsCachePathExit(fileName)) {
+    if (IsCachePathExit(path)) {
+        IMSA_HILOGI("dir: %{public}s exist", path.c_str());
         return SUCCESS;
     }
-    IMSA_HILOGI("file: %{public}s not exist", info.fileName.c_str());
-    return creat(fileName.c_str(), info.fileMode);
+    return mkdir(path.c_str(), pathMode);
 }
 
 bool ImeCfgManager::IsCachePathExit(std::string &path)
@@ -167,7 +156,7 @@ bool ImeCfgManager::IsCachePathExit(std::string &path)
 
 bool ImeCfgManager::ReadCacheFile(const std::string &path, json &jsonCfg)
 {
-    std::ifstream jsonFs(path);
+    std::fstream jsonFs(path, std::ios_base::out);
     if (!jsonFs.is_open()) {
         IMSA_HILOGE("file read open failed");
         return false;

@@ -28,12 +28,6 @@ struct ImeCfg {
     int32_t userId;
     std::string currentIme;
 };
-struct FileInfo {
-    std::string path;
-    std::string fileName;
-    mode_t pathMode;
-    int32_t fileMode;
-};
 class ImeCfgManager {
 public:
     static ImeCfgManager &GetInstance();
@@ -47,7 +41,7 @@ public:
 private:
     void ReadImeCfgFile();
     void WriteImeCfgFile();
-    static int32_t CreateCacheFile(FileInfo &info);
+    static int32_t CreateCachePath(std::string &path, mode_t pathMode);
     static bool IsCachePathExit(std::string &path);
     static bool ReadCacheFile(const std::string &path, nlohmann::json &jsonCfg);
     static bool WriteCacheFile(const std::string &path, const nlohmann::json &jsonCfg);
