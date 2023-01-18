@@ -113,24 +113,6 @@ ImeCfg ImeCfgManager::GetImeCfg(int32_t userId)
     return {};
 }
 
-ImeCfg ImeCfgManager::GetImeCfgFromFile(int32_t userId)
-{
-    json jsonConfigs;
-    bool ret = ReadCacheFile(IME_CFG_FILE_PATH, jsonConfigs);
-    if (!ret) {
-        IMSA_HILOGE("ReadJsonFile failed");
-        return {};
-    }
-    for (auto &jsonCfg : jsonConfigs["imeCfg_list"]) {
-        if (jsonCfg["userId"] == userId) {
-            ImeCfg cfg;
-            from_json(jsonCfg, cfg);
-            return cfg;
-        }
-    }
-    return {};
-}
-
 std::string ImeCfgManager::GetDefaultIme()
 {
     char value[CONFIG_LEN] = { 0 };

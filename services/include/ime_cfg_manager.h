@@ -42,7 +42,6 @@ public:
     void ModifyImeCfg(const ImeCfg &cfg);
     void DeleteImeCfg(int32_t userId);
     ImeCfg GetImeCfg(int32_t userId);
-    static ImeCfg GetImeCfgFromFile(int32_t userId);
     static std::string GetDefaultIme();
 
 private:

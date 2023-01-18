@@ -177,8 +177,8 @@ int32_t InputMethodSystemAbility::Init()
     state_ = ServiceRunningState::STATE_RUNNING;
     userSessions.insert({ MAIN_USER_ID, std::make_shared<PerUserSession>(MAIN_USER_ID) });
     ImeCfgManager::GetInstance().Init();
-    //服务异常重启后不会走OnUserStarted，但是可以获取到当前userId
-    //设备启动时可能获取不到当前userId,如果获取不到，则等OnUserStarted的时候处理.
+    // 服务异常重启后不会走OnUserStarted，但是可以获取到当前userId
+    // 设备启动时可能获取不到当前userId,如果获取不到，则等OnUserStarted的时候处理.
     userId_ = INVALID_USERID_VALUE;
     std::vector<int32_t> userIds;
     if ((OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK) && !userIds.empty()) {
