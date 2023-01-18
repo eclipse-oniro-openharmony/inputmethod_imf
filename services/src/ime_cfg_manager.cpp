@@ -156,7 +156,7 @@ bool ImeCfgManager::IsCachePathExit(std::string &path)
 
 bool ImeCfgManager::ReadCacheFile(const std::string &path, json &jsonCfg)
 {
-    std::fstream jsonFs(path, std::ios_base::out);
+    std::ifstream jsonFs(path);
     if (!jsonFs.is_open()) {
         IMSA_HILOGE("file read open failed");
         return false;
