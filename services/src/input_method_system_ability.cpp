@@ -932,9 +932,8 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
         IMSA_HILOGE("Aborted! %s", ErrorCode::ToString(ErrorCode::ERROR_BAD_PARAMETERS));
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-
     auto userId = msg->msgContent_->ReadInt32();
-    IMSA_HILOGI("InputMethodSystemAbility::OnUserRemoved Start: %{public}d", userId);
+    IMSA_HILOGI("Start: %{public}d", userId);
     ImeCfgManager::GetInstance().DeleteImeCfg(userId);
     return ErrorCode::NO_ERROR;
 }
@@ -991,6 +990,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
             IMSA_HILOGE("InputMethodSystemAbility::defaultIme is empty");
             return ErrorCode::ERROR_PERSIST_CONFIG;
         }
+        pos = defaultIme.find("/");
         int32_t ret =
             OnSwitchInputMethod(defaultIme.substr(0, pos), defaultIme.substr(pos + 1, defaultIme.length() - pos - 1));
         IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
