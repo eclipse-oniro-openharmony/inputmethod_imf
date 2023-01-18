@@ -182,16 +182,8 @@ int32_t InputMethodSystemAbility::Init()
     if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
         userId_ = userIds[0];
         IMSA_HILOGI("InputMethodSystemAbility::get current userId success, userId: %{public}d", userId_);
-
-        auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-        auto newUserIme = cfg.currentIme;
-        if (newUserIme.empty()) {
-            newUserIme = ImeCfgManager::GetDefaultIme();
-            ImeCfgManager::GetInstance().AddImeCfg({ userId_, newUserIme });
-        }
-        StartInputService(newUserIme);
+        StartInputService(GetNewUserIme(userId_));
     }
-
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
@@ -876,6 +868,25 @@ bool InputMethodSystemAbility::IsImeInstalled(int32_t userId, std::string &imeId
     return false;
 }
 
+std::string InputMethodSystemAbility::GetNewUserIme(int32_t userId)
+{
+    auto defaultIme = ImeCfgManager::GetDefaultIme();
+    if (defaultIme.empty()) {
+        IMSA_HILOGE("InputMethodSystemAbility::defaultIme is empty");
+        return "";
+    }
+    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId);
+    auto newUserIme = cfg.currentIme;
+    if (newUserIme.empty()) {
+        newUserIme = defaultIme;
+        ImeCfgManager::GetInstance().AddImeCfg({ userId, newUserIme });
+    } else if (!IsImeInstalled(userId, newUserIme)) {
+        newUserIme = defaultIme;
+        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newUserIme });
+    }
+    return newUserIme;
+}
+
 /*! Called when a user is started. (EVENT_USER_STARTED is received)
     \n Run in work thread of input method management service
     \param msg the parameters are saved in msg->msgContent_
@@ -895,12 +906,6 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
             IMSA_HILOGE("InputMethodSystemAbility::lastUserIme is empty");
         }
     }
-    auto defaultIme = ImeCfgManager::GetDefaultIme();
-    if (defaultIme.empty()) {
-        IMSA_HILOGE("InputMethodSystemAbility::defaultIme is empty");
-        return ErrorCode::ERROR_PERSIST_CONFIG;
-    }
-
     int32_t newUserId = msg->msgContent_->ReadInt32();
     IMSA_HILOGI("lastUserId: %{public}d, newUserId: %{public}d", userId_, newUserId);
     userId_ = newUserId;
@@ -908,20 +913,11 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     if (it != userSessions.end()) {
         it->second->UpdateCurrentUserId(newUserId);
     }
-    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(newUserId);
-    auto newUserIme = cfg.currentIme;
-    if (newUserIme.empty()) {
-        newUserIme = defaultIme;
-        ImeCfgManager::GetInstance().AddImeCfg({ newUserId, newUserIme });
-    } else if (!IsImeInstalled(newUserId, newUserIme)) {
-        newUserIme = defaultIme;
-        ImeCfgManager::GetInstance().ModifyImeCfg({ newUserId, newUserIme });
-    }
     if (!lastUserIme.empty()) {
         IMSA_HILOGI("service restart or user switch");
         StopInputService(lastUserIme);
     }
-    StartInputService(newUserIme);
+    StartInputService(GetNewUserIme(newUserId));
     return ErrorCode::NO_ERROR;
 }
 

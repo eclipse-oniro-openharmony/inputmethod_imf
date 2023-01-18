@@ -35,6 +35,7 @@ constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg/
 static constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
 static constexpr int32_t CONFIG_LEN = 128;
 static constexpr int32_t SUCCESS = 0;
+static constexpr int32_t ERROR = -1;
 using json = nlohmann::json;
 } // namespace
 ImeCfgManager &ImeCfgManager::GetInstance()
@@ -46,7 +47,7 @@ ImeCfgManager &ImeCfgManager::GetInstance()
 void ImeCfgManager::Init()
 {
     FileInfo info{ IME_CFG_DIR, IME_CFG_FILENAME, S_IRWXU, S_IRWXU };
-    if (CreateCacheFile(info) != SUCCESS) {
+    if (CreateCacheFile(info) == ERROR) {
         IMSA_HILOGE("CreateCacheFile failed");
         return;
     }
@@ -146,9 +147,9 @@ int32_t ImeCfgManager::CreateCacheFile(FileInfo &info)
     if (!IsCachePathExit(info.path)) {
         IMSA_HILOGI("dir: %{public}s not exist", info.path.c_str());
         auto errCode = mkdir(info.path.c_str(), info.pathMode);
-        if (errCode != SUCCESS) {
+        if (errCode == ERROR) {
             IMSA_HILOGE("CreateDirFailed");
-            return errCode;
+            return ERROR;
         }
     }
     std::string fileName = info.path + "/" + info.fileName;
