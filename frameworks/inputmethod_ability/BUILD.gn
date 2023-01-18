@@ -51,7 +51,6 @@ ohos_shared_library("inputmethod_ability") {
   configs = [ ":inputmethod_ability_native_config" ]
 
   deps = [
-    "//base/inputmethod/imf/etc/para:inputmethod_para",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
   ]
