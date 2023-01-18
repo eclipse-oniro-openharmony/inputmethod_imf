@@ -47,7 +47,7 @@ namespace MiscServices {
     REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
     const std::int32_t INIT_INTERVAL = 10000L;
     const std::int32_t MAIN_USER_ID = 100;
-
+    constexpr int32_t INVALID_USER_ID = -1;
     std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
     /**
@@ -231,7 +231,7 @@ namespace MiscServices {
         workThreadHandler = std::thread([this] { WorkThread(); });
         userSessions.insert({ MAIN_USER_ID, std::make_shared<PerUserSession>(MAIN_USER_ID) });
 
-        userId_ = INVALID_USERID_VALUE;
+        userId_ = INVALID_USER_ID;
     }
 
     void InputMethodSystemAbility::StartUserIdListener()
@@ -888,7 +888,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     std::string lastUserIme;
-    if (userId_ != INVALID_USERID_VALUE) {
+    if (userId_ != INVALID_USER_ID) {
         auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
         lastUserIme = cfg.currentIme;
         if (lastUserIme.empty()) {
