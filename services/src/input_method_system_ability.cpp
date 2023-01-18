@@ -974,7 +974,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    // 用户切换时也会有该通知，如果移除的app用户不是当前用户，则不处理
+    // 用户移除也会有该通知，如果移除的app用户不是当前用户，则不处理
     if (userId != userId_) {
         return ErrorCode::NO_ERROR;
     }
