@@ -124,7 +124,7 @@ int InputMethodSystemAbility::Dump(int fd, const std::vector<std::u16string> &ar
 std::string InputMethodSystemAbility::GetInputMethodParam(const std::vector<InputMethodInfo> &properties)
 {
     auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-    auto currentIme = cfg.currentIme;
+    auto &currentIme = cfg.currentIme;
     bool isBegin = true;
     std::string params = "{\"imeList\":[";
     for (const auto &property : properties) {
@@ -175,13 +175,11 @@ int32_t InputMethodSystemAbility::Init()
     }
     IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
     state_ = ServiceRunningState::STATE_RUNNING;
-    userSessions.insert({ MAIN_USER_ID, std::make_shared<PerUserSession>(MAIN_USER_ID) });
     ImeCfgManager::GetInstance().Init();
     // 服务异常重启后不会走OnUserStarted，但是可以获取到当前userId
     // 设备启动时可能获取不到当前userId,如果获取不到，则等OnUserStarted的时候处理.
-    userId_ = INVALID_USERID_VALUE;
     std::vector<int32_t> userIds;
-    if ((OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK) && !userIds.empty()) {
+    if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
         userId_ = userIds[0];
         IMSA_HILOGI("InputMethodSystemAbility::get current userId success, userId: %{public}d", userId_);
 
@@ -233,6 +231,8 @@ void InputMethodSystemAbility::Initialize()
     IMSA_HILOGI("InputMethodSystemAbility::Initialize");
     // init work thread to handle the messages
     workThreadHandler = std::thread([this] { WorkThread(); });
+    userSessions.insert({ MAIN_USER_ID, std::make_shared<PerUserSession>(MAIN_USER_ID) });
+    userId_ = INVALID_USERID_VALUE;
 }
 
 void InputMethodSystemAbility::StartUserIdListener()
@@ -589,7 +589,7 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleN
     IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod");
     std::string targetIme = bundleName + "/" + name;
     auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-    auto currentIme = cfg.currentIme;
+    auto &currentIme = cfg.currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("currentIme is empty");
         return ErrorCode::ERROR_PERSIST_CONFIG;
@@ -761,7 +761,7 @@ std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
     IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
     auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-    auto currentIme = cfg.currentIme;
+    auto &currentIme = cfg.currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme is empty");
         return nullptr;
@@ -788,7 +788,7 @@ std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubt
     IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethodSubtype");
 
     auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-    auto currentIme = cfg.currentIme;
+    auto &currentIme = cfg.currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("InputMethodSystemAbility currentIme is empty");
         return nullptr;
@@ -863,7 +863,6 @@ void InputMethodSystemAbility::WorkThread()
 
 bool InputMethodSystemAbility::IsImeInstalled(int32_t userId, std::string &imeId)
 {
-    IMSA_HILOGI("Start");
     std::vector<Property> props;
     ListAllInputMethod(userId, props);
     for (auto const &prop : props) {
@@ -977,7 +976,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
     }
 
     auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId);
-    auto currentIme = cfg.currentIme;
+    auto &currentIme = cfg.currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("InputMethodSystemAbility::currentIme is empty");
         return ErrorCode::ERROR_PERSIST_CONFIG;

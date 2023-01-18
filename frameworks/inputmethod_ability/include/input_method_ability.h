@@ -88,6 +88,7 @@ private:
     struct ServiceDeathRecipient : public IRemoteObject::DeathRecipient {
         std::shared_ptr<InputMethodEngineListener> listener{ nullptr };
         void OnRemoteDied(const wptr<IRemoteObject> &object) override;
+        std::string currentIme_;
     };
     sptr<ServiceDeathRecipient> deathRecipientPtr_{ nullptr };
     sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
@@ -111,7 +112,6 @@ private:
     void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
     void DismissInputWindow();
     bool isImeReady_{ false };
-    static std::string currentIme_;
     InputStartNotifier notifier_;
 };
 } // namespace MiscServices

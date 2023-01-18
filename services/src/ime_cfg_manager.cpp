@@ -32,6 +32,9 @@ namespace {
 constexpr const char *IME_CFG_DIR = "/data/service/el1/public/imf/ime_cfg";
 constexpr const char *IME_CFG_FILENAME = "ime_cfg.json";
 constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg/ime_cfg.json";
+static constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
+static constexpr int32_t CONFIG_LEN = 128;
+static constexpr int32_t SUCCESS = 0;
 using json = nlohmann::json;
 } // namespace
 ImeCfgManager &ImeCfgManager::GetInstance()
@@ -59,14 +62,14 @@ void ImeCfgManager::ReadImeCfgFile()
         return;
     }
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    from_json(jsonConfigs, imeConfigs_);
+    FromJson(jsonConfigs, imeConfigs_);
 }
 
 void ImeCfgManager::WriteImeCfgFile()
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     json jsonConfigs;
-    to_json(jsonConfigs, imeConfigs_);
+    ToJson(jsonConfigs, imeConfigs_);
     if (!WriteCacheFile(IME_CFG_FILE_PATH, jsonConfigs)) {
         IMSA_HILOGE("WriteJsonFile failed");
     }
@@ -116,35 +119,31 @@ ImeCfg ImeCfgManager::GetImeCfg(int32_t userId)
 std::string ImeCfgManager::GetDefaultIme()
 {
     char value[CONFIG_LEN] = { 0 };
-    int code = 0;
-    code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
-    if (code > 0) {
-        return value;
-    }
-    return "";
+    auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
+    return code > 0 ? value : "";
 }
 
-void ImeCfgManager::from_json(const json &jsonConfigs, std::vector<ImeCfg> &configs)
+void ImeCfgManager::FromJson(const json &jsonConfigs, std::vector<ImeCfg> &configs)
 {
     for (auto &jsonCfg : jsonConfigs["imeCfg_list"]) {
         ImeCfg cfg;
-        from_json(jsonCfg, cfg);
+        FromJson(jsonCfg, cfg);
         configs.push_back(cfg);
     }
 }
 
-void ImeCfgManager::to_json(json &jsonConfigs, const std::vector<ImeCfg> &configs)
+void ImeCfgManager::ToJson(json &jsonConfigs, const std::vector<ImeCfg> &configs)
 {
     for (auto &cfg : configs) {
         json jsonCfg;
-        to_json(jsonCfg, cfg);
+        ToJson(jsonCfg, cfg);
         jsonConfigs["imeCfg_list"].push_back(jsonCfg);
     }
 }
 
 int32_t ImeCfgManager::CreateCacheFile(FileInfo &info)
 {
-    if (!isCachePathExit(info.path)) {
+    if (!IsCachePathExit(info.path)) {
         IMSA_HILOGI("dir: %{public}s not exist", info.path.c_str());
         auto errCode = mkdir(info.path.c_str(), info.pathMode);
         if (errCode != SUCCESS) {
@@ -153,14 +152,14 @@ int32_t ImeCfgManager::CreateCacheFile(FileInfo &info)
         }
     }
     std::string fileName = info.path + "/" + info.fileName;
-    if (isCachePathExit(fileName)) {
+    if (IsCachePathExit(fileName)) {
         return SUCCESS;
     }
     IMSA_HILOGI("file: %{public}s not exist", info.fileName.c_str());
     return creat(fileName.c_str(), info.fileMode);
 }
 
-bool ImeCfgManager::isCachePathExit(std::string &path)
+bool ImeCfgManager::IsCachePathExit(std::string &path)
 {
     return access(path.c_str(), F_OK) == SUCCESS;
 }

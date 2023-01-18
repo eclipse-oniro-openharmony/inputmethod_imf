@@ -35,7 +35,6 @@ class MessageHandler;
 using namespace MessageID;
 sptr<InputMethodAbility> InputMethodAbility::instance_;
 std::mutex InputMethodAbility::instanceLock_;
-std::string InputMethodAbility::currentIme_;
 InputMethodAbility::InputMethodAbility() : stop_(false)
 {
     writeInputChannel = nullptr;
@@ -206,8 +205,9 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
         IMSA_HILOGI("InputMethodAbility::OnInitInputControlChannel channelObject is nullptr");
         return;
     }
-    currentIme_ = data->ReadString();
-    IMSA_HILOGI("currentIme_: %{public}s", currentIme_.c_str());
+    if (deathRecipientPtr_ != nullptr) {
+        deathRecipientPtr_->currentIme_ = data->ReadString();
+    }
     SetInputControlChannel(channelObject);
 }
 
@@ -500,6 +500,7 @@ std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlCha
 
 void InputMethodAbility::ServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 {
+    IMSA_HILOGI("ServiceDeathRecipient::OnRemoteDied");
     if (listener != nullptr) {
         listener->OnInputStop(currentIme_);
     }
