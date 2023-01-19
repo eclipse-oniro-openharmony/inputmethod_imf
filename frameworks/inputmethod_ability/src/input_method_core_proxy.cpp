@@ -32,7 +32,8 @@ namespace MiscServices {
     InputMethodCoreProxy::~InputMethodCoreProxy() = default;
 
 
-    int32_t InputMethodCoreProxy::InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel)
+    int32_t InputMethodCoreProxy::InitInputControlChannel(
+        sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId)
     {
         IMSA_HILOGD("InputMethodCoreProxy::InitInputControlChannel");
         auto remote = Remote();
@@ -52,6 +53,7 @@ namespace MiscServices {
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
         data.WriteRemoteObject(channelObject);
+        data.WriteString(imeId);
         MessageOption option {
             MessageOption::TF_SYNC
         };

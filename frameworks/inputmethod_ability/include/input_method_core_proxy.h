@@ -37,7 +37,7 @@ namespace MiscServices {
         int32_t showKeyboard(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard,
             const SubProperty &subProperty) override;
         bool hideKeyboard(int32_t flags) override;
-        int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel) override;
+        int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) override;
         void StopInputService(std::string imeId) override;
         int32_t SetSubtype(const SubProperty &property) override;
 
