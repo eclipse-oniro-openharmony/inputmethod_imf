@@ -590,16 +590,16 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            auto getImeChangeProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> TypeForCircle {
+            auto getImeChangeProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
                 napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
                 napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
                 if (subProperty == nullptr || property == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
-                    return TypeForCircle::TYPE_BREAK;
+                    return false;
                 }
                 args[ARGC_ZERO] = property;
                 args[ARGC_ONE] = subProperty;
-                return TypeForCircle::TYPE_GO;
+                return true;
             };
             JsUtils::CallJsFunction(entry->vecCopy, ARGC_TWO, getImeChangeProperty);
         });

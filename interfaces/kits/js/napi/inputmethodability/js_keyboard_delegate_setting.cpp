@@ -370,14 +370,14 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 delete data;
                 delete work;
             });
-            auto getKeyEventProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> TypeForCircle {
+            auto getKeyEventProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
                 napi_value jsObject = GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
-                    return TypeForCircle::TYPE_CONTINUE;
+                    return false;
                 }
                 args[ARGC_ONE] = { jsObject };
-                return TypeForCircle::TYPE_GO;
+                return true;s
             };
             bool isOnKeyEvent = JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
             entry->isDone->SetValue(isOnKeyEvent);
@@ -518,11 +518,11 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
                 delete work;
             });
 
-            auto getCursorUpdateProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> TypeForCircle {
+            auto getCursorUpdateProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
                 napi_create_int32(item->env_, entry->curPara.positionX, &args[ARGC_ZERO]);
                 napi_create_int32(item->env_, entry->curPara.positionY, &args[ARGC_ONE]);
                 napi_create_int32(item->env_, entry->curPara.height, &args[ARGC_TWO]);
-                return TypeForCircle::TYPE_GO;
+                return true;
             };
             JsUtils::CallJsFunction(entry->vecCopy, ARGC_THREE, getCursorUpdateProperty);
         });
@@ -545,12 +545,12 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
                 delete work;
             });
 
-            auto getSelectionChangeProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> TypeForCircle {
+            auto getSelectionChangeProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
                 napi_create_int32(item->env_, entry->selPara.oldBegin, &args[ARGC_ZERO]);
                 napi_create_int32(item->env_, entry->selPara.oldEnd, &args[ARGC_ONE]);
                 napi_create_int32(item->env_, entry->selPara.newBegin, &args[ARGC_TWO]);
                 napi_create_int32(item->env_, entry->selPara.newEnd, &args[ARGC_THREE]);
-                return TypeForCircle::TYPE_GO;
+                return true;
             };
             JsUtils::CallJsFunction(entry->vecCopy, ARGC_FOUR, getSelectionChangeProperty);
         });
@@ -572,9 +572,9 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
                 delete work;
             });
 
-            auto getTextChangeProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> TypeForCircle {
+            auto getTextChangeProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
                 napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
-                return TypeForCircle::TYPE_GO;
+                return true;
             };
             JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getTextChangeProperty);
         });

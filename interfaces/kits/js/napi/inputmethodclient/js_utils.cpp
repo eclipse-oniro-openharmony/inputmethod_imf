@@ -171,37 +171,37 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
         }
 
         napi_value args[paramNum];
-        int32_t type = getValue(args, item);
-        if (type == static_cast<int32_t>TypeForCircle::TYPE_BREAK) {
-            break;
-        } else if (type == static_cast<int32_t>TypeForCircle::TYPE_CONTINUE) {
-            continue;
+        getValue(args, item);
+        if (paramNum <= ARGC_TWO) {
+            if (type == static_cast<int32_t>TypeForCircle::TYPE_BREAK) {
+                return;
+            } else if (type == static_cast<int32_t>TypeForCircle::TYPE_CONTINUE) {
+                continue;
+            }
         }
-
+        
         napi_value callback = nullptr;
-        napi_get_reference_value(item->env_, item->callback_, &callback);
-        if (callback == nullptr) {
-            IMSA_HILOGE("callback is nullptr");
-            continue;//return nullptr;
-        }
-        napi_value global = nullptr;
-        napi_get_global(item->env_, &global);
         napi_value result = nullptr;
-        napi_status callStatus = napi_call_function(item->env_, global, callback, paramNum, args, &result);
-        if (callStatus != napi_ok) {
-            IMSA_HILOGE(
-                "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-            continue;
+        napi_get_reference_value(item->env_, item->callback_, &callback);
+        if (callback != nullptr) {
+            IMSA_HILOGD("callback is not nullptr");
+            napi_value global = nullptr;
+            napi_get_global(item->env_, &global);
+            napi_status callStatus = napi_call_function(item->env_, global, callback, paramNum, args, &result);
+            if (callStatus != napi_ok) {
+                IMSA_HILOGE(
+                    "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
+                result = nullptr;
+            }
         }
         if (result != nullptr) {
             napi_valuetype valueType = napi_undefined;
             napi_typeof(item->env_, result, &valueType);
-            if (valueType != napi_boolean) {
-                continue;
-            }
-            napi_get_value_bool(item->env_, result, &isResult);
-            if (isResult) {
-                isOnKeyEvent = true;
+            if (valueType == napi_boolean) {
+                napi_get_value_bool(item->env_, result, &isResult);
+                if (isResult) {
+                    isOnKeyEvent = true;
+                }
             }
         }
     }
