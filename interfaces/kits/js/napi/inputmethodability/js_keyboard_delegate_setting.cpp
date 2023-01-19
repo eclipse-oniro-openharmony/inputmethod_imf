@@ -389,7 +389,6 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
             };
             bool isOnKeyEvent = JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
             entry->isDone->SetValue(isOnKeyEvent);
-            entry->isDone->SetValue(isOnKeyEvent);
         });
     return isDone->GetValue();
 }

@@ -569,6 +569,7 @@ void JsInputMethodEngineSetting::OnInputStart()
                 napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(item->env_);
                 if (keyBoardController == nullptr || textInput == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
+                    return false;
                 }
                 args[ARGC_ZERO] = keyBoardController;
                 args[ARGC_ONE] = textInput;

@@ -161,44 +161,6 @@ const std::string JsUtils::ToMessage(int32_t code)
     return "error is out of definition.";
 }
 
-napi_value JsUtils::ToError(napi_env env, int32_t code)
-{
-    IMSA_HILOGE("ToError start");
-    napi_value errorObj;
-    NAPI_CALL(env, napi_create_object(env, &errorObj));
-    napi_value errorCode = nullptr;
-    NAPI_CALL(env, napi_create_int32(env, Convert(code), &errorCode));
-    napi_value errorMessage = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, ToMessage(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
-    NAPI_CALL(env, napi_set_named_property(env, errorObj, "code", errorCode));
-    NAPI_CALL(env, napi_set_named_property(env, errorObj, "message", errorMessage));
-    IMSA_HILOGE("ToError end");
-    return errorObj;
-}
-
-int32_t JsUtils::Convert(int32_t code)
-{
-    IMSA_HILOGI("Convert start");
-    auto iter = ERROR_CODE_MAP.find(code);
-    if (iter != ERROR_CODE_MAP.end()) {
-        IMSA_HILOGE("ErrorCode: %{public}d", iter->second);
-        return iter->second;
-    }
-    IMSA_HILOGI("Convert end");
-    return ERROR_CODE_QUERY_FAILED;
-}
-
-const std::string JsUtils::ToMessage(int32_t code)
-{
-    IMSA_HILOGI("ToMessage start");
-    auto iter = ERROR_CODE_CONVERT_MESSAGE_MAP.find(code);
-    if (iter != ERROR_CODE_CONVERT_MESSAGE_MAP.end()) {
-        IMSA_HILOGI("ErrorMessage: %{public}s", (iter->second).c_str());
-        return iter->second;
-    }
-    return "error is out of definition.";
-}
-
 bool JsUtils::CallJsFunction(std::vector <std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
                              ArgsProvider argsProvider)
 {
