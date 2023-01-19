@@ -197,5 +197,6 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "imf:inputmethod_client",
     "ipc:ipc_core",
     "ipc:ipc_single",
+    "os_account:os_account_innerkits",
   ]
 }

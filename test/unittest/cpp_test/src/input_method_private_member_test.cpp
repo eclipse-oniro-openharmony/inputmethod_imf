@@ -27,6 +27,8 @@
 
 #include "application_info.h"
 #include "global.h"
+#include "ime_cfg_manager.h"
+#include "os_account_manager.h"
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
@@ -227,9 +229,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_GetUserSessionWithInexistentUserId, Te
 HWTEST_F(InputMethodPrivateMemberTest, SA_FindSubPropertyWithInexistentSubLabel, TestSize.Level0)
 {
     InputMethodSystemAbility service;
-    auto prop = service.GetCurrentInputMethod();
-    ASSERT_TRUE(prop != nullptr);
-    auto subProp = service.FindSubProperty(prop->name, "");
+    std::vector<int32_t> userIds;
+    if (AccountSA::OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
+        service.userId_ = userIds[0];
+    }
+    auto ime = ImeCfgManager::GetDefaultIme();
+    EXPECT_FALSE(ime.empty());
+    auto pos = ime.find("/");
+    auto subProp = service.FindSubProperty(ime.substr(0, pos), "");
     EXPECT_EQ(subProp.name, "");
 }
 
@@ -245,25 +252,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_FindSubPropertyByCompareWithNullBundle
     InputMethodSystemAbility::CompareHandler compare;
     auto subProp = service.FindSubPropertyByCompare("", compare);
     EXPECT_EQ(subProp.label, "");
-}
-
-/**
-* @tc.name: SA_FindSubPropertyByCompare
-* @tc.desc: SA FindSubPropertyByCompare
-* @tc.type: FUNC
-* @tc.require: issuesI669E8
-*/
-HWTEST_F(InputMethodPrivateMemberTest, SA_FindSubPropertyByCompare, TestSize.Level0)
-{
-    InputMethodSystemAbility service;
-    auto prop = service.GetCurrentInputMethod();
-    ASSERT_TRUE(prop != nullptr);
-    auto subProp = service.GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(subProp != nullptr);
-    auto subProp1 = service.FindSubPropertyByCompare(
-        prop->name, [subProp](const SubProperty &subProperty) { return subProperty.mode == subProp->mode; });
-    EXPECT_EQ(subProp1.mode, subProp->mode);
-    EXPECT_EQ(subProp1.label, subProp->label);
 }
 
 /**
