@@ -14,24 +14,6 @@
 import("//base/inputmethod/imf/inputmethod.gni")
 import("//build/ohos.gni")
 
-config("inputmethod_para_config") {
-  visibility = [ ":*" ]
-  include_dirs = [ "include" ]
-}
-config("inputmethod_para_public_config") {
-  visibility = []
-  include_dirs = [ "include" ]
-}
-ohos_shared_library("inputmethod_para") {
-  sources = [ "src/para_handle.cpp" ]
-  configs = [ ":inputmethod_para_config" ]
-  deps = []
-  external_deps = [ "init:libbegetutil" ]
-  public_configs = [ ":inputmethod_para_public_config" ]
-  subsystem_name = "inputmethod"
-  part_name = "imf"
-}
-
 ohos_prebuilt_etc("inputmethod.para") {
   source = "//base/inputmethod/imf/etc/para/inputmethod.para"
   part_name = "imf"

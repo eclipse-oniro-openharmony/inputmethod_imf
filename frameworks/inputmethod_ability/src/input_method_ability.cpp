@@ -15,7 +15,6 @@
 
 #include "input_method_ability.h"
 
-#include <para_handle.h>
 #include <unistd.h>
 
 #include "global.h"
@@ -36,7 +35,6 @@ class MessageHandler;
 using namespace MessageID;
 sptr<InputMethodAbility> InputMethodAbility::instance_;
 std::mutex InputMethodAbility::instanceLock_;
-
 InputMethodAbility::InputMethodAbility() : stop_(false)
 {
     writeInputChannel = nullptr;
@@ -206,6 +204,9 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
     if (channelObject == nullptr) {
         IMSA_HILOGI("InputMethodAbility::OnInitInputControlChannel channelObject is nullptr");
         return;
+    }
+    if (deathRecipientPtr_ != nullptr) {
+        deathRecipientPtr_->currentIme_ = data->ReadString();
     }
     SetInputControlChannel(channelObject);
 }
@@ -501,7 +502,7 @@ void InputMethodAbility::ServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteO
 {
     IMSA_HILOGI("ServiceDeathRecipient::OnRemoteDied");
     if (listener != nullptr) {
-        listener->OnInputStop(ParaHandle::GetDefaultIme(Utils::ToUserId(getuid())));
+        listener->OnInputStop(currentIme_);
     }
 }
 
