@@ -178,11 +178,11 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
         }
 
         napi_value callback = nullptr;
+        napi_value global = nullptr;
         napi_value result = nullptr;
         napi_get_reference_value(item->env_, item->callback_, &callback);
         if (callback != nullptr) {
             IMSA_HILOGD("callback is not nullptr");
-            napi_value global = nullptr;
             napi_get_global(item->env_, &global);
             napi_status callStatus = napi_call_function(item->env_, global, callback, paramNum, args, &result);
             if (callStatus != napi_ok) {
@@ -192,7 +192,7 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
             }
         }
 
-        if (result != nullptr) {
+        if (result != nullptr && !isOnKeyEvent) {
             napi_valuetype valueType = napi_undefined;
             napi_typeof(item->env_, result, &valueType);
             if (valueType == napi_boolean) {
