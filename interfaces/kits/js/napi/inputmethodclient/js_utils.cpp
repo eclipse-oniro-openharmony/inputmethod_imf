@@ -174,7 +174,7 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
         if (!getValue(args, item)) {
             continue;
         }
-        
+
         napi_value callback = nullptr;
         napi_value result = nullptr;
         napi_get_reference_value(item->env_, item->callback_, &callback);
