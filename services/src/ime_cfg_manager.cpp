@@ -124,6 +124,10 @@ std::string ImeCfgManager::GetDefaultIme()
 
 void ImeCfgManager::FromJson(const json &jsonConfigs, std::vector<ImeCfg> &configs)
 {
+    if (!jsonConfigs.contains("imeCfg_list")) {
+        IMSA_HILOGE("imeCfg_list not find");
+        return;
+    }
     for (auto &jsonCfg : jsonConfigs["imeCfg_list"]) {
         ImeCfg cfg;
         FromJson(jsonCfg, cfg);
