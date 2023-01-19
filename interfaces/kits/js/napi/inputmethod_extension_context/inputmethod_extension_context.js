@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-const ExtensionContext = requireNapi("application.ExtensionContext");
+var ExtensionContext = requireNapi("application.ExtensionContext")
 
 class InputMethodExtensionContext extends ExtensionContext {
     constructor(obj) {

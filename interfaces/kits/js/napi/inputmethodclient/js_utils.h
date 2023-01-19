@@ -16,13 +16,13 @@
 #ifndef INTERFACE_KITS_JS_UTILS_H
 #define INTERFACE_KITS_JS_UTILS_H
 
-#include <map>
-
-#include "global.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
+#include "global.h"
+#include <map>
+#include "js_callback_object.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -81,6 +81,6 @@ private:
 
     static constexpr uint8_t MAX_ARGMENT_COUNT = 10;
 };
-} // namespace MiscServices
-} // namespace OHOS
+}
+}
 #endif // INTERFACE_KITS_JS_UTILS_H

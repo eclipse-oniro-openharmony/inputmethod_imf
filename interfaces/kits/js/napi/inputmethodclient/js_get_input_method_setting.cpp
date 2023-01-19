@@ -39,35 +39,35 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
 {
     napi_value maxTypeNumber = nullptr;
     napi_create_int32(env, MAX_TYPE_NUM, &maxTypeNumber);
-
+        
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getInputMethodSetting", GetInputMethodSetting),
         DECLARE_NAPI_FUNCTION("getSetting", GetSetting),
 
         DECLARE_NAPI_PROPERTY("EXCEPTION_PERMISSION",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PERMISSION))),
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PERMISSION))),
         DECLARE_NAPI_PROPERTY("EXCEPTION_PARAMCHECK",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PARAMCHECK))),
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PARAMCHECK))),
         DECLARE_NAPI_PROPERTY("EXCEPTION_UNSUPPORTED",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_UNSUPPORTED))),
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_UNSUPPORTED))),
         DECLARE_NAPI_PROPERTY("EXCEPTION_PACKAGEMANAGER",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PACKAGEMANAGER))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_IMENGINE", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMENGINE))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_IMCLIENT", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMCLIENT))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_KEYEVENT", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_KEYEVENT))),
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PACKAGEMANAGER))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_IMENGINE",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMENGINE))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_IMCLIENT",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMCLIENT))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_KEYEVENT",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_KEYEVENT))),
         DECLARE_NAPI_PROPERTY("EXCEPTION_CONFPERSIST",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_CONFPERSIST))),
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_CONFPERSIST))),
         DECLARE_NAPI_PROPERTY("EXCEPTION_CONTROLLER",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_CONTROLLER))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_SETTINGS", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_SETTINGS))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_IMMS", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMMS))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_OTHERS", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_OTHERS))),
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_CONTROLLER))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_SETTINGS",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_SETTINGS))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_IMMS",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMMS))),
+        DECLARE_NAPI_PROPERTY("EXCEPTION_OTHERS",
+                              GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_OTHERS))),
         DECLARE_NAPI_PROPERTY("MAX_TYPE_NUM", maxTypeNumber),
     };
     NAPI_CALL(
@@ -84,8 +84,8 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
     };
     napi_value cons = nullptr;
-    NAPI_CALL(env, napi_define_class(env, IMS_CLASS_NAME.c_str(), IMS_CLASS_NAME.size(), JsConstructor, nullptr,
-                       sizeof(properties) / sizeof(napi_property_descriptor), properties, &cons));
+    NAPI_CALL(env, napi_define_class(env, IMS_CLASS_NAME.c_str(), IMS_CLASS_NAME.size(),
+        JsConstructor, nullptr, sizeof(properties) / sizeof(napi_property_descriptor), properties, &cons));
     NAPI_CALL(env, napi_create_reference(env, cons, 1, &IMSRef_));
     NAPI_CALL(env, napi_set_named_property(env, exports, IMS_CLASS_NAME.c_str(), cons));
     return exports;
@@ -104,9 +104,9 @@ napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_in
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(
-        env, thisVar, delegate.get(),
-        [](napi_env env, void *data, void *hint) { IMSA_HILOGE("delete JsInputMethodSetting"); }, nullptr, nullptr);
+    napi_wrap(env, thisVar, delegate.get(), [](napi_env env, void *data, void *hint) {
+        IMSA_HILOGE("delete JsInputMethodSetting");
+    }, nullptr, nullptr);
     if (delegate->loop_ == nullptr) {
         napi_get_uv_event_loop(env, &delegate->loop_);
     }
@@ -154,14 +154,16 @@ napi_value JsGetInputMethodSetting::GetIMSetting(napi_env env, napi_callback_inf
     if (napi_get_reference_value(env, IMSRef_, &cons) != napi_ok) {
         IMSA_HILOGE("GetSetting::napi_get_reference_value not ok");
         if (needThrowException) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_SETTINGS, "", TYPE_OBJECT);
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_SETTINGS, "", TYPE_OBJECT);
         }
         return nullptr;
     }
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
         IMSA_HILOGE("GetSetting::napi_new_instance not ok");
         if (needThrowException) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_SETTINGS, "", TYPE_OBJECT);
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_SETTINGS, "", TYPE_OBJECT);
         }
         return nullptr;
     }
@@ -176,40 +178,26 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
     status = napi_typeof(env, argv, &valueType);
     if (valueType == napi_object) {
         napi_value result = nullptr;
-        napi_get_named_property(env, argv, "packageName", &result);
+        status = napi_get_named_property(env, argv, "name", &result);
         ctxt->property.name = JsInputMethod::GetStringProperty(env, result);
 
         result = nullptr;
-        napi_get_named_property(env, argv, "methodId", &result);
+        status = napi_get_named_property(env, argv, "id", &result);
         ctxt->property.id = JsInputMethod::GetStringProperty(env, result);
 
-        if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
-            result = nullptr;
-            napi_get_named_property(env, argv, "name", &result);
-            ctxt->property.name = JsInputMethod::GetStringProperty(env, result);
-
-            result = nullptr;
-            napi_get_named_property(env, argv, "id", &result);
-            ctxt->property.id = JsInputMethod::GetStringProperty(env, result);
-        }
-        if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Parameter error.", TYPE_NONE);
-            return napi_invalid_arg;
-        }
-
         result = nullptr;
-        napi_get_named_property(env, argv, "label", &result);
+        status = napi_get_named_property(env, argv, "label", &result);
         ctxt->property.label = JsInputMethod::GetStringProperty(env, result);
 
         result = nullptr;
-        napi_get_named_property(env, argv, "icon", &result);
+        status = napi_get_named_property(env, argv, "icon", &result);
         ctxt->property.icon = JsInputMethod::GetStringProperty(env, result);
 
         result = nullptr;
-        napi_get_named_property(env, argv, "iconId", &result);
+        status = napi_get_named_property(env, argv, "iconId", &result);
         ctxt->property.iconId = JsInputMethod::GetNumberProperty(env, result);
-        IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(),
-                ctxt->property.name.c_str());
+        IMSA_HILOGI(
+            "methodId:%{public}s and packageName:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
     }
     return status;
 }
@@ -247,7 +235,8 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "should has one parameter.", TYPE_NONE);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                "should has one parameter.", TYPE_NONE);
             return napi_invalid_arg;
         }
         napi_valuetype valueType = napi_undefined;
@@ -290,8 +279,9 @@ napi_value JsGetInputMethodSetting::DisplayInputMethod(napi_env env, napi_callba
 {
     IMSA_HILOGI("run in DisplayInputMethod");
     auto ctxt = std::make_shared<DisplayOptionalInputMethodContext>();
-    auto input = [ctxt](
-                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        return napi_ok;
+    };
     auto output = [ctxt, needThrowException](napi_env env, napi_value *result) -> napi_status {
         if (needThrowException) {
             napi_status status = napi_get_boolean(env, ctxt->isDisplayed, result);
@@ -306,14 +296,10 @@ napi_value JsGetInputMethodSetting::DisplayInputMethod(napi_env env, napi_callba
             IMSA_HILOGE("exec ---- DisplayOptionalInputMethod success");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
-            ctxt->isDisplayed = true;
+            if (needThrowException) {
+                ctxt->isDisplayed = true;
+            }
             return;
-        }
-        if (errCode == ErrorCode::ERROR_ABILITY_ACTIVATING) {
-            IMSA_HILOGE("exec ---- DisplayOptionalInputMethod failed: ability already activited");
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
-            ctxt->isDisplayed = true;
         }
         if (needThrowException) {
             ctxt->SetErrorCode(errCode);
@@ -335,7 +321,8 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "should has one parameter.", TYPE_NONE);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                                    "should has one parameter.", TYPE_NONE);
             return napi_invalid_arg;
         }
         napi_valuetype valueType = napi_undefined;
@@ -436,7 +423,7 @@ void JsGetInputMethodSetting::RegisterListener(
     IMSA_HILOGI("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName: %{public}s not registered!", type.c_str());
+        IMSA_HILOGE("methodName: %{public}s not registertd!", type.c_str());
     }
 
     auto callbacks = jsCbMap_[type];
@@ -489,7 +476,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName: %{public}s already unRegistered!", type.c_str());
+        IMSA_HILOGE("methodName: %{public}s already unRegisterted!", type.c_str());
         return;
     }
 
@@ -608,5 +595,5 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
             JsUtils::CallJsFunction(entry->vecCopy, ARGC_TWO, getImeChangeProperty);
         });
 }
-} // namespace MiscServices
-} // namespace OHOS
+}
+}

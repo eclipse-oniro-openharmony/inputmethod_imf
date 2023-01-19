@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef INTERFACE_KITS_JS_GET_INPUT_METHOD_CONTROLLER_H
-#define INTERFACE_KITS_JS_GET_INPUT_METHOD_CONTROLLER_H
+#ifndef INTERFACE_KITS_JS_GETINPUT_METHOD_CCONTROLLER_H
+#define INTERFACE_KITS_JS_GETINPUT_METHOD_CCONTROLLER_H
 
 #include "async_call.h"
 #include "global.h"
@@ -24,8 +24,8 @@ namespace MiscServices {
 struct HandleContext : public AsyncCall::Context {
     bool isHandle = false;
     napi_status status = napi_generic_failure;
-    HandleContext() : Context(nullptr, nullptr){};
-    HandleContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+    HandleContext() : Context(nullptr, nullptr) { };
+    HandleContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -63,4 +63,4 @@ private:
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // INTERFACE_KITS_JS_GET_INPUT_METHOD_CONTROLLER_H
+#endif // INTERFACE_KITS_JS_GETINPUT_METHOD_CCONTROLLER_H

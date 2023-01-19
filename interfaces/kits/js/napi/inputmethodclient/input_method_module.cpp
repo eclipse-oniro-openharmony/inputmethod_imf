@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "js_get_input_method_controller.h"
-#include "js_get_input_method_setting.h"
-#include "js_input_method.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "js_get_input_method_setting.h"
+#include "js_get_input_method_controller.h"
+#include "js_input_method.h"
 EXTERN_C_START
 /*
  * function for module exports
@@ -32,13 +32,15 @@ EXTERN_C_END
 /*
  * module define
  */
-static napi_module _module = { .nm_version = 1,
+static napi_module _module = {
+    .nm_version = 1,
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = Init,
     .nm_modname = "inputmethod",
     .nm_priv = ((void *)0),
-    .reserved = { 0 } };
+    .reserved = {0}
+};
 /*
  * module register
  */

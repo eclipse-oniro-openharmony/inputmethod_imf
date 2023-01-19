@@ -41,7 +41,7 @@ napi_value JsInputMethod::Init(napi_env env, napi_value exports)
 
 std::string JsInputMethod::GetStringProperty(napi_env env, napi_value obj)
 {
-    char propValue[MAX_VALUE_LEN] = { 0 };
+    char propValue[MAX_VALUE_LEN] = {0};
     size_t propLen;
     if (napi_get_value_string_utf8(env, obj, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
         IMSA_HILOGE("GetStringProperty error");
@@ -58,8 +58,8 @@ int32_t JsInputMethod::GetNumberProperty(napi_env env, napi_value obj)
     return out;
 }
 
-napi_status JsInputMethod::GetInputMethodProperty(
-    napi_env env, napi_value argv, std::shared_ptr<SwitchInputMethodContext> ctxt)
+napi_status JsInputMethod::GetInputMethodProperty(napi_env env, napi_value argv,
+    std::shared_ptr<SwitchInputMethodContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
@@ -72,8 +72,8 @@ napi_status JsInputMethod::GetInputMethodProperty(
             status = napi_get_named_property(env, argv, "name", &result);
         }
         if (status != napi_ok) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing packageName parameter.", TYPE_STRING);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                                    "missing packageName parameter.", TYPE_STRING);
             return status;
         }
         ctxt->packageName = GetStringProperty(env, result);
@@ -83,13 +83,13 @@ napi_status JsInputMethod::GetInputMethodProperty(
             status = napi_get_named_property(env, argv, "id", &result);
         }
         if (status != napi_ok) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing methodId parameter.", TYPE_STRING);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                                    "missing methodId parameter.", TYPE_STRING);
             return status;
         }
         ctxt->methodId = GetStringProperty(env, result);
-        IMSA_HILOGI(
-            "methodId:%{public}s and packageName:%{public}s", ctxt->methodId.c_str(), ctxt->packageName.c_str());
+        IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s",
+            ctxt->methodId.c_str(), ctxt->packageName.c_str());
     }
     return status;
 }
@@ -104,14 +104,16 @@ napi_status JsInputMethod::GetInputMethodSubProperty(
         napi_value result = nullptr;
         status = napi_get_named_property(env, argv, "id", &result);
         if (status != napi_ok) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing id parameter.", TYPE_STRING);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                                    "missing id parameter.", TYPE_STRING);
             return status;
         }
         ctxt->id = GetStringProperty(env, result);
         result = nullptr;
         status = napi_get_named_property(env, argv, "label", &result);
         if (status != napi_ok) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing label parameter.", TYPE_STRING);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                                    "missing label parameter.", TYPE_STRING);
             return status;
         }
         ctxt->label = GetStringProperty(env, result);
@@ -220,7 +222,8 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "should has 1 parameters!", TYPE_NONE);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                                    "should has 1 parameters!", TYPE_NONE);
             return napi_invalid_arg;
         }
         napi_valuetype valueType = napi_undefined;
@@ -287,7 +290,8 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "should has one parameter.", TYPE_NONE);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                                    "should has one parameter.", TYPE_NONE);
             return napi_invalid_arg;
         }
         napi_valuetype valueType = napi_undefined;
@@ -330,7 +334,8 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         if (argc < 2) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "should has two parameter.", TYPE_NONE);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                                    "should has two parameter.", TYPE_NONE);
             return napi_invalid_arg;
         }
         napi_valuetype valueType = napi_undefined;

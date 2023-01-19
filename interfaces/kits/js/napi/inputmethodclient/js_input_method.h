@@ -15,11 +15,11 @@
 #ifndef INTERFACE_KITS_JS_INPUT_METHOD_H
 #define INTERFACE_KITS_JS_INPUT_METHOD_H
 
-#include "async_call.h"
-#include "global.h"
-#include "input_method_controller.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
+#include "global.h"
+#include "async_call.h"
+#include "input_method_controller.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -30,8 +30,8 @@ struct SwitchInputMethodContext : public AsyncCall::Context {
     std::string id;
     std::string label;
     napi_status status = napi_generic_failure;
-    SwitchInputMethodContext() : Context(nullptr, nullptr){};
-    SwitchInputMethodContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+    SwitchInputMethodContext() : Context(nullptr, nullptr) { };
+    SwitchInputMethodContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -73,6 +73,6 @@ private:
     static constexpr size_t PARAM_POS_TWO = 2;
     static constexpr size_t PARAM_POS_ONE = 1;
 };
-} // namespace MiscServices
-} // namespace OHOS
+}
+}
 #endif // INTERFACE_KITS_JS_INPUT_METHOD_H

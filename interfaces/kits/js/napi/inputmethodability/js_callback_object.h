@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef JS_CALLBACK_OBJECT_H
-#define JS_CALLBACK_OBJECT_H
+#ifndef CALLBAKC_OBJECT_H
+#define CALLBAKC_OBJECT_H
 
 #include <thread>
 
@@ -27,9 +27,9 @@ public:
     JSCallbackObject(napi_env env, napi_value callback, std::thread::id threadId);
     ~JSCallbackObject();
     napi_ref callback_ = nullptr;
-    napi_env env_{};
+    napi_env env_ {};
     std::thread::id threadId_;
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // JS_CALLBACK_OBJECT_H
+#endif // CALLBAKC_OBJECT_H

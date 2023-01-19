@@ -31,8 +31,8 @@ struct ListInputContext : public AsyncCall::Context {
     std::vector<SubProperty> subProperties;
     Property property;
     napi_status status = napi_generic_failure;
-    ListInputContext() : Context(nullptr, nullptr){};
-    ListInputContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+    ListInputContext() : Context(nullptr, nullptr) { };
+    ListInputContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -51,9 +51,9 @@ struct ListInputContext : public AsyncCall::Context {
 struct DisplayOptionalInputMethodContext : public AsyncCall::Context {
     napi_status status = napi_generic_failure;
     bool isDisplayed = false;
-    DisplayOptionalInputMethodContext() : Context(nullptr, nullptr){};
+    DisplayOptionalInputMethodContext() : Context(nullptr, nullptr) { };
     DisplayOptionalInputMethodContext(InputAction input, OutputAction output)
-        : Context(std::move(input), std::move(output)){};
+        : Context(std::move(input), std::move(output)) { };
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -72,9 +72,9 @@ struct DisplayOptionalInputMethodContext : public AsyncCall::Context {
 struct GetInputMethodControllerContext : public AsyncCall::Context {
     bool isStopInput;
     napi_status status = napi_generic_failure;
-    GetInputMethodControllerContext() : Context(nullptr, nullptr){};
+    GetInputMethodControllerContext() : Context(nullptr, nullptr) { };
     GetInputMethodControllerContext(InputAction input, OutputAction output)
-        : Context(std::move(input), std::move(output)){};
+        : Context(std::move(input), std::move(output)) { };
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {

@@ -22,8 +22,8 @@ namespace OHOS {
 namespace MiscServices {
 struct HideKeyboardContext : public AsyncCall::Context {
     napi_status status = napi_generic_failure;
-    HideKeyboardContext() : Context(nullptr, nullptr){};
-    HideKeyboardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+    HideKeyboardContext() : Context(nullptr, nullptr) { };
+    HideKeyboardContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -41,8 +41,8 @@ struct HideKeyboardContext : public AsyncCall::Context {
 
 struct HideContext : public AsyncCall::Context {
     napi_status status = napi_generic_failure;
-    HideContext() : Context(nullptr, nullptr){};
-    HideContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+    HideContext() : Context(nullptr, nullptr) { };
+    HideContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {

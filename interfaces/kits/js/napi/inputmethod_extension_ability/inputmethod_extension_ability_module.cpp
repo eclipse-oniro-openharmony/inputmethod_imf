@@ -41,7 +41,7 @@ extern "C" __attribute__((visibility("default"))) void NAPI_inputmethodextension
     }
 }
 
-// inputmethod_extension_ability JS register
+// inputmethod_extension_abiltiy JS register
 extern "C" __attribute__((visibility("default"))) void NAPI_inputmethodextensionability_GetABCCode(
     const char **buf, int *buflen)
 {

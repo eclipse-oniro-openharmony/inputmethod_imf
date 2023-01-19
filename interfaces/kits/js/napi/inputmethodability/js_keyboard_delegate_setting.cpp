@@ -35,7 +35,7 @@ const std::string JsKeyboardDelegateSetting::KDS_CLASS_NAME = "KeyboardDelegate"
 thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
 
 std::mutex JsKeyboardDelegateSetting::keyboardMutex_;
-std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::keyboardDelegate_{ nullptr };
+std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::keyboardDelegate_ { nullptr };
 
 napi_value JsKeyboardDelegateSetting::Init(napi_env env, napi_value exports)
 {
@@ -196,7 +196,7 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
     IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName %{public}s not unRegistered!", type.c_str());
+        IMSA_HILOGE("methodName %{public}s not unRegisterted!", type.c_str());
         return;
     }
 
@@ -224,7 +224,7 @@ JsKeyboardDelegateSetting *JsKeyboardDelegateSetting::GetNative(napi_env env, na
     napi_value self = nullptr;
     napi_value argv[AsyncCall::ARGC_MAX] = { nullptr };
     napi_status status = napi_invalid_arg;
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
+    status = napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
     if (self == nullptr && argc >= AsyncCall::ARGC_MAX) {
         IMSA_HILOGE("napi_get_cb_info failed");
         return nullptr;
@@ -372,7 +372,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 delete work;
             });
             bool isOnKeyEvent = false;
-            
+
             auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
                                                std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc < ARGC_ONE) {
@@ -388,6 +388,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 return true;
             };
             bool isOnKeyEvent = JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
+            entry->isDone->SetValue(isOnKeyEvent);
             entry->isDone->SetValue(isOnKeyEvent);
         });
     return isDone->GetValue();

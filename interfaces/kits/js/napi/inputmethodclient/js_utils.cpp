@@ -108,12 +108,12 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
     napi_value message;
     if (type == TypeCode::TYPE_NONE) {
         errMsg = errMsg + msg;
-        IMSA_HILOGE("THROW_PARAMETER_ERROR message: %{public}s", errMsg.c_str());
+        IMSA_HILOGE("THROW_PARAMTER_ERROR message: %{public}s", errMsg.c_str());
     } else {
         auto iter = PARAMETER_TYPE.find(type);
         if (iter != PARAMETER_TYPE.end()) {
             errMsg = errMsg + "The type of " + msg + " must be " + iter->second;
-            IMSA_HILOGE("THROW_PARAMETER_TYPE_ERROR message: %{public}s", errMsg.c_str());
+            IMSA_HILOGE("THROW_PARAMTER_TYPE_ERROR message: %{public}s", errMsg.c_str());
         }
     }
     NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, errMsg.c_str(), NAPI_AUTO_LENGTH, &message));
@@ -121,6 +121,44 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
     NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, err, &code));
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, error, "code", code));
     NAPI_CALL_RETURN_VOID(env, napi_throw(env, error));
+}
+
+napi_value JsUtils::ToError(napi_env env, int32_t code)
+{
+    IMSA_HILOGE("ToError start");
+    napi_value errorObj;
+    NAPI_CALL(env, napi_create_object(env, &errorObj));
+    napi_value errorCode = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, Convert(code), &errorCode));
+    napi_value errorMessage = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, ToMessage(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
+    NAPI_CALL(env, napi_set_named_property(env, errorObj, "code", errorCode));
+    NAPI_CALL(env, napi_set_named_property(env, errorObj, "message", errorMessage));
+    IMSA_HILOGE("ToError end");
+    return errorObj;
+}
+
+int32_t JsUtils::Convert(int32_t code)
+{
+    IMSA_HILOGI("Convert start");
+    auto iter = ERROR_CODE_MAP.find(code);
+    if (iter != ERROR_CODE_MAP.end()) {
+        IMSA_HILOGE("ErrorCode: %{public}d", iter->second);
+        return iter->second;
+    }
+    IMSA_HILOGI("Convert end");
+    return ERROR_CODE_QUERY_FAILED;
+}
+
+const std::string JsUtils::ToMessage(int32_t code)
+{
+    IMSA_HILOGI("ToMessage start");
+    auto iter = ERROR_CODE_CONVERT_MESSAGE_MAP.find(code);
+    if (iter != ERROR_CODE_CONVERT_MESSAGE_MAP.end()) {
+        IMSA_HILOGI("ErrorMessage: %{public}s", (iter->second).c_str());
+        return iter->second;
+    }
+    return "error is out of definition.";
 }
 
 napi_value JsUtils::ToError(napi_env env, int32_t code)

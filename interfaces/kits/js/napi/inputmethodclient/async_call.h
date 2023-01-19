@@ -16,10 +16,10 @@
 #define ASYN_CALL_H
 
 #include "input_method_info.h"
-#include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
+#include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -30,8 +30,8 @@ public:
         using InputAction = std::function<napi_status(napi_env, size_t, napi_value *, napi_value)>;
         using OutputAction = std::function<napi_status(napi_env, napi_value *)>;
         using ExecAction = std::function<void(Context *)>;
-        Context(InputAction input, OutputAction output) : input_(std::move(input)), output_(std::move(output)){};
-        virtual ~Context(){};
+        Context(InputAction input, OutputAction output): input_(std::move(input)), output_(std::move(output))  {};
+        virtual ~Context() {};
         void SetAction(InputAction input, OutputAction output = nullptr)
         {
             input_ = input;
@@ -42,7 +42,7 @@ public:
         {
             errorCode_ = errorCode;
         }
-
+        
         void SetState(const napi_status &status)
         {
             status_ = status;
@@ -77,7 +77,7 @@ public:
             }
             exec_(this);
         };
-
+        
     protected:
         friend class AsyncCall;
         InputAction input_ = nullptr;
@@ -92,9 +92,12 @@ public:
     ~AsyncCall();
     napi_value Call(napi_env env, Context::ExecAction exec = nullptr);
     napi_value SyncCall(napi_env env, Context::ExecAction exec = nullptr);
-
 private:
-    enum arg : int { ARG_ERROR, ARG_DATA, ARG_BUTT };
+    enum arg : int {
+        ARG_ERROR,
+        ARG_DATA,
+        ARG_BUTT
+    };
     static void OnExecute(napi_env env, void *data);
     static void OnComplete(napi_env env, napi_status status, void *data);
     struct AsyncContext {
@@ -108,6 +111,6 @@ private:
     AsyncContext *context_ = nullptr;
     napi_env env_ = nullptr;
 };
-} // namespace MiscServices
-} // namespace OHOS
+}
+}
 #endif // ASYNC_CALL_H
