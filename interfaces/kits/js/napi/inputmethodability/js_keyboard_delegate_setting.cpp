@@ -371,7 +371,6 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 delete data;
                 delete work;
             });
-            bool isOnKeyEvent = false;
 
             auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
                                                std::shared_ptr<JSCallbackObject> item) -> bool {
