@@ -555,7 +555,10 @@ void JsInputMethodEngineSetting::OnInputStart()
                 return;
             }
 
-            auto getInputStartProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getInputStartProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc < ARGC_TWO) {
+                    return false;
+                }
                 napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(item->env_);
                 napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(item->env_);
                 if (keyBoardController == nullptr || textInput == nullptr) {
@@ -586,7 +589,10 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
                 delete work;
             });
 
-            auto getKeyboardStatusProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getKeyboardStatusProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc < ARGC_ZERO) {
+                    return false;
+                }
                 args[ARGC_ZERO] = nullptr;
                 return true;
             };
@@ -614,7 +620,10 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
                 return;
             }
 
-            auto getInputStopProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getInputStopProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc < ARGC_ONE) {
+                    return false;
+                }
                 napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
                 return true;
             };
@@ -643,7 +652,10 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
                 return;
             }
             
-            auto getCallingWindowProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getCallingWindowProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc < ARGC_ONE) {
+                    return false;
+                }
                 napi_create_int32(item->env_, entry->windowid, &args[ARGC_ZERO]);
                 return true;
             };
@@ -671,7 +683,10 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
                 return;
             }
 
-            auto getSubtypeProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getSubtypeProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc < ARGC_ONE) {
+                    return false;
+                }
                 napi_value jsObject = GetResultOnSetSubtype(item->env_, entry->subProperty);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");

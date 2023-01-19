@@ -161,7 +161,7 @@ const std::string JsUtils::ToMessage(int32_t code)
     return "error is out of definition.";
 }
 
-bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum, GetValue getValue)
+bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum, ArgsProvider provider)
 {
     bool isResult = false;
     bool isOnKeyEvent = false;
@@ -170,10 +170,8 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
             continue;
         }
 
-        size_t number;
-        paramNum == ARGC_ZERO ? number = ARGC_ONE : number = paramNum;
-        napi_value args[number];
-        if (!getValue(args, item)) {
+        napi_value args[MAX_ARGMENT_COUNT];
+        if (!provider(args, MAX_ARGMENT_COUNT, item)) {
             continue;
         }
 
@@ -187,7 +185,7 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
             napi_status callStatus = napi_call_function(item->env_, global, callback, paramNum, args, &result);
             if (callStatus != napi_ok) {
                 IMSA_HILOGE(
-                    "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
+                    "notify data change failed callStatus:%{public}d", callStatus);
                 result = nullptr;
             }
         }

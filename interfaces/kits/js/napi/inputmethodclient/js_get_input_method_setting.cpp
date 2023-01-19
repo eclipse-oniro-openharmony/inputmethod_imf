@@ -590,7 +590,10 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            auto getImeChangeProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getImeChangeProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc < ARGC_TWO) {
+                    return false;
+                }
                 napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
                 napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
                 if (subProperty == nullptr || property == nullptr) {
