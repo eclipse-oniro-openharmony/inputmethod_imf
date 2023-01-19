@@ -35,7 +35,7 @@ const std::string JsKeyboardDelegateSetting::KDS_CLASS_NAME = "KeyboardDelegate"
 thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
 
 std::mutex JsKeyboardDelegateSetting::keyboardMutex_;
-std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::keyboardDelegate_ { nullptr };
+std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::keyboardDelegate_{ nullptr };
 
 napi_value JsKeyboardDelegateSetting::Init(napi_env env, napi_value exports)
 {
@@ -196,7 +196,7 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
     IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName %{public}s not unRegisterted!", type.c_str());
+        IMSA_HILOGE("methodName %{public}s not unRegistered!", type.c_str());
         return;
     }
 
@@ -224,7 +224,7 @@ JsKeyboardDelegateSetting *JsKeyboardDelegateSetting::GetNative(napi_env env, na
     napi_value self = nullptr;
     napi_value argv[AsyncCall::ARGC_MAX] = { nullptr };
     napi_status status = napi_invalid_arg;
-    status = napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
     if (self == nullptr && argc >= AsyncCall::ARGC_MAX) {
         IMSA_HILOGE("napi_get_cb_info failed");
         return nullptr;
@@ -372,36 +372,22 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 delete work;
             });
             bool isOnKeyEvent = false;
-            for (auto item : entry->vecCopy) {
-                napi_value jsObject =
-                    GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
+            
+            auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
+                                               std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc < ARGC_ONE) {
+                    return false;
+                }
+                napi_value jsObject = GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode,
+                                                          entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
-                    IMSA_HILOGE("get GetResultOnKeyEvent failed: %{punlic}p", jsObject);
-                    continue;
+                    IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
+                    return false;
                 }
-                napi_value callback = nullptr;
-                napi_value args[] = { jsObject };
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result = nullptr;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, 1, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                    continue;
-                }
-                if (result != nullptr) {
-                    napi_get_value_bool(item->env_, result, &isResult);
-                    if (isResult) {
-                        isOnKeyEvent = true;
-                    }
-                }
-            }
+                args[ARGC_ZERO] = { jsObject };
+                return true;
+            };
+            bool isOnKeyEvent = JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
             entry->isDone->SetValue(isOnKeyEvent);
         });
     return isDone->GetValue();
@@ -540,27 +526,17 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
                 delete work;
             });
 
-            for (auto item : entry->vecCopy) {
-                napi_value args[ARGC_THREE] = { nullptr };
+            auto getCursorUpdateProperty = [entry](napi_value *args, uint8_t argc,
+                                                   std::shared_ptr <JSCallbackObject> item) -> bool {
+                if (argc < ARGC_THREE) {
+                    return false;
+                }
                 napi_create_int32(item->env_, entry->curPara.positionX, &args[ARGC_ZERO]);
                 napi_create_int32(item->env_, entry->curPara.positionY, &args[ARGC_ONE]);
                 napi_create_int32(item->env_, entry->curPara.height, &args[ARGC_TWO]);
-
-                napi_value callback = nullptr;
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_THREE, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
-            }
+                return true;
+            };
+            JsUtils::CallJsFunction(entry->vecCopy, ARGC_THREE, getCursorUpdateProperty);
         });
 }
 
@@ -581,28 +557,18 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
                 delete work;
             });
 
-            for (auto item : entry->vecCopy) {
-                napi_value args[ARGC_FOUR] = { nullptr };
+            auto getSelectionChangeProperty = [entry](napi_value *args, uint8_t argc,
+                                                      std::shared_ptr <JSCallbackObject> item) -> bool {
+                if (argc < ARGC_FOUR) {
+                    return false;
+                }
                 napi_create_int32(item->env_, entry->selPara.oldBegin, &args[ARGC_ZERO]);
                 napi_create_int32(item->env_, entry->selPara.oldEnd, &args[ARGC_ONE]);
                 napi_create_int32(item->env_, entry->selPara.newBegin, &args[ARGC_TWO]);
                 napi_create_int32(item->env_, entry->selPara.newEnd, &args[ARGC_THREE]);
-
-                napi_value callback = nullptr;
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_FOUR, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
-            }
+                return true;
+            };
+            JsUtils::CallJsFunction(entry->vecCopy, ARGC_FOUR, getSelectionChangeProperty);
         });
 }
 
@@ -622,25 +588,15 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
                 delete work;
             });
 
-            for (auto item : entry->vecCopy) {
-                napi_value args[ARGC_ONE] = { nullptr };
+            auto getTextChangeProperty = [entry](napi_value *args, uint8_t argc,
+                                                 std::shared_ptr <JSCallbackObject> item) -> bool {
+                if (argc < ARGC_ONE) {
+                    return false;
+                }
                 napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
-
-                napi_value callback = nullptr;
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_ONE, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
-            }
+                return true;
+            };
+            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getTextChangeProperty);
         });
 }
 } // namespace MiscServices

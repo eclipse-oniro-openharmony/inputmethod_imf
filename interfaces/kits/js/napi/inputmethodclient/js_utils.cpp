@@ -108,12 +108,12 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
     napi_value message;
     if (type == TypeCode::TYPE_NONE) {
         errMsg = errMsg + msg;
-        IMSA_HILOGE("THROW_PARAMTER_ERROR message: %{public}s", errMsg.c_str());
+        IMSA_HILOGE("THROW_PARAMETER_ERROR message: %{public}s", errMsg.c_str());
     } else {
         auto iter = PARAMETER_TYPE.find(type);
         if (iter != PARAMETER_TYPE.end()) {
             errMsg = errMsg + "The type of " + msg + " must be " + iter->second;
-            IMSA_HILOGE("THROW_PARAMTER_TYPE_ERROR message: %{public}s", errMsg.c_str());
+            IMSA_HILOGE("THROW_PARAMETER_TYPE_ERROR message: %{public}s", errMsg.c_str());
         }
     }
     NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, errMsg.c_str(), NAPI_AUTO_LENGTH, &message));
@@ -159,6 +159,51 @@ const std::string JsUtils::ToMessage(int32_t code)
         return iter->second;
     }
     return "error is out of definition.";
+}
+
+bool JsUtils::CallJsFunction(std::vector <std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
+                             ArgsProvider argsProvider)
+{
+    bool isResult = false;
+    bool isOnKeyEvent = false;
+    for (const auto &item : vecCopy) {
+        if (item->threadId_ != std::this_thread::get_id()) {
+            continue;
+        }
+
+        napi_value args[MAX_ARGMENT_COUNT];
+        if (!argsProvider(args, MAX_ARGMENT_COUNT, item)) {
+            continue;
+        }
+
+        napi_value callback = nullptr;
+        napi_value global = nullptr;
+        napi_value result = nullptr;
+        napi_get_reference_value(item->env_, item->callback_, &callback);
+        if (callback != nullptr) {
+            IMSA_HILOGD("callback is not nullptr");
+            napi_get_global(item->env_, &global);
+            napi_status callStatus = napi_call_function(item->env_, global, callback, paramNum, args, &result);
+            if (callStatus != napi_ok) {
+                IMSA_HILOGE(
+                    "notify data change failed callStatus:%{public}d", callStatus);
+                result = nullptr;
+            }
+        }
+
+        if (result != nullptr && !isOnKeyEvent) {
+            napi_valuetype valueType = napi_undefined;
+            napi_typeof(item->env_, result, &valueType);
+            if (valueType != napi_boolean) {
+                continue;
+            }
+            napi_get_value_bool(item->env_, result, &isResult);
+            if (isResult) {
+                isOnKeyEvent = true;
+            }
+        }
+    }
+    return isOnKeyEvent;
 }
 } // namespace MiscServices
 } // namespace OHOS

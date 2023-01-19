@@ -14,11 +14,12 @@
  */
 
 #include "js_text_input_client_engine.h"
+
 #include "input_method_ability.h"
+#include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
-#include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -39,8 +40,8 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("moveCursor", MoveCursor),
     };
     napi_value cons = nullptr;
-    NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(),
-        JsConstructor, nullptr, sizeof(properties) / sizeof(napi_property_descriptor), properties, &cons));
+    NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(), JsConstructor, nullptr,
+                       sizeof(properties) / sizeof(napi_property_descriptor), properties, &cons));
     NAPI_CALL(env, napi_create_reference(env, cons, 1, &TICRef_));
     NAPI_CALL(env, napi_set_named_property(env, info, TIC_CLASS_NAME.c_str(), cons));
 
@@ -92,12 +93,15 @@ napi_value JsTextInputClientEngine::JsConstructor(napi_env env, napi_callback_in
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(env, thisVar, clientObject, [](napi_env env, void *data, void *hint) {
-        auto *objInfo = reinterpret_cast<JsTextInputClientEngine*>(data);
-        if (objInfo != nullptr) {
-            delete objInfo;
-        }
-    }, nullptr, nullptr);
+    napi_wrap(
+        env, thisVar, clientObject,
+        [](napi_env env, void *data, void *hint) {
+            auto *objInfo = reinterpret_cast<JsTextInputClientEngine *>(data);
+            if (objInfo != nullptr) {
+                delete objInfo;
+            }
+        },
+        nullptr, nullptr);
 
     return thisVar;
 }
@@ -128,7 +132,7 @@ int32_t JsTextInputClientEngine::GetNumberProperty(napi_env env, napi_value jsNu
 
 std::string JsTextInputClientEngine::GetStringProperty(napi_env env, napi_value jsString)
 {
-    char propValue[MAX_VALUE_LEN] = {0};
+    char propValue[MAX_VALUE_LEN] = { 0 };
     size_t propLen;
     if (napi_get_value_string_utf8(env, jsString, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
         IMSA_HILOGE("GetStringProperty error");
@@ -144,8 +148,8 @@ napi_value JsTextInputClientEngine::GetResult(napi_env env, std::string &text)
     return jsText;
 }
 
-napi_value JsTextInputClientEngine::GetResultEditorAttribute(napi_env env,
-    std::shared_ptr<GetEditorAttributeContext> getEditorAttribute)
+napi_value JsTextInputClientEngine::GetResultEditorAttribute(
+    napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute)
 {
     napi_value editorAttribute = nullptr;
     napi_create_object(env, &editorAttribute);
@@ -157,12 +161,12 @@ napi_value JsTextInputClientEngine::GetResultEditorAttribute(napi_env env,
     napi_value jsMethodId = nullptr;
     napi_create_int32(env, getEditorAttribute->inputPattern, &jsMethodId);
     napi_set_named_property(env, editorAttribute, "inputPattern", jsMethodId);
-    
+
     return editorAttribute;
 }
 
-napi_status JsTextInputClientEngine::GetAction(napi_env env, napi_value argv,
-    std::shared_ptr<SendKeyFunctionContext> ctxt)
+napi_status JsTextInputClientEngine::GetAction(
+    napi_env env, napi_value argv, std::shared_ptr<SendKeyFunctionContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
@@ -173,8 +177,8 @@ napi_status JsTextInputClientEngine::GetAction(napi_env env, napi_value argv,
     return status;
 }
 
-napi_status JsTextInputClientEngine::GetDeleteForwardLength(napi_env env, napi_value argv,
-    std::shared_ptr<DeleteForwardContext> ctxt)
+napi_status JsTextInputClientEngine::GetDeleteForwardLength(
+    napi_env env, napi_value argv, std::shared_ptr<DeleteForwardContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
@@ -197,8 +201,8 @@ napi_status JsTextInputClientEngine::GetMoveCursorParam(
     return status;
 }
 
-napi_status JsTextInputClientEngine::GetDeleteBackwardLength(napi_env env, napi_value argv,
-    std::shared_ptr<DeleteBackwardContext> ctxt)
+napi_status JsTextInputClientEngine::GetDeleteBackwardLength(
+    napi_env env, napi_value argv, std::shared_ptr<DeleteBackwardContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
@@ -209,8 +213,8 @@ napi_status JsTextInputClientEngine::GetDeleteBackwardLength(napi_env env, napi_
     return status;
 }
 
-napi_status JsTextInputClientEngine::GetInsertText(napi_env env, napi_value argv,
-    std::shared_ptr<InsertTextContext> ctxt)
+napi_status JsTextInputClientEngine::GetInsertText(
+    napi_env env, napi_value argv, std::shared_ptr<InsertTextContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
@@ -221,8 +225,8 @@ napi_status JsTextInputClientEngine::GetInsertText(napi_env env, napi_value argv
     return status;
 }
 
-napi_status JsTextInputClientEngine::GetForwardLength(napi_env env, napi_value argv,
-    std::shared_ptr<GetForwardContext> ctxt)
+napi_status JsTextInputClientEngine::GetForwardLength(
+    napi_env env, napi_value argv, std::shared_ptr<GetForwardContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
@@ -233,8 +237,8 @@ napi_status JsTextInputClientEngine::GetForwardLength(napi_env env, napi_value a
     return status;
 }
 
-napi_status JsTextInputClientEngine::GetBackwardLength(napi_env env, napi_value argv,
-    std::shared_ptr<GetBackwardContext> ctxt)
+napi_status JsTextInputClientEngine::GetBackwardLength(
+    napi_env env, napi_value argv, std::shared_ptr<GetBackwardContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
@@ -479,9 +483,8 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
 napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<GetEditorAttributeContext>();
-    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        return napi_ok;
-    };
+    auto input = [ctxt](
+                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_value data = GetResultEditorAttribute(env, ctxt);
         *result = data;
@@ -501,5 +504,5 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
     return asyncCall.Call(env, exec);
 }
-}
-}
+} // namespace MiscServices
+} // namespace OHOS

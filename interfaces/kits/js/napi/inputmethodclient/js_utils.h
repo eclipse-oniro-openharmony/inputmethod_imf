@@ -16,12 +16,13 @@
 #ifndef INTERFACE_KITS_JS_UTILS_H
 #define INTERFACE_KITS_JS_UTILS_H
 
+#include <map>
+
+#include "global.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
-#include "global.h"
-#include <map>
 
 namespace OHOS {
 namespace MiscServices {
@@ -56,9 +57,14 @@ enum TypeCode : int32_t {
 
 class JsUtils {
 public:
+    using ArgsProvider = std::function<bool(napi_value args[], uint8_t argc, std::shared_ptr<JSCallbackObject>)>;
+
     static void ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type);
 
     static napi_value ToError(napi_env env, int32_t err);
+
+    static bool CallJsFunction(std::vector <std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
+                           ArgsProvider argsProvider);
 
 private:
     static int32_t Convert(int32_t code);
@@ -72,7 +78,9 @@ private:
     static const std::map<int32_t, std::string> PARAMETER_TYPE;
 
     static constexpr int32_t ERROR_CODE_QUERY_FAILED = 1;
+
+    static constexpr uint8_t MAX_ARGMENT_COUNT = 10;
 };
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
 #endif // INTERFACE_KITS_JS_UTILS_H
