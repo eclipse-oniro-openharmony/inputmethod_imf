@@ -171,13 +171,8 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
         }
 
         napi_value args[paramNum];
-        getValue(args, item);
-        if (paramNum <= ARGC_TWO) {
-            if (type == static_cast<int32_t>TypeForCircle::TYPE_BREAK) {
-                return;
-            } else if (type == static_cast<int32_t>TypeForCircle::TYPE_CONTINUE) {
-                continue;
-            }
+        if (!getValue(args, item)) {
+            continue;
         }
         
         napi_value callback = nullptr;
@@ -194,6 +189,7 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
                 result = nullptr;
             }
         }
+
         if (result != nullptr) {
             napi_valuetype valueType = napi_undefined;
             napi_typeof(item->env_, result, &valueType);
