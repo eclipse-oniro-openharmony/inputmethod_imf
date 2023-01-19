@@ -370,11 +370,13 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 delete data;
                 delete work;
             });
-            auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
+                                               std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc < ARGC_ONE) {
                     return false;
                 }
-                napi_value jsObject = GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
+                napi_value jsObject = GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode,
+                                                          entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
                     return false;
@@ -521,7 +523,8 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
                 delete work;
             });
 
-            auto getCursorUpdateProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getCursorUpdateProperty = [entry](napi_value *args, uint8_t argc,
+                                                   std::shared_ptr <JSCallbackObject> item) -> bool {
                 if (argc < ARGC_THREE) {
                     return false;
                 }
@@ -551,7 +554,8 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
                 delete work;
             });
 
-            auto getSelectionChangeProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getSelectionChangeProperty = [entry](napi_value *args, uint8_t argc,
+                                                      std::shared_ptr <JSCallbackObject> item) -> bool {
                 if (argc < ARGC_FOUR) {
                     return false;
                 }
@@ -581,7 +585,8 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
                 delete work;
             });
 
-            auto getTextChangeProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getTextChangeProperty = [entry](napi_value *args, uint8_t argc,
+                                                 std::shared_ptr <JSCallbackObject> item) -> bool {
                 if (argc < ARGC_ONE) {
                     return false;
                 }

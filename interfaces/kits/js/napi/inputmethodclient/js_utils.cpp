@@ -161,7 +161,8 @@ const std::string JsUtils::ToMessage(int32_t code)
     return "error is out of definition.";
 }
 
-bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum, ArgsProvider provider)
+bool JsUtils::CallJsFunction(std::vector <std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
+                             ArgsProvider argsProvider)
 {
     bool isResult = false;
     bool isOnKeyEvent = false;
@@ -171,7 +172,7 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
         }
 
         napi_value args[MAX_ARGMENT_COUNT];
-        if (!provider(args, MAX_ARGMENT_COUNT, item)) {
+        if (!argsProvider(args, MAX_ARGMENT_COUNT, item)) {
             continue;
         }
 
@@ -193,11 +194,12 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
         if (result != nullptr && !isOnKeyEvent) {
             napi_valuetype valueType = napi_undefined;
             napi_typeof(item->env_, result, &valueType);
-            if (valueType == napi_boolean) {
-                napi_get_value_bool(item->env_, result, &isResult);
-                if (isResult) {
-                    isOnKeyEvent = true;
-                }
+            if (valueType != napi_boolean) {
+                continue;
+            }
+            napi_get_value_bool(item->env_, result, &isResult);
+            if (isResult) {
+                isOnKeyEvent = true;
             }
         }
     }
