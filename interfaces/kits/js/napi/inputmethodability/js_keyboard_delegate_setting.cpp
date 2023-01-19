@@ -376,8 +376,8 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                     IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
                     return false;
                 }
-                args[ARGC_ONE] = { jsObject };
-                return true;s
+                args[ARGC_ZERO] = { jsObject };
+                return true;
             };
             bool isOnKeyEvent = JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
             entry->isDone->SetValue(isOnKeyEvent);

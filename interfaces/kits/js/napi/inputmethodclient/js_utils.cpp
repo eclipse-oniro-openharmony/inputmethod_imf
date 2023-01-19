@@ -170,7 +170,9 @@ bool JsUtils::CallJsFunction(std::vector<std::shared_ptr<JSCallbackObject>> &vec
             continue;
         }
 
-        napi_value args[paramNum];
+        size_t number;
+        paramNum == ARGC_ZERO ? number = ARGC_ONE : number = paramNum;
+        napi_value args[number];
         if (!getValue(args, item)) {
             continue;
         }

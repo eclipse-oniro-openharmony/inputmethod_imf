@@ -586,8 +586,8 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
                 delete work;
             });
 
-            auto getKeyboardStatusProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {3
-                args[ARGC_ONE] = nullptr;
+            auto getKeyboardStatusProperty = [entry](napi_value *args, std::shared_ptr<JSCallbackObject> item) -> bool {
+                args[ARGC_ZERO] = nullptr;
                 return true;
             };
             JsUtils::CallJsFunction(entry->vecCopy, ARGC_ZERO, getKeyboardStatusProperty);
@@ -677,7 +677,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
                     IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
                     return false;
                 }
-                args[ARGC_ONE] = { jsObject };
+                args[ARGC_ZERO] = { jsObject };
                 return true;
             };
             JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getSubtypeProperty);
