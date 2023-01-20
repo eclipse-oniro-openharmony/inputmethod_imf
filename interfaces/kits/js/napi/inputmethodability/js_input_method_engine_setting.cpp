@@ -555,9 +555,9 @@ void JsInputMethodEngineSetting::OnInputStart()
                 return;
             }
 
-            auto getInputStartProperty = [entry](napi_value *args, uint8_t argc,
-                                                 std::shared_ptr <JSCallbackObject> item) -> bool {
-                if (argc < ARGC_TWO) {
+            auto getInputStartProperty = [](napi_value *args, uint8_t argc,
+                                                 std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc < 2) {
                     return false;
                 }
                 napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(item->env_);
@@ -570,7 +570,7 @@ void JsInputMethodEngineSetting::OnInputStart()
                 args[ARGC_ONE] = textInput;
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_TWO, getInputStartProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_TWO, getInputStartProperty);
         });
 }
 
@@ -590,15 +590,15 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
                 delete work;
             });
 
-            auto getKeyboardStatusProperty = [entry](napi_value *args, uint8_t argc,
-                                                     std::shared_ptr <JSCallbackObject> item) -> bool {
-                if (argc < ARGC_ZERO) {
+            auto getKeyboardStatusProperty = [](napi_value *args, uint8_t argc,
+                                                     std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc != 0) {
                     return false;
                 }
                 args[ARGC_ZERO] = nullptr;
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ZERO, getKeyboardStatusProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ZERO, getKeyboardStatusProperty);
         });
 }
 
@@ -622,15 +622,15 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
                 return;
             }
 
-            auto getInputStopProperty = [entry](napi_value *args, uint8_t argc,
-                                                std::shared_ptr <JSCallbackObject> item) -> bool {
-                if (argc < ARGC_ONE) {
+            auto getInputStopProperty = [&imeId](napi_value *args, uint8_t argc,
+                                                std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc != 0) {
                     return false;
                 }
-                napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                napi_create_string_utf8(item->env_, imeId.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getInputStopProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getInputStopProperty);
         });
 }
 
@@ -655,14 +655,14 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
             }
 
             auto getCallingWindowProperty = [entry](napi_value *args, uint8_t argc,
-                                                    std::shared_ptr <JSCallbackObject> item) -> bool {
-                if (argc < ARGC_ONE) {
+                                                    std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc != 0) {
                     return false;
                 }
                 napi_create_int32(item->env_, entry->windowid, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getCallingWindowProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getCallingWindowProperty);
         });
 }
 
@@ -687,8 +687,8 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
             }
 
             auto getSubtypeProperty = [entry](napi_value *args, uint8_t argc,
-                                              std::shared_ptr <JSCallbackObject> item) -> bool {
-                if (argc < ARGC_ONE) {
+                                              std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc != 0) {
                     return false;
                 }
                 napi_value jsObject = GetResultOnSetSubtype(item->env_, entry->subProperty);
@@ -699,7 +699,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
                 args[ARGC_ZERO] = {jsObject};
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getSubtypeProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getSubtypeProperty);
         });
 }
 } // namespace MiscServices
