@@ -575,7 +575,7 @@ void JsInputMethodEngineSetting::OnInputStart()
                 args[ARGC_ONE] = textInput;
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_TWO, getInputStartProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_TWO, getInputStartProperty);
         });
 }
 
@@ -603,7 +603,7 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
                 args[ARGC_ZERO] = nullptr;
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ZERO, getKeyboardStatusProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ZERO, getKeyboardStatusProperty);
         });
 }
 
@@ -636,7 +636,7 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
             napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getInputStopProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getInputStopProperty);
         });
 }
 
@@ -669,7 +669,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
                 napi_create_int32(item->env_, entry->windowid, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getCallingWindowProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getCallingWindowProperty);
         });
 }
 
@@ -706,7 +706,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
                 args[ARGC_ZERO] = {jsObject};
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getSubtypeProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getSubtypeProperty);
         });
 }
 }

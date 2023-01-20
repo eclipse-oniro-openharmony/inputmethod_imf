@@ -592,7 +592,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 args[ARGC_ONE] = subProperty;
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_TWO, getImeChangeProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_TWO, getImeChangeProperty);
         });
 }
 }
