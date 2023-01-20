@@ -161,21 +161,23 @@ const std::string JsUtils::ToMessage(int32_t code)
     return "error is out of definition.";
 }
 
-bool JsUtils::TraverseCallback(std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
-                               ArgsProvider argsProvider)
+bool JsUtils::TraverseCallback(
+    std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum, ArgsProvider argsProvider)
 {
     bool isResult = false;
     bool isOnKeyEvent = false;
     for (const auto &item : vecCopy) {
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(item->env_, &scope);
         if (item->threadId_ != std::this_thread::get_id()) {
+            napi_close_handle_scope(item->env_, scope);
             continue;
         }
-
         napi_value args[MAX_ARGMENT_COUNT];
         if (!argsProvider(args, MAX_ARGMENT_COUNT, item)) {
+            napi_close_handle_scope(item->env_, scope);
             continue;
         }
-
         napi_value callback = nullptr;
         napi_value global = nullptr;
         napi_value result = nullptr;
@@ -185,12 +187,10 @@ bool JsUtils::TraverseCallback(std::vector<std::shared_ptr<JSCallbackObject>> &v
             napi_get_global(item->env_, &global);
             napi_status callStatus = napi_call_function(item->env_, global, callback, paramNum, args, &result);
             if (callStatus != napi_ok) {
-                IMSA_HILOGE(
-                    "notify data change failed callStatus:%{public}d", callStatus);
+                IMSA_HILOGE("notify data change failed callStatus:%{public}d", callStatus);
                 result = nullptr;
             }
         }
-
         if (result != nullptr && !isOnKeyEvent) {
             napi_valuetype valueType = napi_undefined;
             napi_typeof(item->env_, result, &valueType);
@@ -202,6 +202,7 @@ bool JsUtils::TraverseCallback(std::vector<std::shared_ptr<JSCallbackObject>> &v
                 isOnKeyEvent = true;
             }
         }
+        napi_close_handle_scope(item->env_, scope);
     }
     return isOnKeyEvent;
 }
