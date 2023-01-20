@@ -175,8 +175,8 @@ namespace MiscServices {
         IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
         state_ = ServiceRunningState::STATE_RUNNING;
         ImeCfgManager::GetInstance().Init();
-        // 服务异常重启后不会走OnUserStarted，但是可以获取到当前userId
-        // 设备启动时可能获取不到当前userId,如果获取不到，则等OnUserStarted的时候处理.
+        // 鏈嶅姟寮傚父閲嶅惎鍚庝笉浼氳蛋OnUserStarted锛屼絾鏄彲浠ヨ幏鍙栧埌褰撳墠userId
+        // 璁惧鍚姩鏃跺彲鑳借幏鍙栦笉鍒板綋鍓島serId,濡傛灉鑾峰彇涓嶅埌锛屽垯绛塐nUserStarted鐨勬椂鍊欏鐞?
         std::vector<int32_t> userIds;
         if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
             userId_ = userIds[0];
@@ -970,7 +970,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    // 用户移除也会有该通知，如果移除的app用户不是当前用户，则不处理
+    // 鐢ㄦ埛绉婚櫎涔熶細鏈夎閫氱煡锛屽鏋滅Щ闄ょ殑app鐢ㄦ埛涓嶆槸褰撳墠鐢ㄦ埛锛屽垯涓嶅鐞?
     if (userId != userId_) {
         return ErrorCode::NO_ERROR;
     }
