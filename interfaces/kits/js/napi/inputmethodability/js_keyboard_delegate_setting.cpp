@@ -587,7 +587,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 
             auto getTextChangeProperty = [entry](napi_value *args, uint8_t argc,
                                                  std::shared_ptr<JSCallbackObject> item) -> bool {
-                if (argc != 0) {
+                if (argc == 0) {
                     return false;
                 }
                 napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
