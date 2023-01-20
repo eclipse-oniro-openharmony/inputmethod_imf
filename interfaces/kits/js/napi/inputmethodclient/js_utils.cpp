@@ -161,7 +161,7 @@ const std::string JsUtils::ToMessage(int32_t code)
     return "error is out of definition.";
 }
 
-bool JsUtils::CallJsFunction(std::vector <std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
+bool JsUtils::TraverseCallback(std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
                              ArgsProvider argsProvider)
 {
     bool isResult = false;

@@ -578,8 +578,8 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 return;
             }
             auto getImeChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                                std::shared_ptr <JSCallbackObject> item) -> bool {
-                if (argc < ARGC_TWO) {
+                                                std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc < 2) {
                     return false;
                 }
                 napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
