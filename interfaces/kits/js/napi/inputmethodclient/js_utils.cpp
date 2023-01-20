@@ -162,7 +162,7 @@ const std::string JsUtils::ToMessage(int32_t code)
 }
 
 bool JsUtils::TraverseCallback(std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
-                             ArgsProvider argsProvider)
+                                ArgsProvider argsProvider)
 {
     bool isResult = false;
     bool isOnKeyEvent = false;
