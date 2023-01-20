@@ -554,29 +554,23 @@ void JsInputMethodEngineSetting::OnInputStart()
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            for (auto item : entry->vecCopy) {
+
+            auto getInputStartProperty = [](napi_value *args, uint8_t argc,
+                                                 std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc < 2) {
+                    return false;
+                }
                 napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(item->env_);
                 napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(item->env_);
                 if (keyBoardController == nullptr || textInput == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
-                    break;
+                    return false;
                 }
-                napi_value callback = nullptr;
-                napi_value args[] = { keyBoardController, textInput };
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_TWO, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
-            }
+                args[ARGC_ZERO] = keyBoardController;
+                args[ARGC_ONE] = textInput;
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_TWO, getInputStartProperty);
         });
 }
 
@@ -596,23 +590,15 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
                 delete work;
             });
 
-            for (auto &item : entry->vecCopy) {
-                napi_value callback = nullptr;
-                napi_value args[ARGC_ONE] = { nullptr };
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
+            auto getKeyboardStatusProperty = [](napi_value *args, uint8_t argc,
+                                                     std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == 0) {
+                    return false;
                 }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_ZERO, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
-            }
+                args[ARGC_ZERO] = nullptr;
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ZERO, getKeyboardStatusProperty);
         });
 }
 
@@ -636,25 +622,15 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
                 return;
             }
 
-            for (auto item : entry->vecCopy) {
-                napi_value args[ARGC_ONE] = { nullptr };
-                napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[0]);
-
-                napi_value callback = nullptr;
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
+            auto getInputStopProperty = [entry](napi_value *args, uint8_t argc,
+                                                std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == 0) {
+                    return false;
                 }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_ONE, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
-            }
+                napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getInputStopProperty);
         });
 }
 
@@ -678,25 +654,15 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
                 return;
             }
 
-            for (auto item : entry->vecCopy) {
-                napi_value args[ARGC_ONE] = { nullptr };
-                napi_create_int32(item->env_, entry->windowid, &args[0]);
-
-                napi_value callback = nullptr;
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
+            auto getCallingWindowProperty = [entry](napi_value *args, uint8_t argc,
+                                                    std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == 0) {
+                    return false;
                 }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_ONE, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
-            }
+                napi_create_int32(item->env_, entry->windowid, &args[ARGC_ZERO]);
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getCallingWindowProperty);
         });
 }
 
@@ -720,28 +686,20 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
                 return;
             }
 
-            for (auto item : entry->vecCopy) {
+            auto getSubtypeProperty = [entry](napi_value *args, uint8_t argc,
+                                              std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == 0) {
+                    return false;
+                }
                 napi_value jsObject = GetResultOnSetSubtype(item->env_, entry->subProperty);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
-                    continue;
+                    return false;
                 }
-                napi_value callback = nullptr;
-                napi_value args[] = { jsObject };
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_ONE, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
-            }
+                args[ARGC_ZERO] = {jsObject};
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getSubtypeProperty);
         });
 }
 } // namespace MiscServices

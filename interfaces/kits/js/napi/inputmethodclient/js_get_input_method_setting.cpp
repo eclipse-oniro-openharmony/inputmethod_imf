@@ -590,29 +590,22 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            for (auto item : entry->vecCopy) {
+            auto getImeChangeProperty = [entry](napi_value *args, uint8_t argc,
+                                                std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc < 2) {
+                    return false;
+                }
                 napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
                 napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
                 if (subProperty == nullptr || property == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
-                    break;
+                    return false;
                 }
-                napi_value callback = nullptr;
-                napi_value args[] = { property, subProperty };
-                napi_get_reference_value(item->env_, item->callback_, &callback);
-                if (callback == nullptr) {
-                    IMSA_HILOGE("callback is nullptr");
-                    continue;
-                }
-                napi_value global = nullptr;
-                napi_get_global(item->env_, &global);
-                napi_value result;
-                napi_status callStatus = napi_call_function(item->env_, global, callback, ARGC_TWO, args, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE(
-                        "notify data change failed callStatus:%{public}d callback:%{public}p", callStatus, callback);
-                }
-            }
+                args[ARGC_ZERO] = property;
+                args[ARGC_ONE] = subProperty;
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_TWO, getImeChangeProperty);
         });
 }
 } // namespace MiscServices
