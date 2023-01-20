@@ -622,12 +622,12 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
                 return;
             }
 
-            auto getInputStopProperty = [&imeId](napi_value *args, uint8_t argc,
+            auto getInputStopProperty = [entry](napi_value *args, uint8_t argc,
                                                 std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc != 0) {
                     return false;
                 }
-                napi_create_string_utf8(item->env_, imeId.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
                 return true;
             };
             JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getInputStopProperty);
