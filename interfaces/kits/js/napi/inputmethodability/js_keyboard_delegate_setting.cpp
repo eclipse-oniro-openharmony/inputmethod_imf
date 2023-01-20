@@ -416,7 +416,7 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
             });
             auto getCursorUpdateProperty = [entry](napi_value *args, uint8_t argc,
                                                std::shared_ptr<JSCallbackObject> item) -> bool {
-                if (argc < ARGC_THREE) {
+                if (argc < 3) {
                     return false;
                 }
                 napi_create_int32(item->env_, entry->curPara.positionX, &args[ARGC_ZERO]);
@@ -424,7 +424,7 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
                 napi_create_int32(item->env_, entry->curPara.height, &args[ARGC_TWO]);
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_THREE, getCursorUpdateProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_THREE, getCursorUpdateProperty);
         });
 }
 
@@ -433,7 +433,7 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
     IMSA_HILOGI("run in OnSelectionChange");
     SelectionPara para{ oldBegin, oldEnd, newBegin, newEnd };
     std::string type = "selectionChange";
-    auto work = GetUVwork(type, [para](UvEntry &entry) {
+    auto work = GetUVwork(type, [&para](UvEntry &entry) {
         entry.selPara.oldBegin = para.oldBegin;
         entry.selPara.oldEnd = para.oldEnd;
         entry.selPara.newBegin = para.newBegin;
@@ -462,7 +462,7 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
                 napi_create_int32(item->env_, entry->selPara.newEnd, &args[ARGC_THREE]);
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_FOUR, getSelectionChangeProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_FOUR, getSelectionChangeProperty);
         });
 }
 
@@ -470,7 +470,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 {
     IMSA_HILOGI("run in OnTextChange");
     std::string type = "cursorContextChange";
-    auto work = GetUVwork(type, [text](UvEntry &entry) { entry.text = text; });
+    auto work = GetUVwork(type, [&text](UvEntry &entry) { entry.text = text; });
     if (work == nullptr) {
         IMSA_HILOGE("failed to get uv entry");
         return;
@@ -484,14 +484,14 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
             });
 
             auto getTextChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                             std::shared_ptr<JSCallbackObject> item) -> bool {
-                if (argc < ARGC_ONE) {
+                                                 std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == 0) {
                     return false;
                 }
                 napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::CallJsFunction(entry->vecCopy, ARGC_ONE, getTextChangeProperty);
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getTextChangeProperty);
         });
 }
 
