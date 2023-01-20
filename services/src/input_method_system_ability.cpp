@@ -175,8 +175,8 @@ namespace MiscServices {
         IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
         state_ = ServiceRunningState::STATE_RUNNING;
         ImeCfgManager::GetInstance().Init();
-        // 服务异常重启后不会走OnUserStarted，但是可以获取到当前userId
-        // 设备启动时可能获取不到当前userId,如果获取不到，则等OnUserStarted的时候处理.
+        // 锟斤拷锟斤拷锟届常锟斤拷锟斤拷锟襟不伙拷锟斤拷OnUserStarted锟斤拷锟斤拷锟角匡拷锟皆伙拷取锟斤拷锟斤拷前userId
+        // 锟借备锟斤拷锟斤拷时锟斤拷锟杰伙拷取锟斤拷锟斤拷锟斤拷前userId,锟斤拷锟斤拷锟饺★拷锟斤拷锟斤拷锟斤拷锟斤拷OnUserStarted锟斤拷时锟斤拷锟斤拷.
         std::vector<int32_t> userIds;
         if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
             userId_ = userIds[0];
@@ -487,8 +487,8 @@ namespace MiscServices {
             if (subtypeInfo.bundleName == name) {
                 std::vector<Metadata> extends = subtypeInfo.metadata;
                 auto property = GetExtends(extends);
-                auto label =
-                    bundleMgr->GetStringById(subtypeInfo.bundleName, subtypeInfo.moduleName, subtypeInfo.labelId, userId);
+                auto label = bundleMgr->GetStringById(subtypeInfo.bundleName, subtypeInfo.moduleName,
+                                                      subtypeInfo.labelId, userId);
                 subProps.push_back({ .id = subtypeInfo.bundleName,
                     .label = subtypeInfo.name,
                     .name = label,
@@ -970,7 +970,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    // 用户移除也会有该通知，如果移除的app用户不是当前用户，则不处理
+    // 锟矫伙拷锟狡筹拷也锟斤拷锟叫革拷通知锟斤拷锟斤拷锟斤拷瞥锟斤拷锟絘pp锟矫伙拷锟斤拷锟角碉拷前锟矫伙拷锟斤拷锟津不达拷锟斤拷
     if (userId != userId_) {
         return ErrorCode::NO_ERROR;
     }
