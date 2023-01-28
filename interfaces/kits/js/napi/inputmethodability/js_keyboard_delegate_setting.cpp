@@ -369,7 +369,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
                 SAFE_DELETE(data);
                 SAFE_DELETE(work);
             });
@@ -410,7 +410,7 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
                 SAFE_DELETE(data);
                 SAFE_DELETE(work);
             });
@@ -447,7 +447,7 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
                 SAFE_DELETE(data);
                 SAFE_DELETE(work);
             });
@@ -479,7 +479,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
                 SAFE_DELETE(data);
                 SAFE_DELETE(work);
             });

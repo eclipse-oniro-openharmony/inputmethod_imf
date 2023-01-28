@@ -557,7 +557,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
                 SAFE_DELETE(data);
                 SAFE_DELETE(work);
             });
