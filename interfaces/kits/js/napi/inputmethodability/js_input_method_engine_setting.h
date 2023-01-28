@@ -57,10 +57,6 @@ private:
     static napi_value GetIMEInstance(napi_env env, napi_callback_info info, int flag);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
-    uv_work_t *GetUVwork(std::string type);
-    uv_work_t *GetStopInputUVwork(std::string type, std::string imeId);
-    uv_work_t *GetWindowIDUVwork(std::string type, uint32_t windowid);
-    uv_work_t *GetSubtypeUVwork(std::string type, const SubProperty &property);
     static napi_value GetResultOnSetSubtype(napi_env env, const SubProperty &property);
     static std::string GetStringProperty(napi_env env, napi_value jsString);
     static constexpr int32_t MAX_VALUE_LEN = 1024;

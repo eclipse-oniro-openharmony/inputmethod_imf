@@ -111,7 +111,6 @@ public:
 private:
     static napi_status GetInputMethodProperty(napi_env env, napi_value argv, std::shared_ptr<ListInputContext> ctxt);
     static JsGetInputMethodSetting *GetNative(napi_env env, napi_callback_info info);
-    uv_work_t *GetImeChangeUVwork(std::string type, const Property &property, const SubProperty &subProperty);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value DisplayInputMethod(napi_env env, napi_callback_info info, bool needThrowException);
