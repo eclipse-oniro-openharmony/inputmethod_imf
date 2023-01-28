@@ -558,8 +558,8 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
+                SAFE_DELETE(data);
+                SAFE_DELETE(work);
             });
             if (entry == nullptr) {
                 IMSA_HILOGE("OnInputStart:: entryptr is null");

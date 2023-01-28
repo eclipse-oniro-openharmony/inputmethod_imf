@@ -82,6 +82,14 @@ private:
 
     static constexpr uint8_t MAX_ARGMENT_COUNT = 10;
 };
+
+#define SAFE_DELETE(p)        \
+    do {                      \
+        if ((p) != nullptr) { \
+            delete (p);       \
+            (p) = nullptr;    \
+        }                     \
+    } while (0)
 } // namespace MiscServices
 } // namespace OHOS
 #endif // INTERFACE_KITS_JS_UTILS_H
