@@ -113,10 +113,12 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(
-        env, thisVar, delegate.get(),
-        [](napi_env env, void *nativeObject, void *hint) { IMSA_HILOGE("delete JsKeyboardDelegateSetting"); }, nullptr,
-        nullptr);
+    napi_status status = napi_wrap(
+        env, thisVar, delegate.get(), [](napi_env env, void *nativeObject, void *hint) {}, nullptr, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("JsKeyboardDelegateSetting napi_wrap failed: %{public}d", status);
+        return nullptr;
+    }
     if (delegate->loop_ == nullptr) {
         napi_get_uv_event_loop(env, &delegate->loop_);
     }

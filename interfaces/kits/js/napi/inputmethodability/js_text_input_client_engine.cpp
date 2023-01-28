@@ -94,14 +94,18 @@ napi_value JsTextInputClientEngine::JsConstructor(napi_env env, napi_callback_in
         return result;
     }
     auto finalize = [](napi_env env, void *data, void *hint) {
-        IMSA_HILOGD("JsTextInputClientEngine finalize");
+        IMSA_HILOGE("JsTextInputClientEngine finalize");
         auto *objInfo = reinterpret_cast<JsTextInputClientEngine *>(data);
         if (objInfo != nullptr) {
             delete objInfo;
         }
     };
-    napi_wrap(env, thisVar, clientObject, finalize, nullptr, nullptr);
-
+    napi_status status = napi_wrap(env, thisVar, clientObject, finalize, nullptr, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("JsTextInputClientEngine napi_wrap failed: %{public}d", status);
+        finalize(env, clientObject, nullptr);
+        return nullptr;
+    }
     return thisVar;
 }
 

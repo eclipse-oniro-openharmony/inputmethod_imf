@@ -60,14 +60,19 @@ napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback
         return result;
     }
     auto finalize = [](napi_env env, void *data, void *hint) {
-        IMSA_HILOGD("JsGetInputMethodController finalize");
+        IMSA_HILOGE("JsGetInputMethodController finalize");
         auto *objInfo = reinterpret_cast<JsGetInputMethodController *>(data);
         if (objInfo != nullptr) {
             IMSA_HILOGE("objInfo is nullptr");
             delete objInfo;
         }
     };
-    napi_wrap(env, thisVar, controllerObject, finalize, nullptr, nullptr);
+    napi_status status = napi_wrap(env, thisVar, controllerObject, finalize, nullptr, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("JsGetInputMethodController napi_wrap failed:%{public}d", status);
+        finalize(env, controllerObject, nullptr);
+        return nullptr;
+    }
 
     return thisVar;
 }

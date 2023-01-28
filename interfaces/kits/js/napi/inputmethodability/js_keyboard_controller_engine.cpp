@@ -52,13 +52,18 @@ napi_value JsKeyboardControllerEngine::JsConstructor(napi_env env, napi_callback
         return result;
     }
     auto finalize = [](napi_env env, void *data, void *hint) {
-        IMSA_HILOGD("JsKeyboardControllerEngine finalize");
+        IMSA_HILOGE("JsKeyboardControllerEngine finalize");
         auto *objInfo = reinterpret_cast<JsKeyboardControllerEngine *>(data);
         if (objInfo != nullptr) {
             delete objInfo;
         }
     };
-    napi_wrap(env, thisVar, controllerObject, finalize, nullptr, nullptr);
+    napi_status status = napi_wrap(env, thisVar, controllerObject, finalize, nullptr, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("JsKeyboardControllerEngine napi_wrap failed: %{public}d", status);
+        finalize(env, controllerObject, nullptr);
+        return nullptr;
+    }
 
     return thisVar;
 }

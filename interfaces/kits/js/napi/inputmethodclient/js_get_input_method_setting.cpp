@@ -104,9 +104,12 @@ napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_in
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(
-        env, thisVar, delegate.get(),
-        [](napi_env env, void *data, void *hint) { IMSA_HILOGE("delete JsInputMethodSetting"); }, nullptr, nullptr);
+    napi_status status = napi_wrap(
+        env, thisVar, delegate.get(), [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("JsGetInputMethodSetting napi_wrap failed: %{public}d", status);
+        return nullptr;
+    }
     if (delegate->loop_ == nullptr) {
         napi_get_uv_event_loop(env, &delegate->loop_);
     }
