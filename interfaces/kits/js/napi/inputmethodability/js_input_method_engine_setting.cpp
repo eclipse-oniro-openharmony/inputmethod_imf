@@ -534,7 +534,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
 {
     IMSA_HILOGI("run in %{public}s", __func__);
     std::string type = "setCallingWindow";
-    auto work = GetUVwork(type, [&windowId](UvEntry &entry) { entry.windowid = windowId; });
+    auto work = GetUVwork(type, [windowId](UvEntry &entry) { entry.windowid = windowId; });
     if (work == nullptr) {
         IMSA_HILOGE("failed to get uv entry");
         return;

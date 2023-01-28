@@ -358,7 +358,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
     KeyEventPara para{ keyCode, keyStatus, false };
     std::string type = (keyStatus == ARGC_TWO ? "keyDown" : "keyUp");
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-    auto work = GetUVwork(type, [para, isDone](UvEntry &entry) {
+    auto work = GetUVwork(type, [&para, isDone](UvEntry &entry) {
         entry.keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
         entry.isDone = isDone;
     });
@@ -398,7 +398,7 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
     IMSA_HILOGI("run in OnCursorUpdate");
     CursorPara para{ positionX, positionY, height };
     std::string type = "cursorContextChange";
-    auto work = GetUVwork(type, [para](UvEntry &entry) {
+    auto work = GetUVwork(type, [&para](UvEntry &entry) {
         entry.curPara.positionX = para.positionX;
         entry.curPara.positionY = para.positionY;
         entry.curPara.height = para.height;
