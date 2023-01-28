@@ -128,6 +128,8 @@ private:
         {
         }
     };
+    using EntrySetter = std::function<void(UvEntry &)>;
+    uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
     static const std::string IMS_CLASS_NAME;
     static thread_local napi_ref IMSRef_;
     uv_loop_s *loop_ = nullptr;

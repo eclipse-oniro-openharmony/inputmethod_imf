@@ -411,9 +411,10 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
+                SAFE_DELETE(data);
+                SAFE_DELETE(work);
             });
+
             auto getCursorUpdateProperty = [entry](napi_value *args, uint8_t argc,
                                                std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc < 3) {
@@ -447,8 +448,8 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
+                SAFE_DELETE(data);
+                SAFE_DELETE(work);
             });
 
             auto getSelectionChangeProperty = [entry](napi_value *args, uint8_t argc,
@@ -479,8 +480,8 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
+                SAFE_DELETE(data);
+                SAFE_DELETE(work);
             });
 
             auto getTextChangeProperty = [entry](napi_value *args, uint8_t argc,
@@ -497,7 +498,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 
 uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
 {
-    IMSA_HILOGI("run in %{public}s", __func__);
+    IMSA_HILOGI("run in %{public}s: %{public}s", __func__, type.c_str());
     UvEntry *entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -511,7 +512,9 @@ uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySe
             IMSA_HILOGE("entry ptr is nullptr!");
             return nullptr;
         }
-        entrySetter(*entry);
+        if (entrySetter != nullptr) {
+            entrySetter(*entry);
+        }
     }
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {

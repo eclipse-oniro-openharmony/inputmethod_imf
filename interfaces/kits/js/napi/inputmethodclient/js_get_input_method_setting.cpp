@@ -542,41 +542,16 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     return result;
 }
 
-uv_work_t *JsGetInputMethodSetting::GetImeChangeUVwork(
-    std::string type, const Property &property, const SubProperty &subProperty)
-{
-    IMSA_HILOGI("run in GetImeChangeUVwork");
-    UvEntry *entry = nullptr;
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
-        entry->property = property;
-        entry->subProperty = subProperty;
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        IMSA_HILOGE("entry ptr is nullptr!");
-        return nullptr;
-    }
-    work->data = entry;
-    return work;
-}
-
 void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
-    IMSA_HILOGI("run in OnImeChange");
+    IMSA_HILOGI("run in %{public}s", __func__);
     std::string type = "imeChange";
-    uv_work_t *work = GetImeChangeUVwork(type, property, subProperty);
+    auto work = GetUVwork(type, [&property, &subProperty](UvEntry &entry) {
+        entry.property = property;
+        entry.subProperty = subProperty;
+    });
     if (work == nullptr) {
+        IMSA_HILOGE("failed to get uv entry");
         return;
     }
     uv_queue_work(
@@ -607,6 +582,35 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
             };
             JsUtils::TraverseCallback(entry->vecCopy, ARGC_TWO, getImeChangeProperty);
         });
+}
+
+uv_work_t *JsGetInputMethodSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
+{
+    IMSA_HILOGD("run in %{public}s: %{public}s", __func__, type.c_str());
+    UvEntry *entry = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+        if (jsCbMap_[type].empty()) {
+            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
+            return nullptr;
+        }
+        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
+        if (entry == nullptr) {
+            IMSA_HILOGE("entry ptr is nullptr!");
+            return nullptr;
+        }
+        if (entrySetter != nullptr) {
+            entrySetter(*entry);
+        }
+    }
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        IMSA_HILOGE("entry ptr is nullptr!");
+        return nullptr;
+    }
+    work->data = entry;
+    return work;
 }
 } // namespace MiscServices
 } // namespace OHOS
