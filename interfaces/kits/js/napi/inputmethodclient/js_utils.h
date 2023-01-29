@@ -63,7 +63,7 @@ public:
 
     static napi_value ToError(napi_env env, int32_t err);
 
-    static bool TraverseCallback(std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
+    static bool TraverseCallback(const std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
                            ArgsProvider argsProvider);
 
 private:
