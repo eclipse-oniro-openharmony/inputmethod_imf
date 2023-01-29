@@ -167,7 +167,6 @@ void ImCommonEventManager::EventSubscriber::RemoveUser(const CommonEventData &da
 void ImCommonEventManager::EventSubscriber::RemovePackage(const CommonEventData &data)
 {
     auto const &want = data.GetWant();
-    std::string action = want.GetAction();
     auto element = want.GetElement();
     std::string bundleName = element.GetBundleName();
     int32_t userId = want.GetIntParam("userId", 0);
