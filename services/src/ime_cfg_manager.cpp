@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <fstream>
 #include <string>
@@ -107,10 +108,10 @@ void ImeCfgManager::DeleteImeCfg(int32_t userId)
 ImeCfg ImeCfgManager::GetImeCfg(int32_t userId)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    for (auto &cfg : imeConfigs_) {
-        if (cfg.userId == userId) {
-            return cfg;
-        }
+    auto it = std::find_if(
+        imeConfigs_.begin(), imeConfigs_.end(), [userId](const ImeCfg &cfg) { return cfg.userId == userId; });
+    if (it != imeConfigs_.end()) {
+        return *it;
     }
     return {};
 }
