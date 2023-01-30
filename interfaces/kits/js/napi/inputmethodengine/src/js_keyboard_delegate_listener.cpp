@@ -151,6 +151,7 @@ namespace MiscServices {
 
         auto result = false;
         auto task = [this, keyCode, keyStatus, &result] () {
+            HandleScope handleScope(*engine_);
             NativeValue* nativeValue = engine_->CreateObject();
             NativeObject* object = ConvertNativeValueTo<NativeObject>(nativeValue);
             if (object == nullptr) {
@@ -179,6 +180,7 @@ namespace MiscServices {
         IMSA_HILOGI("JsKeyboardDelegateListener::OnCursorUpdate");
 
         auto task = [this, positionX, positionY, height] () {
+            HandleScope handleScope(*engine_);
             NativeValue* nativeXValue = CreateJsValue(*engine_, static_cast<uint32_t>(positionX));
             NativeValue* nativeYValue = CreateJsValue(*engine_, static_cast<uint32_t>(positionY));
             NativeValue* nativeHValue = CreateJsValue(*engine_, static_cast<uint32_t>(height));
@@ -196,6 +198,7 @@ namespace MiscServices {
         IMSA_HILOGI("JsKeyboardDelegateListener::OnSelectionChange");
 
         auto task = [this, oldBegin, oldEnd, newBegin, newEnd] () {
+            HandleScope handleScope(*engine_);
             NativeValue* nativeOBValue = CreateJsValue(*engine_, static_cast<uint32_t>(oldBegin));
             NativeValue* nativeOEValue = CreateJsValue(*engine_, static_cast<uint32_t>(oldEnd));
             NativeValue* nativeNBHValue = CreateJsValue(*engine_, static_cast<uint32_t>(newBegin));
@@ -214,6 +217,7 @@ namespace MiscServices {
         std::lock_guard<std::mutex> lock(mMutex);
         IMSA_HILOGI("JsKeyboardDelegateListener::OnTextChange");
         auto task = [this, text] () {
+            HandleScope handleScope(*engine_);
             NativeValue* nativeValue = CreateJsValue(*engine_, text);
 
             NativeValue* argv[] = {nativeValue};

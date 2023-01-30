@@ -152,6 +152,7 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnKeyboardStatus");
 
         auto task = [this, isShow] () {
+            HandleScope handleScope(*engine_);
             NativeValue* nativeValue = engine_->CreateObject();
             NativeObject* object = ConvertNativeValueTo < NativeObject >(nativeValue);
             if (object == nullptr) {
@@ -175,6 +176,7 @@ namespace MiscServices {
         std::lock_guard<std::mutex> lock(mMutex);
         IMSA_HILOGI("JsInputMethodEngineListener::OnInputStart");
         auto task = [this] () {
+            HandleScope handleScope(*engine_);
             NativeValue *nativeValuekb = CreateKeyboardController(*engine_);
             NativeValue *nativeValuetx = CreateTextInputClient(*engine_);
             NativeValue* argv[] = {nativeValuekb, nativeValuetx};
@@ -190,6 +192,7 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnInputStop");
 
         auto task = [this, imeId] () {
+            HandleScope handleScope(*engine_);
             NativeValue* nativeValue = CreateJsValue(*engine_, imeId);
 
             NativeValue* argv[] = { nativeValue };
@@ -205,6 +208,7 @@ namespace MiscServices {
         IMSA_HILOGI("JsInputMethodEngineListener::OnSetCallingWindow");
 
         auto task = [this, windowId] () {
+            HandleScope handleScope(*engine_);
             NativeValue* nativeValue = CreateJsValue(*engine_, windowId);
             NativeValue* argv[] = { nativeValue };
             std::string methodName = "setCallingWindow";
