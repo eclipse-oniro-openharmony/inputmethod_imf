@@ -473,7 +473,7 @@ void JsInputMethodEngineSetting::OnInputStart()
 void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
 {
     std::string type = isShow ? "keyboardShow" : "keyboardHide";
-    IMSA_HILOGI("run in %{public}s: %{public}s",__func__, type.c_str());
+    IMSA_HILOGI("run in %{public}s: %{public}s", __func__, type.c_str());
     auto work = GetUVwork(type);
     if (work == nullptr) {
         IMSA_HILOGE("failed to get uv entry");
