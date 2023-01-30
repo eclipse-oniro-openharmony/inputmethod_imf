@@ -313,7 +313,8 @@ napi_value JsGetInputMethodSetting::DisplayInputMethod(napi_env env, napi_callba
             IMSA_HILOGE("exec ---- DisplayOptionalInputMethod failed: ability already activited");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
-            ctxt->isDisplayed = true;
+            ctxt->isDisplayed = false;
+            return;
         }
         if (needThrowException) {
             ctxt->SetErrorCode(errCode);

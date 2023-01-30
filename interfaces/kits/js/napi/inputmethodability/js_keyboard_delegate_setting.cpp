@@ -166,6 +166,7 @@ std::string JsKeyboardDelegateSetting::GetStringProperty(napi_env env, napi_valu
     size_t propLen;
     if (napi_get_value_string_utf8(env, jsString, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
         IMSA_HILOGE("GetStringProperty error");
+        return "";
     }
     return std::string(propValue);
 }
@@ -572,7 +573,7 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
 void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 {
     IMSA_HILOGI("run in OnTextChange");
-    std::string type = "cursorContextChange";
+    std::string type = "textChange";
     uv_work_t *work = GetTextUVwork(type, text);
     if (work == nullptr) {
         return;
