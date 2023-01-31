@@ -24,7 +24,7 @@ extern "C" __attribute__((constructor)) void NAPI_inputmethodextensioncontext_Au
 {
     auto moduleManager = NativeModuleManager::GetInstance();
     NativeModule newModuleInfo = {
-        .name = "inputmethodextensioncontext",
+        .name = "InputMethodExtensionContext",
         .fileName = "libinputmethodextensioncontext_napi.so/inputmethod_extension_context.js",
     };
     moduleManager->Register(&newModuleInfo);
