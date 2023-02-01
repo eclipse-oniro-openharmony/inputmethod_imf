@@ -111,7 +111,7 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
     auto ctxt = std::make_shared<HandleContext>();
     auto input = [ctxt](
                      napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
-    auto output = [ctxt, &isOutput](napi_env env, napi_value *result) -> napi_status {
+    auto output = [ctxt, isOutput](napi_env env, napi_value *result) -> napi_status {
         if (!isOutput) {
             return napi_ok;
         }

@@ -43,31 +43,6 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getInputMethodSetting", GetInputMethodSetting),
         DECLARE_NAPI_FUNCTION("getSetting", GetSetting),
-
-        DECLARE_NAPI_PROPERTY("EXCEPTION_PERMISSION",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PERMISSION))),
-        DECLARE_NAPI_PROPERTY("EXCEPTION_PARAMCHECK",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PARAMCHECK))),
-        DECLARE_NAPI_PROPERTY("EXCEPTION_UNSUPPORTED",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_UNSUPPORTED))),
-        DECLARE_NAPI_PROPERTY("EXCEPTION_PACKAGEMANAGER",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_PACKAGEMANAGER))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_IMENGINE", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMENGINE))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_IMCLIENT", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMCLIENT))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_KEYEVENT", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_KEYEVENT))),
-        DECLARE_NAPI_PROPERTY("EXCEPTION_CONFPERSIST",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_CONFPERSIST))),
-        DECLARE_NAPI_PROPERTY("EXCEPTION_CONTROLLER",
-            GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_CONTROLLER))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_SETTINGS", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_SETTINGS))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_IMMS", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_IMMS))),
-        DECLARE_NAPI_PROPERTY(
-            "EXCEPTION_OTHERS", GetJsConstProperty(env, static_cast<uint32_t>(IMFErrorCode::EXCEPTION_OTHERS))),
         DECLARE_NAPI_PROPERTY("MAX_TYPE_NUM", maxTypeNumber),
     };
     NAPI_CALL(
@@ -308,12 +283,6 @@ napi_value JsGetInputMethodSetting::DisplayInputMethod(napi_env env, napi_callba
             ctxt->SetState(ctxt->status);
             ctxt->isDisplayed = true;
             return;
-        }
-        if (errCode == ErrorCode::ERROR_ABILITY_ACTIVATING) {
-            IMSA_HILOGE("exec ---- DisplayOptionalInputMethod failed: ability already activited");
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
-            ctxt->isDisplayed = true;
         }
         if (needThrowException) {
             ctxt->SetErrorCode(errCode);

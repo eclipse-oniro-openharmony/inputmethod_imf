@@ -20,17 +20,17 @@ extern const char _binary_inputmethod_extension_ability_js_end[];
 extern const char _binary_inputmethod_extension_ability_abc_start[];
 extern const char _binary_inputmethod_extension_ability_abc_end[];
 
-extern "C" __attribute__((constructor)) void NAPI_inputmethodextensionability_AutoRegister()
+extern "C" __attribute__((constructor)) void NAPI_InputMethodExtensionAbility_AutoRegister()
 {
     auto moduleManager = NativeModuleManager::GetInstance();
     NativeModule newModuleInfo = {
-        .name = "inputmethodextensionability",
+        .name = "InputMethodExtensionAbility",
         .fileName = "libinputmethodextensionability_napi.so/inputmethod_extension_ability.js",
     };
     moduleManager->Register(&newModuleInfo);
 }
 
-extern "C" __attribute__((visibility("default"))) void NAPI_inputmethodextensionability_GetJSCode(
+extern "C" __attribute__((visibility("default"))) void NAPI_InputMethodExtensionAbility_GetJSCode(
     const char **buf, int *bufLen)
 {
     if (buf != nullptr) {
@@ -42,7 +42,7 @@ extern "C" __attribute__((visibility("default"))) void NAPI_inputmethodextension
 }
 
 // inputmethod_extension_ability JS register
-extern "C" __attribute__((visibility("default"))) void NAPI_inputmethodextensionability_GetABCCode(
+extern "C" __attribute__((visibility("default"))) void NAPI_InputMethodExtensionAbility_GetABCCode(
     const char **buf, int *buflen)
 {
     if (buf != nullptr) {
