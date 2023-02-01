@@ -51,7 +51,7 @@ NativeValue *AttachInputMethodExtensionContext(NativeEngine *engine, void *value
         return nullptr;
     }
     NativeValue *object = CreateJsInputMethodExtensionContext(*engine, ptr);
-    auto contextObj = JsRuntime::LoadSystemModuleByEngine(engine, "inputmethodextensioncontext", &object, 1)->Get();
+    auto contextObj = JsRuntime::LoadSystemModuleByEngine(engine, "InputMethodExtensionContext", &object, 1)->Get();
     NativeObject *nObject = ConvertNativeValueTo<NativeObject>(contextObj);
     nObject->ConvertToNativeBindingObject(
         engine, DetachCallbackFunc, AttachInputMethodExtensionContext, value, nullptr);
@@ -125,7 +125,7 @@ void JsInputMethodExtension::BindContext(NativeEngine &engine, NativeObject *obj
     }
     IMSA_HILOGI("JsInputMethodExtension::Init CreateJsInputMethodExtensionContext.");
     NativeValue *contextObj = CreateJsInputMethodExtensionContext(engine, context);
-    auto shellContextRef = jsRuntime_.LoadSystemModule("inputmethodextensioncontext", &contextObj, ARGC_ONE);
+    auto shellContextRef = jsRuntime_.LoadSystemModule("InputMethodExtensionContext", &contextObj, ARGC_ONE);
     contextObj = shellContextRef->Get();
     auto nativeObj = ConvertNativeValueTo<NativeObject>(contextObj);
     if (nativeObj == nullptr) {
