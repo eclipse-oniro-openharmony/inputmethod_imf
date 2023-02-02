@@ -148,6 +148,7 @@ enum {
     ERROR_PERSIST_CONFIG = 31,
     ERROR_PACKAGE_MANAGER = 32,
     ERROR_SERVICE_START_FAILED = 33,
+    ERROR_ABILITY_ACTIVATING = 34,
 };
 const char *ToString(int errorCode);
 }; // namespace ErrorCode

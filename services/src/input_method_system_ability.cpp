@@ -1009,7 +1009,7 @@ int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod(int32_t userId)
     want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
     int32_t ret = abilityManager->StartAbility(want);
     if (ret == START_SERVICE_ABILITY_ACTIVATING) {
-        return ErrorCode::NO_ERROR;
+        return ErrorCode::ERROR_ABILITY_ACTIVATING;
     }
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", ret);
