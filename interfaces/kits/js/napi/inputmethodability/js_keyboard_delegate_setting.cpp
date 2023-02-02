@@ -407,7 +407,7 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
         entry.curPara.height = para.height;
     });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(
@@ -444,7 +444,7 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
         entry.selPara.newEnd = para.newEnd;
     });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(
@@ -476,7 +476,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
     std::string type = "textChange";
     auto work = GetUVwork(type, [&text](UvEntry &entry) { entry.text = text; });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(

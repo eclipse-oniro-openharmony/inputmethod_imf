@@ -523,7 +523,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
         entry.subProperty = subProperty;
     });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(

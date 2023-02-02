@@ -436,7 +436,7 @@ void JsInputMethodEngineSetting::OnInputStart()
     std::string type = "inputStart";
     auto work = GetUVwork(type);
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(
@@ -476,7 +476,7 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
     IMSA_HILOGI("run in %{public}s: %{public}s", __func__, type.c_str());
     auto work = GetUVwork(type);
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(
@@ -505,7 +505,7 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
     std::string type = "inputStop";
     auto work = GetUVwork(type, [&imeId](UvEntry &entry) { entry.imeid = imeId; });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(
@@ -538,7 +538,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
     std::string type = "setCallingWindow";
     auto work = GetUVwork(type, [windowId](UvEntry &entry) { entry.windowid = windowId; });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(
@@ -571,7 +571,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
     std::string type = "setSubtype";
     auto work = GetUVwork(type, [&property](UvEntry &entry) { entry.subProperty = property; });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry");
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(
