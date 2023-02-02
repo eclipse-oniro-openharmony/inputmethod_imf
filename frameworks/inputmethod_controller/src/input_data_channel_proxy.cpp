@@ -30,7 +30,8 @@ InputDataChannelProxy::InputDataChannelProxy(const sptr<IRemoteObject> &object)
 int32_t InputDataChannelProxy::InsertText(const std::u16string &text)
 {
     IMSA_HILOGI("InputDataChannelProxy::InsertText");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
     data.WriteString16(text);
@@ -46,7 +47,8 @@ int32_t InputDataChannelProxy::InsertText(const std::u16string &text)
 int32_t InputDataChannelProxy::DeleteForward(int32_t length)
 {
     IMSA_HILOGI("InputDataChannelProxy::DeleteForward");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
     data.WriteInt32(length);
@@ -62,7 +64,8 @@ int32_t InputDataChannelProxy::DeleteForward(int32_t length)
 int32_t InputDataChannelProxy::DeleteBackward(int32_t length)
 {
     IMSA_HILOGI("InputDataChannelProxy::DeleteBackward");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
     data.WriteInt32(length);
@@ -78,7 +81,8 @@ int32_t InputDataChannelProxy::DeleteBackward(int32_t length)
 int32_t InputDataChannelProxy::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
     IMSA_HILOGI("InputDataChannelProxy::GetTextBeforeCursor");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
     data.WriteInt32(number);
@@ -92,7 +96,8 @@ int32_t InputDataChannelProxy::GetTextBeforeCursor(int32_t number, std::u16strin
 int32_t InputDataChannelProxy::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
     IMSA_HILOGI("InputDataChannelProxy::GetTextAfterCursor");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
     data.WriteInt32(number);
@@ -106,7 +111,8 @@ int32_t InputDataChannelProxy::GetTextAfterCursor(int32_t number, std::u16string
 void InputDataChannelProxy::SendKeyboardStatus(int32_t status)
 {
     IMSA_HILOGI("InputDataChannelProxy::SendKeyboardStatus");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
     data.WriteInt32(status);
@@ -117,7 +123,8 @@ void InputDataChannelProxy::SendKeyboardStatus(int32_t status)
 int32_t InputDataChannelProxy::SendFunctionKey(int32_t funcKey)
 {
     IMSA_HILOGI("InputDataChannelProxy::SendFunctionKey");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
     data.WriteInt32(funcKey);
@@ -130,8 +137,8 @@ int32_t InputDataChannelProxy::SendFunctionKey(int32_t funcKey)
 int32_t InputDataChannelProxy::MoveCursor(int32_t keyCode)
 {
     IMSA_HILOGI("InputDataChannelProxy::MoveCursor");
-
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
     data.WriteInt32(keyCode);
@@ -144,7 +151,8 @@ int32_t InputDataChannelProxy::MoveCursor(int32_t keyCode)
 int32_t InputDataChannelProxy::GetEnterKeyType(int32_t &keyType)
 {
     IMSA_HILOGI("InputDataChannelProxy::GetEnterKeyType");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
 
@@ -157,7 +165,8 @@ int32_t InputDataChannelProxy::GetEnterKeyType(int32_t &keyType)
 int32_t InputDataChannelProxy::GetInputPattern(int32_t &inputPattern)
 {
     IMSA_HILOGI("InputDataChannelProxy::GetInputPattern");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
 
@@ -170,7 +179,8 @@ int32_t InputDataChannelProxy::GetInputPattern(int32_t &inputPattern)
 void InputDataChannelProxy::HandleSetSelection(int32_t start, int32_t end)
 {
     IMSA_HILOGI("InputDataChannelProxy::HandleSetSelection");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
     data.WriteInt32(start);
@@ -182,7 +192,8 @@ void InputDataChannelProxy::HandleSetSelection(int32_t start, int32_t end)
 void InputDataChannelProxy::HandleExtendAction(int32_t action)
 {
     IMSA_HILOGI("InputDataChannelProxy::HandleExtendAction");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
     data.WriteInt32(action);
@@ -193,7 +204,8 @@ void InputDataChannelProxy::HandleExtendAction(int32_t action)
 void InputDataChannelProxy::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
 {
     IMSA_HILOGI("InputDataChannelProxy::HandleSelect");
-    MessageParcel data, reply;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
     data.WriteInt32(keyCode);
