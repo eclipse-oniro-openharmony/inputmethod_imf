@@ -38,6 +38,7 @@ struct SendKeyFunctionContext : public AsyncCall::Context {
     napi_status operator()(napi_env env, napi_value *result) override
     {
         if (status != napi_ok) {
+            output_ = nullptr;
             return status;
         }
         return Context::operator()(env, result);
@@ -58,6 +59,7 @@ struct MoveCursorContext : public AsyncCall::Context {
     napi_status operator()(napi_env env, napi_value *result) override
     {
         if (status != napi_ok) {
+            output_ = nullptr;
             return status;
         }
         return Context::operator()(env, result);
@@ -79,6 +81,7 @@ struct DeleteForwardContext : public AsyncCall::Context {
     napi_status operator()(napi_env env, napi_value *result) override
     {
         if (status != napi_ok) {
+            output_ = nullptr;
             return status;
         }
         return Context::operator()(env, result);
@@ -100,6 +103,7 @@ struct DeleteBackwardContext : public AsyncCall::Context {
     napi_status operator()(napi_env env, napi_value *result) override
     {
         if (status != napi_ok) {
+            output_ = nullptr;
             return status;
         }
         return Context::operator()(env, result);
@@ -121,6 +125,7 @@ struct InsertTextContext : public AsyncCall::Context {
     napi_status operator()(napi_env env, napi_value *result) override
     {
         if (status != napi_ok) {
+            output_ = nullptr;
             return status;
         }
         return Context::operator()(env, result);
@@ -142,6 +147,7 @@ struct GetForwardContext : public AsyncCall::Context {
     napi_status operator()(napi_env env, napi_value *result) override
     {
         if (status != napi_ok) {
+            output_ = nullptr;
             return status;
         }
         return Context::operator()(env, result);
@@ -163,6 +169,7 @@ struct GetBackwardContext : public AsyncCall::Context {
     napi_status operator()(napi_env env, napi_value *result) override
     {
         if (status != napi_ok) {
+            output_ = nullptr;
             return status;
         }
         return Context::operator()(env, result);
@@ -184,6 +191,7 @@ struct GetEditorAttributeContext : public AsyncCall::Context {
     napi_status operator()(napi_env env, napi_value *result) override
     {
         if (status != napi_ok) {
+            output_ = nullptr;
             return status;
         }
         return Context::operator()(env, result);
