@@ -30,7 +30,8 @@ using namespace ErrorCode;
     int32_t InputClientProxy::onInputReady(const sptr<IInputMethodAgent>& agent)
     {
         IMSA_HILOGI("InputClientProxy::onInputReady");
-        MessageParcel data, reply;
+        MessageParcel data;
+        MessageParcel reply;
         MessageOption option;
         if (!data.WriteInterfaceToken(GetDescriptor())) {
             return ERROR_EX_PARCELABLE;

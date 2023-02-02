@@ -43,7 +43,8 @@ namespace MiscServices {
     int32_t InputControlChannelProxy::HideKeyboardSelf(int flags)
     {
         IMSA_HILOGI("InputControlChannelProxy::HideKeyboardSelf");
-        MessageParcel data, reply;
+        MessageParcel data;
+        MessageParcel reply;
         MessageOption option;
         data.WriteInterfaceToken(GetDescriptor());
         data.WriteInt32(flags);

@@ -45,7 +45,8 @@ namespace MiscServices {
             IMSA_HILOGI("InputMethodCoreProxy::InitInputControlChannel inputControlChannel is nullptr");
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
-        MessageParcel data, reply;
+        MessageParcel data;
+        MessageParcel reply;
         data.WriteInterfaceToken(GetDescriptor());
         sptr<IRemoteObject> channelObject = inputControlChannel->AsObject();
         if (!channelObject) {
