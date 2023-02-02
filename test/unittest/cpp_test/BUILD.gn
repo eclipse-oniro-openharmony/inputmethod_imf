@@ -31,7 +31,6 @@ ohos_unittest("InputMethodControllerTest") {
 
   deps = [
     "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
     "//base/inputmethod/imf/services:inputmethod_service",
@@ -66,7 +65,6 @@ ohos_unittest("InputMethodAbilityTest") {
 
   deps = [
     "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
     "//base/inputmethod/imf/services:inputmethod_service",
@@ -100,7 +98,6 @@ ohos_unittest("InputMethodServiceTest") {
 
   deps = [
     "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
     "//base/inputmethod/imf/services:inputmethod_service",
