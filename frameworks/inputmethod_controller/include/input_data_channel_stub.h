@@ -44,15 +44,16 @@ public:
     int32_t DeleteBackward(int32_t length) override;
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) override;
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text) override;
+    int32_t GetTextIndexAtCursor(int32_t &index) override;
     void SendKeyboardStatus(int32_t status) override;
     int32_t SendFunctionKey(int32_t funcKey) override;
     int32_t MoveCursor(int32_t keyCode) override;
     int32_t GetEnterKeyType(int32_t &keyType) override;
     int32_t GetInputPattern(int32_t &inputPattern) override;
-    int32_t GetTextIndexAtCursor(int32_t &index) override;
     void HandleSetSelection(int32_t start, int32_t end) override;
     void HandleExtendAction(int32_t action) override;
     void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override;
+    int32_t HandleGetOperation(int32_t number, std::u16string &text, int32_t &index, int32_t msgType);
     std::mutex getOkLock_;
     static std::condition_variable getOkCv_;
 

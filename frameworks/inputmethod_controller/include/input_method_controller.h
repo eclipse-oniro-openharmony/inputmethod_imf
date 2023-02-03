@@ -71,7 +71,7 @@ public:
     void Close();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void OnCursorUpdate(CursorInfo cursorInfo);
-    void OnSelectionChange(std::u16string text, int start, int end/*, int32_t flag*/);
+    void OnSelectionChange(std::u16string text, int start, int end /*, int32_t flag*/);
     void OnConfigurationChange(Configuration info);
     void setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
     bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
@@ -113,7 +113,7 @@ private:
     void WorkThread();
     void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
-    void HandleGetTextIndexAtCursor();
+    void HandleGetOperation();
 
     sptr<IInputDataChannel> mInputDataChannel;
     std::shared_ptr<InputMethodSettingListener> imeListener_;
@@ -146,7 +146,7 @@ private:
     std::mutex waitOnSelectionChangeNumLock_;
     uint32_t waitOnSelectionChangeNum_{ 0 };
     std::condition_variable waitOnSelectionChangeCv_;
-    bool self_ {false}; //临时使用标记，待ace修改完成废弃
+    bool self_{ false }; //临时使用标记，待ace修改完成废弃
 };
 } // namespace MiscServices
 } // namespace OHOS

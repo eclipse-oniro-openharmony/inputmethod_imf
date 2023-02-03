@@ -261,9 +261,11 @@ void InputMethodController::WorkThread()
                 }
                 break;
             }
-            case MSG_ID_GET_TEXT_INDEX_AT_CURSOR: {
-                IMSA_HILOGI("InputMethodController::WorkThread GetTextIndexAtCursor");
-                HandleGetTextIndexAtCursor();
+            case MSG_ID_GET_TEXT_BEFORE_CURSOR:
+            case MSG_ID_GET_TEXT_INDEX_AT_CURSOR:
+            case MSG_ID_GET_TEXT_AFTER_CURSOR: {
+                IMSA_HILOGI("InputMethodController::WorkThread HandleGetOperation, msgId = %{public}d", msg->msgId_);
+                HandleGetOperation();
                 break;
             }
             default: {
@@ -276,12 +278,13 @@ void InputMethodController::WorkThread()
     }
 }
 
-void InputMethodController::HandleGetTextIndexAtCursor()
+void InputMethodController::HandleGetOperation()
 {
     IMSA_HILOGI("InputMethodController::start");
     if (isStopInput) {
         IMSA_HILOGE("InputMethodController::text filed is not Focused");
         mSelectNewEnd = -1;
+        mTextString = u"";
         return;
     }
     std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
@@ -540,7 +543,7 @@ void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
     agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
 }
 
-void InputMethodController::OnSelectionChange(std::u16string text, int start, int end/*, int32_t flag*/)
+void InputMethodController::OnSelectionChange(std::u16string text, int start, int end /*, int32_t flag*/)
 {
     // TODO: 后续使用flag代替self
     if (self_) {

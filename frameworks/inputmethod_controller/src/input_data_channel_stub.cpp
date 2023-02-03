@@ -59,16 +59,25 @@ int32_t InputDataChannelStub::OnRemoteRequest(
         }
         case GET_TEXT_BEFORE_CURSOR: {
             auto number = data.ReadInt32();
+            int32_t index = 0;
             std::u16string text;
-            reply.WriteInt32(GetTextBeforeCursor(number, text));
+            reply.WriteInt32(HandleGetOperation(number, text, index, GET_TEXT_BEFORE_CURSOR));
             reply.WriteString16(text);
             break;
         }
         case GET_TEXT_AFTER_CURSOR: {
             auto number = data.ReadInt32();
+            int32_t index = 0;
             std::u16string text;
-            reply.WriteInt32(GetTextAfterCursor(number, text));
+            reply.WriteInt32(HandleGetOperation(number, text, index, GET_TEXT_AFTER_CURSOR));
             reply.WriteString16(text);
+            break;
+        }
+        case GET_TEXT_INDEX_AT_CURSOR: {
+            int32_t index = 0;
+            std::u16string text;
+            reply.WriteInt32(HandleGetOperation(0, text, index, GET_TEXT_INDEX_AT_CURSOR));
+            reply.WriteInt32(index);
             break;
         }
         case SEND_KEYBOARD_STATUS: {
@@ -113,12 +122,6 @@ int32_t InputDataChannelStub::OnRemoteRequest(
             auto keyCode = data.ReadInt32();
             auto cursorMoveSkip = data.ReadInt32();
             HandleSelect(keyCode, cursorMoveSkip);
-            break;
-        }
-        case GET_TEXT_INDEX_AT_CURSOR: {
-            int32_t index = 0;
-            reply.WriteInt32(GetTextIndexAtCursor(index));
-            reply.WriteInt32(index);
             break;
         }
         default:
@@ -167,19 +170,25 @@ int32_t InputDataChannelStub::DeleteBackward(int32_t length)
     }
     return ErrorCode::ERROR_CLIENT_NULL_POINTER;
 }
-/*
+
 int32_t InputDataChannelStub::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
-    IMSA_HILOGI("InputDataChannelStub::GetTextBeforeCursor");
-    return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
+    //IMSA_HILOGI("InputDataChannelStub::GetTextBeforeCursor");
+    //return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
+    return 0;
 }
 
 int32_t InputDataChannelStub::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
-    IMSA_HILOGI("InputDataChannelStub::GetTextAfterCursor");
-    return InputMethodController::GetInstance()->GetTextAfterCursor(number, text);
+    //IMSA_HILOGI("InputDataChannelStub::GetTextAfterCursor");
+    //return InputMethodController::GetInstance()->GetTextAfterCursor(number, text);
+    return 0;
 }
- */
+
+int32_t InputDataChannelStub::GetTextIndexAtCursor(int32_t &index)
+{
+    return 0;
+}
 
 int32_t InputDataChannelStub::GetEnterKeyType(int32_t &keyType)
 {
@@ -193,19 +202,34 @@ int32_t InputDataChannelStub::GetInputPattern(int32_t &inputPattern)
     return InputMethodController::GetInstance()->GetInputPattern(inputPattern);
 }
 
-int32_t InputDataChannelStub::GetTextIndexAtCursor(int32_t &index)
+int32_t InputDataChannelStub::HandleGetOperation(int32_t number, std::u16string &text, int32_t &index, int32_t msgType)
 {
-    IMSA_HILOGI("InputDataChannelStub::start");
+    IMSA_HILOGI("InputDataChannelStub::start, msgId = %{public}d", msgType);
     if (msgHandler == nullptr) {
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
+    int32_t msgId;
+    if (msgType == GET_TEXT_BEFORE_CURSOR) {
+        msgId = MessageID::MSG_ID_GET_TEXT_BEFORE_CURSOR;
+    } else if (msgType == GET_TEXT_AFTER_CURSOR) {
+        msgId = MessageID::MSG_ID_GET_TEXT_AFTER_CURSOR;
+    } else {
+        msgId = MessageID::MSG_ID_GET_TEXT_INDEX_AT_CURSOR;
+    }
     MessageParcel *parcel = new MessageParcel;
-    Message *msg = new Message(MessageID::MSG_ID_GET_TEXT_INDEX_AT_CURSOR, parcel);
+    Message *msg = new Message(msgId, parcel);
     msgHandler->SendMessage(msg);
+
     std::unique_lock<std::mutex> lock(getOkLock_);
     getOkCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME_STUB));
     IMSA_HILOGI("InputDataChannelStub::get");
-    index = InputMethodController::GetInstance()->GetSelectNewEnd();
+    if (msgType == GET_TEXT_BEFORE_CURSOR) {
+        return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
+    } else if (msgType == GET_TEXT_AFTER_CURSOR) {
+        return InputMethodController::GetInstance()->GetTextAfterCursor(number, text);
+    } else {
+        index = InputMethodController::GetInstance()->GetSelectNewEnd();
+    }
     return ErrorCode::NO_ERROR;
 }
 
