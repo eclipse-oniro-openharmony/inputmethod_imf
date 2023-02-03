@@ -60,6 +60,43 @@ ohos_shared_library("inputmethod_client") {
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
   ]
 
+  version_script = "inputmethod_client.versionscript"
+
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
+
+  configs = [ ":inputmethod_client_native_config" ]
+
+  public_configs = [ ":inputmethod_client_native_public_config" ]
+
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_static_library("inputmethod_client_static") {
+  sources = [
+    "${inputmethod_path}/frameworks/inputmethod_ability/src/input_method_agent_proxy.cpp",
+    "${inputmethod_path}/services/src/message.cpp",
+    "${inputmethod_path}/services/src/message_handler.cpp",
+    "src/input_client_proxy.cpp",
+    "src/input_client_stub.cpp",
+    "src/input_data_channel_proxy.cpp",
+    "src/input_data_channel_stub.cpp",
+    "src/input_method_controller.cpp",
+    "src/input_method_system_ability_proxy.cpp",
+    "src/input_method_utils.cpp",
+    "src/itypes_util.cpp",
+  ]
+
+  deps = [
+    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "//foundation/multimodalinput/input/frameworks/proxy:libmmi-common",
+    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+  ]
+
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
