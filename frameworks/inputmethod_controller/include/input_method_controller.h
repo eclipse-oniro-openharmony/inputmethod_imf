@@ -16,6 +16,7 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_CONTROLLER_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_CONTROLLER_H
 
+#include <condition_variable>
 #include <mutex>
 #include <thread>
 
@@ -70,7 +71,7 @@ public:
     void Close();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void OnCursorUpdate(CursorInfo cursorInfo);
-    void OnSelectionChange(std::u16string text, int start, int end);
+    void OnSelectionChange(std::u16string text, int start, int end/*, int32_t flag*/);
     void OnConfigurationChange(Configuration info);
     void setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
     bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
@@ -88,6 +89,7 @@ public:
     int32_t HideSoftKeyboard();
     int32_t StopInputSession();
     int32_t ShowOptionalInputMethod();
+    int32_t GetSelectNewEnd();
 
     // Deprecated innerkits with no permission check, kept for compatibility
     int32_t ShowCurrentInput();
@@ -111,6 +113,7 @@ private:
     void WorkThread();
     void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
+    void HandleGetTextIndexAtCursor();
 
     sptr<IInputDataChannel> mInputDataChannel;
     std::shared_ptr<InputMethodSettingListener> imeListener_;
@@ -139,6 +142,11 @@ private:
     int32_t inputPattern_ = 0;
 
     bool isStopInput{ true };
+
+    std::mutex waitOnSelectionChangeNumLock_;
+    uint32_t waitOnSelectionChangeNum_{ 0 };
+    std::condition_variable waitOnSelectionChangeCv_;
+    bool self_ {false}; //临时使用标记，待ace修改完成废弃
 };
 } // namespace MiscServices
 } // namespace OHOS

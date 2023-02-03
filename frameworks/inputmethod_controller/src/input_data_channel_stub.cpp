@@ -23,6 +23,8 @@
 
 namespace OHOS {
 namespace MiscServices {
+std::condition_variable InputDataChannelStub::getOkCv_;
+int32_t DEALY_TIME_STUB = 1;
 InputDataChannelStub::InputDataChannelStub() : msgHandler(nullptr)
 {
 }
@@ -113,6 +115,12 @@ int32_t InputDataChannelStub::OnRemoteRequest(
             HandleSelect(keyCode, cursorMoveSkip);
             break;
         }
+        case GET_TEXT_INDEX_AT_CURSOR: {
+            int32_t index = 0;
+            reply.WriteInt32(GetTextIndexAtCursor(index));
+            reply.WriteInt32(index);
+            break;
+        }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
@@ -159,7 +167,7 @@ int32_t InputDataChannelStub::DeleteBackward(int32_t length)
     }
     return ErrorCode::ERROR_CLIENT_NULL_POINTER;
 }
-
+/*
 int32_t InputDataChannelStub::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
     IMSA_HILOGI("InputDataChannelStub::GetTextBeforeCursor");
@@ -171,6 +179,7 @@ int32_t InputDataChannelStub::GetTextAfterCursor(int32_t number, std::u16string 
     IMSA_HILOGI("InputDataChannelStub::GetTextAfterCursor");
     return InputMethodController::GetInstance()->GetTextAfterCursor(number, text);
 }
+ */
 
 int32_t InputDataChannelStub::GetEnterKeyType(int32_t &keyType)
 {
@@ -182,6 +191,22 @@ int32_t InputDataChannelStub::GetInputPattern(int32_t &inputPattern)
 {
     IMSA_HILOGI("InputDataChannelStub::GetInputPattern");
     return InputMethodController::GetInstance()->GetInputPattern(inputPattern);
+}
+
+int32_t InputDataChannelStub::GetTextIndexAtCursor(int32_t &index)
+{
+    IMSA_HILOGI("InputDataChannelStub::start");
+    if (msgHandler == nullptr) {
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    MessageParcel *parcel = new MessageParcel;
+    Message *msg = new Message(MessageID::MSG_ID_GET_TEXT_INDEX_AT_CURSOR, parcel);
+    msgHandler->SendMessage(msg);
+    std::unique_lock<std::mutex> lock(getOkLock_);
+    getOkCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME_STUB));
+    IMSA_HILOGI("InputDataChannelStub::get");
+    index = InputMethodController::GetInstance()->GetSelectNewEnd();
+    return ErrorCode::NO_ERROR;
 }
 
 void InputDataChannelStub::SendKeyboardStatus(int32_t status)

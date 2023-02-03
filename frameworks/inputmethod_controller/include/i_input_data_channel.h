@@ -35,6 +35,7 @@ public:
         DELETE_BACKWARD,
         GET_TEXT_BEFORE_CURSOR,
         GET_TEXT_AFTER_CURSOR,
+        GET_TEXT_INDEX_AT_CURSOR,
         GET_ENTER_KEY_TYPE,
         GET_INPUT_PATTERN,
         SEND_KEYBOARD_STATUS,
@@ -57,6 +58,7 @@ public:
     virtual int32_t MoveCursor(int32_t keyCode) = 0;
     virtual int32_t GetEnterKeyType(int32_t &keyType) = 0;
     virtual int32_t GetInputPattern(int32_t &inputPattern) = 0;
+    virtual int32_t GetTextIndexAtCursor(int32_t &index) = 0;
     virtual void HandleSetSelection(int32_t start, int32_t end) = 0;
     virtual void HandleExtendAction(int32_t action) = 0;
     virtual void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) = 0;

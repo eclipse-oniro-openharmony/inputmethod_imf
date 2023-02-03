@@ -62,6 +62,7 @@ public:
     void SetCallingWindow(uint32_t windowId);
     int32_t GetEnterKeyType(int32_t &keyType);
     int32_t GetInputPattern(int32_t &inputPattern);
+    int32_t GetTextIndexAtCursor(int32_t &index);
     void OnImeReady();
 
 private:

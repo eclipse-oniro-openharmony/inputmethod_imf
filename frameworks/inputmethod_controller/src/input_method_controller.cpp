@@ -34,7 +34,7 @@ namespace MiscServices {
 using namespace MessageID;
 sptr<InputMethodController> InputMethodController::instance_;
 std::mutex InputMethodController::instanceLock_;
-
+int32_t DEALY_TIME = 1;
 InputMethodController::InputMethodController() : stop_(false)
 {
     IMSA_HILOGI("InputMethodController structure");
@@ -144,6 +144,9 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("InputMethodController::WorkThread InsertText");
                 if (textListener) {
                     textListener->InsertText(text);
+                    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+                    waitOnSelectionChangeNum_++;
+                    self_ = true;
                 }
                 break;
             }
@@ -154,6 +157,8 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("InputMethodController::WorkThread DeleteForward");
                 if (textListener) {
                     textListener->DeleteForward(length);
+                    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+                    waitOnSelectionChangeNum_++;
                 }
                 break;
             }
@@ -163,6 +168,8 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("InputMethodController::WorkThread DeleteBackward");
                 if (textListener) {
                     textListener->DeleteBackward(length);
+                    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+                    waitOnSelectionChangeNum_++;
                 }
                 break;
             }
@@ -205,6 +212,8 @@ void InputMethodController::WorkThread()
                 if (textListener) {
                     Direction direction = static_cast<Direction>(ret);
                     textListener->MoveCursor(direction);
+                    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+                    waitOnSelectionChangeNum_++;
                 }
                 break;
             }
@@ -226,6 +235,8 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("InputMethodController::WorkThread HandleSetSelection");
                 if (textListener) {
                     textListener->HandleSetSelection(start, end);
+                    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+                    waitOnSelectionChangeNum_++;
                 }
                 break;
             }
@@ -245,7 +256,14 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("InputMethodController::WorkThread HandleSelect");
                 if (textListener) {
                     textListener->HandleSelect(keyCode, cursorMoveSkip);
+                    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+                    waitOnSelectionChangeNum_++;
                 }
+                break;
+            }
+            case MSG_ID_GET_TEXT_INDEX_AT_CURSOR: {
+                IMSA_HILOGI("InputMethodController::WorkThread GetTextIndexAtCursor");
+                HandleGetTextIndexAtCursor();
                 break;
             }
             default: {
@@ -256,6 +274,26 @@ void InputMethodController::WorkThread()
         delete msg;
         msg = nullptr;
     }
+}
+
+void InputMethodController::HandleGetTextIndexAtCursor()
+{
+    IMSA_HILOGI("InputMethodController::start");
+    if (isStopInput) {
+        IMSA_HILOGE("InputMethodController::text filed is not Focused");
+        mSelectNewEnd = -1;
+        return;
+    }
+    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+    waitOnSelectionChangeCv_.wait_for(
+        numLock, std::chrono::seconds(DEALY_TIME), [this] { return waitOnSelectionChangeNum_ == 0; });
+    IMSA_HILOGI("InputMethodController::notify");
+    InputDataChannelStub::getOkCv_.notify_one();
+}
+
+int32_t InputMethodController::GetSelectNewEnd()
+{
+    return mSelectNewEnd;
 }
 
 void InputMethodController::QuitWorkThread()
@@ -293,6 +331,9 @@ void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool i
 void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard,
                                    InputAttribute &attribute)
 {
+    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+    waitOnSelectionChangeNum_ = 0;
+    self_ = false;
     std::lock_guard<std::mutex> lock(textListenerLock_);
     textListener = listener;
     IMSA_HILOGI("InputMethodController::Attach");
@@ -480,6 +521,8 @@ void ImsaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 
 void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 {
+    IMSA_HILOGI("left = %{public}f, top = %{public}f, height = %{public}f, width = %{public}f", cursorInfo.left,
+        cursorInfo.top, cursorInfo.height, cursorInfo.width);
     if (isStopInput) {
         IMSA_HILOGD("InputMethodController::OnCursorUpdate isStopInput");
         return;
@@ -497,8 +540,19 @@ void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
     agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
 }
 
-void InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
+void InputMethodController::OnSelectionChange(std::u16string text, int start, int end/*, int32_t flag*/)
 {
+    // TODO: 后续使用flag代替self
+    if (self_) {
+        std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+        if (waitOnSelectionChangeNum_ > 0) {
+            waitOnSelectionChangeNum_--;
+        }
+        if (waitOnSelectionChangeNum_ == 0) {
+            waitOnSelectionChangeCv_.notify_one();
+        }
+    }
+    IMSA_HILOGI("text = %{public}s, start = %{public}d, end = %{public}d", Str16ToStr8(text).c_str(), start, end);
     if (isStopInput) {
         IMSA_HILOGD("InputMethodController::OnSelectionChange isStopInput");
         return;

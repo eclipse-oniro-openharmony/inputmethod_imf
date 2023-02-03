@@ -176,6 +176,19 @@ int32_t InputDataChannelProxy::GetInputPattern(int32_t &inputPattern)
     return result;
 }
 
+int32_t InputDataChannelProxy::GetTextIndexAtCursor(int32_t &index)
+{
+    IMSA_HILOGI("InputDataChannelProxy::GetTextIndexAtCursor");
+    MessageParcel data, reply;
+    MessageOption option;
+    data.WriteInterfaceToken(GetDescriptor());
+
+    Remote()->SendRequest(GET_TEXT_INDEX_AT_CURSOR, data, reply, option);
+    auto result = reply.ReadInt32();
+    index = reply.ReadInt32();
+    return result;
+}
+
 void InputDataChannelProxy::HandleSetSelection(int32_t start, int32_t end)
 {
     IMSA_HILOGI("InputDataChannelProxy::HandleSetSelection");

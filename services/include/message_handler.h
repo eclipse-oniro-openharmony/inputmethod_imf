@@ -73,6 +73,7 @@ enum {
     MSG_ID_SEND_FUNCTION_KEY,
     MSG_ID_MOVE_CURSOR,
     MSG_ID_ON_SWITCH_INPUT,
+    MSG_ID_GET_TEXT_INDEX_AT_CURSOR,
 
     // the request from IMSA to IMA
     MSG_ID_SHOW_KEYBOARD,
@@ -85,7 +86,6 @@ enum {
     // the request from IMC to IMA
     MSG_ID_ON_CURSOR_UPDATE,
     MSG_ID_ON_SELECTION_CHANGE,
-
     MSG_ID_QUIT_WORKER_THREAD,
 };
 }
