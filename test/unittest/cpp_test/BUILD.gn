@@ -31,8 +31,8 @@ ohos_unittest("InputMethodControllerTest") {
 
   deps = [
     "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
-    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/frameworks/inputmethod_controller:inputmethod_client_static",
+    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//foundation/arkui/napi/:ace_napi",
@@ -65,8 +65,8 @@ ohos_unittest("InputMethodAbilityTest") {
 
   deps = [
     "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
-    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/frameworks/inputmethod_controller:inputmethod_client_static",
+    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//foundation/arkui/napi/:ace_napi",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
@@ -98,8 +98,8 @@ ohos_unittest("InputMethodServiceTest") {
 
   deps = [
     "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
-    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/frameworks/inputmethod_controller:inputmethod_client_static",
+    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//foundation/arkui/napi/:ace_napi",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
