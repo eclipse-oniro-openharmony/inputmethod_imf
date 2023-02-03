@@ -47,7 +47,7 @@ ohos_shared_library("inputmethod") {
   configs = [ ":imf_config" ]
 
   deps = [
-    "${inputmethod_path}/frameworks/inputmethod_controller:inputmethod_client",
+    "${inputmethod_path}/frameworks/inputmethod_controller:inputmethod_client_static",
   ]
 
   external_deps = [
