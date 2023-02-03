@@ -116,7 +116,7 @@ ohos_shared_library("inputmethod_extension") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:runtime",
     "c_utils:utils",
-    "ipc_js:rpc",
+    "ipc:ipc_napi_common",
   ]
 
   public_deps = [
