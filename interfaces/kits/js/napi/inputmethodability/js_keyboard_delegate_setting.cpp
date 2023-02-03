@@ -357,11 +357,11 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
 
 bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
-    IMSA_HILOGI("run in OnKeyEvent");
+    IMSA_HILOGD("run in");
     KeyEventPara para{ keyCode, keyStatus, false };
     std::string type = (keyStatus == ARGC_TWO ? "keyDown" : "keyUp");
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-    auto work = GetUVwork(type, [&para, isDone](UvEntry &entry) {
+    uv_work_t *work = GetUVwork(type, [&para, isDone](UvEntry &entry) {
         entry.keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
         entry.isDone = isDone;
     });
@@ -372,9 +372,9 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
-                SAFE_DELETE(data);
-                SAFE_DELETE(work);
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
             });
             auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
                                            std::shared_ptr<JSCallbackObject> item) -> bool {
@@ -398,10 +398,10 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 
 void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
-    IMSA_HILOGI("run in OnCursorUpdate");
+    IMSA_HILOGD("run in");
     CursorPara para{ positionX, positionY, height };
     std::string type = "cursorContextChange";
-    auto work = GetUVwork(type, [&para](UvEntry &entry) {
+    uv_work_t *work = GetUVwork(type, [&para](UvEntry &entry) {
         entry.curPara.positionX = para.positionX;
         entry.curPara.positionY = para.positionY;
         entry.curPara.height = para.height;
@@ -413,9 +413,9 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
-                SAFE_DELETE(data);
-                SAFE_DELETE(work);
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
             });
 
             auto getCursorUpdateProperty = [entry](napi_value *args, uint8_t argc,
@@ -434,10 +434,10 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
 
 void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
-    IMSA_HILOGI("run in OnSelectionChange");
+    IMSA_HILOGD("run in");
     SelectionPara para{ oldBegin, oldEnd, newBegin, newEnd };
     std::string type = "selectionChange";
-    auto work = GetUVwork(type, [&para](UvEntry &entry) {
+    uv_work_t *work = GetUVwork(type, [&para](UvEntry &entry) {
         entry.selPara.oldBegin = para.oldBegin;
         entry.selPara.oldEnd = para.oldEnd;
         entry.selPara.newBegin = para.newBegin;
@@ -450,9 +450,9 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
-                SAFE_DELETE(data);
-                SAFE_DELETE(work);
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
             });
 
             auto getSelectionChangeProperty = [entry](napi_value *args, uint8_t argc,
@@ -472,9 +472,9 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
 
 void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 {
-    IMSA_HILOGI("run in OnTextChange");
+    IMSA_HILOGD("run in");
     std::string type = "textChange";
-    auto work = GetUVwork(type, [&text](UvEntry &entry) { entry.text = text; });
+    uv_work_t *work = GetUVwork(type, [&text](UvEntry &entry) { entry.text = text; });
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
@@ -482,13 +482,13 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
-                SAFE_DELETE(data);
-                SAFE_DELETE(work);
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
             });
 
             auto getTextChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                                 std::shared_ptr<JSCallbackObject> item) -> bool {
+                                             std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc == 0) {
                     return false;
                 }
@@ -501,7 +501,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 
 uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
 {
-    IMSA_HILOGI("run in %{public}s: %{public}s", __func__, type.c_str());
+    IMSA_HILOGD("run in, type: %{public}s", type.c_str());
     UvEntry *entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);

@@ -432,9 +432,9 @@ napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, const
 
 void JsInputMethodEngineSetting::OnInputStart()
 {
-    IMSA_HILOGI("run in %{public}s", __func__);
+    IMSA_HILOGD("run in");
     std::string type = "inputStart";
-    auto work = GetUVwork(type);
+    uv_work_t *work = GetUVwork(type);
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
@@ -442,9 +442,9 @@ void JsInputMethodEngineSetting::OnInputStart()
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
-                SAFE_DELETE(data);
-                SAFE_DELETE(work);
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
             });
             if (entry == nullptr) {
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
@@ -452,7 +452,7 @@ void JsInputMethodEngineSetting::OnInputStart()
             }
 
             auto getInputStartProperty = [](napi_value *args, uint8_t argc,
-                                                 std::shared_ptr<JSCallbackObject> item) -> bool {
+                                             std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc < 2) {
                     return false;
                 }
@@ -473,8 +473,8 @@ void JsInputMethodEngineSetting::OnInputStart()
 void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
 {
     std::string type = isShow ? "keyboardShow" : "keyboardHide";
-    IMSA_HILOGI("run in %{public}s: %{public}s", __func__, type.c_str());
-    auto work = GetUVwork(type);
+    IMSA_HILOGD("run in, %{public}s", type.c_str());
+    uv_work_t *work = GetUVwork(type);
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
@@ -482,13 +482,13 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
-                SAFE_DELETE(data);
-                SAFE_DELETE(work);
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
             });
 
             auto getKeyboardStatusProperty = [](napi_value *args, uint8_t argc,
-                                                     std::shared_ptr<JSCallbackObject> item) -> bool {
+                                                 std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc == 0) {
                     return false;
                 }
@@ -501,9 +501,9 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
 
 void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
 {
-    IMSA_HILOGI("run in OnInputStop");
+    IMSA_HILOGD("run in");
     std::string type = "inputStop";
-    auto work = GetUVwork(type, [&imeId](UvEntry &entry) { entry.imeid = imeId; });
+    uv_work_t *work = GetUVwork(type, [&imeId](UvEntry &entry) { entry.imeid = imeId; });
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
@@ -511,9 +511,9 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
-                SAFE_DELETE(data);
-                SAFE_DELETE(work);
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
             });
             if (entry == nullptr) {
                 IMSA_HILOGE("OnInputStop:: entryptr is null");
@@ -521,7 +521,7 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
             }
 
             auto getInputStopProperty = [entry](napi_value *args, uint8_t argc,
-                                                std::shared_ptr<JSCallbackObject> item) -> bool {
+                                            std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc == 0) {
                     return false;
                 }
@@ -534,9 +534,9 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
 
 void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
 {
-    IMSA_HILOGI("run in %{public}s", __func__);
+    IMSA_HILOGD("run in");
     std::string type = "setCallingWindow";
-    auto work = GetUVwork(type, [windowId](UvEntry &entry) { entry.windowid = windowId; });
+    uv_work_t *work = GetUVwork(type, [windowId](UvEntry &entry) { entry.windowid = windowId; });
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
@@ -544,9 +544,9 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
-                SAFE_DELETE(data);
-                SAFE_DELETE(work);
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
             });
             if (entry == nullptr) {
                 IMSA_HILOGE("setCallingWindow:: entryptr is null");
@@ -554,7 +554,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
             }
 
             auto getCallingWindowProperty = [entry](napi_value *args, uint8_t argc,
-                                                    std::shared_ptr<JSCallbackObject> item) -> bool {
+                                                std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc == 0) {
                     return false;
                 }
@@ -567,9 +567,9 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
 
 void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
 {
-    IMSA_HILOGI("run in %{public}s", __func__);
+    IMSA_HILOGD("run in");
     std::string type = "setSubtype";
-    auto work = GetUVwork(type, [&property](UvEntry &entry) { entry.subProperty = property; });
+    uv_work_t *work = GetUVwork(type, [&property](UvEntry &entry) { entry.subProperty = property; });
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
@@ -577,9 +577,9 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
-                SAFE_DELETE(data);
-                SAFE_DELETE(work);
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
             });
             if (entry == nullptr) {
                 IMSA_HILOGE("OnSetSubtype:: entryptr is null");
@@ -587,7 +587,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
             }
 
             auto getSubtypeProperty = [entry](napi_value *args, uint8_t argc,
-                                              std::shared_ptr<JSCallbackObject> item) -> bool {
+                                          std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc == 0) {
                     return false;
                 }
@@ -596,7 +596,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
                     IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
                     return false;
                 }
-                args[ARGC_ZERO] = {jsObject};
+                args[ARGC_ZERO] = { jsObject };
                 return true;
             };
             JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getSubtypeProperty);
@@ -605,7 +605,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
 
 uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
 {
-    IMSA_HILOGD("run in %{public}s: %{public}s", __func__, type.c_str());
+    IMSA_HILOGD("run in, type: %{public}s", type.c_str());
     UvEntry *entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);

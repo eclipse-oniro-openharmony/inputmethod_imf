@@ -516,9 +516,9 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
 
 void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
-    IMSA_HILOGI("run in %{public}s", __func__);
+    IMSA_HILOGD("run in");
     std::string type = "imeChange";
-    auto work = GetUVwork(type, [&property, &subProperty](UvEntry &entry) {
+    uv_work_t *work = GetUVwork(type, [&property, &subProperty](UvEntry &entry) {
         entry.property = property;
         entry.subProperty = subProperty;
     });
@@ -529,16 +529,16 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
     uv_queue_work(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [&work](UvEntry *data) {
-                SAFE_DELETE(data);
-                SAFE_DELETE(work);
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
             });
             if (entry == nullptr) {
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
             auto getImeChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                                std::shared_ptr<JSCallbackObject> item) -> bool {
+                                            std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc < 2) {
                     return false;
                 }
@@ -558,7 +558,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
 
 uv_work_t *JsGetInputMethodSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
 {
-    IMSA_HILOGD("run in %{public}s: %{public}s", __func__, type.c_str());
+    IMSA_HILOGD("run in, type: %{public}s", type.c_str());
     UvEntry *entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);

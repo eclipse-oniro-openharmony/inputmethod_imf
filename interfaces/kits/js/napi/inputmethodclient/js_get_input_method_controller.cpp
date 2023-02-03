@@ -70,7 +70,7 @@ napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback
     napi_status status = napi_wrap(env, thisVar, controllerObject, finalize, nullptr, nullptr);
     if (status != napi_ok) {
         IMSA_HILOGE("JsGetInputMethodController napi_wrap failed:%{public}d", status);
-        finalize(env, controllerObject, nullptr);
+        delete controllerObject;
         return nullptr;
     }
 

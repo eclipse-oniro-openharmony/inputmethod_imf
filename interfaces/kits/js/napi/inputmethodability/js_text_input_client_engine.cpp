@@ -103,7 +103,7 @@ napi_value JsTextInputClientEngine::JsConstructor(napi_env env, napi_callback_in
     napi_status status = napi_wrap(env, thisVar, clientObject, finalize, nullptr, nullptr);
     if (status != napi_ok) {
         IMSA_HILOGE("JsTextInputClientEngine napi_wrap failed: %{public}d", status);
-        finalize(env, clientObject, nullptr);
+        delete clientObject;
         return nullptr;
     }
     return thisVar;
