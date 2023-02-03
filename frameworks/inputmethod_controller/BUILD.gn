@@ -90,16 +90,14 @@ ohos_static_library("inputmethod_client_static") {
     "src/itypes_util.cpp",
   ]
 
-  deps = [
-    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/multimodalinput/input/frameworks/proxy:libmmi-common",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-  ]
+  deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
 
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
   ]
 
   configs = [ ":inputmethod_client_native_config" ]
