@@ -20,17 +20,17 @@ extern const char _binary_inputmethod_extension_context_js_end[];
 extern const char _binary_inputmethod_extension_context_abc_start[];
 extern const char _binary_inputmethod_extension_context_abc_end[];
 
-extern "C" __attribute__((constructor)) void NAPI_InputMethodExtensionContext_AutoRegister()
+extern "C" __attribute__((constructor)) void NAPI_inputmethodextensioncontext_AutoRegister()
 {
     auto moduleManager = NativeModuleManager::GetInstance();
     NativeModule newModuleInfo = {
-        .name = "InputMethodExtensionContext",
+        .name = "inputmethodextensioncontext",
         .fileName = "libinputmethodextensioncontext_napi.so/inputmethod_extension_context.js",
     };
     moduleManager->Register(&newModuleInfo);
 }
 
-extern "C" __attribute__((visibility("default"))) void NAPI_InputMethodExtensionContext_GetJSCode(
+extern "C" __attribute__((visibility("default"))) void NAPI_inputmethodextensioncontext_GetJSCode(
     const char **buf, int *bufLen)
 {
     if (buf != nullptr) {
@@ -42,7 +42,7 @@ extern "C" __attribute__((visibility("default"))) void NAPI_InputMethodExtension
 }
 
 // ability_context JS register
-extern "C" __attribute__((visibility("default"))) void NAPI_InputMethodExtensionContext_GetABCCode(
+extern "C" __attribute__((visibility("default"))) void NAPI_inputmethodextensioncontext_GetABCCode(
     const char **buf, int *buflen)
 {
     if (buf != nullptr) {
