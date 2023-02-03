@@ -113,10 +113,12 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(
-        env, thisVar, delegate.get(),
-        [](napi_env env, void *nativeObject, void *hint) { IMSA_HILOGE("delete JsKeyboardDelegateSetting"); }, nullptr,
-        nullptr);
+    napi_status status = napi_wrap(
+        env, thisVar, delegate.get(), [](napi_env env, void *nativeObject, void *hint) {}, nullptr, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("JsKeyboardDelegateSetting napi_wrap failed: %{public}d", status);
+        return nullptr;
+    }
     if (delegate->loop_ == nullptr) {
         napi_get_uv_event_loop(env, &delegate->loop_);
     }
@@ -355,13 +357,16 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
 
 bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
-    IMSA_HILOGI("run in OnKeyEvent");
+    IMSA_HILOGD("run in");
     KeyEventPara para{ keyCode, keyStatus, false };
     std::string type = (keyStatus == ARGC_TWO ? "keyDown" : "keyUp");
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-    uv_work_t *work = GetKeyEventUVwork(type, para, isDone);
+    uv_work_t *work = GetUVwork(type, [&para, isDone](UvEntry &entry) {
+        entry.keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
+        entry.isDone = isDone;
+    });
     if (work == nullptr) {
-        IMSA_HILOGE("GetKeyEventUVwork nullptr");
+        IMSA_HILOGE("failed to get uv work");
         return false;
     }
     uv_queue_work(
@@ -372,12 +377,12 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 delete work;
             });
             auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
-                                               std::shared_ptr<JSCallbackObject> item) -> bool {
+                                           std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc == 0) {
                     return false;
                 }
-                napi_value jsObject = GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode,
-                                                          entry->keyEventPara.keyStatus);
+                napi_value jsObject =
+                    GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
                     return false;
@@ -391,129 +396,18 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
     return isDone->GetValue();
 }
 
-uv_work_t *JsKeyboardDelegateSetting::GetKeyEventUVwork(
-    std::string type, KeyEventPara para, std::shared_ptr<BlockData<bool>> &isDone)
-{
-    IMSA_HILOGI("run in GetKeyEventUVwork");
-    UvEntry *entry = nullptr;
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
-        entry->keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
-        entry->isDone = isDone;
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        IMSA_HILOGE("entry ptr is nullptr!");
-        delete entry;
-        return nullptr;
-    }
-    work->data = entry;
-    return work;
-}
-
-uv_work_t *JsKeyboardDelegateSetting::GetCursorUVwork(std::string type, CursorPara para)
-{
-    IMSA_HILOGI("run in GetCursorUVwork");
-    UvEntry *entry = nullptr;
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
-        entry->curPara.positionX = para.positionX;
-        entry->curPara.positionY = para.positionY;
-        entry->curPara.height = para.height;
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        IMSA_HILOGE("entry ptr is nullptr!");
-        return nullptr;
-    }
-    work->data = entry;
-    return work;
-}
-
-uv_work_t *JsKeyboardDelegateSetting::GetSelectionUVwork(std::string type, SelectionPara para)
-{
-    IMSA_HILOGI("run in GetSelectionUVwork");
-    UvEntry *entry = nullptr;
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
-        entry->selPara.oldBegin = para.oldBegin;
-        entry->selPara.oldEnd = para.oldEnd;
-        entry->selPara.newBegin = para.newBegin;
-        entry->selPara.newEnd = para.newEnd;
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        IMSA_HILOGE("entry ptr is nullptr!");
-        return nullptr;
-    }
-    work->data = entry;
-    return work;
-}
-
-uv_work_t *JsKeyboardDelegateSetting::GetTextUVwork(std::string type, std::string text)
-{
-    IMSA_HILOGI("run in GetTextUVwork");
-    UvEntry *entry = nullptr;
-    {
-        std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-        if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
-            return nullptr;
-        }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
-        entry->text = text;
-    }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        IMSA_HILOGE("entry ptr is nullptr!");
-        return nullptr;
-    }
-    work->data = entry;
-    return work;
-}
-
 void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
-    IMSA_HILOGI("run in OnCursorUpdate");
+    IMSA_HILOGD("run in");
     CursorPara para{ positionX, positionY, height };
     std::string type = "cursorContextChange";
-    uv_work_t *work = GetCursorUVwork(type, para);
+    uv_work_t *work = GetUVwork(type, [&para](UvEntry &entry) {
+        entry.curPara.positionX = para.positionX;
+        entry.curPara.positionY = para.positionY;
+        entry.curPara.height = para.height;
+    });
     if (work == nullptr) {
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(
@@ -525,7 +419,7 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
             });
 
             auto getCursorUpdateProperty = [entry](napi_value *args, uint8_t argc,
-                                                   std::shared_ptr<JSCallbackObject> item) -> bool {
+                                               std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc < 3) {
                     return false;
                 }
@@ -540,11 +434,17 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
 
 void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
-    IMSA_HILOGI("run in OnSelectionChange");
+    IMSA_HILOGD("run in");
     SelectionPara para{ oldBegin, oldEnd, newBegin, newEnd };
     std::string type = "selectionChange";
-    uv_work_t *work = GetSelectionUVwork(type, para);
+    uv_work_t *work = GetUVwork(type, [&para](UvEntry &entry) {
+        entry.selPara.oldBegin = para.oldBegin;
+        entry.selPara.oldEnd = para.oldEnd;
+        entry.selPara.newBegin = para.newBegin;
+        entry.selPara.newEnd = para.newEnd;
+    });
     if (work == nullptr) {
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(
@@ -556,7 +456,7 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
             });
 
             auto getSelectionChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                                      std::shared_ptr<JSCallbackObject> item) -> bool {
+                                                  std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc < 4) {
                     return false;
                 }
@@ -572,10 +472,11 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
 
 void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 {
-    IMSA_HILOGI("run in OnTextChange");
+    IMSA_HILOGD("run in");
     std::string type = "textChange";
-    uv_work_t *work = GetTextUVwork(type, text);
+    uv_work_t *work = GetUVwork(type, [&text](UvEntry &entry) { entry.text = text; });
     if (work == nullptr) {
+        IMSA_HILOGD("failed to get uv entry");
         return;
     }
     uv_queue_work(
@@ -587,7 +488,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
             });
 
             auto getTextChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                                 std::shared_ptr<JSCallbackObject> item) -> bool {
+                                             std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc == 0) {
                     return false;
                 }
@@ -596,6 +497,35 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
             };
             JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getTextChangeProperty);
         });
+}
+
+uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
+{
+    IMSA_HILOGD("run in, type: %{public}s", type.c_str());
+    UvEntry *entry = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+        if (jsCbMap_[type].empty()) {
+            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
+            return nullptr;
+        }
+        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
+        if (entry == nullptr) {
+            IMSA_HILOGE("entry ptr is nullptr!");
+            return nullptr;
+        }
+        if (entrySetter != nullptr) {
+            entrySetter(*entry);
+        }
+    }
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        IMSA_HILOGE("entry ptr is nullptr!");
+        return nullptr;
+    }
+    work->data = entry;
+    return work;
 }
 } // namespace MiscServices
 } // namespace OHOS
