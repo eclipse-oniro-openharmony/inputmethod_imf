@@ -58,6 +58,8 @@ public:
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
     int32_t SendFunctionKey(int32_t funcKey);
     int32_t MoveCursor(int32_t keyCode);
+    int32_t SelectByRange(int32_t start, int32_t end);
+    int32_t SelectByMovement(int32_t direction);
     bool DispatchKeyEvent(int32_t keyCode, int32_t keyStatus);
     void SetCallingWindow(uint32_t windowId);
     int32_t GetEnterKeyType(int32_t &keyType);

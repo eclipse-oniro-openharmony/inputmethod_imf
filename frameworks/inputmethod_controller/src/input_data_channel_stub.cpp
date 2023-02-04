@@ -19,6 +19,7 @@
 #include "input_method_controller.h"
 #include "ipc_object_stub.h"
 #include "ipc_types.h"
+#include "itypes_util.h"
 #include "message.h"
 
 namespace OHOS {
@@ -96,27 +97,67 @@ int32_t InputDataChannelStub::OnRemoteRequest(
             reply.WriteInt32(inputPattern);
             break;
         }
-        case HANDLE_SET_SELECTION: {
-            auto start = data.ReadInt32();
-            auto end = data.ReadInt32();
-            HandleSetSelection(start, end);
+        case SELECT_BY_RANGE: {
+            SelectByRangeOnRemote(data, reply);
             break;
         }
         case HANDLE_EXTEND_ACTION: {
-            auto action = data.ReadInt32();
-            HandleExtendAction(action);
+            HandleExtendActionOnRemote(data, reply);
             break;
         }
-        case HANDLE_SELECT: {
-            auto keyCode = data.ReadInt32();
-            auto cursorMoveSkip = data.ReadInt32();
-            HandleSelect(keyCode, cursorMoveSkip);
+        case SELECT_BY_MOVEMENT: {
+            SelectByMovementOnRemote(data, reply);
             break;
         }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
     return NO_ERROR;
+}
+
+int32_t InputDataChannelStub::SelectByRangeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    IMSA_HILOGD("InputDataChannelStub %{public}s", __func__);
+    int32_t start;
+    int32_t end;
+    int ret = SendMessage(MessageID::MSG_ID_HANDLE_SET_SELECTION, [&data, &start, &end](MessageParcel &parcel) {
+        return ITypesUtil::Unmarshal(data, start, end) && ITypesUtil::Marshal(parcel, start, end);
+    });
+    if (!ITypesUtil::Marshal(reply, ret)) {
+        IMSA_HILOGE("failed to write reply");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputDataChannelStub::SelectByMovementOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    IMSA_HILOGD("InputDataChannelStub %{public}s", __func__);
+    int32_t direction;
+    int32_t cursorMoveSkip;
+    auto ret = SendMessage(MessageID::MSG_ID_HANDLE_SELECT, [&data, &direction, &cursorMoveSkip](MessageParcel &parcel) {
+        return ITypesUtil::Unmarshal(data, direction, cursorMoveSkip)
+               && ITypesUtil::Marshal(parcel, direction, cursorMoveSkip);
+    });
+    if (!ITypesUtil::Marshal(reply, ret)) {
+        IMSA_HILOGE("failed to write reply");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputDataChannelStub::HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    IMSA_HILOGD("InputDataChannelStub %{public}s", __func__);
+    int32_t action;
+    auto ret = SendMessage(MessageID::MSG_ID_HANDLE_EXTEND_ACTION, [&data, &action](MessageParcel &parcel) {
+        return ITypesUtil::Unmarshal(data, action) && ITypesUtil::Marshal(parcel, action);
+    });
+    if (!ITypesUtil::Marshal(reply, ret)) {
+        IMSA_HILOGE("failed to write reply");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputDataChannelStub::InsertText(const std::u16string &text)
@@ -221,44 +262,51 @@ int32_t InputDataChannelStub::MoveCursor(int32_t keyCode)
     return ErrorCode::ERROR_CLIENT_NULL_POINTER;
 }
 
-void InputDataChannelStub::HandleSetSelection(int32_t start, int32_t end)
+int32_t InputDataChannelStub::SelectByRange(int32_t start, int32_t end)
 {
-    IMSA_HILOGI("InputDataChannelStub::HandleSetSelection");
-    if (msgHandler) {
-        MessageParcel *parcel = new MessageParcel;
-        parcel->WriteInt32(start);
-        parcel->WriteInt32(end);
-        Message *msg = new Message(MessageID::MSG_ID_HANDLE_SET_SELECTION, parcel);
-        msgHandler->SendMessage(msg);
-    }
+    return ErrorCode::NO_ERROR;
 }
 
-void InputDataChannelStub::HandleExtendAction(int32_t action)
+int32_t InputDataChannelStub::SelectByMovement(int32_t direction, int32_t cursorMoveSkip)
 {
-    IMSA_HILOGI("InputDataChannelStub::HandleExtendAction");
-    if (msgHandler) {
-        MessageParcel *parcel = new MessageParcel;
-        parcel->WriteInt32(action);
-        Message *msg = new Message(MessageID::MSG_ID_HANDLE_EXTEND_ACTION, parcel);
-        msgHandler->SendMessage(msg);
-    }
+    return ErrorCode::NO_ERROR;
 }
 
-void InputDataChannelStub::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
+int32_t InputDataChannelStub::HandleExtendAction(int32_t action)
 {
-    IMSA_HILOGI("InputDataChannelStub::HandleSelect");
-    if (msgHandler) {
-        MessageParcel *parcel = new MessageParcel;
-        parcel->WriteInt32(keyCode);
-        parcel->WriteInt32(cursorMoveSkip);
-        Message *msg = new Message(MessageID::MSG_ID_HANDLE_SELECT, parcel);
-        msgHandler->SendMessage(msg);
-    }
+    return ErrorCode::NO_ERROR;
 }
 
 void InputDataChannelStub::SetHandler(MessageHandler *handler)
 {
     msgHandler = handler;
+}
+
+int32_t InputDataChannelStub::SendMessage(int code, ParcelHandler input)
+{
+    IMSA_HILOGD("InputMethodCoreStub %{public}s", __func__);
+    if (msgHandler == nullptr) {
+        IMSA_HILOGE("InputMethodCoreStub msgHandler_ is nullptr");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    auto *parcel = new (std::nothrow) MessageParcel();
+    if (parcel == nullptr) {
+        IMSA_HILOGE("parcel is nullptr");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    if (input != nullptr && (!input(*parcel))) {
+        IMSA_HILOGE("write data failed");
+        delete parcel;
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto *msg = new (std::nothrow) Message(code, parcel);
+    if (msg == nullptr) {
+        IMSA_HILOGE("msg is nullptr");
+        delete parcel;
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    msgHandler->SendMessage(msg);
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

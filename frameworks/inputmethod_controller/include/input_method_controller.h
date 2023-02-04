@@ -111,6 +111,9 @@ private:
     void WorkThread();
     void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
+    void OnSelectByRange(int32_t start, int32_t end);
+    void OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip);
+    void HandleExtendAction(int32_t action);
 
     sptr<IInputDataChannel> mInputDataChannel;
     std::shared_ptr<InputMethodSettingListener> imeListener_;

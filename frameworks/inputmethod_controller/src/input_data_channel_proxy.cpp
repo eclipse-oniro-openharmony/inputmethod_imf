@@ -17,6 +17,7 @@
 
 #include "global.h"
 #include "ipc_types.h"
+#include "itypes_util.h"
 #include "message_option.h"
 #include "message_parcel.h"
 
@@ -176,42 +177,57 @@ int32_t InputDataChannelProxy::GetInputPattern(int32_t &inputPattern)
     return result;
 }
 
-void InputDataChannelProxy::HandleSetSelection(int32_t start, int32_t end)
+int32_t InputDataChannelProxy::SelectByRange(int32_t start, int32_t end)
 {
-    IMSA_HILOGI("InputDataChannelProxy::HandleSetSelection");
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(GetDescriptor());
-    data.WriteInt32(start);
-    data.WriteInt32(end);
-
-    Remote()->SendRequest(HANDLE_SET_SELECTION, data, reply, option);
+    IMSA_HILOGI("InputDataChannelProxy::SelectByRange");
+    return SendRequest(
+        SELECT_BY_RANGE, [start, end](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, start, end); });
 }
 
-void InputDataChannelProxy::HandleExtendAction(int32_t action)
+int32_t InputDataChannelProxy::SelectByMovement(int32_t direction, int32_t cursorMoveSkip)
+{
+    IMSA_HILOGI("InputDataChannelProxy::SelectByMovement");
+    return SendRequest(SELECT_BY_MOVEMENT, [direction, cursorMoveSkip](MessageParcel &parcel) {
+        return ITypesUtil::Marshal(parcel, direction, cursorMoveSkip);
+    });
+}
+
+int32_t InputDataChannelProxy::HandleExtendAction(int32_t action)
 {
     IMSA_HILOGI("InputDataChannelProxy::HandleExtendAction");
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(GetDescriptor());
-    data.WriteInt32(action);
-
-    Remote()->SendRequest(HANDLE_EXTEND_ACTION, data, reply, option);
+    return SendRequest(
+        HANDLE_EXTEND_ACTION, [action](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, action); });
 }
 
-void InputDataChannelProxy::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
+int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGI("InputDataChannelProxy::HandleSelect");
+    IMSA_HILOGD("InputDataChannelProxy %{public}s in", __func__);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(GetDescriptor());
-    data.WriteInt32(keyCode);
-    data.WriteInt32(cursorMoveSkip);
-
-    Remote()->SendRequest(HANDLE_SELECT, data, reply, option);
+    MessageOption option{ MessageOption::TF_SYNC };
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        IMSA_HILOGE("write interface token failed");
+        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
+    }
+    if (input != nullptr && (!input(data))) {
+        IMSA_HILOGE("write data failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto ret = Remote()->SendRequest(code, data, reply, option);
+    if (ret != NO_ERROR) {
+        IMSA_HILOGE("InputDataChannelProxy SendRequest failed, ret %{public}d", ret);
+        return ret;
+    }
+    ret = reply.ReadInt32();
+    if (ret != NO_ERROR) {
+        IMSA_HILOGE("reply error, ret %{public}d", ret);
+        return ret;
+    }
+    if (output != nullptr && (!output(reply))) {
+        IMSA_HILOGE("reply parcel error");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

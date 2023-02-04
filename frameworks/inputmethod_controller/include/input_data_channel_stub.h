@@ -49,12 +49,17 @@ public:
     int32_t MoveCursor(int32_t keyCode) override;
     int32_t GetEnterKeyType(int32_t &keyType) override;
     int32_t GetInputPattern(int32_t &inputPattern) override;
-    void HandleSetSelection(int32_t start, int32_t end) override;
-    void HandleExtendAction(int32_t action) override;
-    void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override;
+    int32_t SelectByRange(int32_t start, int32_t end) override;
+    int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) override;
+    int32_t HandleExtendAction(int32_t action) override;
 
 private:
     MessageHandler *msgHandler;
+    int32_t SelectByRangeOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t SelectByMovementOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply);
+    using ParcelHandler = std::function<bool(MessageParcel &)>;
+    int32_t SendMessage(int code, ParcelHandler input = nullptr);
 };
 } // namespace MiscServices
 } // namespace OHOS
