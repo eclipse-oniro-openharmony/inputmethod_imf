@@ -146,7 +146,6 @@ void InputMethodController::WorkThread()
                     textListener->InsertText(text);
                     std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
                     waitOnSelectionChangeNum_++;
-                    self_ = true;
                 }
                 break;
             }
@@ -336,7 +335,6 @@ void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool i
 {
     std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
     waitOnSelectionChangeNum_ = 0;
-    self_ = false;
     std::lock_guard<std::mutex> lock(textListenerLock_);
     textListener = listener;
     IMSA_HILOGI("InputMethodController::Attach");
@@ -556,15 +554,14 @@ void InputMethodController::OnSelectionChange(std::u16string text, int start, in
     mSelectOldEnd = mSelectNewEnd;
     mSelectNewBegin = start;
     mSelectNewEnd = end;
-    // TODO: 后续使用flag代替self
-    if (self_) {
-        std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
-        if (waitOnSelectionChangeNum_ > 0) {
-            waitOnSelectionChangeNum_--;
-        }
-        if (waitOnSelectionChangeNum_ == 0) {
-            waitOnSelectionChangeCv_.notify_one();
-        }
+
+    // TODO: 待ace修改完成,此处需要使用flag进行判断
+    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+    if (waitOnSelectionChangeNum_ > 0) {
+        waitOnSelectionChangeNum_--;
+    }
+    if (waitOnSelectionChangeNum_ == 0) {
+        waitOnSelectionChangeCv_.notify_one();
     }
     std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
     if (agent == nullptr) {

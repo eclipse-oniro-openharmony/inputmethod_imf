@@ -146,7 +146,6 @@ private:
     std::mutex waitOnSelectionChangeNumLock_;
     uint32_t waitOnSelectionChangeNum_{ 0 };
     std::condition_variable waitOnSelectionChangeCv_;
-    bool self_{ false }; //临时使用标记，待ace修改完成废弃
 };
 } // namespace MiscServices
 } // namespace OHOS
