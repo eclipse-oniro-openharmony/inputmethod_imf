@@ -34,7 +34,7 @@ namespace MiscServices {
 using namespace MessageID;
 sptr<InputMethodController> InputMethodController::instance_;
 std::mutex InputMethodController::instanceLock_;
-int32_t DEALY_TIME = 1;
+constexpr int32_t WAIT_TIME = 1;
 InputMethodController::InputMethodController() : stop_(false)
 {
     IMSA_HILOGI("InputMethodController structure");
@@ -289,7 +289,7 @@ void InputMethodController::HandleGetOperation()
     }
     std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
     waitOnSelectionChangeCv_.wait_for(
-        numLock, std::chrono::seconds(DEALY_TIME), [this] { return waitOnSelectionChangeNum_ == 0; });
+        numLock, std::chrono::seconds(WAIT_TIME), [this] { return waitOnSelectionChangeNum_ == 0; });
     IMSA_HILOGI("InputMethodController::notify");
     InputDataChannelStub::getOkCv_.notify_one();
 }
@@ -524,8 +524,6 @@ void ImsaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 
 void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 {
-    IMSA_HILOGI("left = %{public}f, top = %{public}f, height = %{public}f, width = %{public}f", cursorInfo.left,
-        cursorInfo.top, cursorInfo.height, cursorInfo.width);
     if (isStopInput) {
         IMSA_HILOGD("InputMethodController::OnCursorUpdate isStopInput");
         return;
@@ -545,6 +543,19 @@ void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 
 void InputMethodController::OnSelectionChange(std::u16string text, int start, int end /*, int32_t flag*/)
 {
+    IMSA_HILOGI("text = %{public}s, start = %{public}d, end = %{public}d", Str16ToStr8(text).c_str(), start, end);
+    if (isStopInput) {
+        IMSA_HILOGD("InputMethodController::OnSelectionChange isStopInput");
+        return;
+    }
+    if (mTextString == text && mSelectNewBegin == start && mSelectNewEnd == end) {
+        return;
+    }
+    mTextString = text;
+    mSelectOldBegin = mSelectNewBegin;
+    mSelectOldEnd = mSelectNewEnd;
+    mSelectNewBegin = start;
+    mSelectNewEnd = end;
     // TODO: 后续使用flag代替self
     if (self_) {
         std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
@@ -555,20 +566,6 @@ void InputMethodController::OnSelectionChange(std::u16string text, int start, in
             waitOnSelectionChangeCv_.notify_one();
         }
     }
-    IMSA_HILOGI("text = %{public}s, start = %{public}d, end = %{public}d", Str16ToStr8(text).c_str(), start, end);
-    if (isStopInput) {
-        IMSA_HILOGD("InputMethodController::OnSelectionChange isStopInput");
-        return;
-    }
-    if (mTextString == text && mSelectNewBegin == start && mSelectNewEnd == end) {
-        return;
-    }
-    IMSA_HILOGI("InputMethodController::OnSelectionChange");
-    mTextString = text;
-    mSelectOldBegin = mSelectNewBegin;
-    mSelectOldEnd = mSelectNewEnd;
-    mSelectNewBegin = start;
-    mSelectNewEnd = end;
     std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
     if (agent == nullptr) {
         IMSA_HILOGI("InputMethodController::OnSelectionChange agent is nullptr");

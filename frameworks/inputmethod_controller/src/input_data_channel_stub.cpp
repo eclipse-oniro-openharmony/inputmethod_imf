@@ -20,11 +20,10 @@
 #include "ipc_object_stub.h"
 #include "ipc_types.h"
 #include "message.h"
-
 namespace OHOS {
 namespace MiscServices {
 std::condition_variable InputDataChannelStub::getOkCv_;
-int32_t DEALY_TIME_STUB = 1;
+constexpr int32_t WAIT_TIME_STUB = 1;
 InputDataChannelStub::InputDataChannelStub() : msgHandler(nullptr)
 {
 }
@@ -173,15 +172,11 @@ int32_t InputDataChannelStub::DeleteBackward(int32_t length)
 
 int32_t InputDataChannelStub::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
-    //IMSA_HILOGI("InputDataChannelStub::GetTextBeforeCursor");
-    //return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
     return 0;
 }
 
 int32_t InputDataChannelStub::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
-    //IMSA_HILOGI("InputDataChannelStub::GetTextAfterCursor");
-    //return InputMethodController::GetInstance()->GetTextAfterCursor(number, text);
     return 0;
 }
 
@@ -221,8 +216,11 @@ int32_t InputDataChannelStub::HandleGetOperation(int32_t number, std::u16string 
     msgHandler->SendMessage(msg);
 
     std::unique_lock<std::mutex> lock(getOkLock_);
-    getOkCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME_STUB));
-    IMSA_HILOGI("InputDataChannelStub::get");
+    auto status = getOkCv_.wait_for(lock, std::chrono::seconds(WAIT_TIME_STUB));
+    if (status == std::cv_status::timeout) {
+        IMSA_HILOGE("InputDataChannelStub::timeout");
+        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    }
     if (msgType == GET_TEXT_BEFORE_CURSOR) {
         return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
     } else if (msgType == GET_TEXT_AFTER_CURSOR) {
