@@ -34,7 +34,7 @@ namespace MiscServices {
 using namespace MessageID;
 sptr<InputMethodController> InputMethodController::instance_;
 std::mutex InputMethodController::instanceLock_;
-constexpr int32_t WAIT_TIME = 1;
+constexpr int32_t WAIT_TIME = 100;
 InputMethodController::InputMethodController() : stop_(false)
 {
     IMSA_HILOGI("InputMethodController structure");
@@ -287,8 +287,13 @@ void InputMethodController::HandleGetOperation()
         return;
     }
     std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
-    waitOnSelectionChangeCv_.wait_for(
-        numLock, std::chrono::seconds(WAIT_TIME), [this] { return waitOnSelectionChangeNum_ == 0; });
+    auto ret = waitOnSelectionChangeCv_.wait_for(
+        numLock, std::chrono::milliseconds(WAIT_TIME), [this] { return waitOnSelectionChangeNum_ == 0; });
+    if (!ret) {
+        IMSA_HILOGE("InputMethodController::timeout");
+        // 超时，重置waitOnSelectionChangeNum_，消除对后续处理的影响
+        waitOnSelectionChangeNum_ = 0;
+    }
     IMSA_HILOGI("InputMethodController::notify");
     InputDataChannelStub::getOkCv_.notify_one();
 }

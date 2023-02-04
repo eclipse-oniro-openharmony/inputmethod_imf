@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace MiscServices {
 std::condition_variable InputDataChannelStub::getOkCv_;
-constexpr int32_t WAIT_TIME_STUB = 1;
+constexpr int32_t WAIT_TIME_STUB = 100;
 InputDataChannelStub::InputDataChannelStub() : msgHandler(nullptr)
 {
 }
@@ -216,7 +216,7 @@ int32_t InputDataChannelStub::HandleGetOperation(int32_t number, std::u16string 
     msgHandler->SendMessage(msg);
 
     std::unique_lock<std::mutex> lock(getOkLock_);
-    getOkCv_.wait_for(lock, std::chrono::seconds(WAIT_TIME_STUB));
+    getOkCv_.wait_for(lock, std::chrono::milliseconds(WAIT_TIME_STUB));
     if (msgType == GET_TEXT_BEFORE_CURSOR) {
         return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
     } else if (msgType == GET_TEXT_AFTER_CURSOR) {
