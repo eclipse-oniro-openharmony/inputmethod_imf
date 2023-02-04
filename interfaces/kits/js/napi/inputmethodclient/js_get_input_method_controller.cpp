@@ -217,8 +217,7 @@ napi_value JsGetInputMethodController::Subscribe(napi_env env, napi_callback_inf
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     if (argc < 2) {
-        JsUtils::ThrowException(
-            env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 2 parameters!", TypeCode::TYPE_NONE);
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 2 parameters!", TypeCode::TYPE_NONE);
         return nullptr;
     }
 

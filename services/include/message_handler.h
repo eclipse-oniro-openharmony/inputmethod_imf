@@ -47,9 +47,9 @@ enum {
     MSG_HIDE_CURRENT_INPUT,
     MSG_SHOW_CURRENT_INPUT,
     MSG_ID_SWITCH_INPUT_METHOD, // switch input method
-    MSG_ID_HANDLE_SET_SELECTION,
+    MSG_ID_SELECT_BY_RANGE,
+    MSG_ID_SELECT_BY_MOVEMENT,
     MSG_ID_HANDLE_EXTEND_ACTION,
-    MSG_ID_HANDLE_SELECT,
 
     // the request to handle the condition that the remote object died
     MSG_ID_CLIENT_DIED,        // input client died

@@ -120,7 +120,7 @@ int32_t InputDataChannelStub::SelectByRangeOnRemote(MessageParcel &data, Message
     IMSA_HILOGD("InputDataChannelStub run in");
     int32_t start;
     int32_t end;
-    int ret = SendMessage(MessageID::MSG_ID_HANDLE_SET_SELECTION, [&data, &start, &end](MessageParcel &parcel) {
+    int ret = SendMessage(MessageID::MSG_ID_SELECT_BY_RANGE, [&data, &start, &end](MessageParcel &parcel) {
         return ITypesUtil::Unmarshal(data, start, end) && ITypesUtil::Marshal(parcel, start, end);
     });
     if (!ITypesUtil::Marshal(reply, ret)) {
@@ -135,10 +135,11 @@ int32_t InputDataChannelStub::SelectByMovementOnRemote(MessageParcel &data, Mess
     IMSA_HILOGD("InputDataChannelStub run in");
     int32_t direction;
     int32_t cursorMoveSkip;
-    auto ret = SendMessage(MessageID::MSG_ID_HANDLE_SELECT, [&data, &direction, &cursorMoveSkip](MessageParcel &parcel) {
-        return ITypesUtil::Unmarshal(data, direction, cursorMoveSkip)
-               && ITypesUtil::Marshal(parcel, direction, cursorMoveSkip);
-    });
+    auto ret =
+        SendMessage(MessageID::MSG_ID_SELECT_BY_MOVEMENT, [&data, &direction, &cursorMoveSkip](MessageParcel &parcel) {
+            return ITypesUtil::Unmarshal(data, direction, cursorMoveSkip)
+                   && ITypesUtil::Marshal(parcel, direction, cursorMoveSkip);
+        });
     if (!ITypesUtil::Marshal(reply, ret)) {
         IMSA_HILOGE("failed to write reply");
         return ErrorCode::ERROR_EX_PARCELABLE;

@@ -227,7 +227,7 @@ void InputMethodController::WorkThread()
                 OnSwitchInput(property, subProperty);
                 break;
             }
-            case MSG_ID_HANDLE_SET_SELECTION: {
+            case MSG_ID_SELECT_BY_RANGE: {
                 MessageParcel *data = msg->msgContent_;
                 int32_t start;
                 int32_t end;
@@ -248,7 +248,7 @@ void InputMethodController::WorkThread()
                 HandleExtendAction(action);
                 break;
             }
-            case MSG_ID_HANDLE_SELECT: {
+            case MSG_ID_SELECT_BY_MOVEMENT: {
                 MessageParcel *data = msg->msgContent_;
                 int32_t direction;
                 int32_t cursorMoveSkip;
