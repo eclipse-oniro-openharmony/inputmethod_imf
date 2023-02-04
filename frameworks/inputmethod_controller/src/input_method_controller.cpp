@@ -541,10 +541,18 @@ void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 
 void InputMethodController::OnSelectionChange(std::u16string text, int start, int end /*, int32_t flag*/)
 {
-    IMSA_HILOGI("text = %{public}s, start = %{public}d, end = %{public}d", Str16ToStr8(text).c_str(), start, end);
+    IMSA_HILOGI("text = %{public}s, start = %{public}d, end = %{public}d, waitOnSelectionChangeNum_ = %{public}d", Str16ToStr8(text).c_str(), start, end, waitOnSelectionChangeNum_);
     if (isStopInput) {
         IMSA_HILOGD("InputMethodController::OnSelectionChange isStopInput");
         return;
+    }
+    // TODO: 待ace修改完成,此处需要使用flag进行判断
+    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+    if (waitOnSelectionChangeNum_ > 0) {
+        waitOnSelectionChangeNum_--;
+    }
+    if (waitOnSelectionChangeNum_ == 0) {
+        waitOnSelectionChangeCv_.notify_one();
     }
     if (mTextString == text && mSelectNewBegin == start && mSelectNewEnd == end) {
         return;
@@ -555,14 +563,6 @@ void InputMethodController::OnSelectionChange(std::u16string text, int start, in
     mSelectNewBegin = start;
     mSelectNewEnd = end;
 
-    // TODO: 待ace修改完成,此处需要使用flag进行判断
-    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
-    if (waitOnSelectionChangeNum_ > 0) {
-        waitOnSelectionChangeNum_--;
-    }
-    if (waitOnSelectionChangeNum_ == 0) {
-        waitOnSelectionChangeCv_.notify_one();
-    }
     std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
     if (agent == nullptr) {
         IMSA_HILOGI("InputMethodController::OnSelectionChange agent is nullptr");

@@ -216,11 +216,7 @@ int32_t InputDataChannelStub::HandleGetOperation(int32_t number, std::u16string 
     msgHandler->SendMessage(msg);
 
     std::unique_lock<std::mutex> lock(getOkLock_);
-    auto status = getOkCv_.wait_for(lock, std::chrono::seconds(WAIT_TIME_STUB));
-    if (status == std::cv_status::timeout) {
-        IMSA_HILOGE("InputDataChannelStub::timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
+    getOkCv_.wait_for(lock, std::chrono::seconds(WAIT_TIME_STUB));
     if (msgType == GET_TEXT_BEFORE_CURSOR) {
         return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
     } else if (msgType == GET_TEXT_AFTER_CURSOR) {
