@@ -179,14 +179,14 @@ int32_t InputDataChannelProxy::GetInputPattern(int32_t &inputPattern)
 
 int32_t InputDataChannelProxy::SelectByRange(int32_t start, int32_t end)
 {
-    IMSA_HILOGI("InputDataChannelProxy::SelectByRange");
+    IMSA_HILOGD("InputDataChannelProxy run in");
     return SendRequest(
         SELECT_BY_RANGE, [start, end](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, start, end); });
 }
 
 int32_t InputDataChannelProxy::SelectByMovement(int32_t direction, int32_t cursorMoveSkip)
 {
-    IMSA_HILOGI("InputDataChannelProxy::SelectByMovement");
+    IMSA_HILOGD("InputDataChannelProxy run in");
     return SendRequest(SELECT_BY_MOVEMENT, [direction, cursorMoveSkip](MessageParcel &parcel) {
         return ITypesUtil::Marshal(parcel, direction, cursorMoveSkip);
     });
@@ -194,14 +194,14 @@ int32_t InputDataChannelProxy::SelectByMovement(int32_t direction, int32_t curso
 
 int32_t InputDataChannelProxy::HandleExtendAction(int32_t action)
 {
-    IMSA_HILOGI("InputDataChannelProxy::HandleExtendAction");
+    IMSA_HILOGD("InputDataChannelProxy run in");
     return SendRequest(
         HANDLE_EXTEND_ACTION, [action](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, action); });
 }
 
 int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGD("InputDataChannelProxy %{public}s in", __func__);
+    IMSA_HILOGD("InputDataChannelProxy run in");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_SYNC };

@@ -24,8 +24,6 @@ class InputMethodSettingListener {
 public:
     virtual ~InputMethodSettingListener() = default;
     virtual void OnImeChange(const Property &property, const SubProperty &subProperty) = 0;
-    virtual void OnSelectByRange(int32_t start, int32_t end) = 0;
-    virtual void OnSelectByMovement(int32_t direction) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

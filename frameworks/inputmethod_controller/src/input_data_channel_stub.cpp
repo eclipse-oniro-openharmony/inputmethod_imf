@@ -117,7 +117,7 @@ int32_t InputDataChannelStub::OnRemoteRequest(
 
 int32_t InputDataChannelStub::SelectByRangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("InputDataChannelStub %{public}s", __func__);
+    IMSA_HILOGD("InputDataChannelStub run in");
     int32_t start;
     int32_t end;
     int ret = SendMessage(MessageID::MSG_ID_HANDLE_SET_SELECTION, [&data, &start, &end](MessageParcel &parcel) {
@@ -132,7 +132,7 @@ int32_t InputDataChannelStub::SelectByRangeOnRemote(MessageParcel &data, Message
 
 int32_t InputDataChannelStub::SelectByMovementOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("InputDataChannelStub %{public}s", __func__);
+    IMSA_HILOGD("InputDataChannelStub run in");
     int32_t direction;
     int32_t cursorMoveSkip;
     auto ret = SendMessage(MessageID::MSG_ID_HANDLE_SELECT, [&data, &direction, &cursorMoveSkip](MessageParcel &parcel) {
@@ -148,7 +148,7 @@ int32_t InputDataChannelStub::SelectByMovementOnRemote(MessageParcel &data, Mess
 
 int32_t InputDataChannelStub::HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("InputDataChannelStub %{public}s", __func__);
+    IMSA_HILOGD("InputDataChannelStub run in");
     int32_t action;
     auto ret = SendMessage(MessageID::MSG_ID_HANDLE_EXTEND_ACTION, [&data, &action](MessageParcel &parcel) {
         return ITypesUtil::Unmarshal(data, action) && ITypesUtil::Marshal(parcel, action);

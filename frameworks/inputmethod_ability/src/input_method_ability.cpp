@@ -442,7 +442,7 @@ int32_t InputMethodAbility::MoveCursor(int32_t keyCode)
 
 int32_t InputMethodAbility::SelectByRange(int32_t start, int32_t end)
 {
-    IMSA_HILOGI("InputMethodAbility::%{public}s", __func__);
+    IMSA_HILOGI("InputMethodAbility run in");
     auto dataChannel = GetInputDataChannel();
     if (dataChannel == nullptr) {
         IMSA_HILOGI("datachannel is nullptr");
@@ -453,7 +453,7 @@ int32_t InputMethodAbility::SelectByRange(int32_t start, int32_t end)
 
 int32_t InputMethodAbility::SelectByMovement(int32_t direction)
 {
-    IMSA_HILOGI("InputMethodAbility::%{public}s", __func__);
+    IMSA_HILOGI("InputMethodAbility run in");
     auto dataChannel = GetInputDataChannel();
     if (dataChannel == nullptr) {
         IMSA_HILOGI("datachannel is nullptr");

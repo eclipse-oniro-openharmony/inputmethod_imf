@@ -19,6 +19,7 @@
 #include <mutex>
 #include <thread>
 
+#include "controller_listener.h"
 #include "global.h"
 #include "i_input_client.h"
 #include "i_input_data_channel.h"
@@ -73,6 +74,7 @@ public:
     void OnSelectionChange(std::u16string text, int start, int end);
     void OnConfigurationChange(Configuration info);
     void setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
+    void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
     bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
     int32_t ListInputMethod(std::vector<Property> &props);
     int32_t ListInputMethod(bool enable, std::vector<Property> &props);
@@ -117,6 +119,7 @@ private:
 
     sptr<IInputDataChannel> mInputDataChannel;
     std::shared_ptr<InputMethodSettingListener> imeListener_;
+    std::shared_ptr<ControllerListener> controllerListener_;
     sptr<IInputClient> mClient;
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
