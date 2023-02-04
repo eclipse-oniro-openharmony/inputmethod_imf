@@ -729,7 +729,7 @@ void InputMethodController::OnSelectByMovement(int32_t direction, int32_t cursor
 {
     IMSA_HILOGI("InputMethodController run in");
     if (textListener != nullptr) {
-        textListener->HandleSelect(direction, cursorMoveSkip);
+        textListener->HandleSelect(direction + 2011, cursorMoveSkip);
     } else {
         IMSA_HILOGE("textListener is nullptr");
     }
