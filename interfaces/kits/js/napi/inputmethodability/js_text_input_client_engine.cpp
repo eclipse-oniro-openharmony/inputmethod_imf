@@ -262,7 +262,7 @@ napi_status JsTextInputClientEngine::GetSelectRange(napi_env env, napi_value arg
             env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing start parameter.", TypeCode::TYPE_NONE);
         return status;
     }
-    status = napi_get_value_int32(env, napiValue, ctxt->start);
+    status = napi_get_value_int32(env, napiValue, &ctxt->start);
     if (status != napi_ok) {
         IMSA_HILOGE("failed to get start value");
         return status;
@@ -273,7 +273,7 @@ napi_status JsTextInputClientEngine::GetSelectRange(napi_env env, napi_value arg
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing end parameter.", TypeCode::TYPE_NONE);
         return status;
     }
-    status = napi_get_value_int32(env, napiValue, ctxt->end);
+    status = napi_get_value_int32(env, napiValue, &ctxt->end);
     if (status != napi_ok) {
         IMSA_HILOGE("failed to get end value");
     }
@@ -291,7 +291,7 @@ napi_status JsTextInputClientEngine::GetSelectMovement(
             env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing direction parameter.", TypeCode::TYPE_NONE);
         return status;
     }
-    status = napi_get_value_int32(env, napiValue, ctxt->direction);
+    status = napi_get_value_int32(env, napiValue, &ctxt->direction);
     if (status != napi_ok) {
         IMSA_HILOGE("failed to get direction value");
     }
