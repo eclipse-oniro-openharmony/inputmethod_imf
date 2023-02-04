@@ -438,8 +438,8 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
                 if (argc < 1) {
                     return false;
                 }
-                napi_value movement = SetSelectMovement(item->env_, entry->direction) if (movement == nullptr)
-                {
+                napi_value movement = SetSelectMovement(item->env_, entry->direction);
+                if (movement == nullptr) {
                     IMSA_HILOGE("set select movement failed");
                     return false;
                 }
