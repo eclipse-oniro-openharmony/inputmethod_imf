@@ -538,8 +538,7 @@ using namespace MessageID;
     {
         IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
         text = u"";
-        if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0
-            || (mSelectNewEnd >= 0 && mSelectNewEnd > mTextString.size())) {
+        if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0 || mSelectNewEnd > mTextString.size()) {
             IMSA_HILOGE("InputMethodController::param error, number: %{public}d, end: %{public}d, size: %{public}u",
                 number, mSelectNewEnd, mTextString.size());
             return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
@@ -554,8 +553,7 @@ using namespace MessageID;
     {
         IMSA_HILOGI("InputMethodController::GetTextAfterCursor");
         text = u"";
-        if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0
-            || (mSelectNewEnd >= 0 && mSelectNewEnd > mTextString.size())) {
+        if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0 || mSelectNewEnd > mTextString.size()) {
             IMSA_HILOGE("InputMethodController::GetTextAfterCursor param error, number: %{public}d, end: %{public}d, "
                         "size: %{public}u",
                 number, mSelectNewEnd, mTextString.size());
