@@ -193,6 +193,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "imf:inputmethod_client",
     "ipc:ipc_core",
     "ipc:ipc_single",
   ]
