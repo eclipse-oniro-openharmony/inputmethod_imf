@@ -540,7 +540,7 @@ using namespace MessageID;
         text = u"";
         if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0
             || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
-            IMSA_HILOGE("InputMethodController::param error, number: %{public}d, end: %{public}d, size: %{public}u",
+            IMSA_HILOGE("InputMethodController::param error, number: %{public}d, end: %{public}d, size: %{public}d",
                 number, mSelectNewEnd, static_cast<int32_t>(mTextString.size()));
             return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
         }
