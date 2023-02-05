@@ -181,6 +181,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//third_party/googletest:gtest_main",
   ]
