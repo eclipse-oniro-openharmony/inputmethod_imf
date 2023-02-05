@@ -530,26 +530,32 @@ void InputMethodController::OnConfigurationChange(Configuration info)
 int32_t InputMethodController::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
     IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
-    if (!mTextString.empty()) {
-        int32_t startPos = (mSelectNewBegin >= number ? (mSelectNewBegin - number + 1) : 0);
-        text = mTextString.substr(startPos, mSelectNewBegin);
-        return ErrorCode::NO_ERROR;
-    }
     text = u"";
-    return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0
+        || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
+        IMSA_HILOGE("InputMethodController::param error, number: %{public}d, end: %{public}d, size: %{public}d",
+                    number, mSelectNewEnd, static_cast<int32_t>(mTextString.size()));
+        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    }
+    int32_t startPos = (number <= mSelectNewEnd ? (mSelectNewEnd - number) : 0);
+    int32_t length = (number <= mSelectNewEnd ? number : mSelectNewEnd);
+    text = mTextString.substr(startPos, length);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
     IMSA_HILOGI("InputMethodController::GetTextAfterCursor");
-    if (!mTextString.empty() && mTextString.size() <= INT_MAX) {
-        int32_t endPos = (mSelectNewEnd + number < static_cast<int32_t>(mTextString.size())) ? (mSelectNewEnd + number)
-                                                                                             : mTextString.size();
-        text = mTextString.substr(mSelectNewEnd, endPos);
-        return ErrorCode::NO_ERROR;
-    }
     text = u"";
-    return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0
+        || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
+        IMSA_HILOGE("InputMethodController::param error, number: %{public}d, end: %{public}d, "
+                    "size: %{public}d",
+                    number, mSelectNewEnd, static_cast<int32_t>(mTextString.size()));
+        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    }
+    text = mTextString.substr(mSelectNewEnd, number);
+    return ErrorCode::NO_ERROR;
 }
 
 bool InputMethodController::dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
