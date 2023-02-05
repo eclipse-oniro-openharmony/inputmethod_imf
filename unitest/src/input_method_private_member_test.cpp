@@ -31,7 +31,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-std::string textTemp = "我們我們ddddd";
+std::string g_textTemp = "我們我們ddddd";
 class InputMethodPrivateMemberTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -158,7 +158,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_001, TestSize.Leve
 {
     IMSA_HILOGI("IMC testGetTextAfterCursor_001 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 10;
     int32_t number = 3;
     std::u16string text;
@@ -177,7 +177,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_002, TestSize.Leve
 {
     IMSA_HILOGI("IMC testGetTextAfterCursor_002 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 3;
     int32_t number = 3;
     std::u16string text;
@@ -196,7 +196,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_003, TestSize.Leve
 {
     IMSA_HILOGI("IMC testGetTextAfterCursor_003 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 3;
     int32_t number = 8;
     std::u16string text;
@@ -215,7 +215,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_004, TestSize.Leve
 {
     IMSA_HILOGI("IMC testGetTextAfterCursor_004 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 3;
     int32_t number = 6;
     std::u16string text;
@@ -234,7 +234,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_005, TestSize.Leve
 {
     IMSA_HILOGI("IMC testGetTextAfterCursor_005 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 9;
     int32_t number = 8;
     std::u16string text;
@@ -272,7 +272,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_007, TestSize.Leve
 {
     IMSA_HILOGI("IMC testGetTextAfterCursor_007 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 10;
     int32_t number = -10;
     std::u16string text;
@@ -291,7 +291,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_008, TestSize.Leve
 {
     IMSA_HILOGI("IMC testGetTextAfterCursor_008 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = -2;
     int32_t number = 6;
     std::u16string text;
@@ -310,7 +310,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_001, TestSize.Lev
 {
     IMSA_HILOGI("IMC testGetTextBeforeCursor_001 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 10;
     int32_t number = 3;
     std::u16string text;
@@ -329,7 +329,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_002, TestSize.Lev
 {
     IMSA_HILOGI("IMC testGetTextBeforeCursor_002 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 3;
     int32_t number = 2;
     std::u16string text;
@@ -348,7 +348,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_003, TestSize.Lev
 {
     IMSA_HILOGI("IMC testGetTextBeforeCursor_003 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 3;
     int32_t number = 3;
     std::u16string text;
@@ -367,7 +367,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_004, TestSize.Lev
 {
     IMSA_HILOGI("IMC testGetTextBeforeCursor_004 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 3;
     int32_t number = 6;
     std::u16string text;
@@ -386,7 +386,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_005, TestSize.Lev
 {
     IMSA_HILOGI("IMC testGetTextBeforeCursor_005 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 0;
     int32_t number = 8;
     std::u16string text;
@@ -424,7 +424,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_007, TestSize.Lev
 {
     IMSA_HILOGI("IMC testGetTextBeforeCursor_007 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = 10;
     int32_t number = -10;
     std::u16string text;
@@ -443,7 +443,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_008, TestSize.Lev
 {
     IMSA_HILOGI("IMC testGetTextBeforeCursor_008 START");
     InputMethodController imc;
-    imc.mTextString = Str8ToStr16(textTemp);
+    imc.mTextString = Str8ToStr16(g_textTemp);
     imc.mSelectNewEnd = -2;
     int32_t number = 6;
     std::u16string text;
