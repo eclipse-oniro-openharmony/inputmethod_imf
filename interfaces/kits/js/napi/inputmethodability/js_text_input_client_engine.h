@@ -202,7 +202,8 @@ struct GetTextIndexAtCursorContext : public AsyncCall::Context {
     int32_t index = 0;
     napi_status status = napi_generic_failure;
     GetTextIndexAtCursorContext() : Context(nullptr, nullptr){};
-    GetTextIndexAtCursorContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+    GetTextIndexAtCursorContext(InputAction input, OutputAction output)
+        : Context(std::move(input), std::move(output)){};
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {

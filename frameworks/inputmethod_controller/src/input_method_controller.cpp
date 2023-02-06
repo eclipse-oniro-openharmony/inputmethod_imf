@@ -520,8 +520,8 @@ void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 
 void InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
 {
-    IMSA_HILOGI("start = %{public}d, end = %{public}d, textFieldReplyCount_ = %{public}d", start, end,
-        textFieldReplyCount_);
+    IMSA_HILOGD("text: %{public}s, start = %{public}d, end = %{public}d, textFieldReplyCount_ = %{public}d",
+        Str16ToStr8(text).c_str(), start, end, textFieldReplyCount_);
     if (isStopInput) {
         IMSA_HILOGD("InputMethodController::OnSelectionChange isStopInput");
         return;
