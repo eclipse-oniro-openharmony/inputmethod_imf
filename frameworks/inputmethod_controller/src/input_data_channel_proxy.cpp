@@ -176,6 +176,23 @@ int32_t InputDataChannelProxy::GetInputPattern(int32_t &inputPattern)
     return result;
 }
 
+int32_t InputDataChannelProxy::GetTextIndexAtCursor(int32_t &index)
+{
+    IMSA_HILOGI("InputDataChannelProxy::start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(GetDescriptor());
+
+    auto ret = Remote()->SendRequest(GET_TEXT_INDEX_AT_CURSOR, data, reply, option);
+    if (ret != NO_ERROR) {
+        IMSA_HILOGI("InputDataChannelProxy::SendRequest failed");
+    }
+    auto result = reply.ReadInt32();
+    index = reply.ReadInt32();
+    return result;
+}
+
 void InputDataChannelProxy::HandleSetSelection(int32_t start, int32_t end)
 {
     IMSA_HILOGI("InputDataChannelProxy::HandleSetSelection");
@@ -212,6 +229,9 @@ void InputDataChannelProxy::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip
     data.WriteInt32(cursorMoveSkip);
 
     Remote()->SendRequest(HANDLE_SELECT, data, reply, option);
+}
+void InputDataChannelProxy::NotifyGetOperationCompletion()
+{
 }
 } // namespace MiscServices
 } // namespace OHOS

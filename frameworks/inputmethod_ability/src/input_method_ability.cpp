@@ -462,6 +462,17 @@ int32_t InputMethodAbility::GetInputPattern(int32_t &inputPattern)
     return channel->GetInputPattern(inputPattern);
 }
 
+int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index)
+{
+    IMSA_HILOGI("InputMethodAbility::GetTextIndexAtCursor");
+    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    if (channel == nullptr) {
+        IMSA_HILOGI("InputMethodAbility::channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return channel->GetTextIndexAtCursor(index);
+}
+
 void InputMethodAbility::SetInputDataChannel(sptr<IRemoteObject> &object)
 {
     IMSA_HILOGI("run in SetInputDataChannel");
