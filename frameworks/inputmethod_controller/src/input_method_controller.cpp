@@ -245,6 +245,7 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("InputMethodController::WorkThread HandleExtendAction");
                 if (textListener) {
                     textListener->HandleExtendAction(action);
+                    textFieldReplyCount_++;
                 }
                 break;
             }
