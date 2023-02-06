@@ -295,7 +295,7 @@ void InputMethodController::HandleGetOperation()
         waitOnSelectionChangeNum_ = 0;
     }
     IMSA_HILOGI("InputMethodController::notify");
-    InputDataChannelStub::getOkCv_.notify_one();
+    mInputDataChannel->GetOperationCompletionNotify();
 }
 
 int32_t InputMethodController::GetSelectNewEnd()
@@ -567,7 +567,6 @@ void InputMethodController::OnSelectionChange(std::u16string text, int start, in
     mSelectOldEnd = mSelectNewEnd;
     mSelectNewBegin = start;
     mSelectNewEnd = end;
-
     std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
     if (agent == nullptr) {
         IMSA_HILOGI("InputMethodController::OnSelectionChange agent is nullptr");

@@ -226,5 +226,9 @@ void InputDataChannelProxy::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip
 
     Remote()->SendRequest(HANDLE_SELECT, data, reply, option);
 }
+
+void InputDataChannelProxy::GetOperationCompletionNotify()
+{
+}
 } // namespace MiscServices
 } // namespace OHOS

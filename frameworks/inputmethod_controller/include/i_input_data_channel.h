@@ -62,6 +62,7 @@ public:
     virtual void HandleSetSelection(int32_t start, int32_t end) = 0;
     virtual void HandleExtendAction(int32_t action) = 0;
     virtual void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) = 0;
+    virtual void GetOperationCompletionNotify() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
