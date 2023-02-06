@@ -72,7 +72,7 @@ public:
     void Close();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void OnCursorUpdate(CursorInfo cursorInfo);
-    void OnSelectionChange(std::u16string text, int start, int end /*, int32_t flag*/);
+    void OnSelectionChange(std::u16string text, int start, int end);
     void OnConfigurationChange(Configuration info);
     void setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
     bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
@@ -143,9 +143,9 @@ private:
 
     bool isStopInput{ true };
 
-    std::mutex waitOnSelectionChangeNumLock_;
-    uint32_t waitOnSelectionChangeNum_{ 0 };
-    std::condition_variable waitOnSelectionChangeCv_;
+    std::mutex textFieldReplyCountLock_;
+    uint32_t textFieldReplyCount_{ 0 };
+    std::condition_variable textFieldReplyCountCv_;
 };
 } // namespace MiscServices
 } // namespace OHOS

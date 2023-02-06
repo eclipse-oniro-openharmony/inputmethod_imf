@@ -171,12 +171,14 @@ int32_t InputDataChannelStub::DeleteBackward(int32_t length)
 
 int32_t InputDataChannelStub::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
-    return 0;
+    IMSA_HILOGI("InputDataChannelStub::GetTextBeforeCursor");
+    return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
 }
 
 int32_t InputDataChannelStub::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
-    return 0;
+    IMSA_HILOGI("InputDataChannelStub::GetTextAfterCursor");
+    return InputMethodController::GetInstance()->GetTextAfterCursor(number, text);
 }
 
 int32_t InputDataChannelStub::GetTextIndexAtCursor(int32_t &index)
@@ -225,7 +227,7 @@ int32_t InputDataChannelStub::HandleGetOperation(int32_t number, std::u16string 
     }
 }
 
-void InputDataChannelStub::GetOperationCompletionNotify()
+void InputDataChannelStub::NotifyGetOperationCompletion()
 {
     getOperationListenerCv_.notify_one();
 }

@@ -53,7 +53,7 @@ public:
     void HandleSetSelection(int32_t start, int32_t end) override;
     void HandleExtendAction(int32_t action) override;
     void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override;
-    void GetOperationCompletionNotify() override;
+    void NotifyGetOperationCompletion() override;
     int32_t HandleGetOperation(int32_t number, std::u16string &text, int32_t &index, int32_t msgType);
 
 private:

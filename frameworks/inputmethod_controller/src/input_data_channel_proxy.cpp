@@ -178,12 +178,16 @@ int32_t InputDataChannelProxy::GetInputPattern(int32_t &inputPattern)
 
 int32_t InputDataChannelProxy::GetTextIndexAtCursor(int32_t &index)
 {
-    IMSA_HILOGI("InputDataChannelProxy::GetTextIndexAtCursor");
-    MessageParcel data, reply;
+    IMSA_HILOGI("InputDataChannelProxy::start");
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(GetDescriptor());
 
-    Remote()->SendRequest(GET_TEXT_INDEX_AT_CURSOR, data, reply, option);
+    auto ret = Remote()->SendRequest(GET_TEXT_INDEX_AT_CURSOR, data, reply, option);
+    if (ret != NO_ERROR) {
+        IMSA_HILOGI("InputDataChannelProxy::SendRequest failed");
+    }
     auto result = reply.ReadInt32();
     index = reply.ReadInt32();
     return result;
@@ -226,8 +230,7 @@ void InputDataChannelProxy::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip
 
     Remote()->SendRequest(HANDLE_SELECT, data, reply, option);
 }
-
-void InputDataChannelProxy::GetOperationCompletionNotify()
+void InputDataChannelProxy::NotifyGetOperationCompletion()
 {
 }
 } // namespace MiscServices

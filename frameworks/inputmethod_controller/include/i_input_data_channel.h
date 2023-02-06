@@ -35,7 +35,6 @@ public:
         DELETE_BACKWARD,
         GET_TEXT_BEFORE_CURSOR,
         GET_TEXT_AFTER_CURSOR,
-        GET_TEXT_INDEX_AT_CURSOR,
         GET_ENTER_KEY_TYPE,
         GET_INPUT_PATTERN,
         SEND_KEYBOARD_STATUS,
@@ -44,6 +43,7 @@ public:
         HANDLE_SET_SELECTION,
         HANDLE_EXTEND_ACTION,
         HANDLE_SELECT,
+        GET_TEXT_INDEX_AT_CURSOR,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputDataChannel");
@@ -62,7 +62,7 @@ public:
     virtual void HandleSetSelection(int32_t start, int32_t end) = 0;
     virtual void HandleExtendAction(int32_t action) = 0;
     virtual void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) = 0;
-    virtual void GetOperationCompletionNotify() = 0;
+    virtual void NotifyGetOperationCompletion() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
