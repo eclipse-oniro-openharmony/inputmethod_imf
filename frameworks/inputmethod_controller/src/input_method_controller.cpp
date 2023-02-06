@@ -263,7 +263,7 @@ void InputMethodController::WorkThread()
             case MSG_ID_GET_TEXT_BEFORE_CURSOR:
             case MSG_ID_GET_TEXT_INDEX_AT_CURSOR:
             case MSG_ID_GET_TEXT_AFTER_CURSOR: {
-                IMSA_HILOGI("InputMethodController::WorkThread HandleGetOperation, msgId = %{public}d", msg->msgId_);
+                IMSA_HILOGI("InputMethodController::WorkThread HandleGetOperation, msgId: %{public}d", msg->msgId_);
                 HandleGetOperation();
                 break;
             }
@@ -275,32 +275,6 @@ void InputMethodController::WorkThread()
         delete msg;
         msg = nullptr;
     }
-}
-
-void InputMethodController::HandleGetOperation()
-{
-    IMSA_HILOGI("InputMethodController::start");
-    if (isStopInput) {
-        IMSA_HILOGE("InputMethodController::text filed is not Focused");
-        mSelectNewEnd = -1;
-        mTextString = u"";
-        return;
-    }
-    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
-    auto ret = waitOnSelectionChangeCv_.wait_for(
-        numLock, std::chrono::milliseconds(WAIT_TIME), [this] { return waitOnSelectionChangeNum_ == 0; });
-    if (!ret) {
-        IMSA_HILOGE("InputMethodController::timeout");
-        // 超时，重置waitOnSelectionChangeNum_，消除对后续处理的影响
-        waitOnSelectionChangeNum_ = 0;
-    }
-    IMSA_HILOGI("InputMethodController::notify");
-    mInputDataChannel->GetOperationCompletionNotify();
-}
-
-int32_t InputMethodController::GetSelectNewEnd()
-{
-    return mSelectNewEnd;
 }
 
 void InputMethodController::QuitWorkThread()
@@ -546,7 +520,8 @@ void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 
 void InputMethodController::OnSelectionChange(std::u16string text, int start, int end /*, int32_t flag*/)
 {
-    IMSA_HILOGI("text = %{public}s, start = %{public}d, end = %{public}d, waitOnSelectionChangeNum_ = %{public}d", Str16ToStr8(text).c_str(), start, end, waitOnSelectionChangeNum_);
+    IMSA_HILOGI("start = %{public}d, end = %{public}d, waitOnSelectionChangeNum_ = %{public}d", start, end,
+        waitOnSelectionChangeNum_);
     if (isStopInput) {
         IMSA_HILOGD("InputMethodController::OnSelectionChange isStopInput");
         return;
@@ -582,6 +557,27 @@ void InputMethodController::OnConfigurationChange(Configuration info)
     inputPattern_ = static_cast<uint32_t>(info.GetTextInputType());
 }
 
+void InputMethodController::HandleGetOperation()
+{
+    IMSA_HILOGI("InputMethodController::start");
+    if (isStopInput) {
+        IMSA_HILOGE("InputMethodController::text filed is not Focused");
+        mSelectNewEnd = -1;
+        mInputDataChannel->GetOperationCompletionNotify();
+        return;
+    }
+    std::unique_lock<std::mutex> numLock(waitOnSelectionChangeNumLock_);
+    auto ret = waitOnSelectionChangeCv_.wait_for(
+        numLock, std::chrono::milliseconds(WAIT_TIME), [this] { return waitOnSelectionChangeNum_ == 0; });
+    if (!ret) {
+        IMSA_HILOGE("InputMethodController::timeout");
+        // 超时，重置waitOnSelectionChangeNum_，消除对后续处理的影响
+        waitOnSelectionChangeNum_ = 0;
+    }
+    IMSA_HILOGI("InputMethodController::notify");
+    mInputDataChannel->GetOperationCompletionNotify();
+}
+
 int32_t InputMethodController::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
     IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
@@ -610,6 +606,17 @@ int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
     text = mTextString.substr(mSelectNewEnd, number);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
+{
+    if (mTextString.size() > INT_MAX || mSelectNewEnd < 0 || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
+        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}d", mSelectNewEnd,
+            static_cast<int32_t>(mTextString.size()));
+        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    }
+    index = mSelectNewEnd;
     return ErrorCode::NO_ERROR;
 }
 

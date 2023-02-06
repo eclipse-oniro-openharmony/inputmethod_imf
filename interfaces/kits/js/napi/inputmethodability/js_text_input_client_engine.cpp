@@ -530,12 +530,12 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         int32_t code = InputMethodAbility::GetInstance()->GetTextIndexAtCursor(ctxt->index);
-        if (code != ErrorCode::NO_ERROR) {
+        if (code == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
             ctxt->SetErrorCode(code);
-            return;
         }
-        ctxt->status = napi_ok;
-        ctxt->SetState(ctxt->status);
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);

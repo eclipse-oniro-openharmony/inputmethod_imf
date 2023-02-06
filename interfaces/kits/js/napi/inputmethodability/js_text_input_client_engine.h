@@ -212,6 +212,7 @@ struct GetTextIndexAtCursorContext : public AsyncCall::Context {
     napi_status operator()(napi_env env, napi_value *result) override
     {
         if (status != napi_ok) {
+            output_ = nullptr;
             return status;
         }
         return Context::operator()(env, result);

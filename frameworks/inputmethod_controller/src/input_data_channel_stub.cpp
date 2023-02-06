@@ -198,7 +198,7 @@ int32_t InputDataChannelStub::GetInputPattern(int32_t &inputPattern)
 
 int32_t InputDataChannelStub::HandleGetOperation(int32_t number, std::u16string &text, int32_t &index, int32_t msgType)
 {
-    IMSA_HILOGI("InputDataChannelStub::start, msgId = %{public}d", msgType);
+    IMSA_HILOGI("InputDataChannelStub::start, msgId: %{public}d, number: %{public}d", msgType, number);
     if (msgHandler == nullptr) {
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
@@ -221,9 +221,8 @@ int32_t InputDataChannelStub::HandleGetOperation(int32_t number, std::u16string 
     } else if (msgType == GET_TEXT_AFTER_CURSOR) {
         return InputMethodController::GetInstance()->GetTextAfterCursor(number, text);
     } else {
-        index = InputMethodController::GetInstance()->GetSelectNewEnd();
+        return InputMethodController::GetInstance()->GetTextIndexAtCursor(index);
     }
-    return ErrorCode::NO_ERROR;
 }
 
 void InputDataChannelStub::GetOperationCompletionNotify()

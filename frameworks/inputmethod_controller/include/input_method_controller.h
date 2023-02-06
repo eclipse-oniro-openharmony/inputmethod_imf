@@ -66,6 +66,7 @@ public:
     void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, InputAttribute &attribute);
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
+    int32_t GetTextIndexAtCursor(int32_t &index);
     void ShowTextInput();
     void HideTextInput();
     void Close();
@@ -89,7 +90,6 @@ public:
     int32_t HideSoftKeyboard();
     int32_t StopInputSession();
     int32_t ShowOptionalInputMethod();
-    int32_t GetSelectNewEnd();
 
     // Deprecated innerkits with no permission check, kept for compatibility
     int32_t ShowCurrentInput();
