@@ -216,6 +216,10 @@ int32_t InputDataChannelProxy::HandleExtendAction(int32_t action)
         HANDLE_EXTEND_ACTION, [action](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, action); });
 }
 
+void InputDataChannelProxy::NotifyGetOperationCompletion()
+{
+}
+
 int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
     IMSA_HILOGD("InputDataChannelProxy run in");
@@ -245,9 +249,6 @@ int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, Parcel
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ret;
-}
-void InputDataChannelProxy::NotifyGetOperationCompletion()
-{
 }
 } // namespace MiscServices
 } // namespace OHOS

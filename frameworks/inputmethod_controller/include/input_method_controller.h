@@ -148,9 +148,8 @@ private:
     int32_t inputPattern_ = 0;
 
     bool isStopInput{ true };
-<<<<<<< master
-    static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
 
+    static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     std::mutex textFieldReplyCountLock_;
     uint32_t textFieldReplyCount_{ 0 };
     std::condition_variable textFieldReplyCountCv_;
