@@ -38,6 +38,8 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("getBackward", GetBackward),
         DECLARE_NAPI_FUNCTION("getEditorAttribute", GetEditorAttribute),
         DECLARE_NAPI_FUNCTION("moveCursor", MoveCursor),
+        DECLARE_NAPI_FUNCTION("selectByRange", SelectByRange),
+        DECLARE_NAPI_FUNCTION("selectByMovement", SelectByMovement),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(), JsConstructor, nullptr,
