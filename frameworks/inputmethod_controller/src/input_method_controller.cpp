@@ -34,7 +34,7 @@ namespace MiscServices {
 using namespace MessageID;
 sptr<InputMethodController> InputMethodController::instance_;
 std::mutex InputMethodController::instanceLock_;
-
+constexpr int32_t WAIT_TIME = 100;
 InputMethodController::InputMethodController() : stop_(false)
 {
     IMSA_HILOGI("InputMethodController structure");
@@ -152,6 +152,8 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("InputMethodController::WorkThread InsertText");
                 if (textListener) {
                     textListener->InsertText(text);
+                    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+                    textFieldReplyCount_++;
                 }
                 break;
             }
@@ -162,6 +164,8 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("InputMethodController::WorkThread DeleteForward");
                 if (textListener) {
                     textListener->DeleteForward(length);
+                    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+                    textFieldReplyCount_++;
                 }
                 break;
             }
@@ -171,6 +175,8 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("InputMethodController::WorkThread DeleteBackward");
                 if (textListener) {
                     textListener->DeleteBackward(length);
+                    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+                    textFieldReplyCount_++;
                 }
                 break;
             }
@@ -213,6 +219,8 @@ void InputMethodController::WorkThread()
                 if (textListener) {
                     Direction direction = static_cast<Direction>(ret);
                     textListener->MoveCursor(direction);
+                    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+                    textFieldReplyCount_++;
                 }
                 break;
             }
@@ -257,6 +265,13 @@ void InputMethodController::WorkThread()
                     break;
                 }
                 OnSelectByMovement(direction, cursorMoveSkip);
+                break;
+            }
+            case MSG_ID_GET_TEXT_BEFORE_CURSOR:
+            case MSG_ID_GET_TEXT_INDEX_AT_CURSOR:
+            case MSG_ID_GET_TEXT_AFTER_CURSOR: {
+                IMSA_HILOGI("InputMethodController::WorkThread HandleGetOperation, msgId: %{public}d", msg->msgId_);
+                HandleGetOperation();
                 break;
             }
             default: {
@@ -304,6 +319,8 @@ void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool i
 void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard,
                                    InputAttribute &attribute)
 {
+    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+    textFieldReplyCount_ = 0;
     std::lock_guard<std::mutex> lock(textListenerLock_);
     textListener = listener;
     IMSA_HILOGI("InputMethodController::Attach");
@@ -510,14 +527,23 @@ void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 
 void InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
 {
+    IMSA_HILOGD("text: %{public}s, start = %{public}d, end = %{public}d, textFieldReplyCount_ = %{public}d",
+        Str16ToStr8(text).c_str(), start, end, textFieldReplyCount_);
     if (isStopInput) {
         IMSA_HILOGD("InputMethodController::OnSelectionChange isStopInput");
         return;
     }
+
+    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+    if (textFieldReplyCount_ > 0) {
+        textFieldReplyCount_--;
+    }
+    if (textFieldReplyCount_ == 0) {
+        textFieldReplyCountCv_.notify_one();
+    }
     if (mTextString == text && mSelectNewBegin == start && mSelectNewEnd == end) {
         return;
     }
-    IMSA_HILOGI("InputMethodController::OnSelectionChange");
     mTextString = text;
     mSelectOldBegin = mSelectNewBegin;
     mSelectOldEnd = mSelectNewEnd;
@@ -538,29 +564,67 @@ void InputMethodController::OnConfigurationChange(Configuration info)
     inputPattern_ = static_cast<uint32_t>(info.GetTextInputType());
 }
 
+void InputMethodController::HandleGetOperation()
+{
+    IMSA_HILOGI("InputMethodController::start");
+    if (isStopInput) {
+        IMSA_HILOGE("InputMethodController::text filed is not Focused");
+        mSelectNewEnd = -1;
+        mInputDataChannel->NotifyGetOperationCompletion();
+        return;
+    }
+    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+    auto ret = textFieldReplyCountCv_.wait_for(
+        numLock, std::chrono::milliseconds(WAIT_TIME), [this] { return textFieldReplyCount_ == 0; });
+    if (!ret) {
+        IMSA_HILOGE("InputMethodController::timeout");
+        // timeout,reset the waitOnSelectionChangeNum_ to eliminate the impact on subsequent processing
+        textFieldReplyCount_ = 0;
+    }
+    IMSA_HILOGI("InputMethodController::notify");
+    mInputDataChannel->NotifyGetOperationCompletion();
+}
+
 int32_t InputMethodController::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
     IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
-    if (!mTextString.empty()) {
-        int32_t startPos = (mSelectNewBegin >= number ? (mSelectNewBegin - number + 1) : 0);
-        text = mTextString.substr(startPos, mSelectNewBegin);
-        return ErrorCode::NO_ERROR;
-    }
     text = u"";
-    return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0
+        || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
+        IMSA_HILOGE("InputMethodController::param error, number: %{public}d, end: %{public}d, size: %{public}d",
+                    number, mSelectNewEnd, static_cast<int32_t>(mTextString.size()));
+        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    }
+    int32_t startPos = (number <= mSelectNewEnd ? (mSelectNewEnd - number) : 0);
+    int32_t length = (number <= mSelectNewEnd ? number : mSelectNewEnd);
+    text = mTextString.substr(startPos, length);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
     IMSA_HILOGI("InputMethodController::GetTextAfterCursor");
-    if (!mTextString.empty() && mTextString.size() <= INT_MAX) {
-        int32_t endPos = (mSelectNewEnd + number < static_cast<int32_t>(mTextString.size())) ? (mSelectNewEnd + number)
-                                                                                             : mTextString.size();
-        text = mTextString.substr(mSelectNewEnd, endPos);
-        return ErrorCode::NO_ERROR;
-    }
     text = u"";
-    return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0
+        || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
+        IMSA_HILOGE("InputMethodController::param error, number: %{public}d, end: %{public}d, "
+                    "size: %{public}d",
+                    number, mSelectNewEnd, static_cast<int32_t>(mTextString.size()));
+        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    }
+    text = mTextString.substr(mSelectNewEnd, number);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
+{
+    if (mTextString.size() > INT_MAX || mSelectNewEnd < 0 || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
+        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}d", mSelectNewEnd,
+            static_cast<int32_t>(mTextString.size()));
+        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    }
+    index = mSelectNewEnd;
+    return ErrorCode::NO_ERROR;
 }
 
 bool InputMethodController::dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
@@ -714,6 +778,8 @@ void InputMethodController::OnSelectByRange(int32_t start, int32_t end)
     IMSA_HILOGI("InputMethodController run in");
     if (textListener != nullptr) {
         textListener->HandleSetSelection(start, end);
+        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+        textFieldReplyCount_++;
     } else {
         IMSA_HILOGE("textListener is nullptr");
     }
@@ -730,6 +796,8 @@ void InputMethodController::OnSelectByMovement(int32_t direction, int32_t cursor
     IMSA_HILOGI("InputMethodController run in");
     if (textListener != nullptr) {
         textListener->HandleSelect(CURSOR_DIRECTION_BASE_VALUE + direction, cursorMoveSkip);
+        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+        textFieldReplyCount_++;
     } else {
         IMSA_HILOGE("textListener is nullptr");
     }
@@ -749,6 +817,8 @@ void InputMethodController::HandleExtendAction(int32_t action)
         return;
     }
     textListener->HandleExtendAction(action);
+    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+    textFieldReplyCount_++;
 }
 } // namespace MiscServices
 } // namespace OHOS

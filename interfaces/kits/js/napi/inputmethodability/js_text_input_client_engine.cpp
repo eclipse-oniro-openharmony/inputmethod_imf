@@ -37,6 +37,7 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("getForward", GetForward),
         DECLARE_NAPI_FUNCTION("getBackward", GetBackward),
         DECLARE_NAPI_FUNCTION("getEditorAttribute", GetEditorAttribute),
+        DECLARE_NAPI_FUNCTION("getTextIndexAtCursor", GetTextIndexAtCursor),
         DECLARE_NAPI_FUNCTION("moveCursor", MoveCursor),
         DECLARE_NAPI_FUNCTION("selectByRange", SelectByRange),
         DECLARE_NAPI_FUNCTION("selectByMovement", SelectByMovement),
@@ -497,12 +498,12 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
         napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
         if (argc < 1) {
             JsUtils::ThrowException(
                 env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
             return status;
         }
+        napi_typeof(env, argv[0], &valueType);
         if (valueType != napi_number) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " 'length'", TypeCode::TYPE_NUMBER);
             return status;
@@ -556,46 +557,6 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
     return asyncCall.Call(env, exec);
 }
 
-napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_info info)
-{
-    IMSA_HILOGD("run in");
-    auto ctxt = std::make_shared<SelectContext>();
-    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc < 1) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
-            return napi_generic_failure;
-        }
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
-        if (valueType != napi_object) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "range", TypeCode::TYPE_OBJECT);
-            return napi_generic_failure;
-        }
-        if (argc >= 2) {
-            napi_typeof(env, argv[1], &valueType);
-            if (valueType != napi_function) {
-                JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_FUNCTION);
-                return napi_generic_failure;
-            }
-        }
-        return GetSelectRange(env, argv[0], ctxt);
-    };
-    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t code = InputMethodAbility::GetInstance()->SelectByRange(ctxt->start, ctxt->end);
-        if (code == ErrorCode::NO_ERROR) {
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
-        } else {
-            ctxt->SetErrorCode(code);
-        }
-    };
-    ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, ctxt);
-    return asyncCall.Call(env, exec);
-}
-
 napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("run in");
@@ -633,6 +594,39 @@ napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, ctxt);
+    return asyncCall.Call(env, exec);
+}
+
+napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGE("GetTextIndexAtCursor");
+    auto ctxt = std::make_shared<GetTextIndexAtCursorContext>();
+    auto input = [](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        napi_status status = napi_generic_failure;
+        if (argc > 0) {
+            napi_valuetype valueType = napi_undefined;
+            napi_typeof(env, argv[0], &valueType);
+            if (valueType != napi_function) {
+                JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_FUNCTION);
+                return status;
+            }
+        }
+        return napi_ok;
+    };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        return napi_create_int32(env, ctxt->index, result);
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t code = InputMethodAbility::GetInstance()->GetTextIndexAtCursor(ctxt->index);
+        if (code == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
+            ctxt->SetErrorCode(code);
+        }
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
     return asyncCall.Call(env, exec);
 }
 } // namespace MiscServices

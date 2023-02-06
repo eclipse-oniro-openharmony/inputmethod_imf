@@ -44,6 +44,7 @@ public:
     int32_t DeleteBackward(int32_t length) override;
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) override;
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text) override;
+    int32_t GetTextIndexAtCursor(int32_t &index) override;
     void SendKeyboardStatus(int32_t status) override;
     int32_t SendFunctionKey(int32_t funcKey) override;
     int32_t MoveCursor(int32_t keyCode) override;
@@ -52,6 +53,8 @@ public:
     int32_t SelectByRange(int32_t start, int32_t end) override;
     int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) override;
     int32_t HandleExtendAction(int32_t action) override;
+    void NotifyGetOperationCompletion() override;
+    int32_t HandleGetOperation(int32_t number, std::u16string &text, int32_t &index, int32_t msgType);
 
 private:
     MessageHandler *msgHandler;
@@ -60,6 +63,8 @@ private:
     int32_t HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
+    std::mutex getOperationListenerLock_;
+    std::condition_variable getOperationListenerCv_;
 };
 } // namespace MiscServices
 } // namespace OHOS

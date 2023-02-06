@@ -207,6 +207,28 @@ struct SelectContext : public AsyncCall::Context {
     SelectContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 };
 
+struct GetTextIndexAtCursorContext : public AsyncCall::Context {
+    int32_t index = 0;
+    napi_status status = napi_generic_failure;
+    GetTextIndexAtCursorContext() : Context(nullptr, nullptr){};
+    GetTextIndexAtCursorContext(InputAction input, OutputAction output)
+        : Context(std::move(input), std::move(output)){};
+
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            output_ = nullptr;
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
 class JsTextInputClientEngine {
 public:
     JsTextInputClientEngine() = default;
@@ -220,6 +242,7 @@ public:
     static napi_value GetBackward(napi_env env, napi_callback_info info);
     static napi_value MoveCursor(napi_env env, napi_callback_info info);
     static napi_value GetEditorAttribute(napi_env env, napi_callback_info info);
+    static napi_value GetTextIndexAtCursor(napi_env env, napi_callback_info info);
     static napi_value GetTextInputClientInstance(napi_env env);
     static napi_value SelectByRange(napi_env env, napi_callback_info info);
     static napi_value SelectByMovement(napi_env env, napi_callback_info info);

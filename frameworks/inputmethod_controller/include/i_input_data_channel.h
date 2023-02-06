@@ -43,6 +43,7 @@ public:
         SELECT_BY_RANGE,
         SELECT_BY_MOVEMENT,
         HANDLE_EXTEND_ACTION,
+        GET_TEXT_INDEX_AT_CURSOR,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputDataChannel");
@@ -60,6 +61,8 @@ public:
     virtual int32_t SelectByRange(int32_t start, int32_t end) = 0;
     virtual int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) = 0;
     virtual int32_t HandleExtendAction(int32_t action) = 0;
+    virtual int32_t GetTextIndexAtCursor(int32_t &index) = 0;
+    virtual void NotifyGetOperationCompletion() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

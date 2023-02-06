@@ -16,6 +16,7 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_CONTROLLER_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_CONTROLLER_H
 
+#include <condition_variable>
 #include <mutex>
 #include <thread>
 
@@ -66,6 +67,7 @@ public:
     void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, InputAttribute &attribute);
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
+    int32_t GetTextIndexAtCursor(int32_t &index);
     void ShowTextInput();
     void HideTextInput();
     void Close();
@@ -116,6 +118,7 @@ private:
     void OnSelectByRange(int32_t start, int32_t end);
     void OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip);
     void HandleExtendAction(int32_t action);
+    void HandleGetOperation();
 
     sptr<IInputDataChannel> mInputDataChannel;
     std::shared_ptr<InputMethodSettingListener> imeListener_;
@@ -145,7 +148,12 @@ private:
     int32_t inputPattern_ = 0;
 
     bool isStopInput{ true };
+<<<<<<< master
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
+
+    std::mutex textFieldReplyCountLock_;
+    uint32_t textFieldReplyCount_{ 0 };
+    std::condition_variable textFieldReplyCountCv_;
 };
 } // namespace MiscServices
 } // namespace OHOS
