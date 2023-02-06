@@ -118,8 +118,8 @@ int32_t InputDataChannelStub::OnRemoteRequest(
 int32_t InputDataChannelStub::SelectByRangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGD("InputDataChannelStub run in");
-    int32_t start;
-    int32_t end;
+    int32_t start = 0;
+    int32_t end = 0;
     int ret = SendMessage(MessageID::MSG_ID_SELECT_BY_RANGE, [&data, &start, &end](MessageParcel &parcel) {
         return ITypesUtil::Unmarshal(data, start, end) && ITypesUtil::Marshal(parcel, start, end);
     });
@@ -133,8 +133,8 @@ int32_t InputDataChannelStub::SelectByRangeOnRemote(MessageParcel &data, Message
 int32_t InputDataChannelStub::SelectByMovementOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGD("InputDataChannelStub run in");
-    int32_t direction;
-    int32_t cursorMoveSkip;
+    int32_t direction = 0;
+    int32_t cursorMoveSkip = 0;
     auto ret =
         SendMessage(MessageID::MSG_ID_SELECT_BY_MOVEMENT, [&data, &direction, &cursorMoveSkip](MessageParcel &parcel) {
             return ITypesUtil::Unmarshal(data, direction, cursorMoveSkip)
@@ -285,7 +285,7 @@ void InputDataChannelStub::SetHandler(MessageHandler *handler)
 
 int32_t InputDataChannelStub::SendMessage(int code, ParcelHandler input)
 {
-    IMSA_HILOGD("InputMethodCoreStub %{public}s", __func__);
+    IMSA_HILOGD("InputMethodCoreStub run in");
     if (msgHandler == nullptr) {
         IMSA_HILOGE("InputMethodCoreStub msgHandler_ is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;

@@ -49,6 +49,8 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("stopInputSession", StopInputSession),
         DECLARE_NAPI_FUNCTION("hideSoftKeyboard", HideSoftKeyboard),
         DECLARE_NAPI_FUNCTION("showSoftKeyboard", ShowSoftKeyboard),
+        DECLARE_NAPI_FUNCTION("on", Subscribe),
+        DECLARE_NAPI_FUNCTION("off", UnSubscribe),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, IMC_CLASS_NAME.c_str(), IMC_CLASS_NAME.size(), JsConstructor, nullptr,
@@ -64,25 +66,17 @@ napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
 
-    JsGetInputMethodController *controllerObject = new (std::nothrow) JsGetInputMethodController();
+    auto controllerObject = GetInstance();
     if (controllerObject == nullptr) {
         IMSA_HILOGE("controllerObject is nullptr");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
     }
-    auto finalize = [](napi_env env, void *data, void *hint) {
-        IMSA_HILOGE("JsGetInputMethodController finalize");
-        auto *objInfo = reinterpret_cast<JsGetInputMethodController *>(data);
-        if (objInfo != nullptr) {
-            IMSA_HILOGE("objInfo is nullptr");
-            delete objInfo;
-        }
-    };
-    napi_status status = napi_wrap(env, thisVar, controllerObject, finalize, nullptr, nullptr);
+    napi_status status = napi_wrap(
+        env, thisVar, controllerObject.get(), [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
     if (status != napi_ok) {
         IMSA_HILOGE("JsGetInputMethodController napi_wrap failed:%{public}d", status);
-        delete controllerObject;
         return nullptr;
     }
 
@@ -289,7 +283,7 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
     return result;
 }
 
-napi_value JsGetInputMethodController::SetSelectRange(napi_env env, int32_t start, int32_t end)
+napi_value JsGetInputMethodController::CreateSelectRange(napi_env env, int32_t start, int32_t end)
 {
     napi_value range = nullptr;
     napi_create_object(env, &range);
@@ -304,7 +298,7 @@ napi_value JsGetInputMethodController::SetSelectRange(napi_env env, int32_t star
     return range;
 }
 
-napi_value JsGetInputMethodController::SetSelectMovement(napi_env env, int32_t direction)
+napi_value JsGetInputMethodController::CreateSelectMovement(napi_env env, int32_t direction)
 {
     napi_value movement = nullptr;
     napi_create_object(env, &movement);
@@ -375,7 +369,7 @@ napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_inf
 
 void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
 {
-    IMSA_HILOGD("run in");
+    IMSA_HILOGD("run in, start: %{public}d, end: %{public}d", start, end);
     std::string type = "selectByRange";
     uv_work_t *work = GetUVwork("selectByRange", [start, end](UvEntry &entry) {
         entry.start = start;
@@ -400,7 +394,7 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
                 if (argc < 1) {
                     return false;
                 }
-                napi_value range = SetSelectRange(item->env_, entry->start, entry->end);
+                napi_value range = CreateSelectRange(item->env_, entry->start, entry->end);
                 if (range == nullptr) {
                     IMSA_HILOGE("set select range failed");
                     return false;
@@ -414,7 +408,7 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
 
 void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
 {
-    IMSA_HILOGD("run in");
+    IMSA_HILOGD("run in, direction: %{public}d", direction);
     std::string type = "OnSelectByMovement";
     uv_work_t *work = GetUVwork(type, [direction](UvEntry &entry) { entry.direction = direction; });
     if (work == nullptr) {
@@ -436,7 +430,7 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
                 if (argc < 1) {
                     return false;
                 }
-                napi_value movement = SetSelectMovement(item->env_, entry->direction);
+                napi_value movement = CreateSelectMovement(item->env_, entry->direction);
                 if (movement == nullptr) {
                     IMSA_HILOGE("set select movement failed");
                     return false;

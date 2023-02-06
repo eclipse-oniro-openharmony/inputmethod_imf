@@ -72,7 +72,7 @@ void InputMethodController::SetControllerListener(std::shared_ptr<ControllerList
 {
     IMSA_HILOGI("InputMethodController run in");
     if (controllerListener_ == nullptr) {
-        controllerListener_ = controllerListener;
+        controllerListener_ = std::move(controllerListener);
     }
 }
 
@@ -229,8 +229,8 @@ void InputMethodController::WorkThread()
             }
             case MSG_ID_SELECT_BY_RANGE: {
                 MessageParcel *data = msg->msgContent_;
-                int32_t start;
-                int32_t end;
+                int32_t start = 0;
+                int32_t end = 0;
                 if (!ITypesUtil::Unmarshal(*data, start, end)) {
                     IMSA_HILOGE("failed to read message parcel");
                     break;
@@ -250,8 +250,8 @@ void InputMethodController::WorkThread()
             }
             case MSG_ID_SELECT_BY_MOVEMENT: {
                 MessageParcel *data = msg->msgContent_;
-                int32_t direction;
-                int32_t cursorMoveSkip;
+                int32_t direction = 0;
+                int32_t cursorMoveSkip = 0;
                 if (!ITypesUtil::Unmarshal(*data, direction, cursorMoveSkip)) {
                     IMSA_HILOGE("failed to read message parcel");
                     break;
@@ -729,7 +729,7 @@ void InputMethodController::OnSelectByMovement(int32_t direction, int32_t cursor
 {
     IMSA_HILOGI("InputMethodController run in");
     if (textListener != nullptr) {
-        textListener->HandleSelect(direction + 2011, cursorMoveSkip);
+        textListener->HandleSelect(CURSOR_DIRECTION_BASE_VALUE + direction, cursorMoveSkip);
     } else {
         IMSA_HILOGE("textListener is nullptr");
     }

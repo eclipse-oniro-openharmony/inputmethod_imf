@@ -145,6 +145,7 @@ private:
     int32_t inputPattern_ = 0;
 
     bool isStopInput{ true };
+    static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -592,7 +592,7 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    AsyncCall asyncCall(env, info, ctxt);
     return asyncCall.Call(env, exec);
 }
 
@@ -632,7 +632,7 @@ napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    AsyncCall asyncCall(env, info, ctxt);
     return asyncCall.Call(env, exec);
 }
 } // namespace MiscServices

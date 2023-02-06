@@ -66,8 +66,8 @@ public:
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static napi_value GetIMController(napi_env env, napi_callback_info cbInfo, bool needThrowException);
-    static napi_value SetSelectRange(napi_env env, int32_t start, int32_t end);
-    static napi_value SetSelectMovement(napi_env env, int32_t direction);
+    static napi_value CreateSelectRange(napi_env env, int32_t start, int32_t end);
+    static napi_value CreateSelectMovement(napi_env env, int32_t direction);
     static JsGetInputMethodController *GetNative(napi_env env, napi_callback_info info);
     static bool Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
