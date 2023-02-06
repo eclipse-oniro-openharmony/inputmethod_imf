@@ -132,7 +132,7 @@ std::shared_ptr<JsGetInputMethodController> JsGetInputMethodController::GetInsta
     return controller_;
 }
 
-JsGetInputMethodController *GetNative(napi_env env, napi_callback_info info)
+JsGetInputMethodController *JsGetInputMethodController::GetNative(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_MAX;
     void *native = nullptr;
