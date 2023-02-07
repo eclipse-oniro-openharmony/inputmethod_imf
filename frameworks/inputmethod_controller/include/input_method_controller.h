@@ -32,6 +32,7 @@
 #include "iremote_object.h"
 #include "key_event.h"
 #include "message_handler.h"
+#include "visibility.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -59,40 +60,40 @@ namespace MiscServices {
 
     class InputMethodController : public RefBase {
     public:
-        static sptr<InputMethodController> GetInstance();
-        void Attach(sptr<OnTextChangedListener> &listener);
-        void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard);
-        void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, InputAttribute &attribute);
-        int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
-        int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
-        void ShowTextInput();
-        void HideTextInput();
-        void Close();
+        IMF_API static sptr<InputMethodController> GetInstance();
+        IMF_API void Attach(sptr<OnTextChangedListener> &listener);
+        IMF_API void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard);
+        IMF_API void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, InputAttribute &attribute);
+        IMF_API int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
+        IMF_API int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
+        IMF_API void ShowTextInput();
+        IMF_API void HideTextInput();
+        IMF_API void Close();
         void OnRemoteSaDied(const wptr<IRemoteObject> &object);
-        void OnCursorUpdate(CursorInfo cursorInfo);
-        void OnSelectionChange(std::u16string text, int start, int end);
-        void OnConfigurationChange(Configuration info);
-        void setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
-        bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
-        int32_t ListInputMethod(std::vector<Property> &props);
-        int32_t ListInputMethod(bool enable, std::vector<Property> &props);
-        int32_t ListInputMethodSubtype(const Property &property, std::vector<SubProperty> &subProperties);
-        int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProperties);
-        int32_t GetEnterKeyType(int32_t &keyType);
-        int32_t GetInputPattern(int32_t &inputPattern);
-        std::shared_ptr<Property> GetCurrentInputMethod();
-        std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype();
-        void SetCallingWindow(uint32_t windowId);
-        int32_t SwitchInputMethod(const std::string &name, const std::string &subName = "");
-        int32_t ShowSoftKeyboard();
-        int32_t HideSoftKeyboard();
-        int32_t StopInputSession();
-        int32_t ShowOptionalInputMethod();
+        IMF_API void OnCursorUpdate(CursorInfo cursorInfo);
+        IMF_API void OnSelectionChange(std::u16string text, int start, int end);
+        IMF_API void OnConfigurationChange(Configuration info);
+        IMF_API void setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
+        IMF_API bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
+        IMF_API int32_t ListInputMethod(std::vector<Property> &props);
+        IMF_API int32_t ListInputMethod(bool enable, std::vector<Property> &props);
+        IMF_API int32_t ListInputMethodSubtype(const Property &property, std::vector<SubProperty> &subProperties);
+        IMF_API int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProperties);
+        IMF_API int32_t GetEnterKeyType(int32_t &keyType);
+        IMF_API int32_t GetInputPattern(int32_t &inputPattern);
+        IMF_API std::shared_ptr<Property> GetCurrentInputMethod();
+        IMF_API std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype();
+        IMF_API void SetCallingWindow(uint32_t windowId);
+        IMF_API int32_t SwitchInputMethod(const std::string &name, const std::string &subName = "");
+        IMF_API int32_t ShowSoftKeyboard();
+        IMF_API int32_t HideSoftKeyboard();
+        IMF_API int32_t StopInputSession();
+        IMF_API int32_t ShowOptionalInputMethod();
 
         // Deprecated innerkits with no permission check, kept for compatibility
-        int32_t ShowCurrentInput();
-        int32_t HideCurrentInput();
-        int32_t DisplayOptionalInputMethod();
+        IMF_API int32_t ShowCurrentInput();
+        IMF_API int32_t HideCurrentInput();
+        IMF_API int32_t DisplayOptionalInputMethod();
 
     private:
         InputMethodController();
