@@ -23,7 +23,7 @@
 #include "message.h"
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t WAIT_TIME_STUB = 100;
+constexpr int32_t WAIT_TIME_STUB = 110;
 InputDataChannelStub::InputDataChannelStub() : msgHandler(nullptr)
 {
 }

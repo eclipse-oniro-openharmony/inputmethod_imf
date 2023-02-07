@@ -618,6 +618,7 @@ int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string
 
 int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 {
+    IMSA_HILOGI("InputMethodController::start");
     if (mTextString.size() > INT_MAX || mSelectNewEnd < 0 || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
         IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}d", mSelectNewEnd,
             static_cast<int32_t>(mTextString.size()));
