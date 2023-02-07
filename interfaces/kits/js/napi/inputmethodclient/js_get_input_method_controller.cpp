@@ -210,7 +210,7 @@ napi_value JsGetInputMethodController::Subscribe(napi_env env, napi_callback_inf
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    if (argc < 2) {
+    if (argc < ARGC_TWO) {
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 2 parameters!", TypeCode::TYPE_NONE);
         return nullptr;
     }
@@ -254,7 +254,7 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    if (argc < 1) {
+    if (argc < ARGC_ONE) {
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 parameters!", TypeCode::TYPE_NONE);
         return nullptr;
     }
@@ -391,7 +391,7 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
                 return;
             }
             auto getProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
-                if (argc < 1) {
+                if (argc < ARGC_ONE) {
                     return false;
                 }
                 napi_value range = CreateSelectRange(item->env_, entry->start, entry->end);
