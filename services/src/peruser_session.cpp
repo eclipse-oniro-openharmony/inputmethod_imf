@@ -31,6 +31,7 @@
 #include "message_parcel.h"
 #include "parcel.h"
 #include "system_ability_definition.h"
+#include "sys/prctl.h"
 #include "unistd.h"
 #include "utils.h"
 #include "want.h"
@@ -91,6 +92,7 @@ void PerUserSession::WorkThread()
     if (!msgHandler) {
         return;
     }
+    prctl(PR_SET_NAME, "IMPSWorkThread");
     while (1) {
         Message *msg = msgHandler->GetMessage();
         std::lock_guard<std::recursive_mutex> lock(mtx);

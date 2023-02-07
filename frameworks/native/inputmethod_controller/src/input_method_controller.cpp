@@ -27,6 +27,7 @@
 #include "iservice_registry.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
+#include "sys/prctl.h"
 #include "utils.h"
 
 namespace OHOS {
@@ -134,6 +135,7 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
 
 void InputMethodController::WorkThread()
 {
+    prctl(PR_SET_NAME, "IMCWorkThread");
     while (!stop_) {
         Message *msg = msgHandler->GetMessage();
         std::lock_guard<std::mutex> lock(textListenerLock_);
