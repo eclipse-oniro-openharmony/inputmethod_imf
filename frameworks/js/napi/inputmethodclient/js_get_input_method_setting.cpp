@@ -187,7 +187,7 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
         napi_get_named_property(env, argv, "iconId", &result);
         ctxt->property.iconId = JsInputMethod::GetNumberProperty(env, result);
         IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(),
-                ctxt->property.name.c_str());
+                    ctxt->property.name.c_str());
     }
     return status;
 }

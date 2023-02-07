@@ -39,7 +39,7 @@
 #include "resource_manager.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
-#include "ui_service_mgr_client.h"
+#include "sys/prctl.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -51,26 +51,15 @@ const std::int32_t MAIN_USER_ID = 100;
 constexpr int32_t INVALID_USER_ID = -1;
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
-/**
-     * constructor
-     * @param systemAbilityId
-     * @param runOnCreate
-     */
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
     : SystemAbility(systemAbilityId, runOnCreate), state_(ServiceRunningState::STATE_NOT_START)
 {
 }
 
-/**
-     * constructor
-     */
 InputMethodSystemAbility::InputMethodSystemAbility() : state_(ServiceRunningState::STATE_NOT_START)
 {
 }
 
-/**
-     * Destructor
-     */
 InputMethodSystemAbility::~InputMethodSystemAbility()
 {
     if (workThreadHandler.joinable()) {
@@ -215,9 +204,10 @@ void InputMethodSystemAbility::InitServiceHandler()
     IMSA_HILOGI("InitServiceHandler succeeded.");
 }
 
-/*! Initialization of Input method management service
-    \n It's called after the service starts, before any transaction.
-    */
+/**
+ * Initialization of Input method management service
+ * \n It's called after the service starts, before any transaction.
+ */
 void InputMethodSystemAbility::Initialize()
 {
     IMSA_HILOGI("InputMethodSystemAbility::Initialize");
@@ -294,14 +284,15 @@ void InputMethodSystemAbility::StopInputService(std::string imeId)
     session->StopInputService(imeId);
 }
 
-/*! Handle the transaction from the remote binder
-    \n Run in binder thread
-    \param code transaction code number
-    \param data the params from remote binder
-    \param[out] reply the result of the transaction replied to the remote binder
-    \param flags the flags of handling transaction
-    \return int32_t
-    */
+/**
+ * Handle the transaction from the remote binder
+ * \n Run in binder thread
+ * \param code transaction code number
+ * \param data the params from remote binder
+ * \param[out] reply the result of the transaction replied to the remote binder
+ * \param flags the flags of handling transaction
+ * \return int32_t
+ */
 int32_t InputMethodSystemAbility::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -664,12 +655,13 @@ int32_t InputMethodSystemAbility::DisplayOptionalInputMethodDeprecated()
     return DisplayOptionalInputMethod();
 };
 
-/*! Get all of the input method engine list installed in the system
-    \n Run in binder thread
-    \param[out] properties input method engine list returned to the caller
-    \return ErrorCode::NO_ERROR no error
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    */
+/**
+ * Get all of the input method engine list installed in the system
+ * \n Run in binder thread
+ * \param[out] properties input method engine list returned to the caller
+ * \return ErrorCode::NO_ERROR no error
+ * \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
+ */
 int32_t InputMethodSystemAbility::ListInputMethodByUserId(
     int32_t userId, InputMethodStatus status, std::vector<Property> &props)
 {
@@ -799,11 +791,12 @@ std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubt
     return property;
 }
 
-/*! Get the instance of PerUserSession for the given user
-    \param userId the user id of the given user
-    \return a pointer of the instance if the user is found
-    \return null if the user is not found
-    */
+/**
+ * Get the instance of PerUserSession for the given user
+ * \param userId the user id of the given user
+ * \return a pointer of the instance if the user is found
+ * \return null if the user is not found
+ */
 std::shared_ptr<PerUserSession> InputMethodSystemAbility::GetUserSession(int32_t userId)
 {
     auto it = userSessions.find(userId);
@@ -814,11 +807,13 @@ std::shared_ptr<PerUserSession> InputMethodSystemAbility::GetUserSession(int32_t
     return it->second;
 }
 
-/*! Work Thread of input method management service
-    \n Remote commands which may change the state or data in the service will be handled sequentially in this thread.
-    */
+/**
+ * Work Thread of input method management service
+ * \n Remote commands which may change the state or data in the service will be handled sequentially in this thread.
+ */
 void InputMethodSystemAbility::WorkThread()
 {
+    prctl(PR_SET_NAME, "IMSAWorkThread");
     while (1) {
         Message *msg = MessageHandler::Instance()->GetMessage();
         switch (msg->msgId_) {
@@ -887,11 +882,12 @@ std::string InputMethodSystemAbility::GetNewUserIme(int32_t userId)
     return newUserIme;
 }
 
-/*! Called when a user is started. (EVENT_USER_STARTED is received)
-    \n Run in work thread of input method management service
-    \param msg the parameters are saved in msg->msgContent_
-    \return ErrorCode
-    */
+/**
+ * Called when a user is started. (EVENT_USER_STARTED is received)
+ * \n Run in work thread of input method management service
+ * \param msg the parameters are saved in msg->msgContent_
+ * \return ErrorCode
+ */
 int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
 {
     if (!msg->msgContent_) {
@@ -933,12 +929,13 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
     return ErrorCode::NO_ERROR;
 }
 
-/*! Handle message
-    \param msgId the id of message to run
-    \msg the parameters are saved in msg->msgContent_
-    \return ErrorCode::NO_ERROR
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    */
+/**
+ * Handle message
+ * \param msgId the id of message to run
+ * \msg the parameters are saved in msg->msgContent_
+ * \return ErrorCode::NO_ERROR
+ * \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
+ */
 int32_t InputMethodSystemAbility::OnHandleMessage(Message *msg)
 {
     std::map<int32_t, MessageHandler *>::const_iterator it = msgHandlers.find(MAIN_USER_ID);
@@ -949,13 +946,14 @@ int32_t InputMethodSystemAbility::OnHandleMessage(Message *msg)
     return ErrorCode::NO_ERROR;
 }
 
-/*! Called when a package is removed.
-    \n Run in work thread of input method management service
-    \param msg the parameters are saved in msg->msgContent_
-    \return ErrorCode::NO_ERROR
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    \return ErrorCode::ERROR_BAD_PARAMETERS bad parameter
-    */
+/**
+ *  Called when a package is removed.
+ *  \n Run in work thread of input method management service
+ *  \param msg the parameters are saved in msg->msgContent_
+ *  \return ErrorCode::NO_ERROR
+ *  \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
+ *  \return ErrorCode::ERROR_BAD_PARAMETERS bad parameter
+ */
 int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
 {
     IMSA_HILOGI("Start...\n");

@@ -26,11 +26,6 @@ ohos_static_library("inputmethod_dfx_static") {
     "${inputmethod_path}/services/include",
   ]
 
-  deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-  ]
-
   cflags_cc = [ "-fvisibility=hidden" ]
 
   external_deps = [
@@ -39,6 +34,7 @@ ohos_static_library("inputmethod_dfx_static") {
     "hitrace_native:hitrace_meter",
     "hitrace_native:libhitracechain",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
   ]
   subsystem_name = "inputmethod"
   part_name = "imf"

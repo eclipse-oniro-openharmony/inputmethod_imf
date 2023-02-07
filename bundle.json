@@ -40,7 +40,14 @@
               "ability_base", 
               "safwk", 
               "input", 
-              "c_utils"
+              "c_utils",
+              "access_token",
+              "i18n",
+              "window_manager",
+              "os_account",
+              "hisysevent_native",
+              "hitrace_native",
+              "multimedia_image_framework"
           ], 
           "third_party": [
               "jsoncpp"
@@ -50,14 +57,14 @@
           "group_type": {
               "base_group": [ ], 
               "fwk_group": [
-                  "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability", 
-                  "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client", 
+                  "//base/inputmethod/imf/frameworks/native/inputmethod_ability:inputmethod_ability", 
+                  "//base/inputmethod/imf/interfaces/inner_api/inputmethod_controller:inputmethod_client", 
                   "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension", 
                   "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension_module", 
-                  "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodclient:inputmethod", 
-                  "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodability:inputmethodengine", 
-                  "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod_extension_ability:inputmethodextensionability_napi", 
-                  "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi", 
+                  "//base/inputmethod/imf/frameworks/js/napi/inputmethodability:inputmethodengine", 
+                  "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_ability:inputmethodextensionability_napi", 
+                  "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi", 
+                  "//base/inputmethod/imf/frameworks/js/napi/inputmethodclient:inputmethod", 
                   "//base/inputmethod/imf/services/dfx:inputmethod_dfx_static"
               ], 
               "service_group": [
@@ -68,17 +75,17 @@
                   "//base/inputmethod/imf/services:inputmethod_service"
               ]
           },
-          "inner_kits": [
+          "inner_api": [
               {
-                  "name": "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client", 
+                  "name": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_controller:inputmethod_client", 
                   "header": {
                       "header_files": [
-                          "i_input_client.h", 
-                          "i_input_data_channel.h",  
+                          "../../../../frameworks/native/inputmethod_controller/include/i_input_client.h", 
+                          "../../../../frameworks/native/inputmethod_controller/include/i_input_data_channel.h",  
                           "input_method_controller.h", 
-                          "input_method_utils.h"
+                          "../../../../frameworks/native/inputmethod_controller/include/input_method_utils.h"
                       ], 
-                      "header_base": "//base/inputmethod/imf/frameworks/inputmethod_controller/include"
+                      "header_base": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_controller/include"
                   }
               }
           ], 

@@ -28,6 +28,7 @@
 #include "message_parcel.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
+#include "sys/prctl.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -151,6 +152,7 @@ void InputMethodAbility::setKdListener(std::shared_ptr<KeyboardListener> kdListe
 
 void InputMethodAbility::WorkThread()
 {
+    prctl(PR_SET_NAME, "IMAWorkThread");
     while (!stop_) {
         Message *msg = msgHandler->GetMessage();
         switch (msg->msgId_) {
