@@ -14,35 +14,12 @@
 import("//base/inputmethod/imf/inputmethod.gni")
 import("//build/ohos.gni")
 
-ABILITY_RUNTIME_INNERKITS_PATH = "${ability_runtime_inner_api_path}"
-
 config("ability_config") {
   visibility = [ ":*" ]
   include_dirs = [
-    "${inputmethod_path}/frameworks/kits/extension/include",
-    "//commonlibrary/c_utils/base/include",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/app",
-    "${ABILITY_RUNTIME_INNERKITS_PATH}/app_manager/include/appmgr",
-    "${ABILITY_RUNTIME_INNERKITS_PATH}/ability_manager/include",
-    "${ability_runtime_services_path}/abilitymgr/include",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/app",
-    "${ability_runtime_kits_path}/fmskit/native/include",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/app",
-    "${ability_runtime_services_path}/common/include",
-
-    "//base/global/resource_management/interfaces/inner_api/include",
-    "${ability_runtime_napi_path}/featureAbility",
     "//foundation/arkui/napi/interfaces/kits",
     "//third_party/node/src",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/remote_register_service",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/distributed",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/distributed_ability_runtime",
-    "${ABILITY_RUNTIME_INNERKITS_PATH}/ability_manager/include/continuation",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/kits",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/app/task",
     "${ability_runtime_napi_path}/inner/napi_common",
   ]
 
@@ -60,33 +37,15 @@ config("ability_public_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "${inputmethod_path}/frameworks/kits/extension/include",
-    "${ABILITY_RUNTIME_INNERKITS_PATH}/base/include",
-    "${ability_runtime_path}/interfaces/kits/native",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/app",
-    "${ability_runtime_path}/interfaces/kits/native/ability_runtime",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "//third_party/libuv/include",
-    "${ability_runtime_path}/interfaces/kits/native/ability_runtime/context",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/remote_register_service",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/distributed",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/distributed_ability_runtime",
-    "${ABILITY_RUNTIME_INNERKITS_PATH}/ability_manager/include/continuation",
-    "//base/global/resource_management/interfaces/inner_api/include",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/kits",
-    "${ability_runtime_kits_path}/fmskit/native/include",
-    "//foundation/window/window_manager/interfaces/innerkits/wm",
-    "//foundation/window/window_manager/interfaces/kits/napi/window_runtime/window_stage_napi",
-    "//third_party/jsoncpp/include",
-    "//third_party/json/include",
   ]
 }
 
 ohos_shared_library("inputmethod_extension") {
   include_dirs = [
     "${inputmethod_path}/frameworks/kits/extension/include",
-    "${inputmethod_path}/frameworks/inputmethod_controller/include",
-    "//base/global/i18n/frameworks/intl/include",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
     "${inputmethod_path}/services/include",
     "${inputmethod_path}/services/dfx/include",
   ]
@@ -98,15 +57,12 @@ ohos_shared_library("inputmethod_extension") {
     "${inputmethod_path}/frameworks/kits/extension/src/js_inputmethod_extension_context.cpp",
   ]
   configs = [ ":ability_config" ]
-  public_configs = [
-    ":ability_public_config",
-    "${ability_runtime_path}/frameworks/native/ability:ability_context_public_config",
-  ]
+  public_configs = [ ":ability_public_config" ]
 
   deps = [
-    "${ability_runtime_path}/frameworks/native/appkit:app_context",
-    "${inputmethod_path}/frameworks/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
+    "//third_party/jsoncpp:jsoncpp",
   ]
 
   external_deps = [
@@ -114,14 +70,15 @@ ohos_shared_library("inputmethod_extension") {
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
+    "ability_runtime:app_context",
     "ability_runtime:runtime",
     "c_utils:utils",
-    "ipc_js:rpc",
-  ]
-
-  public_deps = [
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog",
-    "//foundation/arkui/napi:ace_napi",
+    "hiviewdfx_hilog_native:libhilog",
+    "i18n:intl_util",
+    "ipc:ipc_napi_common",
+    "napi:ace_napi",
+    "resource_management:global_resmgr",
+    "window_manager:libwm",
   ]
 
   subsystem_name = "inputmethod"
@@ -129,11 +86,7 @@ ohos_shared_library("inputmethod_extension") {
 }
 
 ohos_shared_library("inputmethod_extension_module") {
-  include_dirs = [
-    "${ability_runtime_path}/interfaces/kits/native/ability/native",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
-    "${inputmethod_path}/services/include",
-  ]
+  include_dirs = [ "${inputmethod_path}/services/include" ]
 
   sources = [ "${inputmethod_path}/frameworks/kits/extension/src/inputmethod_extension_module_loader.cpp" ]
 
@@ -142,18 +95,19 @@ ohos_shared_library("inputmethod_extension_module") {
 
   deps = [
     ":inputmethod_extension",
-    "${ability_runtime_path}/frameworks/native/ability/native:abilitykit_native",
-    "//foundation/window/window_manager/utils:libwmutil",
-    "//foundation/window/window_manager/wm:libwm",
+    "//third_party/jsoncpp:jsoncpp",
   ]
 
   external_deps = [
     "ability_base:base",
     "ability_base:want",
     "ability_base:zuri",
+    "ability_runtime:abilitykit_native",
     "ability_runtime:runtime",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "resource_management:global_resmgr",
+    "window_manager:libwm",
   ]
 
   relative_install_dir = "extensionability/"

@@ -25,7 +25,7 @@ ohos_fuzztest("AgentStubFuzzTest") {
   fuzz_config_file = "//base/inputmethod/imf/test/fuzztest/agentstub_fuzzer"
 
   include_dirs =
-      [ "//base/inputmethod/imf/frameworks/inputmethod_ability/include" ]
+      [ "${inputmethod_path}/frameworks/native/inputmethod_ability/include" ]
 
   cflags = [
     "-g",
@@ -36,14 +36,12 @@ ohos_fuzztest("AgentStubFuzzTest") {
 
   sources = [ "agentstub_fuzzer.cpp" ]
 
-  deps = [
-    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-  ]
+  deps = [ "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability" ]
 
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
   ]
 }
 

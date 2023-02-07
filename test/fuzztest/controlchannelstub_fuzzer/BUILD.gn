@@ -25,7 +25,7 @@ ohos_fuzztest("ControlChannelStubFuzzTest") {
   fuzz_config_file =
       "//base/inputmethod/imf/test/fuzztest/controlchannelstub_fuzzer"
 
-  include_dirs = [ "//base/inputmethod/imf/services/include" ]
+  include_dirs = [ "${inputmethod_path}/services/include" ]
 
   cflags = [
     "-g",
@@ -36,14 +36,12 @@ ohos_fuzztest("ControlChannelStubFuzzTest") {
 
   sources = [ "controlchannelstub_fuzzer.cpp" ]
 
-  deps = [
-    "//base/inputmethod/imf/services:inputmethod_service",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-  ]
+  deps = [ "${inputmethod_path}/services:inputmethod_service" ]
 
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
   ]
 }
 
