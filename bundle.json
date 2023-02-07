@@ -57,14 +57,8 @@
           "group_type": {
               "base_group": [ ], 
               "fwk_group": [
-                  "//base/inputmethod/imf/frameworks/native/inputmethod_ability:inputmethod_ability", 
-                  "//base/inputmethod/imf/interfaces/inner_api/inputmethod_controller:inputmethod_client", 
-                  "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension", 
-                  "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension_module", 
-                  "//base/inputmethod/imf/frameworks/js/napi/inputmethodability:inputmethodengine", 
-                  "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_ability:inputmethodextensionability_napi", 
-                  "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi", 
-                  "//base/inputmethod/imf/frameworks/js/napi/inputmethodclient:inputmethod", 
+                  "//base/inputmethod/imf/interfaces/inner_api/inputmethod_controller:inputmethod_client",
+                  "//base/inputmethod/imf/frameworks/js/napi/inputmethodclient:inputmethod",
                   "//base/inputmethod/imf/services/dfx:inputmethod_dfx_static"
               ], 
               "service_group": [
@@ -72,7 +66,13 @@
                   "//base/inputmethod/imf/etc/para:inputmethod.para.dac",
                   "//base/inputmethod/imf/etc/para:inputmethod.para",
                   "//base/inputmethod/imf/profile:inputmethod_inputmethod_sa_profiles",
-                  "//base/inputmethod/imf/services:inputmethod_service"
+                  "//base/inputmethod/imf/services:inputmethod_service",
+                  "//base/inputmethod/imf/frameworks/native/inputmethod_ability:inputmethod_ability",  
+                  "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension",
+                  "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension_module", 
+                  "//base/inputmethod/imf/frameworks/js/napi/inputmethodability:inputmethodengine", 
+                  "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_ability:inputmethodextensionability_napi",
+                  "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi"
               ]
           },
           "inner_api": [
