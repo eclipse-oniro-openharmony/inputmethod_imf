@@ -72,7 +72,7 @@ private:
     static bool Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(std::string type);
-    struct UvEntry {
+    explicit struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
         int32_t start;
