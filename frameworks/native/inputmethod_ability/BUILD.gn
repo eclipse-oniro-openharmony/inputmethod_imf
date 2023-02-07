@@ -18,9 +18,7 @@ config("inputmethod_ability_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
-    "//foundation/multimodalinput/input/interfaces/native/innerkits/event/include",
-    "${inputmethod_path}/frameworks/inputmethod_controller/include",
-    "${inputmethod_path}/interfaces/kits/js/napi/inputmethodengine/include",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/services/include",
   ]
 }
@@ -34,13 +32,13 @@ config("inputmethod_ability_native_public_config") {
 
 ohos_shared_library("inputmethod_ability") {
   sources = [
-    "${inputmethod_path}/frameworks/inputmethod_controller/src/input_data_channel_proxy.cpp",
-    "${inputmethod_path}/frameworks/inputmethod_controller/src/itypes_util.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_system_ability_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/itypes_util.cpp",
     "${inputmethod_path}/services/src/input_channel.cpp",
     "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
     "${inputmethod_path}/services/src/message.cpp",
     "${inputmethod_path}/services/src/message_handler.cpp",
-    "../inputmethod_controller/src/input_method_system_ability_proxy.cpp",
     "src/input_method_ability.cpp",
     "src/input_method_agent_proxy.cpp",
     "src/input_method_agent_stub.cpp",
@@ -50,14 +48,11 @@ ohos_shared_library("inputmethod_ability") {
 
   configs = [ ":inputmethod_ability_native_config" ]
 
-  deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-  ]
-
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
 
   public_configs = [ ":inputmethod_ability_native_public_config" ]

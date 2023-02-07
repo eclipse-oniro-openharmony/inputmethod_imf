@@ -25,8 +25,10 @@ ohos_fuzztest("DataChannelStubFuzzTest") {
   fuzz_config_file =
       "//base/inputmethod/imf/test/fuzztest/datachannelstub_fuzzer"
 
-  include_dirs =
-      [ "//base/inputmethod/imf/frameworks/inputmethod_controller/include" ]
+  include_dirs = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
+  ]
 
   cflags = [
     "-g",
@@ -37,14 +39,12 @@ ohos_fuzztest("DataChannelStubFuzzTest") {
 
   sources = [ "datachannelstub_fuzzer.cpp" ]
 
-  deps = [
-    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-  ]
+  deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static" ]
 
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
   ]
 }
 

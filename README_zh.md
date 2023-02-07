@@ -13,15 +13,18 @@
 
 ```
 /base/inputmethod/imf
-├── figures                              # 构架图
-├── frameworks/inputmethod_ability       # 对输入法客户端提供的接口
-├── frameworks/inputmethod_controller    # 对客户端提供的接口
-├── interfaces/kits/js                   # 组件对外提供的接口代码
-│   └── napi                             # 输入法框架napi接口
-├── profile                              # 组件包含的系统服务的配置文件和进程的配置文件
-├── services                             # 输入法框架服务
-├── test                                 # 接口的Fuzz测试和js单元测试
-└── unitest                              # 接口的单元测试
+├── figures                                     # 构架图
+├── frameworks
+│   └── js/napi                                 # 输入法框架napi接口
+│   └── native
+│       └──inputmethod_ability                  # 对输入法客户端提供的接口
+│       └──inputmethod_controller               # 对客户端提供的接口
+├── interfaces                                  # 组件对外提供的接口代码
+│   └── inner_api                               # innerApi接口
+├── profile                                     # 组件包含的系统服务的配置文件和进程的配置文件
+├── services                                    # 输入法框架服务
+├── test                                        # 接口的Fuzz测试和js单元测试
+└── unitest                                     # 接口的单元测试
 ```
 
 ## 框架代码介绍
@@ -29,13 +32,13 @@
 
 1.  应用客户端
 
-路径：/base/inputmethod/imf/frameworks/inputmethod_controller
+路径：/base/inputmethod/imf/frameworks/native/inputmethod_controller
 
 作用：实现应用和输入法框架服务交付，包括应用与输入法服务的绑定、应用对输入法的显示和隐藏请求等等
 
 2.  输入法客户端
 
-路径：/base/inputmethod/imf/frameworks/inputmethod_ability
+路径：/base/inputmethod/imf/frameworks/native/inputmethod_ability
 
 作用：实现输入法框架服务与输入法交付的中间桥梁，包括监听输入法当前的状态等等
 
@@ -47,7 +50,7 @@
 
 4.  输入法Js接口
 
-路径：/base/inputmethod/imf/interfaces/kits/js
+路径：/base/inputmethod/imf/frameworks/js
 
 作用：暂时对外暴露的js接口，主要是留给输入法进行调用使用的
 

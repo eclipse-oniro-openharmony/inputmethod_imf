@@ -30,6 +30,7 @@ config("imf_public_config") {
     "-fdata-sections",
     "-ffunction-sections",
     "-fvisibility=hidden",
+    "-Os",
   ]
 }
 
@@ -46,14 +47,13 @@ ohos_shared_library("inputmethod") {
 
   configs = [ ":imf_config" ]
 
-  deps = [
-    "${inputmethod_path}/frameworks/inputmethod_controller:inputmethod_client",
-  ]
+  deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client" ]
 
   external_deps = [
     "ability_runtime:abilitykit_native",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
   ]
 
   public_configs = [ ":imf_public_config" ]

@@ -26,14 +26,9 @@ ohos_fuzztest("PerUserSessionFuzzTest") {
       "//base/inputmethod/imf/test/fuzztest/perusersession_fuzzer"
 
   include_dirs = [
-    "//base/inputmethod/imf/services/include",
-    "//base/inputmethod/imf/frameworks/inputmethod_controller/include",
-    "//base/inputmethod/imf/services/include",
-    "//foundation/ability/ability_runtime/services/abilitymgr/include",
-    "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
-    "//third_party/jsoncpp/include",
-    "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager/include/appmgr",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+    "${inputmethod_path}/services/include",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+    "${inputmethod_path}/interfaces/inner_api/include",
   ]
 
   cflags = [
@@ -46,18 +41,19 @@ ohos_fuzztest("PerUserSessionFuzzTest") {
   sources = [ "perusersession_fuzzer.cpp" ]
 
   deps = [
-    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
-    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
-    "//base/inputmethod/imf/services:inputmethod_service",
-    "//foundation/arkui/napi:ace_napi",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/services:inputmethod_service",
+    "//third_party/jsoncpp:jsoncpp",
   ]
 
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
+    "multimedia_image_framework:image_native",
+    "napi:ace_napi",
   ]
 }
 
