@@ -69,6 +69,14 @@ void InputMethodController::setImeListener(std::shared_ptr<InputMethodSettingLis
     }
 }
 
+void InputMethodController::SetControllerListener(std::shared_ptr<ControllerListener> controllerListener)
+{
+    IMSA_HILOGI("InputMethodController run in");
+    if (controllerListener_ == nullptr) {
+        controllerListener_ = std::move(controllerListener);
+    }
+}
+
 bool InputMethodController::Initialize()
 {
     msgHandler = new MessageHandler();
@@ -229,38 +237,36 @@ void InputMethodController::WorkThread()
                 OnSwitchInput(property, subProperty);
                 break;
             }
-            case MSG_ID_HANDLE_SET_SELECTION: {
+            case MSG_ID_SELECT_BY_RANGE: {
                 MessageParcel *data = msg->msgContent_;
-                int32_t start = data->ReadInt32();
-                int32_t end = data->ReadInt32();
-                IMSA_HILOGI("InputMethodController::WorkThread HandleSetSelection");
-                if (textListener) {
-                    textListener->HandleSetSelection(start, end);
-                    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-                    textFieldReplyCount_++;
+                int32_t start = 0;
+                int32_t end = 0;
+                if (!ITypesUtil::Unmarshal(*data, start, end)) {
+                    IMSA_HILOGE("failed to read message parcel");
+                    break;
                 }
+                OnSelectByRange(start, end);
                 break;
             }
             case MSG_ID_HANDLE_EXTEND_ACTION: {
                 MessageParcel *data = msg->msgContent_;
-                int32_t action = data->ReadInt32();
-                IMSA_HILOGI("InputMethodController::WorkThread HandleExtendAction");
-                if (textListener) {
-                    textListener->HandleExtendAction(action);
-                    textFieldReplyCount_++;
+                int32_t action;
+                if (!ITypesUtil::Unmarshal(*data, action)) {
+                    IMSA_HILOGE("failed to read message parcel");
+                    break;
                 }
+                HandleExtendAction(action);
                 break;
             }
-            case MSG_ID_HANDLE_SELECT: {
+            case MSG_ID_SELECT_BY_MOVEMENT: {
                 MessageParcel *data = msg->msgContent_;
-                int32_t keyCode = data->ReadInt32();
-                int32_t cursorMoveSkip = data->ReadInt32();
-                IMSA_HILOGI("InputMethodController::WorkThread HandleSelect");
-                if (textListener) {
-                    textListener->HandleSelect(keyCode, cursorMoveSkip);
-                    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-                    textFieldReplyCount_++;
+                int32_t direction = 0;
+                int32_t cursorMoveSkip = 0;
+                if (!ITypesUtil::Unmarshal(*data, direction, cursorMoveSkip)) {
+                    IMSA_HILOGE("failed to read message parcel");
+                    break;
                 }
+                OnSelectByMovement(direction, cursorMoveSkip);
                 break;
             }
             case MSG_ID_GET_TEXT_BEFORE_CURSOR:
@@ -614,6 +620,7 @@ int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string
 
 int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 {
+    IMSA_HILOGI("InputMethodController::start");
     if (mTextString.size() > INT_MAX || mSelectNewEnd < 0 || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
         IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}d", mSelectNewEnd,
             static_cast<int32_t>(mTextString.size()));
@@ -767,6 +774,54 @@ int32_t InputMethodController::SwitchInputMethod(const std::string &name, const 
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     return proxy->SwitchInputMethod(name, subName);
+}
+
+void InputMethodController::OnSelectByRange(int32_t start, int32_t end)
+{
+    IMSA_HILOGI("InputMethodController run in");
+    if (textListener != nullptr) {
+        textListener->HandleSetSelection(start, end);
+        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+        textFieldReplyCount_++;
+    } else {
+        IMSA_HILOGE("textListener is nullptr");
+    }
+
+    if (controllerListener_ != nullptr) {
+        controllerListener_->OnSelectByRange(start, end);
+    } else {
+        IMSA_HILOGE("controllerListener_ is nullptr");
+    }
+}
+
+void InputMethodController::OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip)
+{
+    IMSA_HILOGI("InputMethodController run in");
+    if (textListener != nullptr) {
+        textListener->HandleSelect(CURSOR_DIRECTION_BASE_VALUE + direction, cursorMoveSkip);
+        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+        textFieldReplyCount_++;
+    } else {
+        IMSA_HILOGE("textListener is nullptr");
+    }
+
+    if (controllerListener_ != nullptr) {
+        controllerListener_->OnSelectByMovement(direction);
+    } else {
+        IMSA_HILOGE("controllerListener_ is nullptr");
+    }
+}
+
+void InputMethodController::HandleExtendAction(int32_t action)
+{
+    IMSA_HILOGI("InputMethodController run in");
+    if (textListener == nullptr) {
+        IMSA_HILOGE("textListener is nullptr");
+        return;
+    }
+    textListener->HandleExtendAction(action);
+    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+    textFieldReplyCount_++;
 }
 } // namespace MiscServices
 } // namespace OHOS

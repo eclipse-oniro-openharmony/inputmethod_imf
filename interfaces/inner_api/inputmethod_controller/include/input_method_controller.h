@@ -20,6 +20,7 @@
 #include <mutex>
 #include <thread>
 
+#include "controller_listener.h"
 #include "global.h"
 #include "i_input_client.h"
 #include "i_input_data_channel.h"
@@ -211,6 +212,7 @@ public:
      * @since 6
      */
     IMF_API void setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
+    IMF_API void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
 
     /**
      * @brief Dispatch keyboard event.
@@ -425,10 +427,14 @@ private:
     void WorkThread();
     void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
+    void OnSelectByRange(int32_t start, int32_t end);
+    void OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip);
+    void HandleExtendAction(int32_t action);
     void HandleGetOperation();
 
     sptr<IInputDataChannel> mInputDataChannel;
     std::shared_ptr<InputMethodSettingListener> imeListener_;
+    std::shared_ptr<ControllerListener> controllerListener_;
     sptr<IInputClient> mClient;
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
@@ -455,6 +461,7 @@ private:
 
     bool isStopInput{ true };
 
+    static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     std::mutex textFieldReplyCountLock_;
     uint32_t textFieldReplyCount_{ 0 };
     std::condition_variable textFieldReplyCountCv_;
