@@ -458,10 +458,6 @@ int32_t InputMethodAbility::SelectByRange(int32_t start, int32_t end)
 int32_t InputMethodAbility::SelectByMovement(int32_t direction)
 {
     IMSA_HILOGI("InputMethodAbility run in");
-    if (direction < 1 || direction > 4) {
-        IMSA_HILOGE("check parameter failed, direction: %{public}d", direction);
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
     auto dataChannel = GetInputDataChannel();
     if (dataChannel == nullptr) {
         IMSA_HILOGI("datachannel is nullptr");
