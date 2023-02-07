@@ -39,6 +39,8 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("getEditorAttribute", GetEditorAttribute),
         DECLARE_NAPI_FUNCTION("getTextIndexAtCursor", GetTextIndexAtCursor),
         DECLARE_NAPI_FUNCTION("moveCursor", MoveCursor),
+        DECLARE_NAPI_FUNCTION("selectByRange", SelectByRange),
+        DECLARE_NAPI_FUNCTION("selectByMovement", SelectByMovement),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(), JsConstructor, nullptr,
@@ -249,6 +251,52 @@ napi_status JsTextInputClientEngine::GetBackwardLength(
     status = napi_typeof(env, argv, &valueType);
     if (valueType == napi_number) {
         ctxt->length = GetNumberProperty(env, argv);
+    }
+    return status;
+}
+
+napi_status JsTextInputClientEngine::GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt)
+{
+    napi_status status = napi_generic_failure;
+    napi_value napiValue = nullptr;
+    status = napi_get_named_property(env, argv, "start", &napiValue);
+    if (status != napi_ok) {
+        JsUtils::ThrowException(
+            env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing start parameter.", TypeCode::TYPE_NONE);
+        return status;
+    }
+    status = napi_get_value_int32(env, napiValue, &ctxt->start);
+    if (status != napi_ok) {
+        IMSA_HILOGE("failed to get start value");
+        return status;
+    }
+
+    status = napi_get_named_property(env, argv, "end", &napiValue);
+    if (status != napi_ok) {
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing end parameter.", TypeCode::TYPE_NONE);
+        return status;
+    }
+    status = napi_get_value_int32(env, napiValue, &ctxt->end);
+    if (status != napi_ok) {
+        IMSA_HILOGE("failed to get end value");
+    }
+    return status;
+}
+
+napi_status JsTextInputClientEngine::GetSelectMovement(
+    napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt)
+{
+    napi_status status = napi_generic_failure;
+    napi_value napiValue = nullptr;
+    status = napi_get_named_property(env, argv, "direction", &napiValue);
+    if (status != napi_ok) {
+        JsUtils::ThrowException(
+            env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing direction parameter.", TypeCode::TYPE_NONE);
+        return status;
+    }
+    status = napi_get_value_int32(env, napiValue, &ctxt->direction);
+    if (status != napi_ok) {
+        IMSA_HILOGE("failed to get direction value");
     }
     return status;
 }
@@ -506,6 +554,86 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    return asyncCall.Call(env, exec);
+}
+
+napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGD("run in");
+    auto ctxt = std::make_shared<SelectContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        if (argc < 1) {
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
+            return napi_generic_failure;
+        }
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        if (valueType != napi_object) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "range", TypeCode::TYPE_OBJECT);
+            return napi_generic_failure;
+        }
+        if (argc >= 2) {
+            napi_typeof(env, argv[1], &valueType);
+            if (valueType != napi_function) {
+                JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_FUNCTION);
+                return napi_generic_failure;
+            }
+        }
+        return GetSelectRange(env, argv[0], ctxt);
+    };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t code = InputMethodAbility::GetInstance()->SelectByRange(ctxt->start, ctxt->end);
+        if (code == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
+            ctxt->SetErrorCode(code);
+        }
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    AsyncCall asyncCall(env, info, ctxt);
+    return asyncCall.Call(env, exec);
+}
+
+napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGD("run in");
+    auto ctxt = std::make_shared<SelectContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        if (argc < 1) {
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
+            return napi_generic_failure;
+        }
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        if (valueType != napi_object) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "movement", TypeCode::TYPE_OBJECT);
+            return napi_generic_failure;
+        }
+        if (argc >= 2) {
+            napi_typeof(env, argv[1], &valueType);
+            if (valueType != napi_function) {
+                JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_FUNCTION);
+                return napi_generic_failure;
+            }
+        }
+        return GetSelectMovement(env, argv[0], ctxt);
+    };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t code = InputMethodAbility::GetInstance()->SelectByMovement(ctxt->direction);
+        if (code == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
+            ctxt->SetErrorCode(code);
+        }
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    AsyncCall asyncCall(env, info, ctxt);
     return asyncCall.Call(env, exec);
 }
 

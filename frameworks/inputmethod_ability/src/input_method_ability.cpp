@@ -440,6 +440,32 @@ int32_t InputMethodAbility::MoveCursor(int32_t keyCode)
     return channel->MoveCursor(keyCode);
 }
 
+int32_t InputMethodAbility::SelectByRange(int32_t start, int32_t end)
+{
+    IMSA_HILOGI("InputMethodAbility run in");
+    if (start < 0 || end < 0) {
+        IMSA_HILOGE("check parameter failed, start: %{public}d, end: %{public}d", start, end);
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    auto dataChannel = GetInputDataChannel();
+    if (dataChannel == nullptr) {
+        IMSA_HILOGI("datachannel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return dataChannel->SelectByRange(start, end);
+}
+
+int32_t InputMethodAbility::SelectByMovement(int32_t direction)
+{
+    IMSA_HILOGI("InputMethodAbility run in");
+    auto dataChannel = GetInputDataChannel();
+    if (dataChannel == nullptr) {
+        IMSA_HILOGI("datachannel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return dataChannel->SelectByMovement(direction, 0);
+}
+
 int32_t InputMethodAbility::GetEnterKeyType(int32_t &keyType)
 {
     IMSA_HILOGI("InputMethodAbility::GetEnterKeyType");

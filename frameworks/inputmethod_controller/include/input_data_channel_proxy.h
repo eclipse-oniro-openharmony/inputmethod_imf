@@ -45,14 +45,16 @@ public:
     int32_t MoveCursor(int32_t keyCode) override;
     int32_t GetEnterKeyType(int32_t &keyType) override;
     int32_t GetInputPattern(int32_t &inputPattern) override;
+    int32_t SelectByRange(int32_t start, int32_t end) override;
+    int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) override;
+    int32_t HandleExtendAction(int32_t action) override;
     int32_t GetTextIndexAtCursor(int32_t &index) override;
-    void HandleSetSelection(int32_t start, int32_t end) override;
-    void HandleExtendAction(int32_t action) override;
-    void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override;
     void NotifyGetOperationCompletion() override;
 
 private:
     static inline BrokerDelegator<InputDataChannelProxy> delegator_;
+    using ParcelHandler = std::function<bool(MessageParcel &)>;
+    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
 };
 } // namespace MiscServices
 } // namespace OHOS

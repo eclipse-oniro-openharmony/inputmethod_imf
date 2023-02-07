@@ -40,9 +40,9 @@ public:
         SEND_KEYBOARD_STATUS,
         SEND_FUNCTION_KEY,
         MOVE_CURSOR,
-        HANDLE_SET_SELECTION,
+        SELECT_BY_RANGE,
+        SELECT_BY_MOVEMENT,
         HANDLE_EXTEND_ACTION,
-        HANDLE_SELECT,
         GET_TEXT_INDEX_AT_CURSOR,
     };
 
@@ -58,10 +58,10 @@ public:
     virtual int32_t MoveCursor(int32_t keyCode) = 0;
     virtual int32_t GetEnterKeyType(int32_t &keyType) = 0;
     virtual int32_t GetInputPattern(int32_t &inputPattern) = 0;
+    virtual int32_t SelectByRange(int32_t start, int32_t end) = 0;
+    virtual int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) = 0;
+    virtual int32_t HandleExtendAction(int32_t action) = 0;
     virtual int32_t GetTextIndexAtCursor(int32_t &index) = 0;
-    virtual void HandleSetSelection(int32_t start, int32_t end) = 0;
-    virtual void HandleExtendAction(int32_t action) = 0;
-    virtual void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) = 0;
     virtual void NotifyGetOperationCompletion() = 0;
 };
 } // namespace MiscServices

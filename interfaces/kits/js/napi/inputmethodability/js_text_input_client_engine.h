@@ -198,6 +198,20 @@ struct GetEditorAttributeContext : public AsyncCall::Context {
     }
 };
 
+struct SelectContext : public AsyncCall::Context {
+    int32_t start = 0;
+    int32_t end = 0;
+    int32_t direction = 0;
+    napi_status status = napi_generic_failure;
+    SelectContext() : Context(nullptr, nullptr){};
+    SelectContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+};
+
 struct GetTextIndexAtCursorContext : public AsyncCall::Context {
     int32_t index = 0;
     napi_status status = napi_generic_failure;
@@ -235,6 +249,8 @@ public:
     static napi_value GetEditorAttribute(napi_env env, napi_callback_info info);
     static napi_value GetTextIndexAtCursor(napi_env env, napi_callback_info info);
     static napi_value GetTextInputClientInstance(napi_env env);
+    static napi_value SelectByRange(napi_env env, napi_callback_info info);
+    static napi_value SelectByMovement(napi_env env, napi_callback_info info);
 
 private:
     static napi_status GetAction(napi_env env, napi_value argv, std::shared_ptr<SendKeyFunctionContext> ctxt);
@@ -246,6 +262,8 @@ private:
     static napi_status GetInsertText(napi_env env, napi_value argv, std::shared_ptr<InsertTextContext> ctxt);
     static napi_status GetForwardLength(napi_env env, napi_value argv, std::shared_ptr<GetForwardContext> ctxt);
     static napi_status GetBackwardLength(napi_env env, napi_value argv, std::shared_ptr<GetBackwardContext> ctxt);
+    static napi_status GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
+    static napi_status GetSelectMovement(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
 
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static int32_t GetNumberProperty(napi_env env, napi_value obj);
