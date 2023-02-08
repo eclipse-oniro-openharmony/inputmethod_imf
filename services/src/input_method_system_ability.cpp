@@ -487,8 +487,8 @@ namespace MiscServices {
             if (subtypeInfo.bundleName == name) {
                 std::vector<Metadata> extends = subtypeInfo.metadata;
                 auto property = GetExtends(extends);
-                auto label =
-                    bundleMgr->GetStringById(subtypeInfo.bundleName, subtypeInfo.moduleName, subtypeInfo.labelId, userId);
+                auto label = bundleMgr->GetStringById(subtypeInfo.bundleName, subtypeInfo.moduleName,
+                                                      subtypeInfo.labelId, userId);
                 subProps.push_back({ .id = subtypeInfo.bundleName,
                     .label = subtypeInfo.name,
                     .name = label,

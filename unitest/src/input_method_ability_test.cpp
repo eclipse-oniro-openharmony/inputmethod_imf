@@ -398,10 +398,10 @@ HWTEST_F(InputMethodAbilityTest, testGetText001, TestSize.Level0)
     std::u16string text;
     auto ret = inputMethodAbility_->GetTextAfterCursor(8, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"electioncha");
+    EXPECT_EQ(text, u"election");
     ret = inputMethodAbility_->GetTextBeforeCursor(3, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"");
+    EXPECT_EQ(text, u"ons");
 }
 
 /**
