@@ -183,6 +183,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//third_party/googletest:gtest_main",
   ]
@@ -193,7 +194,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "input:libmmi-client",
     "ipc:ipc_single",
   ]
 }
