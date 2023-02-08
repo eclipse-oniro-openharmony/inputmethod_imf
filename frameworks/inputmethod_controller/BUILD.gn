@@ -53,6 +53,13 @@ ohos_shared_library("inputmethod_client") {
     "src/itypes_util.cpp",
   ]
 
+  cflags = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
+    "-Os",
+  ]
+
   version_script = "inputmethod_client.versionscript"
 
   deps = [
