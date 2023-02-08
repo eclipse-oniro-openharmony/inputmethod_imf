@@ -19,7 +19,6 @@ config("inputmethod_client_native_config") {
   include_dirs = [
     "include",
     "${inputmethod_path}/services/dfx/include",
-    "//commonlibrary/c_utils/base/include",
     "${inputmethod_path}/services/include",
   ]
 }
@@ -32,9 +31,6 @@ config("inputmethod_client_native_public_config") {
     "//base/inputmethod/imf/services/include",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "${inputmethod_path}/services/dfx/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//foundation/multimodalinput/input/interfaces/native/innerkits/event/include",
-    "//commonlibrary/c_utils/base/include",
   ]
 }
 
@@ -62,16 +58,14 @@ ohos_shared_library("inputmethod_client") {
 
   version_script = "inputmethod_client.versionscript"
 
-  deps = [
-    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/multimodalinput/input/frameworks/proxy:libmmi-common",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-  ]
+  deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
 
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
 
   configs = [ ":inputmethod_client_native_config" ]
@@ -83,6 +77,7 @@ ohos_shared_library("inputmethod_client") {
 }
 
 ohos_static_library("inputmethod_client_static") {
+  testonly = true
   sources = [
     "${inputmethod_path}/frameworks/inputmethod_ability/src/input_method_agent_proxy.cpp",
     "${inputmethod_path}/services/src/message.cpp",
@@ -97,16 +92,14 @@ ohos_static_library("inputmethod_client_static") {
     "src/itypes_util.cpp",
   ]
 
-  deps = [
-    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/multimodalinput/input/frameworks/proxy:libmmi-common",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-  ]
+  deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
 
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
 
   configs = [ ":inputmethod_client_native_config" ]

@@ -30,27 +30,26 @@ ohos_unittest("InputMethodControllerTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client_static",
     "//base/inputmethod/imf/services:inputmethod_service",
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
-    "//foundation/arkui/napi/:ace_napi",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-    "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "napi:ace_napi",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
 }
 
@@ -65,16 +64,9 @@ ohos_unittest("InputMethodAbilityTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client_static",
     "//base/inputmethod/imf/services:inputmethod_service",
-    "//foundation/arkui/napi/:ace_napi",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-    "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -85,6 +77,11 @@ ohos_unittest("InputMethodAbilityTest") {
     "access_token:libtoken_setproc",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "napi:ace_napi",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
 }
 
@@ -96,16 +93,9 @@ ohos_unittest("InputMethodServiceTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${ability_runtime_inner_api_path}/ability_manager:ability_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
     "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
     "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client_static",
     "//base/inputmethod/imf/services:inputmethod_service",
-    "//foundation/arkui/napi/:ace_napi",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_single:ipc_single",
-    "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -116,6 +106,10 @@ ohos_unittest("InputMethodServiceTest") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_single",
+    "napi:ace_napi",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
 }
 
@@ -163,15 +157,16 @@ ohos_unittest("InputMethodSwitchTest") {
     "//base/inputmethod/imf/services:inputmethod_service",
     "//base/inputmethod/imf/unitest/resource/bundle_dependencies/extImfBundle:extImf",
     "//base/inputmethod/imf/unitest/resource/ohos_test:copy_ohos_test",
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
   ]
 }
 
@@ -183,7 +178,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client_static",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//third_party/googletest:gtest_main",
   ]
@@ -195,7 +190,9 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
+    "ipc:ipc_core",
     "ipc:ipc_single",
+    "os_account:os_account_innerkits",
   ]
 }
 
