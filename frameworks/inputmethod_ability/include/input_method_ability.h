@@ -33,6 +33,7 @@
 #include "input_method_system_ability_proxy.h"
 #include "input_method_engine_listener.h"
 #include "keyboard_listener.h"
+#include "visibility.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -46,22 +47,22 @@ struct InputStartNotifier {
     public:
         InputMethodAbility();
         ~InputMethodAbility();
-        static sptr<InputMethodAbility> GetInstance();
-        int32_t InsertText(const std::string text);
-        void setImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
-        void setKdListener(std::shared_ptr<KeyboardListener> kdListener);
-        int32_t DeleteForward(int32_t length);
-        int32_t DeleteBackward(int32_t length);
-        int32_t HideKeyboardSelf();
-        int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
-        int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
-        int32_t SendFunctionKey(int32_t funcKey);
-        int32_t MoveCursor(int32_t keyCode);
-        bool DispatchKeyEvent(int32_t keyCode, int32_t keyStatus);
-        void SetCallingWindow(uint32_t windowId);
-        int32_t GetEnterKeyType(int32_t &keyType);
-        int32_t GetInputPattern(int32_t &inputPattern);
-        void OnImeReady();
+        IMF_API static sptr<InputMethodAbility> GetInstance();
+        IMF_API int32_t InsertText(const std::string text);
+        IMF_API void setImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
+        IMF_API void setKdListener(std::shared_ptr<KeyboardListener> kdListener);
+        IMF_API int32_t DeleteForward(int32_t length);
+        IMF_API int32_t DeleteBackward(int32_t length);
+        IMF_API int32_t HideKeyboardSelf();
+        IMF_API int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
+        IMF_API int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
+        IMF_API int32_t SendFunctionKey(int32_t funcKey);
+        IMF_API int32_t MoveCursor(int32_t keyCode);
+        IMF_API bool DispatchKeyEvent(int32_t keyCode, int32_t keyStatus);
+        IMF_API void SetCallingWindow(uint32_t windowId);
+        IMF_API int32_t GetEnterKeyType(int32_t &keyType);
+        IMF_API int32_t GetInputPattern(int32_t &inputPattern);
+        IMF_API void OnImeReady();
 
     private:
         std::thread workThreadHandler;
