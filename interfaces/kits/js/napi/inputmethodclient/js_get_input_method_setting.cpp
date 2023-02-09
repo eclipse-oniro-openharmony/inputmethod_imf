@@ -261,7 +261,6 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
             IMSA_HILOGI("exec ---- GetInputMethods success");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
-            return;
         }
         ctxt->SetErrorCode(errCode);
     };
