@@ -33,6 +33,7 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
         napi_typeof(env, argv[pos], &valueType);
         if (valueType == napi_function) {
             napi_create_reference(env, argv[pos], 1, &context_->callback);
+            argc = pos;
         }
     }
     NAPI_CALL_RETURN_VOID(env, (*context)(env, argc, argv, self));

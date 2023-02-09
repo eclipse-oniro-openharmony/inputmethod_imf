@@ -263,15 +263,8 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
 {
     IMSA_HILOGI("JsGetInputMethodSetting run in");
     auto ctxt = std::make_shared<DisplayOptionalInputMethodContext>();
-    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc >= 1) {
-            napi_valuetype valueType = napi_undefined;
-            napi_typeof(env, argv[0], &valueType);
-            NAPI_ASSERT_BASE(
-                env, valueType == napi_function, "callback type should be napi_function", napi_invalid_arg);
-        }
-        return napi_ok;
-    };
+    auto input = [ctxt](
+                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         int32_t errCode = InputMethodController::GetInstance()->DisplayOptionalInputMethod();
@@ -291,17 +284,8 @@ napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_
 {
     IMSA_HILOGI("JsGetInputMethodSetting run in");
     auto ctxt = std::make_shared<DisplayOptionalInputMethodContext>();
-    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc >= 1) {
-            napi_valuetype valueType = napi_undefined;
-            napi_typeof(env, argv[0], &valueType);
-            if (valueType != napi_function) {
-                JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_FUNCTION);
-                return napi_generic_failure;
-            }
-        }
-        return napi_ok;
-    };
+    auto input = [ctxt](
+                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_status status = napi_get_boolean(env, ctxt->isDisplayed, result);
         IMSA_HILOGI("output napi_get_boolean != nullptr[%{public}d]", result != nullptr);
