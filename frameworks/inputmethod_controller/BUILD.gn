@@ -19,7 +19,6 @@ config("inputmethod_client_native_config") {
   include_dirs = [
     "include",
     "${inputmethod_path}/services/dfx/include",
-    "//commonlibrary/c_utils/base/include",
     "${inputmethod_path}/services/include",
   ]
 }
@@ -32,9 +31,7 @@ config("inputmethod_client_native_public_config") {
     "//base/inputmethod/imf/services/include",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "${inputmethod_path}/services/dfx/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//foundation/multimodalinput/input/interfaces/native/innerkits/event/include",
-    "//commonlibrary/c_utils/base/include",
   ]
 }
 
@@ -53,16 +50,57 @@ ohos_shared_library("inputmethod_client") {
     "src/itypes_util.cpp",
   ]
 
-  deps = [
-    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/multimodalinput/input/frameworks/proxy:libmmi-common",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+  cflags = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
+    "-Os",
   ]
+
+  version_script = "inputmethod_client.versionscript"
+
+  deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
 
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+
+  configs = [ ":inputmethod_client_native_config" ]
+
+  public_configs = [ ":inputmethod_client_native_public_config" ]
+
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}
+
+ohos_static_library("inputmethod_client_static") {
+  testonly = true
+  sources = [
+    "${inputmethod_path}/frameworks/inputmethod_ability/src/input_method_agent_proxy.cpp",
+    "${inputmethod_path}/services/src/message.cpp",
+    "${inputmethod_path}/services/src/message_handler.cpp",
+    "src/input_client_proxy.cpp",
+    "src/input_client_stub.cpp",
+    "src/input_data_channel_proxy.cpp",
+    "src/input_data_channel_stub.cpp",
+    "src/input_method_controller.cpp",
+    "src/input_method_system_ability_proxy.cpp",
+    "src/input_method_utils.cpp",
+    "src/itypes_util.cpp",
+  ]
+
+  deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
 
   configs = [ ":inputmethod_client_native_config" ]

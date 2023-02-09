@@ -38,7 +38,7 @@ ohos_fuzztest("DataChannelStubFuzzTest") {
   sources = [ "datachannelstub_fuzzer.cpp" ]
 
   deps = [
-    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
+    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client_static",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
 

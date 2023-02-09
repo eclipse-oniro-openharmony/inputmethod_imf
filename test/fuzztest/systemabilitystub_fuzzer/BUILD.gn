@@ -45,7 +45,7 @@ ohos_fuzztest("SystemAbilityStubFuzzTest") {
   sources = [ "systemabilitystub_fuzzer.cpp" ]
 
   deps = [
-    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",
+    "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client_static",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//foundation/ability/ability_runtime/services/abilitymgr:abilityms",
