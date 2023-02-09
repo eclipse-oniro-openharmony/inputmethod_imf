@@ -99,15 +99,8 @@ napi_value JsKeyboardControllerEngine::Hide(napi_env env, napi_callback_info inf
 napi_value JsKeyboardControllerEngine::HideKeyboard(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<HideKeyboardContext>();
-    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc >= 1) {
-            napi_valuetype valueType = napi_undefined;
-            napi_typeof(env, argv[0], &valueType);
-            NAPI_ASSERT_BASE(
-                env, valueType == napi_function, "callback type should be napi_function", napi_invalid_arg);
-        }
-        return napi_ok;
-    };
+    auto input = [ctxt](
+                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         InputMethodAbility::GetInstance()->HideKeyboardSelf();
         ctxt->status = napi_ok;
