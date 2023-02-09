@@ -261,11 +261,6 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
 
 napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, napi_callback_info info)
 {
-    return DisplayInputMethod(env, info, false);
-}
-
-napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, napi_callback_info info)
-{
     IMSA_HILOGI("JsGetInputMethodSetting run in");
     auto ctxt = std::make_shared<DisplayOptionalInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
@@ -326,11 +321,6 @@ napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, ctxt);
     return asyncCall.Call(env, exec);
-}
-
-napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_callback_info info)
-{
-    return DisplayInputMethod(env, info, true);
 }
 
 napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_callback_info info)
