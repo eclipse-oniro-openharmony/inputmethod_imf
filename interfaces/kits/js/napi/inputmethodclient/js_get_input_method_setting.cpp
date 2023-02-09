@@ -278,7 +278,8 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
         if (argc >= 1) {
             napi_valuetype valueType = napi_undefined;
             napi_typeof(env, argv[0], &valueType);
-            NAPI_ASSERT_BASE(env, valueType == napi_object, "callback type should be napi_object", napi_invalid_arg);
+            NAPI_ASSERT_BASE(
+                env, valueType == napi_function, "callback type should be napi_function", napi_invalid_arg);
         }
         return napi_ok;
     };
@@ -305,8 +306,8 @@ napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_
         if (argc >= 1) {
             napi_valuetype valueType = napi_undefined;
             napi_typeof(env, argv[0], &valueType);
-            if (valueType != napi_object) {
-                JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_OBJECT);
+            if (valueType != napi_function) {
+                JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_FUNCTION);
                 return napi_generic_failure;
             }
         }
