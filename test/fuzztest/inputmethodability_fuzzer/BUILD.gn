@@ -41,7 +41,7 @@ ohos_fuzztest("InputMethodAbilityFuzzTest") {
   sources = [ "inputmethodability_fuzzer.cpp" ]
 
   deps = [
-    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
+    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability_static",
     "//base/inputmethod/imf/services:inputmethod_service",
     "//foundation/ability/ability_runtime/services/abilitymgr:abilityms",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
