@@ -31,6 +31,7 @@ config("inputmethod_client_native_public_config") {
     "//base/inputmethod/imf/services/include",
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
     "${inputmethod_path}/services/dfx/include",
+    "//foundation/multimodalinput/input/interfaces/native/innerkits/event/include",
   ]
 }
 
