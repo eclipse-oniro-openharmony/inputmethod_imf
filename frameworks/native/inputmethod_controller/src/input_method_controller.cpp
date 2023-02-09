@@ -591,14 +591,23 @@ int32_t InputMethodController::GetTextBeforeCursor(int32_t number, std::u16strin
 {
     IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
     text = u"";
-    if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0
-        || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
-        IMSA_HILOGE("InputMethodController::param error, number: %{public}d, end: %{public}d, size: %{public}d",
-                    number, mSelectNewEnd, static_cast<int32_t>(mTextString.size()));
+    if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0 || mSelectNewBegin < 0) {
+        IMSA_HILOGE("InputMethodController::param error, number: %{public}d, begin: %{public}d, end: %{public}d",
+            number, mSelectNewBegin, mSelectNewEnd);
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
-    int32_t startPos = (number <= mSelectNewEnd ? (mSelectNewEnd - number) : 0);
-    int32_t length = (number <= mSelectNewEnd ? number : mSelectNewEnd);
+    if (mSelectNewBegin > mSelectNewEnd) {
+        int32_t temp = mSelectNewEnd;
+        mSelectNewEnd = mSelectNewBegin;
+        mSelectNewBegin = temp;
+    }
+    if (mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
+        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}u", mSelectNewEnd,
+            mTextString.size());
+        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    }
+    int32_t startPos = (number <= mSelectNewBegin ? (mSelectNewBegin - number) : 0);
+    int32_t length = (number <= mSelectNewBegin ? number : mSelectNewBegin);
     text = mTextString.substr(startPos, length);
     return ErrorCode::NO_ERROR;
 }
@@ -607,11 +616,19 @@ int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string
 {
     IMSA_HILOGI("InputMethodController::GetTextAfterCursor");
     text = u"";
-    if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0
-        || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
-        IMSA_HILOGE("InputMethodController::param error, number: %{public}d, end: %{public}d, "
-                    "size: %{public}d",
-                    number, mSelectNewEnd, static_cast<int32_t>(mTextString.size()));
+    if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0 || mSelectNewBegin < 0) {
+        IMSA_HILOGE("InputMethodController::param error, number: %{public}d, begin: %{public}d, end: %{public}d",
+            number, mSelectNewBegin, mSelectNewEnd);
+        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    }
+    if (mSelectNewBegin > mSelectNewEnd) {
+        int32_t temp = mSelectNewEnd;
+        mSelectNewEnd = mSelectNewBegin;
+        mSelectNewBegin = temp;
+    }
+    if (mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
+        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}u", mSelectNewEnd,
+            mTextString.size());
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
     text = mTextString.substr(mSelectNewEnd, number);
