@@ -264,35 +264,67 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
     return DisplayInputMethod(env, info, false);
 }
 
-napi_value JsGetInputMethodSetting::DisplayInputMethod(napi_env env, napi_callback_info info, bool needThrowException)
+napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("run in DisplayInputMethod");
+    IMSA_HILOGI("JsGetInputMethodSetting run in");
     auto ctxt = std::make_shared<DisplayOptionalInputMethodContext>();
-    auto input = [ctxt](
-                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
-    auto output = [ctxt, needThrowException](napi_env env, napi_value *result) -> napi_status {
-        if (needThrowException) {
-            napi_status status = napi_get_boolean(env, ctxt->isDisplayed, result);
-            IMSA_HILOGE("output napi_get_boolean != nullptr[%{public}d]", result != nullptr);
-            return status;
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        if (argc >= 1) {
+            napi_valuetype valueType = napi_undefined;
+            napi_typeof(env, argv[0], &valueType);
+            NAPI_ASSERT_BASE(env, valueType == napi_object, "callback type should be napi_object", napi_invalid_arg);
         }
         return napi_ok;
     };
-    auto exec = [ctxt, needThrowException](AsyncCall::Context *ctx) {
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t errCode = InputMethodController::GetInstance()->DisplayOptionalInputMethod();
+        if (errCode == ErrorCode::NO_ERROR) {
+            IMSA_HILOGI("exec ---- DisplayOptionalInputMethod success");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            return;
+        }
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    AsyncCall asyncCall(env, info, ctxt);
+    return asyncCall.Call(env, exec);
+}
+
+napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGI("JsGetInputMethodSetting run in");
+    auto ctxt = std::make_shared<DisplayOptionalInputMethodContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        if (argc >= 1) {
+            napi_valuetype valueType = napi_undefined;
+            napi_typeof(env, argv[0], &valueType);
+            if (valueType != napi_object) {
+                JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_OBJECT);
+                return napi_generic_failure;
+            }
+        }
+        return napi_ok;
+    };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        napi_status status = napi_get_boolean(env, ctxt->isDisplayed, result);
+        IMSA_HILOGI("output napi_get_boolean != nullptr[%{public}d]", result != nullptr);
+        return status;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
         int32_t errCode = InputMethodController::GetInstance()->ShowOptionalInputMethod();
         if (errCode == ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("exec ---- DisplayOptionalInputMethod success");
+            IMSA_HILOGE("exec ---- ShowOptionalInputMethod success");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isDisplayed = true;
             return;
-        }
-        if (needThrowException) {
+        } else {
             ctxt->SetErrorCode(errCode);
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    AsyncCall asyncCall(env, info, ctxt);
     return asyncCall.Call(env, exec);
 }
 
