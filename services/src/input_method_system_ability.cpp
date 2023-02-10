@@ -171,7 +171,7 @@ int32_t InputMethodSystemAbility::Init()
     if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
         userId_ = userIds[0];
         IMSA_HILOGI("InputMethodSystemAbility::get current userId success, userId: %{public}d", userId_);
-        StartInputService(GetNewUserIme(userId_));
+        StartInputService(GetStartedIme(userId_));
     }
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
@@ -836,15 +836,15 @@ void InputMethodSystemAbility::WorkThread()
                 break;
             }
             case MSG_ID_START_INPUT_SERVICE: {
-                MessageParcel *data = msg->msgContent_;
-                const auto &ime = data->ReadString();
-                StartInputService(ime);
+                StartInputService(GetStartedIme(userId_));
                 break;
             }
             default: {
                 break;
             }
         }
+        delete msg;
+        msg = nullptr;
     }
 }
 
@@ -863,7 +863,7 @@ bool InputMethodSystemAbility::IsImeInstalled(int32_t userId, std::string &imeId
     return false;
 }
 
-std::string InputMethodSystemAbility::GetNewUserIme(int32_t userId)
+std::string InputMethodSystemAbility::GetStartedIme(int32_t userId)
 {
     auto defaultIme = ImeCfgManager::GetDefaultIme();
     if (defaultIme.empty()) {
@@ -913,7 +913,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         IMSA_HILOGI("service restart or user switch");
         StopInputService(lastUserIme);
     }
-    StartInputService(GetNewUserIme(newUserId));
+    StartInputService(GetStartedIme(newUserId));
     return ErrorCode::NO_ERROR;
 }
 
