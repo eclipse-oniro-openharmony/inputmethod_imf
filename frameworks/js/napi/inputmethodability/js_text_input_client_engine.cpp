@@ -573,13 +573,6 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "range", TypeCode::TYPE_OBJECT);
             return napi_generic_failure;
         }
-        if (argc >= 2) {
-            napi_typeof(env, argv[1], &valueType);
-            if (valueType != napi_function) {
-                JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_FUNCTION);
-                return napi_generic_failure;
-            }
-        }
         return GetSelectRange(env, argv[0], ctxt);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
@@ -613,13 +606,6 @@ napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "movement", TypeCode::TYPE_OBJECT);
             return napi_generic_failure;
         }
-        if (argc >= 2) {
-            napi_typeof(env, argv[1], &valueType);
-            if (valueType != napi_function) {
-                JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_FUNCTION);
-                return napi_generic_failure;
-            }
-        }
         return GetSelectMovement(env, argv[0], ctxt);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
@@ -641,18 +627,7 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
 {
     IMSA_HILOGE("GetTextIndexAtCursor");
     auto ctxt = std::make_shared<GetTextIndexAtCursorContext>();
-    auto input = [](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        napi_status status = napi_generic_failure;
-        if (argc > 0) {
-            napi_valuetype valueType = napi_undefined;
-            napi_typeof(env, argv[0], &valueType);
-            if (valueType != napi_function) {
-                JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_FUNCTION);
-                return status;
-            }
-        }
-        return napi_ok;
-    };
+    auto input = [](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         return napi_create_int32(env, ctxt->index, result);
     };
