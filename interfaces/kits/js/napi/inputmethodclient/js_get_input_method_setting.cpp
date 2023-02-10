@@ -279,11 +279,12 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         int32_t errCode = InputMethodController::GetInstance()->DisplayOptionalInputMethod();
-        if (errCode == ErrorCode::NO_ERROR) {
-            IMSA_HILOGI("exec ---- DisplayOptionalInputMethod success");
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
+        if (errCode != ErrorCode::NO_ERROR) {
+            return;
         }
+        IMSA_HILOGI("exec ---- DisplayOptionalInputMethod success");
+        ctxt->status = napi_ok;
+        ctxt->SetState(ctxt->status);
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, ctxt);
@@ -303,15 +304,14 @@ napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         int32_t errCode = InputMethodController::GetInstance()->ShowOptionalInputMethod();
-        if (errCode == ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("exec ---- ShowOptionalInputMethod success");
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
-            ctxt->isDisplayed = true;
-            return;
-        } else {
+        if (errCode != ErrorCode::NO_ERROR) {
             ctxt->SetErrorCode(errCode);
+            return;
         }
+        IMSA_HILOGE("exec ---- ShowOptionalInputMethod success");
+        ctxt->status = napi_ok;
+        ctxt->SetState(ctxt->status);
+        ctxt->isDisplayed = true;
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, ctxt);
