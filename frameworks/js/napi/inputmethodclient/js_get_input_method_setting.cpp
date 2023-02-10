@@ -272,7 +272,6 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
             IMSA_HILOGI("exec ---- DisplayOptionalInputMethod success");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
-            return;
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
