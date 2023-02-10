@@ -822,10 +822,14 @@ void InputMethodSystemAbility::WorkThread()
         switch (msg->msgId_) {
             case MSG_ID_USER_START: {
                 OnUserStarted(msg);
+                delete msg;
+                msg = nullptr;
                 break;
             }
             case MSG_ID_USER_REMOVED: {
                 OnUserRemoved(msg);
+                delete msg;
+                msg = nullptr;
                 break;
             }
             case MSG_ID_PACKAGE_REMOVED: {
@@ -840,14 +844,14 @@ void InputMethodSystemAbility::WorkThread()
             }
             case MSG_ID_START_INPUT_SERVICE: {
                 StartInputService(GetStartedIme(userId_));
+                delete msg;
+                msg = nullptr;
                 break;
             }
             default: {
                 break;
             }
         }
-        delete msg;
-        msg = nullptr;
     }
 }
 
