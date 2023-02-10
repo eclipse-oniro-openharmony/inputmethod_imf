@@ -571,13 +571,16 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleN
 {
     IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod");
     std::string targetIme = bundleName + "/" + name;
+    if (!IsImeInstalled(userId_, targetIme)) {
+        IMSA_HILOGE("targetIme is not installed");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
     auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
     auto &currentIme = cfg.currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("currentIme is empty");
         return ErrorCode::ERROR_PERSIST_CONFIG;
     }
-
     IMSA_HILOGI("CurrentIme : %{public}s, TargetIme : %{public}s", currentIme.c_str(), targetIme.c_str());
     if (currentIme == targetIme) {
         IMSA_HILOGI("currentIme and TargetIme are the same one");
