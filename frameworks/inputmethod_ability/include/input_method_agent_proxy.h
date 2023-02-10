@@ -27,12 +27,13 @@
 #include "message_parcel.h"
 #include "nocopyable.h"
 #include "refbase.h"
+#include "visibility.h"
 
 namespace OHOS {
 namespace MiscServices {
     class InputMethodAgentProxy : public IRemoteProxy<IInputMethodAgent> {
     public:
-        explicit InputMethodAgentProxy(const sptr<IRemoteObject> &object);
+        IMF_API explicit InputMethodAgentProxy(const sptr<IRemoteObject> &object);
         ~InputMethodAgentProxy() = default;
         DISALLOW_COPY_AND_MOVE(InputMethodAgentProxy);
 

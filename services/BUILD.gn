@@ -33,6 +33,7 @@ config("inputmethod_services_native_config") {
 ohos_shared_library("inputmethod_service") {
   sources = [
     "${inputmethod_path}/frameworks/inputmethod_controller/src/input_client_proxy.cpp",
+    "${inputmethod_path}/frameworks/inputmethod_controller/src/itypes_util.cpp",
     "src/global.cpp",
     "src/im_common_event_manager.cpp",
     "src/ime_cfg_manager.cpp",

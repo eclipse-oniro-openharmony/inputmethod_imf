@@ -52,15 +52,15 @@
               "fwk_group": [
                   "//base/inputmethod/imf/frameworks/inputmethod_controller:inputmethod_client",  
                   "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodclient:inputmethod", 
-                  "//base/inputmethod/imf/services/dfx:inputmethod_dfx_static"
-              ], 
-              "service_group": [
+                  "//base/inputmethod/imf/services/dfx:inputmethod_dfx_static",
                   "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
                   "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension", 
                   "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension_module", 
                   "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethodability:inputmethodengine", 
                   "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod_extension_ability:inputmethodextensionability_napi", 
-                  "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi", 
+                  "//base/inputmethod/imf/interfaces/kits/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi" 
+              ], 
+              "service_group": [
                   "//base/inputmethod/imf/etc/init:inputmethodservice.cfg", 
                   "//base/inputmethod/imf/etc/para:inputmethod.para", 
                   "//base/inputmethod/imf/etc/para:inputmethod.para.dac",

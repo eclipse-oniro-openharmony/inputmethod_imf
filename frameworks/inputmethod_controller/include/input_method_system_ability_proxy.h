@@ -34,12 +34,13 @@
 #include "message_parcel.h"
 #include "nocopyable.h"
 #include "refbase.h"
+#include "visibility.h"
 
 namespace OHOS {
 namespace MiscServices {
 class InputMethodSystemAbilityProxy : public IRemoteProxy<IInputMethodSystemAbility> {
 public:
-    explicit InputMethodSystemAbilityProxy(const sptr<IRemoteObject> &object);
+    IMF_API explicit InputMethodSystemAbilityProxy(const sptr<IRemoteObject> &object);
     ~InputMethodSystemAbilityProxy() = default;
     DISALLOW_COPY_AND_MOVE(InputMethodSystemAbilityProxy);
 

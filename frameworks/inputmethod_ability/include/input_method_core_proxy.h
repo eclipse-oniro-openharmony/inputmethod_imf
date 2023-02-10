@@ -25,12 +25,13 @@
 #include "iremote_proxy.h"
 #include "message_option.h"
 #include "message_parcel.h"
+#include "visibility.h"
 
 namespace OHOS {
 namespace MiscServices {
     class InputMethodCoreProxy : public IRemoteProxy<IInputMethodCore> {
     public:
-        explicit InputMethodCoreProxy(const sptr<IRemoteObject>& object);
+        IMF_API explicit InputMethodCoreProxy(const sptr<IRemoteObject>& object);
         ~InputMethodCoreProxy();
 
         DISALLOW_COPY_AND_MOVE(InputMethodCoreProxy);

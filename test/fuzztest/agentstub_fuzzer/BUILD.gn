@@ -37,7 +37,7 @@ ohos_fuzztest("AgentStubFuzzTest") {
   sources = [ "agentstub_fuzzer.cpp" ]
 
   deps = [
-    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability",
+    "//base/inputmethod/imf/frameworks/inputmethod_ability:inputmethod_ability_static",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
 

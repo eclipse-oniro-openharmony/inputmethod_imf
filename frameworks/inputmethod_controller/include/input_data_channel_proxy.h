@@ -26,12 +26,13 @@
 #include "iremote_proxy.h"
 #include "nocopyable.h"
 #include "refbase.h"
+#include "visibility.h"
 
 namespace OHOS {
 namespace MiscServices {
     class InputDataChannelProxy : public IRemoteProxy<IInputDataChannel> {
     public:
-        explicit InputDataChannelProxy(const sptr<IRemoteObject> &object);
+        IMF_API explicit InputDataChannelProxy(const sptr<IRemoteObject> &object);
         ~InputDataChannelProxy() = default;
         DISALLOW_COPY_AND_MOVE(InputDataChannelProxy);
 
