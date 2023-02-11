@@ -63,7 +63,6 @@ public:
     static int selectionStart_;
     static int selectionEnd_;
     static int selectionDirection_;
-    static int cursorMoveSkip_;
     static sptr<InputMethodController> imc_;
     static sptr<InputMethodAbility> inputMethodAbility_;
 
@@ -163,10 +162,8 @@ public:
         void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override
         {
             selectionDirection_ = keyCode;
-            cursorMoveSkip_ = cursorMoveSkip;
             InputMethodAbilityTest::textListenerCv_.notify_one();
-            IMSA_HILOGI("TextChangeListener, selectionDirection_: %{public}d, cursorMoveSkip_: %{public}d",
-                selectionDirection_, cursorMoveSkip_);
+            IMSA_HILOGI("TextChangeListener, selectionDirection_: %{public}d", selectionDirection_);
         }
     };
     static void GrantPermission()
@@ -481,16 +478,12 @@ HWTEST_F(InputMethodAbilityTest, testSelectByMovement, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSelectByMovement START");
     constexpr int32_t direction = 1;
-    constexpr int32_t cursorMoveSkip = 0;
-    auto ret = inputMethodAbility_->SelectByMovement(direction, cursorMoveSkip);
+    auto ret = inputMethodAbility_->SelectByMovement(direction);
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
-    InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [] {
-        return InputMethodAbilityTest::selectionDirection_ == direction
-               && InputMethodAbilityTest::cursorMoveSkip_ == cursorMoveSkip;
-    });
+    InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
+        [] { return InputMethodAbilityTest::selectionDirection_ == direction; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodAbilityTest::selectionDirection_, direction);
-    EXPECT_EQ(InputMethodAbilityTest::cursorMoveSkip_, cursorMoveSkip);
 }
 } // namespace MiscServices
 } // namespace OHOS
