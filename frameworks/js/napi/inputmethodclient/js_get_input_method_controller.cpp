@@ -364,7 +364,7 @@ napi_value JsGetInputMethodController::StopInputSession(napi_env env, napi_callb
 napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_info info)
 {
     return HandleSoftKeyboard(
-        env, info, [] { return InputMethodController::GetInstance()->HideSoftKeyboard(); }, true, false);
+        env, info, [] { return InputMethodController::GetInstance()->HideCurrentInput(); }, true, false);
 }
 
 void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
