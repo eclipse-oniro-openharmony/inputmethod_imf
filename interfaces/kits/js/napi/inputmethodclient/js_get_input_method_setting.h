@@ -114,7 +114,6 @@ private:
     uv_work_t *GetImeChangeUVwork(std::string type, const Property &property, const SubProperty &subProperty);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
-    static napi_value DisplayInputMethod(napi_env env, napi_callback_info info, bool needThrowException);
     static napi_value GetIMSetting(napi_env env, napi_callback_info info, bool needThrowException);
     static bool Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
