@@ -34,37 +34,13 @@ InputMethodCoreProxy::~InputMethodCoreProxy() = default;
 int32_t InputMethodCoreProxy::InitInputControlChannel(
     sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId)
 {
-    IMSA_HILOGD("InputMethodCoreProxy::InitInputControlChannel");
-    auto remote = Remote();
-    if (!remote) {
-        IMSA_HILOGI("remote is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    if (!inputControlChannel) {
-        IMSA_HILOGI("InputMethodCoreProxy::InitInputControlChannel inputControlChannel is nullptr");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    MessageParcel data;
-    MessageParcel reply;
-    data.WriteInterfaceToken(GetDescriptor());
-    sptr<IRemoteObject> channelObject = inputControlChannel->AsObject();
-    if (!channelObject) {
-        IMSA_HILOGI("InputMethodCoreProxy::InitInputControlChannel channelObject is nullptr");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    data.WriteRemoteObject(channelObject);
-    data.WriteString(imeId);
-    MessageOption option{ MessageOption::TF_SYNC };
-    int32_t status = remote->SendRequest(INIT_INPUT_CONTROL_CHANNEL, data, reply, option);
-    if (status != ErrorCode::NO_ERROR) {
-        IMSA_HILOGI("InputMethodCoreProxy::InitInputControlChannel status = %{public}d", status);
-        return status;
-    }
-    int32_t code = reply.ReadException();
-    return code;
+    IMSA_HILOGD("InputMethodCoreProxy.");
+    return SendRequest(INIT_INPUT_CONTROL_CHANNEL, [&inputDataChannel, &imeId](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, inputDataChannel->AsObject(), imeId);
+    });
 }
 
-int32_t InputMethodCoreProxy::showKeyboard(
+int32_t InputMethodCoreProxy::ShowKeyboard(
     const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty)
 {
     IMSA_HILOGD("InputMethodCoreProxy::showKeyboard");
@@ -76,41 +52,19 @@ int32_t InputMethodCoreProxy::showKeyboard(
 void InputMethodCoreProxy::StopInputService(std::string imeId)
 {
     IMSA_HILOGD("InputMethodCoreProxy::StopInputService");
-    auto remote = Remote();
-    if (!remote) {
-        IMSA_HILOGI("InputMethodCoreProxy::StopInputService remote is nullptr");
-        return;
-    }
-    MessageParcel data;
-    if (!(data.WriteInterfaceToken(GetDescriptor()) && data.WriteString16(Str8ToStr16(imeId)))) {
-        return;
-    }
-    MessageParcel reply;
-    MessageOption option{ MessageOption::TF_SYNC };
-
-    int32_t res = remote->SendRequest(STOP_INPUT_SERVICE, data, reply, option);
-    if (res != ErrorCode::NO_ERROR) {
-        return;
-    }
+    SendRequest(STOP_INPUT_SERVICE, [&imeId](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, Str8ToStr16(imeId));
+    });
 }
 
-bool InputMethodCoreProxy::hideKeyboard(int32_t flags)
+bool InputMethodCoreProxy::HideKeyboard(int32_t flags)
 {
     IMSA_HILOGD("InputMethodCoreProxy::hideKeyboard");
-    auto remote = Remote();
-    if (!remote) {
-        return false;
-    }
-
-    MessageParcel data;
-    if (!(data.WriteInterfaceToken(GetDescriptor()) && data.WriteInt32(flags))) {
-        return false;
-    }
-    MessageParcel reply;
-    MessageOption option{ MessageOption::TF_SYNC };
-
-    int32_t res = remote->SendRequest(HIDE_KEYBOARD, data, reply, option);
-    if (res != ErrorCode::NO_ERROR) {
+    auto status = SendRequest(HIDE_KEYBOARD, [flags](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, flags);
+    });
+    // todo 这里根本不需要返回bool值。
+    if (status != ErrorCode::NO_ERROR) {
         return false;
     }
     return true;

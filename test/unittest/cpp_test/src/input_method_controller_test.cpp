@@ -247,8 +247,8 @@ namespace MiscServices {
         kbListener_ = std::make_shared<KeyboardListenerImpl>();
         imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
         textListener_ = new TextListener();
-        inputMethodAbility_->setKdListener(kbListener_);
-        inputMethodAbility_->setImeListener(imeListener_);
+        inputMethodAbility_->SetKdListener(kbListener_);
+        inputMethodAbility_->SetImeListener(imeListener_);
         inputMethodController_ = InputMethodController::GetInstance();
 
         keyEvent_ = MMI::KeyEvent::Create();
@@ -358,7 +358,7 @@ namespace MiscServices {
     HWTEST_F(InputMethodControllerTest, testIMCdispatchKeyEvent, TestSize.Level0)
     {
         IMSA_HILOGI("IMC dispatchKeyEvent Test START");
-        bool ret = inputMethodController_->dispatchKeyEvent(keyEvent_);
+        bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
         usleep(300);
         ret = ret && kbListener_->keyCode_ == keyEvent_->GetKeyCode()
               && kbListener_->keyStatus_ == keyEvent_->GetKeyAction();
@@ -619,7 +619,7 @@ namespace MiscServices {
         TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         inputMethodController_->Close();
 
-        bool ret = inputMethodController_->dispatchKeyEvent(keyEvent_);
+        bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
         EXPECT_FALSE(ret);
 
         auto ret1 = inputMethodController_->ShowSoftKeyboard();

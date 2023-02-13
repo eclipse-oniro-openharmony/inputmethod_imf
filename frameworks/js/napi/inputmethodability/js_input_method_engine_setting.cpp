@@ -113,7 +113,7 @@ std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInput
                 return nullptr;
             }
             inputMethodEngine_ = engine;
-            InputMethodAbility::GetInstance()->setImeListener(inputMethodEngine_);
+            InputMethodAbility::GetInstance()->SetImeListener(inputMethodEngine_);
         }
     }
     return inputMethodEngine_;

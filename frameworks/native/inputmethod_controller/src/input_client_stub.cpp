@@ -18,6 +18,7 @@
 #include "global.h"
 #include "ipc_object_stub.h"
 #include "ipc_types.h"
+#include "ipc_skeleton.h"
 #include "itypes_util.h"
 #include "message.h"
 
@@ -34,7 +35,8 @@ InputClientStub::~InputClientStub()
 int32_t InputClientStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("InputClientStub::OnRemoteRequest. code = %{public}u", code);
+    IMSA_HILOGI("code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code, IPCSkeleton::GetCallingPid(),
+                IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
@@ -97,7 +99,7 @@ void InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &
     reply.WriteInt32(ErrorCode::NO_ERROR);
 }
 
-int32_t InputClientStub::onInputReady(const sptr<IInputMethodAgent> &agent)
+int32_t InputClientStub::OnInputReady(const sptr<IInputMethodAgent> &agent)
 {
     return ErrorCode::NO_ERROR;
 }

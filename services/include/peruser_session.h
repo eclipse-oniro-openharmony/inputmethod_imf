@@ -68,11 +68,12 @@ struct ResetManager {
     time_t last{};
 };
 
-/*! \class PerUserSession
-        \brief The class provides session management in input method management service
-
-        This class manages the sessions between input clients and input method engines for each unlocked user.
-    */
+/*!@class PerUserSession
+ *
+ * @brief The class provides session management in input method management service
+ *
+ * This class manages the sessions between input clients and input method engines for each unlocked user.
+ */
 class PerUserSession {
     enum : int32_t {
         CURRENT_IME = 0, // index for current ime
@@ -89,10 +90,8 @@ public:
     int32_t OnStopInput(sptr<IInputClient> client);
     int32_t OnReleaseInput(sptr<IInputClient> client);
     int32_t OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
-    int OnHideKeyboardSelf(int flags);
+    int OnHideKeyboardSelf();
     int OnShowKeyboardSelf();
-    void CreateWorkThread(MessageHandler &handler);
-    void JoinWorkThread();
     void StopInputService(std::string imeId);
     int32_t OnInputMethodSwitched(const Property &property, const SubProperty &subProperty);
 
@@ -102,14 +101,11 @@ public:
 
 private:
     int userId_;                                   // the id of the user to whom the object is linking
-    int userState = UserState::USER_STATE_STARTED; // the state of the user to whom the object is linking
-    int displayId;                                 // the id of the display screen on which the user is
     std::map<sptr<IRemoteObject>, std::shared_ptr<ClientInfo>> mapClients;
     static const int MAX_RESTART_NUM = 3;
     static const int IME_RESET_TIME_OUT = 300;
     static const int MAX_RESET_WAIT_TIME = 1600000;
 
-    sptr<IInputControlChannel> inputControlChannel[MAX_IME];
     std::mutex imsCoreLock_;
     sptr<IInputMethodCore> imsCore[MAX_IME];       // the remote handlers of input method service
 
@@ -118,8 +114,6 @@ private:
     sptr<IInputClient> currentClient;              // the current input client
 
     sptr<RemoteObjectDeathRecipient> imsDeathRecipient = nullptr;
-    MessageHandler *msgHandler = nullptr; // message handler working with Work Thread
-    std::thread workThreadHandler;        // work thread handler
     std::recursive_mutex mtx;             // mutex to lock the operations among multi work threads
     std::mutex resetLock;
     ResetManager manager[MAX_IME];
@@ -129,7 +123,6 @@ private:
     PerUserSession(const PerUserSession &&);
     PerUserSession &operator=(const PerUserSession &&);
     std::shared_ptr<ClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
-    void WorkThread();
 
     void OnClientDied(sptr<IInputClient> remote);
     void OnImsDied(sptr<IInputMethodCore> remote);

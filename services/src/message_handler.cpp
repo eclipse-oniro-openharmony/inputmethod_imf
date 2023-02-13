@@ -17,14 +17,10 @@
 
 namespace OHOS {
 namespace MiscServices {
-/*! Constructor
-    */
 MessageHandler::MessageHandler()
 {
 }
 
-/*! Destructor
-    */
 MessageHandler::~MessageHandler()
 {
     std::unique_lock<std::mutex> lock(mMutex);
@@ -37,9 +33,9 @@ MessageHandler::~MessageHandler()
 }
 
 /*! Send a message
-      \param msg a message to be sent
-      \note the msg pointer should not be freed by the caller
-    */
+ * @param msg a message to be sent
+ * @note the msg pointer should not be freed by the caller
+ */
 void MessageHandler::SendMessage(Message *msg)
 {
     {
@@ -50,9 +46,9 @@ void MessageHandler::SendMessage(Message *msg)
 }
 
 /*! Get a message
-      \return a pointer referred to an object of message
-      \note the returned pointer should be freed by the caller.
-    */
+ * @return a pointer referred to an object of message
+ * @note the returned pointer should be freed by the caller.
+ */
 Message *MessageHandler::GetMessage()
 {
     std::unique_lock<std::mutex> lock(mMutex);
@@ -64,12 +60,12 @@ Message *MessageHandler::GetMessage()
 }
 
 /*! The single instance of MessageHandler in the service
-      \return the pointer referred to an object.
-    */
+ * @return the pointer referred to an object.
+ */
 MessageHandler *MessageHandler::Instance()
 {
     static MessageHandler *handler = nullptr;
-    if (!handler) {
+    if (handler == nullptr) {
         handler = new MessageHandler();
     }
     return handler;

@@ -74,7 +74,7 @@ void TestDispatchKeyEvent(sptr<InputMethodController> imc, int32_t fuzzedInt32)
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
     keyEvent->SetKeyAction(fuzzedInt32);
     keyEvent->SetKeyCode(fuzzedInt32);
-    imc->dispatchKeyEvent(keyEvent);
+    imc->DispatchKeyEvent(keyEvent);
 }
 
 void TestOnSelectionChange(
@@ -140,7 +140,7 @@ void TestShowSomething(sptr<InputMethodController> imc)
     imc->GetCurrentInputMethodSubtype();
 
     auto settingListener = std::make_shared<SettingListener>();
-    imc->setImeListener(settingListener);
+    imc->SetImeListener(settingListener);
 
     imc->StopInputSession();
     imc->Close();

@@ -18,21 +18,14 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace std;
-/*! Constructor
-    */
 InputMethodInfo::InputMethodInfo()
 {
 }
 
-/*! Destructor
-    */
 InputMethodInfo::~InputMethodInfo()
 {
 }
 
-/*! Constructor
-    \param property the source property will be copied to this instance.
-    */
 InputMethodInfo::InputMethodInfo(const InputMethodInfo &property)
 {
     mImeId = property.mImeId;
@@ -47,10 +40,6 @@ InputMethodInfo::InputMethodInfo(const InputMethodInfo &property)
     description = property.description;
 }
 
-/*! operator=
-    \param property the source property will be copied to this instance.
-    \return return this
-    */
 InputMethodInfo &InputMethodInfo::operator=(const InputMethodInfo &property)
 {
     if (this == &property) {

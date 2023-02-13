@@ -46,8 +46,6 @@ public:
     InputMethodSystemAbility();
     ~InputMethodSystemAbility();
 
-    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-
     int32_t PrepareInput(int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel,
         InputAttribute &attribute) override;
     int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) override;
@@ -84,16 +82,13 @@ private:
     void Initialize();
 
     std::thread workThreadHandler; /*!< thread handler of the WorkThread */
-    std::map<int32_t, std::shared_ptr<PerUserSession>> userSessions;
-    std::map<int32_t, MessageHandler *> msgHandlers;
+    std::shared_ptr<PerUserSession> userSession_ = nullptr;
 
     void WorkThread();
-    std::shared_ptr<PerUserSession> GetUserSession(int32_t userId);
     bool StartInputService(std::string imeId);
     void StopInputService(std::string imeId);
     int32_t OnUserStarted(const Message *msg);
     int32_t OnUserRemoved(const Message *msg);
-    int32_t OnHandleMessage(Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
     int32_t OnDisplayOptionalInputMethod(int32_t userId);
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
@@ -113,7 +108,6 @@ private:
     std::string GetInputMethodParam(const std::vector<InputMethodInfo> &properties);
     ServiceRunningState state_;
     void InitServiceHandler();
-    std::atomic_flag dialogLock_ = ATOMIC_FLAG_INIT;
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";

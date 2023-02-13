@@ -123,7 +123,7 @@ HWTEST_F(InputMethodSwitchTest, testIMCSetImeListener, TestSize.Level0)
     auto imc = InputMethodController::GetInstance();
     ASSERT_TRUE(imc != nullptr);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    imc->setImeListener(listener);
+    imc->SetImeListener(listener);
 }
 
 /**

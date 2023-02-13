@@ -95,7 +95,7 @@ std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::GetKeyboar
                 return nullptr;
             }
             keyboardDelegate_ = delegate;
-            InputMethodAbility::GetInstance()->setKdListener(keyboardDelegate_);
+            InputMethodAbility::GetInstance()->SetKdListener(keyboardDelegate_);
         }
     }
     return keyboardDelegate_;

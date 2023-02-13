@@ -18,6 +18,7 @@
 #include "i_input_control_channel.h"
 #include "input_channel.h"
 #include "input_method_agent_proxy.h"
+#include "ipc_skeleton.h"
 #include "message_handler.h"
 #include "message_parcel.h"
 
@@ -31,8 +32,6 @@ InputControlChannelStub::InputControlChannelStub(int userId)
     userId_ = userId;
 }
 
-/** Destructor
- */
 InputControlChannelStub::~InputControlChannelStub()
 {
 }
@@ -45,21 +44,18 @@ InputControlChannelStub::~InputControlChannelStub()
  * @param flags the flags of handling transaction
  * @return int32_t
  */
-/*
- * @
-  */
 int32_t InputControlChannelStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("InputControlChannelStub::OnRemoteRequest code = %{public}u", code);
+    IMSA_HILOGI("InputControlChannelStub, code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code,
+        IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
     switch (code) {
         case HIDE_KEYBOARD_SELF: {
-            int flag = data.ReadInt32();
-            reply.WriteInt32(HideKeyboardSelf(flag));
+            reply.WriteInt32(HideKeyboardSelf(data.ReadInt32()));
             break;
         }
         default: {
@@ -79,7 +75,6 @@ int32_t InputControlChannelStub::HideKeyboardSelf(int flags)
 {
     IMSA_HILOGI("InputControlChannelStub::HideKeyboardSelf flags = %{public}d", flags);
     MessageParcel *parcel = new MessageParcel();
-    parcel->WriteInt32(userId_);
     parcel->WriteInt32(flags);
 
     Message *msg = new Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, parcel);
