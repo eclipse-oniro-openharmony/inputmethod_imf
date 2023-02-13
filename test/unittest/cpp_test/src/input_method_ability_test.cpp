@@ -227,6 +227,9 @@ std::u16string InputMethodAbilityTest::insertText_;
 int InputMethodAbilityTest::key_ = 0;
 int InputMethodAbilityTest::keyboardStatus_;
 bool InputMethodAbilityTest::status_;
+int InputMethodAbilityTest::selectionStart_ = -1;
+int InputMethodAbilityTest::selectionEnd_ = -1;
+int InputMethodAbilityTest::selectionDirection_ = 0;
 sptr<InputMethodController> InputMethodAbilityTest::imc_;
 sptr<InputMethodAbility> InputMethodAbilityTest::inputMethodAbility_;
 
