@@ -201,7 +201,7 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     }
     if (client->AsObject() == remote->AsObject()) {
         int ret = HideKeyboard(client);
-        IMSA_HILOGI("hide keyboard ret: %{public}s", ErrorCode::ToString(ret));
+        IMSA_HILOGI("hide keyboard ret: %{public}d", ret);
     }
     RemoveClient(remote->AsObject());
 }
