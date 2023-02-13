@@ -63,6 +63,7 @@ public:
     static int selectionStart_;
     static int selectionEnd_;
     static int selectionDirection_;
+    static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     static sptr<InputMethodController> imc_;
     static sptr<InputMethodAbility> inputMethodAbility_;
 
@@ -483,10 +484,13 @@ HWTEST_F(InputMethodAbilityTest, testSelectByMovement, TestSize.Level0)
     constexpr int32_t direction = 1;
     auto ret = inputMethodAbility_->SelectByMovement(direction);
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
-    InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
-        [] { return InputMethodAbilityTest::selectionDirection_ == direction; });
+    InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [] {
+        return InputMethodAbilityTest::selectionDirection_
+               == direction + InputMethodAbilityTest::CURSOR_DIRECTION_BASE_VALUE;
+    });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(InputMethodAbilityTest::selectionDirection_, direction);
+    EXPECT_EQ(
+        InputMethodAbilityTest::selectionDirection_, direction + InputMethodAbilityTest::CURSOR_DIRECTION_BASE_VALUE);
 }
 } // namespace MiscServices
 } // namespace OHOS
