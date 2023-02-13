@@ -54,7 +54,7 @@ int32_t InputDataChannelProxy::GetTextBeforeCursor(int32_t number, std::u16strin
 {
     IMSA_HILOGD("InputDataChannelProxy run in");
     return SendRequest(
-        GET_TEXT_BEFORE_CURSOR, [length](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, length); },
+        GET_TEXT_BEFORE_CURSOR, [number](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, number); },
         [&text](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, text);});
 }
 

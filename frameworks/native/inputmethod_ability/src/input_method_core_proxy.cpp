@@ -35,8 +35,8 @@ int32_t InputMethodCoreProxy::InitInputControlChannel(
     sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId)
 {
     IMSA_HILOGD("InputMethodCoreProxy.");
-    return SendRequest(INIT_INPUT_CONTROL_CHANNEL, [&inputDataChannel, &imeId](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, inputDataChannel->AsObject(), imeId);
+    return SendRequest(INIT_INPUT_CONTROL_CHANNEL, [&inputControlChannel, &imeId](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, inputControlChannel->AsObject(), imeId);
     });
 }
 
