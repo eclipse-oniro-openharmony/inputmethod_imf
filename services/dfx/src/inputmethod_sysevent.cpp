@@ -21,12 +21,12 @@ namespace OHOS {
 namespace MiscServices {
 namespace {
 using HiSysEventNameSpace = OHOS::HiviewDFX::HiSysEvent;
-const std::string DOMAIN_STR = std::string(HiSysEventNameSpace::Domain::INPUTMETHOD);
 } // namespace
 
 void FaultReporter(int32_t userId, std::string bundleName, int32_t errCode)
 {
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "SERVICE_INIT_FAILED", HiSysEventNameSpace::EventType::FAULT,
+    int ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD,
+        "SERVICE_INIT_FAILED", HiSysEventNameSpace::EventType::FAULT,
         "USER_ID", userId, "COMPONENT_ID", bundleName, "ERROR_CODE", errCode);
     if (ret != 0) {
         IMSA_HILOGE("hisysevent FaultReporter failed! ret %{public}d,errCode %{public}d", ret, errCode);
@@ -35,7 +35,8 @@ void FaultReporter(int32_t userId, std::string bundleName, int32_t errCode)
 
 void CreateComponentFailed(int32_t userId, int32_t errCode)
 {
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "CREATE_COMPONENT_FAILED", HiSysEventNameSpace::EventType::FAULT,
+    int ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD,
+        "CREATE_COMPONENT_FAILED", HiSysEventNameSpace::EventType::FAULT,
         "USER_ID", userId, "ERROR_CODE", errCode);
     if (ret != 0) {
         IMSA_HILOGE("hisysevent CreateComponentFailed failed! ret %{public}d,errCode %{public}d", ret, errCode);
@@ -44,7 +45,8 @@ void CreateComponentFailed(int32_t userId, int32_t errCode)
 
 void BehaviourReporter(std::string ActiveName, const std::string &inputmethodName)
 {
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "INPUTMETHOD_USING", HiSysEventNameSpace::EventType::BEHAVIOR,
+    int ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "INPUTMETHOD_USING",
+        HiSysEventNameSpace::EventType::BEHAVIOR,
         "ACTIVE_NAME", ActiveName, "INPUTMETHOD_NAME", inputmethodName);
     if (ret != 0) {
         IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
