@@ -571,10 +571,6 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleN
 {
     IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod");
     std::string targetIme = bundleName + "/" + name;
-    if (!IsImeInstalled(userId_, targetIme)) {
-        IMSA_HILOGE("targetIme is not installed");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
     auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
     auto &currentIme = cfg.currentIme;
     if (currentIme.empty()) {
@@ -977,6 +973,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
     }
     // 用户移除也会有该通知，如果移除的app用户不是当前用户，则不处理
     if (userId != userId_) {
+        IMSA_HILOGI("InputMethodSystemAbility::userId: %{public}d, currentUserId: %{public}d,", userId, userId_);
         return ErrorCode::NO_ERROR;
     }
     auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId);
