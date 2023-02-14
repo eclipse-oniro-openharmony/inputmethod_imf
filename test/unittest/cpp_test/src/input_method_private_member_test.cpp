@@ -273,7 +273,7 @@ HWTEST_F(InputMethodPrivateMemberTest, IMC_ListInputMethodCommonWithErrorStatus,
 // input_method_controller.h
 /**
 * @tc.name: testGetTextAfterCursor_001
-* @tc.desc: mSelectNewEnd > size()
+* @tc.desc: mSelectNewBegin = mSelectNewEnd> size()
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
@@ -282,6 +282,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_001, TestSize.Leve
     IMSA_HILOGI("IMC testGetTextAfterCursor_001 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 10;
     imc.mSelectNewEnd = 10;
     int32_t number = 3;
     std::u16string text;
@@ -292,7 +293,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_001, TestSize.Leve
 
 /**
 * @tc.name: testGetTextAfterCursor_002
-* @tc.desc: mSelectNewEnd < size() && size() - mSelectNewEnd > number
+* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin > size()
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
@@ -301,17 +302,18 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_002, TestSize.Leve
     IMSA_HILOGI("IMC testGetTextAfterCursor_002 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
-    imc.mSelectNewEnd = 3;
+    imc.mSelectNewBegin = 11;
+    imc.mSelectNewEnd = 9;
     int32_t number = 3;
     std::u16string text;
     auto ret = imc.GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"們dd");
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+    EXPECT_EQ(text, u"");
 }
 
 /**
 * @tc.name: testGetTextAfterCursor_003
-* @tc.desc: mSelectNewEnd < size() && size() - mSelectNewEnd < number
+* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd > size()
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
@@ -320,17 +322,18 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_003, TestSize.Leve
     IMSA_HILOGI("IMC testGetTextAfterCursor_003 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
-    imc.mSelectNewEnd = 3;
-    int32_t number = 8;
+    imc.mSelectNewBegin = 9;
+    imc.mSelectNewEnd = 11;
+    int32_t number = 3;
     std::u16string text;
     auto ret = imc.GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"們ddddd");
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+    EXPECT_EQ(text, u"");
 }
 
 /**
 * @tc.name: testGetTextAfterCursor_004
-* @tc.desc: mSelectNewEnd < size() && size() - mSelectNewEnd == number
+* @tc.desc: mSelectNewBegin = mSelectNewEnd < size(), mSelectNewEnd + number > size()
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
@@ -339,17 +342,18 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_004, TestSize.Leve
     IMSA_HILOGI("IMC testGetTextAfterCursor_004 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
-    imc.mSelectNewEnd = 3;
-    int32_t number = 6;
+    imc.mSelectNewBegin = 8;
+    imc.mSelectNewEnd = 8;
+    int32_t number = 3;
     std::u16string text;
     auto ret = imc.GetTextAfterCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"們ddddd");
+    EXPECT_EQ(text, u"d");
 }
 
 /**
 * @tc.name: testGetTextAfterCursor_005
-* @tc.desc: mSelectNewEnd == size() > 0
+* @tc.desc: mSelectNewBegin = mSelectNewEnd = size(), mSelectNewEnd + number > size()
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
@@ -358,8 +362,9 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_005, TestSize.Leve
     IMSA_HILOGI("IMC testGetTextAfterCursor_005 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 9;
     imc.mSelectNewEnd = 9;
-    int32_t number = 8;
+    int32_t number = 3;
     std::u16string text;
     auto ret = imc.GetTextAfterCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -368,7 +373,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_005, TestSize.Leve
 
 /**
 * @tc.name: testGetTextAfterCursor_006
-* @tc.desc: mSelectNewEnd == size() = 0
+* @tc.desc: mSelectNewBegin = mSelectNewEnd < size(), mSelectNewEnd + number < size()
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
@@ -376,18 +381,19 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_006, TestSize.Leve
 {
     IMSA_HILOGI("IMC testGetTextAfterCursor_006 START");
     InputMethodController imc;
-    imc.mTextString = u"";
-    imc.mSelectNewEnd = 0;
-    int32_t number = 8;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 4;
+    imc.mSelectNewEnd = 4;
+    int32_t number = 3;
     std::u16string text;
     auto ret = imc.GetTextAfterCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"");
+    EXPECT_EQ(text, u"ddd");
 }
 
 /**
 * @tc.name: testGetTextAfterCursor_007
-* @tc.desc: number < 0
+* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewBegin + number < size()
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
@@ -396,17 +402,18 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_007, TestSize.Leve
     IMSA_HILOGI("IMC testGetTextAfterCursor_007 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
-    imc.mSelectNewEnd = 10;
-    int32_t number = -10;
+    imc.mSelectNewBegin = 4;
+    imc.mSelectNewEnd = 3;
+    int32_t number = 3;
     std::u16string text;
     auto ret = imc.GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    EXPECT_EQ(text, u"");
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"ddd");
 }
 
 /**
 * @tc.name: testGetTextAfterCursor_008
-* @tc.desc: mSelectNewEnd < 0
+* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewBegin + number = size()
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
@@ -415,17 +422,98 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_008, TestSize.Leve
     IMSA_HILOGI("IMC testGetTextAfterCursor_008 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
-    imc.mSelectNewEnd = -2;
-    int32_t number = 6;
+    imc.mSelectNewBegin = 4;
+    imc.mSelectNewEnd = 3;
+    int32_t number = 5;
     std::u16string text;
     auto ret = imc.GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    EXPECT_EQ(text, u"");
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"ddddd");
+}
+
+/**
+* @tc.name: testGetTextAfterCursor_009
+* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewBegin + number > size()
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_009, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextAfterCursor_009 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 4;
+    imc.mSelectNewEnd = 3;
+    int32_t number = 7;
+    std::u16string text;
+    auto ret = imc.GetTextAfterCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"ddddd");
+}
+
+/**
+* @tc.name: testGetTextAfterCursor_0010
+* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewEnd + number < size()
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_0010, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextAfterCursor_0010 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 3;
+    imc.mSelectNewEnd = 4;
+    int32_t number = 3;
+    std::u16string text;
+    auto ret = imc.GetTextAfterCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"ddd");
+}
+
+/**
+* @tc.name: testGetTextAfterCursor_0011
+* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewEnd + number = size()
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_0011, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextAfterCursor_0011 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 3;
+    imc.mSelectNewEnd = 4;
+    int32_t number = 5;
+    std::u16string text;
+    auto ret = imc.GetTextAfterCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"ddddd");
+}
+
+/**
+* @tc.name: testGetTextAfterCursor_0012
+* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewEnd + number > size()
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextAfterCursor_0012, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextAfterCursor_0012 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 3;
+    imc.mSelectNewEnd = 4;
+    int32_t number = 7;
+    std::u16string text;
+    auto ret = imc.GetTextAfterCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"ddddd");
 }
 
 /**
 * @tc.name: testGetTextBeforeCursor_001
-* @tc.desc: mSelectNewEnd > size()
+* @tc.desc: mSelectNewBegin = mSelectNewEnd> size()
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
@@ -434,6 +522,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_001, TestSize.Lev
     IMSA_HILOGI("IMC testGetTextBeforeCursor_001 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 10;
     imc.mSelectNewEnd = 10;
     int32_t number = 3;
     std::u16string text;
@@ -444,7 +533,7 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_001, TestSize.Lev
 
 /**
 * @tc.name: testGetTextBeforeCursor_002
-* @tc.desc: mSelectNewEnd < size() && mSelectNewEnd - number > 0
+* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin > size()
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
@@ -453,6 +542,167 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_002, TestSize.Lev
     IMSA_HILOGI("IMC testGetTextBeforeCursor_002 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 11;
+    imc.mSelectNewEnd = 9;
+    int32_t number = 3;
+    std::u16string text;
+    auto ret = imc.GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+    EXPECT_EQ(text, u"");
+}
+
+/**
+* @tc.name: testGetTextBeforeCursor_003
+* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd > size()
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_003, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_003 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 9;
+    imc.mSelectNewEnd = 11;
+    int32_t number = 3;
+    std::u16string text;
+    auto ret = imc.GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+    EXPECT_EQ(text, u"");
+}
+
+/**
+* @tc.name: testGetTextBeforeCursor_004
+* @tc.desc: mSelectNewBegin = mSelectNewEnd < size(), number < mSelectNewBegin
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_004, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_004 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 8;
+    imc.mSelectNewEnd = 8;
+    int32_t number = 3;
+    std::u16string text;
+    auto ret = imc.GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"ddd");
+}
+
+/**
+* @tc.name: testGetTextBeforeCursor_005
+* @tc.desc: mSelectNewBegin = mSelectNewEnd < size(), number = mSelectNewBegin
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_005, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_005 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 8;
+    imc.mSelectNewEnd = 8;
+    int32_t number = 8;
+    std::u16string text;
+    auto ret = imc.GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"我們我們dddd");
+}
+
+/**
+* @tc.name: testGetTextBeforeCursor_006
+* @tc.desc: mSelectNewBegin = mSelectNewEnd < size(), number > mSelectNewBegin
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_006, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_006 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 8;
+    imc.mSelectNewEnd = 8;
+    int32_t number = 9;
+    std::u16string text;
+    auto ret = imc.GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"我們我們dddd");
+}
+
+/**
+* @tc.name: testGetTextBeforeCursor_007
+* @tc.desc: mSelectNewBegin = mSelectNewEnd = size() = number
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_007, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_007 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 9;
+    imc.mSelectNewEnd = 9;
+    int32_t number = 9;
+    std::u16string text;
+    auto ret = imc.GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"我們我們ddddd");
+}
+
+/**
+* @tc.name: testGetTextBeforeCursor_008
+* @tc.desc: number < mSelectNewBegin = mSelectNewEnd = size()
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_008, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_008 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 9;
+    imc.mSelectNewEnd = 9;
+    int32_t number = 6;
+    std::u16string text;
+    auto ret = imc.GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"們ddddd");
+}
+
+/**
+* @tc.name: testGetTextBeforeCursor_009
+* @tc.desc: number > mSelectNewBegin = mSelectNewEnd = size()
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_009, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_009 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 9;
+    imc.mSelectNewEnd = 9;
+    int32_t number = 11;
+    std::u16string text;
+    auto ret = imc.GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"我們我們ddddd");
+}
+
+/**
+* @tc.name: testGetTextBeforeCursor_0010
+* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewEnd > number
+* @tc.type: FUNC
+* @tc.require: issuesI6CXS2
+*/
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_0010, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_0010 START");
+    InputMethodController imc;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 4;
     imc.mSelectNewEnd = 3;
     int32_t number = 2;
     std::u16string text;
@@ -462,16 +712,17 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_002, TestSize.Lev
 }
 
 /**
-* @tc.name: testGetTextBeforeCursor_003
-* @tc.desc: mSelectNewEnd < size() && mSelectNewEnd - number == 0
+* @tc.name: testGetTextBeforeCursor_0011
+* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewEnd = number
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
-HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_003, TestSize.Level0)
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_0011, TestSize.Level0)
 {
-    IMSA_HILOGI("IMC testGetTextBeforeCursor_003 START");
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_0011 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 4;
     imc.mSelectNewEnd = 3;
     int32_t number = 3;
     std::u16string text;
@@ -481,18 +732,19 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_003, TestSize.Lev
 }
 
 /**
-* @tc.name: testGetTextBeforeCursor_004
-* @tc.desc: mSelectNewEnd < size() && mSelectNewEnd - number < 0
+* @tc.name: testGetTextBeforeCursor_0012
+* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewEnd < number
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
-HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_004, TestSize.Level0)
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_0012, TestSize.Level0)
 {
-    IMSA_HILOGI("IMC testGetTextBeforeCursor_004 START");
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_0012 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 4;
     imc.mSelectNewEnd = 3;
-    int32_t number = 6;
+    int32_t number = 4;
     std::u16string text;
     auto ret = imc.GetTextBeforeCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -500,80 +752,63 @@ HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_004, TestSize.Lev
 }
 
 /**
-* @tc.name: testGetTextBeforeCursor_005
-* @tc.desc: size() > 0 && mSelectNewEnd = 0 && number > 0
+* @tc.name: testGetTextBeforeCursor_0013
+* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewBegin > number
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
-HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_005, TestSize.Level0)
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_0013, TestSize.Level0)
 {
-    IMSA_HILOGI("IMC testGetTextBeforeCursor_005 START");
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_0013 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
-    imc.mSelectNewEnd = 0;
-    int32_t number = 8;
+    imc.mSelectNewBegin = 3;
+    imc.mSelectNewEnd = 4;
+    int32_t number = 2;
     std::u16string text;
     auto ret = imc.GetTextBeforeCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"");
+    EXPECT_EQ(text, u"們我");
 }
 
 /**
-* @tc.name: testGetTextBeforeCursor_006
-* @tc.desc: mSelectNewEnd == size() = 0 && number > 0
+* @tc.name: testGetTextBeforeCursor_0014
+* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewBegin = number
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
-HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_006, TestSize.Level0)
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_0014, TestSize.Level0)
 {
-    IMSA_HILOGI("IMC testGetTextBeforeCursor_006 START");
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_0014 START");
     InputMethodController imc;
-    imc.mTextString = u"";
-    imc.mSelectNewEnd = 0;
-    int32_t number = 8;
+    imc.mTextString = Str8ToStr16(g_textTemp);
+    imc.mSelectNewBegin = 3;
+    imc.mSelectNewEnd = 4;
+    int32_t number = 3;
     std::u16string text;
     auto ret = imc.GetTextBeforeCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"");
+    EXPECT_EQ(text, u"我們我");
 }
 
 /**
-* @tc.name: testGetTextBeforeCursor_007
-* @tc.desc: number < 0
+* @tc.name: testGetTextBeforeCursor_0015
+* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewBegin < number
 * @tc.type: FUNC
 * @tc.require: issuesI6CXS2
 */
-HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_007, TestSize.Level0)
+HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_0015, TestSize.Level0)
 {
-    IMSA_HILOGI("IMC testGetTextBeforeCursor_007 START");
+    IMSA_HILOGI("IMC testGetTextBeforeCursor_0015 START");
     InputMethodController imc;
     imc.mTextString = Str8ToStr16(g_textTemp);
-    imc.mSelectNewEnd = 10;
-    int32_t number = -10;
+    imc.mSelectNewBegin = 3;
+    imc.mSelectNewEnd = 4;
+    int32_t number = 4;
     std::u16string text;
     auto ret = imc.GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    EXPECT_EQ(text, u"");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_008
-* @tc.desc: mSelectNewEnd < 0
-* @tc.type: FUNC
-* @tc.require: issuesI6CXS2
-*/
-HWTEST_F(InputMethodPrivateMemberTest, testGetTextBeforeCursor_008, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC testGetTextBeforeCursor_008 START");
-    InputMethodController imc;
-    imc.mTextString = Str8ToStr16(g_textTemp);
-    imc.mSelectNewEnd = -2;
-    int32_t number = 6;
-    std::u16string text;
-    IMSA_HILOGI("IMC testGetTextBeforeCursor_008 text = %{public}s", Str16ToStr8(text).c_str());
-    auto ret = imc.GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    EXPECT_EQ(text, u"");
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"我們我");
 }
 } // namespace MiscServices
 } // namespace OHOS
