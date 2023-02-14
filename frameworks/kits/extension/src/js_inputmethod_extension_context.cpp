@@ -280,7 +280,7 @@ private:
                 return;
             }
             IMSA_HILOGI("context->ConnectAbility connection:%{public}d", (int32_t)connectId);
-            if (context == nullptr->ConnectAbility(want, connection)) {
+            if (!context->ConnectAbility(want, connection)) {
                 connection->CallJsFailed(ERROR_CODE_ONE);
             }
             task.Resolve(engine, engine.CreateUndefined());
@@ -336,7 +336,7 @@ private:
                 return;
             }
             IMSA_HILOGI("context->ConnectAbilityWithAccount connection:%{public}d", (int32_t)connectId);
-            if (context == nullptr->ConnectAbilityWithAccount(want, accountId, connection)) {
+            if (!context->ConnectAbilityWithAccount(want, accountId, connection)) {
                 connection->CallJsFailed(ERROR_CODE_ONE);
             }
             task.Resolve(engine, engine.CreateUndefined());
@@ -462,7 +462,7 @@ NativeValue *CreateJsInputMethodExtensionContext(
     NativeEngine &engine, std::shared_ptr<InputMethodExtensionContext> context)
 {
     IMSA_HILOGI("CreateJsInputMethodExtensionContext begin");
-    context != nullptr {
+    if (context != nullptr) {
         auto abilityInfo = context->GetAbilityInfo();
     }
     NativeValue *objValue = CreateJsExtensionContext(engine, context);
