@@ -15,13 +15,14 @@
 
 #include "input_method_ability.h"
 
+#include <gtest/gtest.h>
+#include <string_ex.h>
+#include <unistd.h>
+
 #include <cstdint>
 #include <functional>
-#include <gtest/gtest.h>
 #include <string>
-#include <string_ex.h>
 #include <thread>
-#include <unistd.h>
 #include <vector>
 
 #include "accesstoken_kit.h"
@@ -60,6 +61,10 @@ public:
     static int key_;
     static int keyboardStatus_;
     static bool status_;
+    static int selectionStart_;
+    static int selectionEnd_;
+    static int selectionDirection_;
+    static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     static sptr<InputMethodController> imc_;
     static sptr<InputMethodAbility> inputMethodAbility_;
 
@@ -145,6 +150,11 @@ public:
 
         void HandleSetSelection(int32_t start, int32_t end) override
         {
+            selectionStart_ = start;
+            selectionEnd_ = end;
+            InputMethodAbilityTest::textListenerCv_.notify_one();
+            IMSA_HILOGI("TextChangeListener, selectionStart_: %{public}d, selectionEnd_: %{public}d", selectionStart_,
+                selectionEnd_);
         }
 
         void HandleExtendAction(int32_t action) override
@@ -153,6 +163,9 @@ public:
 
         void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override
         {
+            selectionDirection_ = keyCode;
+            InputMethodAbilityTest::textListenerCv_.notify_one();
+            IMSA_HILOGI("TextChangeListener, selectionDirection_: %{public}d", selectionDirection_);
         }
     };
     static void GrantPermission()
@@ -216,6 +229,9 @@ std::u16string InputMethodAbilityTest::insertText_;
 int InputMethodAbilityTest::key_ = 0;
 int InputMethodAbilityTest::keyboardStatus_;
 bool InputMethodAbilityTest::status_;
+int InputMethodAbilityTest::selectionStart_ = -1;
+int InputMethodAbilityTest::selectionEnd_ = -1;
+int InputMethodAbilityTest::selectionDirection_ = 0;
 sptr<InputMethodController> InputMethodAbilityTest::imc_;
 sptr<InputMethodAbility> InputMethodAbilityTest::inputMethodAbility_;
 
@@ -412,6 +428,50 @@ HWTEST_F(InputMethodAbilityTest, testGetEnterKeyType, TestSize.Level0)
     ret = inputMethodAbility_->GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(inputPattern, (int)textInputType);
+}
+
+/**
+* @tc.name: testSelectByRange
+* @tc.desc: InputMethodAbility SelectByRange
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: Zhaolinglan
+*/
+HWTEST_F(InputMethodAbilityTest, testSelectByRange, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testSelectByRange START");
+    constexpr int32_t start = 1;
+    constexpr int32_t end = 2;
+    auto ret = inputMethodAbility_->SelectByRange(start, end);
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [] {
+        return InputMethodAbilityTest::selectionStart_ == start && InputMethodAbilityTest::selectionEnd_ == end;
+    });
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodAbilityTest::selectionStart_, start);
+    EXPECT_EQ(InputMethodAbilityTest::selectionEnd_, end);
+}
+
+/**
+* @tc.name: testSelectByMovement
+* @tc.desc: InputMethodAbility SelectByMovement
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: Zhaolinglan
+*/
+HWTEST_F(InputMethodAbilityTest, testSelectByMovement, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testSelectByMovement START");
+    constexpr int32_t direction = 1;
+    auto ret = inputMethodAbility_->SelectByMovement(direction);
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [] {
+        return InputMethodAbilityTest::selectionDirection_
+               == direction + InputMethodAbilityTest::CURSOR_DIRECTION_BASE_VALUE;
+    });
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(
+        InputMethodAbilityTest::selectionDirection_, direction + InputMethodAbilityTest::CURSOR_DIRECTION_BASE_VALUE);
 }
 
 /**
