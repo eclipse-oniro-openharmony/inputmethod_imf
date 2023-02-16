@@ -269,7 +269,6 @@ private:
         } else {
             serialNumber_ = 0;
         }
-        IMSA_HILOGI("%{public}s not find connection, make new one:%{public}p.", __func__, connection.GetRefPtr());
         AsyncTask::CompleteCallback complete = [weak = context_, want, connection, connectId](
                                                    NativeEngine &engine, AsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnConnectAbility begin");
@@ -325,7 +324,6 @@ private:
         } else {
             serialNumber_ = 0;
         }
-        IMSA_HILOGI("%{public}s not find connection, make new one:%{public}p.", __func__, connection.GetRefPtr());
         AsyncTask::CompleteCallback complete = [weak = context_, want, accountId, connection, connectId](
                                                    NativeEngine &engine, AsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnConnectAbilityWithAccount begin");
@@ -371,10 +369,7 @@ private:
             // match id
             want = item->first.want;
             connection = item->second;
-            IMSA_HILOGI("%{public}s find conn ability:%{public}p exist", __func__, item->second.GetRefPtr());
-        } else {
-            IMSA_HILOGI("%{public}s not find conn exist.", __func__);
-        }
+        } 
         // begin disconnect
         AsyncTask::CompleteCallback complete = [weak = context_, want, connection](
                                                    NativeEngine &engine, AsyncTask &task, int32_t status) {
