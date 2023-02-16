@@ -587,7 +587,7 @@ void InputMethodController::HandleGetOperation()
     mInputDataChannel->NotifyGetOperationCompletion();
 }
 
-bool InputMethodController::isCorrectParam(int32_t number)
+bool InputMethodController::IsCorrectParam(int32_t number)
 {
     if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0 || mSelectNewBegin < 0) {
         IMSA_HILOGE("InputMethodController::param error, number: %{public}d, begin: %{public}d, end: %{public}d",
@@ -611,7 +611,7 @@ int32_t InputMethodController::GetTextBeforeCursor(int32_t number, std::u16strin
 {
     IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
     text = u"";
-    if (!isCorrectParam(number)) {
+    if (!IsCorrectParam(number)) {
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
     int32_t startPos = (number <= mSelectNewBegin ? (mSelectNewBegin - number) : 0);
@@ -624,7 +624,7 @@ int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string
 {
     IMSA_HILOGI("InputMethodController::GetTextAfterCursor");
     text = u"";
-    if (!isCorrectParam(number)) {
+    if (!IsCorrectParam(number)) {
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
     text = mTextString.substr(mSelectNewEnd, number);
