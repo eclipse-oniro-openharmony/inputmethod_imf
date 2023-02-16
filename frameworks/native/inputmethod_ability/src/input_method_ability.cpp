@@ -282,7 +282,7 @@ void InputMethodAbility::OnCursorUpdate(Message *msg)
     int32_t positionX = data->ReadInt32();
     int32_t positionY = data->ReadInt32();
     int32_t height = data->ReadInt32();
-    if (imeListener_ == nullptr) {
+    if (kdListener_ == nullptr) {
         IMSA_HILOGI("InputMethodAbility::OnCursorUpdate kdListener_ is nullptr");
         return;
     }
@@ -299,7 +299,7 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
     int32_t newBegin = data->ReadInt32();
     int32_t newEnd = data->ReadInt32();
 
-    if (imeListener_ == nullptr) {
+    if (kdListener_ == nullptr) {
         IMSA_HILOGI("InputMethodAbility::OnSelectionChange kdListener_ is nullptr");
         return;
     }
