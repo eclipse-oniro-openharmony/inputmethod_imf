@@ -25,12 +25,6 @@
 #include "message_parcel.h"
 #include "parcel.h"
 
-/*!@class InputControlChannelProxy
- *
- * @brief The proxy implementation of IInputControlChannel
- *
- * This class should be implemented by input method service
- */
 namespace OHOS {
 namespace MiscServices {
 InputControlChannelProxy::InputControlChannelProxy(const sptr<IRemoteObject> &impl)

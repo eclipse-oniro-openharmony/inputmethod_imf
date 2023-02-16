@@ -24,9 +24,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-/** Constructor
- * @param userId the id of the user to whom the object is linking
- */
 InputControlChannelStub::InputControlChannelStub(int userId)
 {
     userId_ = userId;
@@ -36,18 +33,10 @@ InputControlChannelStub::~InputControlChannelStub()
 {
 }
 
-/** Handle the transaction from the remote binder
- * @n Run in binder thread
- * @param code transaction code number
- * @param data the params from remote binder
- * @param[out] reply the result of the transaction replied to the remote binder
- * @param flags the flags of handling transaction
- * @return int32_t
- */
 int32_t InputControlChannelStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("InputControlChannelStub, code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code,
+    IMSA_HILOGD("InputControlChannelStub, code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
@@ -65,12 +54,6 @@ int32_t InputControlChannelStub::OnRemoteRequest(
     return NO_ERROR;
 }
 
-/**
- * @n This call is running in binder thread,
- *    but the handling of HideKeyboardSelf is in the work thread of PerUserSession.
- * @see PerUserSession::OnHideKeyboardSelf
- * @param flags the flag value of hiding keyboard
-  */
 int32_t InputControlChannelStub::HideKeyboardSelf(int flags)
 {
     IMSA_HILOGI("InputControlChannelStub::HideKeyboardSelf flags = %{public}d", flags);

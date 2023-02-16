@@ -68,7 +68,7 @@ struct ResetManager {
     time_t last{};
 };
 
-/*!@class PerUserSession
+/**@class PerUserSession
  *
  * @brief The class provides session management in input method management service
  *

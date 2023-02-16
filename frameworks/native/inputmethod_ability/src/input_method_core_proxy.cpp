@@ -63,11 +63,7 @@ bool InputMethodCoreProxy::HideKeyboard(int32_t flags)
     auto status = SendRequest(HIDE_KEYBOARD, [flags](MessageParcel &data) {
         return ITypesUtil::Marshal(data, flags);
     });
-    // todo 这里根本不需要返回bool值。
-    if (status != ErrorCode::NO_ERROR) {
-        return false;
-    }
-    return true;
+    return status == ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)

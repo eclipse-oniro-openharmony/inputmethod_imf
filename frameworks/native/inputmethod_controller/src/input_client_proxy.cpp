@@ -42,7 +42,7 @@ int32_t InputClientProxy::OnInputReady(const sptr<IInputMethodAgent> &agent)
     auto ret = Remote()->SendRequest(ON_INPUT_READY, data, reply, option);
     if (ret != NO_ERROR) {
         IMSA_HILOGI("InputClientProxy::onInputReady SendRequest failed");
-        return ERROR_EX_PARCELABLE;
+        return ret;
     }
 
     return NO_ERROR;

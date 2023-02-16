@@ -85,8 +85,8 @@ private:
     std::shared_ptr<PerUserSession> userSession_ = nullptr;
 
     void WorkThread();
-    bool StartInputService(std::string imeId);
-    void StopInputService(std::string imeId);
+    bool StartInputService(const std::string &imeId);
+    void StopInputService(const std::string &imeId);
     int32_t OnUserStarted(const Message *msg);
     int32_t OnUserRemoved(const Message *msg);
     int32_t OnPackageRemoved(const Message *msg);

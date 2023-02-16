@@ -101,7 +101,7 @@ void PerUserSession::UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKe
     it->second->isShowKeyBoard = isShowKeyboard;
 }
 
-/*! Remove an input client
+/** Remove an input client
  * @param inputClient remote object handler of the input client
  * @return ErrorCode::NO_ERROR no error
  * @return ErrorCode::ERROR_CLIENT_NOT_FOUND client is not found
@@ -124,7 +124,7 @@ void PerUserSession::RemoveClient(sptr<IRemoteObject> inputClient)
     mapClients.erase(it);
 }
 
-/*! Show keyboard
+/** Show keyboard
  * @param inputClient the remote object handler of the input client.
  * @return ErrorCode::NO_ERROR no error
  * @return ErrorCode::ERROR_IME_NOT_STARTED ime not started
@@ -160,7 +160,7 @@ int PerUserSession::ShowKeyboard(const sptr<IInputClient> &inputClient, bool isS
     return ErrorCode::NO_ERROR;
 }
 
-/*! hide keyboard
+/** hide keyboard
  * @param inputClient the remote object handler of the input client.
  * @return ErrorCode::NO_ERROR no error
  * @return ErrorCode::ERROR_IME_NOT_STARTED ime not started
@@ -186,7 +186,7 @@ int PerUserSession::HideKeyboard(const sptr<IInputClient> &inputClient)
     return ErrorCode::NO_ERROR;
 }
 
-/*! Handle the situation a remote input client died.
+/** Handle the situation a remote input client died.
  * It's called when a remote input client died
  * @param the remote object handler of the input client died.
  */
@@ -206,7 +206,7 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     RemoveClient(remote->AsObject());
 }
 
-/*! Handle the situation a input method service died
+/** Handle the situation a input method service died
  * It's called when an input method service died
  * @param the remote object handler of input method service who died.
  */
@@ -256,7 +256,7 @@ void PerUserSession::UpdateCurrentUserId(int32_t userId)
     userId_ = userId;
 }
 
-/*! Hide current keyboard
+/** Hide current keyboard
  * @param flag the flag to hide keyboard.
  */
 int PerUserSession::OnHideKeyboardSelf()
@@ -281,7 +281,7 @@ int PerUserSession::OnShowKeyboardSelf()
     return ShowKeyboard(client, true);
 }
 
-/*! Get ime index for the input client
+/** Get ime index for the input client
  * @param inputClient the remote object handler of an input client.
  * @return 0 - default ime
  * @return 1 - security ime
@@ -306,7 +306,7 @@ int PerUserSession::GetImeIndex(const sptr<IInputClient> &inputClient)
     return CURRENT_IME;
 }
 
-/*! Get ClientInfo
+/** Get ClientInfo
  * @param inputClient the IRemoteObject remote handler of given input client
  * @return a pointer of ClientInfo if client is found
  *         null if client is not found
@@ -327,7 +327,7 @@ std::shared_ptr<ClientInfo> PerUserSession::GetClientInfo(sptr<IRemoteObject> in
     return it->second;
 }
 
-/*! Prepare input. Called by an input client.
+/** Prepare input. Called by an input client.
     \n Run in work thread of this user
     \param the parameters from remote client
     \return ErrorCode
@@ -355,7 +355,7 @@ void PerUserSession::SendAgentToSingleClient(const ClientInfo &clientInfo)
     clientInfo.client->OnInputReady(imsAgent);
 }
 
-/*! Release input. Called by an input client.Run in work thread of this user
+/** Release input. Called by an input client.Run in work thread of this user
  * @param the parameters from remote client
  * @return ErrorCode
  */
@@ -372,7 +372,7 @@ int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
     return ErrorCode::NO_ERROR;
 }
 
-/*! Start input. Called by an input client. Run in work thread of this user
+/** Start input. Called by an input client. Run in work thread of this user
  * @param the parameters from remote client
  * @return ErrorCode
  */
@@ -442,7 +442,7 @@ void PerUserSession::InitInputControlChannel()
     }
 }
 
-/*! Stop input. Called by an input client. Run in work thread of this user
+/** Stop input. Called by an input client. Run in work thread of this user
  * @param the parameters from remote client
  * @return ErrorCode
  */

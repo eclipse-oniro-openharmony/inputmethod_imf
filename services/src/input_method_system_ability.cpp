@@ -219,7 +219,7 @@ void InputMethodSystemAbility::StartUserIdListener()
     serviceHandler_->PostTask(callback, INIT_INTERVAL);
 }
 
-bool InputMethodSystemAbility::StartInputService(std::string imeId)
+bool InputMethodSystemAbility::StartInputService(const std::string &imeId)
 {
     IMSA_HILOGI("InputMethodSystemAbility, ime:%{public}s", imeId.c_str());
     bool isStartSuccess = false;
@@ -247,7 +247,7 @@ bool InputMethodSystemAbility::StartInputService(std::string imeId)
     return isStartSuccess;
 }
 
-void InputMethodSystemAbility::StopInputService(std::string imeId)
+void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 {
     IMSA_HILOGE("InputMethodSystemAbility::StopInputService(%{public}s)", imeId.c_str());
     if (userSession_ == nullptr) {
@@ -439,7 +439,7 @@ int32_t InputMethodSystemAbility::ListSubtypeByBundleName(
             subProperty.mode = property.mode;
             subProperty.locale = property.locale;
             subProperty.icon = property.icon;
-            subProps.push_back(subProperty);
+            subProps.emplace_back(subProperty);
         }
     }
     return ErrorCode::NO_ERROR;
@@ -641,7 +641,7 @@ std::vector<InputMethodInfo> InputMethodSystemAbility::ListInputMethodInfo(int32
     }
     std::vector<InputMethodInfo> properties;
     for (const auto &extension : extensionInfos) {
-        auto resourceManager = Global::Resource::CreateResourceManager();
+        std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
         if (resourceManager == nullptr) {
             IMSA_HILOGE("InputMethodSystemAbility::ListInputMethodInfo resourcemanager is nullptr");
             break;

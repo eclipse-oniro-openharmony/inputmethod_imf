@@ -27,22 +27,12 @@ InputChannel::~InputChannel()
 {
 }
 
-/*! Write InputChannel to parcel
- * @param[out] parcel the data of InputChannel is written to this parcel returned to caller
- * @return ErrorCode::NO_ERROR
- * @return ErrorCode::ERROR_NULL_POINTER parcel is null
- */
 bool InputChannel::Marshalling(Parcel &parcel) const
 {
     parcel.ParseFrom(inputChannelParcel.GetData(), inputChannelParcel.GetDataSize());
     return NO_ERROR;
 }
 
-/*! Get InputChannel from parcel
- * @param parcel get the data of InputChannel from this parcel
- * @return ErrorCode::NO_ERROR
- * @return ErrorCode::ERROR_NULL_POINTER parcel is null
- */
 InputChannel *InputChannel::Unmarshalling(Parcel &parcel)
 {
     auto inputChannel = new InputChannel();
