@@ -128,7 +128,7 @@ private:
 
     int32_t QueryImeInfos(int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &infos);
     bool IsImeInstalled(int32_t userId, std::string &imeId);
-    std::string GetNewUserIme(int32_t userId);
+    std::string GetStartedIme(int32_t userId);
 };
 } // namespace MiscServices
 } // namespace OHOS
