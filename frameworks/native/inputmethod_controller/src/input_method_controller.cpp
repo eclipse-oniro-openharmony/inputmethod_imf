@@ -529,7 +529,7 @@ void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 
 void InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
 {
-    IMSA_HILOGI("size: %{public}lu, start: %{public}d, end: %{public}d, replyCount: %{public}d", text.size(), start,
+    IMSA_HILOGI("size: %{public}zu, start: %{public}d, end: %{public}d, replyCount: %{public}d", text.size(), start,
         end, textFieldReplyCount_);
     if (isStopInput) {
         IMSA_HILOGD("InputMethodController::OnSelectionChange isStopInput");
@@ -587,23 +587,31 @@ void InputMethodController::HandleGetOperation()
     mInputDataChannel->NotifyGetOperationCompletion();
 }
 
-int32_t InputMethodController::GetTextBeforeCursor(int32_t number, std::u16string &text)
+bool InputMethodController::isCorrectParam(int32_t number)
 {
-    IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
-    text = u"";
     if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0 || mSelectNewBegin < 0) {
         IMSA_HILOGE("InputMethodController::param error, number: %{public}d, begin: %{public}d, end: %{public}d",
             number, mSelectNewBegin, mSelectNewEnd);
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+        return false;
     }
     if (mSelectNewBegin > mSelectNewEnd) {
         int32_t temp = mSelectNewEnd;
         mSelectNewEnd = mSelectNewBegin;
         mSelectNewBegin = temp;
     }
-    if (mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
-        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}u", mSelectNewEnd,
+    if (static_cast<size_t>(mSelectNewEnd) > mTextString.size()) {
+        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}zu", mSelectNewEnd,
             mTextString.size());
+        return false;
+    }
+    return true;
+}
+
+int32_t InputMethodController::GetTextBeforeCursor(int32_t number, std::u16string &text)
+{
+    IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
+    text = u"";
+    if (!isCorrectParam(number)) {
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
     int32_t startPos = (number <= mSelectNewBegin ? (mSelectNewBegin - number) : 0);
@@ -616,19 +624,7 @@ int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string
 {
     IMSA_HILOGI("InputMethodController::GetTextAfterCursor");
     text = u"";
-    if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0 || mSelectNewBegin < 0) {
-        IMSA_HILOGE("InputMethodController::param error, number: %{public}d, begin: %{public}d, end: %{public}d",
-            number, mSelectNewBegin, mSelectNewEnd);
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    if (mSelectNewBegin > mSelectNewEnd) {
-        int32_t temp = mSelectNewEnd;
-        mSelectNewEnd = mSelectNewBegin;
-        mSelectNewBegin = temp;
-    }
-    if (mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
-        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}u", mSelectNewEnd,
-            mTextString.size());
+    if (!isCorrectParam(number)) {
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
     text = mTextString.substr(mSelectNewEnd, number);
@@ -638,9 +634,9 @@ int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string
 int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 {
     IMSA_HILOGI("InputMethodController::start");
-    if (mTextString.size() > INT_MAX || mSelectNewEnd < 0 || mSelectNewEnd > static_cast<int32_t>(mTextString.size())) {
-        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}d", mSelectNewEnd,
-            static_cast<int32_t>(mTextString.size()));
+    if (mTextString.size() > INT_MAX || mSelectNewEnd < 0 || static_cast<size_t>(mSelectNewEnd) > mTextString.size()) {
+        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}zu", mSelectNewEnd,
+            mTextString.size());
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
     index = mSelectNewEnd;

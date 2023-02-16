@@ -45,7 +45,7 @@ using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
-std::string g_textTemp = "我們我們ddddd";
+std::u16string g_textTemp = u"我們我們ddddd";
 class InputMethodAbilityTest : public testing::Test {
 public:
     static std::string imeIdStopped_;
@@ -475,74 +475,89 @@ HWTEST_F(InputMethodAbilityTest, testSelectByMovement, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetTextAfterCursor_001
+* @tc.name: testGetTextParamExceptionValidation_001
 * @tc.desc: mSelectNewBegin = mSelectNewEnd> size()
+* @tc.type: FUNC
+* @tc.require: issuesI6E307
+*/
+HWTEST_F(InputMethodAbilityTest, testGetTextParamExceptionValidation_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetTextParamExceptionValidation_001 START");
+    int32_t start = 10;
+    int32_t end = 10;
+    imc_->OnSelectionChange(g_textTemp, start, end);
+    int32_t number = 3;
+    std::u16string text;
+    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+    EXPECT_EQ(text, u"");
+    ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+    EXPECT_EQ(text, u"");
+    int32_t index;
+    ret = inputMethodAbility_->GetTextIndexAtCursor(index);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+}
+
+/**
+* @tc.name: testGetTextParamExceptionValidation_002
+* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin > size()
+* @tc.type: FUNC
+* @tc.require: issuesI6E307
+*/
+HWTEST_F(InputMethodAbilityTest, testGetTextParamExceptionValidation_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetTextParamExceptionValidation_002 START");
+    int32_t start = 11;
+    int32_t end = 9;
+    imc_->OnSelectionChange(g_textTemp, start, end);
+    int32_t number = 3;
+    std::u16string text;
+    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+    EXPECT_EQ(text, u"");
+    ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+    EXPECT_EQ(text, u"");
+}
+
+/**
+* @tc.name: testGetTextParamExceptionValidation_003
+* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd > size()
+* @tc.type: FUNC
+* @tc.require: issuesI6E307
+*/
+HWTEST_F(InputMethodAbilityTest, testGetTextParamExceptionValidation_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetTextParamExceptionValidation_003 START");
+    int32_t start = 9;
+    int32_t end = 11;
+    imc_->OnSelectionChange(g_textTemp, start, end);
+    int32_t number = 3;
+    std::u16string text;
+    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+    EXPECT_EQ(text, u"");
+    ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+    EXPECT_EQ(text, u"");
+    int32_t index;
+    ret = inputMethodAbility_->GetTextIndexAtCursor(index);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
+}
+
+/**
+* @tc.name: testGetTextAfterCursor_001
+* @tc.desc: click textfield, mSelectNewEnd + number > size()
 * @tc.type: FUNC
 * @tc.require: issuesI6E307
 */
 HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_001 START");
-    int32_t start = 10;
-    int32_t end = 10;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 3;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    EXPECT_EQ(text, u"");
-}
-
-/**
-* @tc.name: testGetTextAfterCursor_002
-* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin > size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_002, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_002 START");
-    int32_t start = 11;
-    int32_t end = 9;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 3;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    EXPECT_EQ(text, u"");
-}
-
-/**
-* @tc.name: testGetTextAfterCursor_003
-* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd > size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_003, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_003 START");
-    int32_t start = 9;
-    int32_t end = 11;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 3;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    EXPECT_EQ(text, u"");
-}
-
-/**
-* @tc.name: testGetTextAfterCursor_004
-* @tc.desc: mSelectNewBegin = mSelectNewEnd < size(), mSelectNewEnd + number > size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_004, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_004 START");
     int32_t start = 8;
     int32_t end = 8;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
+    imc_->OnSelectionChange(g_textTemp, start, end);
     int32_t number = 3;
     std::u16string text;
     auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
@@ -551,440 +566,118 @@ HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_004, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetTextAfterCursor_005
-* @tc.desc: mSelectNewBegin = mSelectNewEnd = size(), mSelectNewEnd + number > size()
+* @tc.name: testGetTextAfterCursor_002
+* @tc.desc: Select forward, mSelectNewBegin/mSelectNewEnd + number == size()
 * @tc.type: FUNC
 * @tc.require: issuesI6E307
 */
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_005, TestSize.Level0)
+HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_002, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_005 START");
-    int32_t start = 9;
-    int32_t end = 9;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 3;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"");
-}
-
-/**
-* @tc.name: testGetTextAfterCursor_006
-* @tc.desc: mSelectNewBegin = mSelectNewEnd < size(), mSelectNewEnd + number < size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_006, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_006 START");
-    int32_t start = 4;
+    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_002 START");
+    // implemented correctly: mSelectNewBegin > mSelectNewEnd
+    int32_t start = 7;
     int32_t end = 4;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 3;
+    imc_->OnSelectionChange(g_textTemp, start, end);
+    int32_t number = 2;
     std::u16string text;
     auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"ddd");
+    EXPECT_EQ(text, u"dd");
+
+    // implemented Currently: mSelectNewBegin < mSelectNewEnd
+    start = 4;
+    end = 7;
+    imc_->OnSelectionChange(g_textTemp, start, end);
+    number = 2;
+    ret = inputMethodAbility_->GetTextAfterCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"dd");
 }
 
 /**
-* @tc.name: testGetTextAfterCursor_007
-* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewBegin + number < size()
+* @tc.name: testGetTextAfterCursor_003
+* @tc.desc: Select backward, mSelectNewEnd + number < size()
 * @tc.type: FUNC
 * @tc.require: issuesI6E307
 */
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_007, TestSize.Level0)
+HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_003, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_007 START");
+    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_003 START");
     int32_t start = 4;
-    int32_t end = 3;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
+    int32_t end = 5;
+    imc_->OnSelectionChange(g_textTemp, start, end);
     int32_t number = 3;
     std::u16string text;
     auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(text, u"ddd");
-}
-
-/**
-* @tc.name: testGetTextAfterCursor_008
-* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewBegin + number = size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_008, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_008 START");
-    int32_t start = 4;
-    int32_t end = 3;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 5;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"ddddd");
-}
-
-/**
-* @tc.name: testGetTextAfterCursor_009
-* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewBegin + number > size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_009, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_009 START");
-    int32_t start = 4;
-    int32_t end = 3;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 7;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"ddddd");
-}
-
-/**
-* @tc.name: testGetTextAfterCursor_0010
-* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewEnd + number < size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_0010, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_0010 START");
-    int32_t start = 3;
-    int32_t end = 4;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 3;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"ddd");
-}
-
-/**
-* @tc.name: testGetTextAfterCursor_0011
-* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewEnd + number = size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_0011, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_0011 START");
-    int32_t start = 3;
-    int32_t end = 4;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 5;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"ddddd");
-}
-
-/**
-* @tc.name: testGetTextAfterCursor_0012
-* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewEnd + number > size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_0012, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_0012 START");
-    int32_t start = 3;
-    int32_t end = 4;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 7;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"ddddd");
 }
 
 /**
 * @tc.name: testGetTextBeforeCursor_001
-* @tc.desc: mSelectNewBegin = mSelectNewEnd> size()
+* @tc.desc: click textfield, mSelectNewBegin > number
 * @tc.type: FUNC
 * @tc.require: issuesI6E307
 */
 HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_001 START");
-    int32_t start = 10;
-    int32_t end = 10;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
+    int32_t start = 6;
+    int32_t end = 6;
+    imc_->OnSelectionChange(g_textTemp, start, end);
     int32_t number = 3;
     std::u16string text;
     auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    EXPECT_EQ(text, u"");
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"們dd");
 }
 
 /**
 * @tc.name: testGetTextBeforeCursor_002
-* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin > size()
+* @tc.desc: Select forward, mSelectNewBegin/mSelectNewEnd == number
 * @tc.type: FUNC
 * @tc.require: issuesI6E307
 */
 HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_002 START");
-    int32_t start = 11;
-    int32_t end = 9;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 3;
+    // implemented correctly: mSelectNewBegin > mSelectNewEnd
+    int32_t start = 7;
+    int32_t end = 4;
+    imc_->OnSelectionChange(g_textTemp, start, end);
+    int32_t number = 4;
     std::u16string text;
     auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    EXPECT_EQ(text, u"");
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"我們我們");
+
+    // implemented Currently: mSelectNewBegin < mSelectNewEnd
+    start = 4;
+    end = 7;
+    imc_->OnSelectionChange(g_textTemp, start, end);
+    number = 4;
+    ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(text, u"我們我們");
 }
 
 /**
 * @tc.name: testGetTextBeforeCursor_003
-* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd > size()
+* @tc.desc: Select backward, mSelectNewBegin < number
 * @tc.type: FUNC
 * @tc.require: issuesI6E307
 */
 HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_003 START");
-    int32_t start = 9;
-    int32_t end = 11;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 3;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    EXPECT_EQ(text, u"");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_004
-* @tc.desc: mSelectNewBegin = mSelectNewEnd < size(), number < mSelectNewBegin
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_004, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_004 START");
-    int32_t start = 8;
-    int32_t end = 8;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 3;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"ddd");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_005
-* @tc.desc: mSelectNewBegin = mSelectNewEnd < size(), number = mSelectNewBegin
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_005, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_005 START");
-    int32_t start = 8;
-    int32_t end = 8;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 8;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"我們我們dddd");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_006
-* @tc.desc: mSelectNewBegin = mSelectNewEnd < size(), number > mSelectNewBegin
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_006, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_006 START");
-    int32_t start = 8;
-    int32_t end = 8;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 9;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"我們我們dddd");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_007
-* @tc.desc: mSelectNewBegin = mSelectNewEnd = size() = number
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_007, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_007 START");
-    int32_t start = 9;
-    int32_t end = 9;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 9;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"我們我們ddddd");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_008
-* @tc.desc: number < mSelectNewBegin = mSelectNewEnd = size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_008, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_008 START");
-    int32_t start = 9;
-    int32_t end = 9;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 6;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"們ddddd");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_009
-* @tc.desc: number > mSelectNewBegin = mSelectNewEnd = size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_009, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_009 START");
-    int32_t start = 9;
-    int32_t end = 9;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 11;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"我們我們ddddd");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_0010
-* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewEnd > number
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_0010, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_0010 START");
     int32_t start = 4;
-    int32_t end = 3;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 2;
+    int32_t end = 5;
+    imc_->OnSelectionChange(g_textTemp, start, end);
+    int32_t number = 5;
     std::u16string text;
     auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"們我");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_0011
-* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewEnd = number
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_0011, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_0011 START");
-    int32_t start = 4;
-    int32_t end = 3;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 3;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"我們我");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_0012
-* @tc.desc: mSelectNewBegin > mSelectNewEnd, mSelectNewBegin < size(), mSelectNewEnd < number
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_0012, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_0012 START");
-    int32_t start = 4;
-    int32_t end = 3;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 4;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"我們我");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_0013
-* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewBegin > number
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_0013, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_0013 START");
-    int32_t start = 3;
-    int32_t end = 4;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 2;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"們我");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_0014
-* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewBegin = number
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_0014, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_0014 START");
-    int32_t start = 3;
-    int32_t end = 4;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 3;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"我們我");
-}
-
-/**
-* @tc.name: testGetTextBeforeCursor_0015
-* @tc.desc: mSelectNewBegin < mSelectNewEnd, mSelectNewEnd < size(), mSelectNewBegin < number
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_0015, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_0015 START");
-    int32_t start = 3;
-    int32_t end = 4;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t number = 4;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"我們我");
+    EXPECT_EQ(text, u"我們我們");
 }
 
 /**
@@ -998,7 +691,7 @@ HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor_001, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testGetTextIndexAtCursor_001 START");
     int32_t start = 9;
     int32_t end = 9;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
+    imc_->OnSelectionChange(g_textTemp, start, end);
     int32_t index;
     auto ret = inputMethodAbility_->GetTextIndexAtCursor(index);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1016,28 +709,11 @@ HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor_002, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testGetTextIndexAtCursor_002 START");
     int32_t start = 8;
     int32_t end = 8;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
+    imc_->OnSelectionChange(g_textTemp, start, end);
     int32_t index;
     auto ret = inputMethodAbility_->GetTextIndexAtCursor(index);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(index, end);
-}
-
-/**
-* @tc.name: testGetTextIndexAtCursor_003
-* @tc.desc: mSelectNewEnd > size()
-* @tc.type: FUNC
-* @tc.require: issuesI6E307
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor_003, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextIndexAtCursor_003 START");
-    int32_t start = 8;
-    int32_t end = 11;
-    imc_->OnSelectionChange(Str8ToStr16(g_textTemp), start, end);
-    int32_t index;
-    auto ret = inputMethodAbility_->GetTextIndexAtCursor(index);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
 }
 } // namespace MiscServices
 } // namespace OHOS
