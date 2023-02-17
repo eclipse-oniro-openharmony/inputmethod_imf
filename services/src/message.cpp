@@ -18,30 +18,30 @@
 namespace OHOS {
 namespace MiscServices {
 /*! Constructor
-    \param msgId a message Id
-    \param msgContent the content of a message
-    */
+ * @param msgId a message Id
+ * @param msgContent the content of a message
+ */
 Message::Message(int32_t msgId, MessageParcel *msgContent)
 {
     msgId_ = msgId;
     msgContent_ = msgContent;
-    if (msgContent_) {
+    if (msgContent_ != nullptr) {
         msgContent_->RewindRead(0);
     }
 }
 
-/*! Constructor
-    \param msg a source message
-    */
+/*!Constructor
+ * @param msg a source message
+ */
 Message::Message(const Message &msg)
 {
     msgId_ = msg.msgId_;
-    if (msgContent_) {
+    if (msgContent_ != nullptr) {
         delete msgContent_;
         msgContent_ = nullptr;
     }
     MessageParcel *src = msg.msgContent_;
-    if (src) {
+    if (src != nullptr) {
         msgContent_ = new MessageParcel();
         msgContent_->ParseFrom(src->GetData(), src->GetDataSize());
     }
@@ -53,11 +53,11 @@ Message &Message::operator=(const Message &msg)
         return *this;
     }
     msgId_ = msg.msgId_;
-    if (msgContent_) {
+    if (msgContent_ != nullptr) {
         delete msgContent_;
         msgContent_ = nullptr;
     }
-    if (msg.msgContent_) {
+    if (msg.msgContent_ != nullptr) {
         msgContent_ = new MessageParcel();
         msgContent_->ParseFrom(msg.msgContent_->GetData(), msg.msgContent_->GetDataSize());
         msgContent_->RewindRead(0);
@@ -67,7 +67,7 @@ Message &Message::operator=(const Message &msg)
 
 Message::~Message()
 {
-    if (msgContent_) {
+    if (msgContent_ != nullptr) {
         delete msgContent_;
         msgContent_ = nullptr;
     }

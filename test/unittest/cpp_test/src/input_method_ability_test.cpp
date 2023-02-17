@@ -274,7 +274,7 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
     sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
     sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
     SubProperty subProperty;
-    auto ret = coreProxy->showKeyboard(channelProxy, false, subProperty);
+    auto ret = coreProxy->ShowKeyboard(channelProxy, false, subProperty);
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
     auto cvStatus = InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -311,7 +311,7 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelfWithoutImeListener, TestSiz
 HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
-    inputMethodAbility_->setImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     auto ret = inputMethodAbility_->HideKeyboardSelf();
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
     InputMethodAbilityTest::imeListenerCv_.wait_for(

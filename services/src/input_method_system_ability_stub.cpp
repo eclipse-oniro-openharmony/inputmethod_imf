@@ -20,6 +20,10 @@
 
 #include "access_token.h"
 #include "accesstoken_kit.h"
+#include "input_client_proxy.h"
+#include "input_data_channel_proxy.h"
+#include "input_method_agent_proxy.h"
+#include "input_method_core_proxy.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
 
@@ -31,7 +35,8 @@ static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNE
 int32_t InputMethodSystemAbilityStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGE("code:%{public}u, callingPid:%{public}d", code, IPCSkeleton::GetCallingPid());
+    IMSA_HILOGI("InputMethodSystemAbilityStub, code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code,
+        IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (remoteDescriptor != IInputMethodSystemAbility::GetDescriptor()) {
         IMSA_HILOGE("%{public}s descriptor failed", __func__);
@@ -204,6 +209,7 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodOnRemote(MessageParcel &dat
     uint32_t status;
     if (!ITypesUtil::Unmarshal(data, status)) {
         IMSA_HILOGE("read status failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
     }
     std::vector<Property> properties = {};
     auto ret = ListInputMethod(InputMethodStatus(status), properties);

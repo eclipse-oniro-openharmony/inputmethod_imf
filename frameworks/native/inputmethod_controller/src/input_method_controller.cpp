@@ -51,9 +51,9 @@ InputMethodController::~InputMethodController()
 
 sptr<InputMethodController> InputMethodController::GetInstance()
 {
-    if (!instance_) {
+    if (instance_ == nullptr) {
         std::lock_guard<std::mutex> autoLock(instanceLock_);
-        if (!instance_) {
+        if (instance_ == nullptr) {
             IMSA_HILOGI("InputMethodController::GetInstance instance_ is nullptr");
             instance_ = new InputMethodController();
         }
@@ -61,7 +61,7 @@ sptr<InputMethodController> InputMethodController::GetInstance()
     return instance_;
 }
 
-void InputMethodController::setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener)
+void InputMethodController::SetImeListener(std::shared_ptr<InputMethodSettingListener> imeListener)
 {
     IMSA_HILOGI("InputMethodController::setImeListener");
     if (imeListener_ == nullptr) {
@@ -150,10 +150,9 @@ void InputMethodController::WorkThread()
         switch (msg->msgId_) {
             case MSG_ID_INSERT_CHAR: {
                 MessageParcel *data = msg->msgContent_;
-                std::u16string text = data->ReadString16();
                 IMSA_HILOGI("InputMethodController::WorkThread InsertText");
-                if (textListener) {
-                    textListener->InsertText(text);
+                if (textListener != nullptr) {
+                    textListener->InsertText(data->ReadString16());
                     std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
                     textFieldReplyCount_++;
                 }
@@ -162,10 +161,9 @@ void InputMethodController::WorkThread()
 
             case MSG_ID_DELETE_FORWARD: {
                 MessageParcel *data = msg->msgContent_;
-                int32_t length = data->ReadInt32();
                 IMSA_HILOGI("InputMethodController::WorkThread DeleteForward");
-                if (textListener) {
-                    textListener->DeleteForward(length);
+                if (textListener != nullptr) {
+                    textListener->DeleteForward(data->ReadInt32());
                     std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
                     textFieldReplyCount_++;
                 }
@@ -173,10 +171,9 @@ void InputMethodController::WorkThread()
             }
             case MSG_ID_DELETE_BACKWARD: {
                 MessageParcel *data = msg->msgContent_;
-                int32_t length = data->ReadInt32();
                 IMSA_HILOGI("InputMethodController::WorkThread DeleteBackward");
-                if (textListener) {
-                    textListener->DeleteBackward(length);
+                if (textListener != nullptr) {
+                    textListener->DeleteBackward(data->ReadInt32());
                     std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
                     textFieldReplyCount_++;
                 }
@@ -185,18 +182,17 @@ void InputMethodController::WorkThread()
             case MSG_ID_ON_INPUT_READY: {
                 MessageParcel *data = msg->msgContent_;
                 sptr<IRemoteObject> object = data->ReadRemoteObject();
-                if (object) {
+                if (object != nullptr) {
                     SetInputMethodAgent(object);
                 }
                 break;
             }
             case MSG_ID_SEND_KEYBOARD_STATUS: {
                 MessageParcel *data = msg->msgContent_;
-                int32_t ret = data->ReadInt32();
                 KeyboardInfo *info = new KeyboardInfo();
-                info->SetKeyboardStatus(ret);
+                info->SetKeyboardStatus(data->ReadInt32());
                 IMSA_HILOGI("InputMethodController::WorkThread SendKeyboardInfo");
-                if (textListener) {
+                if (textListener != nullptr) {
                     textListener->SendKeyboardInfo(*info);
                 }
                 delete info;
@@ -204,11 +200,10 @@ void InputMethodController::WorkThread()
             }
             case MSG_ID_SEND_FUNCTION_KEY: {
                 MessageParcel *data = msg->msgContent_;
-                int32_t ret = data->ReadInt32();
                 KeyboardInfo *info = new KeyboardInfo();
-                info->SetFunctionKey(ret);
+                info->SetFunctionKey(data->ReadInt32());
                 IMSA_HILOGI("InputMethodController::WorkThread SendKeyboardInfo");
-                if (textListener) {
+                if (textListener != nullptr) {
                     textListener->SendKeyboardInfo(*info);
                 }
                 delete info;
@@ -216,10 +211,9 @@ void InputMethodController::WorkThread()
             }
             case MSG_ID_MOVE_CURSOR: {
                 MessageParcel *data = msg->msgContent_;
-                int32_t ret = data->ReadInt32();
                 IMSA_HILOGI("InputMethodController::WorkThread MoveCursor");
-                if (textListener) {
-                    Direction direction = static_cast<Direction>(ret);
+                if (textListener != nullptr) {
+                    Direction direction = static_cast<Direction>(data->ReadInt32());
                     textListener->MoveCursor(direction);
                     std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
                     textFieldReplyCount_++;
@@ -643,7 +637,7 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
     return ErrorCode::NO_ERROR;
 }
 
-bool InputMethodController::dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
+bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
     IMSA_HILOGI("InputMethodController::start");
     if (isStopInput) {

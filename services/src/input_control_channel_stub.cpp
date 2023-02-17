@@ -18,48 +18,33 @@
 #include "i_input_control_channel.h"
 #include "input_channel.h"
 #include "input_method_agent_proxy.h"
+#include "ipc_skeleton.h"
 #include "message_handler.h"
 #include "message_parcel.h"
 
 namespace OHOS {
 namespace MiscServices {
-/** Constructor
- * @param userId the id of the user to whom the object is linking
- */
 InputControlChannelStub::InputControlChannelStub(int userId)
 {
     userId_ = userId;
 }
 
-/** Destructor
- */
 InputControlChannelStub::~InputControlChannelStub()
 {
 }
 
-/** Handle the transaction from the remote binder
- * @n Run in binder thread
- * @param code transaction code number
- * @param data the params from remote binder
- * @param[out] reply the result of the transaction replied to the remote binder
- * @param flags the flags of handling transaction
- * @return int32_t
- */
-/*
- * @
-  */
 int32_t InputControlChannelStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("InputControlChannelStub::OnRemoteRequest code = %{public}u", code);
+    IMSA_HILOGD("InputControlChannelStub, code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code,
+        IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
     switch (code) {
         case HIDE_KEYBOARD_SELF: {
-            int flag = data.ReadInt32();
-            reply.WriteInt32(HideKeyboardSelf(flag));
+            reply.WriteInt32(HideKeyboardSelf(data.ReadInt32()));
             break;
         }
         default: {
@@ -69,17 +54,10 @@ int32_t InputControlChannelStub::OnRemoteRequest(
     return NO_ERROR;
 }
 
-/**
- * @n This call is running in binder thread,
- *    but the handling of HideKeyboardSelf is in the work thread of PerUserSession.
- * @see PerUserSession::OnHideKeyboardSelf
- * @param flags the flag value of hiding keyboard
-  */
 int32_t InputControlChannelStub::HideKeyboardSelf(int flags)
 {
     IMSA_HILOGI("InputControlChannelStub::HideKeyboardSelf flags = %{public}d", flags);
     MessageParcel *parcel = new MessageParcel();
-    parcel->WriteInt32(userId_);
     parcel->WriteInt32(flags);
 
     Message *msg = new Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, parcel);

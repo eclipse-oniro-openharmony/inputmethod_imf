@@ -73,9 +73,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_ServiceStartAbnormal, TestSize.Level0)
     service->OnStart();
 
     EXPECT_NE(service->userId_, MAIN_USER_ID);
-    EXPECT_TRUE(service->userSessions.empty());
     EXPECT_TRUE(InputMethodSystemAbility::serviceHandler_ == nullptr);
-    EXPECT_TRUE(service->msgHandlers.empty());
 
     service->OnStop();
     EXPECT_EQ(service->state_, ServiceRunningState::STATE_NOT_START);
@@ -108,25 +106,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_GetExtends, TestSize.Level0)
 }
 
 /**
-* @tc.name: SA_OnHandleMessageWithoutMessageHandler
-* @tc.desc: SA OnHandleMessage Without MessageHandler.
-* @tc.type: FUNC
-* @tc.require: issuesI640YZ
-*/
-HWTEST_F(InputMethodPrivateMemberTest, SA_OnHandleMessageWithoutMessageHandler, TestSize.Level0)
-{
-    constexpr int32_t messageId = 5;
-    InputMethodSystemAbility service;
-    auto *parcel = new MessageParcel();
-    parcel->WriteInt32(MAIN_USER_ID);
-    auto *msg = new Message(messageId, parcel);
-    auto ret = service.OnHandleMessage(msg);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    delete msg;
-    msg = nullptr;
-}
-
-/**
 * @tc.name: SA_OnPackageRemovedWithNullMessage
 * @tc.desc: SA OnPackageRemoved With Null Message.
 * @tc.type: FUNC
@@ -155,7 +134,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_OnUserStartedWithNullMessage, TestSize
     constexpr int32_t messageId = 5;
     auto *msg = new Message(messageId, nullptr);
     auto ret = service.OnUserStarted(msg);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     delete msg;
     msg = nullptr;
 }
@@ -204,20 +183,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_ListSubtypeByBundleNameWithInexistentU
     auto ret = service.ListSubtypeByBundleName(userId, "", subProps);
     EXPECT_EQ(ret, ErrorCode::ERROR_PACKAGE_MANAGER);
     EXPECT_TRUE(subProps.empty());
-}
-
-/**
-* @tc.name: SA_GetUserSessionWithInexistentUserId
-* @tc.desc: SA GetUserSession With Inexistent UserId.
-* @tc.type: FUNC
-* @tc.require: issuesI669E8
-*/
-HWTEST_F(InputMethodPrivateMemberTest, SA_GetUserSessionWithInexistentUserId, TestSize.Level0)
-{
-    InputMethodSystemAbility service;
-    constexpr int32_t userId = 1;
-    auto perUserSession = service.GetUserSession(userId);
-    EXPECT_TRUE(perUserSession == nullptr);
 }
 
 /**

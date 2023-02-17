@@ -192,8 +192,8 @@ sptr<IRemoteObject> JsInputMethodExtension::OnConnect(const AAFwk::Want &want)
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(reinterpret_cast<napi_env>(nativeEngine), want);
     NativeValue *nativeWant = reinterpret_cast<NativeValue *>(napiWant);
     NativeValue *argv[] = { nativeWant };
-    if (!jsObj_) {
-        IMSA_HILOGW("Not found InputMethodExtension.js");
+    if (jsObj_ == nullptr) {
+        IMSA_HILOGE("Not found InputMethodExtension.js");
         return nullptr;
     }
 
@@ -233,8 +233,8 @@ void JsInputMethodExtension::OnDisconnect(const AAFwk::Want &want)
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(reinterpret_cast<napi_env>(nativeEngine), want);
     NativeValue *nativeWant = reinterpret_cast<NativeValue *>(napiWant);
     NativeValue *argv[] = { nativeWant };
-    if (!jsObj_) {
-        IMSA_HILOGW("Not found InputMethodExtension.js");
+    if (jsObj_ == nullptr) {
+        IMSA_HILOGE("Not found InputMethodExtension.js");
         return;
     }
 
@@ -276,7 +276,7 @@ NativeValue *JsInputMethodExtension::CallObjectMethod(const char *name, NativeVa
 {
     IMSA_HILOGI("JsInputMethodExtension::CallObjectMethod(%{public}s), begin", name);
 
-    if (!jsObj_) {
+    if (jsObj_ == nullptr) {
         IMSA_HILOGW("Not found InputMethodExtension.js");
         return nullptr;
     }
