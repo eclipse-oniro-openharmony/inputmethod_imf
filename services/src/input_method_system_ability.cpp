@@ -164,7 +164,7 @@ int32_t InputMethodSystemAbility::Init()
     if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
         userId_ = userIds[0];
         IMSA_HILOGI("InputMethodSystemAbility::get current userId success, userId: %{public}d", userId_);
-        StartInputService(GetNewUserIme(userId_));
+        StartInputService(GetStartedIme(userId_));
     }
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
@@ -531,18 +531,17 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleN
         IMSA_HILOGE("currentIme is empty");
         return ErrorCode::ERROR_PERSIST_CONFIG;
     }
-
     IMSA_HILOGI("CurrentIme : %{public}s, TargetIme : %{public}s", currentIme.c_str(), targetIme.c_str());
     if (currentIme == targetIme) {
         IMSA_HILOGI("currentIme and TargetIme are the same one");
         return ErrorCode::NO_ERROR;
     }
     StopInputService(currentIme);
+    ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetIme });
     if (!StartInputService(targetIme)) {
         IMSA_HILOGE("start input method failed");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
-    ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetIme });
 
     if (userSession_ == nullptr) {
         IMSA_HILOGE("session is nullptr");
@@ -756,10 +755,14 @@ void InputMethodSystemAbility::WorkThread()
         switch (msg->msgId_) {
             case MSG_ID_USER_START: {
                 OnUserStarted(msg);
+                delete msg;
+                msg = nullptr;
                 break;
             }
             case MSG_ID_USER_REMOVED: {
                 OnUserRemoved(msg);
+                delete msg;
+                msg = nullptr;
                 break;
             }
             case MSG_ID_PACKAGE_REMOVED: {
@@ -776,13 +779,9 @@ void InputMethodSystemAbility::WorkThread()
                 break;
             }
             case MSG_ID_START_INPUT_SERVICE: {
-                MessageParcel *data = msg->msgContent_;
-                if (data == nullptr) {
-                    delete msg;
-                    break;
-                }
-                StartInputService(data->ReadString());
+                StartInputService(GetStartedIme(userId_));
                 delete msg;
+                msg = nullptr;
                 break;
             }
             default: {
@@ -807,7 +806,7 @@ bool InputMethodSystemAbility::IsImeInstalled(int32_t userId, std::string &imeId
     return false;
 }
 
-std::string InputMethodSystemAbility::GetNewUserIme(int32_t userId)
+std::string InputMethodSystemAbility::GetStartedIme(int32_t userId)
 {
     auto defaultIme = ImeCfgManager::GetDefaultIme();
     if (defaultIme.empty()) {
@@ -856,7 +855,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         IMSA_HILOGI("service restart or user switch");
         StopInputService(lastUserIme);
     }
-    StartInputService(GetNewUserIme(newUserId));
+    StartInputService(GetStartedIme(newUserId));
     return ErrorCode::NO_ERROR;
 }
 
@@ -896,6 +895,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
     }
     // 用户移除也会有该通知，如果移除的app用户不是当前用户，则不处理
     if (userId != userId_) {
+        IMSA_HILOGI("InputMethodSystemAbility::userId: %{public}d, currentUserId: %{public}d,", userId, userId_);
         return ErrorCode::NO_ERROR;
     }
     auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId);

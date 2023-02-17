@@ -94,7 +94,7 @@ HWTEST_F(InputMethodAbilityExecptionTest, testDeleteExecptionText, TestSize.Leve
 
 /**
  * @tc.name: testGetTextExecption001
- * @tc.desc: InputMethodAbility GetTextBeforeCursor & GetTextAfterCursor
+ * @tc.desc: InputMethodAbility GetTextBeforeCursor & GetTextAfterCursor & GetTextIndexAtCursor
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: Hollokin
@@ -106,6 +106,9 @@ HWTEST_F(InputMethodAbilityExecptionTest, testGetTextExecption001, TestSize.Leve
     auto ret = inputMethodAbility_->GetTextAfterCursor(8, text);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     ret = inputMethodAbility_->GetTextBeforeCursor(3, text);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    int32_t index;
+    ret = inputMethodAbility_->GetTextIndexAtCursor(index);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 

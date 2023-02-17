@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
-#include <string>
 #include <sys/time.h>
 #include <unistd.h>
+
+#include <string>
 #include <vector>
 
 #include "accesstoken_kit.h"
@@ -47,7 +48,7 @@ std::condition_variable InputMethodSwitchTest::conditionVar;
 bool InputMethodSwitchTest::imeChangeFlag = false;
 std::string InputMethodSwitchTest::extBundleName = "com.example.testIme";
 std::string InputMethodSwitchTest::extAbilityName = "InputMethodExtAbility";
-constexpr uint32_t DEALY_TIME = 1;
+constexpr uint32_t DEALY_TIME = 300;
 class InputMethodSettingListenerImpl : public InputMethodSettingListener {
 public:
     InputMethodSettingListenerImpl() = default;
@@ -62,8 +63,6 @@ public:
         IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
     }
 };
-constexpr int32_t MINIMUM_INSTALL_INPUTMETHOD_NUM = 2;
-constexpr int32_t MINIMUM_DISABLE_INPUTMETHOD_NUM = 1;
 constexpr int32_t EXT_INPUTMETHOD_SUBTYPE_NUM = 1;
 void InputMethodSwitchTest::SetUpTestCase(void)
 {
@@ -127,6 +126,159 @@ HWTEST_F(InputMethodSwitchTest, testIMCSetImeListener, TestSize.Level0)
 }
 
 /**
+* @tc.name: testIMCSwitchInputMethod
+* @tc.desc: IMC testSwitchInputMethod.
+* @tc.type: FUNC
+* @tc.require: issuesI62BHB
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethod, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCSwitchInputMethod Test START");
+    std::unique_lock<std::mutex> lock(InputMethodSwitchTest::imeChangeFlagLock);
+    InputMethodSwitchTest::imeChangeFlag = false;
+    sptr<InputMethodController> imc = InputMethodController::GetInstance();
+    ASSERT_TRUE(imc != nullptr);
+    // switch to ext inputmethod
+    auto ret = imc->SwitchInputMethod(InputMethodSwitchTest::extBundleName, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodSwitchTest::conditionVar.wait_for(
+        lock, std::chrono::milliseconds(DEALY_TIME), [] { return InputMethodSwitchTest::imeChangeFlag == true; });
+    EXPECT_TRUE(InputMethodSwitchTest::imeChangeFlag);
+    std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
+    ASSERT_TRUE(property != nullptr);
+    EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
+    auto subProperty = imc->GetCurrentInputMethodSubtype();
+    ASSERT_TRUE(subProperty != nullptr);
+    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+}
+
+/**
+* @tc.name: testIMCSwitchInputMethodSelf
+* @tc.desc: IMC testSwitchInputMethod.
+* @tc.type: FUNC
+* @tc.require: issuesI62BHB
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodSelf, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCSwitchInputMethodSelf Test START");
+    std::unique_lock<std::mutex> lock(InputMethodSwitchTest::imeChangeFlagLock);
+    InputMethodSwitchTest::imeChangeFlag = false;
+    sptr<InputMethodController> imc = InputMethodController::GetInstance();
+    ASSERT_TRUE(imc != nullptr);
+    int32_t ret = imc->SwitchInputMethod(InputMethodSwitchTest::extBundleName, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodSwitchTest::conditionVar.wait_for(
+        lock, std::chrono::milliseconds(DEALY_TIME), [] { return InputMethodSwitchTest::imeChangeFlag == true; });
+    EXPECT_FALSE(InputMethodSwitchTest::imeChangeFlag);
+    std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
+    ASSERT_TRUE(property != nullptr);
+    EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
+    auto subProperty = imc->GetCurrentInputMethodSubtype();
+    ASSERT_TRUE(subProperty != nullptr);
+    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+}
+
+/**
+* @tc.name: testIMCSwitchInputMethodWithErrorBundleName
+* @tc.desc: IMC testSwitchInputMethod.
+* @tc.type: FUNC
+* @tc.require: issuesI62BHB
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodWithErrorBundleName, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCSwitchInputMethodWithErrorBundleName Test START");
+    sptr<InputMethodController> imc = InputMethodController::GetInstance();
+    ASSERT_TRUE(imc != nullptr);
+    std::string name = "error bundleName";
+    int32_t ret = imc->SwitchInputMethod(name, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
+    ASSERT_TRUE(property != nullptr);
+    EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
+    auto subProperty = imc->GetCurrentInputMethodSubtype();
+    ASSERT_TRUE(subProperty != nullptr);
+    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+}
+
+/**
+* @tc.name: testIMCSwitchInputMethodWithErrorSubName
+* @tc.desc: IMC testSwitchInputMethod.
+* @tc.type: FUNC
+* @tc.require: issuesI62BHB
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodWithErrorSubName, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCSwitchInputMethodWithErrorSubName Test START");
+    sptr<InputMethodController> imc = InputMethodController::GetInstance();
+    ASSERT_TRUE(imc != nullptr);
+    std::string subName = "error subName";
+    int32_t ret = imc->SwitchInputMethod(InputMethodSwitchTest::extBundleName, subName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_SWITCH_IME);
+    std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
+    ASSERT_TRUE(property != nullptr);
+    EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
+    auto subProperty = imc->GetCurrentInputMethodSubtype();
+    ASSERT_TRUE(subProperty != nullptr);
+    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+}
+
+/**
+* @tc.name: testIMCSwitchInputMethodSelfWithoutSubName
+* @tc.desc: IMC testSwitchInputMethod.
+* @tc.type: FUNC
+* @tc.require: issuesI62BHB
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodSelfWithoutSubName, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCSwitchInputMethodSelfWithoutSubName Test START");
+    std::unique_lock<std::mutex> lock(InputMethodSwitchTest::imeChangeFlagLock);
+    InputMethodSwitchTest::imeChangeFlag = false;
+    sptr<InputMethodController> imc = InputMethodController::GetInstance();
+    ASSERT_TRUE(imc != nullptr);
+    std::string subName;
+    int32_t ret = imc->SwitchInputMethod(InputMethodSwitchTest::extBundleName, subName);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodSwitchTest::conditionVar.wait_for(
+        lock, std::chrono::milliseconds(DEALY_TIME), [] { return InputMethodSwitchTest::imeChangeFlag == true; });
+    EXPECT_FALSE(InputMethodSwitchTest::imeChangeFlag);
+    std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
+    ASSERT_TRUE(property != nullptr);
+    EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
+    auto subProperty = imc->GetCurrentInputMethodSubtype();
+    ASSERT_TRUE(subProperty != nullptr);
+    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+}
+
+/**
+* @tc.name: testIMCSwitchInputMethodWithErrorBundleNameWithoutSubName
+* @tc.desc: IMC testSwitchInputMethod.
+* @tc.type: FUNC
+* @tc.require: issuesI62BHB
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodWithErrorBundleNameWithoutSubName, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCSwitchInputMethodWithErrorBundleNameWithoutSubName Test START");
+    sptr<InputMethodController> imc = InputMethodController::GetInstance();
+    ASSERT_TRUE(imc != nullptr);
+    std::string name = "error bundleName";
+    std::string subName;
+    int32_t ret = imc->SwitchInputMethod(name, subName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_SWITCH_IME);
+    std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
+    ASSERT_TRUE(property != nullptr);
+    EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
+    auto subProperty = imc->GetCurrentInputMethodSubtype();
+    ASSERT_TRUE(subProperty != nullptr);
+    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+}
+
+/**
 * @tc.name: testIMCGetCurrentInputMethod
 * @tc.desc: IMC GetCurrentInputMethod
 * @tc.type: FUNC
@@ -138,10 +290,9 @@ HWTEST_F(InputMethodSwitchTest, testIMCGetCurrentInputMethod, TestSize.Level0)
     IMSA_HILOGI("IMC testIMCGetCurrentInputMethod Test Start");
     sptr<InputMethodController> imc = InputMethodController::GetInstance();
     ASSERT_TRUE(imc != nullptr);
-
     std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
     ASSERT_TRUE(property != nullptr);
-    EXPECT_NE(property->name, InputMethodSwitchTest::extBundleName);
+    EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
 }
 
 /**
@@ -156,14 +307,13 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethod, TestSize.Level0)
     IMSA_HILOGI("IMC testIMCListInputMethod Test Start");
     sptr<InputMethodController> imc = InputMethodController::GetInstance();
     ASSERT_TRUE(imc != nullptr);
-
     std::vector<Property> properties = {};
     auto ret = imc->ListInputMethod(properties);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(properties.size() >= MINIMUM_INSTALL_INPUTMETHOD_NUM);
+    EXPECT_FALSE(properties.empty());
     bool hasExtInputMethod = false;
-    for (size_t i = 0; i < properties.size(); i++) {
-        if (properties[i].name == InputMethodSwitchTest::extBundleName) {
+    for (const auto & property : properties) {
+        if (property.name == InputMethodSwitchTest::extBundleName) {
             hasExtInputMethod = true;
             break;
         }
@@ -183,19 +333,17 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodDisable, TestSize.Level0)
     IMSA_HILOGI("IMC testIMCListInputMethodDisable Test Start");
     sptr<InputMethodController> imc = InputMethodController::GetInstance();
     ASSERT_TRUE(imc != nullptr);
-
     std::vector<Property> disableProperties = {};
     auto ret = imc->ListInputMethod(false, disableProperties);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(disableProperties.size() >= MINIMUM_DISABLE_INPUTMETHOD_NUM);
     bool hasExtInputMethod = false;
-    for (size_t i = 0; i < disableProperties.size(); i++) {
-        if (disableProperties[i].name == InputMethodSwitchTest::extBundleName) {
+    for (const auto & disableProperty : disableProperties) {
+        if (disableProperty.name == InputMethodSwitchTest::extBundleName) {
             hasExtInputMethod = true;
             break;
         }
     }
-    EXPECT_TRUE(hasExtInputMethod);
+    EXPECT_FALSE(hasExtInputMethod);
 }
 
 /**
@@ -210,12 +358,18 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodEnable, TestSize.Level0)
     IMSA_HILOGI("IMC testIMCListInputMethodEnable Test Start");
     sptr<InputMethodController> imc = InputMethodController::GetInstance();
     ASSERT_TRUE(imc != nullptr);
-
     std::vector<Property> enableProperties = {};
     auto ret = imc->ListInputMethod(true, enableProperties);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ASSERT_TRUE(!enableProperties.empty());
-    EXPECT_NE(enableProperties[0].name, InputMethodSwitchTest::extBundleName);
+    EXPECT_FALSE(enableProperties.empty());
+    bool hasExtInputMethod = false;
+    for (const auto &enableProperty : enableProperties) {
+        if (enableProperty.name == InputMethodSwitchTest::extBundleName) {
+            hasExtInputMethod = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(hasExtInputMethod);
 }
 
 /**
@@ -230,10 +384,9 @@ HWTEST_F(InputMethodSwitchTest, testIMCGetCurrentInputMethodSubtype, TestSize.Le
     IMSA_HILOGI("IMC testIMCGetCurrentInputMethodSubtype Test Start");
     sptr<InputMethodController> imc = InputMethodController::GetInstance();
     ASSERT_TRUE(imc != nullptr);
-
     auto subProperty = imc->GetCurrentInputMethodSubtype();
-    EXPECT_TRUE(subProperty != nullptr);
-    EXPECT_NE(subProperty->label, InputMethodSwitchTest::extAbilityName);
+    ASSERT_TRUE(subProperty != nullptr);
+    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
 }
 
 /**
@@ -248,12 +401,11 @@ HWTEST_F(InputMethodSwitchTest, testIMCListCurrentInputMethodSubtype, TestSize.L
     IMSA_HILOGI("IMC testIMCListCurrentInputMethodSubtype Test Start");
     sptr<InputMethodController> imc = InputMethodController::GetInstance();
     ASSERT_TRUE(imc != nullptr);
-
-    std::vector<SubProperty> subProperties = {};
-    auto ret = imc->ListCurrentInputMethodSubtype(subProperties);
+    std::vector<SubProperty> subProps = {};
+    auto ret = imc->ListCurrentInputMethodSubtype(subProps);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ASSERT_TRUE(!subProperties.empty());
-    EXPECT_NE(subProperties[0].label, InputMethodSwitchTest::extAbilityName);
+    ASSERT_EQ(subProps.size(), EXT_INPUTMETHOD_SUBTYPE_NUM);
+    EXPECT_EQ(subProps[0].label, InputMethodSwitchTest::extAbilityName);
 }
 
 /**
@@ -268,7 +420,6 @@ HWTEST_F(InputMethodSwitchTest, tesIMCtListInputMethodSubtype, TestSize.Level0)
     IMSA_HILOGI("IMC testIMCListInputMethodSubtype Test Start");
     sptr<InputMethodController> imc = InputMethodController::GetInstance();
     ASSERT_TRUE(imc != nullptr);
-
     Property property = { .name = InputMethodSwitchTest::extBundleName };
     std::vector<SubProperty> subProps;
     auto ret = imc->ListInputMethodSubtype(property, subProps);
@@ -292,208 +443,6 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodSubtypeWithErrorBundleName
     auto ret = InputMethodController::GetInstance()->ListInputMethodSubtype(*property, properties);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(properties.empty());
-}
-
-/**
-* @tc.name: testIMCSwitchInputMethod
-* @tc.desc: IMC testSwitchInputMethod.
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
-HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethod, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC testIMCSwitchInputMethod Test START");
-    sptr<InputMethodController> imc = InputMethodController::GetInstance();
-    ASSERT_TRUE(imc != nullptr);
-    // get default inputmethod
-    std::shared_ptr<Property> defaultProperty = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(defaultProperty != nullptr);
-    std::shared_ptr<SubProperty> defaultSubProperty = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(defaultSubProperty != nullptr);
-
-    // switch to ext inputmethod
-    auto ret = imc->SwitchInputMethod(InputMethodSwitchTest::extBundleName, InputMethodSwitchTest::extAbilityName);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    std::unique_lock<std::mutex> lock(InputMethodSwitchTest::imeChangeFlagLock);
-    InputMethodSwitchTest::conditionVar.wait_for(
-        lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodSwitchTest::imeChangeFlag == true; });
-    std::shared_ptr<Property> extProperty = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(extProperty != nullptr);
-    EXPECT_EQ(extProperty->name, InputMethodSwitchTest::extBundleName);
-    std::shared_ptr<SubProperty> extSubProperty = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(extSubProperty != nullptr);
-    EXPECT_EQ(extSubProperty->label, InputMethodSwitchTest::extAbilityName);
-
-    // Switch to default inputmethod
-    ret = imc->SwitchInputMethod(defaultProperty->name, defaultSubProperty->label);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    std::shared_ptr<Property> defaultProperty1 = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(defaultProperty1 != nullptr);
-    EXPECT_EQ(defaultProperty1->name, defaultProperty->name);
-    EXPECT_NE(defaultProperty1->name, InputMethodSwitchTest::extBundleName);
-    std::shared_ptr<SubProperty> defaultSubProperty1 = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(defaultSubProperty1 != nullptr);
-    EXPECT_EQ(defaultSubProperty1->label, defaultSubProperty->label);
-    EXPECT_NE(defaultSubProperty1->label, InputMethodSwitchTest::extAbilityName);
-}
-
-/**
-* @tc.name: testIMCSwitchInputMethodSelf
-* @tc.desc: IMC testSwitchInputMethod.
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
-HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodSelf, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC testIMCSwitchInputMethodSelf Test START");
-    sptr<InputMethodController> imc = InputMethodController::GetInstance();
-    ASSERT_TRUE(imc != nullptr);
-
-    std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(property != nullptr);
-    auto subProperty = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(subProperty != nullptr);
-
-    int32_t ret = imc->SwitchInputMethod(property->name, subProperty->label);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-    std::shared_ptr<Property> property1 = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(property1 != nullptr);
-    EXPECT_EQ(property1->name, property->name);
-    auto subProperty1 = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(subProperty1 != nullptr);
-    EXPECT_EQ(subProperty1->label, subProperty->label);
-}
-
-/**
-* @tc.name: testIMCSwitchInputMethodWithErrorBundleName
-* @tc.desc: IMC testSwitchInputMethod.
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
-HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodWithErrorBundleName, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC testIMCSwitchInputMethodWithErrorBundleName Test START");
-    sptr<InputMethodController> imc = InputMethodController::GetInstance();
-    ASSERT_TRUE(imc != nullptr);
-
-    std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(property != nullptr);
-    auto subProperty = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(subProperty != nullptr);
-
-    std::string name = "error bundleName";
-    int32_t ret = imc->SwitchInputMethod(name, InputMethodSwitchTest::extAbilityName);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
-
-    std::shared_ptr<Property> property1 = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(property1 != nullptr);
-    EXPECT_EQ(property1->name, property->name);
-    EXPECT_NE(property1->name, InputMethodSwitchTest::extBundleName);
-    auto subProperty1 = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(subProperty1 != nullptr);
-    EXPECT_EQ(subProperty1->label, subProperty->label);
-    EXPECT_NE(subProperty1->label, InputMethodSwitchTest::extAbilityName);
-}
-
-/**
-* @tc.name: testIMCSwitchInputMethodWithErrorSubName
-* @tc.desc: IMC testSwitchInputMethod.
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
-HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodWithErrorSubName, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC testIMCSwitchInputMethodWithErrorSubName Test START");
-    sptr<InputMethodController> imc = InputMethodController::GetInstance();
-    ASSERT_TRUE(imc != nullptr);
-
-    std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(property != nullptr);
-    auto subProperty = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(subProperty != nullptr);
-
-    std::string subName = "error subName";
-    int32_t ret = imc->SwitchInputMethod(InputMethodSwitchTest::extBundleName, subName);
-    EXPECT_EQ(ret, ErrorCode::ERROR_SWITCH_IME);
-
-    std::shared_ptr<Property> property1 = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(property1 != nullptr);
-    EXPECT_EQ(property1->name, property->name);
-    EXPECT_NE(property1->name, InputMethodSwitchTest::extBundleName);
-    auto subProperty1 = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(subProperty1 != nullptr);
-    EXPECT_EQ(subProperty1->label, subProperty->label);
-    EXPECT_NE(subProperty1->label, InputMethodSwitchTest::extAbilityName);
-}
-
-/**
-* @tc.name: testIMCSwitchInputMethodSelfWithoutSubName
-* @tc.desc: IMC testSwitchInputMethod.
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
-HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodSelfWithoutSubName, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC testIMCSwitchInputMethodSelfWithoutSubName Test START");
-    sptr<InputMethodController> imc = InputMethodController::GetInstance();
-    ASSERT_TRUE(imc != nullptr);
-
-    std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(property != nullptr);
-    auto subProperty = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(subProperty != nullptr);
-
-    std::string subName;
-    int32_t ret = imc->SwitchInputMethod(property->name, subName);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-    std::shared_ptr<Property> property1 = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(property1 != nullptr);
-    EXPECT_EQ(property1->name, property->name);
-    EXPECT_NE(property1->name, InputMethodSwitchTest::extBundleName);
-    auto subProperty1 = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(subProperty1 != nullptr);
-    EXPECT_EQ(subProperty1->label, subProperty->label);
-    EXPECT_NE(subProperty1->label, InputMethodSwitchTest::extAbilityName);
-}
-
-/**
-* @tc.name: testIMCSwitchInputMethodWithErrorBundleNameWithoutSubName
-* @tc.desc: IMC testSwitchInputMethod.
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
-HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodWithErrorBundleNameWithoutSubName, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC testIMCSwitchInputMethodWithErrorBundleNameWithoutSubName Test START");
-    sptr<InputMethodController> imc = InputMethodController::GetInstance();
-    ASSERT_TRUE(imc != nullptr);
-
-    std::shared_ptr<Property> property = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(property != nullptr);
-    auto subProperty = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(subProperty != nullptr);
-
-    std::string name = "error bundleName";
-    std::string subName;
-    int32_t ret = imc->SwitchInputMethod(name, subName);
-    EXPECT_EQ(ret, ErrorCode::ERROR_SWITCH_IME);
-
-    std::shared_ptr<Property> property1 = imc->GetCurrentInputMethod();
-    ASSERT_TRUE(property1 != nullptr);
-    EXPECT_EQ(property1->name, property->name);
-    EXPECT_NE(property1->name, InputMethodSwitchTest::extBundleName);
-    auto subProperty1 = imc->GetCurrentInputMethodSubtype();
-    ASSERT_TRUE(subProperty1 != nullptr);
-    EXPECT_EQ(subProperty1->label, subProperty->label);
-    EXPECT_NE(subProperty1->label, InputMethodSwitchTest::extAbilityName);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -228,27 +228,13 @@ void PerUserSession::OnImsDied(sptr<IInputMethodCore> remote)
         return;
     }
     IMSA_HILOGI("IME died. Restart input method...[%{public}d]\n", userId_);
-    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-    auto &currentIme = cfg.currentIme;
-    if (currentIme.empty()) {
-        IMSA_HILOGE("currentIme is empty");
-        return;
-    }
-    auto *parcel = new (std::nothrow) MessageParcel();
-    if (parcel == nullptr) {
-        IMSA_HILOGE("parcel is nullptr");
-        return;
-    }
-    parcel->WriteString(currentIme);
-    auto *msg = new (std::nothrow) Message(MSG_ID_START_INPUT_SERVICE, parcel);
+    auto *msg = new (std::nothrow) Message(MSG_ID_START_INPUT_SERVICE, nullptr);
     if (msg == nullptr) {
         IMSA_HILOGE("msg is nullptr");
-        delete parcel;
         return;
     }
     usleep(MAX_RESET_WAIT_TIME);
     MessageHandler::Instance()->SendMessage(msg);
-    IMSA_HILOGD("End...[%{public}d]\n", userId_);
 }
 
 void PerUserSession::UpdateCurrentUserId(int32_t userId)

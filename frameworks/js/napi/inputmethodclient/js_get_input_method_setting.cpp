@@ -291,9 +291,9 @@ napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->ShowOptionalInputMethod();
+        int32_t errCode = InputMethodController::GetInstance()->DisplayOptionalInputMethod();
         if (errCode == ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("exec ---- ShowOptionalInputMethod success");
+            IMSA_HILOGE("exec ---- DisplayOptionalInputMethod success");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isDisplayed = true;
