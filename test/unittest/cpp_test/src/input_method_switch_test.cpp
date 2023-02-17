@@ -312,7 +312,7 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethod, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_FALSE(properties.empty());
     bool hasExtInputMethod = false;
-    for (const auto & property : properties) {
+    for (const auto &property : properties) {
         if (property.name == InputMethodSwitchTest::extBundleName) {
             hasExtInputMethod = true;
             break;
@@ -337,7 +337,7 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodDisable, TestSize.Level0)
     auto ret = imc->ListInputMethod(false, disableProperties);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     bool hasExtInputMethod = false;
-    for (const auto & disableProperty : disableProperties) {
+    for (const auto &disableProperty : disableProperties) {
         if (disableProperty.name == InputMethodSwitchTest::extBundleName) {
             hasExtInputMethod = true;
             break;
@@ -443,6 +443,36 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodSubtypeWithErrorBundleName
     auto ret = InputMethodController::GetInstance()->ListInputMethodSubtype(*property, properties);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(properties.empty());
+}
+
+/**
+* @tc.name: testShowOptionalInputMethod
+* @tc.desc: IMC ShowOptionalInputMethod
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodSwitchTest, testShowOptionalInputMethod, TestSize.Level2)
+{
+    IMSA_HILOGI("IMC ShowOptionalInputMethod Test START");
+    sptr<InputMethodController> imc = InputMethodController::GetInstance();
+    ASSERT_TRUE(imc != nullptr);
+    int32_t ret = imc->ShowOptionalInputMethod();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testDisplayOptionalInputMethod
+* @tc.desc: IMC DisplayOptionalInputMethod
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodSwitchTest, testDisplayOptionalInputMethod, TestSize.Level2)
+{
+    IMSA_HILOGI("IMC DisplayOptionalInputMethod Test START");
+
+    sptr<InputMethodController> imc = InputMethodController::GetInstance();
+    ASSERT_TRUE(imc != nullptr);
+    sleep(2);
+    int32_t ret = imc->DisplayOptionalInputMethod();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS
