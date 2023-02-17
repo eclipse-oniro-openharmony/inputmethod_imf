@@ -353,7 +353,7 @@ void InputMethodAbility::DismissInputWindow()
     channel->SendKeyboardStatus(KEYBOARD_HIDE);
 }
 
-int32_t InputMethodAbility::InsertText(std::string &text)
+int32_t InputMethodAbility::InsertText(const std::string text)
 {
     IMSA_HILOGD("InputMethodAbility, text = %{public}s", text.c_str());
     std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
