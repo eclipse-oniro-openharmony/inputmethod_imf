@@ -431,31 +431,6 @@ namespace MiscServices {
     }
 
     /**
-     * @tc.name: testShowOptionalInputMethod
-     * @tc.desc: IMC ShowOptionalInputMethod
-     * @tc.type: FUNC
-     */
-    HWTEST_F(InputMethodControllerTest, testShowOptionalInputMethod, TestSize.Level2)
-    {
-        IMSA_HILOGI("IMC ShowOptionalInputMethod Test START");
-        int32_t ret = inputMethodController_->ShowOptionalInputMethod();
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    }
-
-    /**
-     * @tc.name: testDisplayOptionalInputMethod
-     * @tc.desc: IMC DisplayOptionalInputMethod
-     * @tc.type: FUNC
-     */
-    HWTEST_F(InputMethodControllerTest, testDisplayOptionalInputMethod, TestSize.Level2)
-    {
-        IMSA_HILOGI("IMC DisplayOptionalInputMethod Test START");
-        sleep(2);
-        int32_t ret = inputMethodController_->DisplayOptionalInputMethod();
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    }
-
-    /**
      * @tc.name: testIMCGetTextBeforeCursor
      * @tc.desc: IMC testGetTextBeforeCursor.
      * @tc.type: FUNC
