@@ -594,11 +594,11 @@ namespace MiscServices {
             return ErrorCode::NO_ERROR;
         }
         StopInputService(currentIme);
+        ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetIme });
         if (!StartInputService(targetIme)) {
             IMSA_HILOGE("start input method failed");
             return ErrorCode::ERROR_IME_START_FAILED;
         }
-        ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetIme });
         auto session = GetUserSession(MAIN_USER_ID);
         if (session == nullptr) {
             IMSA_HILOGE("session is nullptr");
