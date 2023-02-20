@@ -61,7 +61,7 @@ public:
 
     static void ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type);
 
-    static napi_value ToError(napi_env env, int32_t err);
+    static napi_value ToError(napi_env env, int32_t code);
 
     static bool TraverseCallback(const std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
                                ArgsProvider argsProvider);

@@ -40,7 +40,7 @@ public:
     }
 
 public:
-    void SetValue(T &data)
+    void SetValue(const T &data)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         data_ = data;
@@ -76,7 +76,7 @@ class JsKeyboardDelegateSetting : public KeyboardListener {
 public:
     JsKeyboardDelegateSetting() = default;
     ~JsKeyboardDelegateSetting() override = default;
-    static napi_value Init(napi_env env, napi_value info);
+    static napi_value Init(napi_env env, napi_value exports);
     static napi_value CreateKeyboardDelegate(napi_env env, napi_callback_info info);
     static napi_value GetKeyboardDelegate(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
@@ -97,7 +97,7 @@ private:
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
 
-    static std::string GetStringProperty(napi_env env, napi_value obj);
+    static std::string GetStringProperty(napi_env env, napi_value jsString);
     static constexpr int32_t MAX_VALUE_LEN = 1024;
     static constexpr int32_t MAX_TIMEOUT = 5;
     static const std::string KDS_CLASS_NAME;
@@ -126,7 +126,8 @@ private:
         KeyEventPara keyEventPara;
         std::shared_ptr<BlockData<bool>> isDone;
         std::string text;
-        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : vecCopy(cbVec), type(type)
+        UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> cbVec, const std::string type)
+            : vecCopy(cbVec), type(type)
         {
         }
     };
