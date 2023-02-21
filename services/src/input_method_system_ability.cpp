@@ -155,7 +155,7 @@ int32_t InputMethodSystemAbility::Init()
     std::vector<int32_t> userIds;
     while (1) {
         if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
-            IMSA_HILOGI("userId: %{public}d", userId_);
+            IMSA_HILOGI("userId: %{public}d", userIds[0]);
             userId_ = userIds[0];
             break;
         }
