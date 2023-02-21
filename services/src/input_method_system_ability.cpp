@@ -151,21 +151,21 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
 
 int32_t InputMethodSystemAbility::Init()
 {
+    ImeCfgManager::GetInstance().Init();
+    std::vector<int32_t> userIds;
+    while (1) {
+        if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
+            IMSA_HILOGI("userId: %{public}d", userId_);
+            userId_ = userIds[0];
+            break;
+        }
+    }
+    StartInputService(GetStartedIme(userId_));
     bool isSuccess = Publish(this);
     if (!isSuccess) {
         return -1;
     }
-    IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
     state_ = ServiceRunningState::STATE_RUNNING;
-    ImeCfgManager::GetInstance().Init();
-    // 服务异常重启后不会走OnUserStarted，但是可以获取到当前userId
-    // 设备启动时可能获取不到当前userId,如果获取不到，则等OnUserStarted的时候处理.
-    std::vector<int32_t> userIds;
-    if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
-        userId_ = userIds[0];
-        IMSA_HILOGI("InputMethodSystemAbility::get current userId success, userId: %{public}d", userId_);
-        StartInputService(GetStartedIme(userId_));
-    }
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
@@ -837,24 +837,24 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         IMSA_HILOGE("InputMethodSystemAbility::Aborted! Message is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    std::string lastUserIme;
-    if (userId_ != INVALID_USER_ID) {
-        auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-        lastUserIme = cfg.currentIme;
-        if (lastUserIme.empty()) {
-            IMSA_HILOGE("InputMethodSystemAbility::lastUserIme is empty");
-        }
-    }
     int32_t newUserId = msg->msgContent_->ReadInt32();
-    IMSA_HILOGI("lastUserId: %{public}d, newUserId: %{public}d", userId_, newUserId);
+    if (userId_ == newUserId) {
+        IMSA_HILOGI("device boot");
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGI("user switch, lastUserId: %{public}d, newUserId: %{public}d", userId_, newUserId);
+    std::string lastUserIme;
+    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
+    lastUserIme = cfg.currentIme;
+    if (lastUserIme.empty()) {
+        IMSA_HILOGE("InputMethodSystemAbility::lastUserIme is empty");
+    }
     userId_ = newUserId;
     if (userSession_ != nullptr) {
         userSession_->UpdateCurrentUserId(newUserId);
     }
-    if (!lastUserIme.empty()) {
-        IMSA_HILOGI("service restart or user switch");
-        StopInputService(lastUserIme);
-    }
+
+    StopInputService(lastUserIme);
     StartInputService(GetStartedIme(newUserId));
     return ErrorCode::NO_ERROR;
 }
