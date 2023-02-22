@@ -628,10 +628,9 @@ int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string
 int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 {
     IMSA_HILOGI("InputMethodController::start");
-    if (mTextString.size() > INT_MAX || mSelectNewEnd < 0 || mSelectNewBegin < 0 || mSelectNewEnd != mSelectNewBegin
-        || static_cast<size_t>(mSelectNewEnd) > mTextString.size()) {
-        IMSA_HILOGE("InputMethodController::param error, begin: %{public}d, end: %{public}d, size: %{public}zu",
-            mSelectNewBegin, mSelectNewEnd, mTextString.size());
+    if (mTextString.size() > INT_MAX || mSelectNewEnd < 0 || static_cast<size_t>(mSelectNewEnd) > mTextString.size()) {
+        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}zu", mSelectNewEnd,
+            mTextString.size());
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
     index = mSelectNewEnd;
