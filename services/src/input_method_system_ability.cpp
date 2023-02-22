@@ -49,6 +49,7 @@ REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABIL
 constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr int32_t INVALID_USER_ID = -1;
+constexpr double WAIT_VALID_USER_ID = 10;
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
@@ -152,11 +153,17 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
 int32_t InputMethodSystemAbility::Init()
 {
     ImeCfgManager::GetInstance().Init();
+    auto start = time(nullptr);
     std::vector<int32_t> userIds;
-    while (1) {
+    while (true) {
         if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
             IMSA_HILOGI("userId: %{public}d", userIds[0]);
             userId_ = userIds[0];
+            break;
+        }
+        if (difftime(time(nullptr), start) > WAIT_VALID_USER_ID) {
+            IMSA_HILOGE("time out");
+            userId_ = MAIN_USER_ID;
             break;
         }
     }
