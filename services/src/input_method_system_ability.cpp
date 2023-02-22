@@ -153,20 +153,7 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
 int32_t InputMethodSystemAbility::Init()
 {
     ImeCfgManager::GetInstance().Init();
-    auto start = time(nullptr);
-    std::vector<int32_t> userIds;
-    while (true) {
-        if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
-            IMSA_HILOGI("userId: %{public}d", userIds[0]);
-            userId_ = userIds[0];
-            break;
-        }
-        if (difftime(time(nullptr), start) > WAIT_VALID_USER_ID) {
-            IMSA_HILOGE("time out");
-            userId_ = MAIN_USER_ID;
-            break;
-        }
-    }
+    userId_ =  GetCurrentUserId();
     StartInputService(GetStartedIme(userId_));
     bool isSuccess = Publish(this);
     if (!isSuccess) {
@@ -830,6 +817,22 @@ std::string InputMethodSystemAbility::GetStartedIme(int32_t userId)
         ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newUserIme });
     }
     return newUserIme;
+}
+
+int32_t InputMethodSystemAbility::GetCurrentUserId()
+{
+    auto start = time(nullptr);
+    std::vector<int32_t> userIds;
+    while (true) {
+        if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
+            IMSA_HILOGI("userId: %{public}d", userIds[0]);
+            return userIds[0];
+        }
+        if (difftime(time(nullptr), start) > WAIT_VALID_USER_ID) {
+            IMSA_HILOGE("time out");
+            return MAIN_USER_ID;
+        }
+    }
 }
 
 /**
