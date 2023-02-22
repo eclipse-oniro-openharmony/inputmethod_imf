@@ -49,14 +49,14 @@ void TestSetImeListener()
 {
     sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
     auto engineListener = std::make_shared<EngineListener>();
-    ability->setImeListener(engineListener);
+    ability->SetImeListener(engineListener);
 }
 
 void TestSetKdListener()
 {
     sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
     auto keyBoardListener = std::make_shared<KeyboardListenerImpl>();
-    ability->setKdListener(keyBoardListener);
+    ability->SetKdListener(keyBoardListener);
 }
 
 void TestDeleteForward(int32_t fuzzedInt32)

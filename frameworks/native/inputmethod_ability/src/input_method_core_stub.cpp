@@ -14,7 +14,6 @@
  */
 #include "input_method_core_stub.h"
 
-#include <chrono>
 #include <cstdint>
 #include <string_ex.h>
 
@@ -22,16 +21,13 @@
 #include "input_channel.h"
 #include "input_control_channel_proxy.h"
 #include "input_method_ability.h"
+#include "ipc_skeleton.h"
 #include "message_handler.h"
 #include "message_parcel.h"
 
 namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
-/**
-     * param userId the id of the user to whom the object is linking
-     * @param userId
-     */
 InputMethodCoreStub::InputMethodCoreStub(int userId)
 {
     userId_ = userId;
@@ -45,7 +41,8 @@ InputMethodCoreStub::~InputMethodCoreStub()
 int32_t InputMethodCoreStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGD("InputMethodCoreStub::OnRemoteRequest");
+    IMSA_HILOGI("InputMethodCoreStub, code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code,
+        IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
         IMSA_HILOGI("InputMethodCoreStub::OnRemoteRequest descriptorToken is invalid");
@@ -54,15 +51,16 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
     switch (code) {
         case INIT_INPUT_CONTROL_CHANNEL: {
             sptr<IRemoteObject> channelObject = data.ReadRemoteObject();
-            if (!channelObject) {
-                IMSA_HILOGI("InputMethodCoreStub::OnRemoteRequest channelObject is nullptr");
+            if (channelObject == nullptr) {
+                IMSA_HILOGE("InputMethodCoreStub::OnRemoteRequest channelObject is nullptr");
+                break;
             }
             sptr<IInputControlChannel> inputControlChannel = new InputControlChannelProxy(channelObject);
-            if (!inputControlChannel) {
-                IMSA_HILOGI("InputMethodCoreStub::OnRemoteRequest inputControlChannel is nullptr");
+            if (inputControlChannel == nullptr) {
+                IMSA_HILOGE("InputMethodCoreStub, inputControlChannel is nullptr");
             }
-            InitInputControlChannel(inputControlChannel, data.ReadString());
-            reply.WriteNoException();
+            auto ret = InitInputControlChannel(inputControlChannel, data.ReadString());
+            reply.WriteInt32(ret);
             break;
         }
         case SHOW_KEYBOARD: {
@@ -70,15 +68,13 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
             break;
         }
         case HIDE_KEYBOARD: {
-            int32_t flags = data.ReadInt32();
-            hideKeyboard(flags);
-            reply.WriteNoException();
+            HideKeyboard(data.ReadInt32());
+            reply.WriteInt32(ErrorCode::NO_ERROR);
             break;
         }
         case STOP_INPUT_SERVICE: {
-            std::string imeId = Str16ToStr8(data.ReadString16());
-            StopInputService(imeId);
-            reply.WriteNoException();
+            StopInputService(Str16ToStr8(data.ReadString16()));
+            reply.WriteInt32(ErrorCode::NO_ERROR);
             break;
         }
         case SET_SUBTYPE: {
@@ -96,13 +92,13 @@ int32_t InputMethodCoreStub::InitInputControlChannel(
     sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId)
 {
     IMSA_HILOGD("InputMethodCoreStub::InitInputControlChannel");
-    if (!msgHandler_) {
+    if (msgHandler_ == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
     MessageParcel *data = new MessageParcel();
-    if (inputControlChannel) {
-        IMSA_HILOGI("InputMethodCoreStub::InitInputControlChannel. inputControlChannel is not nullptr");
+    if (inputControlChannel != nullptr) {
+        IMSA_HILOGD("InputMethodCoreStub, inputControlChannel is not nullptr");
         data->WriteRemoteObject(inputControlChannel->AsObject());
     }
     data->WriteString(imeId);
@@ -111,10 +107,10 @@ int32_t InputMethodCoreStub::InitInputControlChannel(
     return ErrorCode::NO_ERROR;
 }
 
-bool InputMethodCoreStub::hideKeyboard(int32_t flags)
+bool InputMethodCoreStub::HideKeyboard(int32_t flags)
 {
     IMSA_HILOGD("InputMethodCoreStub::hideKeyboard");
-    if (!msgHandler_) {
+    if (msgHandler_ == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
     MessageParcel *data = new MessageParcel();
@@ -168,7 +164,7 @@ void InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel 
     reply.WriteInt32(ret);
 }
 
-int32_t InputMethodCoreStub::showKeyboard(
+int32_t InputMethodCoreStub::ShowKeyboard(
     const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty)
 {
     return ErrorCode::NO_ERROR;

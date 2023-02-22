@@ -31,23 +31,19 @@ using namespace MessageID;
 sptr<ImCommonEventManager> ImCommonEventManager::instance_;
 std::mutex ImCommonEventManager::instanceLock_;
 using namespace OHOS::EventFwk;
-/*! Constructor
-    */
 ImCommonEventManager::ImCommonEventManager()
 {
 }
 
-/*! Destructor
-    */
 ImCommonEventManager::~ImCommonEventManager()
 {
 }
 
 sptr<ImCommonEventManager> ImCommonEventManager::GetInstance()
 {
-    if (!instance_) {
+    if (instance_ == nullptr) {
         std::lock_guard<std::mutex> autoLock(instanceLock_);
-        if (!instance_) {
+        if (instance_ == nullptr) {
             IMSA_HILOGI("ImCommonEventManager::GetInstance instance_ is nullptr");
             instance_ = new ImCommonEventManager();
         }
@@ -66,7 +62,7 @@ bool ImCommonEventManager::SubscribeEvent(const std::string &event)
 
     std::shared_ptr<EventSubscriber> subscriber = std::make_shared<EventSubscriber>(subscriberInfo);
     if (subscriber == nullptr) {
-        IMSA_HILOGI("ImCommonEventManager::SubscribeEvent subscriber is nullptr");
+        IMSA_HILOGE("ImCommonEventManager::SubscribeEvent subscriber is nullptr");
         return false;
     }
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();

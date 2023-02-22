@@ -211,7 +211,7 @@ public:
      * @param imeListener Indicates the listener to be set.
      * @since 6
      */
-    IMF_API void setImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
+    IMF_API void SetImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
     IMF_API void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
 
     /**
@@ -223,7 +223,7 @@ public:
      * @return Returns true for success otherwise for failure.
      * @since 6
      */
-    IMF_API bool dispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
+    IMF_API bool DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
 
     /**
      * @brief List input methods.

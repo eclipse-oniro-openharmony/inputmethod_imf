@@ -49,8 +49,8 @@ public:
     ~InputMethodAbility();
     static sptr<InputMethodAbility> GetInstance();
     int32_t InsertText(const std::string text);
-    void setImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
-    void setKdListener(std::shared_ptr<KeyboardListener> kdListener);
+    void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
+    void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();

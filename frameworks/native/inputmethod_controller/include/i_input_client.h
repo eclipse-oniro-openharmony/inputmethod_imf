@@ -34,7 +34,7 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputClient");
 
-    virtual int32_t onInputReady(const sptr<IInputMethodAgent> &agent) = 0;
+    virtual int32_t OnInputReady(const sptr<IInputMethodAgent> &agent) = 0;
     virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
 };
 } // namespace MiscServices

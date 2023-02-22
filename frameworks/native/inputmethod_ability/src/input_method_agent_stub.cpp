@@ -17,6 +17,7 @@
 
 #include "global.h"
 #include "input_method_ability.h"
+#include "ipc_skeleton.h"
 #include "message.h"
 #include "message_handler.h"
 
@@ -36,7 +37,8 @@ InputMethodAgentStub::~InputMethodAgentStub()
 int32_t InputMethodAgentStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("InputMethodAgentStub::OnRemoteRequest code = %{public}d", code);
+    IMSA_HILOGI("InputMethodAgentStub, code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code,
+        IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
@@ -49,8 +51,7 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
             break;
         }
         case SET_CALLING_WINDOW_ID: {
-            uint32_t windowId = data.ReadUint32();
-            SetCallingWindow(windowId);
+            SetCallingWindow(data.ReadUint32());
             break;
         }
         case ON_CURSOR_UPDATE: {

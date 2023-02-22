@@ -28,7 +28,7 @@ using namespace OHOS::AppExecFwk;
 InputMethodExtension *InputMethodExtension::Create(const std::unique_ptr<Runtime> &runtime)
 {
     IMSA_HILOGI("InputMethodExtension::Create runtime");
-    if (!runtime) {
+    if (runtime == nullptr) {
         return new InputMethodExtension();
     }
     switch (runtime->GetLanguage()) {

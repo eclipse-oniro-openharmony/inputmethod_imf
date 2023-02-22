@@ -125,7 +125,7 @@ private:
                                                    NativeEngine &engine, AsyncTask &task, int32_t status) {
             IMSA_HILOGI("startAbility begin");
             auto context = weak.lock();
-            if (!context) {
+            if (context == nullptr) {
                 IMSA_HILOGW("context is released");
                 task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
                 return;
@@ -186,7 +186,7 @@ private:
                                                    NativeEngine &engine, AsyncTask &task, int32_t status) {
             IMSA_HILOGI("startAbility begin");
             auto context = weak.lock();
-            if (!context) {
+            if (context == nullptr) {
                 IMSA_HILOGW("context is released");
                 task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
                 return;
@@ -222,7 +222,7 @@ private:
                                                    NativeEngine &engine, AsyncTask &task, int32_t status) {
             IMSA_HILOGI("TerminateAbility begin");
             auto context = weak.lock();
-            if (!context) {
+            if (context == nullptr) {
                 IMSA_HILOGW("context is released");
                 task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
                 return;
@@ -273,7 +273,7 @@ private:
                                                    NativeEngine &engine, AsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnConnectAbility begin");
             auto context = weak.lock();
-            if (!context) {
+            if (context == nullptr) {
                 IMSA_HILOGW("context is released");
                 task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
                 return;
@@ -328,7 +328,7 @@ private:
                                                    NativeEngine &engine, AsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnConnectAbilityWithAccount begin");
             auto context = weak.lock();
-            if (!context) {
+            if (context == nullptr) {
                 IMSA_HILOGW("context is released");
                 task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
                 return;
@@ -374,7 +374,7 @@ private:
                                                    NativeEngine &engine, AsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnDisconnectAbility begin");
             auto context = weak.lock();
-            if (!context) {
+            if (context == nullptr) {
                 IMSA_HILOGW("context is released");
                 task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
                 return;
@@ -457,7 +457,7 @@ NativeValue *CreateJsInputMethodExtensionContext(
     NativeEngine &engine, std::shared_ptr<InputMethodExtensionContext> context)
 {
     IMSA_HILOGI("CreateJsInputMethodExtensionContext begin");
-    if (context) {
+    if (context != nullptr) {
         auto abilityInfo = context->GetAbilityInfo();
     }
     NativeValue *objValue = CreateJsExtensionContext(engine, context);
@@ -500,7 +500,7 @@ void JSInputMethodExtensionConnection::OnAbilityConnectDone(
     wptr<JSInputMethodExtensionConnection> connection = this;
     auto task = [connection, element, remoteObject, resultCode]() {
         sptr<JSInputMethodExtensionConnection> connectionSptr = connection.promote();
-        if (!connectionSptr) {
+        if (connectionSptr == nullptr) {
             IMSA_HILOGE("connectionSptr nullptr");
             return;
         }
