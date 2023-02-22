@@ -108,15 +108,17 @@ void PerUserSession::UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKe
  */
 void PerUserSession::RemoveClient(sptr<IRemoteObject> inputClient)
 {
-    IMSA_HILOGD("PerUserSession::RemoveClient");
+    IMSA_HILOGD("start");
     auto client = GetCurrentClient();
     if (client != nullptr && client->AsObject() == inputClient) {
+        int ret = HideKeyboard(client);
+        IMSA_HILOGI("hide keyboard ret: %{public}d", ret);
         SetCurrentClient(nullptr);
     }
     std::lock_guard<std::recursive_mutex> lock(mtx);
     auto it = mapClients.find(inputClient);
     if (it == mapClients.end()) {
-        IMSA_HILOGE("PerUserSession::RemoveClient client not found");
+        IMSA_HILOGE("client not found");
         return;
     }
     auto info = it->second;
@@ -193,16 +195,6 @@ int PerUserSession::HideKeyboard(const sptr<IInputClient> &inputClient)
 void PerUserSession::OnClientDied(sptr<IInputClient> remote)
 {
     IMSA_HILOGI("PerUserSession::OnClientDied Start...[%{public}d]\n", userId_);
-    sptr<IInputClient> client = GetCurrentClient();
-    if (client == nullptr) {
-        IMSA_HILOGE("current client is nullptr");
-        RemoveClient(remote->AsObject());
-        return;
-    }
-    if (client->AsObject() == remote->AsObject()) {
-        int ret = HideKeyboard(client);
-        IMSA_HILOGI("hide keyboard ret: %{public}d", ret);
-    }
     RemoveClient(remote->AsObject());
 }
 
@@ -249,8 +241,8 @@ int PerUserSession::OnHideKeyboardSelf()
 {
     IMSA_HILOGI("PerUserSession::OnHideKeyboardSelf");
     sptr<IInputClient> client = GetCurrentClient();
-    if (client == nullptr) {
-        IMSA_HILOGE("current client is nullptr");
+    if (client == nullptr || !IsCurrentClient(client)) {
+        IMSA_HILOGE("current client is nullptr or verify failed");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     return HideKeyboard(client);
@@ -260,8 +252,8 @@ int PerUserSession::OnShowKeyboardSelf()
 {
     IMSA_HILOGD("PerUserSession::OnShowKeyboardSelf");
     sptr<IInputClient> client = GetCurrentClient();
-    if (client == nullptr) {
-        IMSA_HILOGE("current client is nullptr");
+    if (client == nullptr || !IsCurrentClient(client)) {
+        IMSA_HILOGE("current client is nullptr or verify failed");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     return ShowKeyboard(client, true);
@@ -347,14 +339,8 @@ void PerUserSession::SendAgentToSingleClient(const ClientInfo &clientInfo)
  */
 int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
 {
-    IMSA_HILOGI("PerUserSession::OnReleaseInput Start");
+    IMSA_HILOGI("PerUserSession::Start");
     RemoveClient(client->AsObject());
-    auto ret = HideKeyboard(client);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to hide keyboard ret %{public}d", ret);
-        return ret;
-    }
-    IMSA_HILOGD("PerUserSession::OnReleaseInput End...[%{public}d]\n", userId_);
     return ErrorCode::NO_ERROR;
 }
 
@@ -434,7 +420,10 @@ void PerUserSession::InitInputControlChannel()
  */
 int32_t PerUserSession::OnStopInput(sptr<IInputClient> client)
 {
-    IMSA_HILOGD("PerUserSession::OnStopInput");
+    if (GetCurrentClient() != client) {
+        IMSA_HILOGE("not current client");
+        return ErrorCode::NO_ERROR;
+    }
     return HideKeyboard(client);
 }
 
@@ -484,6 +473,17 @@ sptr<IInputClient> PerUserSession::GetCurrentClient()
 {
     std::lock_guard<std::mutex> lock(clientLock_);
     return currentClient;
+}
+
+bool PerUserSession::IsCurrentClient(sptr<IInputClient> client)
+{
+    auto it = mapClients.find(client->AsObject());
+    if (it == mapClients.end() || it->second->pid != IPCSkeleton::GetCallingPid()
+        || it->second->uid != IPCSkeleton::GetCallingUid()) {
+        IMSA_HILOGI("false");
+        return false;
+    }
+    return true;
 }
 
 int32_t PerUserSession::OnInputMethodSwitched(const Property &property, const SubProperty &subProperty)
