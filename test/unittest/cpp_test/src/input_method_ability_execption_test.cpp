@@ -14,7 +14,10 @@
  */
 
 #include <gtest/gtest.h>
+#define private public
+#define protected public
 #include "input_method_ability.h"
+#undef private
 
 using namespace testing::ext;
 namespace OHOS {
@@ -22,13 +25,20 @@ namespace MiscServices {
 class InputMethodAbilityExecptionTest : public testing::Test {
 public:
     static sptr<InputMethodAbility> inputMethodAbility_;
-    static void SetUpTestCase(void) {}
-    static void TearDownTestCase(void) {}
-    void SetUp()
+    static void SetUpTestCase(void)
     {
         inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->dataChannel_ = nullptr;
     }
-    void TearDown() {}
+    static void TearDownTestCase(void)
+    {
+    }
+    void SetUp()
+    {
+    }
+    void TearDown()
+    {
+    }
 };
 sptr<InputMethodAbility> InputMethodAbilityExecptionTest::inputMethodAbility_;
 
