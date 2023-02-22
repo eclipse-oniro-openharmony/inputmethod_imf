@@ -128,10 +128,8 @@ private:
         {
         }
     };
-    uv_work_t *GetCursorUVwork(std::string type, CursorPara para);
-    uv_work_t *GetSelectionUVwork(std::string type, SelectionPara para);
-    uv_work_t *GetTextUVwork(std::string type, std::string text);
-    uv_work_t *GetKeyEventUVwork(std::string type, KeyEventPara para, std::shared_ptr<BlockData<bool>> &isDone);
+    using EntrySetter = std::function<void(UvEntry &)>;
+    uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;

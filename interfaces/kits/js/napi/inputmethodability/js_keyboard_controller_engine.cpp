@@ -14,10 +14,11 @@
  */
 
 #include "js_keyboard_controller_engine.h"
-#include "napi/native_api.h"
-#include "napi/native_node_api.h"
+
 #include "input_method_ability.h"
 #include "js_utils.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -50,12 +51,19 @@ napi_value JsKeyboardControllerEngine::JsConstructor(napi_env env, napi_callback
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(env, thisVar, controllerObject, [](napi_env env, void *data, void *hint) {
-        auto* objInfo = reinterpret_cast<JsKeyboardControllerEngine*>(data);
+    auto finalize = [](napi_env env, void *data, void *hint) {
+        IMSA_HILOGE("JsKeyboardControllerEngine finalize");
+        auto *objInfo = reinterpret_cast<JsKeyboardControllerEngine *>(data);
         if (objInfo != nullptr) {
             delete objInfo;
         }
-    }, nullptr, nullptr);
+    };
+    napi_status status = napi_wrap(env, thisVar, controllerObject, finalize, nullptr, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("JsKeyboardControllerEngine napi_wrap failed: %{public}d", status);
+        delete controllerObject;
+        return nullptr;
+    }
 
     return thisVar;
 }
@@ -109,5 +117,5 @@ napi_value JsKeyboardControllerEngine::HideKeyboard(napi_env env, napi_callback_
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
     return asyncCall.Call(env, exec);
 }
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
