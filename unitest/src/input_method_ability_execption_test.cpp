@@ -31,7 +31,7 @@ public:
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->OnImeReady();
         imeListener_ = std::make_shared<ImeListenerImpl>();
-        inputMethodAbility_->SetImeListener(imeListener_);
+        inputMethodAbility_->setImeListener(imeListener_);
         std::unique_lock<std::mutex> lock(lock_);
         cv_.wait_for(lock, std::chrono::milliseconds(DEALY_TIME),
             [] { return InputMethodAbilityExecptionTest::isInputStart_; });
