@@ -294,7 +294,7 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
     InputMethodAbilityTest::showKeyboard_ = true;
-    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    inputMethodAbility_->setImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     auto ret = inputMethodAbility_->HideKeyboardSelf();
     InputMethodAbilityTest::imeListenerCv_.wait_for(
         lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_ == false; });
