@@ -23,23 +23,8 @@ using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t DEALY_TIME = 3;
-class ImeListenerImpl : public InputMethodEngineListener {
-public:
-    ImeListenerImpl(){};
-    ~ImeListenerImpl(){};
-    void OnKeyboardStatus(bool isShow) override;
-    void OnInputStart() override;
-    void OnInputStop(const std::string &imeId) override;
-    void OnSetCallingWindow(uint32_t windowId) override;
-    void OnSetSubtype(const SubProperty &property) override;
-};
 class InputMethodAbilityExecptionTest : public testing::Test {
 public:
-    static sptr<InputMethodAbility> inputMethodAbility_;
-    static std::shared_ptr<ImeListenerImpl> imeListener_;
-    static std::mutex lock_;
-    static std::condition_variable cv_;
-    static bool isInputStart_;
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodAbilityExecptionTest::SetUpTestCase");
@@ -63,27 +48,44 @@ public:
     void TearDown()
     {
     }
+    class ImeListenerImpl : public InputMethodEngineListener {
+    public:
+        ImeListenerImpl(){};
+        ~ImeListenerImpl(){};
+        void OnKeyboardStatus(bool isShow) override;
+        void OnInputStart() override;
+        void OnInputStop(const std::string &imeId) override;
+        void OnSetCallingWindow(uint32_t windowId) override;
+        void OnSetSubtype(const SubProperty &property) override;
+    };
+    static sptr<InputMethodAbility> inputMethodAbility_;
+
+private:
+    static std::shared_ptr<ImeListenerImpl> imeListener_;
+    static std::mutex lock_;
+    static std::condition_variable cv_;
+    static bool isInputStart_;
 };
-void ImeListenerImpl::OnKeyboardStatus(bool isShow)
+void InputMethodAbilityExecptionTest::ImeListenerImpl::OnKeyboardStatus(bool isShow)
 {
 }
-void ImeListenerImpl::OnInputStart()
+void InputMethodAbilityExecptionTest::ImeListenerImpl::OnInputStart()
 {
     std::unique_lock<std::mutex> lock(InputMethodAbilityExecptionTest::lock_);
     InputMethodAbilityExecptionTest::isInputStart_ = true;
     InputMethodAbilityExecptionTest::cv_.notify_one();
 }
-void ImeListenerImpl::OnInputStop(const std::string &imeId)
+void InputMethodAbilityExecptionTest::ImeListenerImpl::OnInputStop(const std::string &imeId)
 {
 }
-void ImeListenerImpl::OnSetCallingWindow(uint32_t windowId)
+void InputMethodAbilityExecptionTest::ImeListenerImpl::OnSetCallingWindow(uint32_t windowId)
 {
 }
-void ImeListenerImpl::OnSetSubtype(const SubProperty &property)
+void InputMethodAbilityExecptionTest::ImeListenerImpl::OnSetSubtype(const SubProperty &property)
 {
 }
 sptr<InputMethodAbility> InputMethodAbilityExecptionTest::inputMethodAbility_;
-std::shared_ptr<ImeListenerImpl> InputMethodAbilityExecptionTest::imeListener_;
+std::shared_ptr<InputMethodAbilityExecptionTest::ImeListenerImpl> InputMethodAbilityExecptionTest::imeListener_;
 std::mutex InputMethodAbilityExecptionTest::lock_;
 std::condition_variable InputMethodAbilityExecptionTest::cv_;
 bool InputMethodAbilityExecptionTest::isInputStart_ = false;
