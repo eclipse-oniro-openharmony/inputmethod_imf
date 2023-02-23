@@ -22,7 +22,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t DEALY_TIME = 3;
+constexpr int32_t DEALY_TIME = 20;
 class InputMethodAbilityExecptionTest : public testing::Test {
 public:
     static void SetUpTestCase(void)
