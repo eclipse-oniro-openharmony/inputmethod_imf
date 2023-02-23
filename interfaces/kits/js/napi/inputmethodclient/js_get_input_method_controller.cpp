@@ -12,11 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "js_get_input_method_controller.h"
+
 #include "input_method_controller.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
-#include "js_get_input_method_controller.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -58,13 +59,20 @@ napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(env, thisVar, controllerObject, [](napi_env env, void *data, void *hint) {
-        auto* objInfo = reinterpret_cast<JsGetInputMethodController*>(data);
+    auto finalize = [](napi_env env, void *data, void *hint) {
+        IMSA_HILOGE("JsGetInputMethodController finalize");
+        auto *objInfo = reinterpret_cast<JsGetInputMethodController *>(data);
         if (objInfo != nullptr) {
             IMSA_HILOGE("objInfo is nullptr");
             delete objInfo;
         }
-    }, nullptr, nullptr);
+    };
+    napi_status status = napi_wrap(env, thisVar, controllerObject, finalize, nullptr, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("JsGetInputMethodController napi_wrap failed:%{public}d", status);
+        delete controllerObject;
+        return nullptr;
+    }
 
     return thisVar;
 }
@@ -108,7 +116,7 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         return napi_ok;
     };
-    auto output = [ctxt, &isOutput](napi_env env, napi_value *result) -> napi_status {
+    auto output = [ctxt, isOutput](napi_env env, napi_value *result) -> napi_status {
         if (!isOutput) {
             return napi_ok;
         }
@@ -130,6 +138,7 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
             ctxt->SetErrorCode(errCode);
         }
     };
+    ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
     return asyncCall.Call(env, exec);
 }

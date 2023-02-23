@@ -19,6 +19,7 @@
 #include <utils.h>
 
 #include "ability_connect_callback_proxy.h"
+#include "ability_manager_errors.h"
 #include "ability_manager_interface.h"
 #include "application_info.h"
 #include "bundle_mgr_proxy.h"
@@ -1007,6 +1008,9 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         want.SetAction(SELECT_DIALOG_ACTION);
         want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
         int32_t ret = abilityManager->StartAbility(want);
+        if (ret == START_SERVICE_ABILITY_ACTIVATING) {
+            return ErrorCode::NO_ERROR;
+        }
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", ret);
             return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;

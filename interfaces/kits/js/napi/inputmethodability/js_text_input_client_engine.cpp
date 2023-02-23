@@ -14,11 +14,12 @@
  */
 
 #include "js_text_input_client_engine.h"
+
 #include "input_method_ability.h"
+#include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
-#include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -92,13 +93,19 @@ napi_value JsTextInputClientEngine::JsConstructor(napi_env env, napi_callback_in
         napi_get_null(env, &result);
         return result;
     }
-    napi_wrap(env, thisVar, clientObject, [](napi_env env, void *data, void *hint) {
-        auto *objInfo = reinterpret_cast<JsTextInputClientEngine*>(data);
+    auto finalize = [](napi_env env, void *data, void *hint) {
+        IMSA_HILOGE("JsTextInputClientEngine finalize");
+        auto *objInfo = reinterpret_cast<JsTextInputClientEngine *>(data);
         if (objInfo != nullptr) {
             delete objInfo;
         }
-    }, nullptr, nullptr);
-
+    };
+    napi_status status = napi_wrap(env, thisVar, clientObject, finalize, nullptr, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("JsTextInputClientEngine napi_wrap failed: %{public}d", status);
+        delete clientObject;
+        return nullptr;
+    }
     return thisVar;
 }
 
@@ -501,5 +508,5 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
     return asyncCall.Call(env, exec);
 }
-}
-}
+} // namespace MiscServices
+} // namespace OHOS

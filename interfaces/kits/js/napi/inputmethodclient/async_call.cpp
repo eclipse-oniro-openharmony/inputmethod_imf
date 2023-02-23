@@ -14,6 +14,7 @@
  */
 
 #include "async_call.h"
+
 #include "global.h"
 #include "js_utils.h"
 
@@ -145,5 +146,5 @@ void AsyncCall::DeleteContext(napi_env env, AsyncContext *context)
     }
     delete context;
 }
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
