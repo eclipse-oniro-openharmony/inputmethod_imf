@@ -48,7 +48,8 @@ using namespace AccountSA;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
-constexpr int32_t INVALID_USER_ID = -1;
+constexpr uint32_t RETRY_INTERVAL = 500;
+constexpr uint32_t BLOCK_RETRY_TIMES = 20;
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
@@ -151,21 +152,22 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
 
 int32_t InputMethodSystemAbility::Init()
 {
+    ImeCfgManager::GetInstance().Init();
+    std::vector<int32_t> userIds;
+    if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
+            return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
+        })) {
+        userId_ = userIds[0];
+        if (userSession_ != nullptr) {
+            userSession_->UpdateCurrentUserId(userId_);
+        }
+    }
+    StartInputService(GetStartedIme(userId_));
     bool isSuccess = Publish(this);
     if (!isSuccess) {
         return -1;
     }
-    IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
     state_ = ServiceRunningState::STATE_RUNNING;
-    ImeCfgManager::GetInstance().Init();
-    // 服务异常重启后不会走OnUserStarted，但是可以获取到当前userId
-    // 设备启动时可能获取不到当前userId,如果获取不到，则等OnUserStarted的时候处理.
-    std::vector<int32_t> userIds;
-    if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
-        userId_ = userIds[0];
-        IMSA_HILOGI("InputMethodSystemAbility::get current userId success, userId: %{public}d", userId_);
-        StartInputService(GetStartedIme(userId_));
-    }
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
@@ -202,7 +204,7 @@ void InputMethodSystemAbility::Initialize()
     // init work thread to handle the messages
     workThreadHandler = std::thread([this] { WorkThread(); });
     userSession_ = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    userId_ = INVALID_USER_ID;
+    userId_ = MAIN_USER_ID;
 }
 
 void InputMethodSystemAbility::StartUserIdListener()
@@ -825,6 +827,20 @@ std::string InputMethodSystemAbility::GetStartedIme(int32_t userId)
     return newUserIme;
 }
 
+bool InputMethodSystemAbility::BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func)
+{
+    uint32_t times = 0;
+    do {
+        times++;
+        IMSA_HILOGI("Retry times: %{public}d", times);
+        if (func()) {
+            return true;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+    } while (times < maxRetryTimes);
+    return false;
+}
+
 /**
  * Called when a user is started. (EVENT_USER_STARTED is received)
  * \n Run in work thread of input method management service
@@ -834,28 +850,21 @@ std::string InputMethodSystemAbility::GetStartedIme(int32_t userId)
 int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
 {
     if (msg->msgContent_ == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::Aborted! Message is nullptr.");
+        IMSA_HILOGE("msgContent is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    std::string lastUserIme;
-    if (userId_ != INVALID_USER_ID) {
-        auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-        lastUserIme = cfg.currentIme;
-        if (lastUserIme.empty()) {
-            IMSA_HILOGE("InputMethodSystemAbility::lastUserIme is empty");
-        }
-    }
-    int32_t newUserId = msg->msgContent_->ReadInt32();
-    IMSA_HILOGI("lastUserId: %{public}d, newUserId: %{public}d", userId_, newUserId);
-    userId_ = newUserId;
+    int32_t oldUserId = userId_;
+    userId_ = msg->msgContent_->ReadInt32();
     if (userSession_ != nullptr) {
-        userSession_->UpdateCurrentUserId(newUserId);
+        userSession_->UpdateCurrentUserId(userId_);
     }
-    if (!lastUserIme.empty()) {
-        IMSA_HILOGI("service restart or user switch");
-        StopInputService(lastUserIme);
+    if (oldUserId == userId_) {
+        IMSA_HILOGI("device boot, userId: %{public}d", userId_);
+        return ErrorCode::NO_ERROR;
     }
-    StartInputService(GetStartedIme(newUserId));
+    IMSA_HILOGI("%{public}d switch to %{public}d.", oldUserId, userId_);
+    StopInputService(ImeCfgManager::GetInstance().GetImeCfg(oldUserId).currentIme);
+    StartInputService(GetStartedIme(userId_));
     return ErrorCode::NO_ERROR;
 }
 
