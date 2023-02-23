@@ -22,12 +22,33 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+constexpr int32_t DEALY_TIME = 3;
+class InputMethodEngineListenerImpl : public InputMethodEngineListener {
+public:
+    InputMethodEngineListenerImpl(){};
+    ~InputMethodEngineListenerImpl(){};
+    void OnKeyboardStatus(bool isShow) override;
+    void OnInputStart() override;
+    void OnInputStop(const std::string &imeId) override;
+    void OnSetCallingWindow(uint32_t windowId) override;
+    void OnSetSubtype(const SubProperty &property) override;
+};
 class InputMethodAbilityExecptionTest : public testing::Test {
 public:
     static sptr<InputMethodAbility> inputMethodAbility_;
+    static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
+    static std::mutex lock_;
+    static std::condition_variable cv_;
+    static bool isInputStart_;
     static void SetUpTestCase(void)
     {
         inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->OnImeReady();
+        imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
+        inputMethodAbility_->SetImeListener(imeListener_);
+        std::unique_lock<std::mutex> lock(lock_);
+        cv_.wait_for(lock, std::chrono::milliseconds(DEALY_TIME),
+            [] { return InputMethodAbilityExecptionTest::isInputStart_; });
         inputMethodAbility_->dataChannel_ = nullptr;
     }
     static void TearDownTestCase(void)
@@ -40,7 +61,29 @@ public:
     {
     }
 };
+void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
+{
+}
+void InputMethodEngineListenerImpl::OnInputStart()
+{
+    std::unique_lock<std::mutex> lock(InputMethodAbilityExecptionTest::lock_);
+    InputMethodAbilityExecptionTest::isInputStart_ = true;
+    InputMethodAbilityExecptionTest::cv_.notify_one();
+}
+void InputMethodEngineListenerImpl::OnInputStop(const std::string &imeId)
+{
+}
+void InputMethodEngineListenerImpl::OnSetCallingWindow(uint32_t windowId)
+{
+}
+void InputMethodEngineListenerImpl::OnSetSubtype(const SubProperty &property)
+{
+}
 sptr<InputMethodAbility> InputMethodAbilityExecptionTest::inputMethodAbility_;
+std::shared_ptr<InputMethodEngineListenerImpl> InputMethodAbilityExecptionTest::imeListener_;
+std::mutex InputMethodAbilityExecptionTest::lock_;
+std::condition_variable InputMethodAbilityExecptionTest::cv_;
+bool InputMethodAbilityExecptionTest::isInputStart_ = false;
 
 /**
  * @tc.name: testMoveCursorExecption
