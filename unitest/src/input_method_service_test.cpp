@@ -127,10 +127,11 @@ std::shared_ptr<MMI::KeyEvent> InputMethodServiceTest::SetKeyEvent(int32_t keyCo
     keyItem.SetKeyCode(keyCode);
     keyItem.SetPressed(true);
     keyItem.SetDownTime(downTime);
-    keyEvent->SetKeyCode(keyCode);
-    keyEvent->SetKeyAction(keyAction);
-    keyEvent->AddPressedKeyItems(keyItem);
-
+    if (keyEvent != nullptr) {
+        keyEvent->SetKeyCode(keyCode);
+        keyEvent->SetKeyAction(keyAction);
+        keyEvent->AddPressedKeyItems(keyItem);
+    }
     return keyEvent;
 }
 
