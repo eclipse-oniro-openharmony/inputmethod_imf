@@ -153,18 +153,15 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
 int32_t InputMethodSystemAbility::Init()
 {
     ImeCfgManager::GetInstance().Init();
-    BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [this]() -> bool {
-        std::vector<int32_t> userIds;
-        if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
-            userId_ = userIds[0];
-            if (userSession_ != nullptr) {
-                userSession_->UpdateCurrentUserId(userId_);
-            }
-            return true;
-        } else {
-            return false;
+    std::vector<int32_t> userIds;
+    if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
+            return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
+        })) {
+        userId_ = userIds[0];
+        if (userSession_ != nullptr) {
+            userSession_->UpdateCurrentUserId(userId_);
         }
-    });
+    }
     StartInputService(GetStartedIme(userId_));
     bool isSuccess = Publish(this);
     if (!isSuccess) {
