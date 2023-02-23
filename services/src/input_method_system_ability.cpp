@@ -48,8 +48,8 @@ using namespace AccountSA;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
-constexpr int32_t INVALID_USER_ID = -1;
-constexpr double WAIT_VALID_USER_ID = 10;
+constexpr uint32_t RETRY_INTERVAL = 500;
+constexpr uint32_t BLOCK_RETRY_TIMES = 20;
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
@@ -153,7 +153,18 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
 int32_t InputMethodSystemAbility::Init()
 {
     ImeCfgManager::GetInstance().Init();
-    userId_ =  GetCurrentUserId();
+    BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [this]() -> bool {
+        std::vector<int32_t> userIds;
+        if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
+            userId_ = userIds[0];
+            if (userSession_ != nullptr) {
+                userSession_->UpdateCurrentUserId(userId_);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    });
     StartInputService(GetStartedIme(userId_));
     bool isSuccess = Publish(this);
     if (!isSuccess) {
@@ -196,7 +207,7 @@ void InputMethodSystemAbility::Initialize()
     // init work thread to handle the messages
     workThreadHandler = std::thread([this] { WorkThread(); });
     userSession_ = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    userId_ = INVALID_USER_ID;
+    userId_ = MAIN_USER_ID;
 }
 
 void InputMethodSystemAbility::StartUserIdListener()
@@ -819,20 +830,18 @@ std::string InputMethodSystemAbility::GetStartedIme(int32_t userId)
     return newUserIme;
 }
 
-int32_t InputMethodSystemAbility::GetCurrentUserId()
+bool InputMethodSystemAbility::BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func)
 {
-    auto start = time(nullptr);
-    std::vector<int32_t> userIds;
-    while (true) {
-        if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
-            IMSA_HILOGI("userId: %{public}d", userIds[0]);
-            return userIds[0];
+    uint32_t times = 0;
+    do {
+        times++;
+        IMSA_HILOGI("Retry times: %{public}d", times);
+        if (func()) {
+            return true;
         }
-        if (difftime(time(nullptr), start) > WAIT_VALID_USER_ID) {
-            IMSA_HILOGE("time out");
-            return MAIN_USER_ID;
-        }
-    }
+        std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+    } while (times < maxRetryTimes);
+    return false;
 }
 
 /**
@@ -844,28 +853,21 @@ int32_t InputMethodSystemAbility::GetCurrentUserId()
 int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
 {
     if (msg->msgContent_ == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::Aborted! Message is nullptr.");
+        IMSA_HILOGE("msgContent is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    int32_t newUserId = msg->msgContent_->ReadInt32();
-    if (userId_ == newUserId) {
-        IMSA_HILOGI("device boot");
+    int32_t oldUserId = userId_;
+    userId_ = msg->msgContent_->ReadInt32();
+    if (userSession_ != nullptr) {
+        userSession_->UpdateCurrentUserId(userId_);
+    }
+    if (oldUserId == userId_) {
+        IMSA_HILOGI("device boot, userId: %{public}d", userId_);
         return ErrorCode::NO_ERROR;
     }
-    IMSA_HILOGI("user switch, lastUserId: %{public}d, newUserId: %{public}d", userId_, newUserId);
-    std::string lastUserIme;
-    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-    lastUserIme = cfg.currentIme;
-    if (lastUserIme.empty()) {
-        IMSA_HILOGE("InputMethodSystemAbility::lastUserIme is empty");
-    }
-    userId_ = newUserId;
-    if (userSession_ != nullptr) {
-        userSession_->UpdateCurrentUserId(newUserId);
-    }
-
-    StopInputService(lastUserIme);
-    StartInputService(GetStartedIme(newUserId));
+    IMSA_HILOGI("%{public}d switch to %{public}d.", oldUserId, userId_);
+    StopInputService(ImeCfgManager::GetInstance().GetImeCfg(oldUserId).currentIme);
+    StartInputService(GetStartedIme(userId_));
     return ErrorCode::NO_ERROR;
 }
 
