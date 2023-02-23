@@ -16,10 +16,10 @@
 #define ASYN_CALL_H
 
 #include "input_method_info.h"
+#include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
-#include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -42,7 +42,7 @@ public:
         {
             errorCode_ = errorCode;
         }
-        
+
         void SetState(const napi_status &status)
         {
             status_ = status;
@@ -58,7 +58,9 @@ public:
             if (input_ == nullptr) {
                 return napi_ok;
             }
-            return input_(env, argc, argv, self);
+            auto ret = input_(env, argc, argv, self);
+            input_ = nullptr;
+            return ret;
         }
 
         virtual napi_status operator()(napi_env env, napi_value *result)
@@ -67,7 +69,9 @@ public:
                 *result = nullptr;
                 return napi_ok;
             }
-            return output_(env, result);
+            auto ret = output_(env, result);
+            output_ = nullptr;
+            return ret;
         }
 
         virtual void Exec()
@@ -76,8 +80,9 @@ public:
                 return;
             }
             exec_(this);
+            exec_ = nullptr;
         };
-        
+
     protected:
         friend class AsyncCall;
         InputAction input_ = nullptr;
@@ -92,6 +97,7 @@ public:
     ~AsyncCall();
     napi_value Call(napi_env env, Context::ExecAction exec = nullptr);
     napi_value SyncCall(napi_env env, Context::ExecAction exec = nullptr);
+
 private:
     enum arg : int {
         ARG_ERROR,
@@ -111,6 +117,6 @@ private:
     AsyncContext *context_ = nullptr;
     napi_env env_ = nullptr;
 };
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
 #endif // ASYNC_CALL_H
