@@ -754,36 +754,41 @@ void InputMethodSystemAbility::WorkThread()
     prctl(PR_SET_NAME, "IMSAWorkThread");
     while (1) {
         Message *msg = MessageHandler::Instance()->GetMessage();
-        if (msg != nullptr) {
-            switch (msg->msgId_) {
-                case MSG_ID_USER_START: {
-                    OnUserStarted(msg);
-                    break;
-                }
-                case MSG_ID_USER_REMOVED: {
-                    OnUserRemoved(msg);
-                    break;
-                }
-                case MSG_ID_PACKAGE_REMOVED: {
-                    OnPackageRemoved(msg);
-                    break;
-                }
-                case MSG_ID_HIDE_KEYBOARD_SELF: {
-                    if (userSession_ != nullptr) {
-                        userSession_->OnHideKeyboardSelf(false);
-                    }
-                    break;
-                }
-                case MSG_ID_START_INPUT_SERVICE: {
-                    StartInputService(GetStartedIme(userId_));
-                    break;
-                }
-                default: {
-                    break;
-                }
+        switch (msg->msgId_) {
+            case MSG_ID_USER_START: {
+                OnUserStarted(msg);
+                delete msg;
+                msg = nullptr;
+                break;
             }
-            delete msg;
-            msg = nullptr;
+            case MSG_ID_USER_REMOVED: {
+                OnUserRemoved(msg);
+                delete msg;
+                msg = nullptr;
+                break;
+            }
+            case MSG_ID_PACKAGE_REMOVED: {
+                OnPackageRemoved(msg);
+                delete msg;
+                msg = nullptr;
+                break;
+            }
+            case MSG_ID_HIDE_KEYBOARD_SELF: {
+                if (userSession_ != nullptr) {
+                    userSession_->OnHideKeyboardSelf(false);
+                }
+                delete msg;
+                break;
+            }
+            case MSG_ID_START_INPUT_SERVICE: {
+                StartInputService(GetStartedIme(userId_));
+                delete msg;
+                msg = nullptr;
+                break;
+            }
+            default: {
+                break;
+            }
         }
     }
 }

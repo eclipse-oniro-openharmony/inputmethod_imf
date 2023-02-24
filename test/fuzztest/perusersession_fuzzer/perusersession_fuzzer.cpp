@@ -67,7 +67,8 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     userSessions->GetCurrentSubProperty();
     userSessions->SetCurrentSubProperty(subProperty);
     userSessions->StopInputService(str);
-    userSessions->OnHideKeyboardSelf();
+    userSessions->OnHideKeyboardSelf(true);
+    userSessions->OnHideKeyboardSelf(false);
     userSessions->OnStartInput(client, isShowKeyboard);
     userSessions->OnStopInput(client);
     userSessions->OnReleaseInput(client);
