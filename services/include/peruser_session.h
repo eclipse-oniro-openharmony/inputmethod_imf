@@ -90,7 +90,7 @@ public:
     int32_t OnStopInput(sptr<IInputClient> client);
     int32_t OnReleaseInput(sptr<IInputClient> client);
     int32_t OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
-    int OnHideKeyboardSelf();
+    int OnHideKeyboardSelf(bool isInputClient);
     int OnShowKeyboardSelf();
     void StopInputService(std::string imeId);
     int32_t OnInputMethodSwitched(const Property &property, const SubProperty &subProperty);

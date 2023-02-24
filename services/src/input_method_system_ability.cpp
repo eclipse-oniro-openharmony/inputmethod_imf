@@ -283,7 +283,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
         IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return userSession_ ->OnReleaseInput(client);
+    return userSession_->OnReleaseInput(client);
 };
 
 int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
@@ -330,7 +330,7 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
         IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return userSession_->OnHideKeyboardSelf();
+    return userSession_->OnHideKeyboardSelf(true);
 };
 
 int32_t InputMethodSystemAbility::ShowCurrentInput()
@@ -754,41 +754,36 @@ void InputMethodSystemAbility::WorkThread()
     prctl(PR_SET_NAME, "IMSAWorkThread");
     while (1) {
         Message *msg = MessageHandler::Instance()->GetMessage();
-        switch (msg->msgId_) {
-            case MSG_ID_USER_START: {
-                OnUserStarted(msg);
-                delete msg;
-                msg = nullptr;
-                break;
-            }
-            case MSG_ID_USER_REMOVED: {
-                OnUserRemoved(msg);
-                delete msg;
-                msg = nullptr;
-                break;
-            }
-            case MSG_ID_PACKAGE_REMOVED: {
-                OnPackageRemoved(msg);
-                delete msg;
-                msg = nullptr;
-                break;
-            }
-            case MSG_ID_HIDE_KEYBOARD_SELF:{
-                if (userSession_ != nullptr) {
-                    userSession_->OnHideKeyboardSelf();
+        if (msg != nullptr) {
+            switch (msg->msgId_) {
+                case MSG_ID_USER_START: {
+                    OnUserStarted(msg);
+                    break;
                 }
-                delete msg;
-                break;
+                case MSG_ID_USER_REMOVED: {
+                    OnUserRemoved(msg);
+                    break;
+                }
+                case MSG_ID_PACKAGE_REMOVED: {
+                    OnPackageRemoved(msg);
+                    break;
+                }
+                case MSG_ID_HIDE_KEYBOARD_SELF: {
+                    if (userSession_ != nullptr) {
+                        userSession_->OnHideKeyboardSelf(false);
+                    }
+                    break;
+                }
+                case MSG_ID_START_INPUT_SERVICE: {
+                    StartInputService(GetStartedIme(userId_));
+                    break;
+                }
+                default: {
+                    break;
+                }
             }
-            case MSG_ID_START_INPUT_SERVICE: {
-                StartInputService(GetStartedIme(userId_));
-                delete msg;
-                msg = nullptr;
-                break;
-            }
-            default: {
-                break;
-            }
+            delete msg;
+            msg = nullptr;
         }
     }
 }
