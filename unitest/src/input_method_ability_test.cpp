@@ -272,9 +272,10 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
 */
 HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelfWithoutImeListener, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
-    auto ret = inputMethodAbility_->HideKeyboardSelf();
+    IMSA_HILOGI("InputMethodAbility testHideKeyboardSelfWithoutImeListener START");
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    InputMethodAbilityTest::showKeyboard_ = true;
+    auto ret = inputMethodAbility_->HideKeyboardSelf();
     auto cvStatus = imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME));
     EXPECT_EQ(cvStatus, std::cv_status::timeout);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -291,9 +292,10 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelfWithoutImeListener, TestSiz
 HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    InputMethodAbilityTest::showKeyboard_ = true;
     inputMethodAbility_->setImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     auto ret = inputMethodAbility_->HideKeyboardSelf();
-    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
     InputMethodAbilityTest::imeListenerCv_.wait_for(
         lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::showKeyboard_ == false; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
