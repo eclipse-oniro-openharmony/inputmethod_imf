@@ -60,7 +60,7 @@ public:
     static napi_value GetCurrentInputMethod(napi_env env, napi_callback_info info);
     static int32_t GetNumberProperty(napi_env env, napi_value obj);
     static napi_value GetJsInputMethodProperty(napi_env env, const Property &property);
-    static napi_value GetJSInputMethodSubProperties(napi_env env, const std::vector<SubProperty> &properties);
+    static napi_value GetJSInputMethodSubProperties(napi_env env, const std::vector<SubProperty> &subProperties);
     static napi_value GetJSInputMethodProperties(napi_env env, const std::vector<Property> &properties);
     static std::string GetStringProperty(napi_env env, napi_value obj);
     static napi_value GetJsInputMethodSubProperty(napi_env env, const SubProperty &subProperty);

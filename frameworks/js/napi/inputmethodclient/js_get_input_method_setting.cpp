@@ -377,7 +377,7 @@ JsGetInputMethodSetting *JsGetInputMethodSetting::GetNative(napi_env env, napi_c
     napi_value self = nullptr;
     napi_value argv[ARGC_MAX] = { nullptr };
     napi_status status = napi_invalid_arg;
-    status = napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
     if (self == nullptr && argc >= ARGC_MAX) {
         IMSA_HILOGE("napi_get_cb_info failed");
         return nullptr;

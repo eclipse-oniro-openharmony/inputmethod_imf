@@ -35,7 +35,7 @@ class JsInputMethodEngineSetting : public InputMethodEngineListener {
 public:
     JsInputMethodEngineSetting() = default;
     ~JsInputMethodEngineSetting() override = default;
-    static napi_value Init(napi_env env, napi_value info);
+    static napi_value Init(napi_env env, napi_value exports);
     static napi_value GetInputMethodEngine(napi_env env, napi_callback_info info);
     static napi_value GetInputMethodAbility(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
@@ -68,7 +68,8 @@ private:
         std::string imeid;
         uint32_t windowid = 0;
         SubProperty subProperty;
-        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : vecCopy(cbVec), type(type)
+        UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
+            : vecCopy(cbVec), type(type)
         {
         }
     };

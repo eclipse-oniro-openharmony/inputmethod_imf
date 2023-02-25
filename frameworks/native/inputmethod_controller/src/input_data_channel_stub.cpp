@@ -153,7 +153,7 @@ int32_t InputDataChannelStub::SelectByMovementOnRemote(MessageParcel &data, Mess
 int32_t InputDataChannelStub::HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGD("InputDataChannelStub run in");
-    int32_t action;
+    int32_t action = 0;
     auto ret = SendMessage(MessageID::MSG_ID_HANDLE_EXTEND_ACTION, [&data, &action](MessageParcel &parcel) {
         return ITypesUtil::Unmarshal(data, action) && ITypesUtil::Marshal(parcel, action);
     });

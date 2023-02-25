@@ -119,11 +119,11 @@ std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInput
     return inputMethodEngine_;
 }
 
-napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback_info info)
+napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback_info cbinfo)
 {
     IMSA_HILOGI("run in JsConstructor");
     napi_value thisVar = nullptr;
-    NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
+    NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
     auto delegate = GetInputMethodEngineSetting();
     if (delegate == nullptr) {
         IMSA_HILOGE("get delegate nullptr");
