@@ -61,10 +61,6 @@ bool ImCommonEventManager::SubscribeEvent(const std::string &event)
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
 
     std::shared_ptr<EventSubscriber> subscriber = std::make_shared<EventSubscriber>(subscriberInfo);
-    if (subscriber == nullptr) {
-        IMSA_HILOGE("ImCommonEventManager::SubscribeEvent subscriber is nullptr");
-        return false;
-    }
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (abilityManager == nullptr) {
         IMSA_HILOGE("SubscribeEvent abilityManager is nullptr");

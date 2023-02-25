@@ -27,7 +27,9 @@ extern "C" __attribute__((constructor)) void NAPI_InputMethodExtensionAbility_Au
         .name = "InputMethodExtensionAbility",
         .fileName = "libinputmethodextensionability_napi.so/inputmethod_extension_ability.js",
     };
-    moduleManager->Register(&newModuleInfo);
+    if (moduleManager != nullptr) {
+        moduleManager->Register(&newModuleInfo);
+    }
 }
 
 extern "C" __attribute__((visibility("default"))) void NAPI_InputMethodExtensionAbility_GetJSCode(

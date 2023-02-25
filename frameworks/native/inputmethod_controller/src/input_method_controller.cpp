@@ -640,8 +640,12 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
     IMSA_HILOGI("InputMethodController::start");
+    if (keyEvent == nullptr) {
+        IMSA_HILOGE("keyEvent is nullptr");
+        return false;
+    }
     if (isStopInput) {
-        IMSA_HILOGD("InputMethodController::dispatchKeyEvent isStopInput");
+        IMSA_HILOGE("InputMethodController::input stop");
         return false;
     }
     std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
