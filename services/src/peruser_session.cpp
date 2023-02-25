@@ -243,9 +243,11 @@ int PerUserSession::OnHideKeyboardSelf(bool isInputClient)
 {
     IMSA_HILOGI("PerUserSession::OnHideKeyboardSelf");
     sptr<IInputClient> client = GetCurrentClient();
-    if (client == nullptr || (isInputClient && !IsCurrentClient(client))) {
-        IMSA_HILOGE("current client is nullptr or verify failed");
-        return ErrorCode::ERROR_CLIENT_NOT_FOUND;
+    if (isInputClient) {
+        if (client == nullptr || !IsCurrentClient(client)) {
+            IMSA_HILOGE("current client is nullptr or verify failed");
+            return ErrorCode::ERROR_CLIENT_NOT_FOUND;
+        }
     }
     return HideKeyboard(client);
 }

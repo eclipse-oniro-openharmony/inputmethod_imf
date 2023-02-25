@@ -269,7 +269,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 {
     if (client == nullptr) {
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return userSession_->OnReleaseInput(client);
 };
@@ -278,7 +278,7 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
 {
     if (client == nullptr) {
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     auto currentSubtype = GetCurrentInputMethodSubtype();
     if (currentSubtype == nullptr) {
@@ -293,7 +293,7 @@ int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 {
     if (client == nullptr) {
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return userSession_->OnStopInput(client);
 };
@@ -752,7 +752,6 @@ void InputMethodSystemAbility::WorkThread()
             }
         }
         delete msg;
-        msg = nullptr;
     }
 }
 
