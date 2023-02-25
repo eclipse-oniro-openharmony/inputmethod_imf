@@ -52,10 +52,10 @@ private:
 };
 
 struct ClientInfo {
-    int pid;                         // the process id of the process in which the input client is running
-    int uid;                         // the uid of the process in which the input client is running
-    int userId;                      // the user if of the user under which the input client is running
-    int displayId;                   // the display id on which the input client is showing
+    pid_t pid;                         // the process id of the process in which the input client is running
+    pid_t uid;                         // the uid of the process in which the input client is running
+    int32_t userId;                      // the user if of the user under which the input client is running
+    int32_t displayId;                   // the display id on which the input client is showing
     sptr<IInputClient> client;       // the remote object handler for the service to callback to the input client
     sptr<IInputDataChannel> channel; // the remote object handler for IMSA callback to input client
     sptr<RemoteObjectDeathRecipient> deathRecipient;

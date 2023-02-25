@@ -262,8 +262,6 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 int32_t InputMethodSystemAbility::PrepareInput(
     int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel, InputAttribute &attribute)
 {
-    int32_t pid = IPCSkeleton::GetCallingPid();
-    int32_t uid = IPCSkeleton::GetCallingUid();
     if (userSession_ == nullptr) {
         IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -273,8 +271,8 @@ int32_t InputMethodSystemAbility::PrepareInput(
         IMSA_HILOGE("InputMethodSystemAbility::PrepareInput clientDeathRecipient is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return userSession_->OnPrepareInput(
-        { pid, uid, userId_, displayId, client, channel, clientDeathRecipient, attribute });
+    return userSession_->OnPrepareInput({ IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), userId_,
+        displayId, client, channel, clientDeathRecipient, attribute });
 };
 
 int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
