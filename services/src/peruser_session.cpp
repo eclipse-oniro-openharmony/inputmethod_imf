@@ -191,7 +191,10 @@ int PerUserSession::HideKeyboard(const sptr<IInputClient> &inputClient)
  */
 void PerUserSession::OnClientDied(sptr<IInputClient> remote)
 {
-    IMSA_HILOGI("PerUserSession::OnClientDied Start...[%{public}d]\n", userId_);
+    IMSA_HILOGI("userId: %{public}d", userId_);
+    if (remote == nullptr) {
+        return;
+    }
     RemoveClient(remote->AsObject());
 }
 
