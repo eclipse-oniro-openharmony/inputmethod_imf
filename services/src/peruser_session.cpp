@@ -92,13 +92,12 @@ int PerUserSession::AddClient(sptr<IRemoteObject> inputClient, const ClientInfo 
 void PerUserSession::UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard)
 {
     IMSA_HILOGD("PerUserSession::start");
-    std::lock_guard<std::recursive_mutex> lock(mtx);
-    auto it = mapClients.find(inputClient);
-    if (it == mapClients.end()) {
-        IMSA_HILOGE("PerUserSession::client not found");
+    auto info = GetClientInfo(inputClient);
+    if (info == nullptr) {
+        IMSA_HILOGE("client info is not exist.");
         return;
     }
-    it->second->isShowKeyBoard = isShowKeyboard;
+    info->isShowKeyBoard = isShowKeyboard;
 }
 
 /** Remove an input client
@@ -115,15 +114,13 @@ void PerUserSession::RemoveClient(sptr<IRemoteObject> inputClient)
         IMSA_HILOGI("hide keyboard ret: %{public}d", ret);
         SetCurrentClient(nullptr);
     }
-    std::lock_guard<std::recursive_mutex> lock(mtx);
-    auto it = mapClients.find(inputClient);
-    if (it == mapClients.end()) {
-        IMSA_HILOGE("client not found");
+    auto info = GetClientInfo(inputClient);
+    if (info == nullptr) {
+        IMSA_HILOGE("client info is not exist.");
         return;
     }
-    auto info = it->second;
-    info->client->AsObject()->RemoveDeathRecipient(info->deathRecipient);
-    mapClients.erase(it);
+    inputClient->RemoveDeathRecipient(info->deathRecipient);
+    mapClients.erase(inputClient);
 }
 
 /** Show keyboard
@@ -340,6 +337,10 @@ void PerUserSession::SendAgentToSingleClient(const ClientInfo &clientInfo)
 int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
 {
     IMSA_HILOGI("PerUserSession::Start");
+    if (client == nullptr) {
+        IMSA_HILOGE("client to release is nullptr");
+        return false;
+    }
     RemoveClient(client->AsObject());
     return ErrorCode::NO_ERROR;
 }
@@ -372,10 +373,10 @@ int32_t PerUserSession::OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInp
     SendAgentToAllClients();
     auto client = GetCurrentClient();
     if (client != nullptr) {
-        auto it = mapClients.find(client->AsObject());
-        if (it != mapClients.end()) {
+        auto clientInfo = GetClientInfo(client->AsObject());
+        if (clientInfo != nullptr) {
             IMSA_HILOGI("PerUserSession::Bind IMC to IMA");
-            OnStartInput(it->second->client, it->second->isShowKeyBoard);
+            OnStartInput(clientInfo->client, clientInfo->isShowKeyBoard);
         }
     }
     return ErrorCode::NO_ERROR;
@@ -477,9 +478,13 @@ sptr<IInputClient> PerUserSession::GetCurrentClient()
 
 bool PerUserSession::IsCurrentClient(sptr<IInputClient> client)
 {
-    auto it = mapClients.find(client->AsObject());
-    if (it == mapClients.end() || it->second->pid != IPCSkeleton::GetCallingPid()
-        || it->second->uid != IPCSkeleton::GetCallingUid()) {
+    if (client == nullptr) {
+        IMSA_HILOGE("current client is nullptr");
+        return false;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr || clientInfo->pid != IPCSkeleton::GetCallingPid()
+        || clientInfo->uid != IPCSkeleton::GetCallingUid()) {
         IMSA_HILOGI("false");
         return false;
     }
