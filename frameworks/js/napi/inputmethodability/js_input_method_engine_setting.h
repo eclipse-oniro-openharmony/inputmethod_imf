@@ -68,7 +68,7 @@ private:
         std::string imeid;
         uint32_t windowid = 0;
         SubProperty subProperty;
-        UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> cbVec, const std::string type)
+        UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)
         {
         }

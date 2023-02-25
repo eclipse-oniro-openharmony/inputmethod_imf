@@ -126,7 +126,7 @@ private:
         KeyEventPara keyEventPara;
         std::shared_ptr<BlockData<bool>> isDone;
         std::string text;
-        UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> cbVec, const std::string type)
+        UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)
         {
         }

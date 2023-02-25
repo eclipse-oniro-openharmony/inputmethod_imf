@@ -78,7 +78,7 @@ private:
         int32_t start = 0;
         int32_t end = 0;
         int32_t direction = 0;
-        explicit UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> cbVec, const std::string type)
+        explicit UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)
         {
         }
