@@ -132,6 +132,9 @@ void PerUserSession::RemoveClient(sptr<IRemoteObject> inputClient)
 int PerUserSession::ShowKeyboard(const sptr<IInputClient> &inputClient, bool isShowKeyboard)
 {
     IMSA_HILOGD("PerUserSession::ShowKeyboard");
+    if (inputClient == nullptr) {
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
     auto clientInfo = GetClientInfo(inputClient->AsObject());
     int index = GetImeIndex(inputClient);
     if (index < 0 || index >= MAX_IME || clientInfo == nullptr) {
@@ -172,7 +175,9 @@ int PerUserSession::HideKeyboard(const sptr<IInputClient> &inputClient)
         IMSA_HILOGE("PerUserSession::HideKeyboard imsCore is nullptr");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    UpdateClient(inputClient->AsObject(), false);
+    if (inputClient != nullptr) {
+        UpdateClient(inputClient->AsObject(), false);
+    }
     bool ret = core->HideKeyboard(1);
     if (!ret) {
         IMSA_HILOGE("PerUserSession::HideKeyboard [imsCore->hideKeyboard] failed");
@@ -264,6 +269,10 @@ int PerUserSession::OnShowKeyboardSelf()
  */
 int PerUserSession::GetImeIndex(const sptr<IInputClient> &inputClient)
 {
+    if (inputClient == nullptr) {
+        IMSA_HILOGW("PerUserSession::GetImeIndex inputClient is nullptr");
+        return -1;
+    }
     auto clientInfo = GetClientInfo(inputClient->AsObject());
     if (clientInfo == nullptr) {
         IMSA_HILOGW("PerUserSession::clientInfo is nullptr");
@@ -331,6 +340,9 @@ void PerUserSession::SendAgentToSingleClient(const ClientInfo &clientInfo)
 int32_t PerUserSession::OnReleaseInput(sptr<IInputClient> client)
 {
     IMSA_HILOGI("PerUserSession::Start");
+    if (client == nullptr) {
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
     RemoveClient(client->AsObject());
     return ErrorCode::NO_ERROR;
 }
@@ -348,6 +360,10 @@ int32_t PerUserSession::OnStartInput(sptr<IInputClient> client, bool isShowKeybo
 int32_t PerUserSession::OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
 {
     IMSA_HILOGD("PerUserSession::SetCoreAndAgent Start\n");
+    if (core == nullptr || agent == nullptr) {
+        IMSA_HILOGE("PerUserSession::SetCoreAndAgent core or agent nullptr");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
     SetImsCore(CURRENT_IME, core);
     if (imsDeathRecipient != nullptr && core->AsObject() != nullptr) {
         imsDeathRecipient->SetDeathRecipient([this, core](const wptr<IRemoteObject> &) { this->OnImsDied(core); });
@@ -371,6 +387,10 @@ int32_t PerUserSession::OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInp
 void PerUserSession::SendAgentToAllClients()
 {
     IMSA_HILOGD("PerUserSession::SendAgentToAllClients");
+    if (imsAgent == nullptr) {
+        IMSA_HILOGE("PerUserSession::SendAgentToAllClients imsAgent is nullptr");
+        return;
+    }
     std::lock_guard<std::recursive_mutex> lock(mtx);
     for (auto it = mapClients.begin(); it != mapClients.end(); ++it) {
         auto clientInfo = it->second;
@@ -459,6 +479,9 @@ sptr<IInputClient> PerUserSession::GetCurrentClient()
 
 bool PerUserSession::IsCurrentClient(sptr<IInputClient> client)
 {
+    if (client == nullptr) {
+        return false;
+    }
     auto clientInfo = GetClientInfo(client->AsObject());
     if (clientInfo == nullptr || clientInfo->pid != IPCSkeleton::GetCallingPid()
         || clientInfo->uid != IPCSkeleton::GetCallingUid()) {
