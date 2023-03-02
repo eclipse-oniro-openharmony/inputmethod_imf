@@ -315,7 +315,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
 {
-    return userSession_->OnHideKeyboardSelf(true);
+    return userSession_->OnHideKeyboardSelf();
 };
 
 int32_t InputMethodSystemAbility::ShowCurrentInput()
