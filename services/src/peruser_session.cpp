@@ -422,6 +422,7 @@ void PerUserSession::InitInputControlChannel()
  */
 int32_t PerUserSession::OnStopInput(sptr<IInputClient> client)
 {
+    IMSA_HILOGD("PerUserSession::OnStopInput");
     return HideKeyboard(client);
 }
 

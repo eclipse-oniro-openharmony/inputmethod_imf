@@ -740,7 +740,7 @@ void InputMethodSystemAbility::WorkThread()
                 break;
             }
             case MSG_ID_HIDE_KEYBOARD_SELF: {
-                userSession_->OnHideKeyboardSelf(false);
+                userSession_->OnHideKeyboardSelf();
                 break;
             }
             case MSG_ID_START_INPUT_SERVICE: {
