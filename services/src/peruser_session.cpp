@@ -239,15 +239,13 @@ void PerUserSession::UpdateCurrentUserId(int32_t userId)
 /** Hide current keyboard
  * @param flag the flag to hide keyboard.
  */
-int PerUserSession::OnHideKeyboardSelf(bool isInputClient)
+int PerUserSession::OnHideKeyboardSelf()
 {
     IMSA_HILOGI("PerUserSession::OnHideKeyboardSelf");
     sptr<IInputClient> client = GetCurrentClient();
-    if (isInputClient) {
-        if (client == nullptr || !IsCurrentClient(client)) {
-            IMSA_HILOGE("current client is nullptr or verify failed");
-            return ErrorCode::ERROR_CLIENT_NOT_FOUND;
-        }
+    if (client == nullptr) {
+        IMSA_HILOGE("current client is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     return HideKeyboard(client);
 }
@@ -256,8 +254,8 @@ int PerUserSession::OnShowKeyboardSelf()
 {
     IMSA_HILOGD("PerUserSession::OnShowKeyboardSelf");
     sptr<IInputClient> client = GetCurrentClient();
-    if (client == nullptr || !IsCurrentClient(client)) {
-        IMSA_HILOGE("current client is nullptr or verify failed");
+    if (client == nullptr) {
+        IMSA_HILOGE("current client is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     return ShowKeyboard(client, true);
@@ -424,10 +422,6 @@ void PerUserSession::InitInputControlChannel()
  */
 int32_t PerUserSession::OnStopInput(sptr<IInputClient> client)
 {
-    if (GetCurrentClient() != client) {
-        IMSA_HILOGE("not current client");
-        return ErrorCode::NO_ERROR;
-    }
     return HideKeyboard(client);
 }
 
@@ -477,20 +471,6 @@ sptr<IInputClient> PerUserSession::GetCurrentClient()
 {
     std::lock_guard<std::mutex> lock(clientLock_);
     return currentClient;
-}
-
-bool PerUserSession::IsCurrentClient(sptr<IInputClient> client)
-{
-    if (client == nullptr) {
-        return false;
-    }
-    auto clientInfo = GetClientInfo(client->AsObject());
-    if (clientInfo == nullptr || clientInfo->pid != IPCSkeleton::GetCallingPid()
-        || clientInfo->uid != IPCSkeleton::GetCallingUid()) {
-        IMSA_HILOGI("false");
-        return false;
-    }
-    return true;
 }
 
 int32_t PerUserSession::OnInputMethodSwitched(const Property &property, const SubProperty &subProperty)

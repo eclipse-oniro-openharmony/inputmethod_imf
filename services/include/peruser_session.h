@@ -90,7 +90,7 @@ public:
     int32_t OnStopInput(sptr<IInputClient> client);
     int32_t OnReleaseInput(sptr<IInputClient> client);
     int32_t OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
-    int OnHideKeyboardSelf(bool isInputClient);
+    int OnHideKeyboardSelf();
     int OnShowKeyboardSelf();
     void StopInputService(std::string imeId);
     int32_t OnInputMethodSwitched(const Property &property, const SubProperty &subProperty);
@@ -140,7 +140,6 @@ private:
     void ClearImeData(uint32_t index);
     void SetCurrentClient(sptr<IInputClient> client);
     sptr<IInputClient> GetCurrentClient();
-    bool IsCurrentClient(sptr<IInputClient> client);
     void SetImsCore(int32_t index, sptr<IInputMethodCore> core);
     sptr<IInputMethodCore> GetImsCore(int32_t index);
     static inline bool IsValid(int32_t index)
