@@ -73,6 +73,7 @@ void InputMethodSwitchTest::SetUpTestCase(void)
 void InputMethodSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::TearDownTestCase");
+    InputMethodController::GetInstance()->Close();
 }
 
 void InputMethodSwitchTest::SetUp(void)

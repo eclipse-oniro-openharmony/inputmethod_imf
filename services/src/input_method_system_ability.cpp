@@ -549,7 +549,8 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleN
         IMSA_HILOGE("session is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return userSession_->OnInputMethodSwitched(FindProperty(bundleName), FindSubProperty(bundleName, name));
+    userSession_->OnInputMethodSwitched(FindProperty(bundleName), FindSubProperty(bundleName, name));
+    return ErrorCode::NO_ERROR;
 }
 
 Property InputMethodSystemAbility::FindProperty(const std::string &name)
