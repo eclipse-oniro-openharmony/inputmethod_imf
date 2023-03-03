@@ -72,7 +72,7 @@ struct DisplayOptionalInputMethodContext : public AsyncCall::Context {
 };
 
 struct GetInputMethodControllerContext : public AsyncCall::Context {
-    bool isStopInput;
+    bool isStopInput = false;
     napi_status status = napi_generic_failure;
     GetInputMethodControllerContext() : Context(nullptr, nullptr){};
     GetInputMethodControllerContext(InputAction input, OutputAction output)
@@ -97,7 +97,7 @@ class JsGetInputMethodSetting : public InputMethodSettingListener {
 public:
     JsGetInputMethodSetting() = default;
     ~JsGetInputMethodSetting() = default;
-    static napi_value Init(napi_env env, napi_value info);
+    static napi_value Init(napi_env env, napi_value exports);
     static napi_value GetSetting(napi_env env, napi_callback_info info);
     static napi_value GetInputMethodSetting(napi_env env, napi_callback_info info);
     static napi_value ListInputMethod(napi_env env, napi_callback_info info);
@@ -125,7 +125,8 @@ private:
         std::string type;
         Property property;
         SubProperty subProperty;
-        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : vecCopy(cbVec), type(type)
+        UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
+            : vecCopy(cbVec), type(type)
         {
         }
     };

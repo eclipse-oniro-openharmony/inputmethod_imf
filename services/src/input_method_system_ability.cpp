@@ -524,7 +524,8 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleN
         IMSA_HILOGE("start input method failed");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
-    return userSession_->OnInputMethodSwitched(FindProperty(bundleName), FindSubProperty(bundleName, name));
+    userSession_->OnInputMethodSwitched(FindProperty(bundleName), FindSubProperty(bundleName, name));
+    return ErrorCode::NO_ERROR;
 }
 
 Property InputMethodSystemAbility::FindProperty(const std::string &name)
