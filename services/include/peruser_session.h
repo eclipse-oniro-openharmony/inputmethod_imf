@@ -93,7 +93,7 @@ public:
     int OnHideKeyboardSelf();
     int OnShowKeyboardSelf();
     void StopInputService(std::string imeId);
-    int32_t OnInputMethodSwitched(const Property &property, const SubProperty &subProperty);
+    void OnInputMethodSwitched(const Property &property, const SubProperty &subProperty);
 
     void SetCurrentSubProperty(const SubProperty &subProperty);
     SubProperty GetCurrentSubProperty();
