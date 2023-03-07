@@ -83,6 +83,12 @@ namespace MiscServices {
         sptr<JsKeyboardDelegateListener> kdListener_;
         static std::mutex instanceLock_;
         static sptr<InputMethodAbility> instance_;
+
+        struct ServiceDeathRecipient : public IRemoteObject::DeathRecipient {
+            sptr<JsInputMethodEngineListener> listener{ nullptr };
+            void OnRemoteDied(const wptr<IRemoteObject> &object) override;
+        };
+        sptr<ServiceDeathRecipient> deathRecipientPtr_{ nullptr };
         sptr<InputMethodSystemAbilityProxy> mImms;
         sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
 

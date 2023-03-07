@@ -223,7 +223,7 @@ using namespace MessageID;
         IMSA_HILOGI("InputMethodController::HideCurrentInput");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
-            IMSA_HILOGE("proxy is nullptr")
+            IMSA_HILOGE("proxy is nullptr");
             return;
         }
         MessageParcel data;
@@ -245,7 +245,7 @@ using namespace MessageID;
         IMSA_HILOGI("InputMethodController::PrepareInput");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
-            IMSA_HILOGE("proxy is nullptr")
+            IMSA_HILOGE("proxy is nullptr");
             return;
         }
         MessageParcel data;
@@ -264,7 +264,7 @@ using namespace MessageID;
         IMSA_HILOGI("InputMethodController::DisplayOptionalInputMethod");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
-            IMSA_HILOGE("proxy is nullptr")
+            IMSA_HILOGE("proxy is nullptr");
             return;
         }
         MessageParcel data;
@@ -280,8 +280,8 @@ using namespace MessageID;
         std::vector<InputMethodProperty*> properties;
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
-            IMSA_HILOGE("proxy is nullptr")
-            return;
+            IMSA_HILOGE("proxy is nullptr");
+            return {};
         }
         proxy->listInputMethod(&properties);
         return properties;
@@ -292,7 +292,7 @@ using namespace MessageID;
         IMSA_HILOGI("InputMethodController::StartInput");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
-            IMSA_HILOGE("proxy is nullptr")
+            IMSA_HILOGE("proxy is nullptr");
             return;
         }
         MessageParcel data;
@@ -308,7 +308,7 @@ using namespace MessageID;
         IMSA_HILOGI("InputMethodController::ReleaseInput");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
-            IMSA_HILOGE("proxy is nullptr")
+            IMSA_HILOGE("proxy is nullptr");
             return;
         }
         MessageParcel data;
@@ -324,7 +324,7 @@ using namespace MessageID;
         IMSA_HILOGI("InputMethodController::StopInput");
         auto proxy = GetSystemAbilityProxy();
         if (proxy == nullptr) {
-            IMSA_HILOGE("proxy is nullptr")
+            IMSA_HILOGE("proxy is nullptr");
             return;
         }
         MessageParcel data;
