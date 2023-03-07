@@ -228,6 +228,7 @@ namespace MiscServices {
                 IMSA_HILOGE("InputMethodSystemAbility::StartInputService fail. result = %{public}d", result);
                 isStartSuccess = false;
             } else {
+                IMSA_HILOGI("InputMethodSystemAbility::StartInputService success.");
                 isStartSuccess = true;
             }
         }
@@ -552,6 +553,12 @@ namespace MiscServices {
                     delete msg;
                     msg = nullptr;
                     return;
+                }
+                case MSG_ID_START_INPUT_SERVICE: {
+                    MessageParcel *data = msg->msgContent_;
+                    const auto &ime = data->ReadString();
+                    StartInputService(ime);
+                    break;
                 }
                 default: {
                     break;
