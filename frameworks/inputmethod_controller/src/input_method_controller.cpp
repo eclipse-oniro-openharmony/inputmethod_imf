@@ -53,8 +53,6 @@ using namespace MessageID;
 
     bool InputMethodController::Initialize()
     {
-        mImms = GetImsaProxy();
-
         msgHandler = new MessageHandler();
 
         mClient = new InputClientStub();
@@ -71,29 +69,38 @@ using namespace MessageID;
         return true;
     }
 
-    sptr<InputMethodSystemAbilityProxy> InputMethodController::GetImsaProxy()
+    sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
     {
-        IMSA_HILOGI("InputMethodController::GetImsaProxy");
+        IMSA_HILOGD("start");
+        std::lock_guard<std::mutex> lock(abilityLock_);
+        if (systemAbility_ != nullptr) {
+          return systemAbility_;
+        }
+        IMSA_HILOGI("get input method service proxy");
         sptr<ISystemAbilityManager> systemAbilityManager =
             SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (systemAbilityManager == nullptr) {
-            IMSA_HILOGI("InputMethodController::GetImsaProxy systemAbilityManager is nullptr");
+            IMSA_HILOGE("systemAbilityManager is nullptr");
             return nullptr;
         }
-
         auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
         if (systemAbility == nullptr) {
-            IMSA_HILOGI("InputMethodController::GetImsaProxy systemAbility is nullptr");
+            IMSA_HILOGE("systemAbility is nullptr");
             return nullptr;
         }
-
         if (deathRecipient_ == nullptr) {
-            deathRecipient_ = new ImsaDeathRecipient();
+            deathRecipient_ = new (std::nothrow) ImsaDeathRecipient();
+            if (deathRecipient_ == nullptr) {
+              IMSA_HILOGE("failed to new death recipient");
+              return nullptr;
+            }
         }
-        systemAbility->AddDeathRecipient(deathRecipient_);
-
-        sptr<InputMethodSystemAbilityProxy> iface = new InputMethodSystemAbilityProxy(systemAbility);
-        return iface;
+        if (systemAbility->IsProxyObject() && (!systemAbility->AddDeathRecipient(deathRecipient_))) {
+            IMSA_HILOGE("failed to add death recipient");
+            return nullptr;
+        }
+        systemAbility_ = iface_cast<IInputMethodSystemAbility>(systemAbility);
+        return systemAbility_;
     }
 
     void InputMethodController::WorkThread()
@@ -214,14 +221,16 @@ using namespace MessageID;
     void InputMethodController::HideCurrentInput()
     {
         IMSA_HILOGI("InputMethodController::HideCurrentInput");
-        if (mImms == nullptr) {
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr")
             return;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor()))) {
             return;
         }
-        mImms->HideCurrentInput(data);
+        proxy->HideCurrentInput(data);
     }
 
     void InputMethodController::Close()
@@ -234,89 +243,103 @@ using namespace MessageID;
                                              sptr<InputDataChannelStub> &channel, InputAttribute &attribute)
     {
         IMSA_HILOGI("InputMethodController::PrepareInput");
-        if (mImms == nullptr) {
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr")
             return;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor())
             && data.WriteInt32(displayId)
             && data.WriteRemoteObject(client->AsObject())
             && data.WriteRemoteObject(channel->AsObject())
             && data.WriteParcelable(&attribute))) {
             return;
         }
-        mImms->prepareInput(data);
+        proxy->prepareInput(data);
     }
 
     void InputMethodController::DisplayOptionalInputMethod()
     {
         IMSA_HILOGI("InputMethodController::DisplayOptionalInputMethod");
-        if (mImms == nullptr) {
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr")
             return;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor()))) {
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor()))) {
             return;
         }
-        mImms->displayOptionalInputMethod(data);
+        proxy->displayOptionalInputMethod(data);
     }
 
     std::vector<InputMethodProperty*> InputMethodController::ListInputMethod()
     {
         IMSA_HILOGI("InputMethodController::listInputMethod");
         std::vector<InputMethodProperty*> properties;
-        if (mImms == nullptr) {
-            return properties;
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr")
+            return;
         }
-        mImms->listInputMethod(&properties);
+        proxy->listInputMethod(&properties);
         return properties;
     }
 
     void InputMethodController::StartInput(sptr<InputClientStub> &client)
     {
         IMSA_HILOGI("InputMethodController::StartInput");
-        if (mImms == nullptr) {
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr")
             return;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor())
             && data.WriteRemoteObject(client->AsObject()))) {
             return;
         }
-        mImms->startInput(data);
+        proxy->startInput(data);
     }
 
     void InputMethodController::ReleaseInput(sptr<InputClientStub> &client)
     {
         IMSA_HILOGI("InputMethodController::ReleaseInput");
-        if (mImms == nullptr) {
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr")
             return;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor())
             && data.WriteRemoteObject(client->AsObject().GetRefPtr()))) {
             return;
         }
-        mImms->releaseInput(data);
+        proxy->releaseInput(data);
     }
 
     void InputMethodController::StopInput(sptr<InputClientStub> &client)
     {
         IMSA_HILOGI("InputMethodController::StopInput");
-        if (mImms == nullptr) {
+        auto proxy = GetSystemAbilityProxy();
+        if (proxy == nullptr) {
+            IMSA_HILOGE("proxy is nullptr")
             return;
         }
         MessageParcel data;
-        if (!(data.WriteInterfaceToken(mImms->GetDescriptor())
+        if (!(data.WriteInterfaceToken(proxy->GetDescriptor())
             && data.WriteRemoteObject(client->AsObject().GetRefPtr()))) {
             return;
         }
-        mImms->stopInput(data);
+        proxy->stopInput(data);
     }
 
     void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
     {
-        mImms = GetImsaProxy();
+        IMSA_HILOGE("input method service died");
+        std::lock_guard<std::mutex> lock(abilityLock_);
+        systemAbility_ = nullptr;
     }
 
     ImsaDeathRecipient::ImsaDeathRecipient()
