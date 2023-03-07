@@ -19,6 +19,7 @@ config("inputmethod_services_native_config") {
     "include",
     "${inputmethod_path}/frameworks/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/inputmethod_controller/include",
+    "//base/account/os_account/interfaces/innerkits/osaccount/native/include",
     "//base/notification/ces_standard/frameworks/core/include",
     "//base/notification/ces_standard/interfaces/innerkits/native/include",
   ]
