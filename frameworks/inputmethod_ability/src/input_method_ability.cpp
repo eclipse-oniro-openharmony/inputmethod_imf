@@ -25,6 +25,7 @@
 #include "para_handle.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
+#include "utils.h"
 
 namespace OHOS {
 namespace MiscServices {

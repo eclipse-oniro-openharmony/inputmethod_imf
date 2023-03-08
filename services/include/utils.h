@@ -41,8 +41,7 @@ namespace MiscServices {
         static int32_t GetUserId()
         {
             std::vector<int32_t> userIds;
-            OsAccountManager::QueryActiveOsAccountIds(userIds);
-            IMSA_HILOGD("userId: %{public}d", userIds[0]);
+            AccountSA::OsAccountManager::QueryActiveOsAccountIds(userIds);
             return userIds[0];
         }
     };

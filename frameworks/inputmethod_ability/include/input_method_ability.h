@@ -31,7 +31,6 @@
 #include "input_channel.h"
 #include "input_data_channel_proxy.h"
 #include "message.h"
-#include "utils.h"
 #include "input_method_system_ability_proxy.h"
 
 namespace OHOS {
@@ -96,10 +95,9 @@ namespace MiscServices {
         std::shared_ptr<InputDataChannelProxy> GetInputDataChannel();
         void SetInputControlChannel(sptr<IRemoteObject> &object);
         std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
+
         void Initialize();
         void WorkThread();
-
-
         void OnInitialInput(Message *msg);
         void OnStartInput(Message *msg);
         void OnStopInput(Message *msg);
@@ -107,7 +105,6 @@ namespace MiscServices {
         void OnShowKeyboard(Message *msg);
         void OnHideKeyboard(Message *msg);
         void OnInitInputControlChannel(Message *msg);
-
 
         void OnCursorUpdate(Message *msg);
         void OnSelectionChange(Message *msg);

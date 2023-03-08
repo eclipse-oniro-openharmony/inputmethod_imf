@@ -82,6 +82,7 @@ ohos_shared_library("inputmethod_ability") {
   external_deps = [
     "ability_runtime:runtime",
     "hiviewdfx_hilog_native:libhilog",
+    "os_account_standard:os_account_innerkits",
   ]
 
   public_configs = [ ":inputmethod_ability_native_public_config" ]

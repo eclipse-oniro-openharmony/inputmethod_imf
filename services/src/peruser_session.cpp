@@ -263,7 +263,7 @@ namespace MiscServices {
             if (imsCore[i]) {
                 StopInputMethod(i);
             }
-            IncreaseOrResetImeError(true, i);
+            ResetImeError(i);
             currentIme[i] = ime[i];
             if (currentIme[i] == nullptr) {
                 if (needReshowClient && GetImeIndex(needReshowClient) == i) {

@@ -15,7 +15,6 @@
 
 #include "input_data_channel_proxy.h"
 #include "message_parcel.h"
-#include "utils.h"
 
 namespace OHOS {
 namespace MiscServices {
