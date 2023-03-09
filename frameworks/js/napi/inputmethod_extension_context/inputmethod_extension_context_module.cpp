@@ -27,7 +27,9 @@ extern "C" __attribute__((constructor)) void NAPI_InputMethodExtensionContext_Au
         .name = "InputMethodExtensionContext",
         .fileName = "libinputmethodextensioncontext_napi.so/inputmethod_extension_context.js",
     };
-    moduleManager->Register(&newModuleInfo);
+    if (moduleManager != nullptr) {
+        moduleManager->Register(&newModuleInfo);
+    }
 }
 
 extern "C" __attribute__((visibility("default"))) void NAPI_InputMethodExtensionContext_GetJSCode(

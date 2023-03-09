@@ -66,9 +66,6 @@ InputMethodSystemAbility::~InputMethodSystemAbility()
     if (workThreadHandler.joinable()) {
         workThreadHandler.join();
     }
-    if (userSession_ != nullptr) {
-        userSession_ = nullptr;
-    }
 }
 
 void InputMethodSystemAbility::OnStart()
@@ -106,8 +103,7 @@ int InputMethodSystemAbility::Dump(int fd, const std::vector<std::u16string> &ar
 
 std::string InputMethodSystemAbility::GetInputMethodParam(const std::vector<InputMethodInfo> &properties)
 {
-    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-    auto &currentIme = cfg.currentIme;
+    auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme;
     bool isBegin = true;
     std::string params = "{\"imeList\":[";
     for (const auto &property : properties) {
@@ -158,9 +154,7 @@ int32_t InputMethodSystemAbility::Init()
             return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
         })) {
         userId_ = userIds[0];
-        if (userSession_ != nullptr) {
-            userSession_->UpdateCurrentUserId(userId_);
-        }
+        userSession_->UpdateCurrentUserId(userId_);
     }
     StartInputService(GetStartedIme(userId_));
     bool isSuccess = Publish(this);
@@ -252,20 +246,14 @@ bool InputMethodSystemAbility::StartInputService(const std::string &imeId)
 void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 {
     IMSA_HILOGE("InputMethodSystemAbility::StopInputService(%{public}s)", imeId.c_str());
-    if (userSession_ == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::StopInputService abort session is nullptr");
-        return;
-    }
     userSession_->StopInputService(imeId);
 }
 
 int32_t InputMethodSystemAbility::PrepareInput(
     int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel, InputAttribute &attribute)
 {
-    int32_t pid = IPCSkeleton::GetCallingPid();
-    int32_t uid = IPCSkeleton::GetCallingUid();
-    if (userSession_ == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+    if (client == nullptr || channel == nullptr) {
+        IMSA_HILOGE("InputMethodSystemAbility::client or channel is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     sptr<RemoteObjectDeathRecipient> clientDeathRecipient = new (std::nothrow) RemoteObjectDeathRecipient();
@@ -273,24 +261,24 @@ int32_t InputMethodSystemAbility::PrepareInput(
         IMSA_HILOGE("InputMethodSystemAbility::PrepareInput clientDeathRecipient is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return userSession_->OnPrepareInput(
-        { pid, uid, userId_, displayId, client, channel, clientDeathRecipient, attribute });
+    return userSession_->OnPrepareInput({ IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), userId_,
+        displayId, client, channel, clientDeathRecipient, attribute });
 };
 
 int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 {
-    if (userSession_ == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
+    if (client == nullptr) {
+        IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return userSession_ ->OnReleaseInput(client);
+    return userSession_->OnReleaseInput(client);
 };
 
 int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
 {
-    if (userSession_ == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
+    if (client == nullptr) {
+        IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     auto currentSubtype = GetCurrentInputMethodSubtype();
     if (currentSubtype == nullptr) {
@@ -303,9 +291,9 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
 
 int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 {
-    if (userSession_ == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
+    if (client == nullptr) {
+        IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return userSession_->OnStopInput(client);
 };
@@ -317,8 +305,9 @@ int32_t InputMethodSystemAbility::StopInputSession()
 
 int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
 {
-    if (userSession_ == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+    if (core == nullptr || agent == nullptr) {
+        CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
+        IMSA_HILOGE("InputMethodSystemAbility::core or agent is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return userSession_->OnSetCoreAndAgent(core, agent);
@@ -326,19 +315,11 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
 {
-    if (userSession_ == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
     return userSession_->OnHideKeyboardSelf();
 };
 
 int32_t InputMethodSystemAbility::ShowCurrentInput()
 {
-    if (userSession_ == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
     return userSession_->OnShowKeyboardSelf();
 };
 
@@ -527,8 +508,7 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleN
 {
     IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod");
     std::string targetIme = bundleName + "/" + name;
-    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-    auto &currentIme = cfg.currentIme;
+    auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("currentIme is empty");
         return ErrorCode::ERROR_PERSIST_CONFIG;
@@ -543,11 +523,6 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleN
     if (!StartInputService(targetIme)) {
         IMSA_HILOGE("start input method failed");
         return ErrorCode::ERROR_IME_START_FAILED;
-    }
-
-    if (userSession_ == nullptr) {
-        IMSA_HILOGE("session is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
     }
     userSession_->OnInputMethodSwitched(FindProperty(bundleName), FindSubProperty(bundleName, name));
     return ErrorCode::NO_ERROR;
@@ -699,8 +674,7 @@ int32_t InputMethodSystemAbility::ListProperty(int32_t userId, std::vector<Prope
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
     IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
-    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-    auto &currentIme = cfg.currentIme;
+    auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme is empty");
         return nullptr;
@@ -725,9 +699,7 @@ std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
 {
     IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethodSubtype");
-
-    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-    auto &currentIme = cfg.currentIme;
+    auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("InputMethodSystemAbility currentIme is empty");
         return nullptr;
@@ -758,39 +730,29 @@ void InputMethodSystemAbility::WorkThread()
         switch (msg->msgId_) {
             case MSG_ID_USER_START: {
                 OnUserStarted(msg);
-                delete msg;
-                msg = nullptr;
                 break;
             }
             case MSG_ID_USER_REMOVED: {
                 OnUserRemoved(msg);
-                delete msg;
-                msg = nullptr;
                 break;
             }
             case MSG_ID_PACKAGE_REMOVED: {
                 OnPackageRemoved(msg);
-                delete msg;
-                msg = nullptr;
                 break;
             }
-            case MSG_ID_HIDE_KEYBOARD_SELF:{
-                if (userSession_ != nullptr) {
-                    userSession_->OnHideKeyboardSelf();
-                }
-                delete msg;
+            case MSG_ID_HIDE_KEYBOARD_SELF: {
+                userSession_->OnHideKeyboardSelf();
                 break;
             }
             case MSG_ID_START_INPUT_SERVICE: {
                 StartInputService(GetStartedIme(userId_));
-                delete msg;
-                msg = nullptr;
                 break;
             }
             default: {
                 break;
             }
         }
+        delete msg;
     }
 }
 
@@ -816,8 +778,7 @@ std::string InputMethodSystemAbility::GetStartedIme(int32_t userId)
         IMSA_HILOGE("InputMethodSystemAbility::defaultIme is empty");
         return "";
     }
-    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId);
-    auto newUserIme = cfg.currentIme;
+    auto newUserIme = ImeCfgManager::GetInstance().GetImeCfg(userId).currentIme;
     if (newUserIme.empty()) {
         newUserIme = defaultIme;
         ImeCfgManager::GetInstance().AddImeCfg({ userId, newUserIme });
@@ -856,9 +817,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     }
     int32_t oldUserId = userId_;
     userId_ = msg->msgContent_->ReadInt32();
-    if (userSession_ != nullptr) {
-        userSession_->UpdateCurrentUserId(userId_);
-    }
+    userSession_->UpdateCurrentUserId(userId_);
     if (oldUserId == userId_) {
         IMSA_HILOGI("device boot, userId: %{public}d", userId_);
         return ErrorCode::NO_ERROR;
@@ -908,8 +867,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGI("InputMethodSystemAbility::userId: %{public}d, currentUserId: %{public}d,", userId, userId_);
         return ErrorCode::NO_ERROR;
     }
-    auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId);
-    auto &currentIme = cfg.currentIme;
+    auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId).currentIme;
     if (currentIme.empty()) {
         IMSA_HILOGE("InputMethodSystemAbility::currentIme is empty");
         return ErrorCode::ERROR_PERSIST_CONFIG;
