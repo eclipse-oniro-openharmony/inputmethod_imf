@@ -18,10 +18,13 @@
 #ifndef FM_IMMS_PROJECT_UTILS_H
 #define FM_IMMS_PROJECT_UTILS_H
 
-#include <string>
 #include <codecvt>
-#include <locale>
 #include <iostream>
+#include <locale>
+#include <string>
+#include <vector>
+
+#include "os_account_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -34,6 +37,12 @@ namespace MiscServices {
         static std::u16string to_utf16(std::string str)
         {
             return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(str);
+        }
+        static int32_t GetUserId()
+        {
+            std::vector<int32_t> userIds;
+            AccountSA::OsAccountManager::QueryActiveOsAccountIds(userIds);
+            return userIds[0];
         }
     };
 }

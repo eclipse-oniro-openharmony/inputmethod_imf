@@ -46,41 +46,26 @@ namespace MiscServices {
         RemoteObjectDeathRecipient(int userId, int msgId);
         ~RemoteObjectDeathRecipient();
         void OnRemoteDied(const wptr<IRemoteObject>& who) override;
+
     private:
         int userId_; // the id of the user to whom the object is linking
         int msgId_; // the message id can be  MessageID::MSG_ID_CLIENT_DIED and MessageID::MSG_ID_IMS_DIED
     };
 
-    /*! \class ClientInfo
-    \brief The class defines the details of an input client.
-    */
-    class ClientInfo {
-    public:
-        int pid; // the process id of the process in which the input client is running
-        int uid; // the uid of the process in which the input client is running
-        int userId; // the user if of the user under which the input client is running
-        int displayId; // the display id on which the input client is showing
-        sptr<IInputClient> client; // the remote object handler for the service to callback to the input client
-        sptr<IInputDataChannel> channel; // the remote object handler for IMSA callback to input client
-        InputAttribute attribute; // the input attribute of the input client
+    struct ClientInfo {
+        int pid;
+        int uid;
+        int userId;
+        int displayId;
+        sptr<IInputClient> client;
+        sptr<IInputDataChannel> channel;
+        InputAttribute attribute;
+        sptr<RemoteObjectDeathRecipient> deathRecipient;
+    };
 
-        ClientInfo(int pid, int uid, int userId, int displayId, const sptr<IInputClient>& client,
-                   const sptr<IInputDataChannel>& channel, const InputAttribute& attribute)
-        {
-            this->pid = pid;
-            this->uid = uid;
-            this->userId = userId;
-            this->displayId = displayId;
-            this->client = client;
-            this->channel = channel;
-            this->attribute = attribute;
-        };
-
-        ~ClientInfo()
-        {
-            this->client = nullptr;
-            this->channel = nullptr;
-        };
+    struct ResetManager {
+        uint32_t num {0};
+        time_t last {};
     };
 
     /*! \class PerUserSession
@@ -89,11 +74,11 @@ namespace MiscServices {
         This class manages the sessions between input clients and input method engines for each unlocked user.
     */
     class PerUserSession {
-    enum {
-        DEFAULT_IME = 0,  // index for default input method service
-        SECURITY_IME = 1, // index for security input method service
-        MAX_IME = 2, // the maximum count of ims started for a user
-    };
+        enum : int32_t {
+            DEFAULT_IME = 0,  // index for default input method service
+            SECURITY_IME = 1, // index for security input method service
+            MAX_IME = 2,      // the maximum count of ims started for a user
+        };
 
     public:
         explicit PerUserSession(int userId);
@@ -114,16 +99,17 @@ namespace MiscServices {
         void JoinWorkThread();
         void StopInputService(std::string imeId);
         static bool StartInputService();
+
     private:
         int userId_; // the id of the user to whom the object is linking
         int userState; // the state of the user to whom the object is linking
         int displayId; // the id of the display screen on which the user is
         int currentIndex;
-        std::map<sptr<IRemoteObject>, ClientInfo*> mapClients;
-        int MIN_IME = 2;
-        int IME_ERROR_CODE = 3;
-        int COMMON_COUNT_THREE_HUNDRED = 300;
-        int SLEEP_TIME = 300000;
+        std::map<IRemoteObject *, ClientInfo *> mapClients;
+        static const int MIN_IME = 2;
+        static const int MAX_RESTART_NUM = 3;
+        static const int IME_RESET_TIME_OUT = 300;
+        static const int MAX_RESET_WAIT_TIME = 1600000;
 
         InputMethodProperty *currentIme[MAX_IME]; // 0 - the default ime. 1 - security ime
 
@@ -138,21 +124,22 @@ namespace MiscServices {
 
         sptr<IInputMethodAgent> imsAgent;
         InputChannel *imsChannel; // the write channel created by input method service
+        std::mutex clientLock_;
         sptr<IInputClient> currentClient; // the current input client
         sptr<IInputClient> needReshowClient; // the input client for which keyboard need to re-show
 
-        sptr<RemoteObjectDeathRecipient> clientDeathRecipient; // remote object death monitor for input client
         sptr<RemoteObjectDeathRecipient> imsDeathRecipient;
         MessageHandler *msgHandler = nullptr; // message handler working with Work Thread
         std::thread workThreadHandler; // work thread handler
         std::mutex mtx; // mutex to lock the operations among multi work threads
         sptr<AAFwk::AbilityConnectionProxy> connCallback;
+        std::mutex resetLock;
+        ResetManager manager[MAX_IME];
 
         PerUserSession(const PerUserSession&);
         PerUserSession& operator =(const PerUserSession&);
         PerUserSession(const PerUserSession&&);
         PerUserSession& operator =(const PerUserSession&&);
-        int IncreaseOrResetImeError(bool resetFlag, int imeIndex);
         KeyboardType *GetKeyboardType(int imeIndex, int typeIndex);
         void ResetCurrentKeyboardType(int imeIndex);
         int OnCurrentKeyboardTypeChanged(int index, const std::u16string& value);
@@ -164,17 +151,15 @@ namespace MiscServices {
         void OnStartInput(Message *msg);
         void OnStopInput(Message *msg);
         void SetCoreAndAgent(Message *msg);
-        void OnClientDied(const wptr<IRemoteObject>& who);
-        void OnImsDied(const wptr<IRemoteObject>& who);
+        void OnClientDied(IRemoteObject *remoteObject);
+        void OnImsDied(IRemoteObject *remoteObject);
         void OnHideKeyboardSelf(int flags);
         void OnAdvanceToNext();
         void OnSetDisplayMode(int mode);
         void OnRestartIms(int index, const std::u16string& imeId);
         void OnUserLocked();
-        int AddClient(int pid, int uid, int displayId, const sptr<IInputClient>& inputClient,
-                  const sptr<IInputDataChannel>& channel,
-                  const InputAttribute& attribute);
-        int RemoveClient(const sptr<IInputClient>& inputClient, int retClientNum);
+        int AddClient(const ClientInfo &clientInfo);
+        void RemoveClient(IRemoteObject *inputClient);
         int StartInputMethod(int index);
         int StopInputMethod(int index);
         int ShowKeyboard(const sptr<IInputClient>& inputClient);
@@ -185,6 +170,11 @@ namespace MiscServices {
         void SendAgentToSingleClient(const sptr<IInputClient>& inputClient);
         void InitInputControlChannel();
         void SendAgentToAllClients();
+        void ResetImeError(uint32_t index);
+        bool IsRestartIme(uint32_t index);
+        void ClearImeData(uint32_t index);
+        void SetCurrentClient(sptr<IInputClient> client);
+        sptr<IInputClient> GetCurrentClient();
     };
 }
 }

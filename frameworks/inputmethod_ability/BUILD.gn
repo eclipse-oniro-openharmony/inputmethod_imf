@@ -61,6 +61,7 @@ ohos_shared_library("inputmethod_ability") {
 
   deps = [
     "//base/global/resmgr_standard/frameworks/resmgr:global_resmgr",
+    "//base/miscservices/inputmethod/etc/para:inputmethod_para",
     "//foundation/aafwk/standard/interfaces/innerkits/ability_manager:ability_manager",
     "//foundation/aafwk/standard/interfaces/innerkits/app_manager:app_manager",
     "//foundation/aafwk/standard/interfaces/innerkits/base:base",
@@ -81,6 +82,7 @@ ohos_shared_library("inputmethod_ability") {
   external_deps = [
     "ability_runtime:runtime",
     "hiviewdfx_hilog_native:libhilog",
+    "os_account_standard:os_account_innerkits",
   ]
 
   public_configs = [ ":inputmethod_ability_native_public_config" ]
