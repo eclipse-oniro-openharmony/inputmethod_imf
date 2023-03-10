@@ -791,15 +791,17 @@ std::string InputMethodSystemAbility::GetStartedIme(int32_t userId)
 
 bool InputMethodSystemAbility::BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func)
 {
+    IMSA_HILOGI("start");
     uint32_t times = 0;
     do {
         times++;
-        IMSA_HILOGI("Retry times: %{public}d", times);
         if (func()) {
+            IMSA_HILOGI("success, retry times: %{public}d", times);
             return true;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));
     } while (times < maxRetryTimes);
+    IMSA_HILOGI("failed");
     return false;
 }
 
