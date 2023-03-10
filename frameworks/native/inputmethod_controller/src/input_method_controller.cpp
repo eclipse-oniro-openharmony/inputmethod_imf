@@ -645,7 +645,7 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
         return false;
     }
     if (isStopInput) {
-        IMSA_HILOGD("InputMethodController::input stop");
+        IMSA_HILOGE("InputMethodController::input stop");
         return false;
     }
     std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();

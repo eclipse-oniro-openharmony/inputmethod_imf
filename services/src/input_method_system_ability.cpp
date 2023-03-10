@@ -152,6 +152,7 @@ int32_t InputMethodSystemAbility::Init()
     if (!isSuccess) {
         return -1;
     }
+    state_ = ServiceRunningState::STATE_RUNNING;
     ImeCfgManager::GetInstance().Init();
     std::vector<int32_t> userIds;
     if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
@@ -161,7 +162,6 @@ int32_t InputMethodSystemAbility::Init()
         userSession_->UpdateCurrentUserId(userId_);
     }
     StartInputService(GetStartedIme(userId_));
-    state_ = ServiceRunningState::STATE_RUNNING;
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
