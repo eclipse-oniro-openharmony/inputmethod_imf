@@ -48,8 +48,8 @@ using namespace AccountSA;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
-constexpr uint32_t RETRY_INTERVAL = 500;
-constexpr uint32_t BLOCK_RETRY_TIMES = 20;
+constexpr uint32_t RETRY_INTERVAL = 100;
+constexpr uint32_t BLOCK_RETRY_TIMES = 100;
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
@@ -148,6 +148,11 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
 
 int32_t InputMethodSystemAbility::Init()
 {
+    bool isSuccess = Publish(this);
+    if (!isSuccess) {
+        return -1;
+    }
+    state_ = ServiceRunningState::STATE_RUNNING;
     ImeCfgManager::GetInstance().Init();
     std::vector<int32_t> userIds;
     if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
@@ -157,11 +162,6 @@ int32_t InputMethodSystemAbility::Init()
         userSession_->UpdateCurrentUserId(userId_);
     }
     StartInputService(GetStartedIme(userId_));
-    bool isSuccess = Publish(this);
-    if (!isSuccess) {
-        return -1;
-    }
-    state_ = ServiceRunningState::STATE_RUNNING;
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
@@ -791,15 +791,17 @@ std::string InputMethodSystemAbility::GetStartedIme(int32_t userId)
 
 bool InputMethodSystemAbility::BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func)
 {
+    IMSA_HILOGI("start");
     uint32_t times = 0;
     do {
         times++;
-        IMSA_HILOGI("Retry times: %{public}d", times);
         if (func()) {
+            IMSA_HILOGI("success, retry times: %{public}d", times);
             return true;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));
     } while (times < maxRetryTimes);
+    IMSA_HILOGI("failed");
     return false;
 }
 
