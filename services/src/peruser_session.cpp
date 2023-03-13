@@ -116,6 +116,7 @@ void PerUserSession::RemoveClient(sptr<IRemoteObject> inputClient)
         return;
     }
     inputClient->RemoveDeathRecipient(info->deathRecipient);
+    std::lock_guard<std::recursive_mutex> lock(mtx);
     mapClients.erase(inputClient);
 }
 
