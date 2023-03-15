@@ -492,7 +492,7 @@ void PerUserSession::OnInputMethodSwitched(const Property &property, const SubPr
             continue;
         }
     }
-    if (subProperty.id != currentSubProperty.id) {
+    if (subProperty.name != currentSubProperty.name) {
         SetCurrentSubProperty(subProperty);
         return;
     }

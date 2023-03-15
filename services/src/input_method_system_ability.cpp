@@ -414,9 +414,9 @@ int32_t InputMethodSystemAbility::ListSubtypeByBundleName(
             auto label = bundleMgr->GetStringById(subtypeInfo.bundleName, subtypeInfo.moduleName,
                                                   subtypeInfo.labelId, userId);
             SubProperty subProperty;
-            subProperty.label = subtypeInfo.name;
-            subProperty.id = subtypeInfo.bundleName;
-            subProperty.name = label;
+            subProperty.label = label;
+            subProperty.id = subtypeInfo.name;
+            subProperty.name = subtypeInfo.bundleName;
             subProperty.iconId = subtypeInfo.iconId;
             subProperty.language = property.language;
             subProperty.mode = property.mode;
@@ -495,7 +495,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethodSubtype(const std::string &bu
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     for (const auto &subProp : subProps) {
-        if (subProp.label == name) {
+        if (subProp.id == name) {
             IMSA_HILOGI("target is installed, start switching");
             return OnSwitchInputMethod(bundleName, name);
         }
@@ -556,7 +556,7 @@ SubProperty InputMethodSystemAbility::FindSubProperty(const std::string &bundleN
         return {};
     }
     for (const auto &subProp : subProps) {
-        if (subProp.label == name) {
+        if (subProp.id == name) {
             return subProp;
         }
     }
@@ -988,20 +988,20 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_MODE, state)) {
         IMSA_HILOGI("switch mode");
         auto target = current->mode == "upper"
-                          ? FindSubPropertyByCompare(current->id,
+                          ? FindSubPropertyByCompare(current->name,
                               [&current](const SubProperty &property) { return property.mode == "lower"; })
-                          : FindSubPropertyByCompare(current->id,
+                          : FindSubPropertyByCompare(current->name,
                               [&current](const SubProperty &property) { return property.mode == "upper"; });
-        return SwitchInputMethod(target.id, target.label);
+        return SwitchInputMethod(target.name, target.id);
     }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_LANGUAGE, state)) {
         IMSA_HILOGI("switch language");
         auto target = current->language == "chinese"
-                          ? FindSubPropertyByCompare(current->id,
+                          ? FindSubPropertyByCompare(current->name,
                               [&current](const SubProperty &property) { return property.language == "english"; })
-                          : FindSubPropertyByCompare(current->id,
+                          : FindSubPropertyByCompare(current->name,
                               [&current](const SubProperty &property) { return property.language == "chinese"; });
-        return SwitchInputMethod(target.id, target.label);
+        return SwitchInputMethod(target.name, target.id);
     }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime");
@@ -1012,7 +1012,7 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
             return ret;
         }
         auto iter = std::find_if(
-            props.begin(), props.end(), [&current](const Property &property) { return property.name != current->id; });
+            props.begin(), props.end(), [&current](const Property &property) { return property.name != current->name; });
         if (iter != props.end()) {
             return SwitchInputMethod(iter->name, iter->id);
         }
