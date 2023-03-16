@@ -81,11 +81,13 @@ void InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &
     if (!ITypesUtil::Unmarshal(data, property, subProperty)) {
         IMSA_HILOGE("read message parcel failed");
         reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
+        delete parcel;
         return;
     }
     if (!ITypesUtil::Marshal(*parcel, property, subProperty)) {
         IMSA_HILOGE("write message parcel failed");
         reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
+        delete parcel;
         return;
     }
     auto *msg = new (std::nothrow) Message(MessageID::MSG_ID_ON_SWITCH_INPUT, parcel);
