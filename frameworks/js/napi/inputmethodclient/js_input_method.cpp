@@ -101,18 +101,18 @@ napi_status JsInputMethod::GetInputMethodSubProperty(
         napi_value result = nullptr;
         status = napi_get_named_property(env, argv, "name", &result);
         if (status != napi_ok) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing id parameter.", TYPE_STRING);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing name parameter.", TYPE_STRING);
             return status;
         }
         ctxt->name = GetStringProperty(env, result);
         result = nullptr;
         status = napi_get_named_property(env, argv, "id", &result);
         if (status != napi_ok) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing label parameter.", TYPE_STRING);
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing id parameter.", TYPE_STRING);
             return status;
         }
         ctxt->id = GetStringProperty(env, result);
-        IMSA_HILOGI("label:%{public}s and id:%{public}s", ctxt->label.c_str(), ctxt->id.c_str());
+        IMSA_HILOGI("name:%{public}s and id:%{public}s", ctxt->name.c_str(), ctxt->id.c_str());
     }
     return status;
 }
