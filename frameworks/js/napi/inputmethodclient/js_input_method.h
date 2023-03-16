@@ -27,8 +27,8 @@ struct SwitchInputMethodContext : public AsyncCall::Context {
     bool isSwitchInput = false;
     std::string packageName;
     std::string methodId;
+    std::string name;
     std::string id;
-    std::string label;
     napi_status status = napi_generic_failure;
     SwitchInputMethodContext() : Context(nullptr, nullptr){};
     SwitchInputMethodContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
