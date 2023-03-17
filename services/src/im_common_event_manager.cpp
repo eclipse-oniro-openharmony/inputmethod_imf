@@ -164,9 +164,14 @@ void ImCommonEventManager::EventSubscriber::RemovePackage(const CommonEventData 
     int32_t userId = want.GetIntParam("userId", 0);
     IMSA_HILOGD("ImCommonEventManager::RemovePackage, bundleName = %{public}s, userId = %{public}d",
         bundleName.c_str(), userId);
-    MessageParcel *parcel = new MessageParcel();
+    MessageParcel *parcel = new (std::nothrow) MessageParcel();
+    if (parcel == nullptr) {
+        IMSA_HILOGE("parcel is nullptr");
+        return;
+    }
     if (!ITypesUtil::Marshal(*parcel, userId, bundleName)) {
         IMSA_HILOGE("Failed to write message parcel");
+        delete parcel;
         return;
     }
     Message *msg = new Message(MessageID::MSG_ID_PACKAGE_REMOVED, parcel);
