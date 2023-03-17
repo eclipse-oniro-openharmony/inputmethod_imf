@@ -182,7 +182,7 @@ void InputMethodController::WorkThread()
             case MSG_ID_ON_INPUT_READY: {
                 MessageParcel *data = msg->msgContent_;
                 sptr<IRemoteObject> object = data->ReadRemoteObject();
-                if (object != nullptr) {
+                if (object != nullptr && remoteObject.GetRefPtr() != object.GetRefPtr()) {
                     SetInputMethodAgent(object);
                 }
                 break;
