@@ -12,6 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define private public
+#define protected public
+#include "input_method_system_ability_proxy.h"
+#undef private
 
 #include "systemabilitystub_fuzzer.h"
 
@@ -22,8 +26,10 @@
 #include "global.h"
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
+#include "iservice_registry.h"
 #include "message_parcel.h"
 #include "nativetoken_kit.h"
+#include "system_ability_definition.h"
 #include "token_setproc.h"
 
 using namespace OHOS::Security::AccessToken;
@@ -92,16 +98,24 @@ bool FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size)
     sptr<OnTextChangedListener> textListener = new TextListener();
     imc->Attach(textListener);
 
-    MessageParcel data;
-    data.WriteInterfaceToken(SYSTEMABILITY_INTERFACE_TOKEN);
-    data.WriteBuffer(rawData, size);
-    data.RewindRead(0);
-    MessageParcel reply;
-    MessageOption option;
-
-    sptr<InputMethodSystemAbility> ability = new InputMethodSystemAbility();
-    ability->OnRemoteRequest(code, data, reply, option);
-
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        IMSA_HILOGI("systemAbilityManager is nullptr");
+        return false;
+    }
+    auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
+    if (systemAbility == nullptr) {
+        IMSA_HILOGI("systemAbility is nullptr");
+        return false;
+    }
+    sptr<InputMethodSystemAbilityProxy> iface = new InputMethodSystemAbilityProxy(systemAbility);
+    iface->SendRequest(code, [&rawData, &size](MessageParcel &data) {
+        data.WriteInterfaceToken(SYSTEMABILITY_INTERFACE_TOKEN);
+        data.WriteBuffer(rawData, size);
+        data.RewindRead(0);
+        return true;
+    });
     return true;
 }
 } // namespace OHOS
