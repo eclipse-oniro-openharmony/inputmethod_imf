@@ -125,7 +125,7 @@ private:
         std::string type;
         Property property;
         SubProperty subProperty;
-        UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : vecCopy(cbVec), type(type)
+        explicit UvEntry(std::vector<std::shared_ptr<JSCallbackObject>> cbVec, std::string type) : vecCopy(cbVec), type(type)
         {
         }
     };
