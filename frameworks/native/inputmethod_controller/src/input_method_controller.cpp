@@ -182,8 +182,8 @@ void InputMethodController::WorkThread()
             case MSG_ID_ON_INPUT_READY: {
                 MessageParcel *data = msg->msgContent_;
                 sptr<IRemoteObject> object = data->ReadRemoteObject();
-                if (object != nullptr && remoteObject_.GetRefPtr() != object.GetRefPtr()) {
-                    remoteObject_ = object;
+                if (object != nullptr && agentRemoteObject_.GetRefPtr() != object.GetRefPtr()) {
+                    agentRemoteObject_ = object;
                     SetInputMethodAgent(object);
                 }
                 break;
@@ -370,6 +370,7 @@ void InputMethodController::Close()
         std::lock_guard<std::mutex> lock(textListenerLock_);
         textListener = nullptr;
     }
+    agentRemoteObject_ = nullptr;
     IMSA_HILOGD("InputMethodController::Close");
 }
 

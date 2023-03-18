@@ -444,7 +444,7 @@ private:
     std::shared_ptr<IInputMethodAgent> mAgent = nullptr;
     std::mutex textListenerLock_;
     sptr<OnTextChangedListener> textListener;
-    sptr<IRemoteObject> remoteObject_;
+    sptr<IRemoteObject> agentRemoteObject_;
     InputAttribute mAttribute;
     std::u16string mTextString;
     int mSelectOldBegin = 0;
