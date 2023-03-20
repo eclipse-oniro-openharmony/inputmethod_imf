@@ -105,7 +105,7 @@ HWTEST_F(PermissionVerficationExceptionTest, SwitchInputMethod, TestSize.Level0)
     auto subProperty = PermissionVerficationExceptionTest::imc_->GetCurrentInputMethodSubtype();
     ASSERT_TRUE(subProperty != nullptr);
 
-    int32_t ret = PermissionVerficationExceptionTest::imc_->SwitchInputMethod(property->name, subProperty->label);
+    int32_t ret = PermissionVerficationExceptionTest::imc_->SwitchInputMethod(property->name, subProperty->id);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
 }
 } // namespace MiscServices

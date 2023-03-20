@@ -1011,8 +1011,8 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
             IMSA_HILOGE("ListProperty failed");
             return ret;
         }
-        auto iter = std::find_if(
-            props.begin(), props.end(), [&current](const Property &property) { return property.name != current->name; });
+        auto iter = std::find_if(props.begin(), props.end(),
+            [&current](const Property &property) { return property.name != current->name; });
         if (iter != props.end()) {
             return SwitchInputMethod(iter->name, iter->id);
         }
