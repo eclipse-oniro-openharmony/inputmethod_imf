@@ -22,22 +22,22 @@
 namespace OHOS {
 namespace MiscServices {
 struct Property {
-    std::string name;
-    std::string id;
-    std::string label;
-    std::string icon;
-    int32_t iconId = 0;
+    std::string name;   // the bundleName of inputMethod
+    std::string id;     // the extensionName of inputMethod
+    std::string label;  // the name displayed externally of inputMethod
+    std::string icon;   // the icon of inputMethod
+    int32_t iconId = 0; // the icon id of inputMethod
 };
 
 struct SubProperty {
-    std::string label;
-    std::string name;
-    std::string id;
-    std::string mode;
-    std::string locale;
-    std::string language;
-    std::string icon;
-    int32_t iconId = 0;
+    std::string label;    // the name displayed externally of subtype
+    std::string name;     // the bundleName of inputMethod
+    std::string id;       // the name of subtype
+    std::string mode;     // the mode of subtype, containing "upper" and "lower"
+    std::string locale;   // the tongues of subtype, such as "zh_CN", "en_US", etc.
+    std::string language; // the language of subtype
+    std::string icon;     // the icon of subtype
+    int32_t iconId = 0;   // the icon id of subtype
 };
 } // namespace MiscServices
 } // namespace OHOS

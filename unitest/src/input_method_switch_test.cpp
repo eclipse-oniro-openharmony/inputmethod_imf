@@ -150,7 +150,8 @@ HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethod, TestSize.Level0)
     EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
     auto subProperty = imc->GetCurrentInputMethodSubtype();
     ASSERT_TRUE(subProperty != nullptr);
-    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->id, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->name, InputMethodSwitchTest::extBundleName);
 }
 
 /**
@@ -177,7 +178,8 @@ HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodSelf, TestSize.Level0)
     EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
     auto subProperty = imc->GetCurrentInputMethodSubtype();
     ASSERT_TRUE(subProperty != nullptr);
-    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->id, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->name, InputMethodSwitchTest::extBundleName);
 }
 
 /**
@@ -200,7 +202,8 @@ HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodWithErrorBundleName, Tes
     EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
     auto subProperty = imc->GetCurrentInputMethodSubtype();
     ASSERT_TRUE(subProperty != nullptr);
-    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->id, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->name, InputMethodSwitchTest::extBundleName);
 }
 
 /**
@@ -223,7 +226,8 @@ HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodWithErrorSubName, TestSi
     EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
     auto subProperty = imc->GetCurrentInputMethodSubtype();
     ASSERT_TRUE(subProperty != nullptr);
-    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->id, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->name, InputMethodSwitchTest::extBundleName);
 }
 
 /**
@@ -251,7 +255,8 @@ HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodSelfWithoutSubName, Test
     EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
     auto subProperty = imc->GetCurrentInputMethodSubtype();
     ASSERT_TRUE(subProperty != nullptr);
-    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->id, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->name, InputMethodSwitchTest::extBundleName);
 }
 
 /**
@@ -275,7 +280,8 @@ HWTEST_F(InputMethodSwitchTest, testIMCSwitchInputMethodWithErrorBundleNameWitho
     EXPECT_EQ(property->name, InputMethodSwitchTest::extBundleName);
     auto subProperty = imc->GetCurrentInputMethodSubtype();
     ASSERT_TRUE(subProperty != nullptr);
-    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->id, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->name, InputMethodSwitchTest::extBundleName);
 }
 
 /**
@@ -386,7 +392,8 @@ HWTEST_F(InputMethodSwitchTest, testIMCGetCurrentInputMethodSubtype, TestSize.Le
     ASSERT_TRUE(imc != nullptr);
     auto subProperty = imc->GetCurrentInputMethodSubtype();
     ASSERT_TRUE(subProperty != nullptr);
-    EXPECT_EQ(subProperty->label, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->id, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProperty->name, InputMethodSwitchTest::extBundleName);
 }
 
 /**
@@ -405,7 +412,8 @@ HWTEST_F(InputMethodSwitchTest, testIMCListCurrentInputMethodSubtype, TestSize.L
     auto ret = imc->ListCurrentInputMethodSubtype(subProps);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ASSERT_EQ(subProps.size(), EXT_INPUTMETHOD_SUBTYPE_NUM);
-    EXPECT_EQ(subProps[0].label, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProps[0].id, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProps[0].name, InputMethodSwitchTest::extBundleName);
 }
 
 /**
@@ -425,7 +433,8 @@ HWTEST_F(InputMethodSwitchTest, tesIMCtListInputMethodSubtype, TestSize.Level0)
     auto ret = imc->ListInputMethodSubtype(property, subProps);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ASSERT_EQ(subProps.size(), EXT_INPUTMETHOD_SUBTYPE_NUM);
-    EXPECT_EQ(subProps[0].label, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProps[0].id, InputMethodSwitchTest::extAbilityName);
+    EXPECT_EQ(subProps[0].name, InputMethodSwitchTest::extBundleName);
 }
 
 /**

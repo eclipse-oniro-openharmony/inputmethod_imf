@@ -569,7 +569,7 @@ namespace MiscServices {
                 return ret;
             }
         }
-        if (subProperty.id != currentSubProperty.id) {
+        if (subProperty.name != currentSubProperty.name) {
             SetCurrentSubProperty(subProperty);
             return ErrorCode::NO_ERROR;
         }
