@@ -58,40 +58,37 @@ int32_t JsInputMethod::GetNumberProperty(napi_env env, napi_value obj)
     return out;
 }
 
-napi_status JsInputMethod::GetInputMethodProperty(napi_env env, napi_value argv,
-    std::shared_ptr<SwitchInputMethodContext> ctxt)
+napi_status JsInputMethod::GetInputMethodProperty(
+    napi_env env, napi_value argv, std::shared_ptr<SwitchInputMethodContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
-    status = napi_typeof(env, argv, &valueType);
-    if (valueType == napi_object) {
-        napi_value result = nullptr;
-        // has at least two properties : name, id
-        status = napi_get_named_property(env, argv, "packageName", &result);
-        if (status != napi_ok) {
-            status = napi_get_named_property(env, argv, "name", &result);
-        }
-        if (status != napi_ok) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
-                                    "missing packageName parameter.", TYPE_STRING);
-            return status;
-        }
-        ctxt->packageName = GetStringProperty(env, result);
-        result = nullptr;
-        status = napi_get_named_property(env, argv, "methodId", &result);
-        if (status != napi_ok) {
-            status = napi_get_named_property(env, argv, "id", &result);
-        }
-        if (status != napi_ok) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
-                                    "missing methodId parameter.", TYPE_STRING);
-            return status;
-        }
-        ctxt->methodId = GetStringProperty(env, result);
-        IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s",
-            ctxt->methodId.c_str(), ctxt->packageName.c_str());
+    napi_typeof(env, argv, &valueType);
+    if (valueType != napi_object) {
+        IMSA_HILOGE("valueType error");
+        return status;
     }
-    return status;
+    napi_value result = nullptr;
+    napi_get_named_property(env, argv, "packageName", &result);
+    ctxt->packageName = JsInputMethod::GetStringProperty(env, result);
+    result = nullptr;
+    napi_get_named_property(env, argv, "methodId", &result);
+    ctxt->methodId = JsInputMethod::GetStringProperty(env, result);
+    if (ctxt->packageName.empty() || ctxt->methodId.empty()) {
+        result = nullptr;
+        napi_get_named_property(env, argv, "name", &result);
+        ctxt->packageName = JsInputMethod::GetStringProperty(env, result);
+
+        result = nullptr;
+        napi_get_named_property(env, argv, "id", &result);
+        ctxt->methodId = JsInputMethod::GetStringProperty(env, result);
+    }
+    if (ctxt->packageName.empty() || ctxt->methodId.empty()) {
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Parameter error.", TYPE_NONE);
+        return status;
+    }
+    IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s", ctxt->methodId.c_str(), ctxt->packageName.c_str());
+    return napi_ok;
 }
 
 napi_status JsInputMethod::GetInputMethodSubProperty(
@@ -130,17 +127,24 @@ napi_value JsInputMethod::GetJsInputMethodProperty(napi_env env, const Property 
     napi_value packageName = nullptr;
     napi_create_string_utf8(env, property.name.c_str(), NAPI_AUTO_LENGTH, &packageName);
     napi_set_named_property(env, prop, "packageName", packageName);
-    if (packageName == nullptr) {
-        napi_set_named_property(env, prop, "name", packageName);
-    }
+    napi_set_named_property(env, prop, "name", packageName);
 
     napi_value methodId = nullptr;
     napi_create_string_utf8(env, property.id.c_str(), NAPI_AUTO_LENGTH, &methodId);
     napi_set_named_property(env, prop, "methodId", methodId);
-    if (methodId == nullptr) {
-        napi_set_named_property(env, prop, "id", methodId);
-    }
+    napi_set_named_property(env, prop, "id", methodId);
 
+    napi_value icon = nullptr;
+    napi_create_string_utf8(env, property.icon.c_str(), NAPI_AUTO_LENGTH, &icon);
+    napi_set_named_property(env, prop, "icon", icon);
+
+    napi_value iconId = nullptr;
+    napi_create_int32(env, property.iconId, &iconId);
+    napi_set_named_property(env, prop, "iconId", iconId);
+
+    napi_value label = nullptr;
+    napi_create_string_utf8(env, property.label.c_str(), NAPI_AUTO_LENGTH, &label);
+    napi_set_named_property(env, prop, "label", label);
     return prop;
 }
 
