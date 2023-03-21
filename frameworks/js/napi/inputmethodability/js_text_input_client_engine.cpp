@@ -367,6 +367,7 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
+            ctxt->isDeleteForward = true;
         } else {
             ctxt->SetErrorCode(code);
         }
