@@ -510,9 +510,9 @@ void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         IMSA_HILOGD("InputMethodController::OnCursorUpdate isStopInput");
         return;
     }
-    std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
-    if (agent == nullptr) {
-        IMSA_HILOGI("InputMethodController::OnCursorUpdate agent is nullptr");
+    std::lock_guard<std::mutex> lock(agentLock_);
+    if (mAgent == nullptr) {
+        IMSA_HILOGI("InputMethodController::OnCursorUpdate mAgent is nullptr");
         return;
     }
     if (cursorInfo_.left == cursorInfo.left && cursorInfo_.top == cursorInfo.top &&
@@ -520,7 +520,7 @@ void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         return;
     }
     cursorInfo_ = cursorInfo;
-    agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
+    mAgent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
 }
 
 void InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
@@ -547,12 +547,12 @@ void InputMethodController::OnSelectionChange(std::u16string text, int start, in
     mSelectOldEnd = mSelectNewEnd;
     mSelectNewBegin = start;
     mSelectNewEnd = end;
-    std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
-    if (agent == nullptr) {
+    std::lock_guard<std::mutex> lock(agentLock_);
+    if (mAgent == nullptr) {
         IMSA_HILOGI("InputMethodController::OnSelectionChange agent is nullptr");
         return;
     }
-    agent->OnSelectionChange(mTextString, mSelectOldBegin, mSelectOldEnd, mSelectNewBegin, mSelectNewEnd);
+    mAgent->OnSelectionChange(mTextString, mSelectOldBegin, mSelectOldEnd, mSelectNewBegin, mSelectNewEnd);
 }
 
 void InputMethodController::OnConfigurationChange(Configuration info)
@@ -650,18 +650,18 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
         IMSA_HILOGE("InputMethodController::input stop");
         return false;
     }
-    std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
-    if (agent == nullptr) {
-        IMSA_HILOGI("InputMethodController::dispatchKeyEvent agent is nullptr");
+    std::lock_guard<std::mutex> lock(agentLock_);
+    if (mAgent == nullptr) {
+        IMSA_HILOGI("InputMethodController::dispatchKeyEvent mAgent is nullptr");
         return false;
     }
     MessageParcel data;
-    if (!(data.WriteInterfaceToken(agent->GetDescriptor()) && data.WriteInt32(keyEvent->GetKeyCode()) &&
+    if (!(data.WriteInterfaceToken(mAgent->GetDescriptor()) && data.WriteInt32(keyEvent->GetKeyCode()) &&
             data.WriteInt32(keyEvent->GetKeyAction()))) {
         return false;
     }
 
-    return agent->DispatchKeyEvent(data);
+    return mAgent->DispatchKeyEvent(data);
 }
 
 int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
@@ -685,12 +685,12 @@ void InputMethodController::SetCallingWindow(uint32_t windowId)
         return;
     }
     IMSA_HILOGI("InputMethodController::SetCallingWindow windowId = %{public}d", windowId);
-    std::shared_ptr<IInputMethodAgent> agent = GetInputMethodAgent();
-    if (agent == nullptr) {
-        IMSA_HILOGI("InputMethodController::SetCallingWindow agent is nullptr");
+    std::lock_guard<std::mutex> lock(agentLock_);
+    if (mAgent == nullptr) {
+        IMSA_HILOGI("InputMethodController::SetCallingWindow mAgent is nullptr");
         return;
     }
-    agent->SetCallingWindow(windowId);
+    mAgent->SetCallingWindow(windowId);
 }
 
 void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
@@ -703,12 +703,6 @@ void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
         return;
     }
     mAgent = agent;
-}
-
-std::shared_ptr<IInputMethodAgent> InputMethodController::GetInputMethodAgent()
-{
-    std::lock_guard<std::mutex> lock(agentLock_);
-    return mAgent;
 }
 
 int32_t InputMethodController::ShowSoftKeyboard()
