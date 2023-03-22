@@ -35,7 +35,6 @@
 #include "keyboard_listener.h"
 #include "message.h"
 #include "message_handler.h"
-#include "utils.h"
 
 namespace OHOS::AbilityRuntime {
 class Context;
@@ -45,8 +44,7 @@ namespace OHOS {
 namespace MiscServices {
 struct InputStartNotifier {
     bool isNotify{ false };
-    bool isShowKeyboard{};
-    SubProperty subProperty{};
+    bool isShowKeyboard{false};
 };
 class MessageHandler;
 class InputMethodAbility : public RefBase {
@@ -123,7 +121,7 @@ private:
 
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
-    void ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty);
+    void ShowInputWindow(bool isShowKeyboard);
     void DismissInputWindow();
     bool isImeReady_{ false };
     InputStartNotifier notifier_;

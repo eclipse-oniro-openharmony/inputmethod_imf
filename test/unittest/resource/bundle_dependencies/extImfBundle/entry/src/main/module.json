@@ -42,7 +42,35 @@
         "name": "InputMethodExtAbility",
         "srcEntrance": "./ets/InputMethodExtAbility/InputMethodExtAbility.ts",
         "type": "inputMethod",
-        "visible": true
+        "visible": true,
+        "metadata": [
+          {
+            "name": "language",
+            "value": "chinese"
+          },
+          {
+            "name": "mode",
+            "value": "lower"
+          }
+        ]
+      },
+      {
+        "description": "InputMethodExtDemo2",
+        "icon": "$media:app_icon",
+        "name": "InputMethodExtAbility2",
+        "srcEntrance": "./ets/InputMethodExtAbility2/InputMethodExtAbility2.ts",
+        "type": "inputMethod",
+        "visible": true,
+        "metadata": [
+          {
+            "name": "language",
+            "value": "english"
+          },
+          {
+            "name": "mode",
+            "value": "upper"
+          }
+        ]
       }
     ]
   }

@@ -114,7 +114,7 @@ bool ITypesUtil::Unmarshalling(sptr<IRemoteObject> &output, MessageParcel &data)
 }
 bool ITypesUtil::Marshalling(const Property &input, MessageParcel &data)
 {
-    if (!Marshal(data, input.name, input.id, input.label, input.icon, input.iconId)) {
+    if (!Marshal(data, input.name, input.id, input.label, input.labelId, input.icon, input.iconId)) {
         IMSA_HILOGE("ITypesUtil::write Property to message parcel failed");
         return false;
     }
@@ -123,7 +123,7 @@ bool ITypesUtil::Marshalling(const Property &input, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(Property &output, MessageParcel &data)
 {
-    if (!Unmarshal(data, output.name, output.id, output.label, output.icon, output.iconId)) {
+    if (!Unmarshal(data, output.name, output.id, output.label, output.labelId, output.icon, output.iconId)) {
         IMSA_HILOGE("ITypesUtil::read Property from message parcel failed");
         return false;
     }
@@ -132,8 +132,8 @@ bool ITypesUtil::Unmarshalling(Property &output, MessageParcel &data)
 
 bool ITypesUtil::Marshalling(const SubProperty &input, MessageParcel &data)
 {
-    if (!Marshal(data, input.label, input.name, input.id, input.mode, input.locale, input.language, input.icon,
-            input.iconId)) {
+    if (!Marshal(data, input.label, input.labelId, input.name, input.id, input.mode, input.locale, input.language,
+            input.icon, input.iconId)) {
         IMSA_HILOGE("ITypesUtil::write SubProperty to message parcel failed");
         return false;
     }
@@ -142,8 +142,8 @@ bool ITypesUtil::Marshalling(const SubProperty &input, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 {
-    if (!Unmarshal(data, output.label, output.name, output.id, output.mode, output.locale, output.language,
-                   output.icon, output.iconId)) {
+    if (!Unmarshal(data, output.label, output.labelId, output.name, output.id, output.mode, output.locale,
+            output.language, output.icon, output.iconId)) {
         IMSA_HILOGE("ITypesUtil::read SubProperty from message parcel failed");
         return false;
     }

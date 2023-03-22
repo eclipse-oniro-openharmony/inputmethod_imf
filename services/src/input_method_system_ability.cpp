@@ -16,28 +16,25 @@
 #include "input_method_system_ability.h"
 
 #include <global.h>
-#include <utils.h>
 
 #include "ability_connect_callback_proxy.h"
 #include "ability_manager_errors.h"
 #include "ability_manager_interface.h"
 #include "application_info.h"
 #include "bundle_checker.h"
-#include "bundle_mgr_proxy.h"
 #include "combination_key.h"
 #include "common_event_support.h"
 #include "errors.h"
 #include "global.h"
 #include "im_common_event_manager.h"
 #include "ime_cfg_manager.h"
-#include "input_method_status.h"
+#include "ime_info_inquirer.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "key_event.h"
 #include "message_handler.h"
 #include "os_account_manager.h"
-#include "resource_manager.h"
 #include "sys/prctl.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
@@ -102,28 +99,6 @@ int InputMethodSystemAbility::Dump(int fd, const std::vector<std::u16string> &ar
     return ERR_OK;
 }
 
-std::string InputMethodSystemAbility::GetInputMethodParam(const std::vector<InputMethodInfo> &properties)
-{
-    auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme;
-    bool isBegin = true;
-    std::string params = "{\"imeList\":[";
-    for (const auto &property : properties) {
-        params += isBegin ? "" : "},";
-        isBegin = false;
-
-        std::string imeId = Str16ToStr8(property.mPackageName) + "/" + Str16ToStr8(property.mAbilityName);
-        params += "{\"ime\": \"" + imeId + "\",";
-        params += "\"labelId\": \"" + std::to_string(property.labelId) + "\",";
-        params += "\"descriptionId\": \"" + std::to_string(property.descriptionId) + "\",";
-        std::string isCurrentIme = currentIme == imeId ? "true" : "false";
-        params += "\"isCurrentIme\": \"" + isCurrentIme + "\",";
-        params += "\"label\": \"" + Str16ToStr8(property.label) + "\",";
-        params += "\"description\": \"" + Str16ToStr8(property.description) + "\"";
-    }
-    params += "}]}";
-    return params;
-}
-
 void InputMethodSystemAbility::DumpAllMethod(int fd)
 {
     IMSA_HILOGI("InputMethodSystemAbility::DumpAllMethod");
@@ -135,13 +110,12 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
     }
     dprintf(fd, "\n - DumpAllMethod get Active Id succeed,count=%zu,", ids.size());
     for (auto id : ids) {
-        const auto &properties = ListInputMethodInfo(id);
-        if (properties.empty()) {
-            IMSA_HILOGI("The IME properties is empty.");
+        const auto &params = ImeInfoInquirer::GetInstance().GetInputMethodParam(id);
+        if (params.empty()) {
+            IMSA_HILOGI("userId: %{public}d The IME properties is empty.", id);
             dprintf(fd, "\n - The IME properties about the Active Id %d is empty.\n", id);
             continue;
         }
-        const auto &params = GetInputMethodParam(properties);
         dprintf(fd, "\n - The Active Id:%d get input method:\n%s\n", id, params.c_str());
     }
     IMSA_HILOGI("InputMethodSystemAbility::DumpAllMethod end.");
@@ -162,7 +136,7 @@ int32_t InputMethodSystemAbility::Init()
         userId_ = userIds[0];
         userSession_->UpdateCurrentUserId(userId_);
     }
-    StartInputService(GetStartedIme(userId_));
+    StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_));
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
@@ -290,12 +264,6 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    auto currentSubtype = GetCurrentInputMethodSubtype();
-    if (currentSubtype == nullptr) {
-        IMSA_HILOGE("currentSubtype is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    userSession_->SetCurrentSubProperty(*currentSubtype);
     return userSession_->OnStartInput(client, isShowKeyboard);
 };
 
@@ -347,243 +315,66 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
 
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
 {
-    return OnDisplayOptionalInputMethod(userId_);
+    return OnDisplayOptionalInputMethod();
 };
 
-int32_t InputMethodSystemAbility::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
+int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleName, const std::string &subName)
 {
-    return ListInputMethodByUserId(userId_, status, props);
-}
-
-int32_t InputMethodSystemAbility::ListAllInputMethod(int32_t userId, std::vector<Property> &props)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::listAllInputMethod");
-    return ListProperty(userId, props);
-}
-
-int32_t InputMethodSystemAbility::ListEnabledInputMethod(std::vector<Property> &props)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::listEnabledInputMethod");
-    auto current = GetCurrentInputMethod();
-    if (current == nullptr) {
-        IMSA_HILOGE("GetCurrentInputMethod current is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    auto property = FindProperty(current->name);
-    props = { property };
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodSystemAbility::ListDisabledInputMethod(int32_t userId, std::vector<Property> &props)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::listDisabledInputMethod");
-    auto ret = ListProperty(userId, props);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("list property is failed, ret = %{public}d", ret);
-        return ret;
-    }
-    auto filter = GetCurrentInputMethod();
-    if (filter == nullptr) {
-        IMSA_HILOGE("GetCurrentInputMethod property is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    for (auto iter = props.begin(); iter != props.end();) {
-        if (iter->name == filter->name) {
-            iter = props.erase(iter);
-            continue;
-        }
-        ++iter;
-    }
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodSystemAbility::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::ListCurrentInputMethodSubtype");
-    auto filter = GetCurrentInputMethod();
-    if (filter == nullptr) {
-        IMSA_HILOGE("GetCurrentInputMethod failed");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    return ListSubtypeByBundleName(userId_, filter->name, subProps);
-}
-
-int32_t InputMethodSystemAbility::ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodSubtype");
-    return ListSubtypeByBundleName(userId_, name, subProps);
-}
-
-int32_t InputMethodSystemAbility::ListSubtypeByBundleName(
-    int32_t userId, const std::string &name, std::vector<SubProperty> &subProps)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::ListSubtypeByBundleName");
-    std::vector<AppExecFwk::ExtensionAbilityInfo> subtypeInfos;
-    int32_t ret = QueryImeInfos(userId, subtypeInfos);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("Failed to query inputmethod infos");
-        return ret;
-    }
-    auto bundleMgr = GetBundleMgr();
-    if (bundleMgr == nullptr) {
-        IMSA_HILOGE("Failed to GetBundleMgr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    for (const auto &subtypeInfo : subtypeInfos) {
-        if (subtypeInfo.bundleName == name) {
-            std::vector<Metadata> extends = subtypeInfo.metadata;
-            auto property = GetExtends(extends);
-            auto label = bundleMgr->GetStringById(subtypeInfo.bundleName, subtypeInfo.moduleName,
-                                                  subtypeInfo.labelId, userId);
-            SubProperty subProperty;
-            subProperty.label = label;
-            subProperty.id = subtypeInfo.name;
-            subProperty.name = subtypeInfo.bundleName;
-            subProperty.iconId = subtypeInfo.iconId;
-            subProperty.language = property.language;
-            subProperty.mode = property.mode;
-            subProperty.locale = property.locale;
-            subProperty.icon = property.icon;
-            subProps.emplace_back(subProperty);
-        }
-    }
-    return ErrorCode::NO_ERROR;
-}
-
-SubProperty InputMethodSystemAbility::GetExtends(const std::vector<Metadata> &metaData)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::GetExtends");
-    SubProperty property;
-    for (const auto &data : metaData) {
-        if (data.name == "language") {
-            property.language = data.value;
-            continue;
-        }
-        if (data.name == "mode") {
-            property.mode = data.value;
-            continue;
-        }
-        if (data.name == "locale") {
-            property.locale = data.value;
-            continue;
-        }
-        if (data.name == "icon") {
-            property.icon = data.value;
-        }
-    }
-    return property;
-}
-
-int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &name, const std::string &subName)
-{
-    IMSA_HILOGD("InputMethodSystemAbility name: %{public}s, subName: %{public}s", name.c_str(), subName.c_str());
-    return subName.empty() ? SwitchInputMethodType(name) : SwitchInputMethodSubtype(name, subName);
-}
-
-int32_t InputMethodSystemAbility::SwitchInputMethodType(const std::string &name)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::SwitchInputMethodType");
-    std::vector<Property> properties = {};
-    auto ret = ListInputMethodByUserId(userId_, ALL, properties);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("ListInputMethodByUserId failed, ret = %{public}d", ret);
-        return ret;
-    }
-    if (properties.empty()) {
-        IMSA_HILOGE("InputMethodSystemAbility::SwitchInputMethodType has no ime");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    for (const auto &property : properties) {
-        if (property.name == name) {
-            IMSA_HILOGI("target is installed, start switching");
-            return OnSwitchInputMethod(property.name, property.id);
-        }
-    }
-    IMSA_HILOGE("target is not installed, switch failed");
-    return ErrorCode::ERROR_SWITCH_IME;
-}
-
-int32_t InputMethodSystemAbility::SwitchInputMethodSubtype(const std::string &bundleName, const std::string &name)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::SwitchInputMethodSubtype");
-    std::vector<SubProperty> subProps = {};
-    auto ret = ListSubtypeByBundleName(userId_, bundleName, subProps);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("ListSubtypeByBundleName failed, ret = %{public}d", ret);
-        return ret;
-    }
-    if (subProps.empty()) {
-        IMSA_HILOGE("InputMethodSystemAbility::SwitchInputMethodSubtype has no ime");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    for (const auto &subProp : subProps) {
-        if (subProp.id == name) {
-            IMSA_HILOGI("target is installed, start switching");
-            return OnSwitchInputMethod(bundleName, name);
-        }
-    }
-    IMSA_HILOGE("target is not installed, switch failed");
-    return ErrorCode::ERROR_SWITCH_IME;
-}
-
-int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleName, const std::string &name)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::OnSwitchInputMethod");
-    std::string targetIme = bundleName + "/" + name;
-    auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme;
-    if (currentIme.empty()) {
-        IMSA_HILOGE("currentIme is empty");
-        return ErrorCode::ERROR_PERSIST_CONFIG;
-    }
-    IMSA_HILOGI("CurrentIme : %{public}s, TargetIme : %{public}s", currentIme.c_str(), targetIme.c_str());
-    if (currentIme == targetIme) {
-        IMSA_HILOGI("currentIme and TargetIme are the same one");
+    if (!IsNeedSwitch(bundleName, subName)) {
         return ErrorCode::NO_ERROR;
     }
-    StopInputService(currentIme);
-    ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetIme });
+    ImeInfo info;
+    auto ret = ImeInfoInquirer::GetInstance().GetSwitchedImeInfo(userId_, bundleName, subName, info);
+    if (ret != ErrorCode::NO_ERROR) {
+        return ret;
+    }
+    return info.isNewIme ? SwitchIme(bundleName, info) : SwitchImeType(info);
+}
+
+bool InputMethodSystemAbility::IsNeedSwitch(const std::string &bundleName, const std::string &subName)
+{
+    auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeBundleName(userId_);
+    auto currentSubName = ImeCfgManager::GetInstance().GetCurrentImeSubName(userId_);
+    IMSA_HILOGI("currentIme: %{public}s, targetIme: %{public}s", (currentBundleName + "/" + currentSubName).c_str(),
+        (bundleName + "/" + subName).c_str());
+    if ((subName.empty() && bundleName == currentBundleName)
+        || (!subName.empty() && subName == currentSubName && currentBundleName == bundleName)) {
+        IMSA_HILOGI("no need to switch");
+        return false;
+    }
+    return true;
+}
+
+int32_t InputMethodSystemAbility::SwitchIme(const std::string &bundleName, const ImeInfo &info)
+{
+    return bundleName != ImeCfgManager::GetInstance().GetCurrentImeBundleName(userId_) ? SwitchImeType(info)
+                                                                                       : SwitchImeSubType(info);
+}
+
+int32_t InputMethodSystemAbility::SwitchImeType(const ImeInfo &info)
+{
+    StopInputService(ImeCfgManager::GetInstance().GetCurrentIme(userId_));
+    std::string targetIme = info.prop.name + "/" + info.prop.id;
+    ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetIme, info.subProp.id });
     if (!StartInputService(targetIme)) {
         IMSA_HILOGE("start input method failed");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
-    userSession_->OnInputMethodSwitched(FindProperty(bundleName), FindSubProperty(bundleName, name));
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
+    userSession_->OnSwitchIme(info.prop, info.subProp, false);
     return ErrorCode::NO_ERROR;
 }
 
-Property InputMethodSystemAbility::FindProperty(const std::string &name)
+int32_t InputMethodSystemAbility::SwitchImeSubType(const ImeInfo &info)
 {
-    IMSA_HILOGI("InputMethodSystemAbility::FindProperty");
-    std::vector<Property> props = {};
-    auto ret = ListAllInputMethod(userId_, props);
+    auto ret = userSession_->OnSwitchIme(info.prop, info.subProp, true);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("ListAllInputMethod failed");
-        return {};
+        return ret;
     }
-    for (const auto &prop : props) {
-        if (prop.name == name) {
-            return prop;
-        }
-    }
-    IMSA_HILOGE("InputMethodSystemAbility::FindProperty failed");
-    return {};
-}
-
-SubProperty InputMethodSystemAbility::FindSubProperty(const std::string &bundleName, const std::string &name)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::FindSubProperty");
-    std::vector<SubProperty> subProps = {};
-    auto ret = ListSubtypeByBundleName(userId_, bundleName, subProps);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("ListSubtypeByBundleName failed, ret = %{public}d", ret);
-        return {};
-    }
-    for (const auto &subProp : subProps) {
-        if (subProp.id == name) {
-            return subProp;
-        }
-    }
-    IMSA_HILOGE("InputMethodSystemAbility::FindSubProperty failed");
-    return {};
+    ImeCfgManager::GetInstance().ModifyImeCfg(
+        { userId_, ImeCfgManager::GetInstance().GetCurrentIme(userId_), info.subProp.id });
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
+    return ErrorCode::NO_ERROR;
 }
 
 // Deprecated because of no permission check, kept for compatibility
@@ -613,137 +404,30 @@ int32_t InputMethodSystemAbility::DisplayOptionalInputMethodDeprecated()
     return DisplayOptionalInputMethod();
 };
 
-/**
- * Get all of the input method engine list installed in the system
- * \n Run in binder thread
- * \param[out] properties input method engine list returned to the caller
- * \return ErrorCode::NO_ERROR no error
- * \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
- */
-int32_t InputMethodSystemAbility::ListInputMethodByUserId(
-    int32_t userId, InputMethodStatus status, std::vector<Property> &props)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodByUserId");
-    if (status == InputMethodStatus::ALL) {
-        return ListAllInputMethod(userId, props);
-    }
-    if (status == InputMethodStatus::ENABLE) {
-        return ListEnabledInputMethod(props);
-    }
-    if (status == InputMethodStatus::DISABLE) {
-        return ListDisabledInputMethod(userId, props);
-    }
-    return ErrorCode::ERROR_BAD_PARAMETERS;
-}
-
-std::vector<InputMethodInfo> InputMethodSystemAbility::ListInputMethodInfo(int32_t userId)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::ListInputMethodInfo userId = %{public}d", userId);
-    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-    if (QueryImeInfos(userId, extensionInfos) != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("Failed to query inputmethod infos");
-        return {};
-    }
-    std::vector<InputMethodInfo> properties;
-    for (const auto &extension : extensionInfos) {
-        std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
-        if (resourceManager == nullptr) {
-            IMSA_HILOGE("InputMethodSystemAbility::ListInputMethodInfo resourcemanager is nullptr");
-            break;
-        }
-        AppExecFwk::ApplicationInfo applicationInfo = extension.applicationInfo;
-        std::string path = extension.hapPath.empty() ? extension.resourcePath : extension.hapPath;
-        resourceManager->AddResource(path.c_str());
-        std::string labelString;
-        resourceManager->GetStringById(applicationInfo.labelId, labelString);
-        std::string descriptionString;
-        resourceManager->GetStringById(applicationInfo.descriptionId, descriptionString);
-        InputMethodInfo property;
-        property.mPackageName = Str8ToStr16(extension.bundleName);
-        property.mAbilityName = Str8ToStr16(extension.name);
-        property.labelId = applicationInfo.labelId;
-        property.descriptionId = applicationInfo.descriptionId;
-        property.label = Str8ToStr16(labelString);
-        property.description = Str8ToStr16(descriptionString);
-        properties.emplace_back(property);
-    }
-    return properties;
-}
-
-int32_t InputMethodSystemAbility::ListProperty(int32_t userId, std::vector<Property> &props)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::ListProperty userId = %{public}d", userId);
-    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-    int32_t ret = QueryImeInfos(userId, extensionInfos);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("Failed to query inputmethod infos");
-        return ret;
-    }
-    for (const auto &extension : extensionInfos) {
-        bool isInVector = false;
-        for (const auto &prop : props) {
-            if (extension.bundleName == prop.name) {
-                isInVector = true;
-                break;
-            }
-        }
-        if (isInVector) {
-            continue;
-        }
-        props.push_back({ .name = extension.bundleName,
-            .id = extension.name,
-            .label = extension.applicationInfo.label,
-            .icon = extension.applicationInfo.icon,
-            .iconId = extension.applicationInfo.iconId });
-    }
-    return ErrorCode::NO_ERROR;
-}
-
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
-    IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
-    auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme;
-    if (currentIme.empty()) {
-        IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme is empty");
-        return nullptr;
-    }
-
-    auto pos = currentIme.find('/');
-    if (pos == std::string::npos) {
-        IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme can not find '/'");
-        return nullptr;
-    }
-
-    auto property = std::make_shared<Property>();
-    if (property == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility property is nullptr");
-        return nullptr;
-    }
-    property->name = currentIme.substr(0, pos);
-    property->id = currentIme.substr(pos + 1, currentIme.length() - pos - 1);
-    return property;
+    return ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId_);
 }
 
 std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
 {
-    IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethodSubtype");
-    auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme;
-    if (currentIme.empty()) {
-        IMSA_HILOGE("InputMethodSystemAbility currentIme is empty");
-        return nullptr;
-    }
-    auto pos = currentIme.find('/');
-    if (pos == std::string::npos) {
-        IMSA_HILOGE("InputMethodSystemAbility:: currentIme can not find '/'");
-        return nullptr;
-    }
-    auto property = std::make_shared<SubProperty>(
-        FindSubProperty(currentIme.substr(0, pos), currentIme.substr(pos + 1, currentIme.length() - pos - 1)));
-    if (property == nullptr) {
-        IMSA_HILOGE("property is nullptr");
-        return nullptr;
-    }
-    return property;
+    return ImeInfoInquirer::GetInstance().GetCurrentInputMethodSubtype(userId_);
+}
+
+int32_t InputMethodSystemAbility::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
+{
+    return ImeInfoInquirer::GetInstance().ListInputMethod(userId_, status, props);
+}
+
+int32_t InputMethodSystemAbility::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
+{
+    return ImeInfoInquirer::GetInstance().ListCurrentInputMethodSubtype(userId_, subProps);
+}
+
+int32_t InputMethodSystemAbility::ListInputMethodSubtype(
+    const std::string &bundleName, std::vector<SubProperty> &subProps)
+{
+    return ImeInfoInquirer::GetInstance().ListInputMethodSubtype(userId_, bundleName, subProps);
 }
 
 /**
@@ -773,7 +457,7 @@ void InputMethodSystemAbility::WorkThread()
                 break;
             }
             case MSG_ID_START_INPUT_SERVICE: {
-                StartInputService(GetStartedIme(userId_));
+                StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_));
                 break;
             }
             default: {
@@ -782,39 +466,6 @@ void InputMethodSystemAbility::WorkThread()
         }
         delete msg;
     }
-}
-
-bool InputMethodSystemAbility::IsImeInstalled(int32_t userId, std::string &imeId)
-{
-    std::vector<Property> props;
-    ListAllInputMethod(userId, props);
-    for (auto const &prop : props) {
-        std::string ime = prop.name + "/" + prop.id;
-        if (ime == imeId) {
-            IMSA_HILOGI("true");
-            return true;
-        }
-    }
-    IMSA_HILOGI("false");
-    return false;
-}
-
-std::string InputMethodSystemAbility::GetStartedIme(int32_t userId)
-{
-    auto defaultIme = ImeCfgManager::GetDefaultIme();
-    if (defaultIme.empty()) {
-        IMSA_HILOGE("InputMethodSystemAbility::defaultIme is empty");
-        return "";
-    }
-    auto newUserIme = ImeCfgManager::GetInstance().GetImeCfg(userId).currentIme;
-    if (newUserIme.empty()) {
-        newUserIme = defaultIme;
-        ImeCfgManager::GetInstance().AddImeCfg({ userId, newUserIme });
-    } else if (!IsImeInstalled(userId, newUserIme)) {
-        newUserIme = defaultIme;
-        ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newUserIme });
-    }
-    return newUserIme;
 }
 
 bool InputMethodSystemAbility::BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func)
@@ -853,8 +504,8 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGI("%{public}d switch to %{public}d.", oldUserId, userId_);
-    StopInputService(ImeCfgManager::GetInstance().GetImeCfg(oldUserId).currentIme);
-    StartInputService(GetStartedIme(userId_));
+    StopInputService(ImeCfgManager::GetInstance().GetCurrentIme(oldUserId));
+    StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_));
     return ErrorCode::NO_ERROR;
 }
 
@@ -897,28 +548,20 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGI("InputMethodSystemAbility::userId: %{public}d, currentUserId: %{public}d,", userId, userId_);
         return ErrorCode::NO_ERROR;
     }
-    auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId).currentIme;
-    if (currentIme.empty()) {
-        IMSA_HILOGE("InputMethodSystemAbility::currentIme is empty");
-        return ErrorCode::ERROR_PERSIST_CONFIG;
-    }
-    std::string::size_type pos = currentIme.find("/");
-    std::string currentImeBundle = currentIme.substr(0, pos);
+    auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeBundleName(userId);
     if (packageName == currentImeBundle) {
-        std::string defaultIme = ImeCfgManager::GetDefaultIme();
-        if (defaultIme.empty()) {
-            IMSA_HILOGE("InputMethodSystemAbility::defaultIme is empty");
+        // Switch to the default ime
+        auto info = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId);
+        if (info == nullptr) {
             return ErrorCode::ERROR_PERSIST_CONFIG;
         }
-        pos = defaultIme.find("/");
-        int32_t ret =
-            OnSwitchInputMethod(defaultIme.substr(0, pos), defaultIme.substr(pos + 1, defaultIme.length() - pos - 1));
+        int32_t ret = SwitchImeType(*info);
         IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
     }
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod(int32_t userId)
+int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
 {
     IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod");
     auto abilityManager = GetAbilityManagerService();
@@ -935,37 +578,6 @@ int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod(int32_t userId)
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
     }
     IMSA_HILOGI("InputMethodSystemAbility::Start InputMethod ability success.");
-    return ErrorCode::NO_ERROR;
-}
-
-sptr<OHOS::AppExecFwk::IBundleMgr> InputMethodSystemAbility::GetBundleMgr()
-{
-    IMSA_HILOGI("InputMethodSystemAbility::GetBundleMgr");
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::GetBundleMgr systemAbilityManager is nullptr");
-        return nullptr;
-    }
-    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    if (remoteObject == nullptr) {
-        return nullptr;
-    }
-    return iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
-}
-
-int32_t InputMethodSystemAbility::QueryImeInfos(int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &infos)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::QueryImeInfos");
-    auto bundleMgr = GetBundleMgr();
-    if (bundleMgr == nullptr) {
-        IMSA_HILOGE("Failed to GetBundleMgr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    if (!bundleMgr->QueryExtensionAbilityInfos(AbilityType::INPUTMETHOD, userId, infos)) {
-        IMSA_HILOGE("QueryExtensionAbilityInfos failed");
-        return ErrorCode::ERROR_PACKAGE_MANAGER;
-    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -987,66 +599,85 @@ sptr<AAFwk::IAbilityManager> InputMethodSystemAbility::GetAbilityManagerService(
     return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
 }
 
-SubProperty InputMethodSystemAbility::FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare)
-{
-    IMSA_HILOGI("InputMethodSystemAbility::FindSubPropertyByCompare");
-    std::vector<SubProperty> subProps = {};
-    auto ret = ListSubtypeByBundleName(userId_, bundleName, subProps);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("ListSubtypeByBundleName failed, ret = %{public}d", ret);
-        return {};
-    }
-    for (const auto &subProp : subProps) {
-        if (compare(subProp)) {
-            return subProp;
-        }
-    }
-    IMSA_HILOGE("InputMethodSystemAbility::FindSubPropertyByCompare failed");
-    return {};
-}
-
 int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
 {
     IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinationKey");
-    auto current = GetCurrentInputMethodSubtype();
-    if (current == nullptr) {
-        IMSA_HILOGE("GetCurrentInputMethodSubtype failed");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_MODE, state)) {
         IMSA_HILOGI("switch mode");
-        auto target = current->mode == "upper"
-                          ? FindSubPropertyByCompare(current->name,
-                              [&current](const SubProperty &property) { return property.mode == "lower"; })
-                          : FindSubPropertyByCompare(current->name,
-                              [&current](const SubProperty &property) { return property.mode == "upper"; });
-        return SwitchInputMethod(target.name, target.id);
+        return SwitchMode();
     }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_LANGUAGE, state)) {
         IMSA_HILOGI("switch language");
-        auto target = current->language == "chinese"
-                          ? FindSubPropertyByCompare(current->name,
-                              [&current](const SubProperty &property) { return property.language == "english"; })
-                          : FindSubPropertyByCompare(current->name,
-                              [&current](const SubProperty &property) { return property.language == "chinese"; });
-        return SwitchInputMethod(target.name, target.id);
+        return SwitchLanguage();
     }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime");
-        std::vector<Property> props = {};
-        auto ret = ListProperty(userId_, props);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("ListProperty failed");
-            return ret;
-        }
-        auto iter = std::find_if(props.begin(), props.end(),
-            [&current](const Property &property) { return property.name != current->name; });
-        if (iter != props.end()) {
-            return SwitchInputMethod(iter->name, iter->id);
-        }
+        return SwitchInputMethod();
     }
-    IMSA_HILOGD("keycode undefined");
+    IMSA_HILOGE("keycode undefined");
     return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
+}
+
+int32_t InputMethodSystemAbility::SwitchMode()
+{
+    ImeInfo info;
+    auto ret = ImeInfoInquirer::GetInstance().GetCurrentImeInfoFromNative(
+        userId_, ImeCfgManager::GetInstance().GetCurrentImeSubName(userId_), info);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("current ime is abnormal, ret: %{public}d", ret);
+        return ret;
+    }
+    auto target = info.subProp.mode == "upper"
+                      ? ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(
+                          info.subProps, [](const SubProperty &property) { return property.mode == "lower"; })
+                      : ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(
+                          info.subProps, [](const SubProperty &property) { return property.mode == "upper"; });
+    return SwitchInputMethod(target.name, target.id);
+}
+
+int32_t InputMethodSystemAbility::SwitchLanguage()
+{
+    ImeInfo info;
+    auto ret = ImeInfoInquirer::GetInstance().GetCurrentImeInfoFromNative(
+        userId_, ImeCfgManager::GetInstance().GetCurrentImeSubName(userId_), info);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("current ime is abnormal, ret: %{public}d", ret);
+        return ret;
+    }
+    if (!info.isNewIme) {
+        auto target = info.subProp.language == "chinese"
+                          ? ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(info.subProps,
+                              [](const SubProperty &property) {
+                                  return property.language == "english" && property.mode == "lower";
+                              })
+                          : ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(info.subProps,
+                              [](const SubProperty &property) { return property.language == "chinese"; });
+        return SwitchInputMethod(target.name, target.id);
+    }
+
+    auto target =
+        info.subProp.locale == "zh_CN" ? ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(info.subProps,
+            [](const SubProperty &property) { return property.locale == "en_US" && property.mode == "lower"; })
+                                       : ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(info.subProps,
+                                           [](const SubProperty &property) { return property.locale == "zh_CN"; });
+    return SwitchInputMethod(target.name, target.id);
+}
+
+int32_t InputMethodSystemAbility::SwitchInputMethod()
+{
+    std::vector<Property> props = {};
+    auto ret = ImeInfoInquirer::GetInstance().ListInputMethod(userId_, ALL, props);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("ListProperty failed");
+        return ret;
+    }
+    auto iter = std::find_if(props.begin(), props.end(), [this](const Property &property) {
+        return property.name != ImeCfgManager::GetInstance().GetCurrentImeBundleName(userId_);
+    });
+    if (iter != props.end()) {
+        return SwitchInputMethod(iter->name, "");
+    }
+    return ErrorCode::ERROR_BAD_PARAMETERS;
 }
 
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()

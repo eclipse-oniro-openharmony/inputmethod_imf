@@ -63,9 +63,8 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     InputMethodInfo *ime = new InputMethodInfo();
 
     userSessions->OnShowKeyboardSelf();
-    userSessions->OnInputMethodSwitched(property, subProperty);
-    userSessions->GetCurrentSubProperty();
-    userSessions->SetCurrentSubProperty(subProperty);
+    userSessions->OnSwitchIme(property, subProperty, false);
+    userSessions->OnSwitchIme(property, subProperty, true);
     userSessions->StopInputService(str);
     userSessions->OnHideKeyboardSelf();
     userSessions->OnStartInput(client, isShowKeyboard);

@@ -24,6 +24,7 @@
 #include "application_info.h"
 #include "bundle_mgr_proxy.h"
 #include "event_handler.h"
+#include "ime_info_inquirer.h"
 #include "input_method_status.h"
 #include "input_method_system_ability_stub.h"
 #include "inputmethod_dump.h"
@@ -57,8 +58,8 @@ public:
     std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
     int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;
     int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) override;
-    int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) override;
-    int32_t SwitchInputMethod(const std::string &name, const std::string &subName) override;
+    int32_t ListInputMethodSubtype(const std::string &bundleName, std::vector<SubProperty> &subProps) override;
+    int32_t SwitchInputMethod(const std::string &bundleName, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
 
@@ -67,8 +68,6 @@ public:
     int32_t HideCurrentInputDeprecated() override;
     int32_t ShowCurrentInputDeprecated() override;
     int32_t DisplayOptionalInputMethodDeprecated() override;
-
-    int32_t ListInputMethodByUserId(int32_t userId, InputMethodStatus status, std::vector<Property> &props);
     int Dump(int fd, const std::vector<std::u16string> &args) override;
     void DumpAllMethod(int fd);
 
@@ -83,29 +82,19 @@ private:
 
     std::thread workThreadHandler; /*!< thread handler of the WorkThread */
     std::shared_ptr<PerUserSession> userSession_ = nullptr;
-
     void WorkThread();
     bool StartInputService(const std::string &imeId);
     void StopInputService(const std::string &imeId);
     int32_t OnUserStarted(const Message *msg);
     int32_t OnUserRemoved(const Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
-    int32_t OnDisplayOptionalInputMethod(int32_t userId);
+    int32_t OnDisplayOptionalInputMethod();
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
-    OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
-    std::vector<InputMethodInfo> ListInputMethodInfo(int32_t userId);
-    int32_t ListAllInputMethod(int32_t userId, std::vector<Property> &props);
-    int32_t ListEnabledInputMethod(std::vector<Property> &props);
-    int32_t ListDisabledInputMethod(int32_t userId, std::vector<Property> &props);
-    int32_t ListProperty(int32_t userId, std::vector<Property> &props);
-    int32_t ListSubtypeByBundleName(int32_t userId, const std::string &name, std::vector<SubProperty> &subProps);
     void StartUserIdListener();
-    int32_t SwitchInputMethodType(const std::string &name);
-    int32_t SwitchInputMethodSubtype(const std::string &name, const std::string &subName);
-    int32_t OnSwitchInputMethod(const std::string &bundleName, const std::string &name);
-    Property FindProperty(const std::string &name);
-    SubProperty FindSubProperty(const std::string &bundleName, const std::string &name);
-    std::string GetInputMethodParam(const std::vector<InputMethodInfo> &properties);
+    bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);
+    int32_t SwitchIme(const std::string &bundleName, const ImeInfo &info);
+    int32_t SwitchImeType(const ImeInfo &info);
+    int32_t SwitchImeSubType(const ImeInfo &info);
     ServiceRunningState state_;
     void InitServiceHandler();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
@@ -116,14 +105,10 @@ private:
 
     int32_t InitKeyEventMonitor();
     bool InitFocusChangeMonitor();
-    using CompareHandler = std::function<bool(const SubProperty &)>;
-    SubProperty FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare);
-    SubProperty GetExtends(const std::vector<Metadata> &metaData);
     int32_t SwitchByCombinationKey(uint32_t state);
-
-    int32_t QueryImeInfos(int32_t userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &infos);
-    bool IsImeInstalled(int32_t userId, std::string &imeId);
-    std::string GetStartedIme(int32_t userId);
+    int32_t SwitchMode();
+    int32_t SwitchLanguage();
+    int32_t SwitchInputMethod();
     bool BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func);
 };
 } // namespace MiscServices

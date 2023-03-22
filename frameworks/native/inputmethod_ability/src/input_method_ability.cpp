@@ -139,7 +139,7 @@ void InputMethodAbility::OnImeReady()
         return;
     }
     IMSA_HILOGI("InputMethodAbility::Ime Ready, notify InputStart");
-    ShowInputWindow(notifier_.isShowKeyboard, notifier_.subProperty);
+    ShowInputWindow(notifier_.isShowKeyboard);
 }
 
 void InputMethodAbility::SetKdListener(std::shared_ptr<KeyboardListener> kdListener)
@@ -223,8 +223,7 @@ void InputMethodAbility::OnShowKeyboard(Message *msg)
     MessageParcel *data = msg->msgContent_;
     sptr<IRemoteObject> channelObject = nullptr;
     bool isShowKeyboard = false;
-    SubProperty subProperty;
-    if (!ITypesUtil::Unmarshal(*data, channelObject, isShowKeyboard, subProperty)) {
+    if (!ITypesUtil::Unmarshal(*data, channelObject, isShowKeyboard)) {
         IMSA_HILOGE("InputMethodAbility::OnShowKeyboard read message parcel failed");
         return;
     }
@@ -233,7 +232,7 @@ void InputMethodAbility::OnShowKeyboard(Message *msg)
         return;
     }
     SetInputDataChannel(channelObject);
-    ShowInputWindow(isShowKeyboard, subProperty);
+    ShowInputWindow(isShowKeyboard);
 }
 
 void InputMethodAbility::OnHideKeyboard(Message *msg)
@@ -332,14 +331,13 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
     kdListener_->OnSelectionChange(oldBegin, oldEnd, newBegin, newEnd);
 }
 
-void InputMethodAbility::ShowInputWindow(bool isShowKeyboard, const SubProperty &subProperty)
+void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
 {
     IMSA_HILOGI("InputMethodAbility::ShowInputWindow");
     if (!isImeReady_) {
         IMSA_HILOGE("InputMethodAbility::ime is unready, store notifier_");
         notifier_.isNotify = true;
         notifier_.isShowKeyboard = isShowKeyboard;
-        notifier_.subProperty = subProperty;
         return;
     }
     if (imeListener_ == nullptr) {
@@ -347,7 +345,6 @@ void InputMethodAbility::ShowInputWindow(bool isShowKeyboard, const SubProperty 
         return;
     }
     imeListener_->OnInputStart();
-    imeListener_->OnSetSubtype(subProperty);
     if (!isShowKeyboard) {
         IMSA_HILOGI("InputMethodAbility::ShowInputWindow will not show keyboard");
         return;
@@ -405,7 +402,7 @@ int32_t InputMethodAbility::InsertText(const std::string text)
         IMSA_HILOGI("InputMethodAbility::InsertText channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return channel->InsertText(Utils::ToStr16(text));
+    return channel->InsertText(Str8ToStr16(text));
 }
 
 int32_t InputMethodAbility::DeleteForward(int32_t length)

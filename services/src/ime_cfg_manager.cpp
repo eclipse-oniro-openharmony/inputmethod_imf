@@ -26,14 +26,11 @@
 
 #include "file_ex.h"
 #include "global.h"
-#include "parameter.h"
 namespace OHOS {
 namespace MiscServices {
 namespace {
 constexpr const char *IME_CFG_DIR = "/data/service/el1/public/imf/ime_cfg";
 constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg/ime_cfg.json";
-static constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
-static constexpr int32_t CONFIG_LEN = 128;
 static constexpr int32_t SUCCESS = 0;
 using json = nlohmann::json;
 } // namespace
@@ -85,11 +82,12 @@ void ImeCfgManager::AddImeCfg(const ImeCfg &cfg)
 void ImeCfgManager::ModifyImeCfg(const ImeCfg &cfg)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    for (auto &imeConfig : imeConfigs_) {
-        if (imeConfig.userId == cfg.userId && !cfg.currentIme.empty()) {
-            imeConfig.currentIme = cfg.currentIme;
-        }
+    auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
+        [cfg](const ImeCfg &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
+    if (it != imeConfigs_.end()) {
+        *it = cfg;
     }
+
     WriteImeCfgFile();
 }
 
@@ -116,11 +114,36 @@ ImeCfg ImeCfgManager::GetImeCfg(int32_t userId)
     return {};
 }
 
-std::string ImeCfgManager::GetDefaultIme()
+std::string ImeCfgManager::GetCurrentImeBundleName(int32_t userId)
 {
-    char value[CONFIG_LEN] = { 0 };
-    auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
-    return code > 0 ? value : "";
+    auto currentIme = GetImeCfg(userId).currentIme;
+    auto pos = currentIme.find('/');
+    if (pos == std::string::npos) {
+        IMSA_HILOGE("currentIme: %{public}s is abnormal", currentIme.c_str());
+        return "";
+    }
+    return currentIme.substr(0, pos);
+}
+
+std::string ImeCfgManager::GetCurrentImeExtName(int32_t userId)
+{
+    auto currentIme = GetImeCfg(userId).currentIme;
+    auto pos = currentIme.find('/');
+    if (pos != std::string::npos && pos + 1 < currentIme.size()) {
+        return currentIme.substr(pos + 1);
+    }
+    IMSA_HILOGE("currentIme: %{public}s is abnormal", currentIme.c_str());
+    return "";
+}
+
+std::string ImeCfgManager::GetCurrentImeSubName(int32_t userId)
+{
+    return GetImeCfg(userId).currentSubName;
+}
+
+std::string ImeCfgManager::GetCurrentIme(int32_t userId)
+{
+    return GetImeCfg(userId).currentIme;
 }
 
 void ImeCfgManager::FromJson(const json &jsonConfigs, std::vector<ImeCfg> &configs)

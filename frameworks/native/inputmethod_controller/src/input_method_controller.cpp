@@ -28,7 +28,6 @@
 #include "string_ex.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
-#include "utils.h"
 
 namespace OHOS {
 namespace MiscServices {

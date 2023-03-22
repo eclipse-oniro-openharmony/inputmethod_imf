@@ -71,6 +71,8 @@ private:
 
     bool CheckPermission(const std::string &permission);
 
+    std::string GetBundleNameByTokenId(uint32_t tokenId);
+
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     static constexpr RequestHandler HANDLERS[INPUT_SERVICE_CMD_LAST] = {
         [PREPARE_INPUT] = &InputMethodSystemAbilityStub::PrepareInputOnRemote,

@@ -33,7 +33,6 @@
 #include "system_ability_definition.h"
 #include "sys/prctl.h"
 #include "unistd.h"
-#include "utils.h"
 #include "want.h"
 
 namespace OHOS {
@@ -143,8 +142,7 @@ int32_t PerUserSession::ShowKeyboard(
         IMSA_HILOGE("Aborted! imsCore[%{public}d] is nullptr", CURRENT_IME);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto subProperty = GetCurrentSubProperty();
-    int32_t ret = core->ShowKeyboard(channel, isShowKeyboard, subProperty);
+    int32_t ret = core->ShowKeyboard(channel, isShowKeyboard);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to show keyboard, ret: %{public}d", ret);
         return ErrorCode::ERROR_KBD_SHOW_FAILED;
@@ -429,8 +427,8 @@ void PerUserSession::InitInputControlChannel()
         IMSA_HILOGE("PerUserSession::InitInputControlChannel core is nullptr");
         return;
     }
-    int ret =
-        core->InitInputControlChannel(inputControlChannel, ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme);
+    int ret = core->InitInputControlChannel(
+        inputControlChannel, ImeCfgManager::GetInstance().GetCurrentIme(userId_));
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGI("PerUserSession::InitInputControlChannel fail %{public}d", ret);
     }
@@ -494,9 +492,21 @@ sptr<IInputClient> PerUserSession::GetCurrentClient()
     return currentClient_;
 }
 
-void PerUserSession::OnInputMethodSwitched(const Property &property, const SubProperty &subProperty)
+int32_t PerUserSession::OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch)
 {
-    IMSA_HILOGD("PerUserSession::OnInputMethodSwitched");
+    IMSA_HILOGD("PerUserSession::OnSwitchIme");
+    if (isSubtypeSwitch) {
+        sptr<IInputMethodCore> core = GetImsCore(CURRENT_IME);
+        if (core == nullptr) {
+            IMSA_HILOGE("imsCore is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        int32_t ret = core->SetSubtype(subProperty);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("PerUserSession::SetSubtype failed, ret %{public}d", ret);
+            return ret;
+        }
+    }
     std::lock_guard<std::recursive_mutex> lock(mtx);
     for (const auto &client : mapClients_) {
         auto clientInfo = client.second;
@@ -511,34 +521,7 @@ void PerUserSession::OnInputMethodSwitched(const Property &property, const SubPr
             continue;
         }
     }
-    if (subProperty.name != currentSubProperty.name) {
-        SetCurrentSubProperty(subProperty);
-        return;
-    }
-    SetCurrentSubProperty(subProperty);
-    sptr<IInputMethodCore> core = GetImsCore(CURRENT_IME);
-    if (core == nullptr) {
-        IMSA_HILOGE("imsCore is nullptr");
-        return;
-    }
-    int32_t ret = core->SetSubtype(subProperty);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("PerUserSession::SetSubtype failed, ret %{public}d", ret);
-    }
-}
-
-SubProperty PerUserSession::GetCurrentSubProperty()
-{
-    IMSA_HILOGD("PerUserSession::GetCurrentSubProperty");
-    std::lock_guard<std::mutex> lock(propertyLock_);
-    return currentSubProperty;
-}
-
-void PerUserSession::SetCurrentSubProperty(const SubProperty &subProperty)
-{
-    IMSA_HILOGD("PerUserSession::SetCurrentSubProperty");
-    std::lock_guard<std::mutex> lock(propertyLock_);
-    currentSubProperty = subProperty;
+    return ErrorCode::NO_ERROR;
 }
 
 sptr<IInputMethodCore> PerUserSession::GetImsCore(int32_t index)
