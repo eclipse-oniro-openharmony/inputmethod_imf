@@ -369,7 +369,7 @@ private:
             // match id
             want = item->first.want;
             connection = item->second;
-        } 
+        }
         // begin disconnect
         AsyncTask::CompleteCallback complete = [weak = context_, want, connection](
                                                    NativeEngine &engine, AsyncTask &task, int32_t status) {
