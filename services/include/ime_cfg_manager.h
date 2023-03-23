@@ -20,6 +20,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <sys/types.h>
 
 #include "nlohmann/json.hpp"
 namespace OHOS {
