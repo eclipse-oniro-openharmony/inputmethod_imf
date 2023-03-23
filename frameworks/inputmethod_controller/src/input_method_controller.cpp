@@ -583,7 +583,8 @@ using namespace MessageID;
         }
         IMSA_HILOGI("InputMethodController::notify");
         mInputDataChannel->NotifyGetOperationCompletion();
-}
+    }
+
     bool InputMethodController::IsCorrectParam(int32_t number)
     {
         if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0 || mSelectNewBegin < 0) {
