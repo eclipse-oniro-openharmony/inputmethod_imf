@@ -27,7 +27,7 @@ ohos_hap("input_method_choose_hap") {
 
   certificate_profile = "signature/openharmony_sx.p7b"
   hap_name = "input_method_choose_dialog"
-  subsystem_name = "application"
+  subsystem_name = "applications"
   part_name = "prebuilt_hap"
   module_install_dir = "app/cn.openharmony.inputmethodchoosedialog"
 }
