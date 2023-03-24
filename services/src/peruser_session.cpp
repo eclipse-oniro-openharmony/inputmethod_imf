@@ -553,7 +553,7 @@ namespace MiscServices {
         return currentClient;
     }
 
-    int32_t PerUserSession::OnInputMethodSwitched(const Property &property, const SubProperty &subProperty)
+    void PerUserSession::OnInputMethodSwitched(const Property &property, const SubProperty &subProperty)
     {
         IMSA_HILOGD("PerUserSession::OnInputMethodSwitched");
         std::lock_guard<std::recursive_mutex> lock(mtx);
@@ -565,26 +565,25 @@ namespace MiscServices {
             }
             int32_t ret = clientInfo->client->OnSwitchInput(property, subProperty);
             if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("PerUserSession::OnSwitchInput failed, ret %{public}d", ret);
-                return ret;
+                IMSA_HILOGE(
+                    "OnSwitchInput failed, ret: %{public}d, uid: %{public}d", ret, static_cast<int32_t>(clientInfo->uid));
+                continue;
             }
         }
         if (subProperty.id != currentSubProperty.id) {
             SetCurrentSubProperty(subProperty);
-            return ErrorCode::NO_ERROR;
+            return;
         }
         SetCurrentSubProperty(subProperty);
         sptr<IInputMethodCore> core = GetImsCore(CURRENT_IME);
         if (core == nullptr) {
             IMSA_HILOGE("imsCore is nullptr");
-            return ErrorCode::ERROR_EX_NULL_POINTER;
+            return;
         }
         int32_t ret = core->SetSubtype(subProperty);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("PerUserSession::SetSubtype failed, ret %{public}d", ret);
-            return ret;
         }
-        return ErrorCode::NO_ERROR;
     }
 
     SubProperty PerUserSession::GetCurrentSubProperty()
