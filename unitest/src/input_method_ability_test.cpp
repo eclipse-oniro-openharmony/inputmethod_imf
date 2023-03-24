@@ -44,7 +44,7 @@ using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
-std::u16string g_textTemp = u"ÎÒ‚ƒÎÒ‚ƒddddd";
+std::u16string g_textTemp = u"æˆ‘å€‘æˆ‘å€‘ddddd";
 class InputMethodAbilityTest : public testing::Test {
 public:
     static std::string imeIdStopped_;
@@ -562,7 +562,7 @@ HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_001, TestSize.Level0)
     std::u16string text;
     auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"‚ƒdd");
+    EXPECT_EQ(text, u"å€‘dd");
 }
 
 /**
@@ -582,7 +582,7 @@ HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_002, TestSize.Level0)
     std::u16string text;
     auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"ÎÒ‚ƒÎÒ‚ƒ");
+    EXPECT_EQ(text, u"æˆ‘å€‘æˆ‘å€‘");
 
     // implemented Currently: mSelectNewBegin < mSelectNewEnd
     start = 4;
@@ -591,7 +591,7 @@ HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_002, TestSize.Level0)
     number = 4;
     ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"ÎÒ‚ƒÎÒ‚ƒ");
+    EXPECT_EQ(text, u"æˆ‘å€‘æˆ‘å€‘");
 }
 
 /**
@@ -610,7 +610,7 @@ HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_003, TestSize.Level0)
     std::u16string text;
     auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(text, u"ÎÒ‚ƒÎÒ‚ƒ");
+    EXPECT_EQ(text, u"æˆ‘å€‘æˆ‘å€‘");
 }
 } // namespace MiscServices
 } // namespace OHOS
