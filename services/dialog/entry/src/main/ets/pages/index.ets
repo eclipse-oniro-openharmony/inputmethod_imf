@@ -19,15 +19,11 @@ import inputMethod from '@ohos.inputMethod';
 struct Dialog {
   private arr: string[] = []
   private propertyMap: Map<string, inputMethod.InputMethodProperty> = new Map();
-  @State private win: any = undefined
-  @State private context: any = undefined
   private inputMethods: Array<inputMethod.InputMethodProperty> = null
   private TAG = "[InputMethodChooseDialog]"
 
   aboutToAppear() {
     console.log(this.TAG, "dialog page appears")
-    this.context = globalThis.context
-    this.win = globalThis.extensionWin
     this.inputMethods = globalThis.inputMethodList
 
     for (let inputmethod of this.inputMethods) {
@@ -72,8 +68,8 @@ struct Dialog {
                   globalThis.chooseInputMethods(prop)
                 }
                 setTimeout(() => {
-                  this.win.destroy()
-                  this.context.terminateSelf()
+                  globalThis.extensionWin.destroy()
+                  globalThis.context.terminateSelf()
                 }, 1000)
               })
           }
