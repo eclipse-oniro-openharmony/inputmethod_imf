@@ -31,7 +31,7 @@ bool InputMethodAgentProxy::DispatchKeyEvent(MessageParcel &data)
 {
     MessageParcel reply;
     MessageOption option;
-    sptr<IRemoteObject> remote = Remote();
+    auto remote = Remote();
     if (remote == nullptr) {
         IMSA_HILOGE("InputMethodAgentProxy::DispatchKeyEvent remote is nullptr.");
         return false;
