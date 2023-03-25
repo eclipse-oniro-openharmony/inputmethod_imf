@@ -125,24 +125,17 @@ napi_value JsInputMethod::GetJsInputMethodProperty(napi_env env, const Property 
     napi_value packageName = nullptr;
     napi_create_string_utf8(env, property.name.c_str(), NAPI_AUTO_LENGTH, &packageName);
     napi_set_named_property(env, prop, "packageName", packageName);
-    napi_set_named_property(env, prop, "name", packageName);
+    if (packageName == nullptr) {
+        napi_set_named_property(env, prop, "name", packageName);
+    }
 
     napi_value methodId = nullptr;
     napi_create_string_utf8(env, property.id.c_str(), NAPI_AUTO_LENGTH, &methodId);
     napi_set_named_property(env, prop, "methodId", methodId);
-    napi_set_named_property(env, prop, "id", methodId);
+    if (methodId == nullptr) {
+        napi_set_named_property(env, prop, "id", methodId);
+    }
 
-    napi_value icon = nullptr;
-    napi_create_string_utf8(env, property.icon.c_str(), NAPI_AUTO_LENGTH, &icon);
-    napi_set_named_property(env, prop, "icon", icon);
-
-    napi_value iconId = nullptr;
-    napi_create_int32(env, property.iconId, &iconId);
-    napi_set_named_property(env, prop, "iconId", iconId);
-
-    napi_value label = nullptr;
-    napi_create_string_utf8(env, property.label.c_str(), NAPI_AUTO_LENGTH, &label);
-    napi_set_named_property(env, prop, "label", label);
     return prop;
 }
 
