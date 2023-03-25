@@ -673,27 +673,28 @@ int32_t InputMethodSystemAbility::ListProperty(int32_t userId, std::vector<Prope
 
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
-    IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
     auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme;
     if (currentIme.empty()) {
-        IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme is empty");
+        IMSA_HILOGE("InputMethodSystemAbility::currentIme is empty");
         return nullptr;
     }
-
+    std::string bundleName;
+    std::string extName;
     auto pos = currentIme.find('/');
-    if (pos == std::string::npos) {
-        IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme can not find '/'");
+    if (pos != std::string::npos && pos + 1 < currentIme.size()) {
+        bundleName = currentIme.substr(0, pos);
+        extName = currentIme.substr(pos + 1);
+    } else {
+        IMSA_HILOGE("InputMethodSystemAbility:: currentIme is abnormal");
         return nullptr;
     }
-
-    auto property = std::make_shared<Property>();
-    if (property == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility property is nullptr");
+    auto prop = FindProperty(bundleName);
+    if (prop.name.empty()) {
+        IMSA_HILOGE("InputMethodSystemAbility:: bundleName: %{public}s not find in bundleMgr", bundleName.c_str());
         return nullptr;
     }
-    property->name = currentIme.substr(0, pos);
-    property->id = currentIme.substr(pos + 1, currentIme.length() - pos - 1);
-    return property;
+    prop.id = extName;
+    return std::make_shared<Property>(prop);
 }
 
 std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
