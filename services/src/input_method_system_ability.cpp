@@ -754,28 +754,28 @@ namespace MiscServices {
 
     std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
     {
-        auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme;
+        IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
+        auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
+        auto &currentIme = cfg.currentIme;
         if (currentIme.empty()) {
-            IMSA_HILOGE("InputMethodSystemAbility::currentIme is empty");
+            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme is empty");
             return nullptr;
         }
-        std::string bundleName;
-        std::string extName;
+
         auto pos = currentIme.find('/');
-        if (pos != std::string::npos && pos + 1 < currentIme.size()) {
-            bundleName = currentIme.substr(0, pos);
-            extName = currentIme.substr(pos + 1);
-        } else {
-            IMSA_HILOGE("InputMethodSystemAbility::currentIme is abnormal");
+        if (pos == std::string::npos) {
+            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme can not find '/'");
             return nullptr;
         }
-        auto prop = FindProperty(bundleName);
-        if (prop.name.empty()) {
-            IMSA_HILOGE("InputMethodSystemAbility::bundleName: %{public}s not find in bundleMgr", bundleName.c_str());
+
+        auto property = std::make_shared<Property>();
+        if (property == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility property is nullptr");
             return nullptr;
         }
-        prop.id = extName;
-        return std::make_shared<Property>(prop);
+        property->name = currentIme.substr(0, pos);
+        property->id = currentIme.substr(pos + 1, currentIme.length() - pos - 1);
+        return property;
     }
 
     std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
