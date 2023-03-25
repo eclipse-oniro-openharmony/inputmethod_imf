@@ -656,8 +656,9 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
         return false;
     }
     MessageParcel data;
-    if (!(data.WriteInterfaceToken(mAgent->GetDescriptor()) && data.WriteInt32(keyEvent->GetKeyCode()) &&
-            data.WriteInt32(keyEvent->GetKeyAction()))) {
+    if (!(data.WriteInterfaceToken(mAgent->GetDescriptor()) || !(data.WriteInt32(keyEvent->GetKeyCode())) ||
+            !(data.WriteInt32(keyEvent->GetKeyAction())))) {
+        IMSA_HILOGE("InputMethodController::dispatchKeyEvent Write Parcel fail.");
         return false;
     }
 
@@ -687,7 +688,7 @@ void InputMethodController::SetCallingWindow(uint32_t windowId)
     IMSA_HILOGI("InputMethodController::SetCallingWindow windowId = %{public}d", windowId);
     std::lock_guard<std::mutex> lock(agentLock_);
     if (mAgent == nullptr) {
-        IMSA_HILOGI("InputMethodController::SetCallingWindow mAgent is nullptr");
+        IMSA_HILOGE("InputMethodController::SetCallingWindow mAgent is nullptr");
         return;
     }
     mAgent->SetCallingWindow(windowId);

@@ -443,7 +443,7 @@ private:
     std::shared_ptr<IInputMethodAgent> mAgent = nullptr;
     std::mutex textListenerLock_;
     sptr<OnTextChangedListener> textListener;
-    sptr<IRemoteObject> agentRemoteObject_;
+    sptr<IRemoteObject> agentRemoteObject_ = nullptr;
     InputAttribute mAttribute;
     std::u16string mTextString;
     int mSelectOldBegin = 0;

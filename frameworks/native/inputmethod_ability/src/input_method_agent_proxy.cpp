@@ -47,7 +47,7 @@ bool InputMethodAgentProxy::DispatchKeyEvent(MessageParcel &data)
 
 void InputMethodAgentProxy::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
-    auto ret = SendRequest(ON_CURSOR_UPDATE, [&positionX, &positionY, &height](MessageParcel &data)
+    auto ret = SendRequest(ON_CURSOR_UPDATE, [positionX, positionY, height](MessageParcel &data)
                            { return ITypesUtil::Marshal(data, positionX, positionY, height); });
     IMSA_HILOGD("InputMethodAgentProxy::OnCursorUpdate ret = %{public}d", ret);
 }
@@ -55,7 +55,7 @@ void InputMethodAgentProxy::OnCursorUpdate(int32_t positionX, int32_t positionY,
 void InputMethodAgentProxy::OnSelectionChange(
     std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
-    auto ret = SendRequest(ON_SELECTION_CHANGE, [&text, &oldBegin, &oldEnd, &newBegin, &newEnd](MessageParcel &data)
+    auto ret = SendRequest(ON_SELECTION_CHANGE, [&text, oldBegin, oldEnd, newBegin, newEnd](MessageParcel &data)
                            { return ITypesUtil::Marshal(data, text, oldBegin, oldEnd, newBegin, newEnd); });
     IMSA_HILOGD("InputMethodAgentProxy::OnSelectionChange ret = %{public}d", ret);
 }
@@ -63,7 +63,7 @@ void InputMethodAgentProxy::OnSelectionChange(
 void InputMethodAgentProxy::SetCallingWindow(uint32_t windowId)
 {
     auto ret = SendRequest(SET_CALLING_WINDOW_ID,
-                   [&windowId](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId); });
+                   [windowId](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId); });
     IMSA_HILOGD("InputMethodAgentProxy::SetCallingWindow ret = %{public}d", ret);
 }
 
@@ -81,7 +81,7 @@ int32_t InputMethodAgentProxy::SendRequest(int code, ParcelHandler input, Parcel
         IMSA_HILOGE("InputMethodAgentProxy::write data failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    sptr<IRemoteObject> remote = Remote();
+    auto remote = Remote();
     if (remote == nullptr) {
         IMSA_HILOGE("InputMethodAgentProxy::SendRequest remote is nullptr.");
         return ERROR_EX_NULL_POINTER;
