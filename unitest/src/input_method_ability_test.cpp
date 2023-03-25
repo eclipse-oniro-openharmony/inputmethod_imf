@@ -188,6 +188,7 @@ public:
     static void TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodAbilityTest::TearDownTestCase");
+        imc_->Close();
     }
     void SetUp()
     {
