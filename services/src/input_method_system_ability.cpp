@@ -176,8 +176,8 @@ namespace MiscServices {
         IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
         state_ = ServiceRunningState::STATE_RUNNING;
         ImeCfgManager::GetInstance().Init();
-        // ·şÎñÒì³£ÖØÆôºó²»»á×ßOnUserStarted£¬µ«ÊÇ¿ÉÒÔ»ñÈ¡µ½µ±Ç°userId
-        // Éè±¸Æô¶¯Ê±¿ÉÄÜ»ñÈ¡²»µ½µ±Ç°userId,Èç¹û»ñÈ¡²»µ½£¬ÔòµÈOnUserStartedµÄÊ±ºò´¦Àí.
+        // æœåŠ¡å¼‚å¸¸é‡å¯åä¸ä¼šèµ°OnUserStartedï¼Œä½†æ˜¯å¯ä»¥è·å–åˆ°å½“å‰userId
+        // è®¾å¤‡å¯åŠ¨æ—¶å¯èƒ½è·å–ä¸åˆ°å½“å‰userId,å¦‚æœè·å–ä¸åˆ°ï¼Œåˆ™ç­‰OnUserStartedçš„æ—¶å€™å¤„ç†.
         std::vector<int32_t> userIds;
         if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
             userId_ = userIds[0];
@@ -754,28 +754,28 @@ namespace MiscServices {
 
     std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
     {
-        IMSA_HILOGI("InputMethodSystemAbility::GetCurrentInputMethod");
-        auto cfg = ImeCfgManager::GetInstance().GetImeCfg(userId_);
-        auto &currentIme = cfg.currentIme;
+        auto currentIme = ImeCfgManager::GetInstance().GetImeCfg(userId_).currentIme;
         if (currentIme.empty()) {
-            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme is empty");
+            IMSA_HILOGE("InputMethodSystemAbility::currentIme is empty");
             return nullptr;
         }
-
+        std::string bundleName;
+        std::string extName;
         auto pos = currentIme.find('/');
-        if (pos == std::string::npos) {
-            IMSA_HILOGE("InputMethodSystemAbility::GetCurrentInputMethod currentIme can not find '/'");
+        if (pos != std::string::npos && pos + 1 < currentIme.size()) {
+            bundleName = currentIme.substr(0, pos);
+            extName = currentIme.substr(pos + 1);
+        } else {
+            IMSA_HILOGE("InputMethodSystemAbility::currentIme is abnormal");
             return nullptr;
         }
-
-        auto property = std::make_shared<Property>();
-        if (property == nullptr) {
-            IMSA_HILOGE("InputMethodSystemAbility property is nullptr");
+        auto prop = FindProperty(bundleName);
+        if (prop.name.empty()) {
+            IMSA_HILOGE("InputMethodSystemAbility::bundleName: %{public}s not find in bundleMgr", bundleName.c_str());
             return nullptr;
         }
-        property->name = currentIme.substr(0, pos);
-        property->id = currentIme.substr(pos + 1, currentIme.length() - pos - 1);
-        return property;
+        prop.id = extName;
+        return std::make_shared<Property>(prop);
     }
 
     std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
@@ -971,7 +971,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    // ÓÃ»§ÒÆ³ıÒ²»áÓĞ¸ÃÍ¨Öª£¬Èç¹ûÒÆ³ıµÄappÓÃ»§²»ÊÇµ±Ç°ÓÃ»§£¬Ôò²»´¦Àí
+    // ç”¨æˆ·ç§»é™¤ä¹Ÿä¼šæœ‰è¯¥é€šçŸ¥ï¼Œå¦‚æœç§»é™¤çš„appç”¨æˆ·ä¸æ˜¯å½“å‰ç”¨æˆ·ï¼Œåˆ™ä¸å¤„ç†
     if (userId != userId_) {
         return ErrorCode::NO_ERROR;
     }
