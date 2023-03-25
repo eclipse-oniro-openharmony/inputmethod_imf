@@ -176,8 +176,8 @@ namespace MiscServices {
         IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
         state_ = ServiceRunningState::STATE_RUNNING;
         ImeCfgManager::GetInstance().Init();
-        // æœåŠ¡å¼‚å¸¸é‡å¯åä¸ä¼šèµ°OnUserStartedï¼Œä½†æ˜¯å¯ä»¥è·å–åˆ°å½“å‰userId
-        // è®¾å¤‡å¯åŠ¨æ—¶å¯èƒ½è·å–ä¸åˆ°å½“å‰userId,å¦‚æœè·å–ä¸åˆ°ï¼Œåˆ™ç­‰OnUserStartedçš„æ—¶å€™å¤„ç†.
+        // ·şÎñÒì³£ÖØÆôºó²»»á×ßOnUserStarted£¬µ«ÊÇ¿ÉÒÔ»ñÈ¡µ½µ±Ç°userId
+        // Éè±¸Æô¶¯Ê±¿ÉÄÜ»ñÈ¡²»µ½µ±Ç°userId,Èç¹û»ñÈ¡²»µ½£¬ÔòµÈOnUserStartedµÄÊ±ºò´¦Àí.
         std::vector<int32_t> userIds;
         if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
             userId_ = userIds[0];
@@ -979,7 +979,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    // ç”¨æˆ·ç§»é™¤ä¹Ÿä¼šæœ‰è¯¥é€šçŸ¥ï¼Œå¦‚æœç§»é™¤çš„appç”¨æˆ·ä¸æ˜¯å½“å‰ç”¨æˆ·ï¼Œåˆ™ä¸å¤„ç†
+    // ÓÃ»§ÒÆ³ıÒ²»áÓĞ¸ÃÍ¨Öª£¬Èç¹ûÒÆ³ıµÄappÓÃ»§²»ÊÇµ±Ç°ÓÃ»§£¬Ôò²»´¦Àí
     if (userId != userId_) {
         return ErrorCode::NO_ERROR;
     }
