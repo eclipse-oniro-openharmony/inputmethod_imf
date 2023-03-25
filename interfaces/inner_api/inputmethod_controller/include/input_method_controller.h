@@ -423,7 +423,6 @@ private:
     void ReleaseInput(sptr<IInputClient> &client);
     void SetInputMethodAgent(sptr<IRemoteObject> &object);
     void OnSwitchInput(const Property &property, const SubProperty &subProperty);
-    std::shared_ptr<IInputMethodAgent> GetInputMethodAgent();
     void WorkThread();
     void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
@@ -444,6 +443,7 @@ private:
     std::shared_ptr<IInputMethodAgent> mAgent = nullptr;
     std::mutex textListenerLock_;
     sptr<OnTextChangedListener> textListener;
+    sptr<IRemoteObject> agentRemoteObject_ = nullptr;
     InputAttribute mAttribute;
     std::u16string mTextString;
     int mSelectOldBegin = 0;
