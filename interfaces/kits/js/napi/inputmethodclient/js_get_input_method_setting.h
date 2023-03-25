@@ -72,7 +72,7 @@ struct DisplayOptionalInputMethodContext : public AsyncCall::Context {
 };
 
 struct GetInputMethodControllerContext : public AsyncCall::Context {
-    bool isStopInput;
+    bool isStopInput = false;
     napi_status status = napi_generic_failure;
     GetInputMethodControllerContext() : Context(nullptr, nullptr) { };
     GetInputMethodControllerContext(InputAction input, OutputAction output)
