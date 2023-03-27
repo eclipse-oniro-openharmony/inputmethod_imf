@@ -16,7 +16,6 @@
 #include "input_method_agent_proxy.h"
 
 #include "global.h"
-#include "itypes_util.h"
 #include "message_option.h"
 
 namespace OHOS {
@@ -31,11 +30,6 @@ bool InputMethodAgentProxy::DispatchKeyEvent(MessageParcel &data)
 {
     MessageParcel reply;
     MessageOption option;
-    auto remote = Remote();
-    if (remote == nullptr) {
-        IMSA_HILOGE("InputMethodAgentProxy::DispatchKeyEvent remote is nullptr.");
-        return false;
-    }
 
     auto ret = Remote()->SendRequest(DISPATCH_KEY_EVENT, data, reply, option);
     if (ret != NO_ERROR) {
@@ -47,57 +41,52 @@ bool InputMethodAgentProxy::DispatchKeyEvent(MessageParcel &data)
 
 void InputMethodAgentProxy::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
-    auto ret = SendRequest(ON_CURSOR_UPDATE, [positionX, positionY, height](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, positionX, positionY, height);
-    });
-    IMSA_HILOGD("InputMethodAgentProxy::OnCursorUpdate ret = %{public}d", ret);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        IMSA_HILOGE("InputMethodAgentProxy::OnCursorUpdate descriptor is not match");
+        return;
+    }
+
+    data.WriteInt32(positionX);
+    data.WriteInt32(positionY);
+    data.WriteInt32(height);
+
+    Remote()->SendRequest(ON_CURSOR_UPDATE, data, reply, option);
 }
 
 void InputMethodAgentProxy::OnSelectionChange(
     std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
-    auto ret = SendRequest(ON_SELECTION_CHANGE, [&text, oldBegin, oldEnd, newBegin, newEnd](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, text, oldBegin, oldEnd, newBegin, newEnd);
-    });
-    IMSA_HILOGD("InputMethodAgentProxy::OnSelectionChange ret = %{public}d", ret);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        IMSA_HILOGE("InputMethodAgentProxy::OnSelectionChange descriptor is not match");
+        return;
+    }
+
+    data.WriteString16(text);
+    data.WriteInt32(oldBegin);
+    data.WriteInt32(oldEnd);
+    data.WriteInt32(newBegin);
+    data.WriteInt32(newEnd);
+    Remote()->SendRequest(ON_SELECTION_CHANGE, data, reply, option);
 }
 
 void InputMethodAgentProxy::SetCallingWindow(uint32_t windowId)
 {
-    auto ret = SendRequest(
-        SET_CALLING_WINDOW_ID, [windowId](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId); });
-    IMSA_HILOGD("InputMethodAgentProxy::SetCallingWindow ret = %{public}d", ret);
-}
-
-int32_t InputMethodAgentProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
-{
-    IMSA_HILOGD("InputMethodAgentProxy::%{public}s in", __func__);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option{ MessageOption::TF_SYNC };
+    MessageOption option;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        IMSA_HILOGE("InputMethodAgentProxy::write interface token failed");
-        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
+        IMSA_HILOGE("InputMethodAgentProxy::SetCallingWindow descriptor is not match");
+        return;
     }
-    if (input != nullptr && (!input(data))) {
-        IMSA_HILOGE("InputMethodAgentProxy::write data failed");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    auto remote = Remote();
-    if (remote == nullptr) {
-        IMSA_HILOGE("InputMethodAgentProxy::SendRequest remote is nullptr.");
-        return ERROR_EX_NULL_POINTER;
-    }
-    auto ret = remote->SendRequest(code, data, reply, option);
-    if (ret != NO_ERROR) {
-        IMSA_HILOGE("InputMethodCoreProxy::SendRequest failed, ret %{public}d", ret);
-        return ret;
-    }
-    if (output != nullptr && (!output(reply))) {
-        IMSA_HILOGE("InputMethodCoreProxy::reply parcel error");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    return ret;
+
+    data.WriteUint32(windowId);
+    Remote()->SendRequest(SET_CALLING_WINDOW_ID, data, reply, option);
 }
 } // namespace MiscServices
 } // namespace OHOS
