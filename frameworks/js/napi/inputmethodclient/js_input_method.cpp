@@ -69,18 +69,18 @@ napi_status JsInputMethod::GetInputMethodProperty(
         return status;
     }
     napi_value result = nullptr;
-    napi_get_named_property(env, argv, "packageName", &result);
+    napi_get_named_property(env, argv, "name", &result);
     ctxt->packageName = JsInputMethod::GetStringProperty(env, result);
     result = nullptr;
-    napi_get_named_property(env, argv, "methodId", &result);
+    napi_get_named_property(env, argv, "id", &result);
     ctxt->methodId = JsInputMethod::GetStringProperty(env, result);
     if (ctxt->packageName.empty() || ctxt->methodId.empty()) {
         result = nullptr;
-        napi_get_named_property(env, argv, "name", &result);
+        napi_get_named_property(env, argv, "packageName", &result);
         ctxt->packageName = JsInputMethod::GetStringProperty(env, result);
 
         result = nullptr;
-        napi_get_named_property(env, argv, "id", &result);
+        napi_get_named_property(env, argv, "methodId", &result);
         ctxt->methodId = JsInputMethod::GetStringProperty(env, result);
     }
     if (ctxt->packageName.empty() || ctxt->methodId.empty()) {
