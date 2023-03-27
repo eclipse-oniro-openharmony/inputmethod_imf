@@ -47,23 +47,25 @@ bool InputMethodAgentProxy::DispatchKeyEvent(MessageParcel &data)
 
 void InputMethodAgentProxy::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
-    auto ret = SendRequest(ON_CURSOR_UPDATE, [positionX, positionY, height](MessageParcel &data)
-                           { return ITypesUtil::Marshal(data, positionX, positionY, height); });
+    auto ret = SendRequest(ON_CURSOR_UPDATE, [positionX, positionY, height](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, positionX, positionY, height);
+    });
     IMSA_HILOGD("InputMethodAgentProxy::OnCursorUpdate ret = %{public}d", ret);
 }
 
 void InputMethodAgentProxy::OnSelectionChange(
     std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
-    auto ret = SendRequest(ON_SELECTION_CHANGE, [&text, oldBegin, oldEnd, newBegin, newEnd](MessageParcel &data)
-                           { return ITypesUtil::Marshal(data, text, oldBegin, oldEnd, newBegin, newEnd); });
+    auto ret = SendRequest(ON_SELECTION_CHANGE, [&text, oldBegin, oldEnd, newBegin, newEnd](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, text, oldBegin, oldEnd, newBegin, newEnd);
+    });
     IMSA_HILOGD("InputMethodAgentProxy::OnSelectionChange ret = %{public}d", ret);
 }
 
 void InputMethodAgentProxy::SetCallingWindow(uint32_t windowId)
 {
-    auto ret = SendRequest(SET_CALLING_WINDOW_ID,
-                   [windowId](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId); });
+    auto ret = SendRequest(
+        SET_CALLING_WINDOW_ID, [windowId](MessageParcel &data) { return ITypesUtil::Marshal(data, windowId); });
     IMSA_HILOGD("InputMethodAgentProxy::SetCallingWindow ret = %{public}d", ret);
 }
 
