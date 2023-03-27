@@ -55,8 +55,7 @@ public:
     static std::mutex textListenerCallbackLock_;
     static std::condition_variable textListenerCv_;
     static int direction_;
-    static int deleteForwardLength_;
-    static int deleteBackwardLength_;
+    static int deleteLength_;
     static std::u16string insertText_;
     static int key_;
     static int keyboardStatus_;
@@ -111,14 +110,14 @@ public:
 
         void DeleteForward(int32_t length) override
         {
-            deleteBackwardLength_ = length;
+            deleteLength_ = length;
             InputMethodAbilityTest::textListenerCv_.notify_one();
             IMSA_HILOGI("TextChangeListener: DeleteForward, length is: %{public}d", length);
         }
 
         void DeleteBackward(int32_t length) override
         {
-            deleteForwardLength_ = length;
+            deleteLength_ = length;
             InputMethodAbilityTest::textListenerCv_.notify_one();
             IMSA_HILOGI("TextChangeListener: DeleteBackward, direction is: %{public}d", length);
         }
@@ -224,8 +223,7 @@ bool InputMethodAbilityTest::showKeyboard_ = true;
 std::mutex InputMethodAbilityTest::textListenerCallbackLock_;
 std::condition_variable InputMethodAbilityTest::textListenerCv_;
 int InputMethodAbilityTest::direction_;
-int InputMethodAbilityTest::deleteForwardLength_ = 0;
-int InputMethodAbilityTest::deleteBackwardLength_ = 0;
+int InputMethodAbilityTest::deleteLength_ = 0;
 std::u16string InputMethodAbilityTest::insertText_;
 int InputMethodAbilityTest::key_ = 0;
 int InputMethodAbilityTest::keyboardStatus_;
@@ -391,20 +389,20 @@ HWTEST_F(InputMethodAbilityTest, testSendFunctionKey, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testDeleteText, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testDelete Test START");
-    int32_t deleteForwardLenth = 1;
-    auto ret = inputMethodAbility_->DeleteForward(deleteForwardLenth);
+    int32_t deleteLength = 1;
+    auto ret = inputMethodAbility_->DeleteForward(deleteLength);
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::textListenerCallbackLock_);
     InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
-        [deleteForwardLenth] { return InputMethodAbilityTest::deleteForwardLength_ == deleteForwardLenth; });
+        [deleteLength] { return InputMethodAbilityTest::deleteLength_ == deleteLength; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(InputMethodAbilityTest::deleteForwardLength_, deleteForwardLenth);
+    EXPECT_EQ(InputMethodAbilityTest::deleteLength_, deleteLength);
 
-    int32_t deleteBackwardLenth = 2;
-    ret = inputMethodAbility_->DeleteBackward(deleteBackwardLenth);
+    deleteLength = 2;
+    ret = inputMethodAbility_->DeleteBackward(deleteLength);
     InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
-        [deleteBackwardLenth] { return InputMethodAbilityTest::deleteBackwardLength_ == deleteBackwardLenth; });
+        [deleteLength] { return InputMethodAbilityTest::deleteLength_ == deleteLength; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(InputMethodAbilityTest::deleteBackwardLength_, deleteBackwardLenth);
+    EXPECT_EQ(InputMethodAbilityTest::deleteLength_, deleteLength);
 }
 
 /**

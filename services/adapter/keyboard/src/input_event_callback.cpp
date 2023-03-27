@@ -39,10 +39,9 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) c
         keyState_ = 0;
         return;
     }
-    IMSA_HILOGD("keyCode: %{public}d, keyAction: %{public}d", keyCode, keyAction);
 
     if (keyAction == MMI::KeyEvent::KEY_ACTION_DOWN) {
-        IMSA_HILOGD("key %{public}d pressed down", keyCode);
+        IMSA_HILOGD("key pressed down");
         keyState_ = static_cast<uint32_t>(keyState_ | currKey->second);
         if (keyCode == MMI::KeyEvent::KEYCODE_CAPS_LOCK) {
             if (keyHandler_ != nullptr) {

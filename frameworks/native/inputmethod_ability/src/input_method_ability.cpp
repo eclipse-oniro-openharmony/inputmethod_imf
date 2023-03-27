@@ -256,7 +256,7 @@ void InputMethodAbility::OnSetSubtype(Message *msg)
 
 bool InputMethodAbility::DispatchKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
-    IMSA_HILOGI("key = %{public}d, status = %{public}d", keyCode, keyStatus);
+    IMSA_HILOGD("InputMethodAbility, run in");
     if (kdListener_ == nullptr) {
         IMSA_HILOGI("InputMethodAbility::DispatchKeyEvent kdListener_ is nullptr");
         return false;
