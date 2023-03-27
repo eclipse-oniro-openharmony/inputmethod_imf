@@ -25,10 +25,10 @@ namespace OHOS {
 namespace MiscServices {
 struct SwitchInputMethodContext : public AsyncCall::Context {
     bool isSwitchInput = false;
-    std::string packageName;
-    std::string methodId;
-    std::string id;
-    std::string label;
+    std::string packageName; // in InputMethodProperty
+    std::string methodId;    // in InputMethodProperty
+    std::string name;        // in InputMethodSubtype
+    std::string id;          // in InputMethodSubtype
     napi_status status = napi_generic_failure;
     SwitchInputMethodContext() : Context(nullptr, nullptr) { };
     SwitchInputMethodContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) { };

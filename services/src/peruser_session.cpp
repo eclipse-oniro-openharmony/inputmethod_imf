@@ -570,7 +570,7 @@ namespace MiscServices {
                 continue;
             }
         }
-        if (subProperty.id != currentSubProperty.id) {
+        if (subProperty.name != currentSubProperty.name) {
             SetCurrentSubProperty(subProperty);
             return;
         }
