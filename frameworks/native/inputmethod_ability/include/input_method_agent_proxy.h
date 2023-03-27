@@ -44,6 +44,8 @@ public:
 
 private:
     static inline BrokerDelegator<InputMethodAgentProxy> delegator_;
+    using ParcelHandler = std::function<bool(MessageParcel &)>;
+    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
 };
 } // namespace MiscServices
 } // namespace OHOS
