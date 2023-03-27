@@ -163,7 +163,7 @@ void InputMethodController::WorkThread()
                 MessageParcel *data = msg->msgContent_;
                 IMSA_HILOGI("InputMethodController::WorkThread DeleteForward");
                 if (textListener != nullptr) {
-                    // swap for compatibility
+                    // reverse for compatibility
                     textListener->DeleteBackward(data->ReadInt32());
                     std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
                     textFieldReplyCount_++;
@@ -174,7 +174,7 @@ void InputMethodController::WorkThread()
                 MessageParcel *data = msg->msgContent_;
                 IMSA_HILOGI("InputMethodController::WorkThread DeleteBackward");
                 if (textListener != nullptr) {
-                    // swap for compatibility
+                    // reverse for compatibility
                     textListener->DeleteForward(data->ReadInt32());
                     std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
                     textFieldReplyCount_++;
