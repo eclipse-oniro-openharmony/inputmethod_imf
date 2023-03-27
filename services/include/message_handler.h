@@ -72,6 +72,8 @@ namespace MessageID {
         MSG_ID_HANDLE_SET_SELECTION,
         MSG_ID_HANDLE_EXTEND_ACTION,
         MSG_ID_HANDLE_SELECT,
+        MSG_ID_GET_TEXT_BEFORE_CURSOR,
+        MSG_ID_GET_TEXT_AFTER_CURSOR,
 
         // the request from IMSA to IMA
         MSG_ID_SHOW_KEYBOARD,
