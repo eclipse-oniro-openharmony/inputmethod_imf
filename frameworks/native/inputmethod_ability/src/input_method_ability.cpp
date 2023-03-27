@@ -355,7 +355,7 @@ void InputMethodAbility::DismissInputWindow()
 
 int32_t InputMethodAbility::InsertText(const std::string text)
 {
-    IMSA_HILOGD("InputMethodAbility, text = %{public}s", text.c_str());
+    IMSA_HILOGD("InputMethodAbility, in");
     std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGI("InputMethodAbility::InsertText channel is nullptr");
