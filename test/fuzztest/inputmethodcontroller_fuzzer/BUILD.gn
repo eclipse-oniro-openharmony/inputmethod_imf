@@ -37,7 +37,7 @@ ohos_fuzztest("InputMethodControllerFuzzTest") {
   sources = [ "inputmethodcontroller_fuzzer.cpp" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
   ]
 

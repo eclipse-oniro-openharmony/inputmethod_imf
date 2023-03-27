@@ -37,7 +37,7 @@ int32_t InputClientProxy::OnInputReady(const sptr<IInputMethodAgent> &agent)
         return ERROR_EX_PARCELABLE;
     }
 
-    data.WriteRemoteObject(agent->AsObject());
+    data.WriteRemoteObject(agent->AsObject().GetRefPtr());
 
     auto ret = Remote()->SendRequest(ON_INPUT_READY, data, reply, option);
     if (ret != NO_ERROR) {
