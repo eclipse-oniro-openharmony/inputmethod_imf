@@ -111,14 +111,14 @@ public:
 
         void DeleteForward(int32_t length) override
         {
-            deleteForwardLength_ = length;
+            deleteBackwardLength_ = length;
             InputMethodAbilityTest::textListenerCv_.notify_one();
             IMSA_HILOGI("TextChangeListener: DeleteForward, length is: %{public}d", length);
         }
 
         void DeleteBackward(int32_t length) override
         {
-            deleteBackwardLength_ = length;
+            deleteForwardLength_ = length;
             InputMethodAbilityTest::textListenerCv_.notify_one();
             IMSA_HILOGI("TextChangeListener: DeleteBackward, direction is: %{public}d", length);
         }
