@@ -650,18 +650,18 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
     IMSA_HILOGI("InputMethodController in, keyCode = %{public}d, keyAction = %{public}d", keyEvent->GetKeyCode(),
         keyEvent->GetKeyAction());
     if (isStopInput) {
-        IMSA_HILOGE("InputMethodController::input stop");
+        IMSA_HILOGE("input is stopped");
         return false;
     }
     std::lock_guard<std::mutex> lock(agentLock_);
     if (mAgent == nullptr) {
-        IMSA_HILOGI("InputMethodController::dispatchKeyEvent mAgent is nullptr");
+        IMSA_HILOGI("mAgent is nullptr");
         return false;
     }
     MessageParcel data;
-    if (!(data.WriteInterfaceToken(mAgent->GetDescriptor()) || !(data.WriteInt32(keyEvent->GetKeyCode())) ||
-            !(data.WriteInt32(keyEvent->GetKeyAction())))) {
-        IMSA_HILOGE("InputMethodController::dispatchKeyEvent Write Parcel fail.");
+    if (!data.WriteInterfaceToken(mAgent->GetDescriptor()) || !data.WriteInt32(keyEvent->GetKeyCode())
+        || !data.WriteInt32(keyEvent->GetKeyAction())) {
+        IMSA_HILOGE("failed to write parcel.");
         return false;
     }
 
