@@ -565,8 +565,8 @@ namespace MiscServices {
             }
             int32_t ret = clientInfo->client->OnSwitchInput(property, subProperty);
             if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE(
-                    "OnSwitchInput failed, ret: %{public}d, uid: %{public}d", ret, static_cast<int32_t>(clientInfo->uid));
+                IMSA_HILOGE("OnSwitchInput failed, ret: %{public}d, uid: %{public}d", ret,
+                    static_cast<int32_t>(clientInfo->uid));
                 continue;
             }
         }
