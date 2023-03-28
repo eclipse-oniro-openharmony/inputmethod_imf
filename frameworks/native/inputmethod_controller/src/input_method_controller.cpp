@@ -36,6 +36,7 @@ using namespace MessageID;
 sptr<InputMethodController> InputMethodController::instance_;
 std::mutex InputMethodController::instanceLock_;
 constexpr int32_t WAIT_TIME = 100;
+constexpr int32_t KEYBOARD_SHOW = 2;
 InputMethodController::InputMethodController() : stop_(false)
 {
     IMSA_HILOGI("InputMethodController structure");
@@ -197,6 +198,7 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("InputMethodController::WorkThread SendKeyboardInfo");
                 if (textListener != nullptr) {
                     textListener->SendKeyboardInfo(*info);
+                    DoIncrease(ret);
                 }
                 delete info;
                 break;
@@ -280,6 +282,14 @@ void InputMethodController::WorkThread()
         }
         delete msg;
         msg = nullptr;
+    }
+}
+
+void InputMethodController::DoIncrease(int32_t status)
+{
+    if (status == KEYBOARD_SHOW) {
+        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+        textFieldReplyCount_++;
     }
 }
 
@@ -535,7 +545,8 @@ void InputMethodController::OnSelectionChange(std::u16string text, int start, in
     }
 
     std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-    if (textFieldReplyCount_ > 0) {
+    if (textFieldReplyCount_ > 0
+        && (text.size() != mTextString.size() || start != mSelectNewBegin || end != mSelectNewEnd)) {
         textFieldReplyCount_--;
     }
     if (textFieldReplyCount_ == 0) {
