@@ -58,40 +58,37 @@ int32_t JsInputMethod::GetNumberProperty(napi_env env, napi_value obj)
     return out;
 }
 
-napi_status JsInputMethod::GetInputMethodProperty(napi_env env, napi_value argv,
-    std::shared_ptr<SwitchInputMethodContext> ctxt)
+napi_status JsInputMethod::GetInputMethodProperty(
+    napi_env env, napi_value argv, std::shared_ptr<SwitchInputMethodContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
-    status = napi_typeof(env, argv, &valueType);
-    if (valueType == napi_object) {
-        napi_value result = nullptr;
-        // has at least two properties : name, id
-        status = napi_get_named_property(env, argv, "packageName", &result);
-        if (status != napi_ok) {
-            status = napi_get_named_property(env, argv, "name", &result);
-        }
-        if (status != napi_ok) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
-                                    "missing packageName parameter.", TYPE_STRING);
-            return status;
-        }
-        ctxt->packageName = GetStringProperty(env, result);
-        result = nullptr;
-        status = napi_get_named_property(env, argv, "methodId", &result);
-        if (status != napi_ok) {
-            status = napi_get_named_property(env, argv, "id", &result);
-        }
-        if (status != napi_ok) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
-                                    "missing methodId parameter.", TYPE_STRING);
-            return status;
-        }
-        ctxt->methodId = GetStringProperty(env, result);
-        IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s",
-            ctxt->methodId.c_str(), ctxt->packageName.c_str());
+    napi_typeof(env, argv, &valueType);
+    if (valueType != napi_object) {
+        IMSA_HILOGE("valueType error");
+        return status;
     }
-    return status;
+    napi_value result = nullptr;
+    napi_get_named_property(env, argv, "name", &result);
+    ctxt->packageName = JsInputMethod::GetStringProperty(env, result);
+    result = nullptr;
+    napi_get_named_property(env, argv, "id", &result);
+    ctxt->methodId = JsInputMethod::GetStringProperty(env, result);
+    if (ctxt->packageName.empty() || ctxt->methodId.empty()) {
+        result = nullptr;
+        napi_get_named_property(env, argv, "packageName", &result);
+        ctxt->packageName = JsInputMethod::GetStringProperty(env, result);
+
+        result = nullptr;
+        napi_get_named_property(env, argv, "methodId", &result);
+        ctxt->methodId = JsInputMethod::GetStringProperty(env, result);
+    }
+    if (ctxt->packageName.empty() || ctxt->methodId.empty()) {
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Parameter error.", TYPE_NONE);
+        return status;
+    }
+    IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s", ctxt->methodId.c_str(), ctxt->packageName.c_str());
+    return napi_ok;
 }
 
 napi_status JsInputMethod::GetInputMethodSubProperty(
@@ -102,6 +99,14 @@ napi_status JsInputMethod::GetInputMethodSubProperty(
     status = napi_typeof(env, argv, &valueType);
     if (valueType == napi_object) {
         napi_value result = nullptr;
+        status = napi_get_named_property(env, argv, "name", &result);
+        if (status != napi_ok) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+                                    "missing name parameter.", TYPE_STRING);
+            return status;
+        }
+        ctxt->name = GetStringProperty(env, result);
+        result = nullptr;
         status = napi_get_named_property(env, argv, "id", &result);
         if (status != napi_ok) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
@@ -109,15 +114,7 @@ napi_status JsInputMethod::GetInputMethodSubProperty(
             return status;
         }
         ctxt->id = GetStringProperty(env, result);
-        result = nullptr;
-        status = napi_get_named_property(env, argv, "label", &result);
-        if (status != napi_ok) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
-                                    "missing label parameter.", TYPE_STRING);
-            return status;
-        }
-        ctxt->label = GetStringProperty(env, result);
-        IMSA_HILOGI("label:%{public}s and id:%{public}s", ctxt->label.c_str(), ctxt->id.c_str());
+        IMSA_HILOGI("id:%{public}s and name:%{public}s", ctxt->id.c_str(), ctxt->name.c_str());
     }
     return status;
 }
@@ -309,7 +306,7 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->id, ctxt->label);
+        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->name, ctxt->id);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec SwitchInputMethod success");
             ctxt->status = napi_ok;
@@ -358,7 +355,7 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->id, ctxt->label);
+        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->name, ctxt->id);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec SwitchInputMethod success");
             ctxt->status = napi_ok;

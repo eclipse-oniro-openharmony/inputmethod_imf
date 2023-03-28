@@ -181,26 +181,40 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
     status = napi_typeof(env, argv, &valueType);
     if (valueType == napi_object) {
         napi_value result = nullptr;
-        status = napi_get_named_property(env, argv, "name", &result);
+        napi_get_named_property(env, argv, "name", &result);
         ctxt->property.name = JsInputMethod::GetStringProperty(env, result);
 
         result = nullptr;
-        status = napi_get_named_property(env, argv, "id", &result);
+        napi_get_named_property(env, argv, "id", &result);
         ctxt->property.id = JsInputMethod::GetStringProperty(env, result);
 
+        if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
+            result = nullptr;
+            napi_get_named_property(env, argv, "packageName", &result);
+            ctxt->property.name = JsInputMethod::GetStringProperty(env, result);
+
+            result = nullptr;
+            napi_get_named_property(env, argv, "methodId", &result);
+            ctxt->property.id = JsInputMethod::GetStringProperty(env, result);
+        }
+        if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Parameter error.", TYPE_NONE);
+            return napi_invalid_arg;
+        }
+
         result = nullptr;
-        status = napi_get_named_property(env, argv, "label", &result);
+        napi_get_named_property(env, argv, "label", &result);
         ctxt->property.label = JsInputMethod::GetStringProperty(env, result);
 
         result = nullptr;
-        status = napi_get_named_property(env, argv, "icon", &result);
+        napi_get_named_property(env, argv, "icon", &result);
         ctxt->property.icon = JsInputMethod::GetStringProperty(env, result);
 
         result = nullptr;
-        status = napi_get_named_property(env, argv, "iconId", &result);
+        napi_get_named_property(env, argv, "iconId", &result);
         ctxt->property.iconId = JsInputMethod::GetNumberProperty(env, result);
-        IMSA_HILOGI(
-            "methodId:%{public}s and packageName:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
+        IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(),
+                    ctxt->property.name.c_str());
     }
     return status;
 }

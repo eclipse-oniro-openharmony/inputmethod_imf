@@ -23,6 +23,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+    constexpr int32_t WAIT_TIME_STUB = 110;
     InputDataChannelStub::InputDataChannelStub() : msgHandler(nullptr)
     {
     }
@@ -58,14 +59,14 @@ namespace MiscServices {
             case GET_TEXT_BEFORE_CURSOR: {
                 auto number = data.ReadInt32();
                 std::u16string text;
-                reply.WriteInt32(GetTextBeforeCursor(number, text));
+                reply.WriteInt32(HandleGetOperation(number, text, GET_TEXT_BEFORE_CURSOR));
                 reply.WriteString16(text);
                 break;
             }
             case GET_TEXT_AFTER_CURSOR: {
                 auto number = data.ReadInt32();
                 std::u16string text;
-                reply.WriteInt32(GetTextAfterCursor(number, text));
+                reply.WriteInt32(HandleGetOperation(number, text, GET_TEXT_AFTER_CURSOR));
                 reply.WriteString16(text);
                 break;
             }
@@ -185,6 +186,35 @@ namespace MiscServices {
         return InputMethodController::GetInstance()->GetInputPattern(inputPattern);
     }
 
+    int32_t InputDataChannelStub::HandleGetOperation(int32_t number, std::u16string &text, int32_t msgType)
+    {
+        IMSA_HILOGI("InputDataChannelStub::start, msgId: %{public}d, number: %{public}d", msgType, number);
+        if (msgHandler == nullptr) {
+            return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        }
+        int32_t msgId;
+        if (msgType == GET_TEXT_BEFORE_CURSOR) {
+            msgId = MessageID::MSG_ID_GET_TEXT_BEFORE_CURSOR;
+        } else {
+            msgId = MessageID::MSG_ID_GET_TEXT_AFTER_CURSOR;
+        }
+        MessageParcel *parcel = new MessageParcel;
+        Message *msg = new Message(msgId, parcel);
+        msgHandler->SendMessage(msg);
+
+        std::unique_lock<std::mutex> lock(getOperationListenerLock_);
+        getOperationListenerCv_.wait_for(lock, std::chrono::milliseconds(WAIT_TIME_STUB));
+        if (msgType == GET_TEXT_BEFORE_CURSOR) {
+            return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
+        } else {
+            return InputMethodController::GetInstance()->GetTextAfterCursor(number, text);
+        }
+    }
+
+    void InputDataChannelStub::NotifyGetOperationCompletion()
+    {
+        getOperationListenerCv_.notify_one();
+    }
 
     void InputDataChannelStub::SendKeyboardStatus(int32_t status)
     {

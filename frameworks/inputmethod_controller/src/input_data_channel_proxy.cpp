@@ -214,5 +214,9 @@ namespace MiscServices {
 
         Remote()->SendRequest(HANDLE_SELECT, data, reply, option);
     }
+
+    void InputDataChannelProxy::NotifyGetOperationCompletion()
+    {
+    }
 } // namespace MiscServices
 } // namespace OHOS
