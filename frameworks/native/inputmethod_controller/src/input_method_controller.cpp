@@ -163,7 +163,8 @@ void InputMethodController::WorkThread()
                 MessageParcel *data = msg->msgContent_;
                 IMSA_HILOGI("InputMethodController::WorkThread DeleteForward");
                 if (textListener != nullptr) {
-                    textListener->DeleteForward(data->ReadInt32());
+                    // reverse for compatibility
+                    textListener->DeleteBackward(data->ReadInt32());
                     std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
                     textFieldReplyCount_++;
                 }
@@ -173,7 +174,8 @@ void InputMethodController::WorkThread()
                 MessageParcel *data = msg->msgContent_;
                 IMSA_HILOGI("InputMethodController::WorkThread DeleteBackward");
                 if (textListener != nullptr) {
-                    textListener->DeleteBackward(data->ReadInt32());
+                    // reverse for compatibility
+                    textListener->DeleteForward(data->ReadInt32());
                     std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
                     textFieldReplyCount_++;
                 }
@@ -641,13 +643,13 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 
 bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
-    IMSA_HILOGI("InputMethodController::start");
+    IMSA_HILOGI("InputMethodController in");
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
         return false;
     }
     if (isStopInput) {
-        IMSA_HILOGE("InputMethodController::input stop");
+        IMSA_HILOGE("input is stopped");
         return false;
     }
     std::lock_guard<std::mutex> lock(agentLock_);

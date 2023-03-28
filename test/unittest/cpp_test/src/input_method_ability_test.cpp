@@ -395,16 +395,16 @@ HWTEST_F(InputMethodAbilityTest, testDeleteText, TestSize.Level0)
     auto ret = inputMethodAbility_->DeleteForward(deleteForwardLenth);
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::textListenerCallbackLock_);
     InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
-        [deleteForwardLenth] { return InputMethodAbilityTest::deleteForwardLength_ == deleteForwardLenth; });
+        [deleteForwardLenth] { return InputMethodAbilityTest::deleteBackwardLength_ == deleteForwardLenth; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(InputMethodAbilityTest::deleteForwardLength_, deleteForwardLenth);
+    EXPECT_EQ(InputMethodAbilityTest::deleteBackwardLength_, deleteForwardLenth);
 
     int32_t deleteBackwardLenth = 2;
     ret = inputMethodAbility_->DeleteBackward(deleteBackwardLenth);
     InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
-        [deleteBackwardLenth] { return InputMethodAbilityTest::deleteBackwardLength_ == deleteBackwardLenth; });
+        [deleteBackwardLenth] { return InputMethodAbilityTest::deleteForwardLength_ == deleteBackwardLenth; });
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(InputMethodAbilityTest::deleteBackwardLength_, deleteBackwardLenth);
+    EXPECT_EQ(InputMethodAbilityTest::deleteForwardLength_, deleteBackwardLenth);
 }
 
 /**
