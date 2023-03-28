@@ -99,7 +99,7 @@ namespace MiscServices {
         mImms = GetImsaProxy();
         if (mImms == nullptr) {
             IMSA_HILOGI("mImms is nullptr");
-            return;
+            return ErrorCode::ERROR_NULL_POINTER;
         }
         sptr<InputMethodCoreStub> stub = new InputMethodCoreStub(0);
         stub->SetMessageHandler(msgHandler);
