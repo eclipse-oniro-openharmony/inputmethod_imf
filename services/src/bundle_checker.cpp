@@ -1,0 +1,70 @@
+/*
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "bundle_checker.h"
+
+#include "accesstoken_kit.h"
+#include "global.h"
+
+namespace OHOS {
+namespace MiscServices {
+using namespace Security::AccessToken;
+bool BundleChecker::IsCurrentIme(uint32_t tokenID, const std::string &currentIme)
+{
+    std::string bundleName;
+    if (!GetBundleNameByToken(tokenID, bundleName)) {
+        return false;
+    }
+    if (currentIme.empty() || bundleName.empty()) {
+        IMSA_HILOGE("empty string");
+        return false;
+    }
+    if (bundleName != currentIme) {
+        IMSA_HILOGE(
+            "not current ime, caller: %{public}s, current ime: %{public}s", bundleName.c_str(), currentIme.c_str());
+        return false;
+    }
+    IMSA_HILOGI("checked ime successfully");
+    return true;
+}
+
+bool BundleChecker::CheckPermission(uint32_t tokenID, const std::string &permission)
+{
+    if (AccessTokenKit::VerifyAccessToken(tokenID, permission) != PERMISSION_GRANTED) {
+        IMSA_HILOGE("Permission [%{public}s] not granted", permission.c_str());
+        return false;
+    }
+    IMSA_HILOGI("verify AccessToken success");
+    return true;
+}
+
+bool BundleChecker::GetBundleNameByToken(uint32_t tokenID, std::string &bundleName)
+{
+    auto tokenType = AccessTokenKit::GetTokenTypeFlag(tokenID);
+    if (tokenType != TOKEN_HAP) {
+        IMSA_HILOGE("invalid token");
+        return false;
+    }
+    HapTokenInfo info;
+    int ret = AccessTokenKit::GetHapTokenInfo(tokenID, info);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to get hap info, ret: %{public}d", ret);
+        return false;
+    }
+    bundleName = info.bundleName;
+    return true;
+}
+} // namespace MiscServices
+} // namespace OHOS

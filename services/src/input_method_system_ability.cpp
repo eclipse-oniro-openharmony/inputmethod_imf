@@ -22,6 +22,7 @@
 #include "ability_manager_errors.h"
 #include "ability_manager_interface.h"
 #include "application_info.h"
+#include "bundle_checker.h"
 #include "bundle_mgr_proxy.h"
 #include "combination_key.h"
 #include "common_event_support.h"
@@ -49,6 +50,7 @@ namespace MiscServices {
     const std::int32_t INIT_INTERVAL = 10000L;
     const std::int32_t MAIN_USER_ID = 100;
     constexpr int32_t INVALID_USER_ID = -1;
+    static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
     std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
     /**
@@ -176,8 +178,8 @@ namespace MiscServices {
         IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
         state_ = ServiceRunningState::STATE_RUNNING;
         ImeCfgManager::GetInstance().Init();
-        // ·þÎñÒì³£ÖØÆôºó²»»á×ßOnUserStarted£¬µ«ÊÇ¿ÉÒÔ»ñÈ¡µ½µ±Ç°userId
-        // Éè±¸Æô¶¯Ê±¿ÉÄÜ»ñÈ¡²»µ½µ±Ç°userId,Èç¹û»ñÈ¡²»µ½£¬ÔòµÈOnUserStartedµÄÊ±ºò´¦Àí.
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ì³£ï¿½ï¿½ï¿½ï¿½ï¿½ó²»»ï¿½ï¿½ï¿½OnUserStartedï¿½ï¿½ï¿½ï¿½ï¿½Ç¿ï¿½ï¿½Ô»ï¿½È¡ï¿½ï¿½ï¿½ï¿½Ç°userId
+        // ï¿½è±¸ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ü»ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°userId,ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½OnUserStartedï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½.
         std::vector<int32_t> userIds;
         if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
             userId_ = userIds[0];
@@ -366,11 +368,24 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::StopInputSession()
     {
-        return HideCurrentInput();
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnHideKeyboardSelf(0);
     }
 
     int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
     {
+        IMSA_HILOGD("InputMethodSystemAbility run in");
+        auto currentIme = GetCurrentInputMethod();
+        if (currentIme == nullptr) {
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        if (!BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme->name)) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         auto session = GetUserSession(MAIN_USER_ID);
         if (session == nullptr) {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
@@ -381,6 +396,10 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::HideCurrentInput()
     {
+        IMSA_HILOGD("InputMethodSystemAbility run in");
+        if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         auto session = GetUserSession(MAIN_USER_ID);
         if (session == nullptr) {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
@@ -391,6 +410,10 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::ShowCurrentInput()
     {
+        IMSA_HILOGD("InputMethodSystemAbility run in");
+        if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         auto session = GetUserSession(MAIN_USER_ID);
         if (session == nullptr) {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
@@ -401,6 +424,10 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
     {
+        IMSA_HILOGD("InputMethodSystemAbility run in");
+        if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         return OnDisplayOptionalInputMethod(userId_);
     };
 
@@ -530,6 +557,9 @@ namespace MiscServices {
     int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &name, const std::string &subName)
     {
         IMSA_HILOGI("InputMethodSystemAbility::SwitchInputMethod");
+        if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         return subName.empty() ? SwitchInputMethodType(name) : SwitchInputMethodSubtype(name, subName);
     }
 
@@ -646,25 +676,29 @@ namespace MiscServices {
     }
 
     // Deprecated because of no permission check, kept for compatibility
-    int32_t InputMethodSystemAbility::SetCoreAndAgentDeprecated(
-        sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
-    {
-        return SetCoreAndAgent(core, agent);
-    };
-
     int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
     {
-        return HideCurrentInput();
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnHideKeyboardSelf(0);
     };
 
     int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
     {
-        return ShowCurrentInput();
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnShowKeyboardSelf();
     };
 
     int32_t InputMethodSystemAbility::DisplayOptionalInputMethodDeprecated()
     {
-        return DisplayOptionalInputMethod();
+        return OnDisplayOptionalInputMethod(userId_);
     };
 
     /*! Get all of the input method engine list installed in the system
@@ -972,7 +1006,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    // ÓÃ»§ÒÆ³ýÒ²»áÓÐ¸ÃÍ¨Öª£¬Èç¹ûÒÆ³ýµÄappÓÃ»§²»ÊÇµ±Ç°ÓÃ»§£¬Ôò²»´¦Àí
+    // ï¿½Ã»ï¿½ï¿½Æ³ï¿½Ò²ï¿½ï¿½ï¿½Ð¸ï¿½Í¨Öªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ³ï¿½ï¿½ï¿½appï¿½Ã»ï¿½ï¿½ï¿½ï¿½Çµï¿½Ç°ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ò²»´ï¿½ï¿½ï¿½
     if (userId != userId_) {
         return ErrorCode::NO_ERROR;
     }

@@ -93,12 +93,12 @@ namespace MiscServices {
         return iface;
     }
 
-    void InputMethodAbility::SetCoreAndAgent()
+    int32_t InputMethodAbility::SetCoreAndAgent()
     {
-        IMSA_HILOGI("InputMethodAbility::SetCoreAndAgent");
+        IMSA_HILOGI("InputMethodAbility, run in");
         mImms = GetImsaProxy();
-        if (!mImms) {
-            IMSA_HILOGI("InputMethodAbility::SetCoreAndAgent() mImms is nullptr");
+        if (mImms == nullptr) {
+            IMSA_HILOGI("mImms is nullptr");
             return;
         }
         sptr<InputMethodCoreStub> stub = new InputMethodCoreStub(0);
@@ -107,7 +107,9 @@ namespace MiscServices {
         sptr<InputMethodAgentStub> inputMethodAgentStub(new InputMethodAgentStub());
         inputMethodAgentStub->SetMessageHandler(msgHandler);
         sptr<IInputMethodAgent> inputMethodAgent = sptr(new InputMethodAgentProxy(inputMethodAgentStub));
-        mImms->SetCoreAndAgentDeprecated(stub, inputMethodAgent);
+        int32_t ret = mImms->SetCoreAndAgent(stub, inputMethodAgent);
+        IMSA_HILOGI("set result: %{public}d", ret);
+        return ret;
     }
 
     void InputMethodAbility::Initialize()
@@ -117,8 +119,6 @@ namespace MiscServices {
         workThreadHandler = std::thread([this] {
             WorkThread();
         });
-
-        SetCoreAndAgent();
     }
 
     void InputMethodAbility::setImeListener(std::shared_ptr<InputMethodEngineListener> imeListener)

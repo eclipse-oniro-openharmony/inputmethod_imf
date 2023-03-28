@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,7 @@ public:
     {
         IMSA_HILOGI("InputMethodAbilityExecptionTest::SetUpTestCase");
         inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->OnImeReady();
         imeListener_ = std::make_shared<ImeListenerImpl>();
         inputMethodAbility_->setImeListener(imeListener_);

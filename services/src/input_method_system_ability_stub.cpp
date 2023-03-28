@@ -19,16 +19,11 @@
 
 #include <memory>
 
-#include "access_token.h"
-#include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
 
 namespace OHOS {
 namespace MiscServices {
-using namespace Security::AccessToken;
-static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
-
 int32_t InputMethodSystemAbilityStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
@@ -86,29 +81,19 @@ int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, Me
 
 int32_t InputMethodSystemAbilityStub::ShowCurrentInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
-        reply.WriteInt32(ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-        IMSA_HILOGE("%{public}s Permission denied", __func__);
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
     int32_t ret = ShowCurrentInput();
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::HideCurrentInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
-        reply.WriteInt32(ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-        IMSA_HILOGE("%{public}s Permission denied", __func__);
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
     int32_t ret = HideCurrentInput();
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::StopInputSessionOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t ret = HideCurrentInput();
+    int32_t ret = StopInputSession();
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -138,22 +123,12 @@ int32_t InputMethodSystemAbilityStub::ReleaseInputOnRemote(MessageParcel &data, 
 
 int32_t InputMethodSystemAbilityStub::DisplayOptionalInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
-        reply.WriteInt32(ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-        IMSA_HILOGE("%{public}s Permission denied", __func__);
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
     int32_t ret = DisplayOptionalInputMethod();
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
-        reply.WriteInt32(ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-        IMSA_HILOGE("%{public}s Permission denied", __func__);
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
     auto coreObject = data.ReadRemoteObject();
     if (coreObject == nullptr) {
         reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
@@ -256,11 +231,6 @@ int32_t InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote(Mess
 
 int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
-        reply.WriteInt32(ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-        IMSA_HILOGE("%{public}s Permission denied", __func__);
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
     std::string name;
     std::string subName;
     if (!ITypesUtil::Unmarshal(data, name, subName)) {
@@ -288,37 +258,6 @@ int32_t InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated(MessageParc
 {
     int32_t ret = DisplayOptionalInputMethodDeprecated();
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
-int32_t InputMethodSystemAbilityStub::SetCoreAndAgentOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply)
-{
-    auto coreObject = data.ReadRemoteObject();
-    if (coreObject == nullptr) {
-        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-        IMSA_HILOGE("%{public}s coreObject is nullptr", __func__);
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    auto agentObject = data.ReadRemoteObject();
-    if (agentObject == nullptr) {
-        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-        IMSA_HILOGE("%{public}s agentObject is nullptr", __func__);
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    int32_t ret = SetCoreAndAgent(iface_cast<IInputMethodCore>(coreObject), iface_cast<IInputMethodAgent>(agentObject));
-    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
-bool InputMethodSystemAbilityStub::CheckPermission(const std::string &permission)
-{
-    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    TypeATokenTypeEnum tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
-    if (tokenType == TOKEN_INVALID) {
-        IMSA_HILOGE("invalid token");
-        return false;
-    }
-    int result = AccessTokenKit::VerifyAccessToken(tokenId, permission);
-    IMSA_HILOGI("CheckPermission %{public}s", result == PERMISSION_GRANTED ? "success" : "failed");
-    return result == PERMISSION_GRANTED;
 }
 } // namespace MiscServices
 } // namespace OHOS

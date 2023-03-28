@@ -48,6 +48,7 @@ struct InputStartNotifier {
         InputMethodAbility();
         ~InputMethodAbility();
         IMF_API static sptr<InputMethodAbility> GetInstance();
+        IMF_API int32_t SetCoreAndAgent();
         IMF_API int32_t InsertText(const std::string text);
         IMF_API void setImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
         IMF_API void setKdListener(std::shared_ptr<KeyboardListener> kdListener);
@@ -75,7 +76,6 @@ struct InputStartNotifier {
 
         std::mutex controlChannelLock_;
         std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;
-        void SetCoreAndAgent();
 
         std::mutex dataChannelLock_;
         std::shared_ptr<InputDataChannelProxy> dataChannel_ = nullptr;
