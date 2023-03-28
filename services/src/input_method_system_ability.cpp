@@ -384,7 +384,7 @@ namespace MiscServices {
             return ErrorCode::ERROR_EX_NULL_POINTER;
         }
         if (!BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme->name)) {
-            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+            return ErrorCode::ERROR_NOT_CURRENT_IME;
         }
         auto session = GetUserSession(MAIN_USER_ID);
         if (session == nullptr) {

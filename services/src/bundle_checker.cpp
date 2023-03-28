@@ -23,8 +23,8 @@ namespace MiscServices {
 using namespace Security::AccessToken;
 bool BundleChecker::IsCurrentIme(uint32_t tokenID, const std::string &currentIme)
 {
-    std::string bundleName;
-    if (!GetBundleNameByToken(tokenID, bundleName)) {
+    std::string bundleName = GetBundleNameByToken(tokenID);
+    if (bundleName.empty()) {
         return false;
     }
     if (currentIme.empty() || bundleName.empty()) {
@@ -36,7 +36,7 @@ bool BundleChecker::IsCurrentIme(uint32_t tokenID, const std::string &currentIme
             "not current ime, caller: %{public}s, current ime: %{public}s", bundleName.c_str(), currentIme.c_str());
         return false;
     }
-    IMSA_HILOGI("checked ime successfully");
+    IMSA_HILOGD("checked ime successfully");
     return true;
 }
 
@@ -46,25 +46,24 @@ bool BundleChecker::CheckPermission(uint32_t tokenID, const std::string &permiss
         IMSA_HILOGE("Permission [%{public}s] not granted", permission.c_str());
         return false;
     }
-    IMSA_HILOGI("verify AccessToken success");
+    IMSA_HILOGD("verify AccessToken success");
     return true;
 }
 
-bool BundleChecker::GetBundleNameByToken(uint32_t tokenID, std::string &bundleName)
+std::string BundleChecker::GetBundleNameByToken(uint32_t tokenID)
 {
     auto tokenType = AccessTokenKit::GetTokenTypeFlag(tokenID);
     if (tokenType != TOKEN_HAP) {
         IMSA_HILOGE("invalid token");
-        return false;
+        return "";
     }
     HapTokenInfo info;
     int ret = AccessTokenKit::GetHapTokenInfo(tokenID, info);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to get hap info, ret: %{public}d", ret);
-        return false;
+        return "";
     }
-    bundleName = info.bundleName;
-    return true;
+    return info.bundleName;
 }
 } // namespace MiscServices
 } // namespace OHOS

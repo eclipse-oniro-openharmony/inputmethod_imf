@@ -218,7 +218,7 @@ HWTEST_F(PermissionVerificationExceptionTest, SetCoreAndAgent, TestSize.Level0)
 {
     IMSA_HILOGI("PermissionTest SetCoreAndAgent TEST START");
     int32_t ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
-    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NOT_CURRENT_IME);
 }
 
 /**

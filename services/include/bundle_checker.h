@@ -26,7 +26,7 @@ public:
     static bool CheckPermission(uint32_t tokenID, const std::string &permission);
 
 private:
-    static bool GetBundleNameByToken(uint32_t tokenID, std::string &bundleName);
+    static std::string GetBundleNameByToken(uint32_t tokenID);
 };
 } // namespace MiscServices
 } // namespace OHOS
