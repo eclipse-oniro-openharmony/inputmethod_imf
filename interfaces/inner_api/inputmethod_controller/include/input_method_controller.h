@@ -431,6 +431,7 @@ private:
     void HandleExtendAction(int32_t action);
     void HandleGetOperation();
     bool IsCorrectParam(int32_t number);
+    void DoIncrease(int32_t status);
 
     sptr<IInputDataChannel> mInputDataChannel;
     std::shared_ptr<InputMethodSettingListener> imeListener_;
