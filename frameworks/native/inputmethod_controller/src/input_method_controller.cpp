@@ -198,7 +198,7 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("InputMethodController::WorkThread SendKeyboardInfo");
                 if (textListener != nullptr) {
                     textListener->SendKeyboardInfo(*info);
-                    DoIncrease(ret);
+                    DoIncrease(data->ReadInt32());
                 }
                 delete info;
                 break;
