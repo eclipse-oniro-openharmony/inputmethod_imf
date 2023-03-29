@@ -251,11 +251,18 @@ namespace MiscServices {
         std::map<int32_t, MessageHandler*>::const_iterator it = msgHandlers.find(MAIN_USER_ID);
         if (it == msgHandlers.end()) {
             IMSA_HILOGE("InputMethodSystemAbility::StartInputService() need start handler");
-            MessageHandler *handler = new MessageHandler();
-            if (session) {
-                IMSA_HILOGE("InputMethodSystemAbility::OnPrepareInput session is not nullptr");
-                session->CreateWorkThread(*handler);
-                msgHandlers.insert(std::pair<int32_t, MessageHandler*>(MAIN_USER_ID, handler));
+            MessageHandler *handler = new (std::nothrow) MessageHandler();
+            if  (handler == nullptr) {
+                IMSA_HILOGE("InputMethodSystemAbility::StartInputService MessageHandler is nullptr");
+            } else {
+                if (session != nullptr) {
+                    IMSA_HILOGD("InputMethodSystemAbility::StartInputService session is not nullptr");
+                    session->CreateWorkThread(*handler);
+                    msgHandlers.insert(std::pair<int32_t, MessageHandler*>(MAIN_USER_ID, handler));
+                } else {
+                    IMSA_HILOGE("InputMethodSystemAbility::StartInputService session is nullptr");
+                    delete handler;
+                }
             }
         }
 
