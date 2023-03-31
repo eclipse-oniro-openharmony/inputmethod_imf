@@ -51,7 +51,7 @@ public:
     T GetValue()
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        cv_.wait_for(lock, std::chrono::seconds(INTERVAL), [this]() { return isSet_; });
+        cv_.wait_for(lock, std::chrono::milliseconds(INTERVAL), [this]() { return isSet_; });
         T data = data_;
         cv_.notify_one();
         return data;
@@ -99,7 +99,7 @@ private:
 
     static std::string GetStringProperty(napi_env env, napi_value jsString);
     static constexpr int32_t MAX_VALUE_LEN = 1024;
-    static constexpr int32_t MAX_TIMEOUT = 5;
+    static constexpr int32_t MAX_TIMEOUT = 100;
     static const std::string KDS_CLASS_NAME;
     static thread_local napi_ref KDSRef_;
     struct CursorPara {
