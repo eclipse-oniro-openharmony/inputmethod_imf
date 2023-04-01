@@ -81,27 +81,20 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
 
 bool InputMethodAgentStub::DispatchKeyEvent(MessageParcel &data)
 {
-    IMSA_HILOGI("InputMethodAgentStub::DispatchKeyEvent");
-    if (!msgHandler_) {
-        return false;
-    }
+    IMSA_HILOGD("InputMethodAgentStub::DispatchKeyEvent");
     return InputMethodAbility::GetInstance()->DispatchKeyEvent(data.ReadInt32(), data.ReadInt32());
 }
 
 void InputMethodAgentStub::SetCallingWindow(uint32_t windowId)
 {
     IMSA_HILOGI("InputMethodAgentStub::SetCallingWindow");
-    if (!msgHandler_) {
-        return;
-    }
     InputMethodAbility::GetInstance()->SetCallingWindow(windowId);
-    return;
 }
 
 void InputMethodAgentStub::OnCursorUpdate(int32_t positionX, int32_t positionY, int height)
 {
     IMSA_HILOGI("InputMethodAgentStub::OnCursorUpdate");
-    if (!msgHandler_) {
+    if (msgHandler_ == nullptr) {
         return;
     }
     MessageParcel *data = new MessageParcel();
@@ -116,7 +109,7 @@ void InputMethodAgentStub::OnSelectionChange(
     std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
     IMSA_HILOGI("InputMethodAgentStub::OnSelectionChange");
-    if (!msgHandler_) {
+    if (msgHandler_ == nullptr) {
         return;
     }
     MessageParcel *data = new MessageParcel();

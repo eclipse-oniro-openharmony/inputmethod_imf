@@ -51,27 +51,12 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(
 
 int32_t InputMethodSystemAbilityStub::PrepareInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t displayId = data.ReadInt32();
-    auto clientObject = data.ReadRemoteObject();
-    if (clientObject == nullptr) {
-        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-        IMSA_HILOGE("%{public}s nullptr", __func__);
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+    InputClientInfo clientInfo;
+    if (!ITypesUtil::Unmarshal(data, clientInfo)) {
+        IMSA_HILOGE("read clientInfo failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto channelObject = data.ReadRemoteObject();
-    if (channelObject == nullptr) {
-        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-        IMSA_HILOGE("%{public}s nullptr", __func__);
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    InputAttribute attribute;
-    if (!InputAttribute::Unmarshalling(attribute, data)) {
-        reply.WriteInt32(ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT);
-        IMSA_HILOGE("%{public}s illegal argument", __func__);
-        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
-    }
-    int32_t ret = PrepareInput(
-        displayId, iface_cast<IInputClient>(clientObject), iface_cast<IInputDataChannel>(channelObject), attribute);
+    int32_t ret = PrepareInput(clientInfo);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

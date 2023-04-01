@@ -22,6 +22,7 @@
 #include "ability_manager_errors.h"
 #include "ability_manager_interface.h"
 #include "application_info.h"
+#include "bundle_checker.h"
 #include "bundle_mgr_proxy.h"
 #include "combination_key.h"
 #include "common_event_support.h"
@@ -37,9 +38,9 @@
 #include "message_handler.h"
 #include "os_account_manager.h"
 #include "resource_manager.h"
+#include "sys/prctl.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
-#include "sys/prctl.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -165,6 +166,8 @@ int32_t InputMethodSystemAbility::Init()
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
+    ret = InitFocusChangeMonitor();
+    IMSA_HILOGI("init focus change monitor %{public}s", ret ? "success" : "failed");
     return ErrorCode::NO_ERROR;
 }
 
@@ -249,21 +252,25 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
     userSession_->StopInputService(imeId);
 }
 
-int32_t InputMethodSystemAbility::PrepareInput(
-    int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel, InputAttribute &attribute)
+int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
-    if (client == nullptr || channel == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::client or channel is nullptr");
+    if (!clientInfo.isToNotify && !BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
+    if (clientInfo.client == nullptr || clientInfo.channel == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    sptr<RemoteObjectDeathRecipient> clientDeathRecipient = new (std::nothrow) RemoteObjectDeathRecipient();
-    if (clientDeathRecipient == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::PrepareInput clientDeathRecipient is nullptr");
+    auto deathRecipient = new (std::nothrow) InputDeathRecipient();
+    if (deathRecipient == nullptr) {
+        IMSA_HILOGE("failed to new deathRecipient");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return userSession_->OnPrepareInput({ IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), userId_,
-        displayId, client, channel, clientDeathRecipient, attribute });
-};
+    clientInfo.pid = IPCSkeleton::GetCallingPid();
+    clientInfo.uid = IPCSkeleton::GetCallingUid();
+    clientInfo.userID = userId_;
+    clientInfo.deathRecipient = deathRecipient;
+    return userSession_->OnPrepareInput(clientInfo);
+}
 
 int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 {
@@ -276,6 +283,9 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 
 int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
 {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
     if (client == nullptr) {
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -291,6 +301,9 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
 
 int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
     if (client == nullptr) {
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -300,7 +313,10 @@ int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 
 int32_t InputMethodSystemAbility::StopInputSession()
 {
-    return HideCurrentInput();
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
+    return userSession_->OnHideKeyboardSelf();
 }
 
 int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
@@ -315,11 +331,17 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
 {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
     return userSession_->OnHideKeyboardSelf();
 };
 
 int32_t InputMethodSystemAbility::ShowCurrentInput()
 {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
     return userSession_->OnShowKeyboardSelf();
 };
 
@@ -572,11 +594,17 @@ int32_t InputMethodSystemAbility::SetCoreAndAgentDeprecated(sptr<IInputMethodCor
 
 int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
     return HideCurrentInput();
 };
 
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
     return ShowCurrentInput();
 };
 
@@ -1027,6 +1055,12 @@ int32_t InputMethodSystemAbility::InitKeyEventMonitor()
     bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
         [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode); });
     return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
+}
+
+bool InputMethodSystemAbility::InitFocusChangeMonitor()
+{
+    return ImCommonEventManager::GetInstance()->SubscribeWindowManagerService(
+        [this](int32_t pid, int32_t uid) { return userSession_->OnUnfocused(pid, uid); });
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -43,14 +43,11 @@ int32_t InputClientStub::OnRemoteRequest(
     }
     switch (code) {
         case ON_INPUT_READY: {
-            if (!msgHandler) {
-                break;
-            }
-            MessageParcel *parcel = new MessageParcel();
-            parcel->WriteRemoteObject(data.ReadRemoteObject());
-
-            Message *msg = new Message(MessageID::MSG_ID_ON_INPUT_READY, parcel);
-            msgHandler->SendMessage(msg);
+            OnInputReadyOnRemote(data, reply);
+            break;
+        }
+        case ON_INPUT_STOP: {
+            OnInputStopOnRemote(data, reply);
             break;
         }
         case ON_SWITCH_INPUT: {
@@ -61,6 +58,25 @@ int32_t InputClientStub::OnRemoteRequest(
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
     return NO_ERROR;
+}
+
+void InputClientStub::OnInputReadyOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> agentObject;
+    int32_t ret = SendMessage(MessageID::MSG_ID_ON_INPUT_READY, [&data, &agentObject](MessageParcel &parcel) {
+        return ITypesUtil::Unmarshal(data, agentObject) && ITypesUtil::Marshal(data, agentObject);
+    });
+    if (!ITypesUtil::Marshal(reply, ret)) {
+        IMSA_HILOGE("failed to write reply");
+    }
+}
+
+void InputClientStub::OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = SendMessage(MessageID::MSG_ID_ON_INPUT_STOP);
+    if (!ITypesUtil::Marshal(reply, ret)) {
+        IMSA_HILOGE("failed to write reply");
+    }
 }
 
 void InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -106,6 +122,11 @@ int32_t InputClientStub::OnInputReady(const sptr<IInputMethodAgent> &agent)
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputClientStub::OnInputStop()
+{
+    return ErrorCode::NO_ERROR;
+}
+
 void InputClientStub::SetHandler(MessageHandler *handler)
 {
     msgHandler = handler;
@@ -113,6 +134,33 @@ void InputClientStub::SetHandler(MessageHandler *handler)
 
 int32_t InputClientStub::OnSwitchInput(const Property &property, const SubProperty &subProperty)
 {
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputClientStub::SendMessage(int code, ParcelHandler input)
+{
+    IMSA_HILOGD("InputClientStub run in");
+    if (msgHandler == nullptr) {
+        IMSA_HILOGE("msgHandler_ is nullptr");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    auto *parcel = new (std::nothrow) MessageParcel();
+    if (parcel == nullptr) {
+        IMSA_HILOGE("parcel is nullptr");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    if (input != nullptr && (!input(*parcel))) {
+        IMSA_HILOGE("write data failed");
+        delete parcel;
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto *msg = new (std::nothrow) Message(code, parcel);
+    if (msg == nullptr) {
+        IMSA_HILOGE("msg is nullptr");
+        delete parcel;
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    msgHandler->SendMessage(msg);
     return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices

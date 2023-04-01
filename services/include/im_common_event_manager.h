@@ -25,6 +25,7 @@
 #include "common_event_subscribe_info.h"
 #include "common_event_subscriber.h"
 #include "common_event_support.h"
+#include "focus_monitor_manager.h"
 #include "keyboard_event.h"
 #include "matching_skills.h"
 #include "system_ability_status_change_stub.h"
@@ -38,6 +39,7 @@ public:
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvent(const std::string &event);
     bool SubscribeKeyboardEvent(KeyHandle handle);
+    bool SubscribeWindowManagerService(FocusHandle handle);
 
     bool UnsubscribeEvent();
     class EventSubscriber : public EventFwk::CommonEventSubscriber {
@@ -67,10 +69,10 @@ private:
 
 private:
     static std::mutex instanceLock_;
-
     static sptr<ImCommonEventManager> instance_;
     sptr<ISystemAbilityStatusChange> statusChangeListener_ = nullptr;
     sptr<ISystemAbilityStatusChange> keyboardEventListener_ = nullptr;
+    sptr<ISystemAbilityStatusChange> focusChangeEventListener_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS

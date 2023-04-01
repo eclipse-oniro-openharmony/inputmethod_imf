@@ -30,11 +30,12 @@ namespace OHOS {
 namespace MiscServices {
 class IInputClient : public IRemoteBroker {
 public:
-    enum { ON_INPUT_READY = 0, ON_SWITCH_INPUT };
+    enum { ON_INPUT_READY = 0, ON_INPUT_STOP, ON_SWITCH_INPUT };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputClient");
 
     virtual int32_t OnInputReady(const sptr<IInputMethodAgent> &agent) = 0;
+    virtual int32_t OnInputStop() = 0;
     virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
 };
 } // namespace MiscServices

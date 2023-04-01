@@ -38,10 +38,15 @@ public:
     void SetHandler(MessageHandler *handler);
 
     int32_t OnInputReady(const sptr<IInputMethodAgent> &agent) override;
+    int32_t OnInputStop() override;
     int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
 
 private:
     MessageHandler *msgHandler = nullptr;
+    using ParcelHandler = std::function<bool(MessageParcel &)>;
+    int32_t SendMessage(int code, ParcelHandler input = nullptr);
+    void OnInputReadyOnRemote(MessageParcel &data, MessageParcel &reply);
+    void OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply);
     void OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply);
 };
 } // namespace MiscServices

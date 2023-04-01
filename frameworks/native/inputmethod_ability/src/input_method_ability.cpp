@@ -188,6 +188,10 @@ void InputMethodAbility::WorkThread()
                 OnSetSubtype(msg);
                 break;
             }
+            case MSG_ID_CLEAR_DATA_CHANNEL: {
+                OnClearDataChannel(msg);
+                break;
+            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -252,6 +256,26 @@ void InputMethodAbility::OnSetSubtype(Message *msg)
         return;
     }
     imeListener_->OnSetSubtype(subProperty);
+}
+
+void InputMethodAbility::OnClearDataChannel(Message *msg)
+{
+    IMSA_HILOGI("run in");
+    auto data = msg->msgContent_;
+    sptr<IRemoteObject> channel = nullptr;
+    if (!ITypesUtil::Unmarshal(*data, channel)) {
+        IMSA_HILOGE("failed to read message parcel");
+        return;
+    }
+    auto currentDataChannel = GetInputDataChannel();
+    if (currentDataChannel == nullptr || channel == nullptr) {
+        return;
+    }
+    if (currentDataChannel->AsObject().GetRefPtr() == channel.GetRefPtr()) {
+        IMSA_HILOGI("clear data channel");
+        std::lock_guard<std::mutex> lock(dataChannelLock_);
+        dataChannel_ = nullptr;
+    }
 }
 
 bool InputMethodAbility::DispatchKeyEvent(int32_t keyCode, int32_t keyStatus)
@@ -329,7 +353,7 @@ void InputMethodAbility::ShowInputWindow(bool isShowKeyboard, const SubProperty 
         return;
     }
     imeListener_->OnKeyboardStatus(true);
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility::ShowInputWindow channel is nullptr");
         return;
@@ -345,7 +369,7 @@ void InputMethodAbility::DismissInputWindow()
         return;
     }
     imeListener_->OnKeyboardStatus(false);
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility::DismissInputWindow channel is nullptr");
         return;
@@ -356,7 +380,7 @@ void InputMethodAbility::DismissInputWindow()
 int32_t InputMethodAbility::InsertText(const std::string text)
 {
     IMSA_HILOGD("InputMethodAbility, in");
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGI("InputMethodAbility::InsertText channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -367,7 +391,7 @@ int32_t InputMethodAbility::InsertText(const std::string text)
 int32_t InputMethodAbility::DeleteForward(int32_t length)
 {
     IMSA_HILOGD("InputMethodAbility, length = %{public}d", length);
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility, channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -378,7 +402,7 @@ int32_t InputMethodAbility::DeleteForward(int32_t length)
 int32_t InputMethodAbility::DeleteBackward(int32_t length)
 {
     IMSA_HILOGD("InputMethodAbility, length = %{public}d", length);
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility, channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -388,7 +412,7 @@ int32_t InputMethodAbility::DeleteBackward(int32_t length)
 
 int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey)
 {
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility::SendFunctionKey channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -408,7 +432,7 @@ int32_t InputMethodAbility::HideKeyboardSelf()
 
 int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility::GetTextBeforeCursor channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -418,7 +442,7 @@ int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &
 
 int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility::GetTextAfterCursor channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -429,7 +453,7 @@ int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &t
 int32_t InputMethodAbility::MoveCursor(int32_t keyCode)
 {
     IMSA_HILOGD("InputMethodAbility, keyCode = %{public}d", keyCode);
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility::MoveCursor channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -466,7 +490,7 @@ int32_t InputMethodAbility::SelectByMovement(int32_t direction)
 
 int32_t InputMethodAbility::GetEnterKeyType(int32_t &keyType)
 {
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility::GetEnterKeyType channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -476,7 +500,7 @@ int32_t InputMethodAbility::GetEnterKeyType(int32_t &keyType)
 
 int32_t InputMethodAbility::GetInputPattern(int32_t &inputPattern)
 {
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility::GetInputPattern channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -486,7 +510,7 @@ int32_t InputMethodAbility::GetInputPattern(int32_t &inputPattern)
 
 int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index)
 {
-    std::shared_ptr<InputDataChannelProxy> channel = GetInputDataChannel();
+    auto channel = GetInputDataChannel();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility::channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -498,15 +522,10 @@ void InputMethodAbility::SetInputDataChannel(sptr<IRemoteObject> &object)
 {
     IMSA_HILOGD("run in SetInputDataChannel");
     std::lock_guard<std::mutex> lock(dataChannelLock_);
-    std::shared_ptr<InputDataChannelProxy> channelProxy = std::make_shared<InputDataChannelProxy>(object);
-    if (channelProxy == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::SetInputDataChannel inputDataChannel is nullptr");
-        return;
-    }
-    dataChannel_ = channelProxy;
+    dataChannel_ = iface_cast<IInputDataChannel>(object);
 }
 
-std::shared_ptr<InputDataChannelProxy> InputMethodAbility::GetInputDataChannel()
+sptr<IInputDataChannel> InputMethodAbility::GetInputDataChannel()
 {
     std::lock_guard<std::mutex> lock(dataChannelLock_);
     return dataChannel_;

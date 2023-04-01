@@ -28,13 +28,10 @@ InputMethodSystemAbilityProxy::InputMethodSystemAbilityProxy(const sptr<IRemoteO
 {
 }
 
-int32_t InputMethodSystemAbilityProxy::PrepareInput(
-    int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel, InputAttribute &attribute)
+int32_t InputMethodSystemAbilityProxy::PrepareInput(InputClientInfo &inputClientInfo)
 {
-    return SendRequest(PREPARE_INPUT, [displayId, client, channel, &attribute](MessageParcel &data) {
-        return data.WriteInt32(displayId) && data.WriteRemoteObject(client->AsObject()) &&
-               data.WriteRemoteObject(channel->AsObject()) && InputAttribute::Marshalling(attribute, data);
-    });
+    return SendRequest(
+        PREPARE_INPUT, [&inputClientInfo](MessageParcel &data) { return ITypesUtil::Marshal(data, inputClientInfo); });
 }
 
 int32_t InputMethodSystemAbilityProxy::StartInput(sptr<IInputClient> client, bool isShowKeyboard)

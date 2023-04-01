@@ -21,6 +21,8 @@
 #include <memory>
 
 #include "global.h"
+#include "input_attribute.h"
+#include "input_client_info.h"
 #include "input_method_property.h"
 #include "message_parcel.h"
 
@@ -60,6 +62,12 @@ public:
 
     static bool Marshalling(const SubProperty &input, MessageParcel &data);
     static bool Unmarshalling(SubProperty &output, MessageParcel &data);
+
+    static bool Marshalling(const InputAttribute &input, MessageParcel &data);
+    static bool Unmarshalling(InputAttribute &output, MessageParcel &data);
+
+    static bool Marshalling(const InputClientInfo &input, MessageParcel &data);
+    static bool Unmarshalling(InputClientInfo &output, MessageParcel &data);
 
     template<class T>
     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);

@@ -29,35 +29,24 @@ InputClientProxy::InputClientProxy(const sptr<IRemoteObject> &object) : IRemoteP
 
 int32_t InputClientProxy::OnInputReady(const sptr<IInputMethodAgent> &agent)
 {
-    IMSA_HILOGI("InputClientProxy::onInputReady");
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        return ERROR_EX_PARCELABLE;
-    }
+    return SendRequest(
+        ON_INPUT_READY, [agent](MessageParcel &data) { return ITypesUtil::Marshal(data, agent->AsObject()); });
+}
 
-    data.WriteRemoteObject(agent->AsObject());
-
-    auto ret = Remote()->SendRequest(ON_INPUT_READY, data, reply, option);
-    if (ret != NO_ERROR) {
-        IMSA_HILOGI("InputClientProxy::onInputReady SendRequest failed");
-        return ret;
-    }
-
-    return NO_ERROR;
+int32_t InputClientProxy::OnInputStop()
+{
+    return SendRequest(ON_INPUT_STOP);
 }
 
 int32_t InputClientProxy::OnSwitchInput(const Property &property, const SubProperty &subProperty)
 {
-    IMSA_HILOGI("InputClientProxy::OnSwitchInput");
     return SendRequest(ON_SWITCH_INPUT,
         [&property, &subProperty](MessageParcel &data) { return ITypesUtil::Marshal(data, property, subProperty); });
 }
 
 int32_t InputClientProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGI("InputClientProxy::%{public}s in", __func__);
+    IMSA_HILOGI("InputClientProxy run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_SYNC };

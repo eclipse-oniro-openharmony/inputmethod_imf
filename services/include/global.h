@@ -87,6 +87,10 @@ enum {
     ERROR_REMOTE_CLIENT_DIED = 13,
     ERROR_IME_START_FAILED = 14,          // failed to start IME service
     ERROR_KBD_SHOW_FAILED = 15,           // failed to show keyboard
+    ERROR_CLIENT_NOT_BOUND = 16,
+    ERROR_CLIENT_NOT_EDITABLE = 17,
+    ERROR_CLIENT_NOT_FOCUSED = 18,
+    ERROR_CLIENT_ADD_FAILED = 19,
 };
 }; // namespace ErrorCode
 

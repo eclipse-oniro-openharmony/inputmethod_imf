@@ -43,8 +43,7 @@ public:
     ~InputMethodSystemAbilityProxy() = default;
     DISALLOW_COPY_AND_MOVE(InputMethodSystemAbilityProxy);
 
-    int32_t PrepareInput(int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel,
-        InputAttribute &attribute) override;
+    int32_t PrepareInput(InputClientInfo &inputClientInfo) override;
     int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) override;
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;

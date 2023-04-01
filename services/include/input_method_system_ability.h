@@ -46,8 +46,7 @@ public:
     InputMethodSystemAbility();
     ~InputMethodSystemAbility();
 
-    int32_t PrepareInput(int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel,
-        InputAttribute &attribute) override;
+    int32_t PrepareInput(InputClientInfo &clientInfo) override;
     int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) override;
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
@@ -116,6 +115,7 @@ private:
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
 
     int32_t InitKeyEventMonitor();
+    bool InitFocusChangeMonitor();
     using CompareHandler = std::function<bool(const SubProperty &)>;
     SubProperty FindSubPropertyByCompare(const std::string &bundleName, CompareHandler compare);
     SubProperty GetExtends(const std::vector<Metadata> &metaData);

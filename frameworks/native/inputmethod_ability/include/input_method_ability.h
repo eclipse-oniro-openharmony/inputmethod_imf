@@ -81,7 +81,7 @@ private:
     void SetCoreAndAgent();
 
     std::mutex dataChannelLock_;
-    std::shared_ptr<InputDataChannelProxy> dataChannel_ = nullptr;
+    sptr<IInputDataChannel> dataChannel_ = nullptr;
     std::shared_ptr<InputMethodEngineListener> imeListener_;
     std::shared_ptr<KeyboardListener> kdListener_;
     static std::mutex instanceLock_;
@@ -97,7 +97,7 @@ private:
     sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
 
     void SetInputDataChannel(sptr<IRemoteObject> &object);
-    std::shared_ptr<InputDataChannelProxy> GetInputDataChannel();
+    sptr<IInputDataChannel> GetInputDataChannel();
     void SetInputControlChannel(sptr<IRemoteObject> &object);
     std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
 
@@ -109,6 +109,7 @@ private:
     void OnHideKeyboard(Message *msg);
     void OnInitInputControlChannel(Message *msg);
     void OnSetSubtype(Message *msg);
+    void OnClearDataChannel(Message *msg);
 
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);

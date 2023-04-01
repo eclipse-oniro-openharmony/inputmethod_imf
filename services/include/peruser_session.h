@@ -31,7 +31,9 @@
 #include "i_input_method_agent.h"
 #include "i_input_method_core.h"
 #include "input_attribute.h"
+#include "input_client_info.h"
 #include "input_control_channel_stub.h"
+#include "input_death_recipient.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
 #include "inputmethod_sysevent.h"
@@ -41,28 +43,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-class RemoteObjectDeathRecipient : public IRemoteObject::DeathRecipient {
-public:
-    using RemoteDiedHandler = std::function<void(const wptr<IRemoteObject> &)>;
-    void SetDeathRecipient(RemoteDiedHandler handler);
-    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
-
-private:
-    RemoteDiedHandler handler_;
-};
-
-struct ClientInfo {
-    pid_t pid;                         // the process id of the process in which the input client is running
-    pid_t uid;                         // the uid of the process in which the input client is running
-    int32_t userId;                      // the user if of the user under which the input client is running
-    int32_t displayId;                   // the display id on which the input client is showing
-    sptr<IInputClient> client;       // the remote object handler for the service to callback to the input client
-    sptr<IInputDataChannel> channel; // the remote object handler for IMSA callback to input client
-    sptr<RemoteObjectDeathRecipient> deathRecipient;
-    InputAttribute attribute; // the input attribute of the input client
-    bool isShowKeyBoard{ false };
-};
-
 struct ResetManager {
     uint32_t num{ 0 };
     time_t last{};
@@ -85,10 +65,10 @@ public:
     explicit PerUserSession(int userId);
     ~PerUserSession();
 
-    int32_t OnPrepareInput(const ClientInfo &clientInfo);
+    int32_t OnPrepareInput(const InputClientInfo &clientInfo);
     int32_t OnStartInput(sptr<IInputClient> client, bool isShowKeyboard);
     int32_t OnStopInput(sptr<IInputClient> client);
-    int32_t OnReleaseInput(sptr<IInputClient> client);
+    int32_t OnReleaseInput(const sptr<IInputClient> &client);
     int32_t OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
     int OnHideKeyboardSelf();
     int OnShowKeyboardSelf();
@@ -98,10 +78,11 @@ public:
     void SetCurrentSubProperty(const SubProperty &subProperty);
     SubProperty GetCurrentSubProperty();
     void UpdateCurrentUserId(int32_t userId);
+    int32_t OnUnfocused(int32_t pid, int32_t uid);
 
 private:
     int userId_;                                   // the id of the user to whom the object is linking
-    std::map<sptr<IRemoteObject>, std::shared_ptr<ClientInfo>> mapClients;
+    std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> mapClients_;
     static const int MAX_RESTART_NUM = 3;
     static const int IME_RESET_TIME_OUT = 300;
     static const int MAX_RESET_WAIT_TIME = 1600000;
@@ -111,9 +92,9 @@ private:
 
     sptr<IInputMethodAgent> imsAgent;
     std::mutex clientLock_;
-    sptr<IInputClient> currentClient;              // the current input client
+    sptr<IInputClient> currentClient_;              // the current input client
 
-    sptr<RemoteObjectDeathRecipient> imsDeathRecipient = nullptr;
+    sptr<InputDeathRecipient> imsDeathRecipient_ = nullptr;
     std::recursive_mutex mtx;             // mutex to lock the operations among multi work threads
     std::mutex resetLock;
     ResetManager manager[MAX_IME];
@@ -122,18 +103,19 @@ private:
     PerUserSession &operator=(const PerUserSession &);
     PerUserSession(const PerUserSession &&);
     PerUserSession &operator=(const PerUserSession &&);
-    std::shared_ptr<ClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
+    std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
 
     void OnClientDied(sptr<IInputClient> remote);
     void OnImsDied(sptr<IInputMethodCore> remote);
 
-    int AddClient(sptr<IRemoteObject> inputClient, const ClientInfo &clientInfo);
+    int AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo);
     void UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard);
-    void RemoveClient(sptr<IRemoteObject> inputClient);
-    int ShowKeyboard(const sptr<IInputClient> &inputClient, bool isShowKeyboard);
-    int HideKeyboard(const sptr<IInputClient> &inputClient);
+    int32_t RemoveClient(const sptr<IRemoteObject> &client, bool isClientDied);
+    int32_t ShowKeyboard(const sptr<IInputDataChannel>& channel, const sptr<IInputClient> &inputClient, bool isShowKeyboard);
+    int32_t HideKeyboard(const sptr<IInputClient> &inputClient);
+    int32_t ClearDataChannel(const sptr<IInputDataChannel> &channel);
     int GetImeIndex(const sptr<IInputClient> &inputClient);
-    void SendAgentToSingleClient(const ClientInfo &clientInfo);
+    int32_t SendAgentToSingleClient(const InputClientInfo &clientInfo);
     void InitInputControlChannel();
     void SendAgentToAllClients();
     bool IsRestartIme(uint32_t index);

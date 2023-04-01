@@ -17,6 +17,7 @@
 #define SERVICES_INCLUDE_I_INPUT_METHOD_SYSTEM_ABILITY_H
 
 #include <errors.h>
+
 #include <memory>
 #include <vector>
 
@@ -25,6 +26,7 @@
 #include "i_input_data_channel.h"
 #include "i_input_method_core.h"
 #include "input_attribute.h"
+#include "input_client_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
 #include "iremote_broker.h"
@@ -59,8 +61,7 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
 
-    virtual int32_t PrepareInput(
-        int32_t displayId, sptr<IInputClient> client, sptr<IInputDataChannel> channel, InputAttribute &attribute) = 0;
+    virtual int32_t PrepareInput(InputClientInfo &clientInfo) = 0;
     virtual int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) = 0;
     virtual int32_t ShowCurrentInput() = 0;
     virtual int32_t HideCurrentInput() = 0;

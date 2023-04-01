@@ -34,7 +34,6 @@ InputMethodCoreProxy::~InputMethodCoreProxy() = default;
 int32_t InputMethodCoreProxy::InitInputControlChannel(
     sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId)
 {
-    IMSA_HILOGD("InputMethodCoreProxy.");
     return SendRequest(INIT_INPUT_CONTROL_CHANNEL, [&inputControlChannel, &imeId](MessageParcel &data) {
         return ITypesUtil::Marshal(data, inputControlChannel->AsObject(), imeId);
     });
@@ -43,7 +42,6 @@ int32_t InputMethodCoreProxy::InitInputControlChannel(
 int32_t InputMethodCoreProxy::ShowKeyboard(
     const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty)
 {
-    IMSA_HILOGD("InputMethodCoreProxy::showKeyboard");
     return SendRequest(SHOW_KEYBOARD, [&inputDataChannel, &isShowKeyboard, &subProperty](MessageParcel &data) {
         return ITypesUtil::Marshal(data, inputDataChannel->AsObject(), isShowKeyboard, subProperty);
     });
@@ -51,7 +49,6 @@ int32_t InputMethodCoreProxy::ShowKeyboard(
 
 void InputMethodCoreProxy::StopInputService(std::string imeId)
 {
-    IMSA_HILOGD("InputMethodCoreProxy::StopInputService");
     SendRequest(STOP_INPUT_SERVICE, [&imeId](MessageParcel &data) {
         return ITypesUtil::Marshal(data, Str8ToStr16(imeId));
     });
@@ -59,7 +56,6 @@ void InputMethodCoreProxy::StopInputService(std::string imeId)
 
 bool InputMethodCoreProxy::HideKeyboard(int32_t flags)
 {
-    IMSA_HILOGD("InputMethodCoreProxy::hideKeyboard");
     auto status = SendRequest(HIDE_KEYBOARD, [flags](MessageParcel &data) {
         return ITypesUtil::Marshal(data, flags);
     });
@@ -68,13 +64,18 @@ bool InputMethodCoreProxy::HideKeyboard(int32_t flags)
 
 int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)
 {
-    IMSA_HILOGD("InputMethodCoreProxy::SetSubtype");
     return SendRequest(SET_SUBTYPE, [&property](MessageParcel &data) { return ITypesUtil::Marshal(data, property); });
+}
+
+int32_t InputMethodCoreProxy::ClearDataChannel(const sptr<IInputDataChannel> &channel)
+{
+    return SendRequest(CLEAR_DATA_CHANNEL,
+        [&channel](MessageParcel &data) { return ITypesUtil::Marshal(data, channel->AsObject()); });
 }
 
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGD("InputMethodCoreProxy::%{public}s in", __func__);
+    IMSA_HILOGD("InputMethodCoreProxy, run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_SYNC };

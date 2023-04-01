@@ -81,6 +81,10 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
             SetSubtypeOnRemote(data, reply);
             break;
         }
+        case CLEAR_DATA_CHANNEL: {
+            ClearDataChannelOnRemote(data, reply);
+            break;
+        }
         default: {
             return IRemoteStub::OnRemoteRequest(code, data, reply, option);
         }
@@ -160,6 +164,15 @@ void InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel 
     SubProperty property;
     int32_t ret = SendMessage(MessageID::MSG_ID_SET_SUBTYPE, [&data, &property](MessageParcel &parcel) {
         return ITypesUtil::Unmarshal(data, property) && ITypesUtil::Marshal(parcel, property);
+    });
+    reply.WriteInt32(ret);
+}
+
+void InputMethodCoreStub::ClearDataChannelOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> channel;
+    int32_t ret = SendMessage(MessageID::MSG_ID_CLEAR_DATA_CHANNEL, [&data, &channel](MessageParcel &parcel) {
+        return ITypesUtil::Unmarshal(data, channel) && ITypesUtil::Marshal(parcel, channel);
     });
     reply.WriteInt32(ret);
 }
