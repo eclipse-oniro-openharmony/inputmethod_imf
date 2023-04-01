@@ -143,7 +143,7 @@ int32_t PerUserSession::ShowKeyboard(
     auto subProperty = GetCurrentSubProperty();
     int32_t ret = core->ShowKeyboard(channel, isShowKeyboard, subProperty);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to show keybaord, ret: %{public}d", ret);
+        IMSA_HILOGE("failed to show keyboard, ret: %{public}d", ret);
         return ErrorCode::ERROR_KBD_SHOW_FAILED;
     }
     UpdateClient(inputClient->AsObject(), isShowKeyboard);
@@ -266,7 +266,7 @@ int PerUserSession::OnShowKeyboardSelf()
         IMSA_HILOGE("current client is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
-    auto clientInfo = GetClientInfo(client);
+    auto clientInfo = GetClientInfo(client->AsObject());
     if (clientInfo == nullptr) {
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
@@ -398,7 +398,7 @@ int32_t PerUserSession::OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInp
         auto clientInfo = GetClientInfo(client->AsObject());
         if (clientInfo != nullptr) {
             IMSA_HILOGI("PerUserSession::Bind IMC to IMA");
-            OnStartInput(clientInfo->client, clientInfo->isShowKeyBoard);
+            OnStartInput(clientInfo->client, clientInfo->isShowKeyboard);
         }
     }
     return ErrorCode::NO_ERROR;

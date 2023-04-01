@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -103,9 +103,9 @@ bool InputMethodController::Initialize()
     }
     channel->SetHandler(msgHandler_);
     clientInfo_ = {
+        .attribute.inputPattern = InputAttribute::PATTERN_TEXT,
         .client = client,
-        .channel = channel,
-        .attribute.inputPattern = InputAttribute::PATTERN_TEXT
+        .channel = channel
     };
     workThreadHandler = std::thread([this] { WorkThread(); });
     return true;
@@ -194,7 +194,7 @@ void InputMethodController::WorkThread()
                 isEditable_.store(false);
                 textListener_ = nullptr;
                 std::lock_guard<std::mutex> lock(agentLock_);
-                agentLock_ = nullptr;
+                agent_ = nullptr;
                 break;
             }
             case MSG_ID_SEND_KEYBOARD_STATUS: {

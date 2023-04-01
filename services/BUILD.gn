@@ -20,6 +20,7 @@ config("inputmethod_services_native_config") {
     "include",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+    "${inputmethod_path}/services/adapter/focus_monitor/include",
     "${inputmethod_path}/services/adapter/keyboard/include",
     "${inputmethod_path}/services/dfx/include",
   ]
@@ -30,6 +31,9 @@ config("inputmethod_services_native_config") {
 ohos_shared_library("inputmethod_service") {
   sources = [
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_proxy.cpp",
+    "${inputmethod_path}/services/adapter/focus_monitor/src/focus_change_listener.cpp",
+    "${inputmethod_path}/services/adapter/focus_monitor/src/focus_monitor_manager.cpp",
+    "src/bundle_checker.cpp",
     "src/global.cpp",
     "src/im_common_event_manager.cpp",
     "src/ime_cfg_manager.cpp",
