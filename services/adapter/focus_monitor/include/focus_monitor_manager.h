@@ -20,11 +20,14 @@
 
 namespace OHOS {
 namespace MiscServices {
-using FocusHandle = std::function<int32_t(int32_t, int32_t)>;
+using FocusHandle = std::function<void(int32_t, int32_t)>;
 class FocusMonitorManager {
 public:
     static FocusMonitorManager &GetInstance();
     void RegisterFocusChangedListener(const FocusHandle &handle);
+
+private:
+    FocusMonitorManager() = default;
 };
 } // namespace MiscServices
 } // namespace OHOS

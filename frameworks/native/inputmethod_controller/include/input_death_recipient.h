@@ -23,7 +23,7 @@ namespace MiscServices {
 class InputDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
     InputDeathRecipient(){};
-    ~InputDeathRecipient(){};
+    ~InputDeathRecipient() = default;
     using RemoteDiedHandler = std::function<void(const wptr<IRemoteObject> &)>;
     void SetDeathRecipient(RemoteDiedHandler handler);
     void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
