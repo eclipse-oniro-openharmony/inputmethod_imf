@@ -28,16 +28,15 @@ FocusMonitorManager &FocusMonitorManager::GetInstance()
     return focusMonitorManager;
 }
 
-int32_t FocusMonitorManager::RegisterFocusChangedListener(const FocusHandle &handle)
+void FocusMonitorManager::RegisterFocusChangedListener(const FocusHandle &handle)
 {
     sptr<IFocusChangedListener> listener = new (std::nothrow) FocusChangedListener(handle);
     if (listener == nullptr) {
         IMSA_HILOGE("failed to create listener");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return;
     }
-    int32_t ret = WindowManager::GetInstance().RegisterFocusChangedListener(listener);
+    WMError ret = WindowManager::GetInstance().RegisterFocusChangedListener(listener);
     IMSA_HILOGI("register listener ret: %{public}d", ret);
-    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

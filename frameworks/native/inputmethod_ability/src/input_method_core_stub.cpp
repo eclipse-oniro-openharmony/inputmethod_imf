@@ -188,6 +188,11 @@ int32_t InputMethodCoreStub::SetSubtype(const SubProperty &property)
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodCoreStub::ClearDataChannel(const sptr<IInputDataChannel> &channel)
+{
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodCoreStub::SendMessage(int code, ParcelHandler input)
 {
     IMSA_HILOGD("InputMethodCoreStub::SendMessage");

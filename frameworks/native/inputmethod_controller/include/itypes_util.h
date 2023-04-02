@@ -21,9 +21,7 @@
 #include <memory>
 
 #include "global.h"
-#include "input_attribute.h"
 #include "input_client_info.h"
-#include "input_method_property.h"
 #include "message_parcel.h"
 
 namespace OHOS {

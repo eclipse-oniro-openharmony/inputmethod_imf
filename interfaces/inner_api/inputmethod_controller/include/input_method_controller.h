@@ -28,7 +28,6 @@
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
 #include "input_client_info.h"
-#include "input_death_recipient.h"
 #include "input_method_property.h"
 #include "input_method_setting_listener.h"
 #include "input_method_status.h"

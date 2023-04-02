@@ -24,7 +24,7 @@ using FocusHandle = std::function<int32_t(int32_t, int32_t)>;
 class FocusMonitorManager {
 public:
     static FocusMonitorManager &GetInstance();
-    int32_t RegisterFocusChangedListener(const FocusHandle &handle);
+    void RegisterFocusChangedListener(const FocusHandle &handle);
 };
 } // namespace MiscServices
 } // namespace OHOS
