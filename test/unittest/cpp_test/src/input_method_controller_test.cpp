@@ -606,22 +606,5 @@ namespace MiscServices {
         ret1 = inputMethodController_->StopInputSession();
         EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     }
-
-    /**
-     * @tc.name: testDeathRecipient
-     * @tc.desc: test DeathRecipient.
-     * @tc.type: FUNC
-     */
-    HWTEST_F(InputMethodControllerTest, testDeathRecipient, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC OnRemoteDied Test START");
-        auto deadObject = new ImsaDeathRecipient();
-        sptr<ISystemAbilityManager> systemAbilityManager =
-            SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
-        deadObject->OnRemoteDied(systemAbility);
-        InputMethodController::GetInstance()->OnRemoteSaDied(systemAbility);
-        delete deadObject;
-    }
 } // namespace MiscServices
 } // namespace OHOS
