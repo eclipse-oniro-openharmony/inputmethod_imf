@@ -37,6 +37,7 @@ bool BundleChecker::IsFocused(uint32_t tokenID)
         IMSA_HILOGE("not focused, current: %{public}s, topAbility: %{public}s", bundleName.c_str(), topAbility.c_str());
         return false;
     }
+    IMSA_HILOGD("check focus successfully");
     return true;
 }
 

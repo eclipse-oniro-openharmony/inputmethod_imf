@@ -112,18 +112,18 @@ void InputMethodSwitchTest::GrantNativePermission()
 }
 
 /**
-* @tc.name: testIMCSetImeListener
-* @tc.desc: IMC testSetImeListener.
+* @tc.name: testIMCSetSettingListener
+* @tc.desc: IMC testSetSettingListener.
 * @tc.type: FUNC
 * @tc.require: issuesI640YZ
 */
-HWTEST_F(InputMethodSwitchTest, testIMCSetImeListener, TestSize.Level0)
+HWTEST_F(InputMethodSwitchTest, testIMCSetSettingListener, TestSize.Level0)
 {
-    IMSA_HILOGI("IMC SetImeListener Test START");
+    IMSA_HILOGI("IMC SetSettingListener Test START");
     auto imc = InputMethodController::GetInstance();
     ASSERT_TRUE(imc != nullptr);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    imc->SetImeListener(listener);
+    imc->SetSettingListener(listener);
 }
 
 /**

@@ -64,7 +64,7 @@ void InputClientStub::OnInputReadyOnRemote(MessageParcel &data, MessageParcel &r
 {
     sptr<IRemoteObject> agentObject;
     int32_t ret = SendMessage(MessageID::MSG_ID_ON_INPUT_READY, [&data, &agentObject](MessageParcel &parcel) {
-        return ITypesUtil::Unmarshal(data, agentObject) && ITypesUtil::Marshal(data, agentObject);
+        return ITypesUtil::Unmarshal(data, agentObject) && ITypesUtil::Marshal(parcel, agentObject);
     });
     if (!ITypesUtil::Marshal(reply, ret)) {
         IMSA_HILOGE("failed to write reply");
