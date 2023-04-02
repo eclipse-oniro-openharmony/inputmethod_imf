@@ -73,6 +73,7 @@ public:
      * default state is 'true', default attribute is 'InputAttribute::PATTERN_TEXT'.
      *
      * @param listener Indicates the listener in order to manipulate text.
+     * @return Returns 0 for success, others for failure.
      * @since 6
      */
     IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener);
@@ -85,6 +86,7 @@ public:
      *
      * @param listener          Indicates the listener in order to manipulate text.
      * @param isShowKeyboard    Indicates the state, if you want to show soft keyboard, please pass in true.
+     * @return Returns 0 for success, others for failure.
      * @since 8
      */
     IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard);
@@ -98,6 +100,7 @@ public:
      * @param listener          Indicates the listener in order to manipulate text.
      * @param isShowKeyboard    Indicates the state, if you want to show soft keyboard, please pass in true.
      * @param attribute         Indicates the attribute, such as input pattern, enter eyType, input option.
+     * @return Returns 0 for success, others for failure.
      * @since 8
      */
     IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const InputAttribute &attribute);
@@ -132,6 +135,7 @@ public:
      *
      * This function is used to show soft keyboard of current client.
      *
+     * @return Returns 0 for success, others for failure.
      * @since 6
      */
     IMF_API int32_t ShowTextInput();

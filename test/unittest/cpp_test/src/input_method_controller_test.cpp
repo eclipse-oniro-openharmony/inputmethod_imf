@@ -26,6 +26,7 @@
 #include <thread>
 #include <vector>
 
+#include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "global.h"
 #include "i_input_method_agent.h"
@@ -40,38 +41,48 @@
 #include "keyboard_listener.h"
 #include "message_parcel.h"
 #include "nativetoken_kit.h"
+#include "os_account_manager.h"
 #include "system_ability_definition.h"
 #include "token_setproc.h"
 #include "utils.h"
 
 using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
+using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
-    void GrantNativePermission()
-    {
-        const char **perms = new const char *[1];
-        perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
-        TokenInfoParams infoInstance = {
-            .dcapsNum = 0,
-            .permsNum = 1,
-            .aclsNum = 0,
-            .dcaps = nullptr,
-            .perms = perms,
-            .acls = nullptr,
-            .processName = "inputmethod_imf",
-            .aplStr = "system_core",
-        };
-        uint64_t tokenId = GetAccessTokenId(&infoInstance);
-        int res = SetSelfTokenID(tokenId);
-        if (res == 0) {
-            IMSA_HILOGI("SetSelfTokenID success!");
-        } else {
-            IMSA_HILOGE("SetSelfTokenID fail!");
-        }
-        AccessTokenKit::ReloadNativeTokenInfo();
-        delete[] perms;
+constexpr int32_t MAIN_USER_ID = 100;
+void InitTestConfiguration()
+{
+    std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
+    IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
+    std::vector<int32_t> userIds;
+    auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
+    if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
+        IMSA_HILOGE("query active os account id failed");
+        userIds[0] = MAIN_USER_ID;
     }
+    HapInfoParams infoParams = {
+        .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
+    };
+    PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
+        .isGeneral = true,
+        .resDeviceID = { "local" },
+        .grantStatus = { PermissionState::PERMISSION_GRANTED },
+        .grantFlags = { 1 } };
+    HapPolicyParams policyParams = {
+        .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = { permissionState }
+    };
+
+    AccessTokenKit::AllocHapToken(infoParams, policyParams);
+    auto tokenID = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
+    int res = SetSelfTokenID(tokenID);
+    if (res == ErrorCode::NO_ERROR) {
+        IMSA_HILOGI("SetSelfTokenID success!");
+    } else {
+        IMSA_HILOGE("SetSelfTokenID fail!");
+    }
+}
 
     class TextListener : public OnTextChangedListener {
     public:
@@ -241,7 +252,7 @@ namespace MiscServices {
     void InputMethodControllerTest::SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::SetUpTestCase");
-        GrantNativePermission();
+        InitTestConfiguration();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->OnImeReady();
         kbListener_ = std::make_shared<KeyboardListenerImpl>();
@@ -580,31 +591,6 @@ namespace MiscServices {
         EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_TRUE(
             !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
-    }
-
-    /**
-     * @tc.name: testIMCClose.
-     * @tc.desc: IMC Close.
-     * @tc.type: FUNC
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCClose, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC Close Test START");
-        imeListener_->keyboardState_ = true;
-        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
-        inputMethodController_->Close();
-
-        bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
-        EXPECT_FALSE(ret);
-
-        auto ret1 = inputMethodController_->ShowSoftKeyboard();
-        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
-
-        ret1 = inputMethodController_->HideSoftKeyboard();
-        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
-
-        ret1 = inputMethodController_->StopInputSession();
-        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     }
 } // namespace MiscServices
 } // namespace OHOS

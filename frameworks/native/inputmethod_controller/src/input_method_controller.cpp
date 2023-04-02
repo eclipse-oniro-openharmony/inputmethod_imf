@@ -766,7 +766,7 @@ int32_t InputMethodController::ShowSoftKeyboard()
     IMSA_HILOGI("InputMethodController ShowSoftKeyboard");
     if (!isEditable_.load()) {
         IMSA_HILOGE("not in editable state");
-        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
@@ -781,7 +781,7 @@ int32_t InputMethodController::HideSoftKeyboard()
     IMSA_HILOGI("InputMethodController HideSoftKeyboard");
     if (!isEditable_.load()) {
         IMSA_HILOGE("not in editable state");
-        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {

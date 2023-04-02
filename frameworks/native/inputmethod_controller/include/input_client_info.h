@@ -33,7 +33,7 @@ struct InputClientInfo {
     bool isToNotify{ false };                 // whether to notify client event
     InputAttribute attribute;                 // the input client attribute
     sptr<IInputClient> client;                // the remote object handler for service to callback input client
-    sptr<IInputDataChannel> channel;          // the remote object handler for ime callback input client
+    sptr<IInputDataChannel> channel;          // the remote object handler for ime to callback input client
     sptr<InputDeathRecipient> deathRecipient; // death recipient of client
 };
 } // namespace MiscServices
