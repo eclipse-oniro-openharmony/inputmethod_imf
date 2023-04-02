@@ -191,6 +191,7 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_ON_INPUT_STOP: {
+                IMSA_HILOGI("on input stop");
                 isEditable_.store(false);
                 textListener_ = nullptr;
                 std::lock_guard<std::mutex> lock(agentLock_);
@@ -760,13 +761,6 @@ void InputMethodController::SetCallingWindow(uint32_t windowId)
     agent_->SetCallingWindow(windowId);
 }
 
-void InputMethodController::SetInputMethodAgent(sptr<IRemoteObject> &object)
-{
-    IMSA_HILOGI("run in SetInputMethodAgent");
-    std::lock_guard<std::mutex> lock(agentLock_);
-    agent_ = iface_cast<IInputMethodAgent>(object);
-}
-
 int32_t InputMethodController::ShowSoftKeyboard()
 {
     IMSA_HILOGI("InputMethodController ShowSoftKeyboard");
@@ -855,15 +849,12 @@ int32_t InputMethodController::SwitchInputMethod(const std::string &name, const 
 
 void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
 {
+    IMSA_HILOGI("InputMethodController run in");
     std::lock_guard<std::mutex> lk(agentLock_);
     if (agentObject == nullptr) {
         return;
     }
-    if (agent_ == nullptr) {
-        SetInputMethodAgent(agentObject);
-        return;
-    }
-    if (agent_->AsObject().GetRefPtr() == agentObject.GetRefPtr()) {
+    if (agent_ != nullptr && agent_->AsObject().GetRefPtr() == agentObject.GetRefPtr()) {
         return;
     }
     agent_ = iface_cast<IInputMethodAgent>(agentObject);

@@ -74,6 +74,7 @@ int PerUserSession::AddClient(sptr<IRemoteObject> inputClient, const InputClient
 
     std::lock_guard<std::recursive_mutex> lock(mtx);
     mapClients_.insert({ inputClient, info });
+    IMSA_HILOGD("add client end");
     return ErrorCode::NO_ERROR;
 }
 
@@ -94,6 +95,7 @@ int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isC
     IMSA_HILOGD("start");
     auto clientInfo = GetClientInfo(client);
     if (clientInfo == nullptr) {
+        IMSA_HILOGE("client not found");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     // if current client is removed, hide keyboard and clear channel
@@ -105,9 +107,9 @@ int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isC
         ret = ClearDataChannel(clientInfo->channel);
         IMSA_HILOGI("clear data channel ret: %{public}d", ret);
     }
-
     // if client still need to be notified event, do not remove, update info
     if (clientInfo->isToNotify && !isClientDied) {
+        IMSA_HILOGD("need to notify, do not remove");
         clientInfo->isShowKeyboard = false;
         clientInfo->isValid = false;
         return ErrorCode::NO_ERROR;
@@ -115,6 +117,7 @@ int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isC
     client->RemoveDeathRecipient(clientInfo->deathRecipient);
     std::lock_guard<std::recursive_mutex> lock(mtx);
     mapClients_.erase(client);
+    IMSA_HILOGD("remove successfully");
     return ErrorCode::NO_ERROR;
 }
 
@@ -268,6 +271,7 @@ int PerUserSession::OnShowKeyboardSelf()
     }
     auto clientInfo = GetClientInfo(client->AsObject());
     if (clientInfo == nullptr) {
+        IMSA_HILOGE("client info not found");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     return ShowKeyboard(clientInfo->channel, client, true);
@@ -311,7 +315,7 @@ std::shared_ptr<InputClientInfo> PerUserSession::GetClientInfo(sptr<IRemoteObjec
     std::lock_guard<std::recursive_mutex> lock(mtx);
     auto it = mapClients_.find(inputClient);
     if (it == mapClients_.end()) {
-        IMSA_HILOGE("client not found");
+        IMSA_HILOGD("client not found");
         return nullptr;
     }
     return it->second;
@@ -366,6 +370,7 @@ int32_t PerUserSession::OnStartInput(sptr<IInputClient> client, bool isShowKeybo
     }
     auto clientInfo = GetClientInfo(client->AsObject());
     if (clientInfo == nullptr) {
+        IMSA_HILOGE("client not found");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     // bind imc to ima
@@ -559,24 +564,24 @@ void PerUserSession::SetImsCore(int32_t index, sptr<IInputMethodCore> core)
     imsCore[index] = core;
 }
 
-int32_t PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
+void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
 {
     auto client = GetCurrentClient();
     if (client == nullptr) {
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        return;
     }
     auto clientInfo = GetClientInfo(currentClient_->AsObject());
     if (clientInfo == nullptr) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOUND;
+        return;
     }
     if (clientInfo->pid != pid || clientInfo->uid != uid) {
-        IMSA_HILOGD("not current client, no need to handle");
-        return ErrorCode::NO_ERROR;
+        return;
     }
-    IMSA_HILOGD("current client is unfocused, start unbinding");
+    IMSA_HILOGI("current client is unfocused, start unbinding");
     int32_t ret = client->OnInputStop();
     IMSA_HILOGI("OnInputStop ret: %{public}d", ret);
-    return OnReleaseInput(client);
+    ret = OnReleaseInput(client);
+    IMSA_HILOGI("release input ret: %{public}d", ret);
 }
 } // namespace MiscServices
 } // namespace OHOS

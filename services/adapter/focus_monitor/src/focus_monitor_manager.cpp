@@ -36,7 +36,7 @@ void FocusMonitorManager::RegisterFocusChangedListener(const FocusHandle &handle
         return;
     }
     WMError ret = WindowManager::GetInstance().RegisterFocusChangedListener(listener);
-    IMSA_HILOGI("register listener ret: %{public}d", ret);
+    IMSA_HILOGI("register focus changed listener ret: %{public}d", ret);
 }
 } // namespace MiscServices
 } // namespace OHOS

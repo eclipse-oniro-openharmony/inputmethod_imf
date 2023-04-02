@@ -404,7 +404,6 @@ private:
     int32_t StartInput(sptr<IInputClient> &client, bool isShowKeyboard);
     void StopInput(sptr<IInputClient> &client);
     void ReleaseInput(sptr<IInputClient> &client);
-    void SetInputMethodAgent(sptr<IRemoteObject> &object);
     void OnSwitchInput(const Property &property, const SubProperty &subProperty);
     void WorkThread();
     void QuitWorkThread();
