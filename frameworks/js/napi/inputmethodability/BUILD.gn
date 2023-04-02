@@ -18,6 +18,7 @@ config("inputmethodengine_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
+    "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
@@ -34,6 +35,7 @@ config("inputmethodengine_native_public_config") {
   visibility = []
   include_dirs = [
     "include",
+    "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/js/napi/inputmethodclient",
     "${inputmethod_path}/frameworks/js/napi/inputmethodability",
   ]
@@ -49,7 +51,9 @@ ohos_shared_library("inputmethodengine") {
     "js_input_method_engine_setting.cpp",
     "js_keyboard_controller_engine.cpp",
     "js_keyboard_delegate_setting.cpp",
+    "js_panel.cpp",
     "js_text_input_client_engine.cpp",
+    "panel_listener_impl.cpp",
   ]
 
   configs = [ ":inputmethodengine_native_config" ]
@@ -62,6 +66,7 @@ ohos_shared_library("inputmethodengine") {
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
     "ipc:ipc_core",
+    "napi:ace_napi",
   ]
 
   public_configs = [ ":inputmethodengine_native_public_config" ]

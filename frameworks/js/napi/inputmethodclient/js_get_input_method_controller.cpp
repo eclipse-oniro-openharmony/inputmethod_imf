@@ -26,7 +26,6 @@ namespace MiscServices {
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
-constexpr size_t ARGC_MAX = 6;
 const std::set<std::string> EVENT_TYPE{
     "selectByRange",
     "selectByMovement",
@@ -132,44 +131,6 @@ std::shared_ptr<JsGetInputMethodController> JsGetInputMethodController::GetInsta
     return controller_;
 }
 
-JsGetInputMethodController *JsGetInputMethodController::GetNative(napi_env env, napi_callback_info info)
-{
-    size_t argc = ARGC_MAX;
-    void *native = nullptr;
-    napi_value self = nullptr;
-    napi_value argv[ARGC_MAX] = { nullptr };
-    napi_status status = napi_invalid_arg;
-    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    if (self == nullptr && argc >= ARGC_MAX) {
-        IMSA_HILOGE("napi_get_cb_info failed");
-        return nullptr;
-    }
-
-    status = napi_unwrap(env, self, &native);
-    NAPI_ASSERT(env, (status == napi_ok && native != nullptr), "napi_unwrap failed!");
-    return reinterpret_cast<JsGetInputMethodController *>(native);
-}
-
-bool JsGetInputMethodController::Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId)
-{
-    if (copy == nullptr) {
-        return (value == nullptr);
-    }
-
-    if (threadId != std::this_thread::get_id()) {
-        IMSA_HILOGD("napi_value can not be compared");
-        return false;
-    }
-
-    napi_value copyValue = nullptr;
-    napi_get_reference_value(env, copy, &copyValue);
-
-    bool isEquals = false;
-    napi_strict_equals(env, value, copyValue, &isEquals);
-    IMSA_HILOGD("value compare result: %{public}d", isEquals);
-    return isEquals;
-}
-
 void JsGetInputMethodController::RegisterListener(
     napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
@@ -181,7 +142,7 @@ void JsGetInputMethodController::RegisterListener(
 
     auto callbacks = jsCbMap_[type];
     bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
-        return Equals(cb->env_, callback, cb->callback_, cb->threadId_);
+        return JsUtils::Equals(cb->env_, callback, cb->callback_, cb->threadId_);
     });
     if (ret) {
         IMSA_HILOGE("JsGetInputMethodController callback already registered!");
@@ -210,31 +171,13 @@ napi_value JsGetInputMethodController::Subscribe(napi_env env, napi_callback_inf
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    if (argc < ARGC_TWO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 2 parameters!", TypeCode::TYPE_NONE);
-        return nullptr;
-    }
+    PARAM_CHECK_RETURN(env, argc > 1, "should 2 parameters!", TYPE_NONE, nullptr);
 
-    napi_valuetype valuetype = napi_undefined;
-    napi_typeof(env, argv[ARGC_ZERO], &valuetype);
-    if (valuetype != napi_string) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "type", TypeCode::TYPE_STRING);
-        return nullptr;
-    }
+    std::string type = "";
+    napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], type);
+    PARAM_CHECK_RETURN(env, status == napi_ok, "callback", TYPE_FUNCTION, nullptr);
 
-    std::string type = JsInputMethod::GetStringProperty(env, argv[ARGC_ZERO]);
-    if (EVENT_TYPE.find(type) == EVENT_TYPE.end()) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "unkown type", TypeCode::TYPE_NONE);
-        return nullptr;
-    }
-
-    napi_typeof(env, argv[ARGC_ONE], &valuetype);
-    if (valuetype != napi_function) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "callback", TypeCode::TYPE_FUNCTION);
-        return nullptr;
-    }
-
-    auto engine = GetNative(env, info);
+    auto engine = reinterpret_cast<JsGetInputMethodController *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
     }
@@ -254,25 +197,12 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    if (argc < ARGC_ONE) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 parameters!", TypeCode::TYPE_NONE);
-        return nullptr;
-    }
+    PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameters!", TYPE_NONE, nullptr);
 
-    napi_valuetype valuetype = napi_undefined;
-    napi_typeof(env, argv[ARGC_ZERO], &valuetype);
-    if (valuetype != napi_string) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "type", TypeCode::TYPE_STRING);
-        return nullptr;
-    }
-
-    std::string type = JsInputMethod::GetStringProperty(env, argv[ARGC_ZERO]);
-    if (EVENT_TYPE.find(type) == EVENT_TYPE.end()) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "unkown type", TypeCode::TYPE_NONE);
-        return nullptr;
-    }
-
-    auto engine = GetNative(env, info);
+    std::string type = "";
+    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
+    PARAM_CHECK_RETURN(env, EVENT_TYPE.find(type) != EVENT_TYPE.end(), "unkown type", TYPE_NONE, nullptr);
+    auto engine = reinterpret_cast<JsGetInputMethodController *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
     }

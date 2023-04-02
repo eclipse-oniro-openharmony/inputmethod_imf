@@ -19,14 +19,20 @@ config("inputmethod_ability_native_config") {
   include_dirs = [
     "include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+    "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/services/include",
+    "${windowmanager_path}/interfaces/innerkits/dm",
+    "${windowmanager_path}/interfaces/innerkits/wm",
   ]
 }
 config("inputmethod_ability_native_public_config") {
   visibility = []
   include_dirs = [
     "include",
+    "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/services/include",
+    "${windowmanager_path}/interfaces/innerkits/dm",
+    "${windowmanager_path}/interfaces/innerkits/wm",
   ]
 }
 
@@ -44,16 +50,22 @@ ohos_shared_library("inputmethod_ability") {
     "src/input_method_agent_stub.cpp",
     "src/input_method_core_proxy.cpp",
     "src/input_method_core_stub.cpp",
+    "src/input_method_panel.cpp",
   ]
 
   configs = [ ":inputmethod_ability_native_config" ]
 
   external_deps = [
+    "ability_runtime:ability_context_native",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
+    "window_manager:libdm",
+    "window_manager:libwm",
   ]
+
+  deps = [ "${graphic_path}/render_service_client:librender_service_client" ]
 
   public_configs = [ ":inputmethod_ability_native_public_config" ]
 

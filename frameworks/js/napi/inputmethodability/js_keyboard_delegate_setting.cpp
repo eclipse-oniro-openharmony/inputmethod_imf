@@ -31,6 +31,7 @@ constexpr size_t ARGC_THREE = 3;
 constexpr size_t ARGC_FOUR = 4;
 constexpr int32_t V9_FLAG = 1;
 constexpr int32_t ORIGINAL_FLAG = 2;
+constexpr size_t ARGC_MAX = 6;
 const std::string JsKeyboardDelegateSetting::KDS_CLASS_NAME = "KeyboardDelegate";
 thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
 
@@ -140,14 +141,10 @@ napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (flag == V9_FLAG) {
-        size_t argc = AsyncCall::ARGC_MAX;
-        napi_value argv[AsyncCall::ARGC_MAX] = { nullptr };
+        size_t argc = ARGC_MAX;
+        napi_value argv[ARGC_MAX] = { nullptr };
 
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-        if (argc != ARGC_ZERO) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0", TypeCode::TYPE_NONE);
-        }
     }
 
     if (napi_get_reference_value(env, KDSRef_, &cons) != napi_ok) {
@@ -162,17 +159,6 @@ napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_
     return instance;
 }
 
-std::string JsKeyboardDelegateSetting::GetStringProperty(napi_env env, napi_value jsString)
-{
-    char propValue[MAX_VALUE_LEN] = { 0 };
-    size_t propLen;
-    if (napi_get_value_string_utf8(env, jsString, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
-        IMSA_HILOGE("GetStringProperty error");
-        return "";
-    }
-    return std::string(propValue);
-}
-
 void JsKeyboardDelegateSetting::RegisterListener(
     napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
@@ -183,7 +169,7 @@ void JsKeyboardDelegateSetting::RegisterListener(
     }
     auto callbacks = jsCbMap_[type];
     bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
-        return Equals(cb->env_, callback, cb->callback_, cb->threadId_);
+        return JsUtils::Equals(cb->env_, callback, cb->callback_, cb->threadId_);
     });
     if (ret) {
         IMSA_HILOGE("JsKeyboardDelegateSetting::RegisterListener callback already registered!");
@@ -210,7 +196,8 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
     }
 
     for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end(); item++) {
-        if ((callback != nullptr) && (Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
+        if ((callback != nullptr) &&
+            (JsUtils::Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
             jsCbMap_[type].erase(item);
             break;
         }
@@ -220,24 +207,6 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
     }
 }
 
-JsKeyboardDelegateSetting *JsKeyboardDelegateSetting::GetNative(napi_env env, napi_callback_info info)
-{
-    size_t argc = AsyncCall::ARGC_MAX;
-    void *native = nullptr;
-    napi_value self = nullptr;
-    napi_value argv[AsyncCall::ARGC_MAX] = { nullptr };
-    napi_status status = napi_invalid_arg;
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
-    if (self == nullptr && argc >= AsyncCall::ARGC_MAX) {
-        IMSA_HILOGE("napi_get_cb_info failed");
-        return nullptr;
-    }
-
-    status = napi_unwrap(env, self, &native);
-    NAPI_ASSERT(env, (status == napi_ok && native != nullptr), "napi_unwrap failed!");
-    return reinterpret_cast<JsKeyboardDelegateSetting *>(native);
-}
-
 napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_TWO;
@@ -245,28 +214,16 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    if (argc != ARGC_TWO) {
-        JsUtils::ThrowException(
-            env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 2", TypeCode::TYPE_NONE);
-    }
-
-    napi_valuetype valuetype;
-    NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
-    if (valuetype != napi_string) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'type'", TypeCode::TYPE_STRING);
-        return nullptr;
-    }
-    std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
+    PARAM_CHECK_RETURN(env, argc >= ARGC_TWO, "Wrong number of arguments, requires 2", TYPE_NONE, nullptr);
+    std::string type = "";
+    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
     IMSA_HILOGE("event type is: %{public}s", type.c_str());
 
-    valuetype = napi_undefined;
-    napi_typeof(env, argv[ARGC_ONE], &valuetype);
-    if (valuetype != napi_function) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'callback'", TypeCode::TYPE_FUNCTION);
-        return nullptr;
-    }
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[ARGC_ONE], &valueType);
+    PARAM_CHECK_RETURN(env, valueType == napi_function, "callback", TYPE_FUNCTION, nullptr);
 
-    auto engine = GetNative(env, info);
+    auto engine = reinterpret_cast<JsKeyboardDelegateSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
     }
@@ -286,57 +243,25 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    if (argc != ARGC_ONE && argc != ARGC_TWO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 1 or 2",
-            TypeCode::TYPE_NONE);
-        return nullptr;
-    }
+    PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, nullptr);
 
-    napi_valuetype valuetype;
-    NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
-    if (valuetype != napi_string) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'type'", TypeCode::TYPE_STRING);
-        return nullptr;
-    }
-    std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
+    std::string type = "";
+    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
 
-    auto delegate = GetNative(env, info);
+    auto delegate = reinterpret_cast<JsKeyboardDelegateSetting *>(JsUtils::GetNativeSelf(env, info));
     if (delegate == nullptr) {
         return nullptr;
     }
 
     if (argc == ARGC_TWO) {
-        valuetype = napi_undefined;
-        napi_typeof(env, argv[ARGC_ONE], &valuetype);
-        if (valuetype != napi_function) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'callback'", TypeCode::TYPE_FUNCTION);
-            return nullptr;
-        }
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[ARGC_ONE], &valueType);
+        PARAM_CHECK_RETURN(env, valueType == napi_function, "callback", TYPE_FUNCTION, nullptr);
     }
     delegate->UnRegisterListener(argv[ARGC_ONE], type);
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
-}
-
-bool JsKeyboardDelegateSetting::Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId)
-{
-    if (copy == nullptr) {
-        return (value == nullptr);
-    }
-
-    if (threadId != std::this_thread::get_id()) {
-        IMSA_HILOGD("napi_value can not be compared");
-        return false;
-    }
-
-    napi_value copyValue = nullptr;
-    napi_get_reference_value(env, copy, &copyValue);
-
-    bool isEquals = false;
-    napi_strict_equals(env, value, copyValue, &isEquals);
-    IMSA_HILOGD("value compare result: %{public}d", isEquals);
-    return isEquals;
 }
 
 napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t keyCode, int32_t keyStatus)

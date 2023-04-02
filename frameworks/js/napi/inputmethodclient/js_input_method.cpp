@@ -39,25 +39,6 @@ napi_value JsInputMethod::Init(napi_env env, napi_value exports)
     return exports;
 };
 
-std::string JsInputMethod::GetStringProperty(napi_env env, napi_value obj)
-{
-    char propValue[MAX_VALUE_LEN] = { 0 };
-    size_t propLen;
-    if (napi_get_value_string_utf8(env, obj, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
-        IMSA_HILOGE("GetStringProperty error");
-    }
-    return std::string(propValue);
-}
-
-int32_t JsInputMethod::GetNumberProperty(napi_env env, napi_value obj)
-{
-    int32_t out;
-    if (napi_get_value_int32(env, obj, &out) != napi_ok) {
-        IMSA_HILOGE("GetInt32Property error");
-    }
-    return out;
-}
-
 napi_status JsInputMethod::GetInputMethodProperty(
     napi_env env, napi_value argv, std::shared_ptr<SwitchInputMethodContext> ctxt)
 {
@@ -70,23 +51,25 @@ napi_status JsInputMethod::GetInputMethodProperty(
     }
     napi_value result = nullptr;
     napi_get_named_property(env, argv, "name", &result);
-    ctxt->packageName = JsInputMethod::GetStringProperty(env, result);
+    status = JsUtils::GetValue(env, result, ctxt->packageName);
+    NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->packageName failed!", status);
     result = nullptr;
     napi_get_named_property(env, argv, "id", &result);
-    ctxt->methodId = JsInputMethod::GetStringProperty(env, result);
+    status = JsUtils::GetValue(env, result, ctxt->methodId);
+    NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->methodId failed!", status);
     if (ctxt->packageName.empty() || ctxt->methodId.empty()) {
         result = nullptr;
         napi_get_named_property(env, argv, "packageName", &result);
-        ctxt->packageName = JsInputMethod::GetStringProperty(env, result);
+        status = JsUtils::GetValue(env, result, ctxt->packageName);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->packageName failed!", status);
 
         result = nullptr;
         napi_get_named_property(env, argv, "methodId", &result);
-        ctxt->methodId = JsInputMethod::GetStringProperty(env, result);
+        status = JsUtils::GetValue(env, result, ctxt->methodId);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->methodId failed!", status);
     }
-    if (ctxt->packageName.empty() || ctxt->methodId.empty()) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Parameter error.", TYPE_NONE);
-        return status;
-    }
+    PARAM_CHECK_RETURN(env, (!ctxt->packageName.empty() && !ctxt->methodId.empty()), "JsInputMethod, Parameter error.",
+        TYPE_NONE, napi_invalid_arg);
     IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s", ctxt->methodId.c_str(), ctxt->packageName.c_str());
     return napi_ok;
 }
@@ -100,18 +83,14 @@ napi_status JsInputMethod::GetInputMethodSubProperty(
     if (valueType == napi_object) {
         napi_value result = nullptr;
         status = napi_get_named_property(env, argv, "name", &result);
-        if (status != napi_ok) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing name parameter.", TYPE_STRING);
-            return status;
-        }
-        ctxt->name = GetStringProperty(env, result);
+        PARAM_CHECK_RETURN(env, status == napi_ok, " name ", TYPE_STRING, status);
+        status = JsUtils::GetValue(env, result, ctxt->name);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->name failed!", status);
         result = nullptr;
         status = napi_get_named_property(env, argv, "id", &result);
-        if (status != napi_ok) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing id parameter.", TYPE_STRING);
-            return status;
-        }
-        ctxt->id = GetStringProperty(env, result);
+        PARAM_CHECK_RETURN(env, status == napi_ok, " id ", TYPE_STRING, status);
+        status = JsUtils::GetValue(env, result, ctxt->id);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->id failed!", status);
         IMSA_HILOGI("name:%{public}s and id:%{public}s", ctxt->name.c_str(), ctxt->id.c_str());
     }
     return status;
@@ -125,16 +104,12 @@ napi_value JsInputMethod::GetJsInputMethodProperty(napi_env env, const Property 
     napi_value packageName = nullptr;
     napi_create_string_utf8(env, property.name.c_str(), NAPI_AUTO_LENGTH, &packageName);
     napi_set_named_property(env, prop, "packageName", packageName);
-    if (packageName == nullptr) {
-        napi_set_named_property(env, prop, "name", packageName);
-    }
+    napi_set_named_property(env, prop, "name", packageName);
 
     napi_value methodId = nullptr;
     napi_create_string_utf8(env, property.id.c_str(), NAPI_AUTO_LENGTH, &methodId);
     napi_set_named_property(env, prop, "methodId", methodId);
-    if (methodId == nullptr) {
-        napi_set_named_property(env, prop, "id", methodId);
-    }
+    napi_set_named_property(env, prop, "id", methodId);
 
     return prop;
 }
@@ -216,16 +191,10 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
 {
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "should has 1 parameters!", TYPE_NONE);
-            return napi_invalid_arg;
-        }
+        PARAM_CHECK_RETURN(env, argc > 0, "should has 1 parameters!", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        if (valueType != napi_object) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " target: ", TYPE_OBJECT);
-            return napi_ok;
-        }
+        PARAM_CHECK_RETURN(env, valueType == napi_object, " target: ", TYPE_OBJECT, napi_invalid_arg);
         napi_status status = GetInputMethodProperty(env, argv[0], ctxt);
         return status;
     };
@@ -283,16 +252,10 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
 {
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "should has one parameter.", TYPE_NONE);
-            return napi_invalid_arg;
-        }
+        PARAM_CHECK_RETURN(env, argc > 0, "should has one parameter. ", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        if (valueType != napi_object) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " inputMethodSubtype: ", TYPE_OBJECT);
-            return napi_object_expected;
-        }
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodSubtype: ", TYPE_OBJECT, napi_object_expected);
         napi_status status = GetInputMethodSubProperty(env, argv[0], ctxt);
         return status;
     };
@@ -326,21 +289,12 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
 {
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc < 2) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "should has two parameter.", TYPE_NONE);
-            return napi_invalid_arg;
-        }
+        PARAM_CHECK_RETURN(env, argc > 1, "should has two parameter.", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        if (valueType != napi_object) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " inputMethodProperty: ", TYPE_OBJECT);
-            return napi_object_expected;
-        }
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodProperty: ", TYPE_OBJECT, napi_object_expected);
         napi_typeof(env, argv[1], &valueType);
-        if (valueType != napi_object) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " inputMethodSubtype: ", TYPE_OBJECT);
-            return napi_object_expected;
-        }
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodSubtype: ", TYPE_OBJECT, napi_object_expected);
         napi_status status = GetInputMethodSubProperty(env, argv[1], ctxt);
         return status;
     };

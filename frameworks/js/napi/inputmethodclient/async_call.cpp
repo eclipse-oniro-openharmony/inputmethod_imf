@@ -20,6 +20,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+constexpr size_t ARGC_MAX = 6;
 AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t pos) : env_(env)
 {
     context_ = new AsyncContext();
@@ -111,10 +112,10 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
     if (status == napi_ok && runStatus == napi_ok) {
         napi_get_undefined(env, &result[ARG_ERROR]);
         if (output != nullptr) {
-            IMSA_HILOGE("AsyncCall::OnComplete output != nullptr");
+            IMSA_HILOGI("AsyncCall::OnComplete output != nullptr");
             result[ARG_DATA] = output;
         } else {
-            IMSA_HILOGE("AsyncCall::OnComplete output == nullptr");
+            IMSA_HILOGI("AsyncCall::OnComplete output == nullptr");
             napi_get_undefined(env, &result[ARG_DATA]);
         }
     } else {

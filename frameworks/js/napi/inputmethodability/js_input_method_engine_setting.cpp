@@ -21,8 +21,8 @@
 #include "input_method_property.h"
 #include "input_method_utils.h"
 #include "js_keyboard_controller_engine.h"
+#include "js_runtime_utils.h"
 #include "js_text_input_client_engine.h"
-#include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -79,6 +79,8 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
+        DECLARE_NAPI_FUNCTION("createPanel", CreatePanel),
+        DECLARE_NAPI_FUNCTION("destroyPanel", DestroyPanel),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, IMES_CLASS_NAME.c_str(), IMES_CLASS_NAME.size(), JsConstructor, nullptr,
@@ -165,11 +167,6 @@ napi_value JsInputMethodEngineSetting::GetIMEInstance(napi_env env, napi_callbac
         napi_value argv[ARGC_MAX] = { nullptr };
 
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-        if (argc != ARGC_ZERO) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0", TypeCode::TYPE_NONE);
-            return nullptr;
-        }
     }
 
     if (napi_get_reference_value(env, IMESRef_, &cons) != napi_ok) {
@@ -190,13 +187,9 @@ napi_value JsInputMethodEngineSetting::MoveCursor(napi_env env, napi_callback_in
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     NAPI_ASSERT(env, argc == 1, "Wrong number of arguments, requires 1");
 
-    napi_valuetype valuetype;
-    NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
-    NAPI_ASSERT(env, valuetype == napi_number, "type is not a number");
-
-    int32_t number;
-    if (napi_get_value_int32(env, argv[ARGC_ZERO], &number) != napi_ok) {
-        IMSA_HILOGE("GetNumberProperty error");
+    int32_t number = 0;
+    if (JsUtils::GetValue(env, argv[ARGC_ZERO], number) != napi_ok) {
+        IMSA_HILOGE("Get number error");
     }
 
     InputMethodAbility::GetInstance()->MoveCursor(number);
@@ -204,17 +197,6 @@ napi_value JsInputMethodEngineSetting::MoveCursor(napi_env env, napi_callback_in
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
-}
-
-std::string JsInputMethodEngineSetting::GetStringProperty(napi_env env, napi_value jsString)
-{
-    char propValue[MAX_VALUE_LEN] = { 0 };
-    size_t propLen;
-    if (napi_get_value_string_utf8(env, jsString, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
-        IMSA_HILOGE("GetStringProperty error");
-        return "";
-    }
-    return std::string(propValue);
 }
 
 void JsInputMethodEngineSetting::RegisterListener(
@@ -227,7 +209,7 @@ void JsInputMethodEngineSetting::RegisterListener(
     }
     auto callbacks = jsCbMap_[type];
     bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
-        return Equals(cb->env_, callback, cb->callback_, cb->threadId_);
+        return JsUtils::Equals(cb->env_, callback, cb->callback_, cb->threadId_);
     });
     if (ret) {
         IMSA_HILOGE("JsInputMethodEngineListener::RegisterListener callback already registered!");
@@ -254,7 +236,7 @@ void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::st
     }
 
     for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end(); item++) {
-        if (Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_)) {
+        if (JsUtils::Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_)) {
             jsCbMap_[type].erase(item);
             break;
         }
@@ -265,24 +247,6 @@ void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::st
     }
 }
 
-JsInputMethodEngineSetting *JsInputMethodEngineSetting::GetNative(napi_env env, napi_callback_info info)
-{
-    size_t argc = ARGC_MAX;
-    void *native = nullptr;
-    napi_value self = nullptr;
-    napi_value argv[ARGC_MAX] = { nullptr };
-    napi_status status = napi_invalid_arg;
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
-    if (self == nullptr && argc >= ARGC_MAX) {
-        IMSA_HILOGE("napi_get_cb_info failed");
-        return nullptr;
-    }
-
-    status = napi_unwrap(env, self, &native);
-    NAPI_ASSERT(env, (status == napi_ok && native != nullptr), "napi_unwrap failed!");
-    return reinterpret_cast<JsInputMethodEngineSetting *>(native);
-}
-
 napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_TWO;
@@ -290,29 +254,18 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    if (argc != ARGC_TWO) {
-        JsUtils::ThrowException(
-            env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 2", TypeCode::TYPE_NONE);
-        return nullptr;
-    }
+    PARAM_CHECK_RETURN(env, argc >= ARGC_TWO, "Wrong number of arguments, requires 2", TYPE_NONE, nullptr);
 
-    napi_valuetype valuetype;
-    NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
-    if (valuetype != napi_string) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'type'", TypeCode::TYPE_STRING);
-        return nullptr;
-    }
-    std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
+    std::string type = "";
+    napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], type);
+    NAPI_ASSERT_BASE(env, status == napi_ok, "get type failed!", nullptr);
     IMSA_HILOGE("event type is: %{public}s", type.c_str());
 
-    valuetype = napi_undefined;
-    napi_typeof(env, argv[ARGC_ONE], &valuetype);
-    if (valuetype != napi_function) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'callback'", TypeCode::TYPE_FUNCTION);
-        return nullptr;
-    }
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[ARGC_ONE], &valueType);
+    PARAM_CHECK_RETURN(env, valueType == napi_function, "'callback'", TYPE_FUNCTION, nullptr);
 
-    auto engine = GetNative(env, info);
+    auto engine = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
     }
@@ -325,6 +278,117 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     return result;
 }
 
+napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<PanelContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, argc >= 2, "should has 2 or 3 parameters!", TYPE_NONE, napi_invalid_arg);
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[ARGC_ZERO], &valueType);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, " ctx: ", TYPE_OBJECT, napi_invalid_arg);
+
+        void *contextPtr = nullptr;
+        NativeValue *value = reinterpret_cast<NativeValue *>(argv[ARGC_ZERO]);
+        GetNativeContext(env, value, contextPtr);
+        ctxt->contextPtr = contextPtr;
+
+        napi_typeof(env, argv[ARGC_ONE], &valueType);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, " panelInfo: ", TYPE_OBJECT, napi_invalid_arg);
+        napi_value napiValue = nullptr;
+        napi_status status = napi_get_named_property(env, argv[ARGC_ONE], "type", &napiValue);
+        PARAM_CHECK_RETURN(env, status == napi_ok, " missing info parameter.", TYPE_NONE, status);
+        status = JsUtils::GetValue(env, napiValue, ctxt->panelType);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "Get panelType error!", status);
+
+        status = napi_get_named_property(env, argv[ARGC_ONE], "flag", &napiValue);
+        PARAM_CHECK_RETURN(env, status == napi_ok, " missing info parameter.", TYPE_NONE, status);
+        status = JsUtils::GetValue(env, napiValue, ctxt->panelFlag);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "Get panelFlag error!", status);
+        ctxt->ref = NewWithRef(env, 0, nullptr, reinterpret_cast<void **>(&ctxt->jsPanel), JsPanel::Constructor(env));
+        return status;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        std::shared_ptr<InputMethodPanel> panel = nullptr;
+        PanelInfo panelInfo = { .panelType = PanelType(ctxt->panelType), .panelFlag = PanelFlag(ctxt->panelFlag) };
+        auto context = static_cast<std::weak_ptr<AbilityRuntime::Context> *>(ctxt->contextPtr);
+        CHECK_RETURN_VOID(ctxt->jsPanel != nullptr, "napi_create_reference failed");
+        auto ret = InputMethodAbility::GetInstance()->CreatePanel(context->lock(), panelInfo, panel);
+        ctxt->SetErrorCode(ret);
+        CHECK_RETURN_VOID(ret == ErrorCode::NO_ERROR, "JsInputMethodEngineSetting CreatePanel failed!");
+        ctxt->jsPanel->SetNative(panel);
+        ctxt->SetState(napi_ok);
+    };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        NAPI_ASSERT_BASE(env, ctxt->ref != nullptr, "ctxt->ref == nullptr!", napi_generic_failure);
+        auto status = napi_get_reference_value(env, ctxt->ref, result);
+        NAPI_ASSERT_BASE(env, (status == napi_ok || result != nullptr), "Get ref error!", napi_generic_failure);
+        napi_delete_reference(env, ctxt->ref);
+        return napi_ok;
+    };
+
+    ctxt->SetAction(std::move(input), std::move(output));
+    AsyncCall asyncCall(env, info, ctxt, ARGC_TWO);
+    return asyncCall.Call(env, exec);
+}
+
+void JsInputMethodEngineSetting::GetNativeContext(napi_env env, NativeValue *nativeContext, void *&contextPtr)
+{
+    if (nativeContext != nullptr) {
+        auto objContext = AbilityRuntime::ConvertNativeValueTo<NativeObject>(nativeContext);
+        if (objContext == nullptr) {
+            IMSA_HILOGE("Get context object failed.");
+            return;
+        }
+        contextPtr = objContext->GetNativePointer();
+    }
+}
+
+napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<PanelContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, argc >= 1, "should has 1 parameters!", TYPE_NONE, napi_invalid_arg);
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, " target: ", TYPE_OBJECT, napi_invalid_arg);
+        bool result = false;
+        napi_status status = napi_instanceof(env, argv[0], JsPanel::Constructor(env), &result);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "run napi_instanceof failed!", status);
+        JsPanel *panel = nullptr;
+        status = napi_unwrap(env, argv[0], (void **)(&panel));
+        NAPI_ASSERT_BASE(env, (status == napi_ok) && (panel != nullptr), "can not unwrap to JsPanel!", status);
+        ctxt->jsPanel = panel;
+        return status;
+    };
+
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        CHECK_RETURN_VOID(ctxt->jsPanel != nullptr, "JsPanel is nullptr!");
+        auto status = InputMethodAbility::GetInstance()->DestroyPanel(ctxt->jsPanel->GetNative());
+        ctxt->SetErrorCode(status);
+        CHECK_RETURN_VOID(status == ErrorCode::NO_ERROR, "DestroyPanel return error!");
+        ctxt->SetState(napi_ok);
+    };
+    ctxt->SetAction(std::move(input));
+    AsyncCall asyncCall(env, info, ctxt, 1);
+    return asyncCall.Call(env, exec);
+}
+
+napi_ref JsInputMethodEngineSetting::NewWithRef(
+    napi_env env, size_t argc, napi_value *argv, void **out, napi_value constructor)
+{
+    napi_value object = nullptr;
+    napi_status status = napi_new_instance(env, constructor, argc, argv, &object);
+    NAPI_ASSERT(env, (status == napi_ok) && (object != nullptr), "napi_new_instance failed!");
+
+    status = napi_unwrap(env, object, out);
+    NAPI_ASSERT(env, (status == napi_ok) && (out != nullptr), "napi_unwrap failed");
+
+    napi_ref ref = nullptr;
+    status = napi_create_reference(env, object, 1, &ref);
+    NAPI_ASSERT(env, (status == napi_ok) && (ref != nullptr), "napi_create_reference failed");
+    return ref;
+}
+
 napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_TWO;
@@ -332,58 +396,24 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    if (argc != ARGC_ONE && argc != ARGC_TWO) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 1 or 2",
-            TypeCode::TYPE_NONE);
-        return nullptr;
-    }
-
-    napi_valuetype valuetype;
-    NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
-    if (valuetype != napi_string) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'type'", TypeCode::TYPE_STRING);
-        return nullptr;
-    }
-    std::string type = GetStringProperty(env, argv[ARGC_ZERO]);
-    IMSA_HILOGE("event type is: %{public}s", type.c_str());
-
-    auto engine = GetNative(env, info);
-    if (engine == nullptr) {
+    PARAM_CHECK_RETURN(env, argc >= 1, "Wrong number of arguments, requires 1 or 2", TYPE_NONE, nullptr);
+    std::string type = "";
+    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
+    IMSA_HILOGD("event type is: %{public}s", type.c_str());
+    auto setting = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
+    if (setting == nullptr) {
         return nullptr;
     }
 
     if (argc == ARGC_TWO) {
-        valuetype = napi_undefined;
-        napi_typeof(env, argv[ARGC_ONE], &valuetype);
-        if (valuetype != napi_function) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "'callback'", TypeCode::TYPE_FUNCTION);
-            return nullptr;
-        }
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[ARGC_ONE], &valueType);
+        PARAM_CHECK_RETURN(env, valueType == napi_function, " 'callback' ", TYPE_FUNCTION, nullptr);
     }
-    engine->UnRegisterListener(argv[ARGC_ONE], type);
+    setting->UnRegisterListener(argv[ARGC_ONE], type);
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
-}
-
-bool JsInputMethodEngineSetting::Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId)
-{
-    if (copy == nullptr) {
-        return (value == nullptr);
-    }
-
-    if (threadId != std::this_thread::get_id()) {
-        IMSA_HILOGD("napi_value can not be compared");
-        return false;
-    }
-
-    napi_value copyValue = nullptr;
-    napi_get_reference_value(env, copy, &copyValue);
-
-    bool isEquals = false;
-    napi_strict_equals(env, value, copyValue, &isEquals);
-    IMSA_HILOGD("value compare result: %{public}d", isEquals);
-    return isEquals;
 }
 
 napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, const SubProperty &property)

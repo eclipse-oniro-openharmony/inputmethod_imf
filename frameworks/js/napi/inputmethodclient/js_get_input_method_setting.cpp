@@ -29,7 +29,6 @@ int32_t MAX_TYPE_NUM = 128;
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
-constexpr size_t ARGC_MAX = 6;
 thread_local napi_ref JsGetInputMethodSetting::IMSRef_ = nullptr;
 const std::string JsGetInputMethodSetting::IMS_CLASS_NAME = "InputMethodSetting";
 
@@ -150,44 +149,41 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
     napi_env env, napi_value argv, std::shared_ptr<ListInputContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
-    napi_status status = napi_generic_failure;
-    status = napi_typeof(env, argv, &valueType);
+    napi_status status = napi_typeof(env, argv, &valueType);
     if (valueType == napi_object) {
         napi_value result = nullptr;
         napi_get_named_property(env, argv, "name", &result);
-        ctxt->property.name = JsInputMethod::GetStringProperty(env, result);
+        JsUtils::GetValue(env, result, ctxt->property.name);
 
         result = nullptr;
         napi_get_named_property(env, argv, "id", &result);
-        ctxt->property.id = JsInputMethod::GetStringProperty(env, result);
+        JsUtils::GetValue(env, result, ctxt->property.id);
 
         if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
             result = nullptr;
             napi_get_named_property(env, argv, "packageName", &result);
-            ctxt->property.name = JsInputMethod::GetStringProperty(env, result);
+            JsUtils::GetValue(env, result, ctxt->property.name);
 
             result = nullptr;
             napi_get_named_property(env, argv, "methodId", &result);
-            ctxt->property.id = JsInputMethod::GetStringProperty(env, result);
+            JsUtils::GetValue(env, result, ctxt->property.id);
         }
-        if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Parameter error.", TYPE_NONE);
-            return napi_invalid_arg;
-        }
+        PARAM_CHECK_RETURN(env, (!ctxt->property.name.empty() && !ctxt->property.id.empty()), "Parameter error.",
+            TYPE_NONE, napi_invalid_arg);
 
         result = nullptr;
         napi_get_named_property(env, argv, "label", &result);
-        ctxt->property.label = JsInputMethod::GetStringProperty(env, result);
+        JsUtils::GetValue(env, result, ctxt->property.label);
 
         result = nullptr;
         napi_get_named_property(env, argv, "icon", &result);
-        ctxt->property.icon = JsInputMethod::GetStringProperty(env, result);
+        JsUtils::GetValue(env, result, ctxt->property.icon);
 
         result = nullptr;
         napi_get_named_property(env, argv, "iconId", &result);
-        ctxt->property.iconId = JsInputMethod::GetNumberProperty(env, result);
-        IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(),
-                    ctxt->property.name.c_str());
+        status = JsUtils::GetValue(env, result, ctxt->property.iconId);
+        IMSA_HILOGD(
+            "methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
     }
     return status;
 }
@@ -224,20 +220,12 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
     IMSA_HILOGI("run in GetInputMethods");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "should has one parameter.", TYPE_NONE);
-            return napi_invalid_arg;
-        }
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
-        if (valueType == napi_boolean) {
-            bool enable = false;
-            napi_get_value_bool(env, argv[0], &enable);
-            ctxt->inputMethodStatus = enable ? InputMethodStatus::ENABLE : InputMethodStatus::DISABLE;
-            return napi_ok;
-        }
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " parameter's type is wrong.", TYPE_BOOLEAN);
-        return napi_generic_failure;
+        PARAM_CHECK_RETURN(env, argc > 0, "should has one parameter.", TYPE_NONE, napi_invalid_arg);
+        bool enable = false;
+        napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], enable);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "enable.", TYPE_NUMBER, napi_invalid_arg);
+        ctxt->inputMethodStatus = enable ? InputMethodStatus::ENABLE : InputMethodStatus::DISABLE;
+        return napi_ok;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         *result = JsInputMethod::GetJSInputMethodProperties(env, ctxt->properties);
@@ -312,16 +300,10 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
     IMSA_HILOGI("run in ListInputMethodSubtype");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc < 1) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "should has one parameter.", TYPE_NONE);
-            return napi_invalid_arg;
-        }
+        PARAM_CHECK_RETURN(env, argc > 0, "should has one parameter.", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        if (valueType != napi_object) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " inputMethodProperty: ", TYPE_OBJECT);
-            return napi_object_expected;
-        }
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodProperty", TYPE_OBJECT, napi_invalid_arg);
         napi_status status = JsGetInputMethodSetting::GetInputMethodProperty(env, argv[0], ctxt);
         return status;
     };
@@ -370,44 +352,6 @@ napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, 
     return asyncCall.Call(env, exec);
 }
 
-JsGetInputMethodSetting *JsGetInputMethodSetting::GetNative(napi_env env, napi_callback_info info)
-{
-    size_t argc = ARGC_MAX;
-    void *native = nullptr;
-    napi_value self = nullptr;
-    napi_value argv[ARGC_MAX] = { nullptr };
-    napi_status status = napi_invalid_arg;
-    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    if (self == nullptr && argc >= ARGC_MAX) {
-        IMSA_HILOGE("napi_get_cb_info failed");
-        return nullptr;
-    }
-
-    status = napi_unwrap(env, self, &native);
-    NAPI_ASSERT(env, (status == napi_ok && native != nullptr), "napi_unwrap failed!");
-    return reinterpret_cast<JsGetInputMethodSetting *>(native);
-}
-
-bool JsGetInputMethodSetting::Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId)
-{
-    if (copy == nullptr) {
-        return (value == nullptr);
-    }
-
-    if (threadId != std::this_thread::get_id()) {
-        IMSA_HILOGD("napi_value can not be compared");
-        return false;
-    }
-
-    napi_value copyValue = nullptr;
-    napi_get_reference_value(env, copy, &copyValue);
-
-    bool isEquals = false;
-    napi_strict_equals(env, value, copyValue, &isEquals);
-    IMSA_HILOGD("value compare result: %{public}d", isEquals);
-    return isEquals;
-}
-
 void JsGetInputMethodSetting::RegisterListener(
     napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
@@ -419,7 +363,7 @@ void JsGetInputMethodSetting::RegisterListener(
 
     auto callbacks = jsCbMap_[type];
     bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
-        return Equals(cb->env_, callback, cb->callback_, cb->threadId_);
+        return JsUtils::Equals(cb->env_, callback, cb->callback_, cb->threadId_);
     });
     if (ret) {
         IMSA_HILOGE("JsGetInputMethodSetting::RegisterListener callback already registered!");
@@ -439,17 +383,15 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     NAPI_ASSERT(env, argc == ARGC_TWO, "Wrong number of arguments, requires 2");
 
-    napi_valuetype valuetype;
-    NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
-    NAPI_ASSERT(env, valuetype == napi_string, "type is not a string");
-    std::string type = JsInputMethod::GetStringProperty(env, argv[ARGC_ZERO]);
+    std::string type = "";
+    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
     IMSA_HILOGE("event type is: %{public}s", type.c_str());
 
-    valuetype = napi_undefined;
+    napi_valuetype valuetype = napi_undefined;
     napi_typeof(env, argv[ARGC_ONE], &valuetype);
     NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
 
-    auto engine = GetNative(env, info);
+    auto engine = reinterpret_cast<JsGetInputMethodSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
     }
@@ -478,7 +420,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     }
 
     for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end(); item++) {
-        if (Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_)) {
+        if (JsUtils::Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_)) {
             jsCbMap_[type].erase(item);
             break;
         }
@@ -498,19 +440,16 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     NAPI_ASSERT(env, argc == ARGC_ONE || argc == ARGC_TWO, "Wrong number of arguments, requires 1 or 2");
 
-    napi_valuetype valuetype;
-    NAPI_CALL(env, napi_typeof(env, argv[ARGC_ZERO], &valuetype));
-    NAPI_ASSERT(env, valuetype == napi_string, "type is not a string");
-    std::string type = JsInputMethod::GetStringProperty(env, argv[ARGC_ZERO]);
+    std::string type = "";
+    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
     IMSA_HILOGE("event type is: %{public}s", type.c_str());
-
-    auto engine = GetNative(env, info);
+    auto engine = reinterpret_cast<JsGetInputMethodSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
     }
 
     if (argc == ARGC_TWO) {
-        valuetype = napi_undefined;
+        napi_valuetype valuetype = napi_undefined;
         napi_typeof(env, argv[ARGC_ONE], &valuetype);
         NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
     }
