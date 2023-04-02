@@ -111,7 +111,8 @@ private:
     int AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo);
     void UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard);
     int32_t RemoveClient(const sptr<IRemoteObject> &client, bool isClientDied);
-    int32_t ShowKeyboard(const sptr<IInputDataChannel>& channel, const sptr<IInputClient> &inputClient, bool isShowKeyboard);
+    int32_t ShowKeyboard(
+        const sptr<IInputDataChannel> &channel, const sptr<IInputClient> &inputClient, bool isShowKeyboard);
     int32_t HideKeyboard(const sptr<IInputClient> &inputClient);
     int32_t ClearDataChannel(const sptr<IInputDataChannel> &channel);
     int GetImeIndex(const sptr<IInputClient> &inputClient);

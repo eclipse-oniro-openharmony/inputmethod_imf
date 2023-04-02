@@ -23,7 +23,6 @@ config("inputmethod_services_native_config") {
     "${inputmethod_path}/services/adapter/focus_monitor/include",
     "${inputmethod_path}/services/adapter/keyboard/include",
     "${inputmethod_path}/services/dfx/include",
-    "//foundation/window/window_manager/interfaces/innerkits/wm",
   ]
 
   cflags_cc = [ "-fexceptions" ]

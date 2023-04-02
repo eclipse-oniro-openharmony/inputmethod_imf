@@ -412,7 +412,7 @@ void PerUserSession::SendAgentToAllClients()
         return;
     }
     std::lock_guard<std::recursive_mutex> lock(mtx);
-    for (auto & mapClient : mapClients_) {
+    for (const auto &mapClient : mapClients_) {
         auto clientInfo = mapClient.second;
         if (clientInfo != nullptr || clientInfo->isValid) {
             clientInfo->client->OnInputReady(imsAgent);

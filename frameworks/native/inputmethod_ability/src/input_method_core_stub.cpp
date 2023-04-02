@@ -50,17 +50,7 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
     }
     switch (code) {
         case INIT_INPUT_CONTROL_CHANNEL: {
-            sptr<IRemoteObject> channelObject = data.ReadRemoteObject();
-            if (channelObject == nullptr) {
-                IMSA_HILOGE("InputMethodCoreStub::OnRemoteRequest channelObject is nullptr");
-                break;
-            }
-            sptr<IInputControlChannel> inputControlChannel = new InputControlChannelProxy(channelObject);
-            if (inputControlChannel == nullptr) {
-                IMSA_HILOGE("InputMethodCoreStub, inputControlChannel is nullptr");
-            }
-            auto ret = InitInputControlChannel(inputControlChannel, data.ReadString());
-            reply.WriteInt32(ret);
+            InitInputControlChannelOnRemote(data, reply);
             break;
         }
         case SHOW_KEYBOARD: {
@@ -142,6 +132,24 @@ void InputMethodCoreStub::StopInputService(std::string imeId)
 void InputMethodCoreStub::SetMessageHandler(MessageHandler *msgHandler)
 {
     msgHandler_ = msgHandler;
+}
+
+void InputMethodCoreStub::InitInputControlChannelOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> channelObject = data.ReadRemoteObject();
+    if (channelObject == nullptr) {
+        IMSA_HILOGE("channelObject is nullptr");
+        reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
+        return;
+    }
+    sptr<IInputControlChannel> inputControlChannel = new InputControlChannelProxy(channelObject);
+    if (inputControlChannel == nullptr) {
+        IMSA_HILOGE("failed to new inputControlChannel");
+        reply.WriteInt32(ErrorCode::ERROR_NULL_POINTER);
+        return;
+    }
+    auto ret = InitInputControlChannel(inputControlChannel, data.ReadString());
+    reply.WriteInt32(ret);
 }
 
 void InputMethodCoreStub::ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply)

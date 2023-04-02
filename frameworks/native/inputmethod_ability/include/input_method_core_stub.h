@@ -51,6 +51,7 @@ public:
 private:
     int userId_;
     MessageHandler *msgHandler_;
+    void InitInputControlChannelOnRemote(MessageParcel &data, MessageParcel &reply);
     void SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
     void ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply);
     void ClearDataChannelOnRemote(MessageParcel &data, MessageParcel &reply);
