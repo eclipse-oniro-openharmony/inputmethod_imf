@@ -16,6 +16,7 @@
 #define ASYN_CALL_H
 
 #include "input_method_info.h"
+#include "global.h"
 #include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
@@ -91,7 +92,6 @@ public:
         napi_status status_ = napi_generic_failure;
         int32_t errorCode_ = 0;
     };
-    static constexpr size_t ARGC_MAX = 6;
     static constexpr size_t ASYNC_DEFAULT_POS = -1;
     AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t pos = ASYNC_DEFAULT_POS);
     ~AsyncCall();

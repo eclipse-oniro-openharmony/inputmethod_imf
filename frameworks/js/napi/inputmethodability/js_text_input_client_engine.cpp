@@ -55,20 +55,8 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
 {
     auto ctxt = std::make_shared<MoveCursorContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        napi_status status = napi_generic_failure;
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
-        if (argc < 1) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
-            return status;
-        }
-        if (valueType != napi_number) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " direction", TypeCode::TYPE_NUMBER);
-            return status;
-        }
-        status = GetMoveCursorParam(env, argv[0], ctxt);
-        return status;
+        PARAM_CHECK_RETURN(env, argc > 0, " should 1 or 2 parameters! ", TYPE_NONE, napi_generic_failure);
+        return JsUtils::GetValue(env, argv[0], ctxt->num);
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         int32_t code = InputMethodAbility::GetInstance()->MoveCursor(ctxt->num);
@@ -127,26 +115,6 @@ napi_value JsTextInputClientEngine::GetTextInputClientInstance(napi_env env)
     return instance;
 }
 
-int32_t JsTextInputClientEngine::GetNumberProperty(napi_env env, napi_value jsNumber)
-{
-    int32_t number;
-    if (napi_get_value_int32(env, jsNumber, &number) != napi_ok) {
-        IMSA_HILOGE("GetNumberProperty error");
-    }
-    return number;
-}
-
-std::string JsTextInputClientEngine::GetStringProperty(napi_env env, napi_value jsString)
-{
-    char propValue[MAX_VALUE_LEN] = { 0 };
-    size_t propLen;
-    if (napi_get_value_string_utf8(env, jsString, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
-        IMSA_HILOGE("GetStringProperty error");
-        return "";
-    }
-    return std::string(propValue);
-}
-
 napi_value JsTextInputClientEngine::GetResult(napi_env env, std::string &text)
 {
     napi_value jsText = nullptr;
@@ -171,112 +139,18 @@ napi_value JsTextInputClientEngine::GetResultEditorAttribute(
     return editorAttribute;
 }
 
-napi_status JsTextInputClientEngine::GetAction(
-    napi_env env, napi_value argv, std::shared_ptr<SendKeyFunctionContext> ctxt)
-{
-    napi_valuetype valueType = napi_undefined;
-    napi_status status = napi_generic_failure;
-    status = napi_typeof(env, argv, &valueType);
-    if (valueType == napi_number) {
-        ctxt->action = GetNumberProperty(env, argv);
-    }
-    return status;
-}
-
-napi_status JsTextInputClientEngine::GetDeleteForwardLength(
-    napi_env env, napi_value argv, std::shared_ptr<DeleteForwardContext> ctxt)
-{
-    napi_valuetype valueType = napi_undefined;
-    napi_status status = napi_generic_failure;
-    status = napi_typeof(env, argv, &valueType);
-    if (valueType == napi_number) {
-        ctxt->length = GetNumberProperty(env, argv);
-    }
-    return status;
-}
-
-napi_status JsTextInputClientEngine::GetMoveCursorParam(
-    napi_env env, napi_value argv, std::shared_ptr<MoveCursorContext> ctxt)
-{
-    napi_valuetype valueType = napi_undefined;
-    napi_status status = napi_generic_failure;
-    status = napi_typeof(env, argv, &valueType);
-    if (valueType == napi_number) {
-        ctxt->num = GetNumberProperty(env, argv);
-    }
-    return status;
-}
-
-napi_status JsTextInputClientEngine::GetDeleteBackwardLength(
-    napi_env env, napi_value argv, std::shared_ptr<DeleteBackwardContext> ctxt)
-{
-    napi_valuetype valueType = napi_undefined;
-    napi_status status = napi_generic_failure;
-    status = napi_typeof(env, argv, &valueType);
-    if (valueType == napi_number) {
-        ctxt->length = GetNumberProperty(env, argv);
-    }
-    return status;
-}
-
-napi_status JsTextInputClientEngine::GetInsertText(
-    napi_env env, napi_value argv, std::shared_ptr<InsertTextContext> ctxt)
-{
-    napi_valuetype valueType = napi_undefined;
-    napi_status status = napi_generic_failure;
-    status = napi_typeof(env, argv, &valueType);
-    if (valueType == napi_string) {
-        ctxt->text = GetStringProperty(env, argv);
-    }
-    return status;
-}
-
-napi_status JsTextInputClientEngine::GetForwardLength(
-    napi_env env, napi_value argv, std::shared_ptr<GetForwardContext> ctxt)
-{
-    napi_valuetype valueType = napi_undefined;
-    napi_status status = napi_generic_failure;
-    status = napi_typeof(env, argv, &valueType);
-    if (valueType == napi_number) {
-        ctxt->length = GetNumberProperty(env, argv);
-    }
-    return status;
-}
-
-napi_status JsTextInputClientEngine::GetBackwardLength(
-    napi_env env, napi_value argv, std::shared_ptr<GetBackwardContext> ctxt)
-{
-    napi_valuetype valueType = napi_undefined;
-    napi_status status = napi_generic_failure;
-    status = napi_typeof(env, argv, &valueType);
-    if (valueType == napi_number) {
-        ctxt->length = GetNumberProperty(env, argv);
-    }
-    return status;
-}
-
 napi_status JsTextInputClientEngine::GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt)
 {
     napi_status status = napi_generic_failure;
     napi_value napiValue = nullptr;
     status = napi_get_named_property(env, argv, "start", &napiValue);
-    if (status != napi_ok) {
-        JsUtils::ThrowException(
-            env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing start parameter.", TypeCode::TYPE_NONE);
-        return status;
-    }
-    status = napi_get_value_int32(env, napiValue, &ctxt->start);
-    if (status != napi_ok) {
-        IMSA_HILOGE("failed to get start value");
-        return status;
-    }
+    PARAM_CHECK_RETURN(env, status == napi_ok, "missing start parameter.", TYPE_NONE, status);
+    status = JsUtils::GetValue(env, napiValue, ctxt->start);
+    NAPI_ASSERT_BASE(env, status == napi_ok, "failed to get start value", status);
 
     status = napi_get_named_property(env, argv, "end", &napiValue);
-    if (status != napi_ok) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing end parameter.", TypeCode::TYPE_NONE);
-        return status;
-    }
-    status = napi_get_value_int32(env, napiValue, &ctxt->end);
+    PARAM_CHECK_RETURN(env, status == napi_ok, "missing end parameter.", TYPE_NONE, status);
+    status = JsUtils::GetValue(env, napiValue, ctxt->end);
     if (status != napi_ok) {
         IMSA_HILOGE("failed to get end value");
     }
@@ -289,12 +163,8 @@ napi_status JsTextInputClientEngine::GetSelectMovement(
     napi_status status = napi_generic_failure;
     napi_value napiValue = nullptr;
     status = napi_get_named_property(env, argv, "direction", &napiValue);
-    if (status != napi_ok) {
-        JsUtils::ThrowException(
-            env, IMFErrorCode::EXCEPTION_PARAMCHECK, "missing direction parameter.", TypeCode::TYPE_NONE);
-        return status;
-    }
-    status = napi_get_value_int32(env, napiValue, &ctxt->direction);
+    PARAM_CHECK_RETURN(env, status == napi_ok, "missing direction parameter.", TYPE_NONE, status);
+    status = JsUtils::GetValue(env, napiValue, ctxt->direction);
     if (status != napi_ok) {
         IMSA_HILOGE("failed to get direction value");
     }
@@ -305,20 +175,8 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
 {
     auto ctxt = std::make_shared<SendKeyFunctionContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        napi_status status = napi_generic_failure;
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
-        if (argc < 1) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
-            return status;
-        }
-        if (valueType != napi_number) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " 'action'", TypeCode::TYPE_NUMBER);
-            return status;
-        }
-        status = GetAction(env, argv[0], ctxt);
-        return status;
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        return JsUtils::GetValue(env, argv[0], ctxt->action);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_status status = napi_get_boolean(env, ctxt->isSendKeyFunction, result);
@@ -343,20 +201,8 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
 {
     auto ctxt = std::make_shared<DeleteForwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        napi_status status = napi_generic_failure;
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
-        if (argc < 1) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
-            return status;
-        }
-        if (valueType != napi_number) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " 'length'", TypeCode::TYPE_NUMBER);
-            return status;
-        }
-        status = GetDeleteForwardLength(env, argv[0], ctxt);
-        return status;
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        return JsUtils::GetValue(env, argv[0], ctxt->length);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_status status = napi_get_boolean(env, ctxt->isDeleteForward, result);
@@ -381,20 +227,8 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
 {
     auto ctxt = std::make_shared<DeleteBackwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        napi_status status = napi_generic_failure;
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
-        if (argc < 1) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
-            return status;
-        }
-        if (valueType != napi_number) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " 'length", TypeCode::TYPE_NUMBER);
-            return status;
-        }
-        status = GetDeleteBackwardLength(env, argv[0], ctxt);
-        return status;
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        return JsUtils::GetValue(env, argv[0], ctxt->length);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_status status = napi_get_boolean(env, ctxt->isDeleteBackward, result);
@@ -419,20 +253,8 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
 {
     auto ctxt = std::make_shared<InsertTextContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        napi_status status = napi_generic_failure;
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
-        if (argc < 1) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
-            return status;
-        }
-        if (valueType != napi_string) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " 'text'", TypeCode::TYPE_STRING);
-            return status;
-        }
-        status = GetInsertText(env, argv[0], ctxt);
-        return status;
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        return JsUtils::GetValue(env, argv[0], ctxt->text);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_status status = napi_get_boolean(env, ctxt->isInsertText, result);
@@ -457,20 +279,8 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
 {
     auto ctxt = std::make_shared<GetForwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        napi_status status = napi_generic_failure;
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
-        if (argc < 1) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
-            return status;
-        }
-        if (valueType != napi_number) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " 'length'", TypeCode::TYPE_NUMBER);
-            return status;
-        }
-        status = GetForwardLength(env, argv[0], ctxt);
-        return status;
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        return JsUtils::GetValue(env, argv[0], ctxt->length);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_value data = GetResult(env, ctxt->text);
@@ -497,20 +307,8 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
 {
     auto ctxt = std::make_shared<GetBackwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        napi_status status = napi_generic_failure;
-        napi_valuetype valueType = napi_undefined;
-        if (argc < 1) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
-            return status;
-        }
-        napi_typeof(env, argv[0], &valueType);
-        if (valueType != napi_number) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, " 'length'", TypeCode::TYPE_NUMBER);
-            return status;
-        }
-        status = GetBackwardLength(env, argv[0], ctxt);
-        return status;
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        return JsUtils::GetValue(env, argv[0], ctxt->length);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_value data = GetResult(env, ctxt->text);
@@ -563,17 +361,10 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
     IMSA_HILOGD("run in");
     auto ctxt = std::make_shared<SelectContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc < 1) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
-            return napi_generic_failure;
-        }
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        if (valueType != napi_object) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "range", TypeCode::TYPE_OBJECT);
-            return napi_generic_failure;
-        }
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "range", TYPE_OBJECT, napi_generic_failure);
         return GetSelectRange(env, argv[0], ctxt);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
@@ -596,17 +387,10 @@ napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback
     IMSA_HILOGD("run in");
     auto ctxt = std::make_shared<SelectContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc < 1) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, " should 1 or 2 parameters!", TypeCode::TYPE_NONE);
-            return napi_generic_failure;
-        }
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        if (valueType != napi_object) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "movement", TypeCode::TYPE_OBJECT);
-            return napi_generic_failure;
-        }
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "movement", TYPE_NUMBER, napi_generic_failure);
         return GetSelectMovement(env, argv[0], ctxt);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };

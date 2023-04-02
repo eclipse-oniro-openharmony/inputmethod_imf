@@ -27,8 +27,8 @@
 #include "itypes_util.h"
 #include "message_parcel.h"
 #include "string_ex.h"
-#include "system_ability_definition.h"
 #include "sys/prctl.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -359,6 +359,16 @@ void InputMethodAbility::ShowInputWindow(bool isShowKeyboard, const SubProperty 
         return;
     }
     channel->SendKeyboardStatus(KEYBOARD_SHOW);
+    auto result = panels_.Find(SOFT_KEYBOARD);
+    if (!result.first) {
+        IMSA_HILOGE("Not find SOFT_KEYBOARD panel.");
+        return;
+    }
+    auto ret = result.second->ShowPanel();
+    if (ret != NO_ERROR) {
+        IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
+        return;
+    }
 }
 
 void InputMethodAbility::DismissInputWindow()
@@ -375,6 +385,16 @@ void InputMethodAbility::DismissInputWindow()
         return;
     }
     channel->SendKeyboardStatus(KEYBOARD_HIDE);
+    auto result = panels_.Find(SOFT_KEYBOARD);
+    if (!result.first) {
+        IMSA_HILOGE("Not find SOFT_KEYBOARD panel.");
+        return;
+    }
+    auto ret = result.second->HidePanel();
+    if (ret != NO_ERROR) {
+        IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
+        return;
+    }
 }
 
 int32_t InputMethodAbility::InsertText(const std::string text)
@@ -565,6 +585,45 @@ void InputMethodAbility::QuitWorkThread()
     if (workThreadHandler.joinable()) {
         workThreadHandler.join();
     }
+}
+
+int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context,
+    const PanelInfo &panelInfo, std::shared_ptr<InputMethodPanel> &inputMethodPanel)
+{
+    IMSA_HILOGI("InputMethodAbility::CreatePanel start.");
+    auto result = panels_.Find(panelInfo.panelType);
+    if (result.first) {
+        IMSA_HILOGE(" type of %{public}d panel already created, can not create another", panelInfo.panelType);
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
+    inputMethodPanel = std::make_shared<InputMethodPanel>();
+    if (inputMethodPanel == nullptr) {
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("CreatePanel failed, ret = %{public}d", ret);
+        return ret;
+    }
+    IMSA_HILOGI("InputMethodAbility::CreatePanel ret = 0, success.");
+    if (!panels_.Insert(panelInfo.panelType, inputMethodPanel)) {
+        IMSA_HILOGE("insert inputMethodPanel fail.");
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
+{
+    if (inputMethodPanel == nullptr) {
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    PanelType panelType = inputMethodPanel->GetPanelType();
+    auto ret = inputMethodPanel->DestroyPanel();
+    if (ret == ErrorCode::NO_ERROR) {
+        panels_.Erase(panelType);
+    }
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

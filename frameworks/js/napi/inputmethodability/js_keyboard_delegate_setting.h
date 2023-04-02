@@ -92,14 +92,9 @@ private:
     static napi_value GetKDInstance(napi_env env, napi_callback_info info, int flag);
     static std::shared_ptr<JsKeyboardDelegateSetting> GetKeyboardDelegateSetting();
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
-    static JsKeyboardDelegateSetting *GetNative(napi_env env, napi_callback_info info);
-    static bool Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
-
-    static std::string GetStringProperty(napi_env env, napi_value jsString);
-    static constexpr int32_t MAX_VALUE_LEN = 1024;
-    static constexpr int32_t MAX_TIMEOUT = 100;
+    static constexpr int32_t MAX_TIMEOUT = 5;
     static const std::string KDS_CLASS_NAME;
     static thread_local napi_ref KDSRef_;
     struct CursorPara {

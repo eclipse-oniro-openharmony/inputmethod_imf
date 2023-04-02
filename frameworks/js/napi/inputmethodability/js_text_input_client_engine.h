@@ -253,21 +253,10 @@ public:
     static napi_value SelectByMovement(napi_env env, napi_callback_info info);
 
 private:
-    static napi_status GetAction(napi_env env, napi_value argv, std::shared_ptr<SendKeyFunctionContext> ctxt);
-    static napi_status GetDeleteForwardLength(
-        napi_env env, napi_value argv, std::shared_ptr<DeleteForwardContext> ctxt);
-    static napi_status GetDeleteBackwardLength(
-        napi_env env, napi_value argv, std::shared_ptr<DeleteBackwardContext> ctxt);
-    static napi_status GetMoveCursorParam(napi_env env, napi_value argv, std::shared_ptr<MoveCursorContext> ctxt);
-    static napi_status GetInsertText(napi_env env, napi_value argv, std::shared_ptr<InsertTextContext> ctxt);
-    static napi_status GetForwardLength(napi_env env, napi_value argv, std::shared_ptr<GetForwardContext> ctxt);
-    static napi_status GetBackwardLength(napi_env env, napi_value argv, std::shared_ptr<GetBackwardContext> ctxt);
     static napi_status GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
     static napi_status GetSelectMovement(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
 
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
-    static int32_t GetNumberProperty(napi_env env, napi_value jsNumber);
-    static std::string GetStringProperty(napi_env env, napi_value jsString);
     static napi_value GetResult(napi_env env, std::string &text);
     static napi_value GetResultEditorAttribute(
         napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);

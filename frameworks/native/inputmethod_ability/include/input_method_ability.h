@@ -18,6 +18,7 @@
 
 #include <thread>
 
+#include "concurrent_map.h"
 #include "i_input_control_channel.h"
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
@@ -28,12 +29,17 @@
 #include "input_data_channel_proxy.h"
 #include "input_method_core_stub.h"
 #include "input_method_engine_listener.h"
+#include "input_method_panel.h"
 #include "input_method_system_ability_proxy.h"
 #include "iremote_object.h"
 #include "keyboard_listener.h"
 #include "message.h"
 #include "message_handler.h"
 #include "utils.h"
+
+namespace OHOS::AbilityRuntime {
+class Context;
+}
 
 namespace OHOS {
 namespace MiscServices {
@@ -66,6 +72,9 @@ public:
     int32_t GetInputPattern(int32_t &inputPattern);
     int32_t GetTextIndexAtCursor(int32_t &index);
     void OnImeReady();
+    int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo,
+        std::shared_ptr<InputMethodPanel> &inputMethodPanel);
+    int32_t DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
 
 private:
     std::thread workThreadHandler;
@@ -117,6 +126,7 @@ private:
     void DismissInputWindow();
     bool isImeReady_{ false };
     InputStartNotifier notifier_;
+    ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
 };
 } // namespace MiscServices
 } // namespace OHOS

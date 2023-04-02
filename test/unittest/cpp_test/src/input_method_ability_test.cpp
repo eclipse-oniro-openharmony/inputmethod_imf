@@ -36,6 +36,7 @@
 #include "input_method_controller.h"
 #include "input_method_core_proxy.h"
 #include "input_method_core_stub.h"
+#include "input_method_panel.h"
 #include "message_handler.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
@@ -717,6 +718,125 @@ HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor_002, TestSize.Level0)
     auto ret = inputMethodAbility_->GetTextIndexAtCursor(index);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(index, end);
+}
+
+/**
+* @tc.name: testCreatePanel001
+* @tc.desc: It's allowed to create one SOFT_KEYBOARD panel, but two is denied.
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodAbilityTest, testCreatePanel001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testCreatePanel001 START. You can not create two SOFT_KEYBOARD panel.");
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
+    EXPECT_TRUE(softKeyboardPanel1 != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel2 = nullptr;
+    ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel2);
+    EXPECT_TRUE(softKeyboardPanel2 == nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_OPERATE_PANEL);
+
+    ret = inputMethodAbility_->DestroyPanel(softKeyboardPanel1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(softKeyboardPanel2);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+}
+
+/**
+* @tc.name: testCreatePanel002
+* @tc.desc: It's allowed to create one STATUS_BAR panel, but two is denied.
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodAbilityTest, testCreatePanel002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testCreatePanel002 START. You can not create two STATUS_BAR panel.");
+    std::shared_ptr<InputMethodPanel> statusBar1 = nullptr;
+    PanelInfo panelInfo = { .panelType = STATUS_BAR };
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, statusBar1);
+    EXPECT_TRUE(statusBar1 != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    std::shared_ptr<InputMethodPanel> statusBar2 = nullptr;
+    ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, statusBar2);
+    EXPECT_TRUE(statusBar2 == nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_OPERATE_PANEL);
+
+    ret = inputMethodAbility_->DestroyPanel(statusBar1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(statusBar2);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+}
+
+/**
+* @tc.name: testCreatePanel003
+* @tc.desc: It's allowed to create one STATUS_BAR panel and one SOFT_KEYBOARD panel.
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodAbilityTest, testCreatePanel003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testCreatePanel006 START. Allowed to create one SOFT_KEYBOARD panel and "
+                "one STATUS_BAR panel.");
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel = nullptr;
+    PanelInfo panelInfo1 = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo1, softKeyboardPanel);
+    EXPECT_TRUE(softKeyboardPanel != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    PanelInfo panelInfo2 = { .panelType = STATUS_BAR };
+    std::shared_ptr<InputMethodPanel> statusBar = nullptr;
+    ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo2, statusBar);
+    EXPECT_TRUE(statusBar != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(softKeyboardPanel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(statusBar);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testCreatePanel004
+* @tc.desc: It's allowed to create one STATUS_BAR panel and one SOFT_KEYBOARD panel.
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodAbilityTest, testCreatePanel004, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testCreatePanel006 START. Allowed to create one SOFT_KEYBOARD panel and "
+                "one STATUS_BAR panel.");
+    std::shared_ptr<InputMethodPanel> inputMethodPanel = nullptr;
+    PanelInfo panelInfo1 = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo1, inputMethodPanel);
+    EXPECT_TRUE(inputMethodPanel != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(inputMethodPanel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    PanelInfo panelInfo2 = { .panelType = STATUS_BAR };
+    ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo2, inputMethodPanel);
+    EXPECT_TRUE(inputMethodPanel != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(inputMethodPanel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    panelInfo1.panelFlag = FLG_FLOATING;
+    ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo1, inputMethodPanel);
+    EXPECT_TRUE(inputMethodPanel != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(inputMethodPanel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

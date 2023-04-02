@@ -113,11 +113,9 @@ public:
 
 private:
     static napi_status GetInputMethodProperty(napi_env env, napi_value argv, std::shared_ptr<ListInputContext> ctxt);
-    static JsGetInputMethodSetting *GetNative(napi_env env, napi_callback_info info);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value GetIMSetting(napi_env env, napi_callback_info info, bool needThrowException);
-    static bool Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     struct UvEntry {

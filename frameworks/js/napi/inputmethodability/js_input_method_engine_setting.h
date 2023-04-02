@@ -27,7 +27,9 @@
 #include "input_method_engine_listener.h"
 #include "input_method_property.h"
 #include "js_callback_object.h"
+#include "js_panel.h"
 #include "napi/native_api.h"
+#include "input_method_panel.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -41,6 +43,8 @@ public:
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static napi_value MoveCursor(napi_env env, napi_callback_info info);
+    static napi_value CreatePanel(napi_env env, napi_callback_info info);
+    static napi_value DestroyPanel(napi_env env, napi_callback_info info);
     void OnInputStart() override;
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStop(const std::string &imeId) override;
@@ -48,18 +52,40 @@ public:
     void OnSetSubtype(const SubProperty &property) override;
 
 private:
+    struct PanelContext : public AsyncCall::Context {
+        int32_t panelType = -1;
+        int32_t panelFlag = 0;
+        JsPanel *jsPanel = nullptr;
+        void *contextPtr = nullptr;
+        napi_ref ref = nullptr;
+        PanelContext() : Context(nullptr, nullptr){};
+        PanelContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
+
+        napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+        {
+            NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+            return Context::operator()(env, argc, argv, self);
+        }
+        napi_status operator()(napi_env env, napi_value *result) override
+        {
+            if (status_ != napi_ok) {
+                output_ = nullptr;
+                return status_;
+            }
+            return Context::operator()(env, result);
+        }
+    };
+
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
-    static JsInputMethodEngineSetting *GetNative(napi_env env, napi_callback_info info);
     static std::shared_ptr<JsInputMethodEngineSetting> GetInputMethodEngineSetting();
-    static bool Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     static napi_value GetIMEInstance(napi_env env, napi_callback_info info, int flag);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     static napi_value GetResultOnSetSubtype(napi_env env, const SubProperty &property);
-    static std::string GetStringProperty(napi_env env, napi_value jsString);
-    static constexpr int32_t MAX_VALUE_LEN = 1024;
+    static napi_ref NewWithRef(napi_env env, size_t argc, napi_value *argv, void **out, napi_value constructor);
+    static void GetNativeContext(napi_env env, NativeValue *nativeContext, void *&contextPtr);
     static const std::string IMES_CLASS_NAME;
     static thread_local napi_ref IMESRef_;
     struct UvEntry {

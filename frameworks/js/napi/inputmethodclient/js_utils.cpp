@@ -17,8 +17,11 @@
 
 namespace OHOS {
 namespace MiscServices {
+constexpr int32_t STR_MAX_LENGTH = 4096;
+constexpr size_t STR_TAIL_LENGTH = 1;
+constexpr size_t ARGC_MAX = 6;
 const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
-    { ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED, EXCEPTION_CONTROLLER},
+    { ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED, EXCEPTION_CONTROLLER },
     { ErrorCode::ERROR_STATUS_PERMISSION_DENIED, EXCEPTION_PERMISSION },
     { ErrorCode::ERROR_REMOTE_CLIENT_DIED, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NOT_FOUND, EXCEPTION_IMCLIENT },
@@ -128,8 +131,8 @@ const std::string JsUtils::ToMessage(int32_t code)
     return "error is out of definition.";
 }
 
-bool JsUtils::TraverseCallback(const std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
-                               ArgsProvider argsProvider)
+bool JsUtils::TraverseCallback(
+    const std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum, ArgsProvider argsProvider)
 {
     bool isResult = false;
     bool isOnKeyEvent = false;
@@ -164,7 +167,7 @@ bool JsUtils::TraverseCallback(const std::vector<std::shared_ptr<JSCallbackObjec
             if (valueType != napi_boolean) {
                 continue;
             }
-            napi_get_value_bool(item->env_, result, &isResult);
+            GetValue(item->env_, result, isResult);
             if (isResult) {
                 isOnKeyEvent = true;
             }
@@ -172,6 +175,95 @@ bool JsUtils::TraverseCallback(const std::vector<std::shared_ptr<JSCallbackObjec
         napi_close_handle_scope(item->env_, scope);
     }
     return isOnKeyEvent;
+}
+
+bool JsUtils::Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId)
+{
+    if (copy == nullptr) {
+        return value == nullptr;
+    }
+
+    if (threadId != std::this_thread::get_id()) {
+        IMSA_HILOGD("napi_value can not be compared");
+        return false;
+    }
+
+    napi_value copyValue = nullptr;
+    napi_get_reference_value(env, copy, &copyValue);
+
+    bool isEquals = false;
+    napi_strict_equals(env, value, copyValue, &isEquals);
+    IMSA_HILOGD("value compare result: %{public}d", isEquals);
+    return isEquals;
+}
+
+void *JsUtils::GetNativeSelf(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_MAX;
+    void *native = nullptr;
+    napi_value self = nullptr;
+    napi_value argv[ARGC_MAX] = { nullptr };
+    napi_status status = napi_invalid_arg;
+    napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
+    NAPI_ASSERT(env, (self != nullptr && argc <= ARGC_MAX), "napi_get_cb_info failed!");
+
+    status = napi_unwrap(env, self, &native);
+    NAPI_ASSERT(env, (status == napi_ok && native != nullptr), "napi_unwrap failed!");
+    return native;
+}
+
+napi_status JsUtils::GetValue(napi_env env, napi_value in, int32_t &out)
+{
+    napi_valuetype type = napi_undefined;
+    napi_status status = napi_typeof(env, in, &type);
+    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_number), "invalid type", status);
+    return napi_get_value_int32(env, in, &out);
+}
+
+/* napi_value <-> uint32_t */
+napi_status JsUtils::GetValue(napi_env env, napi_value in, uint32_t &out)
+{
+    napi_valuetype type = napi_undefined;
+    napi_status status = napi_typeof(env, in, &type);
+    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_number), "invalid type", status);
+    return napi_get_value_uint32(env, in, &out);
+}
+
+napi_status JsUtils::GetValue(napi_env env, napi_value in, bool &out)
+{
+    napi_valuetype type = napi_undefined;
+    napi_status status = napi_typeof(env, in, &type);
+    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_boolean), "invalid type", status);
+    return napi_get_value_bool(env, in, &out);
+}
+
+/* napi_value <-> std::string */
+napi_status JsUtils::GetValue(napi_env env, napi_value in, std::string &out)
+{
+    IMSA_HILOGD("JsUtils get string value in.");
+    napi_valuetype type = napi_undefined;
+    napi_status status = napi_typeof(env, in, &type);
+    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_string), "invalid type", status);
+
+    size_t maxLen = STR_MAX_LENGTH;
+    status = napi_get_value_string_utf8(env, in, NULL, 0, &maxLen);
+    if (maxLen <= 0) {
+        return status;
+    }
+    IMSA_HILOGD("napi_value -> std::string get length %{public}d", maxLen);
+    char *buf = new (std::nothrow) char[maxLen + STR_TAIL_LENGTH];
+    if (buf != nullptr) {
+        size_t len = 0;
+        status = napi_get_value_string_utf8(env, in, buf, maxLen + STR_TAIL_LENGTH, &len);
+        if (status == napi_ok) {
+            buf[len] = 0;
+            out = std::string(buf);
+        }
+        delete[] buf;
+    } else {
+        status = napi_generic_failure;
+    }
+    return status;
 }
 } // namespace MiscServices
 } // namespace OHOS
