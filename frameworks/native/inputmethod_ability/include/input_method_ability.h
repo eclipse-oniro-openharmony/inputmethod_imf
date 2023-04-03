@@ -90,7 +90,8 @@ private:
     void SetCoreAndAgent();
 
     std::mutex dataChannelLock_;
-    sptr<IInputDataChannel> dataChannel_ = nullptr;
+    sptr<IRemoteObject> dataChannelObject_ = nullptr;
+    std::shared_ptr<InputDataChannelProxy> dataChannelProxy_ = nullptr;
     std::shared_ptr<InputMethodEngineListener> imeListener_;
     std::shared_ptr<KeyboardListener> kdListener_;
     static std::mutex instanceLock_;
@@ -106,7 +107,7 @@ private:
     sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
 
     void SetInputDataChannel(sptr<IRemoteObject> &object);
-    sptr<IInputDataChannel> GetInputDataChannel();
+    std::shared_ptr<InputDataChannelProxy> GetInputDataChannelProxy();
     void SetInputControlChannel(sptr<IRemoteObject> &object);
     std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
 

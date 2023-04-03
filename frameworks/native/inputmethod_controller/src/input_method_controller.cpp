@@ -196,6 +196,7 @@ void InputMethodController::WorkThread()
                 textListener_ = nullptr;
                 std::lock_guard<std::mutex> lock(agentLock_);
                 agent_ = nullptr;
+                agentObject_ = nullptr;
                 break;
             }
             case MSG_ID_SEND_KEYBOARD_STATUS: {
@@ -854,10 +855,15 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
     if (agentObject == nullptr) {
         return;
     }
-    if (agent_ != nullptr && agent_->AsObject().GetRefPtr() == agentObject.GetRefPtr()) {
+    if (agentObject_ != nullptr && agentObject_.GetRefPtr() == agentObject.GetRefPtr()) {
         return;
     }
-    agent_ = iface_cast<IInputMethodAgent>(agentObject);
+    std::shared_ptr<IInputMethodAgent> agent = std::make_shared<InputMethodAgentProxy>(agentObject);
+    if (agent == nullptr) {
+        IMSA_HILOGE("failed to new agent proxy");
+    }
+    agentObject_ = agentObject;
+    agent_ = agent;
 }
 
 void InputMethodController::OnSelectByRange(int32_t start, int32_t end)
