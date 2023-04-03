@@ -35,7 +35,8 @@ public:
         std::unique_lock<std::mutex> lock(lock_);
         cv_.wait_for(lock, std::chrono::milliseconds(DEALY_TIME),
             [] { return InputMethodAbilityExecptionTest::isInputStart_; });
-        inputMethodAbility_->dataChannel_ = nullptr;
+        inputMethodAbility_->dataChannelProxy_ = nullptr;
+        inputMethodAbility_->dataChannelObject_ = nullptr;
     }
     static void TearDownTestCase(void)
     {

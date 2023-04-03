@@ -427,7 +427,8 @@ private:
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
     sptr<InputDeathRecipient> deathRecipient_;
     std::mutex agentLock_;
-    sptr<IInputMethodAgent> agent_ = nullptr;
+    sptr<IRemoteObject> agentObject_ = nullptr;
+    std::shared_ptr<IInputMethodAgent> agent_ = nullptr;
     std::mutex textListenerLock_;
     sptr<OnTextChangedListener> textListener_ = nullptr;
     std::u16string mTextString;
