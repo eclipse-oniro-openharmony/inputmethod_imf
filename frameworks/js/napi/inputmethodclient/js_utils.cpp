@@ -250,7 +250,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::string &out)
     if (maxLen <= 0) {
         return status;
     }
-    IMSA_HILOGD("napi_value -> std::string get length %{public}d", maxLen);
+    IMSA_HILOGD("napi_value -> std::string get length %{public}zu", maxLen);
     char *buf = new (std::nothrow) char[maxLen + STR_TAIL_LENGTH];
     if (buf != nullptr) {
         size_t len = 0;
