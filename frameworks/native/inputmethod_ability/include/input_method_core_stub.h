@@ -45,13 +45,16 @@ public:
     int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) override;
     void StopInputService(std::string imeId) override;
     int32_t SetSubtype(const SubProperty &property) override;
+    int32_t ClearDataChannel(const sptr<IInputDataChannel> &channel) override;
     void SetMessageHandler(MessageHandler *msgHandler);
 
 private:
     int userId_;
     MessageHandler *msgHandler_;
+    void InitInputControlChannelOnRemote(MessageParcel &data, MessageParcel &reply);
     void SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
     void ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply);
+    void ClearDataChannelOnRemote(MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
 };

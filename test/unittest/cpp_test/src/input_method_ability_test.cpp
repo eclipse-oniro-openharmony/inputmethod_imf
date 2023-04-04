@@ -25,6 +25,7 @@
 #include <thread>
 #include <vector>
 
+#include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "global.h"
 #include "i_input_data_channel.h"
@@ -39,14 +40,17 @@
 #include "input_method_panel.h"
 #include "message_handler.h"
 #include "nativetoken_kit.h"
+#include "os_account_manager.h"
 #include "token_setproc.h"
 
 using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
+using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
 std::u16string g_textTemp = u"我們我們ddddd";
+constexpr int32_t MAIN_USER_ID = 100;
 class InputMethodAbilityTest : public testing::Test {
 public:
     static std::string imeIdStopped_;
@@ -68,6 +72,8 @@ public:
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     static sptr<InputMethodController> imc_;
     static sptr<InputMethodAbility> inputMethodAbility_;
+    static uint64_t selfTokenID_;
+    static AccessTokenID testTokenID_;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -169,44 +175,63 @@ public:
             IMSA_HILOGI("TextChangeListener, selectionDirection_: %{public}d", selectionDirection_);
         }
     };
-    static void GrantPermission()
+    static void AllocTestTokenID()
     {
-        const char **perms = new const char *[1];
-        perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
-        TokenInfoParams infoInstance = {
-            .dcapsNum = 0,
-            .permsNum = 1,
-            .aclsNum = 0,
-            .dcaps = nullptr,
-            .perms = perms,
-            .acls = nullptr,
-            .processName = "inputmethod_imf",
-            .aplStr = "system_core",
-        };
-        uint64_t tokenId = GetAccessTokenId(&infoInstance);
-        int res = SetSelfTokenID(tokenId);
-        if (res == 0) {
-            IMSA_HILOGI("SetSelfTokenID success!");
-        } else {
-            IMSA_HILOGE("SetSelfTokenID fail!");
+        std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
+        IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
+        std::vector<int32_t> userIds;
+        auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
+        if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
+            IMSA_HILOGE("query active os account id failed");
+            userIds[0] = MAIN_USER_ID;
         }
-        AccessTokenKit::ReloadNativeTokenInfo();
-        delete[] perms;
+        HapInfoParams infoParams = {
+            .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
+        };
+        PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
+            .isGeneral = true,
+            .resDeviceID = { "local" },
+            .grantStatus = { PermissionState::PERMISSION_GRANTED },
+            .grantFlags = { 1 } };
+        HapPolicyParams policyParams = {
+            .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = { permissionState }
+        };
+
+        AccessTokenKit::AllocHapToken(infoParams, policyParams);
+        testTokenID_ = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
+    }
+    static void DeleteTestTokenID()
+    {
+        AccessTokenKit::DeleteToken(testTokenID_);
+    }
+    static void SetTestTokenID()
+    {
+        auto ret = SetSelfTokenID(testTokenID_);
+        IMSA_HILOGI("SetSelfTokenID ret: %{public}d", ret);
+    }
+    static void RestoreSelfTokenID()
+    {
+        auto ret = SetSelfTokenID(selfTokenID_);
+        IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
     }
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodAbilityTest::SetUpTestCase");
-        GrantPermission();
+        selfTokenID_ = GetSelfTokenID();
+        AllocTestTokenID();
+        SetTestTokenID();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->OnImeReady();
         sptr<OnTextChangedListener> textListener = new TextChangeListener();
         imc_ = InputMethodController::GetInstance();
         imc_->Attach(textListener);
+        RestoreSelfTokenID();
     }
     static void TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodAbilityTest::TearDownTestCase");
         imc_->Close();
+        DeleteTestTokenID();
     }
     void SetUp()
     {
@@ -236,6 +261,8 @@ int InputMethodAbilityTest::selectionEnd_ = -1;
 int InputMethodAbilityTest::selectionDirection_ = 0;
 sptr<InputMethodController> InputMethodAbilityTest::imc_;
 sptr<InputMethodAbility> InputMethodAbilityTest::inputMethodAbility_;
+uint64_t InputMethodAbilityTest::selfTokenID_ = 0;
+AccessTokenID InputMethodAbilityTest::testTokenID_ = 0;
 
 /**
 * @tc.name: testSerializedInputAttribute
@@ -447,7 +474,7 @@ HWTEST_F(InputMethodAbilityTest, testSelectByRange, TestSize.Level0)
     constexpr int32_t start = 1;
     constexpr int32_t end = 2;
     auto ret = inputMethodAbility_->SelectByRange(start, end);
-    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::textListenerCallbackLock_);
     InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [] {
         return InputMethodAbilityTest::selectionStart_ == start && InputMethodAbilityTest::selectionEnd_ == end;
     });
@@ -468,7 +495,7 @@ HWTEST_F(InputMethodAbilityTest, testSelectByMovement, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testSelectByMovement START");
     constexpr int32_t direction = 1;
     auto ret = inputMethodAbility_->SelectByMovement(direction);
-    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::textListenerCallbackLock_);
     InputMethodAbilityTest::textListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [] {
         return InputMethodAbilityTest::selectionDirection_
                == direction + InputMethodAbilityTest::CURSOR_DIRECTION_BASE_VALUE;

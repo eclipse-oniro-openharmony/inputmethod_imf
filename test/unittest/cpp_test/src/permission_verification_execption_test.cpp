@@ -65,7 +65,7 @@ void PermissionVerficationExceptionTest::TearDown(void)
 HWTEST_F(PermissionVerficationExceptionTest, ShowSoftKeyboard, TestSize.Level0)
 {
     int32_t ret = PermissionVerficationExceptionTest::imc_->ShowSoftKeyboard();
-    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
 }
 
 /**
@@ -77,7 +77,7 @@ HWTEST_F(PermissionVerficationExceptionTest, ShowSoftKeyboard, TestSize.Level0)
 HWTEST_F(PermissionVerficationExceptionTest, HideSoftKeyboard, TestSize.Level0)
 {
     int32_t ret = PermissionVerficationExceptionTest::imc_->HideSoftKeyboard();
-    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
 }
 
 /**

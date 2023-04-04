@@ -108,6 +108,29 @@ bool ImCommonEventManager::SubscribeKeyboardEvent(KeyHandle handle)
     return true;
 }
 
+bool ImCommonEventManager::SubscribeWindowManagerService(FocusHandle handle)
+{
+    IMSA_HILOGI("run in");
+    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (abilityManager == nullptr) {
+        IMSA_HILOGE("abilityManager is nullptr");
+        return false;
+    }
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener(
+        [handle]() { FocusMonitorManager::GetInstance().RegisterFocusChangedListener(handle); });
+    if (listener == nullptr) {
+        IMSA_HILOGE("failed to create listener");
+        return false;
+    }
+    int32_t ret = abilityManager->SubscribeSystemAbility(WINDOW_MANAGER_SERVICE_ID, listener);
+    if (ret != ERR_OK) {
+        IMSA_HILOGE("subscribe system ability failed, ret = %{public}d", ret);
+        return false;
+    }
+    focusChangeEventListener_ = listener;
+    return true;
+}
+
 bool ImCommonEventManager::UnsubscribeEvent()
 {
     return true;
@@ -186,8 +209,9 @@ ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChan
 void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility(
     int32_t systemAbilityId, const std::string &deviceId)
 {
-    if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID) {
-        IMSA_HILOGE("ImCommonEventManager::OnAddSystemAbility systemAbilityId %{public}d", systemAbilityId);
+    if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID
+        && systemAbilityId != WINDOW_MANAGER_SERVICE_ID) {
+        IMSA_HILOGD("invalid systemAbilityId %{public}d", systemAbilityId);
         return;
     }
     if (func_ != nullptr) {

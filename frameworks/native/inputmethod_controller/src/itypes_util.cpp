@@ -16,6 +16,8 @@
 #include "itypes_util.h"
 
 #include "global.h"
+#include "input_client_proxy.h"
+#include "input_data_channel_proxy.h"
 #include "iremote_object.h"
 
 namespace OHOS {
@@ -141,10 +143,56 @@ bool ITypesUtil::Marshalling(const SubProperty &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.label, output.name, output.id, output.mode, output.locale, output.language,
-            output.icon, output.iconId)) {
+                   output.icon, output.iconId)) {
         IMSA_HILOGE("ITypesUtil::read SubProperty from message parcel failed");
         return false;
     }
+    return true;
+}
+
+bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
+{
+    if (!Marshal(data, input.inputPattern, input.enterKeyType, input.inputOption)) {
+        IMSA_HILOGE("write InputAttribute to message parcel failed");
+        return false;
+    }
+    return true;
+}
+
+bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
+{
+    if (!Unmarshal(data, output.inputPattern, output.enterKeyType, output.inputOption)) {
+        IMSA_HILOGE("read InputAttribute from message parcel failed");
+        return false;
+    }
+    return true;
+}
+
+bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
+{
+    if (!Marshal(data, input.pid, input.uid, input.userID, input.displayID, input.attribute, input.isShowKeyboard,
+            input.isValid, input.isToNotify, input.client->AsObject(), input.channel->AsObject())) {
+        IMSA_HILOGE("write InputClientInfo to message parcel failed");
+        return false;
+    }
+    return true;
+}
+
+bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
+{
+    if (!Unmarshal(data, output.pid, output.uid, output.userID, output.displayID, output.attribute,
+            output.isShowKeyboard, output.isValid, output.isToNotify)) {
+        IMSA_HILOGE("read InputClientInfo from message parcel failed");
+        return false;
+    }
+    auto client = data.ReadRemoteObject();
+    auto channel = data.ReadRemoteObject();
+    if (client == nullptr || channel == nullptr) {
+        IMSA_HILOGE("read remote object failed");
+        return false;
+    }
+    output.client = iface_cast<IInputClient>(client);
+    output.channel = iface_cast<IInputDataChannel>(channel);
     return true;
 }
 } // namespace MiscServices

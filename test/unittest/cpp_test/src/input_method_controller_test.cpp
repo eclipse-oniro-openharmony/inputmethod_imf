@@ -26,6 +26,7 @@
 #include <thread>
 #include <vector>
 
+#include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "global.h"
 #include "i_input_method_agent.h"
@@ -40,39 +41,17 @@
 #include "keyboard_listener.h"
 #include "message_parcel.h"
 #include "nativetoken_kit.h"
+#include "os_account_manager.h"
 #include "system_ability_definition.h"
 #include "token_setproc.h"
 #include "utils.h"
 
 using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
+using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
-    void GrantNativePermission()
-    {
-        const char **perms = new const char *[1];
-        perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
-        TokenInfoParams infoInstance = {
-            .dcapsNum = 0,
-            .permsNum = 1,
-            .aclsNum = 0,
-            .dcaps = nullptr,
-            .perms = perms,
-            .acls = nullptr,
-            .processName = "inputmethod_imf",
-            .aplStr = "system_core",
-        };
-        uint64_t tokenId = GetAccessTokenId(&infoInstance);
-        int res = SetSelfTokenID(tokenId);
-        if (res == 0) {
-            IMSA_HILOGI("SetSelfTokenID success!");
-        } else {
-            IMSA_HILOGE("SetSelfTokenID fail!");
-        }
-        AccessTokenKit::ReloadNativeTokenInfo();
-        delete[] perms;
-    }
-
+constexpr int32_t MAIN_USER_ID = 100;
     class TextListener : public OnTextChangedListener {
     public:
         TextListener()
@@ -199,18 +178,22 @@ namespace MiscServices {
 
     void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
     {
+        IMSA_HILOGI("InputMethodEngineListenerImpl::OnKeyboardStatus %{public}s", isShow ? "show" : "hide");
         keyboardState_ = isShow;
     }
     void InputMethodEngineListenerImpl::OnInputStart()
     {
+        IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStart");
         isInputStart_ = true;
     }
     void InputMethodEngineListenerImpl::OnInputStop(const std::string &imeId)
     {
+        IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStop %{public}s", imeId.c_str());
         isInputStart_ = false;
     }
     void InputMethodEngineListenerImpl::OnSetCallingWindow(uint32_t windowId)
     {
+        IMSA_HILOGI("InputMethodEngineListenerImpl::OnSetCallingWindow %{public}d", windowId);
         windowId_ = windowId;
     }
     void InputMethodEngineListenerImpl::OnSetSubtype(const SubProperty &property)
@@ -222,6 +205,10 @@ namespace MiscServices {
     public:
         static void SetUpTestCase(void);
         static void TearDownTestCase(void);
+        static void AllocTestTokenID();
+        static void DeleteTestTokenID();
+        static void SetTestTokenID();
+        static void RestoreSelfTokenID();
         void SetUp();
         void TearDown();
         static sptr<InputMethodController> inputMethodController_;
@@ -230,6 +217,8 @@ namespace MiscServices {
         static std::shared_ptr<KeyboardListenerImpl> kbListener_;
         static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
         static sptr<OnTextChangedListener> textListener_;
+        static uint64_t selfTokenID_;
+        static AccessTokenID testTokenID_;
     };
     sptr<InputMethodController> InputMethodControllerTest::inputMethodController_;
     sptr<InputMethodAbility> InputMethodControllerTest::inputMethodAbility_;
@@ -237,11 +226,14 @@ namespace MiscServices {
     std::shared_ptr<KeyboardListenerImpl> InputMethodControllerTest::kbListener_;
     std::shared_ptr<InputMethodEngineListenerImpl> InputMethodControllerTest::imeListener_;
     sptr<OnTextChangedListener> InputMethodControllerTest::textListener_;
+    uint64_t InputMethodControllerTest::selfTokenID_ = 0;
+    AccessTokenID InputMethodControllerTest::testTokenID_ = 0;
 
     void InputMethodControllerTest::SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::SetUpTestCase");
-        GrantNativePermission();
+        AllocTestTokenID();
+        SetTestTokenID();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->OnImeReady();
         kbListener_ = std::make_shared<KeyboardListenerImpl>();
@@ -261,6 +253,8 @@ namespace MiscServices {
     void InputMethodControllerTest::TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
+        RestoreSelfTokenID();
+        DeleteTestTokenID();
     }
 
     void InputMethodControllerTest::SetUp(void)
@@ -271,6 +265,50 @@ namespace MiscServices {
     void InputMethodControllerTest::TearDown(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDown");
+    }
+
+    void InputMethodControllerTest::AllocTestTokenID()
+    {
+        std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
+        IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
+        std::vector<int32_t> userIds;
+        auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
+        if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
+            IMSA_HILOGE("query active os account id failed");
+            userIds[0] = MAIN_USER_ID;
+        }
+        HapInfoParams infoParams = {
+            .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
+        };
+        PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
+            .isGeneral = true,
+            .resDeviceID = { "local" },
+            .grantStatus = { PermissionState::PERMISSION_GRANTED },
+            .grantFlags = { 1 } };
+        HapPolicyParams policyParams = {
+            .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = { permissionState }
+        };
+
+        AccessTokenKit::AllocHapToken(infoParams, policyParams);
+        InputMethodControllerTest::testTokenID_ =
+            AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
+    }
+
+    void InputMethodControllerTest::DeleteTestTokenID()
+    {
+        AccessTokenKit::DeleteToken(InputMethodControllerTest::testTokenID_);
+    }
+
+    void InputMethodControllerTest::SetTestTokenID()
+    {
+        auto ret = SetSelfTokenID(InputMethodControllerTest::testTokenID_);
+        IMSA_HILOGI("SetSelfTokenID ret: %{public}d", ret);
+    }
+
+    void InputMethodControllerTest::RestoreSelfTokenID()
+    {
+        auto ret = SetSelfTokenID(InputMethodControllerTest::selfTokenID_);
+        IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
     }
 
     /**
@@ -560,10 +598,8 @@ namespace MiscServices {
         imeListener_->keyboardState_ = true;
         TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         int32_t ret = inputMethodController_->StopInputSession();
-        EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(
-            !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
+        EXPECT_TRUE(!imeListener_->keyboardState_);
     }
 
     /**
@@ -573,55 +609,11 @@ namespace MiscServices {
      */
     HWTEST_F(InputMethodControllerTest, testIMCHideTextInput, TestSize.Level0)
     {
-        IMSA_HILOGI("IMC InputStopSession Test START");
+        IMSA_HILOGI("IMC HideTextInput Test START");
         imeListener_->keyboardState_ = true;
         TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         inputMethodController_->HideTextInput();
-        EXPECT_TRUE(TextListener::WaitIMACallback());
-        EXPECT_TRUE(
-            !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
-    }
-
-    /**
-     * @tc.name: testIMCClose.
-     * @tc.desc: IMC Close.
-     * @tc.type: FUNC
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCClose, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC Close Test START");
-        imeListener_->keyboardState_ = true;
-        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
-        inputMethodController_->Close();
-
-        bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
-        EXPECT_FALSE(ret);
-
-        auto ret1 = inputMethodController_->ShowSoftKeyboard();
-        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
-
-        ret1 = inputMethodController_->HideSoftKeyboard();
-        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
-
-        ret1 = inputMethodController_->StopInputSession();
-        EXPECT_EQ(ret1, ErrorCode::ERROR_CLIENT_NOT_FOUND);
-    }
-
-    /**
-     * @tc.name: testDeathRecipient
-     * @tc.desc: test DeathRecipient.
-     * @tc.type: FUNC
-     */
-    HWTEST_F(InputMethodControllerTest, testDeathRecipient, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC OnRemoteDied Test START");
-        auto deadObject = new ImsaDeathRecipient();
-        sptr<ISystemAbilityManager> systemAbilityManager =
-            SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
-        deadObject->OnRemoteDied(systemAbility);
-        InputMethodController::GetInstance()->OnRemoteSaDied(systemAbility);
-        delete deadObject;
+        EXPECT_TRUE(!imeListener_->keyboardState_);
     }
 } // namespace MiscServices
 } // namespace OHOS

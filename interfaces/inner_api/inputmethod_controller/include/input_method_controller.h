@@ -16,6 +16,7 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_CONTROLLER_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_CONTROLLER_H
 
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -26,6 +27,7 @@
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
+#include "input_client_info.h"
 #include "input_method_property.h"
 #include "input_method_setting_listener.h"
 #include "input_method_status.h"
@@ -52,14 +54,6 @@ public:
     virtual void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) = 0;
 };
 
-class ImsaDeathRecipient : public IRemoteObject::DeathRecipient {
-public:
-    explicit ImsaDeathRecipient();
-    ~ImsaDeathRecipient() = default;
-
-    void OnRemoteDied(const wptr<IRemoteObject> &object) override;
-};
-
 class InputMethodController : public RefBase {
 public:
     /**
@@ -79,9 +73,10 @@ public:
      * default state is 'true', default attribute is 'InputAttribute::PATTERN_TEXT'.
      *
      * @param listener Indicates the listener in order to manipulate text.
+     * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API void Attach(sptr<OnTextChangedListener> &listener);
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener);
 
     /**
      * @brief Set listener and bind IMSA with given states and default attribute.
@@ -91,9 +86,10 @@ public:
      *
      * @param listener          Indicates the listener in order to manipulate text.
      * @param isShowKeyboard    Indicates the state, if you want to show soft keyboard, please pass in true.
+     * @return Returns 0 for success, others for failure.
      * @since 8
      */
-    IMF_API void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard);
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard);
 
     /**
      * @brief Set listener and bind IMSA with given states and attribute.
@@ -104,9 +100,10 @@ public:
      * @param listener          Indicates the listener in order to manipulate text.
      * @param isShowKeyboard    Indicates the state, if you want to show soft keyboard, please pass in true.
      * @param attribute         Indicates the attribute, such as input pattern, enter eyType, input option.
+     * @return Returns 0 for success, others for failure.
      * @since 8
      */
-    IMF_API void Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, InputAttribute &attribute);
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const InputAttribute &attribute);
 
     /**
      * @brief Get text before cursor.
@@ -138,9 +135,10 @@ public:
      *
      * This function is used to show soft keyboard of current client.
      *
+     * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API void ShowTextInput();
+    IMF_API int32_t ShowTextInput();
 
     /**
      * @brief Hide soft keyboard.
@@ -160,16 +158,6 @@ public:
      * @since 6
      */
     IMF_API void Close();
-
-    /**
-     * @brief A callback function when input method service died.
-     *
-     * This function is the callback when input method service died.
-     *
-     * @param object Remote object.
-     * @since 6
-     */
-    void OnRemoteSaDied(const wptr<IRemoteObject> &object);
 
     /**
      * @brief A callback function when the cursor changes.
@@ -208,10 +196,10 @@ public:
      *
      * This function is used to set InputMethodSettingListener  listener to facilitate listening input method changes.
      *
-     * @param imeListener Indicates the listener to be set.
+     * @param listener Indicates the listener to be set.
      * @since 6
      */
-    IMF_API void SetImeListener(std::shared_ptr<InputMethodSettingListener> imeListener);
+    IMF_API void SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener);
     IMF_API void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
 
     /**
@@ -416,36 +404,33 @@ private:
 
     bool Initialize();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
-    void PrepareInput(
-        int32_t displayId, sptr<IInputClient> &client, sptr<IInputDataChannel> &channel, InputAttribute &attribute);
-    void StartInput(sptr<IInputClient> &client, bool isShowKeyboard);
+    int32_t PrepareInput(InputClientInfo &inputClientInfo);
+    int32_t StartInput(sptr<IInputClient> &client, bool isShowKeyboard);
     void StopInput(sptr<IInputClient> &client);
     void ReleaseInput(sptr<IInputClient> &client);
-    void SetInputMethodAgent(sptr<IRemoteObject> &object);
     void OnSwitchInput(const Property &property, const SubProperty &subProperty);
     void WorkThread();
     void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
+    void OnInputReady(sptr<IRemoteObject> agentObject);
     void OnSelectByRange(int32_t start, int32_t end);
     void OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip);
     void HandleExtendAction(int32_t action);
     void HandleGetOperation();
     bool IsCorrectParam(int32_t number);
     void DoIncrease(int32_t status);
+    void OnRemoteSaDied(const wptr<IRemoteObject> &object);
 
-    sptr<IInputDataChannel> mInputDataChannel;
-    std::shared_ptr<InputMethodSettingListener> imeListener_;
+    std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
-    sptr<IInputClient> mClient;
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
-    sptr<ImsaDeathRecipient> deathRecipient_;
+    sptr<InputDeathRecipient> deathRecipient_;
     std::mutex agentLock_;
-    std::shared_ptr<IInputMethodAgent> mAgent = nullptr;
+    sptr<IRemoteObject> agentObject_ = nullptr;
+    std::shared_ptr<IInputMethodAgent> agent_ = nullptr;
     std::mutex textListenerLock_;
-    sptr<OnTextChangedListener> textListener;
-    sptr<IRemoteObject> agentRemoteObject_ = nullptr;
-    InputAttribute mAttribute;
+    sptr<OnTextChangedListener> textListener_ = nullptr;
     std::u16string mTextString;
     int mSelectOldBegin = 0;
     int mSelectOldEnd = 0;
@@ -456,12 +441,14 @@ private:
     static std::mutex instanceLock_;
     static sptr<InputMethodController> instance_;
     std::thread workThreadHandler;
-    MessageHandler *msgHandler;
+    MessageHandler *msgHandler_;
     bool stop_;
     int32_t enterKeyType_ = 0;
     int32_t inputPattern_ = 0;
 
-    bool isStopInput{ true };
+    std::atomic_bool isEditable_{ false };
+    std::atomic_bool isBond_{ false };
+    InputClientInfo clientInfo_;
 
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     std::mutex textFieldReplyCountLock_;
