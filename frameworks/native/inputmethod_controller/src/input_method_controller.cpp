@@ -431,6 +431,7 @@ void InputMethodController::Close()
     }
     std::lock_guard<std::mutex> lock(agentLock_);
     agent_ = nullptr;
+    agentObject_ = nullptr;
     IMSA_HILOGD("InputMethodController, run end");
 }
 
@@ -712,7 +713,7 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
     }
     std::lock_guard<std::mutex> lock(agentLock_);
     if (agent_ == nullptr) {
-        IMSA_HILOGI("InputMethodController::dispatchKeyEvent mAgent is nullptr");
+        IMSA_HILOGI("agent is nullptr");
         return false;
     }
     MessageParcel data;
@@ -853,9 +854,11 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
     IMSA_HILOGI("InputMethodController run in");
     std::lock_guard<std::mutex> lk(agentLock_);
     if (agentObject == nullptr) {
+        IMSA_HILOGE("agentObject is nullptr");
         return;
     }
     if (agentObject_ != nullptr && agentObject_.GetRefPtr() == agentObject.GetRefPtr()) {
+        IMSA_HILOGI("agent has already been set");
         return;
     }
     std::shared_ptr<IInputMethodAgent> agent = std::make_shared<InputMethodAgentProxy>(agentObject);

@@ -52,38 +52,6 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t MAIN_USER_ID = 100;
-void InitTestConfiguration()
-{
-    std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-    IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
-    std::vector<int32_t> userIds;
-    auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
-    if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
-        IMSA_HILOGE("query active os account id failed");
-        userIds[0] = MAIN_USER_ID;
-    }
-    HapInfoParams infoParams = {
-        .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
-    };
-    PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
-        .isGeneral = true,
-        .resDeviceID = { "local" },
-        .grantStatus = { PermissionState::PERMISSION_GRANTED },
-        .grantFlags = { 1 } };
-    HapPolicyParams policyParams = {
-        .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = { permissionState }
-    };
-
-    AccessTokenKit::AllocHapToken(infoParams, policyParams);
-    auto tokenID = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
-    int res = SetSelfTokenID(tokenID);
-    if (res == ErrorCode::NO_ERROR) {
-        IMSA_HILOGI("SetSelfTokenID success!");
-    } else {
-        IMSA_HILOGE("SetSelfTokenID fail!");
-    }
-}
-
     class TextListener : public OnTextChangedListener {
     public:
         TextListener()
@@ -233,6 +201,10 @@ void InitTestConfiguration()
     public:
         static void SetUpTestCase(void);
         static void TearDownTestCase(void);
+        static void AllocTestTokenID();
+        static void DeleteTestTokenID();
+        static void SetTestTokenID();
+        static void RestoreSelfTokenID();
         void SetUp();
         void TearDown();
         static sptr<InputMethodController> inputMethodController_;
@@ -241,6 +213,8 @@ void InitTestConfiguration()
         static std::shared_ptr<KeyboardListenerImpl> kbListener_;
         static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
         static sptr<OnTextChangedListener> textListener_;
+        static uint64_t selfTokenID_;
+        static AccessTokenID testTokenID_;
     };
     sptr<InputMethodController> InputMethodControllerTest::inputMethodController_;
     sptr<InputMethodAbility> InputMethodControllerTest::inputMethodAbility_;
@@ -248,11 +222,14 @@ void InitTestConfiguration()
     std::shared_ptr<KeyboardListenerImpl> InputMethodControllerTest::kbListener_;
     std::shared_ptr<InputMethodEngineListenerImpl> InputMethodControllerTest::imeListener_;
     sptr<OnTextChangedListener> InputMethodControllerTest::textListener_;
+    uint64_t InputMethodControllerTest::selfTokenID_ = 0;
+    AccessTokenID InputMethodControllerTest::testTokenID_ = 0;
 
     void InputMethodControllerTest::SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::SetUpTestCase");
-        InitTestConfiguration();
+        AllocTestTokenID();
+        SetTestTokenID();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->OnImeReady();
         kbListener_ = std::make_shared<KeyboardListenerImpl>();
@@ -272,6 +249,8 @@ void InitTestConfiguration()
     void InputMethodControllerTest::TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
+        RestoreSelfTokenID();
+        DeleteTestTokenID();
     }
 
     void InputMethodControllerTest::SetUp(void)
@@ -282,6 +261,50 @@ void InitTestConfiguration()
     void InputMethodControllerTest::TearDown(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDown");
+    }
+
+    void InputMethodControllerTest::AllocTestTokenID()
+    {
+        std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
+        IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
+        std::vector<int32_t> userIds;
+        auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
+        if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
+            IMSA_HILOGE("query active os account id failed");
+            userIds[0] = MAIN_USER_ID;
+        }
+        HapInfoParams infoParams = {
+            .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
+        };
+        PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
+            .isGeneral = true,
+            .resDeviceID = { "local" },
+            .grantStatus = { PermissionState::PERMISSION_GRANTED },
+            .grantFlags = { 1 } };
+        HapPolicyParams policyParams = {
+            .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = { permissionState }
+        };
+
+        AccessTokenKit::AllocHapToken(infoParams, policyParams);
+        InputMethodControllerTest::testTokenID_ =
+            AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
+    }
+
+    void InputMethodControllerTest::DeleteTestTokenID()
+    {
+        AccessTokenKit::DeleteToken(InputMethodControllerTest::testTokenID_);
+    }
+
+    void InputMethodControllerTest::SetTestTokenID()
+    {
+        auto ret = SetSelfTokenID(InputMethodControllerTest::testTokenID_);
+        IMSA_HILOGI("SetSelfTokenID ret: %{public}d", ret);
+    }
+
+    void InputMethodControllerTest::RestoreSelfTokenID()
+    {
+        auto ret = SetSelfTokenID(InputMethodControllerTest::selfTokenID_);
+        IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
     }
 
     /**

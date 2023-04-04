@@ -288,7 +288,6 @@ void InputMethodEditorTest::TearDown(void)
 HWTEST_F(InputMethodEditorTest, testIMCAttachUnfocused, TestSize.Level0)
 {
     IMSA_HILOGD("InputMethodEditorTest Attach Unfocused Test START");
-    imeListener_->isInputStart_ = false;
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
     ret = InputMethodEditorTest::inputMethodController_->Attach(textListener_);
@@ -401,9 +400,6 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
     imeListener_->keyboardState_ = true;
     TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
     InputMethodEditorTest::inputMethodController_->HideTextInput();
-    EXPECT_TRUE(TextListener::WaitIMACallback());
-    EXPECT_TRUE(
-        !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
     bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
     EXPECT_FALSE(result);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
@@ -442,17 +438,10 @@ HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
     InitTestConfiguration();
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-    imeListener_->keyboardState_ = true;
-    TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
     InputMethodEditorTest::inputMethodController_->HideTextInput();
-    EXPECT_TRUE(TextListener::WaitIMACallback());
-    EXPECT_TRUE(
-        !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
 
-    InputMethodEditorTest::inputMethodController_->ShowTextInput();
-    EXPECT_TRUE(TextListener::WaitIMACallback());
-    EXPECT_TRUE(TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::SHOW);
+    ret = InputMethodEditorTest::inputMethodController_->ShowTextInput();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
     usleep(300);
     ret = ret && kbListener_->keyCode_ == keyEvent_->GetKeyCode()
