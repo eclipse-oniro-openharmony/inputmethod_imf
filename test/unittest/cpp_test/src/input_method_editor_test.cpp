@@ -127,13 +127,13 @@ public:
     void SendKeyboardInfo(const KeyboardInfo &status)
     {
         IMSA_HILOGD("TextListener::SendKeyboardInfo %{public}d", status.GetKeyboardStatus());
-        constexpr int32_t INTERVAL = 20;
+        constexpr int32_t interval = 20;
         {
             std::unique_lock<std::mutex> lock(cvMutex_);
             IMSA_HILOGD("TextListener::SendKeyboardInfo lock");
             keyboardInfo_ = status;
         }
-        serviceHandler_->PostTask([this]() { cv_.notify_all(); }, INTERVAL);
+        serviceHandler_->PostTask([this]() { cv_.notify_all(); }, interval);
         IMSA_HILOGD("TextListener::SendKeyboardInfo notify_all");
     }
     void MoveCursor(const Direction direction)
@@ -259,10 +259,10 @@ void InputMethodEditorTest::SetUpTestCase(void)
     inputMethodController_ = InputMethodController::GetInstance();
 
     keyEvent_ = MMI::KeyEvent::Create();
-    constexpr int32_t KEY_ACTION = 2;
-    constexpr int32_t KEY_CODE = 2001;
-    keyEvent_->SetKeyAction(KEY_ACTION);
-    keyEvent_->SetKeyCode(KEY_CODE);
+    constexpr int32_t keyAction = 2;
+    constexpr int32_t keyCode = 2001;
+    keyEvent_->SetKeyAction(keyAction);
+    keyEvent_->SetKeyCode(keyCode);
 }
 
 void InputMethodEditorTest::TearDownTestCase(void)

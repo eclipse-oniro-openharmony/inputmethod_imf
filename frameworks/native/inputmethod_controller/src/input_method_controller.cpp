@@ -153,35 +153,41 @@ void InputMethodController::WorkThread()
         std::lock_guard<std::mutex> lock(textListenerLock_);
         switch (msg->msgId_) {
             case MSG_ID_INSERT_CHAR: {
-                MessageParcel *data = msg->msgContent_;
-                IMSA_HILOGI("InputMethodController::WorkThread InsertText");
-                if (isEditable_.load() && textListener_ != nullptr) {
-                    textListener_->InsertText(data->ReadString16());
-                    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-                    textFieldReplyCount_++;
+                IMSA_HILOGI("insert text");
+                if (!isEditable_.load() || textListener_ == nullptr) {
+                    IMSA_HILOGE("not editable or textListener is nullptr");
+                    break;
                 }
+                MessageParcel *data = msg->msgContent_;
+                textListener_->InsertText(data->ReadString16());
+                std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+                textFieldReplyCount_++;
                 break;
             }
             case MSG_ID_DELETE_FORWARD: {
-                MessageParcel *data = msg->msgContent_;
-                IMSA_HILOGI("InputMethodController::WorkThread DeleteForward");
-                if (isEditable_.load() && textListener_ != nullptr) {
-                    // reverse for compatibility
-                    textListener_->DeleteBackward(data->ReadInt32());
-                    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-                    textFieldReplyCount_++;
+                IMSA_HILOGI("delete forward");
+                if (!isEditable_.load() || textListener_ == nullptr) {
+                    IMSA_HILOGE("not editable or textListener is nullptr");
+                    break;
                 }
+                MessageParcel *data = msg->msgContent_;
+                // reverse for compatibility
+                textListener_->DeleteBackward(data->ReadInt32());
+                std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+                textFieldReplyCount_++;
                 break;
             }
             case MSG_ID_DELETE_BACKWARD: {
-                MessageParcel *data = msg->msgContent_;
-                IMSA_HILOGI("InputMethodController::WorkThread DeleteBackward");
-                if (isEditable_.load() && textListener_ != nullptr) {
-                    // reverse for compatibility
-                    textListener_->DeleteForward(data->ReadInt32());
-                    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-                    textFieldReplyCount_++;
+                IMSA_HILOGI("delete backward");
+                if (!isEditable_.load() || textListener_ == nullptr) {
+                    IMSA_HILOGE("not editable or textListener is nullptr");
+                    break;
                 }
+                MessageParcel *data = msg->msgContent_;
+                // reverse for compatibility
+                textListener_->DeleteForward(data->ReadInt32());
+                std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+                textFieldReplyCount_++;
                 break;
             }
             case MSG_ID_ON_INPUT_READY: {
@@ -191,7 +197,7 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_ON_INPUT_STOP: {
-                IMSA_HILOGI("on input stop");
+                IMSA_HILOGI("input stop");
                 isEditable_.store(false);
                 textListener_ = nullptr;
                 std::lock_guard<std::mutex> lock(agentLock_);
@@ -200,36 +206,42 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_SEND_KEYBOARD_STATUS: {
-                MessageParcel *data = msg->msgContent_;
-                KeyboardInfo *info = new KeyboardInfo();
-                info->SetKeyboardStatus(data->ReadInt32());
-                IMSA_HILOGI("MSG_ID_SEND_KEYBOARD_STATUS");
-                if (isEditable_.load() && textListener_ != nullptr) {
-                    textListener_->SendKeyboardInfo(*info);
+                IMSA_HILOGI("send keyboard status");
+                if (!isEditable_.load() || textListener_ == nullptr) {
+                    IMSA_HILOGE("not editable or textListener is nullptr");
+                    break;
                 }
+                MessageParcel *data = msg->msgContent_;
+                auto info = new KeyboardInfo();
+                info->SetKeyboardStatus(data->ReadInt32());
+                textListener_->SendKeyboardInfo(*info);
                 delete info;
                 break;
             }
             case MSG_ID_SEND_FUNCTION_KEY: {
+                IMSA_HILOGI("send fuction key");
+                if (!isEditable_.load() || textListener_ == nullptr) {
+                    IMSA_HILOGE("not editable or textListener_ is nullptr");
+                    break;
+                }
                 MessageParcel *data = msg->msgContent_;
                 KeyboardInfo *info = new KeyboardInfo();
                 info->SetFunctionKey(data->ReadInt32());
-                IMSA_HILOGI("MSG_ID_SEND_FUNCTION_KEY");
-                if (isEditable_.load() && textListener_ != nullptr) {
-                    textListener_->SendKeyboardInfo(*info);
-                }
+                textListener_->SendKeyboardInfo(*info);
                 delete info;
                 break;
             }
             case MSG_ID_MOVE_CURSOR: {
-                MessageParcel *data = msg->msgContent_;
-                IMSA_HILOGI("InputMethodController::WorkThread MoveCursor");
-                if (isEditable_.load() && textListener_ != nullptr) {
-                    Direction direction = static_cast<Direction>(data->ReadInt32());
-                    textListener_->MoveCursor(direction);
-                    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-                    textFieldReplyCount_++;
+                IMSA_HILOGI("move cursor");
+                if (!isEditable_.load() || textListener_ == nullptr) {
+                    IMSA_HILOGE("not editable or textListener_ is nullptr");
+                    break;
                 }
+                MessageParcel *data = msg->msgContent_;
+                Direction direction = static_cast<Direction>(data->ReadInt32());
+                textListener_->MoveCursor(direction);
+                std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+                textFieldReplyCount_++;
                 break;
             }
             case MSG_ID_ON_SWITCH_INPUT: {
@@ -872,12 +884,12 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
 void InputMethodController::OnSelectByRange(int32_t start, int32_t end)
 {
     IMSA_HILOGI("InputMethodController run in");
-    if (textListener_ != nullptr) {
+    if (isEditable_.load() && textListener_ != nullptr) {
         textListener_->HandleSetSelection(start, end);
         std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
         textFieldReplyCount_++;
     } else {
-        IMSA_HILOGE("textListener is nullptr");
+        IMSA_HILOGE("not editable or textListener_ is nullptr");
     }
 
     if (controllerListener_ != nullptr) {
@@ -890,12 +902,12 @@ void InputMethodController::OnSelectByRange(int32_t start, int32_t end)
 void InputMethodController::OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip)
 {
     IMSA_HILOGI("InputMethodController run in");
-    if (textListener_ != nullptr) {
+    if (isEditable_.load() && textListener_ != nullptr) {
         textListener_->HandleSelect(CURSOR_DIRECTION_BASE_VALUE + direction, cursorMoveSkip);
         std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
         textFieldReplyCount_++;
     } else {
-        IMSA_HILOGE("textListener is nullptr");
+        IMSA_HILOGE("not editable or textListener_ is nullptr");
     }
 
     if (controllerListener_ != nullptr) {
@@ -908,8 +920,8 @@ void InputMethodController::OnSelectByMovement(int32_t direction, int32_t cursor
 void InputMethodController::HandleExtendAction(int32_t action)
 {
     IMSA_HILOGI("InputMethodController run in");
-    if (textListener_ == nullptr) {
-        IMSA_HILOGE("textListener is nullptr");
+    if (!isEditable_.load() || textListener_ == nullptr) {
+        IMSA_HILOGE("not editable or textListener_ is nullptr");
         return;
     }
     textListener_->HandleExtendAction(action);

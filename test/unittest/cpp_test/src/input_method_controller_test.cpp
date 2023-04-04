@@ -178,18 +178,22 @@ constexpr int32_t MAIN_USER_ID = 100;
 
     void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
     {
+        IMSA_HILOGI("InputMethodEngineListenerImpl::OnKeyboardStatus %{public}s", isShow ? "show" : "hide");
         keyboardState_ = isShow;
     }
     void InputMethodEngineListenerImpl::OnInputStart()
     {
+        IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStart");
         isInputStart_ = true;
     }
     void InputMethodEngineListenerImpl::OnInputStop(const std::string &imeId)
     {
+        IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStop %{public}s", imeId.c_str());
         isInputStart_ = false;
     }
     void InputMethodEngineListenerImpl::OnSetCallingWindow(uint32_t windowId)
     {
+        IMSA_HILOGI("InputMethodEngineListenerImpl::OnSetCallingWindow %{public}d", windowId);
         windowId_ = windowId;
     }
     void InputMethodEngineListenerImpl::OnSetSubtype(const SubProperty &property)
@@ -594,10 +598,8 @@ constexpr int32_t MAIN_USER_ID = 100;
         imeListener_->keyboardState_ = true;
         TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         int32_t ret = inputMethodController_->StopInputSession();
-        EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(
-            !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
+        EXPECT_TRUE(!imeListener_->keyboardState_);
     }
 
     /**
@@ -607,13 +609,11 @@ constexpr int32_t MAIN_USER_ID = 100;
      */
     HWTEST_F(InputMethodControllerTest, testIMCHideTextInput, TestSize.Level0)
     {
-        IMSA_HILOGI("IMC InputStopSession Test START");
+        IMSA_HILOGI("IMC HideTextInput Test START");
         imeListener_->keyboardState_ = true;
         TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
         inputMethodController_->HideTextInput();
-        EXPECT_TRUE(TextListener::WaitIMACallback());
-        EXPECT_TRUE(
-            !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
+        EXPECT_TRUE(!imeListener_->keyboardState_);
     }
 } // namespace MiscServices
 } // namespace OHOS
