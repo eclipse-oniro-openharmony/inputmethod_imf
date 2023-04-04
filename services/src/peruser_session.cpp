@@ -166,15 +166,6 @@ int32_t PerUserSession::ShowKeyboard(
 int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &inputClient)
 {
     IMSA_HILOGD("PerUserSession::HideKeyboard");
-    auto client = GetCurrentClient();
-    if (client == nullptr || inputClient == nullptr) {
-        IMSA_HILOGE("client is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-    if (client->AsObject().GetRefPtr() == inputClient->AsObject().GetRefPtr()) {
-        IMSA_HILOGE("not current client");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
     sptr<IInputMethodCore> core = GetImsCore(CURRENT_IME);
     if (core == nullptr) {
         IMSA_HILOGE("imsCore is nullptr");
