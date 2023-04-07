@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 import hilog from '@ohos.hilog';
-import AbilityStage from "@ohos.app.ability.AbilityStage"
+import AbilityStage from '@ohos.app.ability.AbilityStage';
 
 export default class MyAbilityStage extends AbilityStage {
-    onCreate() {
-        hilog.isLoggable(0x0000, '[InputMethodChooseDialog]', hilog.LogLevel.INFO);
-        hilog.info(0x0000, '[InputMethodChooseDialog]', '%{public}s', 'AbilityStage onCreate');
-    }
+  onCreate() {
+    hilog.isLoggable(0x0000, '[InputMethodChooseDialog]', hilog.LogLevel.INFO);
+    hilog.info(0x0000, '[InputMethodChooseDialog]', '%{public}s', 'AbilityStage onCreate');
+  }
 }

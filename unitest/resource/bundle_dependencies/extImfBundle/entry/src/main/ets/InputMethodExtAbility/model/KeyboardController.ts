@@ -13,55 +13,56 @@
  * limitations under the License.
  */
 
-import inputMethodEngine from '@ohos.inputMethodEngine'
+import inputMethodEngine from '@ohos.inputMethodEngine';
 
-globalThis.inputEngine = inputMethodEngine.getInputMethodAbility()
+let TAG: string = 'inputDemo: KeyboardController ';
 
 export class KeyboardController {
-    private TAG: string = 'inputDemo: KeyboardController ';
+  mContext;
 
-    constructor(context) {
-        this.addLog('constructor');
-        this.mContext = context;
-    }
+  constructor(context) {
+    this.addLog('constructor');
+    globalThis.inputEngine = inputMethodEngine.getInputMethodAbility();
+    this.mContext = context;
+  }
 
-    public onCreate(): void {
-        this.addLog('onCreate');
-        this.registerListener();
-    }
+  public onCreate(): void {
+    this.addLog('onCreate');
+    this.registerListener();
+  }
 
-    private registerListener(): void {
-        this.addLog('registerListener')
-        this.registerInputListener();
-    }
+  private registerListener(): void {
+    this.addLog('registerListener');
+    this.registerInputListener();
+  }
 
-    private registerInputListener() {
-        globalThis.inputEngine.on('inputStart', (kbController, textInputClient) => {
-            globalThis.textInputClient = textInputClient;
-            globalThis.keyboardController = kbController;
-        })
-        globalThis.inputEngine.on('inputStop', (imeId) => {
-            this.addLog("[inputDemo] inputStop:" + imeId);
-            if (imeId == "com.example.kikainput/InputDemoService") {
-                this.onDestroy();
-            }
-        });
-    }
+  private registerInputListener() {
+    globalThis.inputEngine.on('inputStart', (kbController, textInputClient) => {
+      globalThis.textInputClient = textInputClient;
+      globalThis.keyboardController = kbController;
+    });
+    globalThis.inputEngine.on('inputStop', (imeId) => {
+      this.addLog("[inputDemo] inputStop:" + imeId);
+      if (imeId == "com.example.kikainput/InputDemoService") {
+        this.onDestroy();
+      }
+    });
+  }
 
-    private unRegisterListener(): void {
-        this.addLog("unRegisterListener");
-        globalThis.inputEngine.off('inputStart');
-        globalThis.inputEngine.off('inputStop');
-    }
+  private unRegisterListener(): void {
+    this.addLog("unRegisterListener");
+    globalThis.inputEngine.off('inputStart');
+    globalThis.inputEngine.off('inputStop');
+  }
 
-    public onDestroy(): void {
-        this.addLog('onDestroy');
-        this.unRegisterListener();
-        this.mContext.destroy();
-    }
+  public onDestroy(): void {
+    this.addLog('onDestroy');
+    this.unRegisterListener();
+    this.mContext.destroy();
+  }
 
-    private addLog(message): void {
-        console.log(this.TAG + message)
-    }
+  private addLog(message): void {
+    console.log(TAG + message);
+  }
 }
 
