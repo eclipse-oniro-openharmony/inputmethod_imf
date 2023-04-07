@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-import ImeExtension from '@ohos.InputMethodExtensionAbility'
-import {KeyboardController} from './model/KeyboardController'
+import ImeExtension from '@ohos.InputMethodExtensionAbility';
+import {KeyboardController} from './model/KeyboardController';
 
 export default class InputMethodExtAbility extends ImeExtension {
-    private keyboardController: KeyboardController;
+  private keyboardController: KeyboardController;
 
-    onCreate(want) {
-        console.log(`InputMethodExtAbility onCreate, want: ${want.abilityName}`);
-        this.keyboardController = new KeyboardController(this.context);
-        this.keyboardController.onCreate();
-    }
+  onCreate(want) {
+    console.log(`InputMethodExtAbility onCreate, want: ${want.abilityName}`);
+    this.keyboardController = new KeyboardController(this.context);
+    this.keyboardController.onCreate();
+  }
 
-    onDestroy() {
-        console.log(`InputMethodExtAbility onDestroy`);
-    }
+  onDestroy() {
+    console.log(`InputMethodExtAbility onDestroy`);
+  }
 }
