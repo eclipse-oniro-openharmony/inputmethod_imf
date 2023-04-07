@@ -96,6 +96,10 @@ namespace MiscServices {
     int32_t InputMethodAbility::SetCoreAndAgent()
     {
         IMSA_HILOGI("InputMethodAbility, run in");
+        if (isBond_.load()) {
+            IMSA_HILOGD("already bond");
+            return ErrorCode::NO_ERROR;
+        }
         mImms = GetImsaProxy();
         if (mImms == nullptr) {
             IMSA_HILOGI("mImms is nullptr");
@@ -108,8 +112,13 @@ namespace MiscServices {
         inputMethodAgentStub->SetMessageHandler(msgHandler);
         sptr<IInputMethodAgent> inputMethodAgent = sptr(new InputMethodAgentProxy(inputMethodAgentStub));
         int32_t ret = mImms->SetCoreAndAgent(stub, inputMethodAgent);
-        IMSA_HILOGI("set result: %{public}d", ret);
-        return ret;
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("set failed, ret: %{public}d", ret);
+            return ret;
+        }
+        isBond_.store(true);
+        IMSA_HILOGD("set successfully");
+        return ErrorCode::NO_ERROR;
     }
 
     void InputMethodAbility::Initialize()

@@ -16,23 +16,25 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_INPUT_METHOD_ABILITY_H
 #define FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_INPUT_METHOD_ABILITY_H
 
+#include <atomic>
 #include <thread>
-#include "iremote_object.h"
+
 #include "i_input_control_channel.h"
-#include "i_input_method_core.h"
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
-#include "input_method_core_stub.h"
+#include "i_input_method_core.h"
+#include "input_attribute.h"
+#include "input_channel.h"
 #include "input_control_channel_proxy.h"
 #include "input_data_channel_proxy.h"
-#include "input_attribute.h"
-#include "message_handler.h"
-#include "input_channel.h"
-#include "message.h"
-#include "utils.h"
-#include "input_method_system_ability_proxy.h"
+#include "input_method_core_stub.h"
 #include "input_method_engine_listener.h"
+#include "input_method_system_ability_proxy.h"
+#include "iremote_object.h"
 #include "keyboard_listener.h"
+#include "message.h"
+#include "message_handler.h"
+#include "utils.h"
 #include "visibility.h"
 
 namespace OHOS {
@@ -113,6 +115,7 @@ struct InputStartNotifier {
         void DissmissInputWindow();
         bool isImeReady_{ false };
         InputStartNotifier notifier_;
+        std::atomic_bool isBond_{ false };
     };
 } // namespace MiscServices
 } // namespace OHOS
