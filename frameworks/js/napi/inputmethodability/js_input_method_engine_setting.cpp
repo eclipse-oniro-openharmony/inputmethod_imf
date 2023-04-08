@@ -425,6 +425,10 @@ napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, const
     napi_create_string_utf8(env, property.label.c_str(), property.name.size(), &label);
     napi_set_named_property(env, subType, "label", label);
 
+    napi_value labelId = nullptr;
+    napi_create_int32(env, property.labelId, &labelId);
+    napi_set_named_property(env, subType, "labelId", labelId);
+
     napi_value name = nullptr;
     napi_create_string_utf8(env, property.name.c_str(), property.name.size(), &name);
     napi_set_named_property(env, subType, "name", name);

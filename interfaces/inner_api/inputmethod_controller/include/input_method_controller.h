@@ -294,7 +294,7 @@ public:
     /**
      * @brief Get current input method subtypes.
      *
-     * This function is used to get current input method subtypes.
+     * This function is used to get current input method's current subtype.
      *
      * @return The subtypes of current input method.
      * @since 6

@@ -16,6 +16,7 @@
 
 #include <event_handler.h>
 #include <gtest/gtest.h>
+#include <string_ex.h>
 #include <sys/time.h>
 
 #include <condition_variable>
@@ -44,7 +45,6 @@
 #include "os_account_manager.h"
 #include "system_ability_definition.h"
 #include "token_setproc.h"
-#include "utils.h"
 
 using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
@@ -73,7 +73,7 @@ constexpr int32_t MAIN_USER_ID = 100;
         }
         void InsertText(const std::u16string &text)
         {
-            IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", MiscServices::Utils::ToStr8(text).c_str());
+            IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", Str16ToStr8(text).c_str());
         }
 
         void DeleteBackward(int32_t length)

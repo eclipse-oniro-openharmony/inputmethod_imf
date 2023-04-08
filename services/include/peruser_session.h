@@ -73,10 +73,7 @@ public:
     int OnHideKeyboardSelf();
     int OnShowKeyboardSelf();
     void StopInputService(std::string imeId);
-    void OnInputMethodSwitched(const Property &property, const SubProperty &subProperty);
-
-    void SetCurrentSubProperty(const SubProperty &subProperty);
-    SubProperty GetCurrentSubProperty();
+    int32_t OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch);
     void UpdateCurrentUserId(int32_t userId);
     void OnUnfocused(int32_t pid, int32_t uid);
 

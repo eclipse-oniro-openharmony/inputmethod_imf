@@ -26,14 +26,11 @@
 
 #include "file_ex.h"
 #include "global.h"
-#include "parameter.h"
 namespace OHOS {
 namespace MiscServices {
 namespace {
 constexpr const char *IME_CFG_DIR = "/data/service/el1/public/imf/ime_cfg";
 constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg/ime_cfg.json";
-static constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
-static constexpr int32_t CONFIG_LEN = 128;
 static constexpr int32_t SUCCESS = 0;
 using json = nlohmann::json;
 } // namespace
@@ -75,21 +72,22 @@ void ImeCfgManager::WriteImeCfgFile()
     }
 }
 
-void ImeCfgManager::AddImeCfg(const ImeCfg &cfg)
+void ImeCfgManager::AddImeCfg(const ImePersistCfg &cfg)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     imeConfigs_.push_back(cfg);
     WriteImeCfgFile();
 }
 
-void ImeCfgManager::ModifyImeCfg(const ImeCfg &cfg)
+void ImeCfgManager::ModifyImeCfg(const ImePersistCfg &cfg)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    for (auto &imeConfig : imeConfigs_) {
-        if (imeConfig.userId == cfg.userId && !cfg.currentIme.empty()) {
-            imeConfig.currentIme = cfg.currentIme;
-        }
+    auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
+        [cfg](const ImePersistCfg &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
+    if (it != imeConfigs_.end()) {
+        *it = cfg;
     }
+
     WriteImeCfgFile();
 }
 
@@ -105,38 +103,45 @@ void ImeCfgManager::DeleteImeCfg(int32_t userId)
     WriteImeCfgFile();
 }
 
-ImeCfg ImeCfgManager::GetImeCfg(int32_t userId)
+ImePersistCfg ImeCfgManager::GetImeCfg(int32_t userId)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     auto it = std::find_if(
-        imeConfigs_.begin(), imeConfigs_.end(), [userId](const ImeCfg &cfg) { return cfg.userId == userId; });
+        imeConfigs_.begin(), imeConfigs_.end(), [userId](const ImePersistCfg &cfg) { return cfg.userId == userId; });
     if (it != imeConfigs_.end()) {
         return *it;
     }
     return {};
 }
 
-std::string ImeCfgManager::GetDefaultIme()
+std::shared_ptr<ImeNativeCfg> ImeCfgManager::GetCurrentImeCfg(int32_t userId)
 {
-    char value[CONFIG_LEN] = { 0 };
-    auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
-    return code > 0 ? value : "";
+    auto cfg = GetImeCfg(userId);
+    ImeNativeCfg info;
+    info.subName = cfg.currentSubName;
+    info.imeId = cfg.currentIme;
+    auto pos = info.imeId.find('/');
+    if (pos != std::string::npos && pos + 1 < info.imeId.size()) {
+        info.bundleName = info.imeId.substr(0, pos);
+        info.extName = info.imeId.substr(pos + 1);
+    }
+    return std::make_shared<ImeNativeCfg>(info);
 }
 
-void ImeCfgManager::FromJson(const json &jsonConfigs, std::vector<ImeCfg> &configs)
+void ImeCfgManager::FromJson(const json &jsonConfigs, std::vector<ImePersistCfg> &configs)
 {
     if (!jsonConfigs.contains("imeCfg_list")) {
         IMSA_HILOGE("imeCfg_list not find");
         return;
     }
     for (auto &jsonCfg : jsonConfigs["imeCfg_list"]) {
-        ImeCfg cfg;
+        ImePersistCfg cfg;
         FromJson(jsonCfg, cfg);
         configs.push_back(cfg);
     }
 }
 
-void ImeCfgManager::ToJson(json &jsonConfigs, const std::vector<ImeCfg> &configs)
+void ImeCfgManager::ToJson(json &jsonConfigs, const std::vector<ImePersistCfg> &configs)
 {
     for (auto &cfg : configs) {
         json jsonCfg;

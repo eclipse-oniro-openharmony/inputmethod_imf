@@ -38,6 +38,7 @@ ohos_shared_library("inputmethod_service") {
     "src/global.cpp",
     "src/im_common_event_manager.cpp",
     "src/ime_cfg_manager.cpp",
+    "src/ime_info_inquirer.cpp",
     "src/input_channel.cpp",
     "src/input_control_channel_proxy.cpp",
     "src/input_control_channel_stub.cpp",
@@ -57,7 +58,6 @@ ohos_shared_library("inputmethod_service") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/services/adapter/keyboard:keboard_event_static",
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
-    "//third_party/jsoncpp:jsoncpp",
   ]
 
   external_deps = [

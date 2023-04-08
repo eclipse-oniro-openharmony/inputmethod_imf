@@ -2,15 +2,15 @@
   "string": [
     {
       "name": "entry_desc",
-      "value": "startAbilityTest"
+      "value": "imeTest"
     },
     {
       "name": "MainAbility_desc",
-      "value": "startAbilityTest"
+      "value": "imeTest"
     },
     {
       "name": "MainAbility_label",
-      "value": "startAbilityTest"
+      "value": "imeTest"
     }
   ]
 }

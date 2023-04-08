@@ -28,8 +28,10 @@ group("unittest") {
     "cpp_test:InputMethodServiceTest",
     "cpp_test:InputMethodSwitchTest",
     "cpp_test:InputMethodUtilsTest",
+    "cpp_test:NewImeSwitchTest",
     "napi_test/src:GetInputMethodJsTest",
     "resource/bundle_dependencies/extImfBundle:extImf",
+    "resource/bundle_dependencies/newTestIme:newTestIme",
     "resource/ohos_test:copy_ohos_test",
   ]
 }

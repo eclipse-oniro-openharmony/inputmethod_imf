@@ -91,14 +91,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_ServiceStartAbnormal, TestSize.Level0)
 HWTEST_F(InputMethodPrivateMemberTest, SA_GetExtends, TestSize.Level0)
 {
     constexpr int32_t metaDataNums = 5;
-    InputMethodSystemAbility service;
+    ImeInfoInquirer inquirer;
     std::vector<Metadata> metaData;
     Metadata metadata[metaDataNums] = { { "language", "english", "" }, { "mode", "mode", "" },
         { "locale", "local", "" }, { "icon", "icon", "" }, { "", "", "" } };
     for (auto const &data : metadata) {
         metaData.emplace_back(data);
     }
-    auto subProperty = service.GetExtends(metaData);
+    auto subProperty = inquirer.GetExtends(metaData);
     EXPECT_EQ(subProperty.language, "english");
     EXPECT_EQ(subProperty.mode, "mode");
     EXPECT_EQ(subProperty.locale, "local");
@@ -147,10 +147,10 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_OnUserStartedWithNullMessage, TestSize
 */
 HWTEST_F(InputMethodPrivateMemberTest, SA_ListDisabledInputMethodWithInexistentUserId, TestSize.Level0)
 {
-    InputMethodSystemAbility service;
+    ImeInfoInquirer inquirer;
     constexpr int32_t userId = 1;
     std::vector<Property> props;
-    auto ret = service.ListDisabledInputMethod(userId, props);
+    auto ret = inquirer.ListDisabledInputMethod(userId, props);
     EXPECT_EQ(ret, ErrorCode::ERROR_PACKAGE_MANAGER);
     EXPECT_TRUE(props.empty());
 }
@@ -163,60 +163,10 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_ListDisabledInputMethodWithInexistentU
 */
 HWTEST_F(InputMethodPrivateMemberTest, SA_ListInputMethodInfoWithInexistentUserId, TestSize.Level0)
 {
-    InputMethodSystemAbility service;
+    ImeInfoInquirer inquirer;
     constexpr int32_t userId = 1;
-    auto inputMethodInfos = service.ListInputMethodInfo(userId);
+    auto inputMethodInfos = inquirer.ListInputMethodInfo(userId);
     EXPECT_TRUE(inputMethodInfos.empty());
-}
-
-/**
-* @tc.name: SA_ListSubtypeByBundleNameWithInexistentUserId
-* @tc.desc: SA ListSubtypeByBundleName With Inexistent UserId.
-* @tc.type: FUNC
-* @tc.require: issuesI669E8
-*/
-HWTEST_F(InputMethodPrivateMemberTest, SA_ListSubtypeByBundleNameWithInexistentUserId, TestSize.Level0)
-{
-    InputMethodSystemAbility service;
-    constexpr int32_t userId = 1;
-    std::vector<SubProperty> subProps;
-    auto ret = service.ListSubtypeByBundleName(userId, "", subProps);
-    EXPECT_EQ(ret, ErrorCode::ERROR_PACKAGE_MANAGER);
-    EXPECT_TRUE(subProps.empty());
-}
-
-/**
-* @tc.name: SA_FindSubPropertyWithInexistentSubLabel
-* @tc.desc: SA ListSubtypeByBundleName With Inexistent UserId.
-* @tc.type: FUNC
-* @tc.require: issuesI669E8
-*/
-HWTEST_F(InputMethodPrivateMemberTest, SA_FindSubPropertyWithInexistentSubLabel, TestSize.Level0)
-{
-    InputMethodSystemAbility service;
-    std::vector<int32_t> userIds;
-    if (AccountSA::OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
-        service.userId_ = userIds[0];
-    }
-    auto ime = ImeCfgManager::GetDefaultIme();
-    EXPECT_FALSE(ime.empty());
-    auto pos = ime.find("/");
-    auto subProp = service.FindSubProperty(ime.substr(0, pos), "");
-    EXPECT_EQ(subProp.name, "");
-}
-
-/**
-* @tc.name: SA_FindSubPropertyByCompareWithNullBundleName
-* @tc.desc: SA FindSubPropertyByCompare With Null BundleName
-* @tc.type: FUNC
-* @tc.require: issuesI669E8
-*/
-HWTEST_F(InputMethodPrivateMemberTest, SA_FindSubPropertyByCompareWithNullBundleName, TestSize.Level0)
-{
-    InputMethodSystemAbility service;
-    InputMethodSystemAbility::CompareHandler compare;
-    auto subProp = service.FindSubPropertyByCompare("", compare);
-    EXPECT_EQ(subProp.label, "");
 }
 
 /**

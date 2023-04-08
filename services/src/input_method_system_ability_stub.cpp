@@ -16,16 +16,17 @@
 #include "input_method_system_ability_stub.h"
 
 #include <memory>
-#include <utils.h>
 
 #include "access_token.h"
 #include "accesstoken_kit.h"
+#include "ime_cfg_manager.h"
 #include "input_client_proxy.h"
 #include "input_data_channel_proxy.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_core_proxy.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
+#include "os_account_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -246,11 +247,6 @@ int32_t InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote(Mess
 
 int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
-        reply.WriteInt32(ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-        IMSA_HILOGE("%{public}s Permission denied", __func__);
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
     std::string name;
     std::string subName;
     if (!ITypesUtil::Unmarshal(data, name, subName)) {
@@ -258,8 +254,33 @@ int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &d
         IMSA_HILOGE("%{public}s parcel failed", __func__);
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
     }
-    int32_t ret = SwitchInputMethod(name, subName);
-    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    std::vector<int32_t> userIds;
+    if (AccountSA::OsAccountManager::QueryActiveOsAccountIds(userIds) != ERR_OK || userIds.empty()) {
+        return ErrorCode::ERROR_EX_ILLEGAL_STATE;
+    }
+    // if currentIme is switching subtype, permission verification is not performed.
+    auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userIds[0])->bundleName;
+    if (currentImeBundle == name && name == GetBundleNameByTokenId(IPCSkeleton::GetCallingTokenID())
+        && !subName.empty()) {
+        return reply.WriteInt32(SwitchInputMethod(name, subName)) ? ErrorCode::NO_ERROR
+                                                                  : ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    if (!CheckPermission(PERMISSION_CONNECT_IME_ABILITY)) {
+        reply.WriteInt32(ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+        IMSA_HILOGE("%{public}s Permission denied", __func__);
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
+    return reply.WriteInt32(SwitchInputMethod(name, subName)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+std::string InputMethodSystemAbilityStub::GetBundleNameByTokenId(uint32_t tokenId)
+{
+    HapTokenInfo hapInfo;
+    if (Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(tokenId) == ATokenTypeEnum::TOKEN_HAP
+        && Security::AccessToken::AccessTokenKit::GetHapTokenInfo(tokenId, hapInfo) == 0) {
+        return hapInfo.bundleName;
+    }
+    return "";
 }
 
 int32_t InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply)

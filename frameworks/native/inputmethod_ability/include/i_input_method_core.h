@@ -44,8 +44,7 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodCore");
 
-    virtual int32_t ShowKeyboard(
-        const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, const SubProperty &subProperty) = 0;
+    virtual int32_t ShowKeyboard(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard) = 0;
     virtual bool HideKeyboard(int32_t flags) = 0;
     virtual int32_t InitInputControlChannel(
         sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) = 0;
