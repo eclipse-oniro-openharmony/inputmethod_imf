@@ -72,18 +72,18 @@ void ImeCfgManager::WriteImeCfgFile()
     }
 }
 
-void ImeCfgManager::AddImeCfg(const ImeCfg &cfg)
+void ImeCfgManager::AddImeCfg(const ImePersistCfg &cfg)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     imeConfigs_.push_back(cfg);
     WriteImeCfgFile();
 }
 
-void ImeCfgManager::ModifyImeCfg(const ImeCfg &cfg)
+void ImeCfgManager::ModifyImeCfg(const ImePersistCfg &cfg)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
-        [cfg](const ImeCfg &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
+        [cfg](const ImePersistCfg &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
     if (it != imeConfigs_.end()) {
         *it = cfg;
     }
@@ -103,63 +103,45 @@ void ImeCfgManager::DeleteImeCfg(int32_t userId)
     WriteImeCfgFile();
 }
 
-ImeCfg ImeCfgManager::GetImeCfg(int32_t userId)
+ImePersistCfg ImeCfgManager::GetImeCfg(int32_t userId)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     auto it = std::find_if(
-        imeConfigs_.begin(), imeConfigs_.end(), [userId](const ImeCfg &cfg) { return cfg.userId == userId; });
+        imeConfigs_.begin(), imeConfigs_.end(), [userId](const ImePersistCfg &cfg) { return cfg.userId == userId; });
     if (it != imeConfigs_.end()) {
         return *it;
     }
     return {};
 }
 
-std::string ImeCfgManager::GetCurrentImeBundleName(int32_t userId)
+std::shared_ptr<ImeNativeCfg> ImeCfgManager::GetCurrentImeCfg(int32_t userId)
 {
-    auto currentIme = GetImeCfg(userId).currentIme;
-    auto pos = currentIme.find('/');
-    if (pos == std::string::npos) {
-        IMSA_HILOGE("currentIme: %{public}s is abnormal", currentIme.c_str());
-        return "";
+    auto cfg = GetImeCfg(userId);
+    ImeNativeCfg info;
+    info.subName = cfg.currentSubName;
+    info.imeId = cfg.currentIme;
+    auto pos = info.imeId.find('/');
+    if (pos != std::string::npos && pos + 1 < info.imeId.size()) {
+        info.bundleName = info.imeId.substr(0, pos);
+        info.extName = info.imeId.substr(pos + 1);
     }
-    return currentIme.substr(0, pos);
+    return std::make_shared<ImeNativeCfg>(info);
 }
 
-std::string ImeCfgManager::GetCurrentImeExtName(int32_t userId)
-{
-    auto currentIme = GetImeCfg(userId).currentIme;
-    auto pos = currentIme.find('/');
-    if (pos != std::string::npos && pos + 1 < currentIme.size()) {
-        return currentIme.substr(pos + 1);
-    }
-    IMSA_HILOGE("currentIme: %{public}s is abnormal", currentIme.c_str());
-    return "";
-}
-
-std::string ImeCfgManager::GetCurrentImeSubName(int32_t userId)
-{
-    return GetImeCfg(userId).currentSubName;
-}
-
-std::string ImeCfgManager::GetCurrentIme(int32_t userId)
-{
-    return GetImeCfg(userId).currentIme;
-}
-
-void ImeCfgManager::FromJson(const json &jsonConfigs, std::vector<ImeCfg> &configs)
+void ImeCfgManager::FromJson(const json &jsonConfigs, std::vector<ImePersistCfg> &configs)
 {
     if (!jsonConfigs.contains("imeCfg_list")) {
         IMSA_HILOGE("imeCfg_list not find");
         return;
     }
     for (auto &jsonCfg : jsonConfigs["imeCfg_list"]) {
-        ImeCfg cfg;
+        ImePersistCfg cfg;
         FromJson(jsonCfg, cfg);
         configs.push_back(cfg);
     }
 }
 
-void ImeCfgManager::ToJson(json &jsonConfigs, const std::vector<ImeCfg> &configs)
+void ImeCfgManager::ToJson(json &jsonConfigs, const std::vector<ImePersistCfg> &configs)
 {
     for (auto &cfg : configs) {
         json jsonCfg;

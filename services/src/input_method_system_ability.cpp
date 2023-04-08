@@ -324,7 +324,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
         return ErrorCode::NO_ERROR;
     }
     ImeInfo info;
-    auto ret = ImeInfoInquirer::GetInstance().GetSwitchedImeInfo(userId_, bundleName, subName, info);
+    auto ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName, info);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
@@ -333,12 +333,11 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
 
 bool InputMethodSystemAbility::IsNeedSwitch(const std::string &bundleName, const std::string &subName)
 {
-    auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeBundleName(userId_);
-    auto currentSubName = ImeCfgManager::GetInstance().GetCurrentImeSubName(userId_);
-    IMSA_HILOGI("currentIme: %{public}s, targetIme: %{public}s", (currentBundleName + "/" + currentSubName).c_str(),
+    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    IMSA_HILOGI("currentIme: %{public}s, targetIme: %{public}s", currentImeCfg->imeId.c_str(),
         (bundleName + "/" + subName).c_str());
-    if ((subName.empty() && bundleName == currentBundleName)
-        || (!subName.empty() && subName == currentSubName && currentBundleName == bundleName)) {
+    if ((subName.empty() && bundleName == currentImeCfg->bundleName)
+        || (!subName.empty() && subName == currentImeCfg->subName && currentImeCfg->bundleName == bundleName)) {
         IMSA_HILOGI("no need to switch");
         return false;
     }
@@ -347,20 +346,21 @@ bool InputMethodSystemAbility::IsNeedSwitch(const std::string &bundleName, const
 
 int32_t InputMethodSystemAbility::SwitchIme(const std::string &bundleName, const ImeInfo &info)
 {
-    return bundleName != ImeCfgManager::GetInstance().GetCurrentImeBundleName(userId_) ? SwitchImeType(info)
-                                                                                       : SwitchImeSubType(info);
+    auto currentImeBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
+    return bundleName != currentImeBundleName ? SwitchImeType(info) : SwitchImeSubType(info);
 }
 
 int32_t InputMethodSystemAbility::SwitchImeType(const ImeInfo &info)
 {
-    StopInputService(ImeCfgManager::GetInstance().GetCurrentIme(userId_));
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId;
+    StopInputService(currentIme);
     std::string targetIme = info.prop.name + "/" + info.prop.id;
     ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetIme, info.subProp.id });
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
     if (!StartInputService(targetIme)) {
         IMSA_HILOGE("start input method failed");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
-    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
     userSession_->OnSwitchIme(info.prop, info.subProp, false);
     return ErrorCode::NO_ERROR;
 }
@@ -371,8 +371,8 @@ int32_t InputMethodSystemAbility::SwitchImeSubType(const ImeInfo &info)
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
-    ImeCfgManager::GetInstance().ModifyImeCfg(
-        { userId_, ImeCfgManager::GetInstance().GetCurrentIme(userId_), info.subProp.id });
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId;
+    ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, currentIme, info.subProp.id });
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
     return ErrorCode::NO_ERROR;
 }
@@ -504,8 +504,12 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGI("%{public}d switch to %{public}d.", oldUserId, userId_);
-    StopInputService(ImeCfgManager::GetInstance().GetCurrentIme(oldUserId));
-    StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_));
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(oldUserId)->imeId;
+    StopInputService(currentIme);
+    // user switch, reset currentImeInfo_ = nullptr
+    ImeInfoInquirer::GetInstance().ResetCurrentImeInfo();
+    auto newIme = ImeInfoInquirer::GetInstance().GetStartedIme(userId_);
+    StartInputService(newIme);
     return ErrorCode::NO_ERROR;
 }
 
@@ -548,7 +552,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGI("InputMethodSystemAbility::userId: %{public}d, currentUserId: %{public}d,", userId, userId_);
         return ErrorCode::NO_ERROR;
     }
-    auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeBundleName(userId);
+    auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
     if (packageName == currentImeBundle) {
         // Switch to the default ime
         auto info = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId);
@@ -621,46 +625,48 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
 int32_t InputMethodSystemAbility::SwitchMode()
 {
     ImeInfo info;
-    auto ret = ImeInfoInquirer::GetInstance().GetCurrentImeInfoFromNative(
-        userId_, ImeCfgManager::GetInstance().GetCurrentImeSubName(userId_), info);
+    auto bundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
+    auto subName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->subName;
+    auto ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName, info);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("current ime is abnormal, ret: %{public}d", ret);
         return ret;
     }
-    auto target = info.subProp.mode == "upper"
-                      ? ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(
-                          info.subProps, [](const SubProperty &property) { return property.mode == "lower"; })
-                      : ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(
-                          info.subProps, [](const SubProperty &property) { return property.mode == "upper"; });
-    return SwitchInputMethod(target.name, target.id);
+    auto condition = info.subProp.mode == "upper" ? Condition::LOWER : Condition::UPPER;
+    auto target = ImeInfoInquirer::GetInstance().GetImeSubProp(info.subProps, condition);
+    if (target == nullptr) {
+        IMSA_HILOGE("target is empty");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    return SwitchInputMethod(target->name, target->id);
 }
 
 int32_t InputMethodSystemAbility::SwitchLanguage()
 {
     ImeInfo info;
-    auto ret = ImeInfoInquirer::GetInstance().GetCurrentImeInfoFromNative(
-        userId_, ImeCfgManager::GetInstance().GetCurrentImeSubName(userId_), info);
+    auto bundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
+    auto subName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->subName;
+    auto ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName, info);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("current ime is abnormal, ret: %{public}d", ret);
         return ret;
     }
     if (!info.isNewIme) {
-        auto target = info.subProp.language == "chinese"
-                          ? ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(info.subProps,
-                              [](const SubProperty &property) {
-                                  return property.language == "english" && property.mode == "lower";
-                              })
-                          : ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(info.subProps,
-                              [](const SubProperty &property) { return property.language == "chinese"; });
-        return SwitchInputMethod(target.name, target.id);
+        auto condition = info.subProp.language == "chinese" ? Condition::LANGUAGE_EN : Condition::LANGUAGE_CH;
+        auto target = ImeInfoInquirer::GetInstance().GetImeSubProp(info.subProps, condition);
+        if (target == nullptr) {
+            IMSA_HILOGE("oldIme, target is empty");
+            return ErrorCode::ERROR_BAD_PARAMETERS;
+        }
+        return SwitchInputMethod(target->name, target->id);
     }
-
-    auto target =
-        info.subProp.locale == "zh_CN" ? ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(info.subProps,
-            [](const SubProperty &property) { return property.locale == "en_US" && property.mode == "lower"; })
-                                       : ImeInfoInquirer::GetInstance().FindSubPropertyByCompare(info.subProps,
-                                           [](const SubProperty &property) { return property.locale == "zh_CN"; });
-    return SwitchInputMethod(target.name, target.id);
+    auto condition = info.subProp.locale == "zh_CN" ? Condition::LOCALE_EN : Condition::LOCALE_CH;
+    auto target = ImeInfoInquirer::GetInstance().GetImeSubProp(info.subProps, condition);
+    if (target == nullptr) {
+        IMSA_HILOGE("target is empty");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    return SwitchInputMethod(target->name, target->id);
 }
 
 int32_t InputMethodSystemAbility::SwitchInputMethod()
@@ -671,9 +677,9 @@ int32_t InputMethodSystemAbility::SwitchInputMethod()
         IMSA_HILOGE("ListProperty failed");
         return ret;
     }
-    auto iter = std::find_if(props.begin(), props.end(), [this](const Property &property) {
-        return property.name != ImeCfgManager::GetInstance().GetCurrentImeBundleName(userId_);
-    });
+    auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
+    auto iter = std::find_if(props.begin(), props.end(),
+        [&currentImeBundle](const Property &property) { return property.name != currentImeBundle; });
     if (iter != props.end()) {
         return SwitchInputMethod(iter->name, "");
     }

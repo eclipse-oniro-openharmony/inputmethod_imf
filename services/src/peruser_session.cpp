@@ -428,7 +428,7 @@ void PerUserSession::InitInputControlChannel()
         return;
     }
     int ret = core->InitInputControlChannel(
-        inputControlChannel, ImeCfgManager::GetInstance().GetCurrentIme(userId_));
+        inputControlChannel, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGI("PerUserSession::InitInputControlChannel fail %{public}d", ret);
     }

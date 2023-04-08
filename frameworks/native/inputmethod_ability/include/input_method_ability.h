@@ -44,7 +44,7 @@ namespace OHOS {
 namespace MiscServices {
 struct InputStartNotifier {
     bool isNotify{ false };
-    bool isShowKeyboard{false};
+    bool isShowKeyboard{ false };
 };
 class MessageHandler;
 class InputMethodAbility : public RefBase {

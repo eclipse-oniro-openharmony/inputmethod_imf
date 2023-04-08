@@ -259,8 +259,9 @@ int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &d
         return ErrorCode::ERROR_EX_ILLEGAL_STATE;
     }
     // if currentIme is switching subtype, permission verification is not performed.
-    if (ImeCfgManager::GetInstance().GetCurrentImeBundleName(userIds[0]) == name
-        && name == GetBundleNameByTokenId(IPCSkeleton::GetCallingTokenID()) && !subName.empty()) {
+    auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userIds[0])->bundleName;
+    if (currentImeBundle == name && name == GetBundleNameByTokenId(IPCSkeleton::GetCallingTokenID())
+        && !subName.empty()) {
         return reply.WriteInt32(SwitchInputMethod(name, subName)) ? ErrorCode::NO_ERROR
                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
     }

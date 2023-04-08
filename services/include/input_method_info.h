@@ -24,16 +24,16 @@ namespace OHOS {
 namespace MiscServices {
 class InputMethodInfo {
 public:
-    std::u16string mImeId;
-    std::u16string mPackageName;
-    std::u16string mAbilityName;
-    std::u16string mConfigurationPage;
+    std::string mImeId;
+    std::string mPackageName;
+    std::string mAbilityName;
+    std::string mConfigurationPage;
     bool isSystemIme = false;
     int32_t mDefaultImeId = 0;
     int32_t labelId = 0;
     int32_t descriptionId = 0;
-    std::u16string label;
-    std::u16string description;
+    std::string label;
+    std::string description;
 
     InputMethodInfo();
     ~InputMethodInfo();
