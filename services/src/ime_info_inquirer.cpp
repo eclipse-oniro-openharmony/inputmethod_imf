@@ -393,16 +393,15 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
     const int32_t userId, const ExtensionAbilityInfo &extInfo, std::vector<SubProperty> &subProps)
 {
     IMSA_HILOGD("newIme, userId: %{public}d", userId);
-    bool ret = false;
-    std::vector<std::string> profiles;
-    for (const auto &metadata : extInfo.metadata) {
-        if (metadata.name == SUBTYPE_PROFILE_METADATA_NAME) {
-            OHOS::AppExecFwk::BundleMgrClientImpl clientImpl;
-            ret = clientImpl.GetResConfigFile(extInfo, metadata.name, profiles);
-            break;
-        }
+    auto iter = std::find_if(extInfo.metadata.begin(), extInfo.metadata.end(),
+        [](const Metadata &metadata) { return metadata.name == SUBTYPE_PROFILE_METADATA_NAME; });
+    if (iter == extInfo.metadata.end()) {
+        IMSA_HILOGE("find metadata name:SUBTYPE_PROFILE_METADATA_NAME failed");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    if (!ret) {
+    OHOS::AppExecFwk::BundleMgrClientImpl clientImpl;
+    std::vector<std::string> profiles;
+    if (!clientImpl.GetResConfigFile(extInfo, iter->name, profiles)) {
         IMSA_HILOGE("GetProfileFromExtension failed");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
@@ -516,14 +515,16 @@ bool ImeInfoInquirer::IsImeInstalled(const int32_t userId, const std::string &bu
         extName.c_str());
     std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> extInfos;
     GetExtInfosByBundleName(userId, bundleName, extInfos);
-    for (auto const &extInfo : extInfos) {
-        if (bundleName == extInfo.bundleName && extName == extInfo.name) {
-            IMSA_HILOGI("true");
-            return true;
-        }
+    auto iter = std::find_if(extInfos.begin(), extInfos.end(),
+        [&bundleName, &extName](const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo) {
+            return extInfo.bundleName == bundleName && extName == extInfo.name;
+        });
+    if (iter == extInfos.end()) {
+        IMSA_HILOGE("false");
+        return false;
     }
-    IMSA_HILOGI("false");
-    return false;
+    IMSA_HILOGI("true");
+    return true;
 }
 
 std::string ImeInfoInquirer::GetStartedIme(const int32_t userId)
