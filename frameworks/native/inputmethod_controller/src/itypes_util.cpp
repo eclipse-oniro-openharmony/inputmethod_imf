@@ -143,7 +143,7 @@ bool ITypesUtil::Marshalling(const SubProperty &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.label, output.labelId, output.name, output.id, output.mode, output.locale,
-            output.language, output.icon, output.iconId)) {
+                   output.language, output.icon, output.iconId)) {
         IMSA_HILOGE("ITypesUtil::read SubProperty from message parcel failed");
         return false;
     }
