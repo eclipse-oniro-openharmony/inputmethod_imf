@@ -41,6 +41,31 @@ bool BundleChecker::IsFocused(uint32_t tokenID)
     return true;
 }
 
+bool BundleChecker::IsCurrentIme(uint32_t tokenID, const std::string &currentIme)
+{
+    std::string bundleName = GetBundleNameByToken(tokenID);
+    if (bundleName.empty()) {
+        return false;
+    }
+    if (bundleName != currentIme) {
+        IMSA_HILOGE(
+            "not current ime, caller: %{public}s, current ime: %{public}s", bundleName.c_str(), currentIme.c_str());
+        return false;
+    }
+    IMSA_HILOGD("checked ime successfully");
+    return true;
+}
+
+bool BundleChecker::CheckPermission(uint32_t tokenID, const std::string &permission)
+{
+    if (AccessTokenKit::VerifyAccessToken(tokenID, permission) != PERMISSION_GRANTED) {
+        IMSA_HILOGE("Permission [%{public}s] not granted", permission.c_str());
+        return false;
+    }
+    IMSA_HILOGD("verify AccessToken success");
+    return true;
+}
+
 std::string BundleChecker::GetBundleNameByToken(uint32_t tokenID)
 {
     auto tokenType = AccessTokenKit::GetTokenTypeFlag(tokenID);

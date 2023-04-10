@@ -52,6 +52,7 @@ public:
     InputMethodAbility();
     ~InputMethodAbility();
     static sptr<InputMethodAbility> GetInstance();
+    int32_t SetCoreAndAgent();
     int32_t InsertText(const std::string text);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
@@ -85,7 +86,6 @@ private:
 
     std::mutex controlChannelLock_;
     std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;
-    void SetCoreAndAgent();
 
     std::mutex dataChannelLock_;
     sptr<IRemoteObject> dataChannelObject_ = nullptr;
@@ -126,6 +126,7 @@ private:
     bool isImeReady_{ false };
     InputStartNotifier notifier_;
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
+    std::atomic_bool isBond_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

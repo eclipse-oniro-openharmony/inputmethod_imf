@@ -48,6 +48,7 @@ constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr uint32_t RETRY_INTERVAL = 100;
 constexpr uint32_t BLOCK_RETRY_TIMES = 100;
+static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
@@ -289,6 +290,11 @@ int32_t InputMethodSystemAbility::StopInputSession()
 
 int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
 {
+    IMSA_HILOGD("InputMethodSystemAbility run in");
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
+    if (!BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme)) {
+        return ErrorCode::ERROR_NOT_CURRENT_IME;
+    }
     if (core == nullptr || agent == nullptr) {
         CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
         IMSA_HILOGE("InputMethodSystemAbility::core or agent is nullptr");
@@ -299,6 +305,9 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
 {
+    if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
     if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
@@ -307,6 +316,9 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
 
 int32_t InputMethodSystemAbility::ShowCurrentInput()
 {
+    if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
     if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
@@ -315,11 +327,21 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
 
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
 {
+    IMSA_HILOGD("InputMethodSystemAbility run in");
+    if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
     return OnDisplayOptionalInputMethod();
 };
 
 int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleName, const std::string &subName)
 {
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
+    // if currentIme is switching subtype, permission verification is not performed.
+    if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
+        && !BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme)) {
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
     if (!IsNeedSwitch(bundleName, subName)) {
         return ErrorCode::NO_ERROR;
     }
@@ -378,17 +400,12 @@ int32_t InputMethodSystemAbility::SwitchImeSubType(const ImeInfo &info)
 }
 
 // Deprecated because of no permission check, kept for compatibility
-int32_t InputMethodSystemAbility::SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
-{
-    return SetCoreAndAgent(core, agent);
-};
-
 int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 {
     if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
-    return HideCurrentInput();
+    return userSession_->OnHideKeyboardSelf();
 };
 
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
@@ -396,12 +413,12 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
     if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
-    return ShowCurrentInput();
+    return userSession_->OnShowKeyboardSelf();
 };
 
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethodDeprecated()
 {
-    return DisplayOptionalInputMethod();
+    return OnDisplayOptionalInputMethod();
 };
 
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()

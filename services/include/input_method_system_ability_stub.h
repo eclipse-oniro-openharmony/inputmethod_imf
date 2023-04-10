@@ -67,12 +67,6 @@ private:
 
     int32_t ShowCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
 
-    int32_t SetCoreAndAgentOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
-
-    bool CheckPermission(const std::string &permission);
-
-    std::string GetBundleNameByTokenId(uint32_t tokenId);
-
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     static constexpr RequestHandler HANDLERS[INPUT_SERVICE_CMD_LAST] = {
         [PREPARE_INPUT] = &InputMethodSystemAbilityStub::PrepareInputOnRemote,
@@ -92,7 +86,6 @@ private:
         [SHOW_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated,
         [HIDE_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated,
         [DISPLAY_OPTIONAL_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated,
-        [SET_CORE_AND_AGENT_DEPRECATED] = &InputMethodSystemAbilityStub::SetCoreAndAgentOnRemoteDeprecated,
         [STOP_INPUT_SESSION] = &InputMethodSystemAbilityStub::StopInputSessionOnRemote,
     };
 };

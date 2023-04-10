@@ -92,6 +92,7 @@ enum {
     ERROR_CLIENT_NOT_FOCUSED = 18,
     ERROR_CLIENT_ADD_FAILED = 19,
     ERROR_OPERATE_PANEL = 20,
+    ERROR_NOT_CURRENT_IME = 21,
 };
 }; // namespace ErrorCode
 

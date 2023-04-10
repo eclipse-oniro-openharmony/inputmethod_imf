@@ -94,13 +94,17 @@ sptr<InputMethodSystemAbilityProxy> InputMethodAbility::GetImsaProxy()
     return iface;
 }
 
-void InputMethodAbility::SetCoreAndAgent()
+int32_t InputMethodAbility::SetCoreAndAgent()
 {
-    IMSA_HILOGI("InputMethodAbility::SetCoreAndAgent");
+    IMSA_HILOGD("InputMethodAbility, run in");
+    if (isBond_.load()) {
+        IMSA_HILOGD("already bond");
+        return ErrorCode::NO_ERROR;
+    }
     mImms = GetImsaProxy();
     if (mImms == nullptr) {
-        IMSA_HILOGI("InputMethodAbility::SetCoreAndAgent() mImms is nullptr");
-        return;
+        IMSA_HILOGI("InputMethodAbility mImms is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     sptr<InputMethodCoreStub> stub = new InputMethodCoreStub(0);
     stub->SetMessageHandler(msgHandler);
@@ -108,7 +112,14 @@ void InputMethodAbility::SetCoreAndAgent()
     sptr<InputMethodAgentStub> inputMethodAgentStub(new InputMethodAgentStub());
     inputMethodAgentStub->SetMessageHandler(msgHandler);
     sptr<IInputMethodAgent> inputMethodAgent = sptr(new InputMethodAgentProxy(inputMethodAgentStub));
-    mImms->SetCoreAndAgentDeprecated(stub, inputMethodAgent);
+    int32_t ret = mImms->SetCoreAndAgent(stub, inputMethodAgent);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("set failed, ret: %{public}d", ret);
+        return ret;
+    }
+    isBond_.store(true);
+    IMSA_HILOGD("set successfully");
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodAbility::Initialize()
@@ -116,8 +127,6 @@ void InputMethodAbility::Initialize()
     IMSA_HILOGI("InputMethodAbility::Initialize");
     msgHandler = new MessageHandler();
     workThreadHandler = std::thread([this] { WorkThread(); });
-
-    SetCoreAndAgent();
 }
 
 void InputMethodAbility::SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener)

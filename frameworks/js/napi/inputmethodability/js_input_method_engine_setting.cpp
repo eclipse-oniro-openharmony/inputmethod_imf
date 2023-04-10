@@ -115,6 +115,9 @@ std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInput
                 return nullptr;
             }
             inputMethodEngine_ = engine;
+            if (InputMethodAbility::GetInstance()->SetCoreAndAgent() != ErrorCode::NO_ERROR) {
+                return nullptr;
+            }
             InputMethodAbility::GetInstance()->SetImeListener(inputMethodEngine_);
         }
     }

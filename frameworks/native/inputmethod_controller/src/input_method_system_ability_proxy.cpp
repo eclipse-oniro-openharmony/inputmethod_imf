@@ -155,15 +155,6 @@ int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethodDeprecated()
     return SendRequest(DISPLAY_OPTIONAL_INPUT_DEPRECATED);
 }
 
-int32_t InputMethodSystemAbilityProxy::SetCoreAndAgentDeprecated(
-    sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
-{
-    IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(SET_CORE_AND_AGENT_DEPRECATED, [core, agent](MessageParcel &data) {
-        return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent->AsObject());
-    });
-}
-
 int32_t InputMethodSystemAbilityProxy::ListInputMethodSubtype(
     const std::string &name, std::vector<SubProperty> &subProps)
 {
@@ -197,7 +188,7 @@ int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const std::string &name
 
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGD("%{public}s in", __func__);
+    IMSA_HILOGD("InputMethodSystemAbilityProxy run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_SYNC };

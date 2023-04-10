@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,24 +23,25 @@ using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t DEALY_TIME = 20;
-class InputMethodAbilityExecptionTest : public testing::Test {
+class InputMethodAbilityExceptionTest : public testing::Test {
 public:
     static void SetUpTestCase(void)
     {
-        IMSA_HILOGI("InputMethodAbilityExecptionTest::SetUpTestCase");
+        IMSA_HILOGI("InputMethodAbilityExceptionTest::SetUpTestCase");
         inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->OnImeReady();
         imeListener_ = std::make_shared<ImeListenerImpl>();
         inputMethodAbility_->SetImeListener(imeListener_);
         std::unique_lock<std::mutex> lock(lock_);
         cv_.wait_for(lock, std::chrono::milliseconds(DEALY_TIME),
-            [] { return InputMethodAbilityExecptionTest::isInputStart_; });
+            [] { return InputMethodAbilityExceptionTest::isInputStart_; });
         inputMethodAbility_->dataChannelProxy_ = nullptr;
         inputMethodAbility_->dataChannelObject_ = nullptr;
     }
     static void TearDownTestCase(void)
     {
-        IMSA_HILOGI("InputMethodAbilityExecptionTest::TearDownTestCase");
+        IMSA_HILOGI("InputMethodAbilityExceptionTest::TearDownTestCase");
         inputMethodAbility_->imeListener_ = nullptr;
     }
     void SetUp()
@@ -67,82 +68,82 @@ private:
     static std::condition_variable cv_;
     static bool isInputStart_;
 };
-void InputMethodAbilityExecptionTest::ImeListenerImpl::OnKeyboardStatus(bool isShow)
+void InputMethodAbilityExceptionTest::ImeListenerImpl::OnKeyboardStatus(bool isShow)
 {
 }
-void InputMethodAbilityExecptionTest::ImeListenerImpl::OnInputStart()
+void InputMethodAbilityExceptionTest::ImeListenerImpl::OnInputStart()
 {
-    std::unique_lock<std::mutex> lock(InputMethodAbilityExecptionTest::lock_);
-    InputMethodAbilityExecptionTest::isInputStart_ = true;
-    InputMethodAbilityExecptionTest::cv_.notify_one();
+    std::unique_lock<std::mutex> lock(InputMethodAbilityExceptionTest::lock_);
+    InputMethodAbilityExceptionTest::isInputStart_ = true;
+    InputMethodAbilityExceptionTest::cv_.notify_one();
 }
-void InputMethodAbilityExecptionTest::ImeListenerImpl::OnInputStop(const std::string &imeId)
-{
-}
-void InputMethodAbilityExecptionTest::ImeListenerImpl::OnSetCallingWindow(uint32_t windowId)
+void InputMethodAbilityExceptionTest::ImeListenerImpl::OnInputStop(const std::string &imeId)
 {
 }
-void InputMethodAbilityExecptionTest::ImeListenerImpl::OnSetSubtype(const SubProperty &property)
+void InputMethodAbilityExceptionTest::ImeListenerImpl::OnSetCallingWindow(uint32_t windowId)
 {
 }
-sptr<InputMethodAbility> InputMethodAbilityExecptionTest::inputMethodAbility_;
-std::shared_ptr<InputMethodAbilityExecptionTest::ImeListenerImpl> InputMethodAbilityExecptionTest::imeListener_;
-std::mutex InputMethodAbilityExecptionTest::lock_;
-std::condition_variable InputMethodAbilityExecptionTest::cv_;
-bool InputMethodAbilityExecptionTest::isInputStart_ = false;
+void InputMethodAbilityExceptionTest::ImeListenerImpl::OnSetSubtype(const SubProperty &property)
+{
+}
+sptr<InputMethodAbility> InputMethodAbilityExceptionTest::inputMethodAbility_;
+std::shared_ptr<InputMethodAbilityExceptionTest::ImeListenerImpl> InputMethodAbilityExceptionTest::imeListener_;
+std::mutex InputMethodAbilityExceptionTest::lock_;
+std::condition_variable InputMethodAbilityExceptionTest::cv_;
+bool InputMethodAbilityExceptionTest::isInputStart_ = false;
 
 /**
- * @tc.name: testMoveCursorExecption
+ * @tc.name: testMoveCursorException
  * @tc.desc: InputMethodAbility MoveCursor
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExecptionTest, testMoveCursorExecption, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testMoveCursorException, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityExecptionTest MoveCursor Test START");
+    IMSA_HILOGI("InputMethodAbilityExceptionTest MoveCursor Test START");
     auto ret = inputMethodAbility_->MoveCursor(4); // move cursor right
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
 /**
- * @tc.name: testInsertTextExecption
+ * @tc.name: testInsertTextException
  * @tc.desc: InputMethodAbility InsertText
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExecptionTest, testInsertTextExecption, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testInsertTextException, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityExecptionTest InsertText Test START");
+    IMSA_HILOGI("InputMethodAbilityExceptionTest InsertText Test START");
     auto ret = inputMethodAbility_->InsertText("text");
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
 /**
- * @tc.name: testSendFunctionKeyExecption
+ * @tc.name: testSendFunctionKeyException
  * @tc.desc: InputMethodAbility SendFunctionKey
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExecptionTest, testSendFunctionKeyExecption, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testSendFunctionKeyException, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityExecptionTest SendFunctionKey Test START");
+    IMSA_HILOGI("InputMethodAbilityExceptionTest SendFunctionKey Test START");
     auto ret = inputMethodAbility_->SendFunctionKey(0);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
 /**
- * @tc.name: testDeleteExecptionText
+ * @tc.name: testDeleteExceptionText
  * @tc.desc: InputMethodAbility DeleteForward & DeleteBackward
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExecptionTest, testDeleteExecptionText, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testDeleteExceptionText, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityExecptionTest testDelete Test START");
+    IMSA_HILOGI("InputMethodAbilityExceptionTest testDelete Test START");
     int32_t deleteForwardLenth = 1;
     auto ret = inputMethodAbility_->DeleteForward(deleteForwardLenth);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
@@ -152,15 +153,15 @@ HWTEST_F(InputMethodAbilityExecptionTest, testDeleteExecptionText, TestSize.Leve
 }
 
 /**
- * @tc.name: testGetTextExecption001
+ * @tc.name: testGetTextException001
  * @tc.desc: InputMethodAbility GetTextBeforeCursor & GetTextAfterCursor & GetTextIndexAtCursor
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExecptionTest, testGetTextExecption001, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testGetTextException001, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityExecptionTest testGetText001 START");
+    IMSA_HILOGI("InputMethodAbilityExceptionTest testGetText001 START");
     std::u16string text;
     auto ret = inputMethodAbility_->GetTextAfterCursor(8, text);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
@@ -172,15 +173,15 @@ HWTEST_F(InputMethodAbilityExecptionTest, testGetTextExecption001, TestSize.Leve
 }
 
 /**
- * @tc.name: testGetEnterKeyTypeExecption
+ * @tc.name: testGetEnterKeyTypeException
  * @tc.desc: InputMethodAbility GetEnterKeyType & GetInputPattern
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: Hollokin
  */
-HWTEST_F(InputMethodAbilityExecptionTest, testGetEnterKeyTypeExecption, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testGetEnterKeyTypeException, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityExecptionTest testGetEnterKeyType START");
+    IMSA_HILOGI("InputMethodAbilityExceptionTest testGetEnterKeyType START");
     int32_t keyType2;
     auto ret = inputMethodAbility_->GetEnterKeyType(keyType2);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
