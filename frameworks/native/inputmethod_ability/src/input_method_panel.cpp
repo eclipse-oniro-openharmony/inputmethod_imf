@@ -90,7 +90,14 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
         IMSA_HILOGE("GetDefaultDisplay failed.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (width > defaultDisplay->GetWidth() || height > (defaultDisplay->GetHeight()) / 2) {
+    if (width > INT32_MAX || height > INT32_MAX) {
+        IMSA_HILOGE("width or height over maximum");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    // the resize width can not exceed the width of display width of device
+    // the resize height can not exceed half of the display height of device
+    if (static_cast<int32_t>(width) > defaultDisplay->GetWidth()
+        || static_cast<int32_t>(height) > defaultDisplay->GetHeight() / 2) {
         IMSA_HILOGD("GetDefaultDisplay, defaultDisplay->width = %{public}d, defaultDisplay->height = %{public}d, "
                     "width = %{public}u, height = %{public}u",
             defaultDisplay->GetWidth(), defaultDisplay->GetHeight(), width, height);
