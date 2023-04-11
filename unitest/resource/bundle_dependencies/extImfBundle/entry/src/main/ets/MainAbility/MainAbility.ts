@@ -38,18 +38,18 @@ export default class MainAbility extends Ability {
     });
   }
 
-    onWindowStageDestroy() {
-      // Main window is destroyed, release UI related resources
-      console.log('[Demo] MainAbility onWindowStageDestroy');
-    }
+  onWindowStageDestroy() {
+    // Main window is destroyed, release UI related resources
+    console.log('[Demo] MainAbility onWindowStageDestroy');
+  }
 
-    onForeground() {
-      // Ability has brought to foreground
-      console.log('[Demo] MainAbility onForeground');
-    }
+  onForeground() {
+    // Ability has brought to foreground
+    console.log('[Demo] MainAbility onForeground');
+  }
 
-    onBackground() {
-      // Ability has back to background
-      console.log('[Demo] MainAbility onBackground');
-    }
+  onBackground() {
+    // Ability has back to background
+    console.log('[Demo] MainAbility onBackground');
+  }
 };
