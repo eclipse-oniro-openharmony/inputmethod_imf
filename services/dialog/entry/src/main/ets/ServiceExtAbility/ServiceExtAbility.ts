@@ -37,8 +37,8 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
         height: 300,
       };
       this.getInputMethods().then(() => {
-        this.createWindow('inputmethod Dialog: ' + startId, window.WindowType.TYPE_DIALOG, dialogRect)
-      })
+        this.createWindow('inputmethod Dialog: ' + startId, window.WindowType.TYPE_DIALOG, dialogRect);
+      });
     }).catch((err) => {
       console.log(TAG + 'getDefaultDisplay err: ' + JSON.stringify(err));
     });

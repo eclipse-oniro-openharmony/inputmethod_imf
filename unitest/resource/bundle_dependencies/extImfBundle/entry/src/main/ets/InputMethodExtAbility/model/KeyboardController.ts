@@ -42,15 +42,15 @@ export class KeyboardController {
       globalThis.keyboardController = kbController;
     });
     globalThis.inputEngine.on('inputStop', (imeId) => {
-      this.addLog("[inputDemo] inputStop:" + imeId);
-      if (imeId == "com.example.kikainput/InputDemoService") {
+      this.addLog('[inputDemo] inputStop:' + imeId);
+      if (imeId === 'com.example.kikainput/InputDemoService') {
         this.onDestroy();
       }
     });
   }
 
   private unRegisterListener(): void {
-    this.addLog("unRegisterListener");
+    this.addLog('unRegisterListener');
     globalThis.inputEngine.off('inputStart');
     globalThis.inputEngine.off('inputStop');
   }
