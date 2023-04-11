@@ -356,8 +356,8 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
 bool InputMethodSystemAbility::IsNeedSwitch(const std::string &bundleName, const std::string &subName)
 {
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    IMSA_HILOGI("currentIme: %{public}s, targetIme: %{public}s", currentImeCfg->imeId.c_str(),
-        (bundleName + "/" + subName).c_str());
+    IMSA_HILOGI("currentIme: %{public}s, targetIme: %{public}s",
+        (currentImeCfg->bundleName + "/" + currentImeCfg->subName).c_str(), (bundleName + "/" + subName).c_str());
     if ((subName.empty() && bundleName == currentImeCfg->bundleName)
         || (!subName.empty() && subName == currentImeCfg->subName && currentImeCfg->bundleName == bundleName)) {
         IMSA_HILOGI("no need to switch");
