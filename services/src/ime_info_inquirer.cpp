@@ -40,6 +40,8 @@ constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
 constexpr uint32_t MAX_SUBTYPE_NUM = 10;
 constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
 constexpr int32_t CONFIG_LEN = 128;
+constexpr uint32_t RETRY_INTERVAL = 100;
+constexpr uint32_t BLOCK_RETRY_TIMES = 1000;
 } // namespace
 ImeInfoInquirer &ImeInfoInquirer::GetInstance()
 {
@@ -567,12 +569,9 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(const int32_t userId
         }
     }
     ImeInfo info;
-    auto ret = GetImeInfoFromBundleMgr(userId, bundleName, "", info);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE(
-            "userId: %{public}d, bundleName: %{public}s getImeInfoFromBundleMgr failed", userId, bundleName.c_str());
-        return nullptr;
-    }
+    BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [this ,&userId, &bundleName, &info]() -> bool {
+        return GetImeInfoFromBundleMgr(userId, bundleName, "", info);
+    });
     if (!info.isNewIme) {
         info.prop.id = extName;
         auto it = std::find_if(info.subProps.begin(), info.subProps.end(),

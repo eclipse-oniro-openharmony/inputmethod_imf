@@ -112,6 +112,9 @@ static constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD0
 #define IMSA_HILOGW(fmt, ...)                                                      \
     (void)OHOS::HiviewDFX::HiLog::Warn(OHOS::MiscServices::g_SMALL_SERVICES_LABEL, \
         "line: %{public}d, function: %{public}s," fmt, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+
+using Function = std::function<bool()>;
+bool BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func);
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_GLOBAL_H
