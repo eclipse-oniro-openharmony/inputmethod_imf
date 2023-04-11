@@ -528,7 +528,7 @@ std::string ImeInfoInquirer::GetStartedIme(const int32_t userId)
         std::string subName;
         auto info = GetDefaultImeInfo(userId);
         if (info == nullptr) {
-            IMSA_HILOGI("GetDefaultImeInfo failed");
+            IMSA_HILOGE("GetDefaultImeInfo failed");
             subName = "";
         } else {
             subName = info->subProp.id;
