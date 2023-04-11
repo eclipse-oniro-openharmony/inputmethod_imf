@@ -534,9 +534,8 @@ std::string ImeInfoInquirer::GetStartedIme(const int32_t userId)
             subName = info->subProp.id;
             SetCurrentImeInfo(*info);
         }
-        currentImeCfg->imeId.empty()
-            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newUserIme, subName })
-            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newUserIme, subName });
+        currentImeCfg->imeId.empty() ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newUserIme, subName })
+                                     : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newUserIme, subName });
         return newUserIme;
     }
     // service start, user switch, set the currentImeInfo_.
