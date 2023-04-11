@@ -76,7 +76,6 @@ protected:
     void OnStop() override;
 
 private:
-    using Function = std::function<bool()>;
     int32_t Init();
     void Initialize();
 
@@ -109,7 +108,6 @@ private:
     int32_t SwitchMode();
     int32_t SwitchLanguage();
     int32_t SwitchInputMethod();
-    bool BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func);
 };
 } // namespace MiscServices
 } // namespace OHOS

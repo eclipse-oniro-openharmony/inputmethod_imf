@@ -468,22 +468,6 @@ void InputMethodSystemAbility::WorkThread()
     }
 }
 
-bool InputMethodSystemAbility::BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func)
-{
-    IMSA_HILOGI("start");
-    uint32_t times = 0;
-    do {
-        times++;
-        if (func()) {
-            IMSA_HILOGI("success, retry times: %{public}d", times);
-            return true;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-    } while (times < maxRetryTimes);
-    IMSA_HILOGI("failed");
-    return false;
-}
-
 /**
  * Called when a user is started. (EVENT_USER_STARTED is received)
  * \n Run in work thread of input method management service
