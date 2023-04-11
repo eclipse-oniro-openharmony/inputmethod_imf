@@ -487,7 +487,7 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentInputMethodSubtype(const
     IMSA_HILOGD("currentIme: %{public}s", currentImeCfg->imeId.c_str());
     std::vector<SubProperty> subProps = {};
     auto ret = ListInputMethodSubtype(userId, currentImeCfg->bundleName, subProps);
-    if (ret != ErrorCode::NO_ERROR) {
+    if (ret != ErrorCode::NO_ERROR || subProps.empty()) {
         IMSA_HILOGE("userId: %{public}d listInputMethodSubtype by bundleName: %{public}s failed", userId,
             currentImeCfg->bundleName.c_str());
         return nullptr;
@@ -498,7 +498,7 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentInputMethodSubtype(const
         return std::make_shared<SubProperty>(*it);
     }
     IMSA_HILOGE("Find subName: %{public}s failed", currentImeCfg->subName.c_str());
-    return nullptr;
+    return std::make_shared<SubProperty>(subProps[0]);
 }
 
 bool ImeInfoInquirer::IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName)
@@ -524,16 +524,21 @@ std::string ImeInfoInquirer::GetStartedIme(const int32_t userId)
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     IMSA_HILOGD("userId: %{public}d, currentIme: %{public}s", userId, currentImeCfg->imeId.c_str());
     if (currentImeCfg->imeId.empty() || !IsImeInstalled(userId, currentImeCfg->bundleName, currentImeCfg->extName)) {
+        std::string newUserIme;
+        std::string subName;
         auto info = GetDefaultImeInfo(userId);
         if (info == nullptr) {
             IMSA_HILOGI("GetDefaultImeInfo failed");
-            return "";
+            newUserIme = GetDefaultIme();
+            subName = "";
+        } else {
+            newUserIme = info->prop.name + "/" + info->prop.id;
+            subName = info->subProp.id;
+            SetCurrentImeInfo(*info);
         }
-        std::string newUserIme = info->prop.name + "/" + info->prop.id;
         currentImeCfg->imeId.empty()
-            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newUserIme, info->subProp.id })
-            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newUserIme, info->subProp.id });
-        SetCurrentImeInfo(*info);
+            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newUserIme, subName })
+            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newUserIme, subName });
         return newUserIme;
     }
     // service start, user switch, set the currentImeInfo_.
