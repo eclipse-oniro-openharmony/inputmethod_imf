@@ -49,19 +49,15 @@ ImeInfoInquirer &ImeInfoInquirer::GetInstance()
     return instance;
 }
 
-int32_t ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
+bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
 {
     IMSA_HILOGD("userId: %{public}d", userId);
     auto bundleMgr = GetBundleMgr();
     if (bundleMgr == nullptr) {
         IMSA_HILOGE("GetBundleMgr failed");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return false;
     }
-    if (!bundleMgr->QueryExtensionAbilityInfos(ExtensionAbilityType::INPUTMETHOD, userId, infos)) {
-        IMSA_HILOGE("userId: %{public}d queryExtensionAbilityInfos failed", userId);
-        return ErrorCode::ERROR_PACKAGE_MANAGER;
-    }
-    return ErrorCode::NO_ERROR;
+    return bundleMgr->QueryExtensionAbilityInfos(ExtensionAbilityType::INPUTMETHOD, userId, infos);
 }
 
 int32_t ImeInfoInquirer::GetExtInfosByBundleName(
@@ -69,11 +65,8 @@ int32_t ImeInfoInquirer::GetExtInfosByBundleName(
 {
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s", userId, bundleName.c_str());
     std::vector<AppExecFwk::ExtensionAbilityInfo> tempExtInfos;
-    auto ret = QueryImeExtInfos(userId, tempExtInfos);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("userId: %{public}d queryImeExtInfos failed", userId);
-        return ret;
-    }
+    BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES,
+        [this, &userId, &tempExtInfos]() -> bool { return QueryImeExtInfos(userId, tempExtInfos); });
     for (const auto &extInfo : tempExtInfos) {
         if (extInfo.bundleName == bundleName) {
             extInfos.emplace_back(extInfo);
@@ -228,7 +221,7 @@ std::vector<InputMethodInfo> ImeInfoInquirer::ListInputMethodInfo(const int32_t 
 {
     IMSA_HILOGD("userId: %{public}d", userId);
     std::vector<ExtensionAbilityInfo> extensionInfos;
-    if (QueryImeExtInfos(userId, extensionInfos) != ErrorCode::NO_ERROR) {
+    if (!QueryImeExtInfos(userId, extensionInfos)) {
         IMSA_HILOGE("userId: %{public}d queryImeExtInfos failed", userId);
         return {};
     }
@@ -270,11 +263,8 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
 {
     IMSA_HILOGD("userId: %{public}d", userId);
     std::vector<ExtensionAbilityInfo> extensionInfos;
-    int32_t ret = QueryImeExtInfos(userId, extensionInfos);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("userId: %{public}d queryImeExtInfos failed", userId);
-        return ret;
-    }
+    BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES,
+        [this, &userId, &extensionInfos]() -> bool { return QueryImeExtInfos(userId, extensionInfos); });
     for (const auto &extension : extensionInfos) {
         auto it = std::find_if(props.begin(), props.end(),
             [&extension](const Property &prop) { return prop.name == extension.bundleName; });
@@ -569,9 +559,12 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(const int32_t userId
         }
     }
     ImeInfo info;
-    BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [this ,&userId, &bundleName, &info]() -> bool {
-        return GetImeInfoFromBundleMgr(userId, bundleName, "", info);
-    });
+    auto ret = GetImeInfoFromBundleMgr(userId, bundleName, "", info);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE(
+            "userId: %{public}d, bundleName: %{public}s getImeInfoFromBundleMgr failed", userId, bundleName.c_str());
+        return nullptr;
+    }
     if (!info.isNewIme) {
         info.prop.id = extName;
         auto it = std::find_if(info.subProps.begin(), info.subProps.end(),
