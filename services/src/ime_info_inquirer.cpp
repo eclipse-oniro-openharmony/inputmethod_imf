@@ -524,15 +524,13 @@ std::string ImeInfoInquirer::GetStartedIme(const int32_t userId)
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     IMSA_HILOGD("userId: %{public}d, currentIme: %{public}s", userId, currentImeCfg->imeId.c_str());
     if (currentImeCfg->imeId.empty() || !IsImeInstalled(userId, currentImeCfg->bundleName, currentImeCfg->extName)) {
-        std::string newUserIme;
+        auto newUserIme = GetDefaultIme();
         std::string subName;
         auto info = GetDefaultImeInfo(userId);
         if (info == nullptr) {
             IMSA_HILOGI("GetDefaultImeInfo failed");
-            newUserIme = GetDefaultIme();
             subName = "";
         } else {
-            newUserIme = info->prop.name + "/" + info->prop.id;
             subName = info->subProp.id;
             SetCurrentImeInfo(*info);
         }
