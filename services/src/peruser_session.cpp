@@ -548,7 +548,7 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     if (client == nullptr) {
         return;
     }
-    auto clientInfo = GetClientInfo(currentClient_->AsObject());
+    auto clientInfo = GetClientInfo(client->AsObject());
     if (clientInfo == nullptr) {
         return;
     }
