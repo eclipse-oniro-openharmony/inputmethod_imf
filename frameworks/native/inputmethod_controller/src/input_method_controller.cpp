@@ -101,11 +101,8 @@ bool InputMethodController::Initialize()
         return false;
     }
     channel->SetHandler(msgHandler_);
-    clientInfo_ = {
-        .attribute.inputPattern = InputAttribute::PATTERN_TEXT,
-        .client = client,
-        .channel = channel
-    };
+    InputAttribute attribute = { .inputPattern = InputAttribute::PATTERN_TEXT };
+    clientInfo_ = { .attribute = attribute, .client = client, .channel = channel };
     workThreadHandler = std::thread([this] { WorkThread(); });
     return true;
 }
