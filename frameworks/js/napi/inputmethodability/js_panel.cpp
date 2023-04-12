@@ -16,6 +16,7 @@
 #include "js_panel.h"
 
 #include "input_method_ability.h"
+#include "js_runtime_utils.h"
 #include "js_utils.h"
 #include "napi/native_common.h"
 #include "panel_listener_impl.h"
@@ -83,47 +84,58 @@ std::shared_ptr<InputMethodPanel> &JsPanel::GetNative()
     return inputMethodPanel_;
 }
 
+// setUiContent(path: string): Promise<void>
+// setUiContent(path: string, callback: AsyncCallback<void>): void
+// setUiContent(path: string, storage: LocalStorage, callback: AsyncCallback<void>): void
+// setUiContent(path: string, storage: LocalStorage): Promise<void>
 napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGI("JsPanel in.");
-    auto ctxt = std::make_shared<PanelContentContext>(env, info);
-    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        napi_status status = napi_generic_failure;
-        PARAM_CHECK_RETURN(env, argc >= 1, "should 1 or 2 parameters!", TYPE_NONE, status);
-        status = JsUtils::GetValue(env, argv[ARGC_ZERO], ctxt->path);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get path failed!", status);
-        // if type of argv[1] is object, we will get value of 'storage' from it.
-        if (argc >= 2) {
-            napi_valuetype valueType = napi_undefined;
-            napi_status status = napi_typeof(env, argv[1], &valueType);
-            NAPI_ASSERT_BASE(env, status == napi_ok, "get valueType failed!", status);
-            if (valueType == napi_object) {
-                NativeValue *storage = nullptr;
-                storage = reinterpret_cast<NativeValue *>(argv[1]);
-                auto contentStorage = (storage == nullptr)
-                                          ? nullptr
-                                          : std::shared_ptr<NativeReference>(
-                                                reinterpret_cast<NativeEngine *>(env)->CreateReference(storage, 1));
-                ctxt->contentStorage = contentStorage;
-            }
-        }
-        return napi_ok;
-    };
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { nullptr };
+    napi_value self = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
+    void *native = nullptr;
+    napi_status status = napi_unwrap(env, self, &native);
+    PARAM_CHECK_RETURN(env, argc > 0, " should 1 or 2 parameter! ", TYPE_NONE, nullptr);
+    std::string contextUrl;
+    status = JsUtils::GetValue(env, argv[0], contextUrl);
 
-    auto exec = [ctxt, env](AsyncCall::Context *ctx) {
-        auto &inputMethodPanel = reinterpret_cast<JsPanel *>(ctxt->native)->GetNative();
+    NativeValue *callBack = nullptr;
+    std::shared_ptr<NativeReference> contentStorage = nullptr;
+    NativeCallbackInfo *callbackInfo = reinterpret_cast<NativeCallbackInfo *>(info);
+    if (callbackInfo->argc == 2) {
+        if (callbackInfo->argv[1]->TypeOf() == NATIVE_OBJECT) {
+            NativeValue *storage = callbackInfo->argv[1];
+            contentStorage = (storage == nullptr)
+                                 ? nullptr
+                                 : std::shared_ptr<NativeReference>(
+                                       reinterpret_cast<NativeEngine *>(env)->CreateReference(storage, 1));
+        } else if (callbackInfo->argv[1]->TypeOf() == NATIVE_FUNCTION) {
+            callBack = callbackInfo->argv[1];
+        }
+    } else if (callbackInfo->argc > 2) {
+        callBack = callbackInfo->argv[2];
+    }
+    auto &inputMethodPanel = reinterpret_cast<JsPanel *>(native)->GetNative();
+    AbilityRuntime::AsyncTask::CompleteCallback complete = [contentStorage, contextUrl, &inputMethodPanel](
+                                                               NativeEngine &engine, AbilityRuntime::AsyncTask &task,
+                                                               int32_t status) {
         CHECK_RETURN_VOID(inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
-        NativeValue *nativeStorage = (ctxt->contentStorage == nullptr) ? nullptr : ctxt->contentStorage->Get();
-        auto code = inputMethodPanel->SetUiContent(ctxt->path, reinterpret_cast<NativeEngine *>(env), nativeStorage);
-        if (code == ErrorCode::NO_ERROR) {
-            ctxt->SetState(napi_ok);
+        NativeValue *nativeStorage = (contentStorage == nullptr) ? nullptr : contentStorage->Get();
+        auto code = inputMethodPanel->SetUiContent(contextUrl, engine, *nativeStorage);
+        if (code != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("SetUiContent err: %{public}d", code);
+            task.Reject(engine, engine.CreateUndefined());
             return;
         }
-        ctxt->SetErrorCode(code);
+        task.Resolve(engine, engine.CreateUndefined());
     };
-    ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, 1);
-    return asyncCall.Call(env, exec);
+    NativeValue *result = nullptr;
+    NativeEngine *nativeEngine = reinterpret_cast<NativeEngine *>(env);
+    AbilityRuntime::AsyncTask::Schedule("JsPanel::SetUiContent", *nativeEngine,
+        CreateAsyncTaskWithLastParam(*nativeEngine, callBack, nullptr, std::move(complete), &result));
+    return reinterpret_cast<napi_value>(result);
 }
 
 napi_value JsPanel::Resize(napi_env env, napi_callback_info info)

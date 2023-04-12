@@ -49,7 +49,7 @@ class InputMethodPanel {
 public:
     InputMethodPanel() = default;
     ~InputMethodPanel();
-    int32_t SetUiContent(const std::string& contentInfo, NativeEngine* engine, NativeValue* storage);
+    int32_t SetUiContent(const std::string &contentInfo, NativeEngine &engine, NativeValue &storage);
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo);
     int32_t DestroyPanel();
 
@@ -79,7 +79,7 @@ private:
 
     static std::atomic<uint32_t> sequenceId_;
 };
-}
-}
+} // namespace MiscServices
+} // namespace OHOS
 
 #endif //INPUT_METHOD_PANEL_H

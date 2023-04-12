@@ -215,13 +215,13 @@ bool InputMethodPanel::IsHidden()
     return false;
 }
 
-int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, NativeEngine *engine, NativeValue *storage)
+int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, NativeEngine &engine, NativeValue &storage)
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr, can not SetUiContent.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto ret = window_->SetUIContent(contentInfo, engine, storage);
+    auto ret = window_->SetUIContent(contentInfo, &engine, &storage);
     if (ret != WMError::WM_OK) {
         return ErrorCode::ERROR_OPERATE_PANEL;
     }

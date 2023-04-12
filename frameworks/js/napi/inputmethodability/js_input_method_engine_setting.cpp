@@ -345,32 +345,37 @@ void JsInputMethodEngineSetting::GetNativeContext(napi_env env, NativeValue *nat
 
 napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_info info)
 {
-    auto ctxt = std::make_shared<PanelContext>();
-    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc >= 1, "should has 1 parameters!", TYPE_NONE, napi_invalid_arg);
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, " target: ", TYPE_OBJECT, napi_invalid_arg);
-        bool result = false;
-        napi_status status = napi_instanceof(env, argv[0], JsPanel::Constructor(env), &result);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "run napi_instanceof failed!", status);
-        JsPanel *panel = nullptr;
-        status = napi_unwrap(env, argv[0], (void **)(&panel));
-        NAPI_ASSERT_BASE(env, (status == napi_ok) && (panel != nullptr), "can not unwrap to JsPanel!", status);
-        ctxt->jsPanel = panel;
-        return status;
-    };
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    PARAM_CHECK_RETURN(env, argc > 0, " should has 1 parameter! ", TYPE_NONE, nullptr);
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[0], &valueType);
+    PARAM_CHECK_RETURN(env, valueType == napi_object, " target: ", TYPE_OBJECT, nullptr);
+    bool isPanel = false;
+    napi_status status = napi_instanceof(env, argv[0], JsPanel::Constructor(env), &isPanel);
+    NAPI_ASSERT_BASE(env, status == napi_ok, "run napi_instanceof failed!", nullptr);
+    JsPanel *panel = nullptr;
+    status = napi_unwrap(env, argv[0], (void **)(&panel));
+    NAPI_ASSERT_BASE(env, (status == napi_ok) && (panel != nullptr), "can not unwrap to JsPanel!", nullptr);
 
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        CHECK_RETURN_VOID(ctxt->jsPanel != nullptr, "JsPanel is nullptr!");
-        auto status = InputMethodAbility::GetInstance()->DestroyPanel(ctxt->jsPanel->GetNative());
-        ctxt->SetErrorCode(status);
-        CHECK_RETURN_VOID(status == ErrorCode::NO_ERROR, "DestroyPanel return error!");
-        ctxt->SetState(napi_ok);
+    AbilityRuntime::AsyncTask::CompleteCallback complete = [&panel](NativeEngine &engine,
+        AbilityRuntime::AsyncTask &task, int32_t status) {
+        auto ret = InputMethodAbility::GetInstance()->DestroyPanel(panel->GetNative());
+        if(ret != ErrorCode::NO_ERROR) {
+            task.Reject(engine, AbilityRuntime::CreateJsError(engine, 1, "Destroy panel failed."));
+            return;
+        }
+        task.Resolve(engine, engine.CreateUndefined());
     };
-    ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, 1);
-    return asyncCall.Call(env, exec);
+    NativeCallbackInfo *callbackInfo = reinterpret_cast<NativeCallbackInfo *>(info);
+    NativeValue* lastParam = (callbackInfo->argc < 2) ? nullptr :
+                             (callbackInfo->argv[1]->TypeOf() == NATIVE_FUNCTION ? callbackInfo->argv[1] : nullptr);
+    NativeValue *result = nullptr;
+    NativeEngine *nativeEngine = reinterpret_cast<NativeEngine *>(env);
+    AbilityRuntime::AsyncTask::Schedule("JsInputMethodEngineSetting::DestroyPanel", *nativeEngine,
+        CreateAsyncTaskWithLastParam(*nativeEngine, lastParam, nullptr, std::move(complete), &result));
+    return reinterpret_cast<napi_value>(result);
 }
 
 napi_ref JsInputMethodEngineSetting::NewWithRef(
