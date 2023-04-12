@@ -32,7 +32,7 @@ config("inputmethodengine_native_config") {
 }
 
 config("inputmethodengine_native_public_config") {
-  visibility = []
+  visibility = [ "./*" ]
   include_dirs = [
     "include",
     "${inputmethod_path}/frameworks/common",
