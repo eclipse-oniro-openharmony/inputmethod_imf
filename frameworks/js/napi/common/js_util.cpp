@@ -15,6 +15,7 @@
 
 #include "js_util.h"
 namespace OHOS {
+constexpr int64_t JS_NUMBER_MAX_VALUE = (1LL << 53) - 1;
 bool JsUtil::GetValue(napi_env env, napi_value in, std::string &out)
 {
     size_t size = 0;
@@ -40,9 +41,7 @@ bool JsUtil::GetValue(napi_env env, napi_value in, int64_t &out)
 }
 bool JsUtil::GetValue(napi_env env, napi_value in, bool &out)
 {
-    auto status = napi_get_value_bool(env, in, &out);
-    std::cout << status << "," << out << std::endl;
-    return status == napi_ok;
+    return napi_get_value_bool(env, in, &out) == napi_ok;
 }
 napi_value JsUtil::GetValue(napi_env env, const std::string &in)
 {
@@ -64,6 +63,10 @@ napi_value JsUtil::GetValue(napi_env env, uint32_t in)
 }
 napi_value JsUtil::GetValue(napi_env env, int64_t in)
 {
+    if (in > JS_NUMBER_MAX_VALUE) {
+        // cannot exceed the range of js
+        return nullptr;
+    }
     napi_value out = nullptr;
     napi_create_int64(env, in, &out);
     return out;
