@@ -95,12 +95,10 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_MAX] = { nullptr };
     napi_value self = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
-    void *native = nullptr;
-    napi_status status = napi_unwrap(env, self, &native);
     PARAM_CHECK_RETURN(env, argc > 0, " should 1 or 2 parameter! ", TYPE_NONE, nullptr);
     std::string contextUrl;
-    status = JsUtils::GetValue(env, argv[0], contextUrl);
-
+    napi_status status = JsUtils::GetValue(env, argv[0], contextUrl);
+    PARAM_CHECK_RETURN(env, status == napi_ok, " get contextUrl error! ", TYPE_NONE, nullptr);
     NativeValue *callBack = nullptr;
     std::shared_ptr<NativeReference> contentStorage = nullptr;
     NativeCallbackInfo *callbackInfo = reinterpret_cast<NativeCallbackInfo *>(info);
@@ -117,6 +115,12 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     } else if (callbackInfo->argc > 2) {
         callBack = callbackInfo->argv[2];
     }
+    void *native = nullptr;
+    status = napi_unwrap(env, self, &native);
+    if (status != napi_ok) {
+        IMSA_HILOGI("napi_unwrap error, status = %{public}d.", status);
+        return status;
+    }
     auto &inputMethodPanel = reinterpret_cast<JsPanel *>(native)->GetNative();
     AbilityRuntime::AsyncTask::CompleteCallback complete = [contentStorage, contextUrl, &inputMethodPanel](
                                                                NativeEngine &engine, AbilityRuntime::AsyncTask &task,
@@ -129,18 +133,12 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
             task.Reject(engine, engine.CreateUndefined());
             return;
         }
-        task.Resolve(engine, engine.CreateUndefined());
+        task.ResolveWithNoError(engine, engine.CreateUndefined());
     };
     NativeValue *result = nullptr;
     NativeEngine *nativeEngine = reinterpret_cast<NativeEngine *>(env);
     AbilityRuntime::AsyncTask::Schedule("JsPanel::SetUiContent", *nativeEngine,
         CreateAsyncTaskWithLastParam(*nativeEngine, callBack, nullptr, std::move(complete), &result));
-    napi_value res[ARG_BUTT] = { 0 };
-    if (*result == nativeEngine.CreateUndefined()) {
-        napi_get_undefined(env, &result[ARG_ERROR]);
-        napi_get_undefined(env, &result[ARG_DATA]);
-        return res;
-    }
     return reinterpret_cast<napi_value>(result);
 }
 

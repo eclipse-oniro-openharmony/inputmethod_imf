@@ -379,7 +379,7 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
             task.Reject(engine, engine.CreateUndefined());
             return;
         }
-        task.Resolve(engine, engine.CreateUndefined());
+        task.ResolveWithNoError(engine, engine.CreateUndefined());
     };
     NativeCallbackInfo *callbackInfo = reinterpret_cast<NativeCallbackInfo *>(info);
     NativeValue *callBack = nullptr;
@@ -390,12 +390,6 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
     NativeEngine *nativeEngine = reinterpret_cast<NativeEngine *>(env);
     AbilityRuntime::AsyncTask::Schedule("JsInputMethodEngineSetting::DestroyPanel", *nativeEngine,
         CreateAsyncTaskWithLastParam(*nativeEngine, callBack, nullptr, std::move(complete), &result));
-    napi_value res[ARG_BUTT] = { 0 };
-    if (*result == nativeEngine.CreateUndefined()) {
-        napi_get_undefined(env, &result[ARG_ERROR]);
-        napi_get_undefined(env, &result[ARG_DATA]);
-        return res;
-    }
     return reinterpret_cast<napi_value>(result);
 }
 
