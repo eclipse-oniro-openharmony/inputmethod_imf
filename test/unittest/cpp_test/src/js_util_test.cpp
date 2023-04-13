@@ -22,7 +22,7 @@
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
-namespace OHOS {
+namespace OHOS::MiscServices {
 constexpr size_t MAX_ARGC = 2;
 struct Property {
     std::string name;
@@ -186,4 +186,4 @@ extern "C" __attribute__((constructor)) void Register()
 {
     napi_module_register(&_module);
 }
-} // namespace OHOS
+} // namespace OHOS::MiscServices

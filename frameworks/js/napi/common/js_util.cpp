@@ -14,7 +14,7 @@
  */
 
 #include "js_util.h"
-namespace OHOS {
+namespace OHOS::MiscServices {
 constexpr int64_t JS_NUMBER_MAX_VALUE = (1LL << 53) - 1;
 bool JsUtil::GetValue(napi_env env, napi_value in, std::string &out)
 {
@@ -77,4 +77,4 @@ napi_value JsUtil::GetValue(napi_env env, bool in)
     napi_get_boolean(env, in, &out);
     return out;
 }
-} // namespace OHOS
+} // namespace OHOS::MiscServices

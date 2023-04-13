@@ -20,7 +20,7 @@
 
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-namespace OHOS {
+namespace OHOS::MiscServices {
 class JsUtil {
 public:
     // js to native
@@ -118,5 +118,5 @@ public:
         napi_handle_scope scope_;
     };
 };
-} // namespace OHOS
+} // namespace OHOS::MiscServices
 #endif // OHOS_JS_UTIL_H
