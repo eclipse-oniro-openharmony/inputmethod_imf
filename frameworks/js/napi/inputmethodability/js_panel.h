@@ -45,6 +45,7 @@ public:
     void SetNative(const std::shared_ptr<InputMethodPanel> &panel);
     std::shared_ptr<InputMethodPanel> &GetNative();
 private:
+    enum arg : int { ARG_ERROR, ARG_DATA, ARG_BUTT };
     struct PanelContentContext : public AsyncCall::Context {
         std::string path = "";
         uint32_t width = 0;

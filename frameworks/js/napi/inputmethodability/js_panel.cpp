@@ -135,6 +135,12 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     NativeEngine *nativeEngine = reinterpret_cast<NativeEngine *>(env);
     AbilityRuntime::AsyncTask::Schedule("JsPanel::SetUiContent", *nativeEngine,
         CreateAsyncTaskWithLastParam(*nativeEngine, callBack, nullptr, std::move(complete), &result));
+    napi_value res[ARG_BUTT] = { 0 };
+    if (*result == nativeEngine.CreateUndefined()) {
+        napi_get_undefined(env, &result[ARG_ERROR]);
+        napi_get_undefined(env, &result[ARG_DATA]);
+        return res;
+    }
     return reinterpret_cast<napi_value>(result);
 }
 

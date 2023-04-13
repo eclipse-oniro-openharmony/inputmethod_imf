@@ -355,26 +355,47 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
     bool isPanel = false;
     napi_status status = napi_instanceof(env, argv[0], JsPanel::Constructor(env), &isPanel);
     NAPI_ASSERT_BASE(env, status == napi_ok, "run napi_instanceof failed!", nullptr);
+    if (!isPanel) {
+        IMSA_HILOGE("it is not an instance of JsPanel!");
+    }
     JsPanel *panel = nullptr;
     status = napi_unwrap(env, argv[0], (void **)(&panel));
     NAPI_ASSERT_BASE(env, (status == napi_ok) && (panel != nullptr), "can not unwrap to JsPanel!", nullptr);
-
-    AbilityRuntime::AsyncTask::CompleteCallback complete = [&panel](NativeEngine &engine,
+    auto inputMethodPanel = panel->GetNative();
+    if (inputMethodPanel == nullptr) {
+        IMSA_HILOGE("inputMethodPanel 001 is nullptr!");
+        return nullptr;
+    }
+    AbilityRuntime::AsyncTask::CompleteCallback complete = [inputMethodPanel](NativeEngine &engine,
         AbilityRuntime::AsyncTask &task, int32_t status) {
-        auto ret = InputMethodAbility::GetInstance()->DestroyPanel(panel->GetNative());
+        if (inputMethodPanel == nullptr) {
+            IMSA_HILOGE("inputMethodPanel is nullptr.");
+            task.Reject(engine, engine.CreateUndefined());
+            return;
+        }
+        auto ret = InputMethodAbility::GetInstance()->DestroyPanel(inputMethodPanel);
+        IMSA_HILOGE("DestroyPanel. ret = %{public}d", ret);
         if(ret != ErrorCode::NO_ERROR) {
-            task.Reject(engine, AbilityRuntime::CreateJsError(engine, 1, "Destroy panel failed."));
+            task.Reject(engine, engine.CreateUndefined());
             return;
         }
         task.Resolve(engine, engine.CreateUndefined());
     };
     NativeCallbackInfo *callbackInfo = reinterpret_cast<NativeCallbackInfo *>(info);
-    NativeValue* lastParam = (callbackInfo->argc < 2) ? nullptr :
-                             (callbackInfo->argv[1]->TypeOf() == NATIVE_FUNCTION ? callbackInfo->argv[1] : nullptr);
+    NativeValue *callBack = nullptr;
+    if (callbackInfo->argc >= 2 && callbackInfo->argv[1]->TypeOf() == NATIVE_FUNCTION) {
+        callBack = callbackInfo->argv[1];
+    }
     NativeValue *result = nullptr;
     NativeEngine *nativeEngine = reinterpret_cast<NativeEngine *>(env);
     AbilityRuntime::AsyncTask::Schedule("JsInputMethodEngineSetting::DestroyPanel", *nativeEngine,
-        CreateAsyncTaskWithLastParam(*nativeEngine, lastParam, nullptr, std::move(complete), &result));
+        CreateAsyncTaskWithLastParam(*nativeEngine, callBack, nullptr, std::move(complete), &result));
+    napi_value res[ARG_BUTT] = { 0 };
+    if (*result == nativeEngine.CreateUndefined()) {
+        napi_get_undefined(env, &result[ARG_ERROR]);
+        napi_get_undefined(env, &result[ARG_DATA]);
+        return res;
+    }
     return reinterpret_cast<napi_value>(result);
 }
 
