@@ -52,7 +52,6 @@ public:
     void OnSetSubtype(const SubProperty &property) override;
 
 private:
-    enum arg : int { ARG_ERROR, ARG_DATA, ARG_BUTT };
     struct PanelContext : public AsyncCall::Context {
         int32_t panelType = -1;
         int32_t panelFlag = 0;
