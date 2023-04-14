@@ -372,7 +372,7 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
         }
         auto ret = InputMethodAbility::GetInstance()->DestroyPanel(inputMethodPanel);
         IMSA_HILOGE("DestroyPanel. ret = %{public}d", ret);
-        if(ret != ErrorCode::NO_ERROR) {
+        if (ret != ErrorCode::NO_ERROR) {
             task.Reject(engine, engine.CreateUndefined());
             return;
         }
@@ -380,6 +380,7 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
     };
     NativeCallbackInfo *callbackInfo = reinterpret_cast<NativeCallbackInfo *>(info);
     NativeValue *callBack = nullptr;
+    // 2 means has two parameters.
     if (callbackInfo->argc >= 2 && callbackInfo->argv[1]->TypeOf() == NATIVE_FUNCTION) {
         callBack = callbackInfo->argv[1];
     }

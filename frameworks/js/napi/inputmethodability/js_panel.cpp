@@ -97,25 +97,25 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_MAX] = { nullptr };
     napi_value self = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
-    PARAM_CHECK_RETURN(env, argc > 0, " should 1 or 2 parameter! ", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, argc > ARGC_ZERO, " should 1 or 2 parameter! ", TYPE_NONE, nullptr);
     std::string contextUrl;
-    napi_status status = JsUtils::GetValue(env, argv[0], contextUrl);
+    napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], contextUrl);
     PARAM_CHECK_RETURN(env, status == napi_ok, " get contextUrl error! ", TYPE_NONE, nullptr);
     NativeValue *callBack = nullptr;
     std::shared_ptr<NativeReference> contentStorage = nullptr;
     NativeCallbackInfo *callbackInfo = reinterpret_cast<NativeCallbackInfo *>(info);
-    if (callbackInfo->argc == 2) {
-        if (callbackInfo->argv[1]->TypeOf() == NATIVE_OBJECT) {
-            NativeValue *storage = callbackInfo->argv[1];
+    if (callbackInfo->argc == ARGC_TWO) {
+        if (callbackInfo->argv[ARGC_ONE]->TypeOf() == NATIVE_OBJECT) {
+            NativeValue *storage = callbackInfo->argv[ARGC_ONE];
             contentStorage = (storage == nullptr)
                                  ? nullptr
                                  : std::shared_ptr<NativeReference>(
                                        reinterpret_cast<NativeEngine *>(env)->CreateReference(storage, 1));
-        } else if (callbackInfo->argv[1]->TypeOf() == NATIVE_FUNCTION) {
-            callBack = callbackInfo->argv[1];
+        } else if (callbackInfo->argv[ARGC_ONE]->TypeOf() == NATIVE_FUNCTION) {
+            callBack = callbackInfo->argv[ARGC_ONE];
         }
-    } else if (callbackInfo->argc > 2) {
-        callBack = callbackInfo->argv[2];
+    } else if (callbackInfo->argc > ARGC_TWO) {
+        callBack = callbackInfo->argv[ARGC_TWO];
     }
     void *native = nullptr;
     status = napi_unwrap(env, self, &native);
