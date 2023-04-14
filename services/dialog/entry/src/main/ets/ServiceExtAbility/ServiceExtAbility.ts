@@ -21,12 +21,12 @@ import prompt from '@ohos.prompt';
 let TAG = '[InputMethodChooseDialog]';
 
 export default class ServiceExtAbility extends ServiceExtensionAbility {
-  onCreate(want) {
+  onCreate(want): void {
     console.log(TAG, 'onCreate');
     globalThis.windowNum = 0;
   }
 
-  onRequest(want, startId) {
+  onRequest(want, startId): void {
     console.log(TAG, 'onRequest execute');
     globalThis.abilityWant = want;
     display.getDefaultDisplay().then(() => {
@@ -37,13 +37,13 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
         height: 300,
       };
       this.getInputMethods().then(() => {
-        this.createWindow('inputmethod Dialog: ' + startId, window.WindowType.TYPE_DIALOG, dialogRect)
-      })
+        this.createWindow('inputmethod Dialog: ' + startId, window.WindowType.TYPE_DIALOG, dialogRect);
+      });
     }).catch((err) => {
       console.log(TAG + 'getDefaultDisplay err: ' + JSON.stringify(err));
     });
 
-    globalThis.chooseInputMethods = ((prop: inputMethod.InputMethodProperty) => {
+    globalThis.chooseInputMethods = ((prop: inputMethod.InputMethodProperty): void => {
       inputMethod.switchInputMethod(prop).then((err) => {
         if (!err) {
           console.log(TAG + 'switchInputMethod failed, ' + JSON.stringify(err));
@@ -60,13 +60,13 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
     })
   }
 
-  onDestroy() {
+  onDestroy(): void {
     console.log(TAG + 'ServiceExtAbility destroyed.');
     globalThis.extensionWin.destroy();
     globalThis.context.terminateSelf();
   }
 
-  private async createWindow(name: string, windowType: number, rect) {
+  private async createWindow(name: string, windowType: number, rect): Promise<void> {
     console.log(TAG + 'createWindow execute.');
     try {
       if (globalThis.windowNum > 0) {
@@ -88,7 +88,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
     }
   }
 
-  private async getInputMethods() {
+  private async getInputMethods(): Promise<void> {
     globalThis.inputMethodList = [];
     try {
       let enableList = await inputMethod.getInputMethodSetting().listInputMethod(true);

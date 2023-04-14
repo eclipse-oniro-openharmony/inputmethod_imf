@@ -20,12 +20,12 @@ export default class InputMethodExtAbility extends ImeExtension {
   private keyboardController: KeyboardController;
 
   onCreate(want) {
-    console.log(`InputMethodExtAbility onCreate, want: ${want.abilityName}`);
+    console.log('InputMethodExtAbility onCreate, want: ${want.abilityName}');
     this.keyboardController = new KeyboardController(this.context);
     this.keyboardController.onCreate();
   }
 
   onDestroy() {
-    console.log(`InputMethodExtAbility onDestroy`);
+    console.log('InputMethodExtAbility onDestroy');
   }
 }

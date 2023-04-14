@@ -18,7 +18,7 @@ let ExtensionContext = requireNapi('application.ExtensionContext');
 class InputMethodExtensionContext extends ExtensionContext {
   constructor(obj) {
     super(obj);
-    this.extensionAbilityInfo = obj.extensionAbilityInfo
+    this.extensionAbilityInfo = obj.extensionAbilityInfo;
   }
 
   startAbility(want, options, callback) {
