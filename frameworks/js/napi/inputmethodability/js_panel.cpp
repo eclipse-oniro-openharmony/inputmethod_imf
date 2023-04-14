@@ -27,6 +27,7 @@ constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 const std::string JsPanel::CLASS_NAME = "Panel";
+thread_local napi_ref JsPanel::panelConstructorRef_ = nullptr;
 
 napi_value JsPanel::Constructor(napi_env env)
 {
@@ -45,6 +46,7 @@ napi_value JsPanel::Constructor(napi_env env)
     NAPI_CALL(env, napi_define_class(env, CLASS_NAME.c_str(), CLASS_NAME.size(), JsNew, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
     NAPI_ASSERT(env, constructor != nullptr, "napi_define_class failed!");
+    NAPI_CALL(env, napi_create_reference(env, constructor, 1, &panelConstructorRef_));
     return constructor;
 }
 
@@ -117,10 +119,7 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     }
     void *native = nullptr;
     status = napi_unwrap(env, self, &native);
-    if (status != napi_ok) {
-        IMSA_HILOGI("napi_unwrap error, status = %{public}d.", status);
-        return status;
-    }
+    NAPI_ASSERT(env, status == napi_ok, "napi_unwrap error!");
     auto &inputMethodPanel = reinterpret_cast<JsPanel *>(native)->GetNative();
     AbilityRuntime::AsyncTask::CompleteCallback complete = [contentStorage, contextUrl, &inputMethodPanel](
                                                                NativeEngine &engine, AbilityRuntime::AsyncTask &task,

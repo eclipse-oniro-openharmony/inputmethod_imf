@@ -44,8 +44,8 @@ public:
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     void SetNative(const std::shared_ptr<InputMethodPanel> &panel);
     std::shared_ptr<InputMethodPanel> &GetNative();
+    static thread_local napi_ref panelConstructorRef_;
 private:
-    enum arg : int { ARG_ERROR, ARG_DATA, ARG_BUTT };
     struct PanelContentContext : public AsyncCall::Context {
         std::string path = "";
         uint32_t width = 0;

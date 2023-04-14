@@ -311,7 +311,7 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
         std::shared_ptr<InputMethodPanel> panel = nullptr;
         PanelInfo panelInfo = { .panelType = PanelType(ctxt->panelType), .panelFlag = PanelFlag(ctxt->panelFlag) };
         auto context = static_cast<std::weak_ptr<AbilityRuntime::Context> *>(ctxt->contextPtr);
-        CHECK_RETURN_VOID(ctxt->jsPanel != nullptr, "napi_create_reference failed");
+        CHECK_RETURN_VOID(ctxt->jsPanel != nullptr, "jsPanel is nullptr");
         auto ret = InputMethodAbility::GetInstance()->CreatePanel(context->lock(), panelInfo, panel);
         ctxt->SetErrorCode(ret);
         CHECK_RETURN_VOID(ret == ErrorCode::NO_ERROR, "JsInputMethodEngineSetting CreatePanel failed!");
@@ -353,19 +353,16 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
     napi_typeof(env, argv[0], &valueType);
     PARAM_CHECK_RETURN(env, valueType == napi_object, " target: ", TYPE_OBJECT, nullptr);
     bool isPanel = false;
-    napi_status status = napi_instanceof(env, argv[0], JsPanel::Constructor(env), &isPanel);
-    NAPI_ASSERT_BASE(env, status == napi_ok, "run napi_instanceof failed!", nullptr);
-    if (!isPanel) {
-        IMSA_HILOGE("it is not an instance of JsPanel!");
-    }
+    napi_value constructor = nullptr;
+    napi_status status = napi_get_reference_value(env, JsPanel::panelConstructorRef_, &constructor);
+    NAPI_ASSERT_BASE(env, status == napi_ok, "napi_get_reference_value failed!", nullptr);
+    status = napi_instanceof(env, argv[0], constructor, &isPanel);
+    NAPI_ASSERT_BASE(env, (status == napi_ok && isPanel), "run napi_instanceof failed!", nullptr);
     JsPanel *panel = nullptr;
     status = napi_unwrap(env, argv[0], (void **)(&panel));
     NAPI_ASSERT_BASE(env, (status == napi_ok) && (panel != nullptr), "can not unwrap to JsPanel!", nullptr);
     auto inputMethodPanel = panel->GetNative();
-    if (inputMethodPanel == nullptr) {
-        IMSA_HILOGE("inputMethodPanel 001 is nullptr!");
-        return nullptr;
-    }
+    NAPI_ASSERT_BASE(env, inputMethodPanel != nullptr, "inputMethodPanel 001 is nullptr!", nullptr);
     AbilityRuntime::AsyncTask::CompleteCallback complete = [inputMethodPanel](NativeEngine &engine,
         AbilityRuntime::AsyncTask &task, int32_t status) {
         if (inputMethodPanel == nullptr) {
