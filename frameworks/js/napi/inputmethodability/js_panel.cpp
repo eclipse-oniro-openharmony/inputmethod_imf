@@ -16,7 +16,6 @@
 #include "js_panel.h"
 
 #include "input_method_ability.h"
-#include "js_runtime_utils.h"
 #include "js_utils.h"
 #include "napi/native_common.h"
 #include "panel_listener_impl.h"
@@ -86,10 +85,6 @@ std::shared_ptr<InputMethodPanel> &JsPanel::GetNative()
     return inputMethodPanel_;
 }
 
-// setUiContent(path: string): Promise<void>
-// setUiContent(path: string, callback: AsyncCallback<void>): void
-// setUiContent(path: string, storage: LocalStorage, callback: AsyncCallback<void>): void
-// setUiContent(path: string, storage: LocalStorage): Promise<void>
 napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGI("JsPanel in.");
@@ -122,18 +117,12 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         auto &inputMethodPanel = reinterpret_cast<JsPanel *>(ctxt->native)->GetNative();
-        if (inputMethodPanel == nullptr) {
-            IMSA_HILOGE("inputMethodPanel is nullptr.");
-            return napi_invalid_arg;
-        }
+        NAPI_ASSERT_BASE(env, inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
         NativeValue *nativeStorage = (ctxt->contentStorage == nullptr) ? nullptr : ctxt->contentStorage->Get();
         auto code = inputMethodPanel->SetUiContent(ctxt->path, *(reinterpret_cast<NativeEngine *>(env)),
                                                    *nativeStorage);
-        if (code == ErrorCode::NO_ERROR) {
-            return napi_ok;
-        }
-        IMSA_HILOGE("SetUiContent failed, err = %{public}d.", code);
-        return napi_invalid_arg;
+        NAPI_ASSERT_BASE(env, code == ErrorCode::NO_ERROR, "SetUiContent failed!", napi_generic_failure);
+        return napi_ok;
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, ctxt, 1);
