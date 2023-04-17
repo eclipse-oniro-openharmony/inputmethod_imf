@@ -339,7 +339,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
     // if currentIme is switching subtype, permission verification is not performed.
     if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
-        && !BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme)) {
+        && !(bundleName == currentIme && BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme))) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     if (!IsNeedSwitch(bundleName, subName)) {
