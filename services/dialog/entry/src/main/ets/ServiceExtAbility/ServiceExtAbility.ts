@@ -17,6 +17,7 @@ import window from '@ohos.window';
 import display from '@ohos.display';
 import inputMethod from '@ohos.inputMethod';
 import prompt from '@ohos.prompt';
+import Want from './@ohos.app.ability.Want';
 
 let TAG = '[InputMethodChooseDialog]';
 
@@ -26,7 +27,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
     globalThis.windowNum = 0;
   }
 
-  onRequest(want, startId): void {
+  onRequest(want: Want, startId: number): void {
     console.log(TAG, 'onRequest execute');
     globalThis.abilityWant = want;
     display.getDefaultDisplay().then(() => {
