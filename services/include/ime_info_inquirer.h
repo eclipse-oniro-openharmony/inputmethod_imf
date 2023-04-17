@@ -41,10 +41,8 @@ struct ImeInfo {
 enum class Condition {
     UPPER = 0,
     LOWER,
-    LANGUAGE_EN,
-    LANGUAGE_CH,
-    LOCALE_EN,
-    LOCALE_CH,
+    ENGLISH,
+    CHINESE,
 };
 
 class ImeInfoInquirer {

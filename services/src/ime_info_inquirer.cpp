@@ -37,7 +37,7 @@ using json = nlohmann::json;
 using namespace OHOS::AppExecFwk;
 constexpr const char *SUBTYPE_PROFILE_METADATA_NAME = "ohos.extension.input_method";
 constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
-constexpr uint32_t MAX_SUBTYPE_NUM = 10;
+constexpr uint32_t MAX_SUBTYPE_NUM = 256;
 constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
 constexpr int32_t CONFIG_LEN = 128;
 constexpr uint32_t RETRY_INTERVAL = 100;
@@ -413,6 +413,23 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
         if (pos != std::string::npos && pos + 1 < subProp.icon.size()) {
             subProp.iconId = atoi(subProp.icon.substr(pos + 1).c_str());
         }
+        subProp.language = subProp.locale;
+        pos = subProp.locale.find('-');
+        if (pos != std::string::npos) {
+            subProp.language = subProp.locale.substr(0, pos);
+        }
+        // compatible with the locale configuration of original ime
+        pos = subProp.locale.find('_');
+        if (pos != std::string::npos) {
+            subProp.language = subProp.locale.substr(0, pos);
+        }
+
+        if (subProp.language == "en") {
+            subProp.language = "english";
+        }
+        if (subProp.language == "zh") {
+            subProp.language = "chinese";
+        }
     }
     return ErrorCode::NO_ERROR;
 }
@@ -618,24 +635,14 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::GetImeSubProp(
                 subProps.begin(), subProps.end(), [](const SubProperty &subProp) { return subProp.mode == "lower"; });
             break;
         }
-        case Condition::LANGUAGE_EN: {
+        case Condition::ENGLISH: {
             it = std::find_if(subProps.begin(), subProps.end(),
                 [](const SubProperty &subProp) { return subProp.language == "english" && subProp.mode == "lower"; });
             break;
         }
-        case Condition::LANGUAGE_CH: {
+        case Condition::CHINESE: {
             it = std::find_if(subProps.begin(), subProps.end(),
                 [](const SubProperty &subProp) { return subProp.language == "chinese"; });
-            break;
-        }
-        case Condition::LOCALE_CH: {
-            it = std::find_if(subProps.begin(), subProps.end(),
-                [](const SubProperty &subProp) { return subProp.locale == "zh_CN"; });
-            break;
-        }
-        case Condition::LOCALE_EN: {
-            it = std::find_if(subProps.begin(), subProps.end(),
-                [](const SubProperty &subProp) { return subProp.locale == "en_US" && subProp.mode == "lower"; });
             break;
         }
         default: {
@@ -682,23 +689,14 @@ void ImeInfoInquirer::ParseSubProp(const json &jsonSubProps, std::vector<SubProp
 
 void ImeInfoInquirer::ParseSubProp(const json &jsonSubProp, SubProperty &subProp)
 {
-    // label: 子类型对外显示名称
     if (jsonSubProp.find("label") != jsonSubProp.end() && jsonSubProp["label"].is_string()) {
         jsonSubProp.at("label").get_to(subProp.label);
     }
-    if (jsonSubProp.find("labelId") != jsonSubProp.end() && jsonSubProp["labelId"].is_number()) {
-        jsonSubProp.at("labelId").get_to(subProp.labelId);
-    }
-    // id: 子类型名
     if (jsonSubProp.find("id") != jsonSubProp.end() && jsonSubProp["id"].is_string()) {
         jsonSubProp.at("id").get_to(subProp.id);
     }
-
     if (jsonSubProp.find("icon") != jsonSubProp.end() && jsonSubProp["icon"].is_string()) {
         jsonSubProp.at("icon").get_to(subProp.icon);
-    }
-    if (jsonSubProp.find("iconId") != jsonSubProp.end() && jsonSubProp["iconId"].is_number()) {
-        jsonSubProp.at("iconId").get_to(subProp.iconId);
     }
     if (jsonSubProp.find("mode") != jsonSubProp.end() && jsonSubProp["mode"].is_string()) {
         jsonSubProp.at("mode").get_to(subProp.mode);
