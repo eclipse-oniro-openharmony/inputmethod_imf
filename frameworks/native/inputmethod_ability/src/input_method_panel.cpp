@@ -216,7 +216,7 @@ bool InputMethodPanel::IsHidden()
 }
 
 int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, NativeEngine &engine,
-    std::shared_ptr<NativeReference> &storage)
+    std::shared_ptr<NativeReference> storage)
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr, can not SetUiContent.");

@@ -49,7 +49,7 @@ public:
     InputMethodPanel() = default;
     ~InputMethodPanel();
     int32_t SetUiContent(const std::string &contentInfo, NativeEngine &engine,
-        std::shared_ptr<NativeReference> &contentStorage);
+        std::shared_ptr<NativeReference> contentStorage);
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo);
     int32_t DestroyPanel();
 
