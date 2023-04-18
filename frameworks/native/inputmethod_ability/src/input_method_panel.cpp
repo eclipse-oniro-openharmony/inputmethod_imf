@@ -222,7 +222,12 @@ int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, NativeEng
         IMSA_HILOGE("window_ is nullptr, can not SetUiContent.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto ret = window_->SetUIContent(contentInfo, &engine, storage->Get());
+    WMError ret = WMError::WM_OK;
+    if (storage == nullptr) {
+        ret = window_->SetUIContent(contentInfo, &engine, nullptr);
+    } else {
+        ret = window_->SetUIContent(contentInfo, &engine, storage->Get());
+    }
     if (ret != WMError::WM_OK) {
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
