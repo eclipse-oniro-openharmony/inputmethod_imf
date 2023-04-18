@@ -61,6 +61,7 @@ ohos_shared_library("inputmethod_ability") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
+    "napi:ace_napi",
     "samgr:samgr_proxy",
     "window_manager:libdm",
     "window_manager:libwm",

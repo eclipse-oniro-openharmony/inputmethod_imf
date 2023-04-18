@@ -20,13 +20,12 @@
 #include <map>
 #include <string>
 
+#include "js_runtime_utils.h"
 #include "panel_status_listener.h"
 #include "window.h"
 #include "window_option.h"
 #include "wm_common.h"
 
-class NativeValue;
-class NativeEngine;
 namespace OHOS {
 using namespace OHOS::Rosen;
 namespace MiscServices {
@@ -49,7 +48,7 @@ class InputMethodPanel {
 public:
     InputMethodPanel() = default;
     ~InputMethodPanel();
-    int32_t SetUiContent(const std::string &contentInfo, NativeEngine &engine, NativeValue &storage);
+    int32_t SetUiContent(const std::string &contentInfo, NativeEngine &engine, std::shared_ptr<NativeReference> &contentStorage);
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo);
     int32_t DestroyPanel();
 
