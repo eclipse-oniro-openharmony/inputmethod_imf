@@ -78,7 +78,7 @@ void PanelListenerImpl::RemoveInfo(const std::string &type, uint32_t windowId)
 void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
 {
     std::string type = isShow ? "show" : "hide";
-    IMSA_HILOGI("PanelListenerImpl, run in, windowId = %{public}u, type = %{public}s", windowId, type.c_str());
+    IMSA_HILOGI("windowId = %{public}u, type = %{public}s", windowId, type.c_str());
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         IMSA_HILOGE("uv_work_t is nullptr!");

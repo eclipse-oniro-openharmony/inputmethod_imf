@@ -310,9 +310,9 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         std::shared_ptr<InputMethodPanel> panel = nullptr;
         PanelInfo panelInfo = { .panelType = PanelType(ctxt->panelType), .panelFlag = PanelFlag(ctxt->panelFlag) };
-        auto context = static_cast<std::weak_ptr<AbilityRuntime::Context> *>(ctxt->contextPtr);
+        auto context = std::make_shared<AbilityRuntime::Context>(ctxt->contextPtr);
         CHECK_RETURN_VOID(ctxt->jsPanel != nullptr, "jsPanel is nullptr");
-        auto ret = InputMethodAbility::GetInstance()->CreatePanel(context->lock(), panelInfo, panel);
+        auto ret = InputMethodAbility::GetInstance()->CreatePanel(context, panelInfo, panel);
         ctxt->SetErrorCode(ret);
         CHECK_RETURN_VOID(ret == ErrorCode::NO_ERROR, "JsInputMethodEngineSetting CreatePanel failed!");
         ctxt->jsPanel->SetNative(panel);
@@ -354,12 +354,12 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
         bool isPanel = false;
         napi_value constructor = nullptr;
         napi_status status = napi_get_reference_value(env, JsPanel::panelConstructorRef_, &constructor);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "napi_get_reference_value failed!", status);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "Failed to get panel constructor.", status);
         status = napi_instanceof(env, argv[0], constructor, &isPanel);
-        NAPI_ASSERT_BASE(env, (status == napi_ok) && isPanel, "run napi_instanceof failed!", status);
+        NAPI_ASSERT_BASE(env, (status == napi_ok) && isPanel, "It's not expected panel instance!", status);
         JsPanel *panel = nullptr;
         status = napi_unwrap(env, argv[0], (void **)(&panel));
-        NAPI_ASSERT_BASE(env, (status == napi_ok) && (panel != nullptr), "can not unwrap to JsPanel!", status);
+        NAPI_ASSERT_BASE(env, (status == napi_ok) && (panel != nullptr), "Can not unwrap to JsPanel!", status);
         ctxt->jsPanel = panel;
         return status;
     };

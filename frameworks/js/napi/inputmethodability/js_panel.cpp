@@ -118,7 +118,7 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         auto &inputMethodPanel = reinterpret_cast<JsPanel *>(ctxt->native)->GetNative();
         NAPI_ASSERT_BASE(env, inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
-        NativeValue *nativeStorage = (ctxt->contentStorage == nullptr) ? nullptr : ctxt->contentStorage->Get();
+        NativeValue *nativeStorage = ctxt->contentStorage->Get();
         auto code = inputMethodPanel->SetUiContent(ctxt->path, *(reinterpret_cast<NativeEngine *>(env)),
                                                    *nativeStorage);
         NAPI_ASSERT_BASE(env, code == ErrorCode::NO_ERROR, "SetUiContent failed!", napi_generic_failure);

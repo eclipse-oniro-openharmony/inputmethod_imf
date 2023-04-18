@@ -44,7 +44,6 @@ public:
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     void SetNative(const std::shared_ptr<InputMethodPanel> &panel);
     std::shared_ptr<InputMethodPanel> &GetNative();
-    static thread_local napi_ref panelConstructorRef_;
 private:
     struct PanelContentContext : public AsyncCall::Context {
         std::string path = "";
@@ -78,6 +77,7 @@ private:
     static const std::string CLASS_NAME;
     static constexpr size_t ARGC_MAX = 6;
     std::shared_ptr<InputMethodPanel> inputMethodPanel_ = nullptr;
+    static thread_local napi_ref panelConstructorRef_;
 };
 } // namespace MiscServices
 } // namespace OHOS
