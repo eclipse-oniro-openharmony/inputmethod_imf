@@ -112,7 +112,7 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         return napi_ok;
     };
 
-    auto exec = [ctxt, env](AsyncCall::Context *ctx) {
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
         ctxt->SetState(napi_ok);
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
