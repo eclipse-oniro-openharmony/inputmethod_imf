@@ -23,6 +23,7 @@
 #include "js_keyboard_controller_engine.h"
 #include "js_runtime_utils.h"
 #include "js_text_input_client_engine.h"
+#include "napi_base_context.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -278,6 +279,23 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     return result;
 }
 
+napi_status JsInputMethodEngineSetting::GetContext(napi_env env, napi_value in,
+    std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
+{
+    bool stageMode = false;
+    napi_status status = OHOS::AbilityRuntime::IsStageContext(env, in, stageMode);
+    if (status != napi_ok || (!stageMode)) {
+        IMSA_HILOGE("It's not in stage mode.");
+        return status;
+    }
+    context = OHOS::AbilityRuntime::GetStageModeContext(env, in);
+    if (context == nullptr) {
+        IMSA_HILOGE("Context is nullptr.");
+        return napi_generic_failure;
+    }
+    return napi_ok;
+}
+
 napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<PanelContext>();
@@ -286,16 +304,14 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[ARGC_ZERO], &valueType);
         PARAM_CHECK_RETURN(env, valueType == napi_object, " ctx: ", TYPE_OBJECT, napi_invalid_arg);
-
-        void *contextPtr = nullptr;
-        NativeValue *value = reinterpret_cast<NativeValue *>(argv[ARGC_ZERO]);
-        GetNativeContext(env, value, contextPtr);
-        ctxt->contextPtr = contextPtr;
-
+        napi_status status = GetContext(env, argv[ARGC_ZERO], ctxt->context);
+        if (status != napi_ok) {
+            return status;
+        }
         napi_typeof(env, argv[ARGC_ONE], &valueType);
         PARAM_CHECK_RETURN(env, valueType == napi_object, " panelInfo: ", TYPE_OBJECT, napi_invalid_arg);
         napi_value napiValue = nullptr;
-        napi_status status = napi_get_named_property(env, argv[ARGC_ONE], "type", &napiValue);
+        status = napi_get_named_property(env, argv[ARGC_ONE], "type", &napiValue);
         PARAM_CHECK_RETURN(env, status == napi_ok, " missing info parameter.", TYPE_NONE, status);
         status = JsUtils::GetValue(env, napiValue, ctxt->panelType);
         NAPI_ASSERT_BASE(env, status == napi_ok, "Get panelType error!", status);
@@ -310,10 +326,8 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         std::shared_ptr<InputMethodPanel> panel = nullptr;
         PanelInfo panelInfo = { .panelType = PanelType(ctxt->panelType), .panelFlag = PanelFlag(ctxt->panelFlag) };
-        auto context = std::shared_ptr<AbilityRuntime::Context>(
-            reinterpret_cast<AbilityRuntime::Context *>(ctxt->contextPtr));
         CHECK_RETURN_VOID(ctxt->jsPanel != nullptr, "jsPanel is nullptr");
-        auto ret = InputMethodAbility::GetInstance()->CreatePanel(context, panelInfo, panel);
+        auto ret = InputMethodAbility::GetInstance()->CreatePanel(ctxt->context, panelInfo, panel);
         ctxt->SetErrorCode(ret);
         CHECK_RETURN_VOID(ret == ErrorCode::NO_ERROR, "JsInputMethodEngineSetting CreatePanel failed!");
         ctxt->jsPanel->SetNative(panel);
@@ -330,18 +344,6 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, ctxt, ARGC_TWO);
     return asyncCall.Call(env, exec);
-}
-
-void JsInputMethodEngineSetting::GetNativeContext(napi_env env, NativeValue *nativeContext, void *&contextPtr)
-{
-    if (nativeContext != nullptr) {
-        auto objContext = AbilityRuntime::ConvertNativeValueTo<NativeObject>(nativeContext);
-        if (objContext == nullptr) {
-            IMSA_HILOGE("Get context object failed.");
-            return;
-        }
-        contextPtr = objContext->GetNativePointer();
-    }
 }
 
 napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_info info)
