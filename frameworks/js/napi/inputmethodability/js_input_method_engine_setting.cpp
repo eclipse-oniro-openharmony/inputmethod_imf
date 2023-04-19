@@ -310,7 +310,8 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         std::shared_ptr<InputMethodPanel> panel = nullptr;
         PanelInfo panelInfo = { .panelType = PanelType(ctxt->panelType), .panelFlag = PanelFlag(ctxt->panelFlag) };
-        auto context = std::static_pointer_cast<AbilityRuntime::Context>(std::shared_ptr<void>(ctxt->contextPtr));
+        auto context = std::shared_ptr<AbilityRuntime::Context>(
+            reinterpret_cast<AbilityRuntime::Context *>(ctxt->contextPtr));
         CHECK_RETURN_VOID(ctxt->jsPanel != nullptr, "jsPanel is nullptr");
         auto ret = InputMethodAbility::GetInstance()->CreatePanel(context, panelInfo, panel);
         ctxt->SetErrorCode(ret);
