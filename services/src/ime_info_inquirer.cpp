@@ -413,25 +413,29 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
         if (pos != std::string::npos && pos + 1 < subProp.icon.size()) {
             subProp.iconId = atoi(subProp.icon.substr(pos + 1).c_str());
         }
-        subProp.language = subProp.locale;
-        pos = subProp.locale.find('-');
-        if (pos != std::string::npos) {
-            subProp.language = subProp.locale.substr(0, pos);
-        }
-        // compatible with the locale configuration of original ime
-        pos = subProp.locale.find('_');
-        if (pos != std::string::npos) {
-            subProp.language = subProp.locale.substr(0, pos);
-        }
-
-        if (subProp.language == "en") {
-            subProp.language = "english";
-        }
-        if (subProp.language == "zh") {
-            subProp.language = "chinese";
-        }
+        ParseLanguage(subProp.locale, subProp.language);
     }
     return ErrorCode::NO_ERROR;
+}
+
+void ImeInfoInquirer::ParseLanguage(const std::string &locale, std::string &language)
+{
+    language = locale;
+    auto pos = locale.find('-');
+    if (pos != std::string::npos) {
+        language = locale.substr(0, pos);
+    }
+    // compatible with the locale configuration of original ime
+    pos = locale.find('_');
+    if (pos != std::string::npos) {
+        language = locale.substr(0, pos);
+    }
+    if (language == "en") {
+        language = "english";
+    }
+    if (language == "zh") {
+        language = "chinese";
+    }
 }
 
 std::string ImeInfoInquirer::GetStringById(

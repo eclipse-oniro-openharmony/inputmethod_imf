@@ -91,6 +91,7 @@ private:
     bool ParseSubProp(const std::vector<std::string> &profiles, std::vector<SubProperty> &subProps);
     void ParseSubProp(const nlohmann::json &jsonSubProps, std::vector<SubProperty> &subProps);
     void ParseSubProp(const nlohmann::json &jsonSubProp, SubProperty &subProp);
+    void ParseLanguage(const std::string &locale, std::string &language);
     bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
 
     std::recursive_mutex currentImeInfoLock_;
