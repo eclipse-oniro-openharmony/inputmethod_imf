@@ -57,6 +57,7 @@ ohos_shared_library("inputmethod_ability") {
   configs = [ ":inputmethod_ability_native_config" ]
 
   external_deps = [
+    "ability_base:configuration",
     "ability_runtime:ability_context_native",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
