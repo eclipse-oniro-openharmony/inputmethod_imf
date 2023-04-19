@@ -635,16 +635,10 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
         IMSA_HILOGE("current ime is abnormal, ret: %{public}d", ret);
         return ret;
     }
-    if (!info.isNewIme) {
-        auto condition = info.subProp.language == "chinese" ? Condition::LANGUAGE_EN : Condition::LANGUAGE_CH;
-        auto target = ImeInfoInquirer::GetInstance().GetImeSubProp(info.subProps, condition);
-        if (target == nullptr) {
-            IMSA_HILOGE("oldIme, target is empty");
-            return ErrorCode::ERROR_BAD_PARAMETERS;
-        }
-        return SwitchInputMethod(target->name, target->id);
+    if (info.subProp.language != "chinese" && info.subProp.language != "english") {
+        return ErrorCode::NO_ERROR;
     }
-    auto condition = info.subProp.locale == "zh_CN" ? Condition::LOCALE_EN : Condition::LOCALE_CH;
+    auto condition = info.subProp.language == "chinese" ? Condition::ENGLISH : Condition::CHINESE;
     auto target = ImeInfoInquirer::GetInstance().GetImeSubProp(info.subProps, condition);
     if (target == nullptr) {
         IMSA_HILOGE("target is empty");
@@ -667,7 +661,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethod()
     if (iter != props.end()) {
         return SwitchInputMethod(iter->name, "");
     }
-    return ErrorCode::ERROR_BAD_PARAMETERS;
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
