@@ -34,7 +34,7 @@ export default class MainAbility extends Ability {
         console.error('Failed to load the content. Cause:' + JSON.stringify(err));
         return;
       }
-      console.info('Succeeded in loading the content. Data: ' + JSON.stringify(data))
+      console.info('Succeeded in loading the content. Data: ' + JSON.stringify(data));
     });
   }
 

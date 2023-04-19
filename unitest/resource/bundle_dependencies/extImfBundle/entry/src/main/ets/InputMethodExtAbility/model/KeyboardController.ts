@@ -36,7 +36,7 @@ export class KeyboardController {
     this.registerInputListener();
   }
 
-  private registerInputListener() {
+  private registerInputListener(): void {
     globalThis.inputEngine.on('inputStart', (kbController, textInputClient) => {
       globalThis.textInputClient = textInputClient;
       globalThis.keyboardController = kbController;
