@@ -58,6 +58,7 @@ napi_value JsPanel::JsNew(napi_env env, napi_callback_info info)
         IMSA_HILOGI("jsPanel finalize.");
         auto *jsPanel = reinterpret_cast<JsPanel *>(data);
         NAPI_ASSERT_RETURN_VOID(env, jsPanel != nullptr, "finalize null!");
+        jsPanel->GetNative() = nullptr;
         delete jsPanel;
     };
     napi_value thisVar = nullptr;
@@ -65,6 +66,7 @@ napi_value JsPanel::JsNew(napi_env env, napi_callback_info info)
     napi_status status = napi_wrap(env, thisVar, panel, finalize, nullptr, nullptr);
     if (status != napi_ok) {
         IMSA_HILOGE("JsPanel napi_wrap failed: %{public}d", status);
+        delete panel;
         return nullptr;
     }
     return thisVar;

@@ -18,13 +18,14 @@
 
 #include <map>
 
+#include "ability.h"
 #include "global.h"
+#include "input_method_panel.h"
+#include "js_callback_object.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
-#include "js_callback_object.h"
-#include "ability.h"
 
 using Ability = OHOS::AppExecFwk::Ability;
 namespace OHOS {
@@ -58,21 +59,21 @@ enum TypeCode : int32_t {
 };
 
 /* check condition, return and logging if condition not true. */
-#define PARAM_CHECK_RETURN(env, condition, message, typeCode, retVal)                               \
-    do {                                                                                            \
-        if (!(condition)) {                                                                         \
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, message, typeCode);    \
-            return retVal;                                                                          \
-        }                                                                                           \
+#define PARAM_CHECK_RETURN(env, condition, message, typeCode, retVal)                            \
+    do {                                                                                         \
+        if (!(condition)) {                                                                      \
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, message, typeCode); \
+            return retVal;                                                                       \
+        }                                                                                        \
     } while (0)
 
 /* check condition, return and logging. */
-#define CHECK_RETURN_VOID(condition, message)                       \
-    do {                                                            \
-        if (!(condition)) {                                         \
-            IMSA_HILOGE("test (" #condition ") failed: " message);  \
-            return;                                                 \
-        }                                                           \
+#define CHECK_RETURN_VOID(condition, message)                      \
+    do {                                                           \
+        if (!(condition)) {                                        \
+            IMSA_HILOGE("test (" #condition ") failed: " message); \
+            return;                                                \
+        }                                                          \
     } while (0)
 
 class JsUtils {
@@ -94,6 +95,8 @@ public:
     static napi_status GetValue(napi_env env, napi_value in, uint32_t &out);
     static napi_status GetValue(napi_env env, napi_value in, bool &out);
     static napi_status GetValue(napi_env env, napi_value in, std::string &out);
+    static napi_status GetValue(napi_env env, napi_value in, PanelInfo &out);
+
 private:
     static int32_t Convert(int32_t code);
 

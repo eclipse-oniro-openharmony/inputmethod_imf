@@ -54,11 +54,9 @@ public:
 
 private:
     struct PanelContext : public AsyncCall::Context {
-        int32_t panelType = -1;
-        int32_t panelFlag = 0;
-        JsPanel *jsPanel = nullptr;
+        PanelInfo panelInfo = PanelInfo();
+        std::shared_ptr<InputMethodPanel> panel = nullptr;
         std::shared_ptr<OHOS::AbilityRuntime::Context> context = nullptr;
-        napi_ref ref = nullptr;
         PanelContext() : Context(nullptr, nullptr){};
         PanelContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
@@ -87,7 +85,7 @@ private:
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     static napi_value GetResultOnSetSubtype(napi_env env, const SubProperty &property);
-    static napi_ref NewWithRef(napi_env env, size_t argc, napi_value *argv, void **out, napi_value constructor);
+    static napi_value New(napi_env env, void **out, napi_value constructor);
     static const std::string IMES_CLASS_NAME;
     static thread_local napi_ref IMESRef_;
     struct UvEntry {
