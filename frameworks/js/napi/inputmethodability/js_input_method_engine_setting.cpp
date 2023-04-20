@@ -326,7 +326,7 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
 
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         JsPanel *jsPanel = nullptr;
-        napi_value object = New(env, 0, nullptr, reinterpret_cast<void **>(&jsPanel), JsPanel::Constructor(env));
+        napi_value object = New(env, reinterpret_cast<void **>(&jsPanel), JsPanel::Constructor(env));
         NAPI_ASSERT_BASE(env, jsPanel != nullptr, "jsPanel is nullptr", napi_generic_failure);
         jsPanel->SetNative(ctxt->panel);
         NAPI_ASSERT_BASE(env, object != nullptr, "ctxt->object == nullptr!", napi_generic_failure);
