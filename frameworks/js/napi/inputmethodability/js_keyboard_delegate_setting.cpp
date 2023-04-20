@@ -29,9 +29,6 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 constexpr size_t ARGC_FOUR = 4;
-constexpr int32_t V9_FLAG = 1;
-constexpr int32_t ORIGINAL_FLAG = 2;
-constexpr size_t ARGC_MAX = 6;
 const std::string JsKeyboardDelegateSetting::KDS_CLASS_NAME = "KeyboardDelegate";
 thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
 
@@ -131,25 +128,18 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
 
 napi_value JsKeyboardDelegateSetting::CreateKeyboardDelegate(napi_env env, napi_callback_info info)
 {
-    return GetKDInstance(env, info, ORIGINAL_FLAG);
+    return GetKDInstance(env, info);
 }
 
 napi_value JsKeyboardDelegateSetting::GetKeyboardDelegate(napi_env env, napi_callback_info info)
 {
-    return GetKDInstance(env, info, V9_FLAG);
+    return GetKDInstance(env, info);
 }
 
-napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_info info, int flag)
+napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_info info)
 {
     napi_value instance = nullptr;
     napi_value cons = nullptr;
-    if (flag == V9_FLAG) {
-        size_t argc = ARGC_MAX;
-        napi_value argv[ARGC_MAX] = { nullptr };
-
-        NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    }
-
     if (napi_get_reference_value(env, KDSRef_, &cons) != napi_ok) {
         IMSA_HILOGE("napi_get_reference_value(env, KDSRef_, &cons) != napi_ok");
         return nullptr;
