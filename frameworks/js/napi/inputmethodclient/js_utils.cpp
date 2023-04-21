@@ -270,5 +270,31 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::string &out)
     }
     return status;
 }
+
+/* napi_value <-> PanelInfo */
+napi_status JsUtils::GetValue(napi_env env, napi_value in, PanelInfo &out)
+{
+    IMSA_HILOGD("napi_value -> PanelInfo ");
+    napi_value propType = nullptr;
+    napi_status status = napi_get_named_property(env, in, "type", &propType);
+    NAPI_ASSERT_BASE(env, (status == napi_ok), "no property type ", status);
+    int32_t panelType = 0;
+    status = GetValue(env, propType, panelType);
+    NAPI_ASSERT_BASE(env, (status == napi_ok), "no value of type ", status);
+
+    // flag is optional. flag isn't need when panelType is status_bar.
+    int32_t panelFlag = 0;
+    if (panelType != PanelType::STATUS_BAR) {
+        napi_value propFlag = nullptr;
+        status = napi_get_named_property(env, in, "flag", &propFlag);
+        NAPI_ASSERT_BASE(env, (status == napi_ok), "no property flag ", status);
+        status = JsUtils::GetValue(env, propFlag, panelFlag);
+        NAPI_ASSERT_BASE(env, (status == napi_ok), "no value of flag ", status);
+    }
+
+    out.panelType = PanelType(panelType);
+    out.panelFlag = PanelFlag(panelFlag);
+    return status;
+}
 } // namespace MiscServices
 } // namespace OHOS

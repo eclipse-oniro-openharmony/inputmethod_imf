@@ -44,11 +44,14 @@ public:
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     void SetNative(const std::shared_ptr<InputMethodPanel> &panel);
     std::shared_ptr<InputMethodPanel> &GetNative();
+    static thread_local napi_ref panelConstructorRef_;
 private:
     struct PanelContentContext : public AsyncCall::Context {
         std::string path = "";
         uint32_t width = 0;
         uint32_t height = 0;
+        int32_t x = 0;
+        int32_t y = 0;
         void *native = nullptr;
         std::shared_ptr<NativeReference> contentStorage = nullptr;
         PanelContentContext(napi_env env, napi_callback_info info) : Context(nullptr, nullptr)

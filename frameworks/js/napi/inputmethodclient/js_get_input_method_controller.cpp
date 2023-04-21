@@ -101,7 +101,7 @@ napi_value JsGetInputMethodController::GetIMController(napi_env env, napi_callba
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, IMCRef_, &cons) != napi_ok) {
-        IMSA_HILOGE("GetInputMethodSetting::napi_get_reference_value not ok");
+        IMSA_HILOGE("Failed to get constructor of input method controller.");
         if (needThrowException) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_CONTROLLER, "", TYPE_OBJECT);
         }
@@ -109,7 +109,7 @@ napi_value JsGetInputMethodController::GetIMController(napi_env env, napi_callba
     }
 
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
-        IMSA_HILOGE("GetInputMethodSetting::napi_new_instance not ok");
+        IMSA_HILOGE("Failed to get instance of input method controller.");
         if (needThrowException) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_CONTROLLER, "", TYPE_OBJECT);
         }

@@ -22,6 +22,7 @@
 #include <thread>
 #include <uv.h>
 
+#include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
 #include "async_call.h"
 #include "global.h"
 #include "input_method_engine_listener.h"
@@ -53,11 +54,9 @@ public:
 
 private:
     struct PanelContext : public AsyncCall::Context {
-        int32_t panelType = -1;
-        int32_t panelFlag = 0;
-        JsPanel *jsPanel = nullptr;
-        void *contextPtr = nullptr;
-        napi_ref ref = nullptr;
+        PanelInfo panelInfo = PanelInfo();
+        std::shared_ptr<InputMethodPanel> panel = nullptr;
+        std::shared_ptr<OHOS::AbilityRuntime::Context> context = nullptr;
         PanelContext() : Context(nullptr, nullptr){};
         PanelContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
@@ -81,11 +80,12 @@ private:
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     static napi_value GetIMEInstance(napi_env env, napi_callback_info info, int flag);
+    static napi_status GetContext(napi_env env, napi_value argv,
+            std::shared_ptr<OHOS::AbilityRuntime::Context> &context);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     static napi_value GetResultOnSetSubtype(napi_env env, const SubProperty &property);
-    static napi_ref NewWithRef(napi_env env, size_t argc, napi_value *argv, void **out, napi_value constructor);
-    static void GetNativeContext(napi_env env, NativeValue *nativeContext, void *&contextPtr);
+    static napi_ref New(napi_env env, void **out, napi_value constructor);
     static const std::string IMES_CLASS_NAME;
     static thread_local napi_ref IMESRef_;
     struct UvEntry {

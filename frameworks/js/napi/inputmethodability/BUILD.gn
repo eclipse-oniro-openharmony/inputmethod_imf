@@ -61,7 +61,10 @@ ohos_shared_library("inputmethodengine") {
   deps = [ "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability" ]
 
   external_deps = [
+    "ability_base:configuration",
+    "ability_runtime:ability_context_native",
     "ability_runtime:abilitykit_native",
+    "ability_runtime:napi_base_context",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
