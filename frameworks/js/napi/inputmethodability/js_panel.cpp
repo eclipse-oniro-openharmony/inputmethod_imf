@@ -165,9 +165,9 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
         napi_status status = napi_generic_failure;
         PARAM_CHECK_RETURN(env, argc > 1, " should 2 or 3 parameters! ", TYPE_NONE, status);
         status = JsUtils::GetValue(env, argv[ARGC_ZERO], ctxt->x);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get width failed!", status);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "get x failed!", status);
         status = JsUtils::GetValue(env, argv[ARGC_ONE], ctxt->y);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get height failed!", status);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "get y failed!", status);
         return napi_ok;
     };
 
