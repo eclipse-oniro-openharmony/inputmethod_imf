@@ -113,13 +113,22 @@ std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInput
                 return nullptr;
             }
             inputMethodEngine_ = engine;
-            if (InputMethodAbility::GetInstance()->SetCoreAndAgent() != ErrorCode::NO_ERROR) {
-                return nullptr;
-            }
-            InputMethodAbility::GetInstance()->SetImeListener(inputMethodEngine_);
         }
     }
     return inputMethodEngine_;
+}
+
+bool JsInputMethodEngineSetting::InitInputMethodSetting()
+{
+    if (InputMethodAbility::GetInstance()->SetCoreAndAgent() != ErrorCode::NO_ERROR) {
+        return false;
+    }
+    auto engine = GetInputMethodEngineSetting();
+    if (engine == nullptr) {
+        return false;
+    }
+    InputMethodAbility::GetInstance()->SetImeListener(engine);
+    return true;
 }
 
 napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback_info cbinfo)
@@ -127,21 +136,21 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
     IMSA_HILOGI("run in JsConstructor");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
-    auto delegate = GetInputMethodEngineSetting();
-    if (delegate == nullptr) {
-        IMSA_HILOGE("get delegate nullptr");
+    auto setting = GetInputMethodEngineSetting();
+    if (setting == nullptr || InitInputMethodSetting()) {
+        IMSA_HILOGE("failed to get setting");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
     }
     napi_status status = napi_wrap(
-        env, thisVar, delegate.get(), [](napi_env env, void *nativeObject, void *hint) {}, nullptr, nullptr);
+        env, thisVar, setting.get(), [](napi_env env, void *nativeObject, void *hint) {}, nullptr, nullptr);
     if (status != napi_ok) {
         IMSA_HILOGE("JsInputMethodEngineSetting napi_wrap failed: %{public}d", status);
         return nullptr;
     }
-    if (delegate->loop_ == nullptr) {
-        napi_get_uv_event_loop(env, &delegate->loop_);
+    if (setting->loop_ == nullptr) {
+        napi_get_uv_event_loop(env, &setting->loop_);
     }
     return thisVar;
 };

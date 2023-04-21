@@ -78,6 +78,7 @@ private:
 
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static std::shared_ptr<JsInputMethodEngineSetting> GetInputMethodEngineSetting();
+    static bool InitInputMethodSetting();
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     static napi_value GetIMEInstance(napi_env env, napi_callback_info info);

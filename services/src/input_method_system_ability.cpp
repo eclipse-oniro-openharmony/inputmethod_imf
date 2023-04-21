@@ -291,8 +291,12 @@ int32_t InputMethodSystemAbility::StopInputSession()
 int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
-    if (!BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme)) {
+    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (currentImeCfg == nullptr) {
+        IMSA_HILOGE("failed to get current ime");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (!BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName)) {
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
     if (core == nullptr || agent == nullptr) {

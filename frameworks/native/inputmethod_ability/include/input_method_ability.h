@@ -126,7 +126,7 @@ private:
     bool isImeReady_{ false };
     InputStartNotifier notifier_;
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
-    std::atomic_bool isBond_{ false };
+    std::atomic_bool isBound_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

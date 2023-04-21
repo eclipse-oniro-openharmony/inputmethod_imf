@@ -97,8 +97,8 @@ sptr<InputMethodSystemAbilityProxy> InputMethodAbility::GetImsaProxy()
 int32_t InputMethodAbility::SetCoreAndAgent()
 {
     IMSA_HILOGD("InputMethodAbility, run in");
-    if (isBond_.load()) {
-        IMSA_HILOGD("already bond");
+    if (isBound_.load()) {
+        IMSA_HILOGD("already bound");
         return ErrorCode::NO_ERROR;
     }
     mImms = GetImsaProxy();
@@ -117,7 +117,7 @@ int32_t InputMethodAbility::SetCoreAndAgent()
         IMSA_HILOGE("set failed, ret: %{public}d", ret);
         return ret;
     }
-    isBond_.store(true);
+    isBound_.store(true);
     IMSA_HILOGD("set successfully");
     return ErrorCode::NO_ERROR;
 }
