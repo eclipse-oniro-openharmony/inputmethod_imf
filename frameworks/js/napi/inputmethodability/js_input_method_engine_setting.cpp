@@ -137,7 +137,7 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
     auto setting = GetInputMethodEngineSetting();
-    if (setting == nullptr || InitInputMethodSetting()) {
+    if (setting == nullptr || !InitInputMethodSetting()) {
         IMSA_HILOGE("failed to get setting");
         napi_value result = nullptr;
         napi_get_null(env, &result);

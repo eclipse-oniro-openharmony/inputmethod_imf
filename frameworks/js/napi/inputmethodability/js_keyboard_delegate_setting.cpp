@@ -117,8 +117,8 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
     auto delegate = GetKeyboardDelegateSetting();
-    if (delegate == nullptr || InitKeyboardDelegate()) {
-        IMSA_HILOGE("get delegate nullptr");
+    if (delegate == nullptr || !InitKeyboardDelegate()) {
+        IMSA_HILOGE("failed to get delegate");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
