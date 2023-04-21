@@ -37,9 +37,11 @@ using json = nlohmann::json;
 using namespace OHOS::AppExecFwk;
 constexpr const char *SUBTYPE_PROFILE_METADATA_NAME = "ohos.extension.input_method";
 constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
-constexpr uint32_t MAX_SUBTYPE_NUM = 10;
+constexpr uint32_t MAX_SUBTYPE_NUM = 256;
 constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
 constexpr int32_t CONFIG_LEN = 128;
+constexpr uint32_t RETRY_INTERVAL = 100;
+constexpr uint32_t BLOCK_RETRY_TIMES = 1000;
 } // namespace
 ImeInfoInquirer &ImeInfoInquirer::GetInstance()
 {
@@ -47,19 +49,15 @@ ImeInfoInquirer &ImeInfoInquirer::GetInstance()
     return instance;
 }
 
-int32_t ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
+bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
 {
     IMSA_HILOGD("userId: %{public}d", userId);
     auto bundleMgr = GetBundleMgr();
     if (bundleMgr == nullptr) {
         IMSA_HILOGE("GetBundleMgr failed");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return false;
     }
-    if (!bundleMgr->QueryExtensionAbilityInfos(ExtensionAbilityType::INPUTMETHOD, userId, infos)) {
-        IMSA_HILOGE("userId: %{public}d queryExtensionAbilityInfos failed", userId);
-        return ErrorCode::ERROR_PACKAGE_MANAGER;
-    }
-    return ErrorCode::NO_ERROR;
+    return bundleMgr->QueryExtensionAbilityInfos(ExtensionAbilityType::INPUTMETHOD, userId, infos);
 }
 
 int32_t ImeInfoInquirer::GetExtInfosByBundleName(
@@ -67,11 +65,8 @@ int32_t ImeInfoInquirer::GetExtInfosByBundleName(
 {
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s", userId, bundleName.c_str());
     std::vector<AppExecFwk::ExtensionAbilityInfo> tempExtInfos;
-    auto ret = QueryImeExtInfos(userId, tempExtInfos);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("userId: %{public}d queryImeExtInfos failed", userId);
-        return ret;
-    }
+    BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES,
+        [this, &userId, &tempExtInfos]() -> bool { return QueryImeExtInfos(userId, tempExtInfos); });
     for (const auto &extInfo : tempExtInfos) {
         if (extInfo.bundleName == bundleName) {
             extInfos.emplace_back(extInfo);
@@ -226,7 +221,7 @@ std::vector<InputMethodInfo> ImeInfoInquirer::ListInputMethodInfo(const int32_t 
 {
     IMSA_HILOGD("userId: %{public}d", userId);
     std::vector<ExtensionAbilityInfo> extensionInfos;
-    if (QueryImeExtInfos(userId, extensionInfos) != ErrorCode::NO_ERROR) {
+    if (!QueryImeExtInfos(userId, extensionInfos)) {
         IMSA_HILOGE("userId: %{public}d queryImeExtInfos failed", userId);
         return {};
     }
@@ -268,11 +263,8 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
 {
     IMSA_HILOGD("userId: %{public}d", userId);
     std::vector<ExtensionAbilityInfo> extensionInfos;
-    int32_t ret = QueryImeExtInfos(userId, extensionInfos);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("userId: %{public}d queryImeExtInfos failed", userId);
-        return ret;
-    }
+    BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES,
+        [this, &userId, &extensionInfos]() -> bool { return QueryImeExtInfos(userId, extensionInfos); });
     for (const auto &extension : extensionInfos) {
         auto it = std::find_if(props.begin(), props.end(),
             [&extension](const Property &prop) { return prop.name == extension.bundleName; });
@@ -421,8 +413,29 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
         if (pos != std::string::npos && pos + 1 < subProp.icon.size()) {
             subProp.iconId = atoi(subProp.icon.substr(pos + 1).c_str());
         }
+        ParseLanguage(subProp.locale, subProp.language);
     }
     return ErrorCode::NO_ERROR;
+}
+
+void ImeInfoInquirer::ParseLanguage(const std::string &locale, std::string &language)
+{
+    language = locale;
+    auto pos = locale.find('-');
+    if (pos != std::string::npos) {
+        language = locale.substr(0, pos);
+    }
+    // compatible with the locale configuration of original ime
+    pos = locale.find('_');
+    if (pos != std::string::npos) {
+        language = locale.substr(0, pos);
+    }
+    if (language == "en") {
+        language = "english";
+    }
+    if (language == "zh") {
+        language = "chinese";
+    }
 }
 
 std::string ImeInfoInquirer::GetStringById(
@@ -495,7 +508,7 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentInputMethodSubtype(const
     IMSA_HILOGD("currentIme: %{public}s", currentImeCfg->imeId.c_str());
     std::vector<SubProperty> subProps = {};
     auto ret = ListInputMethodSubtype(userId, currentImeCfg->bundleName, subProps);
-    if (ret != ErrorCode::NO_ERROR) {
+    if (ret != ErrorCode::NO_ERROR || subProps.empty()) {
         IMSA_HILOGE("userId: %{public}d listInputMethodSubtype by bundleName: %{public}s failed", userId,
             currentImeCfg->bundleName.c_str());
         return nullptr;
@@ -506,7 +519,7 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentInputMethodSubtype(const
         return std::make_shared<SubProperty>(*it);
     }
     IMSA_HILOGE("Find subName: %{public}s failed", currentImeCfg->subName.c_str());
-    return nullptr;
+    return std::make_shared<SubProperty>(subProps[0]);
 }
 
 bool ImeInfoInquirer::IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName)
@@ -532,16 +545,18 @@ std::string ImeInfoInquirer::GetStartedIme(const int32_t userId)
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     IMSA_HILOGD("userId: %{public}d, currentIme: %{public}s", userId, currentImeCfg->imeId.c_str());
     if (currentImeCfg->imeId.empty() || !IsImeInstalled(userId, currentImeCfg->bundleName, currentImeCfg->extName)) {
+        auto newUserIme = GetDefaultIme();
+        std::string subName;
         auto info = GetDefaultImeInfo(userId);
         if (info == nullptr) {
-            IMSA_HILOGI("GetDefaultImeInfo failed");
-            return "";
+            IMSA_HILOGE("GetDefaultImeInfo failed");
+            subName = "";
+        } else {
+            subName = info->subProp.id;
+            SetCurrentImeInfo(*info);
         }
-        std::string newUserIme = info->prop.name + "/" + info->prop.id;
-        currentImeCfg->imeId.empty()
-            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newUserIme, info->subProp.id })
-            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newUserIme, info->subProp.id });
-        SetCurrentImeInfo(*info);
+        currentImeCfg->imeId.empty() ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newUserIme, subName })
+                                     : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newUserIme, subName });
         return newUserIme;
     }
     // service start, user switch, set the currentImeInfo_.
@@ -624,24 +639,14 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::GetImeSubProp(
                 subProps.begin(), subProps.end(), [](const SubProperty &subProp) { return subProp.mode == "lower"; });
             break;
         }
-        case Condition::LANGUAGE_EN: {
+        case Condition::ENGLISH: {
             it = std::find_if(subProps.begin(), subProps.end(),
                 [](const SubProperty &subProp) { return subProp.language == "english" && subProp.mode == "lower"; });
             break;
         }
-        case Condition::LANGUAGE_CH: {
+        case Condition::CHINESE: {
             it = std::find_if(subProps.begin(), subProps.end(),
                 [](const SubProperty &subProp) { return subProp.language == "chinese"; });
-            break;
-        }
-        case Condition::LOCALE_CH: {
-            it = std::find_if(subProps.begin(), subProps.end(),
-                [](const SubProperty &subProp) { return subProp.locale == "zh_CN"; });
-            break;
-        }
-        case Condition::LOCALE_EN: {
-            it = std::find_if(subProps.begin(), subProps.end(),
-                [](const SubProperty &subProp) { return subProp.locale == "en_US" && subProp.mode == "lower"; });
             break;
         }
         default: {
@@ -688,23 +693,14 @@ void ImeInfoInquirer::ParseSubProp(const json &jsonSubProps, std::vector<SubProp
 
 void ImeInfoInquirer::ParseSubProp(const json &jsonSubProp, SubProperty &subProp)
 {
-    // label: 子类型对外显示名称
     if (jsonSubProp.find("label") != jsonSubProp.end() && jsonSubProp["label"].is_string()) {
         jsonSubProp.at("label").get_to(subProp.label);
     }
-    if (jsonSubProp.find("labelId") != jsonSubProp.end() && jsonSubProp["labelId"].is_number()) {
-        jsonSubProp.at("labelId").get_to(subProp.labelId);
-    }
-    // id: 子类型名
     if (jsonSubProp.find("id") != jsonSubProp.end() && jsonSubProp["id"].is_string()) {
         jsonSubProp.at("id").get_to(subProp.id);
     }
-
     if (jsonSubProp.find("icon") != jsonSubProp.end() && jsonSubProp["icon"].is_string()) {
         jsonSubProp.at("icon").get_to(subProp.icon);
-    }
-    if (jsonSubProp.find("iconId") != jsonSubProp.end() && jsonSubProp["iconId"].is_number()) {
-        jsonSubProp.at("iconId").get_to(subProp.iconId);
     }
     if (jsonSubProp.find("mode") != jsonSubProp.end() && jsonSubProp["mode"].is_string()) {
         jsonSubProp.at("mode").get_to(subProp.mode);

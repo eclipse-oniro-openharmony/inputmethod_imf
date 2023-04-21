@@ -69,7 +69,7 @@ int32_t InputMethodPanel::DestroyPanel()
 {
     auto ret = HidePanel();
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGI("InputMethodPanel, hide panel failed, ret = %{public}d.", ret);
+        IMSA_HILOGE("InputMethodPanel, hide panel failed, ret = %{public}d.", ret);
         return ret;
     }
     auto result = window_->Destroy();
@@ -77,6 +77,7 @@ int32_t InputMethodPanel::DestroyPanel()
         IMSA_HILOGE("InputMethodPanel, destroy panel error, ret = %{public}d", result);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
+    IMSA_HILOGE("InputMethodPanel, destroy panel success");
     return ErrorCode::NO_ERROR;
 }
 
@@ -90,7 +91,14 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
         IMSA_HILOGE("GetDefaultDisplay failed.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (width > defaultDisplay->GetWidth() || height > (defaultDisplay->GetHeight()) / 2) {
+    if (width > INT32_MAX || height > INT32_MAX) {
+        IMSA_HILOGE("width or height over maximum");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    // the resize width can not exceed the width of display width of device
+    // the resize height can not exceed half of the display height of device
+    if (static_cast<int32_t>(width) > defaultDisplay->GetWidth()
+        || static_cast<int32_t>(height) > defaultDisplay->GetHeight() / 2) {
         IMSA_HILOGD("GetDefaultDisplay, defaultDisplay->width = %{public}d, defaultDisplay->height = %{public}d, "
                     "width = %{public}u, height = %{public}u",
             defaultDisplay->GetWidth(), defaultDisplay->GetHeight(), width, height);
@@ -208,13 +216,19 @@ bool InputMethodPanel::IsHidden()
     return false;
 }
 
-int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, NativeEngine *engine, NativeValue *storage)
+int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, NativeEngine &engine,
+    std::shared_ptr<NativeReference> storage)
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr, can not SetUiContent.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto ret = window_->SetUIContent(contentInfo, engine, storage);
+    WMError ret = WMError::WM_OK;
+    if (storage == nullptr) {
+        ret = window_->SetUIContent(contentInfo, &engine, nullptr);
+    } else {
+        ret = window_->SetUIContent(contentInfo, &engine, storage->Get());
+    }
     if (ret != WMError::WM_OK) {
         return ErrorCode::ERROR_OPERATE_PANEL;
     }

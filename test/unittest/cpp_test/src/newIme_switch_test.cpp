@@ -48,6 +48,7 @@ public:
     static std::string extName;
     static std::vector<std::string> subName;
     static std::vector<std::string> locale;
+    static std::vector<std::string> language;
 };
 std::mutex NewImeSwitchTest::imeChangeFlagLock;
 std::condition_variable NewImeSwitchTest::conditionVar;
@@ -56,7 +57,8 @@ sptr<InputMethodController> NewImeSwitchTest::imc_;
 std::string NewImeSwitchTest::bundleName = "com.example.newTestIme";
 std::string NewImeSwitchTest::extName = "InputMethodExtAbility";
 std::vector<std::string> NewImeSwitchTest::subName{ "lowerInput", "upperInput", "chineseInput" };
-std::vector<std::string> NewImeSwitchTest::locale{ "en_US", "en_US", "zh_CN" };
+std::vector<std::string> NewImeSwitchTest::locale{ "en-US", "en-US", "zh-CN" };
+std::vector<std::string> NewImeSwitchTest::language{ "english", "english", "chinese" };
 constexpr uint32_t IME_SUBTYPE_NUM = 3;
 constexpr uint32_t SUBTYPE_SWITCH_DELAY_TIME = 10;
 constexpr uint32_t IME_SWITCH_DELAY_TIME = 200;
@@ -149,7 +151,7 @@ void NewImeSwitchTest::CheckCurrentSubProps()
     for (uint32_t i = 0; i < IME_SUBTYPE_NUM; i++) {
         EXPECT_EQ(subProps[i].id, subName[i]);
         EXPECT_EQ(subProps[i].name, bundleName);
-        EXPECT_EQ(subProps[i].language, "");
+        EXPECT_EQ(subProps[i].language, language[i]);
         EXPECT_EQ(subProps[i].locale, locale[i]);
     }
 }

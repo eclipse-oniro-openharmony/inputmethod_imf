@@ -23,6 +23,7 @@
 #include "js_keyboard_controller_engine.h"
 #include "js_runtime_utils.h"
 #include "js_text_input_client_engine.h"
+#include "napi_base_context.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -278,69 +279,66 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     return result;
 }
 
+napi_status JsInputMethodEngineSetting::GetContext(napi_env env, napi_value in,
+    std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
+{
+    bool stageMode = false;
+    napi_status status = OHOS::AbilityRuntime::IsStageContext(env, in, stageMode);
+    if (status != napi_ok || (!stageMode)) {
+        IMSA_HILOGE("It's not in stage mode.");
+        return status;
+    }
+    context = OHOS::AbilityRuntime::GetStageModeContext(env, in);
+    if (context == nullptr) {
+        IMSA_HILOGE("Context is nullptr.");
+        return napi_generic_failure;
+    }
+    return napi_ok;
+}
+
 napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<PanelContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc >= 2, "should has 2 or 3 parameters!", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[ARGC_ZERO], &valueType);
+        // 0 means parameter of ctx<BaseContext>
+        napi_typeof(env, argv[0], &valueType);
         PARAM_CHECK_RETURN(env, valueType == napi_object, " ctx: ", TYPE_OBJECT, napi_invalid_arg);
-
-        void *contextPtr = nullptr;
-        NativeValue *value = reinterpret_cast<NativeValue *>(argv[ARGC_ZERO]);
-        GetNativeContext(env, value, contextPtr);
-        ctxt->contextPtr = contextPtr;
-
-        napi_typeof(env, argv[ARGC_ONE], &valueType);
+        napi_status status = GetContext(env, argv[0], ctxt->context);
+        if (status != napi_ok) {
+            return status;
+        }
+        // 1 means parameter of info<PanelInfo>
+        napi_typeof(env, argv[1], &valueType);
         PARAM_CHECK_RETURN(env, valueType == napi_object, " panelInfo: ", TYPE_OBJECT, napi_invalid_arg);
-        napi_value napiValue = nullptr;
-        napi_status status = napi_get_named_property(env, argv[ARGC_ONE], "type", &napiValue);
-        PARAM_CHECK_RETURN(env, status == napi_ok, " missing info parameter.", TYPE_NONE, status);
-        status = JsUtils::GetValue(env, napiValue, ctxt->panelType);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "Get panelType error!", status);
-
-        status = napi_get_named_property(env, argv[ARGC_ONE], "flag", &napiValue);
-        PARAM_CHECK_RETURN(env, status == napi_ok, " missing info parameter.", TYPE_NONE, status);
-        status = JsUtils::GetValue(env, napiValue, ctxt->panelFlag);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "Get panelFlag error!", status);
-        ctxt->ref = NewWithRef(env, 0, nullptr, reinterpret_cast<void **>(&ctxt->jsPanel), JsPanel::Constructor(env));
+        status = JsUtils::GetValue(env, argv[1], ctxt->panelInfo);
+        PARAM_CHECK_RETURN(env, status == napi_ok, " panelInfo: ", TYPE_OBJECT, napi_invalid_arg);
         return status;
     };
+
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        std::shared_ptr<InputMethodPanel> panel = nullptr;
-        PanelInfo panelInfo = { .panelType = PanelType(ctxt->panelType), .panelFlag = PanelFlag(ctxt->panelFlag) };
-        auto context = static_cast<std::weak_ptr<AbilityRuntime::Context> *>(ctxt->contextPtr);
-        CHECK_RETURN_VOID(ctxt->jsPanel != nullptr, "napi_create_reference failed");
-        auto ret = InputMethodAbility::GetInstance()->CreatePanel(context->lock(), panelInfo, panel);
+        auto ret = InputMethodAbility::GetInstance()->CreatePanel(ctxt->context, ctxt->panelInfo, ctxt->panel);
         ctxt->SetErrorCode(ret);
         CHECK_RETURN_VOID(ret == ErrorCode::NO_ERROR, "JsInputMethodEngineSetting CreatePanel failed!");
-        ctxt->jsPanel->SetNative(panel);
         ctxt->SetState(napi_ok);
     };
+
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        NAPI_ASSERT_BASE(env, ctxt->ref != nullptr, "ctxt->ref == nullptr!", napi_generic_failure);
-        auto status = napi_get_reference_value(env, ctxt->ref, result);
+        JsPanel *jsPanel = nullptr;
+        napi_ref ref = New(env, reinterpret_cast<void **>(&jsPanel), JsPanel::Constructor(env));
+        NAPI_ASSERT_BASE(env, (ref != nullptr) && (jsPanel != nullptr), "get jsPanel instance failed!",
+                         napi_generic_failure);
+        jsPanel->SetNative(ctxt->panel);
+        auto status = napi_get_reference_value(env, ref, result);
         NAPI_ASSERT_BASE(env, (status == napi_ok || result != nullptr), "Get ref error!", napi_generic_failure);
-        napi_delete_reference(env, ctxt->ref);
+        napi_delete_reference(env, ref);
         return napi_ok;
     };
 
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, ctxt, ARGC_TWO);
     return asyncCall.Call(env, exec);
-}
-
-void JsInputMethodEngineSetting::GetNativeContext(napi_env env, NativeValue *nativeContext, void *&contextPtr)
-{
-    if (nativeContext != nullptr) {
-        auto objContext = AbilityRuntime::ConvertNativeValueTo<NativeObject>(nativeContext);
-        if (objContext == nullptr) {
-            IMSA_HILOGE("Get context object failed.");
-            return;
-        }
-        contextPtr = objContext->GetNativePointer();
-    }
 }
 
 napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_info info)
@@ -351,33 +349,42 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         PARAM_CHECK_RETURN(env, valueType == napi_object, " target: ", TYPE_OBJECT, napi_invalid_arg);
-        bool result = false;
-        napi_status status = napi_instanceof(env, argv[0], JsPanel::Constructor(env), &result);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "run napi_instanceof failed!", status);
-        JsPanel *panel = nullptr;
-        status = napi_unwrap(env, argv[0], (void **)(&panel));
-        NAPI_ASSERT_BASE(env, (status == napi_ok) && (panel != nullptr), "can not unwrap to JsPanel!", status);
-        ctxt->jsPanel = panel;
+        bool isPanel = false;
+        napi_value constructor = nullptr;
+        NAPI_ASSERT_BASE(env, JsPanel::panelConstructorRef_ != nullptr,
+                         "the panel which will be destroy is not exist!", napi_invalid_arg);
+        napi_status status = napi_get_reference_value(env, JsPanel::panelConstructorRef_, &constructor);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "Failed to get panel constructor.", status);
+        status = napi_instanceof(env, argv[0], constructor, &isPanel);
+        NAPI_ASSERT_BASE(env, (status == napi_ok) && isPanel, "It's not expected panel instance!", status);
+        JsPanel *jsPanel = nullptr;
+        status = napi_unwrap(env, argv[0], (void **)(&jsPanel));
+        NAPI_ASSERT_BASE(env, (status == napi_ok) && (jsPanel != nullptr), "Can not unwrap to JsPanel!", status);
+        ctxt->panel = jsPanel->GetNative();
+        NAPI_ASSERT_BASE(env, (ctxt->panel != nullptr), "not get valid inputMathodPanel!", napi_invalid_arg);
         return status;
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        CHECK_RETURN_VOID(ctxt->jsPanel != nullptr, "JsPanel is nullptr!");
-        auto status = InputMethodAbility::GetInstance()->DestroyPanel(ctxt->jsPanel->GetNative());
-        ctxt->SetErrorCode(status);
-        CHECK_RETURN_VOID(status == ErrorCode::NO_ERROR, "DestroyPanel return error!");
+        CHECK_RETURN_VOID((ctxt->panel != nullptr), "inputMethodPanel is nullptr!");
+        auto errCode = InputMethodAbility::GetInstance()->DestroyPanel(ctxt->panel);
+        if (errCode != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("DestroyPanel failed, errCode = %{public}d", errCode);
+            return;
+        }
         ctxt->SetState(napi_ok);
+        ctxt->panel = nullptr;
     };
+
     ctxt->SetAction(std::move(input));
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
-napi_ref JsInputMethodEngineSetting::NewWithRef(
-    napi_env env, size_t argc, napi_value *argv, void **out, napi_value constructor)
+napi_ref JsInputMethodEngineSetting::New(napi_env env, void **out, napi_value constructor)
 {
     napi_value object = nullptr;
-    napi_status status = napi_new_instance(env, constructor, argc, argv, &object);
+    napi_status status = napi_new_instance(env, constructor, 0, nullptr, &object);
     NAPI_ASSERT(env, (status == napi_ok) && (object != nullptr), "napi_new_instance failed!");
 
     status = napi_unwrap(env, object, out);

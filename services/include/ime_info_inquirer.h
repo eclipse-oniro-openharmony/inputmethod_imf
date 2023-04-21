@@ -41,10 +41,8 @@ struct ImeInfo {
 enum class Condition {
     UPPER = 0,
     LOWER,
-    LANGUAGE_EN,
-    LANGUAGE_CH,
-    LOCALE_EN,
-    LOCALE_CH,
+    ENGLISH,
+    CHINESE,
 };
 
 class ImeInfoInquirer {
@@ -93,7 +91,8 @@ private:
     bool ParseSubProp(const std::vector<std::string> &profiles, std::vector<SubProperty> &subProps);
     void ParseSubProp(const nlohmann::json &jsonSubProps, std::vector<SubProperty> &subProps);
     void ParseSubProp(const nlohmann::json &jsonSubProp, SubProperty &subProp);
-    int32_t QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
+    void ParseLanguage(const std::string &locale, std::string &language);
+    bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
 
     std::recursive_mutex currentImeInfoLock_;
     std::shared_ptr<ImeInfo> currentImeInfo_{ nullptr };

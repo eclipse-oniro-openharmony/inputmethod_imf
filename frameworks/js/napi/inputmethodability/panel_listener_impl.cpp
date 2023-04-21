@@ -49,14 +49,18 @@ void PanelListenerImpl::SaveInfo(napi_env env, const std::string &type, napi_val
         std::make_shared<JSCallbackObject>(env, callback, std::this_thread::get_id());
     auto result = callbacks_.Find(windowId);
     if (!result.first) {
+        IMSA_HILOGI("start to subscribe, type = %{public}s, windowId = %{public}u", type.c_str(), windowId);
         ConcurrentMap<std::string, std::shared_ptr<JSCallbackObject>> cbs{};
         cbs.Insert(type, cbObject);
         callbacks_.Insert(windowId, cbs);
     } else {
         auto res = result.second.Find(type);
-        if (!res.first) {
-            result.second.Insert(type, cbObject);
+        if (res.first) {
+            IMSA_HILOGD("type: %{public}s of windowId: %{public}u already subscribed", type.c_str(), windowId);
+            return;
         }
+        IMSA_HILOGI("start to subscribe type: %{public}s of windowId: %{public}u", type.c_str(), windowId);
+        result.second.Insert(type, cbObject);
     }
 }
 
@@ -73,8 +77,8 @@ void PanelListenerImpl::RemoveInfo(const std::string &type, uint32_t windowId)
 
 void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
 {
-    IMSA_HILOGI("PanelListenerImpl, run in");
     std::string type = isShow ? "show" : "hide";
+    IMSA_HILOGI("windowId = %{public}u, type = %{public}s", windowId, type.c_str());
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         IMSA_HILOGE("uv_work_t is nullptr!");

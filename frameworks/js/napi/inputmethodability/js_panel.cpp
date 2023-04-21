@@ -26,6 +26,7 @@ constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 const std::string JsPanel::CLASS_NAME = "Panel";
+thread_local napi_ref JsPanel::panelConstructorRef_ = nullptr;
 
 napi_value JsPanel::Constructor(napi_env env)
 {
@@ -44,6 +45,7 @@ napi_value JsPanel::Constructor(napi_env env)
     NAPI_CALL(env, napi_define_class(env, CLASS_NAME.c_str(), CLASS_NAME.size(), JsNew, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
     NAPI_ASSERT(env, constructor != nullptr, "napi_define_class failed!");
+    NAPI_CALL(env, napi_create_reference(env, constructor, 1, &panelConstructorRef_));
     return constructor;
 }
 
@@ -56,6 +58,7 @@ napi_value JsPanel::JsNew(napi_env env, napi_callback_info info)
         IMSA_HILOGI("jsPanel finalize.");
         auto *jsPanel = reinterpret_cast<JsPanel *>(data);
         NAPI_ASSERT_RETURN_VOID(env, jsPanel != nullptr, "finalize null!");
+        jsPanel->GetNative() = nullptr;
         delete jsPanel;
     };
     napi_value thisVar = nullptr;
@@ -63,6 +66,7 @@ napi_value JsPanel::JsNew(napi_env env, napi_callback_info info)
     napi_status status = napi_wrap(env, thisVar, panel, finalize, nullptr, nullptr);
     if (status != napi_ok) {
         IMSA_HILOGE("JsPanel napi_wrap failed: %{public}d", status);
+        delete panel;
         return nullptr;
     }
     return thisVar;
@@ -110,18 +114,18 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         return napi_ok;
     };
 
-    auto exec = [ctxt, env](AsyncCall::Context *ctx) {
-        auto &inputMethodPanel = reinterpret_cast<JsPanel *>(ctxt->native)->GetNative();
-        CHECK_RETURN_VOID(inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
-        NativeValue *nativeStorage = (ctxt->contentStorage == nullptr) ? nullptr : ctxt->contentStorage->Get();
-        auto code = inputMethodPanel->SetUiContent(ctxt->path, reinterpret_cast<NativeEngine *>(env), nativeStorage);
-        if (code == ErrorCode::NO_ERROR) {
-            ctxt->SetState(napi_ok);
-            return;
-        }
-        ctxt->SetErrorCode(code);
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        ctxt->SetState(napi_ok);
     };
-    ctxt->SetAction(std::move(input));
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        auto &inputMethodPanel = reinterpret_cast<JsPanel *>(ctxt->native)->GetNative();
+        NAPI_ASSERT_BASE(env, inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
+        auto code = inputMethodPanel->SetUiContent(ctxt->path, *(reinterpret_cast<NativeEngine *>(env)),
+                                                   ctxt->contentStorage);
+        NAPI_ASSERT_BASE(env, code == ErrorCode::NO_ERROR, "SetUiContent failed!", napi_generic_failure);
+        return napi_ok;
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
@@ -160,17 +164,17 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
         PARAM_CHECK_RETURN(env, argc > 1, " should 2 or 3 parameters! ", TYPE_NONE, status);
-        status = JsUtils::GetValue(env, argv[ARGC_ZERO], ctxt->width);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get width failed!", status);
-        status = JsUtils::GetValue(env, argv[ARGC_ONE], ctxt->height);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get height failed!", status);
+        status = JsUtils::GetValue(env, argv[ARGC_ZERO], ctxt->x);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "get x failed!", status);
+        status = JsUtils::GetValue(env, argv[ARGC_ONE], ctxt->y);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "get y failed!", status);
         return napi_ok;
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         auto &inputMethodPanel = reinterpret_cast<JsPanel *>(ctxt->native)->GetNative();
         CHECK_RETURN_VOID(inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
-        auto code = inputMethodPanel->MoveTo(ctxt->width, ctxt->height);
+        auto code = inputMethodPanel->MoveTo(ctxt->x, ctxt->y);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
             return;

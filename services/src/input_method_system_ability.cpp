@@ -489,22 +489,6 @@ void InputMethodSystemAbility::WorkThread()
     }
 }
 
-bool InputMethodSystemAbility::BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func)
-{
-    IMSA_HILOGI("start");
-    uint32_t times = 0;
-    do {
-        times++;
-        if (func()) {
-            IMSA_HILOGI("success, retry times: %{public}d", times);
-            return true;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-    } while (times < maxRetryTimes);
-    IMSA_HILOGI("failed");
-    return false;
-}
-
 /**
  * Called when a user is started. (EVENT_USER_STARTED is received)
  * \n Run in work thread of input method management service
@@ -672,16 +656,10 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
         IMSA_HILOGE("current ime is abnormal, ret: %{public}d", ret);
         return ret;
     }
-    if (!info.isNewIme) {
-        auto condition = info.subProp.language == "chinese" ? Condition::LANGUAGE_EN : Condition::LANGUAGE_CH;
-        auto target = ImeInfoInquirer::GetInstance().GetImeSubProp(info.subProps, condition);
-        if (target == nullptr) {
-            IMSA_HILOGE("oldIme, target is empty");
-            return ErrorCode::ERROR_BAD_PARAMETERS;
-        }
-        return SwitchInputMethod(target->name, target->id);
+    if (info.subProp.language != "chinese" && info.subProp.language != "english") {
+        return ErrorCode::NO_ERROR;
     }
-    auto condition = info.subProp.locale == "zh_CN" ? Condition::LOCALE_EN : Condition::LOCALE_CH;
+    auto condition = info.subProp.language == "chinese" ? Condition::ENGLISH : Condition::CHINESE;
     auto target = ImeInfoInquirer::GetInstance().GetImeSubProp(info.subProps, condition);
     if (target == nullptr) {
         IMSA_HILOGE("target is empty");
@@ -704,7 +682,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethod()
     if (iter != props.end()) {
         return SwitchInputMethod(iter->name, "");
     }
-    return ErrorCode::ERROR_BAD_PARAMETERS;
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()

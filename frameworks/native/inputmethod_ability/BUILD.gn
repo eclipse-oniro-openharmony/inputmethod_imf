@@ -26,7 +26,7 @@ config("inputmethod_ability_native_config") {
   ]
 }
 config("inputmethod_ability_native_public_config") {
-  visibility = []
+  visibility = [ "./*" ]
   include_dirs = [
     "include",
     "${inputmethod_path}/frameworks/common",
@@ -57,10 +57,12 @@ ohos_shared_library("inputmethod_ability") {
   configs = [ ":inputmethod_ability_native_config" ]
 
   external_deps = [
+    "ability_base:configuration",
     "ability_runtime:ability_context_native",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
+    "napi:ace_napi",
     "samgr:samgr_proxy",
     "window_manager:libdm",
     "window_manager:libwm",

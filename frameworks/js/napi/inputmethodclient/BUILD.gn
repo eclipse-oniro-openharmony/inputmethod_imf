@@ -23,7 +23,7 @@ config("imf_config") {
 }
 
 config("imf_public_config") {
-  visibility = []
+  visibility = [ "./*" ]
   include_dirs = [ "include" ]
   ldflags = [ "-Wl,--exclude-libs=ALL" ]
   cflags = [

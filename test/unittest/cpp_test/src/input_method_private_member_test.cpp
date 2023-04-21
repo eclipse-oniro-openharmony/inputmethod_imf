@@ -140,22 +140,6 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_OnUserStartedWithNullMessage, TestSize
 }
 
 /**
-* @tc.name: SA_ListDisabledInputMethodWithInexistentUserId
-* @tc.desc: SA ListDisabledInputMethod With Inexistent UserId.
-* @tc.type: FUNC
-* @tc.require: issuesI669E8
-*/
-HWTEST_F(InputMethodPrivateMemberTest, SA_ListDisabledInputMethodWithInexistentUserId, TestSize.Level0)
-{
-    ImeInfoInquirer inquirer;
-    constexpr int32_t userId = 1;
-    std::vector<Property> props;
-    auto ret = inquirer.ListDisabledInputMethod(userId, props);
-    EXPECT_EQ(ret, ErrorCode::ERROR_PACKAGE_MANAGER);
-    EXPECT_TRUE(props.empty());
-}
-
-/**
 * @tc.name: SA_ListInputMethodInfoWithInexistentUserId
 * @tc.desc: SA ListInputMethodInfo With Inexistent UserId.
 * @tc.type: FUNC

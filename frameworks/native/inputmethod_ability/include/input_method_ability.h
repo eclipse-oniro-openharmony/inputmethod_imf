@@ -18,6 +18,7 @@
 
 #include <thread>
 
+#include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
 #include "concurrent_map.h"
 #include "i_input_control_channel.h"
 #include "i_input_data_channel.h"
@@ -35,10 +36,6 @@
 #include "keyboard_listener.h"
 #include "message.h"
 #include "message_handler.h"
-
-namespace OHOS::AbilityRuntime {
-class Context;
-}
 
 namespace OHOS {
 namespace MiscServices {
