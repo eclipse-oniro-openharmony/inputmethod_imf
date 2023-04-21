@@ -164,9 +164,9 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
         PARAM_CHECK_RETURN(env, argc > 1, " should 2 or 3 parameters! ", TYPE_NONE, status);
-        status = JsUtils::GetValue(env, argv[ARGC_ZERO], ctxt->width);
+        status = JsUtils::GetValue(env, argv[ARGC_ZERO], ctxt->x);
         NAPI_ASSERT_BASE(env, status == napi_ok, "get width failed!", status);
-        status = JsUtils::GetValue(env, argv[ARGC_ONE], ctxt->height);
+        status = JsUtils::GetValue(env, argv[ARGC_ONE], ctxt->y);
         NAPI_ASSERT_BASE(env, status == napi_ok, "get height failed!", status);
         return napi_ok;
     };
@@ -174,7 +174,7 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         auto &inputMethodPanel = reinterpret_cast<JsPanel *>(ctxt->native)->GetNative();
         CHECK_RETURN_VOID(inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
-        auto code = inputMethodPanel->MoveTo(ctxt->width, ctxt->height);
+        auto code = inputMethodPanel->MoveTo(ctxt->x, ctxt->y);
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
             return;

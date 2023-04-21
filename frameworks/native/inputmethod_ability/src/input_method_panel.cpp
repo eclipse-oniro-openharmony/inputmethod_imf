@@ -69,7 +69,7 @@ int32_t InputMethodPanel::DestroyPanel()
 {
     auto ret = HidePanel();
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGI("InputMethodPanel, hide panel failed, ret = %{public}d.", ret);
+        IMSA_HILOGE("InputMethodPanel, hide panel failed, ret = %{public}d.", ret);
         return ret;
     }
     auto result = window_->Destroy();
@@ -77,6 +77,7 @@ int32_t InputMethodPanel::DestroyPanel()
         IMSA_HILOGE("InputMethodPanel, destroy panel error, ret = %{public}d", result);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
+    IMSA_HILOGE("InputMethodPanel, destroy panel success");
     return ErrorCode::NO_ERROR;
 }
 
