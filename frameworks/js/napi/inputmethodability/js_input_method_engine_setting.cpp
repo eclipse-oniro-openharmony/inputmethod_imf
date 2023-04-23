@@ -333,8 +333,7 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
         NAPI_ASSERT(env, status == napi_ok, "get jsPanel instance failed!");
 
         status = napi_unwrap(env, *result, jsPanel);
-        NAPI_ASSERT(env, (status == napi_ok) && (jsPanel != nullptr), "napi_unwrap failed");
-        NAPI_ASSERT_BASE(env, jsPanel != nullptr, "get jsPanel instance failed!", napi_generic_failure);
+        NAPI_ASSERT_BASE(env, (status == napi_ok) && (jsPanel != nullptr), "get jsPanel failed", napi_generic_failure);
         jsPanel->SetNative(ctxt->panel);
         return napi_ok;
     };
