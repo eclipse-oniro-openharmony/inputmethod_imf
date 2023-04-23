@@ -29,8 +29,6 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 constexpr size_t ARGC_FOUR = 4;
-constexpr int32_t V9_FLAG = 1;
-constexpr int32_t ORIGINAL_FLAG = 2;
 const std::string JsKeyboardDelegateSetting::KDS_CLASS_NAME = "KeyboardDelegate";
 thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
 
@@ -109,7 +107,7 @@ bool JsKeyboardDelegateSetting::InitKeyboardDelegate()
     if (delegate == nullptr) {
         return false;
     }
-    InputMethodAbility::GetInstance()->SetKdListener(delegate);
+    InputMethodAbility::GetInstance()->setKdListener(delegate);
     return true;
 }
 

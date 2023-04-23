@@ -32,8 +32,6 @@ constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_MAX = 6;
-constexpr int32_t V9_FLAG = 1;
-constexpr int32_t ORIGINAL_FLAG = 2;
 const std::string JsInputMethodEngineSetting::IMES_CLASS_NAME = "InputMethodEngine";
 thread_local napi_ref JsInputMethodEngineSetting::IMESRef_ = nullptr;
 
@@ -133,7 +131,7 @@ bool JsInputMethodEngineSetting::InitInputMethodSetting()
     if (engine == nullptr) {
         return false;
     }
-    InputMethodAbility::GetInstance()->SetImeListener(engine);
+    InputMethodAbility::GetInstance()->setImeListener(engine);
     return true;
 }
 
