@@ -119,13 +119,22 @@ std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInput
                 return nullptr;
             }
             inputMethodEngine_ = engine;
-            if (InputMethodAbility::GetInstance()->SetCoreAndAgent() != ErrorCode::NO_ERROR) {
-                return nullptr;
-            }
-            InputMethodAbility::GetInstance()->setImeListener(inputMethodEngine_);
         }
     }
     return inputMethodEngine_;
+}
+
+bool JsInputMethodEngineSetting::InitInputMethodSetting()
+{
+    if (InputMethodAbility::GetInstance()->SetCoreAndAgent() != ErrorCode::NO_ERROR) {
+        return false;
+    }
+    auto engine = GetInputMethodEngineSetting();
+    if (engine == nullptr) {
+        return false;
+    }
+    InputMethodAbility::GetInstance()->SetImeListener(engine);
+    return true;
 }
 
 napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback_info info)
@@ -133,62 +142,47 @@ napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback
     IMSA_HILOGI("run in JsConstructor");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
-    auto delegate = GetInputMethodEngineSetting();
-    if (delegate == nullptr) {
-        IMSA_HILOGE("get delegate nullptr");
-        JsUtils::ThrowException(
-            env, static_cast<int32_t>(IMFErrorCode::EXCEPTION_IMENGINE), "get delegate nullptr", TypeCode::TYPE_NONE);
+    auto setting = GetInputMethodEngineSetting();
+    if (setting == nullptr || !InitInputMethodSetting()) {
+        IMSA_HILOGE("get setting nullptr");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
     }
     napi_status status = napi_wrap(
-        env, thisVar, delegate.get(), [](napi_env env, void *nativeObject, void *hint) {}, nullptr, nullptr);
+        env, thisVar, setting.get(), [](napi_env env, void *nativeObject, void *hint) {}, nullptr, nullptr);
     if (status != napi_ok) {
         IMSA_HILOGE("JsInputMethodEngineSetting napi_wrap failed: %{public}d", status);
         return nullptr;
     }
-    if (delegate->loop_ == nullptr) {
-        napi_get_uv_event_loop(env, &delegate->loop_);
+    if (setting->loop_ == nullptr) {
+        napi_get_uv_event_loop(env, &setting->loop_);
     }
     return thisVar;
 };
 
 napi_value JsInputMethodEngineSetting::GetInputMethodAbility(napi_env env, napi_callback_info info)
 {
-    return GetIMEInstance(env, info, V9_FLAG);
+    return GetIMEInstance(env, info);
 }
 
 napi_value JsInputMethodEngineSetting::GetInputMethodEngine(napi_env env, napi_callback_info info)
 {
-    return GetIMEInstance(env, info, ORIGINAL_FLAG);
+    return GetIMEInstance(env, info);
 }
 
-napi_value JsInputMethodEngineSetting::GetIMEInstance(napi_env env, napi_callback_info info, int flag)
+napi_value JsInputMethodEngineSetting::GetIMEInstance(napi_env env, napi_callback_info info)
 {
     napi_value instance = nullptr;
     napi_value cons = nullptr;
-
-    if (flag == V9_FLAG) {
-        size_t argc = ARGC_MAX;
-        napi_value argv[ARGC_MAX] = { nullptr };
-
-        NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-        if (argc != ARGC_ZERO) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0", TypeCode::TYPE_NONE);
-            return nullptr;
-        }
-    }
-
     if (napi_get_reference_value(env, IMESRef_, &cons) != napi_ok) {
+        IMSA_HILOGE("failed to get reference value");
         return nullptr;
     }
-
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
+        IMSA_HILOGE("failed to new instance");
         return nullptr;
     }
-
     return instance;
 }
 

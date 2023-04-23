@@ -96,7 +96,7 @@ namespace MiscServices {
     int32_t InputMethodAbility::SetCoreAndAgent()
     {
         IMSA_HILOGI("InputMethodAbility, run in");
-        if (isBond_.load()) {
+        if (isBound_.load()) {
             IMSA_HILOGD("already bond");
             return ErrorCode::NO_ERROR;
         }
@@ -116,7 +116,7 @@ namespace MiscServices {
             IMSA_HILOGE("set failed, ret: %{public}d", ret);
             return ret;
         }
-        isBond_.store(true);
+        isBound_.store(true);
         IMSA_HILOGD("set successfully");
         return ErrorCode::NO_ERROR;
     }

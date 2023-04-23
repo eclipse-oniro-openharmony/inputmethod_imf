@@ -115,7 +115,7 @@ struct InputStartNotifier {
         void DissmissInputWindow();
         bool isImeReady_{ false };
         InputStartNotifier notifier_;
-        std::atomic_bool isBond_{ false };
+        std::atomic_bool isBound_{ false };
     };
 } // namespace MiscServices
 } // namespace OHOS
