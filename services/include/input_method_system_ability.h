@@ -64,7 +64,6 @@ public:
     int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
 
     // Deprecated because of no permission check, kept for compatibility
-    int32_t SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
     int32_t HideCurrentInputDeprecated() override;
     int32_t ShowCurrentInputDeprecated() override;
     int32_t DisplayOptionalInputMethodDeprecated() override;

@@ -55,7 +55,6 @@ public:
         SHOW_CURRENT_INPUT_DEPRECATED,
         HIDE_CURRENT_INPUT_DEPRECATED,
         DISPLAY_OPTIONAL_INPUT_DEPRECATED,
-        SET_CORE_AND_AGENT_DEPRECATED,
         INPUT_SERVICE_CMD_LAST
     };
 
@@ -78,7 +77,6 @@ public:
     virtual int32_t SwitchInputMethod(const std::string &bundleName, const std::string &name) = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
-    virtual int32_t SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) = 0;
     virtual int32_t HideCurrentInputDeprecated() = 0;
     virtual int32_t ShowCurrentInputDeprecated() = 0;
     virtual int32_t DisplayOptionalInputMethodDeprecated() = 0;

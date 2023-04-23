@@ -447,7 +447,7 @@ private:
     int32_t inputPattern_ = 0;
 
     std::atomic_bool isEditable_{ false };
-    std::atomic_bool isBond_{ false };
+    std::atomic_bool isBound_{ false };
     InputClientInfo clientInfo_;
 
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;

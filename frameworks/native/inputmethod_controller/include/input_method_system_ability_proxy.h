@@ -63,7 +63,6 @@ public:
     int32_t HideCurrentInputDeprecated() override;
     int32_t ShowCurrentInputDeprecated() override;
     int32_t DisplayOptionalInputMethodDeprecated() override;
-    int32_t SetCoreAndAgentDeprecated(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
 
 private:
     static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;
