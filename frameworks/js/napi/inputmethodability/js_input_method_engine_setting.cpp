@@ -330,7 +330,7 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
         NAPI_ASSERT_BASE(env, constructor != nullptr, "get jsPanel constructor failed!", napi_generic_failure);
 
         napi_status status = napi_new_instance(env, constructor, 0, nullptr, result);
-        NAPI_ASSERT(env, status == napi_ok, "get jsPanel instance failed!");
+        NAPI_ASSERT_BASE(env, status == napi_ok, "get jsPanel instance failed!", napi_generic_failure);
 
         status = napi_unwrap(env, *result, jsPanel);
         NAPI_ASSERT_BASE(env, (status == napi_ok) && (jsPanel != nullptr), "get jsPanel failed", napi_generic_failure);
