@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,6 +42,7 @@ enum IMFErrorCode : int32_t {
     EXCEPTION_CONTROLLER,
     EXCEPTION_SETTINGS,
     EXCEPTION_IMMS,
+    EXCEPTION_DETACHED,
 };
 
 enum TypeCode : int32_t {
@@ -94,7 +95,9 @@ public:
     static napi_status GetValue(napi_env env, napi_value in, int32_t &out);
     static napi_status GetValue(napi_env env, napi_value in, uint32_t &out);
     static napi_status GetValue(napi_env env, napi_value in, bool &out);
+    static napi_status GetValue(napi_env env, napi_value in, double &out);
     static napi_status GetValue(napi_env env, napi_value in, std::string &out);
+    static napi_status GetValue(napi_env env, napi_value in, const std::string &type, napi_value &out);
     static napi_status GetValue(napi_env env, napi_value in, PanelInfo &out);
 
 private:

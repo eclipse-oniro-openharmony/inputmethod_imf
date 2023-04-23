@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,9 +82,13 @@ public:
     {
         IMSA_HILOGI("SERVICE TEST TextListener sendKeyEventFromInputMethod");
     }
-    void SendKeyboardInfo(const KeyboardInfo &status)
+    void SendKeyboardStatus(const KeyboardStatus &status)
     {
-        IMSA_HILOGI("SERVICE TEST TextListener SendKeyboardInfo");
+        IMSA_HILOGI("SERVICE TEST TextListener SendKeyboardStatus");
+    }
+    void SendFunctionKey(const FunctionKey &functionKey)
+    {
+        IMSA_HILOGI("SERVICE TEST TextListener SendFunctionKey");
     }
     void MoveCursor(const Direction direction)
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -62,7 +62,7 @@ constexpr int32_t MAIN_USER_ID = 100;
         ~TextListener()
         {
         }
-        static KeyboardInfo keyboardInfo_;
+        static KeyboardStatus keyboardStatus_;
         static std::mutex cvMutex_;
         static std::condition_variable cv_;
         std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
@@ -93,17 +93,21 @@ constexpr int32_t MAIN_USER_ID = 100;
         {
             IMSA_HILOGI("IMC TEST TextListener sendKeyEventFromInputMethod");
         }
-        void SendKeyboardInfo(const KeyboardInfo &status)
+        void SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
         {
-            IMSA_HILOGD("TextListener::SendKeyboardInfo %{public}d", status.GetKeyboardStatus());
-            constexpr int32_t INTERVAL = 20;
+            IMSA_HILOGD("TextListener::SendKeyboardStatus %{public}d", static_cast<int>(keyboardStatus));
+            constexpr int32_t interval = 20;
             {
                 std::unique_lock<std::mutex> lock(cvMutex_);
-                IMSA_HILOGD("TextListener::SendKeyboardInfo lock");
-                keyboardInfo_ = status;
+                IMSA_HILOGD("TextListener::SendKeyboardStatus lock");
+                keyboardStatus_ = keyboardStatus;
             }
-            serviceHandler_->PostTask([this]() { cv_.notify_all(); }, INTERVAL);
-            IMSA_HILOGD("TextListener::SendKeyboardInfo notify_all");
+            serviceHandler_->PostTask([this]() { cv_.notify_all(); }, interval);
+            IMSA_HILOGD("TextListener::SendKeyboardStatus notify_all");
+        }
+        void SendFunctionKey(const FunctionKey &functionKey)
+        {
+            IMSA_HILOGI("IMC TEST TextListener SendFunctionKey");
         }
         void MoveCursor(const Direction direction)
         {
@@ -119,7 +123,7 @@ constexpr int32_t MAIN_USER_ID = 100;
         {
         }
     };
-    KeyboardInfo TextListener::keyboardInfo_;
+    KeyboardStatus TextListener::keyboardStatus_;
     std::mutex TextListener::cvMutex_;
     std::condition_variable TextListener::cv_;
 
@@ -428,10 +432,10 @@ constexpr int32_t MAIN_USER_ID = 100;
     HWTEST_F(InputMethodControllerTest, testShowTextInput, TestSize.Level0)
     {
         IMSA_HILOGI("IMC ShowTextInput Test START");
-        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
+        TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         inputMethodController_->ShowTextInput();
         EXPECT_TRUE(TextListener::WaitIMACallback());
-        EXPECT_TRUE(TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::SHOW);
+        EXPECT_TRUE(TextListener::keyboardStatus_ == KeyboardStatus::SHOW);
     }
 
     /**
@@ -443,12 +447,11 @@ constexpr int32_t MAIN_USER_ID = 100;
     {
         IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
         imeListener_->keyboardState_ = false;
-        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
+        TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         int32_t ret = inputMethodController_->ShowSoftKeyboard();
         EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(
-            imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::SHOW);
+        EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::keyboardStatus_ == KeyboardStatus::SHOW);
     }
 
     /**
@@ -460,12 +463,11 @@ constexpr int32_t MAIN_USER_ID = 100;
     {
         IMSA_HILOGI("IMC ShowCurrentInput Test START");
         imeListener_->keyboardState_ = false;
-        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
+        TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         int32_t ret = inputMethodController_->ShowCurrentInput();
         EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(
-            imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::SHOW);
+        EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::keyboardStatus_ == KeyboardStatus::SHOW);
     }
 
     /**
@@ -559,12 +561,11 @@ constexpr int32_t MAIN_USER_ID = 100;
     {
         IMSA_HILOGI("IMC HideSoftKeyboard Test START");
         imeListener_->keyboardState_ = true;
-        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
+        TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         int32_t ret = inputMethodController_->HideSoftKeyboard();
         EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(
-            !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
+        EXPECT_TRUE(!imeListener_->keyboardState_ && TextListener::keyboardStatus_ == KeyboardStatus::HIDE);
     }
 
     /**
@@ -577,12 +578,11 @@ constexpr int32_t MAIN_USER_ID = 100;
     {
         IMSA_HILOGI("IMC HideCurrentInput Test START");
         imeListener_->keyboardState_ = true;
-        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
+        TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         int32_t ret = inputMethodController_->HideCurrentInput();
         EXPECT_TRUE(TextListener::WaitIMACallback());
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(
-            !imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::HIDE);
+        EXPECT_TRUE(!imeListener_->keyboardState_ && TextListener::keyboardStatus_ == KeyboardStatus::HIDE);
     }
 
     /**
@@ -596,7 +596,7 @@ constexpr int32_t MAIN_USER_ID = 100;
     {
         IMSA_HILOGI("IMC StopInputSession Test START");
         imeListener_->keyboardState_ = true;
-        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
+        TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         int32_t ret = inputMethodController_->StopInputSession();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         EXPECT_TRUE(!imeListener_->keyboardState_);
@@ -611,7 +611,7 @@ constexpr int32_t MAIN_USER_ID = 100;
     {
         IMSA_HILOGI("IMC HideTextInput Test START");
         imeListener_->keyboardState_ = true;
-        TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
+        TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         inputMethodController_->HideTextInput();
         EXPECT_TRUE(!imeListener_->keyboardState_);
     }

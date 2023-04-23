@@ -93,7 +93,7 @@ public:
     ~TextListener()
     {
     }
-    static KeyboardInfo keyboardInfo_;
+    static KeyboardStatus keyboardStatus_;
     static std::mutex cvMutex_;
     static std::condition_variable cv_;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
@@ -124,17 +124,21 @@ public:
     {
         IMSA_HILOGI("IMC TEST TextListener sendKeyEventFromInputMethod");
     }
-    void SendKeyboardInfo(const KeyboardInfo &status)
+    void SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
     {
-        IMSA_HILOGD("TextListener::SendKeyboardInfo %{public}d", status.GetKeyboardStatus());
+        IMSA_HILOGD("TextListener::SendKeyboardStatus %{public}d", static_cast<int>(keyboardStatus));
         constexpr int32_t interval = 20;
         {
             std::unique_lock<std::mutex> lock(cvMutex_);
-            IMSA_HILOGD("TextListener::SendKeyboardInfo lock");
-            keyboardInfo_ = status;
+            IMSA_HILOGD("TextListener::SendKeyboardStatus lock");
+            keyboardStatus_ = keyboardStatus;
         }
         serviceHandler_->PostTask([this]() { cv_.notify_all(); }, interval);
-        IMSA_HILOGD("TextListener::SendKeyboardInfo notify_all");
+        IMSA_HILOGD("TextListener::SendKeyboardStatus notify_all");
+    }
+    void SendFunctionKey(const FunctionKey &functionKey)
+    {
+        IMSA_HILOGI("IMC TEST TextListener SendFunctionKey");
     }
     void MoveCursor(const Direction direction)
     {
@@ -150,7 +154,7 @@ public:
     {
     }
 };
-KeyboardInfo TextListener::keyboardInfo_;
+KeyboardStatus TextListener::keyboardStatus_;
 std::mutex TextListener::cvMutex_;
 std::condition_variable TextListener::cv_;
 
@@ -374,14 +378,13 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
     InputMethodEditorTest::inputMethodController_->Close();
     InitTestConfiguration();
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
-    TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
+    TextListener::keyboardStatus_ = KeyboardStatus::NONE;
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_TRUE(TextListener::WaitIMACallback());
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(
-        imeListener_->keyboardState_ && TextListener::keyboardInfo_.GetKeyboardStatus() == KeyboardStatus::SHOW);
+    EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::keyboardStatus_ == KeyboardStatus::SHOW);
 }
 
 /**
@@ -392,13 +395,14 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest HideTextInputAndShowTextInput Test START");
+    IMSA_HILOGI("InputMethodEditorTest HideTextInputAndShowTextInput Test START");
     InputMethodEditorTest::inputMethodController_->Close();
     InitTestConfiguration();
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     imeListener_->keyboardState_ = true;
-    TextListener::keyboardInfo_.SetKeyboardStatus(static_cast<int32_t>(KeyboardStatus::NONE));
+    TextListener::keyboardStatus_ = KeyboardStatus::NONE;
     InputMethodEditorTest::inputMethodController_->HideTextInput();
     bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
     EXPECT_FALSE(result);

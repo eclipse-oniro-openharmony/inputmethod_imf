@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -69,7 +69,8 @@ public:
     void SetKeyboardStatus(bool status) {}
     void DeleteForward(int32_t length) {}
     void SendKeyEventFromInputMethod(const KeyEvent &event) {}
-    void SendKeyboardInfo(const KeyboardInfo &status) {}
+    void SendKeyboardStatus(const KeyboardStatus &status) {}
+    void SendFunctionKey(const FunctionKey &functionKey) {}
     void MoveCursor(const Direction direction) {}
     void HandleSetSelection(int32_t start, int32_t end) {}
     void HandleExtendAction(int32_t action) {}
