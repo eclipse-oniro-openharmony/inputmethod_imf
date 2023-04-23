@@ -27,10 +27,18 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 const std::string JsPanel::CLASS_NAME = "Panel";
 thread_local napi_ref JsPanel::panelConstructorRef_ = nullptr;
+std::mutex JsPanel::panelConstructorMutex_;
 
-napi_value JsPanel::Constructor(napi_env env)
+napi_value JsPanel::Init(napi_env env)
 {
     IMSA_HILOGI("JsPanel in.");
+    napi_value constructor = nullptr;
+    std::lock_guard<std::mutex> lock(panelConstructorMutex_);
+    if (panelConstructorRef_ != nullptr) {
+        napi_status status = napi_get_reference_value(env, panelConstructorRef_, &constructor);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "Failed to get jsPanel constructor.", nullptr);
+       return constructor;
+    }
     const napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("setUiContent", SetUiContent),
         DECLARE_NAPI_FUNCTION("resize", Resize),
@@ -41,7 +49,6 @@ napi_value JsPanel::Constructor(napi_env env)
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
     };
-    napi_value constructor = nullptr;
     NAPI_CALL(env, napi_define_class(env, CLASS_NAME.c_str(), CLASS_NAME.size(), JsNew, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
     NAPI_ASSERT(env, constructor != nullptr, "napi_define_class failed!");

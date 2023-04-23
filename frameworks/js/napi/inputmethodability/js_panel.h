@@ -16,6 +16,7 @@
 #ifndef INPUTMETHOD_IMF_JSPANEL_H
 #define INPUTMETHOD_IMF_JSPANEL_H
 
+#include <mutex>
 #include <uv.h>
 
 #include "async_call.h"
@@ -33,7 +34,7 @@ class JsPanel {
 public:
     JsPanel() = default;
     ~JsPanel();
-    static napi_value Constructor(napi_env env);
+    static napi_value Init(napi_env env);
     static napi_value SetUiContent(napi_env env, napi_callback_info info);
     static napi_value Resize(napi_env env, napi_callback_info info);
     static napi_value MoveTo(napi_env env, napi_callback_info info);
@@ -44,6 +45,7 @@ public:
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     void SetNative(const std::shared_ptr<InputMethodPanel> &panel);
     std::shared_ptr<InputMethodPanel> &GetNative();
+    static std::mutex panelConstructorMutex_;
     static thread_local napi_ref panelConstructorRef_;
 private:
     struct PanelContentContext : public AsyncCall::Context {
