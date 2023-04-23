@@ -218,7 +218,7 @@ HWTEST_F(PermissionVerificationExceptionTest, SwitchInputMethod, TestSize.Level0
 HWTEST_F(PermissionVerificationExceptionTest, SetCoreAndAgent, TestSize.Level0)
 {
     IMSA_HILOGI("PermissionTest SetCoreAndAgent TEST START");
-    InputMethodAbility::GetInstance()->isBond_.store(false);
+    InputMethodAbility::GetInstance()->isBound_.store(false);
     int32_t ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_CURRENT_IME);
 }
@@ -235,7 +235,7 @@ HWTEST_F(PermissionVerificationExceptionTest, SetCoreAndAgentPassCheck, TestSize
     auto property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     EXPECT_NE(property, nullptr);
     PermissionVerificationExceptionTest::AllocAndSetTestTokenID(property->name);
-    InputMethodAbility::GetInstance()->isBond_.store(false);
+    InputMethodAbility::GetInstance()->isBound_.store(false);
     int32_t ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     PermissionVerificationExceptionTest::RestoreSelfTokenID();
