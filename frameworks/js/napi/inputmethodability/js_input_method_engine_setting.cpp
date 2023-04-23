@@ -332,7 +332,7 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
         napi_status status = napi_new_instance(env, constructor, 0, nullptr, result);
         NAPI_ASSERT_BASE(env, status == napi_ok, "get jsPanel instance failed!", napi_generic_failure);
 
-        status = napi_unwrap(env, *result, &jsPanel);
+        status = napi_unwrap(env, *result, (void **)(&jsPanel));
         NAPI_ASSERT_BASE(env, (status == napi_ok) && (jsPanel != nullptr), "get jsPanel failed", napi_generic_failure);
         jsPanel->SetNative(ctxt->panel);
         return napi_ok;
@@ -354,7 +354,7 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
         bool isPanel = false;
         napi_value constructor = JsPanel::Init(env);
         NAPI_ASSERT_BASE(env, constructor != nullptr, "Failed to get panel constructor.", napi_invalid_arg);
-        status = napi_instanceof(env, argv[0], constructor, &isPanel);
+        napi_status status = napi_instanceof(env, argv[0], constructor, &isPanel);
         NAPI_ASSERT_BASE(env, (status == napi_ok) && isPanel, "It's not expected panel instance!", status);
         JsPanel *jsPanel = nullptr;
         status = napi_unwrap(env, argv[0], (void **)(&jsPanel));
