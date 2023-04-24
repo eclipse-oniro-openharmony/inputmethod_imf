@@ -1135,7 +1135,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
                                   [&current](const SubProperty &property) { return property.mode == "lower"; })
                               : FindSubPropertyByCompare(current->name,
                                   [&current](const SubProperty &property) { return property.mode == "upper"; });
-            return SwitchInputMethod(target.name, target.id);
+            return SwitchInputMethodSubtype(target.name, target.id);
         }
         if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_LANGUAGE, state)) {
             IMSA_HILOGI("switch language");
@@ -1144,7 +1144,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
                                   [&current](const SubProperty &property) { return property.language == "english"; })
                               : FindSubPropertyByCompare(current->name,
                                   [&current](const SubProperty &property) { return property.language == "chinese"; });
-            return SwitchInputMethod(target.name, target.id);
+            return SwitchInputMethodSubtype(target.name, target.id);
         }
         if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
             IMSA_HILOGI("switch ime");
@@ -1157,7 +1157,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
             auto iter = std::find_if(props.begin(), props.end(),
                 [&current](const Property &property) { return property.name != current->name; });
             if (iter != props.end()) {
-                return SwitchInputMethod(iter->name, iter->id);
+                return SwitchInputMethodSubtype(iter->name, iter->id);
             }
         }
         IMSA_HILOGD("keycode undefined");
