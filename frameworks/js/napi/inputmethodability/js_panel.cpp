@@ -205,6 +205,7 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
         NAPI_ASSERT_BASE(env, ctxt->native != nullptr, "jsPanel is nullptr.", napi_generic_failure);
         ctxt->inputMethodPanel = reinterpret_cast<JsPanel *>(ctxt->native)->GetNative();
         NAPI_ASSERT_BASE(env, ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr.", napi_generic_failure);
+        return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
@@ -227,6 +228,7 @@ napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
         NAPI_ASSERT_BASE(env, ctxt->native != nullptr, "jsPanel is nullptr.", napi_generic_failure);
         ctxt->inputMethodPanel = reinterpret_cast<JsPanel *>(ctxt->native)->GetNative();
         NAPI_ASSERT_BASE(env, ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr.", napi_generic_failure);
+        return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
