@@ -121,14 +121,11 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         return napi_ok;
     };
 
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->SetState(napi_ok);
-    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) { ctxt->SetState(napi_ok); };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        auto &inputMethodPanel = reinterpret_cast<JsPanel *>(ctxt->native)->GetNative();
-        NAPI_ASSERT_BASE(env, inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
-        auto code = inputMethodPanel->SetUiContent(ctxt->path, *(reinterpret_cast<NativeEngine *>(env)),
-                                                   ctxt->contentStorage);
+        NAPI_ASSERT_BASE(env, ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
+        auto code = ctxt->inputMethodPanel->SetUiContent(
+            ctxt->path, *(reinterpret_cast<NativeEngine *>(env)), ctxt->contentStorage);
         NAPI_ASSERT_BASE(env, code == ErrorCode::NO_ERROR, "SetUiContent failed!", napi_generic_failure);
         return napi_ok;
     };
