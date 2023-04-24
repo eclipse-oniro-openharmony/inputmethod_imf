@@ -97,7 +97,7 @@ namespace MiscServices {
     {
         IMSA_HILOGI("InputMethodAbility, run in");
         if (isBound_.load()) {
-            IMSA_HILOGD("already bond");
+            IMSA_HILOGD("already bound");
             return ErrorCode::NO_ERROR;
         }
         mImms = GetImsaProxy();
