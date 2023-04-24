@@ -49,7 +49,8 @@ int32_t InputMethodPanel::CreatePanel(
                                                          : "statusBar" + std::to_string(sequenceId);
     IMSA_HILOGD("InputMethodPanel,  windowName = %{public}s", windowName.c_str());
     window_ = OHOS::Rosen::Window::Create(windowName, winOption_, context, wmError);
-    if (wmError == WMError::WM_ERROR_INVALID_PERMISSION) {
+    if (wmError == WMError::WM_ERROR_INVALID_PERMISSION || wmError == WMError::WM_ERROR_NOT_SYSTEM_APP) {
+        IMSA_HILOGE("Create window failed, permission denied, %{public}d", ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     if (window_ == nullptr || wmError != WMError::WM_OK) {
