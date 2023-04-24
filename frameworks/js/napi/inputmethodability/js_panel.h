@@ -53,12 +53,14 @@ private:
         int32_t x = 0;
         int32_t y = 0;
         void *native = nullptr;
+        std::shared_ptr<InputMethodPanel> inputMethodPanel = nullptr;
         std::shared_ptr<NativeReference> contentStorage = nullptr;
         PanelContentContext(napi_env env, napi_callback_info info) : Context(nullptr, nullptr)
         {
             napi_value self = nullptr;
             napi_status status = napi_get_cb_info(env, info, 0, nullptr, &self, nullptr);
-            status = napi_unwrap(env, self, &native);
+            CHECK_RETURN_VOID((status == napi_ok) && (self != nullptr), "get callback info failed.");
+            napi_unwrap(env, self, &native);
         };
         PanelContentContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
         napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
