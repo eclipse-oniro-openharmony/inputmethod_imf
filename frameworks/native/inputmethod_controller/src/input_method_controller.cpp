@@ -370,7 +370,7 @@ int32_t InputMethodController::Attach(
         IMSA_HILOGE("failed to start input, ret:%{public}d", ret);
         return ret;
     }
-    isBond_.store(true);
+    isBound_.store(true);
     isEditable_.store(true);
     IMSA_HILOGD("bind imf successfully, enter editable state");
     return ErrorCode::NO_ERROR;
@@ -379,7 +379,7 @@ int32_t InputMethodController::Attach(
 int32_t InputMethodController::ShowTextInput()
 {
     IMSA_HILOGI("InputMethodController::ShowTextInput");
-    if (!isBond_.load()) {
+    if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
@@ -396,7 +396,7 @@ int32_t InputMethodController::ShowTextInput()
 int32_t InputMethodController::HideTextInput()
 {
     IMSA_HILOGD("InputMethodController::HideTextInput");
-    if (!isBond_.load()) {
+    if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
@@ -436,7 +436,7 @@ int32_t InputMethodController::ShowCurrentInput()
 
 int32_t InputMethodController::Close()
 {
-    isBond_.store(false);
+    isBound_.store(false);
     isEditable_.store(false);
     InputmethodTrace tracer("InputMethodController Close trace.");
     {
@@ -474,7 +474,7 @@ int32_t InputMethodController::DisplayOptionalInputMethod()
 
 bool InputMethodController::WasAttached()
 {
-    return isBond_.load();
+    return isBound_.load();
 }
 
 int32_t InputMethodController::ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props)
@@ -600,7 +600,7 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
 
 int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 {
-    if (!isBond_.load()) {
+    if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
@@ -627,7 +627,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
 {
     IMSA_HILOGD("size: %{public}zu, start: %{public}d, end: %{public}d, replyCount: %{public}d", text.size(), start,
         end, textFieldReplyCount_);
-    if (!isBond_.load()) {
+    if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
@@ -664,7 +664,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
 int32_t InputMethodController::OnConfigurationChange(Configuration info)
 {
     IMSA_HILOGI("InputMethodController::OnConfigurationChange");
-    if (!isBond_.load()) {
+    if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
@@ -812,7 +812,7 @@ int32_t InputMethodController::GetInputPattern(int32_t &inputpattern)
 
 int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
 {
-    if (!isBond_.load()) {
+    if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
