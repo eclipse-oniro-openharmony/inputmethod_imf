@@ -722,7 +722,7 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
                 delete work;
             });
             if (entry == nullptr) {
-                IMSA_HILOGE("deleteLeft entryptr is null..");
+                IMSA_HILOGE("deleteLeft entryptr is null.");
                 return;
             }
 
