@@ -71,10 +71,10 @@ void TextListener::DeleteForward(int32_t length)
 void TextListener::SendKeyEventFromInputMethod(const KeyEvent &event)
 {
 }
-void SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
+void TextListener::SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
 {
 }
-void SendFunctionKey(const FunctionKey &functionKey)
+void TextListener::SendFunctionKey(const FunctionKey &functionKey)
 {
 }
 void TextListener::MoveCursor(const Direction direction)
