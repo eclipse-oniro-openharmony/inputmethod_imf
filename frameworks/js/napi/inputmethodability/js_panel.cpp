@@ -37,7 +37,7 @@ napi_value JsPanel::Init(napi_env env)
     if (panelConstructorRef_ != nullptr) {
         napi_status status = napi_get_reference_value(env, panelConstructorRef_, &constructor);
         NAPI_ASSERT_BASE(env, status == napi_ok, "Failed to get jsPanel constructor.", nullptr);
-       return constructor;
+        return constructor;
     }
     const napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("setUiContent", SetUiContent),
