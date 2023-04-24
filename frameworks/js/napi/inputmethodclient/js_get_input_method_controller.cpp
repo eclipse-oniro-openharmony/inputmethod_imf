@@ -462,7 +462,7 @@ napi_value JsGetInputMethodController::UpdateCursor(napi_env env, napi_callback_
 napi_status JsGetInputMethodController::ParseChangeSelectionInput(
     napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<ChangeSelectionContext> &ctxt)
 {
-    std::string strText = "";
+    std::string strText;
     // 0 means the first parameter: text
     napi_status status = JsUtils::GetValue(env, argv[0], strText);
     if (status == napi_ok) {
