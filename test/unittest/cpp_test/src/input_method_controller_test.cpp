@@ -41,7 +41,6 @@
 #include "iservice_registry.h"
 #include "keyboard_listener.h"
 #include "message_parcel.h"
-#include "nativetoken_kit.h"
 #include "os_account_manager.h"
 #include "system_ability_definition.h"
 #include "token_setproc.h"
@@ -209,12 +208,12 @@ constexpr int32_t MAIN_USER_ID = 100;
     public:
         static void SetUpTestCase(void);
         static void TearDownTestCase(void);
-        static void AllocTestTokenID();
+        void SetUp();
+        void TearDown();
+        static void AllocTestTokenID(const std::string &bundleName);
         static void DeleteTestTokenID();
         static void SetTestTokenID();
         static void RestoreSelfTokenID();
-        void SetUp();
-        void TearDown();
         static sptr<InputMethodController> inputMethodController_;
         static sptr<InputMethodAbility> inputMethodAbility_;
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
@@ -236,22 +235,30 @@ constexpr int32_t MAIN_USER_ID = 100;
     void InputMethodControllerTest::SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::SetUpTestCase");
-        AllocTestTokenID();
+        selfTokenID_ = GetSelfTokenID();
+        std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
+        std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
+        AllocTestTokenID(bundleName);
         SetTestTokenID();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->OnImeReady();
         kbListener_ = std::make_shared<KeyboardListenerImpl>();
         imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
         textListener_ = new TextListener();
         inputMethodAbility_->SetKdListener(kbListener_);
         inputMethodAbility_->SetImeListener(imeListener_);
-        inputMethodController_ = InputMethodController::GetInstance();
+        RestoreSelfTokenID();
 
+        bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
+        AllocTestTokenID(bundleName);
+        SetTestTokenID();
+        inputMethodController_ = InputMethodController::GetInstance();
         keyEvent_ = MMI::KeyEvent::Create();
-        constexpr int32_t KEY_ACTION = 2;
-        constexpr int32_t KEY_CODE = 2001;
-        keyEvent_->SetKeyAction(KEY_ACTION);
-        keyEvent_->SetKeyCode(KEY_CODE);
+        constexpr int32_t keyAction = 2;
+        constexpr int32_t keyCode = 2001;
+        keyEvent_->SetKeyAction(keyAction);
+        keyEvent_->SetKeyCode(keyCode);
     }
 
     void InputMethodControllerTest::TearDownTestCase(void)
@@ -271,9 +278,8 @@ constexpr int32_t MAIN_USER_ID = 100;
         IMSA_HILOGI("InputMethodControllerTest::TearDown");
     }
 
-    void InputMethodControllerTest::AllocTestTokenID()
+    void InputMethodControllerTest::AllocTestTokenID(const std::string &bundleName)
     {
-        std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
         IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
         std::vector<int32_t> userIds;
         auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
@@ -294,8 +300,8 @@ constexpr int32_t MAIN_USER_ID = 100;
         };
 
         AccessTokenKit::AllocHapToken(infoParams, policyParams);
-        InputMethodControllerTest::testTokenID_ =
-            AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
+        DeleteTestTokenID();
+        testTokenID_ = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
     }
 
     void InputMethodControllerTest::DeleteTestTokenID()

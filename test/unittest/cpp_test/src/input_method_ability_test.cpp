@@ -39,7 +39,6 @@
 #include "input_method_core_stub.h"
 #include "input_method_panel.h"
 #include "message_handler.h"
-#include "nativetoken_kit.h"
 #include "os_account_manager.h"
 #include "token_setproc.h"
 
@@ -175,9 +174,8 @@ public:
             IMSA_HILOGI("TextChangeListener, selectionDirection_: %{public}d", selectionDirection_);
         }
     };
-    static void AllocTestTokenID()
+    static void AllocTestTokenID(const std::string &bundleName)
     {
-        std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
         IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
         std::vector<int32_t> userIds;
         auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
@@ -218,10 +216,18 @@ public:
     {
         IMSA_HILOGI("InputMethodAbilityTest::SetUpTestCase");
         selfTokenID_ = GetSelfTokenID();
-        AllocTestTokenID();
+        std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
+        std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
+        AllocTestTokenID(bundleName);
         SetTestTokenID();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->OnImeReady();
+        inputMethodAbility_->SetCoreAndAgent();
+        RestoreSelfTokenID();
+
+        bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
+        AllocTestTokenID(bundleName);
+        SetTestTokenID();
         sptr<OnTextChangedListener> textListener = new TextChangeListener();
         imc_ = InputMethodController::GetInstance();
         imc_->Attach(textListener);
@@ -231,6 +237,7 @@ public:
     {
         IMSA_HILOGI("InputMethodAbilityTest::TearDownTestCase");
         imc_->Close();
+        RestoreSelfTokenID();
         DeleteTestTokenID();
     }
     void SetUp()

@@ -23,6 +23,8 @@ namespace MiscServices {
 class BundleChecker {
 public:
     static bool IsFocused(uint32_t tokenID);
+    static bool IsCurrentIme(uint32_t tokenID, const std::string &currentIme);
+    static bool CheckPermission(uint32_t tokenID, const std::string &permission);
 
 private:
     static std::string GetBundleNameByToken(uint32_t tokenID);
