@@ -60,7 +60,9 @@ private:
             napi_value self = nullptr;
             napi_status status = napi_get_cb_info(env, info, 0, nullptr, &self, nullptr);
             CHECK_RETURN_VOID((status == napi_ok) && (self != nullptr), "get callback info failed.");
-            napi_unwrap(env, self, &native);
+            status = napi_unwrap(env, self, &native);
+            CHECK_RETURN_VOID((status == napi_ok) && (native != nullptr), "get jsPanel failed.");
+            inputMethodPanel = reinterpret_cast<JsPanel *>(native)->GetNative();
         };
         PanelContentContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
         napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
