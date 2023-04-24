@@ -729,7 +729,7 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
             auto getDeleteBackwardProperty = [entry](napi_value *args, uint8_t argc,
                                                  std::shared_ptr<JSCallbackObject> item) -> bool {
                 if (argc == ARGC_ZERO) {
-                    IMSA_HILOGE("deleteLeft:getDeleteBackwardProperty the number of argc is invalid.");
+                    IMSA_HILOGE("deleteLeft::getDeleteBackwardProperty the number of argc is invalid.");
                     return false;
                 }
                 napi_create_int32(item->env_, entry->length, &args[ARGC_ZERO]);
