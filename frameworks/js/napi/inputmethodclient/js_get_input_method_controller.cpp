@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #include <set>
 
 #include "input_method_controller.h"
+#include "js_get_input_method_textchange_listener.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
@@ -29,6 +30,15 @@ constexpr size_t ARGC_TWO = 2;
 const std::set<std::string> EVENT_TYPE{
     "selectByRange",
     "selectByMovement",
+};
+const std::set<std::string> JsGetInputMethodController::TEXT_EVENT_TYPE {
+    "insertText",
+    "deleteLeft",
+    "deleteRight",
+    "sendKeyboardStatus",
+    "sendFunctionKey",
+    "moveCursor",
+    "handleExtendAction",
 };
 thread_local napi_ref JsGetInputMethodController::IMCRef_ = nullptr;
 const std::string JsGetInputMethodController::IMC_CLASS_NAME = "InputMethodController";
@@ -44,6 +54,14 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
         env, napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
 
     napi_property_descriptor properties[] = {
+        DECLARE_NAPI_FUNCTION("attach", Attach),
+        DECLARE_NAPI_FUNCTION("detach", Detach),
+        DECLARE_NAPI_FUNCTION("showTextInput", ShowTextInput),
+        DECLARE_NAPI_FUNCTION("hideTextInput", HideTextInput),
+        DECLARE_NAPI_FUNCTION("setCallingWindow", SetCallingWindow),
+        DECLARE_NAPI_FUNCTION("updateCursor", UpdateCursor),
+        DECLARE_NAPI_FUNCTION("changeSelection", ChangeSelection),
+        DECLARE_NAPI_FUNCTION("updateAttribute", UpdateAttribute),
         DECLARE_NAPI_FUNCTION("stopInput", StopInput),
         DECLARE_NAPI_FUNCTION("stopInputSession", StopInputSession),
         DECLARE_NAPI_FUNCTION("hideSoftKeyboard", HideSoftKeyboard),
@@ -177,6 +195,13 @@ napi_value JsGetInputMethodController::Subscribe(napi_env env, napi_callback_inf
     napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], type);
     PARAM_CHECK_RETURN(env, status == napi_ok, "callback", TYPE_FUNCTION, nullptr);
 
+    if (TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end()) {
+        if (!InputMethodController::GetInstance()->WasAttached()) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_DETACHED, "need to be attached first", TYPE_NONE);
+            return nullptr;
+        }
+    }
+
     auto engine = reinterpret_cast<JsGetInputMethodController *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
@@ -201,7 +226,16 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
 
     std::string type = "";
     JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    PARAM_CHECK_RETURN(env, EVENT_TYPE.find(type) != EVENT_TYPE.end(), "unkown type", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env,
+        EVENT_TYPE.find(type) != EVENT_TYPE.end() || TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end(), "unkown type",
+        TYPE_NONE, nullptr);
+    if (TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end()) {
+        if (!InputMethodController::GetInstance()->WasAttached()) {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_DETACHED, "need to be attached first", TYPE_NONE);
+            return nullptr;
+        }
+    }
+
     auto engine = reinterpret_cast<JsGetInputMethodController *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
@@ -270,6 +304,239 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    return asyncCall.Call(env, exec);
+}
+
+napi_status JsGetInputMethodController::ParseAttachInput(
+    napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<AttachContext> &ctxt)
+{
+    // 0 means the first parameter: showkeyboard
+    napi_status status = JsUtils::GetValue(env, argv[0], ctxt->showKeyboard);
+    if (status != napi_ok) {
+        return status;
+    }
+
+    // 1 means the second parameter: textConfig
+    napi_value attributeResult = nullptr;
+    status = JsUtils::GetValue(env, argv[1], "inputAttribute", attributeResult);
+    if (status != napi_ok) {
+        return status;
+    }
+    napi_value textResult = nullptr;
+    status = JsUtils::GetValue(env, attributeResult, "textInputType", textResult);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = JsUtils::GetValue(env, textResult, ctxt->attribute.inputPattern);
+    if (status != napi_ok) {
+        return status;
+    }
+    napi_value enterResult = nullptr;
+    status = JsUtils::GetValue(env, attributeResult, "enterKeyType", enterResult);
+    if (status != napi_ok) {
+        return status;
+    }
+    return JsUtils::GetValue(env, enterResult, ctxt->attribute.enterKeyType);
+}
+
+napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<AttachContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, argc > 1, "should 2 or 3 parameters!", TYPE_NONE, napi_generic_failure);
+        napi_status status = ParseAttachInput(env, argc, argv, ctxt);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "paramters of attach is error. ", TYPE_NONE, status);
+        return status;
+    };
+    auto exec = [ctxt, env](AsyncCall::Context *ctx) {
+        ctxt->textListener = JsGetInputMethodTextChangedListener::GetInstance();
+        auto status =
+            InputMethodController::GetInstance()->Attach(ctxt->textListener, ctxt->showKeyboard, ctxt->attribute);
+        ctxt->SetErrorCode(status);
+        CHECK_RETURN_VOID(status == ErrorCode::NO_ERROR, "attach return error!");
+        ctxt->SetState(napi_ok);
+    };
+    ctxt->SetAction(std::move(input));
+    AsyncCall asyncCall(env, info, ctxt, PARAM_POS_TWO);
+    return asyncCall.Call(env, exec);
+}
+
+napi_value JsGetInputMethodController::Detach(napi_env env, napi_callback_info info)
+{
+    return HandleSoftKeyboard(
+        env, info, [] { return InputMethodController::GetInstance()->Close(); }, false, true);
+}
+
+napi_value JsGetInputMethodController::ShowTextInput(napi_env env, napi_callback_info info)
+{
+    return HandleSoftKeyboard(
+        env, info, [] { return InputMethodController::GetInstance()->ShowTextInput(); }, false, true);
+}
+
+napi_value JsGetInputMethodController::HideTextInput(napi_env env, napi_callback_info info)
+{
+    return HandleSoftKeyboard(
+        env, info, [] { return InputMethodController::GetInstance()->HideTextInput(); }, false, true);
+}
+
+napi_value JsGetInputMethodController::SetCallingWindow(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<SetCallingWindowContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        // 0 means the first parameter: windowId
+        napi_status status = JsUtils::GetValue(env, argv[0], ctxt->windID);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "paramters of setCallingWindow is error. ", TYPE_NONE, status);
+        return status;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        auto errcode = InputMethodController::GetInstance()->SetCallingWindow(ctxt->windID);
+        ctxt->SetErrorCode(errcode);
+        CHECK_RETURN_VOID(errcode == ErrorCode::NO_ERROR, "setCallingWindow return error!");
+        ctxt->SetState(napi_ok);
+    };
+    ctxt->SetAction(std::move(input));
+    AsyncCall asyncCall(env, info, ctxt, PARAM_POS_ONE);
+    return asyncCall.Call(env, exec);
+}
+
+napi_status JsGetInputMethodController::ParseUpdateCursorInput(
+    napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<UpdateCursorContext> &ctxt)
+{
+    // 0 means the first parameter: cursorInfo
+    napi_value leftResult = nullptr;
+    napi_status status = JsUtils::GetValue(env, argv[0], "left", leftResult);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = JsUtils::GetValue(env, leftResult, ctxt->cursorInfo.left);
+    if (status != napi_ok) {
+        return status;
+    }
+    napi_value topResult = nullptr;
+    status = JsUtils::GetValue(env, argv[0], "top", topResult);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = JsUtils::GetValue(env, topResult, ctxt->cursorInfo.top);
+    if (status != napi_ok) {
+        return status;
+    }
+    napi_value widthResult = nullptr;
+    status = JsUtils::GetValue(env, argv[0], "width", widthResult);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = JsUtils::GetValue(env, widthResult, ctxt->cursorInfo.width);
+    if (status != napi_ok) {
+        return status;
+    }
+    napi_value heightResult = nullptr;
+    status = JsUtils::GetValue(env, argv[0], "height", heightResult);
+    if (status != napi_ok) {
+        return status;
+    }
+    return JsUtils::GetValue(env, heightResult, ctxt->cursorInfo.height);
+}
+
+napi_value JsGetInputMethodController::UpdateCursor(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<UpdateCursorContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        napi_status status = ParseUpdateCursorInput(env, argc, argv, ctxt);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "paramters of updateCursor is error. ", TYPE_NONE, status);
+        return status;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        auto errcode = InputMethodController::GetInstance()->OnCursorUpdate(ctxt->cursorInfo);
+        ctxt->SetErrorCode(errcode);
+        CHECK_RETURN_VOID(errcode == ErrorCode::NO_ERROR, "updateCursor return error!");
+        ctxt->SetState(napi_ok);
+    };
+    ctxt->SetAction(std::move(input));
+    AsyncCall asyncCall(env, info, ctxt, PARAM_POS_ONE);
+    return asyncCall.Call(env, exec);
+}
+
+napi_status JsGetInputMethodController::ParseChangeSelectionInput(
+    napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<ChangeSelectionContext> &ctxt)
+{
+    std::string strText;
+    // 0 means the first parameter: text
+    napi_status status = JsUtils::GetValue(env, argv[0], strText);
+    if (status == napi_ok) {
+        ctxt->text = Str8ToStr16(strText);
+        // 1 means the second parameter: start
+        status = JsUtils::GetValue(env, argv[1], ctxt->start);
+        if (status == napi_ok) {
+            // 2 means the third parameter: end
+            status = JsUtils::GetValue(env, argv[2], ctxt->end);
+        }
+    }
+    return status;
+}
+
+napi_value JsGetInputMethodController::ChangeSelection(napi_env env, napi_callback_info info)
+{
+    std::shared_ptr<ChangeSelectionContext> ctxt = std::make_shared<ChangeSelectionContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, argc > 2, "should 3 or 4 parameters!", TYPE_NONE, napi_generic_failure);
+        napi_status status = ParseChangeSelectionInput(env, argc, argv, ctxt);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "paramters of changeSelection is error. ", TYPE_NONE, status);
+        return status;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        auto errcode = InputMethodController::GetInstance()->OnSelectionChange(ctxt->text, ctxt->start, ctxt->end);
+        ctxt->SetErrorCode(errcode);
+        CHECK_RETURN_VOID(errcode == ErrorCode::NO_ERROR, "changeSelection return error!");
+        ctxt->SetState(napi_ok);
+    };
+    ctxt->SetAction(std::move(input));
+    AsyncCall asyncCall(env, info, ctxt, PARAM_POS_THREE);
+    return asyncCall.Call(env, exec);
+}
+
+napi_status JsGetInputMethodController::ParseUpdateAttributeInput(
+    napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<UpdateAttributeContext> &ctxt)
+{
+    // 0 means the first parameter: attribute
+    napi_value textResult = nullptr;
+    napi_status status = JsUtils::GetValue(env, argv[0], "textInputType", textResult);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = JsUtils::GetValue(env, textResult, ctxt->attribute.inputPattern);
+    if (status != napi_ok) {
+        return status;
+    }
+    napi_value enterResult = nullptr;
+    status = JsUtils::GetValue(env, argv[0], "enterKeyType", enterResult);
+    if (status != napi_ok) {
+        return status;
+    }
+    return JsUtils::GetValue(env, enterResult, ctxt->attribute.enterKeyType);
+}
+
+napi_value JsGetInputMethodController::UpdateAttribute(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<UpdateAttributeContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        napi_status status = ParseUpdateAttributeInput(env, argc, argv, ctxt);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "paramters of updateAttribute is error. ", TYPE_NONE, status);
+        ctxt->configuration.SetTextInputType(static_cast<TextInputType>(ctxt->attribute.inputPattern));
+        ctxt->configuration.SetEnterKeyType(static_cast<EnterKeyType>(ctxt->attribute.enterKeyType));
+        return status;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        auto errcode = InputMethodController::GetInstance()->OnConfigurationChange(ctxt->configuration);
+        ctxt->SetErrorCode(errcode);
+        CHECK_RETURN_VOID(errcode == ErrorCode::NO_ERROR, "updateAttribute return error!");
+        ctxt->SetState(napi_ok);
+    };
+    ctxt->SetAction(std::move(input));
+    AsyncCall asyncCall(env, info, ctxt, PARAM_POS_ONE);
     return asyncCall.Call(env, exec);
 }
 
@@ -369,6 +636,258 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
                 return true;
             };
             JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getProperty);
+        });
+}
+
+void JsGetInputMethodController::InsertText(const std::u16string &text)
+{
+    std::string insertText = Str16ToStr8(text);
+    std::string type = "insertText";
+    uv_work_t *work = GetUVwork(type, [&insertText](UvEntry &entry) { entry.text = insertText; });
+    if (work == nullptr) {
+        IMSA_HILOGE("failed to get uv entry.");
+        return;
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("insertText entryptr is null.");
+                return;
+            }
+
+            auto getInsertTextProperty = [entry](napi_value *args, uint8_t argc,
+                                             std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == ARGC_ZERO) {
+                    IMSA_HILOGE("insertText:getInsertTextProperty the number of argc is invalid.");
+                    return false;
+                }
+                napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getInsertTextProperty);
+        });
+}
+
+void JsGetInputMethodController::DeleteRight(int32_t length)
+{
+    std::string type = "deleteRight";
+    uv_work_t *work = GetUVwork(type, [&length](UvEntry &entry) { entry.length = length; });
+    if (work == nullptr) {
+        IMSA_HILOGE("failed to get uv entry.");
+        return;
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("deleteRight entryptr is null.");
+                return;
+            }
+
+            auto getDeleteForwardProperty = [entry](napi_value *args, uint8_t argc,
+                                                std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == ARGC_ZERO) {
+                    IMSA_HILOGE("deleteRight:getDeleteForwardProperty the number of argc is invalid.");
+                    return false;
+                }
+                napi_create_int32(item->env_, entry->length, &args[ARGC_ZERO]);
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getDeleteForwardProperty);
+        });
+}
+
+void JsGetInputMethodController::DeleteLeft(int32_t length)
+{
+    std::string type = "deleteLeft";
+    uv_work_t *work = GetUVwork(type, [&length](UvEntry &entry) { entry.length = length; });
+    if (work == nullptr) {
+        IMSA_HILOGE("failed to get uv entry.");
+        return;
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("deleteLeft entryptr is null.");
+                return;
+            }
+
+            auto getDeleteBackwardProperty = [entry](napi_value *args, uint8_t argc,
+                                                 std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == ARGC_ZERO) {
+                    IMSA_HILOGE("deleteLeft::getDeleteBackwardProperty the number of argc is invalid.");
+                    return false;
+                }
+                napi_create_int32(item->env_, entry->length, &args[ARGC_ZERO]);
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getDeleteBackwardProperty);
+        });
+}
+
+void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
+{
+    std::string type = "sendKeyboardStatus";
+    uv_work_t *work =
+        GetUVwork(type, [&status](UvEntry &entry) { entry.keyboardStatus = static_cast<int32_t>(status); });
+    if (work == nullptr) {
+        IMSA_HILOGE("failed to get uv entry.");
+        return;
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("sendKeyboardStatus entryptr is null.");
+                return;
+            }
+
+            auto getSendKeyboardStatusProperty = [entry](napi_value *args, uint8_t argc,
+                                                     std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == ARGC_ZERO) {
+                    IMSA_HILOGE("sendKeyboardStatus:getSendKeyboardStatusProperty the number of argc is invalid.");
+                    return false;
+                }
+                napi_create_int32(item->env_, entry->keyboardStatus, &args[ARGC_ZERO]);
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getSendKeyboardStatusProperty);
+        });
+}
+
+napi_value JsGetInputMethodController::CreateSendFunctionKey(napi_env env, int32_t functionKey)
+{
+    napi_value functionkey = nullptr;
+    napi_create_object(env, &functionkey);
+
+    napi_value value = nullptr;
+    napi_create_int32(env, functionKey, &value);
+    napi_set_named_property(env, functionkey, "enterKeyType", value);
+
+    return functionkey;
+}
+
+void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
+{
+    std::string type = "sendFunctionKey";
+    uv_work_t *work = GetUVwork(type,
+        [&functionKey](UvEntry &entry) { entry.enterKeyType = static_cast<int32_t>(functionKey.GetEnterKeyType()); });
+    if (work == nullptr) {
+        IMSA_HILOGE("failed to get uv entry.");
+        return;
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("sendFunctionKey entryptr is null.");
+                return;
+            }
+
+            auto getSendFunctionKeyProperty = [entry](napi_value *args, uint8_t argc,
+                                                  std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == ARGC_ZERO) {
+                    IMSA_HILOGE("sendFunctionKey:getSendFunctionKeyProperty the number of argc is invalid.");
+                    return false;
+                }
+                napi_value functionKey = CreateSendFunctionKey(item->env_, entry->enterKeyType);
+                if (functionKey == nullptr) {
+                    IMSA_HILOGE("set select movement failed");
+                    return false;
+                }
+                args[ARGC_ZERO] = functionKey;
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getSendFunctionKeyProperty);
+        });
+}
+
+void JsGetInputMethodController::MoveCursor(const Direction direction)
+{
+    std::string type = "moveCursor";
+    uv_work_t *work =
+        GetUVwork(type, [&direction](UvEntry &entry) { entry.direction = static_cast<int32_t>(direction); });
+    if (work == nullptr) {
+        IMSA_HILOGE("failed to get uv entry.");
+        return;
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("moveCursor entryptr is null.");
+                return;
+            }
+
+            auto getMoveCursorProperty = [entry](napi_value *args, uint8_t argc,
+                                             std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == ARGC_ZERO) {
+                    IMSA_HILOGE("moveCursor:getMoveCursorProperty the number of argc is invalid.");
+                    return false;
+                }
+                napi_create_int32(item->env_, static_cast<int32_t>(entry->direction), &args[ARGC_ZERO]);
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, 1, getMoveCursorProperty);
+        });
+}
+
+void JsGetInputMethodController::HandleExtendAction(int32_t action)
+{
+    std::string type = "handleExtendAction";
+    uv_work_t *work = GetUVwork(type, [&action](UvEntry &entry) { entry.action = action; });
+    if (work == nullptr) {
+        IMSA_HILOGE("failed to get uv entry.");
+        return;
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("handleExtendAction entryptr is null.");
+                return;
+            }
+
+            auto getHandleExtendActionProperty = [entry](napi_value *args, uint8_t argc,
+                                                     std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == ARGC_ZERO) {
+                    IMSA_HILOGE("handleExtendAction:getHandleExtendActionProperty the number of argc is invalid.");
+                    return false;
+                }
+                napi_create_int32(item->env_, entry->action, &args[ARGC_ZERO]);
+                return true;
+            };
+            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getHandleExtendActionProperty);
         });
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -234,6 +234,26 @@ struct GetTextIndexAtCursorContext : public AsyncCall::Context {
     }
 };
 
+struct SendExtendActionContext : public AsyncCall::Context {
+    int32_t action = 0;
+    SendExtendActionContext() : Context(nullptr, nullptr) {};
+    SendExtendActionContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) {};
+
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status_ != napi_ok) {
+            output_ = nullptr;
+            return status_;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
 class JsTextInputClientEngine {
 public:
     JsTextInputClientEngine() = default;
@@ -251,6 +271,7 @@ public:
     static napi_value GetTextInputClientInstance(napi_env env);
     static napi_value SelectByRange(napi_env env, napi_callback_info info);
     static napi_value SelectByMovement(napi_env env, napi_callback_info info);
+    static napi_value SendExtendAction(napi_env env, napi_callback_info info);
 
 private:
     static napi_status GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);

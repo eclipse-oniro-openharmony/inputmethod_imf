@@ -33,8 +33,11 @@ namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
 sptr<InputMethodController> InputMethodController::instance_;
+std::shared_ptr<AppExecFwk::EventHandler> InputMethodController::handler_ { nullptr };
 std::mutex InputMethodController::instanceLock_;
+constexpr int32_t LOOP_COUNT = 5;
 constexpr int32_t WAIT_TIME = 100;
+constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t KEYBOARD_SHOW = 2;
 InputMethodController::InputMethodController() : stop_(false)
 {
@@ -104,6 +107,9 @@ bool InputMethodController::Initialize()
     InputAttribute attribute = { .inputPattern = InputAttribute::PATTERN_TEXT };
     clientInfo_ = { .attribute = attribute, .client = client, .channel = channel };
     workThreadHandler = std::thread([this] { WorkThread(); });
+
+    // make AppExecFwk::EventHandler handler
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
     return true;
 }
 
@@ -204,14 +210,11 @@ void InputMethodController::WorkThread()
             case MSG_ID_SEND_KEYBOARD_STATUS: {
                 IMSA_HILOGI("send keyboard status");
                 if (!isEditable_.load() || textListener_ == nullptr) {
-                    IMSA_HILOGE("not editable or textListener is nullptr");
+                    IMSA_HILOGE("not editable or textListener_ is nullptr");
                     break;
                 }
                 MessageParcel *data = msg->msgContent_;
-                auto info = new KeyboardInfo();
-                info->SetKeyboardStatus(data->ReadInt32());
-                textListener_->SendKeyboardInfo(*info);
-                delete info;
+                textListener_->SendKeyboardStatus(static_cast<KeyboardStatus>(data->ReadInt32()));
                 break;
             }
             case MSG_ID_SEND_FUNCTION_KEY: {
@@ -221,9 +224,9 @@ void InputMethodController::WorkThread()
                     break;
                 }
                 MessageParcel *data = msg->msgContent_;
-                KeyboardInfo *info = new KeyboardInfo();
-                info->SetFunctionKey(data->ReadInt32());
-                textListener_->SendKeyboardInfo(*info);
+                FunctionKey *info = new FunctionKey();
+                info->SetEnterKeyType(static_cast<EnterKeyType>(data->ReadInt32()));
+                textListener_->SendFunctionKey(*info);
                 delete info;
                 break;
             }
@@ -390,11 +393,15 @@ int32_t InputMethodController::ShowTextInput()
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodController::HideTextInput()
+int32_t InputMethodController::HideTextInput()
 {
     IMSA_HILOGD("InputMethodController::HideTextInput");
+    if (!isBound_.load()) {
+        IMSA_HILOGE("not bound yet");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
     isEditable_.store(false);
-    StopInput(clientInfo_.client);
+    return StopInput(clientInfo_.client);
 }
 
 int32_t InputMethodController::HideCurrentInput()
@@ -427,11 +434,10 @@ int32_t InputMethodController::ShowCurrentInput()
     return proxy->ShowCurrentInputDeprecated();
 }
 
-void InputMethodController::Close()
+int32_t InputMethodController::Close()
 {
     isBound_.store(false);
     isEditable_.store(false);
-    ReleaseInput(clientInfo_.client);
     InputmethodTrace tracer("InputMethodController Close trace.");
     {
         std::lock_guard<std::mutex> lock(textListenerLock_);
@@ -441,6 +447,7 @@ void InputMethodController::Close()
     agent_ = nullptr;
     agentObject_ = nullptr;
     IMSA_HILOGD("InputMethodController, run end");
+    return ReleaseInput(clientInfo_.client);
 }
 
 int32_t InputMethodController::PrepareInput(InputClientInfo &inputClientInfo)
@@ -449,7 +456,7 @@ int32_t InputMethodController::PrepareInput(InputClientInfo &inputClientInfo)
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     return proxy->PrepareInput(inputClientInfo);
 }
@@ -463,6 +470,11 @@ int32_t InputMethodController::DisplayOptionalInputMethod()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     return proxy->DisplayOptionalInputMethodDeprecated();
+}
+
+bool InputMethodController::WasAttached()
+{
+    return isBound_.load();
 }
 
 int32_t InputMethodController::ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props)
@@ -526,66 +538,102 @@ int32_t InputMethodController::StartInput(sptr<IInputClient> &client, bool isSho
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     return proxy->StartInput(client, isShowKeyboard);
 }
 
-void InputMethodController::ReleaseInput(sptr<IInputClient> &client)
+int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
 {
     IMSA_HILOGD("InputMethodController::ReleaseInput");
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
-        return;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    proxy->ReleaseInput(client);
+    return proxy->ReleaseInput(client);
 }
 
-void InputMethodController::StopInput(sptr<IInputClient> &client)
+int32_t InputMethodController::StopInput(sptr<IInputClient> &client)
 {
     IMSA_HILOGD("InputMethodController::StopInput");
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
-        return;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    proxy->StopInput(client);
+    return proxy->StopInput(client);
 }
 
 void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
 {
     IMSA_HILOGE("input method service death");
-    std::lock_guard<std::mutex> lock(abilityLock_);
-    abilityManager_ = nullptr;
-}
-
-void InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
-{
+    {
+        std::lock_guard<std::mutex> lock(abilityLock_);
+        abilityManager_ = nullptr;
+    }
     if (!isEditable_.load()) {
         IMSA_HILOGE("not in editable state");
         return;
+    }
+    if (handler_ == nullptr) {
+        IMSA_HILOGE("handler_ is nullptr");
+        return;
+    }
+    isDiedAttached_.store(false);
+    auto attachTask = [=]() {
+        if (isDiedAttached_.load()) {
+            return;
+        }
+        auto errCode = Attach(textListener_, true, clientInfo_.attribute);
+        if (errCode == ErrorCode::NO_ERROR) {
+            OnCursorUpdate(cursorInfo_);
+            OnSelectionChange(mTextString, mSelectNewBegin, mSelectNewEnd);
+            isDiedAttached_.store(true);
+            IMSA_HILOGI("Try to attach sucess.");
+        }
+    };
+    for (int i = 0; i < LOOP_COUNT; i++) {
+        handler_->PostTask(attachTask, "OnRemoteSaDied", DELAY_TIME * (i + 1));
+    }
+}
+
+int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
+{
+    if (!isBound_.load()) {
+        IMSA_HILOGE("not bound yet");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
+
+    if (!isEditable_.load()) {
+        IMSA_HILOGE("not in editable state");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     std::lock_guard<std::mutex> lock(agentLock_);
     if (agent_ == nullptr) {
         IMSA_HILOGI("InputMethodController::OnCursorUpdate mAgent is nullptr");
-        return;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     if (cursorInfo_.left == cursorInfo.left && cursorInfo_.top == cursorInfo.top &&
         cursorInfo_.height == cursorInfo.height) {
-        return;
+        return ErrorCode::NO_ERROR;
     }
     cursorInfo_ = cursorInfo;
     agent_->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
+    return ErrorCode::NO_ERROR;
 }
 
-void InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
+int32_t InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
 {
     IMSA_HILOGD("size: %{public}zu, start: %{public}d, end: %{public}d, replyCount: %{public}d", text.size(), start,
         end, textFieldReplyCount_);
+    if (!isBound_.load()) {
+        IMSA_HILOGE("not bound yet");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
     if (!isEditable_.load()) {
         IMSA_HILOGE("not in editable state");
-        return;
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
 
     std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
@@ -597,7 +645,7 @@ void InputMethodController::OnSelectionChange(std::u16string text, int start, in
         textFieldReplyCountCv_.notify_one();
     }
     if (mTextString == text && mSelectNewBegin == start && mSelectNewEnd == end) {
-        return;
+        return ErrorCode::NO_ERROR;
     }
     mTextString = text;
     mSelectOldBegin = mSelectNewBegin;
@@ -607,16 +655,22 @@ void InputMethodController::OnSelectionChange(std::u16string text, int start, in
     std::lock_guard<std::mutex> lock(agentLock_);
     if (agent_ == nullptr) {
         IMSA_HILOGI("InputMethodController::OnSelectionChange agent is nullptr");
-        return;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     agent_->OnSelectionChange(mTextString, mSelectOldBegin, mSelectOldEnd, mSelectNewBegin, mSelectNewEnd);
+    return ErrorCode::NO_ERROR;
 }
 
-void InputMethodController::OnConfigurationChange(Configuration info)
+int32_t InputMethodController::OnConfigurationChange(Configuration info)
 {
     IMSA_HILOGI("InputMethodController::OnConfigurationChange");
+    if (!isBound_.load()) {
+        IMSA_HILOGE("not bound yet");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
     enterKeyType_ = static_cast<uint32_t>(info.GetEnterKeyType());
     inputPattern_ = static_cast<uint32_t>(info.GetTextInputType());
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodController::HandleGetOperation()
@@ -756,19 +810,24 @@ int32_t InputMethodController::GetInputPattern(int32_t &inputpattern)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodController::SetCallingWindow(uint32_t windowId)
+int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
 {
+    if (!isBound_.load()) {
+        IMSA_HILOGE("not bound yet");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
     if (!isEditable_.load()) {
         IMSA_HILOGE("not in editable state");
-        return;
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     IMSA_HILOGI("InputMethodController::SetCallingWindow windowId = %{public}d", windowId);
     std::lock_guard<std::mutex> lock(agentLock_);
     if (agent_ == nullptr) {
         IMSA_HILOGE("InputMethodController::SetCallingWindow mAgent is nullptr");
-        return;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     agent_->SetCallingWindow(windowId);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::ShowSoftKeyboard()

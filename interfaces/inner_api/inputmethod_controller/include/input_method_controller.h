@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include <thread>
 
 #include "controller_listener.h"
+#include "event_handler.h"
 #include "global.h"
 #include "i_input_client.h"
 #include "i_input_data_channel.h"
@@ -46,7 +47,8 @@ public:
     virtual void DeleteForward(int32_t length) = 0;
     virtual void DeleteBackward(int32_t length) = 0;
     virtual void SendKeyEventFromInputMethod(const KeyEvent &event) = 0;
-    virtual void SendKeyboardInfo(const KeyboardInfo &info) = 0;
+    virtual void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) = 0;
+    virtual void SendFunctionKey(const FunctionKey &functionKey) = 0;
     virtual void SetKeyboardStatus(bool status) = 0;
     virtual void MoveCursor(const Direction direction) = 0;
     virtual void HandleSetSelection(int32_t start, int32_t end) = 0;
@@ -145,9 +147,10 @@ public:
      *
      * This function is used to hide soft keyboard of current client, and keep binding.
      *
+     * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API void HideTextInput();
+    IMF_API int32_t HideTextInput();
 
     /**
      * @brief Hide current input method, clear text listener and unbind IMSA.
@@ -155,9 +158,10 @@ public:
      * This function is used to stop input, whick will set listener to nullptr,
      * hide current soft keyboard and unbind IMSA.
      *
+     * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API void Close();
+    IMF_API int32_t Close();
 
     /**
      * @brief A callback function when the cursor changes.
@@ -165,9 +169,10 @@ public:
      * This function is the callback when the cursor changes.
      *
      * @param cursorInfo Indicates the information of current cursor changes.
+     * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API void OnCursorUpdate(CursorInfo cursorInfo);
+    IMF_API int32_t OnCursorUpdate(CursorInfo cursorInfo);
 
     /**
      * @brief A callback function when the cursor changes.
@@ -177,9 +182,10 @@ public:
      * @param text  Indicates the currently selected text.
      * @param start Indicates the coordinates of the current start.
      * @param end   Indicates the coordinates of the current end.
+     * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API void OnSelectionChange(std::u16string text, int start, int end);
+    IMF_API int32_t OnSelectionChange(std::u16string text, int start, int end);
 
     /**
      * @brief Changing the configuration of soft keyboard.
@@ -187,9 +193,10 @@ public:
      * This function is used to change the configuration of soft keyboard.
      *
      * @param info Indicates the current configuration.
+     * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API void OnConfigurationChange(Configuration info);
+    IMF_API int32_t OnConfigurationChange(Configuration info);
 
     /**
      * @brief Set InputMethodSettingListener listener.
@@ -307,9 +314,10 @@ public:
      * This function is used to set calling window id to input method.
      *
      * @param windowId Indicates the window id.
+     * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API void SetCallingWindow(uint32_t windowId);
+    IMF_API int32_t SetCallingWindow(uint32_t windowId);
 
     /**
      * @brief Switch input method or subtype.
@@ -398,6 +406,16 @@ public:
      */
     IMF_API int32_t DisplayOptionalInputMethod();
 
+    /**
+     * @brief Get attach status.
+     *
+     * This function is used to get status of attach.
+     *
+     * @return Returns true for attached otherwise for detached.
+     * @since 10
+     */
+    IMF_API bool WasAttached();
+
 private:
     InputMethodController();
     ~InputMethodController();
@@ -406,8 +424,8 @@ private:
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
     int32_t PrepareInput(InputClientInfo &inputClientInfo);
     int32_t StartInput(sptr<IInputClient> &client, bool isShowKeyboard);
-    void StopInput(sptr<IInputClient> &client);
-    void ReleaseInput(sptr<IInputClient> &client);
+    int32_t StopInput(sptr<IInputClient> &client);
+    int32_t ReleaseInput(sptr<IInputClient> &client);
     void OnSwitchInput(const Property &property, const SubProperty &subProperty);
     void WorkThread();
     void QuitWorkThread();
@@ -437,9 +455,11 @@ private:
     int mSelectNewBegin = 0;
     int mSelectNewEnd = 0;
     CursorInfo cursorInfo_;
+    std::atomic_bool isDiedAttached_ { false };
 
     static std::mutex instanceLock_;
     static sptr<InputMethodController> instance_;
+    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
     std::thread workThreadHandler;
     MessageHandler *msgHandler_;
     bool stop_;
