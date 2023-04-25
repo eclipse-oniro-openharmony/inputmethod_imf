@@ -548,12 +548,25 @@ constexpr int32_t MAIN_USER_ID = 100;
         Configuration info;
         info.SetEnterKeyType(EnterKeyType::GO);
         info.SetTextInputType(TextInputType::TEXT);
-        inputMethodController_->OnConfigurationChange(info);
+        int32_t ret = inputMethodController_->Close();
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        ret = inputMethodController_->OnConfigurationChange(info);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
         auto keyType = static_cast<int32_t>(EnterKeyType::UNSPECIFIED);
         auto inputPattern = static_cast<int32_t>(TextInputType::NONE);
-        inputMethodController_->GetEnterKeyType(keyType);
-        inputMethodController_->GetInputPattern(inputPattern);
+        ret = inputMethodController_->GetEnterKeyType(keyType);
+        EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+        ret = inputMethodController_->GetInputPattern(inputPattern);
+        EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+
+        ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+        ret = inputMethodController_->GetEnterKeyType(keyType);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        ret = inputMethodController_->GetInputPattern(inputPattern);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         EXPECT_TRUE(static_cast<OHOS::MiscServices::EnterKeyType>(keyType) == EnterKeyType::GO
                     && static_cast<OHOS::MiscServices::TextInputType>(inputPattern) == TextInputType::TEXT);
     }
