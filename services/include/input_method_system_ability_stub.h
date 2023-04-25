@@ -60,6 +60,10 @@ private:
 
     int32_t ListCurrentInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t PanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t UpdateEventFlagOnRemote(MessageParcel &data, MessageParcel &reply);
+
     // Deprecated because of no permission check, kept for compatibility
     int32_t DisplayInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
 
@@ -87,6 +91,8 @@ private:
         [HIDE_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated,
         [DISPLAY_OPTIONAL_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated,
         [STOP_INPUT_SESSION] = &InputMethodSystemAbilityStub::StopInputSessionOnRemote,
+        [PANEL_STATUS_CHANGE] = &InputMethodSystemAbilityStub::PanelStatusChangeOnRemote,
+        [UPDATE_EVENT_FLAG] = &InputMethodSystemAbilityStub::UpdateEventFlagOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

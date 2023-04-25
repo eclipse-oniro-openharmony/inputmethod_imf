@@ -36,6 +36,7 @@
 #include "input_death_recipient.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
+#include "input_window_info.h"
 #include "inputmethod_sysevent.h"
 #include "iremote_object.h"
 #include "message.h"
@@ -76,6 +77,8 @@ public:
     int32_t OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch);
     void UpdateCurrentUserId(int32_t userId);
     void OnUnfocused(int32_t pid, int32_t uid);
+    int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
+    int32_t OnUpdateEventFlag(const sptr<IInputClient> &client, const EventType &type, bool isOn);
 
 private:
     int userId_;                                   // the id of the user to whom the object is linking

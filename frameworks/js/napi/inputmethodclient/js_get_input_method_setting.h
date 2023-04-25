@@ -110,6 +110,7 @@ public:
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static std::shared_ptr<JsGetInputMethodSetting> GetInputMethodSettingInstance();
     void OnImeChange(const Property &property, const SubProperty &subProperty) override;
+    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) override;
 
 private:
     static napi_status GetInputMethodProperty(napi_env env, napi_value argv, std::shared_ptr<ListInputContext> ctxt);
@@ -123,6 +124,7 @@ private:
         std::string type;
         Property property;
         SubProperty subProperty;
+        std::vector<InputWindowInfo> windowInfo;
         UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)
         {

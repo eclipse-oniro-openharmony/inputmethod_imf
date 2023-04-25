@@ -40,6 +40,8 @@ public:
     int32_t OnInputReady(const sptr<IInputMethodAgent> &agent) override;
     int32_t OnInputStop() override;
     int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
+    int32_t OnPanelStatusChange(
+        const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) override;
 
 private:
     MessageHandler *msgHandler = nullptr;
@@ -48,6 +50,7 @@ private:
     void OnInputReadyOnRemote(MessageParcel &data, MessageParcel &reply);
     void OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply);
     void OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply);
+    void OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply);
 };
 } // namespace MiscServices
 } // namespace OHOS

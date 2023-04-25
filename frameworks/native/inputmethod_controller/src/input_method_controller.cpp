@@ -66,14 +66,20 @@ sptr<InputMethodController> InputMethodController::GetInstance()
 
 void InputMethodController::SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener)
 {
-    IMSA_HILOGI("InputMethodController run in");
-    if (settingListener_ != nullptr) {
-        IMSA_HILOGD("listener already set");
+    settingListener_ = std::move(listener);
+    clientInfo_.isSubscriber = true;
+    PrepareInput(clientInfo_);
+}
+
+void InputMethodController::UpdateEventFlag(const EventType &event, bool isOn)
+{
+    IMSA_HILOGI("InputMethodController::UpdateEventFlag");
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
         return;
     }
-    settingListener_ = std::move(listener);
-    clientInfo_.isToNotify = true;
-    PrepareInput(clientInfo_);
+    proxy->UpdateEventFlag(clientInfo_.client, event, isOn);
 }
 
 void InputMethodController::SetControllerListener(std::shared_ptr<ControllerListener> controllerListener)
@@ -254,6 +260,17 @@ void InputMethodController::WorkThread()
                 OnSwitchInput(property, subProperty);
                 break;
             }
+            case MSG_ID_ON_PANEL_STATUS_CHANGE: {
+                auto data = msg->msgContent_;
+                uint32_t status;
+                std::vector<InputWindowInfo> windowInfo;
+                if (!ITypesUtil::Unmarshal(*data, status, windowInfo)) {
+                    IMSA_HILOGE("read property from message parcel failed");
+                    break;
+                }
+                OnPanelStatusChange(static_cast<InputWindowStatus>(status), windowInfo);
+                break;
+            }
             case MSG_ID_SELECT_BY_RANGE: {
                 MessageParcel *data = msg->msgContent_;
                 int32_t start = 0;
@@ -329,6 +346,17 @@ void InputMethodController::OnSwitchInput(const Property &property, const SubPro
         return;
     }
     settingListener_->OnImeChange(property, subProperty);
+}
+
+void InputMethodController::OnPanelStatusChange(
+    const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+{
+    IMSA_HILOGD("InputMethodController::OnPanelStatusChange");
+    if (settingListener_ == nullptr) {
+        IMSA_HILOGE("imeListener_ is nullptr");
+        return;
+    }
+    settingListener_->OnPanelStatusChange(status, windowInfo);
 }
 
 int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener)

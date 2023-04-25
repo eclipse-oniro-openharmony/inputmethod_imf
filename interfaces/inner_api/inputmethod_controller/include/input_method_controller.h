@@ -207,6 +207,7 @@ public:
      * @since 6
      */
     IMF_API void SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener);
+    IMF_API void UpdateEventFlag(const EventType &event, bool isOn);
     IMF_API void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
 
     /**
@@ -427,6 +428,7 @@ private:
     int32_t StopInput(sptr<IInputClient> &client);
     int32_t ReleaseInput(sptr<IInputClient> &client);
     void OnSwitchInput(const Property &property, const SubProperty &subProperty);
+    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo);
     void WorkThread();
     void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);

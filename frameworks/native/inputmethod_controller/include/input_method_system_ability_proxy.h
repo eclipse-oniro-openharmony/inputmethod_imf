@@ -27,6 +27,7 @@
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
 #include "input_method_info.h"
+#include "input_window_info.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "iremote_proxy.h"
@@ -58,6 +59,8 @@ public:
     int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
     int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) override;
     int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) override;
+    int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
+    int32_t UpdateEventFlag(sptr<IInputClient> client, const EventType &event, bool isOn) override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;

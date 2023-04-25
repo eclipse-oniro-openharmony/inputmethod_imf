@@ -23,6 +23,14 @@
 
 namespace OHOS {
 namespace MiscServices {
+enum EventType : uint32_t { IME_CHANGE = 0, IME_HIDE, IME_SHOW, END };
+
+struct EventFlag {
+    uint16_t imeShow : 1;
+    uint16_t imeHide : 1;
+    uint16_t imeChange : 1;
+};
+
 struct InputClientInfo {
     pid_t pid{ 0 };                           // process id
     pid_t uid{ 0 };                           // uid
@@ -30,7 +38,8 @@ struct InputClientInfo {
     int32_t displayID{ 0 };                   // the display id on which the input client is showing
     bool isShowKeyboard{ false };             // soft keyboard status
     bool isValid{ false };                    // whether client is valid
-    bool isToNotify{ false };                 // whether to notify client event
+    bool isSubscriber{ false };               // whether is event subscriber
+    EventFlag eventFlag{ 0 };                 // the type and status tag of the subscription event
     InputAttribute attribute;                 // the input client attribute
     sptr<IInputClient> client;                // the remote object handler for service to callback input client
     sptr<IInputDataChannel> channel;          // the remote object handler for ime to callback input client

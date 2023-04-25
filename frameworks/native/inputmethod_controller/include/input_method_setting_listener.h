@@ -24,6 +24,8 @@ class InputMethodSettingListener {
 public:
     virtual ~InputMethodSettingListener() = default;
     virtual void OnImeChange(const Property &property, const SubProperty &subProperty) = 0;
+    virtual void OnPanelStatusChange(
+        const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -54,6 +54,10 @@ int32_t InputClientStub::OnRemoteRequest(
             OnSwitchInputOnRemote(data, reply);
             break;
         }
+        case ON_PANEL_STATUS_CHANGE: {
+            OnPanelStatusChangeOnRemote(data, reply);
+            break;
+        }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
@@ -117,6 +121,44 @@ void InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &
     reply.WriteInt32(ErrorCode::NO_ERROR);
 }
 
+void InputClientStub::OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    IMSA_HILOGD("InputClientStub::OnPanelStatusChangeOnRemote");
+    if (msgHandler == nullptr) {
+        IMSA_HILOGE("InputClientStub::msgHandler is nullptr");
+        return;
+    }
+    auto *parcel = new (std::nothrow) MessageParcel();
+    if (parcel == nullptr) {
+        IMSA_HILOGE("parcel is nullptr");
+        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
+        return;
+    }
+    uint32_t status;
+    std::vector<InputWindowInfo> windowInfo;
+    if (!ITypesUtil::Unmarshal(data, status, windowInfo)) {
+        IMSA_HILOGE("read message parcel failed");
+        reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
+        delete parcel;
+        return;
+    }
+    if (!ITypesUtil::Marshal(*parcel, status, windowInfo)) {
+        IMSA_HILOGE("write message parcel failed");
+        reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
+        delete parcel;
+        return;
+    }
+    auto *msg = new (std::nothrow) Message(MessageID::MSG_ID_ON_PANEL_STATUS_CHANGE, parcel);
+    if (msg == nullptr) {
+        IMSA_HILOGE("msg is nullptr");
+        delete parcel;
+        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
+        return;
+    }
+    msgHandler->SendMessage(msg);
+    reply.WriteInt32(ErrorCode::NO_ERROR);
+}
+
 int32_t InputClientStub::OnInputReady(const sptr<IInputMethodAgent> &agent)
 {
     return ErrorCode::NO_ERROR;
@@ -133,6 +175,11 @@ void InputClientStub::SetHandler(MessageHandler *handler)
 }
 
 int32_t InputClientStub::OnSwitchInput(const Property &property, const SubProperty &subProperty)
+{
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputClientStub::OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
 {
     return ErrorCode::NO_ERROR;
 }

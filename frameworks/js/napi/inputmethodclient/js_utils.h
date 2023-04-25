@@ -99,6 +99,7 @@ public:
     static napi_status GetValue(napi_env env, napi_value in, std::string &out);
     static napi_status GetValue(napi_env env, napi_value in, const std::string &type, napi_value &out);
     static napi_status GetValue(napi_env env, napi_value in, PanelInfo &out);
+    static napi_value GetValue(napi_env env, const std::vector<InputWindowInfo> &in);
 
 private:
     static int32_t Convert(int32_t code);

@@ -17,6 +17,9 @@
 
 #include "display_manager.h"
 #include "global.h"
+#include "input_window_info.h"
+#include "iservice_registry.h"
+#include "system_ability_definition.h"
 #include "window.h"
 #include "wm_common.h"
 
@@ -167,10 +170,7 @@ int32_t InputMethodPanel::ShowPanel()
         IMSA_HILOGE("ShowPanel error, err = %{public}d, ERROR_SHOW_PANEL", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    if (showRegistered_ && panelStatusListener_ != nullptr) {
-        IMSA_HILOGE("InputMethodPanel::ShowPanel panelStatusListener_ is not nullptr");
-        panelStatusListener_->OnPanelStatus(windowId_, true);
-    }
+    PanelStatusChange(InputWindowStatus::SHOW);
     return ErrorCode::NO_ERROR;
 }
 
@@ -189,11 +189,26 @@ int32_t InputMethodPanel::HidePanel()
         IMSA_HILOGE("HidePanel error, err = %{public}d, ERROR_HIDE_PANEL", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    if (hideRegistered_ && panelStatusListener_ != nullptr) {
+    PanelStatusChange(InputWindowStatus::HIDE);
+    return ErrorCode::NO_ERROR;
+}
+
+void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
+{
+    if (status == InputWindowStatus::SHOW && showRegistered_ && panelStatusListener_ != nullptr) {
+        IMSA_HILOGE("InputMethodPanel::ShowPanel panelStatusListener_ is not nullptr");
+        panelStatusListener_->OnPanelStatus(windowId_, true);
+    }
+    if (status == InputWindowStatus::HIDE && hideRegistered_ && panelStatusListener_ != nullptr) {
         IMSA_HILOGE("InputMethodPanel::HidePanel panelStatusListener_ is not nullptr");
         panelStatusListener_->OnPanelStatus(windowId_, false);
     }
-    return ErrorCode::NO_ERROR;
+    auto imsa = GetImsaProxy();
+    if (imsa != nullptr && panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
+        auto rect = window_->GetRect();
+        imsa->PanelStatusChange(
+            status, { window_->GetWindowName(), rect.posX_, rect.posY_, rect.width_, rect.height_ });
+    }
 }
 
 bool InputMethodPanel::IsShowing()
@@ -272,6 +287,26 @@ uint32_t InputMethodPanel::GenerateSequenceId()
         return ++sequenceId_;
     }
     return seqId;
+}
+
+sptr<InputMethodSystemAbilityProxy> InputMethodPanel::GetImsaProxy()
+{
+    IMSA_HILOGI("InputMethodPanel::GetImsaProxy");
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        IMSA_HILOGI("InputMethodPanel::GetImsaProxy systemAbilityManager is nullptr");
+        return nullptr;
+    }
+
+    auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
+    if (systemAbility == nullptr) {
+        IMSA_HILOGI("InputMethodPanel::GetImsaProxy systemAbility is nullptr");
+        return nullptr;
+    }
+
+    sptr<InputMethodSystemAbilityProxy> iface = new InputMethodSystemAbilityProxy(systemAbility);
+    return iface;
 }
 } // namespace MiscServices
 } // namespace OHOS

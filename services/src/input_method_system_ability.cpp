@@ -229,7 +229,7 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
-    if (!clientInfo.isToNotify && !BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!clientInfo.isSubscriber && !BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     if (clientInfo.client == nullptr || clientInfo.channel == nullptr) {
@@ -328,6 +328,16 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
     }
     return userSession_->OnShowKeyboardSelf();
 };
+
+int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
+{
+    return userSession_->OnPanelStatusChange(status, windowInfo);
+}
+
+int32_t InputMethodSystemAbility::UpdateEventFlag(sptr<IInputClient> client, const EventType &event, bool isOn)
+{
+    return userSession_->OnUpdateEventFlag(client, event, isOn);
+}
 
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
 {

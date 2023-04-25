@@ -171,7 +171,7 @@ bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, input.pid, input.uid, input.userID, input.displayID, input.attribute, input.isShowKeyboard,
-            input.isValid, input.isToNotify, input.client->AsObject(), input.channel->AsObject())) {
+            input.isValid, input.isSubscriber, input.client->AsObject(), input.channel->AsObject())) {
         IMSA_HILOGE("write InputClientInfo to message parcel failed");
         return false;
     }
@@ -181,7 +181,7 @@ bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.pid, output.uid, output.userID, output.displayID, output.attribute,
-            output.isShowKeyboard, output.isValid, output.isToNotify)) {
+            output.isShowKeyboard, output.isValid, output.isSubscriber)) {
         IMSA_HILOGE("read InputClientInfo from message parcel failed");
         return false;
     }
@@ -193,6 +193,23 @@ bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
     }
     output.client = iface_cast<IInputClient>(client);
     output.channel = iface_cast<IInputDataChannel>(channel);
+    return true;
+}
+
+bool ITypesUtil::Marshalling(const InputWindowInfo &input, MessageParcel &data)
+{
+    if (!Marshal(data, input.name, input.top, input.left, input.width, input.height)) {
+        IMSA_HILOGE("write InputWindowInfo to message parcel failed");
+        return false;
+    }
+    return true;
+}
+bool ITypesUtil::Unmarshalling(InputWindowInfo &output, MessageParcel &data)
+{
+    if (!Unmarshal(data, output.name, output.top, output.left, output.width, output.height)) {
+        IMSA_HILOGE("read InputWindowInfo from message parcel failed");
+        return false;
+    }
     return true;
 }
 } // namespace MiscServices

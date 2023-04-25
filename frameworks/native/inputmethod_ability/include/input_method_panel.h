@@ -20,6 +20,7 @@
 #include <map>
 #include <string>
 
+#include "input_method_system_ability_proxy.h"
 #include "js_runtime_utils.h"
 #include "panel_status_listener.h"
 #include "window.h"
@@ -66,7 +67,9 @@ public:
 private:
     bool IsShowing();
     bool IsHidden();
+    void PanelStatusChange(const InputWindowStatus &status);
     static uint32_t GenerateSequenceId();
+    sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
 
     sptr<Window> window_ = nullptr;
     sptr<WindowOption> winOption_ = nullptr;

@@ -316,5 +316,11 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, PanelInfo &out)
     out.panelFlag = PanelFlag(panelFlag);
     return status;
 }
+
+napi_value JsUtils::GetValue(napi_env env, const std::vector<InputWindowInfo> &in)
+{
+    napi_value array = nullptr;
+    return array;
+}
 } // namespace MiscServices
 } // namespace OHOS

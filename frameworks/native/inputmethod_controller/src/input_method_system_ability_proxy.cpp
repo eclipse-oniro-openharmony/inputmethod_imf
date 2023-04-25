@@ -186,6 +186,23 @@ int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const std::string &name
         [&name, &subName](MessageParcel &data) { return ITypesUtil::Marshal(data, name, subName); });
 }
 
+int32_t InputMethodSystemAbilityProxy::PanelStatusChange(
+    const InputWindowStatus &status, const InputWindowInfo &windowInfo)
+{
+    IMSA_HILOGD("InputMethodSystemAbilityProxy::PanelStatusChange");
+    return SendRequest(PANEL_STATUS_CHANGE, [status, windowInfo](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, static_cast<uint32_t>(status), windowInfo);
+    });
+}
+
+int32_t InputMethodSystemAbilityProxy::UpdateEventFlag(sptr<IInputClient> client, const EventType &event, bool isOn)
+{
+    IMSA_HILOGD("InputMethodSystemAbilityProxy::UpdateEventFlag");
+    return SendRequest(UPDATE_EVENT_FLAG, [client, event, isOn](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, client->AsObject(), static_cast<uint32_t>(event), isOn);
+    });
+}
+
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
     IMSA_HILOGD("InputMethodSystemAbilityProxy run in, code = %{public}d", code);
