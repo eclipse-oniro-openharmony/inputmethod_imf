@@ -93,6 +93,7 @@ enum {
     ERROR_CLIENT_ADD_FAILED = 19,
     ERROR_OPERATE_PANEL = 20,
     ERROR_NOT_CURRENT_IME = 21,
+    ERROR_ADD_DEATH_RECIPIENT_FAILED = 22,
 };
 }; // namespace ErrorCode
 

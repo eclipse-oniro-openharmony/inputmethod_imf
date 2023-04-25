@@ -24,6 +24,8 @@
 
 #include "ability_connect_callback_proxy.h"
 #include "ability_manager_interface.h"
+#include "block_data.h"
+#include "event_handler.h"
 #include "global.h"
 #include "i_input_client.h"
 #include "i_input_control_channel.h"
@@ -77,17 +79,21 @@ public:
     void UpdateCurrentUserId(int32_t userId);
     void OnUnfocused(int32_t pid, int32_t uid);
 
+    BlockData<bool> isImeRemoved_{ MAX_PACKAGE_REMOVE_WAIT_TIME, false };
+
 private:
     int userId_;                                   // the id of the user to whom the object is linking
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> mapClients_;
     static const int MAX_RESTART_NUM = 3;
-    static const int IME_RESET_TIME_OUT = 300;
-    static const int MAX_RESET_WAIT_TIME = 1600000;
+    static const int IME_RESET_TIME_OUT = 3;
+    static const int MAX_PACKAGE_REMOVE_WAIT_TIME = 100;
+    static const int MAX_IME_START_TIME = 350;
 
     std::mutex imsCoreLock_;
     sptr<IInputMethodCore> imsCore[MAX_IME];       // the remote handlers of input method service
 
-    sptr<IInputMethodAgent> imsAgent;
+    std::mutex agentLock_;
+    sptr<IInputMethodAgent> agent_;
     std::mutex clientLock_;
     sptr<IInputClient> currentClient_;              // the current input client
 
@@ -122,6 +128,11 @@ private:
     sptr<IInputClient> GetCurrentClient();
     void SetImsCore(int32_t index, sptr<IInputMethodCore> core);
     sptr<IInputMethodCore> GetImsCore(int32_t index);
+    void SetAgent(sptr<IInputMethodAgent> agent);
+    sptr<IInputMethodAgent> GetAgent();
+    sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
+    bool StartCurrentIme(bool isRetry);
+
     static inline bool IsValid(int32_t index)
     {
         return index >= CURRENT_IME && index <= SECURITY_IME;
@@ -129,6 +140,8 @@ private:
 
     std::mutex propertyLock_;
     SubProperty currentSubProperty;
+    BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
+    std::shared_ptr<AppExecFwk::EventHandler> imeRestartHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

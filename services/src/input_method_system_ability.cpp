@@ -550,7 +550,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
     IMSA_HILOGI("Start...\n");
     MessageParcel *data = msg->msgContent_;
     if (data == nullptr) {
-        IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved data is nullptr");
+        IMSA_HILOGD("InputMethodSystemAbility::OnPackageRemoved data is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     int32_t userId = 0;
@@ -565,7 +565,9 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         return ErrorCode::NO_ERROR;
     }
     auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
-    if (packageName == currentImeBundle) {
+    bool isCurrentRemoved = packageName == currentImeBundle;
+    if (isCurrentRemoved) {
+        userSession_->isImeRemoved_.SetValue(isCurrentRemoved);
         // Switch to the default ime
         auto info = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId);
         if (info == nullptr) {
@@ -573,6 +575,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         }
         int32_t ret = SwitchExtension(*info);
         IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
+        userSession_->isImeRemoved_.Clear(false);
     }
     return ErrorCode::NO_ERROR;
 }
