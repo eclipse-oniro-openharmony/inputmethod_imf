@@ -29,7 +29,7 @@ class JsInputMethodExtension : public InputMethodExtension,
                                public std::enable_shared_from_this<JsInputMethodExtension> {
 public:
     JsInputMethodExtension(JsRuntime &jsRuntime);
-    virtual ~JsInputMethodExtension() override;
+    ~JsInputMethodExtension() override;
     static JsInputMethodExtension *jsInputMethodExtension;
     /**
      * @brief Create JsInputMethodExtension.
