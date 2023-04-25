@@ -664,10 +664,6 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
 int32_t InputMethodController::OnConfigurationChange(Configuration info)
 {
     IMSA_HILOGI("InputMethodController::OnConfigurationChange");
-    if (!isBound_.load()) {
-        IMSA_HILOGE("not bound yet");
-        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
-    }
     enterKeyType_ = static_cast<uint32_t>(info.GetEnterKeyType());
     inputPattern_ = static_cast<uint32_t>(info.GetTextInputType());
     return ErrorCode::NO_ERROR;
