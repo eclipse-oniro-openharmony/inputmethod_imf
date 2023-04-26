@@ -69,6 +69,7 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
         }
     };
     ctxt->SetAction(std::move(input));
+    // 1 means JsAPI:moveCursor has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
@@ -194,6 +195,7 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
+    // 2 means JsAPI:sendKeyFunction has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
@@ -220,6 +222,7 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
+    // 2 means JsAPI:deleteForward has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
@@ -246,6 +249,7 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
+    // 2 means JsAPI:deleteBackward has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
@@ -272,6 +276,7 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
+    // 2 means JsAPI:insertText has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
@@ -300,6 +305,7 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
+    // 2 means JsAPI:getForward has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
@@ -328,6 +334,7 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
+    // 2 means JsAPI:getBackward has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
@@ -353,6 +360,7 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
+    // 1 means JsAPI:getEditorAttribute has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
@@ -379,6 +387,7 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
+    // 2 means JsAPI:selectByRange has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
@@ -405,6 +414,7 @@ napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
+    // 2 means JsAPI:selectByMovement has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
@@ -425,6 +435,7 @@ napi_value JsTextInputClientEngine::SendExtendAction(napi_env env, napi_callback
         ctxt->SetErrorCode(code);
     };
     ctxt->SetAction(std::move(input));
+    // 2 means JsAPI:sendExtendAction has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
@@ -447,6 +458,7 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
+    // 1 means JsAPI:sendExtendAction has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }

@@ -303,6 +303,7 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
+    // 1 means JsAPI has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
@@ -357,6 +358,7 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
         ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(std::move(input));
+    // 3 means JsAPI:attach has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec);
 }
@@ -396,6 +398,7 @@ napi_value JsGetInputMethodController::SetCallingWindow(napi_env env, napi_callb
         ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(std::move(input));
+    // 2 means JsAPI:setCallingWindow has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
@@ -455,6 +458,7 @@ napi_value JsGetInputMethodController::UpdateCursor(napi_env env, napi_callback_
         ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(std::move(input));
+    // 2 means JsAPI:updateCursor has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
@@ -493,6 +497,7 @@ napi_value JsGetInputMethodController::ChangeSelection(napi_env env, napi_callba
         ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(std::move(input));
+    // 4 means JsAPI:changeSelection has 4 params at most.
     AsyncCall asyncCall(env, info, ctxt, 4);
     return asyncCall.Call(env, exec);
 }
@@ -536,6 +541,7 @@ napi_value JsGetInputMethodController::UpdateAttribute(napi_env env, napi_callba
         ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(std::move(input));
+    // 2 means JsAPI:updateAttribute has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
