@@ -29,7 +29,7 @@ void FocusChangedListener::OnUnfocused(const sptr<Rosen::FocusChangeInfo> &focus
         IMSA_HILOGE("error nullptr");
         return;
     }
-    focusHandle_(focusChangeInfo->pid_, focusChangeInfo->pid_);
+    focusHandle_(focusChangeInfo->pid_, focusChangeInfo->uid_);
 }
 } // namespace MiscServices
 } // namespace OHOS
