@@ -149,43 +149,29 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
     napi_env env, napi_value argv, std::shared_ptr<ListInputContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
-    napi_status status = napi_typeof(env, argv, &valueType);
-    if (valueType == napi_object) {
-        napi_value result = nullptr;
-        napi_get_named_property(env, argv, "name", &result);
+    napi_typeof(env, argv, &valueType);
+    PARAM_CHECK_RETURN(env, valueType == napi_object, "Parameter error.", TYPE_OBJECT, napi_invalid_arg);
+    napi_value result = nullptr;
+    napi_get_named_property(env, argv, "name", &result);
+    JsUtils::GetValue(env, result, ctxt->property.name);
+
+    result = nullptr;
+    napi_get_named_property(env, argv, "id", &result);
+    JsUtils::GetValue(env, result, ctxt->property.id);
+
+    if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
+        result = nullptr;
+        napi_get_named_property(env, argv, "packageName", &result);
         JsUtils::GetValue(env, result, ctxt->property.name);
 
         result = nullptr;
-        napi_get_named_property(env, argv, "id", &result);
+        napi_get_named_property(env, argv, "methodId", &result);
         JsUtils::GetValue(env, result, ctxt->property.id);
-
-        if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
-            result = nullptr;
-            napi_get_named_property(env, argv, "packageName", &result);
-            JsUtils::GetValue(env, result, ctxt->property.name);
-
-            result = nullptr;
-            napi_get_named_property(env, argv, "methodId", &result);
-            JsUtils::GetValue(env, result, ctxt->property.id);
-        }
-        PARAM_CHECK_RETURN(env, (!ctxt->property.name.empty() && !ctxt->property.id.empty()), "Parameter error.",
-            TYPE_NONE, napi_invalid_arg);
-
-        result = nullptr;
-        napi_get_named_property(env, argv, "label", &result);
-        JsUtils::GetValue(env, result, ctxt->property.label);
-
-        result = nullptr;
-        napi_get_named_property(env, argv, "icon", &result);
-        JsUtils::GetValue(env, result, ctxt->property.icon);
-
-        result = nullptr;
-        napi_get_named_property(env, argv, "iconId", &result);
-        status = JsUtils::GetValue(env, result, ctxt->property.iconId);
-        IMSA_HILOGD(
-            "methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
     }
-    return status;
+    PARAM_CHECK_RETURN(env, (!ctxt->property.name.empty() && !ctxt->property.id.empty()), "Parameter error.",
+        TYPE_NONE, napi_invalid_arg);
+    IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
+    return napi_ok;
 }
 
 napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_info info)
