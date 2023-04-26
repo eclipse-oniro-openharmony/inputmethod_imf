@@ -31,13 +31,12 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
     napi_value self = nullptr;
     napi_value argv[ARGC_MAX] = { nullptr };
     NAPI_CALL_RETURN_VOID(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
-    (void)pos;
     napi_valuetype valueType = napi_undefined;
     argc = std::min(argc, maxParamCount);
     if (argc > 0) {
         napi_typeof(env, argv[argc - 1], &valueType);
         if (valueType == napi_function) {
-            napi_create_reference(env, argv[argc - 1], 1, &context->callback_);
+            napi_create_reference(env, argv[argc - 1], 1, &context->callback);
             argc = argc - 1;
         }
     }
