@@ -550,7 +550,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
     IMSA_HILOGI("Start...\n");
     MessageParcel *data = msg->msgContent_;
     if (data == nullptr) {
-        IMSA_HILOGD("InputMethodSystemAbility::OnPackageRemoved data is nullptr");
+        IMSA_HILOGD("data is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     int32_t userId = 0;
