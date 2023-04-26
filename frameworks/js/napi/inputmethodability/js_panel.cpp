@@ -126,7 +126,7 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         return napi_ok;
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, ctxt, 1);
+    AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec);
 }
 
@@ -154,7 +154,7 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
         ctxt->SetErrorCode(code);
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, ARGC_TWO);
+    AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec);
 }
 
@@ -182,7 +182,7 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
         ctxt->SetErrorCode(code);
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, ARGC_TWO);
+    AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec);
 }
 
@@ -199,7 +199,7 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
         }
         ctxt->SetErrorCode(code);
     };
-    AsyncCall asyncCall(env, info, ctxt, 0);
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -216,7 +216,7 @@ napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
         }
         ctxt->SetErrorCode(code);
     };
-    AsyncCall asyncCall(env, info, ctxt, 0);
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 

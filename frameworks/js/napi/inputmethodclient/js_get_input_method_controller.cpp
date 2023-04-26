@@ -303,7 +303,7 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -357,7 +357,7 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
         ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, PARAM_POS_TWO);
+    AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec);
 }
 
@@ -396,7 +396,7 @@ napi_value JsGetInputMethodController::SetCallingWindow(napi_env env, napi_callb
         ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, PARAM_POS_ONE);
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -455,7 +455,7 @@ napi_value JsGetInputMethodController::UpdateCursor(napi_env env, napi_callback_
         ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, PARAM_POS_ONE);
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -493,7 +493,7 @@ napi_value JsGetInputMethodController::ChangeSelection(napi_env env, napi_callba
         ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, PARAM_POS_THREE);
+    AsyncCall asyncCall(env, info, ctxt, 4);
     return asyncCall.Call(env, exec);
 }
 
@@ -536,7 +536,7 @@ napi_value JsGetInputMethodController::UpdateAttribute(napi_env env, napi_callba
         ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, PARAM_POS_ONE);
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
