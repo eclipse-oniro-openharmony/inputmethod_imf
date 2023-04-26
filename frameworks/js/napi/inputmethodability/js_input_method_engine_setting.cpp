@@ -369,11 +369,11 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
     };
 
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        NAPI_ASSERT_BASE(env, (ctxt->panel != nullptr), "inputMethodPanel is nullptr!");
+        NAPI_ASSERT_BASE(env, (ctxt->panel != nullptr), "inputMethodPanel is nullptr!", napi_generic_failure);
         auto errCode = InputMethodAbility::GetInstance()->DestroyPanel(ctxt->panel);
         if (errCode != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("DestroyPanel failed, errCode = %{public}d", errCode);
-            return napi_invalid_arg;
+            return napi_generic_failure;
         }
         ctxt->panel = nullptr;
         return napi_ok;
