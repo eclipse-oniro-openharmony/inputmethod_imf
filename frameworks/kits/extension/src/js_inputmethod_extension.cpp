@@ -73,9 +73,14 @@ JsInputMethodExtension *JsInputMethodExtension::Create(const std::unique_ptr<Run
     return jsInputMethodExtension;
 }
 
-JsInputMethodExtension::JsInputMethodExtension(JsRuntime &jsRuntime) : jsRuntime_(jsRuntime) {}
+JsInputMethodExtension::JsInputMethodExtension(JsRuntime &jsRuntime) : jsRuntime_(jsRuntime)
+{
+}
 
-JsInputMethodExtension::~JsInputMethodExtension() = default;
+JsInputMethodExtension::~JsInputMethodExtension()
+{
+    jsRuntime_.FreeNativeReference(std::move(jsObj_));
+}
 
 void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
