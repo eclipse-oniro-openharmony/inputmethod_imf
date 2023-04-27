@@ -69,8 +69,8 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
         }
     };
     ctxt->SetAction(std::move(input));
-    // 1 means JsAPI:moveCursor has 1 params at most.
-    AsyncCall asyncCall(env, info, ctxt, 1);
+    // 2 means JsAPI:moveCursor has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 

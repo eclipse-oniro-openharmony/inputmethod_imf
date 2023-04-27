@@ -68,7 +68,6 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY(
             "PATTERN_PASSWORD", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::VISIBLE_PASSWORD))),
 
-        DECLARE_NAPI_FUNCTION("MoveCursor", MoveCursor),
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
         DECLARE_NAPI_FUNCTION("getInputMethodAbility", GetInputMethodAbility),
     };
@@ -179,25 +178,6 @@ napi_value JsInputMethodEngineSetting::GetIMEInstance(napi_env env, napi_callbac
         return nullptr;
     }
     return instance;
-}
-
-napi_value JsInputMethodEngineSetting::MoveCursor(napi_env env, napi_callback_info info)
-{
-    size_t argc = ARGC_MAX;
-    napi_value argv[ARGC_MAX] = { nullptr };
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    NAPI_ASSERT(env, argc == 1, "Wrong number of arguments, requires 1");
-
-    int32_t number = 0;
-    if (JsUtils::GetValue(env, argv[ARGC_ZERO], number) != napi_ok) {
-        IMSA_HILOGE("Get number error");
-    }
-
-    InputMethodAbility::GetInstance()->MoveCursor(number);
-
-    napi_value result = nullptr;
-    napi_get_null(env, &result);
-    return result;
 }
 
 void JsInputMethodEngineSetting::RegisterListener(
