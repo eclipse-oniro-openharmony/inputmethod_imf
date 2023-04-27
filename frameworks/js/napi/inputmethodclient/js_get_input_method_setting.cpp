@@ -211,7 +211,8 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
         ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    // 1 means JsAPI:listInputMethod has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -243,7 +244,8 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
         ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    // 2 means JsAPI:getInputMethods has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -263,7 +265,8 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, ctxt);
+    // 1 means JsAPI:displayOptionalInputMethod has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -291,7 +294,8 @@ napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, ctxt);
+    // 1 means JsAPI:showOptionalInputMethods has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -323,7 +327,8 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
         ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    // 2 means JsAPI:listInputMethodSubtype has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -348,7 +353,8 @@ napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, 
         ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    // 1 means JsAPI:listCurrentInputMethodSubtype has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
