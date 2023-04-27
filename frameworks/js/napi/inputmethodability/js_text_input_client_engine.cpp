@@ -458,7 +458,7 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    // 1 means JsAPI:sendExtendAction has 1 params at most.
+    // 1 means JsAPI:getTextIndexAtCursor has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
