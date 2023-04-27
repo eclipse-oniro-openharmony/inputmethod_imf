@@ -13,32 +13,27 @@
  * limitations under the License.
  */
 
-import app from '@system.app'
 import inputMethod from '@ohos.inputMethod'
-import inputMethodEngine from '@ohos.inputMethodEngine'
 import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from 'deccjsunit/index'
 
 describe("InputMethodTest", function () {
     beforeAll(function () {
-        console.info('beforeAll called')
+      console.info('beforeAll called')
+      inputMethod.getSetting().on('imeChange', imeChange);
     })
 
     afterAll(function () {
-        console.info('afterAll called')
+      inputMethod.getSetting().off('imeChange')
+      console.info('afterAll called')
     })
 
     beforeEach(function () {
-        console.info('beforeEach called')
+      console.info('beforeEach called')
     })
 
     afterEach(function () {
-        console.info('afterEach called')
+      console.info('afterEach called')
     })
-    let mKeyboardDelegate = null;
-    let inputMethodEngineObject = inputMethodEngine.getInputMethodAbility();
-    let textInputClient = null;
-    let kbController = null;
-    let KeyboardDelegate = null;
     let bundleName = "com.example.newTestIme";
     let extName = "InputMethodExtAbility";
     let subName = ["lowerInput", "upperInput", "chineseInput"];
@@ -52,6 +47,69 @@ describe("InputMethodTest", function () {
     const LEAST_DISABLE_IME_NUM = 1;
     const NEW_IME_SUBTYPE_NUM = 3;
     const OLD_IME_SUBTYPE_NUM = 2;
+
+    let isImeChange = false;
+    let imeChangeProp = undefined;
+    let imeChangeSubProp = undefined;
+    function imeChange(prop, subProp) {
+      isImeChange = true;
+      imeChangeProp = prop;
+      imeChangeSubProp = subProp;
+    }
+
+    function checkNewImeCurrentProp(property)
+    {
+      expect(property.name).assertEqual(bundleName);
+      expect(property.id).assertEqual(extName);
+      expect(property.packageName).assertEqual(bundleName);
+      expect(property.methodId).assertEqual(extName);
+    }
+
+    function checkNewImeCurrentSubProp(subProp, index)
+    {
+      expect(subProp.name).assertEqual(bundleName);
+      expect(subProp.id).assertEqual(subName[index]);
+      expect(subProp.locale).assertEqual(locale[index]);
+      expect(subProp.language).assertEqual(language[index]);
+    }
+
+    function checkNewImeSubProps(subProps)
+    {
+      expect(subProps.length).assertEqual(NEW_IME_SUBTYPE_NUM);
+      for (let i = 0; i < subProps.length; i++) {
+        expect(subProps[i].name).assertEqual(bundleName);
+        expect(subProps[i].id).assertEqual(subName[i]);
+        expect(subProps[i].locale).assertEqual(locale[i]);
+        expect(subProps[i].language).assertEqual(language[i]);
+      }
+    }
+
+    function checkImeCurrentProp(property, index)
+    {
+      expect(property.name).assertEqual(bundleName1);
+      expect(property.id).assertEqual(extName1[index]);
+      expect(property.packageName).assertEqual(bundleName1);
+      expect(property.methodId).assertEqual(extName1[index]);
+    }
+
+    function checkImeCurrentSubProp(subProp, index)
+    {
+      expect(subProp.name).assertEqual(bundleName1);
+      expect(subProp.id).assertEqual(extName1[index]);
+      expect(subProp.locale).assertEqual("");
+      expect(subProp.language).assertEqual(language1[index]);
+    }
+
+    function checkImeSubProps(subProps)
+    {
+      expect(subProps.length).assertEqual(OLD_IME_SUBTYPE_NUM);
+      for (let i = 0; i < subProps.length; i++) {
+        expect(subProps[i].name).assertEqual(bundleName1);
+        expect(subProps[i].id).assertEqual(extName1[i]);
+        expect(subProps[i].locale).assertEqual("");
+        expect(subProps[i].language).assertEqual(language1[i]);
+      }
+    }
 
     /*
      * @tc.number  inputmethod_test_MAX_TYPE_NUM_001
@@ -68,7 +126,7 @@ describe("InputMethodTest", function () {
       console.info("************* inputmethod_test_MAX_TYPE_NUM_001 Test end*************");
       done();
     });
-    
+
     /*
      * @tc.number  inputmethod_test_getInputMethodController_001
      * @tc.name    Test to get an InputMethodController instance.
@@ -83,7 +141,7 @@ describe("InputMethodTest", function () {
       done();
     });
 
-      /*
+    /*
      * @tc.number  inputmethod_test_getController_001
      * @tc.name    Test to get an InputMethodController instance.
      * @tc.desc    Function test
@@ -140,10 +198,7 @@ describe("InputMethodTest", function () {
       inputMethod.switchInputMethod(inputMethodProperty).then(ret => {
         expect(ret).assertTrue();
         let property = inputMethod.getCurrentInputMethod();
-        expect(property.name).assertEqual(bundleName);
-        expect(property.id).assertEqual(extName);
-        expect(property.packageName).assertEqual(bundleName);
-        expect(property.methodId).assertEqual(extName);
+        checkNewImeCurrentProp(property);
         console.info("************* inputmethod_test_switchInputMethod_001 Test end*************");
         done();
       }).catch( err=> {
@@ -166,13 +221,7 @@ describe("InputMethodTest", function () {
           console.error("inputmethod_test_listCurrentInputMethodSubtype_001 err: " + JSON.stringify(err.message));
           return;
         }
-        expect(subProps.length).assertEqual(NEW_IME_SUBTYPE_NUM);
-        for (let i = 0; i < subProps.length; i++) {
-            expect(subProps[i].name).assertEqual(bundleName);
-            expect(subProps[i].id).assertEqual(subName[i]);
-            expect(subProps[i].locale).assertEqual(locale[i]);
-            expect(subProps[i].language).assertEqual(language[i]);
-        }
+        checkNewImeSubProps(subProps)
         console.info("************* inputmethod_test_listCurrentInputMethodSubtype_001 Test end*************");
         done();
       });
@@ -188,13 +237,7 @@ describe("InputMethodTest", function () {
       console.info("************* inputmethod_test_listCurrentInputMethodSubtype_002 Test start*************");
       let inputMethodSetting = inputMethod.getSetting();
       inputMethodSetting.listCurrentInputMethodSubtype().then((subProps)=>{
-        expect(subProps.length).assertEqual(NEW_IME_SUBTYPE_NUM);
-        for (let i = 0; i < subProps.length; i++) {
-            expect(subProps[i].name).assertEqual(bundleName);
-            expect(subProps[i].id).assertEqual(subName[i]);
-            expect(subProps[i].locale).assertEqual(locale[i]);
-            expect(subProps[i].language).assertEqual(language[i]);
-        }
+        checkNewImeSubProps(subProps);
         console.info("************* inputmethod_test_listCurrentInputMethodSubtype_002 Test end*************");
         done();
       }).catch((err) => {
@@ -226,7 +269,7 @@ describe("InputMethodTest", function () {
         done();
       });
     });
-    
+
     /*
      * @tc.number  inputmethod_test_listInputMethod_002
      * @tc.name    Test list input methods.
@@ -261,10 +304,7 @@ describe("InputMethodTest", function () {
       let inputMethodSetting = inputMethod.getInputMethodSetting();
       await inputMethodSetting.getInputMethods(true).then((props)=>{
         expect(props.length).assertEqual(ENABLE_IME_NUM);
-        expect(props[0].name).assertEqual(bundleName);
-        expect(props[0].id).assertEqual(extName);
-        expect(props[0].packageName).assertEqual(bundleName);
-        expect(props[0].methodId).assertEqual(extName);
+        checkNewImeCurrentProp(props[0]);
         console.info("************* inputmethod_test_getInputMethods_001 Test end*************");
         done();
       }).catch((err) => {
@@ -272,7 +312,7 @@ describe("InputMethodTest", function () {
         expect().assertFail();
       });
     });
-  
+
     /*
      * @tc.number  inputmethod_test_getInputMethods_002
      * @tc.name    Test get enable input methods.
@@ -288,10 +328,7 @@ describe("InputMethodTest", function () {
           return;
         }
         expect(props.length).assertEqual(ENABLE_IME_NUM);
-        expect(props[0].name).assertEqual(bundleName);
-        expect(props[0].id).assertEqual(extName);
-        expect(props[0].packageName).assertEqual(bundleName);
-        expect(props[0].methodId).assertEqual(extName);
+        checkNewImeCurrentProp(props[0]);
         console.info("************* inputmethod_test_getInputMethods_002 Test end*************");
         done();
       });
@@ -358,10 +395,7 @@ describe("InputMethodTest", function () {
       inputMethod.switchCurrentInputMethodSubtype(InputMethodSubtype).then(ret => {
         expect(ret).assertTrue();
         let subProp = inputMethod.getCurrentInputMethodSubtype();
-        expect(subProp.name).assertEqual(bundleName);
-        expect(subProp.id).assertEqual(subName[1]);
-        expect(subProp.locale).assertEqual(locale[1]);
-        expect(subProp.language).assertEqual(language[1]);
+        checkNewImeCurrentSubProp(subProp, 1);
         console.info("************* inputmethod_test_switchCurrentInputMethodSubtype_001 Test end*************");
         done();
       }).catch( err=> {
@@ -369,7 +403,7 @@ describe("InputMethodTest", function () {
         done();
       })
     });
-    
+
     /*
      * @tc.number  inputmethod_test_switchCurrentInputMethodSubtype_002
      * @tc.name    Test Indicates the input method which will replace the current one.
@@ -392,13 +426,29 @@ describe("InputMethodTest", function () {
         }
         expect(ret).assertTrue();
         let subProp = inputMethod.getCurrentInputMethodSubtype();
-        expect(subProp.name).assertEqual(bundleName);
-        expect(subProp.id).assertEqual(subName[0]);
-        expect(subProp.locale).assertEqual(locale[0]);
-        expect(subProp.language).assertEqual(language[0]);
+        checkNewImeCurrentSubProp(subProp, 0);
         console.info("************* inputmethod_test_switchCurrentInputMethodSubtype_002 Test end*************");
         done();
       });
+    });
+
+    /*
+     * @tc.number  inputmethod_test_imeChange_001
+     * @tc.name    Test to subscribe 'imeChange'.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+    it('inputmethod_test_imeChange_001', 0, async function (done) {
+      console.info("************* inputmethod_test_imeChange_001 Test start*************");
+      expect(isImeChange).assertTrue();
+      let subProp = inputMethod.getCurrentInputMethodSubtype();
+      let prop = inputMethod.getCurrentInputMethod();
+      expect(imeChangeSubProp.name).assertEqual(subProp.name);
+      expect(imeChangeSubProp.id).assertEqual(subProp.id);
+      expect(imeChangeProp.name).assertEqual(prop.name);
+      expect(imeChangeProp.id).assertEqual(prop.id);
+      console.info("************* inputmethod_test_imeChange_001 Test end*************");
+      done();
     });
 
     /*
@@ -423,13 +473,9 @@ describe("InputMethodTest", function () {
       inputMethod.switchCurrentInputMethodAndSubtype(inputMethodProperty, InputMethodSubtype).then(ret => {
         expect(ret).assertTrue();
         let subProp = inputMethod.getCurrentInputMethodSubtype();
-        expect(subProp.name).assertEqual(bundleName1);
-        expect(subProp.id).assertEqual(extName1[0]);
+        checkImeCurrentSubProp(subProp, 0);
         let property = inputMethod.getCurrentInputMethod();
-        expect(property.name).assertEqual(bundleName1);
-        expect(property.id).assertEqual(extName1[0]);
-        expect(property.packageName).assertEqual(bundleName1);
-        expect(property.methodId).assertEqual(extName1[0]);
+        checkImeCurrentProp(property, 0)
         console.info("************* inputmethod_test_switchCurrentInputMethodAndSubtype_001 Test end*************");
         done();
       }).catch( err=> {
@@ -464,13 +510,9 @@ describe("InputMethodTest", function () {
         }
         expect(ret).assertTrue();
         let subProp = inputMethod.getCurrentInputMethodSubtype();
-        expect(subProp.name).assertEqual(bundleName);
-        expect(subProp.id).assertEqual(subName[2]);
+        checkNewImeCurrentSubProp(subProp, 2)
         let property = inputMethod.getCurrentInputMethod();
-        expect(property.name).assertEqual(bundleName);
-        expect(property.id).assertEqual(extName);
-        expect(property.packageName).assertEqual(bundleName);
-        expect(property.methodId).assertEqual(extName);
+        checkNewImeCurrentProp(property);
         console.info("************* inputmethod_test_switchCurrentInputMethodAndSubtype_002 Test end*************");
         done();
       });
@@ -494,13 +536,7 @@ describe("InputMethodTest", function () {
           console.error("inputmethod_test_listInputMethodSubtype_001 err: " + JSON.stringify(err.message));
           return;
         }
-        expect(subProps.length).assertEqual(NEW_IME_SUBTYPE_NUM);
-        for (let i = 0; i < subProps.length; i++) {
-            expect(subProps[i].name).assertEqual(bundleName);
-            expect(subProps[i].id).assertEqual(subName[i]);
-            expect(subProps[i].locale).assertEqual(locale[i]);
-            expect(subProps[i].language).assertEqual(language[i]);
-        }
+        checkNewImeSubProps(subProps);
         console.info("************* inputmethod_test_listInputMethodSubtype_001 Test end*************");
         done();
       });
@@ -520,13 +556,7 @@ describe("InputMethodTest", function () {
       }
       let inputMethodSetting = inputMethod.getSetting();
       inputMethodSetting.listInputMethodSubtype(inputMethodProperty).then((subProps)=>{
-        expect(subProps.length).assertEqual(OLD_IME_SUBTYPE_NUM);
-        for (let i = 0; i < subProps.length; i++) {
-            expect(subProps[i].name).assertEqual(bundleName1);
-            expect(subProps[i].id).assertEqual(extName1[i]);
-            expect(subProps[i].locale).assertEqual("");
-            expect(subProps[i].language).assertEqual(language1[i]);
-        }
+        checkImeSubProps(subProps);
         console.info("************* inputmethod_test_listInputMethodSubtype_002 Test end*************");
         done();
       }).catch((err) => {
@@ -536,21 +566,39 @@ describe("InputMethodTest", function () {
     });
 
     /*
-     * @tc.number  inputmethod_test_displayOptionalInputMethod_001
+     * @tc.number  inputmethod_test_showOptionalInputMethods_001
      * @tc.name    Test displays a dialog box for selecting an input method.
      * @tc.desc    Function test
      * @tc.level   2
      */
-    it('inputmethod_test_displayOptionalInputMethod_001', 0, async function (done) {
-      console.info("************* inputmethod_test_displayOptionalInputMethod_001 Test start*************");
-      let inputMethodSetting = inputMethod.getInputMethodSetting();
-      inputMethodSetting.displayOptionalInputMethod((err) => {
+    it('inputmethod_test_showOptionalInputMethods_001', 0, async function (done) {
+      console.info("************* inputmethod_test_showOptionalInputMethods_001 Test start*************");
+      let inputMethodSetting = inputMethod.getSetting();
+      inputMethodSetting.showOptionalInputMethods((err) => {
         if(err){
-          console.info("inputmethod_test_displayOptionalInputMethod_001 err:" + JSON.stringify(err.message));
+          console.info("inputmethod_test_showOptionalInputMethods_001 err:" + JSON.stringify(err.message));
           return;
         }
-        console.info("************* inputmethod_test_displayOptionalInputMethod_001 Test end*************");
+        console.info("************* inputmethod_test_showOptionalInputMethods_001 Test end*************");
         done();
+      });
+    });
+
+    /*
+     * @tc.number  inputmethod_test_showOptionalInputMethods_002
+     * @tc.name    Test displays a dialog box for selecting an input method.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+    it('inputmethod_test_showOptionalInputMethods_002', 0, async function (done) {
+      console.info("************* inputmethod_test_showOptionalInputMethods_002 Test start*************");
+      let inputMethodSetting = inputMethod.getSetting();
+      inputMethodSetting.showOptionalInputMethods().then(()=>{
+        console.info("************* inputmethod_test_showOptionalInputMethods_002 Test end*************");
+        done();
+      }).catch((err) => {
+        console.info('inputmethod_test_showOptionalInputMethods_002 err ' + JSON.stringify(err.message));
+        expect().assertFail();
       });
     });
 
@@ -600,25 +648,6 @@ describe("InputMethodTest", function () {
     });
 
     /*
-     * @tc.number  inputmethod_test_showOptionalInputMethods_001
-     * @tc.name    Test displays a dialog box for selecting an input method.
-     * @tc.desc    Function test
-     * @tc.level   2
-     */
-    it('inputmethod_test_showOptionalInputMethods_001', 0, async function (done) {
-      console.info("************* inputmethod_test_showOptionalInputMethods_001 Test start*************");
-      let inputMethodSetting = inputMethod.getSetting();
-      inputMethodSetting.showOptionalInputMethods((err) => {
-        if(err){
-          console.info("inputmethod_test_showOptionalInputMethods_001 err:" + JSON.stringify(err.message));
-          return;
-        }
-        console.info("************* inputmethod_test_showOptionalInputMethods_001 Test end*************");
-        done();
-      });
-    });
-
-    /*
      * @tc.number  inputmethod_test_hideSoftKeyboard_001
      * @tc.name    Test Indicates the input method which will hide softboard with callback.
      * @tc.desc    Function test
@@ -654,24 +683,6 @@ describe("InputMethodTest", function () {
         expect(ret).assertTrue();
         console.info("************* inputmethod_test_stopInputSession_001 Test end*************");
         done();
-      });
-    });
-
-    /*
-     * @tc.number  inputmethod_test_showOptionalInputMethods_002
-     * @tc.name    Test displays a dialog box for selecting an input method.
-     * @tc.desc    Function test
-     * @tc.level   2
-     */
-    it('inputmethod_test_showOptionalInputMethods_002', 0, async function (done) {
-      console.info("************* inputmethod_test_showOptionalInputMethods_002 Test start*************");
-      let inputMethodSetting = inputMethod.getSetting();
-      inputMethodSetting.showOptionalInputMethods().then(()=>{
-        console.info("************* inputmethod_test_showOptionalInputMethods_002 Test end*************");
-        done();
-      }).catch((err) => {
-        console.info('inputmethod_test_showOptionalInputMethods_002 err ' + JSON.stringify(err.message));
-        expect().assertFail();
       });
     });
 
@@ -753,23 +764,5 @@ describe("InputMethodTest", function () {
         console.info("inputmethod_test_stopInputSession_002 err" + JSON.stringify(err.message));
         expect().assertFail();
       })
-    });
-
-    /*
-     * @tc.number  inputmethod_test_displayOptionalInputMethod_002
-     * @tc.name    Test displays a dialog box for selecting an input method.
-     * @tc.desc    Function test
-     * @tc.level   2
-     */
-    it('inputmethod_test_displayOptionalInputMethod_002', 0, async function (done) {
-      console.info("************* inputmethod_test_displayOptionalInputMethod_002 Test start*************");
-      let inputMethodSetting = inputMethod.getInputMethodSetting();
-      inputMethodSetting.displayOptionalInputMethod().then(()=>{
-        console.info("************* inputmethod_test_displayOptionalInputMethod_002 Test end*************");
-        done();
-      }).catch((err) => {
-        console.info('inputmethod_test_displayOptionalInputMethod_002 err ' + JSON.stringify(err.message));
-        expect().assertFail();
-      });
     });
 })
