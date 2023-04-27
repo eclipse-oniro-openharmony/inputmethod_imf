@@ -76,6 +76,7 @@ public:
     int32_t OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch);
     void UpdateCurrentUserId(int32_t userId);
     void OnUnfocused(int32_t pid, int32_t uid);
+    bool CheckFocused(uint32_t tokenId);
 
 private:
     int userId_;                                   // the id of the user to whom the object is linking
