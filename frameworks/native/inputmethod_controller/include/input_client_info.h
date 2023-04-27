@@ -28,6 +28,7 @@ struct InputClientInfo {
     pid_t uid{ 0 };                           // uid
     int32_t userID{ 0 };                      // user id of input client
     int32_t displayID{ 0 };                   // the display id on which the input client is showing
+    uint32_t tokenID{ 0 };                    // the token id of input client
     bool isShowKeyboard{ false };             // soft keyboard status
     bool isValid{ false };                    // whether client is valid
     bool isToNotify{ false };                 // whether to notify client event

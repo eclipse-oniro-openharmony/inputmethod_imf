@@ -561,5 +561,21 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     ret = OnReleaseInput(client);
     IMSA_HILOGI("release input ret: %{public}d", ret);
 }
+
+bool PerUserSession::CheckFocused(uint32_t tokenId)
+{
+    auto client = GetCurrentClient();
+    if (client == nullptr) {
+        return false;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        return false;
+    }
+    if (clientInfo->tokenID == tokenId) {
+        return true;
+    }
+    return false;
+}
 } // namespace MiscServices
 } // namespace OHOS
