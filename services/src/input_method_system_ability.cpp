@@ -230,7 +230,7 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
     uint32_t tokenID = IPCSkeleton::GetCallingTokenID();
-    if (!clientInfo.isToNotify && !BundleChecker::IsFocused(tokenId)) {
+    if (!clientInfo.isToNotify && !BundleChecker::IsFocused(tokenID)) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     if (clientInfo.client == nullptr || clientInfo.channel == nullptr) {
@@ -245,7 +245,7 @@ int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
     clientInfo.uid = IPCSkeleton::GetCallingUid();
     clientInfo.userID = userId_;
     clientInfo.deathRecipient = deathRecipient;
-    clientInfo.tokenID = tokenId;
+    clientInfo.tokenID = tokenID;
     return userSession_->OnPrepareInput(clientInfo);
 }
 
