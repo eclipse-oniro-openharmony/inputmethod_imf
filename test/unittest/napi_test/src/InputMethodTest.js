@@ -203,7 +203,7 @@ describe("InputMethodTest", function () {
         done();
       }).catch( err=> {
         console.info("inputmethod_test_switchInputMethod_001 err:" + JSON.stringify(err.message));
-        done();
+        expect().assertFail();
       })
     });
 
@@ -400,7 +400,7 @@ describe("InputMethodTest", function () {
         done();
       }).catch( err=> {
         console.info("inputmethod_test_switchCurrentInputMethodSubtype_001 err:" + JSON.stringify(err.message))
-        done();
+        expect().assertFail();
       })
     });
 
@@ -480,7 +480,7 @@ describe("InputMethodTest", function () {
         done();
       }).catch( err=> {
         console.info("inputmethod_test_switchCurrentInputMethodAndSubtype_001 err:" + JSON.stringify(err.message))
-        done();
+        expect().assertFail();
       })
     });
 
