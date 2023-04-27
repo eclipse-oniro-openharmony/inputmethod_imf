@@ -23,9 +23,9 @@
 #include "js_keyboard_controller_engine.h"
 #include "js_runtime_utils.h"
 #include "js_text_input_client_engine.h"
-#include "napi_base_context.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "napi_base_context.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -230,12 +230,13 @@ void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::st
 
 napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_info info)
 {
-    size_t argc = ARGC_TWO;
-    napi_value argv[ARGC_TWO] = { nullptr };
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { nullptr };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    PARAM_CHECK_RETURN(env, argc >= ARGC_TWO, "Wrong number of arguments, requires 2", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(
+        env, (argc >= ARGC_TWO) && (argc <= ARGC_MAX), "Wrong number of arguments, requires 2", TYPE_NONE, nullptr);
 
     std::string type = "";
     napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], type);
@@ -333,7 +334,7 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
         bool isPanel = false;
         napi_value constructor = nullptr;
         NAPI_ASSERT_BASE(env, JsPanel::panelConstructorRef_ != nullptr,
-                         "the panel which will be destroy is not exist!", napi_invalid_arg);
+            "the panel which will be destroy is not exist!", napi_invalid_arg);
         napi_status status = napi_get_reference_value(env, JsPanel::panelConstructorRef_, &constructor);
         NAPI_ASSERT_BASE(env, status == napi_ok, "Failed to get panel constructor.", status);
         status = napi_instanceof(env, argv[0], constructor, &isPanel);
