@@ -178,7 +178,8 @@ HWTEST_F(InputMethodPanelTest, testShowPanel, TestSize.Level0)
 
     auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
     EXPECT_TRUE(statusListener != nullptr);
-    inputMethodPanel->SetPanelStatusListener(statusListener);
+    std::string type = "show";
+    inputMethodPanel->SetPanelStatusListener(statusListener, type);
     ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -215,7 +216,8 @@ HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener, TestSize.Level0)
     EXPECT_TRUE(inputMethodPanel != nullptr);
     auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
     EXPECT_TRUE(statusListener != nullptr);
-    inputMethodPanel->SetPanelStatusListener(statusListener);
+    std::string type = "show";
+    inputMethodPanel->SetPanelStatusListener(statusListener, type);
 
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);

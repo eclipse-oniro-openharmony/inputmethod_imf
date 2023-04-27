@@ -254,7 +254,7 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     observer->SaveInfo(env, type, argv[ARGC_ONE], inputMethodPanel->windowId_);
-    inputMethodPanel->SetPanelStatusListener(observer);
+    inputMethodPanel->SetPanelStatusListener(observer, type);
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     return result;

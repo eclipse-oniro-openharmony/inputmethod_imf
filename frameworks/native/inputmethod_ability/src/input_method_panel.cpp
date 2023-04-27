@@ -97,8 +97,8 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
     }
     // the resize width can not exceed the width of display width of device
     // the resize height can not exceed half of the display height of device
-    if (static_cast<int32_t>(width) > defaultDisplay->GetWidth()
-        || static_cast<int32_t>(height) > defaultDisplay->GetHeight() / 2) {
+    if (static_cast<int32_t>(width) > defaultDisplay->GetWidth() ||
+        static_cast<int32_t>(height) > defaultDisplay->GetHeight() / 2) {
         IMSA_HILOGD("GetDefaultDisplay, defaultDisplay->width = %{public}d, defaultDisplay->height = %{public}d, "
                     "width = %{public}u, height = %{public}u",
             defaultDisplay->GetWidth(), defaultDisplay->GetHeight(), width, height);
@@ -216,8 +216,8 @@ bool InputMethodPanel::IsHidden()
     return false;
 }
 
-int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, NativeEngine &engine,
-    std::shared_ptr<NativeReference> storage)
+int32_t InputMethodPanel::SetUiContent(
+    const std::string &contentInfo, NativeEngine &engine, std::shared_ptr<NativeReference> storage)
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr, can not SetUiContent.");
@@ -235,9 +235,18 @@ int32_t InputMethodPanel::SetUiContent(const std::string &contentInfo, NativeEng
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodPanel::SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener)
+void InputMethodPanel::SetPanelStatusListener(
+    std::shared_ptr<PanelStatusListener> statusListener, const std::string &type)
 {
     IMSA_HILOGD("SetPanelStatusListener start.");
+    if (type == "show") {
+        showRegistered_ = true;
+    } else if (type == "hide") {
+        hideRegistered_ = true;
+    } else {
+        IMSA_HILOGE("type error.");
+        return;
+    }
     if (panelStatusListener_ != nullptr) {
         IMSA_HILOGE("PanelStatusListener already set.");
         return;

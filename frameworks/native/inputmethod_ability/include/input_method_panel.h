@@ -59,7 +59,7 @@ public:
     PanelType GetPanelType();
     int32_t ShowPanel();
     int32_t HidePanel();
-    void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener);
+    void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void RemovePanelListener(const std::string &type);
     uint32_t windowId_ = 0;
 
