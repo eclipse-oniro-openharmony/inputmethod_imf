@@ -341,7 +341,7 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    // 2 means JsAPI:switchCurrentInputMethodAndSubtype has 2 params at most.
+    // 3 means JsAPI:switchCurrentInputMethodAndSubtype has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec);
 }
