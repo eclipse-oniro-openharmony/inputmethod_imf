@@ -589,7 +589,7 @@ int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, con
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::OnUpdateEventFlag(const sptr<IInputClient> &client, const EventType &type, bool isOn)
+int32_t PerUserSession::OnUpdateEventFlag(sptr<IInputClient> &client, const ImeEventType &type, bool isOn)
 {
     IMSA_HILOGI("PerUserSession::OnUpdateEventFlag");
     if (client == nullptr) {
@@ -605,7 +605,7 @@ int32_t PerUserSession::OnUpdateEventFlag(const sptr<IInputClient> &client, cons
     IMSA_HILOGI("PerUserSession::UpdateEventFlag");
     auto eventFlag = clientInfo->eventFlag;
     switch (type) {
-        case EventType::IME_CHANGE: {
+        case ImeEventType::IME_CHANGE: {
             if (isOn) {
                 eventFlag.imeChange = 1;
             } else {
@@ -613,7 +613,7 @@ int32_t PerUserSession::OnUpdateEventFlag(const sptr<IInputClient> &client, cons
             }
             break;
         }
-        case EventType::IME_HIDE: {
+        case ImeEventType::IME_HIDE: {
             if (isOn) {
                 eventFlag.imeHide = 1;
             } else {
@@ -621,7 +621,7 @@ int32_t PerUserSession::OnUpdateEventFlag(const sptr<IInputClient> &client, cons
             }
             break;
         }
-        case EventType::IME_SHOW: {
+        case ImeEventType::IME_SHOW: {
             if (isOn) {
                 eventFlag.imeShow = 1;
             } else {

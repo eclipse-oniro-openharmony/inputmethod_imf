@@ -47,6 +47,7 @@ ohos_shared_library("inputmethod_ability") {
     "${inputmethod_path}/services/src/message.cpp",
     "${inputmethod_path}/services/src/message_handler.cpp",
     "src/input_method_ability.cpp",
+    "src/input_method_ability_utils.cpp",
     "src/input_method_agent_proxy.cpp",
     "src/input_method_agent_stub.cpp",
     "src/input_method_core_proxy.cpp",

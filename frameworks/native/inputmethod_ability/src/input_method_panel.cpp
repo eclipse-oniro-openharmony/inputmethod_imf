@@ -17,9 +17,7 @@
 
 #include "display_manager.h"
 #include "global.h"
-#include "input_window_info.h"
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
+#include "input_method_ability_utils.h"
 #include "window.h"
 #include "wm_common.h"
 
@@ -203,7 +201,7 @@ void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
         IMSA_HILOGE("InputMethodPanel::HidePanel panelStatusListener_ is not nullptr");
         panelStatusListener_->OnPanelStatus(windowId_, false);
     }
-    auto imsa = GetImsaProxy();
+    auto imsa = ImaUtils::GetImsaProxy();
     if (imsa != nullptr && panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
         auto rect = window_->GetRect();
         imsa->PanelStatusChange(
@@ -287,26 +285,6 @@ uint32_t InputMethodPanel::GenerateSequenceId()
         return ++sequenceId_;
     }
     return seqId;
-}
-
-sptr<InputMethodSystemAbilityProxy> InputMethodPanel::GetImsaProxy()
-{
-    IMSA_HILOGI("InputMethodPanel::GetImsaProxy");
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        IMSA_HILOGI("InputMethodPanel::GetImsaProxy systemAbilityManager is nullptr");
-        return nullptr;
-    }
-
-    auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
-    if (systemAbility == nullptr) {
-        IMSA_HILOGI("InputMethodPanel::GetImsaProxy systemAbility is nullptr");
-        return nullptr;
-    }
-
-    sptr<InputMethodSystemAbilityProxy> iface = new InputMethodSystemAbilityProxy(systemAbility);
-    return iface;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -334,7 +334,7 @@ int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &sta
     return userSession_->OnPanelStatusChange(status, windowInfo);
 }
 
-int32_t InputMethodSystemAbility::UpdateEventFlag(sptr<IInputClient> client, const EventType &event, bool isOn)
+int32_t InputMethodSystemAbility::UpdateEventFlag(sptr<IInputClient> client, const ImeEventType &event, bool isOn)
 {
     return userSession_->OnUpdateEventFlag(client, event, isOn);
 }

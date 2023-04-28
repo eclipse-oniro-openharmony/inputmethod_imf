@@ -195,7 +195,7 @@ int32_t InputMethodSystemAbilityProxy::PanelStatusChange(
     });
 }
 
-int32_t InputMethodSystemAbilityProxy::UpdateEventFlag(sptr<IInputClient> client, const EventType &event, bool isOn)
+int32_t InputMethodSystemAbilityProxy::UpdateEventFlag(sptr<IInputClient> client, const ImeEventType &event, bool isOn)
 {
     IMSA_HILOGD("InputMethodSystemAbilityProxy::UpdateEventFlag");
     return SendRequest(UPDATE_EVENT_FLAG, [client, event, isOn](MessageParcel &data) {

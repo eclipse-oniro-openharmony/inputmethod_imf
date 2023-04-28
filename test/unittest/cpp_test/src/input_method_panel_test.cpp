@@ -23,17 +23,20 @@
 
 #include "display_manager.h"
 #include "global.h"
+#include "input_method_controller.h"
 #include "panel_status_listener.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 200;
 class InputMethodPanelTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
+    static void CheckIMCPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
 
     class PanelStatusListenerImpl : public PanelStatusListener {
     public:
@@ -46,19 +49,46 @@ public:
             IMSA_HILOGI("PanelStatusListenerImpl OnPanelStatus in, isShow is %{public}s", isShow ? "true" : "false");
         }
     };
+    static std::mutex imcPanelStatusListenerLock_;
+    static std::condition_variable imcPanelStatusListenerCv_;
+    static InputWindowStatus status_;
+    static std::vector<InputWindowInfo> windowInfo_;
     static bool showPanel_;
     static bool hidePanel_;
     static std::condition_variable panelListenerCv_;
     static std::mutex panelListenerLock_;
     static constexpr uint32_t DEALY_TIME = 1;
 };
-
+class InputMethodSettingListenerImpl : public InputMethodSettingListener {
+public:
+    InputMethodSettingListenerImpl() = default;
+    ~InputMethodSettingListenerImpl() = default;
+    void OnImeChange(const Property &property, const SubProperty &subProperty)
+    {
+    }
+    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+    {
+        IMSA_HILOGI("InputMethodPanelTest::OnPanelStatusChange");
+        {
+            std::unique_lock<std::mutex> lock(InputMethodPanelTest::imcPanelStatusListenerLock_);
+            InputMethodPanelTest::status_ = status;
+            InputMethodPanelTest::windowInfo_ = windowInfo;
+        }
+        InputMethodPanelTest::imcPanelStatusListenerCv_.notify_one();
+    }
+};
 bool InputMethodPanelTest::showPanel_ = false;
 bool InputMethodPanelTest::hidePanel_ = false;
 std::condition_variable InputMethodPanelTest::panelListenerCv_;
 std::mutex InputMethodPanelTest::panelListenerLock_;
+std::condition_variable InputMethodPanelTest::imcPanelStatusListenerCv_;
+std::mutex InputMethodPanelTest::imcPanelStatusListenerLock_;
+InputWindowStatus InputMethodPanelTest::status_{ InputWindowStatus::HIDE };
+std::vector<InputWindowInfo> InputMethodPanelTest::windowInfo_;
 void InputMethodPanelTest::SetUpTestCase(void)
 {
+    auto listener = std::make_shared<InputMethodSettingListenerImpl>();
+    InputMethodController::GetInstance()->SetSettingListener(listener);
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
 }
 
@@ -75,6 +105,20 @@ void InputMethodPanelTest::SetUp(void)
 void InputMethodPanelTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::TearDown");
+}
+
+void InputMethodPanelTest::CheckIMCPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
+{
+    std::unique_lock<std::mutex> lock(imcPanelStatusListenerLock_);
+    imcPanelStatusListenerCv_.wait_for(lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME),
+        [&status, &windowInfo] { return status == status_; });
+    EXPECT_EQ(status_, status);
+    ASSERT_EQ(windowInfo_.size(), 1);
+    //EXPECT_EQ(windowInfo_[0].name, windowInfo.name);
+    //EXPECT_EQ(windowInfo_[0].top, windowInfo.top);
+    //EXPECT_EQ(windowInfo_[0].left, windowInfo.left);
+    EXPECT_EQ(windowInfo_[0].width, windowInfo.width);
+    EXPECT_EQ(windowInfo_[0].height, windowInfo.height);
 }
 
 /**
@@ -316,6 +360,35 @@ HWTEST_F(InputMethodPanelTest, testRemovePanelListener, TestSize.Level0)
 
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testImcPanelListening_001
+* @tc.desc: SOFT_KEYBOARD  FLG_FIXED
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_001 start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    EXPECT_TRUE(defaultDisplay != nullptr);
+    uint32_t width = defaultDisplay->GetWidth() - 1;
+    uint32_t height = defaultDisplay->GetHeight() / 2 - 1;
+    ret = inputMethodPanel->Resize(width, height);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::CheckIMCPanelStatusChange(InputWindowStatus::SHOW, { "", 0, 0, width, height });
+    width = defaultDisplay->GetWidth() - 3;
+    height = defaultDisplay->GetHeight() / 2 - 3;
+    ret = inputMethodPanel->Resize(width, height);
+    ret = inputMethodPanel->HidePanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::CheckIMCPanelStatusChange(InputWindowStatus::HIDE, { "", 0, 0, width, height });
 }
 } // namespace MiscServices
 } // namespace OHOS

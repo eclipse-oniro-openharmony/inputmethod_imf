@@ -71,7 +71,7 @@ void InputMethodController::SetSettingListener(std::shared_ptr<InputMethodSettin
     PrepareInput(clientInfo_);
 }
 
-void InputMethodController::UpdateEventFlag(const EventType &event, bool isOn)
+void InputMethodController::UpdateEventFlag(const ImeEventType &event, bool isOn)
 {
     IMSA_HILOGI("InputMethodController::UpdateEventFlag");
     auto proxy = GetSystemAbilityProxy();

@@ -207,7 +207,7 @@ public:
      * @since 6
      */
     IMF_API void SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener);
-    IMF_API void UpdateEventFlag(const EventType &event, bool isOn);
+    IMF_API void UpdateEventFlag(const ImeEventType &event, bool isOn);
     IMF_API void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
 
     /**

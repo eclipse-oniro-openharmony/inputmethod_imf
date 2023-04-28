@@ -23,9 +23,9 @@
 
 namespace OHOS {
 namespace MiscServices {
-enum EventType : uint32_t { IME_CHANGE = 0, IME_HIDE, IME_SHOW, END };
+enum ImeEventType : uint32_t { IME_CHANGE = 0, IME_HIDE, IME_SHOW, END };
 
-struct EventFlag {
+struct ImeEventFlag {
     uint16_t imeShow : 1;
     uint16_t imeHide : 1;
     uint16_t imeChange : 1;
@@ -39,7 +39,7 @@ struct InputClientInfo {
     bool isShowKeyboard{ false };             // soft keyboard status
     bool isValid{ false };                    // whether client is valid
     bool isSubscriber{ false };               // whether is event subscriber
-    EventFlag eventFlag{ 0 };                 // the type and status tag of the subscription event
+    ImeEventFlag eventFlag{ 0 };              // the type and status tag of the subscription event
     InputAttribute attribute;                 // the input client attribute
     sptr<IInputClient> client;                // the remote object handler for service to callback input client
     sptr<IInputDataChannel> channel;          // the remote object handler for ime to callback input client

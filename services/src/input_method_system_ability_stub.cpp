@@ -245,14 +245,19 @@ int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &d
 
 int32_t InputMethodSystemAbilityStub::UpdateEventFlagOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    sptr<IRemoteObject> remoteObject;
+    auto clientObject = data.ReadRemoteObject();
+    if (clientObject == nullptr) {
+        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
+        IMSA_HILOGE("%{public}s nullptr", __func__);
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
     uint32_t event;
     bool isOn;
-    if (!ITypesUtil::Unmarshal(data, remoteObject, event, isOn)) {
+    if (!ITypesUtil::Unmarshal(data, event, isOn)) {
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = UpdateEventFlag(iface_cast<IInputClient>(remoteObject), static_cast<EventType>(event), isOn);
+    int32_t ret = UpdateEventFlag(iface_cast<IInputClient>(clientObject), static_cast<ImeEventType>(event), isOn);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

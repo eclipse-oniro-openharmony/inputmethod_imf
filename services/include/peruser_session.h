@@ -78,7 +78,7 @@ public:
     void UpdateCurrentUserId(int32_t userId);
     void OnUnfocused(int32_t pid, int32_t uid);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
-    int32_t OnUpdateEventFlag(const sptr<IInputClient> &client, const EventType &type, bool isOn);
+    int32_t OnUpdateEventFlag(sptr<IInputClient> &client, const ImeEventType &type, bool isOn);
 
 private:
     int userId_;                                   // the id of the user to whom the object is linking
