@@ -572,10 +572,7 @@ bool PerUserSession::CheckFocused(uint32_t tokenId)
     if (clientInfo == nullptr) {
         return false;
     }
-    if (clientInfo->tokenID == tokenId) {
-        return true;
-    }
-    return false;
+    return clientInfo->tokenID == tokenId;
 }
 } // namespace MiscServices
 } // namespace OHOS
