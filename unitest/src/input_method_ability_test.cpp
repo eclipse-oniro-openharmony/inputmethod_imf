@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,14 @@
 
 #include "input_method_ability.h"
 
+#include <gtest/gtest.h>
+#include <string_ex.h>
+#include <unistd.h>
+
 #include <cstdint>
 #include <functional>
-#include <gtest/gtest.h>
 #include <string>
-#include <string_ex.h>
 #include <thread>
-#include <unistd.h>
 #include <vector>
 
 #include "accesstoken_kit.h"
@@ -35,15 +36,19 @@
 #include "input_method_controller.h"
 #include "input_method_core_proxy.h"
 #include "input_method_core_stub.h"
+#include "input_method_property.h"
 #include "message_handler.h"
 #include "nativetoken_kit.h"
+#include "os_account_manager.h"
 #include "token_setproc.h"
 
 using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
+using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
+constexpr int32_t MAIN_USER_ID = 100;
 std::u16string g_textTemp = u"我們我們ddddd";
 class InputMethodAbilityTest : public testing::Test {
 public:
@@ -152,36 +157,45 @@ public:
         {
         }
     };
-    static void GrantPermission()
+    static void InitTestConfiguration(const std::string &bundleName)
     {
-        const char **perms = new const char *[1];
-        perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
-        TokenInfoParams infoInstance = {
-            .dcapsNum = 0,
-            .permsNum = 1,
-            .aclsNum = 0,
-            .dcaps = nullptr,
-            .perms = perms,
-            .acls = nullptr,
-            .processName = "inputmethod_imf",
-            .aplStr = "system_core",
+        IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
+        std::vector<int32_t> userIds;
+        auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
+        if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
+            IMSA_HILOGE("query active os account id failed");
+            userIds[0] = MAIN_USER_ID;
+        }
+        HapInfoParams infoParams = {
+            .userID = userIds[0],
+            .bundleName = bundleName,
+            .instIndex = 0,
+            .appIDDesc = "ohos.inputmethod_test.demo"
         };
-        uint64_t tokenId = GetAccessTokenId(&infoInstance);
-        int res = SetSelfTokenID(tokenId);
-        if (res == 0) {
+        HapPolicyParams policyParams = {
+            .apl = APL_NORMAL,
+            .domain = "test.domain.inputmethod",
+            .permList = {},
+            .permStateList = {}
+        };
+        AccessTokenKit::AllocHapToken(infoParams, policyParams);
+        auto tokenID = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
+        int res = SetSelfTokenID(tokenID);
+        if (res == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("SetSelfTokenID success!");
         } else {
             IMSA_HILOGE("SetSelfTokenID fail!");
         }
-        AccessTokenKit::ReloadNativeTokenInfo();
-        delete[] perms;
     }
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodAbilityTest::SetUpTestCase");
-        GrantPermission();
+        std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
+        std::string currImeBundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
+        InitTestConfiguration(currImeBundleName);
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->OnImeReady();
+        inputMethodAbility_->SetCoreAndAgent();
         sptr<OnTextChangedListener> textListener = new TextChangeListener();
         imc_ = InputMethodController::GetInstance();
         imc_->Attach(textListener);

@@ -22,6 +22,7 @@
 #include "ability_manager_errors.h"
 #include "ability_manager_interface.h"
 #include "application_info.h"
+#include "bundle_checker.h"
 #include "bundle_mgr_proxy.h"
 #include "combination_key.h"
 #include "common_event_support.h"
@@ -49,6 +50,7 @@ namespace MiscServices {
     const std::int32_t INIT_INTERVAL = 10000L;
     const std::int32_t MAIN_USER_ID = 100;
     constexpr int32_t INVALID_USER_ID = -1;
+    static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
     std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
     /**
@@ -176,8 +178,8 @@ namespace MiscServices {
         IMSA_HILOGI("Publish ErrorCode::NO_ERROR.");
         state_ = ServiceRunningState::STATE_RUNNING;
         ImeCfgManager::GetInstance().Init();
-        // 服务异常重启后不会走OnUserStarted，但是可以获取到当前userId
-        // 设备启动时可能获取不到当前userId,如果获取不到，则等OnUserStarted的时候处理.
+        // If restart is caused by exception, userId can be got without 'OnUserStarted'.
+        // It may be possible that sa can not get userId when device startup, then wait for 'OnUserStarted'.
         std::vector<int32_t> userIds;
         if (OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty()) {
             userId_ = userIds[0];
@@ -373,11 +375,24 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::StopInputSession()
     {
-        return HideCurrentInput();
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnHideKeyboardSelf(0);
     }
 
     int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
     {
+        IMSA_HILOGD("InputMethodSystemAbility run in");
+        auto currentIme = GetCurrentInputMethod();
+        if (currentIme == nullptr) {
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        if (!BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme->name)) {
+            return ErrorCode::ERROR_NOT_CURRENT_IME;
+        }
         auto session = GetUserSession(MAIN_USER_ID);
         if (session == nullptr) {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
@@ -388,6 +403,10 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::HideCurrentInput()
     {
+        IMSA_HILOGD("InputMethodSystemAbility run in");
+        if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         auto session = GetUserSession(MAIN_USER_ID);
         if (session == nullptr) {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
@@ -398,6 +417,10 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::ShowCurrentInput()
     {
+        IMSA_HILOGD("InputMethodSystemAbility run in");
+        if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         auto session = GetUserSession(MAIN_USER_ID);
         if (session == nullptr) {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
@@ -408,6 +431,10 @@ namespace MiscServices {
 
     int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
     {
+        IMSA_HILOGD("InputMethodSystemAbility run in");
+        if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         return OnDisplayOptionalInputMethod(userId_);
     };
 
@@ -537,6 +564,9 @@ namespace MiscServices {
     int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &name, const std::string &subName)
     {
         IMSA_HILOGI("InputMethodSystemAbility::SwitchInputMethod");
+        if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+            return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        }
         return subName.empty() ? SwitchInputMethodType(name) : SwitchInputMethodSubtype(name, subName);
     }
 
@@ -653,25 +683,29 @@ namespace MiscServices {
     }
 
     // Deprecated because of no permission check, kept for compatibility
-    int32_t InputMethodSystemAbility::SetCoreAndAgentDeprecated(
-        sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
-    {
-        return SetCoreAndAgent(core, agent);
-    };
-
     int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
     {
-        return HideCurrentInput();
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnHideKeyboardSelf(0);
     };
 
     int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
     {
-        return ShowCurrentInput();
+        auto session = GetUserSession(MAIN_USER_ID);
+        if (session == nullptr) {
+            IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        return session->OnShowKeyboardSelf();
     };
 
     int32_t InputMethodSystemAbility::DisplayOptionalInputMethodDeprecated()
     {
-        return DisplayOptionalInputMethod();
+        return OnDisplayOptionalInputMethod(userId_);
     };
 
     /*! Get all of the input method engine list installed in the system
@@ -979,7 +1013,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    // 用户移除也会有该通知，如果移除的app用户不是当前用户，则不处理
+    // This will also be called when a user is removed. Do not process if removed user is not current one.
     if (userId != userId_) {
         return ErrorCode::NO_ERROR;
     }
@@ -1108,7 +1142,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
                                   [&current](const SubProperty &property) { return property.mode == "lower"; })
                               : FindSubPropertyByCompare(current->name,
                                   [&current](const SubProperty &property) { return property.mode == "upper"; });
-            return SwitchInputMethod(target.name, target.id);
+            return SwitchInputMethodSubtype(target.name, target.id);
         }
         if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_LANGUAGE, state)) {
             IMSA_HILOGI("switch language");
@@ -1117,7 +1151,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
                                   [&current](const SubProperty &property) { return property.language == "english"; })
                               : FindSubPropertyByCompare(current->name,
                                   [&current](const SubProperty &property) { return property.language == "chinese"; });
-            return SwitchInputMethod(target.name, target.id);
+            return SwitchInputMethodSubtype(target.name, target.id);
         }
         if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
             IMSA_HILOGI("switch ime");
@@ -1130,7 +1164,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
             auto iter = std::find_if(props.begin(), props.end(),
                 [&current](const Property &property) { return property.name != current->name; });
             if (iter != props.end()) {
-                return SwitchInputMethod(iter->name, iter->id);
+                return SwitchInputMethodSubtype(iter->name, iter->id);
             }
         }
         IMSA_HILOGD("keycode undefined");

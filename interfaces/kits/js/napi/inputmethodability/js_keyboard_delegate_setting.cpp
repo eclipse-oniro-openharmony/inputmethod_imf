@@ -29,8 +29,6 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 constexpr size_t ARGC_FOUR = 4;
-constexpr int32_t V9_FLAG = 1;
-constexpr int32_t ORIGINAL_FLAG = 2;
 const std::string JsKeyboardDelegateSetting::KDS_CLASS_NAME = "KeyboardDelegate";
 thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
 
@@ -95,10 +93,22 @@ std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::GetKeyboar
                 return nullptr;
             }
             keyboardDelegate_ = delegate;
-            InputMethodAbility::GetInstance()->setKdListener(keyboardDelegate_);
         }
     }
     return keyboardDelegate_;
+}
+
+bool JsKeyboardDelegateSetting::InitKeyboardDelegate()
+{
+    if (InputMethodAbility::GetInstance()->SetCoreAndAgent() != ErrorCode::NO_ERROR) {
+        return false;
+    }
+    auto delegate = GetKeyboardDelegateSetting();
+    if (delegate == nullptr) {
+        return false;
+    }
+    InputMethodAbility::GetInstance()->setKdListener(delegate);
+    return true;
 }
 
 napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_info info)
@@ -107,7 +117,7 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
     auto delegate = GetKeyboardDelegateSetting();
-    if (delegate == nullptr) {
+    if (delegate == nullptr || !InitKeyboardDelegate()) {
         IMSA_HILOGE("get delegate nullptr");
         napi_value result = nullptr;
         napi_get_null(env, &result);
@@ -127,36 +137,24 @@ napi_value JsKeyboardDelegateSetting::JsConstructor(napi_env env, napi_callback_
 
 napi_value JsKeyboardDelegateSetting::CreateKeyboardDelegate(napi_env env, napi_callback_info info)
 {
-    return GetKDInstance(env, info, ORIGINAL_FLAG);
+    return GetKDInstance(env, info);
 }
 
 napi_value JsKeyboardDelegateSetting::GetKeyboardDelegate(napi_env env, napi_callback_info info)
 {
-    return GetKDInstance(env, info, V9_FLAG);
+    return GetKDInstance(env, info);
 }
 
-napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_info info, int flag)
+napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_info info)
 {
     napi_value instance = nullptr;
     napi_value cons = nullptr;
-    if (flag == V9_FLAG) {
-        size_t argc = AsyncCall::ARGC_MAX;
-        napi_value argv[AsyncCall::ARGC_MAX] = { nullptr };
-
-        NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-        if (argc != ARGC_ZERO) {
-            JsUtils::ThrowException(
-                env, IMFErrorCode::EXCEPTION_PARAMCHECK, "Wrong number of arguments, requires 0", TypeCode::TYPE_NONE);
-        }
-    }
-
     if (napi_get_reference_value(env, KDSRef_, &cons) != napi_ok) {
-        IMSA_HILOGE("napi_get_reference_value(env, KDSRef_, &cons) != napi_ok");
+        IMSA_HILOGE("failed to get reference value");
         return nullptr;
     }
-    IMSA_HILOGE("Get a reference to the global variable appAccountRef_ complete");
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
-        IMSA_HILOGE("napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok");
+        IMSA_HILOGE("failed to new instance");
         return nullptr;
     }
     return instance;
