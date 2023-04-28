@@ -179,7 +179,8 @@ int32_t InputClientStub::OnSwitchInput(const Property &property, const SubProper
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputClientStub::OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+int32_t InputClientStub::OnPanelStatusChange(
+    const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
 {
     return ErrorCode::NO_ERROR;
 }

@@ -602,31 +602,18 @@ int32_t PerUserSession::OnUpdateEventFlag(sptr<IInputClient> &client, const ImeE
         IMSA_HILOGE("client not found");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
-    IMSA_HILOGI("PerUserSession::UpdateEventFlag");
     auto eventFlag = clientInfo->eventFlag;
     switch (type) {
         case ImeEventType::IME_CHANGE: {
-            if (isOn) {
-                eventFlag.imeChange = 1;
-            } else {
-                eventFlag.imeChange = 0;
-            }
+            eventFlag.imeChange = isOn ? 1 : 0;
             break;
         }
         case ImeEventType::IME_HIDE: {
-            if (isOn) {
-                eventFlag.imeHide = 1;
-            } else {
-                eventFlag.imeHide = 0;
-            }
+            eventFlag.imeHide = isOn ? 1 : 0;
             break;
         }
         case ImeEventType::IME_SHOW: {
-            if (isOn) {
-                eventFlag.imeShow = 1;
-            } else {
-                eventFlag.imeShow = 0;
-            }
+            eventFlag.imeShow = isOn ? 1 : 0;
             break;
         }
         default:
