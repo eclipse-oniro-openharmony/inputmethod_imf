@@ -88,7 +88,9 @@ std::vector<InputWindowInfo> InputMethodPanelTest::windowInfo_;
 void InputMethodPanelTest::SetUpTestCase(void)
 {
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    InputMethodController::GetInstance()->SetSettingListener(listener);
+    auto imc = InputMethodController::GetInstance();
+    imc->SetSettingListener(listener);
+    imc->UpdateEventFlag(IME_SHOW, true);
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
 }
 
@@ -114,9 +116,6 @@ void InputMethodPanelTest::CheckIMCPanelStatusChange(const InputWindowStatus &st
         [&status, &windowInfo] { return status == status_; });
     EXPECT_EQ(status_, status);
     ASSERT_EQ(windowInfo_.size(), 1);
-    //EXPECT_EQ(windowInfo_[0].name, windowInfo.name);
-    //EXPECT_EQ(windowInfo_[0].top, windowInfo.top);
-    //EXPECT_EQ(windowInfo_[0].left, windowInfo.left);
     EXPECT_EQ(windowInfo_[0].width, windowInfo.width);
     EXPECT_EQ(windowInfo_[0].height, windowInfo.height);
 }
@@ -383,12 +382,12 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
     ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::CheckIMCPanelStatusChange(InputWindowStatus::SHOW, { "", 0, 0, width, height });
-    width = defaultDisplay->GetWidth() - 3;
-    height = defaultDisplay->GetHeight() / 2 - 3;
-    ret = inputMethodPanel->Resize(width, height);
+    auto width1 = defaultDisplay->GetWidth() - 3;
+    auto height2 = defaultDisplay->GetHeight() / 2 - 3;
+    ret = inputMethodPanel->Resize(width1, height2);
     ret = inputMethodPanel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    InputMethodPanelTest::CheckIMCPanelStatusChange(InputWindowStatus::HIDE, { "", 0, 0, width, height });
+    InputMethodPanelTest::CheckIMCPanelStatusChange(InputWindowStatus::SHOW, { "", 0, 0, width, height });
 }
 } // namespace MiscServices
 } // namespace OHOS

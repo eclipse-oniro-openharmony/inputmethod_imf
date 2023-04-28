@@ -44,6 +44,7 @@ public:
 
 class SettingListener : public InputMethodSettingListener {
     void OnImeChange(const Property &property, const SubProperty &subProperty) {}
+    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) {}
 };
 
 void TestListInputMethod(sptr<InputMethodController> imc)

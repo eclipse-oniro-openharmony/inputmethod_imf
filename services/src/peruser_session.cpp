@@ -602,24 +602,24 @@ int32_t PerUserSession::OnUpdateEventFlag(sptr<IInputClient> &client, const ImeE
         IMSA_HILOGE("client not found");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
-    auto eventFlag = clientInfo->eventFlag;
     switch (type) {
         case ImeEventType::IME_CHANGE: {
-            eventFlag.imeChange = isOn ? 1 : 0;
+            clientInfo->eventFlag.imeChange = isOn ? 1 : 0;
             break;
         }
         case ImeEventType::IME_HIDE: {
-            eventFlag.imeHide = isOn ? 1 : 0;
+            clientInfo->eventFlag.imeHide = isOn ? 1 : 0;
             break;
         }
         case ImeEventType::IME_SHOW: {
-            eventFlag.imeShow = isOn ? 1 : 0;
+            clientInfo->eventFlag.imeShow = isOn ? 1 : 0;
             break;
         }
         default:
             break;
     }
-    if (!isOn && eventFlag.imeChange == 0 && eventFlag.imeHide == 0 && eventFlag.imeShow == 0) {
+    if (!isOn && clientInfo->eventFlag.imeChange == 0 && clientInfo->eventFlag.imeHide == 0
+        && clientInfo->eventFlag.imeShow == 0) {
         clientInfo->isSubscriber = false;
     }
     if (!clientInfo->isSubscriber && !clientInfo->isValid) {
