@@ -47,6 +47,7 @@ describe("InputMethodTest", function () {
     const LEAST_DISABLE_IME_NUM = 1;
     const NEW_IME_SUBTYPE_NUM = 3;
     const OLD_IME_SUBTYPE_NUM = 2;
+    const WAIT_DEAL_OK = 500;
 
     let isImeChange = false;
     let imeChangeProp = undefined;
@@ -108,6 +109,12 @@ describe("InputMethodTest", function () {
         expect(subProps[i].id).assertEqual(extName1[i]);
         expect(subProps[i].locale).assertEqual("");
         expect(subProps[i].language).assertEqual(language1[i]);
+      }
+    }
+
+    function wait(delay) {
+      let start = new Date().getTime();
+      while (new Date().getTime() - start < delay){
       }
     }
 
@@ -200,6 +207,7 @@ describe("InputMethodTest", function () {
         let property = inputMethod.getCurrentInputMethod();
         checkNewImeCurrentProp(property);
         console.info("************* inputmethod_test_switchInputMethod_001 Test end*************");
+        wait(WAIT_DEAL_OK);
         done();
       }).catch( err=> {
         console.info("inputmethod_test_switchInputMethod_001 err:" + JSON.stringify(err.message));
@@ -397,6 +405,7 @@ describe("InputMethodTest", function () {
         let subProp = inputMethod.getCurrentInputMethodSubtype();
         checkNewImeCurrentSubProp(subProp, 1);
         console.info("************* inputmethod_test_switchCurrentInputMethodSubtype_001 Test end*************");
+        wait(WAIT_DEAL_OK);
         done();
       }).catch( err=> {
         console.info("inputmethod_test_switchCurrentInputMethodSubtype_001 err:" + JSON.stringify(err.message))
@@ -428,6 +437,7 @@ describe("InputMethodTest", function () {
         let subProp = inputMethod.getCurrentInputMethodSubtype();
         checkNewImeCurrentSubProp(subProp, 0);
         console.info("************* inputmethod_test_switchCurrentInputMethodSubtype_002 Test end*************");
+        wait(WAIT_DEAL_OK);
         done();
       });
     });
@@ -477,6 +487,7 @@ describe("InputMethodTest", function () {
         let property = inputMethod.getCurrentInputMethod();
         checkImeCurrentProp(property, 0)
         console.info("************* inputmethod_test_switchCurrentInputMethodAndSubtype_001 Test end*************");
+        wait(WAIT_DEAL_OK);
         done();
       }).catch( err=> {
         console.info("inputmethod_test_switchCurrentInputMethodAndSubtype_001 err:" + JSON.stringify(err.message))
@@ -514,6 +525,7 @@ describe("InputMethodTest", function () {
         let property = inputMethod.getCurrentInputMethod();
         checkNewImeCurrentProp(property);
         console.info("************* inputmethod_test_switchCurrentInputMethodAndSubtype_002 Test end*************");
+        wait(WAIT_DEAL_OK);
         done();
       });
     });
@@ -561,43 +573,6 @@ describe("InputMethodTest", function () {
         done();
       }).catch((err) => {
         console.info('inputmethod_test_listInputMethodSubtype_002 listInputMethodSubtype err ' + JSON.stringify(err.message));
-        expect().assertFail();
-      });
-    });
-
-    /*
-     * @tc.number  inputmethod_test_showOptionalInputMethods_001
-     * @tc.name    Test displays a dialog box for selecting an input method.
-     * @tc.desc    Function test
-     * @tc.level   2
-     */
-    it('inputmethod_test_showOptionalInputMethods_001', 0, async function (done) {
-      console.info("************* inputmethod_test_showOptionalInputMethods_001 Test start*************");
-      let inputMethodSetting = inputMethod.getSetting();
-      inputMethodSetting.showOptionalInputMethods((err) => {
-        if(err){
-          console.info("inputmethod_test_showOptionalInputMethods_001 err:" + JSON.stringify(err.message));
-          return;
-        }
-        console.info("************* inputmethod_test_showOptionalInputMethods_001 Test end*************");
-        done();
-      });
-    });
-
-    /*
-     * @tc.number  inputmethod_test_showOptionalInputMethods_002
-     * @tc.name    Test displays a dialog box for selecting an input method.
-     * @tc.desc    Function test
-     * @tc.level   2
-     */
-    it('inputmethod_test_showOptionalInputMethods_002', 0, async function (done) {
-      console.info("************* inputmethod_test_showOptionalInputMethods_002 Test start*************");
-      let inputMethodSetting = inputMethod.getSetting();
-      inputMethodSetting.showOptionalInputMethods().then(()=>{
-        console.info("************* inputmethod_test_showOptionalInputMethods_002 Test end*************");
-        done();
-      }).catch((err) => {
-        console.info('inputmethod_test_showOptionalInputMethods_002 err ' + JSON.stringify(err.message));
         expect().assertFail();
       });
     });
@@ -764,5 +739,43 @@ describe("InputMethodTest", function () {
         console.info("inputmethod_test_stopInputSession_002 err" + JSON.stringify(err.message));
         expect().assertFail();
       })
+    });
+
+    /*
+     * @tc.number  inputmethod_test_showOptionalInputMethods_001
+     * @tc.name    Test displays a dialog box for selecting an input method.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+    it('inputmethod_test_showOptionalInputMethods_001', 0, async function (done) {
+      console.info("************* inputmethod_test_showOptionalInputMethods_001 Test start*************");
+      let inputMethodSetting = inputMethod.getSetting();
+      inputMethodSetting.showOptionalInputMethods((err) => {
+        if(err){
+          console.info("inputmethod_test_showOptionalInputMethods_001 err:" + JSON.stringify(err.message));
+          return;
+        }
+        console.info("************* inputmethod_test_showOptionalInputMethods_001 Test end*************");
+        done();
+      });
+    });
+
+    /*
+     * @tc.number  inputmethod_test_showOptionalInputMethods_002
+     * @tc.name    Test displays a dialog box for selecting an input method.
+     * @tc.desc    Function test
+     * @tc.level   2
+     */
+    it('inputmethod_test_showOptionalInputMethods_002', 0, async function (done) {
+      console.info("************* inputmethod_test_showOptionalInputMethods_002 Test start*************");
+      let inputMethodSetting = inputMethod.getSetting();
+      inputMethodSetting.showOptionalInputMethods().then(()=>{
+        console.info("************* inputmethod_test_showOptionalInputMethods_002 Test end*************");
+        wait(WAIT_DEAL_OK);
+        done();
+      }).catch((err) => {
+        console.info('inputmethod_test_showOptionalInputMethods_002 err ' + JSON.stringify(err.message));
+        expect().assertFail();
+      });
     });
 })
