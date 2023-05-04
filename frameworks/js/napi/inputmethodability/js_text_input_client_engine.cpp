@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,6 +41,7 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("moveCursor", MoveCursor),
         DECLARE_NAPI_FUNCTION("selectByRange", SelectByRange),
         DECLARE_NAPI_FUNCTION("selectByMovement", SelectByMovement),
+        DECLARE_NAPI_FUNCTION("sendExtendAction", SendExtendAction),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(), JsConstructor, nullptr,
@@ -68,7 +69,8 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
         }
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    // 2 means JsAPI:moveCursor has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -193,7 +195,8 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
+    // 2 means JsAPI:sendKeyFunction has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -219,7 +222,8 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
+    // 2 means JsAPI:deleteForward has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -245,7 +249,8 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
+    // 2 means JsAPI:deleteBackward has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -271,7 +276,8 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
+    // 2 means JsAPI:insertText has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -299,7 +305,8 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
+    // 2 means JsAPI:getForward has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -327,7 +334,8 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 1);
+    // 2 means JsAPI:getBackward has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -352,7 +360,8 @@ napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callba
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    // 1 means JsAPI:getEditorAttribute has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -378,7 +387,8 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, ctxt);
+    // 2 means JsAPI:selectByRange has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -404,7 +414,29 @@ napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, ctxt);
+    // 2 means JsAPI:selectByMovement has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
+    return asyncCall.Call(env, exec);
+}
+
+napi_value JsTextInputClientEngine::SendExtendAction(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<SendExtendActionContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        return JsUtils::GetValue(env, argv[0], ctxt->action);
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t code = InputMethodAbility::GetInstance()->SendExtendAction(ctxt->action);
+        if (code == ErrorCode::NO_ERROR) {
+            ctxt->SetState(napi_ok);
+            return;
+        }
+        ctxt->SetErrorCode(code);
+    };
+    ctxt->SetAction(std::move(input));
+    // 2 means JsAPI:sendExtendAction has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -426,7 +458,8 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    // 1 means JsAPI:getTextIndexAtCursor has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 } // namespace MiscServices

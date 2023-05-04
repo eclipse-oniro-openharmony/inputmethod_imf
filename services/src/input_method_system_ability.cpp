@@ -349,12 +349,17 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
     if (!IsNeedSwitch(bundleName, subName)) {
         return ErrorCode::NO_ERROR;
     }
+    return OnSwitchInputMethod(bundleName, subName);
+}
+
+int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleName, const std::string &subName)
+{
     ImeInfo info;
     auto ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName, info);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
-    return info.isNewIme ? SwitchIme(bundleName, info) : SwitchImeType(info);
+    return info.isNewIme ? Switch(bundleName, info) : SwitchExtension(info);
 }
 
 bool InputMethodSystemAbility::IsNeedSwitch(const std::string &bundleName, const std::string &subName)
@@ -370,13 +375,14 @@ bool InputMethodSystemAbility::IsNeedSwitch(const std::string &bundleName, const
     return true;
 }
 
-int32_t InputMethodSystemAbility::SwitchIme(const std::string &bundleName, const ImeInfo &info)
+int32_t InputMethodSystemAbility::Switch(const std::string &bundleName, const ImeInfo &info)
 {
     auto currentImeBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
-    return bundleName != currentImeBundleName ? SwitchImeType(info) : SwitchImeSubType(info);
+    return bundleName != currentImeBundleName ? SwitchExtension(info) : SwitchSubType(info);
 }
 
-int32_t InputMethodSystemAbility::SwitchImeType(const ImeInfo &info)
+// Switch the current InputMethodExtension to the new InputMethodExtension
+int32_t InputMethodSystemAbility::SwitchExtension(const ImeInfo &info)
 {
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId;
     StopInputService(currentIme);
@@ -391,7 +397,8 @@ int32_t InputMethodSystemAbility::SwitchImeType(const ImeInfo &info)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodSystemAbility::SwitchImeSubType(const ImeInfo &info)
+// Inform current InputMethodExtension to switch subtype
+int32_t InputMethodSystemAbility::SwitchSubType(const ImeInfo &info)
 {
     auto ret = userSession_->OnSwitchIme(info.prop, info.subProp, true);
     if (ret != ErrorCode::NO_ERROR) {
@@ -564,7 +571,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         if (info == nullptr) {
             return ErrorCode::ERROR_PERSIST_CONFIG;
         }
-        int32_t ret = SwitchImeType(*info);
+        int32_t ret = SwitchExtension(*info);
         IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
     }
     return ErrorCode::NO_ERROR;
@@ -621,7 +628,7 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime");
-        return SwitchInputMethod();
+        return SwitchType();
     }
     IMSA_HILOGE("keycode undefined");
     return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
@@ -643,7 +650,7 @@ int32_t InputMethodSystemAbility::SwitchMode()
         IMSA_HILOGE("target is empty");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    return SwitchInputMethod(target->name, target->id);
+    return OnSwitchInputMethod(target->name, target->id);
 }
 
 int32_t InputMethodSystemAbility::SwitchLanguage()
@@ -665,10 +672,10 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
         IMSA_HILOGE("target is empty");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    return SwitchInputMethod(target->name, target->id);
+    return OnSwitchInputMethod(target->name, target->id);
 }
 
-int32_t InputMethodSystemAbility::SwitchInputMethod()
+int32_t InputMethodSystemAbility::SwitchType()
 {
     std::vector<Property> props = {};
     auto ret = ImeInfoInquirer::GetInstance().ListInputMethod(userId_, ALL, props);
@@ -680,7 +687,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethod()
     auto iter = std::find_if(props.begin(), props.end(),
         [&currentImeBundle](const Property &property) { return property.name != currentImeBundle; });
     if (iter != props.end()) {
-        return SwitchInputMethod(iter->name, "");
+        return OnSwitchInputMethod(iter->name, "");
     }
     return ErrorCode::NO_ERROR;
 }

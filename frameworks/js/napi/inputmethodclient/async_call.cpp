@@ -15,26 +15,29 @@
 
 #include "async_call.h"
 
+#include <algorithm>
+
 #include "global.h"
 #include "js_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
 constexpr size_t ARGC_MAX = 6;
-AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t pos) : env_(env)
+AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t maxParamCount)
+    : env_(env)
 {
     context_ = new AsyncContext();
     size_t argc = ARGC_MAX;
     napi_value self = nullptr;
     napi_value argv[ARGC_MAX] = { nullptr };
     NAPI_CALL_RETURN_VOID(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
-    pos = ((pos == ASYNC_DEFAULT_POS) ? (argc - 1) : pos);
-    if (pos < argc) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[pos], &valueType);
+    napi_valuetype valueType = napi_undefined;
+    argc = std::min(argc, maxParamCount);
+    if (argc > 0) {
+        napi_typeof(env, argv[argc - 1], &valueType);
         if (valueType == napi_function) {
-            napi_create_reference(env, argv[pos], 1, &context_->callback);
-            argc = pos;
+            napi_create_reference(env, argv[argc - 1], 1, &context_->callback);
+            argc = argc - 1;
         }
     }
     NAPI_CALL_RETURN_VOID(env, (*context)(env, argc, argv, self));

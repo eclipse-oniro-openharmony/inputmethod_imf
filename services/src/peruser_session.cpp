@@ -94,8 +94,8 @@ int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isC
     IMSA_HILOGD("start");
     auto clientInfo = GetClientInfo(client);
     if (clientInfo == nullptr) {
-        IMSA_HILOGE("client not found");
-        return ErrorCode::ERROR_CLIENT_NOT_FOUND;
+        IMSA_HILOGD("client not found");
+        return ErrorCode::NO_ERROR;
     }
     // if current client is removed, hide keyboard and clear channel
     auto currentClient = GetCurrentClient();

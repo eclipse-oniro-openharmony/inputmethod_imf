@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -454,6 +454,16 @@ int32_t InputMethodAbility::HideKeyboardSelf()
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return controlChannel->HideKeyboardSelf(1);
+}
+
+int32_t InputMethodAbility::SendExtendAction(int32_t action)
+{
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGI("InputMethodAbility::SendExtendAction channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return channel->HandleExtendAction(action);
 }
 
 int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &text)

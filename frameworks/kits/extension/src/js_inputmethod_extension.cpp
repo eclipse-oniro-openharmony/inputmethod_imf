@@ -77,7 +77,10 @@ JsInputMethodExtension::JsInputMethodExtension(JsRuntime &jsRuntime) : jsRuntime
 {
 }
 
-JsInputMethodExtension::~JsInputMethodExtension() = default;
+JsInputMethodExtension::~JsInputMethodExtension()
+{
+    jsRuntime_.FreeNativeReference(std::move(jsObj_));
+}
 
 void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,

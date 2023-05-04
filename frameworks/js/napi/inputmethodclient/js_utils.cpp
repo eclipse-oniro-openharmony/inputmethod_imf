@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_CLIENT_NOT_FOCUSED, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NOT_EDITABLE, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NULL_POINTER, EXCEPTION_IMCLIENT },
-    { ErrorCode::ERROR_CLIENT_NOT_BOUND, EXCEPTION_IMCLIENT },
+    { ErrorCode::ERROR_CLIENT_NOT_BOUND, EXCEPTION_DETACHED },
     { ErrorCode::ERROR_CLIENT_ADD_FAILED, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_NULL_POINTER, EXCEPTION_IMMS },
     { ErrorCode::ERROR_BAD_PARAMETERS, EXCEPTION_IMMS },
@@ -60,6 +60,7 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_CONTROLLER, "input method controller error." },
     { EXCEPTION_SETTINGS, "input method settings extension error." },
     { EXCEPTION_IMMS, "input method manager service error." },
+    { EXCEPTION_DETACHED, "input method not attached." },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
@@ -83,12 +84,12 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
     napi_value message;
     if (type == TypeCode::TYPE_NONE) {
         errMsg = errMsg + msg;
-        IMSA_HILOGE("THROW_PARAMETER_ERROR message: %{public}s", errMsg.c_str());
+        IMSA_HILOGE("THROW_ERROR message: %{public}s", errMsg.c_str());
     } else {
         auto iter = PARAMETER_TYPE.find(type);
         if (iter != PARAMETER_TYPE.end()) {
             errMsg = errMsg + "The type of " + msg + " must be " + iter->second;
-            IMSA_HILOGE("THROW_PARAMETER_TYPE_ERROR message: %{public}s", errMsg.c_str());
+            IMSA_HILOGE("THROW_ERROR message: %{public}s", errMsg.c_str());
         }
     }
     NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, errMsg.c_str(), NAPI_AUTO_LENGTH, &message));
@@ -221,7 +222,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, int32_t &out)
 {
     napi_valuetype type = napi_undefined;
     napi_status status = napi_typeof(env, in, &type);
-    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_number), "invalid type", status);
+    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_number), "invalid type", napi_generic_failure);
     return napi_get_value_int32(env, in, &out);
 }
 
@@ -230,7 +231,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, uint32_t &out)
 {
     napi_valuetype type = napi_undefined;
     napi_status status = napi_typeof(env, in, &type);
-    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_number), "invalid type", status);
+    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_number), "invalid type", napi_generic_failure);
     return napi_get_value_uint32(env, in, &out);
 }
 
@@ -238,8 +239,16 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, bool &out)
 {
     napi_valuetype type = napi_undefined;
     napi_status status = napi_typeof(env, in, &type);
-    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_boolean), "invalid type", status);
+    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_boolean), "invalid type", napi_generic_failure);
     return napi_get_value_bool(env, in, &out);
+}
+
+napi_status JsUtils::GetValue(napi_env env, napi_value in, double &out)
+{
+    napi_valuetype type = napi_undefined;
+    napi_status status = napi_typeof(env, in, &type);
+    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_number), "invalid double type", napi_generic_failure);
+    return napi_get_value_double(env, in, &out);
 }
 
 /* napi_value <-> std::string */
@@ -248,7 +257,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::string &out)
     IMSA_HILOGD("JsUtils get string value in.");
     napi_valuetype type = napi_undefined;
     napi_status status = napi_typeof(env, in, &type);
-    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_string), "invalid type", status);
+    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_string), "invalid type", napi_generic_failure);
 
     size_t maxLen = STR_MAX_LENGTH;
     status = napi_get_value_string_utf8(env, in, NULL, 0, &maxLen);
@@ -269,6 +278,17 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::string &out)
         status = napi_generic_failure;
     }
     return status;
+}
+
+napi_status JsUtils::GetValue(napi_env env, napi_value in, const std::string &type, napi_value &out)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_status status = napi_typeof(env, in, &valueType);
+    if ((status == napi_ok) && (valueType == napi_object)) {
+        status = napi_get_named_property(env, in, type.c_str(), &out);
+        return status;
+    }
+    return napi_generic_failure;
 }
 
 /* napi_value <-> PanelInfo */

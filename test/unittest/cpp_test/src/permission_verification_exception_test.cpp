@@ -48,7 +48,8 @@ public:
     void SetKeyboardStatus(bool status) override;
     void DeleteForward(int32_t length) override;
     void SendKeyEventFromInputMethod(const KeyEvent &event) override;
-    void SendKeyboardInfo(const KeyboardInfo &status) override;
+    void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) override;
+    void SendFunctionKey(const FunctionKey &functionKey) override;
     void MoveCursor(const Direction direction) override;
     void HandleSetSelection(int32_t start, int32_t end) override;
     void HandleExtendAction(int32_t action) override;
@@ -70,7 +71,10 @@ void TextListener::DeleteForward(int32_t length)
 void TextListener::SendKeyEventFromInputMethod(const KeyEvent &event)
 {
 }
-void TextListener::SendKeyboardInfo(const KeyboardInfo &status)
+void TextListener::SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
+{
+}
+void TextListener::SendFunctionKey(const FunctionKey &functionKey)
 {
 }
 void TextListener::MoveCursor(const Direction direction)

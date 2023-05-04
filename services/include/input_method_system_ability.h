@@ -90,9 +90,10 @@ private:
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     void StartUserIdListener();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);
-    int32_t SwitchIme(const std::string &bundleName, const ImeInfo &info);
-    int32_t SwitchImeType(const ImeInfo &info);
-    int32_t SwitchImeSubType(const ImeInfo &info);
+    int32_t OnSwitchInputMethod(const std::string &bundleName, const std::string &subName);
+    int32_t Switch(const std::string &bundleName, const ImeInfo &info);
+    int32_t SwitchExtension(const ImeInfo &info);
+    int32_t SwitchSubType(const ImeInfo &info);
     ServiceRunningState state_;
     void InitServiceHandler();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
@@ -106,7 +107,7 @@ private:
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
     int32_t SwitchLanguage();
-    int32_t SwitchInputMethod();
+    int32_t SwitchType();
 };
 } // namespace MiscServices
 } // namespace OHOS

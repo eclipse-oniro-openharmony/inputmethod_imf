@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -81,33 +81,20 @@ class KeyEvent {
 
 enum class KeyboardStatus { NONE = 0, HIDE, SHOW };
 
-enum class FunctionKey { NONE = 0, CONFIRM };
-
-class KeyboardInfo {
+class FunctionKey {
 public:
-    KeyboardStatus GetKeyboardStatus() const
+    EnterKeyType GetEnterKeyType() const
     {
-        return keyboardStatus;
+        return enterKeyType;
     }
 
-    void SetKeyboardStatus(int32_t status)
+    void SetEnterKeyType(EnterKeyType keyType)
     {
-        keyboardStatus = static_cast<KeyboardStatus>(status);
-    }
-
-    FunctionKey GetFunctionKey() const
-    {
-        return functionKey;
-    }
-
-    void SetFunctionKey(int32_t key)
-    {
-        functionKey = static_cast<FunctionKey>(key);
+        enterKeyType = keyType;
     }
 
 private:
-    KeyboardStatus keyboardStatus = KeyboardStatus::NONE;
-    FunctionKey functionKey = FunctionKey::NONE;
+    EnterKeyType enterKeyType = EnterKeyType::UNSPECIFIED;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -23,9 +23,9 @@
 #include "js_keyboard_controller_engine.h"
 #include "js_runtime_utils.h"
 #include "js_text_input_client_engine.h"
-#include "napi_base_context.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "napi_base_context.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -68,7 +68,6 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY(
             "PATTERN_PASSWORD", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::VISIBLE_PASSWORD))),
 
-        DECLARE_NAPI_FUNCTION("MoveCursor", MoveCursor),
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
         DECLARE_NAPI_FUNCTION("getInputMethodAbility", GetInputMethodAbility),
     };
@@ -181,25 +180,6 @@ napi_value JsInputMethodEngineSetting::GetIMEInstance(napi_env env, napi_callbac
     return instance;
 }
 
-napi_value JsInputMethodEngineSetting::MoveCursor(napi_env env, napi_callback_info info)
-{
-    size_t argc = ARGC_MAX;
-    napi_value argv[ARGC_MAX] = { nullptr };
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    NAPI_ASSERT(env, argc == 1, "Wrong number of arguments, requires 1");
-
-    int32_t number = 0;
-    if (JsUtils::GetValue(env, argv[ARGC_ZERO], number) != napi_ok) {
-        IMSA_HILOGE("Get number error");
-    }
-
-    InputMethodAbility::GetInstance()->MoveCursor(number);
-
-    napi_value result = nullptr;
-    napi_get_null(env, &result);
-    return result;
-}
-
 void JsInputMethodEngineSetting::RegisterListener(
     napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
@@ -250,12 +230,13 @@ void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::st
 
 napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_info info)
 {
-    size_t argc = ARGC_TWO;
-    napi_value argv[ARGC_TWO] = { nullptr };
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { nullptr };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    PARAM_CHECK_RETURN(env, argc >= ARGC_TWO, "Wrong number of arguments, requires 2", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(
+        env, (argc >= ARGC_TWO) && (argc <= ARGC_MAX), "Wrong number of arguments, requires 2", TYPE_NONE, nullptr);
 
     std::string type = "";
     napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], type);
@@ -339,7 +320,8 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
     };
 
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, ctxt, ARGC_TWO);
+    // 3 means JsAPI:createPanel has 3 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec);
 }
 
@@ -380,7 +362,8 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
     };
 
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, 1);
+    // 2 means JsAPI:destroyPanel has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 

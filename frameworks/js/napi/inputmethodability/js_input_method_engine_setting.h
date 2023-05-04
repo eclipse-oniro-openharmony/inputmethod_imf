@@ -43,7 +43,6 @@ public:
     static napi_value GetInputMethodAbility(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
-    static napi_value MoveCursor(napi_env env, napi_callback_info info);
     static napi_value CreatePanel(napi_env env, napi_callback_info info);
     static napi_value DestroyPanel(napi_env env, napi_callback_info info);
     void OnInputStart() override;
