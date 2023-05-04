@@ -72,8 +72,8 @@ private:
     sptr<WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
     PanelFlag panelFlag_ = PanelFlag::FLG_FIXED;
-    bool showRegistered_ = true;
-    bool hideRegistered_ = true;
+    bool showRegistered_ = false;
+    bool hideRegistered_ = false;
     uint32_t invalidGravityPercent = 0;
     std::shared_ptr<PanelStatusListener> panelStatusListener_ = nullptr;
 
