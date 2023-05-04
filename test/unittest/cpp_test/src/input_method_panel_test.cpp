@@ -218,6 +218,8 @@ HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener, TestSize.Level0)
     EXPECT_TRUE(statusListener != nullptr);
     std::string type = "show";
     inputMethodPanel->SetPanelStatusListener(statusListener, type);
+    type = "hide";
+    inputMethodPanel->SetPanelStatusListener(statusListener, type);
 
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
