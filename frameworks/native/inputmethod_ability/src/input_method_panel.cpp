@@ -51,7 +51,7 @@ int32_t InputMethodPanel::CreatePanel(
     window_ = OHOS::Rosen::Window::Create(windowName, winOption_, context, wmError);
     if (wmError == WMError::WM_ERROR_INVALID_PERMISSION || wmError == WMError::WM_ERROR_NOT_SYSTEM_APP) {
         IMSA_HILOGE("Create window failed, permission denied, %{public}d", wmError);
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        return ErrorCode::ERROR_NOT_IME;
     }
     if (window_ == nullptr || wmError != WMError::WM_OK) {
         return ErrorCode::ERROR_OPERATE_PANEL;
