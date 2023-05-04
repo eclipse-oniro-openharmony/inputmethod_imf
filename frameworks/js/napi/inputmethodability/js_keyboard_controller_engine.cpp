@@ -98,7 +98,8 @@ napi_value JsKeyboardControllerEngine::Hide(napi_env env, napi_callback_info inf
         }
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    // 1 means JsAPI:hide has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -112,7 +113,8 @@ napi_value JsKeyboardControllerEngine::HideKeyboard(napi_env env, napi_callback_
         ctxt->status = napi_ok;
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), 0);
+    // 1 means JsAPI:hideKeyboard has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 } // namespace MiscServices

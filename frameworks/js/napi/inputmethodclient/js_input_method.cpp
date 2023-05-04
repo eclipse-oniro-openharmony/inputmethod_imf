@@ -239,7 +239,8 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), PARAM_POS_ONE);
+    // 2 means JsAPI:switchInputMethod has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -300,7 +301,8 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), PARAM_POS_ONE);
+    // 2 means JsAPI:switchCurrentInputMethodSubtype has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -339,7 +341,8 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt), PARAM_POS_TWO);
+    // 3 means JsAPI:switchCurrentInputMethodAndSubtype has 3 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec);
 }
 } // namespace MiscServices
