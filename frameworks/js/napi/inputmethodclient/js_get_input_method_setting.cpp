@@ -149,43 +149,29 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
     napi_env env, napi_value argv, std::shared_ptr<ListInputContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
-    napi_status status = napi_typeof(env, argv, &valueType);
-    if (valueType == napi_object) {
-        napi_value result = nullptr;
-        napi_get_named_property(env, argv, "name", &result);
+    napi_typeof(env, argv, &valueType);
+    PARAM_CHECK_RETURN(env, valueType == napi_object, "Parameter error.", TYPE_OBJECT, napi_invalid_arg);
+    napi_value result = nullptr;
+    napi_get_named_property(env, argv, "name", &result);
+    JsUtils::GetValue(env, result, ctxt->property.name);
+
+    result = nullptr;
+    napi_get_named_property(env, argv, "id", &result);
+    JsUtils::GetValue(env, result, ctxt->property.id);
+
+    if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
+        result = nullptr;
+        napi_get_named_property(env, argv, "packageName", &result);
         JsUtils::GetValue(env, result, ctxt->property.name);
 
         result = nullptr;
-        napi_get_named_property(env, argv, "id", &result);
+        napi_get_named_property(env, argv, "methodId", &result);
         JsUtils::GetValue(env, result, ctxt->property.id);
-
-        if (ctxt->property.name.empty() || ctxt->property.id.empty()) {
-            result = nullptr;
-            napi_get_named_property(env, argv, "packageName", &result);
-            JsUtils::GetValue(env, result, ctxt->property.name);
-
-            result = nullptr;
-            napi_get_named_property(env, argv, "methodId", &result);
-            JsUtils::GetValue(env, result, ctxt->property.id);
-        }
-        PARAM_CHECK_RETURN(env, (!ctxt->property.name.empty() && !ctxt->property.id.empty()), "Parameter error.",
-            TYPE_NONE, napi_invalid_arg);
-
-        result = nullptr;
-        napi_get_named_property(env, argv, "label", &result);
-        JsUtils::GetValue(env, result, ctxt->property.label);
-
-        result = nullptr;
-        napi_get_named_property(env, argv, "icon", &result);
-        JsUtils::GetValue(env, result, ctxt->property.icon);
-
-        result = nullptr;
-        napi_get_named_property(env, argv, "iconId", &result);
-        status = JsUtils::GetValue(env, result, ctxt->property.iconId);
-        IMSA_HILOGD(
-            "methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
     }
-    return status;
+    PARAM_CHECK_RETURN(env, (!ctxt->property.name.empty() && !ctxt->property.id.empty()), "Parameter error.",
+        TYPE_NONE, napi_invalid_arg);
+    IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
+    return napi_ok;
 }
 
 napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_info info)
@@ -211,7 +197,8 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
         ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    // 1 means JsAPI:listInputMethod has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -243,7 +230,8 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
         ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    // 2 means JsAPI:getInputMethods has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -263,7 +251,8 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, ctxt);
+    // 1 means JsAPI:displayOptionalInputMethod has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -291,7 +280,8 @@ napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, ctxt);
+    // 1 means JsAPI:showOptionalInputMethods has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -323,7 +313,8 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
         ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    // 2 means JsAPI:listInputMethodSubtype has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
 }
 
@@ -348,7 +339,8 @@ napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, 
         ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, std::dynamic_pointer_cast<AsyncCall::Context>(ctxt));
+    // 1 means JsAPI:listCurrentInputMethodSubtype has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
