@@ -161,7 +161,7 @@ namespace MiscServices {
         IMSA_HILOGD("PerUserSession::RemoveClient");
         auto clientInfo = GetClientInfo(inputClient);
         if (clientInfo == nullptr) {
-            IMSA_HILOGD("client not found");
+            IMSA_HILOGD("client already removed");
             return;
         }
         auto currentClient = GetCurrentClient();
