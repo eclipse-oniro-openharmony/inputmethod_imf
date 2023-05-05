@@ -115,7 +115,7 @@ namespace MiscServices {
 
         sptr<IInputMethodAgent> imsAgent;
         std::mutex clientLock_;
-        sptr<IInputClient> currentClient; // the current input client
+        sptr<IInputClient> currentClient_; // the current input client
 
         sptr<RemoteObjectDeathRecipient> imsDeathRecipient = nullptr;
         MessageHandler *msgHandler = nullptr; // message handler working with Work Thread
@@ -134,9 +134,9 @@ namespace MiscServices {
         void OnClientDied(sptr<IInputClient> remote);
         void OnImsDied(sptr<IInputMethodCore> remote);
 
-        int AddClient(sptr<IRemoteObject> inputClient, const ClientInfo &clientInfo);
+        int AddClient(const sptr<IRemoteObject> &inputClient, const ClientInfo &clientInfo);
         void UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard);
-        void RemoveClient(sptr<IRemoteObject> inputClient);
+        void RemoveClient(const sptr<IRemoteObject> &inputClient);
         int ShowKeyboard(const sptr<IInputClient>& inputClient, bool isShowKeyboard);
         int HideKeyboard(const sptr<IInputClient>& inputClient);
         int GetImeIndex(const sptr<IInputClient>& inputClient);

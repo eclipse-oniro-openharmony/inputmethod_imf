@@ -110,13 +110,12 @@ namespace MiscServices {
         }
     }
 
-    int PerUserSession::AddClient(sptr<IRemoteObject> inputClient, const ClientInfo &clientInfo)
+    int PerUserSession::AddClient(const sptr<IRemoteObject> &inputClient, const ClientInfo &clientInfo)
     {
         IMSA_HILOGD("PerUserSession::AddClient");
-        std::lock_guard<std::recursive_mutex> lock(mtx);
         auto cacheClient = GetClientInfo(inputClient);
         if (cacheClient != nullptr) {
-            IMSA_HILOGE("PerUserSession::AddClient info is exist, not need add.");
+            IMSA_HILOGI("client is exist, not need add.");
             return ErrorCode::NO_ERROR;
         }
         auto info = std::make_shared<ClientInfo>(clientInfo);
@@ -124,16 +123,19 @@ namespace MiscServices {
             IMSA_HILOGE("info is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        mapClients.insert({ inputClient, info });
         info->deathRecipient->SetDeathRecipient(
             [this, info](const wptr<IRemoteObject> &) { this->OnClientDied(info->client); });
         sptr<IRemoteObject> obj = info->client->AsObject();
         if (obj == nullptr) {
-            IMSA_HILOGE("PerUserSession::AddClient inputClient AsObject is nullptr");
+            IMSA_HILOGE("inputClient AsObject is nullptr");
             return ErrorCode::ERROR_REMOTE_CLIENT_DIED;
         }
-        bool ret = obj->AddDeathRecipient(info->deathRecipient);
-        IMSA_HILOGI("Add death recipient %{public}s", ret ? "success" : "failed");
+        if (!obj->AddDeathRecipient(info->deathRecipient)) {
+            IMSA_HILOGE("failed to add death recipient");
+            return ErrorCode::ERROR_ADD_CLIENT_FAILED;
+        }
+        std::lock_guard<std::recursive_mutex> lock(mtx);
+        mapClients.insert({ inputClient, info });
         return ErrorCode::NO_ERROR;
     }
 
@@ -154,22 +156,22 @@ namespace MiscServices {
     \return ErrorCode::NO_ERROR no error
     \return ErrorCode::ERROR_CLIENT_NOT_FOUND client is not found
     */
-    void PerUserSession::RemoveClient(sptr<IRemoteObject> inputClient)
+    void PerUserSession::RemoveClient(const sptr<IRemoteObject> &inputClient)
     {
         IMSA_HILOGD("PerUserSession::RemoveClient");
-        auto client = GetCurrentClient();
-        if (client != nullptr && client->AsObject() == inputClient) {
-            SetCurrentClient(nullptr);
-        }
-        std::lock_guard<std::recursive_mutex> lock(mtx);
-        auto it = mapClients.find(inputClient);
-        if (it == mapClients.end()) {
-            IMSA_HILOGE("PerUserSession::RemoveClient client not found");
+        auto clientInfo = GetClientInfo(inputClient);
+        if (clientInfo == nullptr) {
+            IMSA_HILOGD("client not found");
             return;
         }
-        auto info = it->second;
-        info->client->AsObject()->RemoveDeathRecipient(info->deathRecipient);
-        mapClients.erase(it);
+        auto currentClient = GetCurrentClient();
+        if (currentClient != nullptr && currentClient->AsObject() == inputClient) {
+            SetCurrentClient(nullptr);
+        }
+        inputClient->RemoveDeathRecipient(clientInfo->deathRecipient);
+        clientInfo->deathRecipient = nullptr;
+        std::lock_guard<std::recursive_mutex> lock(mtx);
+        mapClients.erase(inputClient);
     }
 
     /*! Show keyboard
@@ -544,13 +546,13 @@ namespace MiscServices {
     {
         IMSA_HILOGI("set current client");
         std::lock_guard<std::mutex> lock(clientLock_);
-        currentClient = client;
+        currentClient_ = client;
     }
 
     sptr<IInputClient> PerUserSession::GetCurrentClient()
     {
         std::lock_guard<std::mutex> lock(clientLock_);
-        return currentClient;
+        return currentClient_;
     }
 
     void PerUserSession::OnInputMethodSwitched(const Property &property, const SubProperty &subProperty)
