@@ -61,53 +61,6 @@ namespace MiscServices {
     PerUserSession::~PerUserSession()
     {
         imsDeathRecipient = nullptr;
-        if (workThreadHandler.joinable()) {
-            workThreadHandler.join();
-        }
-    }
-
-
-    /*! Create work thread for this user
-    \param handle message handle to receive the message
-    */
-    void PerUserSession::CreateWorkThread(MessageHandler& handler)
-    {
-        msgHandler = &handler;
-        workThreadHandler = std::thread([this] {WorkThread();});
-    }
-
-    /*! Wait till work thread exits
-    */
-    void PerUserSession::JoinWorkThread()
-    {
-        if (workThreadHandler.joinable()) {
-            workThreadHandler.join();
-        }
-    }
-
-    /*! Work thread for this user
-    */
-    void PerUserSession::WorkThread()
-    {
-        if (!msgHandler) {
-            return;
-        }
-        while (1) {
-            Message *msg = msgHandler->GetMessage();
-            std::lock_guard<std::recursive_mutex> lock(mtx);
-            switch (msg->msgId_) {
-                case MSG_ID_HIDE_KEYBOARD_SELF: {
-                    int flag = msg->msgContent_->ReadInt32();
-                    OnHideKeyboardSelf(flag);
-                    break;
-                }
-                default: {
-                    break;
-                }
-            }
-            delete msg;
-            msg = nullptr;
-        }
     }
 
     int PerUserSession::AddClient(const sptr<IRemoteObject> &inputClient, const ClientInfo &clientInfo)
@@ -309,10 +262,9 @@ namespace MiscServices {
     /*! Hide current keyboard
     \param flag the flag to hide keyboard.
     */
-    int PerUserSession::OnHideKeyboardSelf(int flags)
+    int PerUserSession::OnHideKeyboardSelf()
     {
         IMSA_HILOGD("PerUserSession::OnHideKeyboardSelf");
-        (void)flags;
         sptr<IInputClient> client = GetCurrentClient();
         if (client == nullptr) {
             IMSA_HILOGE("current client is nullptr");

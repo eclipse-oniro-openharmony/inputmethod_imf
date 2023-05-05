@@ -88,11 +88,9 @@ namespace MiscServices {
         int32_t OnStopInput(sptr<IInputClient> client);
         int32_t OnReleaseInput(sptr<IInputClient> client);
         int32_t OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
-        int OnHideKeyboardSelf(int flags);
+        int OnHideKeyboardSelf();
         int OnShowKeyboardSelf();
 
-        void CreateWorkThread(MessageHandler& handler);
-        void JoinWorkThread();
         void StopInputService(std::string imeId);
         void OnInputMethodSwitched(const Property &property, const SubProperty &subProperty);
 
@@ -119,7 +117,6 @@ namespace MiscServices {
 
         sptr<RemoteObjectDeathRecipient> imsDeathRecipient = nullptr;
         MessageHandler *msgHandler = nullptr; // message handler working with Work Thread
-        std::thread workThreadHandler; // work thread handler
         std::recursive_mutex mtx; // mutex to lock the operations among multi work threads
         std::mutex resetLock;
         ResetManager manager[MAX_IME];
@@ -129,7 +126,6 @@ namespace MiscServices {
         PerUserSession(const PerUserSession&&);
         PerUserSession& operator =(const PerUserSession&&);
         std::shared_ptr<ClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
-        void WorkThread();
 
         void OnClientDied(sptr<IInputClient> remote);
         void OnImsDied(sptr<IInputMethodCore> remote);

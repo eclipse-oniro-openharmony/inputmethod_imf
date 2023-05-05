@@ -92,7 +92,6 @@ private:
     void StopInputService(std::string imeId);
     int32_t OnUserStarted(const Message *msg);
     int32_t OnUserRemoved(const Message *msg);
-    int32_t OnHandleMessage(Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
     int32_t OnDisplayOptionalInputMethod(int32_t userId);
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();

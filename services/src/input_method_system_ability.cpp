@@ -247,27 +247,6 @@ namespace MiscServices {
     bool InputMethodSystemAbility::StartInputService(std::string imeId)
     {
         IMSA_HILOGE("InputMethodSystemAbility::StartInputService() ime:%{public}s", imeId.c_str());
-
-        auto session = GetUserSession(MAIN_USER_ID);
-
-        std::map<int32_t, MessageHandler*>::const_iterator it = msgHandlers.find(MAIN_USER_ID);
-        if (it == msgHandlers.end()) {
-            IMSA_HILOGE("InputMethodSystemAbility::StartInputService() need start handler");
-            MessageHandler *handler = new (std::nothrow) MessageHandler();
-            if  (handler == nullptr) {
-                IMSA_HILOGE("InputMethodSystemAbility::StartInputService MessageHandler is nullptr");
-            } else {
-                if (session != nullptr) {
-                    IMSA_HILOGD("InputMethodSystemAbility::StartInputService session is not nullptr");
-                    session->CreateWorkThread(*handler);
-                    msgHandlers.insert(std::pair<int32_t, MessageHandler*>(MAIN_USER_ID, handler));
-                } else {
-                    IMSA_HILOGE("InputMethodSystemAbility::StartInputService session is nullptr");
-                    delete handler;
-                }
-            }
-        }
-
         bool isStartSuccess = false;
         sptr<AAFwk::IAbilityManager> abms = GetAbilityManagerService();
         if (abms) {
@@ -284,7 +263,6 @@ namespace MiscServices {
                 isStartSuccess = true;
             }
         }
-
         if (!isStartSuccess) {
             IMSA_HILOGE("StartInputService failed. Try again 10s later");
             auto callback = [this, imeId]() { StartInputService(imeId); };
@@ -380,7 +358,7 @@ namespace MiscServices {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        return session->OnHideKeyboardSelf(0);
+        return session->OnHideKeyboardSelf();
     }
 
     int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
@@ -412,7 +390,7 @@ namespace MiscServices {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        return session->OnHideKeyboardSelf(0);
+        return session->OnHideKeyboardSelf();
     };
 
     int32_t InputMethodSystemAbility::ShowCurrentInput()
@@ -690,7 +668,7 @@ namespace MiscServices {
             IMSA_HILOGE("InputMethodSystemAbility::PrepareInput session is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
         }
-        return session->OnHideKeyboardSelf(0);
+        return session->OnHideKeyboardSelf();
     };
 
     int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
@@ -876,12 +854,15 @@ namespace MiscServices {
                 }
                 case MSG_ID_PACKAGE_REMOVED: {
                     OnPackageRemoved(msg);
-                    delete msg;
-                    msg = nullptr;
                     break;
                 }
                 case MSG_ID_HIDE_KEYBOARD_SELF:{
-                    OnHandleMessage(msg);
+                    auto session = GetUserSession(MAIN_USER_ID);
+                    if (session == nullptr) {
+                        IMSA_HILOGE("session is nullptr");
+                        break;
+                    }
+                    session->OnHideKeyboardSelf();
                     break;
                 }
                 case MSG_ID_START_INPUT_SERVICE: {
@@ -894,6 +875,7 @@ namespace MiscServices {
                     break;
                 }
             }
+            delete msg;
         }
     }
 
@@ -977,21 +959,6 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
     return ErrorCode::NO_ERROR;
 }
 
-    /*! Handle message
-    \param msgId the id of message to run
-    \msg the parameters are saved in msg->msgContent_
-    \return ErrorCode::NO_ERROR
-    \return ErrorCode::ERROR_USER_NOT_UNLOCKED user not unlocked
-    */
-    int32_t InputMethodSystemAbility::OnHandleMessage(Message *msg)
-    {
-        std::map<int32_t, MessageHandler*>::const_iterator it = msgHandlers.find(MAIN_USER_ID);
-        if (it != msgHandlers.end()) {
-            MessageHandler *handler = it->second;
-            handler->SendMessage(msg);
-        }
-        return ErrorCode::NO_ERROR;
-    }
     /*! Called when a package is removed.
     \n Run in work thread of input method management service
     \param msg the parameters are saved in msg->msgContent_
