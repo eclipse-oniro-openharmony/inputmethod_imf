@@ -359,12 +359,21 @@ void JsGetInputMethodSetting::RegisterListener(
     IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty()) {
-        IMSA_HILOGI("start listening.");
-        InputMethodController::GetInstance()->SetSettingListener(inputMethod_);
+        auto eventType = EVENT_TYPE.find(type)->second;
+        auto ret = InputMethodController::GetInstance()->StartSettingListening(inputMethod_, eventType);
+        // Å×Òì³£
+        if (ret != ErrorCode::NO_ERROR) {
+            return;
+        }
     }
     if (jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGI("start type: %{public}s listening.", type.c_str());
-        InputMethodController::GetInstance()->UpdateEventFlag(EVENT_TYPE.find(type)->second, true);
+        auto eventType = EVENT_TYPE.find(type)->second;
+        auto ret = InputMethodController::GetInstance()->UpdateListenInfo(eventType, true);
+        // Å×Òì³£
+        if (ret != ErrorCode::NO_ERROR) {
+            return;
+        }
     }
 
     auto callbacks = jsCbMap_[type];
@@ -422,7 +431,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     if (callback == nullptr) {
         jsCbMap_.erase(type);
         IMSA_HILOGI("stop all type: %{public}s listening.", type.c_str());
-        InputMethodController::GetInstance()->UpdateEventFlag(EVENT_TYPE.find(type)->second, false);
+        InputMethodController::GetInstance()->UpdateListenInfo(EVENT_TYPE.find(type)->second, false);
         return;
     }
 
@@ -436,7 +445,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     if (jsCbMap_[type].empty()) {
         IMSA_HILOGI("stop last type: %{public}s listening.", type.c_str());
         jsCbMap_.erase(type);
-        InputMethodController::GetInstance()->UpdateEventFlag(EVENT_TYPE.find(type)->second, false);
+        InputMethodController::GetInstance()->UpdateListenInfo(EVENT_TYPE.find(type)->second, false);
     }
 }
 

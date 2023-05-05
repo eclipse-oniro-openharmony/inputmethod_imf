@@ -62,8 +62,11 @@ private:
 
     int32_t PanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply);
 
-    int32_t UpdateEventFlagOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t UpdateListenInfoOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t RestoreListenInfoOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t StartListeningOnRemote(MessageParcel &data, MessageParcel &reply);
     // Deprecated because of no permission check, kept for compatibility
     int32_t DisplayInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
 
@@ -92,7 +95,9 @@ private:
         [DISPLAY_OPTIONAL_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated,
         [STOP_INPUT_SESSION] = &InputMethodSystemAbilityStub::StopInputSessionOnRemote,
         [PANEL_STATUS_CHANGE] = &InputMethodSystemAbilityStub::PanelStatusChangeOnRemote,
-        [UPDATE_EVENT_FLAG] = &InputMethodSystemAbilityStub::UpdateEventFlagOnRemote,
+        [UPDATE_LISTEN_INFO] = &InputMethodSystemAbilityStub::UpdateListenInfoOnRemote,
+        [START_LISTENING] = &InputMethodSystemAbilityStub::StartListeningOnRemote,
+        [RESTORE_LISTEN_INFO] = &InputMethodSystemAbilityStub::RestoreListenInfoOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

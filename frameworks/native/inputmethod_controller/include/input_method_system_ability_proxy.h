@@ -60,7 +60,9 @@ public:
     int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) override;
     int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
-    int32_t UpdateEventFlag(sptr<IInputClient> client, const ImeEventType &event, bool isOn) override;
+    int32_t UpdateListenInfo(sptr<IInputClient> client, ImeEventType type, bool isOn) override;
+    int32_t RestoreListenInfo(InputClientInfo &clientInfo, const std::vector<ImeEventType> &types) override;
+    int32_t StartListening(InputClientInfo &clientInfo, ImeEventType type) override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;

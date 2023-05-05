@@ -78,7 +78,9 @@ public:
     void UpdateCurrentUserId(int32_t userId);
     void OnUnfocused(int32_t pid, int32_t uid);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
-    int32_t OnUpdateEventFlag(sptr<IInputClient> &client, const ImeEventType &type, bool isOn);
+    int32_t OnUpdateListenInfo(const sptr<IInputClient> &client, ImeEventType type, bool isOn);
+    int32_t RestoreListenInfo(InputClientInfo &clientInfo, const std::vector<ImeEventType> &types);
+    int32_t OnStartListening(const InputClientInfo &clientInfo);
 
 private:
     int userId_;                                   // the id of the user to whom the object is linking

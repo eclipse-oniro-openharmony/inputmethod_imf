@@ -243,7 +243,7 @@ int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &d
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputMethodSystemAbilityStub::UpdateEventFlagOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputMethodSystemAbilityStub::UpdateListenInfoOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     auto clientObject = data.ReadRemoteObject();
     if (clientObject == nullptr) {
@@ -251,13 +251,37 @@ int32_t InputMethodSystemAbilityStub::UpdateEventFlagOnRemote(MessageParcel &dat
         IMSA_HILOGE("%{public}s nullptr", __func__);
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    uint32_t event;
+    ImeEventType type;
     bool isOn;
-    if (!ITypesUtil::Unmarshal(data, event, isOn)) {
+    if (!ITypesUtil::Unmarshal(data, type, isOn)) {
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = UpdateEventFlag(iface_cast<IInputClient>(clientObject), static_cast<ImeEventType>(event), isOn);
+    int32_t ret = UpdateListenInfo(iface_cast<IInputClient>(clientObject), type, isOn);
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::RestoreListenInfoOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<ImeEventType> types;
+    InputClientInfo clientInfo;
+    if (!ITypesUtil::Unmarshal(data, clientInfo, types)) {
+        IMSA_HILOGE("Unmarshal failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    int32_t ret = RestoreListenInfo(clientInfo, types);
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::StartListeningOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    InputClientInfo clientInfo;
+    ImeEventType type;
+    if (!ITypesUtil::Unmarshal(data, clientInfo, type)) {
+        IMSA_HILOGE("Unmarshal failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    int32_t ret = StartListening(clientInfo, type);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

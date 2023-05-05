@@ -89,8 +89,8 @@ void InputMethodSwitchTest::SetUpTestCase(void)
     IMSA_HILOGI("InputMethodSwitchTest::SetUpTestCase");
     GrantNativePermission();
     imc_ = InputMethodController::GetInstance();
-    imc_->SetSettingListener(std::make_shared<InputMethodSettingListenerImpl>());
-    imc_->UpdateEventFlag(IME_CHANGE, true);
+    imc_->StartSettingListening(std::make_shared<InputMethodSettingListenerImpl>(), IME_CHANGE);
+    imc_->UpdateListenInfo(IME_CHANGE, true);
 }
 
 void InputMethodSwitchTest::TearDownTestCase(void)

@@ -142,7 +142,7 @@ void TestShowSomething(sptr<InputMethodController> imc)
     imc->GetCurrentInputMethodSubtype();
 
     auto settingListener = std::make_shared<SettingListener>();
-    imc->SetSettingListener(settingListener);
+    imc->StartSettingListening(settingListener, IME_CHANGE);
 
     imc->StopInputSession();
     imc->Close();

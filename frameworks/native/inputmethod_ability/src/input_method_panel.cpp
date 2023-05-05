@@ -204,6 +204,8 @@ void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
     auto imsa = ImaUtils::GetImsaProxy();
     if (imsa != nullptr && panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
         auto rect = window_->GetRect();
+        IMSA_HILOGD("InputMethodPanel::rect, x:%{public}d, y:%{public}d, w:%{public}d, h:%{public}d", rect.posX_,
+            rect.posY_, rect.width_, rect.height_);
         imsa->PanelStatusChange(
             status, { window_->GetWindowName(), rect.posX_, rect.posY_, rect.width_, rect.height_ });
     }

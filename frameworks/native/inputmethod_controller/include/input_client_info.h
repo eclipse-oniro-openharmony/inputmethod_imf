@@ -38,7 +38,7 @@ struct InputClientInfo {
     int32_t displayID{ 0 };                   // the display id on which the input client is showing
     bool isShowKeyboard{ false };             // soft keyboard status
     bool isValid{ false };                    // whether client is valid
-    bool isSubscriber{ false };               // whether is event subscriber
+    bool isListener{ false };                 // whether is event subscriber
     ImeEventFlag eventFlag{ 0 };              // the type and status tag of the subscription event
     InputAttribute attribute;                 // the input client attribute
     sptr<IInputClient> client;                // the remote object handler for service to callback input client

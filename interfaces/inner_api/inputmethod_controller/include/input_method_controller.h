@@ -206,8 +206,8 @@ public:
      * @param listener Indicates the listener to be set.
      * @since 6
      */
-    IMF_API void SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener);
-    IMF_API void UpdateEventFlag(const ImeEventType &event, bool isOn);
+    IMF_API int32_t StartSettingListening(std::shared_ptr<InputMethodSettingListener> listener, ImeEventType type);
+    IMF_API int32_t UpdateListenInfo(ImeEventType type, bool isOn);
     IMF_API void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
 
     /**
@@ -440,6 +440,7 @@ private:
     bool IsCorrectParam(int32_t number);
     void DoIncrease(int32_t status);
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
+    int32_t RestoreListenInfo();
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
@@ -476,6 +477,10 @@ private:
     std::mutex textFieldReplyCountLock_;
     uint32_t textFieldReplyCount_{ 0 };
     std::condition_variable textFieldReplyCountCv_;
+
+    std::atomic_bool isDiedRestoreListen_{ false };
+    std::mutex eventTypesLock_;
+    std::vector<ImeEventType> eventTypes_;
 };
 } // namespace MiscServices
 } // namespace OHOS

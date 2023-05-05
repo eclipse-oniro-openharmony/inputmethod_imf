@@ -21,14 +21,17 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "accesstoken_kit.h"
 #include "display_manager.h"
 #include "global.h"
 #include "input_method_controller.h"
 #include "panel_status_listener.h"
+#include "token_setproc.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+using namespace OHOS::Security::AccessToken;
 constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 200;
 class InputMethodPanelTest : public testing::Test {
 public:
@@ -36,6 +39,9 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
+    static void RestoreSelfTokenID();
+    static void AllocTestTokenID();
+    static void SetTestTokenID();
     static void ImcPanelListeningTestCheck(
         InputWindowStatus realStatus, InputWindowStatus waitStatus, const InputWindowInfo &windowInfo);
     static void ImcPanelListeningTestCheck(InputWindowStatus realStatus, InputWindowStatus waitStatus);
@@ -60,6 +66,8 @@ public:
     static sptr<InputMethodController> imc_;
     static uint32_t windowWidth_;
     static uint32_t windowHeight_;
+    static uint64_t selfTokenId_;
+    static uint64_t testTokenIdEx_;
     static bool showPanel_;
     static bool hidePanel_;
     static std::condition_variable panelListenerCv_;
@@ -95,11 +103,15 @@ std::vector<InputWindowInfo> InputMethodPanelTest::windowInfo_;
 sptr<InputMethodController> InputMethodPanelTest::imc_;
 uint32_t InputMethodPanelTest::windowWidth_ = 0;
 uint32_t InputMethodPanelTest::windowHeight_ = 0;
+uint64_t InputMethodPanelTest::selfTokenId_ = 0;
+uint64_t InputMethodPanelTest::testTokenIdEx_ = 0;
 void InputMethodPanelTest::SetUpTestCase(void)
 {
+    selfTokenId_ = GetSelfTokenID();
+    AllocTestTokenID();
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     imc_ = InputMethodController::GetInstance();
-    imc_->SetSettingListener(listener);
+    imc_->StartSettingListening(listener, ImeEventType::IME_CHANGE);
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
 }
 
@@ -116,6 +128,28 @@ void InputMethodPanelTest::SetUp(void)
 void InputMethodPanelTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::TearDown");
+}
+
+void InputMethodPanelTest::AllocTestTokenID()
+{
+    HapInfoParams infoParams = {
+        .userID = 1, .bundleName = "imf_panel_test", .instIndex = 0, .appIDDesc = "imf_test", .isSystemApp = true
+    };
+    HapPolicyParams policyParams = { .apl = APL_NORMAL, .domain = "test.domain", .permList = {}, .permStateList = {} };
+    auto tokenInfo = AccessTokenKit::AllocHapToken(infoParams, policyParams);
+    testTokenIdEx_ = tokenInfo.tokenIDEx;
+}
+
+void InputMethodPanelTest::SetTestTokenID()
+{
+    auto ret = SetSelfTokenID(testTokenIdEx_);
+    IMSA_HILOGD("SetSelfTokenID ret: %{public}d", ret);
+}
+
+void InputMethodPanelTest::RestoreSelfTokenID()
+{
+    auto ret = SetSelfTokenID(selfTokenId_);
+    IMSA_HILOGD("SetSelfTokenID ret = %{public}d", ret);
 }
 
 void InputMethodPanelTest::ImcPanelListeningTestCheck(
@@ -154,8 +188,10 @@ void InputMethodPanelTest::ImcPanelListeningTestPrepare(
     ret = inputMethodPanel->Resize(windowWidth_, windowHeight_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     if (isSetListening) {
-        imc_->UpdateEventFlag(ImeEventType::IME_HIDE, isOn);
-        imc_->UpdateEventFlag(ImeEventType::IME_SHOW, isOn);
+        SetTestTokenID();
+        imc_->UpdateListenInfo(ImeEventType::IME_HIDE, isOn);
+        imc_->UpdateListenInfo(ImeEventType::IME_SHOW, isOn);
+        RestoreSelfTokenID();
     }
 }
 

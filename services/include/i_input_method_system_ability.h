@@ -57,7 +57,9 @@ public:
         HIDE_CURRENT_INPUT_DEPRECATED,
         DISPLAY_OPTIONAL_INPUT_DEPRECATED,
         PANEL_STATUS_CHANGE,
-        UPDATE_EVENT_FLAG,
+        UPDATE_LISTEN_INFO,
+        START_LISTENING,
+        RESTORE_LISTEN_INFO,
         INPUT_SERVICE_CMD_LAST
     };
 
@@ -79,7 +81,9 @@ public:
     virtual int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) = 0;
     virtual int32_t SwitchInputMethod(const std::string &bundleName, const std::string &name) = 0;
     virtual int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) = 0;
-    virtual int32_t UpdateEventFlag(sptr<IInputClient> client, const ImeEventType &event, bool isOn) = 0;
+    virtual int32_t UpdateListenInfo(sptr<IInputClient> client, ImeEventType type, bool isOn) = 0;
+    virtual int32_t RestoreListenInfo(InputClientInfo &clientInfo, const std::vector<ImeEventType> &types) = 0;
+    virtual int32_t StartListening(InputClientInfo &clientInfo, ImeEventType type) = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;
