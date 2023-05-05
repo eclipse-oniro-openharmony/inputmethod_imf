@@ -69,8 +69,7 @@ namespace OHOS {
         userSessions->GetCurrentSubProperty();
         userSessions->SetCurrentSubProperty(subProperty);
         userSessions->StopInputService(str);
-        userSessions->JoinWorkThread();
-        userSessions->OnHideKeyboardSelf(flags);
+        userSessions->OnHideKeyboardSelf();
         userSessions->OnStartInput(client, isShowKeyboard);
         userSessions->OnStopInput(client);
         userSessions->OnReleaseInput(client);
