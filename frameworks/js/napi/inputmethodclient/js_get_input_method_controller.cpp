@@ -226,9 +226,6 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
 
     std::string type = "";
     JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    PARAM_CHECK_RETURN(env,
-        EVENT_TYPE.find(type) != EVENT_TYPE.end() || TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end(), "unkown type",
-        TYPE_NONE, nullptr);
 
     auto engine = reinterpret_cast<JsGetInputMethodController *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
