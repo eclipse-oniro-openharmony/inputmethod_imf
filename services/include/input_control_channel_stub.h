@@ -30,13 +30,13 @@ namespace OHOS {
 namespace MiscServices {
 class InputControlChannelStub : public IRemoteStub<IInputControlChannel> {
 public:
-    explicit InputControlChannelStub(int userId);
+    explicit InputControlChannelStub(int32_t userId);
     virtual ~InputControlChannelStub();
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     int32_t HideKeyboardSelf(int flags) override;
 
 private:
-    int userId_;
+    int32_t userId_;
 };
 } // namespace MiscServices
 } // namespace OHOS

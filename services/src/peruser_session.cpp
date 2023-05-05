@@ -41,7 +41,7 @@ namespace MiscServices {
 using namespace MessageID;
 constexpr uint32_t IME_RESTART_TIMES = 5;
 constexpr uint32_t IME_RESTART_INTERVAL = 300;
-PerUserSession::PerUserSession(int userId)
+PerUserSession::PerUserSession(int32_t userId)
     : userId_(userId), imsDeathRecipient_(new InputDeathRecipient()),
       imeRestartHandler_(std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create("ImeRestart")))
 {
@@ -99,8 +99,8 @@ int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isC
     IMSA_HILOGD("start");
     auto clientInfo = GetClientInfo(client);
     if (clientInfo == nullptr) {
-        IMSA_HILOGE("client not found");
-        return ErrorCode::ERROR_CLIENT_NOT_FOUND;
+        IMSA_HILOGD("client already removed");
+        return ErrorCode::NO_ERROR;
     }
     // if current client is removed, hide keyboard and clear channel
     auto currentClient = GetCurrentClient();
@@ -212,7 +212,7 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
  * It's called when an input method service died
  * @param the remote object handler of input method service who died.
  */
-void PerUserSession::OnImsDied(sptr<IInputMethodCore> remote)
+void PerUserSession::OnImsDied(const sptr<IInputMethodCore> &remote)
 {
     if (remote == nullptr) {
         return;
@@ -220,10 +220,6 @@ void PerUserSession::OnImsDied(sptr<IInputMethodCore> remote)
     ClearImeData(CURRENT_IME);
     if (GetCurrentClient() == nullptr) {
         IMSA_HILOGD("not bound to a client, no need to restart at once");
-        return;
-    }
-    if (isImeRemoved_.GetValue()) {
-        IMSA_HILOGD("ime died from package removal, no need to restart");
         return;
     }
     if (!IsRestartIme(CURRENT_IME)) {
@@ -324,16 +320,20 @@ int32_t PerUserSession::OnPrepareInput(const InputClientInfo &clientInfo)
     return AddClient(clientInfo.client->AsObject(), clientInfo);
 }
 
-int32_t PerUserSession::SendAgentToSingleClient(const InputClientInfo &clientInfo)
+int32_t PerUserSession::SendAgentToSingleClient(const sptr<IInputClient> &client)
 {
     IMSA_HILOGD("PerUserSession::SendAgentToSingleClient");
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGI("agent is nullptr");
         CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return clientInfo.client->OnInputReady(agent);
+    return client->OnInputReady(agent);
 }
 
 /** Release input. Called by an input client.Run in work thread of this user
@@ -354,9 +354,9 @@ int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient>& client)
  * @param the parameters from remote client
  * @return ErrorCode
  */
-int32_t PerUserSession::OnStartInput(sptr<IInputClient> client, bool isShowKeyboard)
+int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard)
 {
-    IMSA_HILOGD("PerUserSession::OnStartInput");
+    IMSA_HILOGD("start input with keyboard[%{public}d]", isShowKeyboard);
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -375,7 +375,7 @@ int32_t PerUserSession::OnStartInput(sptr<IInputClient> client, bool isShowKeybo
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     // build channel from imc to ima
-    int32_t ret = SendAgentToSingleClient(*clientInfo);
+    int32_t ret = SendAgentToSingleClient(client);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
@@ -383,7 +383,7 @@ int32_t PerUserSession::OnStartInput(sptr<IInputClient> client, bool isShowKeybo
     return ShowKeyboard(clientInfo->channel, client, isShowKeyboard);
 }
 
-int32_t PerUserSession::OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
+int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
     IMSA_HILOGD("PerUserSession::SetCoreAndAgent Start");
     if (core == nullptr || agent == nullptr) {
@@ -404,32 +404,30 @@ int32_t PerUserSession::OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInp
     bool isStarted = GetImsCore(CURRENT_IME) != nullptr;
     isImeStarted_.SetValue(isStarted);
 
-    IMSA_HILOGD("Bind IMA to service and IMC");
-    InitInputControlChannel();
+    int ret = InitInputControlChannel();
+    IMSA_HILOGI("init input control channel ret: %{public}d", ret);
     auto client = GetCurrentClient();
     if (client != nullptr) {
         auto clientInfo = GetClientInfo(client->AsObject());
         if (clientInfo != nullptr) {
-            OnStartInput(clientInfo->client, clientInfo->isShowKeyboard);
+            ret = OnStartInput(clientInfo->client, clientInfo->isShowKeyboard);
+            IMSA_HILOGI("start input ret: %{public}d", ret);
         }
     }
     return ErrorCode::NO_ERROR;
 }
 
-void PerUserSession::InitInputControlChannel()
+int32_t PerUserSession::InitInputControlChannel()
 {
     IMSA_HILOGD("PerUserSession::InitInputControlChannel");
     sptr<IInputControlChannel> inputControlChannel = new InputControlChannelStub(userId_);
-    sptr<IInputMethodCore> core = GetImsCore(CURRENT_IME);
+    auto core = GetImsCore(CURRENT_IME);
     if (core == nullptr) {
         IMSA_HILOGE("PerUserSession::InitInputControlChannel core is nullptr");
-        return;
+        return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    int ret = core->InitInputControlChannel(
+    return core->InitInputControlChannel(
         inputControlChannel, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGI("PerUserSession::InitInputControlChannel fail %{public}d", ret);
-    }
 }
 
 /** Stop input. Called by an input client. Run in work thread of this user
@@ -470,11 +468,12 @@ bool PerUserSession::IsRestartIme(uint32_t index)
 void PerUserSession::ClearImeData(uint32_t index)
 {
     IMSA_HILOGI("Clear ime...index = %{public}d", index);
-    sptr<IInputMethodCore> core = GetImsCore(index);
+    auto core = GetImsCore(index);
     if (core != nullptr) {
         core->AsObject()->RemoveDeathRecipient(imsDeathRecipient_);
         SetImsCore(index, nullptr);
     }
+    SetAgent(nullptr);
 }
 
 void PerUserSession::SetCurrentClient(sptr<IInputClient> client)
@@ -601,7 +600,7 @@ bool PerUserSession::StartCurrentIme(bool isRetry)
         IMSA_HILOGE("failed to get ability manager service");
         return false;
     }
-    IMSA_HILOGI("start current ime: %{public}s", currentIme.c_str());
+    IMSA_HILOGI("ime: %{public}s", currentIme.c_str());
     AAFwk::Want want;
     want.SetElementName(currentIme.substr(0, pos), currentIme.substr(pos + 1));
     isImeStarted_.Clear(false);

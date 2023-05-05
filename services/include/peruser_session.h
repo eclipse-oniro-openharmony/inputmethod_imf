@@ -68,10 +68,10 @@ public:
     ~PerUserSession();
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
-    int32_t OnStartInput(sptr<IInputClient> client, bool isShowKeyboard);
+    int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard);
     int32_t OnStopInput(sptr<IInputClient> client);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
-    int32_t OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
+    int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
     int OnHideKeyboardSelf();
     int OnShowKeyboardSelf();
     void StopInputService(std::string imeId);
@@ -79,15 +79,12 @@ public:
     void UpdateCurrentUserId(int32_t userId);
     void OnUnfocused(int32_t pid, int32_t uid);
 
-    BlockData<bool> isImeRemoved_{ MAX_PACKAGE_REMOVE_WAIT_TIME, false };
-
 private:
-    int userId_;                                   // the id of the user to whom the object is linking
+    int32_t userId_; // the id of the user to whom the object is linking
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> mapClients_;
     static const int MAX_RESTART_NUM = 3;
     static const int IME_RESET_TIME_OUT = 3;
-    static const int MAX_PACKAGE_REMOVE_WAIT_TIME = 100;
-    static const int MAX_IME_START_TIME = 350;
+    static const int MAX_IME_START_TIME = 1000;
 
     std::mutex imsCoreLock_;
     sptr<IInputMethodCore> imsCore[MAX_IME];       // the remote handlers of input method service
@@ -109,7 +106,7 @@ private:
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
 
     void OnClientDied(sptr<IInputClient> remote);
-    void OnImsDied(sptr<IInputMethodCore> remote);
+    void OnImsDied(const sptr<IInputMethodCore> &remote);
 
     int AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo);
     void UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard);
@@ -118,10 +115,8 @@ private:
         const sptr<IInputDataChannel> &channel, const sptr<IInputClient> &inputClient, bool isShowKeyboard);
     int32_t HideKeyboard(const sptr<IInputClient> &inputClient);
     int32_t ClearDataChannel(const sptr<IInputDataChannel> &channel);
-    int GetImeIndex(const sptr<IInputClient> &inputClient);
-    int32_t SendAgentToSingleClient(const InputClientInfo &clientInfo);
-    void InitInputControlChannel();
-    void SendAgentToAllClients();
+    int32_t SendAgentToSingleClient(const sptr<IInputClient> &client);
+    int32_t InitInputControlChannel();
     bool IsRestartIme(uint32_t index);
     void ClearImeData(uint32_t index);
     void SetCurrentClient(sptr<IInputClient> client);
@@ -138,8 +133,6 @@ private:
         return index >= CURRENT_IME && index <= SECURITY_IME;
     }
 
-    std::mutex propertyLock_;
-    SubProperty currentSubProperty;
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::shared_ptr<AppExecFwk::EventHandler> imeRestartHandler_;
 };
