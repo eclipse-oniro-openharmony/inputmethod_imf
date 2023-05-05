@@ -522,7 +522,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
 void JsGetInputMethodSetting::OnPanelStatusChange(
     const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
 {
-    IMSA_HILOGI("status: %{public}d", static_cast<uint32_t>(status));
+    IMSA_HILOGI("status: %{public}u", static_cast<uint32_t>(status));
     std::string type = status == InputWindowStatus::SHOW ? "imeShow" : "imeHide";
     uv_work_t *work = GetUVwork(type, [&windowInfo](UvEntry &entry) { entry.windowInfo = windowInfo; });
     if (work == nullptr) {
