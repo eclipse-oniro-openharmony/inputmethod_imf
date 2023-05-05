@@ -52,7 +52,6 @@ namespace OHOS {
         Property property;
         SubProperty subProperty;
 
-        int flags = static_cast<int32_t>(*rawData);
         std::string str(rawData, rawData + size);
         std::u16string packageName = Str8ToStr16(str);
         bool isShowKeyboard = true;
