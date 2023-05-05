@@ -222,10 +222,12 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameters!", TYPE_NONE, nullptr);
 
     std::string type = "";
-    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
+    napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], type);
+    if (status != napi_ok) {
+        return nullptr;
+    }
 
     auto engine = reinterpret_cast<JsGetInputMethodController *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
