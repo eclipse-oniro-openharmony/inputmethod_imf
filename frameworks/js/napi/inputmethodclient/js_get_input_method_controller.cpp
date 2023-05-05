@@ -229,12 +229,6 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
     PARAM_CHECK_RETURN(env,
         EVENT_TYPE.find(type) != EVENT_TYPE.end() || TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end(), "unkown type",
         TYPE_NONE, nullptr);
-    if (TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end()) {
-        if (!InputMethodController::GetInstance()->WasAttached()) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_DETACHED, "need to be attached first", TYPE_NONE);
-            return nullptr;
-        }
-    }
 
     auto engine = reinterpret_cast<JsGetInputMethodController *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
