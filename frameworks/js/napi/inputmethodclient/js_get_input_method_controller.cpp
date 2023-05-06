@@ -229,7 +229,7 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
     std::string type;
     napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], type);
     if ((status != napi_ok) || (EVENT_TYPE.find(type) == EVENT_TYPE.end() &&
-        TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end())) {
+        TEXT_EVENT_TYPE.find(type) == TEXT_EVENT_TYPE.end())) {
         return nullptr;
     }
 
