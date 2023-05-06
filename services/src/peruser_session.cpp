@@ -265,29 +265,6 @@ int PerUserSession::OnShowKeyboardSelf()
     return ShowKeyboard(clientInfo->channel, client, true);
 }
 
-/** Get ime index for the input client
- * @param inputClient the remote object handler of an input client.
- * @return 0 - default ime
- * @return 1 - security ime
- * @return -1 - input client is not found
- */
-int PerUserSession::GetImeIndex(const sptr<IInputClient> &inputClient)
-{
-    if (inputClient == nullptr) {
-        IMSA_HILOGW("PerUserSession::GetImeIndex inputClient is nullptr");
-        return -1;
-    }
-    auto clientInfo = GetClientInfo(inputClient->AsObject());
-    if (clientInfo == nullptr) {
-        IMSA_HILOGW("PerUserSession::clientInfo is nullptr");
-        return -1;
-    }
-    if (clientInfo->attribute.GetSecurityFlag()) {
-        return SECURITY_IME;
-    }
-    return CURRENT_IME;
-}
-
 /** Get ClientInfo
  * @param inputClient the IRemoteObject remote handler of given input client
  * @return a pointer of ClientInfo if client is found
