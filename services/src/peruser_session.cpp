@@ -91,12 +91,12 @@ void PerUserSession::UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKe
 
 int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isClientDied)
 {
-    IMSA_HILOGD("start");
     auto clientInfo = GetClientInfo(client);
     if (clientInfo == nullptr) {
         IMSA_HILOGD("client not found");
         return ErrorCode::NO_ERROR;
     }
+    IMSA_HILOGD("start removing client of pid: %{public}d", clientInfo->pid);
     // if current client is removed, hide keyboard and clear channel
     auto currentClient = GetCurrentClient();
     if (currentClient != nullptr && client == currentClient->AsObject()) {
@@ -114,9 +114,11 @@ int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isC
         return ErrorCode::NO_ERROR;
     }
     client->RemoveDeathRecipient(clientInfo->deathRecipient);
+    clientInfo->deathRecipient = nullptr;
+
     std::lock_guard<std::recursive_mutex> lock(mtx);
     mapClients_.erase(client);
-    IMSA_HILOGD("remove successfully");
+    IMSA_HILOGD("client[%{public}d] is removed successfully", clientInfo->pid);
     return ErrorCode::NO_ERROR;
 }
 
