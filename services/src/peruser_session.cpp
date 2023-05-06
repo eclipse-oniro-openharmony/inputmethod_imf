@@ -624,6 +624,7 @@ int32_t PerUserSession::OnUpdateListenInfo(const sptr<IInputClient> &client, Ime
     }
     if (!clientInfo->isListener && !clientInfo->isValid) {
         client->AsObject()->RemoveDeathRecipient(clientInfo->deathRecipient);
+        clientInfo->deathRecipient = nullptr;
         mapClients_.erase(client->AsObject());
     }
     return ErrorCode::NO_ERROR;
