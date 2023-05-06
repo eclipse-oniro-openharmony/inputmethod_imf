@@ -73,7 +73,7 @@ int32_t InputMethodController::StartSettingListening(
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     return proxy->StartListening(clientInfo_, type);
 }
@@ -92,7 +92,7 @@ int32_t InputMethodController::UpdateListenInfo(ImeEventType type, bool isOn)
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     auto ret = proxy->UpdateListenInfo(clientInfo_.client, type, isOn);
     if (ret == ErrorCode::NO_ERROR && isOn) {

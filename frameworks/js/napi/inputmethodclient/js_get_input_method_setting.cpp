@@ -353,7 +353,7 @@ napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, 
     return asyncCall.Call(env, exec);
 }
 
-void JsGetInputMethodSetting::RegisterListener(
+int32_t JsGetInputMethodSetting::RegisterListener(
     napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
     IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
@@ -361,18 +361,16 @@ void JsGetInputMethodSetting::RegisterListener(
     if (jsCbMap_.empty()) {
         auto eventType = EVENT_TYPE.find(type)->second;
         auto ret = InputMethodController::GetInstance()->StartSettingListening(inputMethod_, eventType);
-        // Å×Òì³£
         if (ret != ErrorCode::NO_ERROR) {
-            return;
+            return ret;
         }
     }
     if (jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGI("start type: %{public}s listening.", type.c_str());
         auto eventType = EVENT_TYPE.find(type)->second;
         auto ret = InputMethodController::GetInstance()->UpdateListenInfo(eventType, true);
-        // Å×Òì³£
         if (ret != ErrorCode::NO_ERROR) {
-            return;
+            return ret;
         }
     }
 
@@ -382,11 +380,12 @@ void JsGetInputMethodSetting::RegisterListener(
     });
     if (ret) {
         IMSA_HILOGE("JsGetInputMethodSetting::RegisterListener callback already registered!");
-        return;
+        return ErrorCode::NO_ERROR;
     }
 
     IMSA_HILOGI("Add %{public}s callbackObj into jsCbMap_", type.c_str());
     jsCbMap_[type].push_back(std::move(callbackObj));
+    return ErrorCode::NO_ERROR;
 }
 
 napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info info)
@@ -412,8 +411,11 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     }
     std::shared_ptr<JSCallbackObject> callback =
         std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
-    engine->RegisterListener(argv[ARGC_ONE], type, callback);
-
+    auto ret = engine->RegisterListener(argv[ARGC_ONE], type, callback);
+    auto errCode = JsUtils::Convert(ret);
+    if (errCode == EXCEPTION_PERMISSION) {
+        JsUtils::ThrowException(env, errCode, "", TYPE_NONE);
+    }
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
