@@ -243,32 +243,15 @@ int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &d
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputMethodSystemAbilityStub::UpdateListenInfoOnRemote(MessageParcel &data, MessageParcel &reply)
-{
-    sptr<IRemoteObject> clientObject = nullptr;
-    EventStatus status;
-    if (!ITypesUtil::Unmarshal(data, clientObject, status)) {
-        IMSA_HILOGE("Unmarshal failed");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    if (clientObject == nullptr) {
-        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-        IMSA_HILOGE("clientObject is nullptr");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    int32_t ret = UpdateListenInfo(iface_cast<IInputClient>(clientObject), status);
-    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
-int32_t InputMethodSystemAbilityStub::StartListeningOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     InputClientInfo clientInfo;
-    bool isInSaDied = false;
-    if (!ITypesUtil::Unmarshal(data, clientInfo, isInSaDied)) {
+    EventType type;
+    if (!ITypesUtil::Unmarshal(data, clientInfo, type)) {
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = StartListening(clientInfo, isInSaDied);
+    int32_t ret = UpdateListenEventFlag(clientInfo, type);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

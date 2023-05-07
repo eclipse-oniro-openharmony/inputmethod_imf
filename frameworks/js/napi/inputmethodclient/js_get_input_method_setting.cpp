@@ -32,10 +32,8 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 thread_local napi_ref JsGetInputMethodSetting::IMSRef_ = nullptr;
 const std::string JsGetInputMethodSetting::IMS_CLASS_NAME = "InputMethodSetting";
-const std::map<std::string, EventStatus> EVENT_TYPE_ON{ { "imeChange", IME_CHANGE_ON }, { "imeShow", IME_SHOW_ON },
-    { "imeHide", IME_HIDE_ON } };
-const std::map<std::string, EventStatus> EVENT_TYPE_OFF{ { "imeChange", IME_CHANGE_OFF }, { "imeShow", IME_SHOW_OFF },
-    { "imeHide", IME_HIDE_OFF } };
+const std::map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
+    { "imeHide", IME_HIDE } };
 const std::map<InputWindowStatus, std::string> PANEL_STATUS{ { InputWindowStatus::SHOW, "imeShow" },
     { InputWindowStatus::HIDE, "imeHide" } };
 std::mutex JsGetInputMethodSetting::msMutex_;
@@ -363,17 +361,20 @@ int32_t JsGetInputMethodSetting::RegisterListener(
     IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty()) {
-        auto eventStatus = EVENT_TYPE_ON.find(type)->second;
-        auto ret = InputMethodController::GetInstance()->StartSettingListening(inputMethod_, eventStatus);
+        auto eventType = EVENT_TYPE.find(type)->second;
+        InputMethodController::GetInstance()->SetSettingListener(inputMethod_);
+        auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(eventType, true);
         if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("UpdateListenEventFlag failed, ret: %{public}d, eventType: %{public}u", ret, eventType);
             return ret;
         }
     }
     if (!jsCbMap_.empty() && jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGI("start type: %{public}s listening.", type.c_str());
-        auto eventStatus = EVENT_TYPE_ON.find(type)->second;
-        auto ret = InputMethodController::GetInstance()->UpdateListenInfo(eventStatus);
+        auto eventType = EVENT_TYPE.find(type)->second;
+        auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(eventType, true);
         if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("UpdateListenEventFlag failed, ret: %{public}d, eventType: %{public}u", ret, eventType);
             return ret;
         }
     }
@@ -403,7 +404,7 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
 
     std::string type;
     JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    NAPI_ASSERT(env, EVENT_TYPE_ON.find(type) != EVENT_TYPE_ON.end(), "subscribe type error");
+    NAPI_ASSERT(env, EVENT_TYPE.find(type) != EVENT_TYPE.end(), "subscribe type error");
 
     napi_valuetype valuetype = napi_undefined;
     napi_typeof(env, argv[ARGC_ONE], &valuetype);
@@ -437,7 +438,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     if (callback == nullptr) {
         jsCbMap_.erase(type);
         IMSA_HILOGI("stop all type: %{public}s listening.", type.c_str());
-        InputMethodController::GetInstance()->UpdateListenInfo(EVENT_TYPE_OFF.find(type)->second);
+        InputMethodController::GetInstance()->UpdateListenEventFlag(EVENT_TYPE.find(type)->second, false);
         return;
     }
 
@@ -451,7 +452,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     if (jsCbMap_[type].empty()) {
         IMSA_HILOGI("stop last type: %{public}s listening.", type.c_str());
         jsCbMap_.erase(type);
-        InputMethodController::GetInstance()->UpdateListenInfo(EVENT_TYPE_OFF.find(type)->second);
+        InputMethodController::GetInstance()->UpdateListenEventFlag(EVENT_TYPE.find(type)->second, false);
     }
 }
 
@@ -466,7 +467,7 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
 
     std::string type;
     JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    NAPI_ASSERT(env, EVENT_TYPE_OFF.find(type) != EVENT_TYPE_OFF.end(), "subscribe type error");
+    NAPI_ASSERT(env, EVENT_TYPE.find(type) != EVENT_TYPE.end(), "subscribe type error");
     auto engine = reinterpret_cast<JsGetInputMethodSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;

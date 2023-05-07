@@ -27,7 +27,6 @@ public:
     static bool IsSystemApp(uint64_t fullTokenID);
     static bool IsCurrentIme(uint32_t tokenID, const std::string &currentIme);
     static bool CheckPermission(uint32_t tokenID, const std::string &permission);
-    static bool IsEventListenPermissionCheckSuccess(EventStatus status, uint64_t fullTokenID);
 
 private:
     static std::string GetBundleNameByToken(uint32_t tokenID);

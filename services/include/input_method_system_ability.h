@@ -63,8 +63,7 @@ public:
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
-    int32_t UpdateListenInfo(sptr<IInputClient> client, EventStatus status) override;
-    int32_t StartListening(InputClientInfo &clientInfo, bool isInSaDied) override;
+    int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;

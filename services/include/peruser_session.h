@@ -84,8 +84,7 @@ public:
     void UpdateCurrentUserId(int32_t userId);
     void OnUnfocused(int32_t pid, int32_t uid);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
-    int32_t OnUpdateListenInfo(const sptr<IRemoteObject> &remoteClient, EventStatus status);
-    int32_t OnStartListening(const InputClientInfo &clientInfo);
+    int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
 
 private:
     int userId_;                                   // the id of the user to whom the object is linking

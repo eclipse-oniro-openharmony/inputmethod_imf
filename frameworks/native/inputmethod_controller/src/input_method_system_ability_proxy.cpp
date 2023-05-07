@@ -195,17 +195,11 @@ int32_t InputMethodSystemAbilityProxy::PanelStatusChange(
     });
 }
 
-int32_t InputMethodSystemAbilityProxy::UpdateListenInfo(sptr<IInputClient> client, EventStatus status)
+int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)
 {
-    IMSA_HILOGD("InputMethodSystemAbilityProxy::UpdateListenInfo");
-    return SendRequest(UPDATE_LISTEN_INFO,
-        [client, status](MessageParcel &data) { return ITypesUtil::Marshal(data, client->AsObject(), status); });
-}
-
-int32_t InputMethodSystemAbilityProxy::StartListening(InputClientInfo &clientInfo, bool isInSaDied)
-{
-    return SendRequest(START_LISTENING,
-        [&clientInfo, isInSaDied](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, isInSaDied); });
+    IMSA_HILOGD("InputMethodSystemAbilityProxy::UpdateListenEventFlag");
+    return SendRequest(UPDATE_LISTEN_EVENT_FLAG,
+        [&clientInfo, eventType](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, eventType); });
 }
 
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)

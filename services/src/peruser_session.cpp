@@ -592,42 +592,26 @@ int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, con
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::OnUpdateListenInfo(const sptr<IRemoteObject> &remoteClient, EventStatus status)
+int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInfo)
 {
-    IMSA_HILOGI("PerUserSession::OnUpdateListenInfo");
-    if (remoteClient == nullptr) {
-        IMSA_HILOGE("client is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    auto remoteClient = clientInfo.client->AsObject();
+    auto ret = AddClient(remoteClient, clientInfo, START_LISTENING);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("AddClient failed");
+        return ret;
     }
-    auto clientInfo = GetClientInfo(remoteClient);
-    if (clientInfo == nullptr) {
-        IMSA_HILOGE("clientInfo is nullptr");
+    auto info = GetClientInfo(remoteClient);
+    if (info == nullptr) {
+        IMSA_HILOGE("info is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     std::lock_guard<std::recursive_mutex> lock(mtx);
-    if (EventStatusManager::IsEventOn(status)) {
-        clientInfo->eventFlag = clientInfo->eventFlag | status;
-    } else if (EventStatusManager::IsEventOff(status)) {
-        clientInfo->eventFlag = clientInfo->eventFlag & status;
-    } else {
-        IMSA_HILOGE("Event Status error");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    if (clientInfo->eventFlag == EventStatusManager::NO_EVENT_ON && !clientInfo->isValid) {
-        remoteClient->RemoveDeathRecipient(clientInfo->deathRecipient);
-        clientInfo->deathRecipient = nullptr;
+    if (info->eventFlag == EventStatusManager::NO_EVENT_ON && !info->isValid) {
+        remoteClient->RemoveDeathRecipient(info->deathRecipient);
+        info->deathRecipient = nullptr;
         mapClients_.erase(remoteClient);
     }
     return ErrorCode::NO_ERROR;
-}
-
-int32_t PerUserSession::OnStartListening(const InputClientInfo &clientInfo)
-{
-    IMSA_HILOGD("OnStartListening Start");
-    if (clientInfo.client == nullptr) {
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    return AddClient(clientInfo.client->AsObject(), clientInfo, START_LISTENING);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -207,8 +207,8 @@ public:
      * @param listener Indicates the listener to be set.
      * @since 6
      */
-    IMF_API int32_t StartSettingListening(std::shared_ptr<InputMethodSettingListener> listener, uint32_t eventFlag);
-    IMF_API int32_t UpdateListenInfo(EventStatus status);
+    IMF_API void SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener);
+    IMF_API int32_t UpdateListenEventFlag(EventType eventType, bool isOn);
     IMF_API void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
 
     /**
@@ -443,7 +443,8 @@ private:
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void RestoreListenInfoInSaDied();
     void RestoreAttachInfoInSaDied();
-    int32_t StartListening(uint32_t eventFlag, bool isInSaDied = false);
+    int32_t RestoreListenEventFlag();
+    void UpdateNativeEventFlag(EventType eventType, bool isOn);
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;

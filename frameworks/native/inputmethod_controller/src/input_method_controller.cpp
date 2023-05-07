@@ -66,14 +66,22 @@ sptr<InputMethodController> InputMethodController::GetInstance()
     return instance_;
 }
 
-int32_t InputMethodController::StartSettingListening(
-    std::shared_ptr<InputMethodSettingListener> listener, uint32_t eventFlag)
+void InputMethodController::SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener)
 {
     settingListener_ = std::move(listener);
-    return StartListening(eventFlag);
 }
 
-int32_t InputMethodController::StartListening(uint32_t eventFlag, bool isInSaDied)
+int32_t InputMethodController::RestoreListenEventFlag()
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    return proxy->UpdateListenEventFlag(clientInfo_, IME_NONE);
+}
+
+int32_t InputMethodController::UpdateListenEventFlag(EventType eventType, bool isOn)
 {
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
@@ -81,31 +89,19 @@ int32_t InputMethodController::StartListening(uint32_t eventFlag, bool isInSaDie
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
-    clientInfo_.eventFlag = eventFlag;
-    auto ret = proxy->StartListening(clientInfo_, isInSaDied);
-    if (ret != ErrorCode::NO_ERROR) {
-        clientInfo_.eventFlag = EventStatusManager::NO_EVENT_ON;
+    auto oldEventFlag = clientInfo_.eventFlag;
+    UpdateNativeEventFlag(eventType, isOn);
+    auto ret = proxy->UpdateListenEventFlag(clientInfo_, eventType);
+    if (ret != ErrorCode::NO_ERROR && isOn) {
+        clientInfo_.eventFlag = oldEventFlag;
     }
     return ret;
 }
 
-int32_t InputMethodController::UpdateListenInfo(EventStatus status)
+void InputMethodController::UpdateNativeEventFlag(EventType eventType, bool isOn)
 {
-    IMSA_HILOGI("InputMethodController::UpdateListenInfo");
-    std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
-    if (EventStatusManager::IsEventOff(status)) {
-        clientInfo_.eventFlag = clientInfo_.eventFlag & status;
-    }
-    auto proxy = GetSystemAbilityProxy();
-    if (proxy == nullptr) {
-        IMSA_HILOGE("proxy is nullptr");
-        return ErrorCode::ERROR_SERVICE_START_FAILED;
-    }
-    auto ret = proxy->UpdateListenInfo(clientInfo_.client, status);
-    if (ret == ErrorCode::NO_ERROR && EventStatusManager::IsEventOn(status)) {
-        clientInfo_.eventFlag = clientInfo_.eventFlag | status;
-    }
-    return ret;
+    uint32_t currentEvent = isOn ? 1u << eventType : ~(1u << eventType);
+    clientInfo_.eventFlag = isOn ? clientInfo_.eventFlag | currentEvent : clientInfo_.eventFlag & currentEvent;
 }
 
 void InputMethodController::SetControllerListener(std::shared_ptr<ControllerListener> controllerListener)
@@ -636,16 +632,18 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
 
 void InputMethodController::RestoreListenInfoInSaDied()
 {
-    std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
-    if (clientInfo_.eventFlag == EventStatusManager::NO_EVENT_ON) {
-        return;
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        if (clientInfo_.eventFlag == EventStatusManager::NO_EVENT_ON) {
+            return;
+        }
     }
     isDiedRestoreListen_.store(false);
     auto restoreListenTask = [=]() {
         if (isDiedRestoreListen_.load()) {
             return;
         }
-        auto ret = StartListening(clientInfo_.eventFlag, true);
+        auto ret = RestoreListenEventFlag();
         if (ret == ErrorCode::NO_ERROR) {
             isDiedRestoreListen_.store(true);
             IMSA_HILOGI("Try to RestoreListen success.");

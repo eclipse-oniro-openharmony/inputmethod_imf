@@ -112,7 +112,7 @@ void InputMethodPanelTest::SetUpTestCase(void)
     AllocTestTokenID();
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     imc_ = InputMethodController::GetInstance();
-    imc_->StartSettingListening(listener, IME_CHANGE_ON);
+    imc_->SetSettingListener(listener);
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
 }
 
@@ -189,17 +189,17 @@ void InputMethodPanelTest::ImcPanelListeningTestPrepare(
     ret = inputMethodPanel->Resize(windowWidth_, windowHeight_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     switch (status) {
-        case NONE: {
+        case ListeningStatus::NONE: {
             break;
         }
-        case ON: {
-            imc_->UpdateListenInfo(IME_HIDE_ON);
-            imc_->UpdateListenInfo(IME_SHOW_ON);
+        case ListeningStatus::ON: {
+            imc_->UpdateListenEventFlag(IME_HIDE, true);
+            imc_->UpdateListenEventFlag(IME_SHOW, true);
             break;
         }
-        case OFF: {
-            imc_->UpdateListenInfo(IME_HIDE_OFF);
-            imc_->UpdateListenInfo(IME_SHOW_OFF);
+        case ListeningStatus::OFF: {
+            imc_->UpdateListenEventFlag(IME_HIDE, false);
+            imc_->UpdateListenEventFlag(IME_SHOW, false);
             break;
         }
         default:

@@ -213,15 +213,15 @@ bool ITypesUtil::Unmarshalling(InputWindowInfo &output, MessageParcel &data)
     return true;
 }
 
-bool ITypesUtil::Marshalling(EventStatus input, MessageParcel &data)
+bool ITypesUtil::Marshalling(EventType input, MessageParcel &data)
 {
     return data.WriteUint32(static_cast<uint32_t>(input));
 }
 
-bool ITypesUtil::Unmarshalling(EventStatus &output, MessageParcel &data)
+bool ITypesUtil::Unmarshalling(EventType &output, MessageParcel &data)
 {
     auto ret = data.ReadUint32();
-    output = static_cast<EventStatus>(ret);
+    output = static_cast<EventType>(ret);
     return true;
 }
 } // namespace MiscServices

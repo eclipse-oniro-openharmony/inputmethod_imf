@@ -343,26 +343,11 @@ int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &sta
     return userSession_->OnPanelStatusChange(status, windowInfo);
 }
 
-int32_t InputMethodSystemAbility::UpdateListenInfo(sptr<IInputClient> client, EventStatus status)
+int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)
 {
-    IMSA_HILOGD("status: %{public}u", status);
-    if (client == nullptr) {
-        IMSA_HILOGI("client is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-    if (!BundleChecker::IsEventListenPermissionCheckSuccess(status, IPCSkeleton::GetCallingFullTokenID())) {
-        IMSA_HILOGD("permission denied");
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
-    return userSession_->OnUpdateListenInfo(client->AsObject(), status);
-}
-
-int32_t InputMethodSystemAbility::StartListening(InputClientInfo &clientInfo, bool isInSaDied)
-{
-    IMSA_HILOGI("status: %{public}u", clientInfo.eventFlag);
-    auto status = static_cast<EventStatus>(clientInfo.eventFlag);
-    if (!isInSaDied
-        && !BundleChecker::IsEventListenPermissionCheckSuccess(status, IPCSkeleton::GetCallingFullTokenID())) {
+    IMSA_HILOGI("eventType: %{public}u, eventFlag: %{public}u", eventType, clientInfo.eventFlag);
+    if ((eventType == IME_SHOW || eventType == IME_HIDE)
+        && BundleChecker::IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
         IMSA_HILOGD("permission denied");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
@@ -370,7 +355,7 @@ int32_t InputMethodSystemAbility::StartListening(InputClientInfo &clientInfo, bo
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
-    return userSession_->OnStartListening(clientInfo);
+    return userSession_->OnUpdateListenEventFlag(clientInfo);
 }
 
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
