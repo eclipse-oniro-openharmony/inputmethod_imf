@@ -347,7 +347,7 @@ int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientI
 {
     IMSA_HILOGI("eventType: %{public}u, eventFlag: %{public}u", eventType, clientInfo.eventFlag);
     if ((eventType == IME_SHOW || eventType == IME_HIDE)
-        && BundleChecker::IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
+        && !BundleChecker::IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
         IMSA_HILOGD("permission denied");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
