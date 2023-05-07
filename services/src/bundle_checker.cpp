@@ -47,6 +47,16 @@ bool BundleChecker::IsSystemApp(uint64_t fullTokenID)
     return TokenIdKit::IsSystemAppByFullTokenID(fullTokenID);
 }
 
+bool BundleChecker::IsEventListenPermissionCheckSuccess(EventStatus status, uint64_t fullTokenID)
+{
+    if ((EventStatusManager::IsImeShowEvent(status) || EventStatusManager::IsImeHideEvent(status))
+        && !IsSystemApp(fullTokenID)) {
+        IMSA_HILOGD("permission denied");
+        return false;
+    }
+    return true;
+}
+
 bool BundleChecker::IsCurrentIme(uint32_t tokenID, const std::string &currentIme)
 {
     std::string bundleName = GetBundleNameByToken(tokenID);

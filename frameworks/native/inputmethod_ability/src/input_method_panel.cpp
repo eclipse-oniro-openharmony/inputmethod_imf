@@ -202,9 +202,13 @@ void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
         panelStatusListener_->OnPanelStatus(windowId_, false);
     }
     auto imsa = ImaUtils::GetImsaProxy();
-    if (imsa != nullptr && panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
+    if (imsa == nullptr) {
+        IMSA_HILOGE("imsa is nullptr");
+        return;
+    }
+    if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
         auto rect = window_->GetRect();
-        IMSA_HILOGD("InputMethodPanel::x:%{public}d, y:%{public}d, w:%{public}d, h:%{public}d", rect.posX_, rect.posY_,
+        IMSA_HILOGD("InputMethodPanel::x:%{public}d, y:%{public}d, w:%{public}u, h:%{public}u", rect.posX_, rect.posY_,
             rect.width_, rect.height_);
         std::string name = window_->GetWindowName() + "/" + std::to_string(window_->GetWindowId());
         imsa->PanelStatusChange(status, { std::move(name), rect.posX_, rect.posY_, rect.width_, rect.height_ });

@@ -171,7 +171,7 @@ bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, input.pid, input.uid, input.userID, input.displayID, input.attribute, input.isShowKeyboard,
-            input.isValid, input.isListener, input.client->AsObject(), input.channel->AsObject())) {
+            input.isValid, input.eventFlag, input.client->AsObject(), input.channel->AsObject())) {
         IMSA_HILOGE("write InputClientInfo to message parcel failed");
         return false;
     }
@@ -181,7 +181,7 @@ bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.pid, output.uid, output.userID, output.displayID, output.attribute,
-            output.isShowKeyboard, output.isValid, output.isListener)) {
+            output.isShowKeyboard, output.isValid, output.eventFlag)) {
         IMSA_HILOGE("read InputClientInfo from message parcel failed");
         return false;
     }
@@ -213,15 +213,15 @@ bool ITypesUtil::Unmarshalling(InputWindowInfo &output, MessageParcel &data)
     return true;
 }
 
-bool ITypesUtil::Marshalling(ImeEventType input, MessageParcel &data)
+bool ITypesUtil::Marshalling(EventStatus input, MessageParcel &data)
 {
     return data.WriteUint32(static_cast<uint32_t>(input));
 }
 
-bool ITypesUtil::Unmarshalling(ImeEventType &output, MessageParcel &data)
+bool ITypesUtil::Unmarshalling(EventStatus &output, MessageParcel &data)
 {
     auto ret = data.ReadUint32();
-    output = static_cast<ImeEventType>(ret);
+    output = static_cast<EventStatus>(ret);
     return true;
 }
 } // namespace MiscServices

@@ -248,40 +248,27 @@ int32_t InputMethodSystemAbilityStub::UpdateListenInfoOnRemote(MessageParcel &da
     auto clientObject = data.ReadRemoteObject();
     if (clientObject == nullptr) {
         reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-        IMSA_HILOGE("%{public}s nullptr", __func__);
+        IMSA_HILOGE("clientObject is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    ImeEventType type;
-    bool isOn;
-    if (!ITypesUtil::Unmarshal(data, type, isOn)) {
+    EventStatus status;
+    if (!ITypesUtil::Unmarshal(data, status)) {
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = UpdateListenInfo(iface_cast<IInputClient>(clientObject), type, isOn);
-    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
-int32_t InputMethodSystemAbilityStub::RestoreListenInfoOnRemote(MessageParcel &data, MessageParcel &reply)
-{
-    std::vector<ImeEventType> types;
-    InputClientInfo clientInfo;
-    if (!ITypesUtil::Unmarshal(data, clientInfo, types)) {
-        IMSA_HILOGE("Unmarshal failed");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    int32_t ret = RestoreListenInfo(clientInfo, types);
+    int32_t ret = UpdateListenInfo(iface_cast<IInputClient>(clientObject), status);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::StartListeningOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     InputClientInfo clientInfo;
-    ImeEventType type;
-    if (!ITypesUtil::Unmarshal(data, clientInfo, type)) {
+    bool isInSaDied = false;
+    if (!ITypesUtil::Unmarshal(data, clientInfo, isInSaDied)) {
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = StartListening(clientInfo, type);
+    int32_t ret = StartListening(clientInfo, isInSaDied);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

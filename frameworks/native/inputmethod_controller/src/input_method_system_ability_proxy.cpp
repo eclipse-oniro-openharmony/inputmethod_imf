@@ -195,26 +195,17 @@ int32_t InputMethodSystemAbilityProxy::PanelStatusChange(
     });
 }
 
-int32_t InputMethodSystemAbilityProxy::UpdateListenInfo(sptr<IInputClient> client, ImeEventType type, bool isOn)
+int32_t InputMethodSystemAbilityProxy::UpdateListenInfo(sptr<IInputClient> client, EventStatus status)
 {
     IMSA_HILOGD("InputMethodSystemAbilityProxy::UpdateListenInfo");
-    return SendRequest(UPDATE_LISTEN_INFO, [client, type, isOn](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, client->AsObject(), type, isOn);
-    });
+    return SendRequest(UPDATE_LISTEN_INFO,
+        [client, status](MessageParcel &data) { return ITypesUtil::Marshal(data, client->AsObject(), status); });
 }
 
-int32_t InputMethodSystemAbilityProxy::RestoreListenInfo(
-    InputClientInfo &clientInfo, const std::vector<ImeEventType> &types)
-{
-    IMSA_HILOGD("InputMethodSystemAbilityProxy::RestoreListenInfo");
-    return SendRequest(RESTORE_LISTEN_INFO,
-        [&clientInfo, &types](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, types); });
-}
-
-int32_t InputMethodSystemAbilityProxy::StartListening(InputClientInfo &clientInfo, ImeEventType type)
+int32_t InputMethodSystemAbilityProxy::StartListening(InputClientInfo &clientInfo, bool isInSaDied)
 {
     return SendRequest(START_LISTENING,
-        [&clientInfo, type](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, type); });
+        [&clientInfo, isInSaDied](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, isInSaDied); });
 }
 
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)

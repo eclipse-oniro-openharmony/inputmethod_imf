@@ -63,9 +63,8 @@ public:
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
-    int32_t UpdateListenInfo(sptr<IInputClient> client, ImeEventType type, bool isOn) override;
-    int32_t RestoreListenInfo(InputClientInfo &clientInfo, const std::vector<ImeEventType> &types) override;
-    int32_t StartListening(InputClientInfo &clientInfo, ImeEventType type) override;
+    int32_t UpdateListenInfo(sptr<IInputClient> client, EventStatus status) override;
+    int32_t StartListening(InputClientInfo &clientInfo, bool isInSaDied) override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;
@@ -112,7 +111,7 @@ private:
     int32_t SwitchMode();
     int32_t SwitchLanguage();
     int32_t SwitchType();
-    int32_t GenerateClientInfo(InputClientInfo &clientInfo, bool isStartListening);
+    int32_t GenerateClientInfo(InputClientInfo &clientInfo);
 };
 } // namespace MiscServices
 } // namespace OHOS

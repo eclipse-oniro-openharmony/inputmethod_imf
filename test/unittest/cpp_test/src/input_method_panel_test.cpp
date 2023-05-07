@@ -33,6 +33,7 @@ namespace OHOS {
 namespace MiscServices {
 using namespace OHOS::Security::AccessToken;
 constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 200;
+enum ListeningStatus : uint32_t { ON, OFF, NONE };
 class InputMethodPanelTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -46,7 +47,7 @@ public:
         InputWindowStatus realStatus, InputWindowStatus waitStatus, const InputWindowInfo &windowInfo);
     static void ImcPanelListeningTestCheck(InputWindowStatus realStatus, InputWindowStatus waitStatus);
     static void ImcPanelListeningTestPrepare(
-        std::shared_ptr<InputMethodPanel> inputMethodPanel, const PanelInfo &info, bool isSetListening, bool isOn);
+        std::shared_ptr<InputMethodPanel> inputMethodPanel, const PanelInfo &info, ListeningStatus status);
     static void ImcPanelListeningTestRestore(InputWindowStatus status);
     class PanelStatusListenerImpl : public PanelStatusListener {
     public:
@@ -111,7 +112,7 @@ void InputMethodPanelTest::SetUpTestCase(void)
     AllocTestTokenID();
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     imc_ = InputMethodController::GetInstance();
-    imc_->StartSettingListening(listener, ImeEventType::IME_CHANGE);
+    imc_->StartSettingListening(listener, IME_CHANGE_ON);
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
 }
 
@@ -177,7 +178,7 @@ void InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus realStat
 }
 
 void InputMethodPanelTest::ImcPanelListeningTestPrepare(
-    std::shared_ptr<InputMethodPanel> inputMethodPanel, const PanelInfo &info, bool isSetListening, bool isOn)
+    std::shared_ptr<InputMethodPanel> inputMethodPanel, const PanelInfo &info, ListeningStatus status)
 {
     auto ret = inputMethodPanel->CreatePanel(nullptr, info);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -187,11 +188,22 @@ void InputMethodPanelTest::ImcPanelListeningTestPrepare(
     windowHeight_ = defaultDisplay->GetHeight() / 2 - 1;
     ret = inputMethodPanel->Resize(windowWidth_, windowHeight_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    if (isSetListening) {
-        SetTestTokenID();
-        imc_->UpdateListenInfo(ImeEventType::IME_HIDE, isOn);
-        imc_->UpdateListenInfo(ImeEventType::IME_SHOW, isOn);
-        RestoreSelfTokenID();
+    switch (status) {
+        case NONE: {
+            break;
+        }
+        case ON: {
+            imc_->UpdateListenInfo(IME_HIDE_ON);
+            imc_->UpdateListenInfo(IME_SHOW_ON);
+            break;
+        }
+        case OFF: {
+            imc_->UpdateListenInfo(IME_HIDE_OFF);
+            imc_->UpdateListenInfo(IME_SHOW_OFF);
+            break;
+        }
+        default:
+            break;
     }
 }
 
@@ -450,10 +462,11 @@ HWTEST_F(InputMethodPanelTest, testRemovePanelListener, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_001 start.");
+    SetTestTokenID();
+    InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
-    InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, false, false);
-    InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
+    InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, NONE);
     auto ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::HIDE, InputWindowStatus::SHOW);
@@ -462,6 +475,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
     ret = inputMethodPanel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
+    RestoreSelfTokenID();
 }
 
 /**
@@ -472,11 +486,12 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_002 start.");
+    SetTestTokenID();
+    InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
-    InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, true, true);
+    InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, ON);
 
-    InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
     auto ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::SHOW,
@@ -487,6 +502,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::HIDE, InputWindowStatus::HIDE,
         { "", 0, 0, InputMethodPanelTest::windowWidth_, InputMethodPanelTest::windowHeight_ });
+    RestoreSelfTokenID();
 }
 
 /**
@@ -497,11 +513,12 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_003 start.");
+    SetTestTokenID();
+    InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
-    InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, true, false);
+    InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, OFF);
 
-    InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
     auto ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::HIDE, InputWindowStatus::SHOW);
@@ -510,44 +527,22 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
     ret = inputMethodPanel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
+    SetTestTokenID();
 }
 
 /**
 * @tc.name: testImcPanelListening_004
-* @tc.desc: STATUS_BAR  FLG_FIXED  Set up listening
+* @tc.desc: SOFT_KEYBOARD  FLG_FIXED  Set up listening  NO PERMISSION
 * @tc.type: FUNC
 */
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_004 start.");
-    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FIXED };
-    InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, true, true);
-
     InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
-    auto ret = inputMethodPanel->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::HIDE, InputWindowStatus::SHOW);
-
-    InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::SHOW);
-    ret = inputMethodPanel->HidePanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
-}
-
-/**
-* @tc.name: testImcPanelListening_005
-* @tc.desc: SOFT_KEYBOARD  FLG_FLOATING  Set up listening
-* @tc.type: FUNC
-*/
-HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_005 start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
-    InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, true, true);
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, ON);
 
-    InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
     auto ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::HIDE, InputWindowStatus::SHOW);

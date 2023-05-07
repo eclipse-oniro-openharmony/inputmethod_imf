@@ -23,6 +23,7 @@
 
 #include "controller_listener.h"
 #include "event_handler.h"
+#include "event_status_manager.h"
 #include "global.h"
 #include "i_input_client.h"
 #include "i_input_data_channel.h"
@@ -206,8 +207,8 @@ public:
      * @param listener Indicates the listener to be set.
      * @since 6
      */
-    IMF_API int32_t StartSettingListening(std::shared_ptr<InputMethodSettingListener> listener, ImeEventType type);
-    IMF_API int32_t UpdateListenInfo(ImeEventType type, bool isOn);
+    IMF_API int32_t StartSettingListening(std::shared_ptr<InputMethodSettingListener> listener, uint32_t eventFlag);
+    IMF_API int32_t UpdateListenInfo(EventStatus status);
     IMF_API void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
 
     /**
@@ -440,7 +441,9 @@ private:
     bool IsCorrectParam(int32_t number);
     void DoIncrease(int32_t status);
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
-    int32_t RestoreListenInfo();
+    void RestoreListenInfoInSaDied();
+    void RestoreAttachInfoInSaDied();
+    int32_t StartListening(uint32_t eventFlag, bool isInSaDied = false);
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
@@ -471,6 +474,8 @@ private:
 
     std::atomic_bool isEditable_{ false };
     std::atomic_bool isBound_{ false };
+
+    std::recursive_mutex clientInfoLock_;
     InputClientInfo clientInfo_;
 
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
@@ -479,8 +484,6 @@ private:
     std::condition_variable textFieldReplyCountCv_;
 
     std::atomic_bool isDiedRestoreListen_{ false };
-    std::mutex eventTypesLock_;
-    std::vector<ImeEventType> eventTypes_;
 };
 } // namespace MiscServices
 } // namespace OHOS

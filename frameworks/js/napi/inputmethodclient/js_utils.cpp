@@ -328,7 +328,7 @@ napi_value JsUtils::GetValue(napi_env env, const std::vector<InputWindowInfo> &i
     for (const auto &info : in) {
         napi_value jsInfo = GetValue(env, info);
         napi_set_element(env, array, index, jsInfo);
-        index++;
+        ++index;
     }
     return array;
 }

@@ -67,52 +67,45 @@ sptr<InputMethodController> InputMethodController::GetInstance()
 }
 
 int32_t InputMethodController::StartSettingListening(
-    std::shared_ptr<InputMethodSettingListener> listener, ImeEventType type)
+    std::shared_ptr<InputMethodSettingListener> listener, uint32_t eventFlag)
 {
     settingListener_ = std::move(listener);
-    auto proxy = GetSystemAbilityProxy();
-    if (proxy == nullptr) {
-        IMSA_HILOGE("proxy is nullptr");
-        return ErrorCode::ERROR_SERVICE_START_FAILED;
-    }
-    return proxy->StartListening(clientInfo_, type);
+    return StartListening(eventFlag);
 }
 
-int32_t InputMethodController::UpdateListenInfo(ImeEventType type, bool isOn)
+int32_t InputMethodController::StartListening(uint32_t eventFlag, bool isInSaDied)
 {
-    IMSA_HILOGI("InputMethodController::UpdateListenInfo");
-    std::lock_guard<std::mutex> lock(eventTypesLock_);
-    if (!isOn) {
-        auto it = std::find_if(
-            eventTypes_.begin(), eventTypes_.end(), [&type](ImeEventType eventType) { return type == eventType; });
-        if (it != eventTypes_.end()) {
-            eventTypes_.erase(it);
-        }
-    }
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    auto ret = proxy->UpdateListenInfo(clientInfo_.client, type, isOn);
-    if (ret == ErrorCode::NO_ERROR && isOn) {
-        eventTypes_.emplace_back(type);
+    std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+    clientInfo_.eventFlag = eventFlag;
+    auto ret = proxy->StartListening(clientInfo_, isInSaDied);
+    if (ret != ErrorCode::NO_ERROR) {
+        clientInfo_.eventFlag = EventStatusManager::NO_EVENT_ON;
     }
     return ret;
 }
 
-int32_t InputMethodController::RestoreListenInfo()
+int32_t InputMethodController::UpdateListenInfo(EventStatus status)
 {
-    std::lock_guard<std::mutex> lock(eventTypesLock_);
-    if (eventTypes_.empty()) {
-        return ErrorCode::NO_ERROR;
+    IMSA_HILOGI("InputMethodController::UpdateListenInfo");
+    std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+    if (EventStatusManager::IsEventOff(status)) {
+        clientInfo_.eventFlag = clientInfo_.eventFlag & status;
     }
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->RestoreListenInfo(clientInfo_, eventTypes_);
+    auto ret = proxy->UpdateListenInfo(clientInfo_.client, status);
+    if (ret == ErrorCode::NO_ERROR && EventStatusManager::IsEventOn(status)) {
+        clientInfo_.eventFlag = clientInfo_.eventFlag | status;
+    }
+    return ret;
 }
 
 void InputMethodController::SetControllerListener(std::shared_ptr<ControllerListener> controllerListener)
@@ -443,6 +436,7 @@ int32_t InputMethodController::ShowTextInput()
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
+    clientInfo_.isShowKeyboard = true;
     int32_t ret = StartInput(clientInfo_.client, true);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input, ret: %{public}d", ret);
@@ -632,23 +626,48 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
         std::lock_guard<std::mutex> lock(abilityLock_);
         abilityManager_ = nullptr;
     }
-
     if (handler_ == nullptr) {
         IMSA_HILOGE("handler_ is nullptr");
         return;
     }
+    RestoreListenInfoInSaDied();
+    RestoreAttachInfoInSaDied();
+}
 
+void InputMethodController::RestoreListenInfoInSaDied()
+{
+    std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+    if (clientInfo_.eventFlag == EventStatusManager::NO_EVENT_ON) {
+        return;
+    }
+    isDiedRestoreListen_.store(false);
+    auto restoreListenTask = [=]() {
+        if (isDiedRestoreListen_.load()) {
+            return;
+        }
+        auto ret = StartListening(clientInfo_.eventFlag, true);
+        if (ret == ErrorCode::NO_ERROR) {
+            isDiedRestoreListen_.store(true);
+            IMSA_HILOGI("Try to RestoreListen success.");
+        }
+    };
+    for (int i = 0; i < LOOP_COUNT; i++) {
+        handler_->PostTask(restoreListenTask, "OnRemoteSaDied", DELAY_TIME * (i + 1));
+    }
+}
+
+void InputMethodController::RestoreAttachInfoInSaDied()
+{
+    if (!isEditable_.load()) {
+        IMSA_HILOGE("not in editable state");
+        return;
+    }
     isDiedAttached_.store(false);
     auto attachTask = [=]() {
         if (isDiedAttached_.load()) {
             return;
         }
-        if (!isEditable_.load()) {
-            isDiedAttached_.store(true);
-            IMSA_HILOGE("not in editable state");
-            return;
-        }
-        auto errCode = Attach(textListener_, true, clientInfo_.attribute);
+        auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, clientInfo_.attribute);
         if (errCode == ErrorCode::NO_ERROR) {
             OnCursorUpdate(cursorInfo_);
             OnSelectionChange(mTextString, mSelectNewBegin, mSelectNewEnd);
@@ -656,22 +675,8 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
             IMSA_HILOGI("Try to attach success.");
         }
     };
-
-    isDiedRestoreListen_.store(false);
-    auto restoreListenTask = [=]() {
-        if (isDiedRestoreListen_.load()) {
-            return;
-        }
-        auto ret = RestoreListenInfo();
-        if (ret == ErrorCode::NO_ERROR) {
-            isDiedRestoreListen_.store(true);
-            IMSA_HILOGI("Try to RestoreListen success.");
-        }
-    };
-
     for (int i = 0; i < LOOP_COUNT; i++) {
         handler_->PostTask(attachTask, "OnRemoteSaDied", DELAY_TIME * (i + 1));
-        handler_->PostTask(restoreListenTask, "OnRemoteSaDied", DELAY_TIME * (i + 1));
     }
 }
 

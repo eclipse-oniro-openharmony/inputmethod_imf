@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 
+#include "event_status_manager.h"
 #include "global.h"
 #include "input_client_info.h"
 #include "input_window_info.h"
@@ -71,8 +72,8 @@ public:
     static bool Marshalling(const InputWindowInfo &input, MessageParcel &data);
     static bool Unmarshalling(InputWindowInfo &output, MessageParcel &data);
 
-    static bool Marshalling(ImeEventType input, MessageParcel &data);
-    static bool Unmarshalling(ImeEventType &output, MessageParcel &data);
+    static bool Marshalling(EventStatus input, MessageParcel &data);
+    static bool Unmarshalling(EventStatus &output, MessageParcel &data);
 
     template<class T>
     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);

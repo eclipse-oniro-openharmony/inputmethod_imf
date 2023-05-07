@@ -85,8 +85,7 @@ void NewImeSwitchTest::SetUpTestCase(void)
     IMSA_HILOGI("NewImeSwitchTest::SetUpTestCase");
     GrantNativePermission();
     imc_ = InputMethodController::GetInstance();
-    imc_->StartSettingListening(std::make_shared<InputMethodSettingListenerImpl>(), IME_CHANGE);
-    imc_->UpdateListenInfo(IME_CHANGE, true);
+    imc_->StartSettingListening(std::make_shared<InputMethodSettingListenerImpl>(), IME_CHANGE_ON);
 }
 
 void NewImeSwitchTest::TearDownTestCase(void)
