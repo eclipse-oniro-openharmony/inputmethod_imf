@@ -185,7 +185,7 @@ void InputMethodPanelTest::ImcPanelListeningTestPrepare(
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     ASSERT_TRUE(defaultDisplay != nullptr);
     windowWidth_ = defaultDisplay->GetWidth() - 1;
-    windowHeight_ = defaultDisplay->GetHeight() / 2 - 1;
+    windowHeight_ = 1;
     ret = inputMethodPanel->Resize(windowWidth_, windowHeight_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     switch (status) {

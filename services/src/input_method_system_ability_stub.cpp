@@ -245,16 +245,16 @@ int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &d
 
 int32_t InputMethodSystemAbilityStub::UpdateListenInfoOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    auto clientObject = data.ReadRemoteObject();
+    sptr<IRemoteObject> clientObject = nullptr;
+    EventStatus status;
+    if (!ITypesUtil::Unmarshal(data, clientObject, status)) {
+        IMSA_HILOGE("Unmarshal failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
     if (clientObject == nullptr) {
         reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
         IMSA_HILOGE("clientObject is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    EventStatus status;
-    if (!ITypesUtil::Unmarshal(data, status)) {
-        IMSA_HILOGE("Unmarshal failed");
-        return ErrorCode::ERROR_EX_PARCELABLE;
     }
     int32_t ret = UpdateListenInfo(iface_cast<IInputClient>(clientObject), status);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
