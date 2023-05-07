@@ -16,11 +16,6 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_LISTEN_EVENT_MANAGER_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_LISTEN_EVENT_MANAGER_H
 
-#include "i_input_client.h"
-#include "i_input_data_channel.h"
-#include "input_attribute.h"
-#include "input_death_recipient.h"
-
 namespace OHOS {
 namespace MiscServices {
 enum EventStatus : uint32_t {

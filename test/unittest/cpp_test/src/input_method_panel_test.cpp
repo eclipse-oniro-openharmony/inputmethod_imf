@@ -527,7 +527,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
     ret = inputMethodPanel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
-    SetTestTokenID();
+    RestoreSelfTokenID();
 }
 
 /**
