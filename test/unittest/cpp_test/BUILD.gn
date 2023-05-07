@@ -175,8 +175,11 @@ ohos_unittest("InputMethodPanelTest") {
 
   external_deps = [
     "ability_runtime:ability_context_native",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
     "napi:ace_napi",
     "window_manager:libdm",
     "window_manager:libwm",

@@ -18,6 +18,7 @@
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "global.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -39,6 +40,11 @@ bool BundleChecker::IsFocused(uint32_t tokenID)
     }
     IMSA_HILOGD("check focus successfully");
     return true;
+}
+
+bool BundleChecker::IsSystemApp(uint64_t fullTokenID)
+{
+    return TokenIdKit::IsSystemAppByFullTokenID(fullTokenID);
 }
 
 bool BundleChecker::IsCurrentIme(uint32_t tokenID, const std::string &currentIme)

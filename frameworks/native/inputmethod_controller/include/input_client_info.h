@@ -16,6 +16,7 @@
 #ifndef INPUTMETHOD_IMF_INPUT__CLIENT_INFO_H
 #define INPUTMETHOD_IMF_INPUT__CLIENT_INFO_H
 
+#include "event_status_manager.h"
 #include "i_input_client.h"
 #include "i_input_data_channel.h"
 #include "input_attribute.h"
@@ -24,14 +25,14 @@
 namespace OHOS {
 namespace MiscServices {
 struct InputClientInfo {
-    pid_t pid{ 0 };                           // process id
-    pid_t uid{ 0 };                           // uid
-    int32_t userID{ 0 };                      // user id of input client
-    int32_t displayID{ 0 };                   // the display id on which the input client is showing
-    bool isShowKeyboard{ false };             // soft keyboard status
-    bool isValid{ false };                    // whether client is valid
-    bool isToNotify{ false };                 // whether to notify client event
-    InputAttribute attribute;                 // the input client attribute
+    pid_t pid{ 0 };                                        // process id
+    pid_t uid{ 0 };                                        // uid
+    int32_t userID{ 0 };                                   // user id of input client
+    int32_t displayID{ 0 };                                // the display id on which the input client is showing
+    bool isShowKeyboard{ false };                          // soft keyboard status
+    bool isValid{ false };                                 // whether client is valid
+    uint32_t eventFlag{ EventStatusManager::NO_EVENT_ON }; // the flag of the all listen event
+    InputAttribute attribute;                              // the input client attribute
     sptr<IInputClient> client;                // the remote object handler for service to callback input client
     sptr<IInputDataChannel> channel;          // the remote object handler for ime to callback input client
     sptr<InputDeathRecipient> deathRecipient; // death recipient of client

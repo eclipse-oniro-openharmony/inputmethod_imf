@@ -21,6 +21,7 @@
 #include <memory>
 #include <vector>
 
+#include "event_status_manager.h"
 #include "global.h"
 #include "i_input_client.h"
 #include "i_input_data_channel.h"
@@ -29,6 +30,7 @@
 #include "input_client_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
+#include "input_window_info.h"
 #include "iremote_broker.h"
 #include "message_parcel.h"
 
@@ -55,6 +57,8 @@ public:
         SHOW_CURRENT_INPUT_DEPRECATED,
         HIDE_CURRENT_INPUT_DEPRECATED,
         DISPLAY_OPTIONAL_INPUT_DEPRECATED,
+        PANEL_STATUS_CHANGE,
+        UPDATE_LISTEN_EVENT_FLAG,
         INPUT_SERVICE_CMD_LAST
     };
 
@@ -75,6 +79,8 @@ public:
     virtual int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) = 0;
     virtual int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) = 0;
     virtual int32_t SwitchInputMethod(const std::string &bundleName, const std::string &name) = 0;
+    virtual int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) = 0;
+    virtual int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;

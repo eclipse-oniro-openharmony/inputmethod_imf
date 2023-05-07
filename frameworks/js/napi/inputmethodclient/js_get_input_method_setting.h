@@ -110,19 +110,21 @@ public:
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static std::shared_ptr<JsGetInputMethodSetting> GetInputMethodSettingInstance();
     void OnImeChange(const Property &property, const SubProperty &subProperty) override;
+    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) override;
 
 private:
     static napi_status GetInputMethodProperty(napi_env env, napi_value argv, std::shared_ptr<ListInputContext> ctxt);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value GetIMSetting(napi_env env, napi_callback_info info, bool needThrowException);
-    void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
+    int32_t RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
         Property property;
         SubProperty subProperty;
+        std::vector<InputWindowInfo> windowInfo;
         UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)
         {

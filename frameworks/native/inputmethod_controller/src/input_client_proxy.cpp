@@ -44,6 +44,14 @@ int32_t InputClientProxy::OnSwitchInput(const Property &property, const SubPrope
         [&property, &subProperty](MessageParcel &data) { return ITypesUtil::Marshal(data, property, subProperty); });
 }
 
+int32_t InputClientProxy::OnPanelStatusChange(
+    const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+{
+    return SendRequest(ON_PANEL_STATUS_CHANGE, [&status, &windowInfo](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, static_cast<uint32_t>(status), windowInfo);
+    });
+}
+
 int32_t InputClientProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
     IMSA_HILOGI("InputClientProxy run in, code = %{public}d", code);

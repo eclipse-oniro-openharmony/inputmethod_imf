@@ -20,8 +20,10 @@
 #include <map>
 #include <memory>
 
+#include "event_status_manager.h"
 #include "global.h"
 #include "input_client_info.h"
+#include "input_window_info.h"
 #include "message_parcel.h"
 
 namespace OHOS {
@@ -66,6 +68,12 @@ public:
 
     static bool Marshalling(const InputClientInfo &input, MessageParcel &data);
     static bool Unmarshalling(InputClientInfo &output, MessageParcel &data);
+
+    static bool Marshalling(const InputWindowInfo &input, MessageParcel &data);
+    static bool Unmarshalling(InputWindowInfo &output, MessageParcel &data);
+
+    static bool Marshalling(EventType input, MessageParcel &data);
+    static bool Unmarshalling(EventType &output, MessageParcel &data);
 
     template<class T>
     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);

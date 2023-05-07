@@ -76,6 +76,9 @@ public:
         NewImeSwitchTest::conditionVar.notify_one();
         IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
     }
+    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+    {
+    }
 };
 void NewImeSwitchTest::SetUpTestCase(void)
 {
@@ -83,6 +86,7 @@ void NewImeSwitchTest::SetUpTestCase(void)
     GrantNativePermission();
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(std::make_shared<InputMethodSettingListenerImpl>());
+    imc_->UpdateListenEventFlag(IME_CHANGE, true);
 }
 
 void NewImeSwitchTest::TearDownTestCase(void)

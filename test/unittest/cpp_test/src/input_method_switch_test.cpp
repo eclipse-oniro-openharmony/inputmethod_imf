@@ -79,6 +79,9 @@ public:
         InputMethodSwitchTest::conditionVar.notify_one();
         IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
     }
+    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+    {
+    }
 };
 
 void InputMethodSwitchTest::SetUpTestCase(void)
@@ -87,6 +90,7 @@ void InputMethodSwitchTest::SetUpTestCase(void)
     GrantNativePermission();
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(std::make_shared<InputMethodSettingListenerImpl>());
+    imc_->UpdateListenEventFlag(IME_CHANGE, true);
 }
 
 void InputMethodSwitchTest::TearDownTestCase(void)
@@ -152,7 +156,7 @@ void InputMethodSwitchTest::CheckCurrentSubProps()
     auto ret = imc_->ListCurrentInputMethodSubtype(subProps);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ASSERT_EQ(subProps.size(), IME_EXT_NUM);
-    for (int i = 0; i < IME_EXT_NUM; i++) {
+    for (uint32_t i = 0; i < IME_EXT_NUM; i++) {
         EXPECT_EQ(subProps[i].id, extName[i]);
         EXPECT_EQ(subProps[i].name, bundleName);
         EXPECT_EQ(subProps[i].language, language[i]);
@@ -405,7 +409,7 @@ HWTEST_F(InputMethodSwitchTest, tesIMCtListInputMethodSubtype_001, TestSize.Leve
     auto ret = imc_->ListInputMethodSubtype(property, subProps);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ASSERT_EQ(subProps.size(), NEW_IME_SUBTYPE_NUM);
-    for (int i = 0; i < NEW_IME_SUBTYPE_NUM; i++) {
+    for (uint32_t i = 0; i < NEW_IME_SUBTYPE_NUM; i++) {
         EXPECT_EQ(subProps[i].id, newImeSubName[i]);
         EXPECT_EQ(subProps[i].name, newImeBundleName);
     }
