@@ -348,12 +348,13 @@ int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &sta
 int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)
 {
     IMSA_HILOGI("eventType: %{public}u, eventFlag: %{public}u", eventType, clientInfo.eventFlag);
+    uint32_t tokenID = IPCSkeleton::GetCallingTokenID();
     if ((eventType == IME_SHOW || eventType == IME_HIDE)
-        && !BundleChecker::IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
+        && !BundleChecker::IsSystemApp(tokenID)) {
         IMSA_HILOGD("permission denied");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-    auto ret = GenerateClientInfo(clientInfo);
+    auto ret = GenerateClientInfo(clientInfo, tokenID);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
