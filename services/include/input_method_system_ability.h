@@ -110,7 +110,7 @@ private:
     int32_t SwitchMode();
     int32_t SwitchLanguage();
     int32_t SwitchType();
-    int32_t GenerateClientInfo(InputClientInfo &clientInfo);
+    int32_t GenerateClientInfo(InputClientInfo &clientInfo, uint32_t tokenID);
 };
 } // namespace MiscServices
 } // namespace OHOS

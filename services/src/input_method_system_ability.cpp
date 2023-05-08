@@ -233,14 +233,14 @@ int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
     if (!BundleChecker::IsFocused(tokenID)) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
-    auto ret = GenerateClientInfo(clientInfo);
+    auto ret = GenerateClientInfo(clientInfo, tokenID);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
     return userSession_->OnPrepareInput(clientInfo);
 }
 
-int32_t InputMethodSystemAbility::GenerateClientInfo(InputClientInfo &clientInfo)
+int32_t InputMethodSystemAbility::GenerateClientInfo(InputClientInfo &clientInfo, uint32_t tokenID)
 {
     if (clientInfo.client == nullptr || clientInfo.channel == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
