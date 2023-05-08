@@ -19,6 +19,4 @@ innerkits_path = "${inputmethod_path}/interfaces/innerkits"
 
 adapter_path = "${inputmethod_path}/adapter"
 
-graphic_path = "//foundation/graphic/graphic_2d/rosen/modules"
-
 windowmanager_path = "//foundation/window/window_manager"

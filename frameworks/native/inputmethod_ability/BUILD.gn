@@ -59,6 +59,7 @@ ohos_shared_library("inputmethod_ability") {
     "ability_base:configuration",
     "ability_runtime:ability_context_native",
     "c_utils:utils",
+    "graphic_standard:window_animation",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
@@ -66,8 +67,6 @@ ohos_shared_library("inputmethod_ability") {
     "window_manager:libdm",
     "window_manager:libwm",
   ]
-
-  deps = [ "${graphic_path}/render_service_client:librender_service_client" ]
 
   public_configs = [ ":inputmethod_ability_native_public_config" ]
 
