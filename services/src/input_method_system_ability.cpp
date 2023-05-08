@@ -233,14 +233,14 @@ int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
     if (!BundleChecker::IsFocused(tokenID)) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
-    auto ret = GenerateClientInfo(clientInfo, tokenID);
+    auto ret = GenerateClientInfo(clientInfo);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
     return userSession_->OnPrepareInput(clientInfo);
 }
 
-int32_t InputMethodSystemAbility::GenerateClientInfo(InputClientInfo &clientInfo, uint32_t tokenID)
+int32_t InputMethodSystemAbility::GenerateClientInfo(InputClientInfo &clientInfo)
 {
     if (clientInfo.client == nullptr || clientInfo.channel == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
@@ -254,7 +254,7 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(InputClientInfo &clientInfo
     clientInfo.uid = IPCSkeleton::GetCallingUid();
     clientInfo.userID = userId_;
     clientInfo.deathRecipient = deathRecipient;
-    clientInfo.tokenID = tokenID;
+    clientInfo.tokenID = IPCSkeleton::GetCallingTokenID();
     return ErrorCode::NO_ERROR;
 }
 
@@ -348,13 +348,12 @@ int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &sta
 int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)
 {
     IMSA_HILOGI("eventType: %{public}u, eventFlag: %{public}u", eventType, clientInfo.eventFlag);
-    uint32_t tokenID = IPCSkeleton::GetCallingTokenID();
     if ((eventType == IME_SHOW || eventType == IME_HIDE)
-        && !BundleChecker::IsSystemApp(tokenID)) {
+        && !BundleChecker::IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
         IMSA_HILOGD("permission denied");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-    auto ret = GenerateClientInfo(clientInfo, tokenID);
+    auto ret = GenerateClientInfo(clientInfo);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
