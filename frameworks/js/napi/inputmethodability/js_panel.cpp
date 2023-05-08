@@ -22,9 +22,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr size_t ARGC_ZERO = 0;
-constexpr size_t ARGC_ONE = 1;
-constexpr size_t ARGC_TWO = 2;
 const std::string JsPanel::CLASS_NAME = "Panel";
 thread_local napi_ref JsPanel::panelConstructorRef_ = nullptr;
 
@@ -94,7 +91,8 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
         PARAM_CHECK_RETURN(env, argc >= 1, "should 1 or 2 parameters!", TYPE_NONE, status);
-        status = JsUtils::GetValue(env, argv[ARGC_ZERO], ctxt->path);
+        // 0 means the first param path<std::string>
+        status = JsUtils::GetValue(env, argv[0], ctxt->path);
         NAPI_ASSERT_BASE(env, status == napi_ok, "get path failed!", status);
         // if type of argv[1] is object, we will get value of 'storage' from it.
         if (argc >= 2) {
@@ -126,7 +124,8 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         return napi_ok;
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    AsyncCall asyncCall(env, info, ctxt, 1);
+    // 3 means JsAPI:setUiContent has 3 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec);
 }
 
@@ -136,9 +135,11 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
         PARAM_CHECK_RETURN(env, argc > 1, "should 2 or 3 parameters!", TYPE_NONE, status);
-        status = JsUtils::GetValue(env, argv[ARGC_ZERO], ctxt->width);
+        // 0 means the first param width<uint32_t>
+        status = JsUtils::GetValue(env, argv[0], ctxt->width);
         NAPI_ASSERT_BASE(env, status == napi_ok, "get width failed!", status);
-        status = JsUtils::GetValue(env, argv[ARGC_ONE], ctxt->height);
+        // 1 means the second param height<uint32_t>
+        status = JsUtils::GetValue(env, argv[1], ctxt->height);
         NAPI_ASSERT_BASE(env, status == napi_ok, "get height failed!", status);
         return napi_ok;
     };
@@ -154,7 +155,8 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
         ctxt->SetErrorCode(code);
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, ARGC_TWO);
+    // 3 means JsAPI:resize has 3 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec);
 }
 
@@ -164,9 +166,11 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
         PARAM_CHECK_RETURN(env, argc > 1, " should 2 or 3 parameters! ", TYPE_NONE, status);
-        status = JsUtils::GetValue(env, argv[ARGC_ZERO], ctxt->x);
+        // 0 means the first param x<int32_t>
+        status = JsUtils::GetValue(env, argv[0], ctxt->x);
         NAPI_ASSERT_BASE(env, status == napi_ok, "get x failed!", status);
-        status = JsUtils::GetValue(env, argv[ARGC_ONE], ctxt->y);
+        // 1 means the second param y<int32_t>
+        status = JsUtils::GetValue(env, argv[1], ctxt->y);
         NAPI_ASSERT_BASE(env, status == napi_ok, "get y failed!", status);
         return napi_ok;
     };
@@ -182,7 +186,8 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
         ctxt->SetErrorCode(code);
     };
     ctxt->SetAction(std::move(input));
-    AsyncCall asyncCall(env, info, ctxt, ARGC_TWO);
+    // 3 means JsAPI:moveTo has 3 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 3);
     return asyncCall.Call(env, exec);
 }
 
@@ -199,7 +204,8 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
         }
         ctxt->SetErrorCode(code);
     };
-    AsyncCall asyncCall(env, info, ctxt, 0);
+    // 1 means JsAPI:show has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -216,7 +222,8 @@ napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
         }
         ctxt->SetErrorCode(code);
     };
-    AsyncCall asyncCall(env, info, ctxt, 0);
+    // 1 means JsAPI:hide has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec);
 }
 
@@ -228,7 +235,8 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     PARAM_CHECK_RETURN(env, argc > 0, " should 1 parameter! ", TYPE_NONE, nullptr);
     int32_t panelFlag = 0;
-    napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], panelFlag);
+    // 0 means the first param flag<PanelFlag>
+    napi_status status = JsUtils::GetValue(env, argv[0], panelFlag);
     NAPI_ASSERT(env, status == napi_ok, "get panelFlag failed!");
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
@@ -243,9 +251,11 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_MAX] = { nullptr };
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
-    NAPI_ASSERT(env, (argc >= ARGC_ONE) && (argc <= ARGC_MAX), "err number of argument!");
+    // 2 means it has two params.
+    NAPI_ASSERT(env, (argc >= 2) && (argc <= ARGC_MAX), "err number of argument!");
     std::string type = "";
-    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
+    // 0 means the first param type<std::string>
+    JsUtils::GetValue(env, argv[0], type);
     IMSA_HILOGD("on event type is: %{public}s", type.c_str());
 
     napi_valuetype valuetype = napi_undefined;
@@ -253,7 +263,8 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
-    observer->SaveInfo(env, type, argv[ARGC_ONE], inputMethodPanel->windowId_);
+    // 1 means the second param callback.
+    observer->SaveInfo(env, type, argv[1], inputMethodPanel->windowId_);
     inputMethodPanel->SetPanelStatusListener(observer);
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -268,7 +279,8 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     NAPI_ASSERT(env, argc >= 1, "Wrong number of arguments, requires 1 or 2");
     std::string type = "";
-    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
+    // 0 means the first param type<std::string>
+    JsUtils::GetValue(env, argv[0], type);
     IMSA_HILOGI("event type is: %{public}s", type.c_str());
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);

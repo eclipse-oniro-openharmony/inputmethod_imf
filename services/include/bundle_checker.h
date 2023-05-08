@@ -17,12 +17,14 @@
 #define SERVICES_INCLUDE_BUNDLE_CHECKER_H
 
 #include "accesstoken_kit.h"
+#include "event_status_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
 class BundleChecker {
 public:
     static bool IsFocused(uint32_t tokenID);
+    static bool IsSystemApp(uint64_t fullTokenID);
     static bool IsCurrentIme(uint32_t tokenID, const std::string &currentIme);
     static bool CheckPermission(uint32_t tokenID, const std::string &permission);
 

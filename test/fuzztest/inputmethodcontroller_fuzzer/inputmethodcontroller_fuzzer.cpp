@@ -44,6 +44,7 @@ public:
 
 class SettingListener : public InputMethodSettingListener {
     void OnImeChange(const Property &property, const SubProperty &subProperty) {}
+    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) {}
 };
 
 void TestListInputMethod(sptr<InputMethodController> imc)
@@ -142,6 +143,7 @@ void TestShowSomething(sptr<InputMethodController> imc)
 
     auto settingListener = std::make_shared<SettingListener>();
     imc->SetSettingListener(settingListener);
+    imc->UpdateListenEventFlag(IME_CHANGE, true);
 
     imc->StopInputSession();
     imc->Close();

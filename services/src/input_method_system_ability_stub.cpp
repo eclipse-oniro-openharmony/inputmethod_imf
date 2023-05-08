@@ -231,6 +231,30 @@ int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &d
     return reply.WriteInt32(SwitchInputMethod(name, subName)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    uint32_t status;
+    InputWindowInfo windowInfo;
+    if (!ITypesUtil::Unmarshal(data, status, windowInfo)) {
+        IMSA_HILOGE("Unmarshal failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    int32_t ret = PanelStatusChange(static_cast<InputWindowStatus>(status), windowInfo);
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    InputClientInfo clientInfo;
+    EventType type;
+    if (!ITypesUtil::Unmarshal(data, clientInfo, type)) {
+        IMSA_HILOGE("Unmarshal failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    int32_t ret = UpdateListenEventFlag(clientInfo, type);
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply)
 {
     int32_t ret = ShowCurrentInputDeprecated();

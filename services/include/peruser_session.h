@@ -24,6 +24,7 @@
 
 #include "ability_connect_callback_proxy.h"
 #include "ability_manager_interface.h"
+#include "event_status_manager.h"
 #include "global.h"
 #include "i_input_client.h"
 #include "i_input_control_channel.h"
@@ -36,6 +37,7 @@
 #include "input_death_recipient.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
+#include "input_window_info.h"
 #include "inputmethod_sysevent.h"
 #include "iremote_object.h"
 #include "message.h"
@@ -61,6 +63,11 @@ class PerUserSession {
         MAX_IME          // the maximum count of ime started for a user
     };
 
+    enum ClientAddEvent : int32_t {
+        PREPARE_INPUT = 0,
+        START_LISTENING,
+    };
+
 public:
     explicit PerUserSession(int userId);
     ~PerUserSession();
@@ -77,6 +84,8 @@ public:
     void UpdateCurrentUserId(int32_t userId);
     void OnUnfocused(int32_t pid, int32_t uid);
     bool CheckFocused(uint32_t tokenId);
+    int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
+    int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
 
 private:
     int userId_;                                   // the id of the user to whom the object is linking
@@ -106,7 +115,7 @@ private:
     void OnClientDied(sptr<IInputClient> remote);
     void OnImsDied(sptr<IInputMethodCore> remote);
 
-    int AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo);
+    int AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     void UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard);
     int32_t RemoveClient(const sptr<IRemoteObject> &client, bool isClientDied);
     int32_t ShowKeyboard(
