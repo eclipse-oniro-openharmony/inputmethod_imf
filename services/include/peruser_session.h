@@ -88,11 +88,9 @@ namespace MiscServices {
         int32_t OnStopInput(sptr<IInputClient> client);
         int32_t OnReleaseInput(sptr<IInputClient> client);
         int32_t OnSetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
-        int OnHideKeyboardSelf(int flags);
+        int OnHideKeyboardSelf();
         int OnShowKeyboardSelf();
 
-        void CreateWorkThread(MessageHandler& handler);
-        void JoinWorkThread();
         void StopInputService(std::string imeId);
         void OnInputMethodSwitched(const Property &property, const SubProperty &subProperty);
 
@@ -115,11 +113,10 @@ namespace MiscServices {
 
         sptr<IInputMethodAgent> imsAgent;
         std::mutex clientLock_;
-        sptr<IInputClient> currentClient; // the current input client
+        sptr<IInputClient> currentClient_; // the current input client
 
         sptr<RemoteObjectDeathRecipient> imsDeathRecipient = nullptr;
         MessageHandler *msgHandler = nullptr; // message handler working with Work Thread
-        std::thread workThreadHandler; // work thread handler
         std::recursive_mutex mtx; // mutex to lock the operations among multi work threads
         std::mutex resetLock;
         ResetManager manager[MAX_IME];
@@ -129,14 +126,13 @@ namespace MiscServices {
         PerUserSession(const PerUserSession&&);
         PerUserSession& operator =(const PerUserSession&&);
         std::shared_ptr<ClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
-        void WorkThread();
 
         void OnClientDied(sptr<IInputClient> remote);
         void OnImsDied(sptr<IInputMethodCore> remote);
 
-        int AddClient(sptr<IRemoteObject> inputClient, const ClientInfo &clientInfo);
+        int AddClient(const sptr<IRemoteObject> &inputClient, const ClientInfo &clientInfo);
         void UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard);
-        void RemoveClient(sptr<IRemoteObject> inputClient);
+        void RemoveClient(const sptr<IRemoteObject> &inputClient);
         int ShowKeyboard(const sptr<IInputClient>& inputClient, bool isShowKeyboard);
         int HideKeyboard(const sptr<IInputClient>& inputClient);
         int GetImeIndex(const sptr<IInputClient>& inputClient);

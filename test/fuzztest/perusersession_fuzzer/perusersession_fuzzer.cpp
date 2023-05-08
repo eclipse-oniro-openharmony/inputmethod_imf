@@ -52,7 +52,6 @@ namespace OHOS {
         Property property;
         SubProperty subProperty;
 
-        int flags = static_cast<int32_t>(*rawData);
         std::string str(rawData, rawData + size);
         std::u16string packageName = Str8ToStr16(str);
         bool isShowKeyboard = true;
@@ -69,8 +68,7 @@ namespace OHOS {
         userSessions->GetCurrentSubProperty();
         userSessions->SetCurrentSubProperty(subProperty);
         userSessions->StopInputService(str);
-        userSessions->JoinWorkThread();
-        userSessions->OnHideKeyboardSelf(flags);
+        userSessions->OnHideKeyboardSelf();
         userSessions->OnStartInput(client, isShowKeyboard);
         userSessions->OnStopInput(client);
         userSessions->OnReleaseInput(client);

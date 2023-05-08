@@ -108,26 +108,6 @@ HWTEST_F(InputMethodPrivateMemberTest, testSystemAbilityGetExtends, TestSize.Lev
 }
 
 /**
-* @tc.name: testOnHandleMessage
-* @tc.desc: SystemAbility OnHandleMessage.
-* @tc.type: FUNC
-* @tc.require: issuesI640YZ
-*/
-HWTEST_F(InputMethodPrivateMemberTest, testOnHandleMessage, TestSize.Level0)
-{
-    IMSA_HILOGI("SystemAbility testOnHandleMessage Test START");
-    constexpr int32_t messageId = 5;
-    InputMethodSystemAbility service;
-    auto *parcel = new MessageParcel();
-    parcel->WriteInt32(MAIN_USER_ID);
-    auto *msg = new Message(messageId, parcel);
-    auto ret = service.OnHandleMessage(msg);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    delete msg;
-    msg = nullptr;
-}
-
-/**
 * @tc.name: testOnPackageRemoved
 * @tc.desc: SystemAbility OnPackageRemoved.
 * @tc.type: FUNC
