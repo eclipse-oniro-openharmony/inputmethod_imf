@@ -579,6 +579,8 @@ bool PerUserSession::CheckFocused(uint32_t tokenId)
         return false;
     }
     return clientInfo->tokenID == tokenId;
+}
+
 int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
 {
     std::lock_guard<std::recursive_mutex> lock(mtx);
