@@ -16,12 +16,6 @@ import("//build/ohos.gni")
 
 config("ability_config") {
   visibility = [ ":*" ]
-  include_dirs = [
-    "//foundation/arkui/napi/interfaces/kits",
-    "//third_party/node/src",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "${ability_runtime_napi_path}/inner/napi_common",
-  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -35,10 +29,7 @@ config("ability_config") {
 
 config("ability_public_config") {
   visibility = [ ":*" ]
-  include_dirs = [
-    "${inputmethod_path}/frameworks/kits/extension/include",
-    "//third_party/libuv/include",
-  ]
+  include_dirs = [ "${inputmethod_path}/frameworks/kits/extension/include" ]
 }
 
 ohos_shared_library("inputmethod_extension") {
@@ -62,7 +53,6 @@ ohos_shared_library("inputmethod_extension") {
   deps = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
-    "//third_party/jsoncpp:jsoncpp",
   ]
 
   external_deps = [
@@ -77,8 +67,6 @@ ohos_shared_library("inputmethod_extension") {
     "i18n:intl_util",
     "ipc:ipc_napi_common",
     "napi:ace_napi",
-    "resource_management:global_resmgr",
-    "window_manager:libwm",
   ]
 
   subsystem_name = "inputmethod"
@@ -93,10 +81,7 @@ ohos_shared_library("inputmethod_extension_module") {
   configs = [ ":ability_config" ]
   public_configs = [ ":ability_public_config" ]
 
-  deps = [
-    ":inputmethod_extension",
-    "//third_party/jsoncpp:jsoncpp",
-  ]
+  deps = [ ":inputmethod_extension" ]
 
   external_deps = [
     "ability_base:base",
@@ -106,8 +91,6 @@ ohos_shared_library("inputmethod_extension_module") {
     "ability_runtime:runtime",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "resource_management:global_resmgr",
-    "window_manager:libwm",
   ]
 
   relative_install_dir = "extensionability/"

@@ -15,6 +15,8 @@
 
 #include "input_method_controller.h"
 
+#include <algorithm>
+
 #include "global.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
@@ -66,14 +68,40 @@ sptr<InputMethodController> InputMethodController::GetInstance()
 
 void InputMethodController::SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener)
 {
-    IMSA_HILOGI("InputMethodController run in");
-    if (settingListener_ != nullptr) {
-        IMSA_HILOGD("listener already set");
-        return;
-    }
     settingListener_ = std::move(listener);
-    clientInfo_.isToNotify = true;
-    PrepareInput(clientInfo_);
+}
+
+int32_t InputMethodController::RestoreListenEventFlag()
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    return proxy->UpdateListenEventFlag(clientInfo_, IME_NONE);
+}
+
+int32_t InputMethodController::UpdateListenEventFlag(EventType eventType, bool isOn)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+    auto oldEventFlag = clientInfo_.eventFlag;
+    UpdateNativeEventFlag(eventType, isOn);
+    auto ret = proxy->UpdateListenEventFlag(clientInfo_, eventType);
+    if (ret != ErrorCode::NO_ERROR && isOn) {
+        clientInfo_.eventFlag = oldEventFlag;
+    }
+    return ret;
+}
+
+void InputMethodController::UpdateNativeEventFlag(EventType eventType, bool isOn)
+{
+    uint32_t currentEvent = isOn ? 1u << eventType : ~(1u << eventType);
+    clientInfo_.eventFlag = isOn ? clientInfo_.eventFlag | currentEvent : clientInfo_.eventFlag & currentEvent;
 }
 
 void InputMethodController::SetControllerListener(std::shared_ptr<ControllerListener> controllerListener)
@@ -254,6 +282,17 @@ void InputMethodController::WorkThread()
                 OnSwitchInput(property, subProperty);
                 break;
             }
+            case MSG_ID_ON_PANEL_STATUS_CHANGE: {
+                auto data = msg->msgContent_;
+                uint32_t status;
+                std::vector<InputWindowInfo> windowInfo;
+                if (!ITypesUtil::Unmarshal(*data, status, windowInfo)) {
+                    IMSA_HILOGE("read property from message parcel failed");
+                    break;
+                }
+                OnPanelStatusChange(static_cast<InputWindowStatus>(status), windowInfo);
+                break;
+            }
             case MSG_ID_SELECT_BY_RANGE: {
                 MessageParcel *data = msg->msgContent_;
                 int32_t start = 0;
@@ -331,6 +370,17 @@ void InputMethodController::OnSwitchInput(const Property &property, const SubPro
     settingListener_->OnImeChange(property, subProperty);
 }
 
+void InputMethodController::OnPanelStatusChange(
+    const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+{
+    IMSA_HILOGD("InputMethodController::OnPanelStatusChange");
+    if (settingListener_ == nullptr) {
+        IMSA_HILOGE("imeListener_ is nullptr");
+        return;
+    }
+    settingListener_->OnPanelStatusChange(status, windowInfo);
+}
+
 int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener)
 {
     return Attach(listener, true);
@@ -356,7 +406,6 @@ int32_t InputMethodController::Attach(
         std::lock_guard<std::mutex> lock(textListenerLock_);
         textListener_ = listener;
     }
-    clientInfo_.isValid = true;
     clientInfo_.isShowKeyboard = isShowKeyboard;
     clientInfo_.attribute = attribute;
 
@@ -383,6 +432,7 @@ int32_t InputMethodController::ShowTextInput()
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
+    clientInfo_.isShowKeyboard = true;
     int32_t ret = StartInput(clientInfo_.client, true);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input, ret: %{public}d", ret);
@@ -572,12 +622,42 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
         std::lock_guard<std::mutex> lock(abilityLock_);
         abilityManager_ = nullptr;
     }
-    if (!isEditable_.load()) {
-        IMSA_HILOGE("not in editable state");
-        return;
-    }
     if (handler_ == nullptr) {
         IMSA_HILOGE("handler_ is nullptr");
+        return;
+    }
+    RestoreListenInfoInSaDied();
+    RestoreAttachInfoInSaDied();
+}
+
+void InputMethodController::RestoreListenInfoInSaDied()
+{
+    {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        if (clientInfo_.eventFlag == EventStatusManager::NO_EVENT_ON) {
+            return;
+        }
+    }
+    isDiedRestoreListen_.store(false);
+    auto restoreListenTask = [=]() {
+        if (isDiedRestoreListen_.load()) {
+            return;
+        }
+        auto ret = RestoreListenEventFlag();
+        if (ret == ErrorCode::NO_ERROR) {
+            isDiedRestoreListen_.store(true);
+            IMSA_HILOGI("Try to RestoreListen success.");
+        }
+    };
+    for (int i = 0; i < LOOP_COUNT; i++) {
+        handler_->PostTask(restoreListenTask, "OnRemoteSaDied", DELAY_TIME * (i + 1));
+    }
+}
+
+void InputMethodController::RestoreAttachInfoInSaDied()
+{
+    if (!isEditable_.load()) {
+        IMSA_HILOGE("not in editable state");
         return;
     }
     isDiedAttached_.store(false);
@@ -585,12 +665,12 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
         if (isDiedAttached_.load()) {
             return;
         }
-        auto errCode = Attach(textListener_, true, clientInfo_.attribute);
+        auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, clientInfo_.attribute);
         if (errCode == ErrorCode::NO_ERROR) {
             OnCursorUpdate(cursorInfo_);
             OnSelectionChange(mTextString, mSelectNewBegin, mSelectNewEnd);
             isDiedAttached_.store(true);
-            IMSA_HILOGI("Try to attach sucess.");
+            IMSA_HILOGI("Try to attach success.");
         }
     };
     for (int i = 0; i < LOOP_COUNT; i++) {

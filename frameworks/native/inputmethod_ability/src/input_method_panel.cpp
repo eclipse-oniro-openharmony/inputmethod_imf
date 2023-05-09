@@ -17,6 +17,7 @@
 
 #include "display_manager.h"
 #include "global.h"
+#include "input_method_ability_utils.h"
 #include "window.h"
 #include "wm_common.h"
 
@@ -168,10 +169,7 @@ int32_t InputMethodPanel::ShowPanel()
         IMSA_HILOGE("ShowPanel error, err = %{public}d, ERROR_SHOW_PANEL", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    if (showRegistered_ && panelStatusListener_ != nullptr) {
-        IMSA_HILOGE("InputMethodPanel::ShowPanel panelStatusListener_ is not nullptr");
-        panelStatusListener_->OnPanelStatus(windowId_, true);
-    }
+    PanelStatusChange(InputWindowStatus::SHOW);
     return ErrorCode::NO_ERROR;
 }
 
@@ -190,11 +188,32 @@ int32_t InputMethodPanel::HidePanel()
         IMSA_HILOGE("HidePanel error, err = %{public}d, ERROR_HIDE_PANEL", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    if (hideRegistered_ && panelStatusListener_ != nullptr) {
+    PanelStatusChange(InputWindowStatus::HIDE);
+    return ErrorCode::NO_ERROR;
+}
+
+void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
+{
+    if (status == InputWindowStatus::SHOW && showRegistered_ && panelStatusListener_ != nullptr) {
+        IMSA_HILOGE("InputMethodPanel::ShowPanel panelStatusListener_ is not nullptr");
+        panelStatusListener_->OnPanelStatus(windowId_, true);
+    }
+    if (status == InputWindowStatus::HIDE && hideRegistered_ && panelStatusListener_ != nullptr) {
         IMSA_HILOGE("InputMethodPanel::HidePanel panelStatusListener_ is not nullptr");
         panelStatusListener_->OnPanelStatus(windowId_, false);
     }
-    return ErrorCode::NO_ERROR;
+    auto imsa = ImaUtils::GetImsaProxy();
+    if (imsa == nullptr) {
+        IMSA_HILOGE("imsa is nullptr");
+        return;
+    }
+    if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
+        auto rect = window_->GetRect();
+        IMSA_HILOGD("InputMethodPanel::x:%{public}d, y:%{public}d, w:%{public}u, h:%{public}u", rect.posX_, rect.posY_,
+            rect.width_, rect.height_);
+        std::string name = window_->GetWindowName() + "/" + std::to_string(window_->GetWindowId());
+        imsa->PanelStatusChange(status, { std::move(name), rect.posX_, rect.posY_, rect.width_, rect.height_ });
+    }
 }
 
 bool InputMethodPanel::IsShowing()

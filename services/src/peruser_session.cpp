@@ -52,14 +52,18 @@ PerUserSession::~PerUserSession()
     imsDeathRecipient_ = nullptr;
 }
 
-int PerUserSession::AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo)
+int PerUserSession::AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event)
 {
     IMSA_HILOGD("PerUserSession, run in");
     auto cacheInfo = GetClientInfo(inputClient);
     if (cacheInfo != nullptr) {
         IMSA_HILOGI("client info is exist, not need add.");
-        cacheInfo->isValid = cacheInfo->isValid || clientInfo.isValid;
-        cacheInfo->isToNotify = cacheInfo->isToNotify || clientInfo.isToNotify;
+        if (event == START_LISTENING) {
+            cacheInfo->eventFlag = clientInfo.eventFlag;
+        }
+        if (event == PREPARE_INPUT) {
+            cacheInfo->attribute = clientInfo.attribute;
+        }
         return ErrorCode::NO_ERROR;
     }
 
@@ -96,12 +100,12 @@ void PerUserSession::UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKe
 
 int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isClientDied)
 {
-    IMSA_HILOGD("start");
     auto clientInfo = GetClientInfo(client);
     if (clientInfo == nullptr) {
         IMSA_HILOGD("client already removed");
         return ErrorCode::NO_ERROR;
     }
+    IMSA_HILOGD("start removing client of pid: %{public}d", clientInfo->pid);
     // if current client is removed, hide keyboard and clear channel
     auto currentClient = GetCurrentClient();
     if (currentClient != nullptr && client == currentClient->AsObject()) {
@@ -112,16 +116,18 @@ int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isC
         IMSA_HILOGI("clear data channel ret: %{public}d", ret);
     }
     // if client still need to be notified event, do not remove, update info
-    if (clientInfo->isToNotify && !isClientDied) {
+    if (clientInfo->eventFlag != EventStatusManager::NO_EVENT_ON && !isClientDied) {
         IMSA_HILOGD("need to notify, do not remove");
         clientInfo->isShowKeyboard = false;
         clientInfo->isValid = false;
         return ErrorCode::NO_ERROR;
     }
     client->RemoveDeathRecipient(clientInfo->deathRecipient);
+    clientInfo->deathRecipient = nullptr;
+
     std::lock_guard<std::recursive_mutex> lock(mtx);
     mapClients_.erase(client);
-    IMSA_HILOGD("remove successfully");
+    IMSA_HILOGD("client[%{public}d] is removed successfully", clientInfo->pid);
     return ErrorCode::NO_ERROR;
 }
 
@@ -294,7 +300,7 @@ std::shared_ptr<InputClientInfo> PerUserSession::GetClientInfo(sptr<IRemoteObjec
 int32_t PerUserSession::OnPrepareInput(const InputClientInfo &clientInfo)
 {
     IMSA_HILOGD("PerUserSession::OnPrepareInput Start\n");
-    return AddClient(clientInfo.client->AsObject(), clientInfo);
+    return AddClient(clientInfo.client->AsObject(), clientInfo, PREPARE_INPUT);
 }
 
 int32_t PerUserSession::SendAgentToSingleClient(const sptr<IInputClient> &client)
@@ -484,7 +490,7 @@ int32_t PerUserSession::OnSwitchIme(const Property &property, const SubProperty 
     std::lock_guard<std::recursive_mutex> lock(mtx);
     for (const auto &client : mapClients_) {
         auto clientInfo = client.second;
-        if (clientInfo == nullptr || !clientInfo->isToNotify) {
+        if (clientInfo == nullptr || !EventStatusManager::IsImeChangeOn(clientInfo->eventFlag)) {
             IMSA_HILOGD("client nullptr or no need to notify");
             continue;
         }
@@ -595,6 +601,54 @@ bool PerUserSession::StartCurrentIme(bool isRetry)
         imeRestartHandler_->PostTask(retryTask, "RestartIme");
     }
     return false;
+}
+
+int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
+{
+    std::lock_guard<std::recursive_mutex> lock(mtx);
+    for (const auto &client : mapClients_) {
+        auto clientInfo = client.second;
+        if (clientInfo == nullptr) {
+            IMSA_HILOGD("client nullptr or no need to notify");
+            continue;
+        }
+        if (status == InputWindowStatus::SHOW && !EventStatusManager::IsImeShowOn(clientInfo->eventFlag)) {
+            IMSA_HILOGD("has no imeShow callback");
+            continue;
+        }
+        if (status == InputWindowStatus::HIDE && !EventStatusManager::IsImeHideOn(clientInfo->eventFlag)) {
+            IMSA_HILOGD("has no imeHide callback");
+            continue;
+        }
+        int32_t ret = clientInfo->client->OnPanelStatusChange(status, { windowInfo });
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("OnPanelStatusChange failed, ret: %{public}d", ret);
+            continue;
+        }
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInfo)
+{
+    auto remoteClient = clientInfo.client->AsObject();
+    auto ret = AddClient(remoteClient, clientInfo, START_LISTENING);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("AddClient failed");
+        return ret;
+    }
+    auto info = GetClientInfo(remoteClient);
+    if (info == nullptr) {
+        IMSA_HILOGE("info is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_FOUND;
+    }
+    std::lock_guard<std::recursive_mutex> lock(mtx);
+    if (info->eventFlag == EventStatusManager::NO_EVENT_ON && !info->isValid) {
+        remoteClient->RemoveDeathRecipient(info->deathRecipient);
+        info->deathRecipient = nullptr;
+        mapClients_.erase(remoteClient);
+    }
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS
