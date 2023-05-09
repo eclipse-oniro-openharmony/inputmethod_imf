@@ -60,7 +60,8 @@ public:
     int32_t ShowPanel();
     int32_t HidePanel();
     void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
-    void RemovePanelListener(const std::string &type);
+    void ClearPanelListener(const std::string &type);
+    bool MarkListener(const std::string &type, bool isRegister);
     uint32_t windowId_ = 0;
 
 private:

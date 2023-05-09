@@ -216,6 +216,7 @@ HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener, TestSize.Level0)
     EXPECT_TRUE(inputMethodPanel != nullptr);
     auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
     EXPECT_TRUE(statusListener != nullptr);
+    // on('show')->on('hide')->show->hide
     std::string type = "show";
     inputMethodPanel->SetPanelStatusListener(statusListener, type);
     type = "hide";
@@ -265,13 +266,13 @@ HWTEST_F(InputMethodPanelTest, testGetPanelType, TestSize.Level0)
 }
 
 /**
-* @tc.name: testRemovePanelListener
-* @tc.desc: Test RemovePanelListener.
+* @tc.name: testClearPanelListener
+* @tc.desc: Test ClearPanelListener.
 * @tc.type: FUNC
 */
-HWTEST_F(InputMethodPanelTest, testRemovePanelListener, TestSize.Level0)
+HWTEST_F(InputMethodPanelTest, testClearPanelListener, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodPanelTest::testRemovePanelListener start.");
+    IMSA_HILOGI("InputMethodPanelTest::testClearPanelListener start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
@@ -280,7 +281,7 @@ HWTEST_F(InputMethodPanelTest, testRemovePanelListener, TestSize.Level0)
     EXPECT_EQ(type, panelInfo.panelType);
 
     std::string subscribeType = "show";
-    inputMethodPanel->RemovePanelListener(subscribeType);
+    inputMethodPanel->ClearPanelListener(subscribeType);
     ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     {
@@ -300,7 +301,7 @@ HWTEST_F(InputMethodPanelTest, testRemovePanelListener, TestSize.Level0)
     InputMethodPanelTest::hidePanel_ = false;
 
     subscribeType = "hide";
-    inputMethodPanel->RemovePanelListener(subscribeType);
+    inputMethodPanel->ClearPanelListener(subscribeType);
     ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     {
@@ -317,6 +318,64 @@ HWTEST_F(InputMethodPanelTest, testRemovePanelListener, TestSize.Level0)
             [] { return InputMethodPanelTest::hidePanel_ == false; });
     }
     EXPECT_EQ(InputMethodPanelTest::hidePanel_, false);
+
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testRegisterListenerRepeat
+* @tc.desc: Test ClearPanelListener.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testRegisterListenerRepeat, TestSize.Level0)
+{
+    // on('show')->on('hide')->show->off('show')->show->on('show')->show
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    EXPECT_TRUE(inputMethodPanel != nullptr);
+    auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
+    EXPECT_TRUE(statusListener != nullptr);
+    std::string type = "show";
+    inputMethodPanel->SetPanelStatusListener(statusListener, type);
+    type = "hide";
+    inputMethodPanel->SetPanelStatusListener(statusListener, type);
+
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    {
+        std::unique_lock<std::mutex> lock(InputMethodPanelTest::panelListenerLock_);
+        InputMethodPanelTest::panelListenerCv_.wait_for(lock, std::chrono::seconds(InputMethodPanelTest::DEALY_TIME),
+            [] { return InputMethodPanelTest::showPanel_ == true; });
+    }
+    EXPECT_TRUE(InputMethodPanelTest::showPanel_);
+
+    type = "show";
+    inputMethodPanel->ClearPanelListener(type);
+    InputMethodPanelTest::showPanel_ = false;
+
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    {
+        std::unique_lock<std::mutex> lock(InputMethodPanelTest::panelListenerLock_);
+        InputMethodPanelTest::panelListenerCv_.wait_for(lock, std::chrono::seconds(InputMethodPanelTest::DEALY_TIME),
+            [] { return InputMethodPanelTest::showPanel_ == true; });
+    }
+    EXPECT_TRUE(!InputMethodPanelTest::showPanel_);
+
+    inputMethodPanel->SetPanelStatusListener(statusListener, type);
+
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    {
+        std::unique_lock<std::mutex> lock(InputMethodPanelTest::panelListenerLock_);
+        InputMethodPanelTest::panelListenerCv_.wait_for(lock, std::chrono::seconds(InputMethodPanelTest::DEALY_TIME),
+            [] { return InputMethodPanelTest::showPanel_ == true; });
+    }
+    EXPECT_TRUE(InputMethodPanelTest::showPanel_);
 
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);

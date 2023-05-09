@@ -240,12 +240,7 @@ void InputMethodPanel::SetPanelStatusListener(
     std::shared_ptr<PanelStatusListener> statusListener, const std::string &type)
 {
     IMSA_HILOGD("SetPanelStatusListener start.");
-    if (type == "show") {
-        showRegistered_ = true;
-    } else if (type == "hide") {
-        hideRegistered_ = true;
-    } else {
-        IMSA_HILOGE("type error.");
+    if (!MarkListener(type, true)) {
         return;
     }
     if (panelStatusListener_ != nullptr) {
@@ -255,14 +250,9 @@ void InputMethodPanel::SetPanelStatusListener(
     panelStatusListener_ = std::move(statusListener);
 }
 
-void InputMethodPanel::RemovePanelListener(const std::string &type)
+void InputMethodPanel::ClearPanelListener(const std::string &type)
 {
-    if (type == "show") {
-        showRegistered_ = false;
-    } else if (type == "hide") {
-        hideRegistered_ = false;
-    } else {
-        IMSA_HILOGE("type error.");
+    if (!MarkListener(type, false)) {
         return;
     }
     if (panelStatusListener_ == nullptr) {
@@ -273,6 +263,19 @@ void InputMethodPanel::RemovePanelListener(const std::string &type)
         return;
     }
     panelStatusListener_ = nullptr;
+}
+
+bool InputMethodPanel::MarkListener(const std::string &type, bool isRegister)
+{
+    if (type == "show") {
+        showRegistered_ = isRegister;
+    } else if (type == "hide") {
+        hideRegistered_ = isRegister;
+    } else {
+        IMSA_HILOGE("type error.");
+        return false;
+    }
+    return true;
 }
 
 uint32_t InputMethodPanel::GenerateSequenceId()
