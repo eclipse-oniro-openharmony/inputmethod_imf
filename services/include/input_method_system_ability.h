@@ -62,6 +62,8 @@ public:
     int32_t SwitchInputMethod(const std::string &bundleName, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
+    int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
+    int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;
@@ -108,6 +110,7 @@ private:
     int32_t SwitchMode();
     int32_t SwitchLanguage();
     int32_t SwitchType();
+    int32_t GenerateClientInfo(InputClientInfo &clientInfo);
 };
 } // namespace MiscServices
 } // namespace OHOS

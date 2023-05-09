@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,21 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_INPUT_METHOD_SETTING_LISTENER_H
-#define INPUTMETHOD_IMF_INPUT_METHOD_SETTING_LISTENER_H
+#ifndef INPUT_METHOD_ABILITY_UTILS_H
+#define INPUT_METHOD_ABILITY_UTILS_H
 
-#include "input_method_property.h"
+#include "input_method_system_ability_proxy.h"
 
 namespace OHOS {
 namespace MiscServices {
-class InputMethodSettingListener {
+class ImaUtils {
 public:
-    virtual ~InputMethodSettingListener() = default;
-    virtual void OnImeChange(const Property &property, const SubProperty &subProperty) = 0;
-    virtual void OnPanelStatusChange(
-        const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) = 0;
+    static sptr<IInputMethodSystemAbility> GetImsaProxy();
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif // INPUTMETHOD_IMF_INPUT_METHOD_SETTING_LISTENER_H
+#endif //INPUT_METHOD_ABILITY_UTILS_H

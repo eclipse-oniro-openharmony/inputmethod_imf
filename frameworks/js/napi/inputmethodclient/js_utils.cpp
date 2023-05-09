@@ -28,7 +28,6 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_CLIENT_NULL_POINTER, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NOT_FOCUSED, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NOT_EDITABLE, EXCEPTION_IMCLIENT },
-    { ErrorCode::ERROR_CLIENT_NULL_POINTER, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NOT_BOUND, EXCEPTION_DETACHED },
     { ErrorCode::ERROR_CLIENT_ADD_FAILED, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_NULL_POINTER, EXCEPTION_IMMS },
@@ -316,6 +315,51 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, PanelInfo &out)
     out.panelType = PanelType(panelType);
     out.panelFlag = PanelFlag(panelFlag);
     return status;
+}
+
+napi_value JsUtils::GetValue(napi_env env, const std::vector<InputWindowInfo> &in)
+{
+    napi_value array = nullptr;
+    uint32_t index = 0;
+    napi_create_array(env, &array);
+    if (array == nullptr) {
+        IMSA_HILOGE("create array failed");
+        return array;
+    }
+    for (const auto &info : in) {
+        napi_value jsInfo = GetValue(env, info);
+        napi_set_element(env, array, index, jsInfo);
+        ++index;
+    }
+    return array;
+}
+
+napi_value JsUtils::GetValue(napi_env env, const InputWindowInfo &in)
+{
+    napi_value info = nullptr;
+    napi_create_object(env, &info);
+
+    napi_value name = nullptr;
+    napi_create_string_utf8(env, in.name.c_str(), in.name.size(), &name);
+    napi_set_named_property(env, info, "name", name);
+
+    napi_value left = nullptr;
+    napi_create_int32(env, in.left, &left);
+    napi_set_named_property(env, info, "left", left);
+
+    napi_value top = nullptr;
+    napi_create_int32(env, in.top, &top);
+    napi_set_named_property(env, info, "top", top);
+
+    napi_value width = nullptr;
+    napi_create_uint32(env, in.width, &width);
+    napi_set_named_property(env, info, "width", width);
+
+    napi_value height = nullptr;
+    napi_create_uint32(env, in.height, &height);
+    napi_set_named_property(env, info, "height", height);
+
+    return info;
 }
 } // namespace MiscServices
 } // namespace OHOS

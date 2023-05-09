@@ -85,6 +85,7 @@ public:
 
     static napi_value ToError(napi_env env, int32_t code);
 
+    static int32_t Convert(int32_t code);
     static bool TraverseCallback(const std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
                                  ArgsProvider argsProvider);
 
@@ -99,10 +100,10 @@ public:
     static napi_status GetValue(napi_env env, napi_value in, std::string &out);
     static napi_status GetValue(napi_env env, napi_value in, const std::string &type, napi_value &out);
     static napi_status GetValue(napi_env env, napi_value in, PanelInfo &out);
+    static napi_value GetValue(napi_env env, const std::vector<InputWindowInfo> &in);
+    static napi_value GetValue(napi_env env, const InputWindowInfo &in);
 
 private:
-    static int32_t Convert(int32_t code);
-
     static const std::string ToMessage(int32_t code);
 
     static const std::map<int32_t, int32_t> ERROR_CODE_MAP;
