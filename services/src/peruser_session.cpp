@@ -41,9 +41,7 @@ namespace MiscServices {
 using namespace MessageID;
 constexpr uint32_t IME_RESTART_TIMES = 5;
 constexpr uint32_t IME_RESTART_INTERVAL = 300;
-PerUserSession::PerUserSession(int32_t userId)
-    : userId_(userId), imsDeathRecipient_(new InputDeathRecipient()),
-      imeRestartHandler_(std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create("ImeRestart")))
+PerUserSession::PerUserSession(int32_t userId) : userId_(userId), imsDeathRecipient_(new InputDeathRecipient())
 {
 }
 
@@ -595,10 +593,11 @@ bool PerUserSession::StartCurrentIme(bool isRetry)
         return true;
     }
     if (isRetry) {
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create("ImeRestart"));
         auto retryTask = [this]() {
             BlockRetry(IME_RESTART_INTERVAL, IME_RESTART_TIMES, [this]() { return StartCurrentIme(false); });
         };
-        imeRestartHandler_->PostTask(retryTask, "RestartIme");
+        handler->PostTask(retryTask, "RestartIme");
     }
     return false;
 }
