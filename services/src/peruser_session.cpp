@@ -587,17 +587,18 @@ bool PerUserSession::StartCurrentIme(bool isRetry)
     isImeStarted_.Clear(false);
     if (abms->StartAbility(want) != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start ability");
-        return false;
-    }
-    if (isImeStarted_.GetValue()) {
+    } else if (isImeStarted_.GetValue()) {
+        IMSA_HILOGI("ime started successfully");
         return true;
     }
     if (isRetry) {
+        IMSA_HILOGE("start ability failed, begin to restart 5 times");
         auto handler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create("ImeRestart"));
         auto retryTask = [this]() {
             BlockRetry(IME_RESTART_INTERVAL, IME_RESTART_TIMES, [this]() { return StartCurrentIme(false); });
+            imeRestartHandler_ = nullptr;
         };
-        handler->PostTask(retryTask, "RestartIme");
+        imeRestartHandler_->PostTask(retryTask);
     }
     return false;
 }

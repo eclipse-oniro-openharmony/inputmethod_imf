@@ -143,6 +143,7 @@ private:
     }
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
+    std::shared_ptr<AppExecFwk::EventHandler> imeRestartHandler_{ nullptr };
 };
 } // namespace MiscServices
 } // namespace OHOS
