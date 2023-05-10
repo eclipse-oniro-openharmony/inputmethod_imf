@@ -593,7 +593,7 @@ bool PerUserSession::StartCurrentIme(bool isRetry)
     }
     if (isRetry) {
         IMSA_HILOGE("start ability failed, begin to restart 5 times");
-        auto handler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create("ImeRestart"));
+        imeRestartHandler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create("ImeRestart"));
         auto retryTask = [this]() {
             BlockRetry(IME_RESTART_INTERVAL, IME_RESTART_TIMES, [this]() { return StartCurrentIme(false); });
             imeRestartHandler_ = nullptr;
