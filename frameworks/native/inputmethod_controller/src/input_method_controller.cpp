@@ -242,7 +242,11 @@ void InputMethodController::WorkThread()
                     break;
                 }
                 MessageParcel *data = msg->msgContent_;
-                textListener_->SendKeyboardStatus(static_cast<KeyboardStatus>(data->ReadInt32()));
+                KeyboardStatus status = static_cast<KeyboardStatus>(data->ReadInt32());
+                textListener_->SendKeyboardStatus(status);
+                if (status == KeyboardStatus::HIDE) {
+                    isEditable_.store(false);
+                }
                 break;
             }
             case MSG_ID_SEND_FUNCTION_KEY: {

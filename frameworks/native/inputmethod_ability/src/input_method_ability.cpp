@@ -453,6 +453,12 @@ int32_t InputMethodAbility::HideKeyboardSelf()
         IMSA_HILOGE("InputMethodAbility::HideKeyboardSelf controlChannel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("InputMethodAbility::HideKeyboardSelf controlChannel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    channel->SendKeyboardStatus(KEYBOARD_HIDE);
     return controlChannel->HideKeyboardSelf(1);
 }
 
