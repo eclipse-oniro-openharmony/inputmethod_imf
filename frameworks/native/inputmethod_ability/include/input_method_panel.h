@@ -62,13 +62,13 @@ public:
     int32_t HidePanel();
     void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void ClearPanelListener(const std::string &type);
-    bool MarkListener(const std::string &type, bool isRegister);
     uint32_t windowId_ = 0;
 
 private:
     bool IsShowing();
     bool IsHidden();
     void PanelStatusChange(const InputWindowStatus &status);
+    bool MarkListener(const std::string &type, bool isRegister);
     static uint32_t GenerateSequenceId();
 
     sptr<Window> window_ = nullptr;

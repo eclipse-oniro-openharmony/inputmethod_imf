@@ -460,13 +460,14 @@ HWTEST_F(InputMethodPanelTest, testClearPanelListener, TestSize.Level0)
 }
 
 /**
-* @tc.name: testRegisterListenerRepeat
+* @tc.name: testRegisterListener
 * @tc.desc: Test ClearPanelListener.
 * @tc.type: FUNC
 */
-HWTEST_F(InputMethodPanelTest, testRegisterListenerRepeat, TestSize.Level0)
+HWTEST_F(InputMethodPanelTest, testRegisterListener, TestSize.Level0)
 {
-    // on('show')->on('hide')->show->off('show')->show->on('show')->show
+    // on('show')->on('hide')->show->hide->off('show')->show->hide->on('show')->show
+    IMSA_HILOGI("InputMethodPanelTest::testRegisterListener start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     EXPECT_TRUE(inputMethodPanel != nullptr);
     auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
@@ -489,9 +490,11 @@ HWTEST_F(InputMethodPanelTest, testRegisterListenerRepeat, TestSize.Level0)
     }
     EXPECT_TRUE(InputMethodPanelTest::showPanel_);
 
+    ret = inputMethodPanel->HidePanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     type = "show";
     inputMethodPanel->ClearPanelListener(type);
-    InputMethodPanelTest::showPanel_ = false;
 
     ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -501,6 +504,9 @@ HWTEST_F(InputMethodPanelTest, testRegisterListenerRepeat, TestSize.Level0)
             [] { return InputMethodPanelTest::showPanel_ == true; });
     }
     EXPECT_TRUE(!InputMethodPanelTest::showPanel_);
+
+    ret = inputMethodPanel->HidePanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     inputMethodPanel->SetPanelStatusListener(statusListener, type);
 
@@ -517,6 +523,7 @@ HWTEST_F(InputMethodPanelTest, testRegisterListenerRepeat, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
+/*
 * @tc.name: testImcPanelListening_001
 * @tc.desc: SOFT_KEYBOARD  FLG_FIXED  no listening set up
 * @tc.type: FUNC
