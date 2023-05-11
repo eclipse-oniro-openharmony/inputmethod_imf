@@ -552,7 +552,6 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     IMSA_HILOGI("release input ret: %{public}d", ret);
 }
 
-<<<<<<< master
 sptr<AAFwk::IAbilityManager> PerUserSession::GetAbilityManagerService()
 {
     IMSA_HILOGD("InputMethodSystemAbility::GetAbilityManagerService start");
@@ -593,7 +592,7 @@ bool PerUserSession::StartCurrentIme(bool isRetry)
         return true;
     }
     if (isRetry) {
-        IMSA_HILOGE("start ability failed, begin to restart 5 times");
+        IMSA_HILOGE("failed to start ime, begin to retry five times");
         imeRestartHandler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create("ImeRestart"));
         auto retryTask = [this]() {
             BlockRetry(IME_RESTART_INTERVAL, IME_RESTART_TIMES, [this]() { return StartCurrentIme(false); });
