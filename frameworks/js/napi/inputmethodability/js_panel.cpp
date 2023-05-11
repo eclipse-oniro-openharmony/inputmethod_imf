@@ -265,7 +265,7 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     // 1 means the second param callback.
     observer->SaveInfo(env, type, argv[1], inputMethodPanel->windowId_);
-    inputMethodPanel->SetPanelStatusListener(observer);
+    inputMethodPanel->SetPanelStatusListener(observer, type);
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     return result;
@@ -285,7 +285,7 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     observer->RemoveInfo(type, inputMethodPanel->windowId_);
-    inputMethodPanel->RemovePanelListener(type);
+    inputMethodPanel->ClearPanelListener(type);
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;

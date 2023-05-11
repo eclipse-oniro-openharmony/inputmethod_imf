@@ -60,22 +60,23 @@ public:
     PanelType GetPanelType();
     int32_t ShowPanel();
     int32_t HidePanel();
-    void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener);
-    void RemovePanelListener(const std::string &type);
+    void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
+    void ClearPanelListener(const std::string &type);
     uint32_t windowId_ = 0;
 
 private:
     bool IsShowing();
     bool IsHidden();
     void PanelStatusChange(const InputWindowStatus &status);
+    bool MarkListener(const std::string &type, bool isRegister);
     static uint32_t GenerateSequenceId();
 
     sptr<Window> window_ = nullptr;
     sptr<WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
     PanelFlag panelFlag_ = PanelFlag::FLG_FIXED;
-    bool showRegistered_ = true;
-    bool hideRegistered_ = true;
+    bool showRegistered_ = false;
+    bool hideRegistered_ = false;
     uint32_t invalidGravityPercent = 0;
     std::shared_ptr<PanelStatusListener> panelStatusListener_ = nullptr;
 

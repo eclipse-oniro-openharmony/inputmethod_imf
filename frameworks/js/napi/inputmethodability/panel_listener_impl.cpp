@@ -61,6 +61,7 @@ void PanelListenerImpl::SaveInfo(napi_env env, const std::string &type, napi_val
         }
         IMSA_HILOGI("start to subscribe type: %{public}s of windowId: %{public}u", type.c_str(), windowId);
         result.second.Insert(type, cbObject);
+        callbacks_.InsertOrAssign(windowId, result.second);
     }
 }
 
@@ -100,7 +101,6 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
     uv_queue_work(
         loop, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
-            napi_value callback = nullptr;
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
                 delete data;
                 delete work;
@@ -108,6 +108,7 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
             CHECK_RETURN_VOID(entry != nullptr, "OnInputStart:: entry is null.");
             napi_handle_scope scope = nullptr;
             napi_open_handle_scope(entry->cbCopy->env_, &scope);
+            napi_value callback = nullptr;
             napi_get_reference_value(entry->cbCopy->env_, entry->cbCopy->callback_, &callback);
             if (callback != nullptr) {
                 napi_value global = nullptr;
