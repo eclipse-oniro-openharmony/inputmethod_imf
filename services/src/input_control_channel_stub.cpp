@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-InputControlChannelStub::InputControlChannelStub(int userId)
+InputControlChannelStub::InputControlChannelStub(int32_t userId)
 {
     userId_ = userId;
 }
