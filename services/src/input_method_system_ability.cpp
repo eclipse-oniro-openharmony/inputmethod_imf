@@ -229,7 +229,8 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+    uint32_t tokenID = IPCSkeleton::GetCallingTokenID();
+    if (!BundleChecker::IsFocused(tokenID)) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     auto ret = GenerateClientInfo(clientInfo);
@@ -253,6 +254,7 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(InputClientInfo &clientInfo
     clientInfo.uid = IPCSkeleton::GetCallingUid();
     clientInfo.userID = userId_;
     clientInfo.deathRecipient = deathRecipient;
+    clientInfo.tokenID = IPCSkeleton::GetCallingTokenID();
     return ErrorCode::NO_ERROR;
 }
 
@@ -279,7 +281,7 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
 
 int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 {
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     if (client == nullptr) {
@@ -291,7 +293,7 @@ int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 
 int32_t InputMethodSystemAbility::StopInputSession()
 {
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnHideKeyboardSelf();
@@ -321,7 +323,7 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
     if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnHideKeyboardSelf();
@@ -332,7 +334,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
     if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnShowKeyboardSelf();
@@ -442,7 +444,7 @@ int32_t InputMethodSystemAbility::SwitchSubType(const ImeInfo &info)
 // Deprecated because of no permission check, kept for compatibility
 int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 {
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnHideKeyboardSelf();
@@ -450,7 +452,7 @@ int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 {
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnShowKeyboardSelf();

@@ -552,6 +552,7 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     IMSA_HILOGI("release input ret: %{public}d", ret);
 }
 
+<<<<<<< master
 sptr<AAFwk::IAbilityManager> PerUserSession::GetAbilityManagerService()
 {
     IMSA_HILOGD("InputMethodSystemAbility::GetAbilityManagerService start");
@@ -601,6 +602,19 @@ bool PerUserSession::StartCurrentIme(bool isRetry)
         imeRestartHandler_->PostTask(retryTask);
     }
     return false;
+}
+
+bool PerUserSession::CheckFocused(uint32_t tokenId)
+{
+    auto client = GetCurrentClient();
+    if (client == nullptr) {
+        return false;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        return false;
+    }
+    return clientInfo->tokenID == tokenId;
 }
 
 int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
