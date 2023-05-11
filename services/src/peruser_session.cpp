@@ -594,10 +594,10 @@ bool PerUserSession::StartCurrentIme(bool isRetry)
     if (isRetry) {
         IMSA_HILOGE("failed to start ime, begin to retry five times");
         auto retryTask = [this]() {
+            pthread_setname_np(pthread_self(), "ImeRestart");
             BlockRetry(IME_RESTART_INTERVAL, IME_RESTART_TIMES, [this]() { return StartCurrentIme(false); });
         };
-        auto restart = std::thread(retryTask);
-        restart.detach();
+        std::thread(retryTask).detach();
     }
     return false;
 }
