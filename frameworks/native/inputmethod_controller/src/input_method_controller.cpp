@@ -245,7 +245,7 @@ void InputMethodController::WorkThread()
                 KeyboardStatus status = static_cast<KeyboardStatus>(data->ReadInt32());
                 textListener_->SendKeyboardStatus(status);
                 if (status == KeyboardStatus::HIDE) {
-                    isEditable_.store(false);
+                    clientInfo_.isShowKeyboard = false;
                 }
                 break;
             }
@@ -922,6 +922,7 @@ int32_t InputMethodController::ShowSoftKeyboard()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    clientInfo_.isShowKeyboard = true;
     return proxy->ShowCurrentInput();
 }
 
@@ -937,6 +938,7 @@ int32_t InputMethodController::HideSoftKeyboard()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    clientInfo_.isShowKeyboard = false;
     return proxy->HideCurrentInput();
 }
 
