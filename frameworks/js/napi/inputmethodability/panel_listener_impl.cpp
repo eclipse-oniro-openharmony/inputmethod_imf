@@ -61,6 +61,7 @@ void PanelListenerImpl::SaveInfo(napi_env env, const std::string &type, napi_val
         }
         IMSA_HILOGI("start to subscribe type: %{public}s of windowId: %{public}u", type.c_str(), windowId);
         result.second.Insert(type, cbObject);
+        callbacks_.InsertOrAssign(windowId, result.second);
     }
 }
 
