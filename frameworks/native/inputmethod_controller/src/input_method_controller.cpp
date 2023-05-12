@@ -242,7 +242,11 @@ void InputMethodController::WorkThread()
                     break;
                 }
                 MessageParcel *data = msg->msgContent_;
-                textListener_->SendKeyboardStatus(static_cast<KeyboardStatus>(data->ReadInt32()));
+                KeyboardStatus status = static_cast<KeyboardStatus>(data->ReadInt32());
+                textListener_->SendKeyboardStatus(status);
+                if (status == KeyboardStatus::HIDE) {
+                    clientInfo_.isShowKeyboard = false;
+                }
                 break;
             }
             case MSG_ID_SEND_FUNCTION_KEY: {
@@ -466,6 +470,7 @@ int32_t InputMethodController::HideCurrentInput()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    clientInfo_.isShowKeyboard = false;
     return proxy->HideCurrentInputDeprecated();
 }
 
@@ -481,6 +486,7 @@ int32_t InputMethodController::ShowCurrentInput()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    clientInfo_.isShowKeyboard = true;
     return proxy->ShowCurrentInputDeprecated();
 }
 
@@ -918,6 +924,7 @@ int32_t InputMethodController::ShowSoftKeyboard()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    clientInfo_.isShowKeyboard = true;
     return proxy->ShowCurrentInput();
 }
 
@@ -933,6 +940,7 @@ int32_t InputMethodController::HideSoftKeyboard()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    clientInfo_.isShowKeyboard = false;
     return proxy->HideCurrentInput();
 }
 
