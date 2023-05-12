@@ -49,6 +49,9 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getInputMethodController", GetInputMethodController),
         DECLARE_NAPI_FUNCTION("getController", GetController),
+        DECLARE_NAPI_STATIC_PROPERTY("KeyboardStatus", JsGetKeyboardStatusProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("EnterKeyType", JsGetEnterKeyTypeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("TextInputType", JsGetTextInputTypeProperty(env)),
     };
     NAPI_CALL(
         env, napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -76,6 +79,87 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
     NAPI_CALL(env, napi_set_named_property(env, info, IMC_CLASS_NAME.c_str(), cons));
 
     return info;
+}
+
+napi_value JsGetInputMethodController::JsGetKeyboardStatusProperty(napi_env env)
+{
+    napi_value KeyboardStatus = nullptr;
+    napi_value kbs_None = nullptr;
+    napi_value kbs_Hide = nullptr;
+    napi_value kbs_Show = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(KeyboardStatus::NONE), &kbs_None));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(KeyboardStatus::HIDE), &kbs_Hide));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(KeyboardStatus::SHOW), &kbs_Show));
+    NAPI_CALL(env, napi_create_object(env, &KeyboardStatus));
+    NAPI_CALL(env, napi_set_named_property(env, KeyboardStatus, "NONE", kbs_None));
+    NAPI_CALL(env, napi_set_named_property(env, KeyboardStatus, "HIDE", kbs_Hide));
+    NAPI_CALL(env, napi_set_named_property(env, KeyboardStatus, "SHOW", kbs_Show));
+    return KeyboardStatus;
+}
+
+napi_value JsGetInputMethodController::JsGetEnterKeyTypeProperty(napi_env env)
+{
+    napi_value EnterKeyType = nullptr;
+    napi_value ekt_Unspecified = nullptr;
+    napi_value ekt_None = nullptr;
+    napi_value ekt_Go = nullptr;
+    napi_value ekt_Search = nullptr;
+    napi_value ekt_Send = nullptr;
+    napi_value ekt_Next = nullptr;
+    napi_value ekt_Done = nullptr;
+    napi_value ekt_Previous = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::UNSPECIFIED), &ekt_Unspecified));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::NONE), &ekt_None));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::GO), &ekt_Go));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::SEARCH), &ekt_Search));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::SEND), &ekt_Send));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::NEXT), &ekt_Next));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::DONE), &ekt_Done));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::PREVIOUS), &ekt_Previous));
+    NAPI_CALL(env, napi_create_object(env, &EnterKeyType));
+    NAPI_CALL(env, napi_set_named_property(env, EnterKeyType, "UNSPECIFIED", ekt_Unspecified));
+    NAPI_CALL(env, napi_set_named_property(env, EnterKeyType, "NONE", ekt_None));
+    NAPI_CALL(env, napi_set_named_property(env, EnterKeyType, "GO", ekt_Go));
+    NAPI_CALL(env, napi_set_named_property(env, EnterKeyType, "SEARCH", ekt_Search));
+    NAPI_CALL(env, napi_set_named_property(env, EnterKeyType, "SEND", ekt_Send));
+    NAPI_CALL(env, napi_set_named_property(env, EnterKeyType, "NEXT", ekt_Next));
+    NAPI_CALL(env, napi_set_named_property(env, EnterKeyType, "DONE", ekt_Done));
+    NAPI_CALL(env, napi_set_named_property(env, EnterKeyType, "PREVIOUS", ekt_Previous));
+    return EnterKeyType;
+}
+
+napi_value JsGetInputMethodController::JsGetTextInputTypeProperty(napi_env env)
+{
+    napi_value TextInputType = nullptr;
+    napi_value tit_None = nullptr;
+    napi_value tit_Text = nullptr;
+    napi_value tit_Multiline = nullptr;
+    napi_value tit_Number = nullptr;
+    napi_value tit_Phone = nullptr;
+    napi_value tit_Datatime = nullptr;
+    napi_value tit_EmailAddress = nullptr;
+    napi_value tit_Url = nullptr;
+    napi_value tit_VisiblePassword = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NONE), &tit_None));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::TEXT), &tit_Text));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::MULTILINE), &tit_Multiline));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NUMBER), &tit_Number));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::PHONE), &tit_Phone));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::DATETIME), &tit_Datatime));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::EMAIL_ADDRESS), &tit_EmailAddress));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::URL), &tit_Url));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD), &tit_VisiblePassword));
+    NAPI_CALL(env, napi_create_object(env, &TextInputType));
+    NAPI_CALL(env, napi_set_named_property(env, TextInputType, "NONE", tit_None));
+    NAPI_CALL(env, napi_set_named_property(env, TextInputType, "TEXT", tit_Text));
+    NAPI_CALL(env, napi_set_named_property(env, TextInputType, "MULTILINE", tit_Multiline));
+    NAPI_CALL(env, napi_set_named_property(env, TextInputType, "NUMBER", tit_Number));
+    NAPI_CALL(env, napi_set_named_property(env, TextInputType, "PHONE", tit_Phone));
+    NAPI_CALL(env, napi_set_named_property(env, TextInputType, "DATETIME", tit_Datatime));
+    NAPI_CALL(env, napi_set_named_property(env, TextInputType, "EMAIL_ADDRESS", tit_EmailAddress));
+    NAPI_CALL(env, napi_set_named_property(env, TextInputType, "URL", tit_Url));
+    NAPI_CALL(env, napi_set_named_property(env, TextInputType, "VISIBLE_PASSWORD", tit_VisiblePassword));
+    return TextInputType;
 }
 
 napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback_info cbinfo)
