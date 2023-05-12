@@ -361,7 +361,7 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
         return napi_ok;
     };
 
-    ctxt->SetAction(std::move(input));
+    ctxt->SetAction(std::move(input), std::move(output));
     // 2 means JsAPI:destroyPanel has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec);
