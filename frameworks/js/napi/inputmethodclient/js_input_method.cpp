@@ -241,7 +241,7 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
     ctxt->SetAction(std::move(input), std::move(output));
     // 2 means JsAPI:switchInputMethod has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
-    return asyncCall.Call(env, exec);
+    return asyncCall.Call(env, exec, "switchInputMethod");
 }
 
 napi_value JsInputMethod::GetCurrentInputMethod(napi_env env, napi_callback_info info)
@@ -303,7 +303,7 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
     ctxt->SetAction(std::move(input), std::move(output));
     // 2 means JsAPI:switchCurrentInputMethodSubtype has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
-    return asyncCall.Call(env, exec);
+    return asyncCall.Call(env, exec, "switchCurrentInputMethodSubtype");
 }
 
 napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_callback_info info)
@@ -343,7 +343,7 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
     ctxt->SetAction(std::move(input), std::move(output));
     // 3 means JsAPI:switchCurrentInputMethodAndSubtype has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
-    return asyncCall.Call(env, exec);
+    return asyncCall.Call(env, exec, "switchCurrentInputMethodAndSubtype");
 }
 } // namespace MiscServices
 } // namespace OHOS

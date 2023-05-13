@@ -130,7 +130,7 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     ctxt->SetAction(std::move(input), std::move(output));
     // 3 means JsAPI:setUiContent has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
-    return asyncCall.Call(env, exec);
+    return asyncCall.Call(env, exec, "setUiContent");
 }
 
 napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
@@ -160,7 +160,7 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
     ctxt->SetAction(std::move(input));
     // 3 means JsAPI:resize has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
-    return asyncCall.Call(env, exec);
+    return asyncCall.Call(env, exec, "resize");
 }
 
 napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
@@ -190,7 +190,7 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
     ctxt->SetAction(std::move(input));
     // 3 means JsAPI:moveTo has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
-    return asyncCall.Call(env, exec);
+    return asyncCall.Call(env, exec, "moveTo");
 }
 
 napi_value JsPanel::Show(napi_env env, napi_callback_info info)
@@ -207,7 +207,7 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
     };
     // 1 means JsAPI:show has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
-    return asyncCall.Call(env, exec);
+    return asyncCall.Call(env, exec, "show");
 }
 
 napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
@@ -224,7 +224,7 @@ napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
     };
     // 1 means JsAPI:hide has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
-    return asyncCall.Call(env, exec);
+    return asyncCall.Call(env, exec, "panel.hide");
 }
 
 napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
