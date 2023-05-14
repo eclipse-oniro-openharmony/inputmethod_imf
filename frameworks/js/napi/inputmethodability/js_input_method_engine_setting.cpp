@@ -322,7 +322,7 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
     ctxt->SetAction(std::move(input), std::move(output));
     // 3 means JsAPI:createPanel has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
-    return asyncCall.Call(env, exec);
+    return asyncCall.Call(env, exec, "createPanel");
 }
 
 napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_info info)
@@ -364,7 +364,7 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
     ctxt->SetAction(std::move(input), std::move(output));
     // 2 means JsAPI:destroyPanel has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
-    return asyncCall.Call(env, exec);
+    return asyncCall.Call(env, exec, "destroyPanel");
 }
 
 napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_info info)

@@ -54,7 +54,7 @@ AsyncCall::~AsyncCall()
     DeleteContext(env_, context_);
 }
 
-napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec)
+napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec, const std::string &resourceName)
 {
     if (context_ == nullptr) {
         IMSA_HILOGE("context_ is null");
@@ -73,7 +73,8 @@ napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec)
     }
     napi_async_work work = context_->work;
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "AsyncCall", NAPI_AUTO_LENGTH, &resource);
+    std::string name = "IMF_" + resourceName;
+    napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &resource);
     napi_create_async_work(env, nullptr, resource, AsyncCall::OnExecute, AsyncCall::OnComplete, context_, &work);
     context_->work = work;
     context_ = nullptr;
