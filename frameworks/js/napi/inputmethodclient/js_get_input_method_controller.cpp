@@ -17,6 +17,7 @@
 #include <set>
 
 #include "input_method_controller.h"
+#include "input_method_utils.h"
 #include "js_get_input_method_textchange_listener.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
