@@ -50,9 +50,9 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getInputMethodController", GetInputMethodController),
         DECLARE_NAPI_FUNCTION("getController", GetController),
-        DECLARE_NAPI_STATIC_PROPERTY("KeyboardStatus", JsGetKeyboardStatusProperty(env)),
-        DECLARE_NAPI_STATIC_PROPERTY("EnterKeyType", JsGetEnterKeyTypeProperty(env)),
-        DECLARE_NAPI_STATIC_PROPERTY("TextInputType", JsGetTextInputTypeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("KeyboardStatus", GetJsKeyboardStatusProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("EnterKeyType", GetJsEnterKeyTypeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("TextInputType", GetJsTextInputTypeProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
     };
     NAPI_CALL(
@@ -83,7 +83,7 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
     return info;
 }
 
-napi_value JsGetInputMethodController::JsGetKeyboardStatusProperty(napi_env env)
+napi_value JsGetInputMethodController::GetJsKeyboardStatusProperty(napi_env env)
 {
     napi_value keyboardStatus = nullptr;
     napi_value statusNone = nullptr;
@@ -99,7 +99,7 @@ napi_value JsGetInputMethodController::JsGetKeyboardStatusProperty(napi_env env)
     return keyboardStatus;
 }
 
-napi_value JsGetInputMethodController::JsGetEnterKeyTypeProperty(napi_env env)
+napi_value JsGetInputMethodController::GetJsEnterKeyTypeProperty(napi_env env)
 {
     napi_value enterKeyType = nullptr;
     napi_value typeUnspecified = nullptr;
@@ -130,7 +130,7 @@ napi_value JsGetInputMethodController::JsGetEnterKeyTypeProperty(napi_env env)
     return enterKeyType;
 }
 
-napi_value JsGetInputMethodController::JsGetTextInputTypeProperty(napi_env env)
+napi_value JsGetInputMethodController::GetJsTextInputTypeProperty(napi_env env)
 {
     napi_value textInputType = nullptr;
     napi_value typeNone = nullptr;
