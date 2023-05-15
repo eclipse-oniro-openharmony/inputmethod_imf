@@ -70,6 +70,9 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
 
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
         DECLARE_NAPI_FUNCTION("getInputMethodAbility", GetInputMethodAbility),
+        DECLARE_NAPI_STATIC_PROPERTY("PanelType", GetJsPanelTypeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("PanelFlag", GetJsPanelFlagProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
     };
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -100,6 +103,51 @@ napi_value JsInputMethodEngineSetting::GetIntJsConstProperty(napi_env env, int32
     napi_value jsNumber = nullptr;
     napi_create_int32(env, num, &jsNumber);
     return jsNumber;
+}
+
+napi_value JsInputMethodEngineSetting::GetJsPanelTypeProperty(napi_env env)
+{
+    napi_value panelType = nullptr;
+    napi_value typeSoftKeyboard = nullptr;
+    napi_value typeStatusBar = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelType::SOFT_KEYBOARD), &typeSoftKeyboard));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelType::STATUS_BAR), &typeStatusBar));
+    NAPI_CALL(env, napi_create_object(env, &panelType));
+    NAPI_CALL(env, napi_set_named_property(env, panelType, "SOFT_KEYBOARD", typeSoftKeyboard));
+    NAPI_CALL(env, napi_set_named_property(env, panelType, "STATUS_BAR", typeStatusBar));
+    return panelType;
+}
+
+napi_value JsInputMethodEngineSetting::GetJsPanelFlagProperty(napi_env env)
+{
+    napi_value panelFlag = nullptr;
+    napi_value flagFixed = nullptr;
+    napi_value flagFloating = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelFlag::FLG_FIXED), &flagFixed));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelFlag::FLG_FLOATING), &flagFloating));
+    NAPI_CALL(env, napi_create_object(env, &panelFlag));
+    NAPI_CALL(env, napi_set_named_property(env, panelFlag, "FLG_FIXED", flagFixed));
+    NAPI_CALL(env, napi_set_named_property(env, panelFlag, "FLG_FLOATING", flagFloating));
+    return panelFlag;
+}
+
+napi_value JsInputMethodEngineSetting::GetJsDirectionProperty(napi_env env)
+{
+    napi_value direction = nullptr;
+    napi_value cursorUp = nullptr;
+    napi_value cursorDown = nullptr;
+    napi_value cursorLeft = nullptr;
+    napi_value cursorRight = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::UP), &cursorUp));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::DOWN), &cursorDown));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::LEFT), &cursorLeft));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::RIGHT), &cursorRight));
+    NAPI_CALL(env, napi_create_object(env, &direction));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_UP", cursorUp));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_DOWN", cursorDown));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_LEFT", cursorLeft));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_RIGHT", cursorRight));
+    return direction;
 }
 
 std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInputMethodEngineSetting()

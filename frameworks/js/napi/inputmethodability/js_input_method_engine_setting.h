@@ -78,6 +78,9 @@ private:
     static std::shared_ptr<JsInputMethodEngineSetting> GetInputMethodEngineSetting();
     static bool InitInputMethodSetting();
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
+    static napi_value GetJsPanelTypeProperty(napi_env env);
+    static napi_value GetJsPanelFlagProperty(napi_env env);
+    static napi_value GetJsDirectionProperty(napi_env env);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     static napi_value GetIMEInstance(napi_env env, napi_callback_info info);
     static napi_status GetContext(napi_env env, napi_value argv,

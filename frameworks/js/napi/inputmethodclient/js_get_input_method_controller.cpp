@@ -52,6 +52,7 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
         DECLARE_NAPI_STATIC_PROPERTY("KeyboardStatus", JsGetKeyboardStatusProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("EnterKeyType", JsGetEnterKeyTypeProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("TextInputType", JsGetTextInputTypeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
     };
     NAPI_CALL(
         env, napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -160,6 +161,25 @@ napi_value JsGetInputMethodController::JsGetTextInputTypeProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "URL", typeUrl));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "VISIBLE_PASSWORD", typeVisiblePassword));
     return textInputType;
+}
+
+napi_value JsGetInputMethodController::GetJsDirectionProperty(napi_env env)
+{
+    napi_value direction = nullptr;
+    napi_value cursorUp = nullptr;
+    napi_value cursorDown = nullptr;
+    napi_value cursorLeft = nullptr;
+    napi_value cursorRight = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::UP), &cursorUp));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::DOWN), &cursorDown));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::LEFT), &cursorLeft));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::RIGHT), &cursorRight));
+    NAPI_CALL(env, napi_create_object(env, &direction));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_UP", cursorUp));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_DOWN", cursorDown));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_LEFT", cursorLeft));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_RIGHT", cursorRight));
+    return direction;
 }
 
 napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback_info cbinfo)
