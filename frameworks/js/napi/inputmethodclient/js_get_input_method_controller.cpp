@@ -17,6 +17,7 @@
 #include <set>
 
 #include "input_method_controller.h"
+#include "input_method_utils.h"
 #include "js_get_input_method_textchange_listener.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -49,6 +50,10 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getInputMethodController", GetInputMethodController),
         DECLARE_NAPI_FUNCTION("getController", GetController),
+        DECLARE_NAPI_STATIC_PROPERTY("KeyboardStatus", GetJsKeyboardStatusProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("EnterKeyType", GetJsEnterKeyTypeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("TextInputType", GetJsTextInputTypeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
     };
     NAPI_CALL(
         env, napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -76,6 +81,106 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
     NAPI_CALL(env, napi_set_named_property(env, info, IMC_CLASS_NAME.c_str(), cons));
 
     return info;
+}
+
+napi_value JsGetInputMethodController::GetJsKeyboardStatusProperty(napi_env env)
+{
+    napi_value keyboardStatus = nullptr;
+    napi_value statusNone = nullptr;
+    napi_value statusHide = nullptr;
+    napi_value statusShow = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(KeyboardStatus::NONE), &statusNone));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(KeyboardStatus::HIDE), &statusHide));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(KeyboardStatus::SHOW), &statusShow));
+    NAPI_CALL(env, napi_create_object(env, &keyboardStatus));
+    NAPI_CALL(env, napi_set_named_property(env, keyboardStatus, "NONE", statusNone));
+    NAPI_CALL(env, napi_set_named_property(env, keyboardStatus, "HIDE", statusHide));
+    NAPI_CALL(env, napi_set_named_property(env, keyboardStatus, "SHOW", statusShow));
+    return keyboardStatus;
+}
+
+napi_value JsGetInputMethodController::GetJsEnterKeyTypeProperty(napi_env env)
+{
+    napi_value enterKeyType = nullptr;
+    napi_value typeUnspecified = nullptr;
+    napi_value typeNone = nullptr;
+    napi_value typeGo = nullptr;
+    napi_value typeSearch = nullptr;
+    napi_value typeSend = nullptr;
+    napi_value typeNext = nullptr;
+    napi_value typeDone = nullptr;
+    napi_value typePrevious = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::UNSPECIFIED), &typeUnspecified));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::NONE), &typeNone));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::GO), &typeGo));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::SEARCH), &typeSearch));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::SEND), &typeSend));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::NEXT), &typeNext));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::DONE), &typeDone));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(EnterKeyType::PREVIOUS), &typePrevious));
+    NAPI_CALL(env, napi_create_object(env, &enterKeyType));
+    NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "UNSPECIFIED", typeUnspecified));
+    NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "NONE", typeNone));
+    NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "GO", typeGo));
+    NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "SEARCH", typeSearch));
+    NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "SEND", typeSend));
+    NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "NEXT", typeNext));
+    NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "DONE", typeDone));
+    NAPI_CALL(env, napi_set_named_property(env, enterKeyType, "PREVIOUS", typePrevious));
+    return enterKeyType;
+}
+
+napi_value JsGetInputMethodController::GetJsTextInputTypeProperty(napi_env env)
+{
+    napi_value textInputType = nullptr;
+    napi_value typeNone = nullptr;
+    napi_value typeText = nullptr;
+    napi_value typeMultiline = nullptr;
+    napi_value typeNumber = nullptr;
+    napi_value typePhone = nullptr;
+    napi_value typeDatatime = nullptr;
+    napi_value typeEmailAddress = nullptr;
+    napi_value typeUrl = nullptr;
+    napi_value typeVisiblePassword = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NONE), &typeNone));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::TEXT), &typeText));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::MULTILINE), &typeMultiline));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NUMBER), &typeNumber));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::PHONE), &typePhone));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::DATETIME), &typeDatatime));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::EMAIL_ADDRESS), &typeEmailAddress));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::URL), &typeUrl));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD), &typeVisiblePassword));
+    NAPI_CALL(env, napi_create_object(env, &textInputType));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "NONE", typeNone));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "TEXT", typeText));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "MULTILINE", typeMultiline));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "NUMBER", typeNumber));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "PHONE", typePhone));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "DATETIME", typeDatatime));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "EMAIL_ADDRESS", typeEmailAddress));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "URL", typeUrl));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "VISIBLE_PASSWORD", typeVisiblePassword));
+    return textInputType;
+}
+
+napi_value JsGetInputMethodController::GetJsDirectionProperty(napi_env env)
+{
+    napi_value direction = nullptr;
+    napi_value cursorUp = nullptr;
+    napi_value cursorDown = nullptr;
+    napi_value cursorLeft = nullptr;
+    napi_value cursorRight = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::UP), &cursorUp));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::DOWN), &cursorDown));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::LEFT), &cursorLeft));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::RIGHT), &cursorRight));
+    NAPI_CALL(env, napi_create_object(env, &direction));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_UP", cursorUp));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_DOWN", cursorDown));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_LEFT", cursorLeft));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_RIGHT", cursorRight));
+    return direction;
 }
 
 napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback_info cbinfo)
