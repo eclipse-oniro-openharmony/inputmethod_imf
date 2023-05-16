@@ -71,5 +71,6 @@ ohos_shared_library("inputmethod_ability") {
   public_configs = [ ":inputmethod_ability_native_public_config" ]
 
   subsystem_name = "inputmethod"
+  innerapi_tags = [ "platformsdk" ]
   part_name = "imf"
 }
