@@ -42,6 +42,13 @@ enum class Direction {
     RIGHT,
 };
 
+enum class ExtendAction {
+    SELECT_ALL = 0,
+    CUT = 3,
+    COPY,
+    PAUSE,
+};
+
 class Configuration {
 public:
     EnterKeyType GetEnterKeyType() const

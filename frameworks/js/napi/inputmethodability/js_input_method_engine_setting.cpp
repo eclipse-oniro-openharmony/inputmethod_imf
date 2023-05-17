@@ -73,6 +73,7 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_PROPERTY("PanelType", GetJsPanelTypeProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("PanelFlag", GetJsPanelFlagProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("ExtendAction", GetJsExtendActionProperty(env)),
     };
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -148,6 +149,25 @@ napi_value JsInputMethodEngineSetting::GetJsDirectionProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_LEFT", cursorLeft));
     NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_RIGHT", cursorRight));
     return direction;
+}
+
+napi_value JsInputMethodEngineSetting::GetJsExtendActionProperty(napi_env env)
+{
+    napi_value action = nullptr;
+    napi_value actionSelectAll = nullptr;
+    napi_value actionCut = nullptr;
+    napi_value actionCopy = nullptr;
+    napi_value actionPause = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::SELECT_ALL), &actionSelectAll));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::CUT), &actionCut));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::COPY), &actionCopy));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::PAUSE), &actionPause));
+    NAPI_CALL(env, napi_create_object(env, &action));
+    NAPI_CALL(env, napi_set_named_property(env, action, "SELECT_ALL", actionSelectAll));
+    NAPI_CALL(env, napi_set_named_property(env, action, "CUT", actionCut));
+    NAPI_CALL(env, napi_set_named_property(env, action, "COPY", actionCopy));
+    NAPI_CALL(env, napi_set_named_property(env, action, "PAUSE", actionPause));
+    return action;
 }
 
 std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInputMethodEngineSetting()
