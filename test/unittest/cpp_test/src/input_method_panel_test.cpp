@@ -235,13 +235,13 @@ void InputMethodPanelTest::ImcPanelListeningTestPrepare(
             break;
         }
         case ListeningStatus::ON: {
-            imc_->UpdateListenEventFlag(IME_HIDE, true);
-            imc_->UpdateListenEventFlag(IME_SHOW, true);
+            imc_->UpdateListenEventFlag("imeShow", true);
+            imc_->UpdateListenEventFlag("imeHide", true);
             break;
         }
         case ListeningStatus::OFF: {
-            imc_->UpdateListenEventFlag(IME_HIDE, false);
-            imc_->UpdateListenEventFlag(IME_SHOW, false);
+            imc_->UpdateListenEventFlag("imeShow", false);
+            imc_->UpdateListenEventFlag("imeHide", false);
             break;
         }
         default:

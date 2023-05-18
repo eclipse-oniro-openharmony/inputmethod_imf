@@ -26,7 +26,8 @@ namespace OHOS {
 namespace MiscServices {
 const std::string JsPanel::CLASS_NAME = "Panel";
 thread_local napi_ref JsPanel::panelConstructorRef_ = nullptr;
-
+constexpr size_t ARGC_ONE = 1;
+constexpr size_t ARGC_TWO = 2;
 napi_value JsPanel::Constructor(napi_env env)
 {
     IMSA_HILOGI("JsPanel in.");
@@ -254,7 +255,7 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     std::string type;
-    if (!ParamChecker::IsValidParamCount(argc, 2) || !JsUtil::GetValue(env, argv[0], type)
+    if (!ParamChecker::IsValidParamCount(argc, ARGC_TWO) || !JsUtil::GetValue(env, argv[0], type)
         || !ParamChecker::IsValidEventType(EventSubscribeModule::PANEL, type)
         || !ParamChecker::IsValidParamType(env, argv[1], napi_function)) {
         return nullptr;
@@ -276,7 +277,7 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     std::string type;
-    if (!ParamChecker::IsValidParamCount(argc, 1) || !JsUtil::GetValue(env, argv[0], type)
+    if (!ParamChecker::IsValidParamCount(argc, ARGC_ONE) || !JsUtil::GetValue(env, argv[0], type)
         || !ParamChecker::IsValidEventType(EventSubscribeModule::PANEL, type)) {
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
         return nullptr;
