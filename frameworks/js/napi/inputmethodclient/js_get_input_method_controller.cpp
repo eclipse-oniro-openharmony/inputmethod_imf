@@ -195,10 +195,10 @@ napi_value JsGetInputMethodController::Subscribe(napi_env env, napi_callback_inf
     if (!ParamChecker::IsValidParamCount(argc, ARGC_TWO) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
         || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_CONTROLLER, type)
         || !ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+        IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
         return nullptr;
     }
-
     if (TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end()) {
         if (!InputMethodController::GetInstance()->WasAttached()) {
             JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_DETACHED, "need to be attached first", TYPE_NONE);
@@ -229,9 +229,9 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
     std::string type;
     if (!ParamChecker::IsValidParamCount(argc, ARGC_ONE) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
         || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_CONTROLLER, type)) {
+        IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
-
     auto engine = reinterpret_cast<JsGetInputMethodController *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;

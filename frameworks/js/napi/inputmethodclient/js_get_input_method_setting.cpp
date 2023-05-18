@@ -394,6 +394,7 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     if (!ParamChecker::IsValidParamCount(argc, ARGC_TWO) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
         || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type)
         || !ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+        IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
     auto engine = reinterpret_cast<JsGetInputMethodSetting *>(JsUtils::GetNativeSelf(env, info));
@@ -452,6 +453,7 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     std::string type;
     if (!ParamChecker::IsValidParamCount(argc, ARGC_ONE) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
         || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type)) {
+        IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
     // If the type of optional parameter is wrong, make it nullptr

@@ -25,6 +25,7 @@ bool JsUtil::GetValue(napi_env env, napi_value in, std::string &out)
     }
     out.resize(size + 1, 0);
     status = napi_get_value_string_utf8(env, in, const_cast<char *>(out.data()), size + 1, &size);
+    out.resize(size);
     return status == napi_ok;
 }
 bool JsUtil::GetValue(napi_env env, napi_value in, int32_t &out)
