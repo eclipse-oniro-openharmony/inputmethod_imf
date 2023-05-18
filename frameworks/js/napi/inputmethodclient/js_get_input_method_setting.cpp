@@ -19,9 +19,11 @@
 #include "input_method_controller.h"
 #include "input_method_status.h"
 #include "js_input_method.h"
+#include "js_util.h"
 #include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "param_checker.h"
 #include "string_ex.h"
 
 namespace OHOS {
@@ -32,8 +34,6 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 thread_local napi_ref JsGetInputMethodSetting::IMSRef_ = nullptr;
 const std::string JsGetInputMethodSetting::IMS_CLASS_NAME = "InputMethodSetting";
-const std::map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
-    { "imeHide", IME_HIDE } };
 const std::map<InputWindowStatus, std::string> PANEL_STATUS{ { InputWindowStatus::SHOW, "imeShow" },
     { InputWindowStatus::HIDE, "imeHide" } };
 std::mutex JsGetInputMethodSetting::msMutex_;
@@ -353,20 +353,18 @@ int32_t JsGetInputMethodSetting::RegisterListener(
     IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty()) {
-        auto eventType = EVENT_TYPE.find(type)->second;
         InputMethodController::GetInstance()->SetSettingListener(inputMethod_);
-        auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(eventType, true);
+        auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
         if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("UpdateListenEventFlag failed, ret: %{public}d, eventType: %{public}u", ret, eventType);
+            IMSA_HILOGE("UpdateListenEventFlag failed, ret: %{public}d, type: %{public}s", ret, type.c_str());
             return ret;
         }
     }
     if (!jsCbMap_.empty() && jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGI("start type: %{public}s listening.", type.c_str());
-        auto eventType = EVENT_TYPE.find(type)->second;
-        auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(eventType, true);
+        auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
         if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("UpdateListenEventFlag failed, ret: %{public}d, eventType: %{public}u", ret, eventType);
+            IMSA_HILOGE("UpdateListenEventFlag failed, ret: %{public}d, type: %{public}s", ret, type.c_str());
             return ret;
         }
     }
@@ -392,16 +390,12 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    NAPI_ASSERT(env, argc > ARGC_ONE, "Wrong number of arguments, requires least 2");
-
     std::string type;
-    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    NAPI_ASSERT(env, EVENT_TYPE.find(type) != EVENT_TYPE.end(), "subscribe type error");
-
-    napi_valuetype valuetype = napi_undefined;
-    napi_typeof(env, argv[ARGC_ONE], &valuetype);
-    NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
-
+    if (!ParamChecker::IsValidParamCount(argc, ARGC_TWO) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
+        || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type)
+        || !ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+        return nullptr;
+    }
     auto engine = reinterpret_cast<JsGetInputMethodSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
@@ -430,7 +424,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     if (callback == nullptr) {
         jsCbMap_.erase(type);
         IMSA_HILOGI("stop all type: %{public}s listening.", type.c_str());
-        InputMethodController::GetInstance()->UpdateListenEventFlag(EVENT_TYPE.find(type)->second, false);
+        InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
         return;
     }
 
@@ -444,7 +438,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     if (jsCbMap_[type].empty()) {
         IMSA_HILOGI("stop last type: %{public}s listening.", type.c_str());
         jsCbMap_.erase(type);
-        InputMethodController::GetInstance()->UpdateListenEventFlag(EVENT_TYPE.find(type)->second, false);
+        InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
     }
 }
 
@@ -455,20 +449,18 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    NAPI_ASSERT(env, argc > ARGC_ZERO, "Wrong number of arguments, requires least 1");
-
     std::string type;
-    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    NAPI_ASSERT(env, EVENT_TYPE.find(type) != EVENT_TYPE.end(), "subscribe type error");
+    if (!ParamChecker::IsValidParamCount(argc, ARGC_ONE) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
+        || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type)) {
+        return nullptr;
+    }
+    // If the type of optional parameter is wrong, make it nullptr
+    if (argc > ARGC_ONE && !ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+        argv[ARGC_ONE] = nullptr;
+    }
     auto engine = reinterpret_cast<JsGetInputMethodSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
-    }
-
-    if (argc > ARGC_ONE) {
-        napi_valuetype valuetype = napi_undefined;
-        napi_typeof(env, argv[ARGC_ONE], &valuetype);
-        NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
     }
     engine->UnRegisterListener(argv[ARGC_ONE], type);
     napi_value result = nullptr;

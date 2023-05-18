@@ -23,16 +23,17 @@
 #include "js_keyboard_controller_engine.h"
 #include "js_runtime_utils.h"
 #include "js_text_input_client_engine.h"
+#include "js_util.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_base_context.h"
+#include "param_checker.h"
 
 namespace OHOS {
 namespace MiscServices {
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
-constexpr size_t ARGC_MAX = 6;
 const std::string JsInputMethodEngineSetting::IMES_CLASS_NAME = "InputMethodEngine";
 thread_local napi_ref JsInputMethodEngineSetting::IMESRef_ = nullptr;
 
@@ -230,22 +231,17 @@ void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::st
 
 napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_info info)
 {
-    size_t argc = ARGC_MAX;
-    napi_value argv[ARGC_MAX] = { nullptr };
+    size_t argc = ARGC_TWO;
+    napi_value argv[ARGC_TWO] = { nullptr };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    PARAM_CHECK_RETURN(
-        env, (argc >= ARGC_TWO) && (argc <= ARGC_MAX), "Wrong number of arguments, requires 2", TYPE_NONE, nullptr);
-
-    std::string type = "";
-    napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    NAPI_ASSERT_BASE(env, status == napi_ok, "get type failed!", nullptr);
-    IMSA_HILOGE("event type is: %{public}s", type.c_str());
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv[ARGC_ONE], &valueType);
-    PARAM_CHECK_RETURN(env, valueType == napi_function, "'callback'", TYPE_FUNCTION, nullptr);
+    std::string type;
+    if (!ParamChecker::IsValidParamCount(argc, ARGC_TWO) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
+        || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)
+        || !ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+        return nullptr;
+    }
 
     auto engine = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
@@ -386,19 +382,18 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    PARAM_CHECK_RETURN(env, argc >= 1, "Wrong number of arguments, requires 1 or 2", TYPE_NONE, nullptr);
-    std::string type = "";
-    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    IMSA_HILOGD("event type is: %{public}s", type.c_str());
+    std::string type;
+    if (!ParamChecker::IsValidParamCount(argc, ARGC_ONE) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
+        || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)) {
+        return nullptr;
+    }
+    // If the type of optional parameter is wrong, make it nullptr
+    if (argc > ARGC_ONE && !ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+        argv[ARGC_ONE] = nullptr;
+    }
     auto setting = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
     if (setting == nullptr) {
         return nullptr;
-    }
-
-    if (argc == ARGC_TWO) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[ARGC_ONE], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_function, " 'callback' ", TYPE_FUNCTION, nullptr);
     }
     setting->UnRegisterListener(argv[ARGC_ONE], type);
     napi_value result = nullptr;

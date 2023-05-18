@@ -18,8 +18,10 @@
 
 #include "input_method_controller.h"
 #include "js_get_input_method_textchange_listener.h"
+#include "js_util.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "param_checker.h"
 #include "string_ex.h"
 
 namespace OHOS {
@@ -189,11 +191,13 @@ napi_value JsGetInputMethodController::Subscribe(napi_env env, napi_callback_inf
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    PARAM_CHECK_RETURN(env, argc > 1, "should 2 parameters!", TYPE_NONE, nullptr);
-
-    std::string type = "";
-    napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    PARAM_CHECK_RETURN(env, status == napi_ok, "callback", TYPE_FUNCTION, nullptr);
+    std::string type;
+    if (!ParamChecker::IsValidParamCount(argc, ARGC_TWO) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
+        || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_CONTROLLER, type)
+        || !ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
+        return nullptr;
+    }
 
     if (TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end()) {
         if (!InputMethodController::GetInstance()->WasAttached()) {
@@ -222,14 +226,9 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    if (argc < 1) {
-        return nullptr;
-    }
-
     std::string type;
-    napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    if ((status != napi_ok) || (EVENT_TYPE.find(type) == EVENT_TYPE.end() &&
-        TEXT_EVENT_TYPE.find(type) == TEXT_EVENT_TYPE.end())) {
+    if (!ParamChecker::IsValidParamCount(argc, ARGC_ONE) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
+        || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_CONTROLLER, type)) {
         return nullptr;
     }
 
