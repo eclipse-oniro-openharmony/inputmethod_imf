@@ -71,6 +71,10 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
 
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
         DECLARE_NAPI_FUNCTION("getInputMethodAbility", GetInputMethodAbility),
+        DECLARE_NAPI_STATIC_PROPERTY("PanelType", GetJsPanelTypeProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("PanelFlag", GetJsPanelFlagProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("ExtendAction", GetJsExtendActionProperty(env)),
     };
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -101,6 +105,70 @@ napi_value JsInputMethodEngineSetting::GetIntJsConstProperty(napi_env env, int32
     napi_value jsNumber = nullptr;
     napi_create_int32(env, num, &jsNumber);
     return jsNumber;
+}
+
+napi_value JsInputMethodEngineSetting::GetJsPanelTypeProperty(napi_env env)
+{
+    napi_value panelType = nullptr;
+    napi_value typeSoftKeyboard = nullptr;
+    napi_value typeStatusBar = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelType::SOFT_KEYBOARD), &typeSoftKeyboard));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelType::STATUS_BAR), &typeStatusBar));
+    NAPI_CALL(env, napi_create_object(env, &panelType));
+    NAPI_CALL(env, napi_set_named_property(env, panelType, "SOFT_KEYBOARD", typeSoftKeyboard));
+    NAPI_CALL(env, napi_set_named_property(env, panelType, "STATUS_BAR", typeStatusBar));
+    return panelType;
+}
+
+napi_value JsInputMethodEngineSetting::GetJsPanelFlagProperty(napi_env env)
+{
+    napi_value panelFlag = nullptr;
+    napi_value flagFixed = nullptr;
+    napi_value flagFloating = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelFlag::FLG_FIXED), &flagFixed));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelFlag::FLG_FLOATING), &flagFloating));
+    NAPI_CALL(env, napi_create_object(env, &panelFlag));
+    NAPI_CALL(env, napi_set_named_property(env, panelFlag, "FLG_FIXED", flagFixed));
+    NAPI_CALL(env, napi_set_named_property(env, panelFlag, "FLG_FLOATING", flagFloating));
+    return panelFlag;
+}
+
+napi_value JsInputMethodEngineSetting::GetJsDirectionProperty(napi_env env)
+{
+    napi_value direction = nullptr;
+    napi_value cursorUp = nullptr;
+    napi_value cursorDown = nullptr;
+    napi_value cursorLeft = nullptr;
+    napi_value cursorRight = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::UP), &cursorUp));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::DOWN), &cursorDown));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::LEFT), &cursorLeft));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(Direction::RIGHT), &cursorRight));
+    NAPI_CALL(env, napi_create_object(env, &direction));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_UP", cursorUp));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_DOWN", cursorDown));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_LEFT", cursorLeft));
+    NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_RIGHT", cursorRight));
+    return direction;
+}
+
+napi_value JsInputMethodEngineSetting::GetJsExtendActionProperty(napi_env env)
+{
+    napi_value action = nullptr;
+    napi_value actionSelectAll = nullptr;
+    napi_value actionCut = nullptr;
+    napi_value actionCopy = nullptr;
+    napi_value actionPaste = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::SELECT_ALL), &actionSelectAll));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::CUT), &actionCut));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::COPY), &actionCopy));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::PASTE), &actionPaste));
+    NAPI_CALL(env, napi_create_object(env, &action));
+    NAPI_CALL(env, napi_set_named_property(env, action, "SELECT_ALL", actionSelectAll));
+    NAPI_CALL(env, napi_set_named_property(env, action, "CUT", actionCut));
+    NAPI_CALL(env, napi_set_named_property(env, action, "COPY", actionCopy));
+    NAPI_CALL(env, napi_set_named_property(env, action, "PASTE", actionPaste));
+    return action;
 }
 
 std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInputMethodEngineSetting()
@@ -303,20 +371,22 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
 
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         JsPanel *jsPanel = nullptr;
-        napi_ref ref = New(env, reinterpret_cast<void **>(&jsPanel), JsPanel::Constructor(env));
-        NAPI_ASSERT_BASE(env, (ref != nullptr) && (jsPanel != nullptr), "get jsPanel instance failed!",
-                         napi_generic_failure);
+        napi_value constructor = JsPanel::Init(env);
+        NAPI_ASSERT_BASE(env, constructor != nullptr, "get jsPanel constructor failed!", napi_generic_failure);
+
+        napi_status status = napi_new_instance(env, constructor, 0, nullptr, result);
+        NAPI_ASSERT_BASE(env, status == napi_ok, "get jsPanel instance failed!", napi_generic_failure);
+
+        status = napi_unwrap(env, *result, (void **)(&jsPanel));
+        NAPI_ASSERT_BASE(env, (status == napi_ok) && (jsPanel != nullptr), "get jsPanel failed", napi_generic_failure);
         jsPanel->SetNative(ctxt->panel);
-        auto status = napi_get_reference_value(env, ref, result);
-        NAPI_ASSERT_BASE(env, (status == napi_ok || result != nullptr), "Get ref error!", napi_generic_failure);
-        napi_delete_reference(env, ref);
         return napi_ok;
     };
 
     ctxt->SetAction(std::move(input), std::move(output));
     // 3 means JsAPI:createPanel has 3 params at most.
     AsyncCall asyncCall(env, info, ctxt, 3);
-    return asyncCall.Call(env, exec);
+    return asyncCall.Call(env, exec, "createPanel");
 }
 
 napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_info info)
@@ -328,12 +398,9 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
         napi_typeof(env, argv[0], &valueType);
         PARAM_CHECK_RETURN(env, valueType == napi_object, " target: ", TYPE_OBJECT, napi_invalid_arg);
         bool isPanel = false;
-        napi_value constructor = nullptr;
-        NAPI_ASSERT_BASE(env, JsPanel::panelConstructorRef_ != nullptr,
-            "the panel which will be destroy is not exist!", napi_invalid_arg);
-        napi_status status = napi_get_reference_value(env, JsPanel::panelConstructorRef_, &constructor);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "Failed to get panel constructor.", status);
-        status = napi_instanceof(env, argv[0], constructor, &isPanel);
+        napi_value constructor = JsPanel::Init(env);
+        NAPI_ASSERT_BASE(env, constructor != nullptr, "Failed to get panel constructor.", napi_invalid_arg);
+        napi_status status = napi_instanceof(env, argv[0], constructor, &isPanel);
         NAPI_ASSERT_BASE(env, (status == napi_ok) && isPanel, "It's not expected panel instance!", status);
         JsPanel *jsPanel = nullptr;
         status = napi_unwrap(env, argv[0], (void **)(&jsPanel));
@@ -344,35 +411,24 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        CHECK_RETURN_VOID((ctxt->panel != nullptr), "inputMethodPanel is nullptr!");
+        ctxt->SetState(napi_ok);
+    };
+
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        NAPI_ASSERT_BASE(env, (ctxt->panel != nullptr), "inputMethodPanel is nullptr!", napi_generic_failure);
         auto errCode = InputMethodAbility::GetInstance()->DestroyPanel(ctxt->panel);
         if (errCode != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("DestroyPanel failed, errCode = %{public}d", errCode);
-            return;
+            return napi_generic_failure;
         }
-        ctxt->SetState(napi_ok);
         ctxt->panel = nullptr;
+        return napi_ok;
     };
 
-    ctxt->SetAction(std::move(input));
+    ctxt->SetAction(std::move(input), std::move(output));
     // 2 means JsAPI:destroyPanel has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
-    return asyncCall.Call(env, exec);
-}
-
-napi_ref JsInputMethodEngineSetting::New(napi_env env, void **out, napi_value constructor)
-{
-    napi_value object = nullptr;
-    napi_status status = napi_new_instance(env, constructor, 0, nullptr, &object);
-    NAPI_ASSERT(env, (status == napi_ok) && (object != nullptr), "napi_new_instance failed!");
-
-    status = napi_unwrap(env, object, out);
-    NAPI_ASSERT(env, (status == napi_ok) && (out != nullptr), "napi_unwrap failed");
-
-    napi_ref ref = nullptr;
-    status = napi_create_reference(env, object, 1, &ref);
-    NAPI_ASSERT(env, (status == napi_ok) && (ref != nullptr), "napi_create_reference failed");
-    return ref;
+    return asyncCall.Call(env, exec, "destroyPanel");
 }
 
 napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_info info)

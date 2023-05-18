@@ -78,6 +78,10 @@ private:
     static std::shared_ptr<JsInputMethodEngineSetting> GetInputMethodEngineSetting();
     static bool InitInputMethodSetting();
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
+    static napi_value GetJsPanelTypeProperty(napi_env env);
+    static napi_value GetJsPanelFlagProperty(napi_env env);
+    static napi_value GetJsDirectionProperty(napi_env env);
+    static napi_value GetJsExtendActionProperty(napi_env env);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     static napi_value GetIMEInstance(napi_env env, napi_callback_info info);
     static napi_status GetContext(napi_env env, napi_value argv,
@@ -85,7 +89,6 @@ private:
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     static napi_value GetResultOnSetSubtype(napi_env env, const SubProperty &property);
-    static napi_ref New(napi_env env, void **out, napi_value constructor);
     static const std::string IMES_CLASS_NAME;
     static thread_local napi_ref IMESRef_;
     struct UvEntry {
