@@ -100,6 +100,9 @@ private:
     void InitServiceHandler();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
+    std::mutex switchMutex_;
+    std::condition_variable switchCV_;
+    std::atomic_int switchQueueLength_{ 0 };
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
     static constexpr const char *SELECT_DIALOG_HAP = "cn.openharmony.inputmethodchoosedialog";
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";

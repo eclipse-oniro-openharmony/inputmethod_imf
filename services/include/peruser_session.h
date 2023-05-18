@@ -33,6 +33,7 @@
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_core.h"
+#include "ime_cache_manager.h"
 #include "input_attribute.h"
 #include "input_client_info.h"
 #include "input_control_channel_stub.h"
@@ -72,16 +73,18 @@ class PerUserSession {
 
 public:
     explicit PerUserSession(int userId);
-    ~PerUserSession();
+    ~PerUserSession() = default;
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
     int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard);
     int32_t OnStopInput(sptr<IInputClient> client);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
-    int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
+    int32_t InitImeInfo(const std::shared_ptr<ImeCache> &imeInfo);
+    int32_t OnSetCoreAndAgent(const std::shared_ptr<ImeCache> &imeInfo);
     int OnHideKeyboardSelf();
     int OnShowKeyboardSelf();
-    void StopInputService(std::string imeId);
+    bool StartInputService(const std::string &imeName, bool isRetry);
+    void StopInputService(const std::string &imeId);
     int32_t OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch);
     void UpdateCurrentUserId(int32_t userId);
     void OnUnfocused(int32_t pid, int32_t uid);
@@ -96,15 +99,12 @@ private:
     static const int IME_RESET_TIME_OUT = 3;
     static const int MAX_IME_START_TIME = 1000;
 
-    std::mutex imsCoreLock_;
-    sptr<IInputMethodCore> imsCore[MAX_IME];       // the remote handlers of input method service
-
-    std::mutex agentLock_;
-    sptr<IInputMethodAgent> agent_;
+    std::mutex imeInfoLock_;
+    sptr<InputDeathRecipient> imaDeathRecipient_;
+    std::shared_ptr<ImeCache> currentImeInfo_;
     std::mutex clientLock_;
     sptr<IInputClient> currentClient_;              // the current input client
 
-    sptr<InputDeathRecipient> imsDeathRecipient_ = nullptr;
     std::recursive_mutex mtx;             // mutex to lock the operations among multi work threads
     std::mutex resetLock;
     ResetManager manager[MAX_IME];
@@ -128,21 +128,13 @@ private:
     int32_t SendAgentToSingleClient(const sptr<IInputClient> &client);
     int32_t InitInputControlChannel();
     bool IsRestartIme(uint32_t index);
-    void ClearImeData(uint32_t index);
+    void ClearCurrentImeData();
     void SetCurrentClient(sptr<IInputClient> client);
     sptr<IInputClient> GetCurrentClient();
-    void SetImsCore(int32_t index, sptr<IInputMethodCore> core);
-    sptr<IInputMethodCore> GetImsCore(int32_t index);
-    void SetAgent(sptr<IInputMethodAgent> agent);
-    sptr<IInputMethodAgent> GetAgent();
+    sptr<IInputMethodCore> GetImeCore();
+    sptr<IInputMethodAgent> GetImeAgent();
+    std::shared_ptr<ImeCache> GetImeInfo();
     sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
-    bool StartCurrentIme(bool isRetry);
-
-    static inline bool IsValid(int32_t index)
-    {
-        return index >= CURRENT_IME && index <= SECURITY_IME;
-    }
-
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
 };
 } // namespace MiscServices

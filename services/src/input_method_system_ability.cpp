@@ -196,29 +196,12 @@ void InputMethodSystemAbility::StartUserIdListener()
 bool InputMethodSystemAbility::StartInputService(const std::string &imeId)
 {
     IMSA_HILOGI("InputMethodSystemAbility, ime:%{public}s", imeId.c_str());
-    bool isStartSuccess = false;
-    sptr<AAFwk::IAbilityManager> abms = GetAbilityManagerService();
-    if (abms != nullptr) {
-        AAFwk::Want want;
-        want.SetAction("action.system.inputmethod");
-        std::string::size_type pos = imeId.find("/");
-        want.SetElementName(imeId.substr(0, pos), imeId.substr(pos + 1));
-        int32_t result = abms->StartAbility(want);
-        if (result != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("InputMethodSystemAbility::StartInputService failed, result = %{public}d", result);
-            isStartSuccess = false;
-        } else {
-            IMSA_HILOGE("InputMethodSystemAbility::StartInputService success.");
-            isStartSuccess = true;
-        }
+    auto imeInfo = ImeCacheManager::GetInstance().Pop(imeId);
+    if (imeInfo != nullptr) {
+        IMSA_HILOGD("hit the cache");
+        return userSession_->OnSetCoreAndAgent(imeInfo) == ErrorCode::NO_ERROR;
     }
-
-    if (!isStartSuccess) {
-        IMSA_HILOGE("StartInputService failed. Try again 10s later");
-        auto callback = [this, imeId]() { StartInputService(imeId); };
-        serviceHandler_->PostTask(callback, INIT_INTERVAL);
-    }
-    return isStartSuccess;
+    return userSession_->StartInputService(imeId, true);
 }
 
 void InputMethodSystemAbility::StopInputService(const std::string &imeId)
@@ -315,7 +298,8 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
         IMSA_HILOGE("InputMethodSystemAbility::core or agent is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return userSession_->OnSetCoreAndAgent(core, agent);
+    ImeCache info = { .core = core, .agent = agent };
+    return userSession_->OnSetCoreAndAgent(std::make_shared<ImeCache>(info));
 };
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
@@ -415,6 +399,12 @@ int32_t InputMethodSystemAbility::Switch(const std::string &bundleName, const Im
 // Switch the current InputMethodExtension to the new InputMethodExtension
 int32_t InputMethodSystemAbility::SwitchExtension(const ImeInfo &info)
 {
+    int blockages = switchQueueLength_++;
+    while (blockages > 0) {
+        std::unique_lock<std::mutex> lock(switchMutex_);
+        switchCV_.wait(lock, [blockages]() { return blockages == 0; });
+        blockages--;
+    }
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId;
     StopInputService(currentIme);
     std::string targetIme = info.prop.name + "/" + info.prop.id;
@@ -425,6 +415,8 @@ int32_t InputMethodSystemAbility::SwitchExtension(const ImeInfo &info)
         return ErrorCode::ERROR_IME_START_FAILED;
     }
     userSession_->OnSwitchIme(info.prop, info.subProp, false);
+    switchQueueLength_--;
+    switchCV_.notify_all();
     return ErrorCode::NO_ERROR;
 }
 
