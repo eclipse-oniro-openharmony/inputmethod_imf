@@ -305,12 +305,13 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
-    if (!ParamChecker::IsValidParamCount(argc, ARGC_TWO) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
+    if (argc < ARGC_TWO || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
         || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)
         || !ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
         IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
+    IMSA_HILOGD("Subscribe type:%{public}s.", type.c_str());
     auto engine = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
@@ -439,15 +440,16 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
-    if (!ParamChecker::IsValidParamCount(argc, ARGC_ONE) || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
+    if (argc < ARGC_ONE || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
         || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)) {
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
     // If the type of optional parameter is wrong, make it nullptr
-    if (argc > ARGC_ONE && !ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+    if (!ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
         argv[ARGC_ONE] = nullptr;
     }
+    IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());
     auto setting = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
     if (setting == nullptr) {
         return nullptr;

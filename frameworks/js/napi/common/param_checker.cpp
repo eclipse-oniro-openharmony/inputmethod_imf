@@ -19,27 +19,17 @@
 
 namespace OHOS {
 namespace MiscServices {
-const std::set<std::string> ParamChecker::EVENT_TYPE_IMS{ "imeChange", "imeShow", "imeHide" };
-const std::set<std::string> ParamChecker::EVENT_TYPE_IMC{ "insertText", "deleteLeft", "deleteRight",
-    "sendKeyboardStatus", "sendFunctionKey", "moveCursor", "handleExtendAction", "selectByRange", "selectByMovement" };
-const std::set<std::string> ParamChecker::EVENT_TYPE_IMA{ "inputStart", "inputStop", "keyboardShow", "keyboardHide",
-    "setCallingWindow", "setSubtype" };
-const std::set<std::string> ParamChecker::EVENT_TYPE_KEYBOARD_DELEGATE{ "keyDown", "keyUp", "cursorContextChange",
-    "selectionChange", "textChange" };
-const std::set<std::string> ParamChecker::EVENT_TYPE_PANEL{ "show", "hide" };
-
-const std::map<EventSubscribeModule, std::set<std::string>> ParamChecker::EVENT_TYPES{
-    { EventSubscribeModule::INPUT_METHOD_CONTROLLER, EVENT_TYPE_IMC },
-    { EventSubscribeModule::INPUT_METHOD_SETTING, EVENT_TYPE_IMS },
-    { EventSubscribeModule::INPUT_METHOD_ABILITY, EVENT_TYPE_IMA },
-    { EventSubscribeModule::KEYBOARD_DELEGATE, EVENT_TYPE_KEYBOARD_DELEGATE },
-    { EventSubscribeModule::PANEL, EVENT_TYPE_PANEL }
+const std::unordered_map<EventSubscribeModule, std::set<std::string>> ParamChecker::EVENT_TYPES{
+    { EventSubscribeModule::INPUT_METHOD_CONTROLLER,
+        { "insertText", "deleteLeft", "deleteRight", "sendKeyboardStatus", "sendFunctionKey", "moveCursor",
+            "handleExtendAction", "selectByRange", "selectByMovement" } },
+    { EventSubscribeModule::INPUT_METHOD_SETTING, { "imeChange", "imeShow", "imeHide" } },
+    { EventSubscribeModule::INPUT_METHOD_ABILITY,
+        { "inputStart", "inputStop", "keyboardShow", "keyboardHide", "setCallingWindow", "setSubtype" } },
+    { EventSubscribeModule::KEYBOARD_DELEGATE,
+        { "keyDown", "keyUp", "cursorContextChange", "selectionChange", "textChange" } },
+    { EventSubscribeModule::PANEL, { "show", "hide" } }
 };
-
-bool ParamChecker::IsValidParamCount(size_t count, size_t expectCount)
-{
-    return count >= expectCount;
-}
 
 bool ParamChecker::IsValidParamType(napi_env env, napi_value param, napi_valuetype expectType)
 {
@@ -50,8 +40,7 @@ bool ParamChecker::IsValidParamType(napi_env env, napi_value param, napi_valuety
 
 bool ParamChecker::IsValidEventType(EventSubscribeModule module, const std::string &type)
 {
-    auto it = std::find_if(
-        EVENT_TYPES.begin(), EVENT_TYPES.end(), [module](const auto &evenType) { return module == evenType.first; });
+    auto it = EVENT_TYPES.find(module);
     if (it == EVENT_TYPES.end()) {
         return false;
     }

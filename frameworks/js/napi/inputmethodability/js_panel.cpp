@@ -26,8 +26,6 @@ namespace OHOS {
 namespace MiscServices {
 const std::string JsPanel::CLASS_NAME = "Panel";
 thread_local napi_ref JsPanel::panelConstructorRef_ = nullptr;
-constexpr size_t ARGC_ONE = 1;
-constexpr size_t ARGC_TWO = 2;
 std::mutex JsPanel::panelConstructorMutex_;
 
 napi_value JsPanel::Init(napi_env env)
@@ -256,11 +254,14 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     std::string type;
-    if (!ParamChecker::IsValidParamCount(argc, ARGC_TWO) || !JsUtil::GetValue(env, argv[0], type)
+    // 2 means least param num.
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
         || !ParamChecker::IsValidEventType(EventSubscribeModule::PANEL, type)
         || !ParamChecker::IsValidParamType(env, argv[1], napi_function)) {
+        IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
+    IMSA_HILOGD("Subscribe type:%{public}s", type.c_str());
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     // 1 means the second param callback.
@@ -278,15 +279,18 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     std::string type;
-    if (!ParamChecker::IsValidParamCount(argc, ARGC_ONE) || !JsUtil::GetValue(env, argv[0], type)
+    // 1 means least param num.
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
         || !ParamChecker::IsValidEventType(EventSubscribeModule::PANEL, type)) {
+        IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
         return nullptr;
     }
     // If the type of optional parameter is wrong, make it nullptr
-    if (argc > 1 && !ParamChecker::IsValidParamType(env, argv[1], napi_function)) {
+    if (!ParamChecker::IsValidParamType(env, argv[1], napi_function)) {
         argv[1] = nullptr;
     }
+    IMSA_HILOGD("UnSubscribe type:%{public}s", type.c_str());
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     observer->RemoveInfo(type, inputMethodPanel->windowId_);

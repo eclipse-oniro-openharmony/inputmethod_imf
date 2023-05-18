@@ -15,7 +15,7 @@
 
 #ifndef OHOS_PARAM_CHECK_H
 #define OHOS_PARAM_CHECK_H
-#include <map>
+#include <unordered_map>
 #include <set>
 #include <string>
 #include <vector>
@@ -26,24 +26,18 @@ namespace OHOS {
 namespace MiscServices {
 enum class EventSubscribeModule : uint32_t {
     INPUT_METHOD_CONTROLLER = 0,
-    INPUT_METHOD_SETTING = 1,
+    INPUT_METHOD_SETTING,
     INPUT_METHOD_ABILITY,
     KEYBOARD_DELEGATE,
     PANEL,
 };
 class ParamChecker {
 public:
-    static bool IsValidParamCount(size_t count, size_t expectCount);
     static bool IsValidParamType(napi_env env, napi_value param, napi_valuetype expectType);
     static bool IsValidEventType(EventSubscribeModule module, const std::string &type);
 
 private:
-    static const std::set<std::string> EVENT_TYPE_IMS;
-    static const std::set<std::string> EVENT_TYPE_IMC;
-    static const std::set<std::string> EVENT_TYPE_IMA;
-    static const std::set<std::string> EVENT_TYPE_KEYBOARD_DELEGATE;
-    static const std::set<std::string> EVENT_TYPE_PANEL;
-    static const std::map<EventSubscribeModule, std::set<std::string>> EVENT_TYPES;
+    static const std::unordered_map<EventSubscribeModule, std::set<std::string>> EVENT_TYPES;
 };
 } // namespace MiscServices
 } // namespace OHOS
