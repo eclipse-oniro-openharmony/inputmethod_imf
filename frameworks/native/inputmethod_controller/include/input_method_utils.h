@@ -46,7 +46,7 @@ enum class ExtendAction {
     SELECT_ALL = 0,
     CUT = 3,
     COPY,
-    PAUSE,
+    PASTE,
 };
 
 class Configuration {

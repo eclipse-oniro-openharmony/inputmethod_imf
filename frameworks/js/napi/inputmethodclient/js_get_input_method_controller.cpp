@@ -190,16 +190,16 @@ napi_value JsGetInputMethodController::GetJsExtendActionProperty(napi_env env)
     napi_value actionSelectAll = nullptr;
     napi_value actionCut = nullptr;
     napi_value actionCopy = nullptr;
-    napi_value actionPause = nullptr;
+    napi_value actionPaste = nullptr;
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::SELECT_ALL), &actionSelectAll));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::CUT), &actionCut));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::COPY), &actionCopy));
-    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::PAUSE), &actionPause));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::PAUSE), &actionPaste));
     NAPI_CALL(env, napi_create_object(env, &action));
     NAPI_CALL(env, napi_set_named_property(env, action, "SELECT_ALL", actionSelectAll));
     NAPI_CALL(env, napi_set_named_property(env, action, "CUT", actionCut));
     NAPI_CALL(env, napi_set_named_property(env, action, "COPY", actionCopy));
-    NAPI_CALL(env, napi_set_named_property(env, action, "PAUSE", actionPause));
+    NAPI_CALL(env, napi_set_named_property(env, action, "PASTE", actionPaste));
     return action;
 }
 
