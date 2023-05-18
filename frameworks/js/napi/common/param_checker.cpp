@@ -17,7 +17,8 @@
 
 #include <algorithm>
 
-namespace OHOS::MiscServices {
+namespace OHOS {
+namespace MiscServices {
 const std::set<std::string> ParamChecker::EVENT_TYPE_IMS{ "imeChange", "imeShow", "imeHide" };
 const std::set<std::string> ParamChecker::EVENT_TYPE_IMC{ "insertText", "deleteLeft", "deleteRight",
     "sendKeyboardStatus", "sendFunctionKey", "moveCursor", "handleExtendAction", "selectByRange", "selectByMovement" };
@@ -56,4 +57,5 @@ bool ParamChecker::IsValidEventType(EventSubscribeModule module, const std::stri
     }
     return it->second.find(type) != it->second.end();
 }
-} // namespace OHOS::MiscServices
+} // namespace MiscServices
+} // namespace OHOS

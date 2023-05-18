@@ -22,7 +22,8 @@
 
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-namespace OHOS::MiscServices {
+namespace OHOS {
+namespace MiscServices {
 enum class EventSubscribeModule : uint32_t {
     INPUT_METHOD_CONTROLLER = 0,
     INPUT_METHOD_SETTING = 1,
@@ -44,5 +45,6 @@ private:
     static const std::set<std::string> EVENT_TYPE_PANEL;
     static const std::map<EventSubscribeModule, std::set<std::string>> EVENT_TYPES;
 };
-} // namespace OHOS::MiscServices
+} // namespace MiscServices
+} // namespace OHOS
 #endif // OHOS_PARAM_CHECK_H
