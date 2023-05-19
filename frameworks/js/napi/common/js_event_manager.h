@@ -15,9 +15,9 @@
 
 #ifndef OHOS_PARAM_CHECK_H
 #define OHOS_PARAM_CHECK_H
-#include <unordered_map>
-#include <set>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "napi/native_api.h"
@@ -31,13 +31,12 @@ enum class EventSubscribeModule : uint32_t {
     KEYBOARD_DELEGATE,
     PANEL,
 };
-class ParamChecker {
+class JsEventManager {
 public:
-    static bool IsValidParamType(napi_env env, napi_value param, napi_valuetype expectType);
-    static bool IsValidEventType(EventSubscribeModule module, const std::string &type);
+    static bool GetEventType(EventSubscribeModule module, napi_env env, napi_value in, std::string &out);
 
 private:
-    static const std::unordered_map<EventSubscribeModule, std::set<std::string>> EVENT_TYPES;
+    static const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> EVENT_TYPES;
 };
 } // namespace MiscServices
 } // namespace OHOS

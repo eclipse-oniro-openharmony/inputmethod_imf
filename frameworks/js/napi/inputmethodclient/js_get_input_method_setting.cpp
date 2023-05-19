@@ -18,12 +18,12 @@
 #include "input_client_info.h"
 #include "input_method_controller.h"
 #include "input_method_status.h"
+#include "js_event_manager.h"
 #include "js_input_method.h"
 #include "js_util.h"
 #include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "param_checker.h"
 #include "string_ex.h"
 
 namespace OHOS {
@@ -391,9 +391,9 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
-    if (argc < ARGC_TWO || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
-        || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type)
-        || !ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+    // 2 means least param num.
+    if (argc < 2 || !JsEventManager::GetEventType(EventSubscribeModule::INPUT_METHOD_SETTING, env, argv[0], type)
+        || JsUtil::GetValueType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
@@ -453,13 +453,13 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
-    if (argc < ARGC_ONE || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
-        || !ParamChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type)) {
+    // 1 means least param num.
+    if (argc < 1 || !JsEventManager::GetEventType(EventSubscribeModule::INPUT_METHOD_SETTING, env, argv[0], type)) {
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
     // If the type of optional parameter is wrong, make it nullptr
-    if (!ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+    if (JsUtil::GetValueType(env, argv[1]) != napi_function) {
         argv[ARGC_ONE] = nullptr;
     }
     IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());

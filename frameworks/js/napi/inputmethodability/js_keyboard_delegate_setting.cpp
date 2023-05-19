@@ -16,13 +16,13 @@
 #include "js_keyboard_delegate_setting.h"
 
 #include "input_method_ability.h"
+#include "js_event_manager.h"
 #include "js_keyboard_controller_engine.h"
 #include "js_text_input_client_engine.h"
 #include "js_util.h"
 #include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "param_checker.h"
 namespace OHOS {
 namespace MiscServices {
 constexpr size_t ARGC_ZERO = 0;
@@ -218,9 +218,9 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
-    if (argc < ARGC_TWO || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
-        || !ParamChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type)
-        || !ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+    // 2 means least param num.
+    if (argc < 2 || !JsEventManager::GetEventType(EventSubscribeModule::KEYBOARD_DELEGATE, env, argv[0], type)
+        || JsUtil::GetValueType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
@@ -246,13 +246,13 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
-    if (argc < ARGC_ONE || !JsUtil::GetValue(env, argv[ARGC_ZERO], type)
-        || !ParamChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type)) {
+    // 1 means least param num.
+    if (argc < 1 || !JsEventManager::GetEventType(EventSubscribeModule::KEYBOARD_DELEGATE, env, argv[0], type)) {
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
     // If the type of optional parameter is wrong, make it nullptr
-    if (!ParamChecker::IsValidParamType(env, argv[ARGC_ONE], napi_function)) {
+    if (JsUtil::GetValueType(env, argv[1]) != napi_function) {
         argv[ARGC_ONE] = nullptr;
     }
     IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());

@@ -13,13 +13,15 @@
  * limitations under the License.
  */
 
-#include "param_checker.h"
+#include "js_event_manager.h"
 
 #include <algorithm>
 
+#include "js_util.h"
+
 namespace OHOS {
 namespace MiscServices {
-const std::unordered_map<EventSubscribeModule, std::set<std::string>> ParamChecker::EVENT_TYPES{
+const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> JsEventManager::EVENT_TYPES{
     { EventSubscribeModule::INPUT_METHOD_CONTROLLER,
         { "insertText", "deleteLeft", "deleteRight", "sendKeyboardStatus", "sendFunctionKey", "moveCursor",
             "handleExtendAction", "selectByRange", "selectByMovement" } },
@@ -30,21 +32,16 @@ const std::unordered_map<EventSubscribeModule, std::set<std::string>> ParamCheck
         { "keyDown", "keyUp", "cursorContextChange", "selectionChange", "textChange" } },
     { EventSubscribeModule::PANEL, { "show", "hide" } }
 };
-
-bool ParamChecker::IsValidParamType(napi_env env, napi_value param, napi_valuetype expectType)
+bool JsEventManager::GetEventType(EventSubscribeModule module, napi_env env, napi_value in, std::string &out)
 {
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, param, &valueType);
-    return expectType == valueType;
-}
-
-bool ParamChecker::IsValidEventType(EventSubscribeModule module, const std::string &type)
-{
+    if (!JsUtil::GetValue(env, in, out)) {
+        return false;
+    }
     auto it = EVENT_TYPES.find(module);
     if (it == EVENT_TYPES.end()) {
         return false;
     }
-    return it->second.find(type) != it->second.end();
+    return it->second.find(out) != it->second.end();
 }
 } // namespace MiscServices
 } // namespace OHOS
