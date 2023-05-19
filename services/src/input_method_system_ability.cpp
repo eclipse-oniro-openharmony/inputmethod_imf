@@ -360,20 +360,33 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
         && !(bundleName == currentIme && BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme))) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-    if (!IsNeedSwitch(bundleName, subName)) {
-        return ErrorCode::NO_ERROR;
-    }
     return OnSwitchInputMethod(bundleName, subName);
 }
 
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleName, const std::string &subName)
 {
+    int number = switchNum_++;
+    if (number > 0) {
+        std::unique_lock<std::mutex> lock(switchMutex_);
+        switchCV_.wait(lock, [this, &number]() {
+            number = switchFlag_.load() ? number - 1 : number;
+            return number == 0;
+        });
+    }
+    switchFlag_.store(false);
+    if (!IsNeedSwitch(bundleName, subName)) {
+        return ErrorCode::NO_ERROR;
+    }
     ImeInfo info;
-    auto ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName, info);
+    int32_t ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName, info);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
-    return info.isNewIme ? Switch(bundleName, info) : SwitchExtension(info);
+    ret = info.isNewIme ? Switch(bundleName, info) : SwitchExtension(info);
+    switchNum_--;
+    switchFlag_.store(true);
+    switchCV_.notify_all();
+    return ret;
 }
 
 bool InputMethodSystemAbility::IsNeedSwitch(const std::string &bundleName, const std::string &subName)
@@ -398,15 +411,6 @@ int32_t InputMethodSystemAbility::Switch(const std::string &bundleName, const Im
 // Switch the current InputMethodExtension to the new InputMethodExtension
 int32_t InputMethodSystemAbility::SwitchExtension(const ImeInfo &info)
 {
-    int number = switchNum_++;
-    if (number > 0) {
-        std::unique_lock<std::mutex> lock(switchMutex_);
-        switchCV_.wait(lock, [this, &number]() {
-            number = switchFlag_.load() ? number - 1 : number;
-            return number == 0;
-        });
-    }
-    switchFlag_.store(false);
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId;
     StopInputService(currentIme);
     std::string targetIme = info.prop.name + "/" + info.prop.id;
@@ -417,9 +421,6 @@ int32_t InputMethodSystemAbility::SwitchExtension(const ImeInfo &info)
         return ErrorCode::ERROR_IME_START_FAILED;
     }
     userSession_->OnSwitchIme(info.prop, info.subProp, false);
-    switchNum_--;
-    switchFlag_.store(true);
-    switchCV_.notify_all();
     return ErrorCode::NO_ERROR;
 }
 
