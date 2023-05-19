@@ -15,8 +15,6 @@
 
 #include "js_event_manager.h"
 
-#include <algorithm>
-
 #include "js_util.h"
 
 namespace OHOS {

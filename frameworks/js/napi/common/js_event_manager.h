@@ -18,7 +18,6 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
 
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"

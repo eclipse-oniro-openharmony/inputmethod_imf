@@ -460,7 +460,7 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     }
     // If the type of optional parameter is wrong, make it nullptr
     if (JsUtil::GetValueType(env, argv[1]) != napi_function) {
-        argv[ARGC_ONE] = nullptr;
+        argv[1] = nullptr;
     }
     IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());
 

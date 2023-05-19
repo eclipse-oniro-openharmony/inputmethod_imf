@@ -34,6 +34,7 @@ namespace MiscServices {
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+constexpr size_t ARGC_MAX = 6;
 const std::string JsInputMethodEngineSetting::IMES_CLASS_NAME = "InputMethodEngine";
 thread_local napi_ref JsInputMethodEngineSetting::IMESRef_ = nullptr;
 
@@ -299,8 +300,8 @@ void JsInputMethodEngineSetting::UnRegisterListener(napi_value callback, std::st
 
 napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_info info)
 {
-    size_t argc = ARGC_TWO;
-    napi_value argv[ARGC_TWO] = { nullptr };
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { nullptr };
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
@@ -447,7 +448,7 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     }
     // If the type of optional parameter is wrong, make it nullptr
     if (JsUtil::GetValueType(env, argv[1]) != napi_function) {
-        argv[ARGC_ONE] = nullptr;
+        argv[1] = nullptr;
     }
     IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());
     auto setting = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));

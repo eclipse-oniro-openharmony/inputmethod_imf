@@ -253,7 +253,7 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     }
     // If the type of optional parameter is wrong, make it nullptr
     if (JsUtil::GetValueType(env, argv[1]) != napi_function) {
-        argv[ARGC_ONE] = nullptr;
+        argv[1] = nullptr;
     }
     IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());
     auto delegate = reinterpret_cast<JsKeyboardDelegateSetting *>(JsUtils::GetNativeSelf(env, info));
