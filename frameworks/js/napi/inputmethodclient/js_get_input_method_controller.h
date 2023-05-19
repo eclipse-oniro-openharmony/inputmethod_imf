@@ -178,7 +178,7 @@ public:
     void InsertText(const std::u16string &text);
     void DeleteRight(int32_t length);
     void DeleteLeft(int32_t length);
-    void SendKeyboardStatus(const KeyboardStatus &eyboardStatus);
+    void SendKeyboardStatus(const KeyboardStatus &status);
     void SendFunctionKey(const FunctionKey &functionKey);
     void MoveCursor(const Direction direction);
     void HandleExtendAction(int32_t action);

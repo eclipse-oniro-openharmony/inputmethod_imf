@@ -44,7 +44,7 @@ public:
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     void SetNative(const std::shared_ptr<InputMethodPanel> &panel);
-    std::shared_ptr<InputMethodPanel> &GetNative();
+    std::shared_ptr<InputMethodPanel> GetNative();
 
 private:
     struct PanelContentContext : public AsyncCall::Context {

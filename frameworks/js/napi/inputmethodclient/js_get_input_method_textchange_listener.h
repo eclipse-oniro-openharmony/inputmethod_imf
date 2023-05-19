@@ -29,7 +29,7 @@ public:
     void DeleteForward(int32_t length) override;
     void DeleteBackward(int32_t length) override;
     void SendKeyEventFromInputMethod(const KeyEvent &event) override {}
-    void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) override;
+    void SendKeyboardStatus(const KeyboardStatus &status) override;
     void SendFunctionKey(const FunctionKey &functionKey) override;
     void SetKeyboardStatus(bool status) override {}
     void MoveCursor(const Direction direction) override;

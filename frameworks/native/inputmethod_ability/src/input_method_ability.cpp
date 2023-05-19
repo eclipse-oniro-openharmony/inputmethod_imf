@@ -619,9 +619,6 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     inputMethodPanel = std::make_shared<InputMethodPanel>();
-    if (inputMethodPanel == nullptr) {
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
     auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("CreatePanel failed, ret = %{public}d", ret);

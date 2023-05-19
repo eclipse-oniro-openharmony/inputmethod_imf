@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include <cstdint>
-#include <string>
-
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_WINDOW_INFO_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_WINDOW_INFO_H
+
+#include <cstdint>
+#include <string>
 
 namespace OHOS {
 namespace MiscServices {
