@@ -21,8 +21,8 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t MAX_CACHES_SIZE = 5;
-constexpr uint32_t TIME_OUT = 60;
-constexpr uint32_t TIMER_TASK_INTERNAL = 60;
+constexpr uint32_t AGING_TIME = 60;
+constexpr uint32_t TIMER_TASK_INTERNAL = 60000;
 ImeCacheManager::ImeCacheManager() : timer_("imeCacheTimer"), timerId_(0)
 {
 }
@@ -33,15 +33,16 @@ ImeCacheManager &ImeCacheManager::GetInstance()
     return imeCacheManager;
 }
 
-bool ImeCacheManager::Push(const std::string &imeName, const std::shared_ptr<ImeCache> &info)
+bool ImeCacheManager::Push(const std::string &imeName, const std::shared_ptr<ImeCache> &imeCache)
 {
-    if (imeName.empty() || info == nullptr) {
+    if (imeName.empty() || imeCache == nullptr) {
         return false;
     }
+    imeCache->timestamp = time(nullptr);
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
     auto it = imeCaches_.find(imeName);
     if (it != imeCaches_.end()) {
-        it->second = info;
+        it->second = imeCache;
         return true;
     }
     if (imeCaches_.empty()) {
@@ -50,8 +51,7 @@ bool ImeCacheManager::Push(const std::string &imeName, const std::shared_ptr<Ime
     if (imeCaches_.size() == MAX_CACHES_SIZE) {
         ClearOldest();
     }
-    info->timeStamp = time(nullptr);
-    imeCaches_.insert({ imeName, info });
+    imeCaches_.insert({ imeName, imeCache });
     return true;
 }
 
@@ -75,19 +75,19 @@ void ImeCacheManager::ClearOldest()
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
     auto oldestIme = imeCaches_.begin();
     for (auto it = imeCaches_.begin(); it != imeCaches_.end();) {
-        if (it->second->timeStamp < oldestIme->second->timeStamp) {
+        if (it->second->timestamp < oldestIme->second->timestamp) {
             oldestIme = it;
         }
     }
     imeCaches_.erase(oldestIme);
 }
 
-void ImeCacheManager::CheckTimeOut()
+void ImeCacheManager::AgingCache()
 {
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
     for (auto it = imeCaches_.begin(); it != imeCaches_.end();) {
         auto now = time(nullptr);
-        if (difftime(now, it->second->timeStamp) < TIME_OUT) {
+        if (difftime(now, it->second->timestamp) < AGING_TIME) {
             it++;
             continue;
         }
@@ -104,18 +104,20 @@ void ImeCacheManager::CheckTimeOut()
 
 void ImeCacheManager::StartTimer()
 {
+    std::lock_guard<std::mutex> lock(timerMutex_);
     uint32_t ret = timer_.Setup();
     if (ret != Utils::TIMER_ERR_OK) {
         IMSA_HILOGE("failed to create timer");
         return;
     }
-    timerId_ = timer_.Register([this]() { CheckTimeOut(); }, TIMER_TASK_INTERNAL, false);
+    timerId_ = timer_.Register([this]() { AgingCache(); }, TIMER_TASK_INTERNAL, false);
 }
 
 void ImeCacheManager::StopTimer()
 {
+    std::lock_guard<std::mutex> lock(timerMutex_);
     timer_.Unregister(timerId_);
-    timer_.Shutdown();
+    timer_.Shutdown(false);
 }
 } // namespace MiscServices
 } // namespace OHOS

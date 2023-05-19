@@ -79,8 +79,8 @@ public:
     int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard);
     int32_t OnStopInput(sptr<IInputClient> client);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
-    int32_t InitImeInfo(const std::shared_ptr<ImeCache> &imeInfo);
-    int32_t OnSetCoreAndAgent(const std::shared_ptr<ImeCache> &imeInfo);
+    int32_t InitImeInfo(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
+    int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
     int OnHideKeyboardSelf();
     int OnShowKeyboardSelf();
     bool StartInputService(const std::string &imeName, bool isRetry);
@@ -100,8 +100,10 @@ private:
     static const int MAX_IME_START_TIME = 1000;
 
     std::mutex imeInfoLock_;
-    sptr<InputDeathRecipient> imaDeathRecipient_;
-    std::shared_ptr<ImeCache> currentImeInfo_;
+    sptr<InputDeathRecipient> imeDeathRecipient_;
+    sptr<IInputMethodCore> imeCore_;
+    sptr<IInputMethodAgent> imeAgent_;
+
     std::mutex clientLock_;
     sptr<IInputClient> currentClient_;              // the current input client
 

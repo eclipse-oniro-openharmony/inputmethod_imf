@@ -359,10 +359,10 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
     return ShowKeyboard(clientInfo->channel, client, isShowKeyboard);
 }
 
-int32_t PerUserSession::InitImeInfo(const std::shared_ptr<ImeCache> &imeInfo)
+int32_t PerUserSession::InitImeInfo(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
     IMSA_HILOGI("start initializing current ime info");
-    if (imeInfo->core == nullptr || imeInfo->agent == nullptr) {
+    if (core == nullptr || agent == nullptr) {
         IMSA_HILOGE("core or agent nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
@@ -372,28 +372,28 @@ int32_t PerUserSession::InitImeInfo(const std::shared_ptr<ImeCache> &imeInfo)
         IMSA_HILOGE("failed to new deathRecipient");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    deathRecipient->SetDeathRecipient(
-        [this, imeInfo](const wptr<IRemoteObject> &) { this->OnImsDied(imeInfo->core); });
-    auto coreObject = imeInfo->core->AsObject();
+    deathRecipient->SetDeathRecipient([this, core](const wptr<IRemoteObject> &) { this->OnImsDied(core); });
+    auto coreObject = core->AsObject();
     if (coreObject == nullptr || !coreObject->AddDeathRecipient(deathRecipient)) {
         IMSA_HILOGE("failed to add death recipient");
         return ErrorCode::ERROR_ADD_DEATH_RECIPIENT_FAILED;
     }
 
     std::lock_guard<std::mutex> lock(imeInfoLock_);
-    imaDeathRecipient_ = deathRecipient;
-    currentImeInfo_ = imeInfo;
+    imeDeathRecipient_ = deathRecipient;
+    imeAgent_ = agent;
+    imeCore_ = core;
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::OnSetCoreAndAgent(const std::shared_ptr<ImeCache> &imeInfo)
+int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
     IMSA_HILOGD("PerUserSession::SetCoreAndAgent Start");
-    int32_t ret = InitImeInfo(imeInfo);
+    int32_t ret = InitImeInfo(core, agent);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
     }
-    bool isStarted = GetImeInfo() != nullptr;
+    bool isStarted = GetImeCore() != nullptr && GetImeAgent() != nullptr;
     isImeStarted_.SetValue(isStarted);
 
     ret = InitInputControlChannel();
@@ -435,7 +435,8 @@ int32_t PerUserSession::OnStopInput(sptr<IInputClient> client)
 void PerUserSession::StopInputService(const std::string &imeId)
 {
     IMSA_HILOGI("PerUserSession::StopInputService");
-    ImeCacheManager::GetInstance().Push(imeId, GetImeInfo());
+    ImeCache cache = { .core = GetImeCore(), .agent = GetImeAgent() };
+    ImeCacheManager::GetInstance().Push(imeId, std::make_shared<ImeCache>(cache));
     int32_t ret = OnHideKeyboardSelf();
     IMSA_HILOGI("hide keyboard ret: %{public}d", ret);
     ClearCurrentImeData();
@@ -457,15 +458,12 @@ void PerUserSession::ClearCurrentImeData()
 {
     IMSA_HILOGI("clear ime data");
     std::lock_guard<std::mutex> lock(imeInfoLock_);
-    if (currentImeInfo_ == nullptr) {
-        return;
+    if (imeCore_ != nullptr && imeCore_->AsObject() != nullptr) {
+        imeCore_->AsObject()->RemoveDeathRecipient(imeDeathRecipient_);
     }
-    auto core = currentImeInfo_->core;
-    if (core != nullptr && core->AsObject() != nullptr) {
-        core->AsObject()->RemoveDeathRecipient(imaDeathRecipient_);
-        imaDeathRecipient_ = nullptr;
-    }
-    currentImeInfo_ = nullptr;
+    imeDeathRecipient_ = nullptr;
+    imeCore_ = nullptr;
+    imeAgent_ = nullptr;
 }
 
 void PerUserSession::SetCurrentClient(sptr<IInputClient> client)
@@ -516,25 +514,13 @@ int32_t PerUserSession::OnSwitchIme(const Property &property, const SubProperty 
 sptr<IInputMethodCore> PerUserSession::GetImeCore()
 {
     std::lock_guard<std::mutex> lock(imeInfoLock_);
-    if (currentImeInfo_ == nullptr) {
-        return nullptr;
-    }
-    return currentImeInfo_->core;
+    return imeCore_;
 }
 
 sptr<IInputMethodAgent> PerUserSession::GetImeAgent()
 {
     std::lock_guard<std::mutex> lock(imeInfoLock_);
-    if (currentImeInfo_ == nullptr) {
-        return nullptr;
-    }
-    return currentImeInfo_->agent;
-}
-
-std::shared_ptr<ImeCache> PerUserSession::GetImeInfo()
-{
-    std::lock_guard<std::mutex> lock(imeInfoLock_);
-    return currentImeInfo_;
+    return imeAgent_;
 }
 
 void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)

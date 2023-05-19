@@ -60,7 +60,6 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     std::shared_ptr<PerUserSession> userSessions = std::make_shared<PerUserSession>(MAIN_USER_ID);
     sptr<IInputMethodCore> core = new InputMethodCoreProxy(object);
     sptr<IInputMethodAgent> agent = new InputMethodAgentProxy(object);
-    ImeCache cache = { .core = core, .agent = agent };
     InputMethodInfo *ime = new InputMethodInfo();
 
     userSessions->OnShowKeyboardSelf();
@@ -71,7 +70,7 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     userSessions->OnStartInput(client, isShowKeyboard);
     userSessions->OnStopInput(client);
     userSessions->OnReleaseInput(client);
-    userSessions->OnSetCoreAndAgent(std::make_shared<ImeCache>(cache));
+    userSessions->OnSetCoreAndAgent(core, agent);
 
     delete ime;
     ime = nullptr;

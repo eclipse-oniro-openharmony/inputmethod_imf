@@ -27,7 +27,7 @@
 namespace OHOS {
 namespace MiscServices {
 struct ImeCache {
-    time_t timeStamp{};
+    time_t timestamp{};
     sptr<IInputMethodCore> core;
     sptr<IInputMethodAgent> agent;
 };
@@ -35,16 +35,17 @@ struct ImeCache {
 class ImeCacheManager {
 public:
     static ImeCacheManager &GetInstance();
-    bool Push(const std::string &imeName, const std::shared_ptr<ImeCache> &info);
+    bool Push(const std::string &imeName, const std::shared_ptr<ImeCache> &imeCache);
     std::shared_ptr<ImeCache> Pop(const std::string &imeName);
 
 private:
     ImeCacheManager();
     void ClearOldest();
-    void CheckTimeOut();
+    void AgingCache();
     void StartTimer();
     void StopTimer();
 
+    std::mutex timerMutex_;
     Utils::Timer timer_;
     uint32_t timerId_;
     std::recursive_mutex cacheMutex_;

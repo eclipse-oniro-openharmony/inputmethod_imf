@@ -196,10 +196,10 @@ void InputMethodSystemAbility::StartUserIdListener()
 bool InputMethodSystemAbility::StartInputService(const std::string &imeId)
 {
     IMSA_HILOGI("InputMethodSystemAbility, ime:%{public}s", imeId.c_str());
-    auto imeInfo = ImeCacheManager::GetInstance().Pop(imeId);
-    if (imeInfo != nullptr) {
+    auto imeCache = ImeCacheManager::GetInstance().Pop(imeId);
+    if (imeCache != nullptr) {
         IMSA_HILOGD("hit the cache");
-        return userSession_->OnSetCoreAndAgent(imeInfo) == ErrorCode::NO_ERROR;
+        return userSession_->OnSetCoreAndAgent(imeCache->core, imeCache->agent) == ErrorCode::NO_ERROR;
     }
     return userSession_->StartInputService(imeId, true);
 }
@@ -298,8 +298,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
         IMSA_HILOGE("InputMethodSystemAbility::core or agent is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    ImeCache info = { .core = core, .agent = agent };
-    return userSession_->OnSetCoreAndAgent(std::make_shared<ImeCache>(info));
+    return userSession_->OnSetCoreAndAgent(core, agent);
 };
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
@@ -400,10 +399,12 @@ int32_t InputMethodSystemAbility::Switch(const std::string &bundleName, const Im
 int32_t InputMethodSystemAbility::SwitchExtension(const ImeInfo &info)
 {
     int number = switchNum_++;
-    while (number > 0) {
+    if (number > 0) {
         std::unique_lock<std::mutex> lock(switchMutex_);
-        switchCV_.wait(lock, [this]() { return switchFlag_.load(); });
-        number--;
+        switchCV_.wait(lock, [this, &number]() {
+            number = switchFlag_.load() ? number - 1 : number;
+            return number == 0;
+        });
     }
     switchFlag_.store(false);
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId;
