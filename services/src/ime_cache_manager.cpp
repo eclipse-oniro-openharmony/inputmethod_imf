@@ -79,6 +79,10 @@ void ImeCacheManager::ClearOldest()
             oldestIme = it;
         }
     }
+    auto core = oldestIme->second->core;
+    if (core != nullptr) {
+        core->StopInputService(oldestIme->first);
+    }
     imeCaches_.erase(oldestIme);
 }
 
