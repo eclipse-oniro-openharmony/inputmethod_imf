@@ -399,12 +399,13 @@ int32_t InputMethodSystemAbility::Switch(const std::string &bundleName, const Im
 // Switch the current InputMethodExtension to the new InputMethodExtension
 int32_t InputMethodSystemAbility::SwitchExtension(const ImeInfo &info)
 {
-    int blockages = switchQueueLength_++;
-    while (blockages > 0) {
+    int number = switchNum_++;
+    while (number > 0) {
         std::unique_lock<std::mutex> lock(switchMutex_);
-        switchCV_.wait(lock, [blockages]() { return blockages == 0; });
-        blockages--;
+        switchCV_.wait(lock, [this]() { return switchFlag_.load(); });
+        number--;
     }
+    switchFlag_.store(false);
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId;
     StopInputService(currentIme);
     std::string targetIme = info.prop.name + "/" + info.prop.id;
@@ -415,7 +416,8 @@ int32_t InputMethodSystemAbility::SwitchExtension(const ImeInfo &info)
         return ErrorCode::ERROR_IME_START_FAILED;
     }
     userSession_->OnSwitchIme(info.prop, info.subProp, false);
-    switchQueueLength_--;
+    switchNum_--;
+    switchFlag_.store(true);
     switchCV_.notify_all();
     return ErrorCode::NO_ERROR;
 }
