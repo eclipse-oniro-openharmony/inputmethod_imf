@@ -389,7 +389,7 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
 {
     if (!CheckReadyToSwitch(switchInfo)) {
         std::unique_lock<std::mutex> lock(switchMutex_);
-        switchCV_.wait(lock, [this, switchInfo]() { return CheckReadyToSwitch(switchInfo); });
+        switchCV_.wait(lock, [this, &switchInfo]() { return CheckReadyToSwitch(switchInfo); });
     }
     std::string bundleName = switchInfo.bundleName;
     std::string subName = switchInfo.subName;
@@ -697,7 +697,7 @@ int32_t InputMethodSystemAbility::SwitchMode()
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
-    switchQueue_.push(switchInfo);
+    PushToSwitchQueue(switchInfo);
     return OnSwitchInputMethod(switchInfo);
 }
 
@@ -721,7 +721,7 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
-    switchQueue_.push(switchInfo);
+    PushToSwitchQueue(switchInfo);
     return OnSwitchInputMethod(switchInfo);
 }
 
@@ -738,7 +738,7 @@ int32_t InputMethodSystemAbility::SwitchType()
         [&currentImeBundle](const Property &property) { return property.name != currentImeBundle; });
     if (iter != props.end()) {
         SwitchInfo switchInfo = { std::chrono::system_clock::now(), iter->name, "" };
-        switchQueue_.push(switchInfo);
+        PushToSwitchQueue(switchInfo);
         return OnSwitchInputMethod(switchInfo);
     }
     return ErrorCode::NO_ERROR;

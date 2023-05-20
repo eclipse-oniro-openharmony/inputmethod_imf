@@ -92,7 +92,7 @@ void ImeCacheManager::AgingCache()
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
     for (auto it = imeCaches_.begin(); it != imeCaches_.end();) {
         auto now = std::chrono::system_clock::now();
-        if (std::chrono::duration_cast<std::chrono::seconds>(now - it->second->timestamp).count() < 60) {
+        if (std::chrono::duration_cast<std::chrono::seconds>(now - it->second->timestamp).count() < AGING_TIME) {
             it++;
             continue;
         }
