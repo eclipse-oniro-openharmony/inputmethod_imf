@@ -58,7 +58,10 @@ ohos_shared_library("inputmethodengine") {
 
   configs = [ ":inputmethodengine_native_config" ]
 
-  deps = [ "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability" ]
+  deps = [
+    "${inputmethod_path}/frameworks/js/napi/common:inputmethod_js_common",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
+  ]
 
   external_deps = [
     "ability_base:configuration",

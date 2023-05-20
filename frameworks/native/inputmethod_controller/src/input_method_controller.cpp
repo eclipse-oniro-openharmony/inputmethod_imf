@@ -41,6 +41,8 @@ constexpr int32_t LOOP_COUNT = 5;
 constexpr int32_t WAIT_TIME = 100;
 constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t KEYBOARD_SHOW = 2;
+const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
+    { "imeHide", IME_HIDE } };
 InputMethodController::InputMethodController() : stop_(false)
 {
     IMSA_HILOGI("InputMethodController structure");
@@ -81,8 +83,13 @@ int32_t InputMethodController::RestoreListenEventFlag()
     return proxy->UpdateListenEventFlag(clientInfo_, IME_NONE);
 }
 
-int32_t InputMethodController::UpdateListenEventFlag(EventType eventType, bool isOn)
+int32_t InputMethodController::UpdateListenEventFlag(const std::string &type, bool isOn)
 {
+    auto it = EVENT_TYPE.find(type);
+    if (it == EVENT_TYPE.end()) {
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    auto eventType = it->second;
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");

@@ -48,7 +48,10 @@ ohos_shared_library("inputmethod") {
 
   configs = [ ":imf_config" ]
 
-  deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client" ]
+  deps = [
+    "${inputmethod_path}/frameworks/js/napi/common:inputmethod_js_common",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
+  ]
 
   external_deps = [
     "ability_runtime:abilitykit_native",

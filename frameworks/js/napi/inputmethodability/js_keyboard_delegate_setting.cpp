@@ -15,13 +15,14 @@
 
 #include "js_keyboard_delegate_setting.h"
 
+#include "event_checker.h"
 #include "input_method_ability.h"
 #include "js_keyboard_controller_engine.h"
 #include "js_text_input_client_engine.h"
+#include "js_util.h"
 #include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-
 namespace OHOS {
 namespace MiscServices {
 constexpr size_t ARGC_ZERO = 0;
@@ -216,15 +217,15 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    PARAM_CHECK_RETURN(env, argc >= ARGC_TWO, "Wrong number of arguments, requires 2", TYPE_NONE, nullptr);
-    std::string type = "";
-    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    IMSA_HILOGE("event type is: %{public}s", type.c_str());
-
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv[ARGC_ONE], &valueType);
-    PARAM_CHECK_RETURN(env, valueType == napi_function, "callback", TYPE_FUNCTION, nullptr);
-
+    std::string type;
+    // 2 means least param num.
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
+        || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type)
+        || JsUtil::GetType(env, argv[1]) != napi_function) {
+        IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
+        return nullptr;
+    }
+    IMSA_HILOGD("Subscribe type:%{public}s.", type.c_str());
     auto engine = reinterpret_cast<JsKeyboardDelegateSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
@@ -245,20 +246,21 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, nullptr);
-
-    std::string type = "";
-    JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-
+    std::string type;
+    // 1 means least param num.
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
+        || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type)) {
+        IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
+        return nullptr;
+    }
+    // If the type of optional parameter is wrong, make it nullptr
+    if (JsUtil::GetType(env, argv[1]) != napi_function) {
+        argv[1] = nullptr;
+    }
+    IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());
     auto delegate = reinterpret_cast<JsKeyboardDelegateSetting *>(JsUtils::GetNativeSelf(env, info));
     if (delegate == nullptr) {
         return nullptr;
-    }
-
-    if (argc == ARGC_TWO) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[ARGC_ONE], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_function, "callback", TYPE_FUNCTION, nullptr);
     }
     delegate->UnRegisterListener(argv[ARGC_ONE], type);
     napi_value result = nullptr;

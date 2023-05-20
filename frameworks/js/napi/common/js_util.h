@@ -20,9 +20,11 @@
 
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-namespace OHOS::MiscServices {
+namespace OHOS {
+namespace MiscServices {
 class JsUtil {
 public:
+    static napi_valuetype GetType(napi_env env, napi_value in);
     // js to native
     static bool GetValue(napi_env env, napi_value in, std::string &out);
     static bool GetValue(napi_env env, napi_value in, int32_t &out);
@@ -118,5 +120,6 @@ public:
         napi_handle_scope scope_;
     };
 };
-} // namespace OHOS::MiscServices
+} // namespace MiscServices
+} // namespace OHOS
 #endif // OHOS_JS_UTIL_H

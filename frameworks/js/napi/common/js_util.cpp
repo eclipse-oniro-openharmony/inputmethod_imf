@@ -14,8 +14,15 @@
  */
 
 #include "js_util.h"
-namespace OHOS::MiscServices {
+namespace OHOS {
+namespace MiscServices {
 constexpr int64_t JS_NUMBER_MAX_VALUE = (1LL << 53) - 1;
+napi_valuetype JsUtil::GetType(napi_env env, napi_value in)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, in, &valueType);
+    return valueType;
+}
 bool JsUtil::GetValue(napi_env env, napi_value in, std::string &out)
 {
     size_t size = 0;
@@ -25,6 +32,7 @@ bool JsUtil::GetValue(napi_env env, napi_value in, std::string &out)
     }
     out.resize(size + 1, 0);
     status = napi_get_value_string_utf8(env, in, const_cast<char *>(out.data()), size + 1, &size);
+    out.resize(size);
     return status == napi_ok;
 }
 bool JsUtil::GetValue(napi_env env, napi_value in, int32_t &out)
@@ -77,4 +85,5 @@ napi_value JsUtil::GetValue(napi_env env, bool in)
     napi_get_boolean(env, in, &out);
     return out;
 }
-} // namespace OHOS::MiscServices
+} // namespace MiscServices
+} // namespace OHOS

@@ -86,7 +86,7 @@ void NewImeSwitchTest::SetUpTestCase(void)
     GrantNativePermission();
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(std::make_shared<InputMethodSettingListenerImpl>());
-    imc_->UpdateListenEventFlag(IME_CHANGE, true);
+    imc_->UpdateListenEventFlag("imeChange", true);
 }
 
 void NewImeSwitchTest::TearDownTestCase(void)
