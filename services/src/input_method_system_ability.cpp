@@ -391,19 +391,17 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
         std::unique_lock<std::mutex> lock(switchMutex_);
         switchCV_.wait(lock, [this, &switchInfo]() { return CheckReadyToSwitch(switchInfo); });
     }
-    std::string bundleName = switchInfo.bundleName;
-    std::string subName = switchInfo.subName;
-    if (!IsNeedSwitch(bundleName, subName)) {
+    if (!IsNeedSwitch(switchInfo.bundleName, switchInfo.subName)) {
         PopSwitchQueue();
         return ErrorCode::NO_ERROR;
     }
     ImeInfo info;
-    int32_t ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName, info);
+    int32_t ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, switchInfo.bundleName, switchInfo.subName, info);
     if (ret != ErrorCode::NO_ERROR) {
         PopSwitchQueue();
         return ret;
     }
-    ret = info.isNewIme ? Switch(bundleName, info) : SwitchExtension(info);
+    ret = info.isNewIme ? Switch(switchInfo.bundleName, info) : SwitchExtension(info);
     PopSwitchQueue();
     return ret;
 }
