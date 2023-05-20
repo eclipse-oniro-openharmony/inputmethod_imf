@@ -16,9 +16,9 @@
 
 #include <set>
 
+#include "event_checker.h"
 #include "input_method_controller.h"
 #include "input_method_utils.h"
-#include "js_event_manager.h"
 #include "js_get_input_method_textchange_listener.h"
 #include "js_util.h"
 #include "napi/native_api.h"
@@ -318,8 +318,9 @@ napi_value JsGetInputMethodController::Subscribe(napi_env env, napi_callback_inf
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 2 means least param num.
-    if (argc < 2 || !JsEventManager::GetEventType(EventSubscribeModule::INPUT_METHOD_CONTROLLER, env, argv[0], type)
-        || JsUtil::GetValueType(env, argv[1]) != napi_function) {
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
+        || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_CONTROLLER, type)
+        || JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
         return nullptr;
@@ -354,7 +355,8 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 1 means least param num.
-    if (argc < 1 || !JsEventManager::GetEventType(EventSubscribeModule::INPUT_METHOD_CONTROLLER, env, argv[0], type)) {
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
+        || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_CONTROLLER, type)) {
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }

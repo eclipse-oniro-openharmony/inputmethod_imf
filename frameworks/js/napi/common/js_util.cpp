@@ -17,7 +17,7 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr int64_t JS_NUMBER_MAX_VALUE = (1LL << 53) - 1;
-napi_valuetype JsUtil::GetValueType(napi_env env, napi_value in)
+napi_valuetype JsUtil::GetType(napi_env env, napi_value in)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, in, &valueType);

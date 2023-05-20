@@ -15,8 +15,8 @@
 
 #include "js_keyboard_delegate_setting.h"
 
+#include "event_checker.h"
 #include "input_method_ability.h"
-#include "js_event_manager.h"
 #include "js_keyboard_controller_engine.h"
 #include "js_text_input_client_engine.h"
 #include "js_util.h"
@@ -219,8 +219,9 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 2 means least param num.
-    if (argc < 2 || !JsEventManager::GetEventType(EventSubscribeModule::KEYBOARD_DELEGATE, env, argv[0], type)
-        || JsUtil::GetValueType(env, argv[1]) != napi_function) {
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
+        || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type)
+        || JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
@@ -247,12 +248,13 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 1 means least param num.
-    if (argc < 1 || !JsEventManager::GetEventType(EventSubscribeModule::KEYBOARD_DELEGATE, env, argv[0], type)) {
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
+        || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type)) {
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
     // If the type of optional parameter is wrong, make it nullptr
-    if (JsUtil::GetValueType(env, argv[1]) != napi_function) {
+    if (JsUtil::GetType(env, argv[1]) != napi_function) {
         argv[1] = nullptr;
     }
     IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());

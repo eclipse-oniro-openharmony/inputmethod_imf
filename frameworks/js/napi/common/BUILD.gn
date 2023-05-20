@@ -32,7 +32,7 @@ config("inputmethod_js_common_public_config") {
 
 ohos_static_library("inputmethod_js_common") {
   sources = [
-    "js_event_manager.cpp",
+    "event_checker.cpp",
     "js_util.cpp",
   ]
   configs = [ ":inputmethod_js_common_config" ]

@@ -19,8 +19,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "napi/native_api.h"
-#include "napi/native_node_api.h"
 namespace OHOS {
 namespace MiscServices {
 enum class EventSubscribeModule : uint32_t {
@@ -30,9 +28,9 @@ enum class EventSubscribeModule : uint32_t {
     KEYBOARD_DELEGATE,
     PANEL,
 };
-class JsEventManager {
+class EventChecker {
 public:
-    static bool GetEventType(EventSubscribeModule module, napi_env env, napi_value in, std::string &out);
+    static bool IsValidEventType(EventSubscribeModule module, const std::string &out);
 
 private:
     static const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> EVENT_TYPES;

@@ -13,13 +13,11 @@
  * limitations under the License.
  */
 
-#include "js_event_manager.h"
-
-#include "js_util.h"
+#include "event_checker.h"
 
 namespace OHOS {
 namespace MiscServices {
-const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> JsEventManager::EVENT_TYPES{
+const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> EventChecker::EVENT_TYPES{
     { EventSubscribeModule::INPUT_METHOD_CONTROLLER,
         { "insertText", "deleteLeft", "deleteRight", "sendKeyboardStatus", "sendFunctionKey", "moveCursor",
             "handleExtendAction", "selectByRange", "selectByMovement" } },
@@ -30,11 +28,8 @@ const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> 
         { "keyDown", "keyUp", "cursorContextChange", "selectionChange", "textChange" } },
     { EventSubscribeModule::PANEL, { "show", "hide" } }
 };
-bool JsEventManager::GetEventType(EventSubscribeModule module, napi_env env, napi_value in, std::string &out)
+bool EventChecker::IsValidEventType(EventSubscribeModule module, const std::string &out)
 {
-    if (!JsUtil::GetValue(env, in, out)) {
-        return false;
-    }
     auto it = EVENT_TYPES.find(module);
     if (it == EVENT_TYPES.end()) {
         return false;

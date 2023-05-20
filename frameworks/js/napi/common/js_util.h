@@ -24,7 +24,7 @@ namespace OHOS {
 namespace MiscServices {
 class JsUtil {
 public:
-    static napi_valuetype GetValueType(napi_env env, napi_value in);
+    static napi_valuetype GetType(napi_env env, napi_value in);
     // js to native
     static bool GetValue(napi_env env, napi_value in, std::string &out);
     static bool GetValue(napi_env env, napi_value in, int32_t &out);
