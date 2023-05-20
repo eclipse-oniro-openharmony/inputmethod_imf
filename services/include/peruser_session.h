@@ -135,7 +135,6 @@ private:
     sptr<IInputClient> GetCurrentClient();
     sptr<IInputMethodCore> GetImeCore();
     sptr<IInputMethodAgent> GetImeAgent();
-    std::shared_ptr<ImeCache> GetImeInfo();
     sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
 };

@@ -361,7 +361,7 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
 
 int32_t PerUserSession::InitImeInfo(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
-    IMSA_HILOGI("start initializing current ime info");
+    IMSA_HILOGD("start initializing current ime info");
     if (core == nullptr || agent == nullptr) {
         IMSA_HILOGE("core or agent nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
@@ -388,7 +388,7 @@ int32_t PerUserSession::InitImeInfo(const sptr<IInputMethodCore> &core, const sp
 
 int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
-    IMSA_HILOGD("PerUserSession::SetCoreAndAgent Start");
+    IMSA_HILOGI("PerUserSession::SetCoreAndAgent Start");
     int32_t ret = InitImeInfo(core, agent);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
