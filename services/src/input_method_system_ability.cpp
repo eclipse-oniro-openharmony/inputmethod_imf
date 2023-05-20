@@ -361,7 +361,6 @@ void InputMethodSystemAbility::PushToSwitchQueue(const SwitchInfo &info)
 void InputMethodSystemAbility::PopSwitchQueue()
 {
     std::lock_guard<std::mutex> lock(switchQueueMutex_);
-    auto info = switchQueue_.front();
     switchQueue_.pop();
     switchCV_.notify_all();
 }
@@ -369,7 +368,6 @@ void InputMethodSystemAbility::PopSwitchQueue()
 bool InputMethodSystemAbility::CheckReadyToSwitch(const SwitchInfo &info)
 {
     std::lock_guard<std::mutex> lock(switchQueueMutex_);
-    auto frontInfo = switchQueue_.front();
     return info == switchQueue_.front();
 }
 
