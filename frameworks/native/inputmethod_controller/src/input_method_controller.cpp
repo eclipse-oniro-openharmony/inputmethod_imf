@@ -41,7 +41,7 @@ constexpr int32_t LOOP_COUNT = 5;
 constexpr int32_t WAIT_TIME = 100;
 constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t KEYBOARD_SHOW = 2;
-const std::map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
+const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
     { "imeHide", IME_HIDE } };
 InputMethodController::InputMethodController() : stop_(false)
 {
