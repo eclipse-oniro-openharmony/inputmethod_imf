@@ -375,7 +375,7 @@ bool InputMethodSystemAbility::CheckReadyToSwitch(const SwitchInfo &info)
 
 int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleName, const std::string &subName)
 {
-    SwitchInfo switchInfo = { time(nullptr), bundleName, subName };
+    SwitchInfo switchInfo = { std::chrono::system_clock::now(), bundleName, subName };
     PushToSwitchQueue(switchInfo);
 
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
@@ -698,7 +698,7 @@ int32_t InputMethodSystemAbility::SwitchMode()
         IMSA_HILOGE("target is empty");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    SwitchInfo switchInfo = { time(nullptr), target->name, target->id };
+    SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
     switchQueue_.push(switchInfo);
     return OnSwitchInputMethod(switchInfo);
 }
@@ -722,7 +722,7 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
         IMSA_HILOGE("target is empty");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    SwitchInfo switchInfo = { time(nullptr), target->name, target->id };
+    SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
     switchQueue_.push(switchInfo);
     return OnSwitchInputMethod(switchInfo);
 }
@@ -739,7 +739,7 @@ int32_t InputMethodSystemAbility::SwitchType()
     auto iter = std::find_if(props.begin(), props.end(),
         [&currentImeBundle](const Property &property) { return property.name != currentImeBundle; });
     if (iter != props.end()) {
-        SwitchInfo switchInfo = { time(nullptr), iter->name, "" };
+        SwitchInfo switchInfo = { std::chrono::system_clock::now(), iter->name, "" };
         switchQueue_.push(switchInfo);
         return OnSwitchInputMethod(switchInfo);
     }

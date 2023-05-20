@@ -16,6 +16,7 @@
 #ifndef INPUTMETHOD_IMF_SERVICES_INCLUDE_IME_CACHE_MANAGER_H
 #define INPUTMETHOD_IMF_SERVICES_INCLUDE_IME_CACHE_MANAGER_H
 
+#include <chrono>
 #include <map>
 
 #include "global.h"
@@ -27,7 +28,7 @@
 namespace OHOS {
 namespace MiscServices {
 struct ImeCache {
-    time_t timestamp{};
+    std::chrono::system_clock::time_point timestamp{};
     sptr<IInputMethodCore> core;
     sptr<IInputMethodAgent> agent;
 };

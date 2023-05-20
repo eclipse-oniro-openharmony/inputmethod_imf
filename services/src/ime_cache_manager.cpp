@@ -38,7 +38,8 @@ bool ImeCacheManager::Push(const std::string &imeName, const std::shared_ptr<Ime
     if (imeName.empty() || imeCache == nullptr) {
         return false;
     }
-    imeCache->timestamp = time(nullptr);
+    imeCache->timestamp = std::chrono::system_clock::now();
+
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
     auto it = imeCaches_.find(imeName);
     if (it != imeCaches_.end()) {
@@ -90,8 +91,8 @@ void ImeCacheManager::AgingCache()
 {
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
     for (auto it = imeCaches_.begin(); it != imeCaches_.end();) {
-        auto now = time(nullptr);
-        if (difftime(now, it->second->timestamp) < AGING_TIME) {
+        auto now = std::chrono::system_clock::now();
+        if (std::chrono::duration_cast<std::chrono::seconds>(now - it->second->timestamp).count() < 60) {
             it++;
             continue;
         }

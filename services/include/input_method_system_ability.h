@@ -39,7 +39,7 @@ using namespace AppExecFwk;
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
 struct SwitchInfo {
-    time_t timestamp{};
+    std::chrono::system_clock::time_point timestamp{};
     std::string bundleName;
     std::string subName;
     bool operator==(const SwitchInfo &info) const
