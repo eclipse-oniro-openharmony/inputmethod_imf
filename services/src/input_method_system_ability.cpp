@@ -352,40 +352,61 @@ int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
     return OnDisplayOptionalInputMethod();
 };
 
+void InputMethodSystemAbility::PushToSwitchQueue(const SwitchInfo &info)
+{
+    std::lock_guard<std::mutex> lock(switchQueueMutex_);
+    switchQueue_.push(info);
+}
+
+void InputMethodSystemAbility::PopSwitchQueue()
+{
+    std::lock_guard<std::mutex> lock(switchQueueMutex_);
+    auto info = switchQueue_.front();
+    switchQueue_.pop();
+    switchCV_.notify_all();
+}
+
+bool InputMethodSystemAbility::CheckReadyToSwitch(const SwitchInfo &info)
+{
+    std::lock_guard<std::mutex> lock(switchQueueMutex_);
+    auto frontInfo = switchQueue_.front();
+    return info == switchQueue_.front();
+}
+
 int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleName, const std::string &subName)
 {
+    SwitchInfo switchInfo = { time(nullptr), bundleName, subName };
+    PushToSwitchQueue(switchInfo);
+
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
     // if currentIme is switching subtype, permission verification is not performed.
     if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
         && !(bundleName == currentIme && BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme))) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-    return OnSwitchInputMethod(bundleName, subName);
+    return OnSwitchInputMethod(switchInfo);
 }
 
-int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleName, const std::string &subName)
+int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo)
 {
-    int number = switchNum_++;
-    if (number > 0) {
+    if (!CheckReadyToSwitch(switchInfo)) {
         std::unique_lock<std::mutex> lock(switchMutex_);
-        switchCV_.wait(lock, [this, &number]() {
-            number = switchFlag_.load() ? number - 1 : number;
-            return number == 0;
-        });
+        switchCV_.wait(lock, [this, switchInfo]() { return CheckReadyToSwitch(switchInfo); });
     }
-    switchFlag_.store(false);
+    std::string bundleName = switchInfo.bundleName;
+    std::string subName = switchInfo.subName;
     if (!IsNeedSwitch(bundleName, subName)) {
+        PopSwitchQueue();
         return ErrorCode::NO_ERROR;
     }
     ImeInfo info;
     int32_t ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName, info);
     if (ret != ErrorCode::NO_ERROR) {
+        PopSwitchQueue();
         return ret;
     }
     ret = info.isNewIme ? Switch(bundleName, info) : SwitchExtension(info);
-    switchNum_--;
-    switchFlag_.store(true);
-    switchCV_.notify_all();
+    PopSwitchQueue();
     return ret;
 }
 
@@ -677,7 +698,9 @@ int32_t InputMethodSystemAbility::SwitchMode()
         IMSA_HILOGE("target is empty");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    return OnSwitchInputMethod(target->name, target->id);
+    SwitchInfo switchInfo = { time(nullptr), target->name, target->id };
+    switchQueue_.push(switchInfo);
+    return OnSwitchInputMethod(switchInfo);
 }
 
 int32_t InputMethodSystemAbility::SwitchLanguage()
@@ -699,7 +722,9 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
         IMSA_HILOGE("target is empty");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    return OnSwitchInputMethod(target->name, target->id);
+    SwitchInfo switchInfo = { time(nullptr), target->name, target->id };
+    switchQueue_.push(switchInfo);
+    return OnSwitchInputMethod(switchInfo);
 }
 
 int32_t InputMethodSystemAbility::SwitchType()
@@ -714,7 +739,9 @@ int32_t InputMethodSystemAbility::SwitchType()
     auto iter = std::find_if(props.begin(), props.end(),
         [&currentImeBundle](const Property &property) { return property.name != currentImeBundle; });
     if (iter != props.end()) {
-        return OnSwitchInputMethod(iter->name, "");
+        SwitchInfo switchInfo = { time(nullptr), iter->name, "" };
+        switchQueue_.push(switchInfo);
+        return OnSwitchInputMethod(switchInfo);
     }
     return ErrorCode::NO_ERROR;
 }

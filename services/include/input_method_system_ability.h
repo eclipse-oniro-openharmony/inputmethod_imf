@@ -38,6 +38,16 @@ using AbilityType = AppExecFwk::ExtensionAbilityType;
 using namespace AppExecFwk;
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
+struct SwitchInfo {
+    time_t timestamp{};
+    std::string bundleName;
+    std::string subName;
+    bool operator==(const SwitchInfo &info) const
+    {
+        return (timestamp == info.timestamp && bundleName == info.bundleName && subName == info.subName);
+    }
+};
+
 class InputMethodSystemAbility : public SystemAbility, public InputMethodSystemAbilityStub {
     DECLARE_SYSTEM_ABILITY(InputMethodSystemAbility);
 
@@ -92,7 +102,7 @@ private:
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     void StartUserIdListener();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);
-    int32_t OnSwitchInputMethod(const std::string &bundleName, const std::string &subName);
+    int32_t OnSwitchInputMethod(const SwitchInfo &switchInfo);
     int32_t Switch(const std::string &bundleName, const ImeInfo &info);
     int32_t SwitchExtension(const ImeInfo &info);
     int32_t SwitchSubType(const ImeInfo &info);
@@ -100,13 +110,17 @@ private:
     void InitServiceHandler();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
-    std::mutex switchMutex_;
-    std::condition_variable switchCV_;
-    std::atomic_int switchNum_{ 0 };
-    std::atomic_bool switchFlag_{ false };
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
     static constexpr const char *SELECT_DIALOG_HAP = "cn.openharmony.inputmethodchoosedialog";
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
+
+    std::mutex switchMutex_;
+    std::condition_variable switchCV_;
+    std::mutex switchQueueMutex_;
+    std::queue<SwitchInfo> switchQueue_;
+    void PopSwitchQueue();
+    void PushToSwitchQueue(const SwitchInfo &info);
+    bool CheckReadyToSwitch(const SwitchInfo &info);
 
     int32_t InitKeyEventMonitor();
     bool InitFocusChangeMonitor();
