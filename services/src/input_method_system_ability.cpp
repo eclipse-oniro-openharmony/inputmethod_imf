@@ -380,6 +380,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
     // if currentIme is switching subtype, permission verification is not performed.
     if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
         && !(bundleName == currentIme && BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme))) {
+        PopSwitchQueue();
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return OnSwitchInputMethod(switchInfo);
