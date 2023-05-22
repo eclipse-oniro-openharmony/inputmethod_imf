@@ -98,7 +98,7 @@ public:
     napi_value SyncCall(napi_env env, Context::ExecAction exec = nullptr);
 
 private:
-    enum arg : int { ARG_ERROR, ARG_DATA, ARG_BUTT };
+    enum Arg : int { ARG_ERROR, ARG_DATA, ARG_BUTT };
     static void OnExecute(napi_env env, void *data);
     static void OnComplete(napi_env env, napi_status status, void *data);
     struct AsyncContext {

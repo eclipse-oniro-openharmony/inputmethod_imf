@@ -84,7 +84,7 @@ private:
     static napi_value GetJsExtendActionProperty(napi_env env);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     static napi_value GetIMEInstance(napi_env env, napi_callback_info info);
-    static napi_status GetContext(napi_env env, napi_value argv,
+    static napi_status GetContext(napi_env env, napi_value in,
             std::shared_ptr<OHOS::AbilityRuntime::Context> &context);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);

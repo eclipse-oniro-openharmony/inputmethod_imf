@@ -26,12 +26,7 @@ std::shared_ptr<PanelListenerImpl> PanelListenerImpl::GetInstance()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> lock(listenerMutex_);
         if (instance_ == nullptr) {
-            auto engine = std::make_shared<PanelListenerImpl>();
-            if (engine == nullptr) {
-                IMSA_HILOGE("input method engine nullptr");
-                return nullptr;
-            }
-            instance_ = engine;
+            instance_ = std::make_shared<PanelListenerImpl>();
         }
     }
     return instance_;

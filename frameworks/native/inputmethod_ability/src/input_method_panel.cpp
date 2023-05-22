@@ -99,6 +99,7 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
     }
     // the resize width can not exceed the width of display width of device
     // the resize height can not exceed half of the display height of device
+    // 2 means half of height of defaultDisplay
     if (static_cast<int32_t>(width) > defaultDisplay->GetWidth() ||
         static_cast<int32_t>(height) > defaultDisplay->GetHeight() / 2) {
         IMSA_HILOGD("GetDefaultDisplay, defaultDisplay->width = %{public}d, defaultDisplay->height = %{public}d, "

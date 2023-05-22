@@ -14,29 +14,29 @@
  */
 
 class InputMethodExtensionAbility {
-    onCreate(want) {
-        console.log('onCreate, want:' + want.abilityName);
-    }
+  onCreate(want) {
+    console.log('onCreate, want:' + want.abilityName);
+  }
 
-    onRequest(want, startId) {
-        console.log('onRequest, want:' + want.abilityName + ', startId:' + startId);
-    }
+  onRequest(want, startId) {
+    console.log('onRequest, want:' + want.abilityName + ', startId:' + startId);
+  }
 
-    onConnect(want) {
-        console.log('onConnect, want:' + want.abilityName);
-    }
+  onConnect(want) {
+    console.log('onConnect, want:' + want.abilityName);
+  }
 
-    onDisconnect(want) {
-        console.log('onDisconnect');
-    }
+  onDisconnect(want) {
+    console.log('onDisconnect');
+  }
 
-    onDestroy() {
-        console.log('onDestroy');
-    }
+  onDestroy() {
+    console.log('onDestroy');
+  }
 
-    dump(params) {
-        console.log('dump');
-    }
+  dump(params) {
+    console.log('dump');
+  }
 }
 
-export default InputMethodExtensionAbility
+export default InputMethodExtensionAbility;

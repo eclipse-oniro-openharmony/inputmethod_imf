@@ -88,7 +88,7 @@ void JsPanel::SetNative(const std::shared_ptr<InputMethodPanel> &panel)
     inputMethodPanel_ = panel;
 }
 
-std::shared_ptr<InputMethodPanel> &JsPanel::GetNative()
+std::shared_ptr<InputMethodPanel> JsPanel::GetNative()
 {
     return inputMethodPanel_;
 }
@@ -309,7 +309,7 @@ std::shared_ptr<InputMethodPanel> JsPanel::UnwrapPanel(napi_env env, napi_value 
     if (jsPanel == nullptr) {
         return nullptr;
     }
-    auto &inputMethodPanel = jsPanel->GetNative();
+    auto inputMethodPanel = jsPanel->GetNative();
     NAPI_ASSERT_BASE(env, inputMethodPanel != nullptr, "inputMethodPanel is nullptr", nullptr);
     return inputMethodPanel;
 }
