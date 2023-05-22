@@ -483,7 +483,7 @@ int32_t PerUserSession::OnSwitchIme(const Property &property, const SubProperty 
 {
     IMSA_HILOGD("PerUserSession::OnSwitchIme");
     if (isSubtypeSwitch) {
-        sptr<IInputMethodCore> core = GetImeCore();
+        auto core = GetImeCore();
         if (core == nullptr) {
             IMSA_HILOGE("imsCore is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
