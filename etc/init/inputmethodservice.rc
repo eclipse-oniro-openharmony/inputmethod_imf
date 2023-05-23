@@ -13,7 +13,7 @@
 
 on boot
     start inputmethod_service
-service inputmethod_service /system/bin/sa_main /system/profile/inputmethod_service.xml
+service inputmethod_service /system/bin/sa_main /system/profile/inputmethod_service.json
     class z_core
     user system
     group system shell
