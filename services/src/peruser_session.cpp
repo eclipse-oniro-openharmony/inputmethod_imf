@@ -120,12 +120,10 @@ int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isC
         clientInfo->isValid = false;
         return ErrorCode::NO_ERROR;
     }
+    client->RemoveDeathRecipient(clientInfo->deathRecipient);
+    clientInfo->deathRecipient = nullptr;
+
     std::lock_guard<std::recursive_mutex> lock(mtx);
-    if (clientInfo->deathRecipient != nullptr) {
-        IMSA_HILOGI("deathRecipient remove");
-        client->RemoveDeathRecipient(clientInfo->deathRecipient);
-        clientInfo->deathRecipient = nullptr;
-    }
     mapClients_.erase(client);
     IMSA_HILOGD("client[%{public}d] is removed successfully", clientInfo->pid);
     return ErrorCode::NO_ERROR;
