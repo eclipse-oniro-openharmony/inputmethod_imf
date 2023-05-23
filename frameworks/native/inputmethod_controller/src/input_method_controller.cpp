@@ -235,11 +235,8 @@ void InputMethodController::WorkThread()
             }
             case MSG_ID_ON_INPUT_STOP: {
                 IMSA_HILOGI("input stop");
-                isEditable_.store(false);
                 textListener_ = nullptr;
-                std::lock_guard<std::mutex> autoLock(agentLock_);
-                agent_ = nullptr;
-                agentObject_ = nullptr;
+                OnInputStop();
                 break;
             }
             case MSG_ID_SEND_KEYBOARD_STATUS: {
@@ -350,14 +347,6 @@ void InputMethodController::WorkThread()
         }
         delete msg;
         msg = nullptr;
-    }
-}
-
-void InputMethodController::DoIncrease(int32_t status)
-{
-    if (status == KEYBOARD_SHOW) {
-        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-        textFieldReplyCount_++;
     }
 }
 
@@ -681,7 +670,7 @@ void InputMethodController::RestoreAttachInfoInSaDied()
         auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, clientInfo_.attribute);
         if (errCode == ErrorCode::NO_ERROR) {
             OnCursorUpdate(cursorInfo_);
-            OnSelectionChange(mTextString, mSelectNewBegin, mSelectNewEnd);
+            OnSelectionChange(textString_, selectNewBegin_, selectNewEnd_);
             isDiedAttached_.store(true);
             IMSA_HILOGI("Try to attach success.");
         }
@@ -704,14 +693,18 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
     }
     std::lock_guard<std::mutex> lock(agentLock_);
     if (agent_ == nullptr) {
-        IMSA_HILOGI("InputMethodController::OnCursorUpdate mAgent is nullptr");
+        IMSA_HILOGI("agent is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    if (cursorInfo_.left == cursorInfo.left && cursorInfo_.top == cursorInfo.top &&
-        cursorInfo_.height == cursorInfo.height) {
-        return ErrorCode::NO_ERROR;
+    {
+        std::lock_guard<std::mutex> lk(cursorInfoMutex_);
+        if (cursorInfo_.left == cursorInfo.left && cursorInfo_.top == cursorInfo.top
+            && cursorInfo_.height == cursorInfo.height) {
+            IMSA_HILOGI("same to last update");
+            return ErrorCode::NO_ERROR;
+        }
+        cursorInfo_ = cursorInfo;
     }
-    cursorInfo_ = cursorInfo;
     agent_->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
     return ErrorCode::NO_ERROR;
 }
@@ -729,28 +722,31 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
 
-    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-    if (textFieldReplyCount_ > 0
-        && (text.size() != mTextString.size() || start != mSelectNewBegin || end != mSelectNewEnd)) {
-        textFieldReplyCount_--;
+    std::lock_guard<std::mutex> lk(editorContentLock_);
+    {
+        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+        if (textFieldReplyCount_ > 0
+            && (text.size() != textString_.size() || start != selectNewBegin_ || end != selectNewEnd_)) {
+            textFieldReplyCount_--;
+        }
+        if (textFieldReplyCount_ == 0) {
+            textFieldReplyCountCv_.notify_one();
+        }
     }
-    if (textFieldReplyCount_ == 0) {
-        textFieldReplyCountCv_.notify_one();
-    }
-    if (mTextString == text && mSelectNewBegin == start && mSelectNewEnd == end) {
+    if (textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) {
         return ErrorCode::NO_ERROR;
     }
-    mTextString = text;
-    mSelectOldBegin = mSelectNewBegin;
-    mSelectOldEnd = mSelectNewEnd;
-    mSelectNewBegin = start;
-    mSelectNewEnd = end;
+    textString_ = text;
+    selectOldBegin_ = selectNewBegin_;
+    selectOldEnd_ = selectNewEnd_;
+    selectNewBegin_ = start;
+    selectNewEnd_ = end;
     std::lock_guard<std::mutex> lock(agentLock_);
     if (agent_ == nullptr) {
         IMSA_HILOGI("InputMethodController::OnSelectionChange agent is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    agent_->OnSelectionChange(mTextString, mSelectOldBegin, mSelectOldEnd, mSelectNewBegin, mSelectNewEnd);
+    agent_->OnSelectionChange(textString_, selectOldBegin_, selectOldEnd_, selectNewBegin_, selectNewEnd_);
     return ErrorCode::NO_ERROR;
 }
 
@@ -767,7 +763,8 @@ void InputMethodController::HandleGetOperation()
     IMSA_HILOGI("InputMethodController::start");
     if (!isEditable_.load()) {
         IMSA_HILOGE("InputMethodController::text filed is not Focused");
-        mSelectNewEnd = -1;
+        std::lock_guard<std::mutex> lock(editorContentLock_);
+        selectNewEnd_ = -1;
         clientInfo_.channel->NotifyGetOperationCompletion();
         return;
     }
@@ -785,19 +782,20 @@ void InputMethodController::HandleGetOperation()
 
 bool InputMethodController::IsCorrectParam(int32_t number)
 {
-    if (mTextString.size() > INT_MAX || number < 0 || mSelectNewEnd < 0 || mSelectNewBegin < 0) {
+    std::lock_guard<std::mutex> lock(editorContentLock_);
+    if (textString_.size() > INT_MAX || number < 0 || selectNewEnd_ < 0 || selectNewBegin_ < 0) {
         IMSA_HILOGE("InputMethodController::param error, number: %{public}d, begin: %{public}d, end: %{public}d",
-            number, mSelectNewBegin, mSelectNewEnd);
+            number, selectNewBegin_, selectNewEnd_);
         return false;
     }
-    if (mSelectNewBegin > mSelectNewEnd) {
-        int32_t temp = mSelectNewEnd;
-        mSelectNewEnd = mSelectNewBegin;
-        mSelectNewBegin = temp;
+    if (selectNewBegin_ > selectNewEnd_) {
+        int32_t temp = selectNewEnd_;
+        selectNewEnd_ = selectNewBegin_;
+        selectNewBegin_ = temp;
     }
-    if (static_cast<size_t>(mSelectNewEnd) > mTextString.size()) {
-        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}zu", mSelectNewEnd,
-            mTextString.size());
+    if (static_cast<size_t>(selectNewEnd_) > textString_.size()) {
+        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}zu", selectNewEnd_,
+            textString_.size());
         return false;
     }
     return true;
@@ -814,9 +812,10 @@ int32_t InputMethodController::GetTextBeforeCursor(int32_t number, std::u16strin
     if (!IsCorrectParam(number)) {
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
-    int32_t startPos = (number <= mSelectNewBegin ? (mSelectNewBegin - number) : 0);
-    int32_t length = (number <= mSelectNewBegin ? number : mSelectNewBegin);
-    text = mTextString.substr(startPos, length);
+    std::lock_guard<std::mutex> lock(editorContentLock_);
+    int32_t startPos = (number <= selectNewBegin_ ? (selectNewBegin_ - number) : 0);
+    int32_t length = (number <= selectNewBegin_ ? number : selectNewBegin_);
+    text = textString_.substr(startPos, length);
     return ErrorCode::NO_ERROR;
 }
 
@@ -831,7 +830,8 @@ int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string
     if (!IsCorrectParam(number)) {
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
-    text = mTextString.substr(mSelectNewEnd, number);
+    std::lock_guard<std::mutex> lock(editorContentLock_);
+    text = textString_.substr(selectNewEnd_, number);
     return ErrorCode::NO_ERROR;
 }
 
@@ -842,12 +842,13 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
         IMSA_HILOGE("not in editable state");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    if (mTextString.size() > INT_MAX || mSelectNewEnd < 0 || static_cast<size_t>(mSelectNewEnd) > mTextString.size()) {
-        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}zu", mSelectNewEnd,
-            mTextString.size());
+    std::lock_guard<std::mutex> lock(editorContentLock_);
+    if (textString_.size() > INT_MAX || selectNewEnd_ < 0 || static_cast<size_t>(selectNewEnd_) > textString_.size()) {
+        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}zu", selectNewEnd_,
+            textString_.size());
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
-    index = mSelectNewEnd;
+    index = selectNewEnd_;
     return ErrorCode::NO_ERROR;
 }
 
@@ -1025,6 +1026,27 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
     }
     agentObject_ = agentObject;
     agent_ = agent;
+}
+
+void InputMethodController::OnInputStop()
+{
+    IMSA_HILOGI("InputMethodController run in");
+    isEditable_.store(false);
+    {
+        std::lock_guard<std::mutex> lock(agentLock_);
+        agent_ = nullptr;
+        agentObject_ = nullptr;
+    }
+    {
+        std::lock_guard<std::mutex> lock(editorContentLock_);
+        textString_ = Str8ToStr16("");
+        selectOldBegin_ = 0;
+        selectOldEnd_ = 0;
+        selectNewBegin_ = 0;
+        selectNewEnd_ = 0;
+    }
+    std::lock_guard<std::mutex> lk(cursorInfoMutex_);
+    cursorInfo_ = {};
 }
 
 void InputMethodController::OnSelectByRange(int32_t start, int32_t end)

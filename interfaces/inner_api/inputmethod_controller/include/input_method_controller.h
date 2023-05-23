@@ -434,12 +434,12 @@ private:
     void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
     void OnInputReady(sptr<IRemoteObject> agentObject);
+    void OnInputStop();
     void OnSelectByRange(int32_t start, int32_t end);
     void OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip);
     void HandleExtendAction(int32_t action);
     void HandleGetOperation();
     bool IsCorrectParam(int32_t number);
-    void DoIncrease(int32_t status);
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void RestoreListenInfoInSaDied();
     void RestoreAttachInfoInSaDied();
@@ -456,13 +456,17 @@ private:
     std::shared_ptr<IInputMethodAgent> agent_ = nullptr;
     std::mutex textListenerLock_;
     sptr<OnTextChangedListener> textListener_ = nullptr;
-    std::u16string mTextString;
-    int mSelectOldBegin = 0;
-    int mSelectOldEnd = 0;
-    int mSelectNewBegin = 0;
-    int mSelectNewEnd = 0;
-    CursorInfo cursorInfo_;
     std::atomic_bool isDiedAttached_ { false };
+
+    std::mutex cursorInfoMutex_;
+    CursorInfo cursorInfo_;
+
+    std::mutex editorContentLock_;
+    std::u16string textString_;
+    int selectOldBegin_ = 0;
+    int selectOldEnd_ = 0;
+    int selectNewBegin_ = 0;
+    int selectNewEnd_ = 0;
 
     static std::mutex instanceLock_;
     static sptr<InputMethodController> instance_;
