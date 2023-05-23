@@ -432,6 +432,8 @@ void PerUserSession::StopInputService(std::string imeId)
     IMSA_HILOGI("Remove death recipient");
     core->AsObject()->RemoveDeathRecipient(imsDeathRecipient_);
     core->StopInputService(imeId);
+    SetImsCore(CURRENT_IME, nullptr);
+    SetAgent(nullptr);
 }
 
 bool PerUserSession::IsRestartIme(uint32_t index)

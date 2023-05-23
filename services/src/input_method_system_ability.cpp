@@ -15,7 +15,7 @@
 
 #include "input_method_system_ability.h"
 
-#include <global.h>
+#include <unistd.h>
 
 #include "ability_connect_callback_proxy.h"
 #include "ability_manager_errors.h"
@@ -48,6 +48,7 @@ constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr uint32_t RETRY_INTERVAL = 100;
 constexpr uint32_t BLOCK_RETRY_TIMES = 100;
+constexpr uint32_t SWITCH_BLOCK_TIME = 150000;
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
@@ -387,6 +388,7 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
         IMSA_HILOGD("start wait");
         std::unique_lock<std::mutex> lock(switchMutex_);
         switchCV_.wait(lock, [this, &switchInfo]() { return CheckReadyToSwitch(switchInfo); });
+        usleep(SWITCH_BLOCK_TIME);
     }
     IMSA_HILOGD("start switch %{public}s", (switchInfo.bundleName + '/' + switchInfo.subName).c_str());
     if (!IsNeedSwitch(switchInfo.bundleName, switchInfo.subName)) {
