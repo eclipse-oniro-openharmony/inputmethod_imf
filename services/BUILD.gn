@@ -38,7 +38,6 @@ ohos_shared_library("inputmethod_service") {
     "src/bundle_checker.cpp",
     "src/global.cpp",
     "src/im_common_event_manager.cpp",
-    "src/ime_cache_manager.cpp",
     "src/ime_cfg_manager.cpp",
     "src/ime_info_inquirer.cpp",
     "src/input_channel.cpp",

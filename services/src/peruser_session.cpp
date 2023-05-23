@@ -41,8 +41,13 @@ namespace MiscServices {
 using namespace MessageID;
 constexpr uint32_t IME_RESTART_TIMES = 5;
 constexpr uint32_t IME_RESTART_INTERVAL = 300;
-PerUserSession::PerUserSession(int32_t userId) : userId_(userId)
+PerUserSession::PerUserSession(int32_t userId) : userId_(userId), imsDeathRecipient_(new InputDeathRecipient())
 {
+}
+
+PerUserSession::~PerUserSession()
+{
+    imsDeathRecipient_ = nullptr;
 }
 
 int PerUserSession::AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event)
@@ -115,10 +120,12 @@ int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isC
         clientInfo->isValid = false;
         return ErrorCode::NO_ERROR;
     }
-    client->RemoveDeathRecipient(clientInfo->deathRecipient);
-    clientInfo->deathRecipient = nullptr;
-
     std::lock_guard<std::recursive_mutex> lock(mtx);
+    if (clientInfo->deathRecipient != nullptr) {
+        IMSA_HILOGI("deathRecipient remove");
+        client->RemoveDeathRecipient(clientInfo->deathRecipient);
+        clientInfo->deathRecipient = nullptr;
+    }
     mapClients_.erase(client);
     IMSA_HILOGD("client[%{public}d] is removed successfully", clientInfo->pid);
     return ErrorCode::NO_ERROR;
@@ -141,7 +148,7 @@ int32_t PerUserSession::ShowKeyboard(
     if (inputClient == nullptr) {
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    auto core = GetImeCore();
+    auto core = GetImsCore(CURRENT_IME);
     if (core == nullptr) {
         IMSA_HILOGE("Aborted! imsCore[%{public}d] is nullptr", CURRENT_IME);
         return ErrorCode::ERROR_NULL_POINTER;
@@ -168,7 +175,7 @@ int32_t PerUserSession::ShowKeyboard(
 int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &inputClient)
 {
     IMSA_HILOGD("PerUserSession::HideKeyboard");
-    sptr<IInputMethodCore> core = GetImeCore();
+    sptr<IInputMethodCore> core = GetImsCore(CURRENT_IME);
     if (core == nullptr) {
         IMSA_HILOGE("imsCore is nullptr");
         return ErrorCode::ERROR_IME_NOT_STARTED;
@@ -186,7 +193,7 @@ int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &inputClient)
 
 int32_t PerUserSession::ClearDataChannel(const sptr<IInputDataChannel> &channel)
 {
-    sptr<IInputMethodCore> core = GetImeCore();
+    sptr<IInputMethodCore> core = GetImsCore(CURRENT_IME);
     if (core == nullptr || channel == nullptr) {
         IMSA_HILOGE("imsCore or channel is nullptr");
         return ErrorCode::ERROR_IME_NOT_STARTED;
@@ -216,7 +223,7 @@ void PerUserSession::OnImsDied(const sptr<IInputMethodCore> &remote)
     if (remote == nullptr) {
         return;
     }
-    ClearCurrentImeData();
+    ClearImeData(CURRENT_IME);
     if (GetCurrentClient() == nullptr) {
         IMSA_HILOGD("not bound to a client, no need to restart at once");
         return;
@@ -303,7 +310,7 @@ int32_t PerUserSession::SendAgentToSingleClient(const sptr<IInputClient> &client
         IMSA_HILOGE("client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    auto agent = GetImeAgent();
+    auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGI("agent is nullptr");
         CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
@@ -337,7 +344,7 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
         IMSA_HILOGE("client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    if (GetImeCore() == nullptr) {
+    if (GetImsCore(CURRENT_IME) == nullptr) {
         IMSA_HILOGI("current ime is empty, try to restart it");
         if (!StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_), true)) {
             IMSA_HILOGE("failed to restart ime");
@@ -359,44 +366,26 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
     return ShowKeyboard(clientInfo->channel, client, isShowKeyboard);
 }
 
-int32_t PerUserSession::InitImeInfo(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
+int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
-    IMSA_HILOGD("start initializing current ime info");
+    IMSA_HILOGD("PerUserSession::SetCoreAndAgent Start");
     if (core == nullptr || agent == nullptr) {
-        IMSA_HILOGE("core or agent nullptr");
+        IMSA_HILOGE("PerUserSession::SetCoreAndAgent core or agent nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-
-    auto deathRecipient = new (std::nothrow) InputDeathRecipient();
-    if (deathRecipient == nullptr) {
-        IMSA_HILOGE("failed to new deathRecipient");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+    if (imsDeathRecipient_ == nullptr || core->AsObject() == nullptr) {
+        IMSA_HILOGE("imsDeathRecipient_ or core as object is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
     }
-    deathRecipient->SetDeathRecipient([this, core](const wptr<IRemoteObject> &) { this->OnImsDied(core); });
-    auto coreObject = core->AsObject();
-    if (coreObject == nullptr || !coreObject->AddDeathRecipient(deathRecipient)) {
+    imsDeathRecipient_->SetDeathRecipient([this, core](const wptr<IRemoteObject> &) { this->OnImsDied(core); });
+    if (!core->AsObject()->AddDeathRecipient(imsDeathRecipient_)) {
         IMSA_HILOGE("failed to add death recipient");
         return ErrorCode::ERROR_ADD_DEATH_RECIPIENT_FAILED;
     }
+    SetImsCore(CURRENT_IME, core);
+    SetAgent(agent);
 
-    std::lock_guard<std::mutex> lock(imeInfoLock_);
-    imeDeathRecipient_ = deathRecipient;
-    imeAgent_ = agent;
-    imeCore_ = core;
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
-{
-    IMSA_HILOGI("PerUserSession::SetCoreAndAgent Start");
-    int32_t ret = InitImeInfo(core, agent);
-    if (ret != ErrorCode::NO_ERROR) {
-        return ret;
-    }
-    bool isStarted = GetImeCore() != nullptr && GetImeAgent() != nullptr;
-    isImeStarted_.SetValue(isStarted);
-
-    ret = InitInputControlChannel();
+    int ret = InitInputControlChannel();
     IMSA_HILOGI("init input control channel ret: %{public}d", ret);
     auto client = GetCurrentClient();
     if (client != nullptr) {
@@ -406,6 +395,8 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
             IMSA_HILOGI("start input ret: %{public}d", ret);
         }
     }
+    bool isStarted = GetImsCore(CURRENT_IME) != nullptr && GetAgent() != nullptr;
+    isImeStarted_.SetValue(isStarted);
     return ErrorCode::NO_ERROR;
 }
 
@@ -413,7 +404,7 @@ int32_t PerUserSession::InitInputControlChannel()
 {
     IMSA_HILOGD("PerUserSession::InitInputControlChannel");
     sptr<IInputControlChannel> inputControlChannel = new InputControlChannelStub(userId_);
-    auto core = GetImeCore();
+    auto core = GetImsCore(CURRENT_IME);
     if (core == nullptr) {
         IMSA_HILOGE("PerUserSession::InitInputControlChannel core is nullptr");
         return ErrorCode::ERROR_IME_NOT_STARTED;
@@ -432,14 +423,17 @@ int32_t PerUserSession::OnStopInput(sptr<IInputClient> client)
     return HideKeyboard(client);
 }
 
-void PerUserSession::StopInputService(const std::string &imeId)
+void PerUserSession::StopInputService(std::string imeId)
 {
     IMSA_HILOGI("PerUserSession::StopInputService");
-    ImeCache cache = { .core = GetImeCore(), .agent = GetImeAgent() };
-    ImeCacheManager::GetInstance().Push(imeId, std::make_shared<ImeCache>(cache));
-    int32_t ret = OnHideKeyboardSelf();
-    IMSA_HILOGI("hide keyboard ret: %{public}d", ret);
-    ClearCurrentImeData();
+    sptr<IInputMethodCore> core = GetImsCore(CURRENT_IME);
+    if (core == nullptr) {
+        IMSA_HILOGE("imsCore[0] is nullptr");
+        return;
+    }
+    IMSA_HILOGI("Remove death recipient");
+    core->AsObject()->RemoveDeathRecipient(imsDeathRecipient_);
+    core->StopInputService(imeId);
 }
 
 bool PerUserSession::IsRestartIme(uint32_t index)
@@ -454,16 +448,15 @@ bool PerUserSession::IsRestartIme(uint32_t index)
     return manager[index].num <= MAX_RESTART_NUM;
 }
 
-void PerUserSession::ClearCurrentImeData()
+void PerUserSession::ClearImeData(uint32_t index)
 {
-    IMSA_HILOGI("clear ime data");
-    std::lock_guard<std::mutex> lock(imeInfoLock_);
-    if (imeCore_ != nullptr && imeCore_->AsObject() != nullptr) {
-        imeCore_->AsObject()->RemoveDeathRecipient(imeDeathRecipient_);
+    IMSA_HILOGI("Clear ime...index = %{public}d", index);
+    auto core = GetImsCore(index);
+    if (core != nullptr) {
+        core->AsObject()->RemoveDeathRecipient(imsDeathRecipient_);
+        SetImsCore(index, nullptr);
     }
-    imeDeathRecipient_ = nullptr;
-    imeCore_ = nullptr;
-    imeAgent_ = nullptr;
+    SetAgent(nullptr);
 }
 
 void PerUserSession::SetCurrentClient(sptr<IInputClient> client)
@@ -483,7 +476,7 @@ int32_t PerUserSession::OnSwitchIme(const Property &property, const SubProperty 
 {
     IMSA_HILOGD("PerUserSession::OnSwitchIme");
     if (isSubtypeSwitch) {
-        auto core = GetImeCore();
+        sptr<IInputMethodCore> core = GetImsCore(CURRENT_IME);
         if (core == nullptr) {
             IMSA_HILOGE("imsCore is nullptr");
             return ErrorCode::ERROR_NULL_POINTER;
@@ -511,16 +504,34 @@ int32_t PerUserSession::OnSwitchIme(const Property &property, const SubProperty 
     return ErrorCode::NO_ERROR;
 }
 
-sptr<IInputMethodCore> PerUserSession::GetImeCore()
+sptr<IInputMethodCore> PerUserSession::GetImsCore(int32_t index)
 {
-    std::lock_guard<std::mutex> lock(imeInfoLock_);
-    return imeCore_;
+    std::lock_guard<std::mutex> lock(imsCoreLock_);
+    if (!IsValid(index)) {
+        return nullptr;
+    }
+    return imsCore[index];
 }
 
-sptr<IInputMethodAgent> PerUserSession::GetImeAgent()
+void PerUserSession::SetImsCore(int32_t index, sptr<IInputMethodCore> core)
 {
-    std::lock_guard<std::mutex> lock(imeInfoLock_);
-    return imeAgent_;
+    std::lock_guard<std::mutex> lock(imsCoreLock_);
+    if (!IsValid(index)) {
+        return;
+    }
+    imsCore[index] = core;
+}
+
+sptr<IInputMethodAgent> PerUserSession::GetAgent()
+{
+    std::lock_guard<std::mutex> lock(agentLock_);
+    return agent_;
+}
+
+void PerUserSession::SetAgent(sptr<IInputMethodAgent> agent)
+{
+    std::lock_guard<std::mutex> lock(agentLock_);
+    agent_ = agent;
 }
 
 void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
@@ -561,6 +572,7 @@ sptr<AAFwk::IAbilityManager> PerUserSession::GetAbilityManagerService()
 
 bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
 {
+    IMSA_HILOGI("start ime: %{public}s with isRetry: %{public}d", imeName.c_str(), isRetry);
     std::string::size_type pos = imeName.find('/');
     if (pos == std::string::npos) {
         IMSA_HILOGE("invalid ime name");

@@ -195,12 +195,6 @@ void InputMethodSystemAbility::StartUserIdListener()
 
 bool InputMethodSystemAbility::StartInputService(const std::string &imeId)
 {
-    IMSA_HILOGI("InputMethodSystemAbility, ime:%{public}s", imeId.c_str());
-    auto imeCache = ImeCacheManager::GetInstance().Pop(imeId);
-    if (imeCache != nullptr) {
-        IMSA_HILOGD("hit the cache");
-        return userSession_->OnSetCoreAndAgent(imeCache->core, imeCache->agent) == ErrorCode::NO_ERROR;
-    }
     return userSession_->StartInputService(imeId, true);
 }
 
@@ -388,10 +382,13 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
 
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo)
 {
+    IMSA_HILOGD("run in, switchInfo: %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     if (!CheckReadyToSwitch(switchInfo)) {
+        IMSA_HILOGD("start wait");
         std::unique_lock<std::mutex> lock(switchMutex_);
         switchCV_.wait(lock, [this, &switchInfo]() { return CheckReadyToSwitch(switchInfo); });
     }
+    IMSA_HILOGD("start switch %{public}s", (switchInfo.bundleName + '/' + switchInfo.subName).c_str());
     if (!IsNeedSwitch(switchInfo.bundleName, switchInfo.subName)) {
         PopSwitchQueue();
         return ErrorCode::NO_ERROR;
