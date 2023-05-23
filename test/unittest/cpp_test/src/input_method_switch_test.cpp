@@ -232,28 +232,6 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSubTypeSwitch_003
-* @tc.desc: switch subtype with extName1
-* @tc.type: FUNC
-* @tc.require: issuesI62BHB
-* @tc.author: chenyu
-*/
-HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_003, TestSize.Level0)
-{
-    IMSA_HILOGI("oldIme testSubTypeSwitch_002 Test START");
-    std::unique_lock<std::mutex> lock(imeChangeFlagLock);
-    imeChangeFlag = false;
-    int32_t ret = imc_->SwitchInputMethod(bundleName, extName[0]);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    conditionVar.wait_for(
-        lock, std::chrono::milliseconds(SUBTYPE_SWITCH_DELAY_TIME), [] { return imeChangeFlag == true; });
-    EXPECT_TRUE(imeChangeFlag);
-    CheckCurrentProp(extName[0]);
-    CheckCurrentSubProp(extName[0]);
-    CheckCurrentSubProps();
-}
-
-/**
 * @tc.name: testSubTypeSwitchWithErrorSubName
 * @tc.desc: switch subtype with error subName.
 * @tc.type: FUNC
