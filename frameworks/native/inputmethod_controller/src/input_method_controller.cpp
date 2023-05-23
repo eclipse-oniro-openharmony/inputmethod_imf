@@ -432,7 +432,7 @@ int32_t InputMethodController::Attach(
     }
     isBound_.store(true);
     isEditable_.store(true);
-    IMSA_HILOGD("bind imf successfully, enter editable state");
+    IMSA_HILOGI("bind imf successfully, enter editable state");
     return ErrorCode::NO_ERROR;
 }
 
