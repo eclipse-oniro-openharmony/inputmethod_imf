@@ -342,6 +342,15 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
 
 int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
 {
+    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (currentImeCfg == nullptr) {
+        IMSA_HILOGE("failed to get current ime");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (!BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName)) {
+        IMSA_HILOGE("not current ime");
+        return ErrorCode::ERROR_NOT_CURRENT_IME;
+    }
     return userSession_->OnPanelStatusChange(status, windowInfo);
 }
 
