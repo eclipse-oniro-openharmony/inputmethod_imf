@@ -734,6 +734,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         }
     }
     if (textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) {
+        IMSA_HILOGI("same to last update");
         return ErrorCode::NO_ERROR;
     }
     textString_ = text;
