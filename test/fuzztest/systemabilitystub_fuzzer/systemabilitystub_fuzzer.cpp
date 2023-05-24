@@ -21,6 +21,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string_ex.h>
 
 #include "accesstoken_kit.h"
 #include "global.h"
@@ -99,26 +100,26 @@ bool FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size)
     sptr<OnTextChangedListener> textListener = new TextListener();
     imc->Attach(textListener);
 
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        IMSA_HILOGI("systemAbilityManager is nullptr");
-        return false;
-    }
-    auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
-    if (systemAbility == nullptr) {
-        IMSA_HILOGI("systemAbility is nullptr");
-        return false;
-    }
-    sptr<InputMethodSystemAbilityProxy> iface = new InputMethodSystemAbilityProxy(systemAbility);
-    iface->SendRequest(code, [&rawData, &size](MessageParcel &data) {
-        data.WriteInterfaceToken(SYSTEMABILITY_INTERFACE_TOKEN);
-        data.WriteBuffer(rawData, size);
-        data.RewindRead(0);
-        return true;
-    });
+    MessageParcel datas;
+    datas.WriteInterfaceToken(SYSTEMABILITY_INTERFACE_TOKEN);
+    datas.WriteBuffer(rawData, size);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnRemoteRequest(code, datas, reply, option);
     return true;
 }
+
+bool TestDump(const uint8_t *rawData, size_t size)
+{
+    std::vector<std::u16string> args;
+    std::string str(reinterpret_cast<const char *>(rawData), size);
+    args.push_back(Str8ToStr16(str));
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->Dump(static_cast<int32_t>(size), args);
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->DumpAllMethod(static_cast<int32_t>(size));
+    return true;
+}
+
 } // namespace OHOS
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
@@ -128,5 +129,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     }
     /* Run your code on data */
     OHOS::FuzzInputMethodSystemAbility(data, size);
+    OHOS::TestDump(data, size);
     return 0;
 }

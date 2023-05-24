@@ -22,6 +22,7 @@
 #include "input_method_controller.h"
 #include "key_event.h"
 #include "message_parcel.h"
+#include "input_attribute.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
@@ -166,6 +167,23 @@ void TestTextAfterCursor(sptr<InputMethodController> imc, int32_t fuzzedInt32)
     std::u16string text;
     imc->GetTextAfterCursor(fuzzedInt32, text);
 }
+
+void TestUpdateListenEventFlag(sptr<InputMethodController> imc, const std::string &fuzzedString)
+{
+    imc->UpdateListenEventFlag(fuzzedString, true);
+    imc->UpdateListenEventFlag(fuzzedString, false);
+}
+
+void TestAttach(sptr<InputMethodController> imc, int32_t fuzzedInt32)
+{
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    InputAttribute inputAttribute;
+    inputAttribute.inputPattern = fuzzedInt32;
+    inputAttribute.enterKeyType = fuzzedInt32;
+    inputAttribute.inputOption = fuzzedInt32;
+    imc->Attach(textListener, true, inputAttribute);
+    imc->Attach(textListener, false, inputAttribute);
+}
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -191,5 +209,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestSetCallingWindow(imc, fuzzedUInt32);
     OHOS::TestDispatchKeyEvent(imc, fuzzedInt32);
     OHOS::TestShowSomething(imc);
+    OHOS::TestUpdateListenEventFlag(imc, fuzzedString);
     return 0;
 }
