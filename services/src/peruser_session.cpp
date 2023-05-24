@@ -233,7 +233,7 @@ void PerUserSession::OnImsDied(const sptr<IInputMethodCore> &remote)
         return;
     }
     IMSA_HILOGI("user %{public}d ime died, restart!", userId_);
-    StartCurrentIme(true);
+    StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_), true);
 }
 
 void PerUserSession::UpdateCurrentUserId(int32_t userId)
@@ -346,7 +346,7 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
     }
     if (GetImsCore(CURRENT_IME) == nullptr) {
         IMSA_HILOGI("current ime is empty, try to restart it");
-        if (!StartCurrentIme(true)) {
+        if (!StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_), true)) {
             IMSA_HILOGE("failed to restart ime");
             return ErrorCode::ERROR_IME_START_FAILED;
         }
@@ -384,8 +384,6 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
     }
     SetImsCore(CURRENT_IME, core);
     SetAgent(agent);
-    bool isStarted = GetImsCore(CURRENT_IME) != nullptr;
-    isImeStarted_.SetValue(isStarted);
 
     int ret = InitInputControlChannel();
     IMSA_HILOGI("init input control channel ret: %{public}d", ret);
@@ -397,6 +395,8 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
             IMSA_HILOGI("start input ret: %{public}d", ret);
         }
     }
+    bool isStarted = GetImsCore(CURRENT_IME) != nullptr && GetAgent() != nullptr;
+    isImeStarted_.SetValue(isStarted);
     return ErrorCode::NO_ERROR;
 }
 
@@ -434,6 +434,8 @@ void PerUserSession::StopInputService(std::string imeId)
     IMSA_HILOGI("Remove death recipient");
     core->AsObject()->RemoveDeathRecipient(imsDeathRecipient_);
     core->StopInputService(imeId);
+    SetImsCore(CURRENT_IME, nullptr);
+    SetAgent(nullptr);
 }
 
 bool PerUserSession::IsRestartIme(uint32_t index)
@@ -570,10 +572,10 @@ sptr<AAFwk::IAbilityManager> PerUserSession::GetAbilityManagerService()
     return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
 }
 
-bool PerUserSession::StartCurrentIme(bool isRetry)
+bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
 {
-    auto currentIme = ImeInfoInquirer::GetInstance().GetStartedIme(userId_);
-    std::string::size_type pos = currentIme.find('/');
+    IMSA_HILOGI("start ime: %{public}s with isRetry: %{public}d", imeName.c_str(), isRetry);
+    std::string::size_type pos = imeName.find('/');
     if (pos == std::string::npos) {
         IMSA_HILOGE("invalid ime name");
         return false;
@@ -583,9 +585,9 @@ bool PerUserSession::StartCurrentIme(bool isRetry)
         IMSA_HILOGE("failed to get ability manager service");
         return false;
     }
-    IMSA_HILOGI("ime: %{public}s", currentIme.c_str());
+    IMSA_HILOGI("ime: %{public}s", imeName.c_str());
     AAFwk::Want want;
-    want.SetElementName(currentIme.substr(0, pos), currentIme.substr(pos + 1));
+    want.SetElementName(imeName.substr(0, pos), imeName.substr(pos + 1));
     isImeStarted_.Clear(false);
     if (abms->StartAbility(want) != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start ability");
@@ -595,9 +597,10 @@ bool PerUserSession::StartCurrentIme(bool isRetry)
     }
     if (isRetry) {
         IMSA_HILOGE("failed to start ime, begin to retry five times");
-        auto retryTask = [this]() {
+        auto retryTask = [this, imeName]() {
             pthread_setname_np(pthread_self(), "ImeRestart");
-            BlockRetry(IME_RESTART_INTERVAL, IME_RESTART_TIMES, [this]() { return StartCurrentIme(false); });
+            BlockRetry(IME_RESTART_INTERVAL, IME_RESTART_TIMES,
+                [this, imeName]() { return StartInputService(imeName, false); });
         };
         std::thread(retryTask).detach();
     }
