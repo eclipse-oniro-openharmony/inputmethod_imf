@@ -81,6 +81,10 @@ struct CursorInfo {
     double top = 0.0;
     double width = 0.0;
     double height = 0.0;
+    bool operator==(const CursorInfo &info) const
+    {
+        return (left == info.left && top == info.top && width == info.width && height == info.height);
+    }
 };
 
 class KeyEvent {

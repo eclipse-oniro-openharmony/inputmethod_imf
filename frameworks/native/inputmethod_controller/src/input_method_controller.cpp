@@ -236,12 +236,12 @@ void InputMethodController::WorkThread()
                 IMSA_HILOGI("input stop");
                 isBound_.store(false);
                 isEditable_.store(false);
+                textListener_ = nullptr;
                 {
                     std::lock_guard<std::mutex> lock(agentLock_);
                     agent_ = nullptr;
                     agentObject_ = nullptr;
                 }
-                textListener_ = nullptr;
                 ClearEditorCache();
                 break;
             }
@@ -706,8 +706,7 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
     }
     {
         std::lock_guard<std::mutex> lk(cursorInfoMutex_);
-        if (cursorInfo_.left == cursorInfo.left && cursorInfo_.top == cursorInfo.top
-            && cursorInfo_.height == cursorInfo.height) {
+        if (cursorInfo_ == cursorInfo) {
             IMSA_HILOGI("same to last update");
             return ErrorCode::NO_ERROR;
         }
