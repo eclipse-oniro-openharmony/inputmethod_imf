@@ -241,10 +241,11 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 HWTEST_F(InputMethodSwitchTest, testSubTypeSwitchWithErrorSubName, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSubTypeSwitchWithErrorSubName Test START");
+    std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod(bundleName, "error subName");
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
-    CheckCurrentProp(extName[0]);
-    CheckCurrentSubProp(extName[0]);
+    CheckCurrentProp(subName);
+    CheckCurrentSubProp(subName);
     CheckCurrentSubProps();
 }
 
@@ -260,13 +261,14 @@ HWTEST_F(InputMethodSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize
     IMSA_HILOGI("oldIme testSwitchToCurrentImeWithEmptySubName Test START");
     std::unique_lock<std::mutex> lock(imeChangeFlagLock);
     imeChangeFlag = false;
+    std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod(bundleName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodSwitchTest::conditionVar.wait_for(
         lock, std::chrono::milliseconds(SUBTYPE_SWITCH_DELAY_TIME), [] { return imeChangeFlag == true; });
     EXPECT_FALSE(imeChangeFlag);
-    CheckCurrentProp(extName[0]);
-    CheckCurrentSubProp(extName[0]);
+    CheckCurrentProp(subName);
+    CheckCurrentSubProp(subName);
     CheckCurrentSubProps();
 }
 
@@ -280,10 +282,11 @@ HWTEST_F(InputMethodSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize
 HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleName, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleName Test START");
+    std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod("error bundleName", extName[0]);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
-    CheckCurrentProp(extName[0]);
-    CheckCurrentSubProp(extName[0]);
+    CheckCurrentProp(subName);
+    CheckCurrentSubProp(subName);
     CheckCurrentSubProps();
 }
 
@@ -297,10 +300,11 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleName, TestSize.Level
 HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleNameWitchEmptySubName, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleNameWitchEmptySubName Test START");
+    std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod("error bundleName", " ");
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
-    CheckCurrentProp(extName[0]);
-    CheckCurrentSubProp(extName[0]);
+    CheckCurrentProp(subName);
+    CheckCurrentSubProp(subName);
     CheckCurrentSubProps();
 }
 
@@ -364,12 +368,13 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodDisable, TestSize.Level0)
 HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodEnable, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCListInputMethodEnable Test Start");
+    std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     std::vector<Property> enableProperties = {};
     auto ret = imc_->ListInputMethod(true, enableProperties);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(enableProperties.size(), ENABLE_IME_NUM);
     EXPECT_EQ(enableProperties[ENABLE_IME_NUM - 1].name, bundleName);
-    EXPECT_EQ(enableProperties[ENABLE_IME_NUM - 1].id, extName[0]);
+    EXPECT_EQ(enableProperties[ENABLE_IME_NUM - 1].id, subName);
 }
 
 /**
