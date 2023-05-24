@@ -40,7 +40,6 @@ std::mutex InputMethodController::instanceLock_;
 constexpr int32_t LOOP_COUNT = 5;
 constexpr int32_t WAIT_TIME = 100;
 constexpr int64_t DELAY_TIME = 100;
-constexpr int32_t KEYBOARD_SHOW = 2;
 const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
     { "imeHide", IME_HIDE } };
 InputMethodController::InputMethodController() : stop_(false)
@@ -235,8 +234,15 @@ void InputMethodController::WorkThread()
             }
             case MSG_ID_ON_INPUT_STOP: {
                 IMSA_HILOGI("input stop");
+                isBound_.store(false);
+                isEditable_.store(false);
+                {
+                    std::lock_guard<std::mutex> lock(agentLock_);
+                    agent_ = nullptr;
+                    agentObject_ = nullptr;
+                }
                 textListener_ = nullptr;
-                OnInputStop();
+                ClearEditorCache();
                 break;
             }
             case MSG_ID_SEND_KEYBOARD_STATUS: {
@@ -488,6 +494,7 @@ int32_t InputMethodController::ShowCurrentInput()
 
 int32_t InputMethodController::Close()
 {
+    IMSA_HILOGD("InputMethodController, run in");
     isBound_.store(false);
     isEditable_.store(false);
     InputmethodTrace tracer("InputMethodController Close trace.");
@@ -495,10 +502,12 @@ int32_t InputMethodController::Close()
         std::lock_guard<std::mutex> lock(textListenerLock_);
         textListener_ = nullptr;
     }
-    std::lock_guard<std::mutex> lock(agentLock_);
-    agent_ = nullptr;
-    agentObject_ = nullptr;
-    IMSA_HILOGD("InputMethodController, run end");
+    {
+        std::lock_guard<std::mutex> lock(agentLock_);
+        agent_ = nullptr;
+        agentObject_ = nullptr;
+    }
+    ClearEditorCache();
     return ReleaseInput(clientInfo_.client);
 }
 
@@ -686,7 +695,6 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
-
     if (!isEditable_.load()) {
         IMSA_HILOGE("not in editable state");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
@@ -744,7 +752,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
     selectNewEnd_ = end;
     std::lock_guard<std::mutex> lock(agentLock_);
     if (agent_ == nullptr) {
-        IMSA_HILOGI("InputMethodController::OnSelectionChange agent is nullptr");
+        IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     agent_->OnSelectionChange(textString_, selectOldBegin_, selectOldEnd_, selectNewBegin_, selectNewEnd_);
@@ -754,6 +762,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
 int32_t InputMethodController::OnConfigurationChange(Configuration info)
 {
     IMSA_HILOGI("InputMethodController::OnConfigurationChange");
+    std::lock_guard<std::mutex> lock(configurationMutex_);
     enterKeyType_ = static_cast<uint32_t>(info.GetEnterKeyType());
     inputPattern_ = static_cast<uint32_t>(info.GetTextInputType());
     return ErrorCode::NO_ERROR;
@@ -763,7 +772,7 @@ void InputMethodController::HandleGetOperation()
 {
     IMSA_HILOGI("InputMethodController::start");
     if (!isEditable_.load()) {
-        IMSA_HILOGE("InputMethodController::text filed is not Focused");
+        IMSA_HILOGE("text filed is not Focused");
         std::lock_guard<std::mutex> lock(editorContentLock_);
         selectNewEnd_ = -1;
         clientInfo_.channel->NotifyGetOperationCompletion();
@@ -886,6 +895,7 @@ int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
         IMSA_HILOGE("not in editable state");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
+    std::lock_guard<std::mutex> lock(configurationMutex_);
     keyType = enterKeyType_;
     return ErrorCode::NO_ERROR;
 }
@@ -897,6 +907,7 @@ int32_t InputMethodController::GetInputPattern(int32_t &inputpattern)
         IMSA_HILOGE("not in editable state");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
+    std::lock_guard<std::mutex> lock(configurationMutex_);
     inputpattern = inputPattern_;
     return ErrorCode::NO_ERROR;
 }
@@ -1029,15 +1040,9 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
     agent_ = agent;
 }
 
-void InputMethodController::OnInputStop()
+void InputMethodController::ClearEditorCache()
 {
-    IMSA_HILOGI("InputMethodController run in");
-    isEditable_.store(false);
-    {
-        std::lock_guard<std::mutex> lock(agentLock_);
-        agent_ = nullptr;
-        agentObject_ = nullptr;
-    }
+    IMSA_HILOGD("clear editor content cache");
     {
         std::lock_guard<std::mutex> lock(editorContentLock_);
         textString_ = Str8ToStr16("");
@@ -1046,7 +1051,7 @@ void InputMethodController::OnInputStop()
         selectNewBegin_ = 0;
         selectNewEnd_ = 0;
     }
-    std::lock_guard<std::mutex> lk(cursorInfoMutex_);
+    std::lock_guard<std::mutex> lock(cursorInfoMutex_);
     cursorInfo_ = {};
 }
 

@@ -434,7 +434,7 @@ private:
     void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
     void OnInputReady(sptr<IRemoteObject> agentObject);
-    void OnInputStop();
+    void ClearEditorCache();
     void OnSelectByRange(int32_t start, int32_t end);
     void OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip);
     void HandleExtendAction(int32_t action);
@@ -474,6 +474,7 @@ private:
     std::thread workThreadHandler;
     MessageHandler *msgHandler_;
     bool stop_;
+    std::mutex configurationMutex_;
     int32_t enterKeyType_ = 0;
     int32_t inputPattern_ = 0;
 
