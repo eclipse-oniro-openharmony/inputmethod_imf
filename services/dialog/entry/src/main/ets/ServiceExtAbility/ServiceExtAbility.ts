@@ -70,6 +70,9 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
     console.log(TAG + 'createWindow execute');
     try {
       if (globalThis.windowNum > 0) {
+        globalThis.windowNum = 0;
+        globalThis.extensionWin.destroy();
+        globalThis.context.terminateSelf();
         return;
       }
       const win = await window.create(this.context, name, windowType);
