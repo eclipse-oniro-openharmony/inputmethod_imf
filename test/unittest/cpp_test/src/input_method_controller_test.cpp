@@ -122,6 +122,9 @@ constexpr int32_t MAIN_USER_ID = 100;
         {
         }
     };
+    KeyboardStatus TextListener::keyboardStatus_;
+    std::mutex TextListener::cvMutex_;
+    std::condition_variable TextListener::cv_;
 
     class SelectListener : public ControllerListener {
     public:
@@ -142,13 +145,14 @@ constexpr int32_t MAIN_USER_ID = 100;
             IMSA_HILOGI("IMC TEST SelectListener OnSelectByMovement");
             direction_ = direction;
         }
-        int32_t rangeStart_ = 0;
-        int32_t rangeEnd_ = 0;
-        int32_t direction_ = 0;
+        static int32_t rangeStart_;
+        static int32_t rangeEnd_;
+        static int32_t direction_;
     };
-    KeyboardStatus TextListener::keyboardStatus_;
-    std::mutex TextListener::cvMutex_;
-    std::condition_variable TextListener::cv_;
+    int32_t SelectListener::rangeStart_ = 0;
+    int32_t SelectListener::rangeEnd_ = 0;
+    int32_t SelectListener::direction_ = 0;
+
 
     class KeyboardListenerImpl : public KeyboardListener {
     public:
@@ -689,7 +693,7 @@ constexpr int32_t MAIN_USER_ID = 100;
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
         usleep(10 * 1000);
         EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::DOWN));
-        
+
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
         usleep(10 * 1000);
         EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::LEFT));
@@ -699,6 +703,7 @@ constexpr int32_t MAIN_USER_ID = 100;
         EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::RIGHT));
 
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::NONE));
+        inputMethodAbility_->SelectByRange(0, 0);
         inputMethodController_->Close();
     }
 
