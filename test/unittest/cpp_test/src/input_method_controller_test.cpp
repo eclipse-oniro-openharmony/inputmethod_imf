@@ -51,6 +51,7 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t MAIN_USER_ID = 100;
+constexpr uint32_t DEALY_TIME = 1;
     class TextListener : public OnTextChangedListener {
     public:
         TextListener()
@@ -153,43 +154,6 @@ constexpr int32_t MAIN_USER_ID = 100;
     int32_t SelectListener::rangeEnd_ = 0;
     int32_t SelectListener::direction_ = 0;
 
-
-    class KeyboardListenerImpl : public KeyboardListener {
-    public:
-        KeyboardListenerImpl(){};
-        ~KeyboardListenerImpl(){};
-        static int32_t keyCode_;
-        static int32_t keyStatus_;
-        static CursorInfo cursorInfo_;
-        bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override;
-        void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
-        void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
-        void OnTextChange(const std::string &text) override;
-    };
-    int32_t KeyboardListenerImpl::keyCode_ = 0;
-    int32_t KeyboardListenerImpl::keyStatus_ = 0;
-    CursorInfo KeyboardListenerImpl::cursorInfo_ = {};
-    bool KeyboardListenerImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
-    {
-        IMSA_HILOGD("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
-        keyCode_ = keyCode;
-        keyStatus_ = keyStatus;
-        return true;
-    }
-    void KeyboardListenerImpl::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
-    {
-        IMSA_HILOGD(
-            "KeyboardListenerImpl::OnCursorUpdate %{public}d %{public}d %{public}d", positionX, positionY, height);
-        cursorInfo_ = { static_cast<double>(positionX), static_cast<double>(positionY), 0,
-            static_cast<double>(height) };
-    }
-    void KeyboardListenerImpl::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
-    {
-    }
-    void KeyboardListenerImpl::OnTextChange(const std::string &text)
-    {
-    }
-
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
         InputMethodEngineListenerImpl(){};
@@ -245,22 +209,78 @@ constexpr int32_t MAIN_USER_ID = 100;
         static sptr<InputMethodController> inputMethodController_;
         static sptr<InputMethodAbility> inputMethodAbility_;
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
-        static std::shared_ptr<KeyboardListenerImpl> kbListener_;
         static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
         static std::shared_ptr<SelectListener> controllerListener_;
         static sptr<OnTextChangedListener> textListener_;
+        static std::mutex keyboardListenerMutex_;
+        static std::condition_variable keyboardListenerCv_;
         static uint64_t selfTokenID_;
         static AccessTokenID testTokenID_;
+        static int32_t keyCode_;
+        static int32_t keyStatus_;
+        static CursorInfo cursorInfo_;
+        static int32_t oldBegin_;
+        static int32_t oldEnd_;
+        static int32_t newBegin_;
+        static int32_t newEnd_;
+        static std::string text_;
+
+        class KeyboardListenerImpl : public KeyboardListener {
+        public:
+            KeyboardListenerImpl(){};
+            ~KeyboardListenerImpl(){};
+            bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override
+            {
+                IMSA_HILOGD("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
+                keyCode_ = keyCode;
+                keyStatus_ = keyStatus;
+                InputMethodControllerTest::keyboardListenerCv_.notify_one();
+                return true;
+            }
+            void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override
+            {
+                IMSA_HILOGD("KeyboardListenerImpl::OnCursorUpdate %{public}d %{public}d %{public}d", positionX,
+                    positionY, height);
+                cursorInfo_ = { static_cast<double>(positionX), static_cast<double>(positionY), 0,
+                    static_cast<double>(height) };
+                InputMethodControllerTest::keyboardListenerCv_.notify_one();
+            }
+            void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override
+            {
+                IMSA_HILOGD("KeyboardListenerImpl::OnSelectionChange %{public}d %{public}d %{public}d %{public}d",
+                    oldBegin, oldEnd, newBegin, newBegin);
+                oldBegin_ = oldBegin;
+                oldEnd_ = oldEnd;
+                newBegin_ = newBegin;
+                newEnd_ = newEnd;
+                InputMethodControllerTest::keyboardListenerCv_.notify_one();
+            }
+            void OnTextChange(const std::string &text) override
+            {
+                IMSA_HILOGD("KeyboardListenerImpl::OnTextChange text: %{public}s", text.c_str());
+                text_ = text;
+                InputMethodControllerTest::keyboardListenerCv_.notify_one();
+            }
+        };
     };
     sptr<InputMethodController> InputMethodControllerTest::inputMethodController_;
     sptr<InputMethodAbility> InputMethodControllerTest::inputMethodAbility_;
     std::shared_ptr<MMI::KeyEvent> InputMethodControllerTest::keyEvent_;
-    std::shared_ptr<KeyboardListenerImpl> InputMethodControllerTest::kbListener_;
     std::shared_ptr<InputMethodEngineListenerImpl> InputMethodControllerTest::imeListener_;
     std::shared_ptr<SelectListener> InputMethodControllerTest::controllerListener_;
     sptr<OnTextChangedListener> InputMethodControllerTest::textListener_;
     uint64_t InputMethodControllerTest::selfTokenID_ = 0;
     AccessTokenID InputMethodControllerTest::testTokenID_ = 0;
+    int32_t InputMethodControllerTest::keyCode_ = 0;
+    int32_t InputMethodControllerTest::keyStatus_ = 0;
+    CursorInfo InputMethodControllerTest::cursorInfo_ = {};
+    int32_t InputMethodControllerTest::oldBegin_ = 0;
+    int32_t InputMethodControllerTest::oldEnd_ = 0;
+    int32_t InputMethodControllerTest::newBegin_ = 0;
+    int32_t InputMethodControllerTest::newEnd_ = 0;
+    std::string InputMethodControllerTest::text_;
+    std::mutex InputMethodControllerTest::keyboardListenerMutex_;
+    std::condition_variable InputMethodControllerTest::keyboardListenerCv_;
 
     void InputMethodControllerTest::SetUpTestCase(void)
     {
@@ -273,11 +293,10 @@ constexpr int32_t MAIN_USER_ID = 100;
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->OnImeReady();
-        kbListener_ = std::make_shared<KeyboardListenerImpl>();
         imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
         controllerListener_ = std::make_shared<SelectListener>();
         textListener_ = new TextListener();
-        inputMethodAbility_->SetKdListener(kbListener_);
+        inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerImpl>());
         inputMethodAbility_->SetImeListener(imeListener_);
         RestoreSelfTokenID();
 
@@ -439,25 +458,154 @@ constexpr int32_t MAIN_USER_ID = 100;
         IMSA_HILOGI("IMC dispatchKeyEvent Test START");
         bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
         usleep(300);
-        ret = ret && kbListener_->keyCode_ == keyEvent_->GetKeyCode()
-              && kbListener_->keyStatus_ == keyEvent_->GetKeyAction();
+        ret = ret && InputMethodControllerTest::keyCode_ == keyEvent_->GetKeyCode()
+              && InputMethodControllerTest::keyStatus_ == keyEvent_->GetKeyAction();
         EXPECT_TRUE(ret);
     }
 
     /**
-     * @tc.name: testIMCOnCursorUpdate
+     * @tc.name: testIMCOnCursorUpdate01
      * @tc.desc: IMC testOnCursorUpdate
      * @tc.type: FUNC
      * @tc.require:
+     * @tc.author: Zhaolinglan
      */
-    HWTEST_F(InputMethodControllerTest, testIMCOnCursorUpdate, TestSize.Level0)
+    HWTEST_F(InputMethodControllerTest, testIMCOnCursorUpdate01, TestSize.Level0)
     {
-        IMSA_HILOGI("IMC OnCursorUpdate Test START");
-        inputMethodController_->OnCursorUpdate({ 1, 2, 3, 4 });
-        usleep(300);
-        bool result = kbListener_->cursorInfo_.left == static_cast<double>(1)
-                      && kbListener_->cursorInfo_.top == static_cast<double>(2)
-                      && kbListener_->cursorInfo_.height == static_cast<double>(4);
+        IMSA_HILOGI("IMC testIMCOnCursorUpdate01 Test START");
+        CursorInfo info = { 1, 3, 0, 5 };
+        inputMethodController_->OnCursorUpdate(info);
+        bool ret = false;
+        {
+            std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
+                [&info] { return InputMethodControllerTest::cursorInfo_ == info; });
+        }
+        EXPECT_TRUE(ret);
+        bool result = InputMethodControllerTest::cursorInfo_ == info;
+        EXPECT_TRUE(result);
+
+        InputMethodControllerTest::cursorInfo_ = {};
+        inputMethodController_->Attach(textListener_, false);
+        inputMethodController_->OnCursorUpdate(info);
+        {
+            std::unique_lock<std::mutex> lk(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(lk, std::chrono::seconds(DEALY_TIME),
+                [&info] { return InputMethodControllerTest::cursorInfo_ == info; });
+        }
+        EXPECT_FALSE(ret);
+        result = InputMethodControllerTest::cursorInfo_ == info;
+        EXPECT_FALSE(result);
+    }
+
+    /**
+     * @tc.name: testIMCOnCursorUpdate02
+     * @tc.desc: IMC testOnCursorUpdate
+     * @tc.type: FUNC
+     * @tc.require:
+     * @tc.author: Zhaolinglan
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCOnCursorUpdate02, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC testIMCOnCursorUpdate02 Test START");
+        CursorInfo info = { 2, 4, 0, 6 };
+        inputMethodController_->OnCursorUpdate(info);
+        bool ret = false;
+        {
+            std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
+                [&info] { return InputMethodControllerTest::cursorInfo_ == info; });
+        }
+        EXPECT_TRUE(ret);
+        bool result = InputMethodControllerTest::cursorInfo_ == info;
+        EXPECT_TRUE(result);
+
+        InputMethodControllerTest::cursorInfo_ = {};
+        InputMethodControllerTest::inputMethodController_->Close();
+        inputMethodController_->Attach(textListener_, false);
+        inputMethodController_->OnCursorUpdate(info);
+        {
+            std::unique_lock<std::mutex> lk(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(lk, std::chrono::seconds(DEALY_TIME),
+                [&info] { return InputMethodControllerTest::cursorInfo_ == info; });
+        }
+        EXPECT_TRUE(ret);
+        result = InputMethodControllerTest::cursorInfo_ == info;
+        EXPECT_TRUE(result);
+    }
+
+    /**
+     * @tc.name: testIMCOnSelectionChange01
+     * @tc.desc: IMC test IMC OnSelectionChange
+     * @tc.type: FUNC
+     * @tc.require:
+     * @tc.author: Zhaolinglan
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange01, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC testIMCOnSelectionChange01 Test START");
+        std::u16string text = Str8ToStr16("testSelect");
+        int start = 1;
+        int end = 2;
+        inputMethodController_->OnSelectionChange(text, start, end);
+        bool ret = false;
+        {
+            std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
+                [&text] { return InputMethodControllerTest::text_ == Str16ToStr8(text); });
+        }
+        EXPECT_TRUE(ret);
+        bool result = InputMethodControllerTest::text_ == Str16ToStr8(text);
+        EXPECT_TRUE(result);
+
+        InputMethodControllerTest::text_ = "";
+        inputMethodController_->Attach(textListener_, false);
+        inputMethodController_->OnSelectionChange(text, start, end);
+        {
+            std::unique_lock<std::mutex> lk(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(lk, std::chrono::seconds(DEALY_TIME),
+                [&text] { return InputMethodControllerTest::text_ == Str16ToStr8(text); });
+        }
+        EXPECT_FALSE(ret);
+        result = InputMethodControllerTest::text_ == Str16ToStr8(text);
+        EXPECT_FALSE(result);
+    }
+
+    /**
+     * @tc.name: testIMCOnSelectionChange02
+     * @tc.desc: IMC test IMC OnSelectionChange
+     * @tc.type: FUNC
+     * @tc.require:
+     * @tc.author: Zhaolinglan
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange02, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC testIMCOnSelectionChange02 Test START");
+        std::u16string text = Str8ToStr16("testSelect2");
+        int start = 1;
+        int end = 2;
+        inputMethodController_->OnSelectionChange(text, start, end);
+        bool ret = false;
+        {
+            std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME),
+                [&text] { return InputMethodControllerTest::text_ == Str16ToStr8(text); });
+        }
+        EXPECT_TRUE(ret);
+        bool result = InputMethodControllerTest::text_ == Str16ToStr8(text);
+        EXPECT_TRUE(result);
+
+        InputMethodControllerTest::text_ = "";
+        InputMethodControllerTest::inputMethodController_->Close();
+        inputMethodController_->Attach(textListener_, false);
+        inputMethodController_->OnSelectionChange(text, start, end);
+        {
+            std::unique_lock<std::mutex> lk(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(lk, std::chrono::seconds(DEALY_TIME),
+                [&text] { return InputMethodControllerTest::text_ == Str16ToStr8(text); });
+        }
+        EXPECT_TRUE(ret);
+        result = InputMethodControllerTest::text_ == Str16ToStr8(text);
         EXPECT_TRUE(result);
     }
 
@@ -516,6 +664,7 @@ constexpr int32_t MAIN_USER_ID = 100;
     HWTEST_F(InputMethodControllerTest, testIMCGetTextBeforeCursor, TestSize.Level2)
     {
         IMSA_HILOGI("IMC GetTextBeforeCursor Test START");
+        inputMethodController_->OnSelectionChange(Str8ToStr16(""), 0, 0);
         constexpr int32_t TEXT_LENGTH = 1;
         std::u16string text;
         inputMethodController_->GetTextBeforeCursor(TEXT_LENGTH, text);
@@ -531,6 +680,7 @@ constexpr int32_t MAIN_USER_ID = 100;
     HWTEST_F(InputMethodControllerTest, testIMCGetTextAfterCursor, TestSize.Level2)
     {
         IMSA_HILOGI("IMC GetTextAfterCursor Test START");
+        inputMethodController_->OnSelectionChange(Str8ToStr16(""), 0, 0);
         constexpr int32_t TEXT_LENGTH = 1;
         std::u16string text;
         inputMethodController_->GetTextAfterCursor(TEXT_LENGTH, text);
