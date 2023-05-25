@@ -49,7 +49,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
           console.log(TAG + 'switchInputMethod failed,' + JSON.stringify(err));
           prompt.showToast({
             message: 'switch failed', duration: 200
-          })
+          });
         } else {
           console.log(TAG + 'switchInputMethod success');
           prompt.showToast({
