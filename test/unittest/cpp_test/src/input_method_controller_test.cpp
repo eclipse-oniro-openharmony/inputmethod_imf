@@ -24,6 +24,7 @@
 #include <functional>
 #include <mutex>
 #include <string>
+#include <signal.h>
 #include <thread>
 #include <vector>
 
@@ -50,8 +51,11 @@ using namespace OHOS::Security::AccessToken;
 using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
+constexpr const char *CMD = "pidof inputmethod_ser";
 constexpr int32_t MAIN_USER_ID = 100;
+constexpr int32_t INTERVAL_MILLISECOND = 10;
 constexpr uint32_t DEALY_TIME = 1;
+constexpr int32_t BUFF_LENGTH = 10;
     class TextListener : public OnTextChangedListener {
     public:
         TextListener()
@@ -127,33 +131,6 @@ constexpr uint32_t DEALY_TIME = 1;
     std::mutex TextListener::cvMutex_;
     std::condition_variable TextListener::cv_;
 
-    class SelectListener : public ControllerListener {
-    public:
-        SelectListener()
-        {
-        }
-        ~SelectListener()
-        {
-        }
-        void OnSelectByRange(int32_t start, int32_t end)
-        {
-            IMSA_HILOGI("IMC TEST SelectListener OnSelectByRange");
-            rangeStart_ = start;
-            rangeEnd_ = end;
-        }
-        void OnSelectByMovement(int32_t direction)
-        {
-            IMSA_HILOGI("IMC TEST SelectListener OnSelectByMovement");
-            direction_ = direction;
-        }
-        static int32_t rangeStart_;
-        static int32_t rangeEnd_;
-        static int32_t direction_;
-    };
-    int32_t SelectListener::rangeStart_ = 0;
-    int32_t SelectListener::rangeEnd_ = 0;
-    int32_t SelectListener::direction_ = 0;
-
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
         InputMethodEngineListenerImpl(){};
@@ -196,6 +173,56 @@ constexpr uint32_t DEALY_TIME = 1;
         IMSA_HILOGD("InputMethodEngineListenerImpl::OnSetSubtype");
     }
 
+    class SelectListener : public ControllerListener {
+    public:
+        SelectListener()
+        {
+        }
+        ~SelectListener()
+        {
+        }
+        void OnSelectByRange(int32_t start, int32_t end)
+        {
+            IMSA_HILOGI("IMC TEST SelectListener OnSelectByRange");
+            rangeStart_ = start;
+            rangeEnd_ = end;
+            selectListenerCv_.notify_one();
+        }
+        void OnSelectByMovement(int32_t direction)
+        {
+            IMSA_HILOGI("IMC TEST SelectListener OnSelectByMovement");
+            direction_ = direction;
+            selectListenerCv_.notify_one();
+        }
+        void TriggerBySelectionCallback(int32_t direction)
+        {
+            IMSA_HILOGI("IMC TEST SelectListener TriggerBySelectionCallback");
+            std::unique_lock<std::mutex> lock(listenerCvMutex_);
+            selectListenerCv_.wait_for(lock, std::chrono::milliseconds(INTERVAL_MILLISECOND),
+                [direction] { return direction_ == direction; });
+            EXPECT_EQ(direction_, direction);
+        }
+        void TriggerBySelectionCallback(int32_t rangeStart, int32_t rangeEnd)
+        {
+            IMSA_HILOGI("IMC TEST SelectListener TriggerBySelectionCallback");
+            std::unique_lock<std::mutex> lock(listenerCvMutex_);
+            selectListenerCv_.wait_for(lock, std::chrono::milliseconds(INTERVAL_MILLISECOND),
+                [rangeStart, rangeEnd] { return rangeStart_ == rangeStart && rangeEnd_ == rangeEnd; });
+            bool result = rangeStart_ == rangeStart && rangeEnd_ == rangeEnd;
+            EXPECT_TRUE(result);
+        }
+        static int32_t rangeStart_;
+        static int32_t rangeEnd_;
+        static int32_t direction_;
+        static std::condition_variable selectListenerCv_;
+        static std::mutex listenerCvMutex_;
+    };
+    int32_t SelectListener::rangeStart_ = 0;
+    int32_t SelectListener::rangeEnd_ = 0;
+    int32_t SelectListener::direction_ = 0;
+    std::mutex SelectListener::listenerCvMutex_;
+    std::condition_variable SelectListener::selectListenerCv_;
+
     class InputMethodControllerTest : public testing::Test {
     public:
         static void SetUpTestCase(void);
@@ -206,6 +233,7 @@ constexpr uint32_t DEALY_TIME = 1;
         static void DeleteTestTokenID();
         static void SetTestTokenID();
         static void RestoreSelfTokenID();
+        static pid_t Getpid();
         static sptr<InputMethodController> inputMethodController_;
         static sptr<InputMethodAbility> inputMethodAbility_;
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
@@ -371,6 +399,17 @@ constexpr uint32_t DEALY_TIME = 1;
         IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
     }
 
+    pid_t InputMethodControllerTest::Getpid()
+    {
+        char buff[BUFF_LENGTH] = { 0 };
+        FILE *fp = popen(CMD, "r");
+        EXPECT_TRUE(fp != nullptr)
+        fgets(buff, sizeof(buff), fp);
+        pid_t pid = atoi(buff);
+        pclose(fp);
+        fp = nullptr;
+        return pid;
+    }
     /**
      * @tc.name: testIMCAttach
      * @tc.desc: IMC Attach.
@@ -831,26 +870,20 @@ constexpr uint32_t DEALY_TIME = 1;
         int32_t ret = inputMethodController_->Attach(textListener_, false);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         inputMethodAbility_->SelectByRange(1, 2);
-        usleep(10 * 1000);
-        bool result = controllerListener_->rangeStart_ == 1 && controllerListener_->rangeEnd_ == 2;
-        EXPECT_TRUE(result);
+        controllerListener_->TriggerBySelectionCallback(1, 2);
 
         EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::NONE));
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::UP));
-        usleep(10 * 1000);
-        EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::UP));
+        controllerListener_->TriggerBySelectionCallback(static_cast<int32_t>(Direction::UP));
 
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
-        usleep(10 * 1000);
-        EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::DOWN));
+        controllerListener_->TriggerBySelectionCallback(static_cast<int32_t>(Direction::DOWN));
 
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
-        usleep(10 * 1000);
-        EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::LEFT));
+        controllerListener_->TriggerBySelectionCallback(static_cast<int32_t>(Direction::LEFT));
     
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::RIGHT));
-        usleep(10 * 1000);
-        EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::RIGHT));
+        controllerListener_->TriggerBySelectionCallback(static_cast<int32_t>(Direction::RIGHT));
 
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::NONE));
         inputMethodAbility_->SelectByRange(0, 0);
@@ -872,6 +905,29 @@ constexpr uint32_t DEALY_TIME = 1;
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         result = inputMethodController_->WasAttached();
         EXPECT_TRUE(result);
+        inputMethodController_->Close();
+    }
+
+    /**
+     * @tc.name: testOnRemoteDied
+     * @tc.desc: IMC OnRemoteDied
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC OnRemoteDied Test START");
+        int32_t ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+        pid_t before = Getpid();
+        ret = kill(before, SIGTERM);
+        sleep(1);
+        EXPECT_TRUE(ret != -1);
+        pid_t after = Getpid();
+        EXPECT_TRUE(before != after);
+        bool result = inputMethodController_->WasAttached();
+        EXPECT_TRUE(result);
+    
         inputMethodController_->Close();
     }
 } // namespace MiscServices
