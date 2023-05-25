@@ -106,7 +106,7 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         // if type of argv[1] is object, we will get value of 'storage' from it.
         if (argc >= 2) {
             napi_valuetype valueType = napi_undefined;
-            napi_status status = napi_typeof(env, argv[1], &valueType);
+            status = napi_typeof(env, argv[1], &valueType);
             NAPI_ASSERT_BASE(env, status == napi_ok, "get valueType failed!", status);
             if (valueType == napi_object) {
                 NativeValue *storage = nullptr;
