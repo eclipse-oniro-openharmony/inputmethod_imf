@@ -427,7 +427,7 @@ int32_t InputMethodController::Attach(
     }
     isBound_.store(true);
     isEditable_.store(true);
-    IMSA_HILOGD("bind imf successfully, enter editable state");
+    IMSA_HILOGI("bind imf successfully, enter editable state");
     return ErrorCode::NO_ERROR;
 }
 
@@ -451,7 +451,7 @@ int32_t InputMethodController::ShowTextInput()
 
 int32_t InputMethodController::HideTextInput()
 {
-    IMSA_HILOGD("InputMethodController::HideTextInput");
+    IMSA_HILOGI("InputMethodController::HideTextInput");
     if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -494,7 +494,7 @@ int32_t InputMethodController::ShowCurrentInput()
 
 int32_t InputMethodController::Close()
 {
-    IMSA_HILOGD("InputMethodController, run in");
+    IMSA_HILOGI("InputMethodController::Close");
     isBound_.store(false);
     isEditable_.store(false);
     InputmethodTrace tracer("InputMethodController Close trace.");

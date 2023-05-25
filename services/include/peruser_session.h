@@ -88,6 +88,7 @@ public:
     bool CheckFocused(uint32_t tokenId);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
+    bool StartInputService(const std::string &imeName, bool isRetry);
 
 private:
     int32_t userId_; // the id of the user to whom the object is linking
@@ -136,7 +137,6 @@ private:
     void SetAgent(sptr<IInputMethodAgent> agent);
     sptr<IInputMethodAgent> GetAgent();
     sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
-    bool StartCurrentIme(bool isRetry);
 
     static inline bool IsValid(int32_t index)
     {

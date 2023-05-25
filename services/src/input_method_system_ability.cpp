@@ -15,7 +15,7 @@
 
 #include "input_method_system_ability.h"
 
-#include <global.h>
+#include <unistd.h>
 
 #include "ability_connect_callback_proxy.h"
 #include "ability_manager_errors.h"
@@ -48,6 +48,7 @@ constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr uint32_t RETRY_INTERVAL = 100;
 constexpr uint32_t BLOCK_RETRY_TIMES = 100;
+constexpr uint32_t SWITCH_BLOCK_TIME = 150000;
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
@@ -195,30 +196,7 @@ void InputMethodSystemAbility::StartUserIdListener()
 
 bool InputMethodSystemAbility::StartInputService(const std::string &imeId)
 {
-    IMSA_HILOGI("InputMethodSystemAbility, ime:%{public}s", imeId.c_str());
-    bool isStartSuccess = false;
-    sptr<AAFwk::IAbilityManager> abms = GetAbilityManagerService();
-    if (abms != nullptr) {
-        AAFwk::Want want;
-        want.SetAction("action.system.inputmethod");
-        std::string::size_type pos = imeId.find("/");
-        want.SetElementName(imeId.substr(0, pos), imeId.substr(pos + 1));
-        int32_t result = abms->StartAbility(want);
-        if (result != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("InputMethodSystemAbility::StartInputService failed, result = %{public}d", result);
-            isStartSuccess = false;
-        } else {
-            IMSA_HILOGE("InputMethodSystemAbility::StartInputService success.");
-            isStartSuccess = true;
-        }
-    }
-
-    if (!isStartSuccess) {
-        IMSA_HILOGE("StartInputService failed. Try again 10s later");
-        auto callback = [this, imeId]() { StartInputService(imeId); };
-        serviceHandler_->PostTask(callback, INIT_INTERVAL);
-    }
-    return isStartSuccess;
+    return userSession_->StartInputService(imeId, true);
 }
 
 void InputMethodSystemAbility::StopInputService(const std::string &imeId)
@@ -369,28 +347,63 @@ int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
     return OnDisplayOptionalInputMethod();
 };
 
-int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleName, const std::string &subName)
+void InputMethodSystemAbility::PushToSwitchQueue(const SwitchInfo &info)
 {
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
-    // if currentIme is switching subtype, permission verification is not performed.
-    if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
-        && !(bundleName == currentIme && BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme))) {
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
-    if (!IsNeedSwitch(bundleName, subName)) {
-        return ErrorCode::NO_ERROR;
-    }
-    return OnSwitchInputMethod(bundleName, subName);
+    std::lock_guard<std::mutex> lock(switchQueueMutex_);
+    switchQueue_.push(info);
 }
 
-int32_t InputMethodSystemAbility::OnSwitchInputMethod(const std::string &bundleName, const std::string &subName)
+void InputMethodSystemAbility::PopSwitchQueue()
 {
+    std::lock_guard<std::mutex> lock(switchQueueMutex_);
+    switchQueue_.pop();
+    switchCV_.notify_all();
+}
+
+bool InputMethodSystemAbility::CheckReadyToSwitch(const SwitchInfo &info)
+{
+    std::lock_guard<std::mutex> lock(switchQueueMutex_);
+    return info == switchQueue_.front();
+}
+
+int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleName, const std::string &subName)
+{
+    SwitchInfo switchInfo = { std::chrono::system_clock::now(), bundleName, subName };
+    PushToSwitchQueue(switchInfo);
+    return OnSwitchInputMethod(switchInfo);
+}
+
+int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo)
+{
+    IMSA_HILOGD("run in, switchInfo: %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
+    if (!CheckReadyToSwitch(switchInfo)) {
+        IMSA_HILOGD("start wait");
+        std::unique_lock<std::mutex> lock(switchMutex_);
+        switchCV_.wait(lock, [this, &switchInfo]() { return CheckReadyToSwitch(switchInfo); });
+        usleep(SWITCH_BLOCK_TIME);
+    }
+    IMSA_HILOGD("start switch %{public}s", (switchInfo.bundleName + '/' + switchInfo.subName).c_str());
+    // if currentIme is switching subtype, permission verification is not performed.
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
+    if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
+        && !(switchInfo.bundleName == currentIme
+             && BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme))) {
+        PopSwitchQueue();
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
+    if (!IsNeedSwitch(switchInfo.bundleName, switchInfo.subName)) {
+        PopSwitchQueue();
+        return ErrorCode::NO_ERROR;
+    }
     ImeInfo info;
-    auto ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName, info);
+    int32_t ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, switchInfo.bundleName, switchInfo.subName, info);
     if (ret != ErrorCode::NO_ERROR) {
+        PopSwitchQueue();
         return ret;
     }
-    return info.isNewIme ? Switch(bundleName, info) : SwitchExtension(info);
+    ret = info.isNewIme ? Switch(switchInfo.bundleName, info) : SwitchExtension(info);
+    PopSwitchQueue();
+    return ret;
 }
 
 bool InputMethodSystemAbility::IsNeedSwitch(const std::string &bundleName, const std::string &subName)
@@ -681,7 +694,9 @@ int32_t InputMethodSystemAbility::SwitchMode()
         IMSA_HILOGE("target is empty");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    return OnSwitchInputMethod(target->name, target->id);
+    SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
+    PushToSwitchQueue(switchInfo);
+    return OnSwitchInputMethod(switchInfo);
 }
 
 int32_t InputMethodSystemAbility::SwitchLanguage()
@@ -703,7 +718,9 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
         IMSA_HILOGE("target is empty");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    return OnSwitchInputMethod(target->name, target->id);
+    SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
+    PushToSwitchQueue(switchInfo);
+    return OnSwitchInputMethod(switchInfo);
 }
 
 int32_t InputMethodSystemAbility::SwitchType()
@@ -718,7 +735,9 @@ int32_t InputMethodSystemAbility::SwitchType()
     auto iter = std::find_if(props.begin(), props.end(),
         [&currentImeBundle](const Property &property) { return property.name != currentImeBundle; });
     if (iter != props.end()) {
-        return OnSwitchInputMethod(iter->name, "");
+        SwitchInfo switchInfo = { std::chrono::system_clock::now(), iter->name, "" };
+        PushToSwitchQueue(switchInfo);
+        return OnSwitchInputMethod(switchInfo);
     }
     return ErrorCode::NO_ERROR;
 }
