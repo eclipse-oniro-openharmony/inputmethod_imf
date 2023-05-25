@@ -677,27 +677,28 @@ constexpr int32_t MAIN_USER_ID = 100;
         int32_t ret = inputMethodController_->Attach(textListener_, false);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         inputMethodAbility_->SelectByRange(1, 2);
-        usleep(300);
+        usleep(10 * 1000);
         bool result = controllerListener_->rangeStart_ == 1 && controllerListener_->rangeEnd_ == 2;
         EXPECT_TRUE(result);
 
         EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::NONE));
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::UP));
-        usleep(300);
+        usleep(10 * 1000);
         EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::UP));
 
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
-        usleep(300);
+        usleep(10 * 1000);
         EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::DOWN));
-
+        
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
-        usleep(300);
+        usleep(10 * 1000);
         EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::LEFT));
     
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::RIGHT));
-        usleep(300);
+        usleep(10 * 1000);
         EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::RIGHT));
 
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::NONE));
         inputMethodController_->Close();
     }
 
