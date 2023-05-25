@@ -122,6 +122,30 @@ constexpr int32_t MAIN_USER_ID = 100;
         {
         }
     };
+
+    class SelectListener : public ControllerListener {
+    public:
+        SelectListener()
+        {
+        }
+        ~SelectListener()
+        {
+        }
+        void OnSelectByRange(int32_t start, int32_t end)
+        {
+            IMSA_HILOGI("IMC TEST SelectListener OnSelectByRange");
+            rangeStart_ = start;
+            rangeEnd_ = end;
+        }
+        void OnSelectByMovement(int32_t direction)
+        {
+            IMSA_HILOGI("IMC TEST SelectListener OnSelectByMovement");
+            direction_ = direction;
+        }
+        int32_t rangeStart_ = 0;
+        int32_t rangeEnd_ = 0;
+        int32_t direction_ = 0;
+    };
     KeyboardStatus TextListener::keyboardStatus_;
     std::mutex TextListener::cvMutex_;
     std::condition_variable TextListener::cv_;
@@ -219,6 +243,7 @@ constexpr int32_t MAIN_USER_ID = 100;
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
         static std::shared_ptr<KeyboardListenerImpl> kbListener_;
         static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
+        static std::shared_ptr<SelectListener> controllerListener_;
         static sptr<OnTextChangedListener> textListener_;
         static uint64_t selfTokenID_;
         static AccessTokenID testTokenID_;
@@ -228,6 +253,7 @@ constexpr int32_t MAIN_USER_ID = 100;
     std::shared_ptr<MMI::KeyEvent> InputMethodControllerTest::keyEvent_;
     std::shared_ptr<KeyboardListenerImpl> InputMethodControllerTest::kbListener_;
     std::shared_ptr<InputMethodEngineListenerImpl> InputMethodControllerTest::imeListener_;
+    std::shared_ptr<SelectListener> InputMethodControllerTest::controllerListener_;
     sptr<OnTextChangedListener> InputMethodControllerTest::textListener_;
     uint64_t InputMethodControllerTest::selfTokenID_ = 0;
     AccessTokenID InputMethodControllerTest::testTokenID_ = 0;
@@ -245,6 +271,7 @@ constexpr int32_t MAIN_USER_ID = 100;
         inputMethodAbility_->OnImeReady();
         kbListener_ = std::make_shared<KeyboardListenerImpl>();
         imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
+        controllerListener_ = std::make_shared<SelectListener>();
         textListener_ = new TextListener();
         inputMethodAbility_->SetKdListener(kbListener_);
         inputMethodAbility_->SetImeListener(imeListener_);
@@ -633,6 +660,63 @@ constexpr int32_t MAIN_USER_ID = 100;
         TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         inputMethodController_->HideTextInput();
         EXPECT_TRUE(!imeListener_->keyboardState_);
+    }
+
+    /**
+     * @tc.name: testSetControllerListener
+     * @tc.desc: IMC SetControllerListener
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodControllerTest, testSetControllerListener, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC SetControllerListener Test START");
+        inputMethodController_->SetControllerListener(controllerListener_);
+        EXPECT_EQ(controllerListener_->rangeStart_, 0);
+        EXPECT_EQ(controllerListener_->rangeEnd_, 0);
+        
+        int32_t ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        inputMethodAbility_->SelectByRange(1, 2);
+        usleep(300);
+        bool result = controllerListener_->rangeStart_ == 1 && controllerListener_->rangeEnd_ == 2;
+        EXPECT_TRUE(result);
+
+        EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::NONE));
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::UP));
+        usleep(300);
+        EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::UP));
+
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
+        usleep(300);
+        EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::DOWN));
+
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
+        usleep(300);
+        EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::LEFT));
+    
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::RIGHT));
+        usleep(300);
+        EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::RIGHT));
+
+        inputMethodController_->Close();
+    }
+
+    /**
+     * @tc.name: testWasAttached
+     * @tc.desc: IMC WasAttached
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodControllerTest, testWasAttached, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC WasAttached Test START");
+        inputMethodController_->Close();
+        bool result = inputMethodController_->WasAttached();
+        EXPECT_TRUE(!result);
+        int32_t ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        result = inputMethodController_->WasAttached();
+        EXPECT_TRUE(result);
+        inputMethodController_->Close();
     }
 } // namespace MiscServices
 } // namespace OHOS
