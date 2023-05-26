@@ -403,7 +403,7 @@ constexpr int32_t BUFF_LENGTH = 10;
     {
         char buff[BUFF_LENGTH] = { 0 };
         FILE *fp = popen(CMD, "r");
-        EXPECT_TRUE(fp != nullptr)
+        EXPECT_TRUE(fp != nullptr);
         fgets(buff, sizeof(buff), fp);
         pid_t pid = atoi(buff);
         pclose(fp);
