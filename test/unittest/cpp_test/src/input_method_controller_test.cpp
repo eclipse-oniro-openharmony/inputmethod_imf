@@ -20,11 +20,11 @@
 #include <sys/time.h>
 
 #include <condition_variable>
+#include <csignal>
 #include <cstdint>
 #include <functional>
 #include <mutex>
 #include <string>
-#include <signal.h>
 #include <thread>
 #include <vector>
 
@@ -70,6 +70,11 @@ constexpr int32_t BUFF_LENGTH = 10;
         static std::mutex cvMutex_;
         static std::condition_variable cv_;
         std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
+        static int32_t direction_;
+        static int32_t deleteForwardLength_;
+        static int32_t deleteBackwardLength_;
+        static std::u16string insertText_;
+        static int32_t key_;
         static bool WaitIMACallback()
         {
             std::unique_lock<std::mutex> lock(TextListener::cvMutex_);
@@ -78,11 +83,13 @@ constexpr int32_t BUFF_LENGTH = 10;
         void InsertText(const std::u16string &text)
         {
             IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", Str16ToStr8(text).c_str());
+            insertText_ = text;
         }
 
         void DeleteBackward(int32_t length)
         {
             IMSA_HILOGI("IMC TEST TextListener DeleteBackward length: %{public}d", length);
+            deleteBackwardLength_ = length;
         }
 
         void SetKeyboardStatus(bool status)
@@ -92,6 +99,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         void DeleteForward(int32_t length)
         {
             IMSA_HILOGI("IMC TEST TextListener DeleteForward length: %{public}d", length);
+            deleteForwardLength_ = length;
         }
         void SendKeyEventFromInputMethod(const KeyEvent &event)
         {
@@ -112,10 +120,13 @@ constexpr int32_t BUFF_LENGTH = 10;
         void SendFunctionKey(const FunctionKey &functionKey)
         {
             IMSA_HILOGI("IMC TEST TextListener SendFunctionKey");
+            EnterKeyType enterKeyType = functionKey.GetEnterKeyType();
+            key_ = static_cast<int32_t>(enterKeyType);
         }
         void MoveCursor(const Direction direction)
         {
             IMSA_HILOGI("IMC TEST TextListener MoveCursor");
+            direction_ = static_cast<int32_t>(direction);
         }
         void HandleSetSelection(int32_t start, int32_t end)
         {
@@ -130,6 +141,11 @@ constexpr int32_t BUFF_LENGTH = 10;
     KeyboardStatus TextListener::keyboardStatus_;
     std::mutex TextListener::cvMutex_;
     std::condition_variable TextListener::cv_;
+    int32_t TextListener::direction_ = 0;
+    int32_t TextListener::deleteForwardLength_ = 0;
+    int32_t TextListener::deleteBackwardLength_ = 0;
+    std::u16string TextListener::insertText_;
+    int32_t TextListener::key_ = 0;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -233,7 +249,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         static void DeleteTestTokenID();
         static void SetTestTokenID();
         static void RestoreSelfTokenID();
-        static pid_t Getpid();
+        static pid_t GetPid();
         static sptr<InputMethodController> inputMethodController_;
         static sptr<InputMethodAbility> inputMethodAbility_;
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
@@ -399,7 +415,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
     }
 
-    pid_t InputMethodControllerTest::Getpid()
+    pid_t InputMethodControllerTest::GetPid()
     {
         char buff[BUFF_LENGTH] = { 0 };
         FILE *fp = popen(CMD, "r");
@@ -909,6 +925,53 @@ constexpr int32_t BUFF_LENGTH = 10;
     }
 
     /**
+    * @tc.name: testWithouteEditableState
+    * @tc.desc: IMC testWithouteEditableState
+    * @tc.type: FUNC
+    * @tc.require:
+    */
+    HWTEST_F(InputMethodControllerTest, testWithouteEditableState, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC WithouteEditableState Test START");
+        auto ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        ret = inputMethodController_->HideTextInput();
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+        int32_t deleteForwardLength = 1;
+        ret = inputMethodAbility_->DeleteForward(deleteForwardLength);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(300);
+        EXPECT_EQ(TextListener::deleteForwardLength_, 0);
+
+        int32_t deleteBackwardLength = 2;
+        ret = inputMethodAbility_->DeleteBackward(deleteBackwardLength);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(300);
+        EXPECT_EQ(TextListener::deleteBackwardLength_, 0);
+
+        std::string t = "t";
+        std::u16string u16Text = Str8ToStr16(t);
+        ret = inputMethodAbility_->InsertText(t);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(300);
+        std::u16string text;
+        EXPECT_EQ(TextListener::insertText_, text);
+
+        constexpr int32_t funcKey = 1;
+        ret = inputMethodAbility_->SendFunctionKey(funcKey);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(300);
+        EXPECT_EQ(TextListener::key_, 0);
+
+        constexpr int32_t keyCode = 4;
+        ret = inputMethodAbility_->MoveCursor(keyCode);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(300);
+        EXPECT_EQ(TextListener::direction_, 0);
+    }
+
+    /**
      * @tc.name: testOnRemoteDied
      * @tc.desc: IMC OnRemoteDied
      * @tc.type: FUNC
@@ -918,16 +981,13 @@ constexpr int32_t BUFF_LENGTH = 10;
         IMSA_HILOGI("IMC OnRemoteDied Test START");
         int32_t ret = inputMethodController_->Attach(textListener_, false);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-        pid_t before = Getpid();
-        ret = kill(before, SIGTERM);
+        pid_t pid = GetPid();
+        EXPECT_TRUE(pid > 0);
+        ret = kill(pid, SIGTERM);
+        EXPECT_EQ(ret, 0);
         sleep(1);
-        EXPECT_TRUE(ret != -1);
-        pid_t after = Getpid();
-        EXPECT_TRUE(before != after);
         bool result = inputMethodController_->WasAttached();
         EXPECT_TRUE(result);
-    
         inputMethodController_->Close();
     }
 } // namespace MiscServices
