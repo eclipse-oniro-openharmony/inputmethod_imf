@@ -102,7 +102,7 @@ private:
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     void StartUserIdListener();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);
-    int32_t OnSwitchInputMethod(const SwitchInfo &switchInfo);
+    int32_t OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission);
     int32_t Switch(const std::string &bundleName, const ImeInfo &info);
     int32_t SwitchExtension(const ImeInfo &info);
     int32_t SwitchSubType(const ImeInfo &info);

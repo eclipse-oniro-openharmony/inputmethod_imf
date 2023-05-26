@@ -370,10 +370,10 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
 {
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), bundleName, subName };
     PushToSwitchQueue(switchInfo);
-    return OnSwitchInputMethod(switchInfo);
+    return OnSwitchInputMethod(switchInfo, true);
 }
 
-int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo)
+int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission)
 {
     IMSA_HILOGD("run in, switchInfo: %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     if (!CheckReadyToSwitch(switchInfo)) {
@@ -385,7 +385,8 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
     IMSA_HILOGD("start switch %{public}s", (switchInfo.bundleName + '/' + switchInfo.subName).c_str());
     // if currentIme is switching subtype, permission verification is not performed.
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
-    if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
+    if (isCheckPermission
+        && !BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
         && !(switchInfo.bundleName == currentIme
              && BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme))) {
         PopSwitchQueue();
@@ -696,7 +697,7 @@ int32_t InputMethodSystemAbility::SwitchMode()
     }
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
     PushToSwitchQueue(switchInfo);
-    return OnSwitchInputMethod(switchInfo);
+    return OnSwitchInputMethod(switchInfo, false);
 }
 
 int32_t InputMethodSystemAbility::SwitchLanguage()
@@ -720,7 +721,7 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
     }
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
     PushToSwitchQueue(switchInfo);
-    return OnSwitchInputMethod(switchInfo);
+    return OnSwitchInputMethod(switchInfo, false);
 }
 
 int32_t InputMethodSystemAbility::SwitchType()
@@ -737,7 +738,7 @@ int32_t InputMethodSystemAbility::SwitchType()
     if (iter != props.end()) {
         SwitchInfo switchInfo = { std::chrono::system_clock::now(), iter->name, "" };
         PushToSwitchQueue(switchInfo);
-        return OnSwitchInputMethod(switchInfo);
+        return OnSwitchInputMethod(switchInfo, false);
     }
     return ErrorCode::NO_ERROR;
 }
