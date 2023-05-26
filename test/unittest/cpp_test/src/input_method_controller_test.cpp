@@ -950,9 +950,8 @@ constexpr int32_t BUFF_LENGTH = 10;
         usleep(300);
         EXPECT_EQ(TextListener::deleteBackwardLength_, 0);
 
-        std::string t = "t";
-        std::u16string u16Text = Str8ToStr16(t);
-        ret = inputMethodAbility_->InsertText(t);
+        std::string insertText = "t";
+        ret = inputMethodAbility_->InsertText(insertText);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         usleep(300);
         std::u16string text;
