@@ -134,7 +134,6 @@ void TestGetInputPattern()
     int32_t inputPattern;
     ability->GetInputPattern(inputPattern);
 }
-
 } // namespace OHOS
 
 /* Fuzzer entry point */
@@ -168,6 +167,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     OHOS::TestGetEnterKeyType();
     OHOS::TestGetInputPattern();
-
     return 0;
 }
