@@ -37,6 +37,7 @@
 using namespace OHOS::MiscServices;
 namespace OHOS {
 constexpr size_t THRESHOLD = 10;
+constexpr int32_t MAIN_USER_ID = 100;
 
 uint32_t ConvertToUint32(const uint8_t *ptr)
 {
@@ -54,10 +55,9 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
 
     std::string str(rawData, rawData + size);
     bool isShowKeyboard = true;
-    constexpr int32_t MAIN_USER_ID = 100;
     sptr<IInputClient> client = new (std::nothrow) InputClientStub();
     sptr<IRemoteObject> object = client->AsObject();
-    std::shared_ptr<PerUserSession> userSessions = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    static std::shared_ptr<PerUserSession> userSessions = std::make_shared<PerUserSession>(MAIN_USER_ID);
     sptr<IInputMethodCore> core = new InputMethodCoreProxy(object);
     sptr<IInputMethodAgent> agent = new InputMethodAgentProxy(object);
     InputMethodInfo *ime = new InputMethodInfo();
