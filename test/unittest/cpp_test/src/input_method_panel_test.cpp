@@ -172,9 +172,11 @@ void InputMethodPanelTest::AllocTestTokenID(const std::string &bundleName)
         IMSA_HILOGE("query active os account id failed");
         userIds[0] = MAIN_USER_ID;
     }
-    HapInfoParams infoParams = {
-        .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
-    };
+    HapInfoParams infoParams = { .userID = userIds[0],
+        .bundleName = bundleName,
+        .instIndex = 0,
+        .appIDDesc = "ohos.inputmethod_test.demo",
+        .isSystemApp = true };
     PermissionStateFull permissionState = { .permissionName = "",
         .isGeneral = true,
         .resDeviceID = { "local" },
@@ -185,17 +187,18 @@ void InputMethodPanelTest::AllocTestTokenID(const std::string &bundleName)
     };
 
     AccessTokenKit::AllocHapToken(infoParams, policyParams);
-    currentImeTokenID_ =
-        AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
+    currentImeTokenID_ = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
 }
 
 void InputMethodPanelTest::SetTestTokenID(bool isCurrentIme)
 {
     if (isCurrentIme) {
-        SetSelfTokenID(currentImeTokenID_);
+        auto ret = SetSelfTokenID(currentImeTokenID_);
+        IMSA_HILOGD("ret = %{public}d", ret);
         return;
     }
-    SetSelfTokenID(systemAppTokenIdEx_);
+    auto ret1 = SetSelfTokenID(systemAppTokenIdEx_);
+    IMSA_HILOGD("ret1 = %{public}d", ret1);
 }
 
 void InputMethodPanelTest::RestoreSelfTokenID()
