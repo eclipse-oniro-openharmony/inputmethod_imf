@@ -182,7 +182,7 @@ HWTEST_F(InputMethodPrivateMemberTest, IMC_ListInputMethodCommonWithErrorStatus,
  * @tc.type: FUNC
  * @tc.require: issuesI794QF
  * @tc.author: Zhaolinglan
-*/
+ */
 HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionCoreOrAgentNullptr, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionCoreOrAgentNullptr TEST START");
@@ -203,6 +203,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionCoreOrAgentNullptr, TestSiz
     userSession->ClearImeData(CURRENT_IME);
     ret = userSession->OnSwitchIme({}, {}, true);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
+
     auto core = userSession->GetImsCore(CURRENT_IME - 1);
     EXPECT_EQ(core, nullptr);
     core = userSession->GetImsCore(SECURITY_IME + 1);
@@ -215,7 +216,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionCoreOrAgentNullptr, TestSiz
  * @tc.type: FUNC
  * @tc.require: issuesI794QF
  * @tc.author: Zhaolinglan
-*/
+ */
 HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionClientError, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionClientError TEST START");
@@ -246,7 +247,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionClientError, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issuesI794QF
  * @tc.author: Zhaolinglan
-*/
+ */
 HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr001 TEST START");
@@ -271,7 +272,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSi
  * @tc.type: FUNC
  * @tc.require: issuesI794QF
  * @tc.author: Zhaolinglan
-*/
+ */
 HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr002 TEST START");
@@ -293,7 +294,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr002, TestSi
  * @tc.type: FUNC
  * @tc.require: issuesI794QF
  * @tc.author: Zhaolinglan
-*/
+ */
 HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr003 TEST START");
