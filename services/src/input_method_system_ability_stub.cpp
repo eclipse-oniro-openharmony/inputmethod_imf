@@ -203,7 +203,7 @@ int32_t InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote(Mess
     std::vector<SubProperty> subProps = {};
     auto ret = ListCurrentInputMethodSubtype(subProps);
     if (!ITypesUtil::Marshal(reply, ret, subProps)) {
-        IMSA_HILOGE("InputMethodSystemAbilityStub::write reply failed");
+        IMSA_HILOGE("Marshal failed");
         reply = oldReply;
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
