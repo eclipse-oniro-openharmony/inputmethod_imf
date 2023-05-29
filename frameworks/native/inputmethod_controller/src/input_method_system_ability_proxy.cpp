@@ -218,19 +218,19 @@ int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input
     }
     auto ret = Remote()->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("SendRequest failed, ret %{public}d", ret);
+        IMSA_HILOGE("SendRequest failed, code: %{public}d, ret %{public}d", code, ret);
         return ret;
     }
     ret = reply.ReadInt32();
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("reply error, ret %{public}d", ret);
+        IMSA_HILOGE("deal error in service, code: %{public}d, ret: %{public}d", code, ret);
         return ret;
     }
     if (output != nullptr && (!output(reply))) {
         IMSA_HILOGE("reply parcel error");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return ret;
+    return ErrorCode::NO_ERROR;;
 }
 } // namespace MiscServices
 } // namespace OHOS
