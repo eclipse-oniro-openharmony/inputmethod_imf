@@ -191,6 +191,7 @@ void InputMethodAbility::WorkThread()
                 if (imeListener_ != nullptr) {
                     imeListener_->OnInputStop(imeId);
                 }
+                isBound_.store(false);
                 break;
             }
             case MSG_ID_SET_SUBTYPE: {
