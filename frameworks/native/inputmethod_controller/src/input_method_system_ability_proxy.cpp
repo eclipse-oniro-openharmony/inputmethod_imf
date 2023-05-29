@@ -99,11 +99,7 @@ std::shared_ptr<Property> InputMethodSystemAbilityProxy::GetCurrentInputMethod()
         }
         return ITypesUtil::Unmarshal(reply, *property);
     });
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("%{public}s SendRequest failed, ret %{public}d", __func__, ret);
-        return nullptr;
-    }
-    return property;
+    return ret != ErrorCode::NO_ERROR ? nullptr : property;
 }
 
 std::shared_ptr<SubProperty> InputMethodSystemAbilityProxy::GetCurrentInputMethodSubtype()
@@ -118,23 +114,15 @@ std::shared_ptr<SubProperty> InputMethodSystemAbilityProxy::GetCurrentInputMetho
         }
         return ITypesUtil::Unmarshal(reply, *property);
     });
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("%{public}s SendRequest failed, ret %{public}d", __func__, ret);
-        return nullptr;
-    }
-    return property;
+    return ret != ErrorCode::NO_ERROR ? nullptr : property;
 }
 
 int32_t InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    int32_t ret = SendRequest(
+    return SendRequest(
         LIST_INPUT_METHOD, [status](MessageParcel &data) { return ITypesUtil::Marshal(data, uint32_t(status)); },
         [&props](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, props); });
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("InputMethodSystemAbilityProxy::SendRequest failed, ret %{public}d", ret);
-    }
-    return ret;
 }
 
 int32_t InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated()
@@ -159,24 +147,16 @@ int32_t InputMethodSystemAbilityProxy::ListInputMethodSubtype(
     const std::string &name, std::vector<SubProperty> &subProps)
 {
     IMSA_HILOGD("InputMethodSystemAbilityProxy::ListInputMethodSubtype");
-    int32_t ret = SendRequest(
+    return SendRequest(
         LIST_INPUT_METHOD_SUBTYPE, [&name](MessageParcel &data) { return ITypesUtil::Marshal(data, name); },
         [&subProps](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, subProps); });
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("InputMethodSystemAbilityProxy::SendRequest failed, ret %{public}d", ret);
-    }
-    return ret;
 }
 
 int32_t InputMethodSystemAbilityProxy::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
 {
     IMSA_HILOGD("InputMethodSystemAbilityProxy::ListCurrentInputMethodSubtype");
-    int32_t ret = SendRequest(LIST_CURRENT_INPUT_METHOD_SUBTYPE, nullptr,
+    return SendRequest(LIST_CURRENT_INPUT_METHOD_SUBTYPE, nullptr,
         [&subProps](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, subProps); });
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("InputMethodSystemAbilityProxy::SendRequest failed, ret %{public}d", ret);
-    }
-    return ret;
 }
 
 int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const std::string &name, const std::string &subName)
@@ -218,19 +198,19 @@ int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input
     }
     auto ret = Remote()->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("SendRequest failed, code: %{public}d, ret %{public}d", code, ret);
+        IMSA_HILOGE("transport exceptions, code: %{public}d, ret %{public}d", code, ret);
         return ret;
     }
     ret = reply.ReadInt32();
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("deal error in service, code: %{public}d, ret: %{public}d", code, ret);
+        IMSA_HILOGE("dispose failed in service, code: %{public}d, ret: %{public}d", code, ret);
         return ret;
     }
     if (output != nullptr && (!output(reply))) {
         IMSA_HILOGE("reply parcel error");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return ErrorCode::NO_ERROR;;
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS
