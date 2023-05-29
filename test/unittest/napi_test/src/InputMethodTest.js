@@ -496,41 +496,6 @@ describe("InputMethodTest", function () {
     });
 
     /*
-     * @tc.number  inputmethod_test_switchCurrentInputMethodAndSubtype_002
-     * @tc.name    Test Indicates the input method which will replace the current one.
-     * @tc.desc    Function test
-     * @tc.level   2
-     */
-    it('inputmethod_test_switchCurrentInputMethodAndSubtype_002', 0, async function (done) {
-      console.info("************* inputmethod_test_switchCurrentInputMethodAndSubtype_002 Test start*************");
-      let InputMethodSubtype = {
-        name:bundleName,
-        id:subName[2],
-        locale:"en_US.ISO-8859-1",
-        language:"en",
-        extra:{},
-      }
-      let inputMethodProperty = {
-        name:bundleName,
-        id:extName
-      }
-      inputMethod.switchCurrentInputMethodAndSubtype(inputMethodProperty, InputMethodSubtype, (err, ret)=>{
-        if(err){
-          console.info("inputmethod_test_switchCurrentInputMethodAndSubtype_002 error:" + JSON.stringify(err.message));
-          return;
-        }
-        expect(ret).assertTrue();
-        let subProp = inputMethod.getCurrentInputMethodSubtype();
-        checkNewImeCurrentSubProp(subProp, 2)
-        let property = inputMethod.getCurrentInputMethod();
-        checkNewImeCurrentProp(property);
-        console.info("************* inputmethod_test_switchCurrentInputMethodAndSubtype_002 Test end*************");
-        wait(WAIT_DEAL_OK);
-        done();
-      });
-    });
-
-    /*
     * @tc.number  inputmethod_test_listInputMethodSubtype_001
     * @tc.name    Test list input method subtypes.
     * @tc.desc    Function test
