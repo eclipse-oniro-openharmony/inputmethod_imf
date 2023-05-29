@@ -238,7 +238,7 @@ void InputMethodController::WorkThread()
                 isEditable_.store(false);
                 textListener_ = nullptr;
                 {
-                    std::lock_guard<std::mutex> lock(agentLock_);
+                    std::lock_guard<std::mutex> autoLock(agentLock_);
                     agent_ = nullptr;
                     agentObject_ = nullptr;
                 }
