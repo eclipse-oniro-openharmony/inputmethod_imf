@@ -16,6 +16,7 @@
 #define protected public
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
+#include "peruser_session.h"
 #undef private
 
 #include <gtest/gtest.h>
@@ -27,8 +28,14 @@
 
 #include "application_info.h"
 #include "global.h"
+#include "i_input_method_agent.h"
+#include "i_input_method_core.h"
 #include "ime_cfg_manager.h"
+#include "input_method_agent_proxy.h"
+#include "input_method_agent_stub.h"
+#include "input_method_core_stub.h"
 #include "os_account_manager.h"
+
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
@@ -40,6 +47,8 @@ public:
     void TearDown();
 };
 constexpr std::int32_t MAIN_USER_ID = 100;
+constexpr std::int32_t CURRENT_IME = 0;
+constexpr std::int32_t SECURITY_IME = 1;
 void InputMethodPrivateMemberTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUpTestCase");
@@ -165,6 +174,138 @@ HWTEST_F(InputMethodPrivateMemberTest, IMC_ListInputMethodCommonWithErrorStatus,
     auto ret = InputMethodController::GetInstance()->ListInputMethodCommon(static_cast<InputMethodStatus>(5), props);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     EXPECT_TRUE(props.empty());
+}
+
+/**
+ * @tc.name: PerUserSessionCoreOrAgentNullptr
+ * @tc.desc: Test PerUserSession with core nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issuesI794QF
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionCoreOrAgentNullptr, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionCoreOrAgentNullptr TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    userSession->SetImsCore(CURRENT_IME, nullptr);
+    auto imc = InputMethodController::GetInstance();
+    int32_t ret = userSession->ShowKeyboard(imc->clientInfo_.channel, imc->clientInfo_.client, false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
+    ret = userSession->HideKeyboard(imc->clientInfo_.client);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
+    ret = userSession->ClearDataChannel(imc->clientInfo_.channel);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = userSession->SendAgentToSingleClient(imc->clientInfo_.client);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    ret = userSession->InitInputControlChannel();
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
+    userSession->StopInputService("test");
+    userSession->ClearImeData(CURRENT_IME);
+    ret = userSession->OnSwitchIme({}, {}, true);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
+
+    auto core = userSession->GetImsCore(CURRENT_IME - 1);
+    EXPECT_EQ(core, nullptr);
+    core = userSession->GetImsCore(SECURITY_IME + 1);
+    EXPECT_EQ(core, nullptr);
+}
+
+/**
+ * @tc.name: PerUserSessionClientError
+ * @tc.desc: Test PerUserSession with client error.
+ * @tc.type: FUNC
+ * @tc.require: issuesI794QF
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionClientError, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionClientError TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    auto imc = InputMethodController::GetInstance();
+    sptr<InputMethodCoreStub> core = new InputMethodCoreStub(0);
+
+    auto clientInfo = userSession->GetClientInfo(imc->clientInfo_.client->AsObject());
+    EXPECT_EQ(clientInfo, nullptr);
+
+    userSession->SetCurrentClient(nullptr);
+    userSession->OnUnfocused(0, 0);
+    int32_t ret = userSession->OnHideKeyboardSelf();
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
+    ret = userSession->OnShowKeyboardSelf();
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
+    bool result = userSession->CheckFocused(1);
+    EXPECT_FALSE(result);
+
+    userSession->SetCurrentClient(imc->clientInfo_.client);
+    ret = userSession->OnShowKeyboardSelf();
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
+}
+
+/**
+ * @tc.name: PerUserSessionParameterNullptr001
+ * @tc.desc: Test PerUserSession with parameter client nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issuesI794QF
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr001 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    int32_t ret = userSession->OnStartInput(nullptr, true);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    ret = userSession->OnReleaseInput(nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    ret = userSession->ShowKeyboard(nullptr, nullptr, false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    ret = userSession->RemoveClient(nullptr, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto client = userSession->GetClientInfo(nullptr);
+    EXPECT_EQ(client, nullptr);
+    ret = userSession->SendAgentToSingleClient(nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
+ * @tc.name: PerUserSessionParameterNullptr002
+ * @tc.desc: Test PerUserSession SetCoreAndAgent with parameter nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issuesI794QF
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr002 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    sptr<InputMethodCoreStub> core = new InputMethodCoreStub(0);
+    sptr<InputMethodAgentStub> inputMethodAgentStub(new InputMethodAgentStub());
+    sptr<IInputMethodAgent> agent = sptr(new InputMethodAgentProxy(inputMethodAgentStub));
+    int32_t ret = userSession->OnSetCoreAndAgent(nullptr, nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_NULL_POINTER);
+    ret = userSession->OnSetCoreAndAgent(core, nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_NULL_POINTER);
+    ret = userSession->OnSetCoreAndAgent(nullptr, agent);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_NULL_POINTER);
+}
+
+/**
+ * @tc.name: PerUserSessionParameterNullptr003
+ * @tc.desc: Test PerUserSession with parameter nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issuesI794QF
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr003 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    sptr<InputMethodCoreStub> core = new InputMethodCoreStub(0);
+    userSession->OnClientDied(nullptr);
+    userSession->OnImsDied(nullptr);
+    userSession->UpdateClient(nullptr, true);
+    userSession->SetImsCore(CURRENT_IME, core);
+    int32_t ret = userSession->ClearDataChannel(nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
 } // namespace MiscServices
 } // namespace OHOS

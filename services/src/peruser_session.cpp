@@ -151,7 +151,7 @@ int32_t PerUserSession::ShowKeyboard(
     auto core = GetImsCore(CURRENT_IME);
     if (core == nullptr) {
         IMSA_HILOGE("Aborted! imsCore[%{public}d] is nullptr", CURRENT_IME);
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     int32_t ret = core->ShowKeyboard(channel, isShowKeyboard);
     if (ret != ErrorCode::NO_ERROR) {
@@ -196,7 +196,7 @@ int32_t PerUserSession::ClearDataChannel(const sptr<IInputDataChannel> &channel)
     sptr<IInputMethodCore> core = GetImsCore(CURRENT_IME);
     if (core == nullptr || channel == nullptr) {
         IMSA_HILOGE("imsCore or channel is nullptr");
-        return ErrorCode::ERROR_IME_NOT_STARTED;
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     return core->ClearDataChannel(channel);
 }
@@ -481,7 +481,7 @@ int32_t PerUserSession::OnSwitchIme(const Property &property, const SubProperty 
         sptr<IInputMethodCore> core = GetImsCore(CURRENT_IME);
         if (core == nullptr) {
             IMSA_HILOGE("imsCore is nullptr");
-            return ErrorCode::ERROR_NULL_POINTER;
+            return ErrorCode::ERROR_IME_NOT_STARTED;
         }
         int32_t ret = core->SetSubtype(subProperty);
         if (ret != ErrorCode::NO_ERROR) {
