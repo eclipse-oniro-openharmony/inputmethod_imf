@@ -53,8 +53,9 @@ public:
         InputWindowStatus realStatus, InputWindowStatus waitStatus, const InputWindowInfo &windowInfo);
     static void ImcPanelListeningTestCheck(InputWindowStatus realStatus, InputWindowStatus waitStatus);
     static void ImcPanelListeningTestPrepare(
-        std::shared_ptr<InputMethodPanel> inputMethodPanel, const PanelInfo &info, ListeningStatus status);
+        const std::shared_ptr<InputMethodPanel> &inputMethodPanel, const PanelInfo &info, ListeningStatus status);
     static void ImcPanelListeningTestRestore(InputWindowStatus status);
+    static void ImcPanelListeningTestClear(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     class PanelStatusListenerImpl : public PanelStatusListener {
     public:
         PanelStatusListenerImpl()
@@ -237,7 +238,7 @@ void InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus realStat
 }
 
 void InputMethodPanelTest::ImcPanelListeningTestPrepare(
-    std::shared_ptr<InputMethodPanel> inputMethodPanel, const PanelInfo &info, ListeningStatus status)
+    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, const PanelInfo &info, ListeningStatus status)
 {
     auto ret = inputMethodPanel->CreatePanel(nullptr, info);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -270,6 +271,11 @@ void InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus status
 {
     status_ = status;
     windowInfo_.clear();
+}
+
+void InputMethodPanelTest::ImcPanelListeningTestClear(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
+{
+    inputMethodPanel->DestroyPanel();
 }
 
 /**
@@ -539,6 +545,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
     ret = inputMethodPanel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
+    InputMethodPanelTest::ImcPanelListeningTestClear(inputMethodPanel);
     RestoreSelfTokenID();
 }
 
@@ -566,6 +573,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::HIDE, InputWindowStatus::HIDE,
         { "", 0, 0, InputMethodPanelTest::windowWidth_, InputMethodPanelTest::windowHeight_ });
+    InputMethodPanelTest::ImcPanelListeningTestClear(inputMethodPanel);
     RestoreSelfTokenID();
 }
 
@@ -591,6 +599,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
     ret = inputMethodPanel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
+    InputMethodPanelTest::ImcPanelListeningTestClear(inputMethodPanel);
     RestoreSelfTokenID();
 }
 
@@ -616,6 +625,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
     ret = inputMethodPanel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
+    InputMethodPanelTest::ImcPanelListeningTestClear(inputMethodPanel);
     RestoreSelfTokenID();
 }
 
@@ -642,6 +652,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
     ret = inputMethodPanel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
+    InputMethodPanelTest::ImcPanelListeningTestClear(inputMethodPanel);
 }
 } // namespace MiscServices
 } // namespace OHOS
