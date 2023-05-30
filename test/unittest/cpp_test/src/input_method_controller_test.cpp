@@ -12,7 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define private public
+#define protected public
 #include "input_method_controller.h"
+#undef private
 
 #include <event_handler.h>
 #include <gtest/gtest.h>
@@ -35,6 +38,7 @@
 #include "i_input_method_system_ability.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
+#include "input_death_recipient.h"
 #include "input_method_ability.h"
 #include "input_method_engine_listener.h"
 #include "input_method_system_ability_proxy.h"
@@ -250,6 +254,9 @@ constexpr int32_t BUFF_LENGTH = 10;
         static void SetTestTokenID();
         static void RestoreSelfTokenID();
         static pid_t GetPid();
+        static void SetInputDeathRecipient();
+        static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
+        static bool WaitRemoteDiedCallback();
         static sptr<InputMethodController> inputMethodController_;
         static sptr<InputMethodAbility> inputMethodAbility_;
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
@@ -258,6 +265,9 @@ constexpr int32_t BUFF_LENGTH = 10;
         static sptr<OnTextChangedListener> textListener_;
         static std::mutex keyboardListenerMutex_;
         static std::condition_variable keyboardListenerCv_;
+        static std::mutex onRemoteSaDiedMutex_;
+        static std::condition_variable onRemoteSaDiedCv_;
+        static sptr<InputDeathRecipient> deathRecipient_;
         static uint64_t selfTokenID_;
         static AccessTokenID testTokenID_;
         static int32_t keyCode_;
@@ -325,6 +335,9 @@ constexpr int32_t BUFF_LENGTH = 10;
     std::string InputMethodControllerTest::text_;
     std::mutex InputMethodControllerTest::keyboardListenerMutex_;
     std::condition_variable InputMethodControllerTest::keyboardListenerCv_;
+    sptr<InputDeathRecipient> InputMethodControllerTest::deathRecipient_;
+    std::mutex InputMethodControllerTest::onRemoteSaDiedMutex_;
+    std::condition_variable InputMethodControllerTest::onRemoteSaDiedCv_;
 
     void InputMethodControllerTest::SetUpTestCase(void)
     {
@@ -353,6 +366,8 @@ constexpr int32_t BUFF_LENGTH = 10;
         constexpr int32_t keyCode = 2001;
         keyEvent_->SetKeyAction(keyAction);
         keyEvent_->SetKeyCode(keyCode);
+
+        SetInputDeathRecipient();
     }
 
     void InputMethodControllerTest::TearDownTestCase(void)
@@ -426,6 +441,46 @@ constexpr int32_t BUFF_LENGTH = 10;
         fp = nullptr;
         return pid;
     }
+
+    void InputMethodControllerTest::SetInputDeathRecipient()
+    {   
+        IMSA_HILOGI("InputMethodControllerTest::SetInputDeathRecipient");
+        sptr<ISystemAbilityManager> systemAbilityManager =
+            SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (systemAbilityManager == nullptr) {
+            IMSA_HILOGI("InputMethodControllerTest, system ability manager is nullptr");
+            return;
+        }
+        auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
+        if (systemAbility == nullptr) {
+            IMSA_HILOGI("InputMethodControllerTest, system ability is nullptr");
+            return;
+        }
+        deathRecipient_ = new (std::nothrow) InputDeathRecipient();
+        if (deathRecipient_ == nullptr) {
+            IMSA_HILOGE("InputMethodControllerTest, new death recipient failed");
+            return;
+        }
+        deathRecipient_->SetDeathRecipient([](const wptr<IRemoteObject> &remote) { OnRemoteSaDied(remote); });
+        if ((systemAbility->IsProxyObject()) && (!systemAbility->AddDeathRecipient(deathRecipient_))) {
+            IMSA_HILOGE("InputMethodControllerTest, failed to add death recipient.");
+            return;
+        }
+    }
+
+    void InputMethodControllerTest::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
+    {
+        IMSA_HILOGI("InputMethodControllerTest::OnRemoteSaDied");
+        onRemoteSaDiedCv_.notify_one();
+    }
+
+    bool InputMethodControllerTest::WaitRemoteDiedCallback()
+    {
+        IMSA_HILOGI("InputMethodControllerTest::WaitRemoteDiedCallback");
+        std::unique_lock<std::mutex> lock(onRemoteSaDiedMutex_);
+        return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
+    }
+
     /**
      * @tc.name: testIMCAttach
      * @tc.desc: IMC Attach.
@@ -978,13 +1033,15 @@ constexpr int32_t BUFF_LENGTH = 10;
     HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
     {
         IMSA_HILOGI("IMC OnRemoteDied Test START");
-        int32_t ret = inputMethodController_->Attach(textListener_, false);
+        int32_t ret = inputMethodController_->Attach(textListener_, true);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         pid_t pid = GetPid();
         EXPECT_TRUE(pid > 0);
         ret = kill(pid, SIGTERM);
         EXPECT_EQ(ret, 0);
-        sleep(1);
+        EXPECT_TRUE(WaitRemoteDiedCallback());
+        inputMethodController_->OnRemoteSaDied(nullptr);
+        EXPECT_TRUE(TextListener::WaitIMACallback());
         bool result = inputMethodController_->WasAttached();
         EXPECT_TRUE(result);
         inputMethodController_->Close();
