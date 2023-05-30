@@ -57,7 +57,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
           })
         }
       })
-    })
+    });
   }
 
   onDestroy(): void {
@@ -70,8 +70,14 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
     console.log(TAG + 'createWindow execute');
     try {
       if (globalThis.windowNum > 0) {
-        await globalThis.extensionWin.destroy();
-        await globalThis.context.terminateSelf();
+        this.getInputMethods().then(() => {
+          globalThis.extensionWin.isShowing().then((status) => {
+            globalThis.extensionWin.loadContent('pages/index');
+            if (!status) {
+              globalThis.extensionWin.show();
+            }
+          });
+        });
         return;
       }
       const win = await window.create(this.context, name, windowType);

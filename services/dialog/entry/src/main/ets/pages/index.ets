@@ -51,6 +51,9 @@ struct Dialog {
             .fontSize(14)
             .textAlign(TextAlign.Center)
             .backgroundColor(Color.Pink)
+            .onClick(async () => {
+              globalThis.extensionWin.hide();
+            })
         }.sticky(Sticky.Normal)
 
         ForEach(this.arr, (item, index) => {
