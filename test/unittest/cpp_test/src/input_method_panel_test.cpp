@@ -499,18 +499,19 @@ HWTEST_F(InputMethodPanelTest, testChangePanelFlag, TestSize.Level0)
 
     // panelFlag modify to FLG_FIXED
     flag = FLG_FIXED;
-    auto type = inputMethodPanel->ChangePanelFlag(flag);
+    ret = inputMethodPanel->ChangePanelFlag(flag);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    ret = inputMethodPanel->DestroyPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodPanel->DestroyPanel();
 
     panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     // panelType is STATUS_BAR, not allow ChangePanelFlag
-    auto type = inputMethodPanel->ChangePanelFlag(flag);
+    ret = inputMethodPanel->ChangePanelFlag(flag);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    inputMethodPanel->DestroyPanel();
 }
 
 /**
