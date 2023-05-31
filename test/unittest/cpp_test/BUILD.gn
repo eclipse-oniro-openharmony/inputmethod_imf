@@ -182,6 +182,7 @@ ohos_unittest("InputMethodPanelTest") {
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
     "napi:ace_napi",
+    "os_account:os_account_innerkits",
     "window_manager:libdm",
     "window_manager:libwm",
   ]

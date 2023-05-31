@@ -135,6 +135,52 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSendFunctionKeyException, TestSize
 }
 
 /**
+ * @tc.name: testSendExtendActionException
+ * @tc.desc: InputMethodAbility SendExtendAction
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, testSendExtendActionException, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest SendExtendAction Test START");
+    constexpr int32_t action = 1;
+    auto ret = inputMethodAbility_->SendExtendAction(action);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
+ * @tc.name: testSelectByRangeException
+ * @tc.desc: InputMethodAbility SelectByRange
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, testSelectByRangeException, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest testSelectByRange START");
+    constexpr int32_t start = 1;
+    constexpr int32_t end = 2;
+    auto ret = inputMethodAbility_->SelectByRange(start, end);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
+ * @tc.name: testSelectByMovementException
+ * @tc.desc: InputMethodAbility SelectByMovement
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, testSelectByMovementException, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest testSelectByMovement START");
+    constexpr int32_t direction = 1;
+    auto ret = inputMethodAbility_->SelectByMovement(direction);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
  * @tc.name: testDeleteExceptionText
  * @tc.desc: InputMethodAbility DeleteForward & DeleteBackward
  * @tc.type: FUNC
@@ -188,6 +234,22 @@ HWTEST_F(InputMethodAbilityExceptionTest, testGetEnterKeyTypeException, TestSize
     int32_t inputPattern;
     ret = inputMethodAbility_->GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
+ * @tc.name: testDispatchKeyEventException
+ * @tc.desc: DispatchKeyEvent Exception
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest DispatchKeyEvent START");
+    int32_t keyCode = 2011;
+    int32_t keyStatus = 2;
+    auto ret = inputMethodAbility_->DispatchKeyEvent(keyCode, keyStatus);
+    EXPECT_FALSE(ret);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -68,6 +68,7 @@ public:
     static int selectionStart_;
     static int selectionEnd_;
     static int selectionDirection_;
+    static int32_t action_;
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     static sptr<InputMethodController> imc_;
     static sptr<InputMethodAbility> inputMethodAbility_;
@@ -165,6 +166,9 @@ public:
 
         void HandleExtendAction(int32_t action) override
         {
+            action_ = action;
+            InputMethodAbilityTest::textListenerCv_.notify_one();
+            IMSA_HILOGI("HandleExtendAction, action_: %{public}d", action_);
         }
 
         void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override
@@ -266,6 +270,7 @@ bool InputMethodAbilityTest::status_;
 int InputMethodAbilityTest::selectionStart_ = -1;
 int InputMethodAbilityTest::selectionEnd_ = -1;
 int InputMethodAbilityTest::selectionDirection_ = 0;
+int32_t InputMethodAbilityTest::action_ = 0;
 sptr<InputMethodController> InputMethodAbilityTest::imc_;
 sptr<InputMethodAbility> InputMethodAbilityTest::inputMethodAbility_;
 uint64_t InputMethodAbilityTest::selfTokenID_ = 0;
@@ -416,6 +421,25 @@ HWTEST_F(InputMethodAbilityTest, testSendFunctionKey, TestSize.Level0)
 }
 
 /**
+* @tc.name: testSendExtendAction
+* @tc.desc: InputMethodAbility SendExtendAction
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodAbilityTest, testSendExtendAction, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility SendExtendAction Test START");
+    constexpr int32_t action = 1;
+    auto ret = inputMethodAbility_->SendExtendAction(action);
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::textListenerCallbackLock_);
+    InputMethodAbilityTest::textListenerCv_.wait_for(
+        lock, std::chrono::seconds(DEALY_TIME), [] { return InputMethodAbilityTest::action_ == action; });
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodAbilityTest::action_, action);
+}
+
+/**
 * @tc.name: testDeleteText
 * @tc.desc: InputMethodAbility DeleteForward & DeleteBackward
 * @tc.type: FUNC
@@ -468,15 +492,15 @@ HWTEST_F(InputMethodAbilityTest, testGetEnterKeyType, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSelectByRange
+* @tc.name: testSelectByRange_001
 * @tc.desc: InputMethodAbility SelectByRange
 * @tc.type: FUNC
 * @tc.require:
 * @tc.author: Zhaolinglan
 */
-HWTEST_F(InputMethodAbilityTest, testSelectByRange, TestSize.Level0)
+HWTEST_F(InputMethodAbilityTest, testSelectByRange_001, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbility testSelectByRange START");
+    IMSA_HILOGI("InputMethodAbility testSelectByRange_001 START");
     constexpr int32_t start = 1;
     constexpr int32_t end = 2;
     auto ret = inputMethodAbility_->SelectByRange(start, end);
@@ -487,6 +511,27 @@ HWTEST_F(InputMethodAbilityTest, testSelectByRange, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodAbilityTest::selectionStart_, start);
     EXPECT_EQ(InputMethodAbilityTest::selectionEnd_, end);
+}
+
+/**
+* @tc.name: testSelectByRange_002
+* @tc.desc: InputMethodAbility SelectByRange
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodAbilityTest, testSelectByRange_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testSelectByRange_002 START");
+    int32_t start = -2;
+    int32_t end = 2;
+    auto ret = inputMethodAbility_->SelectByRange(start, end);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    start = 2;
+    end = -2;
+    ret = inputMethodAbility_->SelectByRange(start, end);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
 
 /**
