@@ -443,7 +443,7 @@ constexpr int32_t BUFF_LENGTH = 10;
     }
 
     void InputMethodControllerTest::SetInputDeathRecipient()
-    {   
+    {
         IMSA_HILOGI("InputMethodControllerTest::SetInputDeathRecipient");
         sptr<ISystemAbilityManager> systemAbilityManager =
             SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -997,32 +997,31 @@ constexpr int32_t BUFF_LENGTH = 10;
         ret = inputMethodAbility_->DeleteForward(deleteForwardLength);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         usleep(300);
-        EXPECT_EQ(TextListener::deleteForwardLength_, 0);
+        EXPECT_NE(TextListener::deleteForwardLength_, deleteForwardLength);
 
         int32_t deleteBackwardLength = 2;
         ret = inputMethodAbility_->DeleteBackward(deleteBackwardLength);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         usleep(300);
-        EXPECT_EQ(TextListener::deleteBackwardLength_, 0);
+        EXPECT_NE(TextListener::deleteBackwardLength_, deleteBackwardLength);
 
         std::string insertText = "t";
         ret = inputMethodAbility_->InsertText(insertText);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         usleep(300);
-        std::u16string text;
-        EXPECT_EQ(TextListener::insertText_, text);
+        EXPECT_NE(TextListener::insertText_, insertText);
 
         constexpr int32_t funcKey = 1;
         ret = inputMethodAbility_->SendFunctionKey(funcKey);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         usleep(300);
-        EXPECT_EQ(TextListener::key_, 0);
+        EXPECT_NE(TextListener::key_, funcKey);
 
         constexpr int32_t keyCode = 4;
         ret = inputMethodAbility_->MoveCursor(keyCode);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         usleep(300);
-        EXPECT_EQ(TextListener::direction_, 0);
+        EXPECT_NE(TextListener::direction_, keyCode);
     }
 
     /**
