@@ -52,21 +52,21 @@ napi_status JsInputMethod::GetInputMethodProperty(
     napi_value result = nullptr;
     napi_get_named_property(env, argv, "name", &result);
     status = JsUtils::GetValue(env, result, ctxt->packageName);
-    NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->packageName failed!", status);
+    CHECK_RETURN(status == napi_ok, "get ctxt->packageName failed!", status);
     result = nullptr;
     napi_get_named_property(env, argv, "id", &result);
     status = JsUtils::GetValue(env, result, ctxt->methodId);
-    NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->methodId failed!", status);
+    CHECK_RETURN(status == napi_ok, "get ctxt->methodId failed!", status);
     if (ctxt->packageName.empty() || ctxt->methodId.empty()) {
         result = nullptr;
         napi_get_named_property(env, argv, "packageName", &result);
         status = JsUtils::GetValue(env, result, ctxt->packageName);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->packageName failed!", status);
+        CHECK_RETURN(status == napi_ok, "get ctxt->packageName failed!", status);
 
         result = nullptr;
         napi_get_named_property(env, argv, "methodId", &result);
         status = JsUtils::GetValue(env, result, ctxt->methodId);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->methodId failed!", status);
+        CHECK_RETURN(status == napi_ok, "get ctxt->methodId failed!", status);
     }
     PARAM_CHECK_RETURN(env, (!ctxt->packageName.empty() && !ctxt->methodId.empty()), "JsInputMethod, Parameter error.",
         TYPE_NONE, napi_invalid_arg);
@@ -85,12 +85,12 @@ napi_status JsInputMethod::GetInputMethodSubProperty(
         status = napi_get_named_property(env, argv, "name", &result);
         PARAM_CHECK_RETURN(env, status == napi_ok, " name ", TYPE_STRING, status);
         status = JsUtils::GetValue(env, result, ctxt->name);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->name failed!", status);
+        CHECK_RETURN(status == napi_ok, "get ctxt->name failed!", status);
         result = nullptr;
         status = napi_get_named_property(env, argv, "id", &result);
         PARAM_CHECK_RETURN(env, status == napi_ok, " id ", TYPE_STRING, status);
         status = JsUtils::GetValue(env, result, ctxt->id);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get ctxt->id failed!", status);
+        CHECK_RETURN(status == napi_ok, "get ctxt->id failed!", status);
         IMSA_HILOGI("name:%{public}s and id:%{public}s", ctxt->name.c_str(), ctxt->id.c_str());
     }
     return status;

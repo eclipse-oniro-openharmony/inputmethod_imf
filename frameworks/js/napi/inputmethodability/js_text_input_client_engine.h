@@ -31,7 +31,7 @@ struct SendKeyFunctionContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
 
@@ -53,7 +53,7 @@ struct MoveCursorContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -75,7 +75,7 @@ struct DeleteForwardContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -97,7 +97,7 @@ struct DeleteBackwardContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -119,7 +119,7 @@ struct InsertTextContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -141,7 +141,7 @@ struct GetForwardContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -163,7 +163,7 @@ struct GetBackwardContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -185,7 +185,7 @@ struct GetEditorAttributeContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -207,7 +207,7 @@ struct SelectContext : public AsyncCall::Context {
     SelectContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
 };
@@ -221,7 +221,7 @@ struct GetTextIndexAtCursorContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
@@ -241,7 +241,7 @@ struct SendExtendActionContext : public AsyncCall::Context {
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
-        NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override

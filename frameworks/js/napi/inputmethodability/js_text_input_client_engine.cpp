@@ -148,7 +148,7 @@ napi_status JsTextInputClientEngine::GetSelectRange(napi_env env, napi_value arg
     status = napi_get_named_property(env, argv, "start", &napiValue);
     PARAM_CHECK_RETURN(env, status == napi_ok, "missing start parameter.", TYPE_NONE, status);
     status = JsUtils::GetValue(env, napiValue, ctxt->start);
-    NAPI_ASSERT_BASE(env, status == napi_ok, "failed to get start value", status);
+    CHECK_RETURN(status == napi_ok, "failed to get start value", status);
 
     status = napi_get_named_property(env, argv, "end", &napiValue);
     PARAM_CHECK_RETURN(env, status == napi_ok, "missing end parameter.", TYPE_NONE, status);

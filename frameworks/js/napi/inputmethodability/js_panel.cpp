@@ -35,7 +35,7 @@ napi_value JsPanel::Init(napi_env env)
     std::lock_guard<std::mutex> lock(panelConstructorMutex_);
     if (panelConstructorRef_ != nullptr) {
         napi_status status = napi_get_reference_value(env, panelConstructorRef_, &constructor);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "Failed to get jsPanel constructor.", nullptr);
+        CHECK_RETURN(status == napi_ok, "Failed to get jsPanel constructor.", nullptr);
         return constructor;
     }
     const napi_property_descriptor properties[] = {
@@ -50,7 +50,7 @@ napi_value JsPanel::Init(napi_env env)
     };
     NAPI_CALL(env, napi_define_class(env, CLASS_NAME.c_str(), CLASS_NAME.size(), JsNew, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
-    NAPI_ASSERT(env, constructor != nullptr, "napi_define_class failed!");
+    CHECK_RETURN(constructor != nullptr, "napi_define_class failed!", nullptr);
     NAPI_CALL(env, napi_create_reference(env, constructor, 1, &panelConstructorRef_));
     return constructor;
 }
@@ -59,11 +59,11 @@ napi_value JsPanel::JsNew(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("JsPanel, create panel instance in.");
     JsPanel *panel = new (std::nothrow) JsPanel();
-    NAPI_ASSERT(env, panel != nullptr, "no memory for JsPanel");
+    CHECK_RETURN(panel != nullptr, "no memory for JsPanel", nullptr);
     auto finalize = [](napi_env env, void *data, void *hint) {
         IMSA_HILOGI("jsPanel finalize.");
         auto *jsPanel = reinterpret_cast<JsPanel *>(data);
-        NAPI_ASSERT_RETURN_VOID(env, jsPanel != nullptr, "finalize null!");
+        CHECK_RETURN_VOID(jsPanel != nullptr, "finalize null!");
         jsPanel->GetNative() = nullptr;
         delete jsPanel;
     };
@@ -102,12 +102,12 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         PARAM_CHECK_RETURN(env, argc >= 1, "should 1 or 2 parameters!", TYPE_NONE, status);
         // 0 means the first param path<std::string>
         status = JsUtils::GetValue(env, argv[0], ctxt->path);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get path failed!", status);
+        CHECK_RETURN(status == napi_ok, "get path failed!", status);
         // if type of argv[1] is object, we will get value of 'storage' from it.
         if (argc >= 2) {
             napi_valuetype valueType = napi_undefined;
             status = napi_typeof(env, argv[1], &valueType);
-            NAPI_ASSERT_BASE(env, status == napi_ok, "get valueType failed!", status);
+            CHECK_RETURN(status == napi_ok, "get valueType failed!", status);
             if (valueType == napi_object) {
                 NativeValue *storage = nullptr;
                 storage = reinterpret_cast<NativeValue *>(argv[1]);
@@ -123,10 +123,10 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
 
     auto exec = [ctxt](AsyncCall::Context *ctx) { ctxt->SetState(napi_ok); };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        NAPI_ASSERT_BASE(env, ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
+        CHECK_RETURN(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
         auto code = ctxt->inputMethodPanel->SetUiContent(
             ctxt->path, *(reinterpret_cast<NativeEngine *>(env)), ctxt->contentStorage);
-        NAPI_ASSERT_BASE(env, code == ErrorCode::NO_ERROR, "SetUiContent failed!", napi_generic_failure);
+        CHECK_RETURN(code == ErrorCode::NO_ERROR, "SetUiContent failed!", napi_generic_failure);
         return napi_ok;
     };
     ctxt->SetAction(std::move(input), std::move(output));
@@ -143,10 +143,10 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
         PARAM_CHECK_RETURN(env, argc > 1, "should 2 or 3 parameters!", TYPE_NONE, status);
         // 0 means the first param width<uint32_t>
         status = JsUtils::GetValue(env, argv[0], ctxt->width);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get width failed!", status);
+        CHECK_RETURN(status == napi_ok, "get width failed!", status);
         // 1 means the second param height<uint32_t>
         status = JsUtils::GetValue(env, argv[1], ctxt->height);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get height failed!", status);
+        CHECK_RETURN(status == napi_ok, "get height failed!", status);
         return napi_ok;
     };
 
@@ -173,10 +173,10 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
         PARAM_CHECK_RETURN(env, argc > 1, " should 2 or 3 parameters! ", TYPE_NONE, status);
         // 0 means the first param x<int32_t>
         status = JsUtils::GetValue(env, argv[0], ctxt->x);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get x failed!", status);
+        CHECK_RETURN(status == napi_ok, "get x failed!", status);
         // 1 means the second param y<int32_t>
         status = JsUtils::GetValue(env, argv[1], ctxt->y);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get y failed!", status);
+        CHECK_RETURN(status == napi_ok, "get y failed!", status);
         return napi_ok;
     };
 
@@ -239,10 +239,10 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
     int32_t panelFlag = 0;
     // 0 means the first param flag<PanelFlag>
     napi_status status = JsUtils::GetValue(env, argv[0], panelFlag);
-    NAPI_ASSERT(env, status == napi_ok, "get panelFlag failed!");
+    CHECK_RETURN(status == napi_ok, "get panelFlag failed!", nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
-    NAPI_ASSERT(env, ret == ErrorCode::NO_ERROR, "ChangePanelFlag failed!");
+    CHECK_RETURN(ret == ErrorCode::NO_ERROR, "ChangePanelFlag failed!", nullptr);
     return nullptr;
 }
 
@@ -304,13 +304,13 @@ std::shared_ptr<InputMethodPanel> JsPanel::UnwrapPanel(napi_env env, napi_value 
 {
     void *native = nullptr;
     napi_status status = napi_unwrap(env, thisVar, &native);
-    NAPI_ASSERT_BASE(env, (status == napi_ok && native != nullptr), "napi_unwrap failed!", nullptr);
+    CHECK_RETURN((status == napi_ok && native != nullptr), "napi_unwrap failed!", nullptr);
     auto jsPanel = reinterpret_cast<JsPanel *>(native);
     if (jsPanel == nullptr) {
         return nullptr;
     }
     auto inputMethodPanel = jsPanel->GetNative();
-    NAPI_ASSERT_BASE(env, inputMethodPanel != nullptr, "inputMethodPanel is nullptr", nullptr);
+    CHECK_RETURN(inputMethodPanel != nullptr, "inputMethodPanel is nullptr", nullptr);
     return inputMethodPanel;
 }
 } // namespace MiscServices
