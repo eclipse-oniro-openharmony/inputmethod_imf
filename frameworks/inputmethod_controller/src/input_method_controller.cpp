@@ -328,9 +328,11 @@ using namespace MessageID;
    void InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard,
                                         InputAttribute &attribute)
     {
-        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-        textFieldReplyCount_ = 0;
-        {
+     {
+       std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+       textFieldReplyCount_ = 0;
+     }
+     {
             std::lock_guard<std::mutex> lock(textListenerLock_);
             textListener = listener;
         }
@@ -544,13 +546,16 @@ using namespace MessageID;
             IMSA_HILOGD("InputMethodController::OnSelectionChange isStopInput");
             return;
         }
-        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-        if (textFieldReplyCount_ > 0
-            && (text.size() != mTextString.size() || start != mSelectNewBegin || end != mSelectNewEnd)) {
+        {
+          std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
+          if (textFieldReplyCount_ > 0 &&
+              (text.size() != mTextString.size() || start != mSelectNewBegin ||
+               end != mSelectNewEnd)) {
             textFieldReplyCount_--;
-        }
-        if (textFieldReplyCount_ == 0) {
+          }
+          if (textFieldReplyCount_ == 0) {
             textFieldReplyCountCv_.notify_one();
+          }
         }
         if (mTextString == text && mSelectNewBegin == start && mSelectNewEnd == end) {
             return;
