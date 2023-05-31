@@ -295,6 +295,20 @@ HWTEST_F(InputMethodPanelTest, testCreatePanel, TestSize.Level0)
 }
 
 /**
+* @tc.name: testDestroyPanel
+* @tc.desc: Test DestroyPanel.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testDestroyPanel, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testDestroyPanel start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    // not CreatePanel, DestroyPanel failed
+    auto ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
 * @tc.name: testResizePanel
 * @tc.desc: Test Resize panel. All panels can be resized.
 * @tc.type: FUNC
@@ -303,8 +317,12 @@ HWTEST_F(InputMethodPanelTest, testResizePanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testResizePanel start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    // not CreatePanel, Resize failed
+    auto ret = inputMethodPanel->Resize(1, 1);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
-    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     EXPECT_TRUE(defaultDisplay != nullptr);
@@ -335,8 +353,12 @@ HWTEST_F(InputMethodPanelTest, testMovePanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testMovePanel start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    // not CreatePanel, MoveTo failed
+    auto ret = inputMethodPanel->MoveTo(10, 100);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
-    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = inputMethodPanel->MoveTo(10, 100);
@@ -450,6 +472,45 @@ HWTEST_F(InputMethodPanelTest, testGetPanelType, TestSize.Level0)
     EXPECT_EQ(type, panelInfo.panelType);
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testChangePanelFlag
+* @tc.desc: Test ChangePanelFlag.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testChangePanelFlag, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testChangePanelFlag start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelFlag flag = FLG_FLOATING;
+
+    // not CreatePanel, ChangePanelFlag failed
+    auto ret = inputMethodPanel->ChangePanelFlag(flag);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // panelFlag is same with the original
+    ret = inputMethodPanel->ChangePanelFlag(flag);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // panelFlag modify to FLG_FIXED
+    flag = FLG_FIXED;
+    auto type = inputMethodPanel->ChangePanelFlag(flag);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    panelInfo = { .panelType = STATUS_BAR, .panelFlag = FLG_FLOATING };
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    // panelType is STATUS_BAR, not allow ChangePanelFlag
+    auto type = inputMethodPanel->ChangePanelFlag(flag);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
 
 /**

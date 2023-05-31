@@ -235,5 +235,21 @@ HWTEST_F(InputMethodAbilityExceptionTest, testGetEnterKeyTypeException, TestSize
     ret = inputMethodAbility_->GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
+
+/**
+ * @tc.name: testDispatchKeyEventException
+ * @tc.desc: DispatchKeyEvent Exception
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest DispatchKeyEvent START");
+    int32_t keyCode = 2011;
+    int32_t keyStatus = 2;
+    auto ret = inputMethodAbility_->DispatchKeyEvent(keyCode, keyStatus);
+    EXPECT_FALSE(ret);
+}
 } // namespace MiscServices
 } // namespace OHOS
