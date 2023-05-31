@@ -113,13 +113,13 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
 
 int32_t InputMethodPanel::MoveTo(int32_t x, int32_t y)
 {
-    if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
-        IMSA_HILOGE("FLG_FIXED panel can not moveTo.");
-        return ErrorCode::NO_ERROR;
-    }
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
+        IMSA_HILOGE("FLG_FIXED panel can not moveTo.");
+        return ErrorCode::NO_ERROR;
     }
     auto ret = window_->MoveTo(x, y);
     if (ret != WMError::WM_OK) {
