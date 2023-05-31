@@ -54,6 +54,7 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
         DECLARE_NAPI_STATIC_PROPERTY("EnterKeyType", GetJsEnterKeyTypeProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("TextInputType", GetJsTextInputTypeProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("ExtendAction", GetJsExtendActionProperty(env)),
     };
     NAPI_CALL(
         env, napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -181,6 +182,25 @@ napi_value JsGetInputMethodController::GetJsDirectionProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_LEFT", cursorLeft));
     NAPI_CALL(env, napi_set_named_property(env, direction, "CURSOR_RIGHT", cursorRight));
     return direction;
+}
+
+napi_value JsGetInputMethodController::GetJsExtendActionProperty(napi_env env)
+{
+    napi_value action = nullptr;
+    napi_value actionSelectAll = nullptr;
+    napi_value actionCut = nullptr;
+    napi_value actionCopy = nullptr;
+    napi_value actionPaste = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::SELECT_ALL), &actionSelectAll));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::CUT), &actionCut));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::COPY), &actionCopy));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(ExtendAction::PASTE), &actionPaste));
+    NAPI_CALL(env, napi_create_object(env, &action));
+    NAPI_CALL(env, napi_set_named_property(env, action, "SELECT_ALL", actionSelectAll));
+    NAPI_CALL(env, napi_set_named_property(env, action, "CUT", actionCut));
+    NAPI_CALL(env, napi_set_named_property(env, action, "COPY", actionCopy));
+    NAPI_CALL(env, napi_set_named_property(env, action, "PASTE", actionPaste));
+    return action;
 }
 
 napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback_info cbinfo)

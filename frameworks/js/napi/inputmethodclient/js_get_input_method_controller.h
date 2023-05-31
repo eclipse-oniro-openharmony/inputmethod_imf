@@ -203,6 +203,7 @@ private:
     static napi_value GetJsEnterKeyTypeProperty(napi_env env);
     static napi_value GetJsTextInputTypeProperty(napi_env env);
     static napi_value GetJsDirectionProperty(napi_env env);
+    static napi_value GetJsExtendActionProperty(napi_env env);
     static const std::set<std::string> TEXT_EVENT_TYPE;
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
