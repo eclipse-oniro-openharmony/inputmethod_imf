@@ -71,12 +71,10 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
     try {
       if (globalThis.windowNum > 0) {
         this.getInputMethods().then(() => {
-          globalThis.extensionWin.isShowing().then((status) => {
-            globalThis.extensionWin.loadContent('pages/index');
-            if (!status) {
-              globalThis.extensionWin.show();
-            }
-          });
+          if (!globalThis.extensionWin.isWindowShowing()) {
+            globalThis.extensionWin.show();
+          }
+            globalThis.extensionWin.setUIContent('pages/index');
         });
         return;
       }

@@ -43,6 +43,27 @@ struct Dialog {
 
   build() {
     Column() {
+      Row() {
+        Button('隐藏')
+          .width('50%')
+          .height(40)
+          .type(ButtonType.Normal)
+          .backgroundColor(Color.Grey)
+          .onClick(async () => {
+            globalThis.extensionWin.hide();
+          })
+
+        Button('关闭')
+          .width('50%')
+          .height(40)
+          .type(ButtonType.Normal)
+          .backgroundColor(Color.Grey)
+          .onClick(async () => {
+            globalThis.extensionWin.destroy()
+            globalThis.context.terminateSelf()
+          })
+      }
+
       List({ space: 1, initialIndex: 0 }) {
         ListItem() {
           Text($r("app.string.dialogTitle"))
