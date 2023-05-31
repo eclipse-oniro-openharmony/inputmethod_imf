@@ -74,7 +74,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
           if (!globalThis.extensionWin.isWindowShowing()) {
             globalThis.extensionWin.show();
           }
-            globalThis.extensionWin.setUIContent('pages/index');
+          globalThis.extensionWin.setUIContent('pages/index');
         });
         return;
       }
