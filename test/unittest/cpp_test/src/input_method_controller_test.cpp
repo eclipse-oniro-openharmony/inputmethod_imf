@@ -1009,7 +1009,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         ret = inputMethodAbility_->InsertText(insertText);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         usleep(300);
-        EXPECT_NE(TextListener::insertText_, insertText);
+        EXPECT_NE(TextListener::insertText_, Str8ToStr16(insertText));
 
         constexpr int32_t funcKey = 1;
         ret = inputMethodAbility_->SendFunctionKey(funcKey);
