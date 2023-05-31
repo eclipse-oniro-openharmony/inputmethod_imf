@@ -136,10 +136,8 @@ int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote(MessageParce
         IMSA_HILOGE("property is nullptr");
         return reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto emptyReply = reply;
     if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, *property)) {
         IMSA_HILOGE("Marshal failed");
-        reply = emptyReply;
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
@@ -152,10 +150,8 @@ int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodSubtypeOnRemote(Messa
         IMSA_HILOGE("property is nullptr");
         return reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto emptyReply = reply;
     if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, *property)) {
         IMSA_HILOGE("Marshal failed");
-        reply = emptyReply;
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
@@ -168,12 +164,10 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodOnRemote(MessageParcel &dat
         IMSA_HILOGE("read status failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto emptyReply = reply;
     std::vector<Property> properties = {};
     auto ret = ListInputMethod(InputMethodStatus(status), properties);
     if (!ITypesUtil::Marshal(reply, ret, properties)) {
         IMSA_HILOGE("Marshal failed");
-        reply = emptyReply;
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
@@ -186,12 +180,10 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote(MessageParc
         IMSA_HILOGE("read bundleName failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto emptyReply = reply;
     std::vector<SubProperty> subProps = {};
     auto ret = ListInputMethodSubtype(bundleName, subProps);
     if (!ITypesUtil::Marshal(reply, ret, subProps)) {
         IMSA_HILOGE("Marshal failed");
-        reply = emptyReply;
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
@@ -199,12 +191,10 @@ int32_t InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote(MessageParc
 
 int32_t InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    auto emptyReply = reply;
     std::vector<SubProperty> subProps = {};
     auto ret = ListCurrentInputMethodSubtype(subProps);
     if (!ITypesUtil::Marshal(reply, ret, subProps)) {
         IMSA_HILOGE("Marshal failed");
-        reply = emptyReply;
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return ErrorCode::NO_ERROR;
