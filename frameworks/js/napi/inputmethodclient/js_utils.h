@@ -77,6 +77,15 @@ enum TypeCode : int32_t {
         }                                                          \
     } while (0)
 
+/* check condition, return and logging. */
+#define CHECK_RETURN(condition, message, retVal)                   \
+    do {                                                           \
+        if (!(condition)) {                                        \
+            IMSA_HILOGE("test (" #condition ") failed: " message); \
+            return retVal;                                         \
+        }                                                          \
+    } while (0)
+
 class JsUtils {
 public:
     using ArgsProvider = std::function<bool(napi_value args[], uint8_t argc, std::shared_ptr<JSCallbackObject>)>;

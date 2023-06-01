@@ -392,15 +392,15 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    NAPI_ASSERT(env, argc > ARGC_ONE, "Wrong number of arguments, requires least 2");
+    CHECK_RETURN(argc > ARGC_ONE, "Wrong number of arguments, requires least 2", nullptr);
 
     std::string type;
     JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    NAPI_ASSERT(env, EVENT_TYPE.find(type) != EVENT_TYPE.end(), "subscribe type error");
+    CHECK_RETURN(EVENT_TYPE.find(type) != EVENT_TYPE.end(), "subscribe type error", nullptr);
 
     napi_valuetype valuetype = napi_undefined;
     napi_typeof(env, argv[ARGC_ONE], &valuetype);
-    NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
+    CHECK_RETURN(valuetype == napi_function, "callback is not a function", nullptr);
 
     auto engine = reinterpret_cast<JsGetInputMethodSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
@@ -455,11 +455,11 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     napi_value thisVar = nullptr;
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
-    NAPI_ASSERT(env, argc > ARGC_ZERO, "Wrong number of arguments, requires least 1");
+    CHECK_RETURN(argc > ARGC_ZERO, "Wrong number of arguments, requires least 1", nullptr);
 
     std::string type;
     JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    NAPI_ASSERT(env, EVENT_TYPE.find(type) != EVENT_TYPE.end(), "subscribe type error");
+    CHECK_RETURN(EVENT_TYPE.find(type) != EVENT_TYPE.end(), "subscribe type error", nullptr);
     auto engine = reinterpret_cast<JsGetInputMethodSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
@@ -468,7 +468,7 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     if (argc > ARGC_ONE) {
         napi_valuetype valuetype = napi_undefined;
         napi_typeof(env, argv[ARGC_ONE], &valuetype);
-        NAPI_ASSERT(env, valuetype == napi_function, "callback is not a function");
+        CHECK_RETURN(valuetype == napi_function, "callback is not a function", nullptr);
     }
     engine->UnRegisterListener(argv[ARGC_ONE], type);
     napi_value result = nullptr;

@@ -211,10 +211,10 @@ void *JsUtils::GetNativeSelf(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_MAX] = { nullptr };
     napi_status status = napi_invalid_arg;
     napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    NAPI_ASSERT(env, (self != nullptr && argc <= ARGC_MAX), "napi_get_cb_info failed!");
+    CHECK_RETURN((self != nullptr && argc <= ARGC_MAX), "napi_get_cb_info failed!", nullptr);
 
     status = napi_unwrap(env, self, &native);
-    NAPI_ASSERT(env, (status == napi_ok && native != nullptr), "napi_unwrap failed!");
+    CHECK_RETURN((status == napi_ok && native != nullptr), "napi_unwrap failed!", nullptr);
     return native;
 }
 
@@ -222,7 +222,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, int32_t &out)
 {
     napi_valuetype type = napi_undefined;
     napi_status status = napi_typeof(env, in, &type);
-    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_number), "invalid type", napi_generic_failure);
+    CHECK_RETURN((status == napi_ok) && (type == napi_number), "invalid type", napi_generic_failure);
     return napi_get_value_int32(env, in, &out);
 }
 
@@ -231,7 +231,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, uint32_t &out)
 {
     napi_valuetype type = napi_undefined;
     napi_status status = napi_typeof(env, in, &type);
-    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_number), "invalid type", napi_generic_failure);
+    CHECK_RETURN((status == napi_ok) && (type == napi_number), "invalid type", napi_generic_failure);
     return napi_get_value_uint32(env, in, &out);
 }
 
@@ -239,7 +239,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, bool &out)
 {
     napi_valuetype type = napi_undefined;
     napi_status status = napi_typeof(env, in, &type);
-    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_boolean), "invalid type", napi_generic_failure);
+    CHECK_RETURN((status == napi_ok) && (type == napi_boolean), "invalid type", napi_generic_failure);
     return napi_get_value_bool(env, in, &out);
 }
 
@@ -247,7 +247,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, double &out)
 {
     napi_valuetype type = napi_undefined;
     napi_status status = napi_typeof(env, in, &type);
-    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_number), "invalid double type", napi_generic_failure);
+    CHECK_RETURN((status == napi_ok) && (type == napi_number), "invalid double type", napi_generic_failure);
     return napi_get_value_double(env, in, &out);
 }
 
@@ -257,7 +257,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::string &out)
     IMSA_HILOGD("JsUtils get string value in.");
     napi_valuetype type = napi_undefined;
     napi_status status = napi_typeof(env, in, &type);
-    NAPI_ASSERT_BASE(env, (status == napi_ok) && (type == napi_string), "invalid type", napi_generic_failure);
+    CHECK_RETURN((status == napi_ok) && (type == napi_string), "invalid type", napi_generic_failure);
 
     size_t maxLen = STR_MAX_LENGTH;
     status = napi_get_value_string_utf8(env, in, NULL, 0, &maxLen);
@@ -297,19 +297,19 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, PanelInfo &out)
     IMSA_HILOGD("napi_value -> PanelInfo ");
     napi_value propType = nullptr;
     napi_status status = napi_get_named_property(env, in, "type", &propType);
-    NAPI_ASSERT_BASE(env, (status == napi_ok), "no property type ", status);
+    CHECK_RETURN((status == napi_ok), "no property type ", status);
     int32_t panelType = 0;
     status = GetValue(env, propType, panelType);
-    NAPI_ASSERT_BASE(env, (status == napi_ok), "no value of type ", status);
+    CHECK_RETURN((status == napi_ok), "no value of type ", status);
 
     // flag is optional. flag isn't need when panelType is status_bar.
     int32_t panelFlag = 0;
     if (panelType != PanelType::STATUS_BAR) {
         napi_value propFlag = nullptr;
         status = napi_get_named_property(env, in, "flag", &propFlag);
-        NAPI_ASSERT_BASE(env, (status == napi_ok), "no property flag ", status);
+        CHECK_RETURN((status == napi_ok), "no property flag ", status);
         status = JsUtils::GetValue(env, propFlag, panelFlag);
-        NAPI_ASSERT_BASE(env, (status == napi_ok), "no value of flag ", status);
+        CHECK_RETURN((status == napi_ok), "no value of flag ", status);
     }
 
     out.panelType = PanelType(panelType);
