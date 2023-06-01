@@ -134,7 +134,8 @@ int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote(MessageParce
     auto property = GetCurrentInputMethod();
     if (property == nullptr) {
         IMSA_HILOGE("property is nullptr");
-        return reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+        return reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER) ? ErrorCode::NO_ERROR
+                                                                  : ErrorCode::ERROR_EX_PARCELABLE;
     }
     if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, *property)) {
         IMSA_HILOGE("Marshal failed");
@@ -148,7 +149,8 @@ int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodSubtypeOnRemote(Messa
     auto property = GetCurrentInputMethodSubtype();
     if (property == nullptr) {
         IMSA_HILOGE("property is nullptr");
-        return reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+        return reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER) ? ErrorCode::NO_ERROR
+                                                                  : ErrorCode::ERROR_EX_PARCELABLE;
     }
     if (!ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, *property)) {
         IMSA_HILOGE("Marshal failed");
