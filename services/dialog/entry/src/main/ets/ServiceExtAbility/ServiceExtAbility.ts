@@ -54,9 +54,9 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
           console.log(TAG + 'switchInputMethod success');
           prompt.showToast({
             message: 'switch success', duration: 200
-          })
+          });
         }
-      })
+      });
     });
   }
 
@@ -84,8 +84,8 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
       win.on('windowEvent', (data) => {
         console.log(TAG + 'windowEvent:' + JSON.stringify(data));
         if (data === window.WindowEventType.WINDOW_INACTIVE) {
-          globalThis.extensionWin.destroy()
-          globalThis.context.terminateSelf()
+          globalThis.extensionWin.destroy();
+          globalThis.context.terminateSelf();
         }
       });
       await win.moveTo(rect.left, rect.top);
