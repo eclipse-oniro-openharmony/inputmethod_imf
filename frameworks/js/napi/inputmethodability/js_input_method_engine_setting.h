@@ -61,7 +61,7 @@ private:
 
         napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
         {
-            NAPI_ASSERT_BASE(env, self != nullptr, "self is nullptr", napi_invalid_arg);
+            CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
             return Context::operator()(env, argc, argv, self);
         }
         napi_status operator()(napi_env env, napi_value *result) override
