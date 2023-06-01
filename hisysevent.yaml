@@ -16,17 +16,21 @@ domain: INPUTMETHOD
 SERVICE_INIT_FAILED:
   __BASE: {type: STATISTIC, level: MINOR, tag: PowerStatus, desc: inputmethod service init report}
   USER_ID: {type: INT32, desc: the user id}
-  COMPONENT_ID: {type: INT32,desc: component type}
+  COMPONENT_ID: {type: INT32, desc: component type}
   ERROR_CODE: {type: INT32, desc: error code}
 
 CREATE_COMPONENT_FAILED:
   __BASE: {type: STATISTIC, level: MINOR, tag: PowerStatus, desc: create component failed report}
   USER_ID: {type: INT32, desc: the user id}
-  COMPONENT_ID: {type: INT32,desc: the component type}
+  COMPONENT_ID: {type: INT32, desc: the component type}
   ERROR_CODE: {type: INT32, desc: error code}
 
-INPUTMETHOD_USING:
+IME_USAGE:
   __BASE: {type: STATISTIC, level: MINOR, tag: PowerStatus, desc: inputmethod using report}
-  USER_ID: {type: INT32, desc: the timer id}
-  COMPONENT_ID: {type: INT32,desc: the component type}
-  ERROR_CODE: {type: INT32, desc: error code}
+  IME_START: {type: INT32, desc: the number of ime starts }
+  IME_CHANGE: {type: INT32, desc: the number of ime switchs }
+
+OPERATE_SOFTKEYBOARD:
+  __BASE: {type: STATISTIC, level: MINOR, tag: PowerStatus, desc: operate the soft keyboard report}
+  OPERATING: {type: STRING, desc: show or hide softkeyboard}
+  OPERATE_INFO: {type: STRING, desc: operate info of dispaly or hidding softkeyboard}
