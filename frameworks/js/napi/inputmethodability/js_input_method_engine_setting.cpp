@@ -308,7 +308,7 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
 
     std::string type = "";
     napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], type);
-    NAPI_ASSERT_BASE(env, status == napi_ok, "get type failed!", nullptr);
+    CHECK_RETURN(status == napi_ok, "get type failed!", nullptr);
     IMSA_HILOGE("event type is: %{public}s", type.c_str());
 
     napi_valuetype valueType = napi_undefined;
@@ -376,13 +376,13 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         JsPanel *jsPanel = nullptr;
         napi_value constructor = JsPanel::Init(env);
-        NAPI_ASSERT_BASE(env, constructor != nullptr, "get jsPanel constructor failed!", napi_generic_failure);
+        CHECK_RETURN(constructor != nullptr, "get jsPanel constructor failed!", napi_generic_failure);
 
         napi_status status = napi_new_instance(env, constructor, 0, nullptr, result);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "get jsPanel instance failed!", napi_generic_failure);
+        CHECK_RETURN(status == napi_ok, "get jsPanel instance failed!", napi_generic_failure);
 
         status = napi_unwrap(env, *result, (void **)(&jsPanel));
-        NAPI_ASSERT_BASE(env, (status == napi_ok) && (jsPanel != nullptr), "get jsPanel failed", napi_generic_failure);
+        CHECK_RETURN((status == napi_ok) && (jsPanel != nullptr), "get jsPanel failed", napi_generic_failure);
         jsPanel->SetNative(ctxt->panel);
         return napi_ok;
     };
@@ -403,14 +403,14 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
         PARAM_CHECK_RETURN(env, valueType == napi_object, " target: ", TYPE_OBJECT, napi_invalid_arg);
         bool isPanel = false;
         napi_value constructor = JsPanel::Init(env);
-        NAPI_ASSERT_BASE(env, constructor != nullptr, "Failed to get panel constructor.", napi_invalid_arg);
+        CHECK_RETURN(constructor != nullptr, "Failed to get panel constructor.", napi_invalid_arg);
         napi_status status = napi_instanceof(env, argv[0], constructor, &isPanel);
-        NAPI_ASSERT_BASE(env, (status == napi_ok) && isPanel, "It's not expected panel instance!", status);
+        CHECK_RETURN((status == napi_ok) && isPanel, "It's not expected panel instance!", status);
         JsPanel *jsPanel = nullptr;
         status = napi_unwrap(env, argv[0], (void **)(&jsPanel));
-        NAPI_ASSERT_BASE(env, (status == napi_ok) && (jsPanel != nullptr), "Can not unwrap to JsPanel!", status);
+        CHECK_RETURN((status == napi_ok) && (jsPanel != nullptr), "Can not unwrap to JsPanel!", status);
         ctxt->panel = jsPanel->GetNative();
-        NAPI_ASSERT_BASE(env, (ctxt->panel != nullptr), "not get valid inputMathodPanel!", napi_invalid_arg);
+        CHECK_RETURN((ctxt->panel != nullptr), "not get valid inputMathodPanel!", napi_invalid_arg);
         return status;
     };
 
@@ -419,7 +419,7 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
     };
 
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        NAPI_ASSERT_BASE(env, (ctxt->panel != nullptr), "inputMethodPanel is nullptr!", napi_generic_failure);
+        CHECK_RETURN((ctxt->panel != nullptr), "inputMethodPanel is nullptr!", napi_generic_failure);
         auto errCode = InputMethodAbility::GetInstance()->DestroyPanel(ctxt->panel);
         if (errCode != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("DestroyPanel failed, errCode = %{public}d", errCode);
