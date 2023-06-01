@@ -81,6 +81,13 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
       const win = await window.create(this.context, name, windowType);
       globalThis.extensionWin = win;
       globalThis.context = this.context;
+      win.on('windowEvent', (data) => {
+        console.log(TAG + 'windowEvent:' + JSON.stringify(data));
+        if (data === window.WindowEventType.WINDOW_INACTIVE) {
+          globalThis.extensionWin.destroy()
+          globalThis.context.terminateSelf()
+        }
+      });
       await win.moveTo(rect.left, rect.top);
       await win.resetSize(rect.width, rect.height);
       await win.loadContent('pages/index');
