@@ -18,10 +18,8 @@
 
 #include <string>
 #include <map>
-#include <sys/time.h>
 
 #include "global.h"
-#include "timer.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -50,7 +48,7 @@ public:
     static void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
 
 private:
-    using TimerCallback = std::function<void ()>;
+    using TimerCallback = std::function<void()>;
     static void InvokeInputmethodStatistic();
     static std::string GetOperateInfo(OperateIMEInfoCode infoCode);
     static std::string GetOperateAction(OperateIMEInfoCode infoCode);

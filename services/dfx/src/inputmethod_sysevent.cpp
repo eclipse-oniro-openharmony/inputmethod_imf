@@ -36,7 +36,7 @@ const std::map<int32_t, std::string> InputmethodSysevent::oprateInfo_ ={
     {IME_SHOW_NORMAL, "show soft keyboard."},
     {IME_UNBIND, "unbind."},
     {IME_HIDE_UNBIND, "hide soft keyboard, and unbind."},
-    {IME_HIDE_UNEDITABLE, "hide softkeyboard, quit editable state."},
+    {IME_HIDE_UNEDITABLE, "hide soft keyboard, quit editable state."},
     {IME_HIDE_NORMAL, "hide soft keyboard."},
     {IME_HIDE_UNFOCUSED, "unfocused, hide soft keyboard."},
     {IME_HIDE_SELF, "hide soft keyboard self."}
@@ -74,7 +74,8 @@ void InputmethodSysevent::BehaviourReporter(IMEBehaviour ActiveName)
 void InputmethodSysevent::InvokeInputmethodStatistic()
 {
     int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::INPUTMETHOD, "IME_USAGE",
-        HiSysEventNameSpace::EventType::STATISTIC, "IME_START", inputmethodBehaviour_[START_IME], "IME_CHANGE", inputmethodBehaviour_[CHANGE_IME]);
+        HiSysEventNameSpace::EventType::STATISTIC, "IME_START", inputmethodBehaviour_[START_IME], "IME_CHANGE",
+        inputmethodBehaviour_[CHANGE_IME]);
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
     }
@@ -85,7 +86,8 @@ void InputmethodSysevent::InvokeInputmethodStatistic()
 void InputmethodSysevent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode)
 {
     int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::INPUTMETHOD, "OPERATE_SOFTKEYBOARD",
-        HiSysEventNameSpace::EventType::BEHAVIOR, "OPERATING", GetOperateAction(infoCode), "OPERATE_INFO", GetOperateInfo(infoCode));
+        HiSysEventNameSpace::EventType::BEHAVIOR, "OPERATING", GetOperateAction(infoCode), "OPERATE_INFO",
+        GetOperateInfo(infoCode));
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
     }
@@ -109,7 +111,7 @@ std::string InputmethodSysevent::GetOperateAction(OperateIMEInfoCode infoCode)
         case IME_SHOW_ENEDITABLE:
         case IME_SHOW_NORMAL:
             return "show";
-        case IME_UNBIND: 
+        case IME_UNBIND:
             return "unbind";
         case IME_HIDE_UNBIND:
             return "hide and unbind";
