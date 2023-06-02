@@ -51,7 +51,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
 
     commonEvent.createSubscriber(subscribeInfo, (error, subcriber) => {
       commonEvent.subscribe(subcriber, (error, commonEventData) => {
-        if (commonEventData.event === commonEvent1 && commonEventData.event === commonEvent2) {
+        if (commonEventData.event === commonEvent1 || commonEventData.event === commonEvent2) {
           console.log(TAG + 'commonEvent:' + JSON.stringify(commonEvent1));
           this.getInputMethods().then(() => {
             if (!globalThis.extensionWin.isWindowShowing()) {
