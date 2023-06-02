@@ -23,6 +23,7 @@
 #include "input_method_core_proxy.h"
 #include "input_method_core_stub.h"
 #include "input_method_utils.h"
+#include "inputmethod_sysevent.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "message_parcel.h"
