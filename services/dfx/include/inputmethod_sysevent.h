@@ -54,7 +54,7 @@ private:
     static std::string GetOperateAction(OperateIMEInfoCode infoCode);
 
 private:
-    static std::map<std::string, int32_t> inputmethodBehaviour_;
+    static std::map<int32_t, int32_t> inputmethodBehaviour_;
     static const std::map<int32_t, std::string> oprateInfo_;
 };
 } // namespace MiscServices

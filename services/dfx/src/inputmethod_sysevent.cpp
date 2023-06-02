@@ -26,11 +26,11 @@ using HiSysEventNameSpace = OHOS::HiviewDFX::HiSysEvent;
 const std::string DOMAIN_STR = std::string(HiSysEventNameSpace::Domain::INPUTMETHOD);
 } // namespace
 
-std::map<std::string, int> InputmethodSysevent::inputmethodBehaviour_ = {
+std::map<int32_t, int32_t> InputmethodSysevent::inputmethodBehaviour_ = {
     {START_IME, 0},
     {CHANGE_IME, 0}
 };
-const std::map<int32_t, std::string> InputmethodSysevent::oprateInfo_ ={
+const std::map<int32_t, std::string> InputmethodSysevent::oprateInfo_ = {
     {IME_SHOW_ATTACH, "attach, bind and show soft keyboard."},
     {IME_SHOW_ENEDITABLE, "enter editable state, show soft keyboard."},
     {IME_SHOW_NORMAL, "show soft keyboard."},
