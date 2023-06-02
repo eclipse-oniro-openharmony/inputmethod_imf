@@ -17,8 +17,14 @@ import window from '@ohos.window';
 import display from '@ohos.display';
 import inputMethod from '@ohos.inputMethod';
 import prompt from '@ohos.prompt';
+import commonEvent from '@ohos.commonEvent';
 
 let TAG = '[InputMethodChooseDialog]';
+let commonEvent1 = 'usual.event.PACKAGE_ADDED';
+let commonEvent2 = 'usual.event.PACKAGE_REMOVED';
+let subscribeInfo = {
+  events: [commonEvent1, commonEvent2]
+};
 
 export default class ServiceExtAbility extends ServiceExtensionAbility {
   onCreate(want): void {
@@ -43,6 +49,20 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
       console.log(TAG + 'getDefaultDisplay err:' + JSON.stringify(err));
     });
 
+    commonEvent.createSubscriber(subscribeInfo, (error, subcriber) => {
+      commonEvent.subscribe(subcriber, (error, commonEventData) => {
+        if (commonEventData.event == commonEvent1 && commonEventData.event == commonEvent2) {
+          console.log(TAG + 'commonEvent:' + JSON.stringify(commonEvent1));
+          this.getInputMethods().then(() => {
+            if (!globalThis.extensionWin.isWindowShowing()) {
+              globalThis.extensionWin.show();
+            }
+              globalThis.extensionWin.setUIContent('pages/index');
+          });
+        }
+      });
+    });
+  
     globalThis.chooseInputMethods = ((prop: inputMethod.InputMethodProperty): void => {
       inputMethod.switchInputMethod(prop).then((err) => {
         if (!err) {
