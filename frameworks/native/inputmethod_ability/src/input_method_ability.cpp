@@ -454,7 +454,14 @@ int32_t InputMethodAbility::HideKeyboardSelf()
         IMSA_HILOGE("InputMethodAbility::HideKeyboardSelf controlChannel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return controlChannel->HideKeyboardSelf(1);
+    notifier_.isShowKeyboard
+    int32_t ret = controlChannel->HideKeyboardSelf(1);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to hide keyboard self, ret: %{public}d", ret);
+        return ret;
+    }
+    InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_SELF);
+    return ret;
 }
 
 int32_t InputMethodAbility::SendExtendAction(int32_t action)

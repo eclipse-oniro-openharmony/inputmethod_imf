@@ -289,7 +289,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
     if (core == nullptr || agent == nullptr) {
-        CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
+        InputmethodSysevent::CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
         IMSA_HILOGE("InputMethodSystemAbility::core or agent is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }

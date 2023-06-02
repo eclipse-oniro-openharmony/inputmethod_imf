@@ -17,15 +17,34 @@
 
 #include "hisysevent.h"
 
+#include <unistd.h>
+
 namespace OHOS {
 namespace MiscServices {
 namespace {
 using HiSysEventNameSpace = OHOS::HiviewDFX::HiSysEvent;
+const std::string DOMAIN_STR = std::string(HiSysEventNameSpace::Domain::INPUTMETHOD);
 } // namespace
 
-void FaultReporter(int32_t userId, std::string bundleName, int32_t errCode)
+std::map<std::string, int> InputmethodSysevent::inputmethodBehaviour_ = {
+    {START_IME, 0},
+    {CHANGE_IME, 0}
+};
+const std::map<int32_t, std::string> InputmethodSysevent::oprateInfo_ ={
+    {IME_SHOW_ATTACH, "attach, bind and show soft keyboard."},
+    {IME_SHOW_ENEDITABLE, "enter editable state, show soft keyboard."},
+    {IME_SHOW_NORMAL, "show soft keyboard."},
+    {IME_UNBIND, "unbind."},
+    {IME_HIDE_UNBIND, "hide soft keyboard, and unbind."},
+    {IME_HIDE_UNEDITABLE, "hide softkeyboard, quit editable state."},
+    {IME_HIDE_NORMAL, "hide soft keyboard."},
+    {IME_HIDE_UNFOCUSED, "unfocused, hide soft keyboard."},
+    {IME_HIDE_SELF, "hide soft keyboard self."}
+};
+
+void InputmethodSysevent::FaultReporter(int32_t userId, std::string bundleName, int32_t errCode)
 {
-    int ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD,
+    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD,
         "SERVICE_INIT_FAILED", HiSysEventNameSpace::EventType::FAULT,
         "USER_ID", userId, "COMPONENT_ID", bundleName, "ERROR_CODE", errCode);
     if (ret != 0) {
@@ -33,9 +52,9 @@ void FaultReporter(int32_t userId, std::string bundleName, int32_t errCode)
     }
 }
 
-void CreateComponentFailed(int32_t userId, int32_t errCode)
+void InputmethodSysevent::CreateComponentFailed(int32_t userId, int32_t errCode)
 {
-    int ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD,
+    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD,
         "CREATE_COMPONENT_FAILED", HiSysEventNameSpace::EventType::FAULT,
         "USER_ID", userId, "ERROR_CODE", errCode);
     if (ret != 0) {
@@ -43,13 +62,62 @@ void CreateComponentFailed(int32_t userId, int32_t errCode)
     }
 }
 
-void BehaviourReporter(std::string ActiveName, const std::string &inputmethodName)
+void InputmethodSysevent::BehaviourReporter(IMEBehaviour ActiveName)
 {
-    int ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "INPUTMETHOD_USING",
-        HiSysEventNameSpace::EventType::BEHAVIOR,
-        "ACTIVE_NAME", ActiveName, "INPUTMETHOD_NAME", inputmethodName);
-    if (ret != 0) {
+    if (ActiveName == IMEBehaviour::START_IME) {
+        inputmethodBehaviour_[START_IME]++;
+    } else if (ActiveName == IMEBehaviour::CHANGE_IME) {
+        inputmethodBehaviour_[CHANGE_IME]++;
+    }
+}
+
+void InputmethodSysevent::InvokeInputmethodStatistic()
+{
+    int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::INPUTMETHOD, "IME_USAGE",
+        HiSysEventNameSpace::EventType::STATISTIC, "IME_START", inputmethodBehaviour_[START_IME], "IME_CHANGE", inputmethodBehaviour_[CHANGE_IME]);
+    if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
+    }
+    inputmethodBehaviour_[START_IME] = 0;
+    inputmethodBehaviour_[CHANGE_IME] = 0;
+}
+
+void InputmethodSysevent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode)
+{
+    int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::INPUTMETHOD, "OPERATE_SOFTKEYBOARD",
+        HiSysEventNameSpace::EventType::BEHAVIOR, "OPERATING", GetOperateAction(infoCode), "OPERATE_INFO", GetOperateInfo(infoCode));
+    if (ret != HiviewDFX::SUCCESS) {
+        IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
+    }
+}
+
+std::string InputmethodSysevent::GetOperateInfo(OperateIMEInfoCode infoCode)
+{
+    std::string info;
+    auto iter = oprateInfo_.find(infoCode);
+    if (iter != oprateInfo_.end()) {
+        info = iter->second;
+        return info;
+    }
+    return "unknow operating.";
+}
+
+std::string InputmethodSysevent::GetOperateAction(OperateIMEInfoCode infoCode)
+{
+    switch (infoCode) {
+        case IME_SHOW_ATTACH:
+        case IME_SHOW_ENEDITABLE:
+        case IME_SHOW_NORMAL:
+            return "show";
+        case IME_UNBIND: 
+            return "unbind";
+        case IME_HIDE_UNBIND:
+            return "hide and unbind";
+        case IME_HIDE_UNEDITABLE:
+        case IME_HIDE_NORMAL:
+        case IME_HIDE_UNFOCUSED:
+        case IME_HIDE_SELF:
+            return "hide";
     }
 }
 } // namespace MiscServices
