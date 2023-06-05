@@ -226,12 +226,6 @@ void InputMethodController::WorkThread()
                 textFieldReplyCount_++;
                 break;
             }
-            case MSG_ID_ON_INPUT_READY: {
-                MessageParcel *data = msg->msgContent_;
-                auto object = data->ReadRemoteObject();
-                OnInputReady(object);
-                break;
-            }
             case MSG_ID_ON_INPUT_STOP: {
                 IMSA_HILOGI("input stop");
                 isBound_.store(false);

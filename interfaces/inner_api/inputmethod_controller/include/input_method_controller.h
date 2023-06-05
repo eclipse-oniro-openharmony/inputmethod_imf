@@ -418,6 +418,15 @@ public:
      */
     IMF_API bool WasAttached();
 
+    /**
+     * @brief Set agent which will be used to communicate with IMA.
+     *
+     * This function is used to Set agent.
+     *
+     * @since 10
+     */
+    IMF_API void OnInputReady(sptr<IRemoteObject> agentObject);
+
 private:
     InputMethodController();
     ~InputMethodController();
@@ -433,7 +442,6 @@ private:
     void WorkThread();
     void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
-    void OnInputReady(sptr<IRemoteObject> agentObject);
     void ClearEditorCache();
     void OnSelectByRange(int32_t start, int32_t end);
     void OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip);
