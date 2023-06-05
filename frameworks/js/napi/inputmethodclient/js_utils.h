@@ -88,15 +88,11 @@ enum TypeCode : int32_t {
 
 class JsUtils {
 public:
-    using ArgsProvider = std::function<bool(napi_value args[], uint8_t argc, std::shared_ptr<JSCallbackObject>)>;
-
     static void ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type);
 
     static napi_value ToError(napi_env env, int32_t code);
 
     static int32_t Convert(int32_t code);
-    static bool TraverseCallback(const std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
-                                 ArgsProvider argsProvider);
 
     static bool Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId);
 

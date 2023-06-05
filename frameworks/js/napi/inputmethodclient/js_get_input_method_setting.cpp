@@ -15,6 +15,7 @@
 
 #include "js_get_input_method_setting.h"
 
+#include "callback_Processor.h"
 #include "event_checker.h"
 #include "input_client_info.h"
 #include "input_method_controller.h"
@@ -513,7 +514,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 args[ARGC_ONE] = subProperty;
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_TWO, getImeChangeProperty);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_TWO, getImeChangeProperty });
         });
 }
 
@@ -555,7 +556,7 @@ void JsGetInputMethodSetting::OnPanelStatusChange(
                 args[ARGC_ZERO] = windowInfo;
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getWindowInfo);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getWindowInfo });
         });
 }
 

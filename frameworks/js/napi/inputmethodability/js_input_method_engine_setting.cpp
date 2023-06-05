@@ -17,6 +17,7 @@
 
 #include <thread>
 
+#include "callback_Processor.h"
 #include "event_checker.h"
 #include "input_method_ability.h"
 #include "input_method_property.h"
@@ -547,7 +548,7 @@ void JsInputMethodEngineSetting::OnInputStart()
                 args[ARGC_ONE] = textInput;
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_TWO, getInputStartProperty);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_TWO, getInputStartProperty });
         });
 }
 
@@ -576,7 +577,7 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
                 args[ARGC_ZERO] = nullptr;
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ZERO, getKeyboardStatusProperty);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ZERO, getKeyboardStatusProperty });
         });
 }
 
@@ -609,7 +610,7 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
                 napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getInputStopProperty);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getInputStopProperty });
         });
 }
 
@@ -642,7 +643,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
                 napi_create_int32(item->env_, entry->windowid, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getCallingWindowProperty);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getCallingWindowProperty });
         });
 }
 
@@ -680,7 +681,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
                 args[ARGC_ZERO] = { jsObject };
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getSubtypeProperty);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getSubtypeProperty });
         });
 }
 

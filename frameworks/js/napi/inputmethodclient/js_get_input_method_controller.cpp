@@ -16,6 +16,7 @@
 
 #include <set>
 
+#include "callback_Processor.h"
 #include "event_checker.h"
 #include "input_method_controller.h"
 #include "input_method_utils.h"
@@ -730,7 +731,7 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
                 args[ARGC_ZERO] = range;
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getProperty);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getProperty });
         });
 }
 
@@ -766,7 +767,7 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
                 args[ARGC_ZERO] = movement;
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getProperty);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getProperty });
         });
 }
 
@@ -800,7 +801,7 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
                 napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getInsertTextProperty);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getInsertTextProperty });
         });
 }
 
@@ -833,7 +834,7 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
                 napi_create_int32(item->env_, entry->length, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getDeleteForwardProperty);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getDeleteForwardProperty });
         });
 }
 
@@ -866,7 +867,7 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
                 napi_create_int32(item->env_, entry->length, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getDeleteBackwardProperty);
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getDeleteBackwardProperty });
         });
 }
 
@@ -900,7 +901,7 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
                 napi_create_int32(item->env_, entry->keyboardStatus, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getSendKeyboardStatusProperty);
+            CallbackProcessor::TraverseCallback({entry->vecCopy, ARGC_ONE, getSendKeyboardStatusProperty});
         });
 }
 
@@ -951,7 +952,7 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
                 args[ARGC_ZERO] = functionKey;
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getSendFunctionKeyProperty);
+            CallbackProcessor::TraverseCallback({entry->vecCopy, ARGC_ONE, getSendFunctionKeyProperty});
         });
 }
 
@@ -985,7 +986,7 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
                 napi_create_int32(item->env_, static_cast<int32_t>(entry->direction), &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, 1, getMoveCursorProperty);
+            CallbackProcessor::TraverseCallback({entry->vecCopy, 1, getMoveCursorProperty});
         });
 }
 
@@ -1018,7 +1019,7 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
                 napi_create_int32(item->env_, entry->action, &args[ARGC_ZERO]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getHandleExtendActionProperty);
+            CallbackProcessor::TraverseCallback({entry->vecCopy, ARGC_ONE, getHandleExtendActionProperty});
         });
 }
 
