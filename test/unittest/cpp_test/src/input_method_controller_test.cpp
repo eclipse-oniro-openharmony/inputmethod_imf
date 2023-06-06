@@ -218,17 +218,18 @@ constexpr int32_t BUFF_LENGTH = 10;
         {
             IMSA_HILOGI("IMC TEST SelectListener TriggerBySelectionCallback");
             std::unique_lock<std::mutex> lock(listenerCvMutex_);
-            selectListenerCv_.wait_for(lock, std::chrono::milliseconds(INTERVAL_MILLISECOND),
-                [direction] { return direction_ == direction; });
-            EXPECT_EQ(direction_, direction);
+            bool result = selectListenerCv_.wait_for(lock, std::chrono::milliseconds(INTERVAL_MILLISECOND),
+                              [direction] { return direction_ == direction; })
+                          != std::cv_status::timeout;
+            EXPECT_TRUE(result);
         }
         void TriggerBySelectionCallback(int32_t rangeStart, int32_t rangeEnd)
         {
             IMSA_HILOGI("IMC TEST SelectListener TriggerBySelectionCallback");
             std::unique_lock<std::mutex> lock(listenerCvMutex_);
-            selectListenerCv_.wait_for(lock, std::chrono::milliseconds(INTERVAL_MILLISECOND),
-                [rangeStart, rangeEnd] { return rangeStart_ == rangeStart && rangeEnd_ == rangeEnd; });
-            bool result = rangeStart_ == rangeStart && rangeEnd_ == rangeEnd;
+            bool result = selectListenerCv_.wait_for(lock, std::chrono::milliseconds(INTERVAL_MILLISECOND),
+                              [rangeStart, rangeEnd] { return rangeStart_ == rangeStart && rangeEnd_ == rangeEnd; })
+                          != std::cv_status::timeout;
             EXPECT_TRUE(result);
         }
         static int32_t rangeStart_;
