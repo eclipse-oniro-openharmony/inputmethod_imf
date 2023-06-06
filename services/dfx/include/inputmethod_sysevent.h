@@ -48,7 +48,6 @@ public:
     static void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
 
 private:
-    using TimerCallback = std::function<void()>;
     static void InvokeInputmethodStatistic();
     static std::string GetOperateInfo(OperateIMEInfoCode infoCode);
     static std::string GetOperateAction(OperateIMEInfoCode infoCode);
