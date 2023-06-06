@@ -82,8 +82,15 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
 
   onDestroy(): void {
     console.log(TAG + 'ServiceExtAbility destroyed');
-    globalThis.extensionWin.destroy();
-    globalThis.context.terminateSelf();
+    this.releaseContext();
+  }
+
+  public async releaseContext(): Promise<void> {
+    if (globalThis.context !== null) {
+      await globalThis.extensionWin.destroy();
+      await globalThis.context.terminateSelf();
+      globalThis.context = null;
+    }
   }
 
   private async createWindow(name: string, windowType: number, rect): Promise<void> {
@@ -104,8 +111,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
       win.on('windowEvent', (data) => {
         console.log(TAG + 'windowEvent:' + JSON.stringify(data));
         if (data === window.WindowEventType.WINDOW_INACTIVE) {
-          globalThis.extensionWin.destroy();
-          globalThis.context.terminateSelf();
+          this.releaseContext();
         }
       });
       await win.moveTo(rect.left, rect.top);

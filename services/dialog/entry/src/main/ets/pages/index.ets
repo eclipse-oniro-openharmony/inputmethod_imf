@@ -68,8 +68,7 @@ struct Dialog {
                   globalThis.chooseInputMethods(prop)
                 }
                 setTimeout(() => {
-                  globalThis.extensionWin.destroy()
-                  globalThis.context.terminateSelf()
+                  globalThis.releaseContext();
                 }, 1000)
               })
           }
