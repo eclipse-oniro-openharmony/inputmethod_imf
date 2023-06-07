@@ -16,6 +16,7 @@
 #include "input_client_stub.h"
 
 #include "global.h"
+#include "input_method_controller.h"
 #include "ipc_object_stub.h"
 #include "ipc_types.h"
 #include "ipc_skeleton.h"
@@ -66,13 +67,8 @@ int32_t InputClientStub::OnRemoteRequest(
 
 void InputClientStub::OnInputReadyOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    sptr<IRemoteObject> agentObject;
-    int32_t ret = SendMessage(MessageID::MSG_ID_ON_INPUT_READY, [&data, &agentObject](MessageParcel &parcel) {
-        return ITypesUtil::Unmarshal(data, agentObject) && ITypesUtil::Marshal(parcel, agentObject);
-    });
-    if (!ITypesUtil::Marshal(reply, ret)) {
-        IMSA_HILOGE("failed to write reply");
-    }
+    auto object = data.ReadRemoteObject();
+    InputMethodController::GetInstance()->OnInputReady(object);
 }
 
 void InputClientStub::OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply)
