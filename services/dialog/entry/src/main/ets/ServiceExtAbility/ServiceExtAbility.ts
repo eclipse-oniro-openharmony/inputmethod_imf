@@ -78,19 +78,19 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
         }
       });
     });
+
+    globalThis.releaseContext = ((): void => {
+      if (globalThis.context !== null) {
+        globalThis.extensionWin.destroy();
+        globalThis.context.terminateSelf();
+        globalThis.context = null;
+      }
+    });
   }
 
   onDestroy(): void {
     console.log(TAG + 'ServiceExtAbility destroyed');
-    this.releaseContext();
-  }
-
-  private async releaseContext(): Promise<void> {
-    if (globalThis.context !== null) {
-      await globalThis.extensionWin.destroy();
-      await globalThis.context.terminateSelf();
-      globalThis.context = null;
-    }
+    globalThis.releaseContext();
   }
 
   private async createWindow(name: string, windowType: number, rect): Promise<void> {
@@ -111,7 +111,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
       win.on('windowEvent', (data) => {
         console.log(TAG + 'windowEvent:' + JSON.stringify(data));
         if (data === window.WindowEventType.WINDOW_INACTIVE) {
-          this.releaseContext();
+          globalThis.releaseContext();
         }
       });
       await win.moveTo(rect.left, rect.top);
