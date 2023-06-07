@@ -25,10 +25,11 @@ CREATE_COMPONENT_FAILED:
   COMPONENT_ID: {type: INT32, desc: The component type}
   ERROR_CODE: {type: INT32, desc: Error code}
 
-IME_USAGE:
-  __BASE: {type: STATISTIC, level: MINOR, tag: IMEUsage, desc: Inputmethod using report}
-  IME_START: {type: INT32, desc: The number of ime start }
-  IME_CHANGE: {type: INT32, desc: The number of ime switch }
+INPUTMETHOD_USING:
+  __BASE: {type: STATISTIC, level: MINOR, tag: PowerStatus, desc: inputmethod using report}
+  USER_ID: {type: INT32, desc: the timer id}
+  COMPONENT_ID: {type: INT32,desc: the component type}
+  ERROR_CODE: {type: INT32, desc: error code}
 
 OPERATE_SOFTKEYBOARD:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: IMEOperate, desc: Operate the soft keyboard report}

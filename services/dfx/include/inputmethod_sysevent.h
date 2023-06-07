@@ -23,11 +23,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-enum IMEBehaviour : int32_t {
-    START_IME = 0,
-    CHANGE_IME,
-};
-
 enum OperateIMEInfoCode : int32_t {
     IME_SHOW_ATTACH = 0,
     IME_SHOW_ENEDITABLE,
@@ -44,16 +39,14 @@ class InputmethodSysevent {
 public:
     static void FaultReporter(int32_t userId, std::string bundleName, int32_t errCode);
     static void CreateComponentFailed(int32_t userId, int32_t errCode);
-    static void BehaviourReporter(IMEBehaviour ActiveName);
+    static void BehaviourReporter(std::string ActiveName, const std::string &inputmethodName);
     static void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
 
 private:
-    static void InvokeInputmethodStatistic();
     static std::string GetOperateInfo(OperateIMEInfoCode infoCode);
     static std::string GetOperateAction(OperateIMEInfoCode infoCode);
 
 private:
-    static std::map<int32_t, int32_t> inputmethodBehaviour_;
     static const std::map<int32_t, std::string> oprateInfo_;
 };
 } // namespace MiscServices

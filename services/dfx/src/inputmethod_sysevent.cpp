@@ -26,10 +26,6 @@ using HiSysEventNameSpace = OHOS::HiviewDFX::HiSysEvent;
 const std::string DOMAIN_STR = std::string(HiSysEventNameSpace::Domain::INPUTMETHOD);
 } // namespace
 
-std::map<int32_t, int32_t> InputmethodSysevent::inputmethodBehaviour_ = {
-    {START_IME, 0},
-    {CHANGE_IME, 0}
-};
 const std::map<int32_t, std::string> InputmethodSysevent::oprateInfo_ = {
     {IME_SHOW_ATTACH, "attach, bind and show soft keyboard."},
     {IME_SHOW_ENEDITABLE, "enter editable state, show soft keyboard."},
@@ -60,24 +56,13 @@ void InputmethodSysevent::CreateComponentFailed(int32_t userId, int32_t errCode)
     }
 }
 
-void InputmethodSysevent::BehaviourReporter(IMEBehaviour ActiveName)
+void InputmethodSysevent::BehaviourReporter(std::string ActiveName, const std::string &inputmethodName)
 {
-    if (ActiveName == IMEBehaviour::START_IME) {
-        inputmethodBehaviour_[START_IME]++;
-    } else if (ActiveName == IMEBehaviour::CHANGE_IME) {
-        inputmethodBehaviour_[CHANGE_IME]++;
-    }
-}
-
-void InputmethodSysevent::InvokeInputmethodStatistic()
-{
-    int32_t ret = HiSysEventWrite(DOMAIN_STR, "IME_USAGE", HiSysEventNameSpace::EventType::STATISTIC, "IME_START",
-        inputmethodBehaviour_[START_IME], "IME_CHANGE", inputmethodBehaviour_[CHANGE_IME]);
+    int32_t ret = HiSysEventWrite(DOMAIN_STR, "INPUTMETHOD_USING", HiSysEventNameSpace::EventType::BEHAVIOR,
+        "ACTIVE_NAME", ActiveName, "INPUTMETHOD_NAME", inputmethodName);
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
     }
-    inputmethodBehaviour_[START_IME] = 0;
-    inputmethodBehaviour_[CHANGE_IME] = 0;
 }
 
 void InputmethodSysevent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode)
