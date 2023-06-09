@@ -412,6 +412,7 @@ int32_t InputMethodController::Attach(
         std::lock_guard<std::mutex> lock(textListenerLock_);
         textListener_ = listener;
     }
+    bool isReport = (!clientInfo_.isShowKeyboard && !isBound_.load());
     clientInfo_.isShowKeyboard = isShowKeyboard;
     clientInfo_.attribute = attribute;
 
@@ -429,7 +430,7 @@ int32_t InputMethodController::Attach(
     isEditable_.store(true);
     IMSA_HILOGI("bind imf successfully, enter editable state");
 
-    if (isShowKeyboard) {
+    if (isReport) {
         InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_SHOW_ATTACH);
     }
     return ErrorCode::NO_ERROR;
