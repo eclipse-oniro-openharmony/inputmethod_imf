@@ -17,6 +17,7 @@
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_DATA_CHANNEL_H
 #include <errors.h>
 
+#include "block_data.h"
 #include "global.h"
 #include "input_method_utils.h"
 #include "iremote_broker.h"
@@ -62,7 +63,7 @@ public:
     virtual int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) = 0;
     virtual int32_t HandleExtendAction(int32_t action) = 0;
     virtual int32_t GetTextIndexAtCursor(int32_t &index) = 0;
-    virtual void NotifyGetOperationCompletion() = 0;
+    virtual std::shared_ptr<BlockData<std::u16string>> GetBlockData() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

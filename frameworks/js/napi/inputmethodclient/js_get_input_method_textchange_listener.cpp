@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace MiscServices {
 std::mutex JsGetInputMethodTextChangedListener::listenerMutex_;
-sptr<JsGetInputMethodTextChangedListener> JsGetInputMethodTextChangedListener::inputMethodListener_ { nullptr };
+sptr<JsGetInputMethodTextChangedListener> JsGetInputMethodTextChangedListener::inputMethodListener_{ nullptr };
 sptr<JsGetInputMethodTextChangedListener> JsGetInputMethodTextChangedListener::GetInstance()
 {
     if (inputMethodListener_ == nullptr) {
@@ -63,6 +63,11 @@ void JsGetInputMethodTextChangedListener::MoveCursor(const Direction direction)
 void JsGetInputMethodTextChangedListener::HandleExtendAction(int32_t action)
 {
     JsGetInputMethodController::GetInstance()->HandleExtendAction(action);
+}
+
+std::u16string JsGetInputMethodTextChangedListener::GetLeftTextOfCursor(int32_t number)
+{
+    return u"";
 }
 } // namespace MiscServices
 } // namespace OHOS

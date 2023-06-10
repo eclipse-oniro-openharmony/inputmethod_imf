@@ -133,8 +133,9 @@ int32_t InputDataChannelProxy::HandleExtendAction(int32_t action)
         HANDLE_EXTEND_ACTION, [action](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, action); });
 }
 
-void InputDataChannelProxy::NotifyGetOperationCompletion()
+std::shared_ptr<BlockData<std::u16string>> InputDataChannelProxy::GetBlockData()
 {
+    return nullptr;
 }
 
 int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)

@@ -18,13 +18,13 @@
 #include "global.h"
 #include "input_method_controller.h"
 #include "ipc_object_stub.h"
-#include "ipc_types.h"
 #include "ipc_skeleton.h"
+#include "ipc_types.h"
 #include "itypes_util.h"
 #include "message.h"
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t WAIT_TIME_STUB = 110;
+constexpr int32_t MAX_TIMEOUT = 3000;
 InputDataChannelStub::InputDataChannelStub() : msgHandler(nullptr)
 {
 }
@@ -37,7 +37,7 @@ int32_t InputDataChannelStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     IMSA_HILOGD("code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code, IPCSkeleton::GetCallingPid(),
-                IPCSkeleton::GetCallingUid());
+        IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
@@ -56,24 +56,13 @@ int32_t InputDataChannelStub::OnRemoteRequest(
             break;
         }
         case GET_TEXT_BEFORE_CURSOR: {
-            int32_t index = 0;
-            std::u16string text;
-            reply.WriteInt32(HandleGetOperation(data.ReadInt32(), text, index, GET_TEXT_BEFORE_CURSOR));
-            reply.WriteString16(text);
+            GetTextBeforeCursor(data, reply);
             break;
         }
         case GET_TEXT_AFTER_CURSOR: {
-            int32_t index = 0;
-            std::u16string text;
-            reply.WriteInt32(HandleGetOperation(data.ReadInt32(), text, index, GET_TEXT_AFTER_CURSOR));
-            reply.WriteString16(text);
             break;
         }
         case GET_TEXT_INDEX_AT_CURSOR: {
-            int32_t index = 0;
-            std::u16string text;
-            reply.WriteInt32(HandleGetOperation(0, text, index, GET_TEXT_INDEX_AT_CURSOR));
-            reply.WriteInt32(index);
             break;
         }
         case SEND_KEYBOARD_STATUS: {
@@ -205,10 +194,41 @@ int32_t InputDataChannelStub::DeleteBackward(int32_t length)
     return ErrorCode::NO_ERROR;
 }
 
+std::shared_ptr<BlockData<std::u16string>> InputDataChannelStub::GetBlockData()
+{
+    return blockData_;
+};
+
+int32_t InputDataChannelStub::GetTextBeforeCursor(MessageParcel &data, MessageParcel &reply)
+{
+    IMSA_HILOGD("InputDataChannelStub::GetTextBeforeCursor");
+    int32_t number = 0;
+    auto ret = SendMessage(MessageID::MSG_ID_GET_TEXT_BEFORE_CURSOR, [&data, &number](MessageParcel &parcel) {
+        return ITypesUtil::Unmarshal(data, number) && ITypesUtil::Marshal(parcel, number);
+    });
+    if (ret != ErrorCode::NO_ERROR) {
+        return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    IMSA_HILOGE("blockDataMutex_");
+    std::lock_guard<std::mutex> lock(blockDataMutex_);
+    blockData_ = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
+    auto text = blockData_->GetValue();
+    IMSA_HILOGE("blockData_->GetValue");
+#if 0
+    if (text.empty()) {  // 如果获取到的结果就是empty？？
+        ret = ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
+    }
+#endif
+    if (!ITypesUtil::Marshal(reply, ret, text)) {
+        IMSA_HILOGE("failed to write reply");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputDataChannelStub::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
-    IMSA_HILOGI("InputDataChannelStub::GetTextBeforeCursor");
-    return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputDataChannelStub::GetTextAfterCursor(int32_t number, std::u16string &text)
@@ -232,40 +252,6 @@ int32_t InputDataChannelStub::GetInputPattern(int32_t &inputPattern)
 {
     IMSA_HILOGI("InputDataChannelStub::GetInputPattern");
     return InputMethodController::GetInstance()->GetInputPattern(inputPattern);
-}
-
-int32_t InputDataChannelStub::HandleGetOperation(int32_t number, std::u16string &text, int32_t &index, int32_t msgType)
-{
-    IMSA_HILOGI("InputDataChannelStub::start, msgId: %{public}d, number: %{public}d", msgType, number);
-    if (msgHandler == nullptr) {
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-    int32_t msgId;
-    if (msgType == GET_TEXT_BEFORE_CURSOR) {
-        msgId = MessageID::MSG_ID_GET_TEXT_BEFORE_CURSOR;
-    } else if (msgType == GET_TEXT_AFTER_CURSOR) {
-        msgId = MessageID::MSG_ID_GET_TEXT_AFTER_CURSOR;
-    } else {
-        msgId = MessageID::MSG_ID_GET_TEXT_INDEX_AT_CURSOR;
-    }
-    MessageParcel *parcel = new MessageParcel;
-    Message *msg = new Message(msgId, parcel);
-    msgHandler->SendMessage(msg);
-
-    std::unique_lock<std::mutex> lock(getOperationListenerLock_);
-    getOperationListenerCv_.wait_for(lock, std::chrono::milliseconds(WAIT_TIME_STUB));
-    if (msgType == GET_TEXT_BEFORE_CURSOR) {
-        return InputMethodController::GetInstance()->GetTextBeforeCursor(number, text);
-    } else if (msgType == GET_TEXT_AFTER_CURSOR) {
-        return InputMethodController::GetInstance()->GetTextAfterCursor(number, text);
-    } else {
-        return InputMethodController::GetInstance()->GetTextIndexAtCursor(index);
-    }
-}
-
-void InputDataChannelStub::NotifyGetOperationCompletion()
-{
-    getOperationListenerCv_.notify_one();
 }
 
 void InputDataChannelStub::SendKeyboardStatus(int32_t status)
