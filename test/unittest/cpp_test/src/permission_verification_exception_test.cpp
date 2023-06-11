@@ -17,12 +17,12 @@
 #include "input_method_ability.h"
 #undef private
 
+#include <cstdint>
 #include <gtest/gtest.h>
+#include <sstream>
+#include <string>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include <cstdint>
-#include <string>
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
@@ -39,6 +39,8 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t MAIN_USER_ID = 100;
+constexpr const uint16_t EACH_LINE_LENGTH = 500;
+constexpr const uint16_t TOTAL_LENGTH = 4096;
 class TextListener : public OnTextChangedListener {
 public:
     TextListener() = default;
@@ -87,14 +89,13 @@ void TextListener::HandleExtendAction(int32_t action)
 {
 }
 
-void TextListener::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
-{
-}
+void TextListener::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) {}
 
 class PermissionVerificationExceptionTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
+    static bool ExecuteCmd(const std::string &cmd, std::string &result);
     void SetUp();
     void TearDown();
     static void AllocAndSetTestTokenID(const std::string &bundleName);
@@ -159,6 +160,23 @@ void PermissionVerificationExceptionTest::TearDownTestCase(void)
     IMSA_HILOGI("PermissionVerificationExceptionTest::TearDownTestCase");
     RestoreSelfTokenID();
     DeleteTestTokenID();
+    std::string result;
+    auto property = imc_->GetCurrentInputMethod();
+    auto ret = PermissionVerificationExceptionTest::ExecuteCmd("ps -ef| grep " + property->name, result);
+    IMSA_HILOGI("ret: %{public}d, result is: %{public}s", ret, result.c_str());
+    std::istringstream cmdResult(result);
+    std::string pid;
+    int count = 1;
+    while (cmdResult >> pid) {
+        ++count;
+        // 2 means the index of pid in result of "ps -ef|grep bundleName"
+        if (count == 2) {
+            break;
+        }
+        IMSA_HILOGD("pid is: %{public}s", pid.c_str());
+    }
+    ret = PermissionVerificationExceptionTest::ExecuteCmd("kill " + pid, result);
+    IMSA_HILOGI("ret: %{public}d, result is: %{public}s", ret, result.c_str());
 }
 
 void PermissionVerificationExceptionTest::SetUp(void)
@@ -169,6 +187,28 @@ void PermissionVerificationExceptionTest::SetUp(void)
 void PermissionVerificationExceptionTest::TearDown(void)
 {
     IMSA_HILOGI("PermissionVerificationExceptionTest::TearDown");
+}
+
+bool PermissionVerificationExceptionTest::ExecuteCmd(const std::string &cmd, std::string &result)
+{
+    char buff[EACH_LINE_LENGTH] = { 0x00 };
+    char output[TOTAL_LENGTH] = { 0x00 };
+    FILE *ptr = popen(cmd.c_str(), "r");
+    if (ptr != nullptr) {
+        while (fgets(buff, sizeof(buff), ptr) != nullptr) {
+            if (strcat_s(output, sizeof(output), buff) != 0) {
+                pclose(ptr);
+                ptr = nullptr;
+                return false;
+            }
+        }
+        pclose(ptr);
+        ptr = nullptr;
+    } else {
+        return false;
+    }
+    result = std::string(output);
+    return true;
 }
 
 /**

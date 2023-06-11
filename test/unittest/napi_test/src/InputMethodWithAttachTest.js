@@ -25,7 +25,7 @@ describe('InputMethodWithAttachTest', function () {
       console.info('afterAll called');
   });
 
-  beforeEach(function () {
+  beforeEach(async function () {
     console.info('beforeEach called');
     let inputMethodCtrl = inputMethod.getController();
     let cfg = {
@@ -35,25 +35,21 @@ describe('InputMethodWithAttachTest', function () {
           enterKeyType: inputMethod.EnterKeyType.NONE
         }
     };
-    inputMethodCtrl.attach(false, cfg, (err) => {
-      if (err) {
-        console.info(`beforeEach called attach failed: ${JSON.stringify(err)}`);
-        return;
-      }
-      console.info('beforeEach called attach success');
-    })
+    await inputMethodCtrl.attach(false, cfg).then(() => {
+      console.info('beforeEach attach inputMethod success.');
+    }).catch((error) => {
+      console.info(`beforeEach attach inputMethod fail, error: [${error.code}, ${error.message}]`);
+    });
   });
 
-  afterEach(function () {
+  afterEach(async function () {
     console.info('afterEach called');
     let inputMethodCtrl = inputMethod.getController();
-    inputMethodCtrl.detach((err) => {
-      if (err) {
-        console.info(`afterEach called detach failed: ${JSON.stringify(err)}`);
-        return;
-      }
-      console.info('afterEach called detach success');
-    })
+    await inputMethodCtrl.detach().then(()=>{
+      console.info('afterEach detach inputMethod success}');
+    }).catch((error)=>{
+      console.info(`afterEach detach inputMethod fial, error: [${error.code}, ${error.message}]`);
+    });
   });
 
   /*
