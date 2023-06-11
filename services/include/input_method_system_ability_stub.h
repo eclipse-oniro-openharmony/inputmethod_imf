@@ -70,30 +70,6 @@ private:
     int32_t HideCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
 
     int32_t ShowCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
-
-    using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
-    static constexpr RequestHandler HANDLERS[INPUT_SERVICE_CMD_LAST] = {
-        [PREPARE_INPUT] = &InputMethodSystemAbilityStub::PrepareInputOnRemote,
-        [START_INPUT] = &InputMethodSystemAbilityStub::StartInputOnRemote,
-        [SHOW_CURRENT_INPUT] = &InputMethodSystemAbilityStub::ShowCurrentInputOnRemote,
-        [HIDE_CURRENT_INPUT] = &InputMethodSystemAbilityStub::HideCurrentInputOnRemote,
-        [STOP_INPUT] = &InputMethodSystemAbilityStub::StopInputOnRemote,
-        [RELEASE_INPUT] = &InputMethodSystemAbilityStub::ReleaseInputOnRemote,
-        [GET_CURRENT_INPUT_METHOD] = &InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote,
-        [GET_CURRENT_INPUT_METHOD_SUBTYPE] = &InputMethodSystemAbilityStub::GetCurrentInputMethodSubtypeOnRemote,
-        [LIST_INPUT_METHOD] = &InputMethodSystemAbilityStub::ListInputMethodOnRemote,
-        [LIST_INPUT_METHOD_SUBTYPE] = &InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote,
-        [LIST_CURRENT_INPUT_METHOD_SUBTYPE] = &InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote,
-        [SWITCH_INPUT_METHOD] = &InputMethodSystemAbilityStub::SwitchInputMethodOnRemote,
-        [DISPLAY_OPTIONAL_INPUT_METHOD] = &InputMethodSystemAbilityStub::DisplayOptionalInputMethodOnRemote,
-        [SET_CORE_AND_AGENT] = &InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote,
-        [SHOW_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated,
-        [HIDE_CURRENT_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated,
-        [DISPLAY_OPTIONAL_INPUT_DEPRECATED] = &InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated,
-        [STOP_INPUT_SESSION] = &InputMethodSystemAbilityStub::StopInputSessionOnRemote,
-        [PANEL_STATUS_CHANGE] = &InputMethodSystemAbilityStub::PanelStatusChangeOnRemote,
-        [UPDATE_LISTEN_EVENT_FLAG] = &InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote,
-    };
 };
 } // namespace OHOS::MiscServices
 
