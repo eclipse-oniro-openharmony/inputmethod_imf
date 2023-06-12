@@ -63,6 +63,8 @@ InputMethodSystemAbility::InputMethodSystemAbility() : state_(ServiceRunningStat
 
 InputMethodSystemAbility::~InputMethodSystemAbility()
 {
+    Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
+    MessageHandler::Instance()->SendMessage(msg);
     if (workThreadHandler.joinable()) {
         workThreadHandler.join();
     }
@@ -541,6 +543,10 @@ void InputMethodSystemAbility::WorkThread()
             case MSG_ID_START_INPUT_SERVICE: {
                 StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_));
                 break;
+            }
+            case MSG_ID_QUIT_WORKER_THREAD: {
+                IMSA_HILOGD("Quit Sa work thread.");
+                return;
             }
             default: {
                 break;
