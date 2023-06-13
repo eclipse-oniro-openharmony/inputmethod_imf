@@ -68,7 +68,7 @@ struct Dialog {
                   globalThis.chooseInputMethods(prop)
                 }
                 setTimeout(() => {
-                  globalThis.releaseContext();
+                  await globalThis.releaseContext();
                 }, 1000)
               })
           }

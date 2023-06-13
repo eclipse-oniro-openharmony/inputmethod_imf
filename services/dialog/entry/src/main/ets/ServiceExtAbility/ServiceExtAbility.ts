@@ -25,7 +25,6 @@ let commonEvent2 = 'usual.event.PACKAGE_REMOVED';
 let subscribeInfo = {
   events: [commonEvent1, commonEvent2]
 };
-
 export default class ServiceExtAbility extends ServiceExtensionAbility {
   onCreate(want): void {
     console.log(TAG, 'onCreate');
@@ -42,8 +41,13 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
         width: 300,
         height: 300,
       };
+      let windowConfig = {
+        name:'inputmethod Dialog',
+        windowType:window.WindowType.TYPE_FLOAT,
+        ctx:this.context
+      };
       this.getInputMethods().then(() => {
-        this.createWindow('inputmethod Dialog:' + startId, window.WindowType.TYPE_FLOAT, dialogRect);
+        this.createWindow(windowConfig, dialogRect);
       });
     }).catch((err) => {
       console.log(TAG + 'getDefaultDisplay err:' + JSON.stringify(err));
@@ -79,10 +83,10 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
       });
     });
 
-    globalThis.releaseContext = ((): void => {
+    globalThis.releaseContext = (async (): Promise<void> => {
       if (globalThis.context !== null) {
-        globalThis.extensionWin.destroy();
-        globalThis.context.terminateSelf();
+        await globalThis.extensionWin.destroy();
+        await globalThis.context.terminateSelf();
         globalThis.context = null;
       }
     });
@@ -93,7 +97,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
     globalThis.releaseContext();
   }
 
-  private async createWindow(name: string, windowType: number, rect): Promise<void> {
+  private async createWindow(config: window.Configuration, rect): Promise<void> {
     console.log(TAG + 'createWindow execute');
     try {
       if (globalThis.windowNum > 0) {
@@ -105,19 +109,30 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
         });
         return;
       }
-      const win = await window.create(this.context, name, windowType);
-      globalThis.extensionWin = win;
+      try {
+        await window.createWindow(config, async (err, data) => {
+            if (err.code) {
+                console.error('Failed to create the window. Cause: ' + JSON.stringify(err));
+                return;
+            }
+            const win = data;
+            globalThis.extensionWin = win;
+            console.info('Succeeded in creating the window. Data: ' + JSON.stringify(data));
+            win.on('windowEvent', async (data) => {
+              console.log(TAG + 'windowEvent:' + JSON.stringify(data));
+              if (data === window.WindowEventType.WINDOW_INACTIVE) {
+                await globalThis.releaseContext();
+              }
+            });
+            await win.moveTo(rect.left, rect.top);
+            await win.resetSize(rect.width, rect.height);
+            await win.loadContent('pages/index');
+            await win.show();
+        });
+      } catch (exception) {
+        console.error('Failed to create the window. Cause: ' + JSON.stringify(exception));
+      }
       globalThis.context = this.context;
-      win.on('windowEvent', (data) => {
-        console.log(TAG + 'windowEvent:' + JSON.stringify(data));
-        if (data === window.WindowEventType.WINDOW_INACTIVE) {
-          globalThis.releaseContext();
-        }
-      });
-      await win.moveTo(rect.left, rect.top);
-      await win.resetSize(rect.width, rect.height);
-      await win.loadContent('pages/index');
-      await win.show();
       globalThis.windowNum++;
       console.log(TAG + 'window create successfully');
     } catch {
