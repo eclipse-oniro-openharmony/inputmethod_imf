@@ -39,8 +39,8 @@ const std::map<int32_t, std::string> InputmethodSysevent::oprateInfo_ = {
 
 void InputmethodSysevent::FaultReporter(int32_t userId, std::string bundleName, int32_t errCode)
 {
-    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "SERVICE_INIT_FAILED", HiSysEventNameSpace::EventType::FAULT, "USER_ID",
-        userId, "COMPONENT_ID", bundleName, "ERROR_CODE", errCode);
+    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "SERVICE_INIT_FAILED",
+        HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId, "COMPONENT_ID", bundleName, "ERROR_CODE", errCode);
     if (ret != 0) {
         IMSA_HILOGE("hisysevent FaultReporter failed! ret %{public}d,errCode %{public}d", ret, errCode);
     }
@@ -48,8 +48,8 @@ void InputmethodSysevent::FaultReporter(int32_t userId, std::string bundleName, 
 
 void InputmethodSysevent::CreateComponentFailed(int32_t userId, int32_t errCode)
 {
-    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "CREATE_COMPONENT_FAILED", HiSysEventNameSpace::EventType::FAULT,
-        "USER_ID", userId, "ERROR_CODE", errCode);
+    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "CREATE_COMPONENT_FAILED",
+        HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId, "ERROR_CODE", errCode);
     if (ret != 0) {
         IMSA_HILOGE("hisysevent CreateComponentFailed failed! ret %{public}d,errCode %{public}d", ret, errCode);
     }
@@ -57,8 +57,8 @@ void InputmethodSysevent::CreateComponentFailed(int32_t userId, int32_t errCode)
 
 void InputmethodSysevent::BehaviourReporter(std::string ActiveName, const std::string &inputmethodName)
 {
-    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "INPUTMETHOD_USING", HiSysEventNameSpace::EventType::BEHAVIOR,
-        "ACTIVE_NAME", ActiveName, "INPUTMETHOD_NAME", inputmethodName);
+    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "INPUTMETHOD_USING",
+        HiSysEventNameSpace::EventType::BEHAVIOR, "ACTIVE_NAME", ActiveName, "INPUTMETHOD_NAME", inputmethodName);
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
     }
@@ -66,8 +66,9 @@ void InputmethodSysevent::BehaviourReporter(std::string ActiveName, const std::s
 
 void InputmethodSysevent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode)
 {
-    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "OPERATE_SOFTKEYBOARD", HiSysEventNameSpace::EventType::BEHAVIOR,
-        "OPERATING", GetOperateAction(infoCode), "OPERATE_INFO", GetOperateInfo(infoCode));
+    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "OPERATE_SOFTKEYBOARD",
+        HiSysEventNameSpace::EventType::BEHAVIOR, "OPERATING", GetOperateAction(infoCode), "OPERATE_INFO",
+        GetOperateInfo(infoCode));
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
     }
@@ -101,6 +102,7 @@ std::string InputmethodSysevent::GetOperateAction(OperateIMEInfoCode infoCode)
         case IME_HIDE_SELF:
             return "hide";
     }
+    return "unknow action.";
 }
 } // namespace MiscServices
 } // namespace OHOS

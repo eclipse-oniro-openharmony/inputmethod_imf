@@ -227,7 +227,7 @@ void InputMethodDfxTest::SetUpTestCase(void)
     inputMethodAbility_->SetCoreAndAgent();
     inputMethodAbility_->SetImeListener(imeListener_);
     RestoreSelfTokenID();
-    
+
     bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
     AllocTestTokenID(bundleName);
     SetTestTokenID();
