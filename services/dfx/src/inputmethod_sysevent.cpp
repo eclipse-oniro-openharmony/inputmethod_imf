@@ -26,15 +26,15 @@ using HiSysEventNameSpace = OHOS::HiviewDFX::HiSysEvent;
 } // namespace
 
 const std::map<int32_t, std::string> InputmethodSysevent::oprateInfo_ = {
-    {IME_SHOW_ATTACH, "attach, bind and show soft keyboard."},
-    {IME_SHOW_ENEDITABLE, "enter editable state, show soft keyboard."},
-    {IME_SHOW_NORMAL, "show soft keyboard."},
-    {IME_UNBIND, "unbind."},
-    {IME_HIDE_UNBIND, "hide soft keyboard, and unbind."},
-    {IME_HIDE_UNEDITABLE, "hide soft keyboard, quit editable state."},
-    {IME_HIDE_NORMAL, "hide soft keyboard."},
-    {IME_HIDE_UNFOCUSED, "unfocused, hide soft keyboard."},
-    {IME_HIDE_SELF, "hide soft keyboard self."}
+    {IME_SHOW_ATTACH, "Attach: attach, bind and show soft keyboard."},
+    {IME_SHOW_ENEDITABLE, "ShowTextInput: enter editable state, show soft keyboard."},
+    {IME_SHOW_NORMAL, "ShowSoftKeyboard: show soft keyboard."},
+    {IME_UNBIND, "Close: unbind."},
+    {IME_HIDE_UNBIND, "Close: hide soft keyboard, and unbind."},
+    {IME_HIDE_UNEDITABLE, "HideTextInput: hide soft keyboard, quit editable state."},
+    {IME_HIDE_NORMAL, "HideKeyboardSelf, hide soft keyboard."},
+    {IME_HIDE_UNFOCUSED, "OnUnfocused: unfocused, hide soft keyboard."},
+    {IME_HIDE_SELF, "HideSoftKeyboard: hide soft keyboard self."}
 };
 
 void InputmethodSysevent::FaultReporter(int32_t userId, std::string bundleName, int32_t errCode)
