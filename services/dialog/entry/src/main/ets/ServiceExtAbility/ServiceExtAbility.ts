@@ -66,7 +66,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
         }
       });
     });
-  
+
     globalThis.chooseInputMethods = ((prop: inputMethod.InputMethodProperty): void => {
       inputMethod.switchInputMethod(prop).then((err) => {
         if (!err) {
@@ -111,23 +111,23 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
       }
       try {
         await window.createWindow(config, async (err, data) => {
-            if (err.code) {
-                console.error('Failed to create the window. Cause: ' + JSON.stringify(err));
-                return;
+          if (err.code) {
+            console.error('Failed to create the window. Cause: ' + JSON.stringify(err));
+            return;
+          }
+          const win = data;
+          globalThis.extensionWin = win;
+          console.info('Succeeded in creating the window. Data: ' + JSON.stringify(data));
+          win.on('windowEvent', async (data) => {
+            console.log(TAG + 'windowEvent:' + JSON.stringify(data));
+            if (data === window.WindowEventType.WINDOW_INACTIVE) {
+              await globalThis.releaseContext();
             }
-            const win = data;
-            globalThis.extensionWin = win;
-            console.info('Succeeded in creating the window. Data: ' + JSON.stringify(data));
-            win.on('windowEvent', async (data) => {
-              console.log(TAG + 'windowEvent:' + JSON.stringify(data));
-              if (data === window.WindowEventType.WINDOW_INACTIVE) {
-                await globalThis.releaseContext();
-              }
-            });
-            await win.moveTo(rect.left, rect.top);
-            await win.resetSize(rect.width, rect.height);
-            await win.loadContent('pages/index');
-            await win.show();
+          });
+          await win.moveTo(rect.left, rect.top);
+          await win.resetSize(rect.width, rect.height);
+          await win.loadContent('pages/index');
+          await win.show();
         });
       } catch (exception) {
         console.error('Failed to create the window. Cause: ' + JSON.stringify(exception));
