@@ -34,6 +34,7 @@ namespace OHOS {
 namespace MiscServices {
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
 constexpr const uint16_t TOTAL_LENGTH = 4096;
+constexpr const int32_t RELOAD_HIVIEW_TIME = 300;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const char *CMD1 = "hidumper -s 3703 -a -a";
 constexpr const char *CMD2 = "hidumper -s 3703 -a -h";
@@ -239,7 +240,7 @@ void InputMethodDfxTest::TearDownTestCase(void)
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
     RestoreSelfTokenID();
     DeleteTestTokenID();
-    ClearHisyseventCache(); 
+    ClearHisyseventCache();
 }
 
 void InputMethodDfxTest::SetUp(void)
@@ -283,7 +284,7 @@ void InputMethodDfxTest::ClearHisyseventCache()
     ptr = popen(CLEAR_CMD2, "r");
     pclose(ptr);
     ptr = nullptr;
-    usleep(300);
+    usleep(RELOAD_HIVIEW_TIME);
 }
 
 /**
@@ -467,7 +468,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Close, TestSize.Level
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep Close", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGI("ShowSoftKeyboard result = %{public}s", result.c_str());
-    EXPECT_NE(result.find("Close: unbind."), std::string::npos);
+    EXPECT_NE(result.find("Close: hide soft keyboard, and unbind."), std::string::npos);
 }
 } // namespace MiscServices
 } // namespace OHOS
