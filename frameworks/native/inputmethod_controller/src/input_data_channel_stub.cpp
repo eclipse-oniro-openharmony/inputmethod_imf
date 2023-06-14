@@ -200,16 +200,19 @@ int32_t InputDataChannelStub::GetTextBeforeCursor(MessageParcel &data, MessagePa
 {
     IMSA_HILOGD("InputDataChannelStub::GetTextBeforeCursor");
     int32_t number = -1;
-    auto *parcel = new (std::nothrow) MessageParcel();
-    if (!ITypesUtil::Unmarshal(data, number) || parcel == nullptr || !ITypesUtil::Marshal(*parcel, number)) {
-        return ErrorCode::ERROR_EX_PARCELABLE;
+    auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
+    ResultHandler resultHandler{ textResultHandler, nullptr };
+    auto ret = SendMessage(
+        MessageID::MSG_ID_GET_TEXT_BEFORE_CURSOR,
+        [&data, &number](MessageParcel &parcel) {
+            return ITypesUtil::Unmarshal(data, number) && ITypesUtil::Marshal(parcel, number);
+        },
+        resultHandler);
+    if (ret != ErrorCode::NO_ERROR) {
+        return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto resultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
-    Message *msg = new Message(MessageID::MSG_ID_GET_TEXT_BEFORE_CURSOR, parcel, resultHandler);
-    msgHandler->SendMessage(msg);
-    IMSA_HILOGD("resultHandler->GetValue");
-    auto text = resultHandler->GetValue();
-    auto ret = resultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
+    auto text = textResultHandler->GetValue();
+    ret = textResultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
     if (!ITypesUtil::Marshal(reply, ret, text)) {
         IMSA_HILOGE("failed to write reply");
         return ErrorCode::ERROR_EX_PARCELABLE;
@@ -219,18 +222,21 @@ int32_t InputDataChannelStub::GetTextBeforeCursor(MessageParcel &data, MessagePa
 
 int32_t InputDataChannelStub::GetTextAfterCursor(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("InputDataChannelStub::GetTextAfterCursor");
+    IMSA_HILOGD("InputDataChannelStub::GetTextBeforeCursor");
     int32_t number = -1;
-    auto *parcel = new (std::nothrow) MessageParcel();
-    if (!ITypesUtil::Unmarshal(data, number) || parcel == nullptr || !ITypesUtil::Marshal(*parcel, number)) {
-        return ErrorCode::ERROR_EX_PARCELABLE;
+    auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
+    ResultHandler resultHandler{ textResultHandler, nullptr };
+    auto ret = SendMessage(
+        MessageID::MSG_ID_GET_TEXT_AFTER_CURSOR,
+        [&data, &number](MessageParcel &parcel) {
+            return ITypesUtil::Unmarshal(data, number) && ITypesUtil::Marshal(parcel, number);
+        },
+        resultHandler);
+    if (ret != ErrorCode::NO_ERROR) {
+        return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto resultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
-    Message *msg = new Message(MessageID::MSG_ID_GET_TEXT_AFTER_CURSOR, parcel, resultHandler);
-    msgHandler->SendMessage(msg);
-    IMSA_HILOGD("resultHandler->GetValue");
-    auto text = resultHandler->GetValue();
-    auto ret = resultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
+    auto text = textResultHandler->GetValue();
+    ret = textResultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
     if (!ITypesUtil::Marshal(reply, ret, text)) {
         IMSA_HILOGE("failed to write reply");
         return ErrorCode::ERROR_EX_PARCELABLE;
@@ -241,12 +247,14 @@ int32_t InputDataChannelStub::GetTextAfterCursor(MessageParcel &data, MessagePar
 int32_t InputDataChannelStub::GetTextIndexAtCursor(MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGD("InputDataChannelStub::GetTextIndexAtCursor");
-    auto resultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
-    Message *msg = new Message(MessageID::MSG_ID_GET_TEXT_INDEX_AT_CURSOR, nullptr, resultHandler);
-    msgHandler->SendMessage(msg);
-    IMSA_HILOGD("resultHandler->GetValue");
-    auto index = resultHandler->GetValue();
-    auto ret = resultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
+    auto indexResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+    ResultHandler resultHandler{ nullptr, indexResultHandler };
+    auto ret = SendMessage(MessageID::MSG_ID_GET_TEXT_INDEX_AT_CURSOR, nullptr, resultHandler);
+    if (ret != ErrorCode::NO_ERROR) {
+        return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto index = indexResultHandler->GetValue();
+    ret = indexResultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
     if (!ITypesUtil::Marshal(reply, ret, index)) {
         IMSA_HILOGE("failed to write reply");
         return ErrorCode::ERROR_EX_PARCELABLE;
@@ -338,7 +346,7 @@ void InputDataChannelStub::SetHandler(MessageHandler *handler)
     msgHandler = handler;
 }
 
-int32_t InputDataChannelStub::SendMessage(int code, ParcelHandler input)
+int32_t InputDataChannelStub::SendMessage(int code, ParcelHandler input, const ResultHandler &resultHandler)
 {
     IMSA_HILOGD("InputMethodCoreStub run in");
     if (msgHandler == nullptr) {
@@ -355,7 +363,7 @@ int32_t InputDataChannelStub::SendMessage(int code, ParcelHandler input)
         delete parcel;
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto *msg = new (std::nothrow) Message(code, parcel);
+    auto *msg = new (std::nothrow) Message(code, parcel, resultHandler);
     if (msg == nullptr) {
         IMSA_HILOGE("msg is nullptr");
         delete parcel;

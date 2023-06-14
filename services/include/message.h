@@ -24,14 +24,17 @@
 
 namespace OHOS {
 namespace MiscServices {
+struct ResultHandler {
+    std::shared_ptr<BlockData<std::u16string>> textResultHandler;
+    std::shared_ptr<BlockData<int32_t>> indexResultHandler;
+};
+
 class Message {
 public:
     int32_t msgId_{ 0 };                  // message id
     MessageParcel *msgContent_ = nullptr; // message content
-    std::shared_ptr<BlockData<std::u16string>> textResultHandler_{ nullptr };
-    std::shared_ptr<BlockData<int32_t>> indexResultHandler_{ nullptr };
-    Message(int32_t msgId, MessageParcel *msgContent, const std::shared_ptr<BlockData<std::u16string>> &resultHandler);
-    Message(int32_t msgId, MessageParcel *msgContent, const std::shared_ptr<BlockData<int32_t>> &resultHandler);
+    ResultHandler resultHandler_{};       // result handler
+    Message(int32_t msgId, MessageParcel *msgContent, const ResultHandler &resultContainer);
     Message(int32_t msgId, MessageParcel *msgContent);
     explicit Message(const Message &msg);
     Message &operator=(const Message &msg);

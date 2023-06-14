@@ -62,7 +62,7 @@ private:
     int32_t GetTextIndexAtCursor(MessageParcel &data, MessageParcel &reply);
     int32_t GetTextAfterCursor(MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
-    int32_t SendMessage(int code, ParcelHandler input = nullptr);
+    int32_t SendMessage(int code, ParcelHandler input = nullptr, const ResultHandler &resultHandler = {});
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -338,7 +338,7 @@ void InputMethodController::WorkThread()
                     IMSA_HILOGE("failed to read message parcel");
                     break;
                 }
-                GetTextBeforeCursor(number, msg->textResultHandler_);
+                GetTextBeforeCursor(number, msg->resultHandler_.textResultHandler);
                 break;
             }
             case MSG_ID_GET_TEXT_AFTER_CURSOR: {
@@ -348,11 +348,11 @@ void InputMethodController::WorkThread()
                     IMSA_HILOGE("failed to read message parcel");
                     break;
                 }
-                GetTextAfterCursor(number, msg->textResultHandler_);
+                GetTextAfterCursor(number, msg->resultHandler_.textResultHandler);
                 break;
             }
             case MSG_ID_GET_TEXT_INDEX_AT_CURSOR: {
-                GetTextIndexAtCursor(msg->indexResultHandler_);
+                GetTextIndexAtCursor(msg->resultHandler_.indexResultHandler);
                 break;
             }
             default: {
