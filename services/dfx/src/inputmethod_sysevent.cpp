@@ -101,6 +101,8 @@ std::string InputmethodSysevent::GetOperateAction(OperateIMEInfoCode infoCode)
         case IME_HIDE_UNFOCUSED:
         case IME_HIDE_SELF:
             return "hide";
+        default:
+            break;
     }
     return "unknow action.";
 }
