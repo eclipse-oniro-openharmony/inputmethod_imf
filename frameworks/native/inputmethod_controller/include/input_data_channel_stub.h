@@ -39,7 +39,6 @@ public:
     InputDataChannelStub();
     ~InputDataChannelStub();
     void SetHandler(MessageHandler *handler);
-    std::shared_ptr<BlockData<std::u16string>> GetBlockData() override;
     int32_t InsertText(const std::u16string &text) override;
     int32_t DeleteForward(int32_t length) override;
     int32_t DeleteBackward(int32_t length) override;
@@ -57,12 +56,12 @@ public:
 
 private:
     MessageHandler *msgHandler;
-    std::mutex blockDataMutex_;
-    std::shared_ptr<BlockData<std::u16string>> blockData_{ nullptr };
     int32_t SelectByRangeOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SelectByMovementOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t GetTextBeforeCursor(MessageParcel &data, MessageParcel &reply);
+    int32_t GetTextIndexAtCursor(MessageParcel &data, MessageParcel &reply);
+    int32_t GetTextAfterCursor(MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
 };

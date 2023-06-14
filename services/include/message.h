@@ -19,6 +19,7 @@
 
 #include <cstdint>
 
+#include "block_data.h"
 #include "message_parcel.h"
 
 namespace OHOS {
@@ -27,6 +28,10 @@ class Message {
 public:
     int32_t msgId_{ 0 };                  // message id
     MessageParcel *msgContent_ = nullptr; // message content
+    std::shared_ptr<BlockData<std::u16string>> textResultHandler_{ nullptr };
+    std::shared_ptr<BlockData<int32_t>> indexResultHandler_{ nullptr };
+    Message(int32_t msgId, MessageParcel *msgContent, const std::shared_ptr<BlockData<std::u16string>> &resultHandler);
+    Message(int32_t msgId, MessageParcel *msgContent, const std::shared_ptr<BlockData<int32_t>> &resultHandler);
     Message(int32_t msgId, MessageParcel *msgContent);
     explicit Message(const Message &msg);
     Message &operator=(const Message &msg);

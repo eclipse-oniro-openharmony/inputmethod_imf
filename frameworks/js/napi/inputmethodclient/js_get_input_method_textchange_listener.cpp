@@ -67,7 +67,17 @@ void JsGetInputMethodTextChangedListener::HandleExtendAction(int32_t action)
 
 std::u16string JsGetInputMethodTextChangedListener::GetLeftTextOfCursor(int32_t number)
 {
-    return u"";
+    return JsGetInputMethodController::GetInstance()->GetText("getLeftTextOfCursor" ,number);
+}
+
+std::u16string JsGetInputMethodTextChangedListener::GetRightTextOfCursor(int32_t number)
+{
+    return JsGetInputMethodController::GetInstance()->GetText("getRightTextOfCursor", number);
+}
+
+int32_t JsGetInputMethodTextChangedListener::GetTextIndexAtCursor()
+{
+    return JsGetInputMethodController::GetInstance()->GetTextIndexAtCursor();
 }
 } // namespace MiscServices
 } // namespace OHOS

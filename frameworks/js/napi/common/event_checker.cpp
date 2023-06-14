@@ -20,7 +20,8 @@ namespace MiscServices {
 const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> EventChecker::EVENT_TYPES{
     { EventSubscribeModule::INPUT_METHOD_CONTROLLER,
         { "insertText", "deleteLeft", "deleteRight", "sendKeyboardStatus", "sendFunctionKey", "moveCursor",
-            "handleExtendAction", "selectByRange", "selectByMovement" } },
+            "handleExtendAction", "selectByRange", "selectByMovement", "getLeftTextOfCursor", "getRightTextOfCursor",
+            "getTextIndexAtCursor" } },
     { EventSubscribeModule::INPUT_METHOD_SETTING, { "imeChange", "imeShow", "imeHide" } },
     { EventSubscribeModule::INPUT_METHOD_ABILITY,
         { "inputStart", "inputStop", "keyboardShow", "keyboardHide", "setCallingWindow", "setSubtype" } },

@@ -54,6 +54,8 @@ public:
     virtual void HandleExtendAction(int32_t action) = 0;
     virtual void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) = 0;
     virtual std::u16string GetLeftTextOfCursor(int32_t number) = 0;
+    virtual std::u16string GetRightTextOfCursor(int32_t number) = 0;
+    virtual int32_t GetTextIndexAtCursor() = 0;
 };
 
 class InputMethodController : public RefBase {
@@ -106,19 +108,6 @@ public:
      * @since 8
      */
     IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const InputAttribute &attribute);
-
-    /**
-     * @brief Get text after cursor.
-     *
-     * This function is used to get text after cursor.
-     *
-     * @param number    Indicates the number of text after the cursor that will be obtained.
-     * @param text      Indicates the text after the cursor that will be obtained.
-     * @return Returns 0 for success, others for failure.
-     * @since 6
-     */
-    IMF_API int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
-    IMF_API int32_t GetTextIndexAtCursor(int32_t &index);
 
     /**
      * @brief Show soft keyboard.
@@ -431,7 +420,9 @@ private:
     void RestoreAttachInfoInSaDied();
     int32_t RestoreListenEventFlag();
     void UpdateNativeEventFlag(EventType eventType, bool isOn);
-    void GetTextBeforeCursor(int32_t number);
+    void GetTextBeforeCursor(int32_t number, const std::shared_ptr<BlockData<std::u16string>> &resultHandler);
+    void GetTextAfterCursor(int32_t number, const std::shared_ptr<BlockData<std::u16string>> &resultHandler);
+    void GetTextIndexAtCursor(const std::shared_ptr<BlockData<int32_t>> &resultHandler);
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
@@ -443,7 +434,7 @@ private:
     std::shared_ptr<IInputMethodAgent> agent_ = nullptr;
     std::mutex textListenerLock_;
     sptr<OnTextChangedListener> textListener_ = nullptr;
-    std::atomic_bool isDiedAttached_ { false };
+    std::atomic_bool isDiedAttached_{ false };
 
     std::mutex cursorInfoMutex_;
     CursorInfo cursorInfo_;

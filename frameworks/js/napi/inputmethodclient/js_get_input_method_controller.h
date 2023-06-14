@@ -182,6 +182,8 @@ public:
     void SendFunctionKey(const FunctionKey &functionKey);
     void MoveCursor(const Direction direction);
     void HandleExtendAction(int32_t action);
+    std::u16string GetText(const std::string &type, int32_t number);
+    int32_t GetTextIndexAtCursor();
 
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
@@ -205,6 +207,7 @@ private:
     static napi_value GetJsDirectionProperty(napi_env env);
     static napi_value GetJsExtendActionProperty(napi_env env);
     static const std::set<std::string> TEXT_EVENT_TYPE;
+    static constexpr int32_t MAX_TIMEOUT = 3000;
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
@@ -216,6 +219,9 @@ private:
         int32_t action = 0;
         int32_t keyboardStatus = 0;
         int32_t enterKeyType = 0;
+        int32_t number = 0;
+        std::shared_ptr<BlockData<std::string>> isGetTextDone;
+        std::shared_ptr<BlockData<std::int32_t>> isGetTextIndexDone;
         explicit UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)
         {

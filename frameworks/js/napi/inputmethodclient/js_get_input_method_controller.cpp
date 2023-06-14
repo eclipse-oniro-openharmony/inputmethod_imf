@@ -35,7 +35,7 @@ const std::set<std::string> EVENT_TYPE{
     "selectByRange",
     "selectByMovement",
 };
-const std::set<std::string> JsGetInputMethodController::TEXT_EVENT_TYPE {
+const std::set<std::string> JsGetInputMethodController::TEXT_EVENT_TYPE{
     "insertText",
     "deleteLeft",
     "deleteRight",
@@ -43,6 +43,9 @@ const std::set<std::string> JsGetInputMethodController::TEXT_EVENT_TYPE {
     "sendFunctionKey",
     "moveCursor",
     "handleExtendAction",
+    "getLeftTextOfCursor",
+    "getRightTextOfCursor",
+    "getTextIndexAtCursor",
 };
 thread_local napi_ref JsGetInputMethodController::IMCRef_ = nullptr;
 const std::string JsGetInputMethodController::IMC_CLASS_NAME = "InputMethodController";
@@ -901,7 +904,7 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
                 napi_create_int32(item->env_, entry->keyboardStatus, &args[ARGC_ZERO]);
                 return true;
             };
-            CallbackProcessor::TraverseCallback({entry->vecCopy, ARGC_ONE, getSendKeyboardStatusProperty});
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getSendKeyboardStatusProperty });
         });
 }
 
@@ -952,7 +955,7 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
                 args[ARGC_ZERO] = functionKey;
                 return true;
             };
-            CallbackProcessor::TraverseCallback({entry->vecCopy, ARGC_ONE, getSendFunctionKeyProperty});
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getSendFunctionKeyProperty });
         });
 }
 
@@ -986,7 +989,7 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
                 napi_create_int32(item->env_, static_cast<int32_t>(entry->direction), &args[ARGC_ZERO]);
                 return true;
             };
-            CallbackProcessor::TraverseCallback({entry->vecCopy, 1, getMoveCursorProperty});
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, 1, getMoveCursorProperty });
         });
 }
 
@@ -1019,8 +1022,75 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
                 napi_create_int32(item->env_, entry->action, &args[ARGC_ZERO]);
                 return true;
             };
-            CallbackProcessor::TraverseCallback({entry->vecCopy, ARGC_ONE, getHandleExtendActionProperty});
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getHandleExtendActionProperty });
         });
+}
+
+std::u16string JsGetInputMethodController::GetText(const std::string &type, int32_t number)
+{
+    auto isGetTextDone = std::make_shared<BlockData<std::string>>(MAX_TIMEOUT, "");
+    uv_work_t *work = GetUVwork(type, [&number, isGetTextDone](UvEntry &entry) {
+        entry.number = number;
+        entry.isGetTextDone = isGetTextDone;
+    });
+    if (work == nullptr) {
+        IMSA_HILOGE("failed to get uv entry.");
+        return u"";
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("handleExtendAction entryptr is null.");
+                return;
+            }
+
+            auto getGetTextProperty = [entry](napi_value *args, uint8_t argc,
+                                          std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == ARGC_ZERO) {
+                    IMSA_HILOGE("handleExtendAction:getHandleExtendActionProperty the number of argc is invalid.");
+                    return false;
+                }
+                napi_create_int32(item->env_, entry->number, &args[ARGC_ZERO]);
+                return true;
+            };
+            std::string text;
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getGetTextProperty }, text);
+            entry->isGetTextDone->SetValue(text);
+        });
+    return Str8ToStr16(isGetTextDone->GetValue());
+}
+
+int32_t JsGetInputMethodController::GetTextIndexAtCursor()
+{
+    std::string type = "getTextIndexAtCursor";
+    auto isGetTextIndexDone = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+    uv_work_t *work =
+        GetUVwork(type, [isGetTextIndexDone](UvEntry &entry) { entry.isGetTextIndexDone = isGetTextIndexDone; });
+    if (work == nullptr) {
+        IMSA_HILOGE("failed to get uv entry.");
+        return -1;
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("handleExtendAction entryptr is null.");
+                return;
+            }
+            int32_t index = -1;
+            CallbackProcessor::TraverseCallback({ entry->vecCopy }, index);
+            entry->isGetTextIndexDone->SetValue(index);
+        });
+    return isGetTextIndexDone->GetValue();
 }
 
 uv_work_t *JsGetInputMethodController::GetUVwork(const std::string &type, EntrySetter entrySetter)

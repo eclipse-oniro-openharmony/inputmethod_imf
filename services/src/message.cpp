@@ -29,6 +29,25 @@ Message::Message(int32_t msgId, MessageParcel *msgContent)
         msgContent_->RewindRead(0);
     }
 }
+Message::Message(
+    int32_t msgId, MessageParcel *msgContent, const std::shared_ptr<BlockData<std::u16string>> &resultHandler)
+{
+    msgId_ = msgId;
+    msgContent_ = msgContent;
+    textResultHandler_ = resultHandler;
+    if (msgContent_ != nullptr) {
+        msgContent_->RewindRead(0);
+    }
+}
+Message::Message(int32_t msgId, MessageParcel *msgContent, const std::shared_ptr<BlockData<int32_t>> &resultHandler)
+{
+    msgId_ = msgId;
+    msgContent_ = msgContent;
+    indexResultHandler_ = resultHandler;
+    if (msgContent_ != nullptr) {
+        msgContent_->RewindRead(0);
+    }
+}
 
 /*!Constructor
  * @param msg a source message

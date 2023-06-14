@@ -60,9 +60,11 @@ int32_t InputDataChannelStub::OnRemoteRequest(
             break;
         }
         case GET_TEXT_AFTER_CURSOR: {
+            GetTextAfterCursor(data, reply);
             break;
         }
         case GET_TEXT_INDEX_AT_CURSOR: {
+            GetTextIndexAtCursor(data, reply);
             break;
         }
         case SEND_KEYBOARD_STATUS: {
@@ -194,32 +196,58 @@ int32_t InputDataChannelStub::DeleteBackward(int32_t length)
     return ErrorCode::NO_ERROR;
 }
 
-std::shared_ptr<BlockData<std::u16string>> InputDataChannelStub::GetBlockData()
-{
-    return blockData_;
-};
-
 int32_t InputDataChannelStub::GetTextBeforeCursor(MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGD("InputDataChannelStub::GetTextBeforeCursor");
-    int32_t number = 0;
-    auto ret = SendMessage(MessageID::MSG_ID_GET_TEXT_BEFORE_CURSOR, [&data, &number](MessageParcel &parcel) {
-        return ITypesUtil::Unmarshal(data, number) && ITypesUtil::Marshal(parcel, number);
-    });
-    if (ret != ErrorCode::NO_ERROR) {
-        return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    int32_t number = -1;
+    auto *parcel = new (std::nothrow) MessageParcel();
+    if (!ITypesUtil::Unmarshal(data, number) || parcel == nullptr || !ITypesUtil::Marshal(*parcel, number)) {
+        return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    IMSA_HILOGE("blockDataMutex_");
-    std::lock_guard<std::mutex> lock(blockDataMutex_);
-    blockData_ = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
-    auto text = blockData_->GetValue();
-    IMSA_HILOGE("blockData_->GetValue");
-#if 0
-    if (text.empty()) {  // 如果获取到的结果就是empty？？
-        ret = ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-#endif
+    auto resultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
+    Message *msg = new Message(MessageID::MSG_ID_GET_TEXT_BEFORE_CURSOR, parcel, resultHandler);
+    msgHandler->SendMessage(msg);
+    IMSA_HILOGD("resultHandler->GetValue");
+    auto text = resultHandler->GetValue();
+    auto ret = resultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
     if (!ITypesUtil::Marshal(reply, ret, text)) {
+        IMSA_HILOGE("failed to write reply");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputDataChannelStub::GetTextAfterCursor(MessageParcel &data, MessageParcel &reply)
+{
+    IMSA_HILOGD("InputDataChannelStub::GetTextAfterCursor");
+    int32_t number = -1;
+    auto *parcel = new (std::nothrow) MessageParcel();
+    if (!ITypesUtil::Unmarshal(data, number) || parcel == nullptr || !ITypesUtil::Marshal(*parcel, number)) {
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto resultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
+    Message *msg = new Message(MessageID::MSG_ID_GET_TEXT_AFTER_CURSOR, parcel, resultHandler);
+    msgHandler->SendMessage(msg);
+    IMSA_HILOGD("resultHandler->GetValue");
+    auto text = resultHandler->GetValue();
+    auto ret = resultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
+    if (!ITypesUtil::Marshal(reply, ret, text)) {
+        IMSA_HILOGE("failed to write reply");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputDataChannelStub::GetTextIndexAtCursor(MessageParcel &data, MessageParcel &reply)
+{
+    IMSA_HILOGD("InputDataChannelStub::GetTextIndexAtCursor");
+    auto resultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+    Message *msg = new Message(MessageID::MSG_ID_GET_TEXT_INDEX_AT_CURSOR, nullptr, resultHandler);
+    msgHandler->SendMessage(msg);
+    IMSA_HILOGD("resultHandler->GetValue");
+    auto index = resultHandler->GetValue();
+    auto ret = resultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
+    if (!ITypesUtil::Marshal(reply, ret, index)) {
         IMSA_HILOGE("failed to write reply");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
@@ -233,13 +261,12 @@ int32_t InputDataChannelStub::GetTextBeforeCursor(int32_t number, std::u16string
 
 int32_t InputDataChannelStub::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
-    IMSA_HILOGI("InputDataChannelStub::GetTextAfterCursor");
-    return InputMethodController::GetInstance()->GetTextAfterCursor(number, text);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputDataChannelStub::GetTextIndexAtCursor(int32_t &index)
 {
-    return 0;
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputDataChannelStub::GetEnterKeyType(int32_t &keyType)
