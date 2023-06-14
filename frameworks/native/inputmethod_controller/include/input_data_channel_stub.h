@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <string>
 
-#include "block_data.h"
 #include "i_input_data_channel.h"
 #include "iremote_stub.h"
 #include "message_handler.h"

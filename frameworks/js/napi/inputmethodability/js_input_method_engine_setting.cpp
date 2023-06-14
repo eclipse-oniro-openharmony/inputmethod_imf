@@ -532,14 +532,12 @@ void JsInputMethodEngineSetting::OnInputStart()
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-
-            auto getInputStartProperty = [](napi_value *args, uint8_t argc,
-                                             std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getInputStartProperty = [](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc < 2) {
                     return false;
                 }
-                napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(item->env_);
-                napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(item->env_);
+                napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(env);
+                napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(env);
                 if (keyBoardController == nullptr || textInput == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
                     return false;
@@ -568,16 +566,7 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
                 delete data;
                 delete work;
             });
-
-            auto getKeyboardStatusProperty = [](napi_value *args, uint8_t argc,
-                                                 std::shared_ptr<JSCallbackObject> item) -> bool {
-                if (argc == 0) {
-                    return false;
-                }
-                args[ARGC_ZERO] = nullptr;
-                return true;
-            };
-            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ZERO, getKeyboardStatusProperty });
+            CallbackProcessor::TraverseCallback({ entry->vecCopy });
         });
 }
 
@@ -601,13 +590,11 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
                 IMSA_HILOGE("OnInputStop:: entryptr is null");
                 return;
             }
-
-            auto getInputStopProperty = [entry](napi_value *args, uint8_t argc,
-                                            std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getInputStopProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == 0) {
                     return false;
                 }
-                napi_create_string_utf8(item->env_, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                napi_create_string_utf8(env, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
                 return true;
             };
             CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getInputStopProperty });
@@ -634,13 +621,11 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
                 IMSA_HILOGE("setCallingWindow:: entryptr is null");
                 return;
             }
-
-            auto getCallingWindowProperty = [entry](napi_value *args, uint8_t argc,
-                                                std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getCallingWindowProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == 0) {
                     return false;
                 }
-                napi_create_int32(item->env_, entry->windowid, &args[ARGC_ZERO]);
+                napi_create_int32(env, entry->windowid, &args[ARGC_ZERO]);
                 return true;
             };
             CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getCallingWindowProperty });
@@ -667,13 +652,11 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
                 IMSA_HILOGE("OnSetSubtype:: entryptr is null");
                 return;
             }
-
-            auto getSubtypeProperty = [entry](napi_value *args, uint8_t argc,
-                                          std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getSubtypeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == 0) {
                     return false;
                 }
-                napi_value jsObject = GetResultOnSetSubtype(item->env_, entry->subProperty);
+                napi_value jsObject = GetResultOnSetSubtype(env, entry->subProperty);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
                     return false;

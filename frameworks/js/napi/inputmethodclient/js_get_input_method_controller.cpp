@@ -722,11 +722,11 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
                 IMSA_HILOGE("OnSelectByRange entryptr is null");
                 return;
             }
-            auto getProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc < ARGC_ONE) {
                     return false;
                 }
-                napi_value range = CreateSelectRange(item->env_, entry->start, entry->end);
+                napi_value range = CreateSelectRange(env, entry->start, entry->end);
                 if (range == nullptr) {
                     IMSA_HILOGE("set select range failed");
                     return false;
@@ -758,11 +758,11 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
                 IMSA_HILOGE("OnSelectByMovement entryptr is null");
                 return;
             }
-            auto getProperty = [entry](napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc < 1) {
                     return false;
                 }
-                napi_value movement = CreateSelectMovement(item->env_, entry->direction);
+                napi_value movement = CreateSelectMovement(env, entry->direction);
                 if (movement == nullptr) {
                     IMSA_HILOGE("set select movement failed");
                     return false;
@@ -795,13 +795,12 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
                 return;
             }
 
-            auto getInsertTextProperty = [entry](napi_value *args, uint8_t argc,
-                                             std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getInsertTextProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == ARGC_ZERO) {
                     IMSA_HILOGE("insertText:getInsertTextProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
                 return true;
             };
             CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getInsertTextProperty });
@@ -828,13 +827,12 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
                 return;
             }
 
-            auto getDeleteForwardProperty = [entry](napi_value *args, uint8_t argc,
-                                                std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getDeleteForwardProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == ARGC_ZERO) {
                     IMSA_HILOGE("deleteRight:getDeleteForwardProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_int32(item->env_, entry->length, &args[ARGC_ZERO]);
+                napi_create_int32(env, entry->length, &args[ARGC_ZERO]);
                 return true;
             };
             CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getDeleteForwardProperty });
@@ -861,13 +859,12 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
                 return;
             }
 
-            auto getDeleteBackwardProperty = [entry](napi_value *args, uint8_t argc,
-                                                 std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getDeleteBackwardProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == ARGC_ZERO) {
                     IMSA_HILOGE("deleteLeft::getDeleteBackwardProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_int32(item->env_, entry->length, &args[ARGC_ZERO]);
+                napi_create_int32(env, entry->length, &args[ARGC_ZERO]);
                 return true;
             };
             CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getDeleteBackwardProperty });
@@ -895,13 +892,12 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
                 return;
             }
 
-            auto getSendKeyboardStatusProperty = [entry](napi_value *args, uint8_t argc,
-                                                     std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getSendKeyboardStatusProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == ARGC_ZERO) {
                     IMSA_HILOGE("sendKeyboardStatus:getSendKeyboardStatusProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_int32(item->env_, entry->keyboardStatus, &args[ARGC_ZERO]);
+                napi_create_int32(env, entry->keyboardStatus, &args[ARGC_ZERO]);
                 return true;
             };
             CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getSendKeyboardStatusProperty });
@@ -941,13 +937,12 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
                 return;
             }
 
-            auto getSendFunctionKeyProperty = [entry](napi_value *args, uint8_t argc,
-                                                  std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getSendFunctionKeyProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == ARGC_ZERO) {
                     IMSA_HILOGE("sendFunctionKey:getSendFunctionKeyProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_value functionKey = CreateSendFunctionKey(item->env_, entry->enterKeyType);
+                napi_value functionKey = CreateSendFunctionKey(env, entry->enterKeyType);
                 if (functionKey == nullptr) {
                     IMSA_HILOGE("set select movement failed");
                     return false;
@@ -980,13 +975,12 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
                 return;
             }
 
-            auto getMoveCursorProperty = [entry](napi_value *args, uint8_t argc,
-                                             std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getMoveCursorProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == ARGC_ZERO) {
                     IMSA_HILOGE("moveCursor:getMoveCursorProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_int32(item->env_, static_cast<int32_t>(entry->direction), &args[ARGC_ZERO]);
+                napi_create_int32(env, static_cast<int32_t>(entry->direction), &args[ARGC_ZERO]);
                 return true;
             };
             CallbackProcessor::TraverseCallback({ entry->vecCopy, 1, getMoveCursorProperty });
@@ -1012,14 +1006,12 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
                 IMSA_HILOGE("handleExtendAction entryptr is null.");
                 return;
             }
-
-            auto getHandleExtendActionProperty = [entry](napi_value *args, uint8_t argc,
-                                                     std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getHandleExtendActionProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == ARGC_ZERO) {
                     IMSA_HILOGE("handleExtendAction:getHandleExtendActionProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_int32(item->env_, entry->action, &args[ARGC_ZERO]);
+                napi_create_int32(env, entry->action, &args[ARGC_ZERO]);
                 return true;
             };
             CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getHandleExtendActionProperty });
@@ -1048,14 +1040,12 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
                 IMSA_HILOGE("handleExtendAction entryptr is null.");
                 return;
             }
-
-            auto getGetTextProperty = [entry](napi_value *args, uint8_t argc,
-                                          std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getGetTextProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == ARGC_ZERO) {
                     IMSA_HILOGE("handleExtendAction:getHandleExtendActionProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_int32(item->env_, entry->number, &args[ARGC_ZERO]);
+                napi_create_int32(env, entry->number, &args[ARGC_ZERO]);
                 return true;
             };
             std::string text;

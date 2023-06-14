@@ -854,8 +854,8 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
         return false;
     }
     MessageParcel data;
-    if (!(data.WriteInterfaceToken(agent_->GetDescriptor()) && data.WriteInt32(keyEvent->GetKeyCode())
-            && data.WriteInt32(keyEvent->GetKeyAction()))) {
+    if (!(data.WriteInterfaceToken(agent_->GetDescriptor()) && data.WriteInt32(keyEvent->GetKeyCode()) &&
+          data.WriteInt32(keyEvent->GetKeyAction()))) {
         IMSA_HILOGE("InputMethodController::dispatchKeyEvent Write Parcel fail.");
         return false;
     }

@@ -38,7 +38,7 @@ void CallbackProcessor::DisposeCallback(
         return;
     }
     napi_value argv[MAX_ARGV_COUNT];
-    if (argvProvider != nullptr && !argvProvider(argv, MAX_ARGV_COUNT, callbackObject)) {
+    if (argvProvider != nullptr && !argvProvider(callbackObject->env_, argv, MAX_ARGV_COUNT)) {
         napi_close_handle_scope(callbackObject->env_, scope);
         return;
     }

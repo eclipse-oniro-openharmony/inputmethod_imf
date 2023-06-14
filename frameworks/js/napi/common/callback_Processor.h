@@ -25,7 +25,7 @@ namespace MiscServices {
 
 class CallbackProcessor {
 public:
-    using ArgvProvider = std::function<bool(napi_value *, size_t, std::shared_ptr<JSCallbackObject>)>;
+    using ArgvProvider = std::function<bool(napi_env, napi_value *, size_t)>;
     struct CallbackInput {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         size_t argc{ 0 };

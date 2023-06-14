@@ -17,7 +17,6 @@
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_DATA_CHANNEL_H
 #include <errors.h>
 
-#include "block_data.h"
 #include "global.h"
 #include "input_method_utils.h"
 #include "iremote_broker.h"

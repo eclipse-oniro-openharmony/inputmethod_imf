@@ -499,13 +499,12 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            auto getImeChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                            std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getImeChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc < 2) {
                     return false;
                 }
-                napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
-                napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
+                napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(env, entry->subProperty);
+                napi_value property = JsInputMethod::GetJsInputMethodProperty(env, entry->property);
                 if (subProperty == nullptr || property == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
                     return false;
@@ -543,12 +542,11 @@ void JsGetInputMethodSetting::OnPanelStatusChange(
                 IMSA_HILOGE("OnInputStart:: entry is nullptr");
                 return;
             }
-            auto getWindowInfo = [entry](
-                                     napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getWindowInfo = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc < 1) {
                     return false;
                 }
-                auto windowInfo = JsUtils::GetValue(item->env_, entry->windowInfo);
+                auto windowInfo = JsUtils::GetValue(env, entry->windowInfo);
                 if (windowInfo == nullptr) {
                     IMSA_HILOGE("converse windowInfo failed");
                     return false;

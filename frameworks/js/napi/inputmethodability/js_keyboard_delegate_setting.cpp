@@ -306,13 +306,12 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 delete data;
                 delete work;
             });
-            auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
-                                           std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == 0) {
                     return false;
                 }
                 napi_value jsObject =
-                    GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
+                    GetResultOnKeyEvent(env, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
                     return false;
@@ -321,7 +320,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 return true;
             };
             bool isOnKeyEvent = false;
-            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getKeyEventProperty }, isOnKeyEvent );
+            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getKeyEventProperty }, isOnKeyEvent);
             entry->isDone->SetValue(isOnKeyEvent);
         });
     return isDone->GetValue();
@@ -349,14 +348,13 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
                 delete work;
             });
 
-            auto getCursorUpdateProperty = [entry](napi_value *args, uint8_t argc,
-                                               std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getCursorUpdateProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc < 3) {
                     return false;
                 }
-                napi_create_int32(item->env_, entry->curPara.positionX, &args[ARGC_ZERO]);
-                napi_create_int32(item->env_, entry->curPara.positionY, &args[ARGC_ONE]);
-                napi_create_int32(item->env_, entry->curPara.height, &args[ARGC_TWO]);
+                napi_create_int32(env, entry->curPara.positionX, &args[ARGC_ZERO]);
+                napi_create_int32(env, entry->curPara.positionY, &args[ARGC_ONE]);
+                napi_create_int32(env, entry->curPara.height, &args[ARGC_TWO]);
                 return true;
             };
             CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_THREE, getCursorUpdateProperty });
@@ -386,15 +384,14 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
                 delete work;
             });
 
-            auto getSelectionChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                                  std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getSelectionChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc < 4) {
                     return false;
                 }
-                napi_create_int32(item->env_, entry->selPara.oldBegin, &args[ARGC_ZERO]);
-                napi_create_int32(item->env_, entry->selPara.oldEnd, &args[ARGC_ONE]);
-                napi_create_int32(item->env_, entry->selPara.newBegin, &args[ARGC_TWO]);
-                napi_create_int32(item->env_, entry->selPara.newEnd, &args[ARGC_THREE]);
+                napi_create_int32(env, entry->selPara.oldBegin, &args[ARGC_ZERO]);
+                napi_create_int32(env, entry->selPara.oldEnd, &args[ARGC_ONE]);
+                napi_create_int32(env, entry->selPara.newBegin, &args[ARGC_TWO]);
+                napi_create_int32(env, entry->selPara.newEnd, &args[ARGC_THREE]);
                 return true;
             };
             CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_FOUR, getSelectionChangeProperty });
@@ -418,12 +415,11 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
                 delete work;
             });
 
-            auto getTextChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                             std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getTextChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == 0) {
                     return false;
                 }
-                napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
                 return true;
             };
             CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getTextChangeProperty });
