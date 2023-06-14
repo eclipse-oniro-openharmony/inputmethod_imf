@@ -1020,10 +1020,10 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
 
 std::u16string JsGetInputMethodController::GetText(const std::string &type, int32_t number)
 {
-    auto isGetTextDone = std::make_shared<BlockData<std::string>>(MAX_TIMEOUT, "");
-    uv_work_t *work = GetUVwork(type, [&number, isGetTextDone](UvEntry &entry) {
+    auto textResultHandler = std::make_shared<BlockData<std::string>>(MAX_TIMEOUT, "");
+    uv_work_t *work = GetUVwork(type, [&number, textResultHandler](UvEntry &entry) {
         entry.number = number;
-        entry.isGetTextDone = isGetTextDone;
+        entry.textResultHandler = textResultHandler;
     });
     if (work == nullptr) {
         IMSA_HILOGE("failed to get uv entry.");
@@ -1050,17 +1050,17 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
             };
             std::string text;
             CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getGetTextProperty }, text);
-            entry->isGetTextDone->SetValue(text);
+            entry->textResultHandler->SetValue(text);
         });
-    return Str8ToStr16(isGetTextDone->GetValue());
+    return Str8ToStr16(textResultHandler->GetValue());
 }
 
 int32_t JsGetInputMethodController::GetTextIndexAtCursor()
 {
     std::string type = "getTextIndexAtCursor";
-    auto isGetTextIndexDone = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+    auto indexResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
     uv_work_t *work =
-        GetUVwork(type, [isGetTextIndexDone](UvEntry &entry) { entry.isGetTextIndexDone = isGetTextIndexDone; });
+        GetUVwork(type, [indexResultHandler](UvEntry &entry) { entry.indexResultHandler = indexResultHandler; });
     if (work == nullptr) {
         IMSA_HILOGE("failed to get uv entry.");
         return -1;
@@ -1078,9 +1078,9 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
             }
             int32_t index = -1;
             CallbackProcessor::TraverseCallback({ entry->vecCopy }, index);
-            entry->isGetTextIndexDone->SetValue(index);
+            entry->indexResultHandler->SetValue(index);
         });
-    return isGetTextIndexDone->GetValue();
+    return indexResultHandler->GetValue();
 }
 
 uv_work_t *JsGetInputMethodController::GetUVwork(const std::string &type, EntrySetter entrySetter)

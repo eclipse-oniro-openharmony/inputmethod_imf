@@ -220,8 +220,8 @@ private:
         int32_t keyboardStatus = 0;
         int32_t enterKeyType = 0;
         int32_t number = 0;
-        std::shared_ptr<BlockData<std::string>> isGetTextDone;
-        std::shared_ptr<BlockData<std::int32_t>> isGetTextIndexDone;
+        std::shared_ptr<BlockData<std::string>> textResultHandler;
+        std::shared_ptr<BlockData<std::int32_t>> indexResultHandler;
         explicit UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)
         {
