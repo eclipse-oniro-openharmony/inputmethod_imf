@@ -412,7 +412,6 @@ int32_t InputMethodController::Attach(
         std::lock_guard<std::mutex> lock(textListenerLock_);
         textListener_ = listener;
     }
-    bool isReport = (!clientInfo_.isShowKeyboard && !isBound_.load());
     clientInfo_.isShowKeyboard = isShowKeyboard;
     clientInfo_.attribute = attribute;
 
@@ -430,7 +429,7 @@ int32_t InputMethodController::Attach(
     isEditable_.store(true);
     IMSA_HILOGI("bind imf successfully, enter editable state");
 
-    if (isReport) {
+    if (isShowKeyboard) {
         InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_SHOW_ATTACH);
     }
     return ErrorCode::NO_ERROR;
@@ -463,13 +462,8 @@ int32_t InputMethodController::HideTextInput()
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
     isEditable_.store(false);
-    int32_t ret = StopInput(clientInfo_.client);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to stop input, ret: %{public}d", ret);
-        return ret;
-    }
     InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_UNEDITABLE);
-    return ret;
+    return StopInput(clientInfo_.client);
 }
 
 int32_t InputMethodController::HideCurrentInput()
@@ -484,17 +478,9 @@ int32_t InputMethodController::HideCurrentInput()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    bool isReport = clientInfo_.isShowKeyboard;
     clientInfo_.isShowKeyboard = false;
-    int32_t ret = proxy->HideCurrentInputDeprecated();
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to hide current input, ret: %{public}d", ret);
-        return ret;
-    }
-    if (isReport) {
-        InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_NORMAL);
-    }
-    return ret;
+    InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_NORMAL);
+    return proxy->HideCurrentInputDeprecated();
 }
 
 int32_t InputMethodController::ShowCurrentInput()
@@ -509,17 +495,9 @@ int32_t InputMethodController::ShowCurrentInput()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    bool isReport = clientInfo_.isShowKeyboard;
     clientInfo_.isShowKeyboard = true;
-    int32_t ret = proxy->ShowCurrentInputDeprecated();
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to show current input, ret: %{public}d", ret);
-        return ret;
-    }
-    if (!isReport) {
-        InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_SHOW_NORMAL);
-    }
-    return ret;
+    InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_SHOW_NORMAL);
+    return proxy->ShowCurrentInputDeprecated();
 }
 
 int32_t InputMethodController::Close()
@@ -539,17 +517,12 @@ int32_t InputMethodController::Close()
         agentObject_ = nullptr;
     }
     ClearEditorCache();
-    int32_t ret = ReleaseInput(clientInfo_.client);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to release input, ret: %{public}d", ret);
-        return ret;
-    }
     if (!isReportHide) {
         InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_UNBIND);
         return ret;
     }
     InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_UNBIND);
-    return ret;
+    return ReleaseInput(clientInfo_.client);
 }
 
 int32_t InputMethodController::PrepareInput(InputClientInfo &inputClientInfo)
@@ -984,17 +957,9 @@ int32_t InputMethodController::ShowSoftKeyboard()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    bool isReport = clientInfo_.isShowKeyboard;
     clientInfo_.isShowKeyboard = true;
-    int32_t ret = proxy->ShowCurrentInput();
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to show soft keyboard, ret: %{public}d", ret);
-        return ret;
-    }
-    if (!isReport) {
-        InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_SHOW_NORMAL);
-    }
-    return ret;
+    InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_SHOW_NORMAL);
+    return proxy->ShowCurrentInput();
 }
 
 int32_t InputMethodController::HideSoftKeyboard()
@@ -1009,17 +974,9 @@ int32_t InputMethodController::HideSoftKeyboard()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    bool isReport = clientInfo_.isShowKeyboard;
     clientInfo_.isShowKeyboard = false;
-    int32_t ret = proxy->HideCurrentInput();
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to hide soft keyboard, ret: %{public}d", ret);
-        return ret;
-    }
-    if (isReport) {
-        InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_NORMAL);
-    }
-    return ret;
+    InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_NORMAL);
+    return proxy->HideCurrentInput();
 }
 
 int32_t InputMethodController::StopInputSession()

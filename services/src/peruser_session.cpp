@@ -553,9 +553,7 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     int32_t ret = client->OnInputStop();
     IMSA_HILOGI("OnInputStop ret: %{public}d", ret);
     ret = OnReleaseInput(client);
-    if (ret == ErrorCode::NO_ERROR && clientInfo->isShowKeyboard) {
-        InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
-    }
+    InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
     IMSA_HILOGI("release input ret: %{public}d", ret);
 }
 
