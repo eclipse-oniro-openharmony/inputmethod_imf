@@ -517,11 +517,8 @@ int32_t InputMethodController::Close()
         agentObject_ = nullptr;
     }
     ClearEditorCache();
-    if (!isReportHide) {
-        InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_UNBIND);
-        return ret;
-    }
-    InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_UNBIND);
+    isReportHide ? InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_UNBIND)
+                 : InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_UNBIND);
     return ReleaseInput(clientInfo_.client);
 }
 
