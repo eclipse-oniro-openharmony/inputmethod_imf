@@ -38,7 +38,7 @@ using namespace OHOS::Security::AccessToken;
 using namespace OHOS::MiscServices;
 namespace OHOS {
 std::atomic_bool g_isInitialize = false;
-constexpr uint32_t TARGET_CODE_NUMS = 21;
+constexpr uint32_t TARGET_REMOTE_CODE_NUMS = 21;
 void GrantNativePermission()
 {
     const char **perms = new const char *[1];
@@ -95,7 +95,7 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
 bool FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size)
 {
     GrantNativePermission();
-    uint32_t code = ConvertToUint32(rawData) % TARGET_CODE_NUMS;
+    uint32_t code = ConvertToUint32(rawData) % TARGET_REMOTE_CODE_NUMS;
     rawData = rawData + OFFSET;
     size = size - OFFSET;
 
