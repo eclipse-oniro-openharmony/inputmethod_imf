@@ -99,9 +99,9 @@ bool FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size)
     rawData = rawData + OFFSET;
     size = size - OFFSET;
 
-    if (!isInitialize.load()) {
+    if (!g_isInitialize.load()) {
         DelayedSingleton<InputMethodSystemAbility>::GetInstance()->Initialize();
-        isInitialize.store(true);
+        g_isInitialize.store(true);
     }
 
     sptr<InputMethodController> imc = InputMethodController::GetInstance();
