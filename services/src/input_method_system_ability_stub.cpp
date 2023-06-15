@@ -21,7 +21,6 @@
 #include "input_data_channel_proxy.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_core_proxy.h"
-#include "inputmethod_service_ipc_interface_code.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
 #include "os_account_manager.h"
@@ -38,71 +37,11 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(
         IMSA_HILOGE("%{public}s descriptor failed", __func__);
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
-    switch (code) {
-        case static_cast<uint32_t>(InputMethodInterfaceCode::PREPARE_INPUT):
-            PrepareInputOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT):
-            StartInputOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT):
-            ShowCurrentInputOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT):
-            HideCurrentInputOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT):
-            StopInputOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT):
-            ReleaseInputOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD):
-            GetCurrentInputMethodOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT_SESSION):
-            StopInputSessionOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD_SUBTYPE):
-            GetCurrentInputMethodSubtypeOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::LIST_INPUT_METHOD):
-            ListInputMethodOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::LIST_INPUT_METHOD_SUBTYPE):
-            ListInputMethodSubtypeOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::LIST_CURRENT_INPUT_METHOD_SUBTYPE):
-            ListCurrentInputMethodSubtypeOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::SWITCH_INPUT_METHOD):
-            SwitchInputMethodOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_METHOD):
-            DisplayOptionalInputMethodOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::SET_CORE_AND_AGENT):
-            SetCoreAndAgentOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT_DEPRECATED):
-            ShowCurrentInputOnRemoteDeprecated(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT_DEPRECATED):
-            HideCurrentInputOnRemoteDeprecated(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_DEPRECATED):
-            DisplayInputOnRemoteDeprecated(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE):
-            PanelStatusChangeOnRemote(data, reply);
-            break;
-        case static_cast<uint32_t>(InputMethodInterfaceCode::UPDATE_LISTEN_EVENT_FLAG):
-            UpdateListenEventFlagOnRemote(data, reply);
-            break;
-        default:
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    if (code >= 0 && code < static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_LAST)) {
+        return (this->*HANDLERS[code])(data, reply);
+    } else {
+        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbilityStub::PrepareInputOnRemote(MessageParcel &data, MessageParcel &reply)
