@@ -37,17 +37,21 @@ public:
         auto argc = input.argc;
         auto argvProvider = input.argvProvider;
         for (const auto &object : input.vecCopy) {
+            napi_handle_scope scope = nullptr;
+            napi_open_handle_scope(object->env_, &scope);
             napi_value result = nullptr;
             DisposeCallback(object, argc, argvProvider, result);
             if (GenerateOutput(object->env_, result, out)) {
-                break;
+                napi_close_handle_scope(object->env_, scope);
+                break; //是否一个处理完成就返回？？？？
             }
+            napi_close_handle_scope(object->env_, scope);
         }
     }
 
 private:
     static void DisposeCallback(const std::shared_ptr<JSCallbackObject> &callbackObject, size_t argc,
-        ArgvProvider argvProvider, napi_value result);
+        ArgvProvider argvProvider, napi_value &result);
     template<class T> static bool GenerateOutput(napi_env env, napi_value result, T &out)
     {
         if (result == nullptr) {

@@ -23,23 +23,22 @@ void CallbackProcessor::TraverseCallback(const CallbackInput &input)
     auto argc = input.argc;
     auto argvProvider = input.argvProvider;
     for (const auto &object : input.vecCopy) {
+        napi_handle_scope scope = nullptr;
+        napi_open_handle_scope(object->env_, &scope);
         napi_value result = nullptr;
         DisposeCallback(object, argc, argvProvider, result);
+        napi_close_handle_scope(object->env_, scope);
     }
 }
 
 void CallbackProcessor::DisposeCallback(
-    const std::shared_ptr<JSCallbackObject> &callbackObject, size_t argc, ArgvProvider argvProvider, napi_value result)
+    const std::shared_ptr<JSCallbackObject> &callbackObject, size_t argc, ArgvProvider argvProvider, napi_value &result)
 {
-    napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(callbackObject->env_, &scope);
     if (callbackObject->threadId_ != std::this_thread::get_id()) {
-        napi_close_handle_scope(callbackObject->env_, scope);
         return;
     }
     napi_value argv[MAX_ARGV_COUNT];
     if (argvProvider != nullptr && !argvProvider(callbackObject->env_, argv, MAX_ARGV_COUNT)) {
-        napi_close_handle_scope(callbackObject->env_, scope);
         return;
     }
     napi_value callback = nullptr;
@@ -52,7 +51,6 @@ void CallbackProcessor::DisposeCallback(
             result = nullptr;
         }
     }
-    napi_close_handle_scope(callbackObject->env_, scope);
 }
 } // namespace MiscServices
 } // namespace OHOS
