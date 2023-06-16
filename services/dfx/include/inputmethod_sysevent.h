@@ -17,7 +17,7 @@
 #define INPUTMETHOD_SYSEVENT_H
 
 #include <string>
-#include <map>
+#include <unordered_map>
 
 #include "global.h"
 
@@ -37,17 +37,17 @@ enum OperateIMEInfoCode : int32_t {
 
 class InputmethodSysevent {
 public:
-    static void FaultReporter(int32_t userId, std::string bundleName, int32_t errCode);
+    static void FaultReporter(int32_t userId, const std::string &bundleName, int32_t errCode);
     static void CreateComponentFailed(int32_t userId, int32_t errCode);
-    static void BehaviourReporter(std::string ActiveName, const std::string &inputmethodName);
+    static void BehaviourReporter(const std::string &activeName, const std::string &inputmethodName);
     static void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
+    static std::string GetOperateInfo(OperateIMEInfoCode infoCode);
 
 private:
-    static std::string GetOperateInfo(OperateIMEInfoCode infoCode);
     static std::string GetOperateAction(OperateIMEInfoCode infoCode);
 
 private:
-    static const std::map<int32_t, std::string> oprateInfo_;
+    static const std::unordered_map<int32_t, std::string> operateInfo_;
 };
 } // namespace MiscServices
 } // namespace OHOS
