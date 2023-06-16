@@ -56,15 +56,15 @@ int32_t InputDataChannelStub::OnRemoteRequest(
             break;
         }
         case GET_TEXT_BEFORE_CURSOR: {
-            GetTextBeforeCursor(data, reply);
+            GetText(MessageID::MSG_ID_GET_TEXT_BEFORE_CURSOR, data, reply);
             break;
         }
         case GET_TEXT_AFTER_CURSOR: {
-            GetTextAfterCursor(data, reply);
+            GetText(MessageID::MSG_ID_GET_TEXT_AFTER_CURSOR, data, reply);
             break;
         }
         case GET_TEXT_INDEX_AT_CURSOR: {
-            GetTextIndexAtCursor(data, reply);
+            GetTextIndexAtCursor(MessageID::MSG_ID_GET_TEXT_INDEX_AT_CURSOR, data, reply);
             break;
         }
         case SEND_KEYBOARD_STATUS: {
@@ -196,14 +196,14 @@ int32_t InputDataChannelStub::DeleteBackward(int32_t length)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputDataChannelStub::GetTextBeforeCursor(MessageParcel &data, MessageParcel &reply)
+int32_t InputDataChannelStub::GetText(int32_t msgId, MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("InputDataChannelStub::GetTextBeforeCursor");
+    IMSA_HILOGD("InputDataChannelStub::start");
     int32_t number = -1;
     auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
     ResultHandler resultHandler{ textResultHandler, nullptr };
     auto ret = SendMessage(
-        MessageID::MSG_ID_GET_TEXT_BEFORE_CURSOR,
+        msgId,
         [&data, &number](MessageParcel &parcel) {
             return ITypesUtil::Unmarshal(data, number) && ITypesUtil::Marshal(parcel, number);
         },
@@ -220,36 +220,12 @@ int32_t InputDataChannelStub::GetTextBeforeCursor(MessageParcel &data, MessagePa
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputDataChannelStub::GetTextAfterCursor(MessageParcel &data, MessageParcel &reply)
+int32_t InputDataChannelStub::GetTextIndexAtCursor(int32_t msgId, MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("InputDataChannelStub::GetTextBeforeCursor");
-    int32_t number = -1;
-    auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
-    ResultHandler resultHandler{ textResultHandler, nullptr };
-    auto ret = SendMessage(
-        MessageID::MSG_ID_GET_TEXT_AFTER_CURSOR,
-        [&data, &number](MessageParcel &parcel) {
-            return ITypesUtil::Unmarshal(data, number) && ITypesUtil::Marshal(parcel, number);
-        },
-        resultHandler);
-    if (ret != ErrorCode::NO_ERROR) {
-        return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    auto text = textResultHandler->GetValue();
-    ret = textResultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
-    if (!ITypesUtil::Marshal(reply, ret, text)) {
-        IMSA_HILOGE("failed to write reply");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputDataChannelStub::GetTextIndexAtCursor(MessageParcel &data, MessageParcel &reply)
-{
-    IMSA_HILOGD("InputDataChannelStub::GetTextIndexAtCursor");
+    IMSA_HILOGD("InputDataChannelStub::start");
     auto indexResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
     ResultHandler resultHandler{ nullptr, indexResultHandler };
-    auto ret = SendMessage(MessageID::MSG_ID_GET_TEXT_INDEX_AT_CURSOR, nullptr, resultHandler);
+    auto ret = SendMessage(msgId, nullptr, resultHandler);
     if (ret != ErrorCode::NO_ERROR) {
         return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
     }

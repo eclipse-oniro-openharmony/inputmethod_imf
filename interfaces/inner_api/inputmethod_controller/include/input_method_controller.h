@@ -414,15 +414,13 @@ private:
     void OnSelectByRange(int32_t start, int32_t end);
     void OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip);
     void HandleExtendAction(int32_t action);
-    bool IsCorrectParam(int32_t number);
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void RestoreListenInfoInSaDied();
     void RestoreAttachInfoInSaDied();
     int32_t RestoreListenEventFlag();
     void UpdateNativeEventFlag(EventType eventType, bool isOn);
-    void GetTextBeforeCursor(int32_t number, const std::shared_ptr<BlockData<std::u16string>> &resultHandler);
-    void GetTextAfterCursor(int32_t number, const std::shared_ptr<BlockData<std::u16string>> &resultHandler);
-    void GetTextIndexAtCursor(const std::shared_ptr<BlockData<int32_t>> &resultHandler);
+    void GetText(const Message *msg);
+    void GetTextIndexAtCursor(const Message *msg);
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;

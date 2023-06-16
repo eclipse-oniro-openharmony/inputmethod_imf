@@ -331,28 +331,13 @@ void InputMethodController::WorkThread()
                 OnSelectByMovement(direction, cursorMoveSkip);
                 break;
             }
-            case MSG_ID_GET_TEXT_BEFORE_CURSOR: {
-                MessageParcel *data = msg->msgContent_;
-                int32_t number = 0;
-                if (!ITypesUtil::Unmarshal(*data, number)) {
-                    IMSA_HILOGE("failed to read message parcel");
-                    break;
-                }
-                GetTextBeforeCursor(number, msg->resultHandler_.textResultHandler);
-                break;
-            }
+            case MSG_ID_GET_TEXT_BEFORE_CURSOR:
             case MSG_ID_GET_TEXT_AFTER_CURSOR: {
-                MessageParcel *data = msg->msgContent_;
-                int32_t number = 0;
-                if (!ITypesUtil::Unmarshal(*data, number)) {
-                    IMSA_HILOGE("failed to read message parcel");
-                    break;
-                }
-                GetTextAfterCursor(number, msg->resultHandler_.textResultHandler);
+                GetText(msg);
                 break;
             }
             case MSG_ID_GET_TEXT_INDEX_AT_CURSOR: {
-                GetTextIndexAtCursor(msg->resultHandler_.indexResultHandler);
+                GetTextIndexAtCursor(msg);
                 break;
             }
             default: {
@@ -760,80 +745,44 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     return ErrorCode::NO_ERROR;
 }
 
-bool InputMethodController::IsCorrectParam(int32_t number)
+void InputMethodController::GetText(const Message *msg)
 {
-    std::lock_guard<std::mutex> lock(editorContentLock_);
-    if (textString_.size() > INT_MAX || number < 0 || selectNewEnd_ < 0 || selectNewBegin_ < 0) {
-        IMSA_HILOGE("InputMethodController::param error, number: %{public}d, begin: %{public}d, end: %{public}d",
-            number, selectNewBegin_, selectNewEnd_);
-        return false;
-    }
-    if (selectNewBegin_ > selectNewEnd_) {
-        int32_t temp = selectNewEnd_;
-        selectNewEnd_ = selectNewBegin_;
-        selectNewBegin_ = temp;
-    }
-    if (static_cast<size_t>(selectNewEnd_) > textString_.size()) {
-        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}zu", selectNewEnd_,
-            textString_.size());
-        return false;
-    }
-    return true;
-}
-
-void InputMethodController::GetTextBeforeCursor(
-    int32_t number, const std::shared_ptr<BlockData<std::u16string>> &resultHandler)
-{
-    IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
-    if (resultHandler == nullptr) {
-        IMSA_HILOGI("resultAcquirer is nullptr");
-        return;
-    }
     std::u16string text;
+    auto resultHandler = msg->resultHandler_.textResultHandler;
     if (!isEditable_.load() || textListener_ == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
         resultHandler->SetValue(text);
         return;
     }
-    text = textListener_->GetLeftTextOfCursor(number);
-    IMSA_HILOGE("InputMethodController::GetTextBeforeCursor success");
-    resultHandler->SetValue(text);
-}
 
-void InputMethodController::GetTextAfterCursor(
-    int32_t number, const std::shared_ptr<BlockData<std::u16string>> &resultHandler)
-{
-    IMSA_HILOGI("InputMethodController::GetTextAfterCursor");
-    if (resultHandler == nullptr) {
-        IMSA_HILOGI("resultAcquirer is nullptr");
-        return;
-    }
-    std::u16string text;
-    if (!isEditable_.load() || textListener_ == nullptr) {
-        IMSA_HILOGE("not editable or textListener_ is nullptr");
+    auto msgContent = msg->msgContent_;
+    int32_t number = 0;
+    if (!ITypesUtil::Unmarshal(*msgContent, number)) {
+        IMSA_HILOGE("failed to read message parcel");
         resultHandler->SetValue(text);
         return;
     }
-    text = textListener_->GetRightTextOfCursor(number);
-    IMSA_HILOGE("InputMethodController::GetTextAfterCursor success");
+
+    if (msg->msgId_ == MSG_ID_GET_TEXT_BEFORE_CURSOR) {
+        text = textListener_->GetLeftTextOfCursor(number);
+    } else {
+        text = textListener_->GetRightTextOfCursor(number);
+    }
+    IMSA_HILOGI("get text success, msgId:%{public}d", msg->msgId_);
     resultHandler->SetValue(text);
 }
 
-void InputMethodController::GetTextIndexAtCursor(const std::shared_ptr<BlockData<int32_t>> &resultHandler)
+void InputMethodController::GetTextIndexAtCursor(const Message *msg)
 {
-    IMSA_HILOGI("InputMethodController::GetTextIndexAtCursor");
-    if (resultHandler == nullptr) {
-        IMSA_HILOGI("resultAcquirer is nullptr");
-        return;
-    }
-    int32_t index = -1;
+    std::int32_t index = -1;
+    auto resultHandler = msg->resultHandler_.indexResultHandler;
     if (!isEditable_.load() || textListener_ == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
         resultHandler->SetValue(index);
         return;
     }
     index = textListener_->GetTextIndexAtCursor();
-    IMSA_HILOGE("InputMethodController::GetTextIndexAtCursor success");
+    IMSA_HILOGI("get text index success");
     resultHandler->SetValue(index);
 }
 

@@ -58,9 +58,8 @@ private:
     int32_t SelectByRangeOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SelectByMovementOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply);
-    int32_t GetTextBeforeCursor(MessageParcel &data, MessageParcel &reply);
-    int32_t GetTextIndexAtCursor(MessageParcel &data, MessageParcel &reply);
-    int32_t GetTextAfterCursor(MessageParcel &data, MessageParcel &reply);
+    int32_t GetText(int32_t msgId, MessageParcel &data, MessageParcel &reply);
+    int32_t GetTextIndexAtCursor(int32_t msgId, MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr, const ResultHandler &resultHandler = {});
 };
