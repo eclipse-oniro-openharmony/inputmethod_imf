@@ -59,7 +59,6 @@ namespace OHOS {
 namespace MiscServices {
 constexpr const char *CMD = "pidof inputmethod_ser";
 constexpr int32_t MAIN_USER_ID = 100;
-constexpr int32_t INTERVAL_MILLISECOND = 10;
 constexpr uint32_t DEALY_TIME = 1;
 constexpr int32_t BUFF_LENGTH = 10;
     class TextListener : public OnTextChangedListener {
