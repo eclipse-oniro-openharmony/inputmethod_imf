@@ -23,6 +23,7 @@
 #include "input_method_core_proxy.h"
 #include "input_method_core_stub.h"
 #include "input_method_utils.h"
+#include "inputmethod_sysevent.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "message_parcel.h"
@@ -454,6 +455,7 @@ int32_t InputMethodAbility::HideKeyboardSelf()
         IMSA_HILOGE("InputMethodAbility::HideKeyboardSelf controlChannel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_SELF);
     return controlChannel->HideKeyboardSelf(1);
 }
 

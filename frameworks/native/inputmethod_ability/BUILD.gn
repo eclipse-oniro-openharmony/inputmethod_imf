@@ -20,6 +20,7 @@ config("inputmethod_ability_native_config") {
     "include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/frameworks/common",
+    "${inputmethod_path}/services/dfx/include",
     "${inputmethod_path}/services/include",
   ]
 }
@@ -28,6 +29,7 @@ config("inputmethod_ability_native_public_config") {
   include_dirs = [
     "include",
     "${inputmethod_path}/frameworks/common",
+    "${inputmethod_path}/services/dfx/include",
     "${inputmethod_path}/services/include",
     "${windowmanager_path}/interfaces/innerkits/dm",
     "${windowmanager_path}/interfaces/innerkits/wm",
@@ -67,6 +69,8 @@ ohos_shared_library("inputmethod_ability") {
     "window_manager:libdm",
     "window_manager:libwm",
   ]
+
+  deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
 
   public_configs = [ ":inputmethod_ability_native_public_config" ]
 
