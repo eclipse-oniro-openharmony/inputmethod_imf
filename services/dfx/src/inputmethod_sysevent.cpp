@@ -25,7 +25,7 @@ namespace {
 using HiSysEventNameSpace = OHOS::HiviewDFX::HiSysEvent;
 } // namespace
 
-const std::unordered_map<int32_t, std::string> InputmethodSysevent::operateInfo_ = {
+const std::unordered_map<int32_t, std::string> InputMethodSysEvent::operateInfo_ = {
     {IME_SHOW_ATTACH, "Attach: attach, bind and show soft keyboard."},
     {IME_SHOW_ENEDITABLE, "ShowTextInput: enter editable state, show soft keyboard."},
     {IME_SHOW_NORMAL, "ShowSoftKeyboard: show soft keyboard."},
@@ -37,7 +37,7 @@ const std::unordered_map<int32_t, std::string> InputmethodSysevent::operateInfo_
     {IME_HIDE_SELF, "HideKeyboardSelf: hide soft keyboard self."}
 };
 
-void InputmethodSysevent::FaultReporter(int32_t userId, const std::string &bundleName, int32_t errCode)
+void InputMethodSysEvent::FaultReporter(int32_t userId, const std::string &bundleName, int32_t errCode)
 {
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "SERVICE_INIT_FAILED",
         HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId, "COMPONENT_ID", bundleName, "ERROR_CODE", errCode);
@@ -46,7 +46,7 @@ void InputmethodSysevent::FaultReporter(int32_t userId, const std::string &bundl
     }
 }
 
-void InputmethodSysevent::CreateComponentFailed(int32_t userId, int32_t errCode)
+void InputMethodSysEvent::CreateComponentFailed(int32_t userId, int32_t errCode)
 {
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "CREATE_COMPONENT_FAILED",
         HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId, "ERROR_CODE", errCode);
@@ -55,16 +55,16 @@ void InputmethodSysevent::CreateComponentFailed(int32_t userId, int32_t errCode)
     }
 }
 
-void InputmethodSysevent::BehaviourReporter(const std::string &activeName, const std::string &inputmethodName)
+void InputMethodSysEvent::BehaviourReporter(const std::string &activeName, const std::string &inputMethodName)
 {
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "INPUTMETHOD_USING",
-        HiSysEventNameSpace::EventType::BEHAVIOR, "ACTIVE_NAME", activeName, "INPUTMETHOD_NAME", inputmethodName);
+        HiSysEventNameSpace::EventType::BEHAVIOR, "ACTIVE_NAME", activeName, "INPUTMETHOD_NAME", inputMethodName);
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
     }
 }
 
-void InputmethodSysevent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode)
+void InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode)
 {
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "OPERATE_SOFTKEYBOARD",
         HiSysEventNameSpace::EventType::BEHAVIOR, "OPERATING", GetOperateAction(infoCode), "OPERATE_INFO",
@@ -74,7 +74,7 @@ void InputmethodSysevent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCo
     }
 }
 
-std::string InputmethodSysevent::GetOperateInfo(OperateIMEInfoCode infoCode)
+std::string InputMethodSysEvent::GetOperateInfo(OperateIMEInfoCode infoCode)
 {
     std::string info;
     auto iter = operateInfo_.find(infoCode);
@@ -85,7 +85,7 @@ std::string InputmethodSysevent::GetOperateInfo(OperateIMEInfoCode infoCode)
     return "unknow operating.";
 }
 
-std::string InputmethodSysevent::GetOperateAction(OperateIMEInfoCode infoCode)
+std::string InputMethodSysEvent::GetOperateAction(OperateIMEInfoCode infoCode)
 {
     switch (infoCode) {
         case IME_SHOW_ATTACH:

@@ -313,7 +313,7 @@ int32_t PerUserSession::SendAgentToSingleClient(const sptr<IInputClient> &client
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGI("agent is nullptr");
-        InputmethodSysevent::CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
+        InputMethodSysEvent::CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return client->OnInputReady(agent);
@@ -553,7 +553,7 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     int32_t ret = client->OnInputStop();
     IMSA_HILOGI("OnInputStop ret: %{public}d", ret);
     ret = OnReleaseInput(client);
-    InputmethodSysevent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
     IMSA_HILOGI("release input ret: %{public}d", ret);
 }
 

@@ -35,11 +35,11 @@ enum OperateIMEInfoCode : int32_t {
     IME_HIDE_SELF,
 };
 
-class InputmethodSysevent {
+class InputMethodSysEvent {
 public:
     static void FaultReporter(int32_t userId, const std::string &bundleName, int32_t errCode);
     static void CreateComponentFailed(int32_t userId, int32_t errCode);
-    static void BehaviourReporter(const std::string &activeName, const std::string &inputmethodName);
+    static void BehaviourReporter(const std::string &activeName, const std::string &inputMethodName);
     static void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
 
 private:
