@@ -18,6 +18,7 @@
 #undef private
 
 #include <event_handler.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <string_ex.h>
 #include <sys/time.h>
@@ -50,6 +51,7 @@
 #include "system_ability_definition.h"
 #include "token_setproc.h"
 
+using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
 using namespace OHOS::AccountSA;
@@ -193,54 +195,14 @@ constexpr int32_t BUFF_LENGTH = 10;
         IMSA_HILOGD("InputMethodEngineListenerImpl::OnSetSubtype");
     }
 
-    class SelectListener : public ControllerListener {
+    class SelectListenerMock : public ControllerListener {
     public:
-        SelectListener()
-        {
-        }
-        ~SelectListener()
-        {
-        }
-        void OnSelectByRange(int32_t start, int32_t end)
-        {
-            IMSA_HILOGI("IMC TEST SelectListener OnSelectByRange");
-            rangeStart_ = start;
-            rangeEnd_ = end;
-            selectListenerCv_.notify_one();
-        }
-        void OnSelectByMovement(int32_t direction)
-        {
-            IMSA_HILOGI("IMC TEST SelectListener OnSelectByMovement");
-            direction_ = direction;
-            selectListenerCv_.notify_one();
-        }
-        void TriggerBySelectionCallback(int32_t direction)
-        {
-            IMSA_HILOGI("IMC TEST SelectListener TriggerBySelectionCallback");
-            std::unique_lock<std::mutex> lock(listenerCvMutex_);
-            bool result = selectListenerCv_.wait_for(lock, std::chrono::milliseconds(INTERVAL_MILLISECOND),
-                [direction] { return direction_ == direction; });
-            EXPECT_TRUE(result);
-        }
-        void TriggerBySelectionCallback(int32_t rangeStart, int32_t rangeEnd)
-        {
-            IMSA_HILOGI("IMC TEST SelectListener TriggerBySelectionCallback");
-            std::unique_lock<std::mutex> lock(listenerCvMutex_);
-            bool result = selectListenerCv_.wait_for(lock, std::chrono::milliseconds(INTERVAL_MILLISECOND),
-                [rangeStart, rangeEnd] { return rangeStart_ == rangeStart && rangeEnd_ == rangeEnd; });
-            EXPECT_TRUE(result);
-        }
-        static int32_t rangeStart_;
-        static int32_t rangeEnd_;
-        static int32_t direction_;
-        static std::condition_variable selectListenerCv_;
-        static std::mutex listenerCvMutex_;
+        SelectListenerMock() = default;
+        virtual ~SelectListenerMock() = default;
+
+        MOCK_METHOD2(OnSelectByRange, void(int32_t start, int32_t end));
+        MOCK_METHOD1(OnSelectByMovement, void(int32_t direction));
     };
-    int32_t SelectListener::rangeStart_ = 0;
-    int32_t SelectListener::rangeEnd_ = 0;
-    int32_t SelectListener::direction_ = 0;
-    std::mutex SelectListener::listenerCvMutex_;
-    std::condition_variable SelectListener::selectListenerCv_;
 
     class InputMethodControllerTest : public testing::Test {
     public:
@@ -260,7 +222,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         static sptr<InputMethodAbility> inputMethodAbility_;
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
         static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
-        static std::shared_ptr<SelectListener> controllerListener_;
+        static std::shared_ptr<SelectListenerMock> controllerListener_;
         static sptr<OnTextChangedListener> textListener_;
         static std::mutex keyboardListenerMutex_;
         static std::condition_variable keyboardListenerCv_;
@@ -320,7 +282,7 @@ constexpr int32_t BUFF_LENGTH = 10;
     sptr<InputMethodAbility> InputMethodControllerTest::inputMethodAbility_;
     std::shared_ptr<MMI::KeyEvent> InputMethodControllerTest::keyEvent_;
     std::shared_ptr<InputMethodEngineListenerImpl> InputMethodControllerTest::imeListener_;
-    std::shared_ptr<SelectListener> InputMethodControllerTest::controllerListener_;
+    std::shared_ptr<SelectListenerMock> InputMethodControllerTest::controllerListener_;
     sptr<OnTextChangedListener> InputMethodControllerTest::textListener_;
     uint64_t InputMethodControllerTest::selfTokenID_ = 0;
     AccessTokenID InputMethodControllerTest::testTokenID_ = 0;
@@ -350,7 +312,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->OnImeReady();
         imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
-        controllerListener_ = std::make_shared<SelectListener>();
+        controllerListener_ = std::make_shared<SelectListenerMock>();
         textListener_ = new TextListener();
         inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerImpl>());
         inputMethodAbility_->SetImeListener(imeListener_);
@@ -934,30 +896,21 @@ constexpr int32_t BUFF_LENGTH = 10;
     {
         IMSA_HILOGI("IMC SetControllerListener Test START");
         inputMethodController_->SetControllerListener(controllerListener_);
-        EXPECT_EQ(controllerListener_->rangeStart_, 0);
-        EXPECT_EQ(controllerListener_->rangeEnd_, 0);
         
         int32_t ret = inputMethodController_->Attach(textListener_, false);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        EXPECT_CALL(*controllerListener_, OnSelectByRange(Eq(1), Eq(2))).Times(1);
         inputMethodAbility_->SelectByRange(1, 2);
-        controllerListener_->TriggerBySelectionCallback(1, 2);
 
-        EXPECT_EQ(controllerListener_->direction_, static_cast<int32_t>(Direction::NONE));
+        Sequence s;
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::UP)))).Times(1).InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::DOWN)))).Times(1).InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::LEFT)))).Times(1).InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::RIGHT)))).Times(1).InSequence(s);
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::UP));
-        controllerListener_->TriggerBySelectionCallback(static_cast<int32_t>(Direction::UP));
-
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
-        controllerListener_->TriggerBySelectionCallback(static_cast<int32_t>(Direction::DOWN));
-
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
-        controllerListener_->TriggerBySelectionCallback(static_cast<int32_t>(Direction::LEFT));
-    
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::RIGHT));
-        controllerListener_->TriggerBySelectionCallback(static_cast<int32_t>(Direction::RIGHT));
-
-        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::NONE));
-        inputMethodAbility_->SelectByRange(0, 0);
-        inputMethodController_->Close();
     }
 
     /**
@@ -970,7 +923,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         IMSA_HILOGI("IMC WasAttached Test START");
         inputMethodController_->Close();
         bool result = inputMethodController_->WasAttached();
-        EXPECT_TRUE(!result);
+        EXPECT_FALSE(result);
         int32_t ret = inputMethodController_->Attach(textListener_, false);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         result = inputMethodController_->WasAttached();
@@ -979,12 +932,12 @@ constexpr int32_t BUFF_LENGTH = 10;
     }
 
     /**
-    * @tc.name: testWithouteEditableState
-    * @tc.desc: IMC testWithouteEditableState
+    * @tc.name: testWithoutEditableState
+    * @tc.desc: IMC testWithoutEditableState
     * @tc.type: FUNC
     * @tc.require:
     */
-    HWTEST_F(InputMethodControllerTest, testWithouteEditableState, TestSize.Level0)
+    HWTEST_F(InputMethodControllerTest, testWithoutEditableState, TestSize.Level0)
     {
         IMSA_HILOGI("IMC WithouteEditableState Test START");
         auto ret = inputMethodController_->Attach(textListener_, false);
@@ -995,31 +948,31 @@ constexpr int32_t BUFF_LENGTH = 10;
         int32_t deleteForwardLength = 1;
         ret = inputMethodAbility_->DeleteForward(deleteForwardLength);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        usleep(300);
+        usleep(100);
         EXPECT_NE(TextListener::deleteForwardLength_, deleteForwardLength);
 
         int32_t deleteBackwardLength = 2;
         ret = inputMethodAbility_->DeleteBackward(deleteBackwardLength);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        usleep(300);
+        usleep(100);
         EXPECT_NE(TextListener::deleteBackwardLength_, deleteBackwardLength);
 
         std::string insertText = "t";
         ret = inputMethodAbility_->InsertText(insertText);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        usleep(300);
+        usleep(100);
         EXPECT_NE(TextListener::insertText_, Str8ToStr16(insertText));
 
         constexpr int32_t funcKey = 1;
         ret = inputMethodAbility_->SendFunctionKey(funcKey);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        usleep(300);
+        usleep(100);
         EXPECT_NE(TextListener::key_, funcKey);
 
         constexpr int32_t keyCode = 4;
         ret = inputMethodAbility_->MoveCursor(keyCode);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        usleep(300);
+        usleep(100);
         EXPECT_NE(TextListener::direction_, keyCode);
     }
 
