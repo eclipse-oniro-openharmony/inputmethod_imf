@@ -348,8 +348,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Leve
     EXPECT_TRUE(TextListener::WaitIMACallback());
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep Attach", result);
     EXPECT_TRUE(ret);
-    IMSA_HILOGI("Attach result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputmethodSysevent::operateInfo_[IME_SHOW_ATTACH]), std::string::npos);
+    IMSA_HILOGD("Attach result = %{public}s", result.c_str());
+    EXPECT_NE(result.find(InputmethodSysevent::GetOperateInfo(IME_SHOW_ATTACH)), std::string::npos);
 }
 
 /**
@@ -363,8 +363,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSi
     inputMethodController_->HideTextInput();
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideTextInput", result);
     EXPECT_TRUE(ret);
-    IMSA_HILOGI("HideTextInput result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputmethodSysevent::operateInfo_[IME_HIDE_UNEDITABLE]), std::string::npos);
+    IMSA_HILOGD("HideTextInput result = %{public}s", result.c_str());
+    EXPECT_NE(result.find(InputmethodSysevent::GetOperateInfo(IME_HIDE_UNEDITABLE)), std::string::npos);
 }
 
 /**
@@ -378,8 +378,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowTextInput, TestSi
     inputMethodController_->ShowTextInput();
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep ShowTextInput", result);
     EXPECT_TRUE(ret);
-    IMSA_HILOGI("ShowTextInput result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputmethodSysevent::operateInfo_[IME_SHOW_ENEDITABLE]), std::string::npos);
+    IMSA_HILOGD("ShowTextInput result = %{public}s", result.c_str());
+    EXPECT_NE(result.find(InputmethodSysevent::GetOperateInfo(IME_SHOW_ENEDITABLE)), std::string::npos);
 }
 
 /**
@@ -393,8 +393,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideCurrentInput, Tes
     inputMethodController_->HideCurrentInput();
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideSoftKeyboard", result);
     EXPECT_TRUE(ret);
-    IMSA_HILOGI("HideCurrentInput result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputmethodSysevent::operateInfo_[IME_HIDE_NORMAL]), std::string::npos);
+    IMSA_HILOGD("HideCurrentInput result = %{public}s", result.c_str());
+    EXPECT_NE(result.find(InputmethodSysevent::GetOperateInfo(IME_HIDE_NORMAL)), std::string::npos);
 }
 
 /**
@@ -408,8 +408,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowCurrentInput, Tes
     inputMethodController_->ShowCurrentInput();
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep ShowSoftKeyboard", result);
     EXPECT_TRUE(ret);
-    IMSA_HILOGI("ShowCurrentInput result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputmethodSysevent::operateInfo_[IME_SHOW_NORMAL]), std::string::npos);
+    IMSA_HILOGD("ShowCurrentInput result = %{public}s", result.c_str());
+    EXPECT_NE(result.find(InputmethodSysevent::GetOperateInfo(IME_SHOW_NORMAL)), std::string::npos);
 }
 
 /**
@@ -423,8 +423,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideSoftKeyboard, Tes
     inputMethodController_->HideSoftKeyboard();
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideSoftKeyboard", result);
     EXPECT_TRUE(ret);
-    IMSA_HILOGI("HideSoftKeyboard result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputmethodSysevent::operateInfo_[IME_HIDE_NORMAL]), std::string::npos);
+    IMSA_HILOGD("HideSoftKeyboard result = %{public}s", result.c_str());
+    EXPECT_NE(result.find(InputmethodSysevent::GetOperateInfo(IME_HIDE_NORMAL)), std::string::npos);
 }
 
 /**
@@ -438,8 +438,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowSoftKeyboard, Tes
     inputMethodController_->ShowSoftKeyboard();
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep ShowSoftKeyboard", result);
     EXPECT_TRUE(ret);
-    IMSA_HILOGI("ShowSoftKeyboard result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputmethodSysevent::operateInfo_[IME_SHOW_NORMAL]), std::string::npos);
+    IMSA_HILOGD("ShowSoftKeyboard result = %{public}s", result.c_str());
+    EXPECT_NE(result.find(InputmethodSysevent::GetOperateInfo(IME_SHOW_NORMAL)), std::string::npos);
 }
 
 /**
@@ -453,8 +453,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideKeyboardSelf, Tes
     inputMethodAbility_->HideKeyboardSelf();
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideKeyboardSelf", result);
     EXPECT_TRUE(ret);
-    IMSA_HILOGI("HideKeyboardSelf result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputmethodSysevent::operateInfo_[IME_HIDE_SELF]), std::string::npos);
+    IMSA_HILOGD("HideKeyboardSelf result = %{public}s", result.c_str());
+    EXPECT_NE(result.find(InputmethodSysevent::GetOperateInfo(IME_HIDE_SELF)), std::string::npos);
 }
 
 /**
@@ -468,8 +468,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Close, TestSize.Level
     inputMethodController_->Close();
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep Close", result);
     EXPECT_TRUE(ret);
-    IMSA_HILOGI("ShowSoftKeyboard result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputmethodSysevent::operateInfo_[IME_UNBIND]), std::string::npos);
+    IMSA_HILOGD("ShowSoftKeyboard result = %{public}s", result.c_str());
+    EXPECT_NE(result.find(InputmethodSysevent::GetOperateInfo(IME_UNBIND)), std::string::npos);
 }
 } // namespace MiscServices
 } // namespace OHOS
