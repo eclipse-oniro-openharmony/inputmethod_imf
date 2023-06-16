@@ -896,17 +896,25 @@ constexpr int32_t BUFF_LENGTH = 10;
     {
         IMSA_HILOGI("IMC SetControllerListener Test START");
         inputMethodController_->SetControllerListener(controllerListener_);
-        
+
         int32_t ret = inputMethodController_->Attach(textListener_, false);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         EXPECT_CALL(*controllerListener_, OnSelectByRange(Eq(1), Eq(2))).Times(1);
         inputMethodAbility_->SelectByRange(1, 2);
 
         Sequence s;
-        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::UP)))).Times(1).InSequence(s);
-        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::DOWN)))).Times(1).InSequence(s);
-        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::LEFT)))).Times(1).InSequence(s);
-        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::RIGHT)))).Times(1).InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::UP))))
+            .Times(1)
+            .InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::DOWN))))
+            .Times(1)
+            .InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::LEFT))))
+            .Times(1)
+            .InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::RIGHT))))
+            .Times(1)
+            .InSequence(s);
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::UP));
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
         inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
