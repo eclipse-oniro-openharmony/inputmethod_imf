@@ -12,6 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#define private public
+#define protected public
+#include "inputmethod_sysevent.h"
+#undef private
+
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <string>
@@ -21,7 +27,6 @@
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "global.h"
-#include "inputmethod_sysevent.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "securec.h"
@@ -348,7 +353,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Leve
     EXPECT_TRUE(TextListener::WaitIMACallback());
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep Attach", result);
     EXPECT_TRUE(ret);
-    IMSA_HILOGD("Attach result = %{public}s", result.c_str());
+    IMSA_HILOGD ("Attach result = %{public}s", result.c_str());
     EXPECT_NE(result.find(InputmethodSysevent::GetOperateInfo(IME_SHOW_ATTACH)), std::string::npos);
 }
 

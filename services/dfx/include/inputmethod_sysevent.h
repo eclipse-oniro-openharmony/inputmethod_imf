@@ -41,9 +41,9 @@ public:
     static void CreateComponentFailed(int32_t userId, int32_t errCode);
     static void BehaviourReporter(const std::string &activeName, const std::string &inputmethodName);
     static void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
-    static std::string GetOperateInfo(OperateIMEInfoCode infoCode);
 
 private:
+    static std::string GetOperateInfo(OperateIMEInfoCode infoCode);
     static std::string GetOperateAction(OperateIMEInfoCode infoCode);
 
 private:
