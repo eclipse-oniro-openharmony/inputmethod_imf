@@ -274,11 +274,9 @@ void InputMethodDfxTest::SetUpTestCase(void)
     inputMethodAbility_->OnImeReady();
     inputMethodAbility_->SetCoreAndAgent();
     inputMethodAbility_->SetImeListener(imeListener_);
-    RestoreSelfTokenID();
 
     inputMethodController_ = InputMethodController::GetInstance();
     textListener_ = new TextListener();
-    SetTestUid();
 }
 
 void InputMethodDfxTest::TearDownTestCase(void)
@@ -286,7 +284,6 @@ void InputMethodDfxTest::TearDownTestCase(void)
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
     RestoreSelfTokenID();
     DeleteTestTokenID();
-    RestoreSelfUid();
     ClearHisyseventCache();
 }
 
@@ -389,9 +386,11 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, 
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Level0)
 {
+    SetTestUid();
     std::string result;
     inputMethodController_->Attach(textListener_, true);
     EXPECT_TRUE(TextListener::WaitIMACallback());
+    RestoreSelfUid();
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep Attach", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("Attach result = %{public}s", result.c_str());
@@ -420,8 +419,10 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSi
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowTextInput, TestSize.Level0)
 {
+    SetTestUid();
     std::string result;
     inputMethodController_->ShowTextInput();
+    RestoreSelfUid();
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep ShowTextInput", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("ShowTextInput result = %{public}s", result.c_str());
