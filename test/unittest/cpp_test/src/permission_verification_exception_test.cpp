@@ -135,7 +135,10 @@ void PermissionVerificationExceptionTest::AllocAndSetTestTokenID(const std::stri
 {
     IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
     HapInfoParams infoParams = {
-        .userID = GetCurrentUserId(), .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
+        .userID = GetCurrentUserId(),
+        .bundleName = bundleName,
+        .instIndex = 0,
+        .appIDDesc = "ohos.inputmethod_test.demo"
     };
     HapPolicyParams policyParams = {
         .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = {}

@@ -287,7 +287,10 @@ void InputMethodEditorTest::AllocAndSetTestTokenID(const std::string &bundleName
 {
     IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
     HapInfoParams infoParams = {
-        .userID = GetCurrentUserId(), .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
+        .userID = GetCurrentUserId(),
+        .bundleName = bundleName,
+        .instIndex = 0,
+        .appIDDesc = "ohos.inputmethod_test.demo"
     };
     PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
         .isGeneral = true,
