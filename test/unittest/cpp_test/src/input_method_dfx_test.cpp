@@ -185,7 +185,6 @@ std::shared_ptr<InputMethodEngineListenerImpl> InputMethodDfxTest::imeListener_;
 
 int32_t InputMethodDfxTest::GetCurrentUserId()
 {
-    IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
     std::vector<int32_t> userIds;
     auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
     if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
@@ -197,6 +196,7 @@ int32_t InputMethodDfxTest::GetCurrentUserId()
 
 void InputMethodDfxTest::AllocTestTokenID(const std::string &bundleName)
 {
+    IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
     HapInfoParams infoParams = {
         .userID = GetCurrentUserId(), .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
     };
