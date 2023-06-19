@@ -29,9 +29,11 @@
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "bundle_mgr_client_impl.h"
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
+#include "if_system_ability_manager.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
 #include "input_method_ability.h"
@@ -42,6 +44,7 @@
 #include "keyboard_listener.h"
 #include "message_parcel.h"
 #include "os_account_manager.h"
+#include "system_ability.h"
 #include "system_ability_definition.h"
 #include "token_setproc.h"
 
@@ -179,6 +182,10 @@ constexpr uint32_t DEALY_TIME = 1;
         static void DeleteTestTokenID();
         static void SetTestTokenID();
         static void RestoreSelfTokenID();
+        static int32_t GetCurrentUserId();
+        static void SetTestUid();
+        static void RestoreSelfUid();
+
         static sptr<InputMethodController> inputMethodController_;
         static sptr<InputMethodAbility> inputMethodAbility_;
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
@@ -257,6 +264,7 @@ constexpr uint32_t DEALY_TIME = 1;
     {
         IMSA_HILOGI("InputMethodControllerTest::SetUpTestCase");
         selfTokenID_ = GetSelfTokenID();
+        // Set the tokenID to the tokenID of the current ime
         std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
         std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
         AllocTestTokenID(bundleName);
@@ -268,17 +276,15 @@ constexpr uint32_t DEALY_TIME = 1;
         textListener_ = new TextListener();
         inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerImpl>());
         inputMethodAbility_->SetImeListener(imeListener_);
-        RestoreSelfTokenID();
 
-        bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-        AllocTestTokenID(bundleName);
-        SetTestTokenID();
         inputMethodController_ = InputMethodController::GetInstance();
         keyEvent_ = MMI::KeyEvent::Create();
         constexpr int32_t keyAction = 2;
         constexpr int32_t keyCode = 2001;
         keyEvent_->SetKeyAction(keyAction);
         keyEvent_->SetKeyCode(keyCode);
+        // Set the uid to the uid of the focus app
+        SetTestUid();
     }
 
     void InputMethodControllerTest::TearDownTestCase(void)
@@ -286,6 +292,7 @@ constexpr uint32_t DEALY_TIME = 1;
         IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
         RestoreSelfTokenID();
         DeleteTestTokenID();
+        RestoreSelfUid();
     }
 
     void InputMethodControllerTest::SetUp(void)
@@ -298,18 +305,24 @@ constexpr uint32_t DEALY_TIME = 1;
         IMSA_HILOGI("InputMethodControllerTest::TearDown");
     }
 
-    void InputMethodControllerTest::AllocTestTokenID(const std::string &bundleName)
+    int32_t InputMethodControllerTest::GetCurrentUserId()
     {
-        IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
         std::vector<int32_t> userIds;
         auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
         if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
             IMSA_HILOGE("query active os account id failed");
             userIds[0] = MAIN_USER_ID;
         }
-        HapInfoParams infoParams = {
-            .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
-        };
+        return userIds[0];
+    }
+
+    void InputMethodControllerTest::AllocTestTokenID(const std::string &bundleName)
+    {
+        IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
+        HapInfoParams infoParams = { .userID = GetCurrentUserId(),
+            .bundleName = bundleName,
+            .instIndex = 0,
+            .appIDDesc = "ohos.inputmethod_test.demo" };
         PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
             .isGeneral = true,
             .resDeviceID = { "local" },
@@ -339,6 +352,35 @@ constexpr uint32_t DEALY_TIME = 1;
     {
         auto ret = SetSelfTokenID(InputMethodControllerTest::selfTokenID_);
         IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
+    }
+
+    void InputMethodControllerTest::SetTestUid()
+    {
+        auto bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
+
+        sptr<ISystemAbilityManager> systemAbilityManager =
+            SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (systemAbilityManager == nullptr) {
+            IMSA_HILOGE("systemAbilityManager is nullptr");
+            return;
+        }
+        sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+        if (remoteObject == nullptr) {
+            IMSA_HILOGE("remoteObject is nullptr");
+            return;
+        }
+        sptr<AppExecFwk::IBundleMgr> iBundleMgr = iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+        if (iBundleMgr == nullptr) {
+            IMSA_HILOGE("iBundleMgr is nullptr");
+            return;
+        }
+        auto uid = iBundleMgr->GetUidByBundleName(bundleName, GetCurrentUserId());
+        IMSA_HILOGI("uid: %{public}d", uid);
+        setuid(uid);
+    }
+    void InputMethodControllerTest::RestoreSelfUid()
+    {
+        setuid(0);
     }
 
     /**

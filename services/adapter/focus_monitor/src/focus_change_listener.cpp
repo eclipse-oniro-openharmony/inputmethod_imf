@@ -15,12 +15,18 @@
 
 #include "focus_change_listener.h"
 
+#include "bundle_checker.h"
 #include "global.h"
 
 namespace OHOS {
 namespace MiscServices {
 void FocusChangedListener::OnFocused(const sptr<Rosen::FocusChangeInfo> &focusChangeInfo)
 {
+    if (focusChangeInfo == nullptr) {
+        IMSA_HILOGE("focusChangeInfo is nullptr");
+        return;
+    }
+    BundleChecker::SetFocused(focusChangeInfo->uid_);
 }
 
 void FocusChangedListener::OnUnfocused(const sptr<Rosen::FocusChangeInfo> &focusChangeInfo)

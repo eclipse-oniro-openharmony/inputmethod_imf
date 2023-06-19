@@ -23,12 +23,14 @@ namespace OHOS {
 namespace MiscServices {
 class BundleChecker {
 public:
-    static bool IsFocused(uint32_t tokenID);
+    static bool IsFocused(int64_t uid);
+    static void SetFocused(int64_t uid);
     static bool IsSystemApp(uint64_t fullTokenID);
     static bool IsCurrentIme(uint32_t tokenID, const std::string &currentIme);
     static bool CheckPermission(uint32_t tokenID, const std::string &permission);
 
 private:
+    static int64_t focusedUid_;
     static std::string GetBundleNameByToken(uint32_t tokenID);
 };
 } // namespace MiscServices

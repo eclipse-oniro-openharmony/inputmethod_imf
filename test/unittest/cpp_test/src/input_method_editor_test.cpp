@@ -27,9 +27,11 @@
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "bundle_mgr_client_impl.h"
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
+#include "if_system_ability_manager.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
 #include "input_method_ability.h"
@@ -41,6 +43,7 @@
 #include "keyboard_listener.h"
 #include "message_parcel.h"
 #include "os_account_manager.h"
+#include "system_ability.h"
 #include "system_ability_definition.h"
 #include "token_setproc.h"
 
@@ -206,6 +209,9 @@ public:
     static void AllocAndSetTestTokenID(const std::string &bundleName);
     static void DeleteTestTokenID();
     static void RestoreSelfTokenID();
+    static int32_t GetCurrentUserId();
+    static void SetTestUid();
+    static void RestoreSelfUid();
     static sptr<InputMethodController> inputMethodController_;
     static sptr<InputMethodAbility> inputMethodAbility_;
     static std::shared_ptr<MMI::KeyEvent> keyEvent_;
@@ -238,7 +244,6 @@ void InputMethodEditorTest::SetUpTestCase(void)
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->SetKdListener(kbListener_);
     inputMethodAbility_->SetImeListener(imeListener_);
-    RestoreSelfTokenID();
 
     textListener_ = new TextListener();
     inputMethodController_ = InputMethodController::GetInstance();
@@ -267,17 +272,22 @@ void InputMethodEditorTest::TearDown(void)
     IMSA_HILOGI("InputMethodEditorTest::TearDown");
 }
 
-void InputMethodEditorTest::AllocAndSetTestTokenID(const std::string &bundleName)
+int32_t InputMethodEditorTest::GetCurrentUserId()
 {
-    IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
     std::vector<int32_t> userIds;
     auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
     if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
         IMSA_HILOGE("query active os account id failed");
         userIds[0] = MAIN_USER_ID;
     }
+    return userIds[0];
+}
+
+void InputMethodEditorTest::AllocAndSetTestTokenID(const std::string &bundleName)
+{
+    IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
     HapInfoParams infoParams = {
-        .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
+        .userID = GetCurrentUserId(), .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
     };
     PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
         .isGeneral = true,
@@ -291,7 +301,7 @@ void InputMethodEditorTest::AllocAndSetTestTokenID(const std::string &bundleName
     AccessTokenKit::AllocHapToken(infoParams, policyParams);
     DeleteTestTokenID();
     testTokenID_ = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
-    ret = SetSelfTokenID(InputMethodEditorTest::testTokenID_);
+    auto ret = SetSelfTokenID(InputMethodEditorTest::testTokenID_);
     IMSA_HILOGI("SetSelfTokenID ret: %{public}d", ret);
 }
 
@@ -304,6 +314,35 @@ void InputMethodEditorTest::RestoreSelfTokenID()
 {
     auto ret = SetSelfTokenID(InputMethodEditorTest::selfTokenID_);
     IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
+}
+
+void InputMethodEditorTest::SetTestUid()
+{
+    auto bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
+
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        IMSA_HILOGE("systemAbilityManager is nullptr");
+        return;
+    }
+    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (remoteObject == nullptr) {
+        IMSA_HILOGE("remoteObject is nullptr");
+        return;
+    }
+    sptr<AppExecFwk::IBundleMgr> iBundleMgr = iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    if (iBundleMgr == nullptr) {
+        IMSA_HILOGE("iBundleMgr is nullptr");
+        return;
+    }
+    auto uid = iBundleMgr->GetUidByBundleName(bundleName, GetCurrentUserId());
+    IMSA_HILOGI("uid: %{public}d", uid);
+    setuid(uid);
+}
+void InputMethodEditorTest::RestoreSelfUid()
+{
+    setuid(0);
 }
 
 /**
@@ -368,8 +407,7 @@ HWTEST_F(InputMethodEditorTest, testShowTextInputUnfocused, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest Attach Focused Test START");
-    std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-    InputMethodEditorTest::AllocAndSetTestTokenID(bundleName);
+    SetTestUid();
     InputMethodEditorTest::imeListener_->isInputStart_ = false;
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
@@ -388,7 +426,7 @@ HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level0)
     EXPECT_TRUE(TextListener::WaitIMACallback());
     EXPECT_TRUE(imeListener_->isInputStart_ && imeListener_->keyboardState_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    InputMethodEditorTest::RestoreSelfTokenID();
+    RestoreSelfUid();
 }
 
 /**
@@ -400,8 +438,7 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest ShowSoftKeyboard Test START");
     InputMethodEditorTest::inputMethodController_->Close();
-    std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-    InputMethodEditorTest::AllocAndSetTestTokenID(bundleName);
+    SetTestUid();
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     TextListener::keyboardStatus_ = KeyboardStatus::NONE;
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
@@ -410,7 +447,7 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
     EXPECT_TRUE(TextListener::WaitIMACallback());
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::keyboardStatus_ == KeyboardStatus::SHOW);
-    InputMethodEditorTest::RestoreSelfTokenID();
+    RestoreSelfUid();
 }
 
 /**
@@ -423,8 +460,7 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
     IMSA_HILOGI("InputMethodEditorTest HideTextInputAndShowTextInput Test START");
     IMSA_HILOGI("InputMethodEditorTest HideTextInputAndShowTextInput Test START");
     InputMethodEditorTest::inputMethodController_->Close();
-    std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-    InputMethodEditorTest::AllocAndSetTestTokenID(bundleName);
+    SetTestUid();
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -455,7 +491,7 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    InputMethodEditorTest::RestoreSelfTokenID();
+    RestoreSelfUid();
 }
 
 /**
@@ -467,8 +503,7 @@ HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest ShowTextInput Test START");
     InputMethodEditorTest::inputMethodController_->Close();
-    std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-    InputMethodEditorTest::AllocAndSetTestTokenID(bundleName);
+    SetTestUid();
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodEditorTest::inputMethodController_->HideTextInput();
@@ -480,7 +515,7 @@ HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
     ret = ret && kbListener_->keyCode_ == keyEvent_->GetKeyCode()
           && kbListener_->keyStatus_ == keyEvent_->GetKeyAction();
     EXPECT_TRUE(result);
-    InputMethodEditorTest::RestoreSelfTokenID();
+    RestoreSelfUid();
 }
 
 /**
@@ -491,8 +526,7 @@ HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
 {
     IMSA_HILOGI("IMC Close Test START");
-    std::string bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-    InputMethodEditorTest::AllocAndSetTestTokenID(bundleName);
+    SetTestUid();
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodEditorTest::inputMethodController_->Close();
@@ -523,7 +557,7 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    InputMethodEditorTest::RestoreSelfTokenID();
+    RestoreSelfUid();
 }
 } // namespace MiscServices
 } // namespace OHOS

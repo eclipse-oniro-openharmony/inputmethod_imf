@@ -26,11 +26,16 @@
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "bundle_mgr_client_impl.h"
 #include "global.h"
+#include "if_system_ability_manager.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
-#include "securec.h"
+#include "iservice_registry.h"
 #include "os_account_manager.h"
+#include "securec.h"
+#include "system_ability.h"
+#include "system_ability_definition.h"
 #include "token_setproc.h"
 
 using namespace testing::ext;
@@ -157,6 +162,9 @@ public:
     static void DeleteTestTokenID();
     static void SetTestTokenID();
     static void RestoreSelfTokenID();
+    static int32_t GetCurrentUserId();
+    static void SetTestUid();
+    static void RestoreSelfUid();
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
     static void ClearHisyseventCache();
     void SetUp();
@@ -175,7 +183,7 @@ AccessTokenID InputMethodDfxTest::testTokenID_ = 0;
 sptr<InputMethodAbility> InputMethodDfxTest::inputMethodAbility_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodDfxTest::imeListener_;
 
-void InputMethodDfxTest::AllocTestTokenID(const std::string &bundleName)
+int32_t InputMethodDfxTest::GetCurrentUserId()
 {
     IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
     std::vector<int32_t> userIds;
@@ -184,8 +192,13 @@ void InputMethodDfxTest::AllocTestTokenID(const std::string &bundleName)
         IMSA_HILOGE("query active os account id failed");
         userIds[0] = MAIN_USER_ID;
     }
+    return userIds[0];
+}
+
+void InputMethodDfxTest::AllocTestTokenID(const std::string &bundleName)
+{
     HapInfoParams infoParams = {
-        .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
+        .userID = GetCurrentUserId(), .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
     };
     PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
         .isGeneral = true,
@@ -218,6 +231,35 @@ void InputMethodDfxTest::RestoreSelfTokenID()
     IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
 }
 
+void InputMethodDfxTest::SetTestUid()
+{
+    auto bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
+
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        IMSA_HILOGE("systemAbilityManager is nullptr");
+        return;
+    }
+    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (remoteObject == nullptr) {
+        IMSA_HILOGE("remoteObject is nullptr");
+        return;
+    }
+    sptr<AppExecFwk::IBundleMgr> iBundleMgr = iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    if (iBundleMgr == nullptr) {
+        IMSA_HILOGE("iBundleMgr is nullptr");
+        return;
+    }
+    auto uid = iBundleMgr->GetUidByBundleName(bundleName, GetCurrentUserId());
+    IMSA_HILOGI("uid: %{public}d", uid);
+    setuid(uid);
+}
+void InputMethodDfxTest::RestoreSelfUid()
+{
+    setuid(0);
+}
+
 void InputMethodDfxTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::SetUpTestCase");
@@ -234,11 +276,9 @@ void InputMethodDfxTest::SetUpTestCase(void)
     inputMethodAbility_->SetImeListener(imeListener_);
     RestoreSelfTokenID();
 
-    bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-    AllocTestTokenID(bundleName);
-    SetTestTokenID();
     inputMethodController_ = InputMethodController::GetInstance();
     textListener_ = new TextListener();
+    SetTestUid();
 }
 
 void InputMethodDfxTest::TearDownTestCase(void)
@@ -246,6 +286,7 @@ void InputMethodDfxTest::TearDownTestCase(void)
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
     RestoreSelfTokenID();
     DeleteTestTokenID();
+    RestoreSelfUid();
     ClearHisyseventCache();
 }
 
@@ -353,7 +394,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Leve
     EXPECT_TRUE(TextListener::WaitIMACallback());
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep Attach", result);
     EXPECT_TRUE(ret);
-    IMSA_HILOGD ("Attach result = %{public}s", result.c_str());
+    IMSA_HILOGD("Attach result = %{public}s", result.c_str());
     EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_SHOW_ATTACH)), std::string::npos);
 }
 
