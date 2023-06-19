@@ -31,9 +31,9 @@ struct ResultHandler {
 
 class Message {
 public:
-    int32_t msgId_{ 0 };                  // message id
-    MessageParcel *msgContent_ = nullptr; // message content
-    ResultHandler resultHandler_{};       // result handler
+    int32_t msgId_{ 0 };                              // message id
+    MessageParcel *msgContent_ = nullptr;             // message content
+    ResultHandler resultHandler_{ nullptr, nullptr }; // result handler
     Message(int32_t msgId, MessageParcel *msgContent, const ResultHandler &resultContainer);
     Message(int32_t msgId, MessageParcel *msgContent);
     explicit Message(const Message &msg);

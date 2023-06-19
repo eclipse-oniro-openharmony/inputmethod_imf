@@ -15,7 +15,7 @@
 
 #include "js_keyboard_delegate_setting.h"
 
-#include "callback_Processor.h"
+#include "callback_handler.h"
 #include "event_checker.h"
 #include "input_method_ability.h"
 #include "js_keyboard_controller_engine.h"
@@ -320,8 +320,9 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 return true;
             };
             bool isOnKeyEvent = false;
-            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getKeyEventProperty }, isOnKeyEvent);
+            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getKeyEventProperty }, isOnKeyEvent);
             entry->isDone->SetValue(isOnKeyEvent);
+            IMSA_HILOGD("isOnKeyEvent: %{public}s", isOnKeyEvent ? "true" : "false");
         });
     return isDone->GetValue();
 }
@@ -357,7 +358,7 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
                 napi_create_int32(env, entry->curPara.height, &args[ARGC_TWO]);
                 return true;
             };
-            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_THREE, getCursorUpdateProperty });
+            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_THREE, getCursorUpdateProperty });
         });
 }
 
@@ -394,7 +395,7 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
                 napi_create_int32(env, entry->selPara.newEnd, &args[ARGC_THREE]);
                 return true;
             };
-            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_FOUR, getSelectionChangeProperty });
+            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_FOUR, getSelectionChangeProperty });
         });
 }
 
@@ -422,7 +423,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
                 napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
                 return true;
             };
-            CallbackProcessor::TraverseCallback({ entry->vecCopy, ARGC_ONE, getTextChangeProperty });
+            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getTextChangeProperty });
         });
 }
 

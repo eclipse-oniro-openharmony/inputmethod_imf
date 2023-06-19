@@ -32,7 +32,7 @@ config("inputmethod_js_common_public_config") {
 
 ohos_static_library("inputmethod_js_common") {
   sources = [
-    "callback_Processor.cpp",
+    "callback_handler.cpp",
     "event_checker.cpp",
     "js_callback_object.cpp",
     "js_util.cpp",
