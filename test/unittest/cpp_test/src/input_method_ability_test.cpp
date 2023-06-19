@@ -269,7 +269,6 @@ public:
         inputMethodAbility_->OnImeReady();
         inputMethodAbility_->SetCoreAndAgent();
         RestoreSelfTokenID();
-        DeleteTestTokenID();
 
         // Set the uid to the uid of the focus app
         SetTestUid();
@@ -282,6 +281,7 @@ public:
     {
         IMSA_HILOGI("InputMethodAbilityTest::TearDownTestCase");
         imc_->Close();
+        DeleteTestTokenID();
     }
     void SetUp()
     {

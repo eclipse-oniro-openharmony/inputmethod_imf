@@ -389,8 +389,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Leve
     SetTestUid();
     std::string result;
     inputMethodController_->Attach(textListener_, true);
-    EXPECT_TRUE(TextListener::WaitIMACallback());
     RestoreSelfUid();
+    EXPECT_TRUE(TextListener::WaitIMACallback());
     auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep Attach", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("Attach result = %{public}s", result.c_str());
