@@ -24,26 +24,14 @@
 #include <cstdint>
 #include <string>
 
-#include "ability_manager_client.h"
-#include "accesstoken_kit.h"
-#include "bundle_mgr_client_impl.h"
 #include "global.h"
-#include "if_system_ability_manager.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
-#include "iservice_registry.h"
-#include "os_account_manager.h"
-#include "securec.h"
-#include "system_ability.h"
-#include "system_ability_definition.h"
-#include "token_setproc.h"
+#include "tdd_util.h"
 
 using namespace testing::ext;
-using namespace OHOS::Security::AccessToken;
-using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t MAIN_USER_ID = 100;
 class TextListener : public OnTextChangedListener {
 public:
     TextListener() = default;
@@ -111,99 +99,29 @@ public:
     static sptr<InputMethodController> imc_;
     static sptr<OnTextChangedListener> textListener_;
     static sptr<InputMethodAbility> ima_;
-    static uint64_t selfTokenID_;
-    static AccessTokenID testTokenID_;
 };
 sptr<InputMethodController> PermissionVerificationExceptionTest::imc_;
 sptr<OnTextChangedListener> PermissionVerificationExceptionTest::textListener_;
 sptr<InputMethodAbility> PermissionVerificationExceptionTest::ima_;
-uint64_t PermissionVerificationExceptionTest::selfTokenID_ = 0;
-AccessTokenID PermissionVerificationExceptionTest::testTokenID_ = 0;
-
-int32_t PermissionVerificationExceptionTest::GetCurrentUserId()
-{
-    std::vector<int32_t> userIds;
-    auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
-    if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
-        IMSA_HILOGE("query active os account id failed");
-        userIds[0] = MAIN_USER_ID;
-    }
-    return userIds[0];
-}
-
-void PermissionVerificationExceptionTest::AllocAndSetTestTokenID(const std::string &bundleName)
-{
-    IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
-    HapInfoParams infoParams = {
-        .userID = GetCurrentUserId(),
-        .bundleName = bundleName,
-        .instIndex = 0,
-        .appIDDesc = "ohos.inputmethod_test.demo"
-    };
-    HapPolicyParams policyParams = {
-        .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = {}
-    };
-    AccessTokenKit::AllocHapToken(infoParams, policyParams);
-    DeleteTestTokenID();
-    testTokenID_ = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
-    auto ret = SetSelfTokenID(testTokenID_);
-    IMSA_HILOGI("SetSelfTokenID ret: %{public}d", ret);
-}
-
-void PermissionVerificationExceptionTest::DeleteTestTokenID()
-{
-    AccessTokenKit::DeleteToken(testTokenID_);
-}
-
-void PermissionVerificationExceptionTest::RestoreSelfTokenID()
-{
-    auto ret = SetSelfTokenID(selfTokenID_);
-    IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
-}
-
-void PermissionVerificationExceptionTest::SetTestUid()
-{
-    auto bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        IMSA_HILOGE("systemAbilityManager is nullptr");
-        return;
-    }
-    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    if (remoteObject == nullptr) {
-        IMSA_HILOGE("remoteObject is nullptr");
-        return;
-    }
-    sptr<AppExecFwk::IBundleMgr> iBundleMgr = iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
-    if (iBundleMgr == nullptr) {
-        IMSA_HILOGE("iBundleMgr is nullptr");
-        return;
-    }
-    auto uid = iBundleMgr->GetUidByBundleName(bundleName, GetCurrentUserId());
-    IMSA_HILOGI("uid: %{public}d", uid);
-    setuid(uid);
-}
-void PermissionVerificationExceptionTest::RestoreSelfUid()
-{
-    setuid(0);
-}
 
 void PermissionVerificationExceptionTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("PermissionVerificationExceptionTest::SetUpTestCase");
-    selfTokenID_ = GetSelfTokenID();
+    TddUtil::StorageSelfTokenID();
     ima_ = InputMethodAbility::GetInstance();
     ima_->OnImeReady();
     PermissionVerificationExceptionTest::textListener_ = new TextListener();
     imc_ = InputMethodController::GetInstance();
+    auto property = InputMethodController::GetInstance()->GetCurrentInputMethod();
+    EXPECT_NE(property, nullptr);
+    TddUtil::AllocTestTokenID(property->name);
+    TddUtil::StorageSelfUid();
 }
 
 void PermissionVerificationExceptionTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("PermissionVerificationExceptionTest::TearDownTestCase");
-    DeleteTestTokenID();
+    TddUtil::DeleteTestTokenID();
 }
 
 void PermissionVerificationExceptionTest::SetUp(void)
@@ -225,19 +143,17 @@ void PermissionVerificationExceptionTest::TearDown(void)
 HWTEST_F(PermissionVerificationExceptionTest, ShowAndHideSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("PermissionTest ShowAndHideSoftKeyboard TEST START");
-    auto property = InputMethodController::GetInstance()->GetCurrentInputMethod();
-    EXPECT_NE(property, nullptr);
-    PermissionVerificationExceptionTest::AllocAndSetTestTokenID(property->name);
+    TddUtil::SetTestTokenID();
     PermissionVerificationExceptionTest::ima_->SetCoreAndAgent();
-    PermissionVerificationExceptionTest::RestoreSelfTokenID();
+    TddUtil::RestoreSelfTokenID();
 
-    SetTestUid();
+    TddUtil::SetTestUid();
     PermissionVerificationExceptionTest::imc_->Attach(PermissionVerificationExceptionTest::textListener_);
     int32_t ret = PermissionVerificationExceptionTest::imc_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
     ret = PermissionVerificationExceptionTest::imc_->HideSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-    RestoreSelfUid();
+    TddUtil::RestoreSelfUid();
 }
 
 /**
@@ -281,13 +197,11 @@ HWTEST_F(PermissionVerificationExceptionTest, SetCoreAndAgent, TestSize.Level0)
 HWTEST_F(PermissionVerificationExceptionTest, SetCoreAndAgentPassCheck, TestSize.Level0)
 {
     IMSA_HILOGI("PermissionTest SetCoreAndAgentPassCheck TEST START");
-    auto property = InputMethodController::GetInstance()->GetCurrentInputMethod();
-    EXPECT_NE(property, nullptr);
-    PermissionVerificationExceptionTest::AllocAndSetTestTokenID(property->name);
+    TddUtil::SetTestTokenID();
     InputMethodAbility::GetInstance()->isBound_.store(false);
     int32_t ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    PermissionVerificationExceptionTest::RestoreSelfTokenID();
+    TddUtil::RestoreSelfTokenID();
 }
 } // namespace MiscServices
 } // namespace OHOS

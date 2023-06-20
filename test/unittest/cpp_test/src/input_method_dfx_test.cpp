@@ -18,35 +18,22 @@
 #include "inputmethod_sysevent.h"
 #undef private
 
-#include <cstdint>
 #include <gtest/gtest.h>
-#include <string>
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "ability_manager_client.h"
-#include "accesstoken_kit.h"
-#include "bundle_mgr_client_impl.h"
+#include <cstdint>
+#include <string>
+
 #include "global.h"
-#include "if_system_ability_manager.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
-#include "iservice_registry.h"
-#include "os_account_manager.h"
-#include "securec.h"
-#include "system_ability.h"
-#include "system_ability_definition.h"
-#include "token_setproc.h"
+#include "tdd_util.h"
 
 using namespace testing::ext;
-using namespace OHOS::Security::AccessToken;
-using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
-constexpr const uint16_t EACH_LINE_LENGTH = 500;
-constexpr const uint16_t TOTAL_LENGTH = 4096;
 constexpr const int32_t RELOAD_HIVIEW_TIME = 300;
-constexpr int32_t MAIN_USER_ID = 100;
 constexpr const char *CMD1 = "hidumper -s 3703 -a -a";
 constexpr const char *CMD2 = "hidumper -s 3703 -a -h";
 constexpr const char *CMD3 = "hidumper -s 3703 -a -test";
@@ -102,7 +89,7 @@ public:
     }
     void InsertText(const std::u16string &text)
     {
-        IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", Str16ToStr8(text).c_str());
+        IMSA_HILOGI("IMC TEST TextListener InsertText");
     }
     void DeleteBackward(int32_t length)
     {
@@ -158,120 +145,28 @@ class InputMethodDfxTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    static void AllocTestTokenID(const std::string &bundleName);
-    static void DeleteTestTokenID();
-    static void SetTestTokenID();
-    static void RestoreSelfTokenID();
-    static int32_t GetCurrentUserId();
-    static void SetTestUid();
-    static void RestoreSelfUid();
-    static bool ExecuteCmd(const std::string &cmd, std::string &result);
-    static void ClearHisyseventCache();
     void SetUp();
     void TearDown();
-    static uint64_t selfTokenID_;
-    static AccessTokenID testTokenID_;
+    static void ClearHisyseventCache();
     static sptr<InputMethodController> inputMethodController_;
     static sptr<OnTextChangedListener> textListener_;
     static sptr<InputMethodAbility> inputMethodAbility_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
 };
 sptr<InputMethodController> InputMethodDfxTest::inputMethodController_;
-uint64_t InputMethodDfxTest::selfTokenID_ = 0;
 sptr<OnTextChangedListener> InputMethodDfxTest::textListener_;
-AccessTokenID InputMethodDfxTest::testTokenID_ = 0;
 sptr<InputMethodAbility> InputMethodDfxTest::inputMethodAbility_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodDfxTest::imeListener_;
-
-int32_t InputMethodDfxTest::GetCurrentUserId()
-{
-    std::vector<int32_t> userIds;
-    auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
-    if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
-        IMSA_HILOGE("query active os account id failed");
-        userIds[0] = MAIN_USER_ID;
-    }
-    return userIds[0];
-}
-
-void InputMethodDfxTest::AllocTestTokenID(const std::string &bundleName)
-{
-    IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
-    HapInfoParams infoParams = {
-        .userID = GetCurrentUserId(),
-        .bundleName = bundleName,
-        .instIndex = 0,
-        .appIDDesc = "ohos.inputmethod_test.demo"
-    };
-    PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
-        .isGeneral = true,
-        .resDeviceID = { "local" },
-        .grantStatus = { PermissionState::PERMISSION_GRANTED },
-        .grantFlags = { 1 } };
-    HapPolicyParams policyParams = {
-        .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = { permissionState }
-    };
-
-    AccessTokenKit::AllocHapToken(infoParams, policyParams);
-    DeleteTestTokenID();
-    testTokenID_ = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
-}
-
-void InputMethodDfxTest::DeleteTestTokenID()
-{
-    AccessTokenKit::DeleteToken(InputMethodDfxTest::testTokenID_);
-}
-
-void InputMethodDfxTest::SetTestTokenID()
-{
-    auto ret = SetSelfTokenID(InputMethodDfxTest::testTokenID_);
-    IMSA_HILOGI("SetSelfTokenID ret: %{public}d", ret);
-}
-
-void InputMethodDfxTest::RestoreSelfTokenID()
-{
-    auto ret = SetSelfTokenID(InputMethodDfxTest::selfTokenID_);
-    IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
-}
-
-void InputMethodDfxTest::SetTestUid()
-{
-    auto bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        IMSA_HILOGE("systemAbilityManager is nullptr");
-        return;
-    }
-    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    if (remoteObject == nullptr) {
-        IMSA_HILOGE("remoteObject is nullptr");
-        return;
-    }
-    sptr<AppExecFwk::IBundleMgr> iBundleMgr = iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
-    if (iBundleMgr == nullptr) {
-        IMSA_HILOGE("iBundleMgr is nullptr");
-        return;
-    }
-    auto uid = iBundleMgr->GetUidByBundleName(bundleName, GetCurrentUserId());
-    IMSA_HILOGI("uid: %{public}d", uid);
-    setuid(uid);
-}
-void InputMethodDfxTest::RestoreSelfUid()
-{
-    setuid(0);
-}
 
 void InputMethodDfxTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::SetUpTestCase");
     ClearHisyseventCache();
-    selfTokenID_ = GetSelfTokenID();
+    TddUtil::StorageSelfTokenID();
     std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-    AllocTestTokenID(bundleName);
-    SetTestTokenID();
+    TddUtil::AllocTestTokenID(bundleName);
+    TddUtil::SetTestTokenID();
     inputMethodAbility_ = InputMethodAbility::GetInstance();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->OnImeReady();
@@ -280,13 +175,14 @@ void InputMethodDfxTest::SetUpTestCase(void)
 
     inputMethodController_ = InputMethodController::GetInstance();
     textListener_ = new TextListener();
+    TddUtil::StorageSelfUid();
 }
 
 void InputMethodDfxTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
-    RestoreSelfTokenID();
-    DeleteTestTokenID();
+    TddUtil::RestoreSelfTokenID();
+    TddUtil::DeleteTestTokenID();
     ClearHisyseventCache();
 }
 
@@ -298,28 +194,6 @@ void InputMethodDfxTest::SetUp(void)
 void InputMethodDfxTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::TearDown");
-}
-
-bool InputMethodDfxTest::ExecuteCmd(const std::string &cmd, std::string &result)
-{
-    char buff[EACH_LINE_LENGTH] = { 0x00 };
-    char output[TOTAL_LENGTH] = { 0x00 };
-    FILE *ptr = popen(cmd.c_str(), "r");
-    if (ptr != nullptr) {
-        while (fgets(buff, sizeof(buff), ptr) != nullptr) {
-            if (strcat_s(output, sizeof(output), buff) != 0) {
-                pclose(ptr);
-                ptr = nullptr;
-                return false;
-            }
-        }
-        pclose(ptr);
-        ptr = nullptr;
-    } else {
-        return false;
-    }
-    result = std::string(output);
-    return true;
 }
 
 void InputMethodDfxTest::ClearHisyseventCache()
@@ -344,7 +218,7 @@ void InputMethodDfxTest::ClearHisyseventCache()
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Level0)
 {
     std::string result;
-    auto ret = InputMethodDfxTest::ExecuteCmd(CMD1, result);
+    auto ret = TddUtil::ExecuteCmd(CMD1, result);
     EXPECT_TRUE(ret);
     EXPECT_NE(result.find("imeList"), std::string::npos);
     EXPECT_NE(result.find("com.example.testIme"), std::string::npos);
@@ -360,7 +234,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Leve
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Level0)
 {
     std::string result;
-    auto ret = InputMethodDfxTest::ExecuteCmd(CMD2, result);
+    auto ret = TddUtil::ExecuteCmd(CMD2, result);
     EXPECT_TRUE(ret);
     EXPECT_NE(result.find("Description:"), std::string::npos);
     EXPECT_NE(result.find("-h show help"), std::string::npos);
@@ -377,7 +251,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Leve
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, TestSize.Level0)
 {
     std::string result;
-    auto ret = InputMethodDfxTest::ExecuteCmd(CMD3, result);
+    auto ret = TddUtil::ExecuteCmd(CMD3, result);
     EXPECT_TRUE(ret);
     EXPECT_NE(result.find("input dump parameter error,enter '-h' for usage."), std::string::npos);
 }
@@ -389,12 +263,12 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, 
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Level0)
 {
-    SetTestUid();
+    TddUtil::SetTestUid();
     std::string result;
     inputMethodController_->Attach(textListener_, true);
-    RestoreSelfUid();
+    TddUtil::RestoreSelfUid();
     EXPECT_TRUE(TextListener::WaitIMACallback());
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep Attach", result);
+    auto ret = TddUtil::ExecuteCmd(std::string(CMD4) + " | grep Attach", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("Attach result = %{public}s", result.c_str());
     EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_SHOW_ATTACH)), std::string::npos);
@@ -409,7 +283,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSi
 {
     std::string result;
     inputMethodController_->HideTextInput();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideTextInput", result);
+    auto ret = TddUtil::ExecuteCmd(std::string(CMD4) + " | grep HideTextInput", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("HideTextInput result = %{public}s", result.c_str());
     EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_HIDE_UNEDITABLE)), std::string::npos);
@@ -422,11 +296,11 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSi
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowTextInput, TestSize.Level0)
 {
-    SetTestUid();
+    TddUtil::SetTestUid();
     std::string result;
     inputMethodController_->ShowTextInput();
-    RestoreSelfUid();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep ShowTextInput", result);
+    TddUtil::RestoreSelfUid();
+    auto ret = TddUtil::ExecuteCmd(std::string(CMD4) + " | grep ShowTextInput", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("ShowTextInput result = %{public}s", result.c_str());
     EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_SHOW_ENEDITABLE)), std::string::npos);
@@ -441,7 +315,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideCurrentInput, Tes
 {
     std::string result;
     inputMethodController_->HideCurrentInput();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideSoftKeyboard", result);
+    auto ret = TddUtil::ExecuteCmd(std::string(CMD4) + " | grep HideSoftKeyboard", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("HideCurrentInput result = %{public}s", result.c_str());
     EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_HIDE_NORMAL)), std::string::npos);
@@ -456,7 +330,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowCurrentInput, Tes
 {
     std::string result;
     inputMethodController_->ShowCurrentInput();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep ShowSoftKeyboard", result);
+    auto ret = TddUtil::ExecuteCmd(std::string(CMD4) + " | grep ShowSoftKeyboard", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("ShowCurrentInput result = %{public}s", result.c_str());
     EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_SHOW_NORMAL)), std::string::npos);
@@ -471,7 +345,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideSoftKeyboard, Tes
 {
     std::string result;
     inputMethodController_->HideSoftKeyboard();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideSoftKeyboard", result);
+    auto ret = TddUtil::ExecuteCmd(std::string(CMD4) + " | grep HideSoftKeyboard", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("HideSoftKeyboard result = %{public}s", result.c_str());
     EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_HIDE_NORMAL)), std::string::npos);
@@ -486,7 +360,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowSoftKeyboard, Tes
 {
     std::string result;
     inputMethodController_->ShowSoftKeyboard();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep ShowSoftKeyboard", result);
+    auto ret = TddUtil::ExecuteCmd(std::string(CMD4) + " | grep ShowSoftKeyboard", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("ShowSoftKeyboard result = %{public}s", result.c_str());
     EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_SHOW_NORMAL)), std::string::npos);
@@ -501,7 +375,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideKeyboardSelf, Tes
 {
     std::string result;
     inputMethodAbility_->HideKeyboardSelf();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideKeyboardSelf", result);
+    auto ret = TddUtil::ExecuteCmd(std::string(CMD4) + " | grep HideKeyboardSelf", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("HideKeyboardSelf result = %{public}s", result.c_str());
     EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_HIDE_SELF)), std::string::npos);
@@ -516,7 +390,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Close, TestSize.Level
 {
     std::string result;
     inputMethodController_->Close();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep Close", result);
+    auto ret = TddUtil::ExecuteCmd(std::string(CMD4) + " | grep Close", result);
     EXPECT_TRUE(ret);
     IMSA_HILOGD("ShowSoftKeyboard result = %{public}s", result.c_str());
     EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_UNBIND)), std::string::npos);

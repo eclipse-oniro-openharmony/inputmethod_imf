@@ -33,6 +33,7 @@ ohos_unittest("InputMethodControllerTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -41,16 +42,12 @@ ohos_unittest("InputMethodControllerTest") {
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
-    "access_token:libtoken_setproc",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
-    "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -75,6 +72,7 @@ ohos_unittest("InputMethodAbilityTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -83,18 +81,11 @@ ohos_unittest("InputMethodAbilityTest") {
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
-    "access_token:libtoken_setproc",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "graphic_standard:window_animation",
-    "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
-    "os_account:os_account_innerkits",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
     "window_manager:libdm",
     "window_manager:libwm",
   ]
@@ -119,6 +110,7 @@ ohos_unittest("InputMethodServiceTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -127,17 +119,11 @@ ohos_unittest("InputMethodServiceTest") {
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
-    "access_token:libtoken_setproc",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
-    "os_account:os_account_innerkits",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
     "window_manager:libdm",
     "window_manager:libwm",
   ]
@@ -153,6 +139,7 @@ ohos_unittest("InputMethodDfxTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
+    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -161,18 +148,12 @@ ohos_unittest("InputMethodDfxTest") {
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
-    "access_token:libtoken_setproc",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
-    "os_account:os_account_innerkits",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
   ]
 }
 
@@ -192,13 +173,13 @@ ohos_unittest("InputMethodPanelTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "ability_runtime:ability_context_native",
     "access_token:libaccesstoken_sdk",
-    "access_token:libtoken_setproc",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "graphic_standard:window_animation",
@@ -238,13 +219,12 @@ ohos_unittest("InputMethodSwitchTest") {
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
-    "access_token:libnativetoken",
-    "access_token:libtoken_setproc",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
@@ -289,6 +269,7 @@ ohos_unittest("InputMethodEditorTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -297,18 +278,12 @@ ohos_unittest("InputMethodEditorTest") {
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
-    "access_token:libtoken_setproc",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
-    "os_account:os_account_innerkits",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
   ]
 }
 
@@ -322,13 +297,12 @@ ohos_unittest("NewImeSwitchTest") {
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
-    "access_token:libnativetoken",
-    "access_token:libtoken_setproc",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
