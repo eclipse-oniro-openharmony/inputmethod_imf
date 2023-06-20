@@ -31,9 +31,7 @@ config("inputmethod_tdd_util_public_config") {
 }
 
 ohos_static_library("inputmethod_tdd_util") {
-  sources = [
-    "tdd_util.cpp",
-  ]
+  sources = [ "tdd_util.cpp" ]
   configs = [ ":inputmethod_tdd_util_config" ]
   public_configs = [ ":inputmethod_tdd_util_public_config" ]
   deps = [ "${inputmethod_path}/services:inputmethod_service" ]
