@@ -168,12 +168,12 @@ void PermissionVerificationExceptionTest::TearDownTestCase(void)
     std::string pid;
     int count = 1;
     while (cmdResult >> pid) {
-        ++count;
         // 2 means the index of pid in result of "ps -ef|grep bundleName"
         if (count == 2) {
+            IMSA_HILOGD("pid is: %{public}s", pid.c_str());
             break;
         }
-        IMSA_HILOGD("pid is: %{public}s", pid.c_str());
+        ++count;
     }
     ret = PermissionVerificationExceptionTest::ExecuteCmd("kill " + pid, result);
     IMSA_HILOGI("ret: %{public}d, result is: %{public}s", ret, result.c_str());
