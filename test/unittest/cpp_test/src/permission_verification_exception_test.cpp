@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <cstring>
 #include <gtest/gtest.h>
+#include <regex>
 #include <string>
 #include <sys/time.h>
 #include <unistd.h>
@@ -103,7 +104,6 @@ public:
     static void AllocAndSetTestTokenID(const std::string &bundleName);
     static void DeleteTestTokenID();
     static void RestoreSelfTokenID();
-    static std::string GetPid(const char *text);
     static sptr<InputMethodController> imc_;
     static sptr<OnTextChangedListener> textListener_;
     static sptr<InputMethodAbility> ima_;
@@ -148,28 +148,6 @@ void PermissionVerificationExceptionTest::RestoreSelfTokenID()
     IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
 }
 
-std::string PermissionVerificationExceptionTest::GetPid(const char *text)
-{
-    auto len = strlen(text);
-    char* res = new char[len + 1];
-    strcpy_s(res, len + 1, text);
-    char* ptr = nullptr;
-    char* result = strtok_s(res, " ", &ptr);
-    std::string pid;
-    int count = 0;
-    while (result) {
-        // 1 means the index of pid
-        if (count == 1) {
-            pid = result;
-            break;
-        }
-        ++count;
-        result = strtok_s(nullptr, " ", &ptr);
-    }
-    IMSA_HILOGI("SetSelfTokenID pid = %{public}s", pid.c_str());
-    return pid;
-}
-
 void PermissionVerificationExceptionTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("PermissionVerificationExceptionTest::SetUpTestCase");
@@ -189,11 +167,16 @@ void PermissionVerificationExceptionTest::TearDownTestCase(void)
     auto property = imc_->GetCurrentInputMethod();
     auto ret = PermissionVerificationExceptionTest::ExecuteCmd("ps -ef| grep " + property->name, result);
     IMSA_HILOGI("ret: %{public}d, result is: %{public}s", ret, result.c_str());
-    auto pid = PermissionVerificationExceptionTest::GetPid(result.data());
-    if (pid.empty()) {
-        IMSA_HILOGI("pid of input method application is empty.");
+    std::smatch regResult;
+    std::regex pattern("\\s+\\d{3,6}");
+    std::string pid;
+    if (regex_search(result, regResult, pattern)) {
+        pid = regResult[0];
+    } else {
+        IMSA_HILOGE("pid of input method application is empty.");
         return;
     }
+    IMSA_HILOGI("pid is %{public}s.", pid.c_str());
     ret = PermissionVerificationExceptionTest::ExecuteCmd("kill " + pid, result);
     IMSA_HILOGI("ret: %{public}d, result is: %{public}s", ret, result.c_str());
 }
