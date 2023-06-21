@@ -35,21 +35,13 @@ describe('InputMethodWithAttachTest', function () {
           enterKeyType: inputMethod.EnterKeyType.NONE
         }
     };
-    await inputMethodCtrl.attach(false, cfg).then(() => {
-      console.info('beforeEach attach inputMethod success.');
-    }).catch((error) => {
-      console.info(`beforeEach attach inputMethod fail, error: [${error.code}, ${error.message}]`);
-    });
+    await inputMethodCtrl.attach(false, cfg);
   });
 
   afterEach(async function () {
     console.info('afterEach called');
     let inputMethodCtrl = inputMethod.getController();
-    await inputMethodCtrl.detach().then(()=>{
-      console.info('afterEach detach inputMethod success}');
-    }).catch((error)=>{
-      console.info(`afterEach detach inputMethod fial, error: [${error.code}, ${error.message}]`);
-    });
+    await inputMethodCtrl.detach();
   });
 
   /*

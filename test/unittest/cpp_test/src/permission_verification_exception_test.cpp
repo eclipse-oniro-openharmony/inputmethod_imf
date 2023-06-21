@@ -18,8 +18,8 @@
 #undef private
 
 #include <cstdint>
+#include <cstring>
 #include <gtest/gtest.h>
-#include <sstream>
 #include <string>
 #include <sys/time.h>
 #include <unistd.h>
@@ -89,7 +89,9 @@ void TextListener::HandleExtendAction(int32_t action)
 {
 }
 
-void TextListener::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) {}
+void TextListener::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
+{
+}
 
 class PermissionVerificationExceptionTest : public testing::Test {
 public:
@@ -101,6 +103,7 @@ public:
     static void AllocAndSetTestTokenID(const std::string &bundleName);
     static void DeleteTestTokenID();
     static void RestoreSelfTokenID();
+    static std::string GetPid(std::string &text);
     static sptr<InputMethodController> imc_;
     static sptr<OnTextChangedListener> textListener_;
     static sptr<InputMethodAbility> ima_;
@@ -145,6 +148,26 @@ void PermissionVerificationExceptionTest::RestoreSelfTokenID()
     IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
 }
 
+std::string PermissionVerificationExceptionTest::GetPid(std::string &text)
+{
+    char* res = new char[text.size() + 1];
+    strcpy(res, text.c_str());
+    char* result = strtok(res, " ");
+    std::string pid;
+    int count = 0;
+    while(result) {
+        // 1 means the index of pid
+        if (count == 1) {
+            pid = result;
+            break;
+        }
+        ++count;
+        result = strtok(nullptr, " ");
+    }
+    IMSA_HILOGI("SetSelfTokenID pid = %{public}s", pid.c_str());
+    return pid;
+}
+
 void PermissionVerificationExceptionTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("PermissionVerificationExceptionTest::SetUpTestCase");
@@ -164,16 +187,10 @@ void PermissionVerificationExceptionTest::TearDownTestCase(void)
     auto property = imc_->GetCurrentInputMethod();
     auto ret = PermissionVerificationExceptionTest::ExecuteCmd("ps -ef| grep " + property->name, result);
     IMSA_HILOGI("ret: %{public}d, result is: %{public}s", ret, result.c_str());
-    std::istringstream cmdResult(result);
-    std::string pid;
-    int count = 1;
-    while (cmdResult >> pid) {
-        // 2 means the index of pid in result of "ps -ef|grep bundleName"
-        if (count == 2) {
-            IMSA_HILOGD("pid is: %{public}s", pid.c_str());
-            break;
-        }
-        ++count;
+    auto pid = PermissionVerificationExceptionTest::GetPid(result);
+    if (pid.empty()) {
+        IMSA_HILOGI("pid of input method application is empty");
+        return;
     }
     ret = PermissionVerificationExceptionTest::ExecuteCmd("kill " + pid, result);
     IMSA_HILOGI("ret: %{public}d, result is: %{public}s", ret, result.c_str());
