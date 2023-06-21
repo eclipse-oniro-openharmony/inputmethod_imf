@@ -63,7 +63,6 @@ public:
     static int deleteBackwardLength_;
     static std::u16string insertText_;
     static int key_;
-    static int keyboardStatus_;
     static bool status_;
     static int selectionStart_;
     static int selectionEnd_;
@@ -265,7 +264,6 @@ int InputMethodAbilityTest::deleteForwardLength_ = 0;
 int InputMethodAbilityTest::deleteBackwardLength_ = 0;
 std::u16string InputMethodAbilityTest::insertText_;
 int InputMethodAbilityTest::key_ = 0;
-int InputMethodAbilityTest::keyboardStatus_;
 bool InputMethodAbilityTest::status_;
 int InputMethodAbilityTest::selectionStart_ = -1;
 int InputMethodAbilityTest::selectionEnd_ = -1;
