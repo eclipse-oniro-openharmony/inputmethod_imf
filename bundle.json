@@ -47,7 +47,8 @@
               "os_account",
               "hisysevent_native",
               "hitrace_native",
-              "multimedia_image_framework"
+              "multimedia_image_framework",
+              "graphic_standard"
           ], 
           "third_party": [
               "jsoncpp"

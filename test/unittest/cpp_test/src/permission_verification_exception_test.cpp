@@ -17,12 +17,13 @@
 #include "input_method_ability.h"
 #undef private
 
+#include <cstdint>
 #include <gtest/gtest.h>
+#include <regex>
+#include <sstream>
+#include <string>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include <cstdint>
-#include <string>
 
 #include "global.h"
 #include "input_method_ability.h"
@@ -32,6 +33,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+constexpr const uint16_t EACH_LINE_LENGTH = 500;
 class TextListener : public OnTextChangedListener {
 public:
     TextListener() = default;
@@ -88,6 +90,7 @@ class PermissionVerificationExceptionTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
+    static bool ExecuteCmd(const std::string &cmd, std::string &result);
     void SetUp();
     void TearDown();
     static void AllocAndSetTestTokenID(const std::string &bundleName);
@@ -122,6 +125,22 @@ void PermissionVerificationExceptionTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("PermissionVerificationExceptionTest::TearDownTestCase");
     TddUtil::DeleteTestTokenID();
+    std::string result;
+    auto property = imc_->GetCurrentInputMethod();
+    auto ret = PermissionVerificationExceptionTest::ExecuteCmd("ps -ef| grep " + property->name, result);
+    IMSA_HILOGI("ret: %{public}d, result is: %{public}s", ret, result.c_str());
+    std::smatch regResult;
+    std::regex pattern("\\s+\\d{3,6}");
+    std::string pid;
+    if (regex_search(result, regResult, pattern)) {
+        pid = regResult[0];
+    } else {
+        IMSA_HILOGE("pid of input method application is empty.");
+        return;
+    }
+    IMSA_HILOGI("pid is %{public}s.", pid.c_str());
+    ret = PermissionVerificationExceptionTest::ExecuteCmd("kill " + pid, result);
+    IMSA_HILOGI("ret: %{public}d, result is: %{public}s", ret, result.c_str());
 }
 
 void PermissionVerificationExceptionTest::SetUp(void)
@@ -132,6 +151,24 @@ void PermissionVerificationExceptionTest::SetUp(void)
 void PermissionVerificationExceptionTest::TearDown(void)
 {
     IMSA_HILOGI("PermissionVerificationExceptionTest::TearDown");
+}
+
+bool PermissionVerificationExceptionTest::ExecuteCmd(const std::string &cmd, std::string &result)
+{
+    char buff[EACH_LINE_LENGTH] = { 0x00 };
+    std::stringstream output;
+    FILE *ptr = popen(cmd.c_str(), "r");
+    if (ptr != nullptr) {
+        while (fgets(buff, sizeof(buff), ptr) != nullptr) {
+            output << buff;
+        }
+        pclose(ptr);
+        ptr = nullptr;
+    } else {
+        return false;
+    }
+    result = output.str();
+    return true;
 }
 
 /**
