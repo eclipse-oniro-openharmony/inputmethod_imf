@@ -18,9 +18,9 @@
 #undef private
 
 #include <cstdint>
-#include <cstring>
 #include <gtest/gtest.h>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <sys/time.h>
 #include <unistd.h>
@@ -41,7 +41,6 @@ namespace OHOS {
 namespace MiscServices {
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
-constexpr const uint16_t TOTAL_LENGTH = 4096;
 class TextListener : public OnTextChangedListener {
 public:
     TextListener() = default;
@@ -194,22 +193,18 @@ void PermissionVerificationExceptionTest::TearDown(void)
 bool PermissionVerificationExceptionTest::ExecuteCmd(const std::string &cmd, std::string &result)
 {
     char buff[EACH_LINE_LENGTH] = { 0x00 };
-    char output[TOTAL_LENGTH] = { 0x00 };
+    std::stringstream output;
     FILE *ptr = popen(cmd.c_str(), "r");
     if (ptr != nullptr) {
         while (fgets(buff, sizeof(buff), ptr) != nullptr) {
-            if (strcat_s(output, sizeof(output), buff) != 0) {
-                pclose(ptr);
-                ptr = nullptr;
-                return false;
-            }
+            output << buff;
         }
         pclose(ptr);
         ptr = nullptr;
     } else {
         return false;
     }
-    result = std::string(output);
+    result = output.str();
     return true;
 }
 
