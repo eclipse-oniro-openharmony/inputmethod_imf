@@ -18,37 +18,46 @@
 #include "inputmethod_sysevent.h"
 #undef private
 
-#include <cstdint>
 #include <gtest/gtest.h>
-#include <string>
 #include <sys/time.h>
 #include <unistd.h>
+
+#include <cstdint>
+#include <string>
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "global.h"
+#include "hisysevent_base_manager.h"
+#include "hisysevent_listener.h"
+#include "hisysevent_manager.h"
+#include "hisysevent_query_callback.h"
+#include "hisysevent_record.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
-#include "securec.h"
 #include "os_account_manager.h"
+#include "securec.h"
 #include "token_setproc.h"
 
 using namespace testing::ext;
+using namespace OHOS::HiviewDFX;
 using namespace OHOS::Security::AccessToken;
 using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
-constexpr const uint16_t EACH_LINE_LENGTH = 500;
-constexpr const uint16_t TOTAL_LENGTH = 4096;
+constexpr const uint16_t EACH_LINE_LENGTH = 100;
+constexpr const uint16_t TOTAL_LENGTH = 1000;
 constexpr const int32_t RELOAD_HIVIEW_TIME = 300;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const char *CMD1 = "hidumper -s 3703 -a -a";
 constexpr const char *CMD2 = "hidumper -s 3703 -a -h";
 constexpr const char *CMD3 = "hidumper -s 3703 -a -test";
-constexpr const char *CMD4 = "hisysevent -l -n INPUTMETHOD -n OPERATE_SOFTKEYBOARD";
 constexpr const char *CLEAR_CMD = "rm -rf //data/log/hiview/sys_event_db/INPUTMETHOD";
 constexpr const char *CLEAR_CMD1 = "service_control stop hiview";
 constexpr const char *CLEAR_CMD2 = "service_control start hiview";
+constexpr const char *PARAM_KEY = "";
+constexpr const char *DOMAIN = "";
+constexpr const char *EVENT_NAME = "";
 
 class InputMethodEngineListenerImpl : public InputMethodEngineListener {
 public:
@@ -149,8 +158,43 @@ KeyboardStatus TextListener::keyboardStatus_;
 std::mutex TextListener::cvMutex_;
 std::condition_variable TextListener::cv_;
 
+class Watcher : public HiSysEventListener {
+public:
+    static std::mutex cvMutex_;
+    static std::condition_variable watcherCv_;
+    explicit Watcher(std::function<bool(std::shared_ptr<HiSysEventRecord>)> assertFunc)
+    {
+        assertFunc_ = assertFunc;
+    }
+    virtual ~Watcher()
+    {
+    }
+    void OnEvent(std::shared_ptr<HiSysEventRecord> sysEvent) final
+    {
+        if (sysEvent == nullptr || assertFunc_ == nullptr) {
+            return;
+        }
+        if (!assertFunc_(sysEvent)) {
+            IMSA_HILOGE("Watcher::assertFunc_ return false!");
+            return;
+        }
+        std::unique_lock<std::mutex> lock(cvMutex_);
+        watcherCv_.notify_one();
+    }
+    void OnServiceDied() final
+    {
+        IMSA_HILOGE("Watcher::OnServiceDied");
+    }
+
+private:
+    std::function<bool(std::shared_ptr<HiSysEventRecord>)> assertFunc_;
+};
+std::mutex Watcher::cvMutex_;
+std::condition_variable Watcher::watcherCv_;
+
 class InputMethodDfxTest : public testing::Test {
 public:
+    using ExexFuc = std::function<void()>;
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
     static void AllocTestTokenID(const std::string &bundleName);
@@ -159,6 +203,7 @@ public:
     static void RestoreSelfTokenID();
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
     static void ClearHisyseventCache();
+    static bool WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMethodDfxTest::ExexFuc exec);
     void SetUp();
     void TearDown();
     static uint64_t selfTokenID_;
@@ -174,6 +219,22 @@ sptr<OnTextChangedListener> InputMethodDfxTest::textListener_;
 AccessTokenID InputMethodDfxTest::testTokenID_ = 0;
 sptr<InputMethodAbility> InputMethodDfxTest::inputMethodAbility_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodDfxTest::imeListener_;
+
+bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMethodDfxTest::ExexFuc exec)
+{
+    OHOS::HiviewDFX::ListenerRule listenerRule(DOMAIN, EVENT_NAME, "", OHOS::HiviewDFX::RuleType::WHOLE_WORD);
+    std::vector<OHOS::HiviewDFX::ListenerRule> sysRules;
+    sysRules.emplace_back(listenerRule);
+    auto ret = OHOS::HiviewDFX::HiSysEventManager::AddListener(watcher, sysRules);
+    if (ret != SUCCESS) {
+        return false;
+    }
+    exec();
+    std::unique_lock<std::mutex> lock(Watcher::cvMutex_);
+    bool result = Watcher::watcherCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
+    ret = OHOS::HiviewDFX::HiSysEventManager::RemoveListener(watcher);
+    return result && ret;
+}
 
 void InputMethodDfxTest::AllocTestTokenID(const std::string &bundleName)
 {
@@ -348,13 +409,16 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, 
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Level0)
 {
-    std::string result;
-    inputMethodController_->Attach(textListener_, true);
-    EXPECT_TRUE(TextListener::WaitIMACallback());
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep Attach", result);
-    EXPECT_TRUE(ret);
-    IMSA_HILOGD ("Attach result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_SHOW_ATTACH)), std::string::npos);
+    auto watcher = std::make_shared<Watcher>([](std::shared_ptr<HiSysEventRecord> sysEvent) {
+        if (sysEvent == nullptr) {
+            return false;
+        }
+        std::string result;
+        sysEvent->GetParamValue(PARAM_KEY, result);
+        return InputMethodSysEvent::GetOperateInfo(IME_SHOW_ATTACH) == result;;
+    });
+    auto attach = [&]() { inputMethodController_->Attach(InputMethodDfxTest::textListener_, true); };
+    EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, attach));
 }
 
 /**
@@ -364,12 +428,16 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Leve
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSize.Level0)
 {
-    std::string result;
-    inputMethodController_->HideTextInput();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideTextInput", result);
-    EXPECT_TRUE(ret);
-    IMSA_HILOGD("HideTextInput result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_HIDE_UNEDITABLE)), std::string::npos);
+    auto watcher = std::make_shared<Watcher>([](std::shared_ptr<HiSysEventRecord> sysEvent) {
+        if (sysEvent == nullptr) {
+            return false;
+        }
+        std::string result;
+        sysEvent->GetParamValue(PARAM_KEY, result);
+        return InputMethodSysEvent::GetOperateInfo(IME_HIDE_UNEDITABLE) == result;
+    });
+    auto hideTextInput = [&]() { inputMethodController_->HideTextInput(); };
+    EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideTextInput));
 }
 
 /**
@@ -379,12 +447,16 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSi
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowTextInput, TestSize.Level0)
 {
-    std::string result;
-    inputMethodController_->ShowTextInput();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep ShowTextInput", result);
-    EXPECT_TRUE(ret);
-    IMSA_HILOGD("ShowTextInput result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_SHOW_ENEDITABLE)), std::string::npos);
+    auto watcher = std::make_shared<Watcher>([](std::shared_ptr<HiSysEventRecord> sysEvent) {
+        if (sysEvent == nullptr) {
+            return false;
+        }
+        std::string result;
+        sysEvent->GetParamValue(PARAM_KEY, result);
+        return InputMethodSysEvent::GetOperateInfo(IME_SHOW_ENEDITABLE) == result;;
+    });
+    auto showTextInput = [&]() { inputMethodController_->ShowTextInput(); };
+    EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, showTextInput));
 }
 
 /**
@@ -394,12 +466,16 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowTextInput, TestSi
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideCurrentInput, TestSize.Level0)
 {
-    std::string result;
-    inputMethodController_->HideCurrentInput();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideSoftKeyboard", result);
-    EXPECT_TRUE(ret);
-    IMSA_HILOGD("HideCurrentInput result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_HIDE_NORMAL)), std::string::npos);
+    auto watcher = std::make_shared<Watcher>([](std::shared_ptr<HiSysEventRecord> sysEvent) {
+        if (sysEvent == nullptr) {
+            return false;
+        }
+        std::string result;
+        sysEvent->GetParamValue(PARAM_KEY, result);
+        return InputMethodSysEvent::GetOperateInfo(IME_HIDE_NORMAL) == result;;
+    });
+    auto hideCurrentInput = [&]() { inputMethodController_->HideCurrentInput(); };
+    EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideCurrentInput));
 }
 
 /**
@@ -409,12 +485,16 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideCurrentInput, Tes
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowCurrentInput, TestSize.Level0)
 {
-    std::string result;
-    inputMethodController_->ShowCurrentInput();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep ShowSoftKeyboard", result);
-    EXPECT_TRUE(ret);
-    IMSA_HILOGD("ShowCurrentInput result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_SHOW_NORMAL)), std::string::npos);
+    auto watcher = std::make_shared<Watcher>([](std::shared_ptr<HiSysEventRecord> sysEvent) {
+        if (sysEvent == nullptr) {
+            return false;
+        }
+        std::string result;
+        sysEvent->GetParamValue(PARAM_KEY, result);
+        return InputMethodSysEvent::GetOperateInfo(IME_SHOW_NORMAL) == result;;
+    });
+    auto showCurrentInput = [&]() { inputMethodController_->ShowCurrentInput(); };
+    EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, showCurrentInput));
 }
 
 /**
@@ -424,12 +504,16 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowCurrentInput, Tes
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideSoftKeyboard, TestSize.Level0)
 {
-    std::string result;
-    inputMethodController_->HideSoftKeyboard();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideSoftKeyboard", result);
-    EXPECT_TRUE(ret);
-    IMSA_HILOGD("HideSoftKeyboard result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_HIDE_NORMAL)), std::string::npos);
+    auto watcher = std::make_shared<Watcher>([](std::shared_ptr<HiSysEventRecord> sysEvent) {
+        if (sysEvent == nullptr) {
+            return false;
+        }
+        std::string result;
+        sysEvent->GetParamValue(PARAM_KEY, result);
+        return InputMethodSysEvent::GetOperateInfo(IME_HIDE_NORMAL) == result;;
+    });
+    auto hideSoftKeyboard = [](&) { inputMethodController_->HideSoftKeyboard(); };
+    EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideSoftKeyboard));
 }
 
 /**
@@ -439,12 +523,16 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideSoftKeyboard, Tes
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowSoftKeyboard, TestSize.Level0)
 {
-    std::string result;
-    inputMethodController_->ShowSoftKeyboard();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep ShowSoftKeyboard", result);
-    EXPECT_TRUE(ret);
-    IMSA_HILOGD("ShowSoftKeyboard result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_SHOW_NORMAL)), std::string::npos);
+    auto watcher = std::make_shared<Watcher>([](std::shared_ptr<HiSysEventRecord> sysEvent) {
+        if (sysEvent == nullptr) {
+            return false;
+        }
+        std::string result;
+        sysEvent->GetParamValue(PARAM_KEY, result);
+        return InputMethodSysEvent::GetOperateInfo(IME_SHOW_NORMAL) == result;;
+    });
+    auto showSoftKeyboard = [&]() { inputMethodController_->ShowSoftKeyboard(); };
+    EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, showSoftKeyboard));
 }
 
 /**
@@ -454,12 +542,16 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowSoftKeyboard, Tes
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideKeyboardSelf, TestSize.Level0)
 {
-    std::string result;
-    inputMethodAbility_->HideKeyboardSelf();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep HideKeyboardSelf", result);
-    EXPECT_TRUE(ret);
-    IMSA_HILOGD("HideKeyboardSelf result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_HIDE_SELF)), std::string::npos);
+    auto watcher = std::make_shared<Watcher>([](std::shared_ptr<HiSysEventRecord> sysEvent) {
+        if (sysEvent == nullptr) {
+            return false;
+        }
+        std::string result;
+        sysEvent->GetParamValue(PARAM_KEY, result);
+        return InputMethodSysEvent::GetOperateInfo(IME_HIDE_SELF) == result;;
+    });
+    auto hideKeyboardSelf = [&]() { inputMethodAbility_->HideKeyboardSelf(); };
+    EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideKeyboardSelf));
 }
 
 /**
@@ -469,12 +561,16 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideKeyboardSelf, Tes
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Close, TestSize.Level0)
 {
-    std::string result;
-    inputMethodController_->Close();
-    auto ret = InputMethodDfxTest::ExecuteCmd(std::string(CMD4) + " | grep Close", result);
-    EXPECT_TRUE(ret);
-    IMSA_HILOGD("ShowSoftKeyboard result = %{public}s", result.c_str());
-    EXPECT_NE(result.find(InputMethodSysEvent::GetOperateInfo(IME_UNBIND)), std::string::npos);
+    auto watcher = std::make_shared<Watcher>([](std::shared_ptr<HiSysEventRecord> sysEvent) {
+        if (sysEvent == nullptr) {
+            return false;
+        }
+        std::string result;
+        sysEvent->GetParamValue(PARAM_KEY, result);
+        return InputMethodSysEvent::GetOperateInfo(IME_UNBIND) == result;;
+    });
+    auto close = [&]() { inputMethodController_->Close(); };
+    EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, close));
 }
 } // namespace MiscServices
 } // namespace OHOS
