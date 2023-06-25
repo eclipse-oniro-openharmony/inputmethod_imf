@@ -404,7 +404,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, 
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Level0)
 {
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetOperateInfo(IME_SHOW_ATTACH));
-    auto attach = [&inputMethodController_, &textListener_]() { inputMethodController_->Attach(textListener_, true); };
+    auto attach = []() { inputMethodController_->Attach(textListener_, true); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, attach));
 }
 
