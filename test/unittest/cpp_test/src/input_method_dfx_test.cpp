@@ -404,9 +404,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, 
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Level0)
 {
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetOperateInfo(IME_SHOW_ATTACH));
-    auto attach = [&inputMethodController_, &InputMethodDfxTest::textListener_]() {
-        inputMethodController_->Attach(InputMethodDfxTest::textListener_, true);
-    };
+    auto attach = [&inputMethodController_, &textListener_]() { inputMethodController_->Attach(textListener_, true); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, attach));
 }
 
@@ -418,7 +416,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Leve
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSize.Level0)
 {
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetOperateInfo(IME_HIDE_UNEDITABLE));
-    auto hideTextInput = [&inputMethodController_]() { inputMethodController_->HideTextInput(); };
+    auto hideTextInput = []() { inputMethodController_->HideTextInput(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideTextInput));
 }
 
@@ -430,7 +428,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSi
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowTextInput, TestSize.Level0)
 {
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetOperateInfo(IME_SHOW_ENEDITABLE));
-    auto showTextInput = [&inputMethodController_]() { inputMethodController_->ShowTextInput(); };
+    auto showTextInput = []() { inputMethodController_->ShowTextInput(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, showTextInput));
 }
 
@@ -442,7 +440,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowTextInput, TestSi
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideCurrentInput, TestSize.Level0)
 {
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetOperateInfo(IME_HIDE_NORMAL));
-    auto hideCurrentInput = [&inputMethodController_]() { inputMethodController_->HideCurrentInput(); };
+    auto hideCurrentInput = []() { inputMethodController_->HideCurrentInput(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideCurrentInput));
 }
 
@@ -454,7 +452,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideCurrentInput, Tes
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowCurrentInput, TestSize.Level0)
 {
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetOperateInfo(IME_SHOW_NORMAL));
-    auto showCurrentInput = [&inputMethodController_]() { inputMethodController_->ShowCurrentInput(); };
+    auto showCurrentInput = []() { inputMethodController_->ShowCurrentInput(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, showCurrentInput));
 }
 
@@ -466,7 +464,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowCurrentInput, Tes
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideSoftKeyboard, TestSize.Level0)
 {
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetOperateInfo(IME_HIDE_NORMAL));
-    auto hideSoftKeyboard = [&inputMethodController_]() { inputMethodController_->HideSoftKeyboard(); };
+    auto hideSoftKeyboard = []() { inputMethodController_->HideSoftKeyboard(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideSoftKeyboard));
 }
 
@@ -478,7 +476,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideSoftKeyboard, Tes
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowSoftKeyboard, TestSize.Level0)
 {
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetOperateInfo(IME_SHOW_NORMAL));
-    auto showSoftKeyboard = [&inputMethodController_]() { inputMethodController_->ShowSoftKeyboard(); };
+    auto showSoftKeyboard = []() { inputMethodController_->ShowSoftKeyboard(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, showSoftKeyboard));
 }
 
@@ -490,7 +488,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowSoftKeyboard, Tes
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideKeyboardSelf, TestSize.Level0)
 {
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetOperateInfo(IME_HIDE_SELF));
-    auto hideKeyboardSelf = [&inputMethodController_]() { inputMethodAbility_->HideKeyboardSelf(); };
+    auto hideKeyboardSelf = []() { inputMethodAbility_->HideKeyboardSelf(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideKeyboardSelf));
 }
 
@@ -502,7 +500,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideKeyboardSelf, Tes
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Close, TestSize.Level0)
 {
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetOperateInfo(IME_UNBIND));
-    auto close = [&inputMethodController_]() { inputMethodController_->Close(); };
+    auto close = []() { inputMethodController_->Close(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, close));
 }
 } // namespace MiscServices
