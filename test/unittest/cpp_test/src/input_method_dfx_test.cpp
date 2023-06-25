@@ -231,7 +231,8 @@ bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMe
     }
     std::unique_lock<std::mutex> lock(Watcher::cvMutex_);
     exec();
-    if (Watcher::watcherCv_.wait_for(lock, std::chrono::seconds(1)) == std::cv_status::timeout) {
+    bool ret = Watcher::watcherCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout
+    if (!ret) {
         IMSA_HILOGE("watcherCv_.wait_for timeout!");
         return false;
     }
