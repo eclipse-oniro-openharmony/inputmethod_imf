@@ -393,7 +393,7 @@ constexpr int32_t BUFF_LENGTH = 10;
     pid_t InputMethodControllerTest::GetPid()
     {
         char buff[BUFF_LENGTH] = { 0 };
-        FILE *fp = popen(CMD, "r");
+        FILE *fp = popen(CMD_PIDOF_IMS, "r");
         EXPECT_TRUE(fp != nullptr);
         fgets(buff, sizeof(buff), fp);
         pid_t pid = atoi(buff);
