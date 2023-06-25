@@ -193,7 +193,7 @@ std::condition_variable Watcher::watcherCv_;
 
 class InputMethodDfxTest : public testing::Test {
 public:
-    using ExecFuc = std::function<void()>;
+    using ExecFunc = std::function<void()>;
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
     static void AllocTestTokenID(const std::string &bundleName);
@@ -202,7 +202,7 @@ public:
     static void RestoreSelfTokenID();
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
     static void ClearHisyseventCache();
-    static bool WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMethodDfxTest::ExecFuc exec);
+    static bool WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMethodDfxTest::ExecFunc exec);
     void SetUp();
     void TearDown();
     static uint64_t selfTokenID_;
@@ -219,7 +219,7 @@ AccessTokenID InputMethodDfxTest::testTokenID_ = 0;
 sptr<InputMethodAbility> InputMethodDfxTest::inputMethodAbility_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodDfxTest::imeListener_;
 
-bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMethodDfxTest::ExecFuc exec)
+bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMethodDfxTest::ExecFunc exec)
 {
     OHOS::HiviewDFX::ListenerRule listenerRule(DOMAIN, EVENT_NAME, "", OHOS::HiviewDFX::RuleType::WHOLE_WORD);
     std::vector<OHOS::HiviewDFX::ListenerRule> sysRules;
