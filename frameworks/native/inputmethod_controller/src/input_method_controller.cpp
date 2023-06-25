@@ -686,7 +686,7 @@ void InputMethodController::RestoreAttachInfoInSaDied()
         return;
     }
     isDiedAttached_.store(false);
-    auto attachTask = [=]() {
+    auto attachTask = [attach, &isDiedAttached_]() {
         if (isDiedAttached_.load()) {
             return;
         }

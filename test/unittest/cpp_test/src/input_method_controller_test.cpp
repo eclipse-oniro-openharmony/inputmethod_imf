@@ -57,7 +57,7 @@ using namespace OHOS::Security::AccessToken;
 using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
-constexpr const char *CMD = "pidof inputmethod_ser";
+constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr uint32_t DEALY_TIME = 1;
 constexpr int32_t BUFF_LENGTH = 10;
@@ -197,7 +197,7 @@ constexpr int32_t BUFF_LENGTH = 10;
     class SelectListenerMock : public ControllerListener {
     public:
         SelectListenerMock() = default;
-        virtual ~SelectListenerMock() = default;
+        ~SelectListenerMock() override = default;
 
         MOCK_METHOD2(OnSelectByRange, void(int32_t start, int32_t end));
         MOCK_METHOD1(OnSelectByMovement, void(int32_t direction));
