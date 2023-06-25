@@ -12,14 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define private public
+#define protected public
 #include "input_method_controller.h"
+#undef private
 
 #include <event_handler.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <string_ex.h>
 #include <sys/time.h>
 
 #include <condition_variable>
+#include <csignal>
 #include <cstdint>
 #include <functional>
 #include <mutex>
@@ -34,6 +39,7 @@
 #include "i_input_method_system_ability.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
+#include "input_death_recipient.h"
 #include "input_method_ability.h"
 #include "input_method_engine_listener.h"
 #include "input_method_system_ability_proxy.h"
@@ -45,13 +51,16 @@
 #include "system_ability_definition.h"
 #include "token_setproc.h"
 
+using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
 using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
+constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr uint32_t DEALY_TIME = 1;
+constexpr int32_t BUFF_LENGTH = 10;
     class TextListener : public OnTextChangedListener {
     public:
         TextListener()
@@ -66,6 +75,11 @@ constexpr uint32_t DEALY_TIME = 1;
         static std::mutex cvMutex_;
         static std::condition_variable cv_;
         std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
+        static int32_t direction_;
+        static int32_t deleteForwardLength_;
+        static int32_t deleteBackwardLength_;
+        static std::u16string insertText_;
+        static int32_t key_;
         static bool WaitIMACallback()
         {
             std::unique_lock<std::mutex> lock(TextListener::cvMutex_);
@@ -74,11 +88,13 @@ constexpr uint32_t DEALY_TIME = 1;
         void InsertText(const std::u16string &text)
         {
             IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", Str16ToStr8(text).c_str());
+            insertText_ = text;
         }
 
         void DeleteBackward(int32_t length)
         {
             IMSA_HILOGI("IMC TEST TextListener DeleteBackward length: %{public}d", length);
+            deleteBackwardLength_ = length;
         }
 
         void SetKeyboardStatus(bool status)
@@ -88,6 +104,7 @@ constexpr uint32_t DEALY_TIME = 1;
         void DeleteForward(int32_t length)
         {
             IMSA_HILOGI("IMC TEST TextListener DeleteForward length: %{public}d", length);
+            deleteForwardLength_ = length;
         }
         void SendKeyEventFromInputMethod(const KeyEvent &event)
         {
@@ -108,10 +125,13 @@ constexpr uint32_t DEALY_TIME = 1;
         void SendFunctionKey(const FunctionKey &functionKey)
         {
             IMSA_HILOGI("IMC TEST TextListener SendFunctionKey");
+            EnterKeyType enterKeyType = functionKey.GetEnterKeyType();
+            key_ = static_cast<int32_t>(enterKeyType);
         }
         void MoveCursor(const Direction direction)
         {
             IMSA_HILOGI("IMC TEST TextListener MoveCursor");
+            direction_ = static_cast<int32_t>(direction);
         }
         void HandleSetSelection(int32_t start, int32_t end)
         {
@@ -126,6 +146,11 @@ constexpr uint32_t DEALY_TIME = 1;
     KeyboardStatus TextListener::keyboardStatus_;
     std::mutex TextListener::cvMutex_;
     std::condition_variable TextListener::cv_;
+    int32_t TextListener::direction_ = 0;
+    int32_t TextListener::deleteForwardLength_ = 0;
+    int32_t TextListener::deleteBackwardLength_ = 0;
+    std::u16string TextListener::insertText_;
+    int32_t TextListener::key_ = 0;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -169,6 +194,15 @@ constexpr uint32_t DEALY_TIME = 1;
         IMSA_HILOGD("InputMethodEngineListenerImpl::OnSetSubtype");
     }
 
+    class SelectListenerMock : public ControllerListener {
+    public:
+        SelectListenerMock() = default;
+        ~SelectListenerMock() override = default;
+
+        MOCK_METHOD2(OnSelectByRange, void(int32_t start, int32_t end));
+        MOCK_METHOD1(OnSelectByMovement, void(int32_t direction));
+    };
+
     class InputMethodControllerTest : public testing::Test {
     public:
         static void SetUpTestCase(void);
@@ -179,13 +213,21 @@ constexpr uint32_t DEALY_TIME = 1;
         static void DeleteTestTokenID();
         static void SetTestTokenID();
         static void RestoreSelfTokenID();
+        static pid_t GetPid();
+        static void SetInputDeathRecipient();
+        static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
+        static bool WaitRemoteDiedCallback();
         static sptr<InputMethodController> inputMethodController_;
         static sptr<InputMethodAbility> inputMethodAbility_;
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
         static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
+        static std::shared_ptr<SelectListenerMock> controllerListener_;
         static sptr<OnTextChangedListener> textListener_;
         static std::mutex keyboardListenerMutex_;
         static std::condition_variable keyboardListenerCv_;
+        static std::mutex onRemoteSaDiedMutex_;
+        static std::condition_variable onRemoteSaDiedCv_;
+        static sptr<InputDeathRecipient> deathRecipient_;
         static uint64_t selfTokenID_;
         static AccessTokenID testTokenID_;
         static int32_t keyCode_;
@@ -239,6 +281,7 @@ constexpr uint32_t DEALY_TIME = 1;
     sptr<InputMethodAbility> InputMethodControllerTest::inputMethodAbility_;
     std::shared_ptr<MMI::KeyEvent> InputMethodControllerTest::keyEvent_;
     std::shared_ptr<InputMethodEngineListenerImpl> InputMethodControllerTest::imeListener_;
+    std::shared_ptr<SelectListenerMock> InputMethodControllerTest::controllerListener_;
     sptr<OnTextChangedListener> InputMethodControllerTest::textListener_;
     uint64_t InputMethodControllerTest::selfTokenID_ = 0;
     AccessTokenID InputMethodControllerTest::testTokenID_ = 0;
@@ -252,6 +295,9 @@ constexpr uint32_t DEALY_TIME = 1;
     std::string InputMethodControllerTest::text_;
     std::mutex InputMethodControllerTest::keyboardListenerMutex_;
     std::condition_variable InputMethodControllerTest::keyboardListenerCv_;
+    sptr<InputDeathRecipient> InputMethodControllerTest::deathRecipient_;
+    std::mutex InputMethodControllerTest::onRemoteSaDiedMutex_;
+    std::condition_variable InputMethodControllerTest::onRemoteSaDiedCv_;
 
     void InputMethodControllerTest::SetUpTestCase(void)
     {
@@ -265,6 +311,7 @@ constexpr uint32_t DEALY_TIME = 1;
         inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->OnImeReady();
         imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
+        controllerListener_ = std::make_shared<SelectListenerMock>();
         textListener_ = new TextListener();
         inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerImpl>());
         inputMethodAbility_->SetImeListener(imeListener_);
@@ -279,6 +326,8 @@ constexpr uint32_t DEALY_TIME = 1;
         constexpr int32_t keyCode = 2001;
         keyEvent_->SetKeyAction(keyAction);
         keyEvent_->SetKeyCode(keyCode);
+
+        SetInputDeathRecipient();
     }
 
     void InputMethodControllerTest::TearDownTestCase(void)
@@ -339,6 +388,57 @@ constexpr uint32_t DEALY_TIME = 1;
     {
         auto ret = SetSelfTokenID(InputMethodControllerTest::selfTokenID_);
         IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
+    }
+
+    pid_t InputMethodControllerTest::GetPid()
+    {
+        char buff[BUFF_LENGTH] = { 0 };
+        FILE *fp = popen(CMD_PIDOF_IMS, "r");
+        EXPECT_TRUE(fp != nullptr);
+        fgets(buff, sizeof(buff), fp);
+        pid_t pid = atoi(buff);
+        pclose(fp);
+        fp = nullptr;
+        return pid;
+    }
+
+    void InputMethodControllerTest::SetInputDeathRecipient()
+    {
+        IMSA_HILOGI("InputMethodControllerTest::SetInputDeathRecipient");
+        sptr<ISystemAbilityManager> systemAbilityManager =
+            SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (systemAbilityManager == nullptr) {
+            IMSA_HILOGI("InputMethodControllerTest, system ability manager is nullptr");
+            return;
+        }
+        auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
+        if (systemAbility == nullptr) {
+            IMSA_HILOGI("InputMethodControllerTest, system ability is nullptr");
+            return;
+        }
+        deathRecipient_ = new (std::nothrow) InputDeathRecipient();
+        if (deathRecipient_ == nullptr) {
+            IMSA_HILOGE("InputMethodControllerTest, new death recipient failed");
+            return;
+        }
+        deathRecipient_->SetDeathRecipient([](const wptr<IRemoteObject> &remote) { OnRemoteSaDied(remote); });
+        if ((systemAbility->IsProxyObject()) && (!systemAbility->AddDeathRecipient(deathRecipient_))) {
+            IMSA_HILOGE("InputMethodControllerTest, failed to add death recipient.");
+            return;
+        }
+    }
+
+    void InputMethodControllerTest::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
+    {
+        IMSA_HILOGI("InputMethodControllerTest::OnRemoteSaDied");
+        onRemoteSaDiedCv_.notify_one();
+    }
+
+    bool InputMethodControllerTest::WaitRemoteDiedCallback()
+    {
+        IMSA_HILOGI("InputMethodControllerTest::WaitRemoteDiedCallback");
+        std::unique_lock<std::mutex> lock(onRemoteSaDiedMutex_);
+        return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
     }
 
     /**
@@ -784,6 +884,125 @@ constexpr uint32_t DEALY_TIME = 1;
         TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         inputMethodController_->HideTextInput();
         EXPECT_TRUE(!imeListener_->keyboardState_);
+    }
+
+    /**
+     * @tc.name: testSetControllerListener
+     * @tc.desc: IMC SetControllerListener
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodControllerTest, testSetControllerListener, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC SetControllerListener Test START");
+        inputMethodController_->SetControllerListener(controllerListener_);
+
+        int32_t ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        EXPECT_CALL(*controllerListener_, OnSelectByRange(Eq(1), Eq(2))).Times(1);
+        inputMethodAbility_->SelectByRange(1, 2);
+
+        Sequence s;
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::UP))))
+            .Times(1)
+            .InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::DOWN))))
+            .Times(1)
+            .InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::LEFT))))
+            .Times(1)
+            .InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::RIGHT))))
+            .Times(1)
+            .InSequence(s);
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::UP));
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::RIGHT));
+    }
+
+    /**
+     * @tc.name: testWasAttached
+     * @tc.desc: IMC WasAttached
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodControllerTest, testWasAttached, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC WasAttached Test START");
+        inputMethodController_->Close();
+        bool result = inputMethodController_->WasAttached();
+        EXPECT_FALSE(result);
+        int32_t ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        result = inputMethodController_->WasAttached();
+        EXPECT_TRUE(result);
+        inputMethodController_->Close();
+    }
+
+    /**
+    * @tc.name: testWithoutEditableState
+    * @tc.desc: IMC testWithoutEditableState
+    * @tc.type: FUNC
+    * @tc.require:
+    */
+    HWTEST_F(InputMethodControllerTest, testWithoutEditableState, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC WithouteEditableState Test START");
+        auto ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        ret = inputMethodController_->HideTextInput();
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+        int32_t deleteForwardLength = 1;
+        ret = inputMethodAbility_->DeleteForward(deleteForwardLength);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(100);
+        EXPECT_NE(TextListener::deleteForwardLength_, deleteForwardLength);
+
+        int32_t deleteBackwardLength = 2;
+        ret = inputMethodAbility_->DeleteBackward(deleteBackwardLength);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(100);
+        EXPECT_NE(TextListener::deleteBackwardLength_, deleteBackwardLength);
+
+        std::string insertText = "t";
+        ret = inputMethodAbility_->InsertText(insertText);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(100);
+        EXPECT_NE(TextListener::insertText_, Str8ToStr16(insertText));
+
+        constexpr int32_t funcKey = 1;
+        ret = inputMethodAbility_->SendFunctionKey(funcKey);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(100);
+        EXPECT_NE(TextListener::key_, funcKey);
+
+        constexpr int32_t keyCode = 4;
+        ret = inputMethodAbility_->MoveCursor(keyCode);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(100);
+        EXPECT_NE(TextListener::direction_, keyCode);
+    }
+
+    /**
+     * @tc.name: testOnRemoteDied
+     * @tc.desc: IMC OnRemoteDied
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC OnRemoteDied Test START");
+        int32_t ret = inputMethodController_->Attach(textListener_, true);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        pid_t pid = GetPid();
+        EXPECT_TRUE(pid > 0);
+        ret = kill(pid, SIGTERM);
+        EXPECT_EQ(ret, 0);
+        EXPECT_TRUE(WaitRemoteDiedCallback());
+        inputMethodController_->OnRemoteSaDied(nullptr);
+        EXPECT_TRUE(TextListener::WaitIMACallback());
+        bool result = inputMethodController_->WasAttached();
+        EXPECT_TRUE(result);
+        inputMethodController_->Close();
     }
 } // namespace MiscServices
 } // namespace OHOS
