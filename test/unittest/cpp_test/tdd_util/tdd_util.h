@@ -30,7 +30,6 @@ public:
     static void StorageSelfUid();
     static void SetTestUid();
     static void RestoreSelfUid();
-    static void GrantNativePermission();
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
 
 private:

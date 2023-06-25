@@ -83,7 +83,9 @@ public:
 void InputMethodSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::SetUpTestCase");
-    TddUtil::GrantNativePermission();
+    TddUtil::StorageSelfTokenID();
+    TddUtil::AllocTestTokenID("ohos.inputMethod.test");
+    TddUtil::SetTestTokenID();
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(std::make_shared<InputMethodSettingListenerImpl>());
     imc_->UpdateListenEventFlag("imeChange", true);
@@ -93,6 +95,8 @@ void InputMethodSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::TearDownTestCase");
     InputMethodController::GetInstance()->Close();
+    TddUtil::RestoreSelfTokenID();
+    TddUtil::DeleteTestTokenID();
 }
 
 void InputMethodSwitchTest::SetUp(void)

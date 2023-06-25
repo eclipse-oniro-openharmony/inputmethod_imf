@@ -79,7 +79,9 @@ public:
 void NewImeSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::SetUpTestCase");
-    TddUtil::GrantNativePermission();
+    TddUtil::StorageSelfTokenID();
+    TddUtil::AllocTestTokenID("ohos.inputMethod.test");
+    TddUtil::SetTestTokenID();
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(std::make_shared<InputMethodSettingListenerImpl>());
     imc_->UpdateListenEventFlag("imeChange", true);
@@ -89,6 +91,8 @@ void NewImeSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::TearDownTestCase");
     InputMethodController::GetInstance()->Close();
+    TddUtil::RestoreSelfTokenID();
+    TddUtil::DeleteTestTokenID();
 }
 
 void NewImeSwitchTest::SetUp(void)

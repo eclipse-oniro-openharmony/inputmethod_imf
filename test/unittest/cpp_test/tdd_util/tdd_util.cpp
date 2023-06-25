@@ -40,7 +40,6 @@ using namespace OHOS::AccountSA;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
-constexpr const uint16_t TOTAL_LENGTH = 4096;
 uint64_t TddUtil::selfTokenID_ = 0;
 uint64_t TddUtil::testTokenID_ = 0;
 int64_t TddUtil::selfUid_ = -1;
@@ -135,50 +134,21 @@ void TddUtil::RestoreSelfUid()
     setuid(selfUid_);
 }
 
-void TddUtil::GrantNativePermission()
-{
-    const char **perms = new const char *[1];
-    perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
-    TokenInfoParams infoInstance = {
-        .dcapsNum = 0,
-        .permsNum = 1,
-        .aclsNum = 0,
-        .dcaps = nullptr,
-        .perms = perms,
-        .acls = nullptr,
-        .processName = "inputmethod_imf",
-        .aplStr = "system_core",
-    };
-    uint64_t tokenId = GetAccessTokenId(&infoInstance);
-    int res = SetSelfTokenID(tokenId);
-    if (res == 0) {
-        IMSA_HILOGI("SetSelfTokenID success!");
-    } else {
-        IMSA_HILOGE("SetSelfTokenID fail!");
-    }
-    AccessTokenKit::ReloadNativeTokenInfo();
-    delete[] perms;
-}
-
 bool TddUtil::ExecuteCmd(const std::string &cmd, std::string &result)
 {
     char buff[EACH_LINE_LENGTH] = { 0x00 };
-    char output[TOTAL_LENGTH] = { 0x00 };
+    std::stringstream output;
     FILE *ptr = popen(cmd.c_str(), "r");
     if (ptr != nullptr) {
         while (fgets(buff, sizeof(buff), ptr) != nullptr) {
-            if (strcat_s(output, sizeof(output), buff) != 0) {
-                pclose(ptr);
-                ptr = nullptr;
-                return false;
-            }
+            output << buff;
         }
         pclose(ptr);
         ptr = nullptr;
     } else {
         return false;
     }
-    result = std::string(output);
+    result = output.str();
     return true;
 }
 } // namespace MiscServices
