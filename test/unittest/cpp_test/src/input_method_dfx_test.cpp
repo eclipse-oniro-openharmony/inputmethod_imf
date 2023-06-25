@@ -232,13 +232,9 @@ bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMe
     std::unique_lock<std::mutex> lock(Watcher::cvMutex_);
     exec();
     bool result = Watcher::watcherCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
-    if (!result) {
-        IMSA_HILOGE("watcherCv_.wait_for timeout!");
-        return false;
-    }
     ret = OHOS::HiviewDFX::HiSysEventManager::RemoveListener(watcher);
-    if (ret != SUCCESS) {
-        IMSA_HILOGE("RemoveListener failed! ret = %{public}d", ret);
+    if (ret != SUCCESS || !result) {
+        IMSA_HILOGE("RemoveListener ret = %{public}d, wait_for result = %{public}s", ret, result ? "true" : "false");
         return false;
     }
     return true;
