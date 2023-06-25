@@ -158,9 +158,8 @@ class Watcher : public HiSysEventListener {
 public:
     static std::mutex cvMutex_;
     static std::condition_variable watcherCv_;
-    explicit Watcher(const std::string &operateInfo)
+    explicit Watcher(const std::string &operateInfo) : operateInfo_(operateInfo)
     {
-        operateInfo_ = operateInfo;
     }
     virtual ~Watcher()
     {
@@ -174,8 +173,7 @@ public:
         std::string result;
         sysEvent->GetParamValue(PARAM_KEY, result);
         IMSA_HILOGD("result = %{public}s", result.c_str());
-        bool ret = result == operateInfo_;
-        if (!ret) {
+        if (result != operateInfo_) {
             IMSA_HILOGE("string is not matched.");
             return;
         }
