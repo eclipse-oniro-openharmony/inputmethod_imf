@@ -33,6 +33,7 @@
 #include "hisysevent_record.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
+#include "tdd_util.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
@@ -207,7 +208,9 @@ bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMe
         return false;
     }
     std::unique_lock<std::mutex> lock(watcher->cvMutex_);
+    TddUtil::SetTestUid();
     exec();
+    TddUtil::RestoreSelfUid();
     bool result = watcher->watcherCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
     ret = OHOS::HiviewDFX::HiSysEventManager::RemoveListener(watcher);
     if (ret != SUCCESS || !result) {
@@ -241,6 +244,16 @@ void InputMethodDfxTest::TearDownTestCase(void)
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
     TddUtil::DeleteTestTokenID();
+}
+
+void InputMethodDfxTest::SetUp(void)
+{
+    IMSA_HILOGI("InputMethodDfxTest::SetUp");
+}
+
+void InputMethodDfxTest::TearDown(void)
+{
+    IMSA_HILOGI("InputMethodDfxTest::TearDown");
 }
 
 /**
