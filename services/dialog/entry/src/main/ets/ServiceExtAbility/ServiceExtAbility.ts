@@ -25,6 +25,7 @@ let commonEvent2 = 'usual.event.PACKAGE_REMOVED';
 let subscribeInfo = {
   events: [commonEvent1, commonEvent2]
 };
+const EXIT_TIME = 1000;
 export default class ServiceExtAbility extends ServiceExtensionAbility {
   onCreate(want): void {
     console.log(TAG, 'onCreate');
@@ -77,7 +78,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
         }
         setTimeout(() => {
           this.releaseContext();
-        }, 1000)
+        }, EXIT_TIME);
       });
     });
   }
