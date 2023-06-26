@@ -676,18 +676,26 @@ void InputMethodController::RestoreAttachInfoInSaDied()
         IMSA_HILOGE("not in editable state");
         return;
     }
+    auto attach = [=]() -> bool {
+        auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, clientInfo_.attribute);
+        if (errCode == ErrorCode::NO_ERROR) {
+            isDiedAttached_.store(true);
+            OnCursorUpdate(cursorInfo_);
+            OnSelectionChange(textString_, selectNewBegin_, selectNewEnd_);
+            IMSA_HILOGI("attach success.");
+            return true;
+        }
+        return false;
+    };
+    if (attach()) {
+        return;
+    }
     isDiedAttached_.store(false);
-    auto attachTask = [=]() {
+    auto attachTask = [this, attach]() {
         if (isDiedAttached_.load()) {
             return;
         }
-        auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, clientInfo_.attribute);
-        if (errCode == ErrorCode::NO_ERROR) {
-            OnCursorUpdate(cursorInfo_);
-            OnSelectionChange(textString_, selectNewBegin_, selectNewEnd_);
-            isDiedAttached_.store(true);
-            IMSA_HILOGI("Try to attach success.");
-        }
+        attach();
     };
     for (int i = 0; i < LOOP_COUNT; i++) {
         handler_->PostTask(attachTask, "OnRemoteSaDied", DELAY_TIME * (i + 1));

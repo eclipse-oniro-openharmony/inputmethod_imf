@@ -34,6 +34,7 @@ ohos_unittest("InputMethodControllerTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
+    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
 
