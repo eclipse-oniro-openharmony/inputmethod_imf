@@ -25,8 +25,6 @@
 #include <cstdint>
 #include <string>
 
-#include "ability_manager_client.h"
-#include "accesstoken_kit.h"
 #include "global.h"
 #include "hisysevent_base_manager.h"
 #include "hisysevent_listener.h"
@@ -35,19 +33,12 @@
 #include "hisysevent_record.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
-#include "os_account_manager.h"
-#include "securec.h"
-#include "token_setproc.h"
+#include "tdd_util.h"
 
 using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
-using namespace OHOS::Security::AccessToken;
-using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
-constexpr const uint16_t EACH_LINE_LENGTH = 100;
-constexpr const uint16_t TOTAL_LENGTH = 1000;
-constexpr int32_t MAIN_USER_ID = 100;
 constexpr const char *CMD1 = "hidumper -s 3703 -a -a";
 constexpr const char *CMD2 = "hidumper -s 3703 -a -h";
 constexpr const char *CMD3 = "hidumper -s 3703 -a -test";
@@ -102,7 +93,7 @@ public:
     }
     void InsertText(const std::u16string &text)
     {
-        IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", Str16ToStr8(text).c_str());
+        IMSA_HILOGI("IMC TEST TextListener InsertText");
     }
     void DeleteBackward(int32_t length)
     {
@@ -193,26 +184,16 @@ public:
     using ExecFunc = std::function<void()>;
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    static void AllocTestTokenID(const std::string &bundleName);
-    static void DeleteTestTokenID();
-    static void SetTestTokenID();
-    static void RestoreSelfTokenID();
-    static bool ExecuteCmd(const std::string &cmd, std::string &result);
-    static void ClearHisyseventCache();
     static bool WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMethodDfxTest::ExecFunc exec);
     void SetUp();
     void TearDown();
-    static uint64_t selfTokenID_;
-    static AccessTokenID testTokenID_;
     static sptr<InputMethodController> inputMethodController_;
     static sptr<OnTextChangedListener> textListener_;
     static sptr<InputMethodAbility> inputMethodAbility_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
 };
 sptr<InputMethodController> InputMethodDfxTest::inputMethodController_;
-uint64_t InputMethodDfxTest::selfTokenID_ = 0;
 sptr<OnTextChangedListener> InputMethodDfxTest::textListener_;
-AccessTokenID InputMethodDfxTest::testTokenID_ = 0;
 sptr<InputMethodAbility> InputMethodDfxTest::inputMethodAbility_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodDfxTest::imeListener_;
 
@@ -227,7 +208,9 @@ bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMe
         return false;
     }
     std::unique_lock<std::mutex> lock(watcher->cvMutex_);
+    TddUtil::SetTestUid();
     exec();
+    TddUtil::RestoreSelfUid();
     bool result = watcher->watcherCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
     ret = OHOS::HiviewDFX::HiSysEventManager::RemoveListener(watcher);
     if (ret != SUCCESS || !result) {
@@ -237,76 +220,30 @@ bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMe
     return true;
 }
 
-void InputMethodDfxTest::AllocTestTokenID(const std::string &bundleName)
-{
-    IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
-    std::vector<int32_t> userIds;
-    auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
-    if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
-        IMSA_HILOGE("query active os account id failed");
-        userIds[0] = MAIN_USER_ID;
-    }
-    HapInfoParams infoParams = {
-        .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
-    };
-    PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
-        .isGeneral = true,
-        .resDeviceID = { "local" },
-        .grantStatus = { PermissionState::PERMISSION_GRANTED },
-        .grantFlags = { 1 } };
-    HapPolicyParams policyParams = {
-        .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = { permissionState }
-    };
-
-    AccessTokenKit::AllocHapToken(infoParams, policyParams);
-    DeleteTestTokenID();
-    testTokenID_ = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
-}
-
-void InputMethodDfxTest::DeleteTestTokenID()
-{
-    AccessTokenKit::DeleteToken(InputMethodDfxTest::testTokenID_);
-}
-
-void InputMethodDfxTest::SetTestTokenID()
-{
-    auto ret = SetSelfTokenID(InputMethodDfxTest::testTokenID_);
-    IMSA_HILOGI("SetSelfTokenID ret: %{public}d", ret);
-}
-
-void InputMethodDfxTest::RestoreSelfTokenID()
-{
-    auto ret = SetSelfTokenID(InputMethodDfxTest::selfTokenID_);
-    IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
-}
-
 void InputMethodDfxTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::SetUpTestCase");
-    selfTokenID_ = GetSelfTokenID();
+    TddUtil::StorageSelfTokenID();
     std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-    AllocTestTokenID(bundleName);
-    SetTestTokenID();
+    TddUtil::AllocTestTokenID(bundleName);
+    TddUtil::SetTestTokenID();
     inputMethodAbility_ = InputMethodAbility::GetInstance();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->OnImeReady();
     inputMethodAbility_->SetCoreAndAgent();
     inputMethodAbility_->SetImeListener(imeListener_);
-    RestoreSelfTokenID();
 
-    bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-    AllocTestTokenID(bundleName);
-    SetTestTokenID();
     inputMethodController_ = InputMethodController::GetInstance();
     textListener_ = new TextListener();
+    TddUtil::StorageSelfUid();
 }
 
 void InputMethodDfxTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
-    RestoreSelfTokenID();
-    DeleteTestTokenID();
+    TddUtil::RestoreSelfTokenID();
+    TddUtil::DeleteTestTokenID();
 }
 
 void InputMethodDfxTest::SetUp(void)
@@ -319,28 +256,6 @@ void InputMethodDfxTest::TearDown(void)
     IMSA_HILOGI("InputMethodDfxTest::TearDown");
 }
 
-bool InputMethodDfxTest::ExecuteCmd(const std::string &cmd, std::string &result)
-{
-    char buff[EACH_LINE_LENGTH] = { 0x00 };
-    char output[TOTAL_LENGTH] = { 0x00 };
-    FILE *ptr = popen(cmd.c_str(), "r");
-    if (ptr != nullptr) {
-        while (fgets(buff, sizeof(buff), ptr) != nullptr) {
-            if (strcat_s(output, sizeof(output), buff) != 0) {
-                pclose(ptr);
-                ptr = nullptr;
-                return false;
-            }
-        }
-        pclose(ptr);
-        ptr = nullptr;
-    } else {
-        return false;
-    }
-    result = std::string(output);
-    return true;
-}
-
 /**
 * @tc.name: InputMethodDfxTest_DumpAllMethod_001
 * @tc.desc: DumpAllMethod
@@ -351,7 +266,7 @@ bool InputMethodDfxTest::ExecuteCmd(const std::string &cmd, std::string &result)
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Level0)
 {
     std::string result;
-    auto ret = InputMethodDfxTest::ExecuteCmd(CMD1, result);
+    auto ret = TddUtil::ExecuteCmd(CMD1, result);
     EXPECT_TRUE(ret);
     EXPECT_NE(result.find("imeList"), std::string::npos);
     EXPECT_NE(result.find("com.example.testIme"), std::string::npos);
@@ -367,7 +282,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Leve
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Level0)
 {
     std::string result;
-    auto ret = InputMethodDfxTest::ExecuteCmd(CMD2, result);
+    auto ret = TddUtil::ExecuteCmd(CMD2, result);
     EXPECT_TRUE(ret);
     EXPECT_NE(result.find("Description:"), std::string::npos);
     EXPECT_NE(result.find("-h show help"), std::string::npos);
@@ -384,7 +299,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Leve
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, TestSize.Level0)
 {
     std::string result;
-    auto ret = InputMethodDfxTest::ExecuteCmd(CMD3, result);
+    auto ret = TddUtil::ExecuteCmd(CMD3, result);
     EXPECT_TRUE(ret);
     EXPECT_NE(result.find("input dump parameter error,enter '-h' for usage."), std::string::npos);
 }

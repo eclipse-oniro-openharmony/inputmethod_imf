@@ -25,8 +25,6 @@
 #include <thread>
 #include <vector>
 
-#include "ability_manager_client.h"
-#include "accesstoken_kit.h"
 #include "global.h"
 #include "i_input_data_channel.h"
 #include "input_attribute.h"
@@ -39,17 +37,13 @@
 #include "input_method_core_stub.h"
 #include "input_method_panel.h"
 #include "message_handler.h"
-#include "os_account_manager.h"
-#include "token_setproc.h"
+#include "tdd_util.h"
 
 using namespace testing::ext;
-using namespace OHOS::Security::AccessToken;
-using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
 std::u16string g_textTemp = u"我們我們ddddd";
-constexpr int32_t MAIN_USER_ID = 100;
 class InputMethodAbilityTest : public testing::Test {
 public:
     static std::string imeIdStopped_;
@@ -71,8 +65,6 @@ public:
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     static sptr<InputMethodController> imc_;
     static sptr<InputMethodAbility> inputMethodAbility_;
-    static uint64_t selfTokenID_;
-    static AccessTokenID testTokenID_;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -133,7 +125,9 @@ public:
         {
         }
 
-        void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) override {}
+        void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) override
+        {
+        }
 
         void SendFunctionKey(const FunctionKey &functionKey) override
         {
@@ -177,71 +171,32 @@ public:
             IMSA_HILOGI("TextChangeListener, selectionDirection_: %{public}d", selectionDirection_);
         }
     };
-    static void AllocTestTokenID(const std::string &bundleName)
-    {
-        IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
-        std::vector<int32_t> userIds;
-        auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
-        if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
-            IMSA_HILOGE("query active os account id failed");
-            userIds[0] = MAIN_USER_ID;
-        }
-        HapInfoParams infoParams = {
-            .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
-        };
-        PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
-            .isGeneral = true,
-            .resDeviceID = { "local" },
-            .grantStatus = { PermissionState::PERMISSION_GRANTED },
-            .grantFlags = { 1 } };
-        HapPolicyParams policyParams = {
-            .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = { permissionState }
-        };
-
-        AccessTokenKit::AllocHapToken(infoParams, policyParams);
-        testTokenID_ = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
-    }
-    static void DeleteTestTokenID()
-    {
-        AccessTokenKit::DeleteToken(testTokenID_);
-    }
-    static void SetTestTokenID()
-    {
-        auto ret = SetSelfTokenID(testTokenID_);
-        IMSA_HILOGI("SetSelfTokenID ret: %{public}d", ret);
-    }
-    static void RestoreSelfTokenID()
-    {
-        auto ret = SetSelfTokenID(selfTokenID_);
-        IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
-    }
     static void SetUpTestCase(void)
     {
-        IMSA_HILOGI("InputMethodAbilityTest::SetUpTestCase");
-        selfTokenID_ = GetSelfTokenID();
+        // Set the tokenID to the tokenID of the current ime
+        TddUtil::StorageSelfTokenID();
         std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
         std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-        AllocTestTokenID(bundleName);
-        SetTestTokenID();
+        TddUtil::AllocTestTokenID(bundleName);
+        TddUtil::SetTestTokenID();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->OnImeReady();
         inputMethodAbility_->SetCoreAndAgent();
-        RestoreSelfTokenID();
+        TddUtil::RestoreSelfTokenID();
 
-        bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-        AllocTestTokenID(bundleName);
-        SetTestTokenID();
+        // Set the uid to the uid of the focus app
+        TddUtil::StorageSelfUid();
+        TddUtil::SetTestUid();
         sptr<OnTextChangedListener> textListener = new TextChangeListener();
         imc_ = InputMethodController::GetInstance();
         imc_->Attach(textListener);
-        RestoreSelfTokenID();
+        TddUtil::RestoreSelfUid();
     }
     static void TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodAbilityTest::TearDownTestCase");
         imc_->Close();
-        RestoreSelfTokenID();
-        DeleteTestTokenID();
+        TddUtil::DeleteTestTokenID();
     }
     void SetUp()
     {
@@ -271,8 +226,6 @@ int InputMethodAbilityTest::selectionDirection_ = 0;
 int32_t InputMethodAbilityTest::action_ = 0;
 sptr<InputMethodController> InputMethodAbilityTest::imc_;
 sptr<InputMethodAbility> InputMethodAbilityTest::inputMethodAbility_;
-uint64_t InputMethodAbilityTest::selfTokenID_ = 0;
-AccessTokenID InputMethodAbilityTest::testTokenID_ = 0;
 
 /**
 * @tc.name: testSerializedInputAttribute

@@ -33,10 +33,10 @@
 #include <vector>
 
 #include "ability_manager_client.h"
-#include "accesstoken_kit.h"
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
+#include "if_system_ability_manager.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
 #include "input_death_recipient.h"
@@ -47,18 +47,15 @@
 #include "iservice_registry.h"
 #include "keyboard_listener.h"
 #include "message_parcel.h"
-#include "os_account_manager.h"
+#include "system_ability.h"
 #include "system_ability_definition.h"
-#include "token_setproc.h"
+#include "tdd_util.h"
 
 using namespace testing;
 using namespace testing::ext;
-using namespace OHOS::Security::AccessToken;
-using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
 constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
-constexpr int32_t MAIN_USER_ID = 100;
 constexpr uint32_t DEALY_TIME = 1;
 constexpr int32_t BUFF_LENGTH = 10;
     class TextListener : public OnTextChangedListener {
@@ -209,10 +206,6 @@ constexpr int32_t BUFF_LENGTH = 10;
         static void TearDownTestCase(void);
         void SetUp();
         void TearDown();
-        static void AllocTestTokenID(const std::string &bundleName);
-        static void DeleteTestTokenID();
-        static void SetTestTokenID();
-        static void RestoreSelfTokenID();
         static pid_t GetPid();
         static void SetInputDeathRecipient();
         static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
@@ -228,8 +221,6 @@ constexpr int32_t BUFF_LENGTH = 10;
         static std::mutex onRemoteSaDiedMutex_;
         static std::condition_variable onRemoteSaDiedCv_;
         static sptr<InputDeathRecipient> deathRecipient_;
-        static uint64_t selfTokenID_;
-        static AccessTokenID testTokenID_;
         static int32_t keyCode_;
         static int32_t keyStatus_;
         static CursorInfo cursorInfo_;
@@ -283,8 +274,6 @@ constexpr int32_t BUFF_LENGTH = 10;
     std::shared_ptr<InputMethodEngineListenerImpl> InputMethodControllerTest::imeListener_;
     std::shared_ptr<SelectListenerMock> InputMethodControllerTest::controllerListener_;
     sptr<OnTextChangedListener> InputMethodControllerTest::textListener_;
-    uint64_t InputMethodControllerTest::selfTokenID_ = 0;
-    AccessTokenID InputMethodControllerTest::testTokenID_ = 0;
     int32_t InputMethodControllerTest::keyCode_ = 0;
     int32_t InputMethodControllerTest::keyStatus_ = 0;
     CursorInfo InputMethodControllerTest::cursorInfo_ = {};
@@ -302,11 +291,12 @@ constexpr int32_t BUFF_LENGTH = 10;
     void InputMethodControllerTest::SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::SetUpTestCase");
-        selfTokenID_ = GetSelfTokenID();
+        TddUtil::StorageSelfTokenID();
+        // Set the tokenID to the tokenID of the current ime
         std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
         std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-        AllocTestTokenID(bundleName);
-        SetTestTokenID();
+        TddUtil::AllocTestTokenID(bundleName);
+        TddUtil::SetTestTokenID();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->OnImeReady();
@@ -315,26 +305,25 @@ constexpr int32_t BUFF_LENGTH = 10;
         textListener_ = new TextListener();
         inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerImpl>());
         inputMethodAbility_->SetImeListener(imeListener_);
-        RestoreSelfTokenID();
 
-        bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-        AllocTestTokenID(bundleName);
-        SetTestTokenID();
         inputMethodController_ = InputMethodController::GetInstance();
         keyEvent_ = MMI::KeyEvent::Create();
         constexpr int32_t keyAction = 2;
         constexpr int32_t keyCode = 2001;
         keyEvent_->SetKeyAction(keyAction);
         keyEvent_->SetKeyCode(keyCode);
-
+        // Set the uid to the uid of the focus app
+        TddUtil::StorageSelfUid();
+        TddUtil::SetTestUid();
         SetInputDeathRecipient();
     }
 
     void InputMethodControllerTest::TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
-        RestoreSelfTokenID();
-        DeleteTestTokenID();
+        TddUtil::RestoreSelfTokenID();
+        TddUtil::DeleteTestTokenID();
+        TddUtil::RestoreSelfUid();
     }
 
     void InputMethodControllerTest::SetUp(void)
@@ -345,49 +334,6 @@ constexpr int32_t BUFF_LENGTH = 10;
     void InputMethodControllerTest::TearDown(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDown");
-    }
-
-    void InputMethodControllerTest::AllocTestTokenID(const std::string &bundleName)
-    {
-        IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
-        std::vector<int32_t> userIds;
-        auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
-        if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
-            IMSA_HILOGE("query active os account id failed");
-            userIds[0] = MAIN_USER_ID;
-        }
-        HapInfoParams infoParams = {
-            .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
-        };
-        PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
-            .isGeneral = true,
-            .resDeviceID = { "local" },
-            .grantStatus = { PermissionState::PERMISSION_GRANTED },
-            .grantFlags = { 1 } };
-        HapPolicyParams policyParams = {
-            .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = { permissionState }
-        };
-
-        AccessTokenKit::AllocHapToken(infoParams, policyParams);
-        DeleteTestTokenID();
-        testTokenID_ = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
-    }
-
-    void InputMethodControllerTest::DeleteTestTokenID()
-    {
-        AccessTokenKit::DeleteToken(InputMethodControllerTest::testTokenID_);
-    }
-
-    void InputMethodControllerTest::SetTestTokenID()
-    {
-        auto ret = SetSelfTokenID(InputMethodControllerTest::testTokenID_);
-        IMSA_HILOGI("SetSelfTokenID ret: %{public}d", ret);
-    }
-
-    void InputMethodControllerTest::RestoreSelfTokenID()
-    {
-        auto ret = SetSelfTokenID(InputMethodControllerTest::selfTokenID_);
-        IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
     }
 
     pid_t InputMethodControllerTest::GetPid()

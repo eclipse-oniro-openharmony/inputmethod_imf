@@ -209,8 +209,7 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
-    uint32_t tokenID = IPCSkeleton::GetCallingTokenID();
-    if (!BundleChecker::IsFocused(tokenID)) {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingUid())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     auto ret = GenerateClientInfo(clientInfo);
@@ -249,7 +248,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 
 int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
 {
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingUid())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     if (client == nullptr) {
