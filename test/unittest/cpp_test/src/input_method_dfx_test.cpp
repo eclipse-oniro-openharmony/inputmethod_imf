@@ -162,8 +162,6 @@ public:
     virtual ~Watcher()
     {
     }
-    std::mutex cvMutex_;
-    std::condition_variable watcherCv_;
     void OnEvent(std::shared_ptr<HiSysEventRecord> sysEvent) final
     {
         if (sysEvent == nullptr) {
@@ -184,7 +182,8 @@ public:
     {
         IMSA_HILOGE("Watcher::OnServiceDied");
     }
-
+    std::mutex cvMutex_;
+    std::condition_variable watcherCv_;
 private:
     std::string operateInfo_;
 };
