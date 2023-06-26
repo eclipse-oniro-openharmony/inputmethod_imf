@@ -18,12 +18,11 @@
 #include <unistd.h>
 
 #include <cstdint>
+#include <sstream>
 #include <string>
 #include <vector>
 
-#include "ability_manager_client.h"
 #include "accesstoken_kit.h"
-#include "bundle_mgr_client_impl.h"
 #include "global.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
@@ -32,11 +31,13 @@
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "token_setproc.h"
+#include "window_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
 using namespace OHOS::Security::AccessToken;
 using namespace OHOS::AccountSA;
+using namespace Rosen;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
@@ -107,27 +108,10 @@ void TddUtil::StorageSelfUid()
 
 void TddUtil::SetTestUid()
 {
-    auto bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        IMSA_HILOGE("systemAbilityManager is nullptr");
-        return;
-    }
-    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    if (remoteObject == nullptr) {
-        IMSA_HILOGE("remoteObject is nullptr");
-        return;
-    }
-    sptr<AppExecFwk::IBundleMgr> iBundleMgr = iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
-    if (iBundleMgr == nullptr) {
-        IMSA_HILOGE("iBundleMgr is nullptr");
-        return;
-    }
-    auto uid = iBundleMgr->GetUidByBundleName(bundleName, GetCurrentUserId());
-    IMSA_HILOGI("uid: %{public}d", uid);
-    setuid(uid);
+    FocusChangeInfo info;
+    WindowManager::GetInstance().GetFocusWindowInfo(info);
+    IMSA_HILOGI("uid: %{public}d", info.uid_);
+    setuid(info.uid_);
 }
 void TddUtil::RestoreSelfUid()
 {

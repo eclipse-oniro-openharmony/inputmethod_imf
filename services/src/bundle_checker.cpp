@@ -19,21 +19,18 @@
 #include "accesstoken_kit.h"
 #include "global.h"
 #include "tokenid_kit.h"
+#include "window_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
+using namespace Rosen;
 using namespace Security::AccessToken;
-int64_t BundleChecker::focusedUid_ = -1;
 bool BundleChecker::IsFocused(int64_t uid)
 {
-    IMSA_HILOGI("focusedUid_:%{public}" PRId64 ", uid:%{public}" PRId64 "", focusedUid_, uid);
-    return uid == focusedUid_;
-}
-
-void BundleChecker::SetFocused(int64_t uid)
-{
-    IMSA_HILOGD("uid:%{public}" PRId64 "", uid);
-    focusedUid_ = uid;
+    FocusChangeInfo info;
+    WindowManager::GetInstance().GetFocusWindowInfo(info);
+    IMSA_HILOGI("focusedUid:%{public}d, uid:%{public}" PRId64 "", info.uid_, uid);
+    return uid == info.uid_;
 }
 
 bool BundleChecker::IsSystemApp(uint64_t fullTokenID)
