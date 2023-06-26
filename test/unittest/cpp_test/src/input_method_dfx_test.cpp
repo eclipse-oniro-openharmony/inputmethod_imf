@@ -156,14 +156,14 @@ std::condition_variable TextListener::cv_;
 
 class Watcher : public HiSysEventListener {
 public:
-    static std::mutex cvMutex_;
-    static std::condition_variable watcherCv_;
     explicit Watcher(const std::string &operateInfo) : operateInfo_(operateInfo)
     {
     }
     virtual ~Watcher()
     {
     }
+    std::mutex cvMutex_;
+    std::condition_variable watcherCv_;
     void OnEvent(std::shared_ptr<HiSysEventRecord> sysEvent) final
     {
         if (sysEvent == nullptr) {
@@ -188,8 +188,6 @@ public:
 private:
     std::string operateInfo_;
 };
-std::mutex Watcher::cvMutex_;
-std::condition_variable Watcher::watcherCv_;
 
 class InputMethodDfxTest : public testing::Test {
 public:
@@ -229,9 +227,9 @@ bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMe
         IMSA_HILOGE("AddListener failed! ret = %{public}d", ret);
         return false;
     }
-    std::unique_lock<std::mutex> lock(Watcher::cvMutex_);
+    std::unique_lock<std::mutex> lock(watcher->cvMutex_);
     exec();
-    bool result = Watcher::watcherCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
+    bool result = watcher->watcherCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
     ret = OHOS::HiviewDFX::HiSysEventManager::RemoveListener(watcher);
     if (ret != SUCCESS || !result) {
         IMSA_HILOGE("RemoveListener ret = %{public}d, wait_for result = %{public}s", ret, result ? "true" : "false");
