@@ -151,6 +151,8 @@ ohos_unittest("InputMethodDfxTest") {
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "hisysevent_native:libhisysevent",
+    "hisysevent_native:libhisyseventmanager",
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
