@@ -57,12 +57,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
       commonEvent.subscribe(subcriber, (error, commonEventData) => {
         if (commonEventData.event === commonEvent1 || commonEventData.event === commonEvent2) {
           console.log(TAG + 'commonEvent:' + JSON.stringify(commonEvent1));
-          this.getInputMethods().then(() => {
-            if (!globalThis.extensionWin.isWindowShowing()) {
-              globalThis.extensionWin.show();
-            }
-            globalThis.extensionWin.setUIContent('pages/index');
-          });
+          this.updateImeList();
         }
       });
     });
@@ -80,33 +75,23 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
             message: 'switch success', duration: 200
           });
         }
+        setTimeout(() => {
+          this.releaseContext();
+        }, 1000)
       });
-    });
-
-    globalThis.releaseContext = (async (): Promise<void> => {
-      if (globalThis.context !== null) {
-        await globalThis.extensionWin.destroy();
-        await globalThis.context.terminateSelf();
-        globalThis.context = null;
-      }
     });
   }
 
   onDestroy(): void {
     console.log(TAG + 'ServiceExtAbility destroyed');
-    globalThis.releaseContext();
+    this.releaseContext();
   }
 
   private async createWindow(config: window.Configuration, rect): Promise<void> {
     console.log(TAG + 'createWindow execute');
     try {
       if (globalThis.windowNum > 0) {
-        this.getInputMethods().then(() => {
-          if (!globalThis.extensionWin.isWindowShowing()) {
-            globalThis.extensionWin.show();
-          }
-          globalThis.extensionWin.setUIContent('pages/index');
-        });
+        this.updateImeList();
         return;
       }
       try {
@@ -121,7 +106,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
           win.on('windowEvent', async (data) => {
             console.log(TAG + 'windowEvent:' + JSON.stringify(data));
             if (data === window.WindowEventType.WINDOW_INACTIVE) {
-              await globalThis.releaseContext();
+              await this.releaseContext();
             }
           });
           await win.moveTo(rect.left, rect.top);
@@ -148,6 +133,23 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
       globalThis.inputMethodList = [...enableList, ...disableList];
     } catch {
       console.log(TAG + 'getInputMethods failed');
+    }
+  }
+
+  private async updateImeList(): Promise<void> {
+    await this.getInputMethods().then(() => {
+      if (!globalThis.extensionWin.isWindowShowing()) {
+        globalThis.extensionWin.show();
+      }
+      globalThis.extensionWin.setUIContent('pages/index');
+    });
+  }
+
+  private async releaseContext(): Promise<void> {
+    if (globalThis.context !== null) {
+      await globalThis.extensionWin.destroy();
+      await globalThis.context.terminateSelf();
+      globalThis.context = null;
     }
   }
 };
