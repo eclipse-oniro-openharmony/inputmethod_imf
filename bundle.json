@@ -35,7 +35,6 @@
               "eventhandler", 
               "bundle_framework", 
               "ability_runtime", 
-              "resource_management", 
               "hiviewdfx_hilog_native", 
               "ability_base", 
               "safwk", 
@@ -47,7 +46,6 @@
               "os_account",
               "hisysevent_native",
               "hitrace_native",
-              "multimedia_image_framework",
               "graphic_standard"
           ], 
           "third_party": [
