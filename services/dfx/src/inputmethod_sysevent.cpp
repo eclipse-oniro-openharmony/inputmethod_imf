@@ -76,10 +76,9 @@ void InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCo
 
 std::string InputMethodSysEvent::GetOperateInfo(OperateIMEInfoCode infoCode)
 {
-    std::string info;
     auto iter = operateInfo_.find(infoCode);
     if (iter != operateInfo_.end()) {
-        info = iter->second;
+        std::string info = iter->second;
         return info;
     }
     return "unknow operating.";
