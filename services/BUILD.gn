@@ -77,7 +77,6 @@ ohos_shared_library("inputmethod_service") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
-    "resource_management:global_resmgr",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwm",
