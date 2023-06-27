@@ -26,7 +26,6 @@
       "ram": "1024KB", 
       "deps": {
           "components": [
-              "ace_engine", 
               "init", 
               "napi", 
               "samgr", 
