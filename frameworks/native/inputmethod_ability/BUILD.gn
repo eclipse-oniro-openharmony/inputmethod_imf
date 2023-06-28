@@ -63,6 +63,7 @@ ohos_shared_library("inputmethod_ability") {
     "c_utils:utils",
     "graphic_standard:window_animation",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
     "samgr:samgr_proxy",

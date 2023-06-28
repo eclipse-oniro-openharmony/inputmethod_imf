@@ -18,6 +18,7 @@
 
 #include "global.h"
 #include "iremote_broker.h"
+#include "key_event.h"
 
 /**
  * brief Definition of interface IInputMethodAgent
@@ -36,7 +37,7 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodAgent");
 
-    virtual bool DispatchKeyEvent(MessageParcel &data) = 0;
+    virtual bool DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> &keyEvent) = 0;
     virtual void OnCursorUpdate(int32_t positionX, int32_t positionY, int height) = 0;
     virtual void OnSelectionChange(
         std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) = 0;

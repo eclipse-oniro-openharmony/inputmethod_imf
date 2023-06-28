@@ -27,22 +27,13 @@ InputMethodAgentProxy::InputMethodAgentProxy(const sptr<IRemoteObject> &object)
 {
 }
 
-bool InputMethodAgentProxy::DispatchKeyEvent(MessageParcel &data)
+bool InputMethodAgentProxy::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> &keyEvent)
 {
-    MessageParcel reply;
-    MessageOption option;
-    auto remote = Remote();
-    if (remote == nullptr) {
-        IMSA_HILOGE("InputMethodAgentProxy::DispatchKeyEvent remote is nullptr.");
-        return false;
-    }
-
-    auto ret = Remote()->SendRequest(DISPATCH_KEY_EVENT, data, reply, option);
-    if (ret != NO_ERROR) {
-        IMSA_HILOGE("InputMethodAgentProxy::DispatchKeyEvent SendRequest failed");
-    }
-    ret = reply.ReadBool();
-    return ret;
+    bool isConsume = false;
+    int32_t ret = SendRequest(
+        DISPATCH_KEY_EVENT, [&keyEvent](MessageParcel &data) { return keyEvent->WriteToParcel(data); },
+        [&isConsume](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isConsume); });
+    return ret == ErrorCode::NO_ERROR ? isConsume : false;
 }
 
 void InputMethodAgentProxy::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)

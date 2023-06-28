@@ -16,7 +16,10 @@
 #ifndef INPUTMETHOD_UNITTEST_UTIL_H
 #define INPUTMETHOD_UNITTEST_UTIL_H
 
+#include <memory>
 #include <string>
+
+#include "key_event.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -32,8 +35,13 @@ public:
     static void RestoreSelfUid();
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
 
+    static bool SimulateKeyEvent(int32_t keyCode);
+    static bool SimulateKeyEvents(const std::vector<int32_t> &keys);
+    static std::shared_ptr<MMI::KeyEvent> CreateKeyEvent(int32_t keyCode, int32_t keyAction);
+
 private:
     static int32_t GetCurrentUserId();
+    static int64_t GetNanoTime();
     static uint64_t selfTokenID_;
     static uint64_t testTokenID_;
     static int32_t userID_;

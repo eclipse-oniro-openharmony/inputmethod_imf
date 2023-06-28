@@ -125,6 +125,7 @@ public:
     static int32_t keyStatus_;
     static CursorInfo cursorInfo_;
     bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override;
+    bool OnFullKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override;
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void OnTextChange(const std::string &text) override;
@@ -137,6 +138,10 @@ bool KeyboardListenerImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
     IMSA_HILOGD("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
     keyCode_ = keyCode;
     keyStatus_ = keyStatus;
+    return true;
+}
+bool KeyboardListenerImpl::OnFullKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+{
     return true;
 }
 void KeyboardListenerImpl::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)

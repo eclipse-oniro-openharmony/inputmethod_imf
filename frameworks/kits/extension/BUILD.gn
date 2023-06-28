@@ -65,6 +65,7 @@ ohos_shared_library("inputmethod_extension") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "i18n:intl_util",
+    "input:libmmi-client",
     "ipc:ipc_napi_common",
     "napi:ace_napi",
   ]

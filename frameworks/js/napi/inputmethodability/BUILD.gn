@@ -71,6 +71,7 @@ ohos_shared_library("inputmethodengine") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "input:libmmi-client",
+    "input:libmmi-util",
     "ipc:ipc_core",
     "napi:ace_napi",
   ]

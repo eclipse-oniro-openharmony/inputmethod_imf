@@ -45,6 +45,7 @@ ohos_fuzztest("InputMethodAbilityFuzzTest") {
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
   ]

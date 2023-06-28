@@ -46,9 +46,7 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
 
     switch (code) {
         case DISPATCH_KEY_EVENT: {
-            MessageParcel *msgParcel = (MessageParcel *)&data;
-            reply.WriteBool(DispatchKeyEvent(*msgParcel));
-            break;
+            return DispatchKeyEventOnRemote(data, reply);
         }
         case SET_CALLING_WINDOW_ID: {
             SetCallingWindow(data.ReadUint32());
@@ -79,10 +77,21 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
     return ErrorCode::NO_ERROR;
 }
 
-bool InputMethodAgentStub::DispatchKeyEvent(MessageParcel &data)
+int32_t InputMethodAgentStub::DispatchKeyEventOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("InputMethodAgentStub::DispatchKeyEvent");
-    return InputMethodAbility::GetInstance()->DispatchKeyEvent(data.ReadInt32(), data.ReadInt32());
+    IMSA_HILOGD("run in");
+    std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
+    if (!keyEvent->ReadFromParcel(data)) {
+        IMSA_HILOGE("failed to read key event from parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    bool isConsume = InputMethodAbility::GetInstance()->DispatchKeyEvent(keyEvent);
+    return reply.WriteBool(isConsume) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+bool InputMethodAgentStub::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> &keyEvent)
+{
+    return false;
 }
 
 void InputMethodAgentStub::SetCallingWindow(uint32_t windowId)

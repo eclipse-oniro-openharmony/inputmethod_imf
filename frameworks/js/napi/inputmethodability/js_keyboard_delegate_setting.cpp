@@ -21,6 +21,7 @@
 #include "js_text_input_client_engine.h"
 #include "js_util.h"
 #include "js_utils.h"
+#include "key_event_napi.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 namespace OHOS {
@@ -284,6 +285,48 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
     return KeyboardDelegate;
 }
 
+bool JsKeyboardDelegateSetting::OnFullKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+{
+    IMSA_HILOGD("run in");
+    std::string type = "keyEvent";
+    auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
+    uv_work_t *work = GetUVwork(type, [&keyEvent, isDone](UvEntry &entry) {
+        entry.pullKeyEventPara = keyEvent;
+        entry.isDone = isDone;
+    });
+    if (work == nullptr) {
+        IMSA_HILOGE("failed to get uv work");
+        return false;
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
+                                           std::shared_ptr<JSCallbackObject> item) -> bool {
+                if (argc == 0) {
+                    return false;
+                }
+                napi_value keyEventObject{};
+                auto result = napi_create_object(item->env_, &keyEventObject);
+                CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create object failed", false);
+                result = MMI::KeyEventNapi::CreateKeyEvent(item->env_, entry->pullKeyEventPara, keyEventObject);
+                CHECK_RETURN(
+                    (result == napi_ok) && (keyEventObject != nullptr), "create key event object failed!", false);
+                args[ARGC_ZERO] = { keyEventObject };
+                return true;
+            };
+            bool isOnKeyEvent = JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
+            entry->isDone->SetValue(isOnKeyEvent);
+        });
+    bool isConsume = isDone->GetValue();
+    IMSA_HILOGI("key event handle result: %{public}d", isConsume);
+    return isConsume;
+}
+
 bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
     IMSA_HILOGD("run in");
@@ -322,7 +365,9 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
             bool isOnKeyEvent = JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
             entry->isDone->SetValue(isOnKeyEvent);
         });
-    return isDone->GetValue();
+    bool isConsume = isDone->GetValue();
+    IMSA_HILOGI("key event handle result: %{public}d", isConsume);
+    return isConsume;
 }
 
 void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)

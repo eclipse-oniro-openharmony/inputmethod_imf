@@ -288,14 +288,20 @@ void InputMethodAbility::OnClearDataChannel(Message *msg)
     }
 }
 
-bool InputMethodAbility::DispatchKeyEvent(int32_t keyCode, int32_t keyStatus)
+bool InputMethodAbility::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
 {
     IMSA_HILOGD("InputMethodAbility, run in");
-    if (kdListener_ == nullptr) {
-        IMSA_HILOGI("InputMethodAbility::DispatchKeyEvent kdListener_ is nullptr");
+    if (keyEvent == nullptr) {
+        IMSA_HILOGE("keyEvent is nullptr");
         return false;
     }
-    return kdListener_->OnKeyEvent(keyCode, keyStatus);
+    if (kdListener_ == nullptr) {
+        IMSA_HILOGI("kdListener_ is nullptr");
+        return false;
+    }
+    bool isFullKeyEventConsumed = kdListener_->OnFullKeyEvent(keyEvent);
+    bool isKeyEventConsumed = kdListener_->OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction());
+    return isFullKeyEventConsumed || isKeyEventConsumed;
 }
 
 void InputMethodAbility::SetCallingWindow(uint32_t windowId)

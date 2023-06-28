@@ -41,6 +41,7 @@ ohos_fuzztest("AgentStubFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "input:libmmi-client",
     "ipc:ipc_single",
   ]
 }
