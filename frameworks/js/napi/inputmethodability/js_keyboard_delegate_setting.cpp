@@ -312,10 +312,9 @@ bool JsKeyboardDelegateSetting::OnFullKeyEvent(const std::shared_ptr<MMI::KeyEve
                 }
                 napi_value keyEventObject{};
                 auto result = napi_create_object(item->env_, &keyEventObject);
-                CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create object failed", false);
+                CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create object", false);
                 result = MMI::KeyEventNapi::CreateKeyEvent(item->env_, entry->pullKeyEventPara, keyEventObject);
-                CHECK_RETURN(
-                    (result == napi_ok) && (keyEventObject != nullptr), "create key event object failed!", false);
+                CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create key event object", false);
                 args[ARGC_ZERO] = { keyEventObject };
                 return true;
             };
