@@ -321,9 +321,9 @@ bool JsKeyboardDelegateSetting::OnFullKeyEvent(const std::shared_ptr<MMI::KeyEve
             bool isOnKeyEvent = JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
             entry->isDone->SetValue(isOnKeyEvent);
         });
-    bool isConsume = isDone->GetValue();
-    IMSA_HILOGI("key event handle result: %{public}d", isConsume);
-    return isConsume;
+    bool isConsumed = isDone->GetValue();
+    IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
+    return isConsumed;
 }
 
 bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
@@ -364,9 +364,9 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
             bool isOnKeyEvent = JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
             entry->isDone->SetValue(isOnKeyEvent);
         });
-    bool isConsume = isDone->GetValue();
-    IMSA_HILOGI("key event handle result: %{public}d", isConsume);
-    return isConsume;
+    bool isConsumed = isDone->GetValue();
+    IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
+    return isConsumed;
 }
 
 void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)

@@ -27,13 +27,13 @@ InputMethodAgentProxy::InputMethodAgentProxy(const sptr<IRemoteObject> &object)
 {
 }
 
-bool InputMethodAgentProxy::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> &keyEvent)
+bool InputMethodAgentProxy::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
 {
-    bool isConsume = false;
+    bool isConsumed = false;
     int32_t ret = SendRequest(
         DISPATCH_KEY_EVENT, [&keyEvent](MessageParcel &data) { return keyEvent->WriteToParcel(data); },
-        [&isConsume](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isConsume); });
-    return ret == ErrorCode::NO_ERROR ? isConsume : false;
+        [&isConsumed](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isConsumed); });
+    return ret == ErrorCode::NO_ERROR ? isConsumed : false;
 }
 
 void InputMethodAgentProxy::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)

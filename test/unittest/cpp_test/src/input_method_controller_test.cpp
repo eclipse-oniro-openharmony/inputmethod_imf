@@ -234,8 +234,8 @@ constexpr int32_t BUFF_LENGTH = 10;
         static int32_t newBegin_;
         static int32_t newEnd_;
         static std::string text_;
-        static bool isKeyEventConsume_;
-        static bool isFUllKeyEventConsume_;
+        static bool doesKeyEventConsume_;
+        static bool doesFUllKeyEventConsume_;
 
         class KeyboardListenerImpl : public KeyboardListener {
         public:
@@ -243,7 +243,7 @@ constexpr int32_t BUFF_LENGTH = 10;
             ~KeyboardListenerImpl(){};
             bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override
             {
-                if (!isKeyEventConsume_) {
+                if (!doesKeyEventConsume_) {
                     return false;
                 }
                 IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
@@ -253,7 +253,7 @@ constexpr int32_t BUFF_LENGTH = 10;
             }
             bool OnFullKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override
             {
-                if (!isFUllKeyEventConsume_) {
+                if (!doesFUllKeyEventConsume_) {
                     return false;
                 }
                 IMSA_HILOGI("KeyboardListenerImpl::OnFullKeyEvent %{public}d %{public}d", keyEvent->GetKeyCode(),
@@ -311,8 +311,8 @@ constexpr int32_t BUFF_LENGTH = 10;
         nullptr };
     BlockData<std::shared_ptr<MMI::KeyEvent>> InputMethodControllerTest::blockFullKeyEvent_{ KEY_EVENT_DELAY_TIME,
         nullptr };
-    bool InputMethodControllerTest::isKeyEventConsume_{ false };
-    bool InputMethodControllerTest::isFUllKeyEventConsume_{ false };
+    bool InputMethodControllerTest::doesKeyEventConsume_{ false };
+    bool InputMethodControllerTest::doesFUllKeyEventConsume_{ false };
 
     void InputMethodControllerTest::SetUpTestCase(void)
     {
@@ -523,8 +523,8 @@ constexpr int32_t BUFF_LENGTH = 10;
     HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent001, TestSize.Level0)
     {
         IMSA_HILOGI("IMC testIMCDispatchKeyEvent001 Test START");
-        isKeyEventConsume_ = true;
-        isFUllKeyEventConsume_ = false;
+        doesKeyEventConsume_ = true;
+        doesFUllKeyEventConsume_ = false;
         blockKeyEvent_.Clear(nullptr);
         bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
         EXPECT_TRUE(ret);
@@ -544,8 +544,8 @@ constexpr int32_t BUFF_LENGTH = 10;
     HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent002, TestSize.Level0)
     {
         IMSA_HILOGI("IMC testIMCDispatchKeyEvent002 Test START");
-        isKeyEventConsume_ = false;
-        isFUllKeyEventConsume_ = true;
+        doesKeyEventConsume_ = false;
+        doesFUllKeyEventConsume_ = true;
         blockFullKeyEvent_.Clear(nullptr);
         bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
         EXPECT_TRUE(ret);
@@ -563,8 +563,8 @@ constexpr int32_t BUFF_LENGTH = 10;
     HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent003, TestSize.Level0)
     {
         IMSA_HILOGI("IMC testIMCDispatchKeyEvent003 Test START");
-        isKeyEventConsume_ = true;
-        isFUllKeyEventConsume_ = true;
+        doesKeyEventConsume_ = true;
+        doesFUllKeyEventConsume_ = true;
         blockKeyEvent_.Clear(nullptr);
         blockFullKeyEvent_.Clear(nullptr);
         bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);

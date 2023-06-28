@@ -85,11 +85,11 @@ int32_t InputMethodAgentStub::DispatchKeyEventOnRemote(MessageParcel &data, Mess
         IMSA_HILOGE("failed to read key event from parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    bool isConsume = InputMethodAbility::GetInstance()->DispatchKeyEvent(keyEvent);
-    return reply.WriteBool(isConsume) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    bool isConsumed = InputMethodAbility::GetInstance()->DispatchKeyEvent(keyEvent);
+    return reply.WriteBool(isConsumed) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-bool InputMethodAgentStub::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> &keyEvent)
+bool InputMethodAgentStub::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
 {
     return false;
 }
