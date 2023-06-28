@@ -43,7 +43,7 @@ public:
     static void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
 
 private:
-    static std::string GetOperateInfo(OperateIMEInfoCode infoCode);
+    static const std::string GetOperateInfo(OperateIMEInfoCode infoCode);
     static std::string GetOperateAction(OperateIMEInfoCode infoCode);
 
 private:
