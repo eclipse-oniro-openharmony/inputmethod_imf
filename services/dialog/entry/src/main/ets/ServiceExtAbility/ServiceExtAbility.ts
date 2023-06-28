@@ -114,13 +114,13 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
           await win.resetSize(rect.width, rect.height);
           await win.loadContent('pages/index');
           await win.show();
+          globalThis.windowNum++;
+          console.log(TAG + 'window create successfully');
         });
       } catch (exception) {
         console.error('Failed to create the window. Cause: ' + JSON.stringify(exception));
       }
       globalThis.context = this.context;
-      globalThis.windowNum++;
-      console.log(TAG + 'window create successfully');
     } catch {
       console.info(TAG + 'window create failed');
     }
@@ -138,11 +138,11 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
   }
 
   private async updateImeList(): Promise<void> {
-    await this.getInputMethods().then(() => {
+    await this.getInputMethods().then(async () => {
+      await globalThis.extensionWin.loadContent('pages/index');
       if (!globalThis.extensionWin.isWindowShowing()) {
-        globalThis.extensionWin.show();
+        await globalThis.extensionWin.show();
       }
-      globalThis.extensionWin.setUIContent('pages/index');
     });
   }
 
