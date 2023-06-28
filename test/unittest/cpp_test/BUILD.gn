@@ -45,7 +45,7 @@ ohos_unittest("InputMethodControllerTest") {
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
@@ -121,7 +121,7 @@ ohos_unittest("InputMethodServiceTest") {
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
@@ -151,9 +151,9 @@ ohos_unittest("InputMethodDfxTest") {
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "hisysevent_native:libhisysevent",
-    "hisysevent_native:libhisyseventmanager",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hisysevent:libhisyseventmanager",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
@@ -186,7 +186,7 @@ ohos_unittest("InputMethodPanelTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "graphic_standard:window_animation",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "input:libmmi-client",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
@@ -207,7 +207,7 @@ ohos_unittest("InputMethodUtilsTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_core",
   ]
 }
@@ -229,7 +229,7 @@ ohos_unittest("InputMethodSwitchTest") {
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "input:libmmi-client",
   ]
 }
@@ -253,7 +253,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_core",
     "ipc:ipc_single",
@@ -283,7 +283,7 @@ ohos_unittest("InputMethodEditorTest") {
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
@@ -307,7 +307,7 @@ ohos_unittest("NewImeSwitchTest") {
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "input:libmmi-client",
   ]
 }

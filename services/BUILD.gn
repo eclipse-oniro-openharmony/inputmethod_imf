@@ -72,7 +72,7 @@ ohos_shared_library("inputmethod_service") {
     "common_event_service:cesfwk_core",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "init:libbegetutil",
     "input:libmmi-client",
     "ipc:ipc_single",
