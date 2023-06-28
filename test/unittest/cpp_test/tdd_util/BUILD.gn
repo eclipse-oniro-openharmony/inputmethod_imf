@@ -39,7 +39,7 @@ ohos_static_library("inputmethod_tdd_util") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

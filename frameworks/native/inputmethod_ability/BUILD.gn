@@ -62,7 +62,7 @@ ohos_shared_library("inputmethod_ability") {
     "ability_runtime:ability_context_native",
     "c_utils:utils",
     "graphic_standard:window_animation",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
     "samgr:samgr_proxy",
