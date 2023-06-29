@@ -35,9 +35,10 @@ public:
     static void RestoreSelfUid();
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
 
-    static bool SimulateKeyEvent(int32_t keyCode);
-    static bool SimulateKeyEvents(const std::vector<int32_t> &keys);
-    static std::shared_ptr<MMI::KeyEvent> CreateKeyEvent(int32_t keyCode, int32_t keyAction);
+    static bool CheckCurrentProp(const std::string &bundleName, const std::string &extName);
+    static bool CheckCurrentSubProp(const std::string &bundleName, const std::string &extName);
+    static bool CheckCurrentSubProps(uint32_t subTypeNum, const std::string &bundleName,
+        const std::vector<std::string> extNames, const std::vector<std::string> &languages);
 
 private:
     static int32_t GetCurrentUserId();

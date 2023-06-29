@@ -251,12 +251,12 @@ constexpr int32_t BUFF_LENGTH = 10;
                 blockKeyEvent_.SetValue(keyEvent);
                 return true;
             }
-            bool OnFullKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override
+            bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override
             {
                 if (!doesFUllKeyEventConsume_) {
                     return false;
                 }
-                IMSA_HILOGI("KeyboardListenerImpl::OnFullKeyEvent %{public}d %{public}d", keyEvent->GetKeyCode(),
+                IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyEvent->GetKeyCode(),
                     keyEvent->GetKeyAction());
                 auto fullKey = keyEvent;
                 blockFullKeyEvent_.SetValue(fullKey);
@@ -416,25 +416,34 @@ constexpr int32_t BUFF_LENGTH = 10;
     bool InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
     {
         bool ret = keyEvent->GetKeyCode() == keyEvent_->GetKeyCode();
-        ret = ret && keyEvent->GetKeyAction() == keyEvent_->GetKeyAction();
-        ret = ret && keyEvent->GetKeyIntention() == keyEvent_->GetKeyIntention();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyAction() == keyEvent_->GetKeyAction();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyIntention() == keyEvent_->GetKeyIntention();
+        EXPECT_TRUE(ret);
         // check function key state
-        ret = ret
-              && keyEvent->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY)
-                     == keyEvent_->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY);
-        ret = ret
-              && keyEvent->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY)
-                     == keyEvent_->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY);
-        ret = ret
-              && keyEvent->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY)
-                     == keyEvent_->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY);
+        ret = keyEvent->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY)
+              == keyEvent_->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY);
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY)
+              == keyEvent_->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY);
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY)
+              == keyEvent_->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY);
+        EXPECT_TRUE(ret);
         // check KeyItem
-        ret = ret && keyEvent->GetKeyItems().size() == keyEvent_->GetKeyItems().size();
-        ret = ret && keyEvent->GetKeyItem()->GetKeyCode() == keyEvent_->GetKeyItem()->GetKeyCode();
-        ret = ret && keyEvent->GetKeyItem()->GetDownTime() == keyEvent_->GetKeyItem()->GetDownTime();
-        ret = ret && keyEvent->GetKeyItem()->GetDeviceId() == keyEvent_->GetKeyItem()->GetDeviceId();
-        ret = ret && keyEvent->GetKeyItem()->IsPressed() == keyEvent_->GetKeyItem()->IsPressed();
-        ret = ret && keyEvent->GetKeyItem()->GetUnicode() == keyEvent_->GetKeyItem()->GetUnicode();
+        ret = keyEvent->GetKeyItems().size() == keyEvent_->GetKeyItems().size();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetKeyCode() == keyEvent_->GetKeyItem()->GetKeyCode();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetDownTime() == keyEvent_->GetKeyItem()->GetDownTime();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetDeviceId() == keyEvent_->GetKeyItem()->GetDeviceId();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->IsPressed() == keyEvent_->GetKeyItem()->IsPressed();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetUnicode() == keyEvent_->GetKeyItem()->GetUnicode();
+        EXPECT_TRUE(ret);
         return ret;
     }
 
@@ -516,7 +525,7 @@ constexpr int32_t BUFF_LENGTH = 10;
 
     /**
      * @tc.name: testIMCDispatchKeyEvent001
-     * @tc.desc: test IMC DispatchKeyEvent with OnKeyEvent.
+     * @tc.desc: test IMC DispatchKeyEvent with 'keyDown/KeyUP'.
      * @tc.type: FUNC
      * @tc.require:
      */
@@ -537,7 +546,7 @@ constexpr int32_t BUFF_LENGTH = 10;
 
     /**
      * @tc.name: testIMCDispatchKeyEvent002
-     * @tc.desc: test IMC DispatchKeyEvent with OnFullKeyEvent.
+     * @tc.desc: test IMC DispatchKeyEvent with 'keyEvent'.
      * @tc.type: FUNC
      * @tc.require:
      */
@@ -556,7 +565,7 @@ constexpr int32_t BUFF_LENGTH = 10;
 
     /**
      * @tc.name: testIMCDispatchKeyEvent003
-     * @tc.desc: test IMC DispatchKeyEvent with OnKeyEvent and OnFullKeyEvent.
+     * @tc.desc: test IMC DispatchKeyEvent with 'keyDown/KeyUP' and 'keyEvent'.
      * @tc.type: FUNC
      * @tc.require:
      */

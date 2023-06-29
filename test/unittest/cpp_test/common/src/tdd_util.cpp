@@ -27,6 +27,8 @@
 #include "global.h"
 #include "if_system_ability_manager.h"
 #include "input_manager.h"
+#include "input_method_controller.h"
+#include "input_method_property.h"
 #include "iservice_registry.h"
 #include "nativetoken_kit.h"
 #include "os_account_manager.h"
@@ -142,71 +144,42 @@ bool TddUtil::ExecuteCmd(const std::string &cmd, std::string &result)
     return true;
 }
 
-bool TddUtil::SimulateKeyEvent(int32_t keyCode)
+bool TddUtil::CheckCurrentProp(const std::string &bundleName, const std::string &extName)
 {
-    auto keyDown = CreateKeyEvent(keyCode, MMI::KeyEvent::KEY_ACTION_DOWN);
-    auto keyUp = CreateKeyEvent(keyCode, MMI::KeyEvent::KEY_ACTION_UP);
-    if (keyDown == nullptr || keyUp == nullptr) {
-        IMSA_HILOGE("failed to create key event: %{public}d", keyCode);
+    std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
+    if (property == nullptr) {
         return false;
     }
-    MMI::InputManager::GetInstance()->SimulateInputEvent(keyDown);
-    MMI::InputManager::GetInstance()->SimulateInputEvent(keyUp);
-    return true;
+    return !(property->name != bundleName || property->id != extName);
 }
 
-bool TddUtil::SimulateKeyEvents(const std::vector<int32_t> &keys)
+bool TddUtil::CheckCurrentSubProp(const std::string &bundleName, const std::string &extName)
 {
-    if (keys.empty()) {
-        IMSA_HILOGE("keys is empty");
+    auto subProperty = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
+    if (subProperty == nullptr) {
         return false;
     }
-    std::vector<std::shared_ptr<MMI::KeyEvent>> downKeys_;
-    std::vector<std::shared_ptr<MMI::KeyEvent>> upKeys_;
-    for (auto &key : keys) {
-        auto keyDown = CreateKeyEvent(key, MMI::KeyEvent::KEY_ACTION_DOWN);
-        auto keyUp = CreateKeyEvent(key, MMI::KeyEvent::KEY_ACTION_UP);
-        if (keyDown == nullptr || keyUp == nullptr) {
-            IMSA_HILOGE("failed to create key event: %{public}d", key);
+    return !(subProperty->name != bundleName || subProperty->id != extName);
+}
+
+bool TddUtil::CheckCurrentSubProps(uint32_t subTypeNum, const std::string &bundleName,
+    const std::vector<std::string> extNames, const std::vector<std::string> &languages)
+{
+    std::vector<SubProperty> subProps;
+    auto ret = InputMethodController::GetInstance()->ListCurrentInputMethodSubtype(subProps);
+    if (ret != ErrorCode::NO_ERROR) {
+        return false;
+    }
+    if (subProps.size() != subTypeNum) {
+        return false;
+    }
+    for (uint32_t i = 0; i < subTypeNum; i++) {
+        if (subProps[i].id != extNames[i] || subProps[i].name != bundleName || subProps[i].language != languages[i]
+            || subProps[i].locale != "") {
             return false;
         }
-        downKeys_.push_back(keyDown);
-        upKeys_.push_back(keyUp);
-    }
-    // first pressed last lift.
-    std::reverse(upKeys_.begin(), upKeys_.end());
-    for (auto &downKey : downKeys_) {
-        MMI::InputManager::GetInstance()->SimulateInputEvent(downKey);
-    }
-    for (auto &upkey : upKeys_) {
-        MMI::InputManager::GetInstance()->SimulateInputEvent(upkey);
     }
     return true;
-}
-
-std::shared_ptr<MMI::KeyEvent> TddUtil::CreateKeyEvent(int32_t keyCode, int32_t keyAction)
-{
-    std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
-    int64_t downTime = GetNanoTime() / NANOSECOND_TO_MILLISECOND;
-    MMI::KeyEvent::KeyItem keyItem;
-    keyItem.SetKeyCode(keyCode);
-    keyItem.SetPressed(keyAction == MMI::KeyEvent::KEY_ACTION_DOWN);
-    keyItem.SetDownTime(downTime);
-    keyItem.SetDeviceId(DEFAULT_DEVICE_ID);
-    keyItem.SetUnicode(DEFAULT_UNICODE);
-    if (keyEvent != nullptr) {
-        keyEvent->SetKeyCode(keyCode);
-        keyEvent->SetKeyAction(keyAction);
-        keyEvent->AddPressedKeyItems(keyItem);
-    }
-    return keyEvent;
-}
-
-int64_t TddUtil::GetNanoTime()
-{
-    struct timespec time = { 0 };
-    clock_gettime(CLOCK_MONOTONIC, &time);
-    return static_cast<int64_t>(time.tv_sec) * SEC_TO_NANOSEC + time.tv_nsec;
 }
 } // namespace MiscServices
 } // namespace OHOS
