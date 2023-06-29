@@ -299,7 +299,7 @@ bool InputMethodAbility::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &
         IMSA_HILOGI("kdListener_ is nullptr");
         return false;
     }
-    bool isFullKeyEventConsumed = kdListener_->OnFullKeyEvent(keyEvent);
+    bool isFullKeyEventConsumed = kdListener_->OnKeyEvent(keyEvent);
     bool isKeyEventConsumed = kdListener_->OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction());
     return isFullKeyEventConsumed || isKeyEventConsumed;
 }

@@ -83,7 +83,7 @@ public:
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override;
-    bool OnFullKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override;
+    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override;
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void OnTextChange(const std::string &text) override;

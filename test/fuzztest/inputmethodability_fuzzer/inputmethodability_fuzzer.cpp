@@ -34,7 +34,7 @@ class KeyboardListenerImpl : public KeyboardListener {
     {
         return true;
     }
-    bool OnFullKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
     {
         return true;
     }

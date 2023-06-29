@@ -285,7 +285,7 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
     return KeyboardDelegate;
 }
 
-bool JsKeyboardDelegateSetting::OnFullKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
 {
     IMSA_HILOGD("run in");
     std::string type = "keyEvent";
