@@ -38,30 +38,6 @@ namespace OHOS {
 namespace MiscServices {
 class IInputMethodSystemAbility : public IRemoteBroker {
 public:
-    enum CommandId : int32_t {
-        PREPARE_INPUT = 0,
-        START_INPUT,
-        SHOW_CURRENT_INPUT,
-        HIDE_CURRENT_INPUT,
-        STOP_INPUT,
-        STOP_INPUT_SESSION,
-        RELEASE_INPUT,
-        GET_CURRENT_INPUT_METHOD,
-        GET_CURRENT_INPUT_METHOD_SUBTYPE,
-        LIST_INPUT_METHOD,
-        LIST_INPUT_METHOD_SUBTYPE,
-        LIST_CURRENT_INPUT_METHOD_SUBTYPE,
-        SWITCH_INPUT_METHOD,
-        DISPLAY_OPTIONAL_INPUT_METHOD,
-        SET_CORE_AND_AGENT,
-        SHOW_CURRENT_INPUT_DEPRECATED,
-        HIDE_CURRENT_INPUT_DEPRECATED,
-        DISPLAY_OPTIONAL_INPUT_DEPRECATED,
-        PANEL_STATUS_CHANGE,
-        UPDATE_LISTEN_EVENT_FLAG,
-        INPUT_SERVICE_CMD_LAST
-    };
-
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
 
     virtual int32_t PrepareInput(InputClientInfo &clientInfo) = 0;
