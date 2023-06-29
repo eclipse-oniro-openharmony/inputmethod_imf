@@ -143,43 +143,5 @@ bool TddUtil::ExecuteCmd(const std::string &cmd, std::string &result)
     result = output.str();
     return true;
 }
-
-bool TddUtil::CheckCurrentProp(const std::string &bundleName, const std::string &extName)
-{
-    std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
-    if (property == nullptr) {
-        return false;
-    }
-    return !(property->name != bundleName || property->id != extName);
-}
-
-bool TddUtil::CheckCurrentSubProp(const std::string &bundleName, const std::string &extName)
-{
-    auto subProperty = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
-    if (subProperty == nullptr) {
-        return false;
-    }
-    return !(subProperty->name != bundleName || subProperty->id != extName);
-}
-
-bool TddUtil::CheckCurrentSubProps(uint32_t subTypeNum, const std::string &bundleName,
-    const std::vector<std::string> extNames, const std::vector<std::string> &languages)
-{
-    std::vector<SubProperty> subProps;
-    auto ret = InputMethodController::GetInstance()->ListCurrentInputMethodSubtype(subProps);
-    if (ret != ErrorCode::NO_ERROR) {
-        return false;
-    }
-    if (subProps.size() != subTypeNum) {
-        return false;
-    }
-    for (uint32_t i = 0; i < subTypeNum; i++) {
-        if (subProps[i].id != extNames[i] || subProps[i].name != bundleName || subProps[i].language != languages[i]
-            || subProps[i].locale != "") {
-            return false;
-        }
-    }
-    return true;
-}
 } // namespace MiscServices
 } // namespace OHOS

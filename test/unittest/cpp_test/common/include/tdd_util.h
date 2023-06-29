@@ -35,14 +35,8 @@ public:
     static void RestoreSelfUid();
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
 
-    static bool CheckCurrentProp(const std::string &bundleName, const std::string &extName);
-    static bool CheckCurrentSubProp(const std::string &bundleName, const std::string &extName);
-    static bool CheckCurrentSubProps(uint32_t subTypeNum, const std::string &bundleName,
-        const std::vector<std::string> extNames, const std::vector<std::string> &languages);
-
 private:
     static int32_t GetCurrentUserId();
-    static int64_t GetNanoTime();
     static uint64_t selfTokenID_;
     static uint64_t testTokenID_;
     static int32_t userID_;
