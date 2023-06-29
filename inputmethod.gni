@@ -20,3 +20,5 @@ innerkits_path = "${inputmethod_path}/interfaces/innerkits"
 adapter_path = "${inputmethod_path}/adapter"
 
 windowmanager_path = "//foundation/window/window_manager"
+
+multimodalinput_path = "//foundation/multimodalinput/input"

@@ -27,8 +27,8 @@
 #include "input_manager.h"
 #include "input_method_controller.h"
 #include "key_event.h"
+#include "key_event_util.h"
 #include "pointer_event.h"
-#include "tdd_util.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -118,7 +118,7 @@ void InputMethodServiceTest::TearDown(void)
 HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_001, TestSize.Level0)
 {
     IMSA_HILOGI("test_KeyEvent_UNKNOWN_001 TEST START");
-    bool result = TddUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_0);
+    bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_0);
     EXPECT_TRUE(result);
     usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
@@ -131,7 +131,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_001, TestSize.Level0)
 HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_002, TestSize.Level0)
 {
     IMSA_HILOGI("test_KeyEvent_UNKNOWN_002 TEST START");
-    bool result = TddUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_0, MMI::KeyEvent::KEYCODE_1 });
+    bool result = KeyEventUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_0, MMI::KeyEvent::KEYCODE_1 });
     EXPECT_TRUE(result);
     usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
@@ -144,7 +144,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_UNKNOWN_002, TestSize.Level0)
 HWTEST_F(InputMethodServiceTest, test_KeyEvent_CAPS_001, TestSize.Level0)
 {
     IMSA_HILOGI("test_KeyEvent_CAPS_001 TEST START");
-    bool result = TddUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CAPS_LOCK);
+    bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CAPS_LOCK);
     EXPECT_TRUE(result);
     usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
@@ -157,7 +157,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CAPS_001, TestSize.Level0)
 HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_001, TestSize.Level0)
 {
     IMSA_HILOGI("test_KeyEvent_CTRL_001 TEST START");
-    bool result = TddUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CTRL_LEFT);
+    bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CTRL_LEFT);
     EXPECT_TRUE(result);
     usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
@@ -170,7 +170,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_001, TestSize.Level0)
 HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_002, TestSize.Level0)
 {
     IMSA_HILOGI("test_KeyEvent_CTRL_002 TEST START");
-    bool result = TddUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CTRL_RIGHT);
+    bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_CTRL_RIGHT);
     EXPECT_TRUE(result);
     usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
@@ -183,7 +183,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_002, TestSize.Level0)
 HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_001, TestSize.Level0)
 {
     IMSA_HILOGI("test_KeyEvent_SHIFT_001 TEST START");
-    bool result = TddUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_LEFT);
+    bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_LEFT);
     EXPECT_TRUE(result);
     usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
@@ -196,7 +196,7 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_001, TestSize.Level0)
 HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_002, TestSize.Level0)
 {
     IMSA_HILOGI("test_KeyEvent_SHIFT_002 TEST START");
-    bool result = TddUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_RIGHT);
+    bool result = KeyEventUtil::SimulateKeyEvent(MMI::KeyEvent::KEYCODE_SHIFT_RIGHT);
     EXPECT_TRUE(result);
     usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
@@ -209,7 +209,8 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_SHIFT_002, TestSize.Level0)
 HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_001, TestSize.Level0)
 {
     IMSA_HILOGI("test_KeyEvent_CTRL_SHIFT_001 TEST START");
-    bool result = TddUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT });
+    bool result =
+        KeyEventUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT });
     EXPECT_TRUE(result);
     usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
@@ -222,7 +223,8 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_001, TestSize.Level0)
 HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_002, TestSize.Level0)
 {
     IMSA_HILOGI("test_KeyEvent_CTRL_SHIFT_002 TEST START");
-    bool result = TddUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT });
+    bool result =
+        KeyEventUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_CTRL_LEFT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT });
     EXPECT_TRUE(result);
     usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
@@ -235,7 +237,8 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_002, TestSize.Level0)
 HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_003, TestSize.Level0)
 {
     IMSA_HILOGI("test_KeyEvent_CTRL_SHIFT_003 TEST START");
-    bool result = TddUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT });
+    bool result =
+        KeyEventUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_LEFT });
     EXPECT_TRUE(result);
     usleep(TIME_WAIT_FOR_HANDLE_KEY_EVENT);
 }
@@ -248,7 +251,8 @@ HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_003, TestSize.Level0)
 HWTEST_F(InputMethodServiceTest, test_KeyEvent_CTRL_SHIFT_004, TestSize.Level0)
 {
     IMSA_HILOGI("SubscribeKeyboardEvent007 TEST START");
-    bool result = TddUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT });
+    bool result =
+        KeyEventUtil::SimulateKeyEvents({ MMI::KeyEvent::KEYCODE_CTRL_RIGHT, MMI::KeyEvent::KEYCODE_SHIFT_RIGHT });
     EXPECT_TRUE(result);
 }
 } // namespace MiscServices

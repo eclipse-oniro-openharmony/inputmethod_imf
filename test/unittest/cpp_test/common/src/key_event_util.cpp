@@ -19,8 +19,6 @@
 
 #include "global.h"
 #include "input_manager.h"
-#include "input_method_controller.h"
-#include "input_method_property.h"
 
 namespace OHOS {
 namespace MiscServices {

@@ -17,7 +17,6 @@
 
 #include <unistd.h>
 
-#include <algorithm>
 #include <cstdint>
 #include <sstream>
 #include <string>
@@ -26,9 +25,6 @@
 #include "accesstoken_kit.h"
 #include "global.h"
 #include "if_system_ability_manager.h"
-#include "input_manager.h"
-#include "input_method_controller.h"
-#include "input_method_property.h"
 #include "iservice_registry.h"
 #include "nativetoken_kit.h"
 #include "os_account_manager.h"
@@ -45,10 +41,6 @@ using namespace Rosen;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
-constexpr int32_t SEC_TO_NANOSEC = 1000000000;
-constexpr int32_t NANOSECOND_TO_MILLISECOND = 1000000;
-constexpr int32_t DEFAULT_DEVICE_ID = -1;
-constexpr int32_t DEFAULT_UNICODE = 0x0000;
 uint64_t TddUtil::selfTokenID_ = 0;
 uint64_t TddUtil::testTokenID_ = 0;
 int64_t TddUtil::selfUid_ = -1;

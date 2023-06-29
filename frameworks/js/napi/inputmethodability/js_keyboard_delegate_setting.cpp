@@ -315,7 +315,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
                 CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create object", false);
                 result = MMI::KeyEventNapi::CreateKeyEvent(item->env_, entry->pullKeyEventPara, keyEventObject);
                 CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create key event object", false);
-                args[ARGC_ZERO] = { keyEventObject };
+                args[ARGC_ZERO] = keyEventObject;
                 return true;
             };
             bool isOnKeyEvent = JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
@@ -358,7 +358,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                     IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
                     return false;
                 }
-                args[ARGC_ZERO] = { jsObject };
+                args[ARGC_ZERO] = jsObject;
                 return true;
             };
             bool isOnKeyEvent = JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getKeyEventProperty);

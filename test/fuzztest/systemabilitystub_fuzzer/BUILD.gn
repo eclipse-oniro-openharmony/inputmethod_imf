@@ -50,6 +50,7 @@ ohos_fuzztest("SystemAbilityStubFuzzTest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
+    "input:libmmi-client",
     "ipc:ipc_single",
   ]
 }

@@ -16,10 +16,7 @@
 #ifndef INPUTMETHOD_UNITTEST_UTIL_H
 #define INPUTMETHOD_UNITTEST_UTIL_H
 
-#include <memory>
 #include <string>
-
-#include "key_event.h"
 
 namespace OHOS {
 namespace MiscServices {

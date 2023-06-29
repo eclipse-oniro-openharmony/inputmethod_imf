@@ -19,7 +19,7 @@
 #include "input_method_ability.h"
 #undef private
 
-#include "tdd_util.h"
+#include "key_event_util.h"
 
 using namespace testing::ext;
 namespace OHOS {
@@ -248,7 +248,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testGetEnterKeyTypeException, TestSize
 HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest DispatchKeyEvent START");
-    auto keyEvent = TddUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
+    auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
     auto ret = inputMethodAbility_->DispatchKeyEvent(keyEvent);
     EXPECT_FALSE(ret);
 }

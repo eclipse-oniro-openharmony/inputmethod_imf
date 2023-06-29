@@ -46,6 +46,7 @@
 #include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "iservice_registry.h"
+#include "key_event_util.h"
 #include "keyboard_listener.h"
 #include "message_parcel.h"
 #include "system_ability.h"
@@ -247,7 +248,7 @@ constexpr int32_t BUFF_LENGTH = 10;
                     return false;
                 }
                 IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
-                auto keyEvent = TddUtil::CreateKeyEvent(keyCode, keyStatus);
+                auto keyEvent = KeyEventUtil::CreateKeyEvent(keyCode, keyStatus);
                 blockKeyEvent_.SetValue(keyEvent);
                 return true;
             }
@@ -333,7 +334,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         inputMethodAbility_->SetImeListener(imeListener_);
         inputMethodController_ = InputMethodController::GetInstance();
 
-        keyEvent_ = TddUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
+        keyEvent_ = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
         keyEvent_->SetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY, 0);
         keyEvent_->SetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, 1);
         keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
