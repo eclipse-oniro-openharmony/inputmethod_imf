@@ -34,7 +34,7 @@
               "eventhandler", 
               "bundle_framework", 
               "ability_runtime", 
-              "hiviewdfx_hilog_native", 
+              "hilog", 
               "ability_base", 
               "safwk", 
               "input", 
@@ -43,8 +43,8 @@
               "i18n",
               "window_manager",
               "os_account",
-              "hisysevent_native",
-              "hitrace_native",
+              "hisysevent",
+              "hitrace",
               "graphic_standard"
           ], 
           "third_party": [

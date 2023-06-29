@@ -97,7 +97,7 @@ private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
-    static constexpr int32_t MAX_TIMEOUT = 100;
+    static constexpr int32_t MAX_TIMEOUT = 2000;
     static const std::string KDS_CLASS_NAME;
     static thread_local napi_ref KDSRef_;
     struct CursorPara {

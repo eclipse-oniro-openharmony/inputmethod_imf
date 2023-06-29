@@ -49,7 +49,7 @@ ohos_fuzztest("SystemAbilityStubFuzzTest") {
     "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
   ]
