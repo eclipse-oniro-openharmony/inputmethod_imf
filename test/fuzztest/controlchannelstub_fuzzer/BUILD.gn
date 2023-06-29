@@ -41,7 +41,6 @@ ohos_fuzztest("ControlChannelStubFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "input:libmmi-client",
     "ipc:ipc_single",
   ]
 }
