@@ -37,8 +37,8 @@ public:
     void SetMessageHandler(MessageHandler *msgHandler);
 
 private:
-    MessageHandler *msgHandler_;
     int32_t DispatchKeyEventOnRemote(MessageParcel &data, MessageParcel &reply);
+    MessageHandler *msgHandler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

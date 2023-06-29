@@ -290,7 +290,7 @@ bool JsKeyboardDelegateSetting::OnFullKeyEvent(const std::shared_ptr<MMI::KeyEve
     IMSA_HILOGD("run in");
     std::string type = "keyEvent";
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-    uv_work_t *work = GetUVwork(type, [&keyEvent, isDone](UvEntry &entry) {
+    uv_work_t *work = GetUVwork(type, [keyEvent, isDone](UvEntry &entry) {
         entry.pullKeyEventPara = keyEvent;
         entry.isDone = isDone;
     });
