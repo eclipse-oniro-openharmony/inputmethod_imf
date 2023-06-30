@@ -33,7 +33,7 @@ ohos_unittest("InputMethodControllerTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
@@ -73,7 +73,7 @@ ohos_unittest("InputMethodAbilityTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -111,7 +111,7 @@ ohos_unittest("InputMethodServiceTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -140,7 +140,7 @@ ohos_unittest("InputMethodDfxTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
-    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -176,7 +176,7 @@ ohos_unittest("InputMethodPanelTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -222,7 +222,7 @@ ohos_unittest("InputMethodSwitchTest") {
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -272,7 +272,7 @@ ohos_unittest("InputMethodEditorTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -300,7 +300,7 @@ ohos_unittest("NewImeSwitchTest") {
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/test/unittest/cpp_test/tdd_util:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 

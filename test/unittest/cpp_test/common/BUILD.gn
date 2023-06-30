@@ -27,11 +27,14 @@ config("inputmethod_tdd_util_config") {
 
 config("inputmethod_tdd_util_public_config") {
   visibility = [ "./*" ]
-  include_dirs = [ "./" ]
+  include_dirs = [ "include" ]
 }
 
 ohos_static_library("inputmethod_tdd_util") {
-  sources = [ "tdd_util.cpp" ]
+  sources = [
+    "src/key_event_util.cpp",
+    "src/tdd_util.cpp",
+  ]
   configs = [ ":inputmethod_tdd_util_config" ]
   public_configs = [ ":inputmethod_tdd_util_public_config" ]
   deps = [ "${inputmethod_path}/services:inputmethod_service" ]
@@ -40,6 +43,7 @@ ohos_static_library("inputmethod_tdd_util") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "hilog:libhilog",
+    "input:libmmi-client",
     "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "ability_manager_client.h"
+#include "block_data.h"
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
@@ -45,6 +46,7 @@
 #include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "iservice_registry.h"
+#include "key_event_util.h"
 #include "keyboard_listener.h"
 #include "message_parcel.h"
 #include "system_ability.h"
@@ -57,6 +59,7 @@ namespace OHOS {
 namespace MiscServices {
 constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
 constexpr uint32_t DEALY_TIME = 1;
+constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
 constexpr int32_t BUFF_LENGTH = 10;
     class TextListener : public OnTextChangedListener {
     public:
@@ -209,6 +212,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         static pid_t GetPid();
         static void SetInputDeathRecipient();
         static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
+        static bool CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
         static bool WaitRemoteDiedCallback();
         static sptr<InputMethodController> inputMethodController_;
         static sptr<InputMethodAbility> inputMethodAbility_;
@@ -218,6 +222,8 @@ constexpr int32_t BUFF_LENGTH = 10;
         static sptr<OnTextChangedListener> textListener_;
         static std::mutex keyboardListenerMutex_;
         static std::condition_variable keyboardListenerCv_;
+        static BlockData<std::shared_ptr<MMI::KeyEvent>> blockKeyEvent_;
+        static BlockData<std::shared_ptr<MMI::KeyEvent>> blockFullKeyEvent_;
         static std::mutex onRemoteSaDiedMutex_;
         static std::condition_variable onRemoteSaDiedCv_;
         static sptr<InputDeathRecipient> deathRecipient_;
@@ -229,6 +235,8 @@ constexpr int32_t BUFF_LENGTH = 10;
         static int32_t newBegin_;
         static int32_t newEnd_;
         static std::string text_;
+        static bool doesKeyEventConsume_;
+        static bool doesFUllKeyEventConsume_;
 
         class KeyboardListenerImpl : public KeyboardListener {
         public:
@@ -236,10 +244,23 @@ constexpr int32_t BUFF_LENGTH = 10;
             ~KeyboardListenerImpl(){};
             bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override
             {
-                IMSA_HILOGD("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
-                keyCode_ = keyCode;
-                keyStatus_ = keyStatus;
-                InputMethodControllerTest::keyboardListenerCv_.notify_one();
+                if (!doesKeyEventConsume_) {
+                    return false;
+                }
+                IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
+                auto keyEvent = KeyEventUtil::CreateKeyEvent(keyCode, keyStatus);
+                blockKeyEvent_.SetValue(keyEvent);
+                return true;
+            }
+            bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override
+            {
+                if (!doesFUllKeyEventConsume_) {
+                    return false;
+                }
+                IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyEvent->GetKeyCode(),
+                    keyEvent->GetKeyAction());
+                auto fullKey = keyEvent;
+                blockFullKeyEvent_.SetValue(fullKey);
                 return true;
             }
             void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override
@@ -287,6 +308,12 @@ constexpr int32_t BUFF_LENGTH = 10;
     sptr<InputDeathRecipient> InputMethodControllerTest::deathRecipient_;
     std::mutex InputMethodControllerTest::onRemoteSaDiedMutex_;
     std::condition_variable InputMethodControllerTest::onRemoteSaDiedCv_;
+    BlockData<std::shared_ptr<MMI::KeyEvent>> InputMethodControllerTest::blockKeyEvent_{ KEY_EVENT_DELAY_TIME,
+        nullptr };
+    BlockData<std::shared_ptr<MMI::KeyEvent>> InputMethodControllerTest::blockFullKeyEvent_{ KEY_EVENT_DELAY_TIME,
+        nullptr };
+    bool InputMethodControllerTest::doesKeyEventConsume_{ false };
+    bool InputMethodControllerTest::doesFUllKeyEventConsume_{ false };
 
     void InputMethodControllerTest::SetUpTestCase(void)
     {
@@ -305,13 +332,13 @@ constexpr int32_t BUFF_LENGTH = 10;
         textListener_ = new TextListener();
         inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerImpl>());
         inputMethodAbility_->SetImeListener(imeListener_);
-
         inputMethodController_ = InputMethodController::GetInstance();
-        keyEvent_ = MMI::KeyEvent::Create();
-        constexpr int32_t keyAction = 2;
-        constexpr int32_t keyCode = 2001;
-        keyEvent_->SetKeyAction(keyAction);
-        keyEvent_->SetKeyCode(keyCode);
+
+        keyEvent_ = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
+        keyEvent_->SetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY, 0);
+        keyEvent_->SetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, 1);
+        keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
+
         // Set the uid to the uid of the focus app
         TddUtil::StorageSelfUid();
         TddUtil::SetTestUid();
@@ -385,6 +412,40 @@ constexpr int32_t BUFF_LENGTH = 10;
         IMSA_HILOGI("InputMethodControllerTest::WaitRemoteDiedCallback");
         std::unique_lock<std::mutex> lock(onRemoteSaDiedMutex_);
         return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
+    }
+
+    bool InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
+    {
+        bool ret = keyEvent->GetKeyCode() == keyEvent_->GetKeyCode();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyAction() == keyEvent_->GetKeyAction();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyIntention() == keyEvent_->GetKeyIntention();
+        EXPECT_TRUE(ret);
+        // check function key state
+        ret = keyEvent->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY)
+              == keyEvent_->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY);
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY)
+              == keyEvent_->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY);
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY)
+              == keyEvent_->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY);
+        EXPECT_TRUE(ret);
+        // check KeyItem
+        ret = keyEvent->GetKeyItems().size() == keyEvent_->GetKeyItems().size();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetKeyCode() == keyEvent_->GetKeyItem()->GetKeyCode();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetDownTime() == keyEvent_->GetKeyItem()->GetDownTime();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetDeviceId() == keyEvent_->GetKeyItem()->GetDeviceId();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->IsPressed() == keyEvent_->GetKeyItem()->IsPressed();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetUnicode() == keyEvent_->GetKeyItem()->GetUnicode();
+        EXPECT_TRUE(ret);
+        return ret;
     }
 
     /**
@@ -464,19 +525,68 @@ constexpr int32_t BUFF_LENGTH = 10;
     }
 
     /**
-     * @tc.name: testIMCdispatchKeyEvent
-     * @tc.desc: IMC testdispatchKeyEvent.
+     * @tc.name: testIMCDispatchKeyEvent001
+     * @tc.desc: test IMC DispatchKeyEvent with 'keyDown/KeyUP'.
      * @tc.type: FUNC
      * @tc.require:
      */
-    HWTEST_F(InputMethodControllerTest, testIMCdispatchKeyEvent, TestSize.Level0)
+    HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent001, TestSize.Level0)
     {
-        IMSA_HILOGI("IMC dispatchKeyEvent Test START");
+        IMSA_HILOGI("IMC testIMCDispatchKeyEvent001 Test START");
+        doesKeyEventConsume_ = true;
+        doesFUllKeyEventConsume_ = false;
+        blockKeyEvent_.Clear(nullptr);
         bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
-        usleep(300);
-        ret = ret && InputMethodControllerTest::keyCode_ == keyEvent_->GetKeyCode()
-              && InputMethodControllerTest::keyStatus_ == keyEvent_->GetKeyAction();
         EXPECT_TRUE(ret);
+        auto keyEvent = blockKeyEvent_.GetValue();
+        EXPECT_NE(keyEvent, nullptr);
+        ret = keyEvent->GetKeyCode() == keyEvent_->GetKeyCode()
+              && keyEvent->GetKeyAction() == keyEvent_->GetKeyAction();
+        EXPECT_TRUE(ret);
+    }
+
+    /**
+     * @tc.name: testIMCDispatchKeyEvent002
+     * @tc.desc: test IMC DispatchKeyEvent with 'keyEvent'.
+     * @tc.type: FUNC
+     * @tc.require:
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent002, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC testIMCDispatchKeyEvent002 Test START");
+        doesKeyEventConsume_ = false;
+        doesFUllKeyEventConsume_ = true;
+        blockFullKeyEvent_.Clear(nullptr);
+        bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
+        EXPECT_TRUE(ret);
+        auto keyEvent = blockFullKeyEvent_.GetValue();
+        EXPECT_NE(keyEvent, nullptr);
+        EXPECT_TRUE(CheckKeyEvent(keyEvent));
+    }
+
+    /**
+     * @tc.name: testIMCDispatchKeyEvent003
+     * @tc.desc: test IMC DispatchKeyEvent with 'keyDown/KeyUP' and 'keyEvent'.
+     * @tc.type: FUNC
+     * @tc.require:
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent003, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC testIMCDispatchKeyEvent003 Test START");
+        doesKeyEventConsume_ = true;
+        doesFUllKeyEventConsume_ = true;
+        blockKeyEvent_.Clear(nullptr);
+        blockFullKeyEvent_.Clear(nullptr);
+        bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
+        EXPECT_TRUE(ret);
+        auto keyEvent = blockKeyEvent_.GetValue();
+        auto keyFullEvent = blockFullKeyEvent_.GetValue();
+        EXPECT_NE(keyEvent, nullptr);
+        EXPECT_NE(keyFullEvent, nullptr);
+        ret = keyEvent->GetKeyCode() == keyEvent_->GetKeyCode()
+              && keyEvent->GetKeyAction() == keyEvent_->GetKeyAction();
+        EXPECT_TRUE(ret);
+        EXPECT_TRUE(CheckKeyEvent(keyFullEvent));
     }
 
     /**

@@ -16,10 +16,11 @@
 #ifndef INTERFACE_KITS_JS_KEYBOARD_DELEGATE_SETTING_H
 #define INTERFACE_KITS_JS_KEYBOARD_DELEGATE_SETTING_H
 
+#include <uv.h>
+
 #include <map>
 #include <memory>
 #include <mutex>
-#include <uv.h>
 
 #include "async_call.h"
 #include "global.h"
@@ -82,6 +83,7 @@ public:
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override;
+    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override;
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void OnTextChange(const std::string &text) override;
@@ -120,6 +122,7 @@ private:
         CursorPara curPara;
         SelectionPara selPara;
         KeyEventPara keyEventPara;
+        std::shared_ptr<MMI::KeyEvent> pullKeyEventPara;
         std::shared_ptr<BlockData<bool>> isDone;
         std::string text;
         UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)

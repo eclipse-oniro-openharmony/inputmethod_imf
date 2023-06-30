@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,22 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_KEYBOARD_LISTENER_H
-#define INPUTMETHOD_IMF_KEYBOARD_LISTENER_H
+#ifndef INPUTMETHOD_IMF_KEY_EVENT_UTIL_H
+#define INPUTMETHOD_IMF_KEY_EVENT_UTIL_H
 
 #include "key_event.h"
 
 namespace OHOS {
 namespace MiscServices {
-class KeyboardListener {
+class KeyEventUtil {
 public:
-    virtual ~KeyboardListener() = default;
-    virtual bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) = 0;
-    virtual bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) = 0;
-    virtual void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) = 0;
-    virtual void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) = 0;
-    virtual void OnTextChange(const std::string &text) = 0;
+    static bool SimulateKeyEvent(int32_t keyCode);
+    static bool SimulateKeyEvents(const std::vector<int32_t> &keys);
+    static std::shared_ptr<MMI::KeyEvent> CreateKeyEvent(int32_t keyCode, int32_t keyAction);
+
+private:
+    static int64_t GetNanoTime();
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // INPUTMETHOD_IMF_KEYBOARD_LISTENER_H
+
+#endif // INPUTMETHOD_IMF_KEY_EVENT_UTIL_H

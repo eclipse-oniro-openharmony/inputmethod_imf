@@ -33,6 +33,7 @@ config("inputmethod_ability_native_public_config") {
     "${inputmethod_path}/services/include",
     "${windowmanager_path}/interfaces/innerkits/dm",
     "${windowmanager_path}/interfaces/innerkits/wm",
+    "${multimodalinput_path}/interfaces/native/innerkits/event/include",
   ]
 }
 
@@ -63,6 +64,7 @@ ohos_shared_library("inputmethod_ability") {
     "c_utils:utils",
     "graphic_standard:window_animation",
     "hilog:libhilog",
+    "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
     "samgr:samgr_proxy",
