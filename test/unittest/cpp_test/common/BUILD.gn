@@ -27,7 +27,10 @@ config("inputmethod_tdd_util_config") {
 
 config("inputmethod_tdd_util_public_config") {
   visibility = [ "./*" ]
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "${bundllemanager_path}/interfaces/inner_api/appexecfwk_core/include/bundlemgr",
+  ]
 }
 
 ohos_static_library("inputmethod_tdd_util") {
@@ -42,6 +45,7 @@ ohos_static_library("inputmethod_tdd_util") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "bundle_framework:appexecfwk_core",
     "hilog:libhilog",
     "input:libmmi-client",
     "os_account:os_account_innerkits",

@@ -177,8 +177,7 @@ public:
         TddUtil::StorageSelfTokenID();
         std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
         std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-        TddUtil::AllocTestTokenID(bundleName);
-        TddUtil::SetTestTokenID();
+        TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->OnImeReady();
         inputMethodAbility_->SetCoreAndAgent();
@@ -196,7 +195,7 @@ public:
     {
         IMSA_HILOGI("InputMethodAbilityTest::TearDownTestCase");
         imc_->Close();
-        TddUtil::DeleteTestTokenID();
+        TddUtil::KillImsaProcess();
     }
     void SetUp()
     {
@@ -758,6 +757,7 @@ HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor_002, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testCreatePanel001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel001 START. You can not create two SOFT_KEYBOARD panel.");
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, false, "undefine"));
     std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);

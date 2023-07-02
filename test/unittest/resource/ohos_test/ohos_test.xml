@@ -35,6 +35,15 @@
             <option name="shell" value="bm uninstall -n com.example.testIme"/>
         </cleaner>
     </target>
+    <target name="InputMethodPanelTest">
+        <preparer>
+            <option name="push" value="extImfBundle/extImf.hap -> /data/test/resource/imf" src="res"/>
+            <option name="shell" value="bm install -r -p /data/test/resource/imf/extImf.hap"/>
+        </preparer>
+        <cleaner>
+            <option name="shell" value="bm uninstall -n com.example.testIme"/>
+        </cleaner>
+    </target>
     <target name="NewImeSwitchTest">
         <preparer>
             <option name="push" value="newTestIme/newTestIme.hap -> /data/test/resource/imf" src="res"/>

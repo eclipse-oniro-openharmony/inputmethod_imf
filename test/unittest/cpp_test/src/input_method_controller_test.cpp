@@ -57,10 +57,8 @@ using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
 constexpr uint32_t DEALY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
-constexpr int32_t BUFF_LENGTH = 10;
     class TextListener : public OnTextChangedListener {
     public:
         TextListener()
@@ -209,7 +207,6 @@ constexpr int32_t BUFF_LENGTH = 10;
         static void TearDownTestCase(void);
         void SetUp();
         void TearDown();
-        static pid_t GetPid();
         static void SetInputDeathRecipient();
         static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
         static bool CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
@@ -322,8 +319,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         // Set the tokenID to the tokenID of the current ime
         std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
         std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-        TddUtil::AllocTestTokenID(bundleName);
-        TddUtil::SetTestTokenID();
+        TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->OnImeReady();
@@ -338,7 +334,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         keyEvent_->SetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY, 0);
         keyEvent_->SetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, 1);
         keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
-
+        TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(false, true, "undefine"));
         // Set the uid to the uid of the focus app
         TddUtil::StorageSelfUid();
         TddUtil::SetTestUid();
@@ -349,7 +345,6 @@ constexpr int32_t BUFF_LENGTH = 10;
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
         TddUtil::RestoreSelfTokenID();
-        TddUtil::DeleteTestTokenID();
         TddUtil::RestoreSelfUid();
     }
 
@@ -361,18 +356,6 @@ constexpr int32_t BUFF_LENGTH = 10;
     void InputMethodControllerTest::TearDown(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDown");
-    }
-
-    pid_t InputMethodControllerTest::GetPid()
-    {
-        char buff[BUFF_LENGTH] = { 0 };
-        FILE *fp = popen(CMD_PIDOF_IMS, "r");
-        EXPECT_TRUE(fp != nullptr);
-        fgets(buff, sizeof(buff), fp);
-        pid_t pid = atoi(buff);
-        pclose(fp);
-        fp = nullptr;
-        return pid;
     }
 
     void InputMethodControllerTest::SetInputDeathRecipient()
@@ -1049,7 +1032,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         IMSA_HILOGI("IMC OnRemoteDied Test START");
         int32_t ret = inputMethodController_->Attach(textListener_, true);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        pid_t pid = GetPid();
+        pid_t pid = TddUtil::GetImsaPid();
         EXPECT_TRUE(pid > 0);
         ret = kill(pid, SIGTERM);
         EXPECT_EQ(ret, 0);

@@ -18,22 +18,29 @@
 
 #include <string>
 
+#include "bundle_mgr_interface.h"
+
 namespace OHOS {
 namespace MiscServices {
 class TddUtil {
 public:
     static void StorageSelfTokenID();
-    static void AllocTestTokenID(const std::string &bundleName);
-    static void DeleteTestTokenID();
-    static void SetTestTokenID();
+    static uint64_t AllocTestTokenID(bool isSystemApp, bool needPermission, const std::string &bundleName);
+    static uint64_t GetTestTokenID(const std::string &bundleName);
+    static void DeleteTestTokenID(uint64_t tokenId);
+    static void SetTestTokenID(uint64_t tokenId);
     static void RestoreSelfTokenID();
     static void StorageSelfUid();
     static void SetTestUid();
     static void RestoreSelfUid();
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
+    static pid_t GetImsaPid();
+    static void KillImsaProcess();
 
 private:
     static int32_t GetCurrentUserId();
+    static sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
+    static int GetUserIdByBundleName(const std::string &bundleName, const int currentUserId);
     static uint64_t selfTokenID_;
     static uint64_t testTokenID_;
     static int32_t userID_;
