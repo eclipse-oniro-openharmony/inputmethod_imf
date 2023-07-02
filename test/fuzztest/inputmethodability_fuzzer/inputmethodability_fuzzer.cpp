@@ -34,6 +34,10 @@ class KeyboardListenerImpl : public KeyboardListener {
     {
         return true;
     }
+    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+    {
+        return true;
+    }
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) {}
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) {}
     void OnTextChange(const std::string &text) {}
@@ -112,7 +116,10 @@ void TestMoveCursor(int32_t fuzzedInt32)
 void TestDispatchKeyEvent(int32_t fuzzedInt32)
 {
     sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    ability->DispatchKeyEvent(fuzzedInt32, fuzzedInt32);
+    std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
+    keyEvent->SetKeyCode(fuzzedInt32);
+    keyEvent->SetKeyAction(fuzzedInt32);
+    ability->DispatchKeyEvent(keyEvent);
 }
 
 void TestSetCallingWindow(int32_t fuzzedInt32)

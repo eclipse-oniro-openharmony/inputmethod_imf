@@ -19,15 +19,12 @@
 #include <string>
 #include <vector>
 
-#include "accesstoken_kit.h"
 #include "global.h"
 #include "input_method_controller.h"
 #include "input_method_property.h"
-#include "nativetoken_kit.h"
-#include "token_setproc.h"
+#include "tdd_util.h"
 
 using namespace testing::ext;
-using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace MiscServices {
 class InputMethodSwitchTest : public testing::Test {
@@ -36,7 +33,6 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
-    static void GrantNativePermission();
     static void CheckCurrentProp(const std::string &extName);
     static void CheckCurrentSubProp(const std::string &extName);
     static void CheckCurrentSubProps();
@@ -87,7 +83,9 @@ public:
 void InputMethodSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::SetUpTestCase");
-    GrantNativePermission();
+    TddUtil::StorageSelfTokenID();
+    TddUtil::AllocTestTokenID("ohos.inputMethod.test");
+    TddUtil::SetTestTokenID();
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(std::make_shared<InputMethodSettingListenerImpl>());
     imc_->UpdateListenEventFlag("imeChange", true);
@@ -97,6 +95,8 @@ void InputMethodSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::TearDownTestCase");
     InputMethodController::GetInstance()->Close();
+    TddUtil::RestoreSelfTokenID();
+    TddUtil::DeleteTestTokenID();
 }
 
 void InputMethodSwitchTest::SetUp(void)
@@ -107,31 +107,6 @@ void InputMethodSwitchTest::SetUp(void)
 void InputMethodSwitchTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::TearDown");
-}
-
-void InputMethodSwitchTest::GrantNativePermission()
-{
-    const char **perms = new const char *[1];
-    perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
-    TokenInfoParams infoInstance = {
-        .dcapsNum = 0,
-        .permsNum = 1,
-        .aclsNum = 0,
-        .dcaps = nullptr,
-        .perms = perms,
-        .acls = nullptr,
-        .processName = "inputmethod_imf",
-        .aplStr = "system_core",
-    };
-    uint64_t tokenId = GetAccessTokenId(&infoInstance);
-    int res = SetSelfTokenID(tokenId);
-    if (res == 0) {
-        IMSA_HILOGI("SetSelfTokenID success!");
-    } else {
-        IMSA_HILOGE("SetSelfTokenID fail!");
-    }
-    AccessTokenKit::ReloadNativeTokenInfo();
-    delete[] perms;
 }
 
 void InputMethodSwitchTest::CheckCurrentProp(const std::string &extName)

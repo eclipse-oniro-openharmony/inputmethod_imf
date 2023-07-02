@@ -29,7 +29,7 @@ public:
     explicit InputMethodAgentStub();
     virtual ~InputMethodAgentStub();
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-    bool DispatchKeyEvent(MessageParcel &data) override;
+    bool DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override;
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int height) override;
     void OnSelectionChange(
         std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
@@ -37,6 +37,7 @@ public:
     void SetMessageHandler(MessageHandler *msgHandler);
 
 private:
+    int32_t DispatchKeyEventOnRemote(MessageParcel &data, MessageParcel &reply);
     MessageHandler *msgHandler_;
 };
 } // namespace MiscServices

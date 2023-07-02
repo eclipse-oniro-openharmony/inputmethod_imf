@@ -17,10 +17,10 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <input_method_agent_stub.h>
 
 #include "global.h"
 #include "input_client_stub.h"
+#include "input_method_agent_stub.h"
 #include "message_parcel.h"
 
 using namespace OHOS::MiscServices;

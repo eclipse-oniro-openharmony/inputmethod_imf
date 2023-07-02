@@ -29,6 +29,7 @@ group("unittest") {
     "cpp_test:InputMethodSwitchTest",
     "cpp_test:InputMethodUtilsTest",
     "cpp_test:NewImeSwitchTest",
+    "cpp_test/common:inputmethod_tdd_util",
     "napi_test/src:GetInputMethodJsTest",
     "resource/bundle_dependencies/extImfBundle:extImf",
     "resource/bundle_dependencies/newTestIme:newTestIme",

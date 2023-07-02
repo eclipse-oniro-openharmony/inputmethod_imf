@@ -14,28 +14,24 @@
  */
 #include "input_method_panel.h"
 
-#include <condition_variable>
-#include <cstdint>
 #include <gtest/gtest.h>
-#include <string>
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "accesstoken_kit.h"
+#include <condition_variable>
+#include <cstdint>
+#include <string>
+
 #include "display_manager.h"
 #include "global.h"
 #include "input_method_controller.h"
-#include "os_account_manager.h"
 #include "panel_status_listener.h"
-#include "token_setproc.h"
+#include "tdd_util.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-using namespace OHOS::Security::AccessToken;
-using namespace OHOS::AccountSA;
 constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 200;
-constexpr int32_t MAIN_USER_ID = 100;
 enum ListeningStatus : uint32_t { ON, OFF, NONE };
 class InputMethodPanelTest : public testing::Test {
 public:
@@ -46,9 +42,6 @@ public:
     static std::shared_ptr<InputMethodPanel> CreatePanel();
     static void TriggerShowCallback(std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     static void TriggerHideCallback(std::shared_ptr<InputMethodPanel> &inputMethodPanel);
-    static void RestoreSelfTokenID();
-    static void AllocTestTokenID(const std::string &bundleName);
-    static void SetTestTokenID();
     static void ImcPanelListeningTestCheck(
         InputWindowStatus realStatus, InputWindowStatus waitStatus, const InputWindowInfo &windowInfo);
     static void ImcPanelListeningTestCheck(InputWindowStatus realStatus, InputWindowStatus waitStatus);
@@ -79,8 +72,6 @@ public:
     static sptr<InputMethodController> imc_;
     static uint32_t windowWidth_;
     static uint32_t windowHeight_;
-    static uint64_t selfTokenId_;
-    static uint64_t testTokenIdEx_;
     static bool showPanel_;
     static bool hidePanel_;
     static std::condition_variable panelListenerCv_;
@@ -119,14 +110,12 @@ std::vector<InputWindowInfo> InputMethodPanelTest::windowInfo_;
 sptr<InputMethodController> InputMethodPanelTest::imc_;
 uint32_t InputMethodPanelTest::windowWidth_ = 0;
 uint32_t InputMethodPanelTest::windowHeight_ = 0;
-uint64_t InputMethodPanelTest::selfTokenId_ = 0;
-uint64_t InputMethodPanelTest::testTokenIdEx_ = 0;
 void InputMethodPanelTest::SetUpTestCase(void)
 {
-    selfTokenId_ = GetSelfTokenID();
+    TddUtil::StorageSelfTokenID();
     std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-    AllocTestTokenID(bundleName);
+    TddUtil::AllocTestTokenID(bundleName);
 
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     imc_ = InputMethodController::GetInstance();
@@ -137,6 +126,7 @@ void InputMethodPanelTest::SetUpTestCase(void)
 void InputMethodPanelTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::TearDownTestCase");
+    TddUtil::DeleteTestTokenID();
 }
 
 void InputMethodPanelTest::SetUp(void)
@@ -147,39 +137,6 @@ void InputMethodPanelTest::SetUp(void)
 void InputMethodPanelTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::TearDown");
-}
-
-void InputMethodPanelTest::AllocTestTokenID(const std::string &bundleName)
-{
-    IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
-    std::vector<int32_t> userIds;
-    auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
-    if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
-        IMSA_HILOGE("query active os account id failed");
-        userIds[0] = MAIN_USER_ID;
-    }
-    HapInfoParams infoParams = { .userID = userIds[0],
-        .bundleName = bundleName,
-        .instIndex = 0,
-        .appIDDesc = "ohos.inputmethod_test.demo",
-        .isSystemApp = true };
-    HapPolicyParams policyParams = {
-        .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = {}
-    };
-    auto tokenInfo = AccessTokenKit::AllocHapToken(infoParams, policyParams);
-    testTokenIdEx_ = tokenInfo.tokenIDEx;
-}
-
-void InputMethodPanelTest::SetTestTokenID()
-{
-    auto ret = SetSelfTokenID(testTokenIdEx_);
-    IMSA_HILOGD("ret = %{public}d", ret);
-}
-
-void InputMethodPanelTest::RestoreSelfTokenID()
-{
-    auto ret = SetSelfTokenID(selfTokenId_);
-    IMSA_HILOGD("SetSelfTokenID ret = %{public}d", ret);
 }
 
 std::shared_ptr<InputMethodPanel> InputMethodPanelTest::CreatePanel()
@@ -593,7 +550,7 @@ HWTEST_F(InputMethodPanelTest, testRegisterListener, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_001 start.");
-    SetTestTokenID();
+    TddUtil::SetTestTokenID();
     InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
@@ -608,7 +565,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
     InputMethodPanelTest::ImcPanelListeningTestClear(inputMethodPanel);
-    RestoreSelfTokenID();
+    TddUtil::RestoreSelfTokenID();
 }
 
 /**
@@ -619,7 +576,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_002 start.");
-    SetTestTokenID();
+    TddUtil::SetTestTokenID();
     InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
@@ -636,7 +593,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::HIDE, InputWindowStatus::HIDE,
         { "", 0, 0, InputMethodPanelTest::windowWidth_, InputMethodPanelTest::windowHeight_ });
     InputMethodPanelTest::ImcPanelListeningTestClear(inputMethodPanel);
-    RestoreSelfTokenID();
+    TddUtil::RestoreSelfTokenID();
 }
 
 /**
@@ -647,7 +604,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_003 start.");
-    SetTestTokenID();
+    TddUtil::SetTestTokenID();
     InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
@@ -662,7 +619,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
     InputMethodPanelTest::ImcPanelListeningTestClear(inputMethodPanel);
-    RestoreSelfTokenID();
+    TddUtil::RestoreSelfTokenID();
 }
 
 /**
@@ -678,7 +635,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, ON);
 
-    SetTestTokenID();
+    TddUtil::SetTestTokenID();
     auto ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::HIDE, InputWindowStatus::SHOW);
@@ -688,7 +645,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
     InputMethodPanelTest::ImcPanelListeningTestClear(inputMethodPanel);
-    RestoreSelfTokenID();
+    TddUtil::RestoreSelfTokenID();
 }
 
 /**
@@ -699,13 +656,13 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_005 start.");
-    SetTestTokenID();
+    TddUtil::SetTestTokenID();
     InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::HIDE);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, ON);
 
-    RestoreSelfTokenID();
+    TddUtil::RestoreSelfTokenID();
     auto ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::HIDE, InputWindowStatus::SHOW);
