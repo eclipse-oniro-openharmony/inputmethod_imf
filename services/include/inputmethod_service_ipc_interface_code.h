@@ -40,6 +40,7 @@ enum class InputMethodInterfaceCode {
     DISPLAY_OPTIONAL_INPUT_DEPRECATED,
     PANEL_STATUS_CHANGE,
     UPDATE_LISTEN_EVENT_FLAG,
+    SERVICE_INTERFACE_TEST,
     IMS_CMD_LAST
 };
 } // namespace MiscServices
