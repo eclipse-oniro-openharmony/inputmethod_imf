@@ -24,9 +24,19 @@
         <cleaner>
             <option name="shell" value="bm uninstall -n com.example.testIme"/>
             <option name="shell" value="bm uninstall -n com.example.newTestIme"/>
+            <option name="shell" value="aa stop-service -a InputMethod -b cn.openharmony.inputmethodchoosedialog"/>
         </cleaner>
     </target>
     <target name="InputMethodDfxTest">
+        <preparer>
+            <option name="push" value="extImfBundle/extImf.hap -> /data/test/resource/imf" src="res"/>
+            <option name="shell" value="bm install -r -p /data/test/resource/imf/extImf.hap"/>
+        </preparer>
+        <cleaner>
+            <option name="shell" value="bm uninstall -n com.example.testIme"/>
+        </cleaner>
+    </target>
+    <target name="InputMethodPanelTest">
         <preparer>
             <option name="push" value="extImfBundle/extImf.hap -> /data/test/resource/imf" src="res"/>
             <option name="shell" value="bm install -r -p /data/test/resource/imf/extImf.hap"/>

@@ -691,47 +691,6 @@ describe('InputMethodTest', function () {
   });
 
   /*
-   * @tc.number  inputmethod_test_showOptionalInputMethods_001
-   * @tc.name    Test displays a dialog box for selecting an input method.
-   * @tc.desc    Function test
-   * @tc.level   2
-   */
-  it('inputmethod_test_showOptionalInputMethods_001', 0, async function (done) {
-    console.info('************* inputmethod_test_showOptionalInputMethods_001 Test start*************');
-    let inputMethodSetting = inputMethod.getSetting();
-    inputMethodSetting.showOptionalInputMethods((err) => {
-      if(err){
-        console.info(`inputmethod_test_showOptionalInputMethods_001 err, ${JSON.stringify(err.message)}`);
-        expect().assertFail();
-        done();
-        return;
-      }
-      console.info('************* inputmethod_test_showOptionalInputMethods_001 Test end*************');
-      done();
-    });
-  });
-
-  /*
-   * @tc.number  inputmethod_test_showOptionalInputMethods_002
-   * @tc.name    Test displays a dialog box for selecting an input method.
-   * @tc.desc    Function test
-   * @tc.level   2
-   */
-  it('inputmethod_test_showOptionalInputMethods_002', 0, async function (done) {
-    console.info('************* inputmethod_test_showOptionalInputMethods_002 Test start*************');
-    let inputMethodSetting = inputMethod.getSetting();
-    inputMethodSetting.showOptionalInputMethods().then(()=>{
-      console.info('************* inputmethod_test_showOptionalInputMethods_002 Test end*************');
-      wait(WAIT_DEAL_OK);
-      done();
-    }).catch((err) => {
-      console.info(`inputmethod_test_showOptionalInputMethods_002 err, ${JSON.stringify(err.message)}`);
-      expect().assertFail();
-      done();
-    });
-  });
-
-  /*
    * @tc.number  inputmethod_test_attach_001
    * @tc.name    Test whether the current application can be bound with the default input method.
    * @tc.desc    Function test

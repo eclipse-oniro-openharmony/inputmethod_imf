@@ -220,8 +220,7 @@ void InputMethodEditorTest::SetUpTestCase(void)
     TddUtil::StorageSelfTokenID();
     std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-    TddUtil::AllocTestTokenID(bundleName);
-    TddUtil::SetTestTokenID();
+    TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
     inputMethodAbility_ = InputMethodAbility::GetInstance();
     inputMethodAbility_->OnImeReady();
     inputMethodAbility_->SetCoreAndAgent();
@@ -245,7 +244,7 @@ void InputMethodEditorTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodEditorTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
-    TddUtil::DeleteTestTokenID();
+    TddUtil::KillImsaProcess();
 }
 
 void InputMethodEditorTest::SetUp(void)
@@ -351,6 +350,7 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest ShowSoftKeyboard Test START");
     InputMethodEditorTest::inputMethodController_->Close();
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, true, "undefined"));
     TddUtil::SetTestUid();
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     TextListener::keyboardStatus_ = KeyboardStatus::NONE;
@@ -370,7 +370,6 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
  */
 HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodEditorTest HideTextInputAndShowTextInput Test START");
     IMSA_HILOGI("InputMethodEditorTest HideTextInputAndShowTextInput Test START");
     InputMethodEditorTest::inputMethodController_->Close();
     TddUtil::SetTestUid();
