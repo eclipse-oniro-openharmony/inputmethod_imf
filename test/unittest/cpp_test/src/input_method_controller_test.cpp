@@ -237,6 +237,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         static std::string text_;
         static bool doesKeyEventConsume_;
         static bool doesFUllKeyEventConsume_;
+        static InputAttribute inputAttribute_;
 
         class KeyboardListenerImpl : public KeyboardListener {
         public:
@@ -287,6 +288,12 @@ constexpr int32_t BUFF_LENGTH = 10;
                 text_ = text;
                 InputMethodControllerTest::keyboardListenerCv_.notify_one();
             }
+            void OnEditorAttributeChange(const InputAttribute &inputAttribute) override
+            {
+                IMSA_HILOGD("KeyboardListenerImpl in.");
+                inputAttribute_ = inputAttribute;
+                InputMethodControllerTest::keyboardListenerCv_.notify_one();
+            }
         };
     };
     sptr<InputMethodController> InputMethodControllerTest::inputMethodController_;
@@ -303,6 +310,7 @@ constexpr int32_t BUFF_LENGTH = 10;
     int32_t InputMethodControllerTest::newBegin_ = 0;
     int32_t InputMethodControllerTest::newEnd_ = 0;
     std::string InputMethodControllerTest::text_;
+    InputAttribute InputMethodControllerTest::inputAttribute_;
     std::mutex InputMethodControllerTest::keyboardListenerMutex_;
     std::condition_variable InputMethodControllerTest::keyboardListenerCv_;
     sptr<InputDeathRecipient> InputMethodControllerTest::deathRecipient_;
@@ -859,6 +867,16 @@ constexpr int32_t BUFF_LENGTH = 10;
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         ret = inputMethodController_->OnConfigurationChange(info);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        {
+            std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(
+                lock, std::chrono::seconds(DEALY_TIME), [&info] {
+                    return (static_cast<OHOS::MiscServices::TextInputType>(
+                                InputMethodControllerTest::inputAttribute_.inputPattern) == info.GetTextInputType()) &&
+                           (static_cast<OHOS::MiscServices::EnterKeyType>(
+                                InputMethodControllerTest::inputAttribute_.enterKeyType) == info.GetEnterKeyType());
+                });
+        }
 
         auto keyType = static_cast<int32_t>(EnterKeyType::UNSPECIFIED);
         auto inputPattern = static_cast<int32_t>(TextInputType::NONE);

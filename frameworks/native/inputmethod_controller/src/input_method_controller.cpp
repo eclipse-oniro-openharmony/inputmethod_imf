@@ -35,7 +35,7 @@ namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
 sptr<InputMethodController> InputMethodController::instance_;
-std::shared_ptr<AppExecFwk::EventHandler> InputMethodController::handler_ { nullptr };
+std::shared_ptr<AppExecFwk::EventHandler> InputMethodController::handler_{ nullptr };
 std::mutex InputMethodController::instanceLock_;
 constexpr int32_t LOOP_COUNT = 5;
 constexpr int32_t WAIT_TIME = 100;
@@ -777,6 +777,12 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     std::lock_guard<std::mutex> lock(configurationMutex_);
     enterKeyType_ = static_cast<uint32_t>(info.GetEnterKeyType());
     inputPattern_ = static_cast<uint32_t>(info.GetTextInputType());
+    std::lock_guard<std::mutex> agentLock(agentLock_);
+    if (agent_ == nullptr) {
+        IMSA_HILOGE("agent is nullptr");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    agent_->OnConfigurationChange(info);
     return ErrorCode::NO_ERROR;
 }
 

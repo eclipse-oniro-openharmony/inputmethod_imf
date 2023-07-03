@@ -129,6 +129,7 @@ public:
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void OnTextChange(const std::string &text) override;
+    void OnEditorAttributeChange(const InputAttribute &inputAttribute) override;
 };
 int32_t KeyboardListenerImpl::keyCode_ = 0;
 int32_t KeyboardListenerImpl::keyStatus_ = 0;
@@ -153,6 +154,9 @@ void KeyboardListenerImpl::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, i
 {
 }
 void KeyboardListenerImpl::OnTextChange(const std::string &text)
+{
+}
+void KeyboardListenerImpl::OnEditorAttributeChange(const InputAttribute &inputAttribute)
 {
 }
 

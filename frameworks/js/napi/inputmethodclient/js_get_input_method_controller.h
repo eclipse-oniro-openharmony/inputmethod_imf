@@ -194,11 +194,7 @@ private:
     static napi_status ParseAttachInput(
         napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<AttachContext> &ctxt);
     static napi_status ParseChangeSelectionInput(
-        napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<ChangeSelectionContext> &ctxt);
-    static napi_status ParseUpdateAttributeInput(
-        napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<UpdateAttributeContext> &ctxt);
-    static napi_status ParseUpdateCursorInput(
-        napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<UpdateCursorContext> &ctxt);
+        napi_env env, napi_value *argv, const std::shared_ptr<ChangeSelectionContext> &ctxt);
     static napi_value GetJsKeyboardStatusProperty(napi_env env);
     static napi_value GetJsEnterKeyTypeProperty(napi_env env);
     static napi_value GetJsTextInputTypeProperty(napi_env env);

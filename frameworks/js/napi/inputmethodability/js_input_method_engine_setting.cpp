@@ -639,10 +639,12 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
                 if (argc == 0) {
                     return false;
                 }
-                napi_create_int32(item->env_, entry->windowid, &args[ARGC_ZERO]);
+                // 0 means the return value(windowId) fo callback.
+                napi_create_uint32(item->env_, entry->windowid, &args[0]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getCallingWindowProperty);
+            // 1 means callback of on('setCallingWindow') has one return value.
+            JsUtils::TraverseCallback(entry->vecCopy, 1, getCallingWindowProperty);
         });
 }
 

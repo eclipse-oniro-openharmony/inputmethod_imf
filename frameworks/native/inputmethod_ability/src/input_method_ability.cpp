@@ -186,6 +186,10 @@ void InputMethodAbility::WorkThread()
                 OnSelectionChange(msg);
                 break;
             }
+            case MSG_ID_ON_CONFIGURATION_CHANGE: {
+                OnConfigurationChange(msg);
+                break;
+            }
             case MSG_ID_STOP_INPUT_SERVICE: {
                 MessageParcel *data = msg->msgContent_;
                 std::string imeId = Str16ToStr8(data->ReadString16());
@@ -312,6 +316,10 @@ void InputMethodAbility::SetCallingWindow(uint32_t windowId)
         IMSA_HILOGI("InputMethodAbility::SetCallingWindow imeListener_ is nullptr");
         return;
     }
+    panels_.ForEach([windowId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+        panel->SetCallingWindow(windowId);
+        return false;
+    });
     imeListener_->OnSetCallingWindow(windowId);
 }
 
@@ -346,6 +354,20 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
     kdListener_->OnTextChange(text);
 
     kdListener_->OnSelectionChange(oldBegin, oldEnd, newBegin, newEnd);
+}
+
+void InputMethodAbility::OnConfigurationChange(Message *msg)
+{
+    IMSA_HILOGD("InputMethodAbility in.");
+    MessageParcel *data = msg->msgContent_;
+    InputAttribute attribute;
+    attribute.enterKeyType = data->ReadInt32();
+    attribute.inputPattern = data->ReadInt32();
+    if (kdListener_ == nullptr) {
+        IMSA_HILOGE("InputMethodAbility in, kdListener_ is nullptr");
+        return;
+    }
+    kdListener_->OnEditorAttributeChange(attribute);
 }
 
 void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)

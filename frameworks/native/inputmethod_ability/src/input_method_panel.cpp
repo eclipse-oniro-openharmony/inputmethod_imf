@@ -167,7 +167,7 @@ int32_t InputMethodPanel::ShowPanel()
     }
     auto ret = window_->Show();
     if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("ShowPanel error, err = %{public}d, ERROR_SHOW_PANEL", ret);
+        IMSA_HILOGE("ShowPanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     PanelStatusChange(InputWindowStatus::SHOW);
@@ -186,10 +186,24 @@ int32_t InputMethodPanel::HidePanel()
     }
     auto ret = window_->Hide();
     if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("HidePanel error, err = %{public}d, ERROR_HIDE_PANEL", ret);
+        IMSA_HILOGE("HidePanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     PanelStatusChange(InputWindowStatus::HIDE);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr.");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto ret = window_->SetCallingWindow(windowId);
+    if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("SetCallingWindow error, err = %{public}d", ret);
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
     return ErrorCode::NO_ERROR;
 }
 

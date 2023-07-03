@@ -528,51 +528,13 @@ napi_value JsGetInputMethodController::SetCallingWindow(napi_env env, napi_callb
     return asyncCall.Call(env, exec, "setCallingWindow");
 }
 
-napi_status JsGetInputMethodController::ParseUpdateCursorInput(
-    napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<UpdateCursorContext> &ctxt)
-{
-    // 0 means the first parameter: cursorInfo
-    napi_value leftResult = nullptr;
-    napi_status status = JsUtils::GetValue(env, argv[0], "left", leftResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    status = JsUtils::GetValue(env, leftResult, ctxt->cursorInfo.left);
-    if (status != napi_ok) {
-        return status;
-    }
-    napi_value topResult = nullptr;
-    status = JsUtils::GetValue(env, argv[0], "top", topResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    status = JsUtils::GetValue(env, topResult, ctxt->cursorInfo.top);
-    if (status != napi_ok) {
-        return status;
-    }
-    napi_value widthResult = nullptr;
-    status = JsUtils::GetValue(env, argv[0], "width", widthResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    status = JsUtils::GetValue(env, widthResult, ctxt->cursorInfo.width);
-    if (status != napi_ok) {
-        return status;
-    }
-    napi_value heightResult = nullptr;
-    status = JsUtils::GetValue(env, argv[0], "height", heightResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    return JsUtils::GetValue(env, heightResult, ctxt->cursorInfo.height);
-}
-
 napi_value JsGetInputMethodController::UpdateCursor(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<UpdateCursorContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
-        napi_status status = ParseUpdateCursorInput(env, argc, argv, ctxt);
+        // 0 means the first parameter: cursorInfo
+        napi_status status = JsUtils::GetValue(env, argv[0], ctxt->cursorInfo);
         PARAM_CHECK_RETURN(env, status == napi_ok, "paramters of updateCursor is error. ", TYPE_NONE, status);
         return status;
     };
@@ -589,21 +551,22 @@ napi_value JsGetInputMethodController::UpdateCursor(napi_env env, napi_callback_
 }
 
 napi_status JsGetInputMethodController::ParseChangeSelectionInput(
-    napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<ChangeSelectionContext> &ctxt)
+    napi_env env, napi_value *argv, const std::shared_ptr<ChangeSelectionContext> &ctxt)
 {
     std::string strText;
     // 0 means the first parameter: text
     napi_status status = JsUtils::GetValue(env, argv[0], strText);
-    if (status == napi_ok) {
-        ctxt->text = Str8ToStr16(strText);
-        // 1 means the second parameter: start
-        status = JsUtils::GetValue(env, argv[1], ctxt->start);
-        if (status == napi_ok) {
-            // 2 means the third parameter: end
-            status = JsUtils::GetValue(env, argv[2], ctxt->end);
-        }
+    if (status != napi_ok) {
+        return status;
     }
-    return status;
+    ctxt->text = Str8ToStr16(strText);
+    // 1 means the second parameter: start
+    status = JsUtils::GetValue(env, argv[1], ctxt->start);
+    if (status != napi_ok) {
+        return status;
+    }
+    // 2 means the third parameter: end
+    return JsUtils::GetValue(env, argv[2], ctxt->end);
 }
 
 napi_value JsGetInputMethodController::ChangeSelection(napi_env env, napi_callback_info info)
@@ -611,7 +574,7 @@ napi_value JsGetInputMethodController::ChangeSelection(napi_env env, napi_callba
     std::shared_ptr<ChangeSelectionContext> ctxt = std::make_shared<ChangeSelectionContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 2, "should 3 or 4 parameters!", TYPE_NONE, napi_generic_failure);
-        napi_status status = ParseChangeSelectionInput(env, argc, argv, ctxt);
+        napi_status status = ParseChangeSelectionInput(env, argv, ctxt);
         PARAM_CHECK_RETURN(env, status == napi_ok, "paramters of changeSelection is error. ", TYPE_NONE, status);
         return status;
     };
@@ -627,33 +590,12 @@ napi_value JsGetInputMethodController::ChangeSelection(napi_env env, napi_callba
     return asyncCall.Call(env, exec, "changeSelection");
 }
 
-napi_status JsGetInputMethodController::ParseUpdateAttributeInput(
-    napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<UpdateAttributeContext> &ctxt)
-{
-    // 0 means the first parameter: attribute
-    napi_value textResult = nullptr;
-    napi_status status = JsUtils::GetValue(env, argv[0], "textInputType", textResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    status = JsUtils::GetValue(env, textResult, ctxt->attribute.inputPattern);
-    if (status != napi_ok) {
-        return status;
-    }
-    napi_value enterResult = nullptr;
-    status = JsUtils::GetValue(env, argv[0], "enterKeyType", enterResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    return JsUtils::GetValue(env, enterResult, ctxt->attribute.enterKeyType);
-}
-
 napi_value JsGetInputMethodController::UpdateAttribute(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<UpdateAttributeContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
-        napi_status status = ParseUpdateAttributeInput(env, argc, argv, ctxt);
+        napi_status status = JsUtils::GetValue(env, argv[0], ctxt->attribute);
         PARAM_CHECK_RETURN(env, status == napi_ok, "paramters of updateAttribute is error. ", TYPE_NONE, status);
         ctxt->configuration.SetTextInputType(static_cast<TextInputType>(ctxt->attribute.inputPattern));
         ctxt->configuration.SetEnterKeyType(static_cast<EnterKeyType>(ctxt->attribute.enterKeyType));

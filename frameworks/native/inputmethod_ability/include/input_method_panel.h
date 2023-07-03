@@ -62,6 +62,7 @@ public:
     int32_t HidePanel();
     void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void ClearPanelListener(const std::string &type);
+    int32_t SetCallingWindow(uint32_t windowId);
     uint32_t windowId_ = 0;
 
 private:

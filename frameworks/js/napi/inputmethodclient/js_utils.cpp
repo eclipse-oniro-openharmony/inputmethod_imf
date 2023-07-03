@@ -317,6 +317,85 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, PanelInfo &out)
     return status;
 }
 
+napi_status JsUtils::GetValue(napi_env env, napi_value in, InputAttribute &out)
+{
+    napi_value textResult = nullptr;
+    napi_status status = JsUtils::GetValue(env, in, "textInputType", textResult);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = JsUtils::GetValue(env, textResult, out.inputPattern);
+    if (status != napi_ok) {
+        return status;
+    }
+    napi_value enterResult = nullptr;
+    status = JsUtils::GetValue(env, in, "enterKeyType", enterResult);
+    if (status != napi_ok) {
+        return status;
+    }
+    return JsUtils::GetValue(env, enterResult, out.enterKeyType);
+}
+
+napi_status JsUtils::GetValue(napi_env env, napi_value in, CursorInfo &out)
+{
+    napi_value left = nullptr;
+    napi_status status = JsUtils::GetValue(env, in, "left", left);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = JsUtils::GetValue(env, left, out.left);
+    if (status != napi_ok) {
+        return status;
+    }
+
+    napi_value top = nullptr;
+    status = JsUtils::GetValue(env, in, "top", top);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = JsUtils::GetValue(env, top, out.top);
+    if (status != napi_ok) {
+        return status;
+    }
+
+    napi_value width = nullptr;
+    status = JsUtils::GetValue(env, in, "width", width);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = JsUtils::GetValue(env, width, out.width);
+    if (status != napi_ok) {
+        return status;
+    }
+
+    napi_value height = nullptr;
+    status = JsUtils::GetValue(env, in, "height", height);
+    if (status != napi_ok) {
+        return status;
+    }
+    return JsUtils::GetValue(env, height, out.height);
+}
+
+napi_status JsUtils::GetValue(napi_env env, napi_value in, SelectionRange &out)
+{
+    napi_value start = nullptr;
+    napi_status status = JsUtils::GetValue(env, in, "start", start);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = JsUtils::GetValue(env, start, out.start);
+    if (status != napi_ok) {
+        return status;
+    }
+
+    napi_value end = nullptr;
+    status = JsUtils::GetValue(env, in, "end", end);
+    if (status != napi_ok) {
+        return status;
+    }
+    return JsUtils::GetValue(env, end, out.end);
+}
+
 napi_value JsUtils::GetValue(napi_env env, const std::vector<InputWindowInfo> &in)
 {
     napi_value array = nullptr;
@@ -360,6 +439,22 @@ napi_value JsUtils::GetValue(napi_env env, const InputWindowInfo &in)
     napi_set_named_property(env, info, "height", height);
 
     return info;
+}
+
+napi_value JsUtils::GetValue(napi_env env, const InputAttribute &attribute)
+{
+    napi_value editorAttribute = nullptr;
+    napi_create_object(env, &editorAttribute);
+
+    napi_value inputPattern = nullptr;
+    napi_create_int32(env, attribute.inputPattern, &inputPattern);
+    napi_set_named_property(env, editorAttribute, "inputPattern", inputPattern);
+
+    napi_value enterKeyType = nullptr;
+    napi_create_int32(env, attribute.enterKeyType, &enterKeyType);
+    napi_set_named_property(env, editorAttribute, "enterKeyType", enterKeyType);
+
+    return editorAttribute;
 }
 } // namespace MiscServices
 } // namespace OHOS
