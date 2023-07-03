@@ -24,6 +24,7 @@
         <cleaner>
             <option name="shell" value="bm uninstall -n com.example.testIme"/>
             <option name="shell" value="bm uninstall -n com.example.newTestIme"/>
+            <option name="shell" value="aa stop-service -a InputMethod -b cn.openharmony.inputmethodchoosedialog"/>
         </cleaner>
     </target>
     <target name="InputMethodDfxTest">
