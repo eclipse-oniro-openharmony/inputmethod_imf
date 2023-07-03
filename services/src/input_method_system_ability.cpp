@@ -63,6 +63,8 @@ InputMethodSystemAbility::InputMethodSystemAbility() : state_(ServiceRunningStat
 
 InputMethodSystemAbility::~InputMethodSystemAbility()
 {
+    Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
+    MessageHandler::Instance()->SendMessage(msg);
     if (workThreadHandler.joinable()) {
         workThreadHandler.join();
     }
@@ -207,8 +209,7 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
-    uint32_t tokenID = IPCSkeleton::GetCallingTokenID();
-    if (!BundleChecker::IsFocused(tokenID)) {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingUid())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     auto ret = GenerateClientInfo(clientInfo);
@@ -247,7 +248,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 
 int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
 {
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingUid())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     if (client == nullptr) {
@@ -289,7 +290,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
     if (core == nullptr || agent == nullptr) {
-        CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
+        InputMethodSysEvent::CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
         IMSA_HILOGE("InputMethodSystemAbility::core or agent is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
@@ -541,6 +542,10 @@ void InputMethodSystemAbility::WorkThread()
             case MSG_ID_START_INPUT_SERVICE: {
                 StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_));
                 break;
+            }
+            case MSG_ID_QUIT_WORKER_THREAD: {
+                IMSA_HILOGD("Quit Sa work thread.");
+                return;
             }
             default: {
                 break;

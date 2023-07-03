@@ -13,25 +13,32 @@
  * limitations under the License.
  */
 
-#ifndef SERVICES_INCLUDE_BUNDLE_CHECKER_H
-#define SERVICES_INCLUDE_BUNDLE_CHECKER_H
+#ifndef INPUTMETHOD_UNITTEST_UTIL_H
+#define INPUTMETHOD_UNITTEST_UTIL_H
 
-#include "accesstoken_kit.h"
-#include "event_status_manager.h"
+#include <string>
 
 namespace OHOS {
 namespace MiscServices {
-class BundleChecker {
+class TddUtil {
 public:
-    static bool IsFocused(int64_t uid);
-    static bool IsSystemApp(uint64_t fullTokenID);
-    static bool IsCurrentIme(uint32_t tokenID, const std::string &currentIme);
-    static bool CheckPermission(uint32_t tokenID, const std::string &permission);
+    static void StorageSelfTokenID();
+    static void AllocTestTokenID(const std::string &bundleName);
+    static void DeleteTestTokenID();
+    static void SetTestTokenID();
+    static void RestoreSelfTokenID();
+    static void StorageSelfUid();
+    static void SetTestUid();
+    static void RestoreSelfUid();
+    static bool ExecuteCmd(const std::string &cmd, std::string &result);
 
 private:
-    static std::string GetBundleNameByToken(uint32_t tokenID);
+    static int32_t GetCurrentUserId();
+    static uint64_t selfTokenID_;
+    static uint64_t testTokenID_;
+    static int32_t userID_;
+    static int64_t selfUid_;
 };
 } // namespace MiscServices
 } // namespace OHOS
-
-#endif // SERVICES_INCLUDE_BUNDLE_CHECKER_H
+#endif // INPUTMETHOD_UNITTEST_UTIL_H

@@ -13,25 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef SERVICES_INCLUDE_BUNDLE_CHECKER_H
-#define SERVICES_INCLUDE_BUNDLE_CHECKER_H
+#ifndef INPUTMETHOD_IMF_KEY_EVENT_UTIL_H
+#define INPUTMETHOD_IMF_KEY_EVENT_UTIL_H
 
-#include "accesstoken_kit.h"
-#include "event_status_manager.h"
+#include "key_event.h"
 
 namespace OHOS {
 namespace MiscServices {
-class BundleChecker {
+class KeyEventUtil {
 public:
-    static bool IsFocused(int64_t uid);
-    static bool IsSystemApp(uint64_t fullTokenID);
-    static bool IsCurrentIme(uint32_t tokenID, const std::string &currentIme);
-    static bool CheckPermission(uint32_t tokenID, const std::string &permission);
+    static bool SimulateKeyEvent(int32_t keyCode);
+    static bool SimulateKeyEvents(const std::vector<int32_t> &keys);
+    static std::shared_ptr<MMI::KeyEvent> CreateKeyEvent(int32_t keyCode, int32_t keyAction);
 
 private:
-    static std::string GetBundleNameByToken(uint32_t tokenID);
+    static int64_t GetNanoTime();
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif // SERVICES_INCLUDE_BUNDLE_CHECKER_H
+#endif // INPUTMETHOD_IMF_KEY_EVENT_UTIL_H

@@ -12,14 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define private public
+#define protected public
 #include "input_method_controller.h"
+#undef private
 
 #include <event_handler.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <string_ex.h>
 #include <sys/time.h>
 
 #include <condition_variable>
+#include <csignal>
 #include <cstdint>
 #include <functional>
 #include <mutex>
@@ -28,30 +33,34 @@
 #include <vector>
 
 #include "ability_manager_client.h"
-#include "accesstoken_kit.h"
+#include "block_data.h"
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
+#include "if_system_ability_manager.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
+#include "input_death_recipient.h"
 #include "input_method_ability.h"
 #include "input_method_engine_listener.h"
 #include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "iservice_registry.h"
+#include "key_event_util.h"
 #include "keyboard_listener.h"
 #include "message_parcel.h"
-#include "os_account_manager.h"
+#include "system_ability.h"
 #include "system_ability_definition.h"
-#include "token_setproc.h"
+#include "tdd_util.h"
 
+using namespace testing;
 using namespace testing::ext;
-using namespace OHOS::Security::AccessToken;
-using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t MAIN_USER_ID = 100;
+constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
 constexpr uint32_t DEALY_TIME = 1;
+constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
+constexpr int32_t BUFF_LENGTH = 10;
     class TextListener : public OnTextChangedListener {
     public:
         TextListener()
@@ -66,6 +75,11 @@ constexpr uint32_t DEALY_TIME = 1;
         static std::mutex cvMutex_;
         static std::condition_variable cv_;
         std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
+        static int32_t direction_;
+        static int32_t deleteForwardLength_;
+        static int32_t deleteBackwardLength_;
+        static std::u16string insertText_;
+        static int32_t key_;
         static bool WaitIMACallback()
         {
             std::unique_lock<std::mutex> lock(TextListener::cvMutex_);
@@ -74,11 +88,13 @@ constexpr uint32_t DEALY_TIME = 1;
         void InsertText(const std::u16string &text)
         {
             IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", Str16ToStr8(text).c_str());
+            insertText_ = text;
         }
 
         void DeleteBackward(int32_t length)
         {
             IMSA_HILOGI("IMC TEST TextListener DeleteBackward length: %{public}d", length);
+            deleteBackwardLength_ = length;
         }
 
         void SetKeyboardStatus(bool status)
@@ -88,6 +104,7 @@ constexpr uint32_t DEALY_TIME = 1;
         void DeleteForward(int32_t length)
         {
             IMSA_HILOGI("IMC TEST TextListener DeleteForward length: %{public}d", length);
+            deleteForwardLength_ = length;
         }
         void SendKeyEventFromInputMethod(const KeyEvent &event)
         {
@@ -108,10 +125,13 @@ constexpr uint32_t DEALY_TIME = 1;
         void SendFunctionKey(const FunctionKey &functionKey)
         {
             IMSA_HILOGI("IMC TEST TextListener SendFunctionKey");
+            EnterKeyType enterKeyType = functionKey.GetEnterKeyType();
+            key_ = static_cast<int32_t>(enterKeyType);
         }
         void MoveCursor(const Direction direction)
         {
             IMSA_HILOGI("IMC TEST TextListener MoveCursor");
+            direction_ = static_cast<int32_t>(direction);
         }
         void HandleSetSelection(int32_t start, int32_t end)
         {
@@ -126,6 +146,11 @@ constexpr uint32_t DEALY_TIME = 1;
     KeyboardStatus TextListener::keyboardStatus_;
     std::mutex TextListener::cvMutex_;
     std::condition_variable TextListener::cv_;
+    int32_t TextListener::direction_ = 0;
+    int32_t TextListener::deleteForwardLength_ = 0;
+    int32_t TextListener::deleteBackwardLength_ = 0;
+    std::u16string TextListener::insertText_;
+    int32_t TextListener::key_ = 0;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -169,25 +194,39 @@ constexpr uint32_t DEALY_TIME = 1;
         IMSA_HILOGD("InputMethodEngineListenerImpl::OnSetSubtype");
     }
 
+    class SelectListenerMock : public ControllerListener {
+    public:
+        SelectListenerMock() = default;
+        ~SelectListenerMock() override = default;
+
+        MOCK_METHOD2(OnSelectByRange, void(int32_t start, int32_t end));
+        MOCK_METHOD1(OnSelectByMovement, void(int32_t direction));
+    };
+
     class InputMethodControllerTest : public testing::Test {
     public:
         static void SetUpTestCase(void);
         static void TearDownTestCase(void);
         void SetUp();
         void TearDown();
-        static void AllocTestTokenID(const std::string &bundleName);
-        static void DeleteTestTokenID();
-        static void SetTestTokenID();
-        static void RestoreSelfTokenID();
+        static pid_t GetPid();
+        static void SetInputDeathRecipient();
+        static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
+        static bool CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
+        static bool WaitRemoteDiedCallback();
         static sptr<InputMethodController> inputMethodController_;
         static sptr<InputMethodAbility> inputMethodAbility_;
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
         static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
+        static std::shared_ptr<SelectListenerMock> controllerListener_;
         static sptr<OnTextChangedListener> textListener_;
         static std::mutex keyboardListenerMutex_;
         static std::condition_variable keyboardListenerCv_;
-        static uint64_t selfTokenID_;
-        static AccessTokenID testTokenID_;
+        static BlockData<std::shared_ptr<MMI::KeyEvent>> blockKeyEvent_;
+        static BlockData<std::shared_ptr<MMI::KeyEvent>> blockFullKeyEvent_;
+        static std::mutex onRemoteSaDiedMutex_;
+        static std::condition_variable onRemoteSaDiedCv_;
+        static sptr<InputDeathRecipient> deathRecipient_;
         static int32_t keyCode_;
         static int32_t keyStatus_;
         static CursorInfo cursorInfo_;
@@ -196,6 +235,8 @@ constexpr uint32_t DEALY_TIME = 1;
         static int32_t newBegin_;
         static int32_t newEnd_;
         static std::string text_;
+        static bool doesKeyEventConsume_;
+        static bool doesFUllKeyEventConsume_;
 
         class KeyboardListenerImpl : public KeyboardListener {
         public:
@@ -203,10 +244,23 @@ constexpr uint32_t DEALY_TIME = 1;
             ~KeyboardListenerImpl(){};
             bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override
             {
-                IMSA_HILOGD("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
-                keyCode_ = keyCode;
-                keyStatus_ = keyStatus;
-                InputMethodControllerTest::keyboardListenerCv_.notify_one();
+                if (!doesKeyEventConsume_) {
+                    return false;
+                }
+                IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
+                auto keyEvent = KeyEventUtil::CreateKeyEvent(keyCode, keyStatus);
+                blockKeyEvent_.SetValue(keyEvent);
+                return true;
+            }
+            bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override
+            {
+                if (!doesFUllKeyEventConsume_) {
+                    return false;
+                }
+                IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyEvent->GetKeyCode(),
+                    keyEvent->GetKeyAction());
+                auto fullKey = keyEvent;
+                blockFullKeyEvent_.SetValue(fullKey);
                 return true;
             }
             void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override
@@ -239,9 +293,8 @@ constexpr uint32_t DEALY_TIME = 1;
     sptr<InputMethodAbility> InputMethodControllerTest::inputMethodAbility_;
     std::shared_ptr<MMI::KeyEvent> InputMethodControllerTest::keyEvent_;
     std::shared_ptr<InputMethodEngineListenerImpl> InputMethodControllerTest::imeListener_;
+    std::shared_ptr<SelectListenerMock> InputMethodControllerTest::controllerListener_;
     sptr<OnTextChangedListener> InputMethodControllerTest::textListener_;
-    uint64_t InputMethodControllerTest::selfTokenID_ = 0;
-    AccessTokenID InputMethodControllerTest::testTokenID_ = 0;
     int32_t InputMethodControllerTest::keyCode_ = 0;
     int32_t InputMethodControllerTest::keyStatus_ = 0;
     CursorInfo InputMethodControllerTest::cursorInfo_ = {};
@@ -252,40 +305,52 @@ constexpr uint32_t DEALY_TIME = 1;
     std::string InputMethodControllerTest::text_;
     std::mutex InputMethodControllerTest::keyboardListenerMutex_;
     std::condition_variable InputMethodControllerTest::keyboardListenerCv_;
+    sptr<InputDeathRecipient> InputMethodControllerTest::deathRecipient_;
+    std::mutex InputMethodControllerTest::onRemoteSaDiedMutex_;
+    std::condition_variable InputMethodControllerTest::onRemoteSaDiedCv_;
+    BlockData<std::shared_ptr<MMI::KeyEvent>> InputMethodControllerTest::blockKeyEvent_{ KEY_EVENT_DELAY_TIME,
+        nullptr };
+    BlockData<std::shared_ptr<MMI::KeyEvent>> InputMethodControllerTest::blockFullKeyEvent_{ KEY_EVENT_DELAY_TIME,
+        nullptr };
+    bool InputMethodControllerTest::doesKeyEventConsume_{ false };
+    bool InputMethodControllerTest::doesFUllKeyEventConsume_{ false };
 
     void InputMethodControllerTest::SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::SetUpTestCase");
-        selfTokenID_ = GetSelfTokenID();
+        TddUtil::StorageSelfTokenID();
+        // Set the tokenID to the tokenID of the current ime
         std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
         std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-        AllocTestTokenID(bundleName);
-        SetTestTokenID();
+        TddUtil::AllocTestTokenID(bundleName);
+        TddUtil::SetTestTokenID();
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->OnImeReady();
         imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
+        controllerListener_ = std::make_shared<SelectListenerMock>();
         textListener_ = new TextListener();
         inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerImpl>());
         inputMethodAbility_->SetImeListener(imeListener_);
-        RestoreSelfTokenID();
-
-        bundleName = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-        AllocTestTokenID(bundleName);
-        SetTestTokenID();
         inputMethodController_ = InputMethodController::GetInstance();
-        keyEvent_ = MMI::KeyEvent::Create();
-        constexpr int32_t keyAction = 2;
-        constexpr int32_t keyCode = 2001;
-        keyEvent_->SetKeyAction(keyAction);
-        keyEvent_->SetKeyCode(keyCode);
+
+        keyEvent_ = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
+        keyEvent_->SetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY, 0);
+        keyEvent_->SetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, 1);
+        keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
+
+        // Set the uid to the uid of the focus app
+        TddUtil::StorageSelfUid();
+        TddUtil::SetTestUid();
+        SetInputDeathRecipient();
     }
 
     void InputMethodControllerTest::TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
-        RestoreSelfTokenID();
-        DeleteTestTokenID();
+        TddUtil::RestoreSelfTokenID();
+        TddUtil::DeleteTestTokenID();
+        TddUtil::RestoreSelfUid();
     }
 
     void InputMethodControllerTest::SetUp(void)
@@ -298,47 +363,89 @@ constexpr uint32_t DEALY_TIME = 1;
         IMSA_HILOGI("InputMethodControllerTest::TearDown");
     }
 
-    void InputMethodControllerTest::AllocTestTokenID(const std::string &bundleName)
+    pid_t InputMethodControllerTest::GetPid()
     {
-        IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
-        std::vector<int32_t> userIds;
-        auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
-        if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
-            IMSA_HILOGE("query active os account id failed");
-            userIds[0] = MAIN_USER_ID;
+        char buff[BUFF_LENGTH] = { 0 };
+        FILE *fp = popen(CMD_PIDOF_IMS, "r");
+        EXPECT_TRUE(fp != nullptr);
+        fgets(buff, sizeof(buff), fp);
+        pid_t pid = atoi(buff);
+        pclose(fp);
+        fp = nullptr;
+        return pid;
+    }
+
+    void InputMethodControllerTest::SetInputDeathRecipient()
+    {
+        IMSA_HILOGI("InputMethodControllerTest::SetInputDeathRecipient");
+        sptr<ISystemAbilityManager> systemAbilityManager =
+            SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (systemAbilityManager == nullptr) {
+            IMSA_HILOGI("InputMethodControllerTest, system ability manager is nullptr");
+            return;
         }
-        HapInfoParams infoParams = {
-            .userID = userIds[0], .bundleName = bundleName, .instIndex = 0, .appIDDesc = "ohos.inputmethod_test.demo"
-        };
-        PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
-            .isGeneral = true,
-            .resDeviceID = { "local" },
-            .grantStatus = { PermissionState::PERMISSION_GRANTED },
-            .grantFlags = { 1 } };
-        HapPolicyParams policyParams = {
-            .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = { permissionState }
-        };
-
-        AccessTokenKit::AllocHapToken(infoParams, policyParams);
-        DeleteTestTokenID();
-        testTokenID_ = AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
+        auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
+        if (systemAbility == nullptr) {
+            IMSA_HILOGI("InputMethodControllerTest, system ability is nullptr");
+            return;
+        }
+        deathRecipient_ = new (std::nothrow) InputDeathRecipient();
+        if (deathRecipient_ == nullptr) {
+            IMSA_HILOGE("InputMethodControllerTest, new death recipient failed");
+            return;
+        }
+        deathRecipient_->SetDeathRecipient([](const wptr<IRemoteObject> &remote) { OnRemoteSaDied(remote); });
+        if ((systemAbility->IsProxyObject()) && (!systemAbility->AddDeathRecipient(deathRecipient_))) {
+            IMSA_HILOGE("InputMethodControllerTest, failed to add death recipient.");
+            return;
+        }
     }
 
-    void InputMethodControllerTest::DeleteTestTokenID()
+    void InputMethodControllerTest::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
     {
-        AccessTokenKit::DeleteToken(InputMethodControllerTest::testTokenID_);
+        IMSA_HILOGI("InputMethodControllerTest::OnRemoteSaDied");
+        onRemoteSaDiedCv_.notify_one();
     }
 
-    void InputMethodControllerTest::SetTestTokenID()
+    bool InputMethodControllerTest::WaitRemoteDiedCallback()
     {
-        auto ret = SetSelfTokenID(InputMethodControllerTest::testTokenID_);
-        IMSA_HILOGI("SetSelfTokenID ret: %{public}d", ret);
+        IMSA_HILOGI("InputMethodControllerTest::WaitRemoteDiedCallback");
+        std::unique_lock<std::mutex> lock(onRemoteSaDiedMutex_);
+        return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
     }
 
-    void InputMethodControllerTest::RestoreSelfTokenID()
+    bool InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
     {
-        auto ret = SetSelfTokenID(InputMethodControllerTest::selfTokenID_);
-        IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
+        bool ret = keyEvent->GetKeyCode() == keyEvent_->GetKeyCode();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyAction() == keyEvent_->GetKeyAction();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyIntention() == keyEvent_->GetKeyIntention();
+        EXPECT_TRUE(ret);
+        // check function key state
+        ret = keyEvent->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY)
+              == keyEvent_->GetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY);
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY)
+              == keyEvent_->GetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY);
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY)
+              == keyEvent_->GetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY);
+        EXPECT_TRUE(ret);
+        // check KeyItem
+        ret = keyEvent->GetKeyItems().size() == keyEvent_->GetKeyItems().size();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetKeyCode() == keyEvent_->GetKeyItem()->GetKeyCode();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetDownTime() == keyEvent_->GetKeyItem()->GetDownTime();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetDeviceId() == keyEvent_->GetKeyItem()->GetDeviceId();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->IsPressed() == keyEvent_->GetKeyItem()->IsPressed();
+        EXPECT_TRUE(ret);
+        ret = keyEvent->GetKeyItem()->GetUnicode() == keyEvent_->GetKeyItem()->GetUnicode();
+        EXPECT_TRUE(ret);
+        return ret;
     }
 
     /**
@@ -418,19 +525,68 @@ constexpr uint32_t DEALY_TIME = 1;
     }
 
     /**
-     * @tc.name: testIMCdispatchKeyEvent
-     * @tc.desc: IMC testdispatchKeyEvent.
+     * @tc.name: testIMCDispatchKeyEvent001
+     * @tc.desc: test IMC DispatchKeyEvent with 'keyDown/KeyUP'.
      * @tc.type: FUNC
      * @tc.require:
      */
-    HWTEST_F(InputMethodControllerTest, testIMCdispatchKeyEvent, TestSize.Level0)
+    HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent001, TestSize.Level0)
     {
-        IMSA_HILOGI("IMC dispatchKeyEvent Test START");
+        IMSA_HILOGI("IMC testIMCDispatchKeyEvent001 Test START");
+        doesKeyEventConsume_ = true;
+        doesFUllKeyEventConsume_ = false;
+        blockKeyEvent_.Clear(nullptr);
         bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
-        usleep(300);
-        ret = ret && InputMethodControllerTest::keyCode_ == keyEvent_->GetKeyCode()
-              && InputMethodControllerTest::keyStatus_ == keyEvent_->GetKeyAction();
         EXPECT_TRUE(ret);
+        auto keyEvent = blockKeyEvent_.GetValue();
+        EXPECT_NE(keyEvent, nullptr);
+        ret = keyEvent->GetKeyCode() == keyEvent_->GetKeyCode()
+              && keyEvent->GetKeyAction() == keyEvent_->GetKeyAction();
+        EXPECT_TRUE(ret);
+    }
+
+    /**
+     * @tc.name: testIMCDispatchKeyEvent002
+     * @tc.desc: test IMC DispatchKeyEvent with 'keyEvent'.
+     * @tc.type: FUNC
+     * @tc.require:
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent002, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC testIMCDispatchKeyEvent002 Test START");
+        doesKeyEventConsume_ = false;
+        doesFUllKeyEventConsume_ = true;
+        blockFullKeyEvent_.Clear(nullptr);
+        bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
+        EXPECT_TRUE(ret);
+        auto keyEvent = blockFullKeyEvent_.GetValue();
+        EXPECT_NE(keyEvent, nullptr);
+        EXPECT_TRUE(CheckKeyEvent(keyEvent));
+    }
+
+    /**
+     * @tc.name: testIMCDispatchKeyEvent003
+     * @tc.desc: test IMC DispatchKeyEvent with 'keyDown/KeyUP' and 'keyEvent'.
+     * @tc.type: FUNC
+     * @tc.require:
+     */
+    HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent003, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC testIMCDispatchKeyEvent003 Test START");
+        doesKeyEventConsume_ = true;
+        doesFUllKeyEventConsume_ = true;
+        blockKeyEvent_.Clear(nullptr);
+        blockFullKeyEvent_.Clear(nullptr);
+        bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
+        EXPECT_TRUE(ret);
+        auto keyEvent = blockKeyEvent_.GetValue();
+        auto keyFullEvent = blockFullKeyEvent_.GetValue();
+        EXPECT_NE(keyEvent, nullptr);
+        EXPECT_NE(keyFullEvent, nullptr);
+        ret = keyEvent->GetKeyCode() == keyEvent_->GetKeyCode()
+              && keyEvent->GetKeyAction() == keyEvent_->GetKeyAction();
+        EXPECT_TRUE(ret);
+        EXPECT_TRUE(CheckKeyEvent(keyFullEvent));
     }
 
     /**
@@ -784,6 +940,125 @@ constexpr uint32_t DEALY_TIME = 1;
         TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         inputMethodController_->HideTextInput();
         EXPECT_TRUE(!imeListener_->keyboardState_);
+    }
+
+    /**
+     * @tc.name: testSetControllerListener
+     * @tc.desc: IMC SetControllerListener
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodControllerTest, testSetControllerListener, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC SetControllerListener Test START");
+        inputMethodController_->SetControllerListener(controllerListener_);
+
+        int32_t ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        EXPECT_CALL(*controllerListener_, OnSelectByRange(Eq(1), Eq(2))).Times(1);
+        inputMethodAbility_->SelectByRange(1, 2);
+
+        Sequence s;
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::UP))))
+            .Times(1)
+            .InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::DOWN))))
+            .Times(1)
+            .InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::LEFT))))
+            .Times(1)
+            .InSequence(s);
+        EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::RIGHT))))
+            .Times(1)
+            .InSequence(s);
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::UP));
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
+        inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::RIGHT));
+    }
+
+    /**
+     * @tc.name: testWasAttached
+     * @tc.desc: IMC WasAttached
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodControllerTest, testWasAttached, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC WasAttached Test START");
+        inputMethodController_->Close();
+        bool result = inputMethodController_->WasAttached();
+        EXPECT_FALSE(result);
+        int32_t ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        result = inputMethodController_->WasAttached();
+        EXPECT_TRUE(result);
+        inputMethodController_->Close();
+    }
+
+    /**
+    * @tc.name: testWithoutEditableState
+    * @tc.desc: IMC testWithoutEditableState
+    * @tc.type: FUNC
+    * @tc.require:
+    */
+    HWTEST_F(InputMethodControllerTest, testWithoutEditableState, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC WithouteEditableState Test START");
+        auto ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        ret = inputMethodController_->HideTextInput();
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+        int32_t deleteForwardLength = 1;
+        ret = inputMethodAbility_->DeleteForward(deleteForwardLength);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(100);
+        EXPECT_NE(TextListener::deleteForwardLength_, deleteForwardLength);
+
+        int32_t deleteBackwardLength = 2;
+        ret = inputMethodAbility_->DeleteBackward(deleteBackwardLength);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(100);
+        EXPECT_NE(TextListener::deleteBackwardLength_, deleteBackwardLength);
+
+        std::string insertText = "t";
+        ret = inputMethodAbility_->InsertText(insertText);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(100);
+        EXPECT_NE(TextListener::insertText_, Str8ToStr16(insertText));
+
+        constexpr int32_t funcKey = 1;
+        ret = inputMethodAbility_->SendFunctionKey(funcKey);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(100);
+        EXPECT_NE(TextListener::key_, funcKey);
+
+        constexpr int32_t keyCode = 4;
+        ret = inputMethodAbility_->MoveCursor(keyCode);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(100);
+        EXPECT_NE(TextListener::direction_, keyCode);
+    }
+
+    /**
+     * @tc.name: testOnRemoteDied
+     * @tc.desc: IMC OnRemoteDied
+     * @tc.type: FUNC
+     */
+    HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC OnRemoteDied Test START");
+        int32_t ret = inputMethodController_->Attach(textListener_, true);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        pid_t pid = GetPid();
+        EXPECT_TRUE(pid > 0);
+        ret = kill(pid, SIGTERM);
+        EXPECT_EQ(ret, 0);
+        EXPECT_TRUE(WaitRemoteDiedCallback());
+        inputMethodController_->OnRemoteSaDied(nullptr);
+        EXPECT_TRUE(TextListener::WaitIMACallback());
+        bool result = inputMethodController_->WasAttached();
+        EXPECT_TRUE(result);
+        inputMethodController_->Close();
     }
 } // namespace MiscServices
 } // namespace OHOS

@@ -220,12 +220,6 @@ void InputMethodController::WorkThread()
                 textListener_->DeleteForward(data->ReadInt32());
                 break;
             }
-            case MSG_ID_ON_INPUT_READY: {
-                MessageParcel *data = msg->msgContent_;
-                auto object = data->ReadRemoteObject();
-                OnInputReady(object);
-                break;
-            }
             case MSG_ID_ON_INPUT_STOP: {
                 IMSA_HILOGI("input stop");
                 isBound_.store(false);
@@ -418,6 +412,10 @@ int32_t InputMethodController::Attach(
     isBound_.store(true);
     isEditable_.store(true);
     IMSA_HILOGI("bind imf successfully, enter editable state");
+
+    if (isShowKeyboard) {
+        InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_SHOW_ATTACH);
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -429,6 +427,7 @@ int32_t InputMethodController::ShowTextInput()
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
     clientInfo_.isShowKeyboard = true;
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_SHOW_ENEDITABLE);
     int32_t ret = StartInput(clientInfo_.client, true);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input, ret: %{public}d", ret);
@@ -436,7 +435,7 @@ int32_t InputMethodController::ShowTextInput()
     }
     isEditable_.store(true);
     IMSA_HILOGI("enter editable state");
-    return ErrorCode::NO_ERROR;
+    return ret;
 }
 
 int32_t InputMethodController::HideTextInput()
@@ -447,6 +446,7 @@ int32_t InputMethodController::HideTextInput()
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
     isEditable_.store(false);
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNEDITABLE);
     return StopInput(clientInfo_.client);
 }
 
@@ -463,6 +463,7 @@ int32_t InputMethodController::HideCurrentInput()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     clientInfo_.isShowKeyboard = false;
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_NORMAL);
     return proxy->HideCurrentInputDeprecated();
 }
 
@@ -479,6 +480,7 @@ int32_t InputMethodController::ShowCurrentInput()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     clientInfo_.isShowKeyboard = true;
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_SHOW_NORMAL);
     return proxy->ShowCurrentInputDeprecated();
 }
 
@@ -487,6 +489,7 @@ int32_t InputMethodController::Close()
     IMSA_HILOGI("InputMethodController::Close");
     isBound_.store(false);
     isEditable_.store(false);
+    bool isReportHide = clientInfo_.isShowKeyboard;
     InputmethodTrace tracer("InputMethodController Close trace.");
     {
         std::lock_guard<std::mutex> lock(textListenerLock_);
@@ -498,6 +501,8 @@ int32_t InputMethodController::Close()
         agentObject_ = nullptr;
     }
     ClearEditorCache();
+    isReportHide ? InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNBIND)
+                 : InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_UNBIND);
     return ReleaseInput(clientInfo_.client);
 }
 
@@ -661,18 +666,26 @@ void InputMethodController::RestoreAttachInfoInSaDied()
         IMSA_HILOGE("not in editable state");
         return;
     }
+    auto attach = [=]() -> bool {
+        auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, clientInfo_.attribute);
+        if (errCode == ErrorCode::NO_ERROR) {
+            isDiedAttached_.store(true);
+            OnCursorUpdate(cursorInfo_);
+            OnSelectionChange(textString_, selectNewBegin_, selectNewEnd_);
+            IMSA_HILOGI("attach success.");
+            return true;
+        }
+        return false;
+    };
+    if (attach()) {
+        return;
+    }
     isDiedAttached_.store(false);
-    auto attachTask = [=]() {
+    auto attachTask = [this, attach]() {
         if (isDiedAttached_.load()) {
             return;
         }
-        auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, clientInfo_.attribute);
-        if (errCode == ErrorCode::NO_ERROR) {
-            OnCursorUpdate(cursorInfo_);
-            OnSelectionChange(textString_, selectNewBegin_, selectNewEnd_);
-            isDiedAttached_.store(true);
-            IMSA_HILOGI("Try to attach success.");
-        }
+        attach();
     };
     for (int i = 0; i < LOOP_COUNT; i++) {
         handler_->PostTask(attachTask, "OnRemoteSaDied", DELAY_TIME * (i + 1));
@@ -802,14 +815,7 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
         IMSA_HILOGI("agent is nullptr");
         return false;
     }
-    MessageParcel data;
-    if (!(data.WriteInterfaceToken(agent_->GetDescriptor()) && data.WriteInt32(keyEvent->GetKeyCode()) &&
-          data.WriteInt32(keyEvent->GetKeyAction()))) {
-        IMSA_HILOGE("InputMethodController::dispatchKeyEvent Write Parcel fail.");
-        return false;
-    }
-
-    return agent_->DispatchKeyEvent(data);
+    return agent_->DispatchKeyEvent(keyEvent);
 }
 
 int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
@@ -869,6 +875,7 @@ int32_t InputMethodController::ShowSoftKeyboard()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     clientInfo_.isShowKeyboard = true;
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_SHOW_NORMAL);
     return proxy->ShowCurrentInput();
 }
 
@@ -885,6 +892,7 @@ int32_t InputMethodController::HideSoftKeyboard()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     clientInfo_.isShowKeyboard = false;
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_NORMAL);
     return proxy->HideCurrentInput();
 }
 

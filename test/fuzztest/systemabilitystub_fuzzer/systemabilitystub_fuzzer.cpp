@@ -14,11 +14,13 @@
  */
 #define private public
 #define protected public
+#include "input_method_system_ability.h"
 #include "input_method_system_ability_proxy.h"
 #undef private
 
 #include "systemabilitystub_fuzzer.h"
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <string_ex.h>
@@ -26,7 +28,6 @@
 #include "accesstoken_kit.h"
 #include "global.h"
 #include "input_method_controller.h"
-#include "input_method_system_ability.h"
 #include "iservice_registry.h"
 #include "message_parcel.h"
 #include "nativetoken_kit.h"
@@ -36,6 +37,8 @@
 using namespace OHOS::Security::AccessToken;
 using namespace OHOS::MiscServices;
 namespace OHOS {
+std::atomic_bool g_isInitialize = false;
+constexpr uint32_t TARGET_REMOTE_CODE_NUMS = 21;
 void GrantNativePermission()
 {
     const char **perms = new const char *[1];
@@ -92,9 +95,14 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
 bool FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size)
 {
     GrantNativePermission();
-    uint32_t code = ConvertToUint32(rawData);
+    uint32_t code = ConvertToUint32(rawData) % TARGET_REMOTE_CODE_NUMS;
     rawData = rawData + OFFSET;
     size = size - OFFSET;
+
+    if (!g_isInitialize.load()) {
+        DelayedSingleton<InputMethodSystemAbility>::GetInstance()->Initialize();
+        g_isInitialize.store(true);
+    }
 
     sptr<InputMethodController> imc = InputMethodController::GetInstance();
     sptr<OnTextChangedListener> textListener = new TextListener();

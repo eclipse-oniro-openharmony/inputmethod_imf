@@ -16,6 +16,7 @@
 #include "input_method_system_ability_proxy.h"
 
 #include "global.h"
+#include "inputmethod_service_ipc_interface_code.h"
 #include "itypes_util.h"
 #include "message_option.h"
 
@@ -31,74 +32,81 @@ InputMethodSystemAbilityProxy::InputMethodSystemAbilityProxy(const sptr<IRemoteO
 int32_t InputMethodSystemAbilityProxy::PrepareInput(InputClientInfo &inputClientInfo)
 {
     return SendRequest(
-        PREPARE_INPUT, [&inputClientInfo](MessageParcel &data) { return ITypesUtil::Marshal(data, inputClientInfo); });
+        static_cast<uint32_t>(InputMethodInterfaceCode::PREPARE_INPUT), [&inputClientInfo](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, inputClientInfo);
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(START_INPUT, [isShowKeyboard, client](MessageParcel &data) {
-        return data.WriteRemoteObject(client->AsObject()) && data.WriteBool(isShowKeyboard);
-    });
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT), [isShowKeyboard, client](MessageParcel &data) {
+            return data.WriteRemoteObject(client->AsObject()) && data.WriteBool(isShowKeyboard);
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::ShowCurrentInput()
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(SHOW_CURRENT_INPUT);
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT));
 }
 
 int32_t InputMethodSystemAbilityProxy::HideCurrentInput()
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(HIDE_CURRENT_INPUT);
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT));
 }
 
 int32_t InputMethodSystemAbilityProxy::StopInputSession()
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(STOP_INPUT_SESSION);
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT_SESSION));
 }
 
 int32_t InputMethodSystemAbilityProxy::StopInput(sptr<IInputClient> client)
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(
-        STOP_INPUT, [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT), [client](MessageParcel &data) {
+        return data.WriteRemoteObject(client->AsObject());
+    });
 }
 
 int32_t InputMethodSystemAbilityProxy::ReleaseInput(sptr<IInputClient> client)
 {
-    return SendRequest(
-        RELEASE_INPUT, [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT), [client](MessageParcel &data) {
+        return data.WriteRemoteObject(client->AsObject());
+    });
 }
 
 int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethod()
 {
     IMSA_HILOGI("%{public}s in", __func__);
-    return SendRequest(DISPLAY_OPTIONAL_INPUT_METHOD);
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_METHOD));
 }
 
 int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(SET_CORE_AND_AGENT, [core, agent](MessageParcel &data) {
-        return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent->AsObject());
-    });
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::SET_CORE_AND_AGENT), [core, agent](MessageParcel &data) {
+            return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent->AsObject());
+        });
 }
 
 std::shared_ptr<Property> InputMethodSystemAbilityProxy::GetCurrentInputMethod()
 {
     IMSA_HILOGD("%{public}s in", __func__);
     std::shared_ptr<Property> property = nullptr;
-    int32_t ret = SendRequest(GET_CURRENT_INPUT_METHOD, nullptr, [&property](MessageParcel &reply) {
-        property = std::make_shared<Property>();
-        if (property == nullptr) {
-            IMSA_HILOGE("%{public}s make_shared nullptr", __func__);
-            return false;
-        }
-        return ITypesUtil::Unmarshal(reply, *property);
-    });
+    int32_t ret = SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD), nullptr,
+        [&property](MessageParcel &reply) {
+            property = std::make_shared<Property>();
+            if (property == nullptr) {
+                IMSA_HILOGE("%{public}s make_shared nullptr", __func__);
+                return false;
+            }
+            return ITypesUtil::Unmarshal(reply, *property);
+        });
     return ret != ErrorCode::NO_ERROR ? nullptr : property;
 }
 
@@ -106,14 +114,15 @@ std::shared_ptr<SubProperty> InputMethodSystemAbilityProxy::GetCurrentInputMetho
 {
     IMSA_HILOGD("%{public}s in", __func__);
     std::shared_ptr<SubProperty> property = nullptr;
-    int32_t ret = SendRequest(GET_CURRENT_INPUT_METHOD_SUBTYPE, nullptr, [&property](MessageParcel &reply) {
-        property = std::make_shared<SubProperty>();
-        if (property == nullptr) {
-            IMSA_HILOGE("%{public}s make_shared nullptr", __func__);
-            return false;
-        }
-        return ITypesUtil::Unmarshal(reply, *property);
-    });
+    int32_t ret = SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD_SUBTYPE),
+        nullptr, [&property](MessageParcel &reply) {
+            property = std::make_shared<SubProperty>();
+            if (property == nullptr) {
+                IMSA_HILOGE("%{public}s make_shared nullptr", __func__);
+                return false;
+            }
+            return ITypesUtil::Unmarshal(reply, *property);
+        });
     return ret != ErrorCode::NO_ERROR ? nullptr : property;
 }
 
@@ -121,26 +130,31 @@ int32_t InputMethodSystemAbilityProxy::ListInputMethod(InputMethodStatus status,
 {
     IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(
-        LIST_INPUT_METHOD, [status](MessageParcel &data) { return ITypesUtil::Marshal(data, uint32_t(status)); },
-        [&props](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, props); });
+        static_cast<uint32_t>(InputMethodInterfaceCode::LIST_INPUT_METHOD),
+        [status](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, uint32_t(status));
+        },
+        [&props](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, props);
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated()
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(SHOW_CURRENT_INPUT_DEPRECATED);
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT_DEPRECATED));
 }
 
 int32_t InputMethodSystemAbilityProxy::HideCurrentInputDeprecated()
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(HIDE_CURRENT_INPUT_DEPRECATED);
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT_DEPRECATED));
 }
 
 int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethodDeprecated()
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(DISPLAY_OPTIONAL_INPUT_DEPRECATED);
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_DEPRECATED));
 }
 
 int32_t InputMethodSystemAbilityProxy::ListInputMethodSubtype(
@@ -148,38 +162,50 @@ int32_t InputMethodSystemAbilityProxy::ListInputMethodSubtype(
 {
     IMSA_HILOGD("InputMethodSystemAbilityProxy::ListInputMethodSubtype");
     return SendRequest(
-        LIST_INPUT_METHOD_SUBTYPE, [&name](MessageParcel &data) { return ITypesUtil::Marshal(data, name); },
-        [&subProps](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, subProps); });
+        static_cast<uint32_t>(InputMethodInterfaceCode::LIST_INPUT_METHOD_SUBTYPE),
+        [&name](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, name);
+        },
+        [&subProps](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, subProps);
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
 {
     IMSA_HILOGD("InputMethodSystemAbilityProxy::ListCurrentInputMethodSubtype");
-    return SendRequest(LIST_CURRENT_INPUT_METHOD_SUBTYPE, nullptr,
-        [&subProps](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, subProps); });
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::LIST_CURRENT_INPUT_METHOD_SUBTYPE), nullptr,
+        [&subProps](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, subProps);
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const std::string &name, const std::string &subName)
 {
     IMSA_HILOGD("InputMethodSystemAbilityProxy::SwitchInputMethod");
-    return SendRequest(SWITCH_INPUT_METHOD,
-        [&name, &subName](MessageParcel &data) { return ITypesUtil::Marshal(data, name, subName); });
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::SWITCH_INPUT_METHOD), [&name, &subName](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, name, subName);
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::PanelStatusChange(
     const InputWindowStatus &status, const InputWindowInfo &windowInfo)
 {
     IMSA_HILOGD("InputMethodSystemAbilityProxy::PanelStatusChange");
-    return SendRequest(PANEL_STATUS_CHANGE, [status, windowInfo](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, static_cast<uint32_t>(status), windowInfo);
-    });
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE),
+        [status, windowInfo](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, static_cast<uint32_t>(status), windowInfo);
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)
 {
     IMSA_HILOGD("InputMethodSystemAbilityProxy::UpdateListenEventFlag");
-    return SendRequest(UPDATE_LISTEN_EVENT_FLAG,
-        [&clientInfo, eventType](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, eventType); });
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::UPDATE_LISTEN_EVENT_FLAG),
+        [&clientInfo, eventType](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, clientInfo, eventType);
+        });
 }
 
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)

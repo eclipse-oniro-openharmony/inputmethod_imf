@@ -63,7 +63,7 @@ ohos_shared_library("inputmethod_extension") {
     "ability_runtime:app_context",
     "ability_runtime:runtime",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "i18n:intl_util",
     "ipc:ipc_napi_common",
     "napi:ace_napi",
@@ -90,7 +90,7 @@ ohos_shared_library("inputmethod_extension_module") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:runtime",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
   ]
 
   relative_install_dir = "extensionability/"

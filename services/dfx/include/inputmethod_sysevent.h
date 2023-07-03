@@ -17,14 +17,38 @@
 #define INPUTMETHOD_SYSEVENT_H
 
 #include <string>
+#include <unordered_map>
 
 #include "global.h"
 
 namespace OHOS {
 namespace MiscServices {
-void FaultReporter(int32_t userId, std::string bundleName, int32_t errCode);
-void CreateComponentFailed(int32_t userId, int32_t errCode);
-void BehaviourReporter(std::string ActiveName, const std::string &inputmethodName);
+enum OperateIMEInfoCode : int32_t {
+    IME_SHOW_ATTACH = 0,
+    IME_SHOW_ENEDITABLE,
+    IME_SHOW_NORMAL,
+    IME_UNBIND,
+    IME_HIDE_UNBIND,
+    IME_HIDE_UNEDITABLE,
+    IME_HIDE_NORMAL,
+    IME_HIDE_UNFOCUSED,
+    IME_HIDE_SELF,
+};
+
+class InputMethodSysEvent {
+public:
+    static void FaultReporter(int32_t userId, const std::string &bundleName, int32_t errCode);
+    static void CreateComponentFailed(int32_t userId, int32_t errCode);
+    static void BehaviourReporter(const std::string &activeName, const std::string &inputMethodName);
+    static void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
+
+private:
+    static const std::string GetOperateInfo(OperateIMEInfoCode infoCode);
+    static std::string GetOperateAction(OperateIMEInfoCode infoCode);
+
+private:
+    static const std::unordered_map<int32_t, std::string> operateInfo_;
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // INPUTMETHOD_SYSEVENT_H

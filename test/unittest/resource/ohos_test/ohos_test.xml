@@ -60,4 +60,44 @@
             <option name="shell" value="bm uninstall -n com.example.testIme"/>
         </cleaner>
     </target>
+    <target name="InputMethodAbilityTest">
+        <preparer>
+            <option name="shell" value="power-shell wakeup"/>
+            <option name="shell" value="power-shell setmode 602"/>
+            <option name="shell" value="uinput -T -m 300 720 300 360 200"/>
+            <option name="shell" value="uinput -T -m 650 2760 650 1380 200"/>
+        </preparer>
+    </target>
+    <target name="InputMethodControllerTest">
+        <preparer>
+            <option name="shell" value="power-shell wakeup"/>
+            <option name="shell" value="power-shell setmode 602"/>
+            <option name="shell" value="uinput -T -m 300 720 300 360 200"/>
+            <option name="shell" value="uinput -T -m 650 2760 650 1380 200"/>
+        </preparer>
+    </target>
+    <target name="InputMethodDfxTest">
+        <preparer>
+            <option name="shell" value="power-shell wakeup"/>
+            <option name="shell" value="power-shell setmode 602"/>
+            <option name="shell" value="uinput -T -m 300 720 300 360 200"/>
+            <option name="shell" value="uinput -T -m 650 2760 650 1380 200"/>
+        </preparer>
+    </target>
+    <target name="InputMethodEditorTest">
+        <preparer>
+            <option name="shell" value="power-shell wakeup"/>
+            <option name="shell" value="power-shell setmode 602"/>
+            <option name="shell" value="uinput -T -m 300 720 300 360 200"/>
+            <option name="shell" value="uinput -T -m 650 2760 650 1380 200"/>
+        </preparer>
+    </target>
+    <target name="InputMethodServiceTest">
+        <preparer>
+            <option name="shell" value="power-shell wakeup"/>
+            <option name="shell" value="power-shell setmode 602"/>
+            <option name="shell" value="uinput -T -m 300 720 300 360 200"/>
+            <option name="shell" value="uinput -T -m 650 2760 650 1380 200"/>
+        </preparer>
+    </target>
 </configuration>

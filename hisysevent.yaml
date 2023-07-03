@@ -14,19 +14,24 @@
 domain: INPUTMETHOD
 
 SERVICE_INIT_FAILED:
-  __BASE: {type: STATISTIC, level: MINOR, tag: PowerStatus, desc: inputmethod service init report}
-  USER_ID: {type: INT32, desc: the user id}
-  COMPONENT_ID: {type: INT32,desc: component type}
-  ERROR_CODE: {type: INT32, desc: error code}
+  __BASE: {type: STATISTIC, level: CRITICAL, tag: IMFServiceFailed, desc: Inputmethod service init report}
+  USER_ID: {type: INT32, desc: The user id}
+  COMPONENT_ID: {type: INT32, desc: Component type}
+  ERROR_CODE: {type: INT32, desc: Error code}
 
 CREATE_COMPONENT_FAILED:
-  __BASE: {type: STATISTIC, level: MINOR, tag: PowerStatus, desc: create component failed report}
-  USER_ID: {type: INT32, desc: the user id}
-  COMPONENT_ID: {type: INT32,desc: the component type}
-  ERROR_CODE: {type: INT32, desc: error code}
+  __BASE: {type: STATISTIC, level: CRITICAL, tag: IMCFailed, desc: Create component failed report}
+  USER_ID: {type: INT32, desc: The user id}
+  COMPONENT_ID: {type: INT32, desc: The component type}
+  ERROR_CODE: {type: INT32, desc: Error code}
 
 INPUTMETHOD_USING:
-  __BASE: {type: STATISTIC, level: MINOR, tag: PowerStatus, desc: inputmethod using report}
+  __BASE: {type: STATISTIC, level: MINOR, tag: IMEUsage, desc: inputmethod using report}
   USER_ID: {type: INT32, desc: the timer id}
   COMPONENT_ID: {type: INT32,desc: the component type}
   ERROR_CODE: {type: INT32, desc: error code}
+
+OPERATE_SOFTKEYBOARD:
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: IMEOperate, desc: Operate the soft keyboard report}
+  OPERATING: {type: STRING, desc: show, hide or unbind soft keyboard}
+  OPERATE_INFO: {type: STRING, desc: Manipulate to show, hide, or unbind soft keyboard information}

@@ -26,7 +26,6 @@
       "ram": "1024KB", 
       "deps": {
           "components": [
-              "ace_engine", 
               "init", 
               "napi", 
               "samgr", 
@@ -35,8 +34,7 @@
               "eventhandler", 
               "bundle_framework", 
               "ability_runtime", 
-              "resource_management", 
-              "hiviewdfx_hilog_native", 
+              "hilog", 
               "ability_base", 
               "safwk", 
               "input", 
@@ -45,9 +43,9 @@
               "i18n",
               "window_manager",
               "os_account",
-              "hisysevent_native",
-              "hitrace_native",
-              "multimedia_image_framework"
+              "hisysevent",
+              "hitrace",
+              "graphic_standard"
           ], 
           "third_party": [
               "jsoncpp"

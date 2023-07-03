@@ -12,34 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "bundle_checker.h"
 
-#include "ability_manager_client.h"
+#include <cinttypes>
+
 #include "accesstoken_kit.h"
 #include "global.h"
 #include "tokenid_kit.h"
+#include "window_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
+using namespace Rosen;
 using namespace Security::AccessToken;
-bool BundleChecker::IsFocused(uint32_t tokenID)
+bool BundleChecker::IsFocused(int64_t uid)
 {
-    std::string bundleName = GetBundleNameByToken(tokenID);
-    if (bundleName.empty()) {
-        return false;
-    }
-    std::string topAbility = AAFwk::AbilityManagerClient::GetInstance()->GetTopAbility().GetBundleName();
-    if (topAbility.empty()) {
-        IMSA_HILOGE("failed to get top ability");
-        return false;
-    }
-    if (bundleName != topAbility) {
-        IMSA_HILOGE("not focused, current: %{public}s, topAbility: %{public}s", bundleName.c_str(), topAbility.c_str());
-        return false;
-    }
-    IMSA_HILOGD("check focus successfully");
-    return true;
+    FocusChangeInfo info;
+    WindowManager::GetInstance().GetFocusWindowInfo(info);
+    IMSA_HILOGI("focusedUid:%{public}d, uid:%{public}" PRId64 "", info.uid_, uid);
+    return uid == info.uid_;
 }
 
 bool BundleChecker::IsSystemApp(uint64_t fullTokenID)

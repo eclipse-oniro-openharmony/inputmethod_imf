@@ -23,6 +23,7 @@
 #include "input_method_core_proxy.h"
 #include "input_method_core_stub.h"
 #include "input_method_utils.h"
+#include "inputmethod_sysevent.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "message_parcel.h"
@@ -287,14 +288,20 @@ void InputMethodAbility::OnClearDataChannel(Message *msg)
     }
 }
 
-bool InputMethodAbility::DispatchKeyEvent(int32_t keyCode, int32_t keyStatus)
+bool InputMethodAbility::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
 {
     IMSA_HILOGD("InputMethodAbility, run in");
-    if (kdListener_ == nullptr) {
-        IMSA_HILOGI("InputMethodAbility::DispatchKeyEvent kdListener_ is nullptr");
+    if (keyEvent == nullptr) {
+        IMSA_HILOGE("keyEvent is nullptr");
         return false;
     }
-    return kdListener_->OnKeyEvent(keyCode, keyStatus);
+    if (kdListener_ == nullptr) {
+        IMSA_HILOGI("kdListener_ is nullptr");
+        return false;
+    }
+    bool isFullKeyEventConsumed = kdListener_->OnKeyEvent(keyEvent);
+    bool isKeyEventConsumed = kdListener_->OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction());
+    return isFullKeyEventConsumed || isKeyEventConsumed;
 }
 
 void InputMethodAbility::SetCallingWindow(uint32_t windowId)
@@ -454,6 +461,7 @@ int32_t InputMethodAbility::HideKeyboardSelf()
         IMSA_HILOGE("InputMethodAbility::HideKeyboardSelf controlChannel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_SELF);
     return controlChannel->HideKeyboardSelf(1);
 }
 

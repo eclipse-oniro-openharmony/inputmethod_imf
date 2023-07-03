@@ -37,7 +37,7 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(
         IMSA_HILOGE("%{public}s descriptor failed", __func__);
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
-    if (code >= 0 && code < INPUT_SERVICE_CMD_LAST) {
+    if (code >= 0 && code < static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_LAST)) {
         return (this->*HANDLERS[code])(data, reply);
     } else {
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
