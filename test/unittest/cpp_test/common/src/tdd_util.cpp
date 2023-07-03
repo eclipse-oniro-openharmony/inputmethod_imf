@@ -56,7 +56,7 @@ int32_t TddUtil::GetCurrentUserId()
     auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
     if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
         IMSA_HILOGE("query active os account id failed");
-        userIds[0] = MAIN_USER_ID;
+        return MAIN_USER_ID;
     }
     return userIds[0];
 }

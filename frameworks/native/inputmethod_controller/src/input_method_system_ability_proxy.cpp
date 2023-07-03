@@ -101,10 +101,6 @@ std::shared_ptr<Property> InputMethodSystemAbilityProxy::GetCurrentInputMethod()
     int32_t ret = SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD), nullptr,
         [&property](MessageParcel &reply) {
             property = std::make_shared<Property>();
-            if (property == nullptr) {
-                IMSA_HILOGE("%{public}s make_shared nullptr", __func__);
-                return false;
-            }
             return ITypesUtil::Unmarshal(reply, *property);
         });
     return ret != ErrorCode::NO_ERROR ? nullptr : property;
@@ -117,10 +113,6 @@ std::shared_ptr<SubProperty> InputMethodSystemAbilityProxy::GetCurrentInputMetho
     int32_t ret = SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD_SUBTYPE),
         nullptr, [&property](MessageParcel &reply) {
             property = std::make_shared<SubProperty>();
-            if (property == nullptr) {
-                IMSA_HILOGE("%{public}s make_shared nullptr", __func__);
-                return false;
-            }
             return ITypesUtil::Unmarshal(reply, *property);
         });
     return ret != ErrorCode::NO_ERROR ? nullptr : property;
