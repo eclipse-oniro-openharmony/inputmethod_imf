@@ -19,6 +19,7 @@
 
 #include "ability_connect_callback_proxy.h"
 #include "ability_manager_interface.h"
+#include "bundle_checker.h"
 #include "element_name.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
@@ -608,7 +609,7 @@ bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
     return false;
 }
 
-bool PerUserSession::CheckFocused(uint32_t tokenId)
+bool PerUserSession::IsFocused(int64_t callingPid, uint32_t callingTokenId)
 {
     auto client = GetCurrentClient();
     if (client == nullptr) {
@@ -618,7 +619,7 @@ bool PerUserSession::CheckFocused(uint32_t tokenId)
     if (clientInfo == nullptr) {
         return false;
     }
-    return clientInfo->tokenID == tokenId;
+    return BundleChecker::IsFocused(callingPid, callingTokenId, clientInfo->pid);
 }
 
 int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)

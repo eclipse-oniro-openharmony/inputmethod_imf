@@ -16,6 +16,7 @@
 
 #include <cinttypes>
 
+#include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "global.h"
 #include "tokenid_kit.h"
@@ -25,12 +26,22 @@ namespace OHOS {
 namespace MiscServices {
 using namespace Rosen;
 using namespace Security::AccessToken;
-bool BundleChecker::IsFocused(int64_t uid)
+bool BundleChecker::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid)
 {
-    FocusChangeInfo info;
-    WindowManager::GetInstance().GetFocusWindowInfo(info);
-    IMSA_HILOGI("focusedUid:%{public}d, uid:%{public}" PRId64 "", info.uid_, uid);
-    return uid == info.uid_;
+    if (focusedPid == INVALID_PID) {
+        FocusChangeInfo info;
+        WindowManager::GetInstance().GetFocusWindowInfo(info);
+        focusedPid = info.pid_;
+    }
+    IMSA_HILOGD("focusedPid:%{public}" PRId64 ", pid:%{public}" PRId64 "", focusedPid, callingPid);
+    if (callingPid == focusedPid) {
+        IMSA_HILOGI("pid is same, focused app");
+        return true;
+    }
+    bool isFocused = false;
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
+    IMSA_HILOGI("tokenId:%{public}d check result:%{public}d, isFocused:%{public}d", callingTokenId, ret, isFocused);
+    return ret == ErrorCode::NO_ERROR && isFocused;
 }
 
 bool BundleChecker::IsSystemApp(uint64_t fullTokenID)

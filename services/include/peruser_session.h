@@ -85,7 +85,7 @@ public:
     int32_t OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch);
     void UpdateCurrentUserId(int32_t userId);
     void OnUnfocused(int32_t pid, int32_t uid);
-    bool CheckFocused(uint32_t tokenId);
+    bool IsFocused(int64_t callingPid, uint32_t callingTokenId);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
     bool StartInputService(const std::string &imeName, bool isRetry);
