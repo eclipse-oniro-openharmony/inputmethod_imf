@@ -44,7 +44,7 @@ public:
     virtual void OnSelectionChange(
         std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) = 0;
     virtual void SetCallingWindow(uint32_t windowId) = 0;
-    virtual void OnConfigurationChange(Configuration &config) = 0;
+    virtual void OnConfigurationChange(const Configuration &config) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

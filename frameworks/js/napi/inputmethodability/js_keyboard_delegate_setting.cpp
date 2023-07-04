@@ -306,7 +306,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
                 delete work;
             });
             auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
-                                               std::shared_ptr<JSCallbackObject> item) -> bool {
+                                               const std::shared_ptr<JSCallbackObject> &item) -> bool {
                 if (argc == 0) {
                     return false;
                 }
@@ -476,7 +476,7 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
 {
     IMSA_HILOGI("run in");
     std::string type = "editorAttributeChanged";
-    uv_work_t *work = GetUVwork(type, [&inputAttribute](UvEntry &entry) {
+    uv_work_t *work = JsKeyboardDelegateSetting::GetUVwork(type, [&inputAttribute](UvEntry &entry) {
         entry.inputAttribute = inputAttribute;
     });
     if (work == nullptr) {
@@ -492,7 +492,7 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
             });
 
             auto getEditorAttributeChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                                        std::shared_ptr<JSCallbackObject> item) -> bool {
+                                                            const std::shared_ptr<JSCallbackObject> &item) -> bool {
                 if (argc == 0) {
                     return false;
                 }

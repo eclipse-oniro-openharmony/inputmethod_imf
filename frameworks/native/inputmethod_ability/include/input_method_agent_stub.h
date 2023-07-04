@@ -34,7 +34,7 @@ public:
     void OnSelectionChange(
         std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void SetCallingWindow(uint32_t windowId) override;
-    void OnConfigurationChange(Configuration &config) override;
+    void OnConfigurationChange(const Configuration &config) override;
     void SetMessageHandler(MessageHandler *msgHandler);
 
 private:

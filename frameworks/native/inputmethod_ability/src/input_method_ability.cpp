@@ -359,14 +359,14 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
 void InputMethodAbility::OnConfigurationChange(Message *msg)
 {
     IMSA_HILOGD("InputMethodAbility in.");
-    MessageParcel *data = msg->msgContent_;
-    InputAttribute attribute;
-    attribute.enterKeyType = data->ReadInt32();
-    attribute.inputPattern = data->ReadInt32();
     if (kdListener_ == nullptr) {
         IMSA_HILOGE("InputMethodAbility in, kdListener_ is nullptr");
         return;
     }
+    MessageParcel *data = msg->msgContent_;
+    InputAttribute attribute;
+    attribute.enterKeyType = data->ReadInt32();
+    attribute.inputPattern = data->ReadInt32();
     kdListener_->OnEditorAttributeChange(attribute);
 }
 

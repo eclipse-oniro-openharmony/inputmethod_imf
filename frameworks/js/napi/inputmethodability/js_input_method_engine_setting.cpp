@@ -635,7 +635,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
             }
 
             auto getCallingWindowProperty = [entry](napi_value *args, uint8_t argc,
-                                                std::shared_ptr<JSCallbackObject> item) -> bool {
+                                                const std::shared_ptr<JSCallbackObject> &item) -> bool {
                 if (argc == 0) {
                     return false;
                 }

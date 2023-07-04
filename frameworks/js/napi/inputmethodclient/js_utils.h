@@ -110,9 +110,7 @@ public:
     static napi_status GetValue(napi_env env, napi_value in, std::string &out);
     static napi_status GetValue(napi_env env, napi_value in, const std::string &type, napi_value &out);
     static napi_status GetValue(napi_env env, napi_value in, PanelInfo &out);
-    static napi_status GetValue(napi_env env, napi_value in, InputAttribute &out);
-    static napi_status GetValue(napi_env env, napi_value in, CursorInfo &out);
-    static napi_status GetValue(napi_env env, napi_value in, SelectionRange &out);
+    static bool GetValue(napi_env env, napi_value in, SelectionRange &out);
     static napi_value GetValue(napi_env env, const std::vector<InputWindowInfo> &in);
     static napi_value GetValue(napi_env env, const InputWindowInfo &in);
     static napi_value GetValue(napi_env env, const InputAttribute &attribute);

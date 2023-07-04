@@ -876,8 +876,10 @@ constexpr int32_t BUFF_LENGTH = 10;
                            (static_cast<OHOS::MiscServices::EnterKeyType>(
                                 InputMethodControllerTest::inputAttribute_.enterKeyType) == info.GetEnterKeyType());
                 });
-            EXPECT_NE(InputMethodControllerTest::inputAttribute_.inputPattern, (int)info.GetTextInputType());
-            EXPECT_NE(InputMethodControllerTest::inputAttribute_.enterKeyType, (int)info.GetEnterKeyType());
+            EXPECT_NE(InputMethodControllerTest::inputAttribute_.inputPattern,
+                static_cast<int32_t>(info.GetTextInputType()));
+            EXPECT_NE(
+                InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
         }
 
         auto keyType = static_cast<int32_t>(EnterKeyType::UNSPECIFIED);
@@ -913,8 +915,10 @@ constexpr int32_t BUFF_LENGTH = 10;
                            (static_cast<OHOS::MiscServices::EnterKeyType>(
                                 InputMethodControllerTest::inputAttribute_.enterKeyType) == info.GetEnterKeyType());
                 });
-            EXPECT_EQ(InputMethodControllerTest::inputAttribute_.inputPattern, (int)info.GetTextInputType());
-            EXPECT_EQ(InputMethodControllerTest::inputAttribute_.enterKeyType, (int)info.GetEnterKeyType());
+            EXPECT_EQ(InputMethodControllerTest::inputAttribute_.inputPattern,
+                static_cast<int32_t>(info.GetTextInputType()));
+            EXPECT_EQ(
+                InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
         }
     }
 

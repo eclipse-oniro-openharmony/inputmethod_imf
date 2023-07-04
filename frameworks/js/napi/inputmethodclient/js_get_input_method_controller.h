@@ -193,8 +193,8 @@ private:
     void UnRegisterListener(std::string type);
     static napi_status ParseAttachInput(
         napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<AttachContext> &ctxt);
-    static napi_status ParseChangeSelectionInput(
-        napi_env env, napi_value *argv, const std::shared_ptr<ChangeSelectionContext> &ctxt);
+    static bool GetValue(napi_env env, napi_value in, CursorInfo &out);
+    static bool GetValue(napi_env env, napi_value in, InputAttribute &out);
     static napi_value GetJsKeyboardStatusProperty(napi_env env);
     static napi_value GetJsEnterKeyTypeProperty(napi_env env);
     static napi_value GetJsTextInputTypeProperty(napi_env env);
