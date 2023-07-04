@@ -306,21 +306,21 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
                 delete data;
                 delete work;
             });
-            auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
-                                           std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == 0) {
                     return false;
                 }
                 napi_value keyEventObject{};
-                auto result = napi_create_object(item->env_, &keyEventObject);
+                auto result = napi_create_object(env, &keyEventObject);
                 CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create object", false);
-                result = MMI::KeyEventNapi::CreateKeyEvent(item->env_, entry->pullKeyEventPara, keyEventObject);
+                result = MMI::KeyEventNapi::CreateKeyEvent(env, entry->pullKeyEventPara, keyEventObject);
                 CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create key event object", false);
                 args[ARGC_ZERO] = keyEventObject;
                 return true;
             };
-            bool isOnKeyEvent = JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
-            entry->isDone->SetValue(isOnKeyEvent);
+            bool isConsumed = false;
+            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getKeyEventProperty }, isConsumed);
+            entry->isDone->SetValue(isConsumed);
         });
     bool isConsumed = isDone->GetValue();
     IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
@@ -361,10 +361,9 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 args[ARGC_ZERO] = jsObject;
                 return true;
             };
-            bool isOnKeyEvent = false;
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getKeyEventProperty }, isOnKeyEvent);
-            entry->isDone->SetValue(isOnKeyEvent);
-            IMSA_HILOGD("isOnKeyEvent: %{public}s", isOnKeyEvent ? "true" : "false");
+            bool isConsumed = false;
+            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getKeyEventProperty }, isConsumed);
+            entry->isDone->SetValue(isConsumed);
         });
     bool isConsumed = isDone->GetValue();
     IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
