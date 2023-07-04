@@ -214,9 +214,9 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     RemoveClient(remote->AsObject(), true);
 }
 
-/** Handle the situation a input method service died
- * It's called when an input method service died
- * @param the remote object handler of input method service who died.
+/** Handle the situation that an ime died
+ * It's called when an ime died
+ * @param the remote object handler of the ime who died.
  */
 void PerUserSession::OnImsDied(const sptr<IInputMethodCore> &remote)
 {
