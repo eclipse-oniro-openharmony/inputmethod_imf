@@ -204,6 +204,7 @@ int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
         IMSA_HILOGE("SetCallingWindow error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
+    IMSA_HILOGI("InputMethodPanel, SetCallingWindow success.");
     return ErrorCode::NO_ERROR;
 }
 

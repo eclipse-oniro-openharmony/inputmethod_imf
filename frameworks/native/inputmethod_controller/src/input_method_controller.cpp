@@ -902,10 +902,6 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
 int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
 {
     IMSA_HILOGI("InputMethodController::GetEnterKeyType");
-    if (!isEditable_.load()) {
-        IMSA_HILOGE("not in editable state");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
     std::lock_guard<std::mutex> lock(configurationMutex_);
     keyType = enterKeyType_;
     return ErrorCode::NO_ERROR;
@@ -914,10 +910,6 @@ int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
 int32_t InputMethodController::GetInputPattern(int32_t &inputpattern)
 {
     IMSA_HILOGI("InputMethodController::GetInputPattern");
-    if (!isEditable_.load()) {
-        IMSA_HILOGE("not in editable state");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
     std::lock_guard<std::mutex> lock(configurationMutex_);
     inputpattern = inputPattern_;
     return ErrorCode::NO_ERROR;
