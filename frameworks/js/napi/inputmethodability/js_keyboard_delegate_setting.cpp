@@ -474,7 +474,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 
 void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &inputAttribute)
 {
-    IMSA_HILOGD("run in");
+    IMSA_HILOGI("run in");
     std::string type = "editorAttributeChanged";
     uv_work_t *work = GetUVwork(type, [&inputAttribute](UvEntry &entry) {
         entry.inputAttribute = inputAttribute;

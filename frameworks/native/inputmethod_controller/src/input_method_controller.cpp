@@ -780,7 +780,7 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     std::lock_guard<std::mutex> agentLock(agentLock_);
     if (agent_ == nullptr) {
         IMSA_HILOGE("agent is nullptr");
-        return ErrorCode::ERROR_SERVICE_START_FAILED;
+        return ErrorCode::NO_ERROR;
     }
     agent_->OnConfigurationChange(info);
     return ErrorCode::NO_ERROR;
