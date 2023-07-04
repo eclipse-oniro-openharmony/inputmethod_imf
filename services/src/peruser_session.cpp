@@ -224,10 +224,6 @@ void PerUserSession::OnImsDied(const sptr<IInputMethodCore> &remote)
         return;
     }
     ClearImeData(CURRENT_IME);
-    if (GetCurrentClient() == nullptr) {
-        IMSA_HILOGD("not bound to a client, no need to restart at once");
-        return;
-    }
     if (!IsRestartIme(CURRENT_IME)) {
         IMSA_HILOGI("ime deaths over max num");
         return;
