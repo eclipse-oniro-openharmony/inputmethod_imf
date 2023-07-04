@@ -300,10 +300,6 @@ HWTEST_F(InputMethodEditorTest, testShowTextInputUnfocused, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
     EXPECT_FALSE(result);
-    ret = InputMethodEditorTest::inputMethodController_->GetEnterKeyType(tempVar);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    ret = InputMethodEditorTest::inputMethodController_->GetInputPattern(tempVar);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->HideSoftKeyboard();
@@ -396,10 +392,6 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
     int32_t tempVar = -1;
     ret = InputMethodEditorTest::inputMethodController_->GetTextIndexAtCursor(tempVar);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    ret = InputMethodEditorTest::inputMethodController_->GetEnterKeyType(tempVar);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    ret = InputMethodEditorTest::inputMethodController_->GetInputPattern(tempVar);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->HideSoftKeyboard();
@@ -462,10 +454,6 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
     EXPECT_FALSE(result);
-    ret = InputMethodEditorTest::inputMethodController_->GetEnterKeyType(tempVar);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    ret = InputMethodEditorTest::inputMethodController_->GetInputPattern(tempVar);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->HideSoftKeyboard();

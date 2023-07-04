@@ -503,7 +503,7 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
                     return false;
                 }
                 // 0 means the first param of callback is an object of EditorAttribute.
-                args[0] = { jsObject };
+                args[0] = jsObject;
                 return true;
             };
             // 1 means callback of on('editorAttributeChanged') has one return value.
