@@ -1049,7 +1049,8 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
                 return true;
             };
             std::string text;
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getGetTextProperty }, text);
+            // 1 means callback has 1 params.
+            CallbackHandler::TraverseCallback(entry->vecCopy, { 1, getGetTextProperty }, text);
             entry->textResultHandler->SetValue(text);
         });
     return Str8ToStr16(textResultHandler->GetValue());
@@ -1077,7 +1078,8 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
                 return;
             }
             int32_t index = -1;
-            CallbackHandler::TraverseCallback(entry->vecCopy, {}, index);
+            // 0 means callback has 0 params.
+            CallbackHandler::TraverseCallback(entry->vecCopy, { 0, nullptr }, index);
             entry->indexResultHandler->SetValue(index);
         });
     return indexResultHandler->GetValue();

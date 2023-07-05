@@ -30,7 +30,7 @@ enum class EventSubscribeModule : uint32_t {
 };
 class EventChecker {
 public:
-    static bool IsValidEventType(EventSubscribeModule module, const std::string &out);
+    static bool IsValidEventType(EventSubscribeModule module, const std::string &type);
 
 private:
     static const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> EVENT_TYPES;

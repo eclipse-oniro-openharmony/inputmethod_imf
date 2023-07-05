@@ -63,7 +63,7 @@ private:
     bool isSet_ = false;
     const uint32_t INTERVAL;
     T data_;
-    bool isTimeOut_{false};
+    bool isTimeOut_{ false };
     std::mutex mutex_;
     std::condition_variable cv_;
 };
