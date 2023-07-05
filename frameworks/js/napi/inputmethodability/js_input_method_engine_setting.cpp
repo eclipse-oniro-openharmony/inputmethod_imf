@@ -621,14 +621,16 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
                 IMSA_HILOGE("setCallingWindow:: entryptr is null");
                 return;
             }
-            auto getCallingWindowProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            auto getCallingWindowProperty = [entry](napi_env env, napi_value *args, uint8_t argc)) -> bool {
                 if (argc == 0) {
                     return false;
                 }
-                napi_create_int32(env, entry->windowid, &args[ARGC_ZERO]);
+                // 0 means the return value(windowId) fo callback.
+                napi_create_uint32(item->env_, entry->windowid, &args[0]);
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getCallingWindowProperty });
+            // 1 means callback of on('setCallingWindow') has one return value.
+            CallbackHandler::TraverseCallback(entry->vecCopy, { 1, getCallingWindowProperty });
         });
 }
 

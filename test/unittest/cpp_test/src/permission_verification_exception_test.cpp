@@ -91,19 +91,15 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
-    static void AllocAndSetTestTokenID(const std::string &bundleName);
-    static void DeleteTestTokenID();
-    static void RestoreSelfTokenID();
-    static int32_t GetCurrentUserId();
-    static void SetTestUid();
-    static void RestoreSelfUid();
     static sptr<InputMethodController> imc_;
     static sptr<OnTextChangedListener> textListener_;
     static sptr<InputMethodAbility> ima_;
+    static uint64_t tokenId_;
 };
 sptr<InputMethodController> PermissionVerificationExceptionTest::imc_;
 sptr<OnTextChangedListener> PermissionVerificationExceptionTest::textListener_;
 sptr<InputMethodAbility> PermissionVerificationExceptionTest::ima_;
+uint64_t PermissionVerificationExceptionTest::tokenId_ = 0;
 
 void PermissionVerificationExceptionTest::SetUpTestCase(void)
 {
@@ -115,30 +111,14 @@ void PermissionVerificationExceptionTest::SetUpTestCase(void)
     imc_ = InputMethodController::GetInstance();
     auto property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     EXPECT_NE(property, nullptr);
-    TddUtil::AllocTestTokenID(property->name);
+    tokenId_ = TddUtil::GetTestTokenID(property->name);
     TddUtil::StorageSelfUid();
 }
 
 void PermissionVerificationExceptionTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("PermissionVerificationExceptionTest::TearDownTestCase");
-    TddUtil::DeleteTestTokenID();
-    std::string result;
-    auto property = imc_->GetCurrentInputMethod();
-    auto ret = TddUtil::ExecuteCmd("ps -ef| grep " + property->name, result);
-    IMSA_HILOGI("ret: %{public}d, result is: %{public}s", ret, result.c_str());
-    std::smatch regResult;
-    std::regex pattern("\\s+\\d{3,6}");
-    std::string pid;
-    if (regex_search(result, regResult, pattern)) {
-        pid = regResult[0];
-    } else {
-        IMSA_HILOGE("pid of input method application is empty.");
-        return;
-    }
-    IMSA_HILOGI("pid is %{public}s.", pid.c_str());
-    ret = TddUtil::ExecuteCmd("kill " + pid, result);
-    IMSA_HILOGI("ret: %{public}d, result is: %{public}s", ret, result.c_str());
+    TddUtil::KillImsaProcess();
 }
 
 void PermissionVerificationExceptionTest::SetUp(void)
@@ -160,7 +140,7 @@ void PermissionVerificationExceptionTest::TearDown(void)
 HWTEST_F(PermissionVerificationExceptionTest, ShowAndHideSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("PermissionTest ShowAndHideSoftKeyboard TEST START");
-    TddUtil::SetTestTokenID();
+    TddUtil::SetTestTokenID(tokenId_);
     PermissionVerificationExceptionTest::ima_->SetCoreAndAgent();
     TddUtil::RestoreSelfTokenID();
 
@@ -214,7 +194,7 @@ HWTEST_F(PermissionVerificationExceptionTest, SetCoreAndAgent, TestSize.Level0)
 HWTEST_F(PermissionVerificationExceptionTest, SetCoreAndAgentPassCheck, TestSize.Level0)
 {
     IMSA_HILOGI("PermissionTest SetCoreAndAgentPassCheck TEST START");
-    TddUtil::SetTestTokenID();
+    TddUtil::SetTestTokenID(tokenId_);
     InputMethodAbility::GetInstance()->isBound_.store(false);
     int32_t ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);

@@ -70,6 +70,14 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
             reply.WriteNoException();
             return ErrorCode::NO_ERROR;
         }
+        case ON_CONFIGURATION_CHANGE: {
+            Configuration configuration;
+            configuration.SetEnterKeyType(EnterKeyType(data.ReadInt32()));
+            configuration.SetTextInputType(TextInputType(data.ReadInt32()));
+            OnConfigurationChange(configuration);
+            reply.WriteNoException();
+            return ErrorCode::NO_ERROR;
+        }
         default: {
             return IRemoteStub::OnRemoteRequest(code, data, reply, option);
         }
@@ -128,6 +136,19 @@ void InputMethodAgentStub::OnSelectionChange(
     data->WriteInt32(newBegin);
     data->WriteInt32(newEnd);
     Message *message = new Message(MessageID::MSG_ID_ON_SELECTION_CHANGE, data);
+    msgHandler_->SendMessage(message);
+}
+
+void InputMethodAgentStub::OnConfigurationChange(const Configuration &config)
+{
+    IMSA_HILOGI("InputMethodAgentStub in.");
+    if (msgHandler_ == nullptr) {
+        return;
+    }
+    MessageParcel *data = new MessageParcel();
+    data->WriteInt32(static_cast<int32_t>(config.GetEnterKeyType()));
+    data->WriteInt32(static_cast<int32_t>(config.GetTextInputType()));
+    Message *message = new Message(MessageID::MSG_ID_ON_CONFIGURATION_CHANGE, data);
     msgHandler_->SendMessage(message);
 }
 

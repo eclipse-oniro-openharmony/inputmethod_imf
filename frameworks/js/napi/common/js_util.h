@@ -27,10 +27,12 @@ public:
     static napi_valuetype GetType(napi_env env, napi_value in);
     // js to native
     static bool GetValue(napi_env env, napi_value in, std::string &out);
+    static bool GetValue(napi_env env, napi_value in, std::u16string &out);
     static bool GetValue(napi_env env, napi_value in, int32_t &out);
     static bool GetValue(napi_env env, napi_value in, uint32_t &out);
     static bool GetValue(napi_env env, napi_value in, int64_t &out);
     static bool GetValue(napi_env env, napi_value in, bool &out);
+    static bool GetValue(napi_env env, napi_value in, double &out);
     template<typename T> static bool GetValue(napi_env env, napi_value in, std::vector<T> &items)
     {
         uint32_t len = 0;

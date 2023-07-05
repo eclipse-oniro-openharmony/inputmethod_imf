@@ -65,6 +65,7 @@ public:
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     static sptr<InputMethodController> imc_;
     static sptr<InputMethodAbility> inputMethodAbility_;
+    static uint32_t windowId_;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -91,6 +92,7 @@ public:
 
         void OnSetCallingWindow(uint32_t windowId)
         {
+            windowId_ = windowId;
             IMSA_HILOGI("InputMethodEngineListenerImpl OnSetCallingWindow");
         }
 
@@ -177,8 +179,7 @@ public:
         TddUtil::StorageSelfTokenID();
         std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
         std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-        TddUtil::AllocTestTokenID(bundleName);
-        TddUtil::SetTestTokenID();
+        TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->OnImeReady();
         inputMethodAbility_->SetCoreAndAgent();
@@ -196,7 +197,7 @@ public:
     {
         IMSA_HILOGI("InputMethodAbilityTest::TearDownTestCase");
         imc_->Close();
-        TddUtil::DeleteTestTokenID();
+        TddUtil::KillImsaProcess();
     }
     void SetUp()
     {
@@ -226,6 +227,7 @@ int InputMethodAbilityTest::selectionDirection_ = 0;
 int32_t InputMethodAbilityTest::action_ = 0;
 sptr<InputMethodController> InputMethodAbilityTest::imc_;
 sptr<InputMethodAbility> InputMethodAbilityTest::inputMethodAbility_;
+uint32_t InputMethodAbilityTest::windowId_ = 0;
 
 /**
 * @tc.name: testSerializedInputAttribute
@@ -758,6 +760,7 @@ HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor_002, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testCreatePanel001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel001 START. You can not create two SOFT_KEYBOARD panel.");
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, false, "undefine"));
     std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
@@ -866,6 +869,27 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel004, TestSize.Level0)
 
     ret = inputMethodAbility_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testSetCallingWindow001
+* @tc.desc: InputMethodAbility SetCallingWindow
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: Hollokin
+*/
+HWTEST_F(InputMethodAbilityTest, testSetCallingWindow001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testSetCallingWindow001 START");
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    InputMethodAbilityTest::showKeyboard_ = true;
+    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    uint32_t windowId = 10;
+    inputMethodAbility_->SetCallingWindow(windowId);
+    InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [windowId] {
+        return InputMethodAbilityTest::windowId_ == windowId;
+    });
+    EXPECT_EQ(InputMethodAbilityTest::windowId_, windowId);
 }
 } // namespace MiscServices
 } // namespace OHOS

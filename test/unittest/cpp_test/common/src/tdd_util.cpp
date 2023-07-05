@@ -15,11 +15,11 @@
 
 #include "tdd_util.h"
 
-#include <unistd.h>
-
+#include <csignal>
 #include <cstdint>
 #include <sstream>
 #include <string>
+#include <unistd.h>
 #include <vector>
 
 #include "accesstoken_kit.h"
@@ -41,6 +41,8 @@ using namespace Rosen;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
+constexpr int32_t BUFF_LENGTH = 10;
+constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
 uint64_t TddUtil::selfTokenID_ = 0;
 uint64_t TddUtil::testTokenID_ = 0;
 int64_t TddUtil::selfUid_ = -1;
@@ -54,7 +56,7 @@ int32_t TddUtil::GetCurrentUserId()
     auto ret = OsAccountManager::QueryActiveOsAccountIds(userIds);
     if (ret != ErrorCode::NO_ERROR || userIds.empty()) {
         IMSA_HILOGE("query active os account id failed");
-        userIds[0] = MAIN_USER_ID;
+        return MAIN_USER_ID;
     }
     return userIds[0];
 }
@@ -63,7 +65,7 @@ void TddUtil::StorageSelfTokenID()
     selfTokenID_ = GetSelfTokenID();
 }
 
-void TddUtil::AllocTestTokenID(const std::string &bundleName)
+uint64_t TddUtil::AllocTestTokenID(bool isSystemApp, bool needPermission, const std::string &bundleName)
 {
     IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
     HapInfoParams infoParams = { .userID = GetCurrentUserId(),
@@ -76,22 +78,42 @@ void TddUtil::AllocTestTokenID(const std::string &bundleName)
         .resDeviceID = { "local" },
         .grantStatus = { PermissionState::PERMISSION_GRANTED },
         .grantFlags = { 1 } };
-    HapPolicyParams policyParams = {
-        .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = { permissionState }
-    };
-
+    HapPolicyParams policyParams = { .apl = APL_NORMAL,
+        .domain = "test.domain.inputmethod",
+        .permList = {},
+        .permStateList = { permissionState } };
+    if (!needPermission) {
+        policyParams = { .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = {} };
+    }
+    if (!isSystemApp) {
+        infoParams = {
+            .userID = GetCurrentUserId(),
+            .bundleName = bundleName,
+            .instIndex = 0,
+            .appIDDesc = "ohos.inputmethod_test.demo"
+        };
+    }
     auto tokenInfo = AccessTokenKit::AllocHapToken(infoParams, policyParams);
-    testTokenID_ = tokenInfo.tokenIDEx;
+    return tokenInfo.tokenIDEx;
 }
 
-void TddUtil::DeleteTestTokenID()
+uint64_t TddUtil::GetTestTokenID(const std::string &bundleName)
 {
-    AccessTokenKit::DeleteToken(testTokenID_);
+    HapInfoParams infoParams = { .userID = GetUserIdByBundleName(bundleName, GetCurrentUserId()),
+        .bundleName = bundleName,
+        .instIndex = 0,
+        .appIDDesc = "ohos.inputmethod_test.demo" };
+    return AccessTokenKit::GetHapTokenID(infoParams.userID, infoParams.bundleName, infoParams.instIndex);
 }
 
-void TddUtil::SetTestTokenID()
+void TddUtil::DeleteTestTokenID(uint64_t tokenId)
 {
-    auto ret = SetSelfTokenID(testTokenID_);
+    AccessTokenKit::DeleteToken(tokenId);
+}
+
+void TddUtil::SetTestTokenID(uint64_t tokenId)
+{
+    auto ret = SetSelfTokenID(tokenId);
     IMSA_HILOGI("SetSelfTokenID ret: %{public}d", ret);
 }
 
@@ -134,6 +156,63 @@ bool TddUtil::ExecuteCmd(const std::string &cmd, std::string &result)
     }
     result = output.str();
     return true;
+}
+
+pid_t TddUtil::GetImsaPid()
+{
+    char buff[BUFF_LENGTH] = { 0 };
+    FILE *fp = popen(CMD_PIDOF_IMS, "r");
+    if (fp == nullptr) {
+        IMSA_HILOGI("get pid failed.");
+        return -1;
+    }
+    fgets(buff, sizeof(buff), fp);
+    pid_t pid = atoi(buff);
+    pclose(fp);
+    fp = nullptr;
+    return pid;
+}
+
+void TddUtil::KillImsaProcess()
+{
+    pid_t pid = GetImsaPid();
+    if (pid == -1) {
+        IMSA_HILOGE("Pid of Imsa is not exist.");
+        return;
+    }
+    auto ret = kill(pid, SIGTERM);
+    if (ret != 0) {
+        IMSA_HILOGE("Kill failed, ret: %{public}d", ret);
+        return;
+    }
+    IMSA_HILOGE("Kill success.");
+}
+
+sptr<OHOS::AppExecFwk::IBundleMgr> TddUtil::GetBundleMgr()
+{
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        IMSA_HILOGE("systemAbilityManager is nullptr");
+        return nullptr;
+    }
+    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (remoteObject == nullptr) {
+        IMSA_HILOGE("remoteObject is nullptr");
+        return nullptr;
+    }
+    return iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+}
+
+int TddUtil::GetUserIdByBundleName(const std::string &bundleName, const int currentUserId)
+{
+    auto uid = TddUtil::GetBundleMgr()->GetUidByBundleName(bundleName, currentUserId);
+    if (uid == -1) {
+        IMSA_HILOGE("failed to get information and the parameters may be wrong.");
+        return -1;
+    }
+    // 200000 means userId = uid / 200000.
+    return uid/200000;
 }
 } // namespace MiscServices
 } // namespace OHOS

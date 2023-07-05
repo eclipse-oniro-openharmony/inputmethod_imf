@@ -21,6 +21,7 @@
 #include "ability.h"
 #include "global.h"
 #include "input_method_panel.h"
+#include "input_method_utils.h"
 #include "js_callback_object.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
@@ -105,8 +106,10 @@ public:
     static napi_status GetValue(napi_env env, napi_value in, std::string &out);
     static napi_status GetValue(napi_env env, napi_value in, const std::string &type, napi_value &out);
     static napi_status GetValue(napi_env env, napi_value in, PanelInfo &out);
+    static bool GetValue(napi_env env, napi_value in, SelectionRange &out);
     static napi_value GetValue(napi_env env, const std::vector<InputWindowInfo> &in);
     static napi_value GetValue(napi_env env, const InputWindowInfo &in);
+    static napi_value GetValue(napi_env env, const InputAttribute &attribute);
 
 private:
     static const std::string ToMessage(int32_t code);

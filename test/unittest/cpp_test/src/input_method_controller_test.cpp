@@ -57,10 +57,8 @@ using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
 constexpr uint32_t DEALY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
-constexpr int32_t BUFF_LENGTH = 10;
     class TextListener : public OnTextChangedListener {
     public:
         TextListener()
@@ -209,7 +207,6 @@ constexpr int32_t BUFF_LENGTH = 10;
         static void TearDownTestCase(void);
         void SetUp();
         void TearDown();
-        static pid_t GetPid();
         static void SetInputDeathRecipient();
         static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
         static bool CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
@@ -237,6 +234,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         static std::string text_;
         static bool doesKeyEventConsume_;
         static bool doesFUllKeyEventConsume_;
+        static InputAttribute inputAttribute_;
 
         class KeyboardListenerImpl : public KeyboardListener {
         public:
@@ -287,6 +285,12 @@ constexpr int32_t BUFF_LENGTH = 10;
                 text_ = text;
                 InputMethodControllerTest::keyboardListenerCv_.notify_one();
             }
+            void OnEditorAttributeChange(const InputAttribute &inputAttribute) override
+            {
+                IMSA_HILOGD("KeyboardListenerImpl in.");
+                inputAttribute_ = inputAttribute;
+                InputMethodControllerTest::keyboardListenerCv_.notify_one();
+            }
         };
     };
     sptr<InputMethodController> InputMethodControllerTest::inputMethodController_;
@@ -303,6 +307,7 @@ constexpr int32_t BUFF_LENGTH = 10;
     int32_t InputMethodControllerTest::newBegin_ = 0;
     int32_t InputMethodControllerTest::newEnd_ = 0;
     std::string InputMethodControllerTest::text_;
+    InputAttribute InputMethodControllerTest::inputAttribute_;
     std::mutex InputMethodControllerTest::keyboardListenerMutex_;
     std::condition_variable InputMethodControllerTest::keyboardListenerCv_;
     sptr<InputDeathRecipient> InputMethodControllerTest::deathRecipient_;
@@ -322,8 +327,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         // Set the tokenID to the tokenID of the current ime
         std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
         std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-        TddUtil::AllocTestTokenID(bundleName);
-        TddUtil::SetTestTokenID();
+        TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->OnImeReady();
@@ -338,7 +342,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         keyEvent_->SetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY, 0);
         keyEvent_->SetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, 1);
         keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
-
+        TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(false, true, "undefine"));
         // Set the uid to the uid of the focus app
         TddUtil::StorageSelfUid();
         TddUtil::SetTestUid();
@@ -349,7 +353,6 @@ constexpr int32_t BUFF_LENGTH = 10;
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
         TddUtil::RestoreSelfTokenID();
-        TddUtil::DeleteTestTokenID();
         TddUtil::RestoreSelfUid();
     }
 
@@ -361,18 +364,6 @@ constexpr int32_t BUFF_LENGTH = 10;
     void InputMethodControllerTest::TearDown(void)
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDown");
-    }
-
-    pid_t InputMethodControllerTest::GetPid()
-    {
-        char buff[BUFF_LENGTH] = { 0 };
-        FILE *fp = popen(CMD_PIDOF_IMS, "r");
-        EXPECT_TRUE(fp != nullptr);
-        fgets(buff, sizeof(buff), fp);
-        pid_t pid = atoi(buff);
-        pclose(fp);
-        fp = nullptr;
-        return pid;
     }
 
     void InputMethodControllerTest::SetInputDeathRecipient()
@@ -854,28 +845,64 @@ constexpr int32_t BUFF_LENGTH = 10;
         IMSA_HILOGI("IMC OnConfigurationChange Test START");
         Configuration info;
         info.SetEnterKeyType(EnterKeyType::GO);
-        info.SetTextInputType(TextInputType::TEXT);
+        info.SetTextInputType(TextInputType::NUMBER);
         int32_t ret = inputMethodController_->Close();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         ret = inputMethodController_->OnConfigurationChange(info);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        {
+            std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(
+                lock, std::chrono::seconds(DEALY_TIME), [&info] {
+                    return (static_cast<OHOS::MiscServices::TextInputType>(
+                                InputMethodControllerTest::inputAttribute_.inputPattern) == info.GetTextInputType()) &&
+                           (static_cast<OHOS::MiscServices::EnterKeyType>(
+                                InputMethodControllerTest::inputAttribute_.enterKeyType) == info.GetEnterKeyType());
+                });
+            EXPECT_NE(InputMethodControllerTest::inputAttribute_.inputPattern,
+                static_cast<int32_t>(info.GetTextInputType()));
+            EXPECT_NE(
+                InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
+        }
 
         auto keyType = static_cast<int32_t>(EnterKeyType::UNSPECIFIED);
         auto inputPattern = static_cast<int32_t>(TextInputType::NONE);
         ret = inputMethodController_->GetEnterKeyType(keyType);
-        EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-        ret = inputMethodController_->GetInputPattern(inputPattern);
-        EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-
-        ret = inputMethodController_->Attach(textListener_, false);
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-        ret = inputMethodController_->GetEnterKeyType(keyType);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         ret = inputMethodController_->GetInputPattern(inputPattern);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(static_cast<OHOS::MiscServices::EnterKeyType>(keyType) == EnterKeyType::GO
-                    && static_cast<OHOS::MiscServices::TextInputType>(inputPattern) == TextInputType::TEXT);
+    }
+
+    /**
+     * @tc.name: testOnEditorAttributeChanged
+     * @tc.desc: IMC testOnEditorAttributeChanged.
+     * @tc.type: FUNC
+     * @tc.require:
+     */
+    HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC testOnEditorAttributeChanged Test START");
+        auto ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        Configuration info;
+        info.SetEnterKeyType(EnterKeyType::GO);
+        info.SetTextInputType(TextInputType::NUMBER);
+        ret = inputMethodController_->OnConfigurationChange(info);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        {
+            std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(
+                lock, std::chrono::seconds(DEALY_TIME), [&info] {
+                    return (static_cast<OHOS::MiscServices::TextInputType>(
+                                InputMethodControllerTest::inputAttribute_.inputPattern) == info.GetTextInputType()) &&
+                           (static_cast<OHOS::MiscServices::EnterKeyType>(
+                                InputMethodControllerTest::inputAttribute_.enterKeyType) == info.GetEnterKeyType());
+                });
+            EXPECT_EQ(InputMethodControllerTest::inputAttribute_.inputPattern,
+                static_cast<int32_t>(info.GetTextInputType()));
+            EXPECT_EQ(
+                InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
+        }
     }
 
     /**
@@ -1049,7 +1076,7 @@ constexpr int32_t BUFF_LENGTH = 10;
         IMSA_HILOGI("IMC OnRemoteDied Test START");
         int32_t ret = inputMethodController_->Attach(textListener_, true);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        pid_t pid = GetPid();
+        pid_t pid = TddUtil::GetImsaPid();
         EXPECT_TRUE(pid > 0);
         ret = kill(pid, SIGTERM);
         EXPECT_EQ(ret, 0);

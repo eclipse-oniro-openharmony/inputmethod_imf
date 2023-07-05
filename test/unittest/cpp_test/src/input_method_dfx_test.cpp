@@ -226,8 +226,7 @@ void InputMethodDfxTest::SetUpTestCase(void)
     TddUtil::StorageSelfTokenID();
     std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-    TddUtil::AllocTestTokenID(bundleName);
-    TddUtil::SetTestTokenID();
+    TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
     inputMethodAbility_ = InputMethodAbility::GetInstance();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->OnImeReady();
@@ -243,7 +242,7 @@ void InputMethodDfxTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
-    TddUtil::DeleteTestTokenID();
+    TddUtil::KillImsaProcess();
 }
 
 void InputMethodDfxTest::SetUp(void)

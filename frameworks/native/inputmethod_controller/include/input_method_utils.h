@@ -18,6 +18,8 @@
 
 #include <stdint.h>
 
+#include "input_attribute.h"
+
 namespace OHOS {
 namespace MiscServices {
 enum class EnterKeyType { UNSPECIFIED = 0, NONE, GO, SEARCH, SEND, NEXT, DONE, PREVIOUS };
@@ -106,6 +108,18 @@ public:
 
 private:
     EnterKeyType enterKeyType = EnterKeyType::UNSPECIFIED;
+};
+
+struct SelectionRange {
+    int32_t start = -1;
+    int32_t end = -1;
+};
+
+struct TextSelection {
+    int32_t oldBegin = -1;
+    int32_t oldEnd = -1;
+    int32_t newBegin = -1;
+    int32_t newEnd = -1;
 };
 } // namespace MiscServices
 } // namespace OHOS
