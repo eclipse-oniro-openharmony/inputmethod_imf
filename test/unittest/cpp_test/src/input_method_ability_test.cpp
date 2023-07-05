@@ -445,6 +445,27 @@ HWTEST_F(InputMethodAbilityTest, testGetEnterKeyType, TestSize.Level0)
 }
 
 /**
+* @tc.name: testGetTextConfig
+* @tc.desc: InputMethodAbility GetTextConfig
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: Hollokin
+*/
+HWTEST_F(InputMethodAbilityTest, testGetTextConfig, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetTextConfig START");
+    sptr<OnTextChangedListener> textChangeListener = new TextChangeListener();
+    TextConfig textConfig;
+    textConfig.inputAttribute = { .inputPattern = 0, .enterKeyType = 1 };
+    auto ret = imc_->Attach(textChangeListener, false, textConfig);
+    TextTotalConfig textTotalConfig;
+    ret = inputMethodAbility_->GetTextConfig(textTotalConfig);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(textTotalConfig.inputAttribute.enterKeyType, textConfig.inputAttribute.inputPattern);
+    textChangeListener = nullptr;
+}
+
+/**
 * @tc.name: testSelectByRange_001
 * @tc.desc: InputMethodAbility SelectByRange
 * @tc.type: FUNC

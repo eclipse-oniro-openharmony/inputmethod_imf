@@ -109,6 +109,21 @@ public:
     IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const InputAttribute &attribute);
 
     /**
+     * @brief Set listener and bind IMSA with given states and textConfig.
+     *
+     * This function is used to set listener and bind IMSA.
+     * Show soft keyboard when state is true, and customized attribute.
+     *
+     * @param listener          Indicates the listener in order to manipulate text.
+     * @param isShowKeyboard    Indicates the state, if you want to show soft keyboard, please pass in true.
+     * @param textConfig        Indicates the textConfig, such as input attribute, cursorInfo, range of text selection,
+     *                          windowId.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const TextConfig &textConfig);
+
+    /**
      * @brief Get text before cursor.
      *
      * This function is used to get text before cursor.
@@ -291,6 +306,17 @@ public:
     IMF_API int32_t GetInputPattern(int32_t &inputPattern);
 
     /**
+     * @brief Get text config.
+     *
+     * This function is used to get text config of current client.
+     *
+     * @param textConfig Indicates the text config of current client that will be obtained.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t GetTextConfig(TextTotalConfig &config);
+
+    /**
      * @brief Get current input method property.
      *
      * This function is used to get current input method property.
@@ -453,6 +479,7 @@ private:
     void RestoreAttachInfoInSaDied();
     int32_t RestoreListenEventFlag();
     void UpdateNativeEventFlag(EventType eventType, bool isOn);
+    void SaveTextConfig(const TextConfig &textConfig);
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
@@ -498,6 +525,10 @@ private:
     std::condition_variable textFieldReplyCountCv_;
 
     std::atomic_bool isDiedRestoreListen_{ false };
+
+    // todo ��Ҫ������
+    TextConfig textConfig_;
+//    TextTotalConfig textConfig_;
 };
 } // namespace MiscServices
 } // namespace OHOS

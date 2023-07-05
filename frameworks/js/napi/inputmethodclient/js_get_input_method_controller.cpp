@@ -399,6 +399,58 @@ napi_value JsGetInputMethodController::CreateSelectMovement(napi_env env, int32_
     return movement;
 }
 
+bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, SelectionRange &out)
+{
+    auto ret = JsUtil::Object::ReadProperty(env, in, "start", out.start);
+    return ret && JsUtil::Object::ReadProperty(env, in, "end", out.end);
+}
+
+/**
+ * let textConfig: TextConfig = {
+ *   inputAttribute: InputAttribute = {
+ *     textInputType: TextInputType = TextInputType.TEXT,
+ *     enterKeyType: EnterKeyType = EnterKeyType.NONE
+ *   },
+ *   cursorInfo?: CursorInfo = {
+ *     left: number,
+ *     top: number,
+ *     width: number,
+ *     height: number,
+ *   },
+ *   selection?: Range = {
+ *     start: number,
+ *     end: number
+ *   },
+ *   windowId?: number
+ * }
+ */
+napi_status JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfig &out)
+{
+    napi_value attributeResult = nullptr;
+    napi_status status = JsUtils::GetValue(env, in, "inputAttribute", attributeResult);
+    CHECK_RETURN(status == napi_ok, "get inputAttribute", status);
+    bool ret = JsGetInputMethodController::GetValue(env, attributeResult, out.inputAttribute);
+    CHECK_RETURN(ret, "get inputAttribute of TextConfig", napi_generic_failure);
+
+    napi_value cursorInfoResult = nullptr;
+    status = JsUtils::GetValue(env, in, "cursorInfo", cursorInfoResult);
+    if (status == napi_ok) {
+        ret = JsGetInputMethodController::GetValue(env, cursorInfoResult, out.cursorInfo);
+        CHECK_RETURN(ret, "get cursorInfo of TextConfig", napi_generic_failure);
+    }
+
+    napi_value rangeResult = nullptr;
+    status = JsUtils::GetValue(env, in, "selection", rangeResult);
+    if (status == napi_ok) {
+        ret = JsGetInputMethodController::GetValue(env, rangeResult, out.range);
+        CHECK_RETURN(ret, "get cursorInfo of TextConfig", napi_generic_failure);
+    }
+
+    ret = JsUtil::Object::ReadProperty(env, in, "windowId", out.windowId);
+    CHECK_RETURN(ret, "get windowId of TextConfig", napi_generic_failure);
+    return napi_ok;
+}
+
 napi_value JsGetInputMethodController::HandleSoftKeyboard(
     napi_env env, napi_callback_info info, std::function<int32_t()> callback, bool isOutput, bool needThrowException)
 {
@@ -443,26 +495,7 @@ napi_status JsGetInputMethodController::ParseAttachInput(
     }
 
     // 1 means the second parameter: textConfig
-    napi_value attributeResult = nullptr;
-    status = JsUtils::GetValue(env, argv[1], "inputAttribute", attributeResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    napi_value textResult = nullptr;
-    status = JsUtils::GetValue(env, attributeResult, "textInputType", textResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    status = JsUtils::GetValue(env, textResult, ctxt->attribute.inputPattern);
-    if (status != napi_ok) {
-        return status;
-    }
-    napi_value enterResult = nullptr;
-    status = JsUtils::GetValue(env, attributeResult, "enterKeyType", enterResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    return JsUtils::GetValue(env, enterResult, ctxt->attribute.enterKeyType);
+    return JsGetInputMethodController::GetValue(env, argv[1], ctxt->textConfig);
 }
 
 napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info info)
@@ -477,7 +510,7 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
     auto exec = [ctxt, env](AsyncCall::Context *ctx) {
         ctxt->textListener = JsGetInputMethodTextChangedListener::GetInstance();
         auto status =
-            InputMethodController::GetInstance()->Attach(ctxt->textListener, ctxt->showKeyboard, ctxt->attribute);
+            InputMethodController::GetInstance()->Attach(ctxt->textListener, ctxt->showKeyboard, ctxt->textConfig);
         ctxt->SetErrorCode(status);
         CHECK_RETURN_VOID(status == ErrorCode::NO_ERROR, "attach return error!");
         ctxt->SetState(napi_ok);

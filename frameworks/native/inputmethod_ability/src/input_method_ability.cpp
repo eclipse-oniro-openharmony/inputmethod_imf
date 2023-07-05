@@ -243,10 +243,18 @@ void InputMethodAbility::OnShowKeyboard(Message *msg)
         return;
     }
     if (channelObject == nullptr) {
-        IMSA_HILOGI("InputMethodAbility::OnShowKeyboard channelObject is nullptr");
+        IMSA_HILOGE("InputMethodAbility::OnShowKeyboard channelObject is nullptr");
         return;
     }
     SetInputDataChannel(channelObject);
+    TextTotalConfig textConfig = {};
+    int32_t ret = GetTextConfig(textConfig);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
+        return;
+    }
+    // todo textConfig需要判空吗？？
+    OnTextConfigChange(textConfig);
     ShowInputWindow(isShowKeyboard);
 }
 
@@ -405,6 +413,37 @@ void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
         IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
         return;
     }
+}
+
+void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
+{
+    IMSA_HILOGI("InputMethodAbility run in.");
+    // todo 不论是不是变化，都会通知过来，这里需不需要做拦截？？
+    if (kdListener_ != nullptr) {
+        kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
+        if (textConfig.cursorInfo.left != -1.0) {
+            kdListener_->OnCursorUpdate(
+                textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
+        }
+        // todo 光标的更新需要从controlelr更新过来，传递到ability侧，待实现。
+        if (textConfig.textSelection.newBegin != -1) {
+            kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
+                                           textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
+        }
+    }
+    if (textConfig.windowId == INVALID_WINDOW_ID) {
+        return;
+    }
+    panels_.ForEach([&textConfig](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+        panel->SetCallingWindow(textConfig.windowId);
+        return false;
+    });
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("imeListener_ is nullptr, do not need to send callback of setCallingWindow.");
+        return;
+    }
+    imeListener_->OnSetCallingWindow(textConfig.windowId);
+    IMSA_HILOGD("setCallingWindow end.");
 }
 
 void InputMethodAbility::DismissInputWindow()
@@ -583,6 +622,17 @@ int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index)
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return channel->GetTextIndexAtCursor(index);
+}
+
+int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
+{
+    IMSA_HILOGD("InputMethodAbility, run in.");
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("InputMethodAbility::channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return channel->GetTextConfig(textConfig);
 }
 
 void InputMethodAbility::SetInputDataChannel(sptr<IRemoteObject> &object)

@@ -112,6 +112,14 @@ int32_t InputDataChannelStub::OnRemoteRequest(
             SelectByMovementOnRemote(data, reply);
             break;
         }
+        case GET_TEXT_CONFIG: {
+            IMSA_HILOGD("tyx::GetTextConfig in.");
+            TextTotalConfig textConfig = {};
+            reply.WriteInt32(GetTextConfig(textConfig));
+            ITypesUtil::Marshal(reply, textConfig);
+            // todo 序列化的顺序和反序列化的顺序要一致。
+            break;
+        }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
@@ -232,6 +240,12 @@ int32_t InputDataChannelStub::GetInputPattern(int32_t &inputPattern)
 {
     IMSA_HILOGI("InputDataChannelStub::GetInputPattern");
     return InputMethodController::GetInstance()->GetInputPattern(inputPattern);
+}
+
+int32_t InputDataChannelStub::GetTextConfig(TextTotalConfig &textConfig)
+{
+    IMSA_HILOGI("InputDataChannelStub run in.");
+    return InputMethodController::GetInstance()->GetTextConfig(textConfig);
 }
 
 int32_t InputDataChannelStub::HandleGetOperation(int32_t number, std::u16string &text, int32_t &index, int32_t msgType)

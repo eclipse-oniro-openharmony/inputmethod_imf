@@ -22,6 +22,8 @@
 
 namespace OHOS {
 namespace MiscServices {
+constexpr uint32_t INIT_WINDOW_ID = 0;
+constexpr uint32_t INVALID_WINDOW_ID = INIT_WINDOW_ID - 1;
 enum class EnterKeyType { UNSPECIFIED = 0, NONE, GO, SEARCH, SEND, NEXT, DONE, PREVIOUS };
 
 enum class TextInputType {
@@ -79,10 +81,10 @@ private:
 };
 
 struct CursorInfo {
-    double left = 0.0;
-    double top = 0.0;
-    double width = 0.0;
-    double height = 0.0;
+    double left = -1.0;
+    double top = -1.0;
+    double width = -1.0;
+    double height = -1.0;
     bool operator==(const CursorInfo &info) const
     {
         return (left == info.left && top == info.top && width == info.width && height == info.height);
@@ -120,6 +122,25 @@ struct TextSelection {
     int32_t oldEnd = -1;
     int32_t newBegin = -1;
     int32_t newEnd = -1;
+};
+
+class TextTotalConfig {
+public:
+    InputAttribute inputAttribute = {};
+    CursorInfo cursorInfo = {};
+    TextSelection textSelection = {};
+    uint32_t windowId = INVALID_WINDOW_ID;
+};
+
+struct TextConfig {
+    // todo
+    InputAttribute inputAttribute = {};
+
+    //
+    CursorInfo cursorInfo = {};
+    SelectionRange range = {};
+    // todo
+    uint32_t windowId = INVALID_WINDOW_ID;
 };
 } // namespace MiscServices
 } // namespace OHOS

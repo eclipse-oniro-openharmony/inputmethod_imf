@@ -111,6 +111,14 @@ int32_t InputDataChannelProxy::GetTextIndexAtCursor(int32_t &index)
         [&index](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, index);});
 }
 
+int32_t InputDataChannelProxy::GetTextConfig(TextTotalConfig &textConfig)
+{
+    IMSA_HILOGD("InputDataChannelProxy run in");
+    return SendRequest(GET_TEXT_CONFIG, nullptr, [&textConfig](MessageParcel &parcel) {
+        return ITypesUtil::Unmarshal(parcel, textConfig);
+    });
+}
+
 int32_t InputDataChannelProxy::SelectByRange(int32_t start, int32_t end)
 {
     IMSA_HILOGD("InputDataChannelProxy run in");

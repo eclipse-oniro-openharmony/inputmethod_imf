@@ -318,12 +318,6 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, PanelInfo &out)
     return status;
 }
 
-bool JsUtils::GetValue(napi_env env, napi_value in, SelectionRange &out)
-{
-    auto ret = JsUtil::Object::ReadProperty(env, in, "start", out.start);
-    return ret && JsUtil::Object::ReadProperty(env, in, "end", out.end);
-}
-
 napi_value JsUtils::GetValue(napi_env env, const std::vector<InputWindowInfo> &in)
 {
     napi_value array = nullptr;
