@@ -14,6 +14,8 @@
  */
 
 #include "js_util.h"
+#include "string_ex.h"
+
 namespace OHOS {
 namespace MiscServices {
 constexpr int64_t JS_NUMBER_MAX_VALUE = (1LL << 53) - 1;
@@ -35,6 +37,16 @@ bool JsUtil::GetValue(napi_env env, napi_value in, std::string &out)
     out.resize(size);
     return status == napi_ok;
 }
+
+bool JsUtil::GetValue(napi_env env, napi_value in, std::u16string &out)
+{
+    std::string tempOut;
+    bool ret = GetValue(env, in, tempOut);
+    if (ret) {
+        out = Str8ToStr16(tempOut);
+    }
+    return ret;
+}
 bool JsUtil::GetValue(napi_env env, napi_value in, int32_t &out)
 {
     return napi_get_value_int32(env, in, &out) == napi_ok;
@@ -50,6 +62,10 @@ bool JsUtil::GetValue(napi_env env, napi_value in, int64_t &out)
 bool JsUtil::GetValue(napi_env env, napi_value in, bool &out)
 {
     return napi_get_value_bool(env, in, &out) == napi_ok;
+}
+bool JsUtil::GetValue(napi_env env, napi_value in, double &out)
+{
+    return napi_get_value_double(env, in, &out) == napi_ok;
 }
 napi_value JsUtil::GetValue(napi_env env, const std::string &in)
 {

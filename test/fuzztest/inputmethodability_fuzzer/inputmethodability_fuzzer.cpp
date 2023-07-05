@@ -41,6 +41,7 @@ class KeyboardListenerImpl : public KeyboardListener {
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) {}
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) {}
     void OnTextChange(const std::string &text) {}
+    void OnEditorAttributeChange(const InputAttribute &inputAttribute) {}
 };
 
 void TestInsertText(std::string fuzzedString)

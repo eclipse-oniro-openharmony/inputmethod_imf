@@ -681,5 +681,27 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::HIDE);
     InputMethodPanelTest::ImcPanelListeningTestClear(inputMethodPanel);
 }
+
+/**
+* @tc.name: testSetCallingWindow
+* @tc.desc: test SetCallingWindow
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testSetCallingWindow, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testSetCallingWindow start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    // not CreatePanel, SetCallingWindow failed
+    uint32_t windowId = 8;
+    auto ret = inputMethodPanel->SetCallingWindow(windowId);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->SetCallingWindow(windowId);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS

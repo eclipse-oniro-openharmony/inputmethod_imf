@@ -17,6 +17,7 @@
 #define FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_I_INPUT_METHOD_AGENT_H
 
 #include "global.h"
+#include "input_method_utils.h"
 #include "iremote_broker.h"
 #include "key_event.h"
 
@@ -33,6 +34,7 @@ public:
         ON_CURSOR_UPDATE,
         ON_SELECTION_CHANGE,
         SET_CALLING_WINDOW_ID,
+        ON_CONFIGURATION_CHANGE,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodAgent");
@@ -42,6 +44,7 @@ public:
     virtual void OnSelectionChange(
         std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) = 0;
     virtual void SetCallingWindow(uint32_t windowId) = 0;
+    virtual void OnConfigurationChange(const Configuration &config) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

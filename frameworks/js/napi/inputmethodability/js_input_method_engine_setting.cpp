@@ -635,14 +635,16 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
             }
 
             auto getCallingWindowProperty = [entry](napi_value *args, uint8_t argc,
-                                                std::shared_ptr<JSCallbackObject> item) -> bool {
+                                                const std::shared_ptr<JSCallbackObject> &item) -> bool {
                 if (argc == 0) {
                     return false;
                 }
-                napi_create_int32(item->env_, entry->windowid, &args[ARGC_ZERO]);
+                // 0 means the return value(windowId) fo callback.
+                napi_create_uint32(item->env_, entry->windowid, &args[0]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getCallingWindowProperty);
+            // 1 means callback of on('setCallingWindow') has one return value.
+            JsUtils::TraverseCallback(entry->vecCopy, 1, getCallingWindowProperty);
         });
 }
 

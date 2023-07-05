@@ -14,6 +14,7 @@
  */
 
 #include "js_utils.h"
+#include "js_util.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -317,6 +318,12 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, PanelInfo &out)
     return status;
 }
 
+bool JsUtils::GetValue(napi_env env, napi_value in, SelectionRange &out)
+{
+    auto ret = JsUtil::Object::ReadProperty(env, in, "start", out.start);
+    return ret && JsUtil::Object::ReadProperty(env, in, "end", out.end);
+}
+
 napi_value JsUtils::GetValue(napi_env env, const std::vector<InputWindowInfo> &in)
 {
     napi_value array = nullptr;
@@ -360,6 +367,16 @@ napi_value JsUtils::GetValue(napi_env env, const InputWindowInfo &in)
     napi_set_named_property(env, info, "height", height);
 
     return info;
+}
+
+napi_value JsUtils::GetValue(napi_env env, const InputAttribute &attribute)
+{
+    napi_value editorAttribute = nullptr;
+    napi_create_object(env, &editorAttribute);
+
+    auto ret = JsUtil::Object::WriteProperty(env, editorAttribute, "inputPattern", attribute.inputPattern);
+    ret = ret && JsUtil::Object::WriteProperty(env, editorAttribute, "enterKeyType", attribute.enterKeyType);
+    return ret ? editorAttribute : JsUtil::Const::Null(env);
 }
 } // namespace MiscServices
 } // namespace OHOS

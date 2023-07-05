@@ -119,6 +119,7 @@ private:
 
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
+    void OnConfigurationChange(Message *msg);
     void ShowInputWindow(bool isShowKeyboard);
     void DismissInputWindow();
     bool isImeReady_{ false };

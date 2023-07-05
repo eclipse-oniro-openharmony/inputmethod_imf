@@ -65,6 +65,7 @@ public:
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     static sptr<InputMethodController> imc_;
     static sptr<InputMethodAbility> inputMethodAbility_;
+    static uint32_t windowId_;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -91,6 +92,7 @@ public:
 
         void OnSetCallingWindow(uint32_t windowId)
         {
+            windowId_ = windowId;
             IMSA_HILOGI("InputMethodEngineListenerImpl OnSetCallingWindow");
         }
 
@@ -225,6 +227,7 @@ int InputMethodAbilityTest::selectionDirection_ = 0;
 int32_t InputMethodAbilityTest::action_ = 0;
 sptr<InputMethodController> InputMethodAbilityTest::imc_;
 sptr<InputMethodAbility> InputMethodAbilityTest::inputMethodAbility_;
+uint32_t InputMethodAbilityTest::windowId_ = 0;
 
 /**
 * @tc.name: testSerializedInputAttribute
@@ -866,6 +869,27 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel004, TestSize.Level0)
 
     ret = inputMethodAbility_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testSetCallingWindow001
+* @tc.desc: InputMethodAbility SetCallingWindow
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: Hollokin
+*/
+HWTEST_F(InputMethodAbilityTest, testSetCallingWindow001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testSetCallingWindow001 START");
+    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
+    InputMethodAbilityTest::showKeyboard_ = true;
+    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    uint32_t windowId = 10;
+    inputMethodAbility_->SetCallingWindow(windowId);
+    InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [windowId] {
+        return InputMethodAbilityTest::windowId_ == windowId;
+    });
+    EXPECT_EQ(InputMethodAbilityTest::windowId_, windowId);
 }
 } // namespace MiscServices
 } // namespace OHOS

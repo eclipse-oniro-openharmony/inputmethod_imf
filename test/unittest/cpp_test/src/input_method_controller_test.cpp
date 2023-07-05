@@ -234,6 +234,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         static std::string text_;
         static bool doesKeyEventConsume_;
         static bool doesFUllKeyEventConsume_;
+        static InputAttribute inputAttribute_;
 
         class KeyboardListenerImpl : public KeyboardListener {
         public:
@@ -284,6 +285,12 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
                 text_ = text;
                 InputMethodControllerTest::keyboardListenerCv_.notify_one();
             }
+            void OnEditorAttributeChange(const InputAttribute &inputAttribute) override
+            {
+                IMSA_HILOGD("KeyboardListenerImpl in.");
+                inputAttribute_ = inputAttribute;
+                InputMethodControllerTest::keyboardListenerCv_.notify_one();
+            }
         };
     };
     sptr<InputMethodController> InputMethodControllerTest::inputMethodController_;
@@ -300,6 +307,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     int32_t InputMethodControllerTest::newBegin_ = 0;
     int32_t InputMethodControllerTest::newEnd_ = 0;
     std::string InputMethodControllerTest::text_;
+    InputAttribute InputMethodControllerTest::inputAttribute_;
     std::mutex InputMethodControllerTest::keyboardListenerMutex_;
     std::condition_variable InputMethodControllerTest::keyboardListenerCv_;
     sptr<InputDeathRecipient> InputMethodControllerTest::deathRecipient_;
@@ -837,28 +845,64 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         IMSA_HILOGI("IMC OnConfigurationChange Test START");
         Configuration info;
         info.SetEnterKeyType(EnterKeyType::GO);
-        info.SetTextInputType(TextInputType::TEXT);
+        info.SetTextInputType(TextInputType::NUMBER);
         int32_t ret = inputMethodController_->Close();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         ret = inputMethodController_->OnConfigurationChange(info);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        {
+            std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(
+                lock, std::chrono::seconds(DEALY_TIME), [&info] {
+                    return (static_cast<OHOS::MiscServices::TextInputType>(
+                                InputMethodControllerTest::inputAttribute_.inputPattern) == info.GetTextInputType()) &&
+                           (static_cast<OHOS::MiscServices::EnterKeyType>(
+                                InputMethodControllerTest::inputAttribute_.enterKeyType) == info.GetEnterKeyType());
+                });
+            EXPECT_NE(InputMethodControllerTest::inputAttribute_.inputPattern,
+                static_cast<int32_t>(info.GetTextInputType()));
+            EXPECT_NE(
+                InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
+        }
 
         auto keyType = static_cast<int32_t>(EnterKeyType::UNSPECIFIED);
         auto inputPattern = static_cast<int32_t>(TextInputType::NONE);
         ret = inputMethodController_->GetEnterKeyType(keyType);
-        EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-        ret = inputMethodController_->GetInputPattern(inputPattern);
-        EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-
-        ret = inputMethodController_->Attach(textListener_, false);
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-        ret = inputMethodController_->GetEnterKeyType(keyType);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         ret = inputMethodController_->GetInputPattern(inputPattern);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(static_cast<OHOS::MiscServices::EnterKeyType>(keyType) == EnterKeyType::GO
-                    && static_cast<OHOS::MiscServices::TextInputType>(inputPattern) == TextInputType::TEXT);
+    }
+
+    /**
+     * @tc.name: testOnEditorAttributeChanged
+     * @tc.desc: IMC testOnEditorAttributeChanged.
+     * @tc.type: FUNC
+     * @tc.require:
+     */
+    HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged, TestSize.Level0)
+    {
+        IMSA_HILOGI("IMC testOnEditorAttributeChanged Test START");
+        auto ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        Configuration info;
+        info.SetEnterKeyType(EnterKeyType::GO);
+        info.SetTextInputType(TextInputType::NUMBER);
+        ret = inputMethodController_->OnConfigurationChange(info);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        {
+            std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(
+                lock, std::chrono::seconds(DEALY_TIME), [&info] {
+                    return (static_cast<OHOS::MiscServices::TextInputType>(
+                                InputMethodControllerTest::inputAttribute_.inputPattern) == info.GetTextInputType()) &&
+                           (static_cast<OHOS::MiscServices::EnterKeyType>(
+                                InputMethodControllerTest::inputAttribute_.enterKeyType) == info.GetEnterKeyType());
+                });
+            EXPECT_EQ(InputMethodControllerTest::inputAttribute_.inputPattern,
+                static_cast<int32_t>(info.GetTextInputType()));
+            EXPECT_EQ(
+                InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
+        }
     }
 
     /**

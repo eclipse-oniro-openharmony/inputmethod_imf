@@ -306,7 +306,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
                 delete work;
             });
             auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
-                                           std::shared_ptr<JSCallbackObject> item) -> bool {
+                                               const std::shared_ptr<JSCallbackObject> &item) -> bool {
                 if (argc == 0) {
                     return false;
                 }
@@ -469,6 +469,45 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
                 return true;
             };
             JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getTextChangeProperty);
+        });
+}
+
+void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &inputAttribute)
+{
+    IMSA_HILOGI("run in");
+    std::string type = "editorAttributeChanged";
+    uv_work_t *work = JsKeyboardDelegateSetting::GetUVwork(type, [&inputAttribute](UvEntry &entry) {
+        entry.inputAttribute = inputAttribute;
+    });
+    if (work == nullptr) {
+        IMSA_HILOGD("failed to get uv entry");
+        return;
+    }
+    uv_queue_work(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+
+            auto getEditorAttributeChangeProperty = [entry](napi_value *args, uint8_t argc,
+                                                            const std::shared_ptr<JSCallbackObject> &item) -> bool {
+                if (argc == 0) {
+                    return false;
+                }
+
+                napi_value jsObject = JsUtils::GetValue(item->env_, entry->inputAttribute);
+                if (jsObject == nullptr) {
+                    IMSA_HILOGE("get GetAttribute failed: jsObject is nullptr");
+                    return false;
+                }
+                // 0 means the first param of callback is an object of EditorAttribute.
+                args[0] = jsObject;
+                return true;
+            };
+            // 1 means callback of on('editorAttributeChanged') has one return value.
+            JsUtils::TraverseCallback(entry->vecCopy, 1, getEditorAttributeChangeProperty);
         });
 }
 

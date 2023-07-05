@@ -35,7 +35,7 @@ namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
 sptr<InputMethodController> InputMethodController::instance_;
-std::shared_ptr<AppExecFwk::EventHandler> InputMethodController::handler_ { nullptr };
+std::shared_ptr<AppExecFwk::EventHandler> InputMethodController::handler_{ nullptr };
 std::mutex InputMethodController::instanceLock_;
 constexpr int32_t LOOP_COUNT = 5;
 constexpr int32_t WAIT_TIME = 100;
@@ -777,6 +777,12 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     std::lock_guard<std::mutex> lock(configurationMutex_);
     enterKeyType_ = static_cast<uint32_t>(info.GetEnterKeyType());
     inputPattern_ = static_cast<uint32_t>(info.GetTextInputType());
+    std::lock_guard<std::mutex> agentLock(agentLock_);
+    if (agent_ == nullptr) {
+        IMSA_HILOGE("agent is nullptr");
+        return ErrorCode::NO_ERROR;
+    }
+    agent_->OnConfigurationChange(info);
     return ErrorCode::NO_ERROR;
 }
 
@@ -896,10 +902,6 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
 int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
 {
     IMSA_HILOGI("InputMethodController::GetEnterKeyType");
-    if (!isEditable_.load()) {
-        IMSA_HILOGE("not in editable state");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
     std::lock_guard<std::mutex> lock(configurationMutex_);
     keyType = enterKeyType_;
     return ErrorCode::NO_ERROR;
@@ -908,10 +910,6 @@ int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
 int32_t InputMethodController::GetInputPattern(int32_t &inputpattern)
 {
     IMSA_HILOGI("InputMethodController::GetInputPattern");
-    if (!isEditable_.load()) {
-        IMSA_HILOGE("not in editable state");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
     std::lock_guard<std::mutex> lock(configurationMutex_);
     inputpattern = inputPattern_;
     return ErrorCode::NO_ERROR;
