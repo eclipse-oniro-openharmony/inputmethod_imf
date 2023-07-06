@@ -25,7 +25,10 @@ ohos_fuzztest("InputMethodControllerFuzzTest") {
   fuzz_config_file =
       "//base/inputmethod/imf/test/fuzztest/inputmethodcontroller_fuzzer"
 
-  include_dirs = [ "${inputmethod_path}/services/include" ]
+  include_dirs = [
+    "${inputmethod_path}/services/include",
+    "${inputmethod_path}/test/common"
+  ]
 
   cflags = [
     "-g",
@@ -44,6 +47,7 @@ ohos_fuzztest("InputMethodControllerFuzzTest") {
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
