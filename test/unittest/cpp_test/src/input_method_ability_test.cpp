@@ -94,7 +94,6 @@ public:
         {
             windowId_ = windowId;
             IMSA_HILOGI("InputMethodEngineListenerImpl OnSetCallingWindow");
-            IMSA_HILOGI("InputMethodEngineListenerImpl OnSetCallingWindow");
         }
 
         void OnSetSubtype(const SubProperty &property)
@@ -114,6 +113,7 @@ public:
         {
             deleteForwardLength_ = length;
             InputMethodAbilityTest::textListenerCv_.notify_one();
+            IMSA_HILOGI("TextChangeListener: DeleteForward, length is: %{public}d", length);
             IMSA_HILOGI("TextChangeListener: DeleteForward, length is: %{public}d", length);
         }
 
