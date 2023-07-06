@@ -17,7 +17,7 @@
 
 #include <thread>
 
-#include "callback_handler.h"
+#include "js_callback_handler.h"
 #include "event_checker.h"
 #include "input_method_ability.h"
 #include "input_method_property.h"
@@ -32,7 +32,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_MAX = 6;
@@ -542,11 +541,14 @@ void JsInputMethodEngineSetting::OnInputStart()
                     IMSA_HILOGE("get KBCins or TICins failed:");
                     return false;
                 }
-                args[ARGC_ZERO] = keyBoardController;
-                args[ARGC_ONE] = textInput;
+                // 0 means the first param of callback.
+                args[0] = keyBoardController;
+                // 1 means the second param of callback.
+                args[1] = textInput;
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_TWO, getInputStartProperty });
+            // 2 means callback has 2 params.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 2, getInputStartProperty });
         });
 }
 
@@ -566,7 +568,7 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
                 delete data;
                 delete work;
             });
-            CallbackHandler::TraverseCallback(entry->vecCopy);
+            JsCallbackHandler::Traverse(entry->vecCopy);
         });
 }
 
@@ -594,10 +596,12 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
                 if (argc == 0) {
                     return false;
                 }
-                napi_create_string_utf8(env, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                // 0 means the first param of callback.
+                napi_create_string_utf8(env, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[0]);
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getInputStopProperty });
+            // 1 means callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInputStopProperty });
         });
 }
 
@@ -621,16 +625,16 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
                 IMSA_HILOGE("setCallingWindow:: entryptr is null");
                 return;
             }
-            auto getCallingWindowProperty = [entry](napi_env env, napi_value *args, uint8_t argc)) -> bool {
+            auto getCallingWindowProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == 0) {
                     return false;
                 }
-                // 0 means the return value(windowId) fo callback.
-                napi_create_uint32(item->env_, entry->windowid, &args[0]);
+                // 0 means the first param of callback.
+                napi_create_uint32(env, entry->windowid, &args[0]);
                 return true;
             };
-            // 1 means callback of on('setCallingWindow') has one return value.
-            CallbackHandler::TraverseCallback(entry->vecCopy, { 1, getCallingWindowProperty });
+            // 1 means callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getCallingWindowProperty });
         });
 }
 
@@ -663,10 +667,12 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
                     IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
                     return false;
                 }
-                args[ARGC_ZERO] = { jsObject };
+                // 0 means the first param of callback.
+                args[0] = { jsObject };
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getSubtypeProperty });
+            // 1 means callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSubtypeProperty });
         });
 }
 

@@ -114,9 +114,11 @@ int32_t InputDataChannelStub::SelectByRangeOnRemote(MessageParcel &data, Message
     IMSA_HILOGD("InputDataChannelStub run in");
     int32_t start = 0;
     int32_t end = 0;
-    int ret = SendMessage(MessageID::MSG_ID_SELECT_BY_RANGE, [&data, &start, &end](MessageParcel &parcel) {
-        return ITypesUtil::Unmarshal(data, start, end) && ITypesUtil::Marshal(parcel, start, end);
-    });
+    int ret = SendMessage(
+        [&data, &start, &end](MessageParcel &parcel) {
+            return ITypesUtil::Unmarshal(data, start, end) && ITypesUtil::Marshal(parcel, start, end);
+        },
+        [](MessageParcel &parcel) { return new (std::nothrow) Message(MessageID::MSG_ID_SELECT_BY_RANGE, &parcel); });
     if (!ITypesUtil::Marshal(reply, ret)) {
         IMSA_HILOGE("failed to write reply");
         return ErrorCode::ERROR_EX_PARCELABLE;
@@ -129,11 +131,12 @@ int32_t InputDataChannelStub::SelectByMovementOnRemote(MessageParcel &data, Mess
     IMSA_HILOGD("InputDataChannelStub run in");
     int32_t direction = 0;
     int32_t cursorMoveSkip = 0;
-    auto ret =
-        SendMessage(MessageID::MSG_ID_SELECT_BY_MOVEMENT, [&data, &direction, &cursorMoveSkip](MessageParcel &parcel) {
+    auto ret = SendMessage(
+        [&data, &direction, &cursorMoveSkip](MessageParcel &parcel) {
             return ITypesUtil::Unmarshal(data, direction, cursorMoveSkip)
                    && ITypesUtil::Marshal(parcel, direction, cursorMoveSkip);
-        });
+        },
+        [](MessageParcel &parcel) { return new (std::nothrow) Message(MessageID::MSG_ID_SELECT_BY_MOVEMENT, &parcel); });
     if (!ITypesUtil::Marshal(reply, ret)) {
         IMSA_HILOGE("failed to write reply");
         return ErrorCode::ERROR_EX_PARCELABLE;
@@ -145,9 +148,13 @@ int32_t InputDataChannelStub::HandleExtendActionOnRemote(MessageParcel &data, Me
 {
     IMSA_HILOGD("InputDataChannelStub run in");
     int32_t action = 0;
-    auto ret = SendMessage(MessageID::MSG_ID_HANDLE_EXTEND_ACTION, [&data, &action](MessageParcel &parcel) {
-        return ITypesUtil::Unmarshal(data, action) && ITypesUtil::Marshal(parcel, action);
-    });
+    auto ret = SendMessage(
+        [&data, &action](MessageParcel &parcel) {
+            return ITypesUtil::Unmarshal(data, action) && ITypesUtil::Marshal(parcel, action);
+        },
+        [](MessageParcel &parcel) {
+            return new (std::nothrow) Message(MessageID::MSG_ID_HANDLE_EXTEND_ACTION, &parcel);
+        });
     if (!ITypesUtil::Marshal(reply, ret)) {
         IMSA_HILOGE("failed to write reply");
         return ErrorCode::ERROR_EX_PARCELABLE;
@@ -200,19 +207,18 @@ int32_t InputDataChannelStub::GetText(int32_t msgId, MessageParcel &data, Messag
 {
     IMSA_HILOGD("InputDataChannelStub::start");
     int32_t number = -1;
-    auto textResultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
-    ResultHandler resultHandler{ textResultHandler, nullptr };
+    auto resultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
     auto ret = SendMessage(
-        msgId,
         [&data, &number](MessageParcel &parcel) {
             return ITypesUtil::Unmarshal(data, number) && ITypesUtil::Marshal(parcel, number);
         },
-        resultHandler);
+        [&msgId, &resultHandler](
+            MessageParcel &parcel) { return new (std::nothrow) Message(msgId, &parcel, resultHandler); });
     if (ret != ErrorCode::NO_ERROR) {
         return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto text = textResultHandler->GetValue();
-    ret = textResultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
+    auto text = resultHandler->GetValue();
+    ret = resultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
     if (!ITypesUtil::Marshal(reply, ret, text)) {
         IMSA_HILOGE("failed to write reply");
         return ErrorCode::ERROR_EX_PARCELABLE;
@@ -223,14 +229,15 @@ int32_t InputDataChannelStub::GetText(int32_t msgId, MessageParcel &data, Messag
 int32_t InputDataChannelStub::GetTextIndexAtCursor(int32_t msgId, MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGD("InputDataChannelStub::start");
-    auto indexResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
-    ResultHandler resultHandler{ nullptr, indexResultHandler };
-    auto ret = SendMessage(msgId, nullptr, resultHandler);
+    auto resultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
+    auto ret = SendMessage(nullptr, [&msgId, &resultHandler](MessageParcel &parcel) {
+        return new (std::nothrow) Message(msgId, &parcel, resultHandler);
+    });
     if (ret != ErrorCode::NO_ERROR) {
         return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto index = indexResultHandler->GetValue();
-    ret = indexResultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
+    auto index = resultHandler->GetValue();
+    ret = resultHandler->IsTimeOut() ? ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED : ErrorCode::NO_ERROR;
     if (!ITypesUtil::Marshal(reply, ret, index)) {
         IMSA_HILOGE("failed to write reply");
         return ErrorCode::ERROR_EX_PARCELABLE;
@@ -322,7 +329,7 @@ void InputDataChannelStub::SetHandler(MessageHandler *handler)
     msgHandler = handler;
 }
 
-int32_t InputDataChannelStub::SendMessage(int code, ParcelHandler input, const ResultHandler &resultHandler)
+int32_t InputDataChannelStub::SendMessage(const ParcelHandler &input, const MsgConstructor &msgConstructor)
 {
     IMSA_HILOGD("InputMethodCoreStub run in");
     if (msgHandler == nullptr) {
@@ -339,7 +346,7 @@ int32_t InputDataChannelStub::SendMessage(int code, ParcelHandler input, const R
         delete parcel;
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto *msg = new (std::nothrow) Message(code, parcel, resultHandler);
+    auto *msg = msgConstructor(*parcel);
     if (msg == nullptr) {
         IMSA_HILOGE("msg is nullptr");
         delete parcel;

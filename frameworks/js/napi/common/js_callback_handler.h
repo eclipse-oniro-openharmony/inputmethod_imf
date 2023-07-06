@@ -22,41 +22,40 @@
 
 namespace OHOS {
 namespace MiscServices {
-
-class CallbackHandler {
+class JsCallbackHandler {
 public:
     using ArgvProvider = std::function<bool(napi_env, napi_value *, size_t)>;
     struct ArgContainer {
-        size_t argc;
-        ArgvProvider argvProvider;
+        size_t argc{ 0 };
+        ArgvProvider argvProvider{ nullptr };
     };
-    static void TraverseCallback(
-        const std::vector<std::shared_ptr<JSCallbackObject>> &objects, const ArgContainer &argContainer = { 0, nullptr });
-    template<typename T>
-    static void TraverseCallback(
-        const std::vector<std::shared_ptr<JSCallbackObject>> &objects, const ArgContainer &argContainer, T &output)
-    {
-        TraverseCallback(objects, argContainer, true, output);
-    }
-
-private:
-    template<typename T>
-    static void TraverseCallback(const std::vector<std::shared_ptr<JSCallbackObject>> &objects,
-        const ArgContainer &argContainer, bool isNeedOutput, T &output)
+    // 0 means the callback has no param.
+    static void Traverse(const std::vector<std::shared_ptr<JSCallbackObject>> &objects,
+        const ArgContainer &argContainer = { 0, nullptr })
     {
         for (const auto &object : objects) {
             JsUtil::ScopeGuard scopeGuard(object->env_);
             napi_value jsOutput = nullptr;
-            ExecuteCallback(object, argContainer, jsOutput);
-            if (isNeedOutput) {
-                if (jsOutput != nullptr && JsUtil::GetValue(object->env_, jsOutput, output)) {
-                    break;
-                }
+            Execute(object, argContainer, jsOutput);
+        }
+    }
+    template<typename T>
+    static void Traverse(
+        const std::vector<std::shared_ptr<JSCallbackObject>> &objects, const ArgContainer &argContainer, T &output)
+    {
+        for (const auto &object : objects) {
+            JsUtil::ScopeGuard scopeGuard(object->env_);
+            napi_value jsOutput = nullptr;
+            Execute(object, argContainer, jsOutput);
+            if (jsOutput != nullptr && JsUtil::GetValue(object->env_, jsOutput, output)) {
+                break;
             }
         }
     }
-    static void ExecuteCallback(
-        const std::shared_ptr<JSCallbackObject> &object, const ArgContainer &argContainer, napi_value &outPut);
+
+private:
+    static void Execute(
+        const std::shared_ptr<JSCallbackObject> &object, const ArgContainer &argContainer, napi_value &output);
 };
 } // namespace MiscServices
 } // namespace OHOS

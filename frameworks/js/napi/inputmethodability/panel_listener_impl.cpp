@@ -15,7 +15,7 @@
 
 #include "panel_listener_impl.h"
 
-#include "callback_handler.h"
+#include "js_callback_handler.h"
 #include "js_utils.h"
 
 namespace OHOS {
@@ -105,7 +105,7 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
                 IMSA_HILOGE("entry is nullptr");
                 return;
             }
-            CallbackHandler::TraverseCallback({ entry->cbCopy });
+            JsCallbackHandler::Traverse({ entry->cbCopy });
         });
 }
 } // namespace MiscServices

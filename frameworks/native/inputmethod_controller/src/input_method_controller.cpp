@@ -767,21 +767,13 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
 void InputMethodController::GetText(const Message *msg)
 {
     std::u16string text;
-    auto resultHandler = msg->resultHandler_.textResultHandler;
+    auto resultHandler = msg->textResultHandler_;
     if (!isEditable_.load() || textListener_ == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
         resultHandler->SetValue(text);
         return;
     }
-
-    auto msgContent = msg->msgContent_;
-    int32_t number = 0;
-    if (!ITypesUtil::Unmarshal(*msgContent, number)) {
-        IMSA_HILOGE("failed to read message parcel");
-        resultHandler->SetValue(text);
-        return;
-    }
-
+    auto number = msg->msgContent_->ReadInt32();
     if (msg->msgId_ == MSG_ID_GET_TEXT_BEFORE_CURSOR) {
         text = textListener_->GetLeftTextOfCursor(number);
     } else {
@@ -793,8 +785,8 @@ void InputMethodController::GetText(const Message *msg)
 
 void InputMethodController::GetTextIndexAtCursor(const Message *msg)
 {
-    std::int32_t index = -1;
-    auto resultHandler = msg->resultHandler_.indexResultHandler;
+    int32_t index = -1;
+    auto resultHandler = msg->indexResultHandler_;
     if (!isEditable_.load() || textListener_ == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
         resultHandler->SetValue(index);

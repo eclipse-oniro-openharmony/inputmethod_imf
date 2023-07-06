@@ -15,11 +15,11 @@
 
 #include "js_get_input_method_setting.h"
 
-#include "callback_handler.h"
 #include "event_checker.h"
 #include "input_client_info.h"
 #include "input_method_controller.h"
 #include "input_method_status.h"
+#include "js_callback_handler.h"
 #include "js_input_method.h"
 #include "js_util.h"
 #include "js_utils.h"
@@ -509,11 +509,14 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                     IMSA_HILOGE("get KBCins or TICins failed:");
                     return false;
                 }
-                args[ARGC_ZERO] = property;
-                args[ARGC_ONE] = subProperty;
+                // 0 means the first param of callback.
+                args[0] = property;
+                // 1 means the second param of callback.
+                args[1] = subProperty;
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_TWO, getImeChangeProperty });
+            // 2 means callback has two params.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 2, getImeChangeProperty });
         });
 }
 
@@ -551,10 +554,12 @@ void JsGetInputMethodSetting::OnPanelStatusChange(
                     IMSA_HILOGE("converse windowInfo failed");
                     return false;
                 }
-                args[ARGC_ZERO] = windowInfo;
+                // 0 means the first param of callback.
+                args[0] = windowInfo;
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getWindowInfo });
+            // 1 means callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getWindowInfo });
         });
 }
 

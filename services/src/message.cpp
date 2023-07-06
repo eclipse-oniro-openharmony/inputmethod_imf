@@ -30,14 +30,26 @@ Message::Message(int32_t msgId, MessageParcel *msgContent)
     }
 }
 
-Message::Message(int32_t msgId, MessageParcel *msgContent, const ResultHandler &resultHandler)
+Message::Message(
+    int32_t msgId, MessageParcel *msgContent, const std::shared_ptr<BlockData<std::u16string>> &textResultHandler)
 {
     msgId_ = msgId;
     msgContent_ = msgContent;
-    resultHandler_ = resultHandler;
     if (msgContent_ != nullptr) {
         msgContent_->RewindRead(0);
     }
+    textResultHandler_ = textResultHandler;
+}
+
+Message::Message(
+    int32_t msgId, MessageParcel *msgContent, const std::shared_ptr<BlockData<int32_t>> &indexResultHandler)
+{
+    msgId_ = msgId;
+    msgContent_ = msgContent;
+    if (msgContent_ != nullptr) {
+        msgContent_->RewindRead(0);
+    }
+    indexResultHandler_ = indexResultHandler;
 }
 
 /*!Constructor

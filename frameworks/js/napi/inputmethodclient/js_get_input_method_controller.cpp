@@ -16,10 +16,10 @@
 
 #include <set>
 
-#include "callback_handler.h"
 #include "event_checker.h"
 #include "input_method_controller.h"
 #include "input_method_utils.h"
+#include "js_callback_handler.h"
 #include "js_get_input_method_textchange_listener.h"
 #include "js_util.h"
 #include "napi/native_api.h"
@@ -670,10 +670,12 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
                     IMSA_HILOGE("set select range failed");
                     return false;
                 }
-                args[ARGC_ZERO] = range;
+                // 0 means the first param of callback.
+                args[0] = range;
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getProperty });
+            // 1 means the callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
         });
 }
 
@@ -706,10 +708,12 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
                     IMSA_HILOGE("set select movement failed");
                     return false;
                 }
-                args[ARGC_ZERO] = movement;
+                // 0 means the first param of callback.
+                args[0] = movement;
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getProperty });
+            // 1 means the callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
         });
 }
 
@@ -739,10 +743,12 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
                     IMSA_HILOGE("insertText:getInsertTextProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                // 0 means the first param of callback.
+                napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[0]);
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getInsertTextProperty });
+            // 1 means the callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInsertTextProperty });
         });
 }
 
@@ -771,10 +777,12 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
                     IMSA_HILOGE("deleteRight:getDeleteForwardProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_int32(env, entry->length, &args[ARGC_ZERO]);
+                // 0 means the first param of callback.
+                napi_create_int32(env, entry->length, &args[0]);
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getDeleteForwardProperty });
+            // 1 means the callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteForwardProperty });
         });
 }
 
@@ -803,10 +811,12 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
                     IMSA_HILOGE("deleteLeft::getDeleteBackwardProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_int32(env, entry->length, &args[ARGC_ZERO]);
+                // 0 means the first param of callback.
+                napi_create_int32(env, entry->length, &args[0]);
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getDeleteBackwardProperty });
+            // 1 means the callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteBackwardProperty });
         });
 }
 
@@ -836,10 +846,12 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
                     IMSA_HILOGE("sendKeyboardStatus:getSendKeyboardStatusProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_int32(env, entry->keyboardStatus, &args[ARGC_ZERO]);
+                // 0 means the first param of callback.
+                napi_create_int32(env, entry->keyboardStatus, &args[0]);
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getSendKeyboardStatusProperty });
+            // 1 means the callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendKeyboardStatusProperty });
         });
 }
 
@@ -886,10 +898,12 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
                     IMSA_HILOGE("set select movement failed");
                     return false;
                 }
-                args[ARGC_ZERO] = functionKey;
+                // 0 means the first param of callback.
+                args[0] = functionKey;
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getSendFunctionKeyProperty });
+            // 1 means the callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendFunctionKeyProperty });
         });
 }
 
@@ -919,10 +933,12 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
                     IMSA_HILOGE("moveCursor:getMoveCursorProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_int32(env, static_cast<int32_t>(entry->direction), &args[ARGC_ZERO]);
+                // 0 means the first param of callback.
+                napi_create_int32(env, static_cast<int32_t>(entry->direction), &args[0]);
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { 1, getMoveCursorProperty });
+            // 1 means the callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getMoveCursorProperty });
         });
 }
 
@@ -950,10 +966,12 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
                     IMSA_HILOGE("handleExtendAction:getHandleExtendActionProperty the number of argc is invalid.");
                     return false;
                 }
-                napi_create_int32(env, entry->action, &args[ARGC_ZERO]);
+                // 0 means the first param of callback.
+                napi_create_int32(env, entry->action, &args[0]);
                 return true;
             };
-            CallbackHandler::TraverseCallback(entry->vecCopy, { ARGC_ONE, getHandleExtendActionProperty });
+            // 1 means the callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getHandleExtendActionProperty });
         });
 }
 
@@ -979,17 +997,18 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
                 IMSA_HILOGE("handleExtendAction entryptr is null.");
                 return;
             }
-            auto getGetTextProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == ARGC_ZERO) {
-                    IMSA_HILOGE("handleExtendAction:getHandleExtendActionProperty the number of argc is invalid.");
+            auto fillArguments = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+                if (argc < 1) {
+                    IMSA_HILOGE("argc is err.");
                     return false;
                 }
-                napi_create_int32(env, entry->number, &args[ARGC_ZERO]);
+                // 0 means the first param of callback.
+                napi_create_int32(env, entry->number, &args[0]);
                 return true;
             };
             std::string text;
-            // 1 means callback has 1 params.
-            CallbackHandler::TraverseCallback(entry->vecCopy, { 1, getGetTextProperty }, text);
+            // 1 means callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, fillArguments }, text);
             entry->textResultHandler->SetValue(text);
         });
     return Str8ToStr16(textResultHandler->GetValue());
@@ -1017,8 +1036,8 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
                 return;
             }
             int32_t index = -1;
-            // 0 means callback has 0 params.
-            CallbackHandler::TraverseCallback(entry->vecCopy, { 0, nullptr }, index);
+            // 0 means callback has no params.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 0, nullptr }, index);
             entry->indexResultHandler->SetValue(index);
         });
     return indexResultHandler->GetValue();

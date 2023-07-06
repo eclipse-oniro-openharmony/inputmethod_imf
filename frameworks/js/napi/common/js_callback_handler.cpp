@@ -13,25 +13,18 @@
  * limitations under the License.
  */
 
-#include "callback_handler.h"
+#include "js_callback_handler.h"
 
 namespace OHOS {
 namespace MiscServices {
 constexpr size_t MAX_ARGV_COUNT = 10;
-void CallbackHandler::TraverseCallback(
-    const std::vector<std::shared_ptr<JSCallbackObject>> &objects, const ArgContainer &argContainer)
-{
-    std::string output;
-    TraverseCallback(objects, argContainer, false, output);
-}
-
-void CallbackHandler::ExecuteCallback(
-    const std::shared_ptr<JSCallbackObject> &object, const ArgContainer &argContainer, napi_value &output)
+void JsCallbackHandler::Execute(
+    const std::shared_ptr<JSCallbackObject> &object, const ArgContainer &argContainer, napi_value &outPut)
 {
     if (object->threadId_ != std::this_thread::get_id()) {
         return;
     }
-    napi_value argv[MAX_ARGV_COUNT];
+    napi_value argv[MAX_ARGV_COUNT] = { nullptr };
     if (argContainer.argvProvider != nullptr && !argContainer.argvProvider(object->env_, argv, MAX_ARGV_COUNT)) {
         return;
     }
@@ -40,9 +33,9 @@ void CallbackHandler::ExecuteCallback(
     napi_get_reference_value(object->env_, object->callback_, &callback);
     if (callback != nullptr) {
         napi_get_global(object->env_, &global);
-        auto status = napi_call_function(object->env_, global, callback, argContainer.argc, argv, &output);
+        auto status = napi_call_function(object->env_, global, callback, argContainer.argc, argv, &outPut);
         if (status != napi_ok) {
-            output = nullptr;
+            outPut = nullptr;
         }
     }
 }
