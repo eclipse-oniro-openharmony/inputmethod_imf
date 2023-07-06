@@ -52,6 +52,7 @@
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "tdd_util.h"
+#include "text_listener.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -59,96 +60,6 @@ namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
-    class TextListener : public OnTextChangedListener {
-    public:
-        TextListener()
-        {
-            std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("TextListenerNotifier");
-            serviceHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-        }
-        ~TextListener()
-        {
-        }
-        static KeyboardStatus keyboardStatus_;
-        static std::mutex cvMutex_;
-        static std::condition_variable cv_;
-        std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
-        static int32_t direction_;
-        static int32_t deleteForwardLength_;
-        static int32_t deleteBackwardLength_;
-        static std::u16string insertText_;
-        static int32_t key_;
-        static bool WaitIMACallback()
-        {
-            std::unique_lock<std::mutex> lock(TextListener::cvMutex_);
-            return TextListener::cv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
-        }
-        void InsertText(const std::u16string &text)
-        {
-            IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", Str16ToStr8(text).c_str());
-            insertText_ = text;
-        }
-
-        void DeleteBackward(int32_t length)
-        {
-            IMSA_HILOGI("IMC TEST TextListener DeleteBackward length: %{public}d", length);
-            deleteBackwardLength_ = length;
-        }
-
-        void SetKeyboardStatus(bool status)
-        {
-            IMSA_HILOGI("IMC TEST TextListener SetKeyboardStatus %{public}d", status);
-        }
-        void DeleteForward(int32_t length)
-        {
-            IMSA_HILOGI("IMC TEST TextListener DeleteForward length: %{public}d", length);
-            deleteForwardLength_ = length;
-        }
-        void SendKeyEventFromInputMethod(const KeyEvent &event)
-        {
-            IMSA_HILOGI("IMC TEST TextListener sendKeyEventFromInputMethod");
-        }
-        void SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
-        {
-            IMSA_HILOGD("TextListener::SendKeyboardStatus %{public}d", static_cast<int>(keyboardStatus));
-            constexpr int32_t interval = 20;
-            {
-                std::unique_lock<std::mutex> lock(cvMutex_);
-                IMSA_HILOGD("TextListener::SendKeyboardStatus lock");
-                keyboardStatus_ = keyboardStatus;
-            }
-            serviceHandler_->PostTask([this]() { cv_.notify_all(); }, interval);
-            IMSA_HILOGD("TextListener::SendKeyboardStatus notify_all");
-        }
-        void SendFunctionKey(const FunctionKey &functionKey)
-        {
-            IMSA_HILOGI("IMC TEST TextListener SendFunctionKey");
-            EnterKeyType enterKeyType = functionKey.GetEnterKeyType();
-            key_ = static_cast<int32_t>(enterKeyType);
-        }
-        void MoveCursor(const Direction direction)
-        {
-            IMSA_HILOGI("IMC TEST TextListener MoveCursor");
-            direction_ = static_cast<int32_t>(direction);
-        }
-        void HandleSetSelection(int32_t start, int32_t end)
-        {
-        }
-        void HandleExtendAction(int32_t action)
-        {
-        }
-        void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
-        {
-        }
-    };
-    KeyboardStatus TextListener::keyboardStatus_;
-    std::mutex TextListener::cvMutex_;
-    std::condition_variable TextListener::cv_;
-    int32_t TextListener::direction_ = 0;
-    int32_t TextListener::deleteForwardLength_ = 0;
-    int32_t TextListener::deleteBackwardLength_ = 0;
-    std::u16string TextListener::insertText_;
-    int32_t TextListener::key_ = 0;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -347,6 +258,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         TddUtil::StorageSelfUid();
         TddUtil::SetTestUid();
         SetInputDeathRecipient();
+        TextListener::ResetParam();
     }
 
     void InputMethodControllerTest::TearDownTestCase(void)
@@ -354,6 +266,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
         TddUtil::RestoreSelfTokenID();
         TddUtil::RestoreSelfUid();
+        TextListener::ResetParam();
     }
 
     void InputMethodControllerTest::SetUp(void)
