@@ -60,9 +60,8 @@ private:
     int32_t HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t GetText(int32_t msgId, MessageParcel &data, MessageParcel &reply);
     int32_t GetTextIndexAtCursor(int32_t msgId, MessageParcel &data, MessageParcel &reply);
-    using ParcelHandler = std::function<bool(MessageParcel &)>;
     using MsgConstructor = std::function<Message *(MessageParcel &parcel)>;
-    int32_t SendMessage(const ParcelHandler &input, const MsgConstructor &msgConstructor);
+    int32_t SendMessage(const MsgConstructor &msgConstructor);
 };
 } // namespace MiscServices
 } // namespace OHOS

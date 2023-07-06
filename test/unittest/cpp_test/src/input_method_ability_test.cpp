@@ -94,6 +94,7 @@ public:
         {
             windowId_ = windowId;
             IMSA_HILOGI("InputMethodEngineListenerImpl OnSetCallingWindow");
+            IMSA_HILOGI("InputMethodEngineListenerImpl OnSetCallingWindow");
         }
 
         void OnSetSubtype(const SubProperty &property)
