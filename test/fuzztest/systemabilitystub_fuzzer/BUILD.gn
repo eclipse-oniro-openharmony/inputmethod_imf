@@ -27,7 +27,7 @@ ohos_fuzztest("SystemAbilityStubFuzzTest") {
 
   include_dirs = [
     "${inputmethod_path}/services/include",
-    "${inputmethod_path}/test/common"
+    "${inputmethod_path}/test/common",
   ]
 
   cflags = [
