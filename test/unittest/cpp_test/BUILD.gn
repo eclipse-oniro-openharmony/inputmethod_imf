@@ -18,8 +18,8 @@ config("module_private_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
-    "//base/inputmethod/imf/services/include",
-    "${inputmethod_path}/test/common"
+    "${inputmethod_path}/services/include",
+    "${inputmethod_path}/test/common",
   ]
 }
 
