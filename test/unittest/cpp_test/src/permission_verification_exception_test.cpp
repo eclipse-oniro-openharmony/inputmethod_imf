@@ -29,62 +29,11 @@
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "tdd_util.h"
+#include "text_listener.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-class TextListener : public OnTextChangedListener {
-public:
-    TextListener() = default;
-    ~TextListener() override = default;
-    void InsertText(const std::u16string &text) override;
-    void DeleteBackward(int32_t length) override;
-    void SetKeyboardStatus(bool status) override;
-    void DeleteForward(int32_t length) override;
-    void SendKeyEventFromInputMethod(const KeyEvent &event) override;
-    void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) override;
-    void SendFunctionKey(const FunctionKey &functionKey) override;
-    void MoveCursor(const Direction direction) override;
-    void HandleSetSelection(int32_t start, int32_t end) override;
-    void HandleExtendAction(int32_t action) override;
-    void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override;
-};
-
-void TextListener::InsertText(const std::u16string &text)
-{
-}
-void TextListener::DeleteBackward(int32_t length)
-{
-}
-void TextListener::SetKeyboardStatus(bool status)
-{
-}
-void TextListener::DeleteForward(int32_t length)
-{
-}
-void TextListener::SendKeyEventFromInputMethod(const KeyEvent &event)
-{
-}
-void TextListener::SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
-{
-}
-void TextListener::SendFunctionKey(const FunctionKey &functionKey)
-{
-}
-void TextListener::MoveCursor(const Direction direction)
-{
-}
-void TextListener::HandleSetSelection(int32_t start, int32_t end)
-{
-}
-void TextListener::HandleExtendAction(int32_t action)
-{
-}
-
-void TextListener::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
-{
-}
-
 class PermissionVerificationExceptionTest : public testing::Test {
 public:
     static void SetUpTestCase(void);

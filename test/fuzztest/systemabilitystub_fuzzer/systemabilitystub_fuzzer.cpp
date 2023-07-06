@@ -32,6 +32,7 @@
 #include "message_parcel.h"
 #include "nativetoken_kit.h"
 #include "system_ability_definition.h"
+#include "text_listener.h"
 #include "token_setproc.h"
 
 using namespace OHOS::Security::AccessToken;
@@ -63,23 +64,6 @@ void GrantNativePermission()
     AccessTokenKit::ReloadNativeTokenInfo();
     delete[] perms;
 }
-
-class TextListener : public OnTextChangedListener {
-public:
-    TextListener() {}
-    ~TextListener() {}
-    void InsertText(const std::u16string &text) {}
-    void DeleteBackward(int32_t length) {}
-    void SetKeyboardStatus(bool status) {}
-    void DeleteForward(int32_t length) {}
-    void SendKeyEventFromInputMethod(const KeyEvent &event) {}
-    void SendKeyboardStatus(const KeyboardStatus &status) {}
-    void SendFunctionKey(const FunctionKey &functionKey) {}
-    void MoveCursor(const Direction direction) {}
-    void HandleSetSelection(int32_t start, int32_t end) {}
-    void HandleExtendAction(int32_t action) {}
-    void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) {}
-};
 constexpr size_t THRESHOLD = 10;
 constexpr int32_t OFFSET = 4;
 const std::u16string SYSTEMABILITY_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.IInputMethodSystemAbility";
