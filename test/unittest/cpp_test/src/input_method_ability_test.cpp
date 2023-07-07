@@ -461,7 +461,8 @@ HWTEST_F(InputMethodAbilityTest, testGetTextConfig, TestSize.Level0)
     TextTotalConfig textTotalConfig;
     ret = inputMethodAbility_->GetTextConfig(textTotalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(textTotalConfig.inputAttribute.enterKeyType, textConfig.inputAttribute.inputPattern);
+    EXPECT_EQ(textTotalConfig.inputAttribute.inputPattern, textConfig.inputAttribute.inputPattern);
+    EXPECT_EQ(textTotalConfig.inputAttribute.enterKeyType, textConfig.inputAttribute.enterKeyType);
     textChangeListener = nullptr;
 }
 

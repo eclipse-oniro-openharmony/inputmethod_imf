@@ -57,7 +57,7 @@ ohos_unittest("InputMethodControllerTest") {
 ohos_unittest("InputMethodAttachTest") {
   module_out_path = module_output_path
 
-  sources = [ "src/input_method_controller_test.cpp" ]
+  sources = [ "src/input_method_attach_test.cpp" ]
 
   configs = [ ":module_private_config" ]
 
@@ -74,15 +74,9 @@ ohos_unittest("InputMethodAttachTest") {
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "hilog:libhilog",
-    "input:libmmi-client",
-    "ipc:ipc_single",
     "napi:ace_napi",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
   ]
 }
 ohos_unittest("InputMethodAbilityTest") {

@@ -383,20 +383,9 @@ void InputMethodController::OnPanelStatusChange(
 
 void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
 {
-    // todo 不能直接覆盖，可选参数万一人家只是没有传入，不能覆盖为空的。
+    IMSA_HILOGI("InputMethodController in, save text config.");
     std::lock_guard<std::mutex> lock(editorContentLock_);
     textConfig_ = textConfig;
-
-//    textConfig_.inputAttribute = textConfig.inputAttribute;
-//
-//    // todo 其他的为可选参数，怎么区分？
-//    textConfig_.textSelection.oldBegin = textConfig_.textSelection.newBegin;
-//    textConfig_.textSelection.oldEnd = textConfig_.textSelection.newEnd;
-//    textConfig_.textSelection.newBegin = textConfig.range.start;
-//    textConfig_.textSelection.newEnd = textConfig.range.end;
-//
-//    textConfig_.cursorInfo = textConfig.cursorInfo;
-//    textConfig_.windowId = textConfig.windowId;
 }
 
 int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener)
@@ -416,8 +405,9 @@ int32_t InputMethodController::Attach(
 {
     IMSA_HILOGI("InputMethodController::Attach isShowKeyboard %{public}s", isShowKeyboard ? "true" : "false");
     InputmethodTrace tracer("InputMethodController Attach trace.");
-    textConfig_.inputAttribute = attribute;
-    return Attach(listener, isShowKeyboard, textConfig_);
+    TextConfig textConfig;
+    textConfig.inputAttribute = attribute;
+    return Attach(listener, isShowKeyboard, textConfig);
 }
 
 int32_t InputMethodController::Attach(
@@ -432,6 +422,11 @@ int32_t InputMethodController::Attach(
     {
         std::lock_guard<std::mutex> lock(textListenerLock_);
         textListener_ = listener;
+    }
+    {
+        std::lock_guard<std::mutex> configLock(configurationMutex_);
+        inputPattern_ = textConfig.inputAttribute.inputPattern;
+        enterKeyType_ = textConfig.inputAttribute.enterKeyType;
     }
     clientInfo_.isShowKeyboard = isShowKeyboard;
     SaveTextConfig(textConfig);
@@ -704,7 +699,7 @@ void InputMethodController::RestoreAttachInfoInSaDied()
         return;
     }
     auto attach = [=]() -> bool {
-        auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, clientInfo_.attribute);
+        auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, textConfig_);
         if (errCode == ErrorCode::NO_ERROR) {
             isDiedAttached_.store(true);
             OnCursorUpdate(cursorInfo_);
@@ -957,8 +952,8 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
         IMSA_HILOGI("no valid SelectionRange param.");
         return ErrorCode::NO_ERROR;
     }
-    config.textSelection.oldBegin = selectNewBegin_;
-    config.textSelection.oldEnd = selectNewEnd_;
+    config.textSelection.oldBegin = 0;
+    config.textSelection.oldEnd = 0;
     config.textSelection.newBegin = textConfig_.range.start;
     config.textSelection.newEnd = textConfig_.range.end;
 
@@ -1105,6 +1100,7 @@ void InputMethodController::ClearEditorCache()
         selectOldEnd_ = 0;
         selectNewBegin_ = 0;
         selectNewEnd_ = 0;
+        textConfig_ = {};
     }
     std::lock_guard<std::mutex> lock(cursorInfoMutex_);
     cursorInfo_ = {};

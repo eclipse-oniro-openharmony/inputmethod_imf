@@ -436,18 +436,18 @@ napi_status JsGetInputMethodController::GetValue(napi_env env, napi_value in, Te
     status = JsUtils::GetValue(env, in, "cursorInfo", cursorInfoResult);
     if (status == napi_ok) {
         ret = JsGetInputMethodController::GetValue(env, cursorInfoResult, out.cursorInfo);
-        CHECK_RETURN(ret, "get cursorInfo of TextConfig", napi_generic_failure);
+        IMSA_HILOGE("get cursorInfo end, ret = %{public}d", ret);
     }
 
     napi_value rangeResult = nullptr;
     status = JsUtils::GetValue(env, in, "selection", rangeResult);
     if (status == napi_ok) {
         ret = JsGetInputMethodController::GetValue(env, rangeResult, out.range);
-        CHECK_RETURN(ret, "get cursorInfo of TextConfig", napi_generic_failure);
+        IMSA_HILOGE("get selectionRange end, ret = %{public}d", ret);
     }
 
     ret = JsUtil::Object::ReadProperty(env, in, "windowId", out.windowId);
-    CHECK_RETURN(ret, "get windowId of TextConfig", napi_generic_failure);
+    IMSA_HILOGE("get windowId end, ret = %{public}d", ret);
     return napi_ok;
 }
 

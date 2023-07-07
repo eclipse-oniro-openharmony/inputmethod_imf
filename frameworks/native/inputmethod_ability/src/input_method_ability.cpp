@@ -149,6 +149,15 @@ void InputMethodAbility::OnImeReady()
         return;
     }
     IMSA_HILOGI("InputMethodAbility::Ime Ready, notify InputStart");
+    // todo 重复代码
+    TextTotalConfig textConfig = {};
+    int32_t ret = GetTextConfig(textConfig);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
+        return;
+    }
+    // todo textConfig需要判空吗？？
+    OnTextConfigChange(textConfig);
     ShowInputWindow(notifier_.isShowKeyboard);
 }
 
@@ -403,15 +412,18 @@ void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
         return;
     }
     channel->SendKeyboardStatus(KEYBOARD_SHOW);
-    auto result = panels_.Find(SOFT_KEYBOARD);
-    if (!result.first) {
-        IMSA_HILOGE("Not find SOFT_KEYBOARD panel.");
-        return;
-    }
-    auto ret = result.second->ShowPanel();
-    if (ret != NO_ERROR) {
-        IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
-        return;
+    for (int i = 0; i < 10; ++i) {
+        auto result = panels_.Find(SOFT_KEYBOARD);
+        if (result.first) {
+            IMSA_HILOGI("find SOFT_KEYBOARD panel.");
+            auto ret = result.second->ShowPanel();
+            if (ret != ErrorCode::NO_ERROR) {
+                IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
+            }
+            return;
+        }
+        IMSA_HILOGE("Not find SOFT_KEYBOARD panel, count = %{public}d", i);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
@@ -419,14 +431,19 @@ void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
 {
     IMSA_HILOGI("InputMethodAbility run in.");
     // todo 不论是不是变化，都会通知过来，这里需不需要做拦截？？
-    if (kdListener_ != nullptr) {
+    if (kdListener_ == nullptr) {
+        IMSA_HILOGE("kdListener_ is nullptr.");
+    } else {
+        IMSA_HILOGI("send on('editorAttributeChanged') callback.");
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
         if (textConfig.cursorInfo.left != -1.0) {
+            IMSA_HILOGI("send on('cursorUpdate') callback.");
             kdListener_->OnCursorUpdate(
                 textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
         }
         // todo 光标的更新需要从controlelr更新过来，传递到ability侧，待实现。
         if (textConfig.textSelection.newBegin != -1) {
+            IMSA_HILOGI("send on('selectionChange') callback.");
             kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
                                            textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
         }

@@ -117,7 +117,6 @@ int32_t InputDataChannelStub::OnRemoteRequest(
             TextTotalConfig textConfig = {};
             reply.WriteInt32(GetTextConfig(textConfig));
             ITypesUtil::Marshal(reply, textConfig);
-            // todo 序列化的顺序和反序列化的顺序要一致。
             break;
         }
         default:

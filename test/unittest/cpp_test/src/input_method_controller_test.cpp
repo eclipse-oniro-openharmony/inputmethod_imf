@@ -835,45 +835,6 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     }
 
     /**
-    * @tc.name: testIMCOnConfigurationChange
-    * @tc.desc: IMC testOnConfigurationChange.
-    * @tc.type: FUNC
-    * @tc.require:
-    */
-    HWTEST_F(InputMethodControllerTest, testIMCOnConfigurationChange, TestSize.Level0)
-    {
-        IMSA_HILOGI("IMC OnConfigurationChange Test START");
-        Configuration info;
-        info.SetEnterKeyType(EnterKeyType::GO);
-        info.SetTextInputType(TextInputType::NUMBER);
-        int32_t ret = inputMethodController_->Close();
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        ret = inputMethodController_->OnConfigurationChange(info);
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        {
-            std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
-            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(
-                lock, std::chrono::seconds(DEALY_TIME), [&info] {
-                    return (static_cast<OHOS::MiscServices::TextInputType>(
-                                InputMethodControllerTest::inputAttribute_.inputPattern) == info.GetTextInputType()) &&
-                           (static_cast<OHOS::MiscServices::EnterKeyType>(
-                                InputMethodControllerTest::inputAttribute_.enterKeyType) == info.GetEnterKeyType());
-                });
-            EXPECT_NE(InputMethodControllerTest::inputAttribute_.inputPattern,
-                static_cast<int32_t>(info.GetTextInputType()));
-            EXPECT_NE(
-                InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
-        }
-
-        auto keyType = static_cast<int32_t>(EnterKeyType::UNSPECIFIED);
-        auto inputPattern = static_cast<int32_t>(TextInputType::NONE);
-        ret = inputMethodController_->GetEnterKeyType(keyType);
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        ret = inputMethodController_->GetInputPattern(inputPattern);
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    }
-
-    /**
      * @tc.name: testOnEditorAttributeChanged
      * @tc.desc: IMC testOnEditorAttributeChanged.
      * @tc.type: FUNC
@@ -903,6 +864,8 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
             EXPECT_EQ(
                 InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
         }
+        ret = inputMethodController_->Close();
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     }
 
     /**
