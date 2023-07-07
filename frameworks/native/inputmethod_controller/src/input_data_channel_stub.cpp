@@ -115,8 +115,8 @@ int32_t InputDataChannelStub::SelectByRangeOnRemote(MessageParcel &data, Message
     int32_t start = 0;
     int32_t end = 0;
     int ret = SendMessage([&data, &start, &end](MessageParcel &parcel) {
-        return ITypesUtil::Unmarshal(data, start, end) && ITypesUtil::Marshal(parcel, start, end) ? new (std::nothrow)
-                       Message(MessageID::MSG_ID_SELECT_BY_RANGE, &parcel) : nullptr;
+        return ITypesUtil::Unmarshal(data, start, end) && ITypesUtil::Marshal(parcel, start, end) ?
+            new (std::nothrow)Message(MessageID::MSG_ID_SELECT_BY_RANGE, &parcel) : nullptr;
     });
     if (!ITypesUtil::Marshal(reply, ret)) {
         IMSA_HILOGE("failed to write reply");
@@ -148,8 +148,8 @@ int32_t InputDataChannelStub::HandleExtendActionOnRemote(MessageParcel &data, Me
     IMSA_HILOGD("InputDataChannelStub run in");
     int32_t action = 0;
     auto ret = SendMessage([&data, &action](MessageParcel &parcel) {
-        return ITypesUtil::Unmarshal(data, action) && ITypesUtil::Marshal(parcel, action) ? new (std::nothrow)
-                       Message(MessageID::MSG_ID_HANDLE_EXTEND_ACTION, &parcel) : nullptr;
+        return ITypesUtil::Unmarshal(data, action) && ITypesUtil::Marshal(parcel, action) ?
+            new (std::nothrow)Message(MessageID::MSG_ID_HANDLE_EXTEND_ACTION, &parcel) : nullptr;
     });
     if (!ITypesUtil::Marshal(reply, ret)) {
         IMSA_HILOGE("failed to write reply");
@@ -205,8 +205,8 @@ int32_t InputDataChannelStub::GetText(int32_t msgId, MessageParcel &data, Messag
     int32_t number = -1;
     auto resultHandler = std::make_shared<BlockData<std::u16string>>(MAX_TIMEOUT, u"");
     auto ret = SendMessage([&msgId, &data, &number, &resultHandler](MessageParcel &parcel) {
-        return ITypesUtil::Unmarshal(data, number) && ITypesUtil::Marshal(parcel, number) ? new (std::nothrow)
-                       Message(msgId, &parcel, resultHandler) : nullptr;
+        return ITypesUtil::Unmarshal(data, number) && ITypesUtil::Marshal(parcel, number) ?
+            new (std::nothrow)Message(msgId, &parcel, resultHandler) : nullptr;
     });
     if (ret != ErrorCode::NO_ERROR) {
         return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;

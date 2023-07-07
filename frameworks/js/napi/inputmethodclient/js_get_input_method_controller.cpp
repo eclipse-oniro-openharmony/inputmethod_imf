@@ -302,7 +302,7 @@ void JsGetInputMethodController::RegisterListener(
     jsCbMap_[type].push_back(std::move(callbackObj));
 }
 
-void JsGetInputMethodController::UnRegisterListener(std::string type)
+void JsGetInputMethodController::UnRegisterListener(napi_value callback, std::string type)
 {
     IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -310,7 +310,22 @@ void JsGetInputMethodController::UnRegisterListener(std::string type)
         IMSA_HILOGE("methodName: %{public}s already unRegistered!", type.c_str());
         return;
     }
-    jsCbMap_.erase(type);
+    if (callback == nullptr) {
+        jsCbMap_.erase(type);
+        IMSA_HILOGE("callback is nullptr");
+        return;
+    }
+
+    for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end(); item++) {
+        if ((callback != nullptr)
+            && (JsUtils::Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
+            jsCbMap_[type].erase(item);
+            break;
+        }
+    }
+    if (jsCbMap_[type].empty()) {
+        jsCbMap_.erase(type);
+    }
 }
 
 napi_value JsGetInputMethodController::Subscribe(napi_env env, napi_callback_info info)
@@ -364,12 +379,16 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
+    // If the type of optional parameter is wrong, make it nullptr
+    if (JsUtil::GetType(env, argv[1]) != napi_function) {
+        argv[1] = nullptr;
+    }
     IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());
     auto engine = reinterpret_cast<JsGetInputMethodController *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
         return nullptr;
     }
-    engine->UnRegisterListener(type);
+    engine->UnRegisterListener(argv[1], type);
 
     napi_value result = nullptr;
     napi_get_null(env, &result);

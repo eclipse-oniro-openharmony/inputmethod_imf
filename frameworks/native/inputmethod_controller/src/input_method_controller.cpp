@@ -774,6 +774,10 @@ void InputMethodController::GetText(const Message *msg)
         return;
     }
     auto number = msg->msgContent_->ReadInt32();
+    if (number < 0) {
+        resultHandler->SetValue(text);
+        return;
+    }
     if (msg->msgId_ == MSG_ID_GET_TEXT_BEFORE_CURSOR) {
         text = textListener_->GetLeftTextOfCursor(number);
     } else {
