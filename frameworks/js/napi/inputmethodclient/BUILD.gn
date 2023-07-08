@@ -36,7 +36,6 @@ config("imf_public_config") {
 
 ohos_shared_library("inputmethod") {
   sources = [
-    "../inputmethodability/js_callback_object.cpp",
     "async_call.cpp",
     "input_method_module.cpp",
     "js_get_input_method_controller.cpp",

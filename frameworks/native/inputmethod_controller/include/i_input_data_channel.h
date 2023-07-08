@@ -62,7 +62,6 @@ public:
     virtual int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) = 0;
     virtual int32_t HandleExtendAction(int32_t action) = 0;
     virtual int32_t GetTextIndexAtCursor(int32_t &index) = 0;
-    virtual void NotifyGetOperationCompletion() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -686,38 +686,6 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     }
 
     /**
-     * @tc.name: testIMCGetTextBeforeCursor
-     * @tc.desc: IMC testGetTextBeforeCursor.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCGetTextBeforeCursor, TestSize.Level2)
-    {
-        IMSA_HILOGI("IMC GetTextBeforeCursor Test START");
-        inputMethodController_->OnSelectionChange(Str8ToStr16(""), 0, 0);
-        constexpr int32_t TEXT_LENGTH = 1;
-        std::u16string text;
-        inputMethodController_->GetTextBeforeCursor(TEXT_LENGTH, text);
-        EXPECT_TRUE(text.size() == 0);
-    }
-
-    /**
-     * @tc.name: testIMCGetTextAfterCursor
-     * @tc.desc: IMC testGetTextAfterCursor.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCGetTextAfterCursor, TestSize.Level2)
-    {
-        IMSA_HILOGI("IMC GetTextAfterCursor Test START");
-        inputMethodController_->OnSelectionChange(Str8ToStr16(""), 0, 0);
-        constexpr int32_t TEXT_LENGTH = 1;
-        std::u16string text;
-        inputMethodController_->GetTextAfterCursor(TEXT_LENGTH, text);
-        EXPECT_TRUE(text.size() == 0);
-    }
-
-    /**
      * @tc.name: testIMCGetEnterKeyType
      * @tc.desc: IMC testGetEnterKeyType.
      * @tc.type: FUNC

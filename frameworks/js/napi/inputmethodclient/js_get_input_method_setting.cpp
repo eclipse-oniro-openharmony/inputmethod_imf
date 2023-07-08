@@ -19,6 +19,7 @@
 #include "input_client_info.h"
 #include "input_method_controller.h"
 #include "input_method_status.h"
+#include "js_callback_handler.h"
 #include "js_input_method.h"
 #include "js_util.h"
 #include "js_utils.h"
@@ -498,22 +499,24 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
                 IMSA_HILOGE("OnInputStart:: entryptr is null");
                 return;
             }
-            auto getImeChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                            std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getImeChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc < 2) {
                     return false;
                 }
-                napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(item->env_, entry->subProperty);
-                napi_value property = JsInputMethod::GetJsInputMethodProperty(item->env_, entry->property);
+                napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(env, entry->subProperty);
+                napi_value property = JsInputMethod::GetJsInputMethodProperty(env, entry->property);
                 if (subProperty == nullptr || property == nullptr) {
                     IMSA_HILOGE("get KBCins or TICins failed:");
                     return false;
                 }
-                args[ARGC_ZERO] = property;
-                args[ARGC_ONE] = subProperty;
+                // 0 means the first param of callback.
+                args[0] = property;
+                // 1 means the second param of callback.
+                args[1] = subProperty;
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_TWO, getImeChangeProperty);
+            // 2 means callback has two params.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 2, getImeChangeProperty });
         });
 }
 
@@ -542,20 +545,21 @@ void JsGetInputMethodSetting::OnPanelStatusChange(
                 IMSA_HILOGE("OnInputStart:: entry is nullptr");
                 return;
             }
-            auto getWindowInfo = [entry](
-                                     napi_value *args, uint8_t argc, std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getWindowInfo = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc < 1) {
                     return false;
                 }
-                auto windowInfo = JsUtils::GetValue(item->env_, entry->windowInfo);
+                auto windowInfo = JsUtils::GetValue(env, entry->windowInfo);
                 if (windowInfo == nullptr) {
                     IMSA_HILOGE("converse windowInfo failed");
                     return false;
                 }
-                args[ARGC_ZERO] = windowInfo;
+                // 0 means the first param of callback.
+                args[0] = windowInfo;
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getWindowInfo);
+            // 1 means callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getWindowInfo });
         });
 }
 

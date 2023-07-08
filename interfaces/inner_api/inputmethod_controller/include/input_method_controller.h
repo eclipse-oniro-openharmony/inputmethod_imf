@@ -25,8 +25,6 @@
 #include "event_handler.h"
 #include "event_status_manager.h"
 #include "global.h"
-#include "i_input_client.h"
-#include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
 #include "input_client_info.h"
@@ -55,6 +53,9 @@ public:
     virtual void HandleSetSelection(int32_t start, int32_t end) = 0;
     virtual void HandleExtendAction(int32_t action) = 0;
     virtual void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) = 0;
+    virtual std::u16string GetLeftTextOfCursor(int32_t number) = 0;
+    virtual std::u16string GetRightTextOfCursor(int32_t number) = 0;
+    virtual int32_t GetTextIndexAtCursor() = 0;
 };
 
 class InputMethodController : public RefBase {
@@ -107,31 +108,6 @@ public:
      * @since 8
      */
     IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const InputAttribute &attribute);
-
-    /**
-     * @brief Get text before cursor.
-     *
-     * This function is used to get text before cursor.
-     *
-     * @param number    Indicates the number of text before the cursor that will be obtained.
-     * @param text      Indicates the text before the cursor that will be obtained.
-     * @return Returns 0 for success, others for failure.
-     * @since 6
-     */
-    IMF_API int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
-
-    /**
-     * @brief Get text after cursor.
-     *
-     * This function is used to get text after cursor.
-     *
-     * @param number    Indicates the number of text after the cursor that will be obtained.
-     * @param text      Indicates the text after the cursor that will be obtained.
-     * @return Returns 0 for success, others for failure.
-     * @since 6
-     */
-    IMF_API int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
-    IMF_API int32_t GetTextIndexAtCursor(int32_t &index);
 
     /**
      * @brief Show soft keyboard.
@@ -446,13 +422,13 @@ private:
     void OnSelectByRange(int32_t start, int32_t end);
     void OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip);
     void HandleExtendAction(int32_t action);
-    void HandleGetOperation();
-    bool IsCorrectParam(int32_t number);
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void RestoreListenInfoInSaDied();
     void RestoreAttachInfoInSaDied();
     int32_t RestoreListenEventFlag();
     void UpdateNativeEventFlag(EventType eventType, bool isOn);
+    void GetText(const Message *msg);
+    void GetTextIndexAtCursor(const Message *msg);
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
@@ -464,7 +440,7 @@ private:
     std::shared_ptr<IInputMethodAgent> agent_ = nullptr;
     std::mutex textListenerLock_;
     sptr<OnTextChangedListener> textListener_ = nullptr;
-    std::atomic_bool isDiedAttached_ { false };
+    std::atomic_bool isDiedAttached_{ false };
 
     std::mutex cursorInfoMutex_;
     CursorInfo cursorInfo_;
@@ -493,10 +469,6 @@ private:
     InputClientInfo clientInfo_;
 
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
-    std::mutex textFieldReplyCountLock_;
-    uint32_t textFieldReplyCount_{ 0 };
-    std::condition_variable textFieldReplyCountCv_;
-
     std::atomic_bool isDiedRestoreListen_{ false };
 };
 } // namespace MiscServices

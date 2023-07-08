@@ -17,6 +17,7 @@
 
 #include "event_checker.h"
 #include "input_method_ability.h"
+#include "js_callback_handler.h"
 #include "js_keyboard_controller_engine.h"
 #include "js_text_input_client_engine.h"
 #include "js_util.h"
@@ -26,11 +27,8 @@
 #include "napi/native_node_api.h"
 namespace OHOS {
 namespace MiscServices {
-constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
-constexpr size_t ARGC_THREE = 3;
-constexpr size_t ARGC_FOUR = 4;
 const std::string JsKeyboardDelegateSetting::KDS_CLASS_NAME = "KeyboardDelegate";
 thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
 
@@ -305,21 +303,23 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
                 delete data;
                 delete work;
             });
-            auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
-                                               const std::shared_ptr<JSCallbackObject> &item) -> bool {
+            auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == 0) {
                     return false;
                 }
                 napi_value keyEventObject{};
-                auto result = napi_create_object(item->env_, &keyEventObject);
+                auto result = napi_create_object(env, &keyEventObject);
                 CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create object", false);
-                result = MMI::KeyEventNapi::CreateKeyEvent(item->env_, entry->pullKeyEventPara, keyEventObject);
+                result = MMI::KeyEventNapi::CreateKeyEvent(env, entry->pullKeyEventPara, keyEventObject);
                 CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create key event object", false);
-                args[ARGC_ZERO] = keyEventObject;
+                // 0 means the first param of callback.
+                args[0] = keyEventObject;
                 return true;
             };
-            bool isOnKeyEvent = JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
-            entry->isDone->SetValue(isOnKeyEvent);
+            bool isConsumed = false;
+            // 1 means callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
+            entry->isDone->SetValue(isConsumed);
         });
     bool isConsumed = isDone->GetValue();
     IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
@@ -347,22 +347,24 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 delete data;
                 delete work;
             });
-            auto getKeyEventProperty = [entry](napi_value *args, uint8_t argc,
-                                           std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == 0) {
                     return false;
                 }
                 napi_value jsObject =
-                    GetResultOnKeyEvent(item->env_, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
+                    GetResultOnKeyEvent(env, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
                     return false;
                 }
-                args[ARGC_ZERO] = jsObject;
+                // 0 means the first param of callback.
+                args[0] = jsObject;
                 return true;
             };
-            bool isOnKeyEvent = JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getKeyEventProperty);
-            entry->isDone->SetValue(isOnKeyEvent);
+            bool isConsumed = false;
+            // 1 means callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
+            entry->isDone->SetValue(isConsumed);
         });
     bool isConsumed = isDone->GetValue();
     IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
@@ -391,17 +393,20 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
                 delete work;
             });
 
-            auto getCursorUpdateProperty = [entry](napi_value *args, uint8_t argc,
-                                               std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getCursorUpdateProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc < 3) {
                     return false;
                 }
-                napi_create_int32(item->env_, entry->curPara.positionX, &args[ARGC_ZERO]);
-                napi_create_int32(item->env_, entry->curPara.positionY, &args[ARGC_ONE]);
-                napi_create_int32(item->env_, entry->curPara.height, &args[ARGC_TWO]);
+                // 0 means the first param of callback.
+                napi_create_int32(env, entry->curPara.positionX, &args[0]);
+                // 1 means the second param of callback.
+                napi_create_int32(env, entry->curPara.positionY, &args[1]);
+                // 2 means the third param of callback.
+                napi_create_int32(env, entry->curPara.height, &args[2]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_THREE, getCursorUpdateProperty);
+            // 3 means callback has three params.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 3, getCursorUpdateProperty });
         });
 }
 
@@ -428,18 +433,22 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
                 delete work;
             });
 
-            auto getSelectionChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                                  std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getSelectionChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc < 4) {
                     return false;
                 }
-                napi_create_int32(item->env_, entry->selPara.oldBegin, &args[ARGC_ZERO]);
-                napi_create_int32(item->env_, entry->selPara.oldEnd, &args[ARGC_ONE]);
-                napi_create_int32(item->env_, entry->selPara.newBegin, &args[ARGC_TWO]);
-                napi_create_int32(item->env_, entry->selPara.newEnd, &args[ARGC_THREE]);
+                // 0 means the first param of callback.
+                napi_create_int32(env, entry->selPara.oldBegin, &args[0]);
+                // 1 means the second param of callback.
+                napi_create_int32(env, entry->selPara.oldEnd, &args[1]);
+                // 2 means the third param of callback.
+                napi_create_int32(env, entry->selPara.newBegin, &args[2]);
+                // 3 means the fourth param of callback.
+                napi_create_int32(env, entry->selPara.newEnd, &args[3]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_FOUR, getSelectionChangeProperty);
+            // 4 means callback has four params.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 4, getSelectionChangeProperty });
         });
 }
 
@@ -460,15 +469,16 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
                 delete work;
             });
 
-            auto getTextChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                             std::shared_ptr<JSCallbackObject> item) -> bool {
+            auto getTextChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == 0) {
                     return false;
                 }
-                napi_create_string_utf8(item->env_, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[ARGC_ZERO]);
+                // 0 means the first param of callback.
+                napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[0]);
                 return true;
             };
-            JsUtils::TraverseCallback(entry->vecCopy, ARGC_ONE, getTextChangeProperty);
+            // 1 means callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getTextChangeProperty });
         });
 }
 
@@ -491,23 +501,22 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
                 delete work;
             });
 
-            auto getEditorAttributeChangeProperty = [entry](napi_value *args, uint8_t argc,
-                                                            const std::shared_ptr<JSCallbackObject> &item) -> bool {
+            auto getEditorAttributeChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
                 if (argc == 0) {
                     return false;
                 }
 
-                napi_value jsObject = JsUtils::GetValue(item->env_, entry->inputAttribute);
+                napi_value jsObject = JsUtils::GetValue(env, entry->inputAttribute);
                 if (jsObject == nullptr) {
                     IMSA_HILOGE("get GetAttribute failed: jsObject is nullptr");
                     return false;
                 }
-                // 0 means the first param of callback is an object of EditorAttribute.
+                // 0 means the first param of callback.
                 args[0] = jsObject;
                 return true;
             };
-            // 1 means callback of on('editorAttributeChanged') has one return value.
-            JsUtils::TraverseCallback(entry->vecCopy, 1, getEditorAttributeChangeProperty);
+            // 1 means callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getEditorAttributeChangeProperty });
         });
 }
 

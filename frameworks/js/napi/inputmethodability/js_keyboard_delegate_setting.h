@@ -23,6 +23,7 @@
 #include <mutex>
 
 #include "async_call.h"
+#include "block_data.h"
 #include "global.h"
 #include "input_attribute.h"
 #include "js_callback_object.h"
@@ -31,49 +32,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-template<typename T>
-class BlockData {
-public:
-    explicit BlockData(uint32_t interval, const T &invalid = T()) : INTERVAL(interval), data_(invalid)
-    {
-    }
-    ~BlockData()
-    {
-    }
-
-public:
-    void SetValue(const T &data)
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        data_ = data;
-        isSet_ = true;
-        cv_.notify_one();
-    }
-
-    T GetValue()
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        cv_.wait_for(lock, std::chrono::milliseconds(INTERVAL), [this]() { return isSet_; });
-        T data = data_;
-        cv_.notify_one();
-        return data;
-    }
-
-    void Clear(const T &invalid = T())
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        isSet_ = false;
-        data_ = invalid;
-        cv_.notify_one();
-    }
-
-private:
-    bool isSet_ = false;
-    const uint32_t INTERVAL;
-    T data_;
-    std::mutex mutex_;
-    std::condition_variable cv_;
-};
 class JsKeyboardDelegateSetting : public KeyboardListener {
 public:
     JsKeyboardDelegateSetting() = default;

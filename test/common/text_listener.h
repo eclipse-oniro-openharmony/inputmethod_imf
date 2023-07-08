@@ -16,11 +16,14 @@
 #ifndef INPUTMETHOD_TEST_TEXT_LISTENER_H
 #define INPUTMETHOD_TEST_TEXT_LISTENER_H
 
+#include <unistd.h>
+
 #include <condition_variable>
 
 #include "input_method_controller.h"
 #include "input_method_utils.h"
 #include "key_event.h"
+#include "string_ex.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -112,7 +115,31 @@ public:
         textListenerCv_.notify_one();
         IMSA_HILOGI("TextChangeListener, selectionDirection_: %{public}d", selectionDirection_);
     }
-
+    std::u16string GetLeftTextOfCursor(int32_t number) override
+    {
+        if (isTimeout_) {
+            usleep(MAX_TIMEOUT);
+        }
+        return Str8ToStr16(TEXT_BEFORE_CURSOR);
+    }
+    std::u16string GetRightTextOfCursor(int32_t number) override
+    {
+        if (isTimeout_) {
+            usleep(MAX_TIMEOUT);
+        }
+        return Str8ToStr16(TEXT_AFTER_CURSOR);
+    }
+    int32_t GetTextIndexAtCursor() override
+    {
+        if (isTimeout_) {
+            usleep(MAX_TIMEOUT);
+        }
+        return TEXT_INDEX;
+    }
+    static void setTimeout(bool isTimeout)
+    {
+        isTimeout_ = isTimeout;
+    }
     static void ResetParam()
     {
         direction_ = -1;
@@ -126,6 +153,7 @@ public:
         selectionDirection_ = -1;
         action_ = -1;
         keyboardStatus_ = KeyboardStatus::NONE;
+        isTimeout_ = false;
     }
     static bool WaitIMACallback()
     {
@@ -145,7 +173,12 @@ public:
     static int32_t selectionDirection_;
     static int32_t action_;
     static KeyboardStatus keyboardStatus_;
+    static bool isTimeout_;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
+    static constexpr  int32_t MAX_TIMEOUT = 3010000;
+    static constexpr  int32_t TEXT_INDEX = 455;
+    static constexpr const char* TEXT_BEFORE_CURSOR = "before";
+    static constexpr const char* TEXT_AFTER_CURSOR = "after";
 };
 std::mutex TextListener::textListenerCallbackLock_;
 std::condition_variable TextListener::textListenerCv_;
@@ -160,6 +193,7 @@ int32_t TextListener::selectionEnd_ = -1;
 int32_t TextListener::selectionDirection_ = -1;
 int32_t TextListener::action_ = -1;
 KeyboardStatus TextListener::keyboardStatus_ = { KeyboardStatus::NONE };
+bool TextListener::isTimeout_ = { false };
 } // namespace MiscServices
 } // namespace OHOS
 

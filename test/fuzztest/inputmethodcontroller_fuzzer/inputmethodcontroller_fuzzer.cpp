@@ -134,24 +134,6 @@ void TestShowSomething(sptr<InputMethodController> imc)
     imc->Close();
 }
 
-void TestGetTextBeforeCursor(sptr<InputMethodController> imc, int32_t fuzzedInt32)
-{
-    sptr<OnTextChangedListener> textListener = new TextListener();
-    imc->Attach(textListener);
-
-    std::u16string text;
-    imc->GetTextBeforeCursor(fuzzedInt32, text);
-}
-
-void TestTextAfterCursor(sptr<InputMethodController> imc, int32_t fuzzedInt32)
-{
-    sptr<OnTextChangedListener> textListener = new TextListener();
-    imc->Attach(textListener);
-
-    std::u16string text;
-    imc->GetTextAfterCursor(fuzzedInt32, text);
-}
-
 void TestUpdateListenEventFlag(sptr<InputMethodController> imc, const std::string &fuzzedString)
 {
     imc->UpdateListenEventFlag(fuzzedString, true);
@@ -189,7 +171,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestOnSelectionChange(imc, fuzzedU16String, fuzzedInt, fuzzedDouble);
     OHOS::TestOnConfigurationChange(imc);
     OHOS::TestSwitchInputMethod(imc, fuzzedString);
-    OHOS::TestGetTextBeforeCursor(imc, fuzzedInt32);
     OHOS::TestSetCallingWindow(imc, fuzzedUInt32);
     OHOS::TestDispatchKeyEvent(imc, fuzzedInt32);
     OHOS::TestShowSomething(imc);

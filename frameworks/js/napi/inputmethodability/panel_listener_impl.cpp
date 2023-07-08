@@ -15,6 +15,7 @@
 
 #include "panel_listener_impl.h"
 
+#include "js_callback_handler.h"
 #include "js_utils.h"
 
 namespace OHOS {
@@ -100,21 +101,11 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
                 delete data;
                 delete work;
             });
-            CHECK_RETURN_VOID(entry != nullptr, "OnInputStart:: entry is null.");
-            napi_handle_scope scope = nullptr;
-            napi_open_handle_scope(entry->cbCopy->env_, &scope);
-            napi_value callback = nullptr;
-            napi_get_reference_value(entry->cbCopy->env_, entry->cbCopy->callback_, &callback);
-            if (callback != nullptr) {
-                napi_value global = nullptr;
-                napi_get_global(entry->cbCopy->env_, &global);
-                napi_value result = nullptr;
-                napi_status callStatus = napi_call_function(entry->cbCopy->env_, global, callback, 0, nullptr, &result);
-                if (callStatus != napi_ok) {
-                    IMSA_HILOGE("notify data change failed callStatus:%{public}d", callStatus);
-                }
+            if (entry == nullptr) {
+                IMSA_HILOGE("entry is nullptr");
+                return;
             }
-            napi_close_handle_scope(entry->cbCopy->env_, scope);
+            JsCallbackHandler::Traverse({ entry->cbCopy });
         });
 }
 } // namespace MiscServices
