@@ -18,12 +18,15 @@
 #include <utility>
 
 #include "global.h"
+#include "ime_info_inquirer.h"
 #include "input_method_system_ability_stub.h"
+#include "input_method_system_ability.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "message_handler.h"
 #include "system_ability_definition.h"
+#include "os_account_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -31,6 +34,8 @@ using namespace MessageID;
 sptr<ImCommonEventManager> ImCommonEventManager::instance_;
 std::mutex ImCommonEventManager::instanceLock_;
 using namespace OHOS::EventFwk;
+constexpr uint32_t RETRY_INTERVAL = 100;
+constexpr uint32_t BLOCK_RETRY_TIMES = 100;
 ImCommonEventManager::ImCommonEventManager()
 {
 }
@@ -108,7 +113,7 @@ bool ImCommonEventManager::SubscribeKeyboardEvent(KeyHandle handle)
     return true;
 }
 
-bool ImCommonEventManager::SubscribeWindowManagerService(FocusHandle handle)
+bool ImCommonEventManager::SubscribeWindowManagerService(FocusHandle handle, StartInputHandler inputHandler)
 {
     IMSA_HILOGI("run in");
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -116,8 +121,20 @@ bool ImCommonEventManager::SubscribeWindowManagerService(FocusHandle handle)
         IMSA_HILOGE("abilityManager is nullptr");
         return false;
     }
+    std::vector<int32_t> userIds;
+    int32_t userId = -1;
+    if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
+            return AccountSA::OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
+        })) {
+        userId = userIds[0];
+    }
     sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener(
-        [handle]() { FocusMonitorManager::GetInstance().RegisterFocusChangedListener(handle); });
+        [handle, userId, inputHandler]() {
+            if (inputHandler != nullptr) {
+                inputHandler(userId);
+            }
+            FocusMonitorManager::GetInstance().RegisterFocusChangedListener(handle);
+        });
     if (listener == nullptr) {
         IMSA_HILOGE("failed to create listener");
         return false;
