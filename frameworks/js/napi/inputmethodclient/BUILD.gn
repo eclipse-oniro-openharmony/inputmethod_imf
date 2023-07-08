@@ -24,9 +24,7 @@ config("imf_config") {
 
 config("imf_public_config") {
   visibility = [ "./*" ]
-  include_dirs = [
-    "include",
-  ]
+  include_dirs = [ "include" ]
   ldflags = [ "-Wl,--exclude-libs=ALL" ]
   cflags = [
     "-fdata-sections",
