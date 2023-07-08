@@ -50,7 +50,6 @@ public:
     int32_t HandleExtendAction(int32_t action) override;
     int32_t GetTextIndexAtCursor(int32_t &index) override;
     int32_t GetTextConfig(TextTotalConfig &textConfig) override;
-    void NotifyGetOperationCompletion() override;
 
 private:
     static inline BrokerDelegator<InputDataChannelProxy> delegator_;

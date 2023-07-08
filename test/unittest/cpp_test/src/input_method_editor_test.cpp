@@ -38,85 +38,11 @@
 #include "keyboard_listener.h"
 #include "message_parcel.h"
 #include "tdd_util.h"
+#include "text_listener.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-class TextListener : public OnTextChangedListener {
-public:
-    TextListener()
-    {
-        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("TextListenerNotifier");
-        serviceHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-    }
-    ~TextListener()
-    {
-    }
-    static KeyboardStatus keyboardStatus_;
-    static std::mutex cvMutex_;
-    static std::condition_variable cv_;
-    std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
-    static bool WaitIMACallback()
-    {
-        std::unique_lock<std::mutex> lock(TextListener::cvMutex_);
-        return TextListener::cv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
-    }
-    void InsertText(const std::u16string &text)
-    {
-        IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", Str16ToStr8(text).c_str());
-    }
-
-    void DeleteBackward(int32_t length)
-    {
-        IMSA_HILOGI("IMC TEST TextListener DeleteBackward length: %{public}d", length);
-    }
-
-    void SetKeyboardStatus(bool status)
-    {
-        IMSA_HILOGI("IMC TEST TextListener SetKeyboardStatus %{public}d", status);
-    }
-    void DeleteForward(int32_t length)
-    {
-        IMSA_HILOGI("IMC TEST TextListener DeleteForward length: %{public}d", length);
-    }
-    void SendKeyEventFromInputMethod(const KeyEvent &event)
-    {
-        IMSA_HILOGI("IMC TEST TextListener sendKeyEventFromInputMethod");
-    }
-    void SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
-    {
-        IMSA_HILOGD("TextListener::SendKeyboardStatus %{public}d", static_cast<int>(keyboardStatus));
-        constexpr int32_t interval = 20;
-        {
-            std::unique_lock<std::mutex> lock(cvMutex_);
-            IMSA_HILOGD("TextListener::SendKeyboardStatus lock");
-            keyboardStatus_ = keyboardStatus;
-        }
-        serviceHandler_->PostTask([this]() { cv_.notify_all(); }, interval);
-        IMSA_HILOGD("TextListener::SendKeyboardStatus notify_all");
-    }
-    void SendFunctionKey(const FunctionKey &functionKey)
-    {
-        IMSA_HILOGI("IMC TEST TextListener SendFunctionKey");
-    }
-    void MoveCursor(const Direction direction)
-    {
-        IMSA_HILOGI("IMC TEST TextListener MoveCursor");
-    }
-    void HandleSetSelection(int32_t start, int32_t end)
-    {
-    }
-    void HandleExtendAction(int32_t action)
-    {
-    }
-    void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
-    {
-    }
-};
-KeyboardStatus TextListener::keyboardStatus_;
-std::mutex TextListener::cvMutex_;
-std::condition_variable TextListener::cv_;
-
 class KeyboardListenerImpl : public KeyboardListener {
 public:
     KeyboardListenerImpl(){};
@@ -242,6 +168,7 @@ void InputMethodEditorTest::SetUpTestCase(void)
     keyEvent_->SetKeyAction(keyAction);
     keyEvent_->SetKeyCode(keyCode);
     TddUtil::StorageSelfUid();
+    TextListener::ResetParam();
 }
 
 void InputMethodEditorTest::TearDownTestCase(void)
@@ -249,6 +176,7 @@ void InputMethodEditorTest::TearDownTestCase(void)
     IMSA_HILOGI("InputMethodEditorTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
     TddUtil::KillImsaProcess();
+    TextListener::ResetParam();
 }
 
 void InputMethodEditorTest::SetUp(void)
@@ -288,14 +216,6 @@ HWTEST_F(InputMethodEditorTest, testShowTextInputUnfocused, TestSize.Level0)
     int32_t ret = InputMethodEditorTest::inputMethodController_->ShowTextInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    std::u16string text = Str8ToStr16("");
-    ret = InputMethodEditorTest::inputMethodController_->GetTextBeforeCursor(1, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    ret = InputMethodEditorTest::inputMethodController_->GetTextAfterCursor(1, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    int32_t tempVar = -1;
-    ret = InputMethodEditorTest::inputMethodController_->GetTextIndexAtCursor(tempVar);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
     EXPECT_FALSE(result);
@@ -383,14 +303,6 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
     EXPECT_FALSE(result);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    std::u16string text = Str8ToStr16("");
-    ret = InputMethodEditorTest::inputMethodController_->GetTextBeforeCursor(1, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    ret = InputMethodEditorTest::inputMethodController_->GetTextAfterCursor(1, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    int32_t tempVar = -1;
-    ret = InputMethodEditorTest::inputMethodController_->GetTextIndexAtCursor(tempVar);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->HideSoftKeyboard();
@@ -442,14 +354,6 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
     ret = InputMethodEditorTest::inputMethodController_->ShowTextInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    std::u16string text = Str8ToStr16("");
-    ret = InputMethodEditorTest::inputMethodController_->GetTextBeforeCursor(1, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    ret = InputMethodEditorTest::inputMethodController_->GetTextAfterCursor(1, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-    int32_t tempVar = -1;
-    ret = InputMethodEditorTest::inputMethodController_->GetTextIndexAtCursor(tempVar);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
     EXPECT_FALSE(result);

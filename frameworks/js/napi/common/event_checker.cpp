@@ -20,7 +20,8 @@ namespace MiscServices {
 const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> EventChecker::EVENT_TYPES{
     { EventSubscribeModule::INPUT_METHOD_CONTROLLER,
         { "insertText", "deleteLeft", "deleteRight", "sendKeyboardStatus", "sendFunctionKey", "moveCursor",
-            "handleExtendAction", "selectByRange", "selectByMovement" } },
+            "handleExtendAction", "selectByRange", "selectByMovement", "getLeftTextOfCursor", "getRightTextOfCursor",
+            "getTextIndexAtCursor" } },
     { EventSubscribeModule::INPUT_METHOD_SETTING, { "imeChange", "imeShow", "imeHide" } },
     { EventSubscribeModule::INPUT_METHOD_ABILITY,
         { "inputStart", "inputStop", "keyboardShow", "keyboardHide", "setCallingWindow", "setSubtype" } },
@@ -28,13 +29,13 @@ const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> 
                                                  "cursorContextChange", "selectionChange", "textChange" } },
     { EventSubscribeModule::PANEL, { "show", "hide" } }
 };
-bool EventChecker::IsValidEventType(EventSubscribeModule module, const std::string &out)
+bool EventChecker::IsValidEventType(EventSubscribeModule module, const std::string &type)
 {
     auto it = EVENT_TYPES.find(module);
     if (it == EVENT_TYPES.end()) {
         return false;
     }
-    return it->second.find(out) != it->second.end();
+    return it->second.find(type) != it->second.end();
 }
 } // namespace MiscServices
 } // namespace OHOS

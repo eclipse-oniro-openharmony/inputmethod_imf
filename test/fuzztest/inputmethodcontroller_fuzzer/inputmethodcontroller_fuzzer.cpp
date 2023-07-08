@@ -23,26 +23,10 @@
 #include "key_event.h"
 #include "message_parcel.h"
 #include "input_attribute.h"
+#include "text_listener.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
-class TextListener : public OnTextChangedListener {
-public:
-    TextListener() {}
-    ~TextListener() {}
-    void InsertText(const std::u16string &text) {}
-    void DeleteBackward(int32_t length) {}
-    void SetKeyboardStatus(bool status) {}
-    void DeleteForward(int32_t length) {}
-    void SendKeyEventFromInputMethod(const KeyEvent &event) {}
-    void SendKeyboardStatus(const KeyboardStatus &status) {}
-    void SendFunctionKey(const FunctionKey &functionKey) {}
-    void MoveCursor(const Direction direction) {}
-    void HandleSetSelection(int32_t start, int32_t end) {}
-    void HandleExtendAction(int32_t action) {}
-    void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) {}
-};
-
 class SettingListener : public InputMethodSettingListener {
     void OnImeChange(const Property &property, const SubProperty &subProperty) {}
     void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) {}
@@ -150,24 +134,6 @@ void TestShowSomething(sptr<InputMethodController> imc)
     imc->Close();
 }
 
-void TestGetTextBeforeCursor(sptr<InputMethodController> imc, int32_t fuzzedInt32)
-{
-    sptr<OnTextChangedListener> textListener = new TextListener();
-    imc->Attach(textListener);
-
-    std::u16string text;
-    imc->GetTextBeforeCursor(fuzzedInt32, text);
-}
-
-void TestTextAfterCursor(sptr<InputMethodController> imc, int32_t fuzzedInt32)
-{
-    sptr<OnTextChangedListener> textListener = new TextListener();
-    imc->Attach(textListener);
-
-    std::u16string text;
-    imc->GetTextAfterCursor(fuzzedInt32, text);
-}
-
 void TestUpdateListenEventFlag(sptr<InputMethodController> imc, const std::string &fuzzedString)
 {
     imc->UpdateListenEventFlag(fuzzedString, true);
@@ -205,7 +171,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestOnSelectionChange(imc, fuzzedU16String, fuzzedInt, fuzzedDouble);
     OHOS::TestOnConfigurationChange(imc);
     OHOS::TestSwitchInputMethod(imc, fuzzedString);
-    OHOS::TestGetTextBeforeCursor(imc, fuzzedInt32);
     OHOS::TestSetCallingWindow(imc, fuzzedUInt32);
     OHOS::TestDispatchKeyEvent(imc, fuzzedInt32);
     OHOS::TestShowSomething(imc);

@@ -133,13 +133,9 @@ public:
 };
 
 struct TextConfig {
-    // todo
     InputAttribute inputAttribute = {};
-
-    //
     CursorInfo cursorInfo = {};
     SelectionRange range = {};
-    // todo
     uint32_t windowId = INVALID_WINDOW_ID;
 };
 } // namespace MiscServices

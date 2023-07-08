@@ -149,14 +149,12 @@ void InputMethodAbility::OnImeReady()
         return;
     }
     IMSA_HILOGI("InputMethodAbility::Ime Ready, notify InputStart");
-    // todo 重复代码
     TextTotalConfig textConfig = {};
     int32_t ret = GetTextConfig(textConfig);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
         return;
     }
-    // todo textConfig需要判空吗？？
     OnTextConfigChange(textConfig);
     ShowInputWindow(notifier_.isShowKeyboard);
 }
@@ -442,7 +440,6 @@ void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
             kdListener_->OnCursorUpdate(
                 textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
         }
-        // todo 光标的更新需要从controlelr更新过来，传递到ability侧，待实现。
         if (textConfig.textSelection.newBegin != -1) {
             IMSA_HILOGI("send on('selectionChange') callback.");
             kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,

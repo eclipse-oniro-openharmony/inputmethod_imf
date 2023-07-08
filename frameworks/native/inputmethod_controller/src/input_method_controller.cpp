@@ -17,6 +17,7 @@
 
 #include <algorithm>
 
+#include "block_data.h"
 #include "global.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
@@ -38,7 +39,6 @@ sptr<InputMethodController> InputMethodController::instance_;
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodController::handler_{ nullptr };
 std::mutex InputMethodController::instanceLock_;
 constexpr int32_t LOOP_COUNT = 5;
-constexpr int32_t WAIT_TIME = 100;
 constexpr int64_t DELAY_TIME = 100;
 const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
     { "imeHide", IME_HIDE } };
@@ -196,8 +196,6 @@ void InputMethodController::WorkThread()
                 }
                 MessageParcel *data = msg->msgContent_;
                 textListener_->InsertText(data->ReadString16());
-                std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-                textFieldReplyCount_++;
                 break;
             }
             case MSG_ID_DELETE_FORWARD: {
@@ -209,8 +207,6 @@ void InputMethodController::WorkThread()
                 MessageParcel *data = msg->msgContent_;
                 // reverse for compatibility
                 textListener_->DeleteBackward(data->ReadInt32());
-                std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-                textFieldReplyCount_++;
                 break;
             }
             case MSG_ID_DELETE_BACKWARD: {
@@ -222,8 +218,6 @@ void InputMethodController::WorkThread()
                 MessageParcel *data = msg->msgContent_;
                 // reverse for compatibility
                 textListener_->DeleteForward(data->ReadInt32());
-                std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-                textFieldReplyCount_++;
                 break;
             }
             case MSG_ID_ON_INPUT_STOP: {
@@ -275,8 +269,6 @@ void InputMethodController::WorkThread()
                 MessageParcel *data = msg->msgContent_;
                 Direction direction = static_cast<Direction>(data->ReadInt32());
                 textListener_->MoveCursor(direction);
-                std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-                textFieldReplyCount_++;
                 break;
             }
             case MSG_ID_ON_SWITCH_INPUT: {
@@ -334,10 +326,12 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_GET_TEXT_BEFORE_CURSOR:
-            case MSG_ID_GET_TEXT_INDEX_AT_CURSOR:
             case MSG_ID_GET_TEXT_AFTER_CURSOR: {
-                IMSA_HILOGI("InputMethodController::WorkThread HandleGetOperation, msgId: %{public}d", msg->msgId_);
-                HandleGetOperation();
+                GetText(msg);
+                break;
+            }
+            case MSG_ID_GET_TEXT_INDEX_AT_CURSOR: {
+                GetTextIndexAtCursor(msg);
                 break;
             }
             default: {
@@ -415,10 +409,6 @@ int32_t InputMethodController::Attach(
 {
     IMSA_HILOGI("isShowKeyboard %{public}s", isShowKeyboard ? "true" : "false");
     InputmethodTrace tracer("InputMethodController Attach with textConfig trace.");
-    {
-        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-        textFieldReplyCount_ = 0;
-    }
     {
         std::lock_guard<std::mutex> lock(textListenerLock_);
         textListener_ = listener;
@@ -753,8 +743,7 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 
 int32_t InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
 {
-    IMSA_HILOGD("size: %{public}zu, start: %{public}d, end: %{public}d, replyCount: %{public}d", text.size(), start,
-        end, textFieldReplyCount_);
+    IMSA_HILOGD("size: %{public}zu, start: %{public}d, end: %{public}d", text.size(), start, end);
     if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -764,17 +753,6 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
 
-    std::lock_guard<std::mutex> lk(editorContentLock_);
-    {
-        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-        if (textFieldReplyCount_ > 0
-            && (text.size() != textString_.size() || start != selectNewBegin_ || end != selectNewEnd_)) {
-            textFieldReplyCount_--;
-        }
-        if (textFieldReplyCount_ == 0) {
-            textFieldReplyCountCv_.notify_one();
-        }
-    }
     if (textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) {
         IMSA_HILOGI("same to last update");
         return ErrorCode::NO_ERROR;
@@ -812,98 +790,41 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodController::HandleGetOperation()
+void InputMethodController::GetText(const Message *msg)
 {
-    IMSA_HILOGI("InputMethodController::start");
-    if (!isEditable_.load()) {
-        IMSA_HILOGE("text filed is not Focused");
-        std::lock_guard<std::mutex> lock(editorContentLock_);
-        selectNewEnd_ = -1;
-        clientInfo_.channel->NotifyGetOperationCompletion();
+    std::u16string text;
+    auto resultHandler = msg->textResultHandler_;
+    if (!isEditable_.load() || textListener_ == nullptr) {
+        IMSA_HILOGE("not editable or textListener_ is nullptr");
+        resultHandler->SetValue(text);
         return;
     }
-    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-    auto ret = textFieldReplyCountCv_.wait_for(
-        numLock, std::chrono::milliseconds(WAIT_TIME), [this] { return textFieldReplyCount_ == 0; });
-    if (!ret) {
-        IMSA_HILOGE("InputMethodController::timeout");
-        // timeout,reset the waitOnSelectionChangeNum_ to eliminate the impact on subsequent processing
-        textFieldReplyCount_ = 0;
+    auto number = msg->msgContent_->ReadInt32();
+    if (number < 0) {
+        resultHandler->SetValue(text);
+        return;
     }
-    IMSA_HILOGI("InputMethodController::notify");
-    clientInfo_.channel->NotifyGetOperationCompletion();
+    if (msg->msgId_ == MSG_ID_GET_TEXT_BEFORE_CURSOR) {
+        text = textListener_->GetLeftTextOfCursor(number);
+    } else {
+        text = textListener_->GetRightTextOfCursor(number);
+    }
+    IMSA_HILOGI("get text success, msgId:%{public}d", msg->msgId_);
+    resultHandler->SetValue(text);
 }
 
-bool InputMethodController::IsCorrectParam(int32_t number)
+void InputMethodController::GetTextIndexAtCursor(const Message *msg)
 {
-    std::lock_guard<std::mutex> lock(editorContentLock_);
-    if (textString_.size() > INT_MAX || number < 0 || selectNewEnd_ < 0 || selectNewBegin_ < 0) {
-        IMSA_HILOGE("InputMethodController::param error, number: %{public}d, begin: %{public}d, end: %{public}d",
-            number, selectNewBegin_, selectNewEnd_);
-        return false;
+    int32_t index = -1;
+    auto resultHandler = msg->indexResultHandler_;
+    if (!isEditable_.load() || textListener_ == nullptr) {
+        IMSA_HILOGE("not editable or textListener_ is nullptr");
+        resultHandler->SetValue(index);
+        return;
     }
-    if (selectNewBegin_ > selectNewEnd_) {
-        int32_t temp = selectNewEnd_;
-        selectNewEnd_ = selectNewBegin_;
-        selectNewBegin_ = temp;
-    }
-    if (static_cast<size_t>(selectNewEnd_) > textString_.size()) {
-        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}zu", selectNewEnd_,
-            textString_.size());
-        return false;
-    }
-    return true;
-}
-
-int32_t InputMethodController::GetTextBeforeCursor(int32_t number, std::u16string &text)
-{
-    IMSA_HILOGI("InputMethodController::GetTextBeforeCursor");
-    if (!isEditable_.load()) {
-        IMSA_HILOGE("not in editable state");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
-    text = u"";
-    if (!IsCorrectParam(number)) {
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    std::lock_guard<std::mutex> lock(editorContentLock_);
-    int32_t startPos = (number <= selectNewBegin_ ? (selectNewBegin_ - number) : 0);
-    int32_t length = (number <= selectNewBegin_ ? number : selectNewBegin_);
-    text = textString_.substr(startPos, length);
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodController::GetTextAfterCursor(int32_t number, std::u16string &text)
-{
-    IMSA_HILOGI("InputMethodController::GetTextAfterCursor");
-    if (!isEditable_.load()) {
-        IMSA_HILOGE("not in editable state");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
-    text = u"";
-    if (!IsCorrectParam(number)) {
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    std::lock_guard<std::mutex> lock(editorContentLock_);
-    text = textString_.substr(selectNewEnd_, number);
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
-{
-    IMSA_HILOGI("InputMethodController::start");
-    if (!isEditable_.load()) {
-        IMSA_HILOGE("not in editable state");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
-    std::lock_guard<std::mutex> lock(editorContentLock_);
-    if (textString_.size() > INT_MAX || selectNewEnd_ < 0 || static_cast<size_t>(selectNewEnd_) > textString_.size()) {
-        IMSA_HILOGE("InputMethodController::param error, end: %{public}d, size: %{public}zu", selectNewEnd_,
-            textString_.size());
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    index = selectNewEnd_;
-    return ErrorCode::NO_ERROR;
+    index = textListener_->GetTextIndexAtCursor();
+    IMSA_HILOGI("get text index success");
+    resultHandler->SetValue(index);
 }
 
 bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
@@ -1111,8 +1032,6 @@ void InputMethodController::OnSelectByRange(int32_t start, int32_t end)
     IMSA_HILOGI("InputMethodController run in");
     if (isEditable_.load() && textListener_ != nullptr) {
         textListener_->HandleSetSelection(start, end);
-        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-        textFieldReplyCount_++;
     } else {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
     }
@@ -1129,8 +1048,6 @@ void InputMethodController::OnSelectByMovement(int32_t direction, int32_t cursor
     IMSA_HILOGI("InputMethodController run in");
     if (isEditable_.load() && textListener_ != nullptr) {
         textListener_->HandleSelect(CURSOR_DIRECTION_BASE_VALUE + direction, cursorMoveSkip);
-        std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-        textFieldReplyCount_++;
     } else {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
     }
@@ -1150,8 +1067,6 @@ void InputMethodController::HandleExtendAction(int32_t action)
         return;
     }
     textListener_->HandleExtendAction(action);
-    std::unique_lock<std::mutex> numLock(textFieldReplyCountLock_);
-    textFieldReplyCount_++;
 }
 } // namespace MiscServices
 } // namespace OHOS

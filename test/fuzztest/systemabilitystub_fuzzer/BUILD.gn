@@ -25,7 +25,10 @@ ohos_fuzztest("SystemAbilityStubFuzzTest") {
   fuzz_config_file =
       "//base/inputmethod/imf/test/fuzztest/systemabilitystub_fuzzer"
 
-  include_dirs = [ "${inputmethod_path}/services/include" ]
+  include_dirs = [
+    "${inputmethod_path}/services/include",
+    "${inputmethod_path}/test/common",
+  ]
 
   cflags = [
     "-g",

@@ -17,7 +17,10 @@ import("//build/test.gni")
 config("module_private_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [ "//base/inputmethod/imf/services/include" ]
+  include_dirs = [
+    "${inputmethod_path}/services/include",
+    "${inputmethod_path}/test/common",
+  ]
 }
 
 module_output_path = "imf/cpp"
@@ -159,6 +162,8 @@ ohos_unittest("InputMethodDfxTest") {
   module_out_path = module_output_path
 
   sources = [ "src/input_method_dfx_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
 
   deps = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
