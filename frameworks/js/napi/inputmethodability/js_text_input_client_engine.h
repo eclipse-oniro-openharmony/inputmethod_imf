@@ -316,7 +316,7 @@ private:
     static const std::string TIC_CLASS_NAME;
     static thread_local napi_ref TICRef_;
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
-    static std::shared_ptr<WakeQueue<EditorEventInfo>> editorQueue_;
+    static WakeQueue<EditorEventInfo> editorQueue_;
 };
 } // namespace MiscServices
 } // namespace OHOS

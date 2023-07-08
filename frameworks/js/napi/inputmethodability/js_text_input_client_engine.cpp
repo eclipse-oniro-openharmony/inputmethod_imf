@@ -26,8 +26,7 @@ namespace MiscServices {
 thread_local napi_ref JsTextInputClientEngine::TICRef_ = nullptr;
 const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";
 constexpr int32_t MAX_WAIT_TIME = 5000;
-std::shared_ptr<WakeQueue<EditorEventInfo>> JsTextInputClientEngine::editorQueue_ =
-    std::make_shared<WakeQueue<EditorEventInfo>>(MAX_WAIT_TIME);
+WakeQueue<EditorEventInfo> JsTextInputClientEngine::editorQueue_{ MAX_WAIT_TIME };
 napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
 {
     IMSA_HILOGI("JsTextInputClientEngine init");
@@ -59,10 +58,17 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
     auto ctxt = std::make_shared<MoveCursorContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, " should 1 or 2 parameters! ", TYPE_NONE, napi_generic_failure);
-        return JsUtils::GetValue(env, argv[0], ctxt->num);
+        auto status = JsUtils::GetValue(env, argv[0], ctxt->num);
+        if (status == napi_ok) {
+            ctxt->info = { std::chrono::system_clock::now(), EditorEvent::MOVE_CURSOR };
+            editorQueue_.Push(ctxt->info);
+        }
+        return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
+        editorQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->MoveCursor(ctxt->num);
+        editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -210,7 +216,7 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
         auto status = JsUtils::GetValue(env, argv[0], ctxt->length);
         if (status == napi_ok) {
             ctxt->info = { std::chrono::system_clock::now(), EditorEvent::DELETE_FORWARD };
-            editorQueue_->Push(ctxt->info);
+            editorQueue_.Push(ctxt->info);
         }
         return status;
     };
@@ -219,9 +225,9 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        editorQueue_->Wait(ctxt->info);
+        editorQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->DeleteForward(ctxt->length);
-        editorQueue_->Pop();
+        editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -244,7 +250,7 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
         auto status = JsUtils::GetValue(env, argv[0], ctxt->length);
         if (status == napi_ok) {
             ctxt->info = { std::chrono::system_clock::now(), EditorEvent::DELETE_BACKWARD };
-            editorQueue_->Push(ctxt->info);
+            editorQueue_.Push(ctxt->info);
         }
         return status;
     };
@@ -253,9 +259,9 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        editorQueue_->Wait(ctxt->info);
+        editorQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->DeleteBackward(ctxt->length);
-        editorQueue_->Pop();
+        editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -278,7 +284,7 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
         auto status = JsUtils::GetValue(env, argv[0], ctxt->text);
         if (status == napi_ok) {
             ctxt->info = { std::chrono::system_clock::now(), EditorEvent::INSERT_TEXT };
-            editorQueue_->Push(ctxt->info);
+            editorQueue_.Push(ctxt->info);
         }
         return status;
     };
@@ -287,9 +293,9 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        editorQueue_->Wait(ctxt->info);
+        editorQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->InsertText(ctxt->text);
-        editorQueue_->Pop();
+        editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -312,7 +318,7 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
         auto status = JsUtils::GetValue(env, argv[0], ctxt->length);
         if (status == napi_ok) {
             ctxt->info = { std::chrono::system_clock::now(), EditorEvent::GET_FORWARD };
-            editorQueue_->Push(ctxt->info);
+            editorQueue_.Push(ctxt->info);
         }
         return status;
     };
@@ -322,10 +328,10 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        editorQueue_->Wait(ctxt->info);
+        editorQueue_.Wait(ctxt->info);
         std::u16string temp;
         int32_t code = InputMethodAbility::GetInstance()->GetTextBeforeCursor(ctxt->length, temp);
-        editorQueue_->Pop();
+        editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -348,7 +354,7 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
         auto status = JsUtils::GetValue(env, argv[0], ctxt->length);
         if (status == napi_ok) {
             ctxt->info = { std::chrono::system_clock::now(), EditorEvent::GET_BACKWARD };
-            editorQueue_->Push(ctxt->info);
+            editorQueue_.Push(ctxt->info);
         }
         return status;
     };
@@ -358,10 +364,10 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        editorQueue_->Wait(ctxt->info);
+        editorQueue_.Wait(ctxt->info);
         std::u16string temp;
         int32_t code = InputMethodAbility::GetInstance()->GetTextAfterCursor(ctxt->length, temp);
-        editorQueue_->Pop();
+        editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -414,15 +420,15 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
         auto status = GetSelectRange(env, argv[0], ctxt);
         if (status == napi_ok) {
             ctxt->info = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_RANGE };
-            editorQueue_->Push(ctxt->info);
+            editorQueue_.Push(ctxt->info);
         }
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        editorQueue_->Wait(ctxt->info);
+        editorQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->SelectByRange(ctxt->start, ctxt->end);
-        editorQueue_->Pop();
+        editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -448,15 +454,15 @@ napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback
         auto status = GetSelectMovement(env, argv[0], ctxt);
         if (status == napi_ok) {
             ctxt->info = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_MOVEMENT };
-            editorQueue_->Push(ctxt->info);
+            editorQueue_.Push(ctxt->info);
         }
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        editorQueue_->Wait(ctxt->info);
+        editorQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->SelectByMovement(ctxt->direction);
-        editorQueue_->Pop();
+        editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
@@ -478,14 +484,14 @@ napi_value JsTextInputClientEngine::SendExtendAction(napi_env env, napi_callback
         auto status = JsUtils::GetValue(env, argv[0], ctxt->action);
         if (status == napi_ok) {
             ctxt->info = { std::chrono::system_clock::now(), EditorEvent::SEND_EXTEND_ACTION };
-            editorQueue_->Push(ctxt->info);
+            editorQueue_.Push(ctxt->info);
         }
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        editorQueue_->Wait(ctxt->info);
+        editorQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->SendExtendAction(ctxt->action);
-        editorQueue_->Pop();
+        editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
             return;
@@ -504,16 +510,16 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
     auto ctxt = std::make_shared<GetTextIndexAtCursorContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         ctxt->info = { std::chrono::system_clock::now(), EditorEvent::GET_TEXT_INDEX_AT_CURSOR };
-        editorQueue_->Push(ctxt->info);
+        editorQueue_.Push(ctxt->info);
         return napi_ok;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         return napi_create_int32(env, ctxt->index, result);
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        editorQueue_->Wait(ctxt->info);
+        editorQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->GetTextIndexAtCursor(ctxt->index);
-        editorQueue_->Pop();
+        editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);

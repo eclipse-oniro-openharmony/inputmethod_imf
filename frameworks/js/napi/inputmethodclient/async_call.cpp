@@ -16,7 +16,6 @@
 #include "async_call.h"
 
 #include <algorithm>
-#include <set>
 
 #include "global.h"
 #include "js_utils.h"

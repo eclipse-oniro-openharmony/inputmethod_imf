@@ -180,7 +180,6 @@ void InputMethodSystemAbility::Initialize()
     workThreadHandler = std::thread([this] { WorkThread(); });
     userSession_ = std::make_shared<PerUserSession>(MAIN_USER_ID);
     userId_ = MAIN_USER_ID;
-    switchQueues_ = std::make_shared<WakeQueue<SwitchInfo>>(MAX_WAIT_TIME);
 }
 
 void InputMethodSystemAbility::StartUserIdListener()
@@ -361,16 +360,16 @@ int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
 int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleName, const std::string &subName)
 {
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), bundleName, subName };
-    switchQueues_->Push(switchInfo);
+    switchQueue_.Push(switchInfo);
     return OnSwitchInputMethod(switchInfo, true);
 }
 
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission)
 {
     IMSA_HILOGD("run in, switchInfo: %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
-    if (!switchQueues_->IsReady(switchInfo)) {
+    if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
-        switchQueues_->Wait(switchInfo);
+        switchQueue_.Wait(switchInfo);
         usleep(SWITCH_BLOCK_TIME);
     }
     IMSA_HILOGD("start switch %{public}s", (switchInfo.bundleName + '/' + switchInfo.subName).c_str());
@@ -380,21 +379,21 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
         && !BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
         && !(switchInfo.bundleName == currentIme
              && BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme))) {
-        switchQueues_->Pop();
+        switchQueue_.Pop();
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     if (!IsNeedSwitch(switchInfo.bundleName, switchInfo.subName)) {
-        switchQueues_->Pop();
+        switchQueue_.Pop();
         return ErrorCode::NO_ERROR;
     }
     ImeInfo info;
     int32_t ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, switchInfo.bundleName, switchInfo.subName, info);
     if (ret != ErrorCode::NO_ERROR) {
-        switchQueues_->Pop();
+        switchQueue_.Pop();
         return ret;
     }
     ret = info.isNewIme ? Switch(switchInfo.bundleName, info) : SwitchExtension(info);
-    switchQueues_->Pop();
+    switchQueue_.Pop();
     return ret;
 }
 
@@ -691,7 +690,7 @@ int32_t InputMethodSystemAbility::SwitchMode()
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
-    switchQueues_->Push(switchInfo);
+    switchQueue_.Push(switchInfo);
     return OnSwitchInputMethod(switchInfo, false);
 }
 
@@ -715,7 +714,7 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
-    switchQueues_->Push(switchInfo);
+    switchQueue_.Push(switchInfo);
     return OnSwitchInputMethod(switchInfo, false);
 }
 
@@ -732,7 +731,7 @@ int32_t InputMethodSystemAbility::SwitchType()
         [&currentImeBundle](const Property &property) { return property.name != currentImeBundle; });
     if (iter != props.end()) {
         SwitchInfo switchInfo = { std::chrono::system_clock::now(), iter->name, "" };
-        switchQueues_->Push(switchInfo);
+        switchQueue_.Push(switchInfo);
         return OnSwitchInputMethod(switchInfo, false);
     }
     return ErrorCode::NO_ERROR;
