@@ -267,7 +267,7 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
 
     sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
     sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
-    auto ret = coreProxy->ShowKeyboard(channelProxy, false);
+    auto ret = coreProxy->ShowKeyboard(channelProxy, false, false);
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
     auto cvStatus = InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);

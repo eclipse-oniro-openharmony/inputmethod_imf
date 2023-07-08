@@ -37,12 +37,13 @@ int32_t InputMethodSystemAbilityProxy::PrepareInput(InputClientInfo &inputClient
         });
 }
 
-int32_t InputMethodSystemAbilityProxy::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
+int32_t InputMethodSystemAbilityProxy::StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag)
 {
     IMSA_HILOGD("%{public}s in", __func__);
-    return SendRequest(
-        static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT), [isShowKeyboard, client](MessageParcel &data) {
-            return data.WriteRemoteObject(client->AsObject()) && data.WriteBool(isShowKeyboard);
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT),
+        [isShowKeyboard, client, attachFlag](MessageParcel &data) {
+            return data.WriteRemoteObject(client->AsObject()) && data.WriteBool(isShowKeyboard) &&
+                   data.WriteBool(attachFlag);
         });
 }
 

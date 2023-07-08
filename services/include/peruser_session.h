@@ -75,7 +75,7 @@ public:
     ~PerUserSession();
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
-    int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard);
+    int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard, bool attachFlag);
     int32_t OnStopInput(sptr<IInputClient> client);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
@@ -122,8 +122,8 @@ private:
     int AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     void UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard);
     int32_t RemoveClient(const sptr<IRemoteObject> &client, bool isClientDied);
-    int32_t ShowKeyboard(
-        const sptr<IInputDataChannel> &channel, const sptr<IInputClient> &inputClient, bool isShowKeyboard);
+    int32_t ShowKeyboard(const sptr<IInputDataChannel> &channel, const sptr<IInputClient> &inputClient,
+        bool isShowKeyboard, bool attachFlag);
     int32_t HideKeyboard(const sptr<IInputClient> &inputClient);
     int32_t ClearDataChannel(const sptr<IInputDataChannel> &channel);
     int32_t SendAgentToSingleClient(const sptr<IInputClient> &client);

@@ -436,7 +436,7 @@ int32_t InputMethodController::Attach(
         IMSA_HILOGE("failed to prepare, ret: %{public}d", ret);
         return ret;
     }
-    ret = StartInput(clientInfo_.client, isShowKeyboard);
+    ret = StartInput(clientInfo_.client, isShowKeyboard, true);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input, ret:%{public}d", ret);
         return ret;
@@ -460,7 +460,7 @@ int32_t InputMethodController::ShowTextInput()
     }
     clientInfo_.isShowKeyboard = true;
     InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_SHOW_ENEDITABLE);
-    int32_t ret = StartInput(clientInfo_.client, true);
+    int32_t ret = StartInput(clientInfo_.client, true, false);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input, ret: %{public}d", ret);
         return ret;
@@ -620,7 +620,7 @@ std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype
     return property;
 }
 
-int32_t InputMethodController::StartInput(sptr<IInputClient> &client, bool isShowKeyboard)
+int32_t InputMethodController::StartInput(sptr<IInputClient> &client, bool isShowKeyboard, bool attachFlag)
 {
     IMSA_HILOGI("InputMethodController::StartInput");
     auto proxy = GetSystemAbilityProxy();
@@ -628,7 +628,7 @@ int32_t InputMethodController::StartInput(sptr<IInputClient> &client, bool isSho
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->StartInput(client, isShowKeyboard);
+    return proxy->StartInput(client, isShowKeyboard, attachFlag);
 }
 
 int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)

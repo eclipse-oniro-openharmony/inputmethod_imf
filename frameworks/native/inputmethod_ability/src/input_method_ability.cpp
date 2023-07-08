@@ -247,7 +247,8 @@ void InputMethodAbility::OnShowKeyboard(Message *msg)
     MessageParcel *data = msg->msgContent_;
     sptr<IRemoteObject> channelObject = nullptr;
     bool isShowKeyboard = false;
-    if (!ITypesUtil::Unmarshal(*data, channelObject, isShowKeyboard)) {
+    bool attachFlag = false;
+    if (!ITypesUtil::Unmarshal(*data, channelObject, isShowKeyboard, attachFlag)) {
         IMSA_HILOGE("InputMethodAbility::OnShowKeyboard read message parcel failed");
         return;
     }
@@ -256,14 +257,15 @@ void InputMethodAbility::OnShowKeyboard(Message *msg)
         return;
     }
     SetInputDataChannel(channelObject);
-    TextTotalConfig textConfig = {};
-    int32_t ret = GetTextConfig(textConfig);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
-        return;
+    if (attachFlag) {
+        TextTotalConfig textConfig = {};
+        int32_t ret = GetTextConfig(textConfig);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
+            return;
+        }
+        OnTextConfigChange(textConfig);
     }
-    // todo textConfig需要判空吗？？
-    OnTextConfigChange(textConfig);
     ShowInputWindow(isShowKeyboard);
 }
 
@@ -430,7 +432,6 @@ void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
 void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
 {
     IMSA_HILOGI("InputMethodAbility run in.");
-    // todo 不论是不是变化，都会通知过来，这里需不需要做拦截？？
     if (kdListener_ == nullptr) {
         IMSA_HILOGE("kdListener_ is nullptr.");
     } else {

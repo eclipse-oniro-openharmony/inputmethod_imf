@@ -460,7 +460,7 @@ private:
     bool Initialize();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
     int32_t PrepareInput(InputClientInfo &inputClientInfo);
-    int32_t StartInput(sptr<IInputClient> &client, bool isShowKeyboard);
+    int32_t StartInput(sptr<IInputClient> &client, bool isShowKeyboard, bool attachFlag);
     int32_t StopInput(sptr<IInputClient> &client);
     int32_t ReleaseInput(sptr<IInputClient> &client);
     void OnSwitchInput(const Property &property, const SubProperty &subProperty);
