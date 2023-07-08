@@ -25,7 +25,7 @@ namespace OHOS {
 namespace MiscServices {
 thread_local napi_ref JsTextInputClientEngine::TICRef_ = nullptr;
 const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";
-constexpr int32_t MAX_WAIT_TIME = 1000;
+constexpr int32_t MAX_WAIT_TIME = 5000;
 std::shared_ptr<WakeQueue<EditorEventInfo>> JsTextInputClientEngine::editorQueue_ =
     std::make_shared<WakeQueue<EditorEventInfo>>(MAX_WAIT_TIME);
 napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)

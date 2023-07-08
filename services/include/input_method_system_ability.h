@@ -114,7 +114,7 @@ private:
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
     static constexpr const char *SELECT_DIALOG_HAP = "cn.openharmony.inputmethodchoosedialog";
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
-    static constexpr int32_t MAX_WAIT_TIME = 1000;
+    static constexpr int32_t MAX_WAIT_TIME = 5000;
     std::shared_ptr<WakeQueue<SwitchInfo>> switchQueues_{ nullptr };
     int32_t InitKeyEventMonitor();
     bool InitFocusChangeMonitor();
