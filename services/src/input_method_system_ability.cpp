@@ -140,7 +140,6 @@ int32_t InputMethodSystemAbility::Init()
         userId_ = userIds[0];
         userSession_->UpdateCurrentUserId(userId_);
     }
-    StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_));
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
@@ -768,7 +767,9 @@ int32_t InputMethodSystemAbility::InitKeyEventMonitor()
 bool InputMethodSystemAbility::InitFocusChangeMonitor()
 {
     return ImCommonEventManager::GetInstance()->SubscribeWindowManagerService(
-        [this](int32_t pid, int32_t uid) { return userSession_->OnUnfocused(pid, uid); });
+        [this](int32_t pid, int32_t uid) { return userSession_->OnUnfocused(pid, uid); },
+        [this](int32_t userId) { StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_)); }
+    );     
 }
 } // namespace MiscServices
 } // namespace OHOS
