@@ -15,15 +15,24 @@
 #ifndef ASYN_CALL_H
 #define ASYN_CALL_H
 
-#include "input_method_info.h"
 #include "global.h"
+#include "input_method_info.h"
 #include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
+#include "queue.h"
 
 namespace OHOS {
 namespace MiscServices {
+struct EventInfo {
+    std::chrono::system_clock::time_point timestamp{};
+    std::string type;
+    bool operator==(const EventInfo &info) const
+    {
+        return (timestamp == info.timestamp && type == info.type);
+    }
+};
 class AsyncCall final {
 public:
     class Context {
@@ -91,6 +100,7 @@ public:
         ExecAction exec_ = nullptr;
         napi_status status_ = napi_generic_failure;
         int32_t errorCode_ = 0;
+        EventInfo eventInfo;
     };
     AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t maxParamCount);
     ~AsyncCall();
@@ -111,6 +121,7 @@ private:
     static void DeleteContext(napi_env env, AsyncContext *context);
     AsyncContext *context_ = nullptr;
     napi_env env_ = nullptr;
+    static std::shared_ptr<Queue<EventInfo>> queues_;
 };
 } // namespace MiscServices
 } // namespace OHOS

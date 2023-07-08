@@ -19,6 +19,7 @@
 #include <mutex>
 
 namespace OHOS {
+namespace MiscServices {
 template<typename T> class BlockData {
 public:
     explicit BlockData(uint32_t interval, const T &invalid = T()) : INTERVAL(interval), data_(invalid)
@@ -67,5 +68,6 @@ private:
     std::mutex mutex_;
     std::condition_variable cv_;
 };
+} // namespace MiscServices
 } // namespace OHOS
 #endif // OHOS_INPUTMETHOD_IMF_FRAMEWORKS_BLOCK_DATA_H

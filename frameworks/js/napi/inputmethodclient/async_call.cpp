@@ -16,6 +16,7 @@
 #include "async_call.h"
 
 #include <algorithm>
+#include <set>
 
 #include "global.h"
 #include "js_utils.h"
@@ -23,6 +24,10 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr size_t ARGC_MAX = 6;
+constexpr int32_t MAX_WAIT_TIME = 1000;
+std::shared_ptr<Queue<EventInfo>> AsyncCall::queues_ = std::make_shared<Queue<EventInfo>>(MAX_WAIT_TIME);
+const std::set<std::string> QUEUE_EVENT_TYPE{ "moveCursor", "deleteForward", "deleteBackward", "insertText",
+    "getForward", "getBackward", "selectByRange", "selectByMovement", "sendExtendAction", "getTextIndexAtCursor" };
 AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t maxParamCount)
     : env_(env)
 {
@@ -75,6 +80,10 @@ napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec, const std::st
     napi_value resource = nullptr;
     std::string name = "IMF_" + resourceName;
     napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &resource);
+    if (QUEUE_EVENT_TYPE.find(resourceName) != QUEUE_EVENT_TYPE.end()) {
+        context_->ctx->eventInfo = { std::chrono::system_clock::now(), resourceName };
+        queues_->Push(context_->ctx->eventInfo);
+    }
     napi_create_async_work(env, nullptr, resource, AsyncCall::OnExecute, AsyncCall::OnComplete, context_, &work);
     context_->work = work;
     context_ = nullptr;
@@ -103,7 +112,13 @@ napi_value AsyncCall::SyncCall(napi_env env, AsyncCall::Context::ExecAction exec
 void AsyncCall::OnExecute(napi_env env, void *data)
 {
     AsyncContext *context = reinterpret_cast<AsyncContext *>(data);
+    if (QUEUE_EVENT_TYPE.find(context->ctx->eventInfo.type) != QUEUE_EVENT_TYPE.end()) {
+        queues_->WaitExec(context->ctx->eventInfo);
+    }
     context->ctx->Exec();
+    if (QUEUE_EVENT_TYPE.find(context->ctx->eventInfo.type) != QUEUE_EVENT_TYPE.end()) {
+        queues_->Pop();
+    }
 }
 
 void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
