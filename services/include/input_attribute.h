@@ -43,6 +43,12 @@ struct InputAttribute {
     {
         return inputPattern == PATTERN_PASSWORD;
     }
+
+    bool operator==(const InputAttribute &info) const
+    {
+        return inputPattern == info.inputPattern && enterKeyType == info.enterKeyType &&
+               inputOption == info.inputOption;
+    }
 };
 } // namespace MiscServices
 } // namespace OHOS

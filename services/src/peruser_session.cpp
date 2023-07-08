@@ -391,7 +391,7 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
     if (client != nullptr) {
         auto clientInfo = GetClientInfo(client->AsObject());
         if (clientInfo != nullptr) {
-            ret = OnStartInput(clientInfo->client, clientInfo->isShowKeyboard, false);
+            ret = OnStartInput(clientInfo->client, clientInfo->isShowKeyboard, true);
             IMSA_HILOGI("start input ret: %{public}d", ret);
         }
     }

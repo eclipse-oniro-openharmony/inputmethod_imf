@@ -24,6 +24,7 @@ namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t INIT_WINDOW_ID = 0;
 constexpr uint32_t INVALID_WINDOW_ID = INIT_WINDOW_ID - 1;
+constexpr int32_t INVALID_VALUE = -1;
 enum class EnterKeyType { UNSPECIFIED = 0, NONE, GO, SEARCH, SEND, NEXT, DONE, PREVIOUS };
 
 enum class TextInputType {
@@ -113,15 +114,15 @@ private:
 };
 
 struct SelectionRange {
-    int32_t start = -1;
-    int32_t end = -1;
+    int32_t start = INVALID_VALUE;
+    int32_t end = INVALID_VALUE;
 };
 
 struct TextSelection {
-    int32_t oldBegin = -1;
-    int32_t oldEnd = -1;
-    int32_t newBegin = -1;
-    int32_t newEnd = -1;
+    int32_t oldBegin = INVALID_VALUE;
+    int32_t oldEnd = INVALID_VALUE;
+    int32_t newBegin = INVALID_VALUE;
+    int32_t newEnd = INVALID_VALUE;
 };
 
 class TextTotalConfig {

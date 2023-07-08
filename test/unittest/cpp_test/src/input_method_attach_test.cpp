@@ -21,6 +21,7 @@
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "tdd_util.h"
+#include "text_listener.h"
 
 using namespace testing::ext;
 namespace OHOS {
@@ -59,30 +60,6 @@ public:
         {
             IMSA_HILOGI("EngineListenerImpl OnSetSubtype");
         }
-    };
-    class TextChangeListenerImpl : public OnTextChangedListener {
-    public:
-        void InsertText(const std::u16string &text) override {}
-
-        void DeleteForward(int32_t length) override {}
-
-        void DeleteBackward(int32_t length) override {}
-
-        void SendKeyEventFromInputMethod(const KeyEvent &event) override {}
-
-        void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) override {}
-
-        void SendFunctionKey(const FunctionKey &functionKey) override {}
-
-        void SetKeyboardStatus(bool status) override {}
-
-        void MoveCursor(const Direction direction) override {}
-
-        void HandleSetSelection(int32_t start, int32_t end) override {}
-
-        void HandleExtendAction(int32_t action) override {}
-
-        void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override {}
     };
     static void SetUpTestCase(void)
     {
@@ -128,8 +105,8 @@ sptr<InputMethodAbility> InputMethodAttachTest::inputMethodAbility_;
 HWTEST_F(InputMethodAttachTest, testAttach001, TestSize.Level0)
 {
     IMSA_HILOGI("test testAttach001 after attach.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl);
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     int32_t keyType = -1;
@@ -151,8 +128,8 @@ HWTEST_F(InputMethodAttachTest, testAttach001, TestSize.Level0)
 HWTEST_F(InputMethodAttachTest, testAttach002, TestSize.Level0)
 {
     IMSA_HILOGI("test testAttach002 after attach.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl, false);
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    auto ret = inputMethodController_->Attach(textListener, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     int32_t keyType = -1;
@@ -174,11 +151,11 @@ HWTEST_F(InputMethodAttachTest, testAttach002, TestSize.Level0)
 HWTEST_F(InputMethodAttachTest, testAttach003, TestSize.Level0)
 {
     IMSA_HILOGI("test testAttach003 after attach.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
+    sptr<OnTextChangedListener> textListener = new TextListener();
     InputAttribute attribute;
     attribute.inputPattern = 2;
     attribute.enterKeyType = 1;
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl, true, attribute);
+    auto ret = inputMethodController_->Attach(textListener, true, attribute);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     int32_t keyType = -1;
@@ -199,13 +176,13 @@ HWTEST_F(InputMethodAttachTest, testAttach003, TestSize.Level0)
 HWTEST_F(InputMethodAttachTest, testAttach004, TestSize.Level0)
 {
     IMSA_HILOGI("test testAttach004 after attach.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
+    sptr<OnTextChangedListener> textListener = new TextListener();
     InputAttribute attribute;
     attribute.inputPattern = 3;
     attribute.enterKeyType = 2;
     TextConfig config;
     config.inputAttribute = attribute;
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl, false, config);
+    auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     int32_t keyType = -1;
@@ -226,7 +203,7 @@ HWTEST_F(InputMethodAttachTest, testAttach004, TestSize.Level0)
 HWTEST_F(InputMethodAttachTest, testAttach005, TestSize.Level0)
 {
     IMSA_HILOGI("test testAttach005 after attach.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
+    sptr<OnTextChangedListener> textListener = new TextListener();
     InputAttribute attribute;
     attribute.inputPattern = 3;
     attribute.enterKeyType = 2;
@@ -243,7 +220,7 @@ HWTEST_F(InputMethodAttachTest, testAttach005, TestSize.Level0)
     selectionRange.end = 2;
     config.range = selectionRange;
     config.windowId = 10;
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl, true, config);
+    auto ret = inputMethodController_->Attach(textListener, true, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     int32_t keyType = -1;
@@ -258,8 +235,7 @@ HWTEST_F(InputMethodAttachTest, testAttach005, TestSize.Level0)
     TextTotalConfig textConfig;
     ret = inputMethodAbility_->GetTextConfig(textConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(textConfig.inputAttribute.inputPattern, config.inputAttribute.inputPattern);
-    EXPECT_EQ(textConfig.inputAttribute.enterKeyType, config.inputAttribute.enterKeyType);
+    EXPECT_EQ(textConfig.inputAttribute, config.inputAttribute);
     EXPECT_EQ(textConfig.windowId, config.windowId);
     EXPECT_EQ(textConfig.cursorInfo, config.cursorInfo);
     EXPECT_EQ(textConfig.textSelection.newBegin, config.range.start);
@@ -293,8 +269,8 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeWithOutAttach, TestSize
 HWTEST_F(InputMethodAttachTest, testOnConfigurationChange, TestSize.Level0)
 {
     IMSA_HILOGI("test OnConfigurationChange after attach.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl);
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     Configuration config;
@@ -322,7 +298,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChange, TestSize.Level0)
 HWTEST_F(InputMethodAttachTest, testGetTextConfig, TestSize.Level0)
 {
     IMSA_HILOGI("test OnConfigurationChange001 after attach.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
+    sptr<OnTextChangedListener> textListener = new TextListener();
     InputAttribute attribute;
     attribute.inputPattern = 3;
     attribute.enterKeyType = 2;
@@ -339,18 +315,14 @@ HWTEST_F(InputMethodAttachTest, testGetTextConfig, TestSize.Level0)
     selectionRange.end = 2;
     config.range = selectionRange;
     config.windowId = 10;
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl, false, config);
+    auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    EXPECT_EQ(totalConfig.inputAttribute.inputPattern, attribute.inputPattern);
-    EXPECT_EQ(totalConfig.inputAttribute.enterKeyType, attribute.enterKeyType);
-    EXPECT_EQ(totalConfig.cursorInfo.height, cursorInfo.height);
-    EXPECT_EQ(totalConfig.cursorInfo.width, cursorInfo.width);
-    EXPECT_EQ(totalConfig.cursorInfo.left, cursorInfo.left);
-    EXPECT_EQ(totalConfig.cursorInfo.top, cursorInfo.top);
+    EXPECT_EQ(totalConfig.inputAttribute, attribute);
+    EXPECT_EQ(totalConfig.cursorInfo, cursorInfo);
     EXPECT_EQ(totalConfig.textSelection.newBegin, selectionRange.start);
     EXPECT_EQ(totalConfig.textSelection.newEnd, selectionRange.end);
     EXPECT_EQ(totalConfig.textSelection.oldBegin, 0);
@@ -366,8 +338,8 @@ HWTEST_F(InputMethodAttachTest, testGetTextConfig, TestSize.Level0)
 HWTEST_F(InputMethodAttachTest, testOnCursorUpdateAfterAttach001, TestSize.Level0)
 {
     IMSA_HILOGI("test testOnCursorUpdateAfterAttach001.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl);
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     CursorInfo cursorInfo = { .top = 5, .left = 5, .height = 5, .width = 0.8 };
     ret = inputMethodController_->OnCursorUpdate(cursorInfo);
@@ -389,14 +361,14 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdateAfterAttach001, TestSize.Level
 HWTEST_F(InputMethodAttachTest, testOnCursorUpdateAfterAttach002, TestSize.Level0)
 {
     IMSA_HILOGI("test testOnCursorUpdateAfterAttach002.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
+    sptr<OnTextChangedListener> textListener = new TextListener();
     InputAttribute attribute;
     attribute.inputPattern = 3;
     attribute.enterKeyType = 2;
     TextConfig config;
     config.inputAttribute = attribute;
     config.cursorInfo = { .top = 1, .left = 1, .height = 1, .width = 0.4 };
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl, true, config);
+    auto ret = inputMethodController_->Attach(textListener, true, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     CursorInfo cursorInfo = { .top = 5, .left = 5, .height = 5, .width = 0.8 };
     ret = inputMethodController_->OnCursorUpdate(cursorInfo);
@@ -404,10 +376,7 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdateAfterAttach002, TestSize.Level
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(totalConfig.cursorInfo.height, config.cursorInfo.height);
-    EXPECT_EQ(totalConfig.cursorInfo.width, config.cursorInfo.width);
-    EXPECT_EQ(totalConfig.cursorInfo.left, config.cursorInfo.left);
-    EXPECT_EQ(totalConfig.cursorInfo.top, config.cursorInfo.top);
+    EXPECT_EQ(totalConfig.cursorInfo, config.cursorInfo);
 }
 
 /**
@@ -418,14 +387,14 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdateAfterAttach002, TestSize.Level
 HWTEST_F(InputMethodAttachTest, testOnSelectionChangeAfterAttach002, TestSize.Level0)
 {
     IMSA_HILOGI("test testOnSelectionChangeAfterAttach002.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
+    sptr<OnTextChangedListener> textListener = new TextListener();
     InputAttribute attribute;
     attribute.inputPattern = 3;
     attribute.enterKeyType = 2;
     TextConfig config;
     config.inputAttribute = attribute;
     config.range = { .start = 1, .end = 2 };
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl, false, config);
+    auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     int start = 0;
     int end = 1;
@@ -449,8 +418,8 @@ HWTEST_F(InputMethodAttachTest, testOnSelectionChangeAfterAttach002, TestSize.Le
 HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeAfterAttach001, TestSize.Level0)
 {
     IMSA_HILOGI("test testOnConfigurationChangeAfterAttach001.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl);
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     Configuration config;
@@ -462,8 +431,8 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeAfterAttach001, TestSiz
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(totalConfig.inputAttribute.inputPattern, 1);
-    EXPECT_EQ(totalConfig.inputAttribute.enterKeyType, 0);
+    EXPECT_EQ(totalConfig.inputAttribute.inputPattern, static_cast<int32_t>(TextInputType::DATETIME));
+    EXPECT_EQ(totalConfig.inputAttribute.enterKeyType, static_cast<int32_t>(EnterKeyType::NEXT));
 }
 
 /**
@@ -474,13 +443,13 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeAfterAttach001, TestSiz
 HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeAfterAttach002, TestSize.Level0)
 {
     IMSA_HILOGI("test testOnConfigurationChangeAfterAttach002.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
+    sptr<OnTextChangedListener> textListener = new TextListener();
     InputAttribute attribute;
     attribute.inputPattern = 3;
     attribute.enterKeyType = 2;
     TextConfig config;
     config.inputAttribute = attribute;
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl, false, config);
+    auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     Configuration configuration;
@@ -492,8 +461,8 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeAfterAttach002, TestSiz
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(totalConfig.inputAttribute.inputPattern, static_cast<int32_t>(config.inputAttribute.inputPattern));
-    EXPECT_EQ(totalConfig.inputAttribute.enterKeyType, static_cast<int32_t>(config.inputAttribute.enterKeyType));
+    EXPECT_EQ(totalConfig.inputAttribute.inputPattern, static_cast<int32_t>(configuration.GetTextInputType()));
+    EXPECT_EQ(totalConfig.inputAttribute.enterKeyType, static_cast<int32_t>(configuration.GetEnterKeyType()));
 }
 
 /**
@@ -504,14 +473,14 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeAfterAttach002, TestSiz
 HWTEST_F(InputMethodAttachTest, testSetCallingWindowAfterAttach002, TestSize.Level0)
 {
     IMSA_HILOGI("test testSetCallingWindowAfterAttach002.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
+    sptr<OnTextChangedListener> textListener = new TextListener();
     InputAttribute attribute;
     attribute.inputPattern = 3;
     attribute.enterKeyType = 2;
     TextConfig config;
     config.inputAttribute = attribute;
     config.windowId = 88;
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl, false, config);
+    auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     uint32_t windowId = 99;
@@ -532,8 +501,8 @@ HWTEST_F(InputMethodAttachTest, testSetCallingWindowAfterAttach002, TestSize.Lev
 HWTEST_F(InputMethodAttachTest, testOnCursorUpdate001, TestSize.Level0)
 {
     IMSA_HILOGI("test testOnCursorUpdate001.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl);
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     CursorInfo cursorInfo = { .top = 5, .left = 5, .height = 5, .width = 0.8 };
     ret = inputMethodController_->OnCursorUpdate(cursorInfo);
@@ -546,16 +515,13 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdate001, TestSize.Level0)
     config.inputAttribute = attribute;
     CursorInfo cursorInfo2 = { .top = 10, .left = 9, .width = 8, .height = 7 };
     config.cursorInfo = cursorInfo2;
-    ret = inputMethodController_->Attach(textChangeListenerImpl, false, config);
+    ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(totalConfig.cursorInfo.height, cursorInfo2.height);
-    EXPECT_EQ(totalConfig.cursorInfo.width, cursorInfo2.width);
-    EXPECT_EQ(totalConfig.cursorInfo.left, cursorInfo2.left);
-    EXPECT_EQ(totalConfig.cursorInfo.top, cursorInfo2.top);
+    EXPECT_EQ(totalConfig.cursorInfo, cursorInfo2);
 }
 
 /**
@@ -566,8 +532,8 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdate001, TestSize.Level0)
 HWTEST_F(InputMethodAttachTest, testOnSelectionChange, TestSize.Level0)
 {
     IMSA_HILOGI("test testOnSelectionChange.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl);
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     int start = 0;
     int end = 1;
@@ -581,7 +547,7 @@ HWTEST_F(InputMethodAttachTest, testOnSelectionChange, TestSize.Level0)
     config.inputAttribute = attribute;
     config.range.start = 10;
     config.range.end = 20;
-    ret = inputMethodController_->Attach(textChangeListenerImpl, false, config);
+    ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;
@@ -601,8 +567,8 @@ HWTEST_F(InputMethodAttachTest, testOnSelectionChange, TestSize.Level0)
 HWTEST_F(InputMethodAttachTest, testOnConfigurationChange002, TestSize.Level0)
 {
     IMSA_HILOGI("test testOnConfigurationChange002.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl);
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     Configuration configuration;
@@ -618,15 +584,14 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChange002, TestSize.Level0)
     config.inputAttribute = attribute;
     config.inputAttribute.enterKeyType = 5;
     config.inputAttribute.inputPattern = 5;
-    ret = inputMethodController_->Attach(textChangeListenerImpl, false, config);
+    ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    EXPECT_EQ(totalConfig.inputAttribute.inputPattern, config.inputAttribute.inputPattern);
-    EXPECT_EQ(totalConfig.inputAttribute.enterKeyType, config.inputAttribute.enterKeyType);
+    EXPECT_EQ(totalConfig.inputAttribute, config.inputAttribute);
 }
 
 /**
@@ -637,8 +602,8 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChange002, TestSize.Level0)
 HWTEST_F(InputMethodAttachTest, testSetCallingWindow, TestSize.Level0)
 {
     IMSA_HILOGI("test testSetCallingWindow.");
-    sptr<OnTextChangedListener> textChangeListenerImpl = new TextChangeListenerImpl();
-    auto ret = inputMethodController_->Attach(textChangeListenerImpl);
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     uint32_t windowId = 88;
@@ -650,7 +615,7 @@ HWTEST_F(InputMethodAttachTest, testSetCallingWindow, TestSize.Level0)
     attribute.enterKeyType = 2;
     TextConfig config;
     config.windowId = 77;
-    ret = inputMethodController_->Attach(textChangeListenerImpl, false, config);
+    ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     TextTotalConfig totalConfig;

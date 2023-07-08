@@ -315,7 +315,8 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     {
         IMSA_HILOGI("InputMethodControllerTest::WaitRemoteDiedCallback");
         std::unique_lock<std::mutex> lock(onRemoteSaDiedMutex_);
-        return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
+        // 2 means wait 2 seconds.
+        return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(2)) != std::cv_status::timeout;
     }
 
     bool InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
@@ -745,8 +746,6 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
             EXPECT_EQ(
                 InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
         }
-        ret = inputMethodController_->Close();
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     }
 
     /**

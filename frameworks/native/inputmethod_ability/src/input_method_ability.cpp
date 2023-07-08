@@ -37,6 +37,10 @@ class MessageHandler;
 using namespace MessageID;
 sptr<InputMethodAbility> InputMethodAbility::instance_;
 std::mutex InputMethodAbility::instanceLock_;
+constexpr int32_t RETRY_COUNT = 10;
+constexpr int32_t WAIT_GAP = 10;
+constexpr double INVALID_CURSOR_VALUE = -1.0;
+constexpr int32_t INVALID_SELECTION_VALUE = -1;
 InputMethodAbility::InputMethodAbility() : stop_(false)
 {
     writeInputChannel = nullptr;
@@ -149,12 +153,9 @@ void InputMethodAbility::OnImeReady()
         return;
     }
     IMSA_HILOGI("InputMethodAbility::Ime Ready, notify InputStart");
-    TextTotalConfig textConfig = {};
+    TextTotalConfig textConfig{};
     int32_t ret = GetTextConfig(textConfig);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
-        return;
-    }
+    IMSA_HILOGI("InputMethodAbility, get text config failed, ret is %{public}d", ret);
     OnTextConfigChange(textConfig);
     ShowInputWindow(notifier_.isShowKeyboard);
 }
@@ -387,6 +388,23 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
+void InputMethodAbility::EnsureToShowPanel()
+{
+    for (int i = 0; i < RETRY_COUNT; ++i) {
+        auto result = panels_.Find(SOFT_KEYBOARD);
+        if (result.first) {
+            IMSA_HILOGI("find SOFT_KEYBOARD panel.");
+            auto ret = result.second->ShowPanel();
+            if (ret != ErrorCode::NO_ERROR) {
+                IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
+            }
+            return;
+        }
+        IMSA_HILOGE("Not find SOFT_KEYBOARD panel, count = %{public}d", i);
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_GAP));
+    }
+}
+
 void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
 {
     IMSA_HILOGI("InputMethodAbility::ShowInputWindow");
@@ -412,19 +430,7 @@ void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
         return;
     }
     channel->SendKeyboardStatus(KEYBOARD_SHOW);
-    for (int i = 0; i < 10; ++i) {
-        auto result = panels_.Find(SOFT_KEYBOARD);
-        if (result.first) {
-            IMSA_HILOGI("find SOFT_KEYBOARD panel.");
-            auto ret = result.second->ShowPanel();
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
-            }
-            return;
-        }
-        IMSA_HILOGE("Not find SOFT_KEYBOARD panel, count = %{public}d", i);
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
+    EnsureToShowPanel();
 }
 
 void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
@@ -435,12 +441,12 @@ void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
     } else {
         IMSA_HILOGI("send on('editorAttributeChanged') callback.");
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
-        if (textConfig.cursorInfo.left != -1.0) {
+        if (textConfig.cursorInfo.left != INVALID_CURSOR_VALUE) {
             IMSA_HILOGI("send on('cursorUpdate') callback.");
             kdListener_->OnCursorUpdate(
                 textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
         }
-        if (textConfig.textSelection.newBegin != -1) {
+        if (textConfig.textSelection.newBegin != INVALID_SELECTION_VALUE) {
             IMSA_HILOGI("send on('selectionChange') callback.");
             kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
                                            textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);

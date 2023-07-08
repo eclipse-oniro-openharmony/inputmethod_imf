@@ -104,7 +104,6 @@ int32_t InputDataChannelStub::OnRemoteRequest(
             break;
         }
         case GET_TEXT_CONFIG: {
-            IMSA_HILOGD("tyx::GetTextConfig in.");
             TextTotalConfig textConfig = {};
             reply.WriteInt32(GetTextConfig(textConfig));
             ITypesUtil::Marshal(reply, textConfig);

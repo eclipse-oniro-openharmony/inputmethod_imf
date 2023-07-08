@@ -485,9 +485,6 @@ private:
     std::thread workThreadHandler;
     MessageHandler *msgHandler_;
     bool stop_;
-    std::mutex configurationMutex_;
-    int32_t enterKeyType_ = 0;
-    int32_t inputPattern_ = 0;
 
     std::atomic_bool isEditable_{ false };
     std::atomic_bool isBound_{ false };
@@ -498,6 +495,7 @@ private:
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     std::atomic_bool isDiedRestoreListen_{ false };
 
+    std::mutex textConfigLock_;
     TextConfig textConfig_;
 };
 } // namespace MiscServices

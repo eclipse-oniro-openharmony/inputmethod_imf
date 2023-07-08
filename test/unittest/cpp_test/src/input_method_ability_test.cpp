@@ -360,16 +360,16 @@ HWTEST_F(InputMethodAbilityTest, testGetEnterKeyType, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testGetTextConfig, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetTextConfig START");
-    sptr<OnTextChangedListener> textChangeListener = new TextChangeListener();
+    sptr<OnTextChangedListener> textListener = new TextListener();
     TextConfig textConfig;
     textConfig.inputAttribute = { .inputPattern = 0, .enterKeyType = 1 };
-    auto ret = imc_->Attach(textChangeListener, false, textConfig);
+    auto ret = imc_->Attach(textListener, false, textConfig);
     TextTotalConfig textTotalConfig;
     ret = inputMethodAbility_->GetTextConfig(textTotalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(textTotalConfig.inputAttribute.inputPattern, textConfig.inputAttribute.inputPattern);
     EXPECT_EQ(textTotalConfig.inputAttribute.enterKeyType, textConfig.inputAttribute.enterKeyType);
-    textChangeListener = nullptr;
+    textListener = nullptr;
 }
 
 /**
