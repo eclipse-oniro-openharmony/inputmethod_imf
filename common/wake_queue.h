@@ -13,29 +13,27 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_INPUTMETHOD_QUEUE_H
-#define OHOS_INPUTMETHOD_QUEUE_H
+#ifndef OHOS_INPUTMETHOD_WAKE_QUEUE_H
+#define OHOS_INPUTMETHOD_WAKE_QUEUE_H
 #include <condition_variable>
 #include <mutex>
 #include <queue>
 
 namespace OHOS {
 namespace MiscServices {
-template<typename T> class Queue {
+template<typename T> class WakeQueue {
 public:
-    explicit Queue(uint32_t interval) : INTERVAL(interval)
+    explicit WakeQueue(uint32_t timeout) : timeout_(timeout)
     {
     }
 
-    ~Queue()
-    {
-    }
+    ~WakeQueue() = default;
 
     void Pop()
     {
         std::lock_guard<std::mutex> lock(queuesMutex_);
         queues_.pop();
-        execCv_.notify_all();
+        cv_.notify_all();
     }
 
     void Push(const T &data)
@@ -44,28 +42,27 @@ public:
         queues_.push(data);
     }
 
-    void WaitExec(const T &data)
+    void Wait(const T &data)
     {
-        if (!IsReadyToExec(data)) {
-            std::unique_lock<std::mutex> lock(execMutex_);
-            execCv_.wait_for(
-                lock, std::chrono::milliseconds(INTERVAL), [&data, this]() { return IsReadyToExec(data); });
+        if (!IsReady(data)) {
+            std::unique_lock<std::mutex> lock(cvMutex_);
+            cv_.wait_for(lock, std::chrono::milliseconds(timeout_), [&data, this]() { return IsReady(data); });
         }
     }
 
-    bool IsReadyToExec(const T &data)
+    bool IsReady(const T &data)
     {
         std::lock_guard<std::mutex> lock(queuesMutex_);
         return data == queues_.front();
     }
 
 private:
-    const uint32_t INTERVAL;
+    const uint32_t timeout_;
     std::mutex queuesMutex_;
     std::queue<T> queues_;
-    std::mutex execMutex_;
-    std::condition_variable execCv_;
+    std::mutex cvMutex_;
+    std::condition_variable cv_;
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // OHOS_INPUTMETHOD_QUEUE_H
+#endif // OHOS_INPUTMETHOD_WAKE_QUEUE_H

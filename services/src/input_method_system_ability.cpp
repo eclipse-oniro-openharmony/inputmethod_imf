@@ -180,7 +180,7 @@ void InputMethodSystemAbility::Initialize()
     workThreadHandler = std::thread([this] { WorkThread(); });
     userSession_ = std::make_shared<PerUserSession>(MAIN_USER_ID);
     userId_ = MAIN_USER_ID;
-    switchQueues_ = std::make_shared<Queue<SwitchInfo>>(MAX_WAIT_TIME);
+    switchQueues_ = std::make_shared<WakeQueue<SwitchInfo>>(MAX_WAIT_TIME);
 }
 
 void InputMethodSystemAbility::StartUserIdListener()
@@ -368,9 +368,9 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission)
 {
     IMSA_HILOGD("run in, switchInfo: %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
-    if (!switchQueues_->IsReadyToExec(switchInfo)) {
+    if (!switchQueues_->IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
-        switchQueues_->WaitExec(switchInfo);
+        switchQueues_->Wait(switchInfo);
         usleep(SWITCH_BLOCK_TIME);
     }
     IMSA_HILOGD("start switch %{public}s", (switchInfo.bundleName + '/' + switchInfo.subName).c_str());

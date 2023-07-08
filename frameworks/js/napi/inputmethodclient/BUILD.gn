@@ -18,7 +18,6 @@ config("imf_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
-    "${inputmethod_path}/common",
     "${inputmethod_path}/frameworks/js/napi/inputmethodability",
   ]
 }
@@ -27,7 +26,6 @@ config("imf_public_config") {
   visibility = [ "./*" ]
   include_dirs = [
     "include",
-    "${inputmethod_path}/common",
   ]
   ldflags = [ "-Wl,--exclude-libs=ALL" ]
   cflags = [

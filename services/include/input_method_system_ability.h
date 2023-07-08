@@ -30,8 +30,8 @@
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
 #include "peruser_session.h"
-#include "queue.h"
 #include "system_ability.h"
+#include "wake_queue.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -115,7 +115,7 @@ private:
     static constexpr const char *SELECT_DIALOG_HAP = "cn.openharmony.inputmethodchoosedialog";
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
     static constexpr int32_t MAX_WAIT_TIME = 1000;
-    std::shared_ptr<Queue<SwitchInfo>> switchQueues_{ nullptr };
+    std::shared_ptr<WakeQueue<SwitchInfo>> switchQueues_{ nullptr };
     int32_t InitKeyEventMonitor();
     bool InitFocusChangeMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
