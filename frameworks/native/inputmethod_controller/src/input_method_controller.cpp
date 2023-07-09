@@ -189,7 +189,7 @@ void InputMethodController::WorkThread()
         std::lock_guard<std::mutex> lock(textListenerLock_);
         switch (msg->msgId_) {
             case MSG_ID_INSERT_CHAR: {
-                IMSA_HILOGI("insert text");
+                IMSA_HILOGD("insert text");
                 if (!isEditable_.load() || textListener_ == nullptr) {
                     IMSA_HILOGE("not editable or textListener is nullptr");
                     break;
@@ -199,7 +199,7 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_DELETE_FORWARD: {
-                IMSA_HILOGI("delete forward");
+                IMSA_HILOGD("delete forward");
                 if (!isEditable_.load() || textListener_ == nullptr) {
                     IMSA_HILOGE("not editable or textListener is nullptr");
                     break;
@@ -210,7 +210,7 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_DELETE_BACKWARD: {
-                IMSA_HILOGI("delete backward");
+                IMSA_HILOGD("delete backward");
                 if (!isEditable_.load() || textListener_ == nullptr) {
                     IMSA_HILOGE("not editable or textListener is nullptr");
                     break;
@@ -221,7 +221,6 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_ON_INPUT_STOP: {
-                IMSA_HILOGI("input stop");
                 isBound_.store(false);
                 isEditable_.store(false);
                 textListener_ = nullptr;
@@ -234,7 +233,6 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_SEND_KEYBOARD_STATUS: {
-                IMSA_HILOGI("send keyboard status");
                 if (!isEditable_.load() || textListener_ == nullptr) {
                     IMSA_HILOGE("not editable or textListener_ is nullptr");
                     break;
@@ -248,7 +246,6 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_SEND_FUNCTION_KEY: {
-                IMSA_HILOGI("send fuction key");
                 if (!isEditable_.load() || textListener_ == nullptr) {
                     IMSA_HILOGE("not editable or textListener_ is nullptr");
                     break;
@@ -261,7 +258,7 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_MOVE_CURSOR: {
-                IMSA_HILOGI("move cursor");
+                IMSA_HILOGD("move cursor");
                 if (!isEditable_.load() || textListener_ == nullptr) {
                     IMSA_HILOGE("not editable or textListener_ is nullptr");
                     break;
@@ -294,6 +291,7 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_SELECT_BY_RANGE: {
+                IMSA_HILOGD("select by range");
                 MessageParcel *data = msg->msgContent_;
                 int32_t start = 0;
                 int32_t end = 0;
@@ -305,6 +303,7 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_HANDLE_EXTEND_ACTION: {
+                IMSA_HILOGD("handle extend action");
                 MessageParcel *data = msg->msgContent_;
                 int32_t action;
                 if (!ITypesUtil::Unmarshal(*data, action)) {
@@ -315,6 +314,7 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_SELECT_BY_MOVEMENT: {
+                IMSA_HILOGD("select by movement");
                 MessageParcel *data = msg->msgContent_;
                 int32_t direction = 0;
                 int32_t cursorMoveSkip = 0;
@@ -327,10 +327,12 @@ void InputMethodController::WorkThread()
             }
             case MSG_ID_GET_TEXT_BEFORE_CURSOR:
             case MSG_ID_GET_TEXT_AFTER_CURSOR: {
+                IMSA_HILOGD("get text, msgId:%{public}d", msg->msgId_);
                 GetText(msg);
                 break;
             }
             case MSG_ID_GET_TEXT_INDEX_AT_CURSOR: {
+                IMSA_HILOGD("get text index at cursor");
                 GetTextIndexAtCursor(msg);
                 break;
             }

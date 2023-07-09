@@ -15,8 +15,8 @@
 #ifndef ASYN_CALL_H
 #define ASYN_CALL_H
 
-#include "input_method_info.h"
 #include "global.h"
+#include "input_method_info.h"
 #include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"

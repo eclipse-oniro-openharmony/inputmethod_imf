@@ -18,6 +18,7 @@ config("inputmethod_services_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
+    "${inputmethod_path}/common",
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",

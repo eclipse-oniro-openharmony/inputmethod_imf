@@ -18,7 +18,7 @@ config("imf_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
-    "../inputmethodability",
+    "${inputmethod_path}/frameworks/js/napi/inputmethodability",
   ]
 }
 

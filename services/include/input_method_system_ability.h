@@ -31,6 +31,7 @@
 #include "inputmethod_trace.h"
 #include "peruser_session.h"
 #include "system_ability.h"
+#include "block_queue.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -113,15 +114,8 @@ private:
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
     static constexpr const char *SELECT_DIALOG_HAP = "cn.openharmony.inputmethodchoosedialog";
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
-
-    std::mutex switchMutex_;
-    std::condition_variable switchCV_;
-    std::mutex switchQueueMutex_;
-    std::queue<SwitchInfo> switchQueue_;
-    void PopSwitchQueue();
-    void PushToSwitchQueue(const SwitchInfo &info);
-    bool CheckReadyToSwitch(const SwitchInfo &info);
-
+    static constexpr int32_t MAX_WAIT_TIME = 5000;
+    BlockQueue<SwitchInfo> switchQueue_{ MAX_WAIT_TIME };
     int32_t InitKeyEventMonitor();
     bool InitFocusChangeMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
