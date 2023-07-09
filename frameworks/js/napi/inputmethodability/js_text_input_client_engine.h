@@ -19,7 +19,7 @@
 #include "global.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
-#include "wake_queue.h"
+#include "block_queue.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -316,7 +316,7 @@ private:
     static const std::string TIC_CLASS_NAME;
     static thread_local napi_ref TICRef_;
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
-    static WakeQueue<EditorEventInfo> editorQueue_;
+    static BlockQueue<EditorEventInfo> editorQueue_;
 };
 } // namespace MiscServices
 } // namespace OHOS

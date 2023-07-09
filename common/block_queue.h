@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_INPUTMETHOD_WAKE_QUEUE_H
-#define OHOS_INPUTMETHOD_WAKE_QUEUE_H
+#ifndef OHOS_INPUTMETHOD_BLOCK_QUEUE_H
+#define OHOS_INPUTMETHOD_BLOCK_QUEUE_H
 #include <condition_variable>
 #include <mutex>
 #include <queue>
 
 namespace OHOS {
 namespace MiscServices {
-template<typename T> class WakeQueue {
+template<typename T> class BlockQueue {
 public:
-    explicit WakeQueue(uint32_t timeout) : timeout_(timeout)
+    explicit BlockQueue(uint32_t timeout) : timeout_(timeout)
     {
     }
 
-    ~WakeQueue() = default;
+    ~BlockQueue() = default;
 
     void Pop()
     {
@@ -65,4 +65,4 @@ private:
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // OHOS_INPUTMETHOD_WAKE_QUEUE_H
+#endif // OHOS_INPUTMETHOD_BLOCK_QUEUE_H
