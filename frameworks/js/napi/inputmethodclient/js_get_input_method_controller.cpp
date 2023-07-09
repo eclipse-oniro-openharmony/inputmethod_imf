@@ -491,20 +491,21 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfi
 
     napi_value cursorInfoResult = nullptr;
     status = JsUtils::GetValue(env, in, "cursorInfo", cursorInfoResult);
+    bool result = false;
     if (status == napi_ok) {
-        ret = JsGetInputMethodController::GetValue(env, cursorInfoResult, out.cursorInfo);
-        IMSA_HILOGE("get cursorInfo end, ret = %{public}d", ret);
+        result = JsGetInputMethodController::GetValue(env, cursorInfoResult, out.cursorInfo);
+        IMSA_HILOGE("get cursorInfo end, ret = %{public}d", result);
     }
 
     napi_value rangeResult = nullptr;
     status = JsUtils::GetValue(env, in, "selection", rangeResult);
     if (status == napi_ok) {
-        ret = JsGetInputMethodController::GetValue(env, rangeResult, out.range);
-        IMSA_HILOGE("get selectionRange end, ret = %{public}d", ret);
+        result = JsGetInputMethodController::GetValue(env, rangeResult, out.range);
+        IMSA_HILOGE("get selectionRange end, ret = %{public}d", result);
     }
 
-    ret = JsUtil::Object::ReadProperty(env, in, "windowId", out.windowId);
-    IMSA_HILOGE("get windowId end, ret = %{public}d", ret);
+    result = JsUtil::Object::ReadProperty(env, in, "windowId", out.windowId);
+    IMSA_HILOGE("get windowId end, ret = %{public}d", result);
     return ret;
 }
 

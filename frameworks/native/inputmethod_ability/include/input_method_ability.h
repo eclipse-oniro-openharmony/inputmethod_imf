@@ -123,7 +123,6 @@ private:
     void OnConfigurationChange(Message *msg);
     void ShowInputWindow(bool isShowKeyboard);
     void DismissInputWindow();
-    void EnsureToShowPanel();
     void OnTextConfigChange(const TextTotalConfig &textConfig);
     bool isImeReady_{ false };
     InputStartNotifier notifier_;
