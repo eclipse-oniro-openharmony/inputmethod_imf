@@ -45,6 +45,9 @@ public:
     static bool Marshalling(uint64_t input, MessageParcel &data);
     static bool Unmarshalling(uint64_t &output, MessageParcel &data);
 
+    static bool Marshalling(double input, MessageParcel &data);
+    static bool Unmarshalling(double &output, MessageParcel &data);
+
     static bool Marshalling(const std::u16string &input, MessageParcel &data);
     static bool Unmarshalling(std::u16string &output, MessageParcel &data);
 
@@ -71,6 +74,9 @@ public:
 
     static bool Marshalling(const InputWindowInfo &input, MessageParcel &data);
     static bool Unmarshalling(InputWindowInfo &output, MessageParcel &data);
+
+    static bool Marshalling(const TextTotalConfig &input, MessageParcel &data);
+    static bool Unmarshalling(TextTotalConfig &output, MessageParcel &data);
 
     static bool Marshalling(EventType input, MessageParcel &data);
     static bool Unmarshalling(EventType &output, MessageParcel &data);

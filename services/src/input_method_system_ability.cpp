@@ -245,7 +245,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
     return userSession_->OnReleaseInput(client);
 };
 
-int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
+int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag)
 {
     if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingUid())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
@@ -254,7 +254,7 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return userSession_->OnStartInput(client, isShowKeyboard);
+    return userSession_->OnStartInput(client, isShowKeyboard, attachFlag);
 };
 
 int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)

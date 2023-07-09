@@ -157,10 +157,11 @@ void InputMethodCoreStub::ShowKeyboardOnRemote(MessageParcel &data, MessageParce
     IMSA_HILOGD("InputMethodCoreStub::ShowKeyboardOnRemote");
     sptr<IRemoteObject> channel;
     bool isShowKeyboard = false;
-    int32_t ret =
-        SendMessage(MessageID::MSG_ID_SHOW_KEYBOARD, [&data, &channel, &isShowKeyboard](MessageParcel &parcel) {
-            return ITypesUtil::Unmarshal(data, channel, isShowKeyboard)
-                   && ITypesUtil::Marshal(parcel, channel, isShowKeyboard);
+    bool attachFlag = false;
+    int32_t ret = SendMessage(
+        MessageID::MSG_ID_SHOW_KEYBOARD, [&data, &channel, &isShowKeyboard, &attachFlag](MessageParcel &parcel) {
+            return ITypesUtil::Unmarshal(data, channel, isShowKeyboard, attachFlag) &&
+                   ITypesUtil::Marshal(parcel, channel, isShowKeyboard, attachFlag);
         });
     reply.WriteInt32(ret);
 }
@@ -185,7 +186,7 @@ void InputMethodCoreStub::ClearDataChannelOnRemote(MessageParcel &data, MessageP
 }
 
 int32_t InputMethodCoreStub::ShowKeyboard(
-    const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard)
+    const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, bool attachFlag)
 {
     return ErrorCode::NO_ERROR;
 }

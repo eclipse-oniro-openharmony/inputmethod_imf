@@ -275,6 +275,9 @@ void InputMethodPanel::SetPanelStatusListener(
         return;
     }
     panelStatusListener_ = std::move(statusListener);
+    if (window_ != nullptr && IsShowing()) {
+        panelStatusListener_->OnPanelStatus(windowId_, true);
+    }
 }
 
 void InputMethodPanel::ClearPanelListener(const std::string &type)

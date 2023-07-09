@@ -456,36 +456,68 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
     return asyncCall.Call(env, exec, "handleSoftKeyboard");
 }
 
-napi_status JsGetInputMethodController::ParseAttachInput(
+bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, SelectionRange &out)
+{
+    auto ret = JsUtil::Object::ReadProperty(env, in, "start", out.start);
+    return ret && JsUtil::Object::ReadProperty(env, in, "end", out.end);
+}
+
+/**
+ * let textConfig: TextConfig = {
+ *   inputAttribute: InputAttribute = {
+ *     textInputType: TextInputType = TextInputType.TEXT,
+ *     enterKeyType: EnterKeyType = EnterKeyType.NONE
+ *   },
+ *   cursorInfo?: CursorInfo = {
+ *     left: number,
+ *     top: number,
+ *     width: number,
+ *     height: number,
+ *   },
+ *   selection?: Range = {
+ *     start: number,
+ *     end: number
+ *   },
+ *   windowId?: number
+ * }
+ */
+bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfig &out)
+{
+    napi_value attributeResult = nullptr;
+    napi_status status = JsUtils::GetValue(env, in, "inputAttribute", attributeResult);
+    CHECK_RETURN(status == napi_ok, "get inputAttribute", false);
+    bool ret = JsGetInputMethodController::GetValue(env, attributeResult, out.inputAttribute);
+    CHECK_RETURN(ret, "get inputAttribute of TextConfig", ret);
+
+    napi_value cursorInfoResult = nullptr;
+    status = JsUtils::GetValue(env, in, "cursorInfo", cursorInfoResult);
+    bool result = false;
+    if (status == napi_ok) {
+        result = JsGetInputMethodController::GetValue(env, cursorInfoResult, out.cursorInfo);
+        IMSA_HILOGE("get cursorInfo end, ret = %{public}d", result);
+    }
+
+    napi_value rangeResult = nullptr;
+    status = JsUtils::GetValue(env, in, "selection", rangeResult);
+    if (status == napi_ok) {
+        result = JsGetInputMethodController::GetValue(env, rangeResult, out.range);
+        IMSA_HILOGE("get selectionRange end, ret = %{public}d", result);
+    }
+
+    result = JsUtil::Object::ReadProperty(env, in, "windowId", out.windowId);
+    IMSA_HILOGE("get windowId end, ret = %{public}d", result);
+    return ret;
+}
+
+bool JsGetInputMethodController::ParseAttachInput(
     napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<AttachContext> &ctxt)
 {
     // 0 means the first parameter: showkeyboard
-    napi_status status = JsUtils::GetValue(env, argv[0], ctxt->showKeyboard);
-    if (status != napi_ok) {
-        return status;
-    }
+    bool ret = JsUtil::GetValue(env, argv[0], ctxt->showKeyboard);
+    IMSA_HILOGE("get showKeyboard end, ret = %{public}d", ret);
 
     // 1 means the second parameter: textConfig
-    napi_value attributeResult = nullptr;
-    status = JsUtils::GetValue(env, argv[1], "inputAttribute", attributeResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    napi_value textResult = nullptr;
-    status = JsUtils::GetValue(env, attributeResult, "textInputType", textResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    status = JsUtils::GetValue(env, textResult, ctxt->attribute.inputPattern);
-    if (status != napi_ok) {
-        return status;
-    }
-    napi_value enterResult = nullptr;
-    status = JsUtils::GetValue(env, attributeResult, "enterKeyType", enterResult);
-    if (status != napi_ok) {
-        return status;
-    }
-    return JsUtils::GetValue(env, enterResult, ctxt->attribute.enterKeyType);
+    return ret && JsGetInputMethodController::GetValue(env, argv[1], ctxt->textConfig);
 }
 
 napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info info)
@@ -493,14 +525,14 @@ napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info i
     auto ctxt = std::make_shared<AttachContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 1, "should 2 or 3 parameters!", TYPE_NONE, napi_generic_failure);
-        napi_status status = ParseAttachInput(env, argc, argv, ctxt);
-        PARAM_CHECK_RETURN(env, status == napi_ok, "paramters of attach is error. ", TYPE_NONE, status);
-        return status;
+        bool ret = ParseAttachInput(env, argc, argv, ctxt);
+        PARAM_CHECK_RETURN(env, ret, "paramters of attach is error. ", TYPE_NONE, napi_generic_failure);
+        return napi_ok;
     };
     auto exec = [ctxt, env](AsyncCall::Context *ctx) {
         ctxt->textListener = JsGetInputMethodTextChangedListener::GetInstance();
         auto status =
-            InputMethodController::GetInstance()->Attach(ctxt->textListener, ctxt->showKeyboard, ctxt->attribute);
+            InputMethodController::GetInstance()->Attach(ctxt->textListener, ctxt->showKeyboard, ctxt->textConfig);
         ctxt->SetErrorCode(status);
         CHECK_RETURN_VOID(status == ErrorCode::NO_ERROR, "attach return error!");
         ctxt->SetState(napi_ok);

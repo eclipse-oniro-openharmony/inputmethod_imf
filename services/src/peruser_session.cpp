@@ -141,8 +141,8 @@ int32_t PerUserSession::RemoveClient(const sptr<IRemoteObject> &client, bool isC
  * @return ErrorCode::ERROR_KBD_SHOW_FAILED failed to show keyboard
  * @return other errors returned by binder driver
  */
-int32_t PerUserSession::ShowKeyboard(
-    const sptr<IInputDataChannel>& channel, const sptr<IInputClient> &inputClient, bool isShowKeyboard)
+int32_t PerUserSession::ShowKeyboard(const sptr<IInputDataChannel> &channel, const sptr<IInputClient> &inputClient,
+    bool isShowKeyboard, bool attachFlag)
 {
     IMSA_HILOGD("PerUserSession, run in");
     if (inputClient == nullptr) {
@@ -153,7 +153,7 @@ int32_t PerUserSession::ShowKeyboard(
         IMSA_HILOGE("Aborted! imsCore[%{public}d] is nullptr", CURRENT_IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    int32_t ret = core->ShowKeyboard(channel, isShowKeyboard);
+    int32_t ret = core->ShowKeyboard(channel, isShowKeyboard, attachFlag);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to show keyboard, ret: %{public}d", ret);
         return ErrorCode::ERROR_KBD_SHOW_FAILED;
@@ -268,7 +268,7 @@ int PerUserSession::OnShowKeyboardSelf()
         IMSA_HILOGE("client info not found");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
-    return ShowKeyboard(clientInfo->channel, client, true);
+    return ShowKeyboard(clientInfo->channel, client, true, false);
 }
 
 /** Get ClientInfo
@@ -337,9 +337,9 @@ int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient>& client)
  * @param the parameters from remote client
  * @return ErrorCode
  */
-int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard)
+int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard, bool attachFlag)
 {
-    IMSA_HILOGD("start input with keyboard[%{public}d]", isShowKeyboard);
+    IMSA_HILOGD("start input with keyboard[%{public}d], attchFlag[%{public}d]", isShowKeyboard, attachFlag);
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -363,7 +363,7 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
         return ret;
     }
     // build channel from ima to imc
-    return ShowKeyboard(clientInfo->channel, client, isShowKeyboard);
+    return ShowKeyboard(clientInfo->channel, client, isShowKeyboard, attachFlag);
 }
 
 int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
@@ -391,7 +391,7 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
     if (client != nullptr) {
         auto clientInfo = GetClientInfo(client->AsObject());
         if (clientInfo != nullptr) {
-            ret = OnStartInput(clientInfo->client, clientInfo->isShowKeyboard);
+            ret = OnStartInput(clientInfo->client, clientInfo->isShowKeyboard, true);
             IMSA_HILOGI("start input ret: %{public}d", ret);
         }
     }

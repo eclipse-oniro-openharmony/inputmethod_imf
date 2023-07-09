@@ -37,6 +37,8 @@ class MessageHandler;
 using namespace MessageID;
 sptr<InputMethodAbility> InputMethodAbility::instance_;
 std::mutex InputMethodAbility::instanceLock_;
+constexpr double INVALID_CURSOR_VALUE = -1.0;
+constexpr int32_t INVALID_SELECTION_VALUE = -1;
 InputMethodAbility::InputMethodAbility() : stop_(false)
 {
     writeInputChannel = nullptr;
@@ -149,6 +151,10 @@ void InputMethodAbility::OnImeReady()
         return;
     }
     IMSA_HILOGI("InputMethodAbility::Ime Ready, notify InputStart");
+    TextTotalConfig textConfig{};
+    int32_t ret = GetTextConfig(textConfig);
+    IMSA_HILOGI("InputMethodAbility, get text config failed, ret is %{public}d", ret);
+    OnTextConfigChange(textConfig);
     ShowInputWindow(notifier_.isShowKeyboard);
 }
 
@@ -238,15 +244,25 @@ void InputMethodAbility::OnShowKeyboard(Message *msg)
     MessageParcel *data = msg->msgContent_;
     sptr<IRemoteObject> channelObject = nullptr;
     bool isShowKeyboard = false;
-    if (!ITypesUtil::Unmarshal(*data, channelObject, isShowKeyboard)) {
+    bool attachFlag = false;
+    if (!ITypesUtil::Unmarshal(*data, channelObject, isShowKeyboard, attachFlag)) {
         IMSA_HILOGE("InputMethodAbility::OnShowKeyboard read message parcel failed");
         return;
     }
     if (channelObject == nullptr) {
-        IMSA_HILOGI("InputMethodAbility::OnShowKeyboard channelObject is nullptr");
+        IMSA_HILOGE("InputMethodAbility::OnShowKeyboard channelObject is nullptr");
         return;
     }
     SetInputDataChannel(channelObject);
+    if (attachFlag) {
+        TextTotalConfig textConfig = {};
+        int32_t ret = GetTextConfig(textConfig);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
+            return;
+        }
+        OnTextConfigChange(textConfig);
+    }
     ShowInputWindow(isShowKeyboard);
 }
 
@@ -396,15 +412,48 @@ void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
     }
     channel->SendKeyboardStatus(KEYBOARD_SHOW);
     auto result = panels_.Find(SOFT_KEYBOARD);
-    if (!result.first) {
-        IMSA_HILOGE("Not find SOFT_KEYBOARD panel.");
+    if (result.first) {
+        IMSA_HILOGI("find SOFT_KEYBOARD panel.");
+        auto ret = result.second->ShowPanel();
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
+        }
         return;
     }
-    auto ret = result.second->ShowPanel();
-    if (ret != NO_ERROR) {
-        IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
+}
+
+void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
+{
+    IMSA_HILOGI("InputMethodAbility run in.");
+    if (kdListener_ == nullptr) {
+        IMSA_HILOGE("kdListener_ is nullptr.");
+    } else {
+        IMSA_HILOGI("send on('editorAttributeChanged') callback.");
+        kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
+        if (textConfig.cursorInfo.left != INVALID_CURSOR_VALUE) {
+            IMSA_HILOGI("send on('cursorUpdate') callback.");
+            kdListener_->OnCursorUpdate(
+                textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
+        }
+        if (textConfig.textSelection.newBegin != INVALID_SELECTION_VALUE) {
+            IMSA_HILOGI("send on('selectionChange') callback.");
+            kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
+                                           textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
+        }
+    }
+    if (textConfig.windowId == INVALID_WINDOW_ID) {
         return;
     }
+    panels_.ForEach([&textConfig](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+        panel->SetCallingWindow(textConfig.windowId);
+        return false;
+    });
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("imeListener_ is nullptr, do not need to send callback of setCallingWindow.");
+        return;
+    }
+    imeListener_->OnSetCallingWindow(textConfig.windowId);
+    IMSA_HILOGD("setCallingWindow end.");
 }
 
 void InputMethodAbility::DismissInputWindow()
@@ -583,6 +632,17 @@ int32_t InputMethodAbility::GetTextIndexAtCursor(int32_t &index)
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return channel->GetTextIndexAtCursor(index);
+}
+
+int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
+{
+    IMSA_HILOGD("InputMethodAbility, run in.");
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("InputMethodAbility::channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return channel->GetTextConfig(textConfig);
 }
 
 void InputMethodAbility::SetInputDataChannel(sptr<IRemoteObject> &object)

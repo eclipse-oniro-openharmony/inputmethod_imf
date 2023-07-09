@@ -110,6 +110,21 @@ public:
     IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const InputAttribute &attribute);
 
     /**
+     * @brief Set listener and bind IMSA with given states and textConfig.
+     *
+     * This function is used to set listener and bind IMSA.
+     * Show soft keyboard when state is true, and customized attribute.
+     *
+     * @param listener          Indicates the listener in order to manipulate text.
+     * @param isShowKeyboard    Indicates the state, if you want to show soft keyboard, please pass in true.
+     * @param textConfig        Indicates the textConfig, such as input attribute, cursorInfo, range of text selection,
+     *                          windowId.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const TextConfig &textConfig);
+
+    /**
      * @brief Show soft keyboard.
      *
      * This function is used to show soft keyboard of current client.
@@ -267,6 +282,17 @@ public:
     IMF_API int32_t GetInputPattern(int32_t &inputPattern);
 
     /**
+     * @brief Get text config.
+     *
+     * This function is used to get text config of current client.
+     *
+     * @param textConfig Indicates the text config of current client that will be obtained.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t GetTextConfig(TextTotalConfig &config);
+
+    /**
      * @brief Get current input method property.
      *
      * This function is used to get current input method property.
@@ -410,7 +436,7 @@ private:
     bool Initialize();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
     int32_t PrepareInput(InputClientInfo &inputClientInfo);
-    int32_t StartInput(sptr<IInputClient> &client, bool isShowKeyboard);
+    int32_t StartInput(sptr<IInputClient> &client, bool isShowKeyboard, bool attachFlag);
     int32_t StopInput(sptr<IInputClient> &client);
     int32_t ReleaseInput(sptr<IInputClient> &client);
     void OnSwitchInput(const Property &property, const SubProperty &subProperty);
@@ -427,6 +453,7 @@ private:
     void RestoreAttachInfoInSaDied();
     int32_t RestoreListenEventFlag();
     void UpdateNativeEventFlag(EventType eventType, bool isOn);
+    void SaveTextConfig(const TextConfig &textConfig);
     void GetText(const Message *msg);
     void GetTextIndexAtCursor(const Message *msg);
 
@@ -458,9 +485,6 @@ private:
     std::thread workThreadHandler;
     MessageHandler *msgHandler_;
     bool stop_;
-    std::mutex configurationMutex_;
-    int32_t enterKeyType_ = 0;
-    int32_t inputPattern_ = 0;
 
     std::atomic_bool isEditable_{ false };
     std::atomic_bool isBound_{ false };
@@ -470,6 +494,9 @@ private:
 
     static constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
     std::atomic_bool isDiedRestoreListen_{ false };
+
+    std::mutex textConfigLock_;
+    TextConfig textConfig_;
 };
 } // namespace MiscServices
 } // namespace OHOS

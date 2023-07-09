@@ -173,7 +173,7 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
 
     sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
     sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
-    auto ret = coreProxy->ShowKeyboard(channelProxy, false);
+    auto ret = coreProxy->ShowKeyboard(channelProxy, false, false);
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
     auto cvStatus = InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -348,6 +348,28 @@ HWTEST_F(InputMethodAbilityTest, testGetEnterKeyType, TestSize.Level0)
     ret = inputMethodAbility_->GetInputPattern(inputPattern);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(inputPattern, (int)textInputType);
+}
+
+/**
+* @tc.name: testGetTextConfig
+* @tc.desc: InputMethodAbility GetTextConfig
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: Hollokin
+*/
+HWTEST_F(InputMethodAbilityTest, testGetTextConfig, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetTextConfig START");
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    TextConfig textConfig;
+    textConfig.inputAttribute = { .inputPattern = 0, .enterKeyType = 1 };
+    auto ret = imc_->Attach(textListener, false, textConfig);
+    TextTotalConfig textTotalConfig;
+    ret = inputMethodAbility_->GetTextConfig(textTotalConfig);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(textTotalConfig.inputAttribute.inputPattern, textConfig.inputAttribute.inputPattern);
+    EXPECT_EQ(textTotalConfig.inputAttribute.enterKeyType, textConfig.inputAttribute.enterKeyType);
+    textListener = nullptr;
 }
 
 /**

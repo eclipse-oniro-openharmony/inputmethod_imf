@@ -377,6 +377,13 @@ void InputMethodController::OnPanelStatusChange(
     settingListener_->OnPanelStatusChange(status, windowInfo);
 }
 
+void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
+{
+    IMSA_HILOGI("InputMethodController in, save text config.");
+    std::lock_guard<std::mutex> lock(textConfigLock_);
+    textConfig_ = textConfig;
+}
+
 int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener)
 {
     return Attach(listener, true);
@@ -394,19 +401,29 @@ int32_t InputMethodController::Attach(
 {
     IMSA_HILOGI("InputMethodController::Attach isShowKeyboard %{public}s", isShowKeyboard ? "true" : "false");
     InputmethodTrace tracer("InputMethodController Attach trace.");
+    TextConfig textConfig;
+    textConfig.inputAttribute = attribute;
+    return Attach(listener, isShowKeyboard, textConfig);
+}
+
+int32_t InputMethodController::Attach(
+    sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const TextConfig &textConfig)
+{
+    IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
+    InputmethodTrace tracer("InputMethodController Attach with textConfig trace.");
     {
         std::lock_guard<std::mutex> lock(textListenerLock_);
         textListener_ = listener;
     }
     clientInfo_.isShowKeyboard = isShowKeyboard;
-    clientInfo_.attribute = attribute;
+    SaveTextConfig(textConfig);
 
     int32_t ret = PrepareInput(clientInfo_);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to prepare, ret: %{public}d", ret);
         return ret;
     }
-    ret = StartInput(clientInfo_.client, isShowKeyboard);
+    ret = StartInput(clientInfo_.client, isShowKeyboard, true);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input, ret:%{public}d", ret);
         return ret;
@@ -430,7 +447,7 @@ int32_t InputMethodController::ShowTextInput()
     }
     clientInfo_.isShowKeyboard = true;
     InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_SHOW_ENEDITABLE);
-    int32_t ret = StartInput(clientInfo_.client, true);
+    int32_t ret = StartInput(clientInfo_.client, true, false);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input, ret: %{public}d", ret);
         return ret;
@@ -590,7 +607,7 @@ std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype
     return property;
 }
 
-int32_t InputMethodController::StartInput(sptr<IInputClient> &client, bool isShowKeyboard)
+int32_t InputMethodController::StartInput(sptr<IInputClient> &client, bool isShowKeyboard, bool attachFlag)
 {
     IMSA_HILOGI("InputMethodController::StartInput");
     auto proxy = GetSystemAbilityProxy();
@@ -598,7 +615,7 @@ int32_t InputMethodController::StartInput(sptr<IInputClient> &client, bool isSho
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->StartInput(client, isShowKeyboard);
+    return proxy->StartInput(client, isShowKeyboard, attachFlag);
 }
 
 int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
@@ -669,15 +686,17 @@ void InputMethodController::RestoreAttachInfoInSaDied()
         return;
     }
     auto attach = [=]() -> bool {
-        auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, clientInfo_.attribute);
-        if (errCode == ErrorCode::NO_ERROR) {
-            isDiedAttached_.store(true);
-            OnCursorUpdate(cursorInfo_);
-            OnSelectionChange(textString_, selectNewBegin_, selectNewEnd_);
-            IMSA_HILOGI("attach success.");
-            return true;
+        TextConfig tempConfig{};
+        {
+            std::lock_guard<std::mutex> lock(textConfigLock_);
+            tempConfig = textConfig_;
+            tempConfig.cursorInfo = cursorInfo_;
+            tempConfig.range.start = selectNewBegin_;
+            tempConfig.range.end = selectNewEnd_;
         }
-        return false;
+        auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, tempConfig);
+        IMSA_HILOGI("attach end, errCode = %{public}d", errCode);
+        return errCode == ErrorCode::NO_ERROR;
     };
     if (attach()) {
         return;
@@ -754,13 +773,19 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
 int32_t InputMethodController::OnConfigurationChange(Configuration info)
 {
     IMSA_HILOGI("InputMethodController::OnConfigurationChange");
-    std::lock_guard<std::mutex> lock(configurationMutex_);
-    enterKeyType_ = static_cast<uint32_t>(info.GetEnterKeyType());
-    inputPattern_ = static_cast<uint32_t>(info.GetTextInputType());
+    if (!isBound_.load()) {
+        IMSA_HILOGE("not bound yet");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
+    {
+        std::lock_guard<std::mutex> lock(textConfigLock_);
+        textConfig_.inputAttribute.enterKeyType = static_cast<uint32_t>(info.GetEnterKeyType());
+        textConfig_.inputAttribute.inputPattern = static_cast<uint32_t>(info.GetTextInputType());
+    }
     std::lock_guard<std::mutex> agentLock(agentLock_);
     if (agent_ == nullptr) {
         IMSA_HILOGE("agent is nullptr");
-        return ErrorCode::NO_ERROR;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     agent_->OnConfigurationChange(info);
     return ErrorCode::NO_ERROR;
@@ -825,16 +850,39 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
 int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
 {
     IMSA_HILOGI("InputMethodController::GetEnterKeyType");
-    std::lock_guard<std::mutex> lock(configurationMutex_);
-    keyType = enterKeyType_;
+    std::lock_guard<std::mutex> lock(textConfigLock_);
+    keyType = textConfig_.inputAttribute.enterKeyType;
     return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::GetInputPattern(int32_t &inputpattern)
 {
     IMSA_HILOGI("InputMethodController::GetInputPattern");
-    std::lock_guard<std::mutex> lock(configurationMutex_);
-    inputpattern = inputPattern_;
+    std::lock_guard<std::mutex> lock(textConfigLock_);
+    inputpattern = textConfig_.inputAttribute.inputPattern;
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
+{
+    IMSA_HILOGI("InputMethodController run in.");
+    std::lock_guard<std::mutex> lock(textConfigLock_);
+    config.inputAttribute = textConfig_.inputAttribute;
+    config.cursorInfo = textConfig_.cursorInfo;
+    config.windowId = textConfig_.windowId;
+
+    if (textConfig_.range.start == INVALID_VALUE) {
+        IMSA_HILOGI("no valid SelectionRange param.");
+        return ErrorCode::NO_ERROR;
+    }
+    {
+        std::lock_guard<std::mutex> editorLock(editorContentLock_);
+        config.textSelection.oldBegin = selectOldBegin_;
+        config.textSelection.oldEnd = selectOldEnd_;
+    }
+    config.textSelection.newBegin = textConfig_.range.start;
+    config.textSelection.newEnd = textConfig_.range.end;
+
     return ErrorCode::NO_ERROR;
 }
 
@@ -978,6 +1026,10 @@ void InputMethodController::ClearEditorCache()
         selectOldEnd_ = 0;
         selectNewBegin_ = 0;
         selectNewEnd_ = 0;
+    }
+    {
+        std::lock_guard<std::mutex> lock(textConfigLock_);
+        textConfig_ = {};
     }
     std::lock_guard<std::mutex> lock(cursorInfoMutex_);
     cursorInfo_ = {};

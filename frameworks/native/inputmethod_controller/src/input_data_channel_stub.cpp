@@ -103,6 +103,12 @@ int32_t InputDataChannelStub::OnRemoteRequest(
             SelectByMovementOnRemote(data, reply);
             break;
         }
+        case GET_TEXT_CONFIG: {
+            TextTotalConfig textConfig = {};
+            reply.WriteInt32(GetTextConfig(textConfig));
+            ITypesUtil::Marshal(reply, textConfig);
+            break;
+        }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
@@ -264,6 +270,12 @@ int32_t InputDataChannelStub::GetInputPattern(int32_t &inputPattern)
 {
     IMSA_HILOGI("InputDataChannelStub::GetInputPattern");
     return InputMethodController::GetInstance()->GetInputPattern(inputPattern);
+}
+
+int32_t InputDataChannelStub::GetTextConfig(TextTotalConfig &textConfig)
+{
+    IMSA_HILOGI("InputDataChannelStub run in.");
+    return InputMethodController::GetInstance()->GetTextConfig(textConfig);
 }
 
 void InputDataChannelStub::SendKeyboardStatus(int32_t status)

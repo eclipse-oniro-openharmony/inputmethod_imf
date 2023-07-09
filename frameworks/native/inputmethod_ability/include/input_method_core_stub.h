@@ -39,7 +39,8 @@ public:
     explicit InputMethodCoreStub(int userId);
     virtual ~InputMethodCoreStub();
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-    int32_t ShowKeyboard(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard) override;
+    int32_t ShowKeyboard(
+        const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, bool attachFlag) override;
     bool HideKeyboard(int32_t flags) override;
     int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) override;
     void StopInputService(std::string imeId) override;

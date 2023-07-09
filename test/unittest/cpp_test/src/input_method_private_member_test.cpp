@@ -189,7 +189,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionCoreOrAgentNullptr, TestSiz
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     userSession->SetImsCore(CURRENT_IME, nullptr);
     auto imc = InputMethodController::GetInstance();
-    int32_t ret = userSession->ShowKeyboard(imc->clientInfo_.channel, imc->clientInfo_.client, false);
+    int32_t ret = userSession->ShowKeyboard(imc->clientInfo_.channel, imc->clientInfo_.client, false, false);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
     ret = userSession->HideKeyboard(imc->clientInfo_.client);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
@@ -252,11 +252,11 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSi
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr001 TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    int32_t ret = userSession->OnStartInput(nullptr, true);
+    int32_t ret = userSession->OnStartInput(nullptr, true, false);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     ret = userSession->OnReleaseInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
-    ret = userSession->ShowKeyboard(nullptr, nullptr, false);
+    ret = userSession->ShowKeyboard(nullptr, nullptr, false, false);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     ret = userSession->RemoveClient(nullptr, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
