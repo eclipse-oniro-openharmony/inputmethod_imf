@@ -21,6 +21,11 @@ namespace OHOS {
 namespace MiscServices {
 void FocusChangedListener::OnFocused(const sptr<Rosen::FocusChangeInfo> &focusChangeInfo)
 {
+    if (focusChangeInfo == nullptr || focusHandle_ == nullptr) {
+        IMSA_HILOGE("error nullptr");
+        return;
+    }
+    focusHandle_(true, focusChangeInfo->pid_, focusChangeInfo->uid_);
 }
 
 void FocusChangedListener::OnUnfocused(const sptr<Rosen::FocusChangeInfo> &focusChangeInfo)
@@ -29,7 +34,7 @@ void FocusChangedListener::OnUnfocused(const sptr<Rosen::FocusChangeInfo> &focus
         IMSA_HILOGE("error nullptr");
         return;
     }
-    focusHandle_(focusChangeInfo->pid_, focusChangeInfo->uid_);
+    focusHandle_(false, focusChangeInfo->pid_, focusChangeInfo->uid_);
 }
 } // namespace MiscServices
 } // namespace OHOS
