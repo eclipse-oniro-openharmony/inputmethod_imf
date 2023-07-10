@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <string_ex.h>
+#include <sys/time.h>
 
 #include "global.h"
 #include "input_attribute.h"
@@ -26,6 +27,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+constexpr int32_t WAIT_DATA_CHANNEL = 1000;
 class InputMethodAttachTest : public testing::Test {
 public:
     static sptr<InputMethodController> inputMethodController_;
@@ -108,6 +110,7 @@ HWTEST_F(InputMethodAttachTest, testAttach001, TestSize.Level0)
     sptr<OnTextChangedListener> textListener = new TextListener();
     auto ret = inputMethodController_->Attach(textListener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    usleep(WAIT_DATA_CHANNEL);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -131,6 +134,7 @@ HWTEST_F(InputMethodAttachTest, testAttach002, TestSize.Level0)
     sptr<OnTextChangedListener> textListener = new TextListener();
     auto ret = inputMethodController_->Attach(textListener, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    usleep(WAIT_DATA_CHANNEL);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -157,6 +161,7 @@ HWTEST_F(InputMethodAttachTest, testAttach003, TestSize.Level0)
     attribute.enterKeyType = 1;
     auto ret = inputMethodController_->Attach(textListener, true, attribute);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    usleep(WAIT_DATA_CHANNEL);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -184,6 +189,7 @@ HWTEST_F(InputMethodAttachTest, testAttach004, TestSize.Level0)
     config.inputAttribute = attribute;
     auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    usleep(WAIT_DATA_CHANNEL);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -222,6 +228,7 @@ HWTEST_F(InputMethodAttachTest, testAttach005, TestSize.Level0)
     config.windowId = 10;
     auto ret = inputMethodController_->Attach(textListener, true, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    usleep(WAIT_DATA_CHANNEL);
 
     int32_t keyType = -1;
     ret = inputMethodAbility_->GetEnterKeyType(keyType);
@@ -317,6 +324,7 @@ HWTEST_F(InputMethodAttachTest, testGetTextConfig, TestSize.Level0)
     config.windowId = 10;
     auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    usleep(WAIT_DATA_CHANNEL);
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -517,6 +525,7 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdate001, TestSize.Level0)
     config.cursorInfo = cursorInfo2;
     ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    usleep(WAIT_DATA_CHANNEL);
 
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
@@ -549,6 +558,7 @@ HWTEST_F(InputMethodAttachTest, testOnSelectionChange, TestSize.Level0)
     config.range.end = 20;
     ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    usleep(WAIT_DATA_CHANNEL);
 
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
@@ -586,6 +596,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChange002, TestSize.Level0)
     config.inputAttribute.inputPattern = 5;
     ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    usleep(WAIT_DATA_CHANNEL);
 
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
@@ -617,6 +628,7 @@ HWTEST_F(InputMethodAttachTest, testSetCallingWindow, TestSize.Level0)
     config.windowId = 77;
     ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    usleep(WAIT_DATA_CHANNEL);
 
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
