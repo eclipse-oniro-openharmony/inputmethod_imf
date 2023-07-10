@@ -749,7 +749,7 @@ bool InputMethodSystemAbility::InitFocusChangeMonitor()
     return ImCommonEventManager::GetInstance()->SubscribeWindowManagerService(
         [this](int32_t pid, int32_t uid) { return userSession_->OnUnfocused(pid, uid); },
         [this](int32_t userId) { StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_)); }
-    );     
+    );
 }
 } // namespace MiscServices
 } // namespace OHOS
