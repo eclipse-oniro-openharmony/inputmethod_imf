@@ -539,14 +539,15 @@ void PerUserSession::SetAgent(sptr<IInputMethodAgent> agent)
 void PerUserSession::OnFocused(int32_t pid, int32_t uid)
 {
     if (IsCurrentClient(pid, uid)) {
-        IMSA_HILOGD("same to current client");
+        IMSA_HILOGD("pid[%{public}d] same as current client", pid);
         return;
     }
     auto client = GetCurrentClient();
     if (client == nullptr) {
+        IMSA_HILOGD("no client in bound state");
         return;
     }
-    IMSA_HILOGI("current focus change to pid: %{public}d, start unbinding", pid);
+    IMSA_HILOGI("focus shifts to pid: %{public}d, start unbinding", pid);
     UnbindClient(client);
     InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
 }
@@ -554,9 +555,10 @@ void PerUserSession::OnFocused(int32_t pid, int32_t uid)
 void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
 {
     if (IsCurrentClient(pid, uid)) {
+        IMSA_HILOGD("pid[%{public}d] same as current client", pid);
         return;
     }
-    IMSA_HILOGD("clear unfocused client info: %{public}d", pid);
+    IMSA_HILOGI("clear unfocused client info: %{public}d", pid);
     for (auto &mapClient : mapClients_) {
         if (mapClient.second->pid == pid) {
             UnbindClient(mapClient.second->client);
