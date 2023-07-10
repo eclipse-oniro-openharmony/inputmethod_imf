@@ -60,6 +60,7 @@ namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
+constexpr uint32_t WAIT_SET_KEYBOARD_STATUS = 300;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -795,6 +796,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         int32_t ret = inputMethodController_->StopInputSession();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        usleep(WAIT_SET_KEYBOARD_STATUS);
         EXPECT_TRUE(!imeListener_->keyboardState_);
     }
 
@@ -809,6 +811,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         imeListener_->keyboardState_ = true;
         TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         inputMethodController_->HideTextInput();
+        usleep(WAIT_SET_KEYBOARD_STATUS);
         EXPECT_TRUE(!imeListener_->keyboardState_);
     }
 
