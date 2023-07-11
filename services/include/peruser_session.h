@@ -84,6 +84,7 @@ public:
     void StopInputService(std::string imeId);
     int32_t OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch);
     void UpdateCurrentUserId(int32_t userId);
+    void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
     bool CheckFocused(uint32_t tokenId);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
@@ -137,6 +138,8 @@ private:
     void SetAgent(sptr<IInputMethodAgent> agent);
     sptr<IInputMethodAgent> GetAgent();
     sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
+    bool IsCurrentClient(int32_t pid, int32_t uid);
+    void UnbindClient(const sptr<IInputClient> &client);
 
     static inline bool IsValid(int32_t index)
     {

@@ -536,25 +536,64 @@ void PerUserSession::SetAgent(sptr<IInputMethodAgent> agent)
     agent_ = agent;
 }
 
-void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
+void PerUserSession::OnFocused(int32_t pid, int32_t uid)
 {
+    if (IsCurrentClient(pid, uid)) {
+        IMSA_HILOGD("pid[%{public}d] same as current client", pid);
+        return;
+    }
     auto client = GetCurrentClient();
     if (client == nullptr) {
+        IMSA_HILOGD("no client in bound state");
         return;
     }
-    auto clientInfo = GetClientInfo(client->AsObject());
-    if (clientInfo == nullptr) {
+    IMSA_HILOGI("focus shifts to pid: %{public}d, start unbinding", pid);
+    UnbindClient(client);
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
+}
+
+void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
+{
+    if (IsCurrentClient(pid, uid)) {
+        IMSA_HILOGD("pid[%{public}d] same as current client", pid);
         return;
     }
-    if (clientInfo->pid != pid || clientInfo->uid != uid) {
+    std::lock_guard<std::recursive_mutex> lock(mtx);
+    for (const auto &mapClient : mapClients_) {
+        if (mapClient.second->pid == pid) {
+            IMSA_HILOGI("clear unfocused client info: %{public}d", pid);
+            UnbindClient(mapClient.second->client);
+            InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
+            break;
+        }
+    }
+}
+
+void PerUserSession::UnbindClient(const sptr<IInputClient> &client)
+{
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr");
         return;
     }
-    IMSA_HILOGI("current client is unfocused, start unbinding");
     int32_t ret = client->OnInputStop();
     IMSA_HILOGI("OnInputStop ret: %{public}d", ret);
     ret = OnReleaseInput(client);
-    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
     IMSA_HILOGI("release input ret: %{public}d", ret);
+}
+
+bool PerUserSession::IsCurrentClient(int32_t pid, int32_t uid)
+{
+    auto client = GetCurrentClient();
+    if (client == nullptr) {
+        IMSA_HILOGD("no client in bound state");
+        return false;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        IMSA_HILOGE("failed to get client info");
+        return false;
+    }
+    return clientInfo->pid == pid && clientInfo->uid == uid;
 }
 
 sptr<AAFwk::IAbilityManager> PerUserSession::GetAbilityManagerService()
