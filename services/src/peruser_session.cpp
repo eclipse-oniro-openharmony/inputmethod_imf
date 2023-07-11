@@ -560,7 +560,7 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     }
     std::lock_guard<std::recursive_mutex> lock(mtx);
     for (const auto &mapClient : mapClients_) {
-        if (mapClient.second->pid != pid) {
+        if (mapClient.second->pid == pid) {
             IMSA_HILOGI("clear unfocused client info: %{public}d", pid);
             UnbindClient(mapClient.second->client);
             InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
