@@ -30,6 +30,20 @@ Message::Message(int32_t msgId, MessageParcel *msgContent)
     }
 }
 
+Message::Message(
+    int32_t msgId, MessageParcel *msgContent, const std::shared_ptr<BlockData<std::u16string>> &textResultHandler)
+    : Message(msgId, msgContent)
+{
+    textResultHandler_ = textResultHandler;
+}
+
+Message::Message(
+    int32_t msgId, MessageParcel *msgContent, const std::shared_ptr<BlockData<int32_t>> &indexResultHandler)
+    : Message(msgId, msgContent)
+{
+    indexResultHandler_ = indexResultHandler;
+}
+
 /*!Constructor
  * @param msg a source message
  */

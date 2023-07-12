@@ -39,11 +39,12 @@ int32_t InputMethodCoreProxy::InitInputControlChannel(
     });
 }
 
-int32_t InputMethodCoreProxy::ShowKeyboard(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard)
+int32_t InputMethodCoreProxy::ShowKeyboard(
+    const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, bool attachFlag)
 {
     IMSA_HILOGD("InputMethodCoreProxy::showKeyboard");
-    return SendRequest(SHOW_KEYBOARD, [&inputDataChannel, &isShowKeyboard](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, inputDataChannel->AsObject(), isShowKeyboard);
+    return SendRequest(SHOW_KEYBOARD, [&inputDataChannel, isShowKeyboard, attachFlag](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, inputDataChannel->AsObject(), isShowKeyboard, attachFlag);
     });
 }
 

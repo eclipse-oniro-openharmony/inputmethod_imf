@@ -17,7 +17,10 @@ import("//build/test.gni")
 config("module_private_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [ "//base/inputmethod/imf/services/include" ]
+  include_dirs = [
+    "${inputmethod_path}/services/include",
+    "${inputmethod_path}/test/common",
+  ]
 }
 
 module_output_path = "imf/cpp"
@@ -54,6 +57,31 @@ ohos_unittest("InputMethodControllerTest") {
   ]
 }
 
+ohos_unittest("InputMethodAttachTest") {
+  module_out_path = module_output_path
+
+  sources = [ "src/input_method_attach_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
+
+  deps = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "//third_party/googletest:gmock",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:ability_manager",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "napi:ace_napi",
+  ]
+}
 ohos_unittest("InputMethodAbilityTest") {
   module_out_path = module_output_path
 
@@ -134,6 +162,8 @@ ohos_unittest("InputMethodDfxTest") {
   module_out_path = module_output_path
 
   sources = [ "src/input_method_dfx_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
 
   deps = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",

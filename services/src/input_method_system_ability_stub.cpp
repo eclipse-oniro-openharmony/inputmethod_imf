@@ -63,7 +63,8 @@ int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, Me
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     bool isShowKeyboard = data.ReadBool();
-    int32_t ret = StartInput(iface_cast<IInputClient>(clientObject), isShowKeyboard);
+    bool attachFlag = data.ReadBool();
+    int32_t ret = StartInput(iface_cast<IInputClient>(clientObject), isShowKeyboard, attachFlag);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

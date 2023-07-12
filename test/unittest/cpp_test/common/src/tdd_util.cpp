@@ -44,7 +44,6 @@ constexpr const uint16_t EACH_LINE_LENGTH = 500;
 constexpr int32_t BUFF_LENGTH = 10;
 constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
 uint64_t TddUtil::selfTokenID_ = 0;
-uint64_t TddUtil::testTokenID_ = 0;
 int64_t TddUtil::selfUid_ = -1;
 int32_t TddUtil::userID_ = INVALID_USER_ID;
 int32_t TddUtil::GetCurrentUserId()
@@ -71,27 +70,19 @@ uint64_t TddUtil::AllocTestTokenID(bool isSystemApp, bool needPermission, const 
     HapInfoParams infoParams = { .userID = GetCurrentUserId(),
         .bundleName = bundleName,
         .instIndex = 0,
-        .appIDDesc = "ohos.inputmethod_test.demo",
-        .isSystemApp = true };
+        .appIDDesc = bundleName,
+        .isSystemApp = isSystemApp };
     PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
         .isGeneral = true,
         .resDeviceID = { "local" },
         .grantStatus = { PermissionState::PERMISSION_GRANTED },
         .grantFlags = { 1 } };
     HapPolicyParams policyParams = { .apl = APL_NORMAL,
-        .domain = "test.domain.inputmethod",
+        .domain = bundleName,
         .permList = {},
         .permStateList = { permissionState } };
     if (!needPermission) {
-        policyParams = { .apl = APL_NORMAL, .domain = "test.domain.inputmethod", .permList = {}, .permStateList = {} };
-    }
-    if (!isSystemApp) {
-        infoParams = {
-            .userID = GetCurrentUserId(),
-            .bundleName = bundleName,
-            .instIndex = 0,
-            .appIDDesc = "ohos.inputmethod_test.demo"
-        };
+        policyParams = { .apl = APL_NORMAL, .domain = bundleName, .permList = {}, .permStateList = {} };
     }
     auto tokenInfo = AccessTokenKit::AllocHapToken(infoParams, policyParams);
     return tokenInfo.tokenIDEx;
@@ -185,7 +176,7 @@ void TddUtil::KillImsaProcess()
         IMSA_HILOGE("Kill failed, ret: %{public}d", ret);
         return;
     }
-    IMSA_HILOGE("Kill success.");
+    IMSA_HILOGI("Kill success.");
 }
 
 sptr<OHOS::AppExecFwk::IBundleMgr> TddUtil::GetBundleMgr()

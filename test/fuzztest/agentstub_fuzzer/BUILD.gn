@@ -24,8 +24,10 @@ ohos_fuzztest("AgentStubFuzzTest") {
 
   fuzz_config_file = "//base/inputmethod/imf/test/fuzztest/agentstub_fuzzer"
 
-  include_dirs =
-      [ "${inputmethod_path}/frameworks/native/inputmethod_ability/include" ]
+  include_dirs = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+  ]
 
   cflags = [
     "-g",

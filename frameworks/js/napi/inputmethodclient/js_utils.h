@@ -21,6 +21,7 @@
 #include "ability.h"
 #include "global.h"
 #include "input_method_panel.h"
+#include "input_method_utils.h"
 #include "js_callback_object.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
@@ -88,15 +89,11 @@ enum TypeCode : int32_t {
 
 class JsUtils {
 public:
-    using ArgsProvider = std::function<bool(napi_value args[], uint8_t argc, std::shared_ptr<JSCallbackObject>)>;
-
     static void ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type);
 
     static napi_value ToError(napi_env env, int32_t code);
 
     static int32_t Convert(int32_t code);
-    static bool TraverseCallback(const std::vector<std::shared_ptr<JSCallbackObject>> &vecCopy, size_t paramNum,
-                                 ArgsProvider argsProvider);
 
     static bool Equals(napi_env env, napi_value value, napi_ref copy, std::thread::id threadId);
 
@@ -111,6 +108,7 @@ public:
     static napi_status GetValue(napi_env env, napi_value in, PanelInfo &out);
     static napi_value GetValue(napi_env env, const std::vector<InputWindowInfo> &in);
     static napi_value GetValue(napi_env env, const InputWindowInfo &in);
+    static napi_value GetValue(napi_env env, const InputAttribute &attribute);
 
 private:
     static const std::string ToMessage(int32_t code);

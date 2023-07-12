@@ -44,6 +44,7 @@ public:
         SELECT_BY_MOVEMENT,
         HANDLE_EXTEND_ACTION,
         GET_TEXT_INDEX_AT_CURSOR,
+        GET_TEXT_CONFIG,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputDataChannel");
@@ -53,6 +54,7 @@ public:
     virtual int32_t DeleteBackward(int32_t length) = 0;
     virtual int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) = 0;
     virtual int32_t GetTextAfterCursor(int32_t number, std::u16string &text) = 0;
+    virtual int32_t GetTextConfig(TextTotalConfig &textConfig) = 0;
     virtual void SendKeyboardStatus(int32_t status) = 0;
     virtual int32_t SendFunctionKey(int32_t funcKey) = 0;
     virtual int32_t MoveCursor(int32_t keyCode) = 0;
@@ -62,7 +64,6 @@ public:
     virtual int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) = 0;
     virtual int32_t HandleExtendAction(int32_t action) = 0;
     virtual int32_t GetTextIndexAtCursor(int32_t &index) = 0;
-    virtual void NotifyGetOperationCompletion() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

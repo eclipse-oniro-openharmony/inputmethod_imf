@@ -52,6 +52,7 @@
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "tdd_util.h"
+#include "text_listener.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -59,96 +60,6 @@ namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
-    class TextListener : public OnTextChangedListener {
-    public:
-        TextListener()
-        {
-            std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("TextListenerNotifier");
-            serviceHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-        }
-        ~TextListener()
-        {
-        }
-        static KeyboardStatus keyboardStatus_;
-        static std::mutex cvMutex_;
-        static std::condition_variable cv_;
-        std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
-        static int32_t direction_;
-        static int32_t deleteForwardLength_;
-        static int32_t deleteBackwardLength_;
-        static std::u16string insertText_;
-        static int32_t key_;
-        static bool WaitIMACallback()
-        {
-            std::unique_lock<std::mutex> lock(TextListener::cvMutex_);
-            return TextListener::cv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
-        }
-        void InsertText(const std::u16string &text)
-        {
-            IMSA_HILOGI("IMC TEST TextListener InsertText: %{public}s", Str16ToStr8(text).c_str());
-            insertText_ = text;
-        }
-
-        void DeleteBackward(int32_t length)
-        {
-            IMSA_HILOGI("IMC TEST TextListener DeleteBackward length: %{public}d", length);
-            deleteBackwardLength_ = length;
-        }
-
-        void SetKeyboardStatus(bool status)
-        {
-            IMSA_HILOGI("IMC TEST TextListener SetKeyboardStatus %{public}d", status);
-        }
-        void DeleteForward(int32_t length)
-        {
-            IMSA_HILOGI("IMC TEST TextListener DeleteForward length: %{public}d", length);
-            deleteForwardLength_ = length;
-        }
-        void SendKeyEventFromInputMethod(const KeyEvent &event)
-        {
-            IMSA_HILOGI("IMC TEST TextListener sendKeyEventFromInputMethod");
-        }
-        void SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
-        {
-            IMSA_HILOGD("TextListener::SendKeyboardStatus %{public}d", static_cast<int>(keyboardStatus));
-            constexpr int32_t interval = 20;
-            {
-                std::unique_lock<std::mutex> lock(cvMutex_);
-                IMSA_HILOGD("TextListener::SendKeyboardStatus lock");
-                keyboardStatus_ = keyboardStatus;
-            }
-            serviceHandler_->PostTask([this]() { cv_.notify_all(); }, interval);
-            IMSA_HILOGD("TextListener::SendKeyboardStatus notify_all");
-        }
-        void SendFunctionKey(const FunctionKey &functionKey)
-        {
-            IMSA_HILOGI("IMC TEST TextListener SendFunctionKey");
-            EnterKeyType enterKeyType = functionKey.GetEnterKeyType();
-            key_ = static_cast<int32_t>(enterKeyType);
-        }
-        void MoveCursor(const Direction direction)
-        {
-            IMSA_HILOGI("IMC TEST TextListener MoveCursor");
-            direction_ = static_cast<int32_t>(direction);
-        }
-        void HandleSetSelection(int32_t start, int32_t end)
-        {
-        }
-        void HandleExtendAction(int32_t action)
-        {
-        }
-        void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
-        {
-        }
-    };
-    KeyboardStatus TextListener::keyboardStatus_;
-    std::mutex TextListener::cvMutex_;
-    std::condition_variable TextListener::cv_;
-    int32_t TextListener::direction_ = 0;
-    int32_t TextListener::deleteForwardLength_ = 0;
-    int32_t TextListener::deleteBackwardLength_ = 0;
-    std::u16string TextListener::insertText_;
-    int32_t TextListener::key_ = 0;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -234,6 +145,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         static std::string text_;
         static bool doesKeyEventConsume_;
         static bool doesFUllKeyEventConsume_;
+        static InputAttribute inputAttribute_;
 
         class KeyboardListenerImpl : public KeyboardListener {
         public:
@@ -284,6 +196,12 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
                 text_ = text;
                 InputMethodControllerTest::keyboardListenerCv_.notify_one();
             }
+            void OnEditorAttributeChange(const InputAttribute &inputAttribute) override
+            {
+                IMSA_HILOGD("KeyboardListenerImpl in.");
+                inputAttribute_ = inputAttribute;
+                InputMethodControllerTest::keyboardListenerCv_.notify_one();
+            }
         };
     };
     sptr<InputMethodController> InputMethodControllerTest::inputMethodController_;
@@ -300,6 +218,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     int32_t InputMethodControllerTest::newBegin_ = 0;
     int32_t InputMethodControllerTest::newEnd_ = 0;
     std::string InputMethodControllerTest::text_;
+    InputAttribute InputMethodControllerTest::inputAttribute_;
     std::mutex InputMethodControllerTest::keyboardListenerMutex_;
     std::condition_variable InputMethodControllerTest::keyboardListenerCv_;
     sptr<InputDeathRecipient> InputMethodControllerTest::deathRecipient_;
@@ -339,6 +258,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         TddUtil::StorageSelfUid();
         TddUtil::SetTestUid();
         SetInputDeathRecipient();
+        TextListener::ResetParam();
     }
 
     void InputMethodControllerTest::TearDownTestCase(void)
@@ -346,6 +266,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
         TddUtil::RestoreSelfTokenID();
         TddUtil::RestoreSelfUid();
+        TextListener::ResetParam();
     }
 
     void InputMethodControllerTest::SetUp(void)
@@ -394,7 +315,8 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     {
         IMSA_HILOGI("InputMethodControllerTest::WaitRemoteDiedCallback");
         std::unique_lock<std::mutex> lock(onRemoteSaDiedMutex_);
-        return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
+        // 2 means wait 2 seconds.
+        return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(2)) != std::cv_status::timeout;
     }
 
     bool InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
@@ -765,38 +687,6 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     }
 
     /**
-     * @tc.name: testIMCGetTextBeforeCursor
-     * @tc.desc: IMC testGetTextBeforeCursor.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCGetTextBeforeCursor, TestSize.Level2)
-    {
-        IMSA_HILOGI("IMC GetTextBeforeCursor Test START");
-        inputMethodController_->OnSelectionChange(Str8ToStr16(""), 0, 0);
-        constexpr int32_t TEXT_LENGTH = 1;
-        std::u16string text;
-        inputMethodController_->GetTextBeforeCursor(TEXT_LENGTH, text);
-        EXPECT_TRUE(text.size() == 0);
-    }
-
-    /**
-     * @tc.name: testIMCGetTextAfterCursor
-     * @tc.desc: IMC testGetTextAfterCursor.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
-    HWTEST_F(InputMethodControllerTest, testIMCGetTextAfterCursor, TestSize.Level2)
-    {
-        IMSA_HILOGI("IMC GetTextAfterCursor Test START");
-        inputMethodController_->OnSelectionChange(Str8ToStr16(""), 0, 0);
-        constexpr int32_t TEXT_LENGTH = 1;
-        std::u16string text;
-        inputMethodController_->GetTextAfterCursor(TEXT_LENGTH, text);
-        EXPECT_TRUE(text.size() == 0);
-    }
-
-    /**
      * @tc.name: testIMCGetEnterKeyType
      * @tc.desc: IMC testGetEnterKeyType.
      * @tc.type: FUNC
@@ -827,38 +717,35 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     }
 
     /**
-    * @tc.name: testIMCOnConfigurationChange
-    * @tc.desc: IMC testOnConfigurationChange.
-    * @tc.type: FUNC
-    * @tc.require:
-    */
-    HWTEST_F(InputMethodControllerTest, testIMCOnConfigurationChange, TestSize.Level0)
+     * @tc.name: testOnEditorAttributeChanged
+     * @tc.desc: IMC testOnEditorAttributeChanged.
+     * @tc.type: FUNC
+     * @tc.require:
+     */
+    HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged, TestSize.Level0)
     {
-        IMSA_HILOGI("IMC OnConfigurationChange Test START");
+        IMSA_HILOGI("IMC testOnEditorAttributeChanged Test START");
+        auto ret = inputMethodController_->Attach(textListener_, false);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         Configuration info;
         info.SetEnterKeyType(EnterKeyType::GO);
-        info.SetTextInputType(TextInputType::TEXT);
-        int32_t ret = inputMethodController_->Close();
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        info.SetTextInputType(TextInputType::NUMBER);
         ret = inputMethodController_->OnConfigurationChange(info);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-        auto keyType = static_cast<int32_t>(EnterKeyType::UNSPECIFIED);
-        auto inputPattern = static_cast<int32_t>(TextInputType::NONE);
-        ret = inputMethodController_->GetEnterKeyType(keyType);
-        EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-        ret = inputMethodController_->GetInputPattern(inputPattern);
-        EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
-
-        ret = inputMethodController_->Attach(textListener_, false);
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-        ret = inputMethodController_->GetEnterKeyType(keyType);
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        ret = inputMethodController_->GetInputPattern(inputPattern);
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        EXPECT_TRUE(static_cast<OHOS::MiscServices::EnterKeyType>(keyType) == EnterKeyType::GO
-                    && static_cast<OHOS::MiscServices::TextInputType>(inputPattern) == TextInputType::TEXT);
+        {
+            std::unique_lock<std::mutex> lock(InputMethodControllerTest::keyboardListenerMutex_);
+            ret = InputMethodControllerTest::keyboardListenerCv_.wait_for(
+                lock, std::chrono::seconds(DEALY_TIME), [&info] {
+                    return (static_cast<OHOS::MiscServices::TextInputType>(
+                                InputMethodControllerTest::inputAttribute_.inputPattern) == info.GetTextInputType()) &&
+                           (static_cast<OHOS::MiscServices::EnterKeyType>(
+                                InputMethodControllerTest::inputAttribute_.enterKeyType) == info.GetEnterKeyType());
+                });
+            EXPECT_EQ(InputMethodControllerTest::inputAttribute_.inputPattern,
+                static_cast<int32_t>(info.GetTextInputType()));
+            EXPECT_EQ(
+                InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
+        }
     }
 
     /**

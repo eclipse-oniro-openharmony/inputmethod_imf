@@ -38,7 +38,6 @@ public:
     InputDataChannelStub();
     ~InputDataChannelStub();
     void SetHandler(MessageHandler *handler);
-
     int32_t InsertText(const std::u16string &text) override;
     int32_t DeleteForward(int32_t length) override;
     int32_t DeleteBackward(int32_t length) override;
@@ -53,18 +52,17 @@ public:
     int32_t SelectByRange(int32_t start, int32_t end) override;
     int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) override;
     int32_t HandleExtendAction(int32_t action) override;
-    void NotifyGetOperationCompletion() override;
-    int32_t HandleGetOperation(int32_t number, std::u16string &text, int32_t &index, int32_t msgType);
+    int32_t GetTextConfig(TextTotalConfig &textConfig) override;
 
 private:
     MessageHandler *msgHandler;
     int32_t SelectByRangeOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SelectByMovementOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply);
-    using ParcelHandler = std::function<bool(MessageParcel &)>;
-    int32_t SendMessage(int code, ParcelHandler input = nullptr);
-    std::mutex getOperationListenerLock_;
-    std::condition_variable getOperationListenerCv_;
+    int32_t GetText(int32_t msgId, MessageParcel &data, MessageParcel &reply);
+    int32_t GetTextIndexAtCursor(int32_t msgId, MessageParcel &data, MessageParcel &reply);
+    using MsgConstructor = std::function<Message *(MessageParcel &parcel)>;
+    int32_t SendMessage(const MsgConstructor &msgConstructor);
 };
 } // namespace MiscServices
 } // namespace OHOS

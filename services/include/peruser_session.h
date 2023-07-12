@@ -22,8 +22,6 @@
 #include <mutex>
 #include <thread>
 
-#include "ability_connect_callback_proxy.h"
-#include "ability_manager_interface.h"
 #include "block_data.h"
 #include "event_handler.h"
 #include "event_status_manager.h"
@@ -75,7 +73,7 @@ public:
     ~PerUserSession();
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
-    int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard);
+    int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard, bool attachFlag);
     int32_t OnStopInput(sptr<IInputClient> client);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
@@ -84,6 +82,7 @@ public:
     void StopInputService(std::string imeId);
     int32_t OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch);
     void UpdateCurrentUserId(int32_t userId);
+    void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
     bool IsFocused(int64_t callingPid, uint32_t callingTokenId);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
@@ -122,8 +121,8 @@ private:
     int AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     void UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard);
     int32_t RemoveClient(const sptr<IRemoteObject> &client, bool isClientDied);
-    int32_t ShowKeyboard(
-        const sptr<IInputDataChannel> &channel, const sptr<IInputClient> &inputClient, bool isShowKeyboard);
+    int32_t ShowKeyboard(const sptr<IInputDataChannel> &channel, const sptr<IInputClient> &inputClient,
+        bool isShowKeyboard, bool attachFlag);
     int32_t HideKeyboard(const sptr<IInputClient> &inputClient);
     int32_t ClearDataChannel(const sptr<IInputDataChannel> &channel);
     int32_t SendAgentToSingleClient(const sptr<IInputClient> &client);
@@ -136,7 +135,8 @@ private:
     sptr<IInputMethodCore> GetImsCore(int32_t index);
     void SetAgent(sptr<IInputMethodAgent> agent);
     sptr<IInputMethodAgent> GetAgent();
-    sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
+    bool IsCurrentClient(int32_t pid, int32_t uid);
+    void UnbindClient(const sptr<IInputClient> &client);
 
     static inline bool IsValid(int32_t index)
     {

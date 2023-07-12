@@ -18,6 +18,7 @@ config("inputmethodengine_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
+    "${inputmethod_path}/common",
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
@@ -35,6 +36,7 @@ config("inputmethodengine_native_public_config") {
   visibility = [ "./*" ]
   include_dirs = [
     "include",
+    "${inputmethod_path}/common",
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/js/napi/inputmethodclient",
     "${inputmethod_path}/frameworks/js/napi/inputmethodability",
@@ -47,7 +49,6 @@ ohos_shared_library("inputmethodengine") {
     "${inputmethod_path}/frameworks/js/napi/inputmethodclient/js_utils.cpp",
     "${inputmethod_path}/services/src/global.cpp",
     "input_method_engine_module.cpp",
-    "js_callback_object.cpp",
     "js_input_method_engine_setting.cpp",
     "js_keyboard_controller_engine.cpp",
     "js_keyboard_delegate_setting.cpp",

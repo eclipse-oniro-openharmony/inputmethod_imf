@@ -140,7 +140,6 @@ int32_t InputMethodSystemAbility::Init()
         userId_ = userIds[0];
         userSession_->UpdateCurrentUserId(userId_);
     }
-    StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_));
     StartUserIdListener();
     int32_t ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
@@ -245,7 +244,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
     return userSession_->OnReleaseInput(client);
 };
 
-int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
+int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag)
 {
     if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
@@ -254,7 +253,7 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return userSession_->OnStartInput(client, isShowKeyboard);
+    return userSession_->OnStartInput(client, isShowKeyboard, attachFlag);
 };
 
 int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
@@ -356,39 +355,19 @@ int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
     return OnDisplayOptionalInputMethod();
 };
 
-void InputMethodSystemAbility::PushToSwitchQueue(const SwitchInfo &info)
-{
-    std::lock_guard<std::mutex> lock(switchQueueMutex_);
-    switchQueue_.push(info);
-}
-
-void InputMethodSystemAbility::PopSwitchQueue()
-{
-    std::lock_guard<std::mutex> lock(switchQueueMutex_);
-    switchQueue_.pop();
-    switchCV_.notify_all();
-}
-
-bool InputMethodSystemAbility::CheckReadyToSwitch(const SwitchInfo &info)
-{
-    std::lock_guard<std::mutex> lock(switchQueueMutex_);
-    return info == switchQueue_.front();
-}
-
 int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleName, const std::string &subName)
 {
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), bundleName, subName };
-    PushToSwitchQueue(switchInfo);
+    switchQueue_.Push(switchInfo);
     return OnSwitchInputMethod(switchInfo, true);
 }
 
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission)
 {
     IMSA_HILOGD("run in, switchInfo: %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
-    if (!CheckReadyToSwitch(switchInfo)) {
+    if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
-        std::unique_lock<std::mutex> lock(switchMutex_);
-        switchCV_.wait(lock, [this, &switchInfo]() { return CheckReadyToSwitch(switchInfo); });
+        switchQueue_.Wait(switchInfo);
         usleep(SWITCH_BLOCK_TIME);
     }
     IMSA_HILOGD("start switch %{public}s", (switchInfo.bundleName + '/' + switchInfo.subName).c_str());
@@ -398,21 +377,21 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
         && !BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
         && !(switchInfo.bundleName == currentIme
              && BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme))) {
-        PopSwitchQueue();
+        switchQueue_.Pop();
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     if (!IsNeedSwitch(switchInfo.bundleName, switchInfo.subName)) {
-        PopSwitchQueue();
+        switchQueue_.Pop();
         return ErrorCode::NO_ERROR;
     }
     ImeInfo info;
     int32_t ret = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, switchInfo.bundleName, switchInfo.subName, info);
     if (ret != ErrorCode::NO_ERROR) {
-        PopSwitchQueue();
+        switchQueue_.Pop();
         return ret;
     }
     ret = info.isNewIme ? Switch(switchInfo.bundleName, info) : SwitchExtension(info);
-    PopSwitchQueue();
+    switchQueue_.Pop();
     return ret;
 }
 
@@ -709,7 +688,7 @@ int32_t InputMethodSystemAbility::SwitchMode()
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
-    PushToSwitchQueue(switchInfo);
+    switchQueue_.Push(switchInfo);
     return OnSwitchInputMethod(switchInfo, false);
 }
 
@@ -733,7 +712,7 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), target->name, target->id };
-    PushToSwitchQueue(switchInfo);
+    switchQueue_.Push(switchInfo);
     return OnSwitchInputMethod(switchInfo, false);
 }
 
@@ -750,7 +729,7 @@ int32_t InputMethodSystemAbility::SwitchType()
         [&currentImeBundle](const Property &property) { return property.name != currentImeBundle; });
     if (iter != props.end()) {
         SwitchInfo switchInfo = { std::chrono::system_clock::now(), iter->name, "" };
-        PushToSwitchQueue(switchInfo);
+        switchQueue_.Push(switchInfo);
         return OnSwitchInputMethod(switchInfo, false);
     }
     return ErrorCode::NO_ERROR;
@@ -767,7 +746,10 @@ int32_t InputMethodSystemAbility::InitKeyEventMonitor()
 bool InputMethodSystemAbility::InitFocusChangeMonitor()
 {
     return ImCommonEventManager::GetInstance()->SubscribeWindowManagerService(
-        [this](int32_t pid, int32_t uid) { return userSession_->OnUnfocused(pid, uid); });
+        [this](bool isOnFocused, int32_t pid, int32_t uid) {
+            return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
+        },
+        [this](int32_t userId) { StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_)); });
 }
 } // namespace MiscServices
 } // namespace OHOS

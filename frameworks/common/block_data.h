@@ -19,6 +19,7 @@
 #include <mutex>
 
 namespace OHOS {
+namespace MiscServices {
 template<typename T> class BlockData {
 public:
     explicit BlockData(uint32_t interval, const T &invalid = T()) : INTERVAL(interval), data_(invalid)
@@ -42,8 +43,8 @@ public:
     {
         std::unique_lock<std::mutex> lock(mutex_);
         cv_.wait_for(lock, std::chrono::milliseconds(INTERVAL), [this]() { return isSet_; });
+        isTimeOut_ = !isSet_;
         T data = data_;
-        cv_.notify_one();
         return data;
     }
 
@@ -52,15 +53,21 @@ public:
         std::lock_guard<std::mutex> lock(mutex_);
         isSet_ = false;
         data_ = invalid;
-        cv_.notify_one();
+    }
+
+    bool IsTimeOut()
+    {
+        return isTimeOut_;
     }
 
 private:
     bool isSet_ = false;
     const uint32_t INTERVAL;
     T data_;
+    bool isTimeOut_{ false };
     std::mutex mutex_;
     std::condition_variable cv_;
 };
+} // namespace MiscServices
 } // namespace OHOS
 #endif // OHOS_INPUTMETHOD_IMF_FRAMEWORKS_BLOCK_DATA_H

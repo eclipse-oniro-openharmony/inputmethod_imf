@@ -68,6 +68,7 @@ public:
     int32_t GetEnterKeyType(int32_t &keyType);
     int32_t GetInputPattern(int32_t &inputPattern);
     int32_t GetTextIndexAtCursor(int32_t &index);
+    int32_t GetTextConfig(TextTotalConfig &textConfig);
     void OnImeReady();
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo,
         std::shared_ptr<InputMethodPanel> &inputMethodPanel);
@@ -119,8 +120,10 @@ private:
 
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
+    void OnConfigurationChange(Message *msg);
     void ShowInputWindow(bool isShowKeyboard);
     void DismissInputWindow();
+    void OnTextConfigChange(const TextTotalConfig &textConfig);
     bool isImeReady_{ false };
     InputStartNotifier notifier_;
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};

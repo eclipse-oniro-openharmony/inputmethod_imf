@@ -35,7 +35,8 @@ public:
 
     DISALLOW_COPY_AND_MOVE(InputMethodCoreProxy);
 
-    int32_t ShowKeyboard(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard) override;
+    int32_t ShowKeyboard(
+        const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, bool attachFlag) override;
     bool HideKeyboard(int32_t flags) override;
     int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) override;
     void StopInputService(std::string imeId) override;
