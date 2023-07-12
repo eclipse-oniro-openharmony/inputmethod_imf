@@ -631,6 +631,8 @@ bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
     isImeStarted_.Clear(false);
     if (abms->StartAbility(want) != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start ability");
+        InputMethodSysEvent::InputmethodFaultReporter(
+            ErrorCode::ERROR_IME_START_FAILED, imeName, "StartInputService, failed to start ability.");
     } else if (isImeStarted_.GetValue()) {
         IMSA_HILOGI("ime started successfully");
         return true;

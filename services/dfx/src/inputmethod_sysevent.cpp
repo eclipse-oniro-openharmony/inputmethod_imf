@@ -15,9 +15,10 @@
 
 #include "inputmethod_sysevent.h"
 
-#include "hisysevent.h"
-
 #include <unistd.h>
+
+#include "common_timer_errors.h"
+#include "hisysevent.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -37,30 +38,59 @@ const std::unordered_map<int32_t, std::string> InputMethodSysEvent::operateInfo_
     {IME_HIDE_SELF, "HideKeyboardSelf: hide soft keyboard self."}
 };
 
-void InputMethodSysEvent::FaultReporter(int32_t userId, const std::string &bundleName, int32_t errCode)
+std::map<int32_t, int32_t> InputMethodSysEvent::inputmethodBehaviour_ = {
+    {START_IME, 0},
+    {CHANGE_IME, 0}
+};
+
+Utils::Timer InputMethodSysEvent::timer_("imfTimer");
+uint32_t InputMethodSysEvent::timerId_(0);
+std::mutex InputMethodSysEvent::behaviourMutex_;
+std::mutex InputMethodSysEvent::timerLock_;
+bool InputMethodSysEvent::isTimerStart_ = false;
+int32_t InputMethodSysEvent::userId_ = 0;
+
+void InputMethodSysEvent::ServiceFaultReporter(const std::string &bundleName, int32_t errCode)
 {
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "SERVICE_INIT_FAILED",
-        HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId, "COMPONENT_ID", bundleName, "ERROR_CODE", errCode);
+        HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId_, "COMPONENT_ID", bundleName, "ERROR_CODE", errCode);
     if (ret != HiviewDFX::SUCCESS) {
-        IMSA_HILOGE("hisysevent FaultReporter failed! ret %{public}d,errCode %{public}d", ret, errCode);
+        IMSA_HILOGE("hisysevent ServiceFaultReporter failed! ret %{public}d,errCode %{public}d", ret, errCode);
     }
 }
 
-void InputMethodSysEvent::CreateComponentFailed(int32_t userId, int32_t errCode)
+void InputMethodSysEvent::InputmethodFaultReporter(int32_t errCode, const std::string &name, const std::string &info)
 {
-    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "CREATE_COMPONENT_FAILED",
-        HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId, "ERROR_CODE", errCode);
+    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "INPUTMETHOD_UNAVAILABLE",
+        HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId_, "APP_NAME", name, "ERROR_CODE", errCode, "INFO",
+        info);
     if (ret != HiviewDFX::SUCCESS) {
-        IMSA_HILOGE("hisysevent CreateComponentFailed failed! ret %{public}d,errCode %{public}d", ret, errCode);
+        IMSA_HILOGE("hisysevent InputmethodFaultReporter failed! ret %{public}d,errCode %{public}d", ret, errCode);
     }
 }
 
-void InputMethodSysEvent::BehaviourReporter(const std::string &activeName, const std::string &inputMethodName)
+void InputMethodSysEvent::ImeUsageBehaviourReporter()
 {
-    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "INPUTMETHOD_USING",
-        HiSysEventNameSpace::EventType::BEHAVIOR, "ACTIVE_NAME", activeName, "INPUTMETHOD_NAME", inputMethodName);
+    IMSA_HILOGE("msy ImeUsageBehaviourReporter");
+    std::lock_guard<std::mutex> lock(behaviourMutex_);
+    int ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::INPUTMETHOD, "IME_USAGE",
+        HiSysEventNameSpace::EventType::STATISTIC, "IME_START", inputmethodBehaviour_[START_IME], "IME_CHANGE",
+        inputmethodBehaviour_[CHANGE_IME]);
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
+    }
+    inputmethodBehaviour_[START_IME] = 0;
+    inputmethodBehaviour_[CHANGE_IME] = 0;
+    StartTimerForReport();
+}
+
+void InputMethodSysEvent::EventRecorder(IMEBehaviour behaviour)
+{
+    std::lock_guard<std::mutex> lock(behaviourMutex_);
+    if (behaviour == IMEBehaviour::START_IME) {
+        inputmethodBehaviour_[START_IME]++;
+    } else if (behaviour == IMEBehaviour::CHANGE_IME) {
+        inputmethodBehaviour_[CHANGE_IME]++;
     }
 }
 
@@ -103,6 +133,78 @@ std::string InputMethodSysEvent::GetOperateAction(OperateIMEInfoCode infoCode)
             break;
     }
     return "unknow action.";
+}
+
+void InputMethodSysEvent::SetUserId(int32_t userId)
+{
+    userId_ = userId;
+}
+
+void InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t interval)
+{
+    IMSA_HILOGD("run in");
+    isTimerStart_ = true;
+    uint32_t ret = timer_.Setup();
+    if (ret != Utils::TIMER_ERR_OK) {
+        IMSA_HILOGE("Create Timer error");
+        return;
+    }
+    timerId_ = timer_.Register(callback, interval, true);
+}
+
+void InputMethodSysEvent::StopTimer()
+{
+    IMSA_HILOGD("run in");
+    timer_.Unregister(timerId_);
+    timer_.Shutdown();
+    isTimerStart_ = false;
+}
+
+void InputMethodSysEvent::StartTimerForReport()
+{
+    IMSA_HILOGD("run in");
+    auto reportCallback = []() { ImeUsageBehaviourReporter(); };
+    std::lock_guard<std::mutex> lock(timerLock_);
+    if (isTimerStart_) {
+        IMSA_HILOGD("isTimerStart_ is true. Update timer.");
+        timer_.Unregister(timerId_);
+        timerId_ =
+            timer_.Register(reportCallback, ONE_DAY_IN_HOURS * ONE_HOUR_IN_SECONDS * SECONDS_TO_MILLISECONDS, false);
+    } else {
+        int32_t interval = GetReportTime();
+        if (interval >= 0) {
+            StartTimer(reportCallback, interval);
+        }
+    }
+}
+
+int32_t InputMethodSysEvent::GetReportTime()
+{
+    IMSA_HILOGD("GetReportTime run in.");
+    time_t current = time(nullptr);
+    if (current == -1) {
+        IMSA_HILOGE("Get current time failed!");
+        return -1;
+    }
+    tm localTime = { 0 };
+    tm *result = localtime_r(&current, &localTime);
+    if (result == nullptr) {
+        IMSA_HILOGE("Get local time failed!");
+        return -1;
+    }
+    int32_t currentHour = localTime.tm_hour;
+    int32_t currentMin = localTime.tm_min;
+    IMSA_HILOGD("get");
+    if ((EXEC_MIN_TIME - currentMin) != EXEC_MIN_TIME) {
+        int32_t nHours = EXEC_HOUR_TIME - currentHour;
+        int32_t nMin = EXEC_MIN_TIME - currentMin;
+        int32_t nTime = (nMin)*ONE_MINUTE_IN_SECONDS + (nHours)*ONE_HOUR_IN_SECONDS;
+        IMSA_HILOGD(
+            " StartTimerThread if needHours=%{public}d,needMin=%{public}d,needTime=%{public}d", nHours, nMin, nTime);
+        return nTime * SECONDS_TO_MILLISECONDS;
+    } else {
+        return ONE_HOUR_IN_SECONDS * (ONE_DAY_IN_HOURS - currentHour) * SECONDS_TO_MILLISECONDS;
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS

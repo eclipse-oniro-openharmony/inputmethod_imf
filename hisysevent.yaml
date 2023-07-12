@@ -14,22 +14,22 @@
 domain: INPUTMETHOD
 
 SERVICE_INIT_FAILED:
-  __BASE: {type: STATISTIC, level: CRITICAL, tag: IMFServiceFailed, desc: Inputmethod service init report}
+  __BASE: {type: FAULT, level: CRITICAL, tag: IMFServiceFailed, desc: Inputmethod service init report}
   USER_ID: {type: INT32, desc: The user id}
-  COMPONENT_ID: {type: INT32, desc: Component type}
+  COMPONENT_ID: {type: STRING, desc: Component name}
   ERROR_CODE: {type: INT32, desc: Error code}
 
-CREATE_COMPONENT_FAILED:
-  __BASE: {type: STATISTIC, level: CRITICAL, tag: IMCFailed, desc: Create component failed report}
+INPUTMETHOD_UNAVAILABLE:
+  __BASE: {type: FAULT, level: CRITICAL, tag: IMEUnavaliable, desc: inputmethod unavailable}
   USER_ID: {type: INT32, desc: The user id}
-  COMPONENT_ID: {type: INT32, desc: The component type}
+  APP_NAME: {type: STRING, desc: app name}
   ERROR_CODE: {type: INT32, desc: Error code}
+  INFO: {type: STRING, desc: Error information}
 
-INPUTMETHOD_USING:
+IME_USAGE:
   __BASE: {type: STATISTIC, level: MINOR, tag: IMEUsage, desc: inputmethod using report}
-  USER_ID: {type: INT32, desc: the timer id}
-  COMPONENT_ID: {type: INT32,desc: the component type}
-  ERROR_CODE: {type: INT32, desc: error code}
+  IME_START: {type: INT32, desc: the number of ime starts}
+  IME_CHANGE: {type: INT32, desc: the number of ime switchs}
 
 OPERATE_SOFTKEYBOARD:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: IMEOperate, desc: Operate the soft keyboard report}

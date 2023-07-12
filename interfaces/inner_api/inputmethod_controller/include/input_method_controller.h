@@ -433,7 +433,7 @@ private:
     InputMethodController();
     ~InputMethodController();
 
-    bool Initialize();
+    int32_t Initialize();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
     int32_t PrepareInput(InputClientInfo &inputClientInfo);
     int32_t StartInput(sptr<IInputClient> &client, bool isShowKeyboard, bool attachFlag);

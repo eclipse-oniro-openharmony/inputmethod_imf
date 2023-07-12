@@ -45,7 +45,10 @@ const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_
 InputMethodController::InputMethodController() : stop_(false)
 {
     IMSA_HILOGI("InputMethodController structure");
-    Initialize();
+    int32_t ret = Initialize();
+    if (ret != ErrorCode::NO_ERROR) {
+        InputMethodSysEvent::InputmethodFaultReporter(ret, "", "IMC initialize failed!");
+    }
 }
 
 InputMethodController::~InputMethodController()
@@ -118,24 +121,24 @@ void InputMethodController::SetControllerListener(std::shared_ptr<ControllerList
     }
 }
 
-bool InputMethodController::Initialize()
+int32_t InputMethodController::Initialize()
 {
     auto handler = new (std::nothrow) MessageHandler();
     if (handler == nullptr) {
         IMSA_HILOGE("failed to new message handler");
-        return false;
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     msgHandler_ = handler;
     auto client = new (std::nothrow) InputClientStub();
     if (client == nullptr) {
         IMSA_HILOGE("failed to new client");
-        return false;
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     client->SetHandler(msgHandler_);
     auto channel = new (std::nothrow) InputDataChannelStub();
     if (channel == nullptr) {
         IMSA_HILOGE("failed to new channel");
-        return false;
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     channel->SetHandler(msgHandler_);
     InputAttribute attribute = { .inputPattern = InputAttribute::PATTERN_TEXT };
@@ -144,7 +147,7 @@ bool InputMethodController::Initialize()
 
     // make AppExecFwk::EventHandler handler
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
-    return true;
+    return ErrorCode::NO_ERROR;
 }
 
 sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()

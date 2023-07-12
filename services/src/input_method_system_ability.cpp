@@ -73,13 +73,16 @@ InputMethodSystemAbility::~InputMethodSystemAbility()
 void InputMethodSystemAbility::OnStart()
 {
     IMSA_HILOGI("InputMethodSystemAbility::OnStart.");
+    InputMethodSysEvent::StartTimerForReport();
     if (state_ == ServiceRunningState::STATE_RUNNING) {
         IMSA_HILOGI("ImsaService is already running.");
         return;
     }
     Initialize();
     InitServiceHandler();
-    if (Init() != ErrorCode::NO_ERROR) {
+    int32_t ret = Init();
+    if (ret != ErrorCode::NO_ERROR) {
+        InputMethodSysEvent::ServiceFaultReporter("imf", ret);
         auto callback = [=]() { Init(); };
         serviceHandler_->PostTask(callback, INIT_INTERVAL);
         IMSA_HILOGE("Init failed. Try again 10s later");
@@ -138,6 +141,7 @@ int32_t InputMethodSystemAbility::Init()
             return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
         })) {
         userId_ = userIds[0];
+        InputMethodSysEvent::SetUserId(userId_);
         userSession_->UpdateCurrentUserId(userId_);
     }
     StartUserIdListener();
@@ -289,7 +293,6 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
     if (core == nullptr || agent == nullptr) {
-        InputMethodSysEvent::CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
         IMSA_HILOGE("InputMethodSystemAbility::core or agent is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
@@ -366,6 +369,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission)
 {
     IMSA_HILOGD("run in, switchInfo: %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
+    InputMethodSysEvent::EventRecorder(IMEBehaviour::CHANGE_IME);
     if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);
@@ -379,6 +383,8 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
         && !(switchInfo.bundleName == currentIme
              && BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme))) {
         switchQueue_.Pop();
+        InputMethodSysEvent::InputmethodFaultReporter(
+            ErrorCode::ERROR_STATUS_PERMISSION_DENIED, switchInfo.bundleName, "switch inputmethod failed!");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     if (!IsNeedSwitch(switchInfo.bundleName, switchInfo.subName)) {
@@ -393,6 +399,9 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
     }
     ret = info.isNewIme ? Switch(switchInfo.bundleName, info) : SwitchExtension(info);
     switchQueue_.Pop();
+    if (ret != ErrorCode::NO_ERROR) {
+        InputMethodSysEvent::InputmethodFaultReporter(ret, switchInfo.bundleName, "switch inputmethod failed!");
+    }
     return ret;
 }
 
@@ -559,7 +568,13 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     // user switch, reset currentImeInfo_ = nullptr
     ImeInfoInquirer::GetInstance().ResetCurrentImeInfo();
     auto newIme = ImeInfoInquirer::GetInstance().GetStartedIme(userId_);
-    StartInputService(newIme);
+    InputMethodSysEvent::SetUserId(userId_);
+    if (!StartInputService(newIme)) {
+        IMSA_HILOGE("start input method failed");
+        InputMethodSysEvent::InputmethodFaultReporter(
+            ErrorCode::ERROR_IME_START_FAILED, newIme, "user start ime failed!");
+        return ErrorCode::ERROR_IME_START_FAILED;
+    }
     return ErrorCode::NO_ERROR;
 }
 
