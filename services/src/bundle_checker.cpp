@@ -28,13 +28,14 @@ using namespace Rosen;
 using namespace Security::AccessToken;
 bool BundleChecker::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid)
 {
-    if (focusedPid == INVALID_PID) {
+    int64_t realFocusedPid = focusedPid;
+    if (realFocusedPid == INVALID_PID) {
         FocusChangeInfo info;
         WindowManager::GetInstance().GetFocusWindowInfo(info);
-        focusedPid = info.pid_;
+        realFocusedPid = info.pid_;
     }
-    IMSA_HILOGD("focusedPid:%{public}" PRId64 ", pid:%{public}" PRId64 "", focusedPid, callingPid);
-    if (callingPid == focusedPid) {
+    IMSA_HILOGD("focusedPid:%{public}" PRId64 ", pid:%{public}" PRId64 "", realFocusedPid, callingPid);
+    if (callingPid == realFocusedPid) {
         IMSA_HILOGI("pid is same, focused app");
         return true;
     }

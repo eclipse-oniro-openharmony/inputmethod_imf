@@ -27,6 +27,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+using WindowMgr = TddUtil::WindowManager;
 constexpr int32_t WAIT_DATA_CHANNEL = 1000;
 class InputMethodAttachTest : public testing::Test {
 public:
@@ -76,13 +77,15 @@ public:
         inputMethodAbility_->SetCoreAndAgent();
         TddUtil::RestoreSelfTokenID();
 
-        TddUtil::SetFocusWindow();
+        WindowMgr::CreateWindow();
+        WindowMgr::ShowWindow();
         inputMethodController_ = InputMethodController::GetInstance();
     }
     static void TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodAttachTest::TearDownTestCase");
-        TddUtil::RestoreFocusWindow();
+        WindowMgr::HideWindow();
+        WindowMgr::DestroyWindow();
     }
     void SetUp()
     {

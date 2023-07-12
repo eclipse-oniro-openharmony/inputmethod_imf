@@ -45,8 +45,7 @@ constexpr int32_t BUFF_LENGTH = 10;
 constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
 uint64_t TddUtil::selfTokenID_ = 0;
 int32_t TddUtil::userID_ = INVALID_USER_ID;
-sptr<Window> TddUtil::window_ = nullptr;
-sptr<WindowOption> TddUtil::winOption_ = nullptr;
+sptr<Window> TddUtil::WindowManager::window_ = nullptr;
 int32_t TddUtil::GetCurrentUserId()
 {
     if (userID_ != INVALID_USER_ID) {
@@ -113,29 +112,6 @@ void TddUtil::RestoreSelfTokenID()
 {
     auto ret = SetSelfTokenID(selfTokenID_);
     IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
-}
-
-void TddUtil::SetFocusWindow()
-{
-    std::string windowName = "inputmethod_test_window";
-    winOption_ = new OHOS::Rosen::WindowOption();
-    winOption_->SetFocusable(true);
-    std::shared_ptr<AbilityRuntime::Context> context = nullptr;
-    WMError wmError = WMError::WM_OK;
-
-    window_ = Window::Create(windowName, winOption_, context, wmError);
-    if (window_ != nullptr) {
-        window_->Show();
-        IMSA_HILOGI("Create window success");
-    }
-}
-
-void TddUtil::RestoreFocusWindow()
-{
-    if (window_ != nullptr) {
-        window_->Hide();
-        window_->Destroy();
-    }
 }
 
 bool TddUtil::ExecuteCmd(const std::string &cmd, std::string &result)
@@ -211,6 +187,38 @@ int TddUtil::GetUserIdByBundleName(const std::string &bundleName, const int curr
     }
     // 200000 means userId = uid / 200000.
     return uid/200000;
+}
+
+void TddUtil::WindowManager::CreateWindow()
+{
+    std::string windowName = "inputmethod_test_window";
+    sptr<WindowOption> winOption = new OHOS::Rosen::WindowOption();
+    winOption->SetFocusable(true);
+    std::shared_ptr<AbilityRuntime::Context> context = nullptr;
+    WMError wmError = WMError::WM_OK;
+    window_ = Window::Create(windowName, winOption, context, wmError);
+    IMSA_HILOGI("Create window ret:%{public}d", wmError);
+}
+
+void TddUtil::WindowManager::ShowWindow()
+{
+    if (window_ != nullptr) {
+        window_->Show();
+    }
+}
+
+void TddUtil::WindowManager::HideWindow()
+{
+    if (window_ != nullptr) {
+        window_->Hide();
+    }
+}
+
+void TddUtil::WindowManager::DestroyWindow()
+{
+    if (window_ != nullptr) {
+        window_->Destroy();
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS

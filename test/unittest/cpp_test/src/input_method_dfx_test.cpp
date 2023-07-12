@@ -40,6 +40,7 @@ using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 namespace OHOS {
 namespace MiscServices {
+using WindowMgr = TddUtil::WindowManager;
 constexpr const char *CMD1 = "hidumper -s 3703 -a -a";
 constexpr const char *CMD2 = "hidumper -s 3703 -a -h";
 constexpr const char *CMD3 = "hidumper -s 3703 -a -test";
@@ -161,7 +162,8 @@ void InputMethodDfxTest::SetUpTestCase(void)
 
     inputMethodController_ = InputMethodController::GetInstance();
     textListener_ = new TextListener();
-    TddUtil::SetFocusWindow();
+    WindowMgr::CreateWindow();
+    WindowMgr::ShowWindow();
 }
 
 void InputMethodDfxTest::TearDownTestCase(void)
@@ -169,7 +171,8 @@ void InputMethodDfxTest::TearDownTestCase(void)
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
     TddUtil::KillImsaProcess();
-    TddUtil::RestoreFocusWindow();
+    WindowMgr::HideWindow();
+    WindowMgr::DestroyWindow();
 }
 
 void InputMethodDfxTest::SetUp(void)

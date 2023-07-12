@@ -36,8 +36,16 @@ public:
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
     static pid_t GetImsaPid();
     static void KillImsaProcess();
-    static void SetFocusWindow();
-    static void RestoreFocusWindow();
+    class WindowManager {
+    public:
+        static void CreateWindow();
+        static void ShowWindow();
+        static void HideWindow();
+        static void DestroyWindow();
+
+    private:
+        static sptr<Rosen::Window> window_;
+    };
 
 private:
     static int32_t GetCurrentUserId();
@@ -46,8 +54,6 @@ private:
     static uint64_t selfTokenID_;
     static uint64_t testTokenID_;
     static int32_t userID_;
-    static sptr<Rosen::Window> window_;
-    static sptr<Rosen::WindowOption> winOption_;
 };
 } // namespace MiscServices
 } // namespace OHOS
