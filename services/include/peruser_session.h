@@ -22,8 +22,6 @@
 #include <mutex>
 #include <thread>
 
-#include "ability_connect_callback_proxy.h"
-#include "ability_manager_interface.h"
 #include "block_data.h"
 #include "event_handler.h"
 #include "event_status_manager.h"
@@ -137,7 +135,6 @@ private:
     sptr<IInputMethodCore> GetImsCore(int32_t index);
     void SetAgent(sptr<IInputMethodAgent> agent);
     sptr<IInputMethodAgent> GetAgent();
-    sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     bool IsCurrentClient(int32_t pid, int32_t uid);
     void UnbindClient(const sptr<IInputClient> &client);
 
