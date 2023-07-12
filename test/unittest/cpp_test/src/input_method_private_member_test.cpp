@@ -233,7 +233,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionClientError, TestSize.Level
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     ret = userSession->OnShowKeyboardSelf();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
-    bool result = userSession->CheckFocused(1);
+    bool result = userSession->IsFocused(1, 1);
     EXPECT_FALSE(result);
 
     userSession->SetCurrentClient(imc->clientInfo_.client);

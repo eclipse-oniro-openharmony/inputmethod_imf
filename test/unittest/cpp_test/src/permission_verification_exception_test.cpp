@@ -34,6 +34,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+using WindowMgr = TddUtil::WindowManager;
 class PermissionVerificationExceptionTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -61,13 +62,14 @@ void PermissionVerificationExceptionTest::SetUpTestCase(void)
     auto property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     EXPECT_NE(property, nullptr);
     tokenId_ = TddUtil::GetTestTokenID(property->name);
-    TddUtil::StorageSelfUid();
+    WindowMgr::CreateWindow();
 }
 
 void PermissionVerificationExceptionTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("PermissionVerificationExceptionTest::TearDownTestCase");
     TddUtil::KillImsaProcess();
+    WindowMgr::DestroyWindow();
 }
 
 void PermissionVerificationExceptionTest::SetUp(void)
@@ -93,13 +95,13 @@ HWTEST_F(PermissionVerificationExceptionTest, ShowAndHideSoftKeyboard, TestSize.
     PermissionVerificationExceptionTest::ima_->SetCoreAndAgent();
     TddUtil::RestoreSelfTokenID();
 
-    TddUtil::SetTestUid();
+    WindowMgr::ShowWindow();
     PermissionVerificationExceptionTest::imc_->Attach(PermissionVerificationExceptionTest::textListener_);
     int32_t ret = PermissionVerificationExceptionTest::imc_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
     ret = PermissionVerificationExceptionTest::imc_->HideSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-    TddUtil::RestoreSelfUid();
+    WindowMgr::HideWindow();
 }
 
 /**

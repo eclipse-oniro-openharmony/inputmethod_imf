@@ -58,6 +58,7 @@ using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+using WindowMgr = TddUtil::WindowManager;
 constexpr uint32_t DEALY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
 
@@ -254,9 +255,9 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         keyEvent_->SetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, 1);
         keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
         TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(false, true, "undefine"));
-        // Set the uid to the uid of the focus app
-        TddUtil::StorageSelfUid();
-        TddUtil::SetTestUid();
+
+        WindowMgr::CreateWindow();
+        WindowMgr::ShowWindow();
         SetInputDeathRecipient();
         TextListener::ResetParam();
     }
@@ -265,8 +266,9 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
         TddUtil::RestoreSelfTokenID();
-        TddUtil::RestoreSelfUid();
         TextListener::ResetParam();
+        WindowMgr::HideWindow();
+        WindowMgr::DestroyWindow();
     }
 
     void InputMethodControllerTest::SetUp(void)
