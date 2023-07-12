@@ -127,7 +127,6 @@ void TddUtil::SetFocusWindow()
     if (window_ != nullptr) {
         window_->Show();
         IMSA_HILOGI("Create window success");
-        usleep(100000);  // the time wait for showing succeed
     }
 }
 
