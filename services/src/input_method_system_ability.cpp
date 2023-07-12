@@ -618,7 +618,7 @@ int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
     AAFwk::Want want;
     want.SetAction(SELECT_DIALOG_ACTION);
     want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want);
+    int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want);
     if (ret != ErrorCode::NO_ERROR && ret != START_SERVICE_ABILITY_ACTIVATING) {
         IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", ret);
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
