@@ -94,7 +94,7 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
     work->data = new (std::nothrow) UvEntry(callback.second);
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -106,7 +106,8 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
                 return;
             }
             JsCallbackHandler::Traverse({ entry->cbCopy });
-        });
+        },
+        uv_qos_user_initiated);
 }
 } // namespace MiscServices
 } // namespace OHOS

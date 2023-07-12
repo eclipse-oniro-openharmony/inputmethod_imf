@@ -701,7 +701,7 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -727,7 +727,8 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
             };
             // 1 means the callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
@@ -739,7 +740,7 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -765,7 +766,8 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
             };
             // 1 means the callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsGetInputMethodController::InsertText(const std::u16string &text)
@@ -777,7 +779,7 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
         IMSA_HILOGE("failed to get uv entry.");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -800,7 +802,8 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
             };
             // 1 means the callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInsertTextProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsGetInputMethodController::DeleteRight(int32_t length)
@@ -811,7 +814,7 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
         IMSA_HILOGE("failed to get uv entry.");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -834,7 +837,8 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
             };
             // 1 means the callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteForwardProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsGetInputMethodController::DeleteLeft(int32_t length)
@@ -845,7 +849,7 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
         IMSA_HILOGE("failed to get uv entry.");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -868,7 +872,8 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
             };
             // 1 means the callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteBackwardProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
@@ -880,7 +885,7 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
         IMSA_HILOGE("failed to get uv entry.");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -903,7 +908,8 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
             };
             // 1 means the callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendKeyboardStatusProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 napi_value JsGetInputMethodController::CreateSendFunctionKey(napi_env env, int32_t functionKey)
@@ -927,7 +933,7 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
         IMSA_HILOGE("failed to get uv entry.");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -955,7 +961,8 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
             };
             // 1 means the callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendFunctionKeyProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsGetInputMethodController::MoveCursor(const Direction direction)
@@ -967,7 +974,7 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
         IMSA_HILOGE("failed to get uv entry.");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -990,7 +997,8 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
             };
             // 1 means the callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getMoveCursorProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsGetInputMethodController::HandleExtendAction(int32_t action)
@@ -1001,7 +1009,7 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
         IMSA_HILOGE("failed to get uv entry.");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -1023,7 +1031,8 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
             };
             // 1 means the callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getHandleExtendActionProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 std::u16string JsGetInputMethodController::GetText(const std::string &type, int32_t number)
@@ -1037,7 +1046,7 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
         IMSA_HILOGE("failed to get uv entry.");
         return u"";
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -1061,7 +1070,8 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, fillArguments }, text);
             entry->textResultHandler->SetValue(text);
-        });
+        },
+        uv_qos_user_initiated);
     return Str8ToStr16(textResultHandler->GetValue());
 }
 
@@ -1075,7 +1085,7 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
         IMSA_HILOGE("failed to get uv entry.");
         return -1;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -1090,7 +1100,8 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
             // 0 means callback has no params.
             JsCallbackHandler::Traverse(entry->vecCopy, { 0, nullptr }, index);
             entry->indexResultHandler->SetValue(index);
-        });
+        },
+        uv_qos_user_initiated);
     return indexResultHandler->GetValue();
 }
 
