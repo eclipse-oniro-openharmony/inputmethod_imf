@@ -313,7 +313,6 @@ int32_t PerUserSession::SendAgentToSingleClient(const sptr<IInputClient> &client
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGI("agent is nullptr");
-        InputMethodSysEvent::CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return client->OnInputReady(agent);
@@ -635,6 +634,7 @@ bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
             ErrorCode::ERROR_IME_START_FAILED, imeName, "StartInputService, failed to start ability.");
     } else if (isImeStarted_.GetValue()) {
         IMSA_HILOGI("ime started successfully");
+        InputMethodSysEvent::EventRecorder(IMEBehaviour::START_IME);
         return true;
     }
     if (isRetry) {
