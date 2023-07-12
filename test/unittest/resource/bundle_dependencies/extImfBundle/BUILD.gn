@@ -18,7 +18,8 @@ ohos_hap("extImf") {
   hap_name = "extImf"
   subsystem_name = "inputmethod"
   part_name = "imf"
-  final_hap_path = "$root_out_dir/tests/unittest/imf/resource/extImfBundle/${hap_name}.hap"
+  final_hap_path =
+      "$root_out_dir/tests/unittest/imf/resource/extImfBundle/${hap_name}.hap"
   testonly = true
   deps = [
     ":extImf_ets_assets",
