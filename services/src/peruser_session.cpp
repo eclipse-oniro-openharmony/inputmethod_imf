@@ -17,8 +17,7 @@
 
 #include <vector>
 
-#include "ability_connect_callback_proxy.h"
-#include "ability_manager_interface.h"
+#include "ability_manager_client.h"
 #include "element_name.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
@@ -32,7 +31,6 @@
 #include "message_parcel.h"
 #include "parcel.h"
 #include "sys/prctl.h"
-#include "system_ability_definition.h"
 #include "unistd.h"
 #include "want.h"
 
@@ -596,22 +594,6 @@ bool PerUserSession::IsCurrentClient(int32_t pid, int32_t uid)
     return clientInfo->pid == pid && clientInfo->uid == uid;
 }
 
-sptr<AAFwk::IAbilityManager> PerUserSession::GetAbilityManagerService()
-{
-    IMSA_HILOGD("InputMethodSystemAbility::GetAbilityManagerService start");
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (samgr == nullptr) {
-        IMSA_HILOGE("SystemAbilityManager is nullptr.");
-        return nullptr;
-    }
-    auto abilityMsObj = samgr->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
-    if (abilityMsObj == nullptr) {
-        IMSA_HILOGE("Failed to get ability manager service.");
-        return nullptr;
-    }
-    return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
-}
-
 bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
 {
     IMSA_HILOGI("start ime: %{public}s with isRetry: %{public}d", imeName.c_str(), isRetry);
@@ -620,16 +602,12 @@ bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
         IMSA_HILOGE("invalid ime name");
         return false;
     }
-    auto abms = GetAbilityManagerService();
-    if (abms == nullptr) {
-        IMSA_HILOGE("failed to get ability manager service");
-        return false;
-    }
     IMSA_HILOGI("ime: %{public}s", imeName.c_str());
     AAFwk::Want want;
     want.SetElementName(imeName.substr(0, pos), imeName.substr(pos + 1));
     isImeStarted_.Clear(false);
-    if (abms->StartAbility(want) != ErrorCode::NO_ERROR) {
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want);
+    if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start ability");
     } else if (isImeStarted_.GetValue()) {
         IMSA_HILOGI("ime started successfully");
