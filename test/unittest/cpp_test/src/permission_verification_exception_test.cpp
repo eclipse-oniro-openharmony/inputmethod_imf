@@ -61,7 +61,6 @@ void PermissionVerificationExceptionTest::SetUpTestCase(void)
     auto property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     EXPECT_NE(property, nullptr);
     tokenId_ = TddUtil::GetTestTokenID(property->name);
-    TddUtil::StorageSelfUid();
 }
 
 void PermissionVerificationExceptionTest::TearDownTestCase(void)
@@ -93,13 +92,13 @@ HWTEST_F(PermissionVerificationExceptionTest, ShowAndHideSoftKeyboard, TestSize.
     PermissionVerificationExceptionTest::ima_->SetCoreAndAgent();
     TddUtil::RestoreSelfTokenID();
 
-    TddUtil::SetTestUid();
+    TddUtil::SetFocusWindow();
     PermissionVerificationExceptionTest::imc_->Attach(PermissionVerificationExceptionTest::textListener_);
     int32_t ret = PermissionVerificationExceptionTest::imc_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
     ret = PermissionVerificationExceptionTest::imc_->HideSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-    TddUtil::RestoreSelfUid();
+    TddUtil::RestoreFocusWindow();
 }
 
 /**

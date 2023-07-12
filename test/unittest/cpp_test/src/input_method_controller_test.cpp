@@ -254,9 +254,8 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         keyEvent_->SetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, 1);
         keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
         TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(false, true, "undefine"));
-        // Set the uid to the uid of the focus app
-        TddUtil::StorageSelfUid();
-        TddUtil::SetTestUid();
+
+        TddUtil::SetFocusWindow();
         SetInputDeathRecipient();
         TextListener::ResetParam();
     }
@@ -265,7 +264,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     {
         IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
         TddUtil::RestoreSelfTokenID();
-        TddUtil::RestoreSelfUid();
+        TddUtil::RestoreFocusWindow();
         TextListener::ResetParam();
     }
 

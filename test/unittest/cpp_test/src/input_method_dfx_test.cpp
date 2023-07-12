@@ -136,9 +136,7 @@ bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMe
         return false;
     }
     std::unique_lock<std::mutex> lock(watcher->cvMutex_);
-    TddUtil::SetTestUid();
     exec();
-    TddUtil::RestoreSelfUid();
     bool result = watcher->watcherCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
     ret = OHOS::HiviewDFX::HiSysEventManager::RemoveListener(watcher);
     if (ret != SUCCESS || !result) {
@@ -163,7 +161,7 @@ void InputMethodDfxTest::SetUpTestCase(void)
 
     inputMethodController_ = InputMethodController::GetInstance();
     textListener_ = new TextListener();
-    TddUtil::StorageSelfUid();
+    TddUtil::SetFocusWindow();
 }
 
 void InputMethodDfxTest::TearDownTestCase(void)
@@ -171,6 +169,7 @@ void InputMethodDfxTest::TearDownTestCase(void)
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
     TddUtil::KillImsaProcess();
+    TddUtil::RestoreFocusWindow();
 }
 
 void InputMethodDfxTest::SetUp(void)

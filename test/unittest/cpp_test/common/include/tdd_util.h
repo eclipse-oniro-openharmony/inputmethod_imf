@@ -19,6 +19,9 @@
 #include <string>
 
 #include "bundle_mgr_interface.h"
+#include "window.h"
+#include "window_option.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -30,12 +33,11 @@ public:
     static void DeleteTestTokenID(uint64_t tokenId);
     static void SetTestTokenID(uint64_t tokenId);
     static void RestoreSelfTokenID();
-    static void StorageSelfUid();
-    static void SetTestUid();
-    static void RestoreSelfUid();
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
     static pid_t GetImsaPid();
     static void KillImsaProcess();
+    static void SetFocusWindow();
+    static void RestoreFocusWindow();
 
 private:
     static int32_t GetCurrentUserId();
@@ -44,7 +46,8 @@ private:
     static uint64_t selfTokenID_;
     static uint64_t testTokenID_;
     static int32_t userID_;
-    static int64_t selfUid_;
+    static sptr<Rosen::Window> window_;
+    static sptr<Rosen::WindowOption> winOption_;
 };
 } // namespace MiscServices
 } // namespace OHOS

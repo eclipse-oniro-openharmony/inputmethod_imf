@@ -101,13 +101,10 @@ public:
         inputMethodAbility_->SetCoreAndAgent();
         TddUtil::RestoreSelfTokenID();
 
-        // Set the uid to the uid of the focus app
-        TddUtil::StorageSelfUid();
-        TddUtil::SetTestUid();
+        TddUtil::SetFocusWindow();
         sptr<OnTextChangedListener> textListener = new TextListener();
         imc_ = InputMethodController::GetInstance();
         imc_->Attach(textListener);
-        TddUtil::RestoreSelfUid();
         TextListener::ResetParam();
     }
     static void TearDownTestCase(void)
@@ -116,6 +113,7 @@ public:
         imc_->Close();
         TddUtil::KillImsaProcess();
         TextListener::ResetParam();
+        TddUtil::RestoreFocusWindow();
     }
     void SetUp()
     {

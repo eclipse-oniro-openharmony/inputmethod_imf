@@ -76,15 +76,13 @@ public:
         inputMethodAbility_->SetCoreAndAgent();
         TddUtil::RestoreSelfTokenID();
 
-        // Set the uid to the uid of the focus app
-        TddUtil::StorageSelfUid();
-        TddUtil::SetTestUid();
+        TddUtil::SetFocusWindow();
         inputMethodController_ = InputMethodController::GetInstance();
     }
     static void TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodAttachTest::TearDownTestCase");
-        TddUtil::RestoreSelfUid();
+        TddUtil::RestoreFocusWindow();
     }
     void SetUp()
     {

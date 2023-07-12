@@ -261,6 +261,7 @@ ohos_unittest("InputMethodSwitchTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "input:libmmi-client",
+    "window_manager:libwm",
   ]
 }
 
@@ -339,5 +340,6 @@ ohos_unittest("NewImeSwitchTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "input:libmmi-client",
+    "window_manager:libwm",
   ]
 }
