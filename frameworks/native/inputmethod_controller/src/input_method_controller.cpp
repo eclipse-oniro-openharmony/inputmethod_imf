@@ -44,7 +44,7 @@ const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_
     { "imeHide", IME_HIDE } };
 InputMethodController::InputMethodController() : stop_(false)
 {
-    IMSA_HILOGI("InputMethodController structure");  
+    IMSA_HILOGI("InputMethodController structure");
 }
 
 InputMethodController::~InputMethodController()
