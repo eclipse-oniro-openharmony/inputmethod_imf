@@ -26,7 +26,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-enum OperateIMEInfoCode : int32_t {
+enum class OperateIMEInfoCode : int32_t {
     IME_SHOW_ATTACH = 0,
     IME_SHOW_ENEDITABLE,
     IME_SHOW_NORMAL,
@@ -38,7 +38,7 @@ enum OperateIMEInfoCode : int32_t {
     IME_HIDE_SELF,
 };
 
-enum IMEBehaviour : int32_t {
+enum class IMEBehaviour : int32_t {
     START_IME = 0,
     CHANGE_IME,
 };
@@ -47,19 +47,19 @@ class InputMethodSysEvent {
 public:
     static void ServiceFaultReporter(const std::string &bundleName, int32_t errCode);
     static void InputmethodFaultReporter(int32_t errCode, const std::string &name, const std::string &info);
-    static void EventRecorder(IMEBehaviour behaciour);
+    static void RecordEvent(IMEBehaviour behaviour);
     static void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
-    static void StartTimerForReport();
+    static bool StartTimerForReport();
     static void SetUserId(int32_t userId);
 
 private:
     using TimerCallback = std::function<void()>;
     static void ImeUsageBehaviourReporter();
-    static const std::string GetOperateInfo(OperateIMEInfoCode infoCode);
-    static std::string GetOperateAction(OperateIMEInfoCode infoCode);
-    static void StartTimer(const TimerCallback &callback, uint32_t interval);
-    static void StopTimer();
+    static const std::string GetOperateInfo(int32_t infoCode);
+    static std::string GetOperateAction(int32_t infoCode);
+    static bool StartTimer(const TimerCallback &callback, uint32_t interval);
     static int32_t GetReportTime();
+    static void UpdateTimer(const TimerCallback &callback, uint32_t interval);
 
 private:
     static const std::unordered_map<int32_t, std::string> operateInfo_;

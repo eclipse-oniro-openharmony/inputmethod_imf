@@ -27,20 +27,22 @@ using HiSysEventNameSpace = OHOS::HiviewDFX::HiSysEvent;
 } // namespace
 
 const std::unordered_map<int32_t, std::string> InputMethodSysEvent::operateInfo_ = {
-    {IME_SHOW_ATTACH, "Attach: attach, bind and show soft keyboard."},
-    {IME_SHOW_ENEDITABLE, "ShowTextInput: enter editable state, show soft keyboard."},
-    {IME_SHOW_NORMAL, "ShowSoftKeyboard: show soft keyboard."},
-    {IME_UNBIND, "Close: unbind."},
-    {IME_HIDE_UNBIND, "Close: hide soft keyboard, and unbind."},
-    {IME_HIDE_UNEDITABLE, "HideTextInput: hide soft keyboard, quit editable state."},
-    {IME_HIDE_NORMAL, "HideSoftKeyboard, hide soft keyboard."},
-    {IME_HIDE_UNFOCUSED, "OnUnfocused: unfocused, hide soft keyboard."},
-    {IME_HIDE_SELF, "HideKeyboardSelf: hide soft keyboard self."}
+    { static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ATTACH), "Attach: attach, bind and show soft keyboard." },
+    { static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ENEDITABLE), "ShowTextInput: enter editable state, show soft "
+                                                                     "keyboard." },
+    { static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_NORMAL), "ShowSoftKeyboard: show soft keyboard." },
+    { static_cast<int32_t>(OperateIMEInfoCode::IME_UNBIND), "Close: unbind." },
+    { static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNBIND), "Close: hide soft keyboard, and unbind." },
+    { static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNEDITABLE), "HideTextInput: hide soft keyboard, quit "
+                                                                     "editable state." },
+    { static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_NORMAL), "HideSoftKeyboard, hide soft keyboard." },
+    { static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNFOCUSED), "OnUnfocused: unfocused, hide soft keyboard." },
+    { static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_SELF), "HideKeyboardSelf: hide soft keyboard self." }
 };
 
 std::map<int32_t, int32_t> InputMethodSysEvent::inputmethodBehaviour_ = {
-    {START_IME, 0},
-    {CHANGE_IME, 0}
+    {static_cast<int32_t>(IMEBehaviour::START_IME), 0},
+    {static_cast<int32_t>(IMEBehaviour::CHANGE_IME), 0}
 };
 
 Utils::Timer InputMethodSysEvent::timer_("imfTimer");
@@ -52,6 +54,7 @@ int32_t InputMethodSysEvent::userId_ = 0;
 
 void InputMethodSysEvent::ServiceFaultReporter(const std::string &bundleName, int32_t errCode)
 {
+    IMSA_HILOGD("run in.");
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "SERVICE_INIT_FAILED",
         HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId_, "COMPONENT_ID", bundleName, "ERROR_CODE", errCode);
     if (ret != HiviewDFX::SUCCESS) {
@@ -61,6 +64,7 @@ void InputMethodSysEvent::ServiceFaultReporter(const std::string &bundleName, in
 
 void InputMethodSysEvent::InputmethodFaultReporter(int32_t errCode, const std::string &name, const std::string &info)
 {
+    IMSA_HILOGD("run in.");
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "INPUTMETHOD_UNAVAILABLE",
         HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId_, "APP_NAME", name, "ERROR_CODE", errCode, "INFO",
         info);
@@ -71,63 +75,66 @@ void InputMethodSysEvent::InputmethodFaultReporter(int32_t errCode, const std::s
 
 void InputMethodSysEvent::ImeUsageBehaviourReporter()
 {
-    IMSA_HILOGE("msy ImeUsageBehaviourReporter");
+    IMSA_HILOGD("run in.");
     std::lock_guard<std::mutex> lock(behaviourMutex_);
     int ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::INPUTMETHOD, "IME_USAGE",
-        HiSysEventNameSpace::EventType::STATISTIC, "IME_START", inputmethodBehaviour_[START_IME], "IME_CHANGE",
-        inputmethodBehaviour_[CHANGE_IME]);
+        HiSysEventNameSpace::EventType::STATISTIC, "IME_START",
+        inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::START_IME)], "IME_CHANGE",
+        inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::CHANGE_IME)]);
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
     }
-    inputmethodBehaviour_[START_IME] = 0;
-    inputmethodBehaviour_[CHANGE_IME] = 0;
+    inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::START_IME)] = 0;
+    inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::CHANGE_IME)] = 0;
     StartTimerForReport();
 }
 
-void InputMethodSysEvent::EventRecorder(IMEBehaviour behaviour)
+void InputMethodSysEvent::RecordEvent(IMEBehaviour behaviour)
 {
+    IMSA_HILOGD("run in.");
     std::lock_guard<std::mutex> lock(behaviourMutex_);
     if (behaviour == IMEBehaviour::START_IME) {
-        inputmethodBehaviour_[START_IME]++;
+        ++inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::START_IME)];
     } else if (behaviour == IMEBehaviour::CHANGE_IME) {
-        inputmethodBehaviour_[CHANGE_IME]++;
+        ++inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::CHANGE_IME)];
     }
 }
 
 void InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode)
 {
+    IMSA_HILOGD("run in.");
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "OPERATE_SOFTKEYBOARD",
-        HiSysEventNameSpace::EventType::BEHAVIOR, "OPERATING", GetOperateAction(infoCode), "OPERATE_INFO",
-        GetOperateInfo(infoCode));
+        HiSysEventNameSpace::EventType::BEHAVIOR, "OPERATING", GetOperateAction(static_cast<int32_t>(infoCode)),
+        "OPERATE_INFO", GetOperateInfo(static_cast<int32_t>(infoCode)));
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("Hisysevent: operate soft keyboard report failed! ret %{public}d", ret);
     }
 }
 
-const std::string InputMethodSysEvent::GetOperateInfo(OperateIMEInfoCode infoCode)
+const std::string InputMethodSysEvent::GetOperateInfo(int32_t infoCode)
 {
-    auto iter = operateInfo_.find(infoCode);
+    auto iter = operateInfo_.find(static_cast<int32_t>(infoCode));
     if (iter != operateInfo_.end()) {
         return iter->second;
     }
     return "unknow operating.";
 }
 
-std::string InputMethodSysEvent::GetOperateAction(OperateIMEInfoCode infoCode)
+std::string InputMethodSysEvent::GetOperateAction(int32_t infoCode)
 {
     switch (infoCode) {
-        case IME_SHOW_ATTACH:
-        case IME_SHOW_ENEDITABLE:
-        case IME_SHOW_NORMAL:
+        case static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ATTACH):
+        case static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ENEDITABLE):
+        case static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_NORMAL):
             return "show";
-        case IME_UNBIND:
+        case static_cast<int32_t>(OperateIMEInfoCode::IME_UNBIND):
             return "unbind";
-        case IME_HIDE_UNBIND:
+        case static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNBIND):
             return "hide and unbind";
-        case IME_HIDE_UNEDITABLE:
-        case IME_HIDE_NORMAL:
-        case IME_HIDE_UNFOCUSED:
-        case IME_HIDE_SELF:
+        case static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNEDITABLE):
+        case static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_NORMAL):
+        case static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNFOCUSED):
+        case static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_SELF):
             return "hide";
         default:
             break;
@@ -140,47 +147,47 @@ void InputMethodSysEvent::SetUserId(int32_t userId)
     userId_ = userId;
 }
 
-void InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t interval)
+bool InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t interval)
 {
     IMSA_HILOGD("run in");
     isTimerStart_ = true;
     uint32_t ret = timer_.Setup();
     if (ret != Utils::TIMER_ERR_OK) {
         IMSA_HILOGE("Create Timer error");
-        return;
+        isTimerStart_ = false;
+        return false;
     }
     timerId_ = timer_.Register(callback, interval, true);
+    return true;
 }
 
-void InputMethodSysEvent::StopTimer()
+void InputMethodSysEvent::UpdateTimer(const TimerCallback &callback, uint32_t interval)
 {
     IMSA_HILOGD("run in");
     timer_.Unregister(timerId_);
-    timer_.Shutdown();
-    isTimerStart_ = false;
+    timerId_ = timer_.Register(callback, interval, false);
 }
 
-void InputMethodSysEvent::StartTimerForReport()
+bool InputMethodSysEvent::StartTimerForReport()
 {
     IMSA_HILOGD("run in");
     auto reportCallback = []() { ImeUsageBehaviourReporter(); };
     std::lock_guard<std::mutex> lock(timerLock_);
     if (isTimerStart_) {
         IMSA_HILOGD("isTimerStart_ is true. Update timer.");
-        timer_.Unregister(timerId_);
-        timerId_ =
-            timer_.Register(reportCallback, ONE_DAY_IN_HOURS * ONE_HOUR_IN_SECONDS * SECONDS_TO_MILLISECONDS, false);
-    } else {
-        int32_t interval = GetReportTime();
-        if (interval >= 0) {
-            StartTimer(reportCallback, interval);
-        }
+        UpdateTimer(reportCallback, ONE_DAY_IN_HOURS * ONE_HOUR_IN_SECONDS * SECONDS_TO_MILLISECONDS);
+        return true;
     }
+    int32_t interval = GetReportTime();
+    if (interval >= 0) {
+        return StartTimer(reportCallback, interval);
+    }
+    return false;
 }
 
 int32_t InputMethodSysEvent::GetReportTime()
 {
-    IMSA_HILOGD("GetReportTime run in.");
+    IMSA_HILOGD("run in.");
     time_t current = time(nullptr);
     if (current == -1) {
         IMSA_HILOGE("Get current time failed!");

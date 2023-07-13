@@ -44,11 +44,7 @@ const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_
     { "imeHide", IME_HIDE } };
 InputMethodController::InputMethodController() : stop_(false)
 {
-    IMSA_HILOGI("InputMethodController structure");
-    int32_t ret = Initialize();
-    if (ret != ErrorCode::NO_ERROR) {
-        InputMethodSysEvent::InputmethodFaultReporter(ret, "", "IMC initialize failed!");
-    }
+    IMSA_HILOGI("InputMethodController structure");  
 }
 
 InputMethodController::~InputMethodController()
@@ -64,7 +60,14 @@ sptr<InputMethodController> InputMethodController::GetInstance()
         std::lock_guard<std::mutex> autoLock(instanceLock_);
         if (instance_ == nullptr) {
             IMSA_HILOGI("InputMethodController::GetInstance instance_ is nullptr");
-            instance_ = new InputMethodController();
+            instance_ = new (std::nothrow) InputMethodController();
+            if (instance_ == nullptr) {
+                return instance_;
+            }
+            int32_t ret = instance_->Initialize();
+            if (ret != ErrorCode::NO_ERROR) {
+                InputMethodSysEvent::InputmethodFaultReporter(ret, "", "IMC initialize failed!");
+            }
         }
     }
     return instance_;
@@ -436,7 +439,7 @@ int32_t InputMethodController::Attach(
     IMSA_HILOGI("bind imf successfully, enter editable state");
 
     if (isShowKeyboard) {
-        InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_SHOW_ATTACH);
+        InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ATTACH);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -449,7 +452,7 @@ int32_t InputMethodController::ShowTextInput()
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
     clientInfo_.isShowKeyboard = true;
-    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_SHOW_ENEDITABLE);
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ENEDITABLE);
     int32_t ret = StartInput(clientInfo_.client, true, false);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input, ret: %{public}d", ret);
@@ -468,7 +471,7 @@ int32_t InputMethodController::HideTextInput()
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
     isEditable_.store(false);
-    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNEDITABLE);
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNEDITABLE);
     return StopInput(clientInfo_.client);
 }
 
@@ -485,7 +488,7 @@ int32_t InputMethodController::HideCurrentInput()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     clientInfo_.isShowKeyboard = false;
-    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_NORMAL);
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_NORMAL);
     return proxy->HideCurrentInputDeprecated();
 }
 
@@ -502,7 +505,7 @@ int32_t InputMethodController::ShowCurrentInput()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     clientInfo_.isShowKeyboard = true;
-    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_SHOW_NORMAL);
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_NORMAL);
     return proxy->ShowCurrentInputDeprecated();
 }
 
@@ -523,8 +526,8 @@ int32_t InputMethodController::Close()
         agentObject_ = nullptr;
     }
     ClearEditorCache();
-    isReportHide ? InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNBIND)
-                 : InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_UNBIND);
+    isReportHide ? InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNBIND)
+                 : InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_UNBIND);
     return ReleaseInput(clientInfo_.client);
 }
 
@@ -922,7 +925,7 @@ int32_t InputMethodController::ShowSoftKeyboard()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     clientInfo_.isShowKeyboard = true;
-    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_SHOW_NORMAL);
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_NORMAL);
     return proxy->ShowCurrentInput();
 }
 
@@ -939,7 +942,7 @@ int32_t InputMethodController::HideSoftKeyboard()
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     clientInfo_.isShowKeyboard = false;
-    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_NORMAL);
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_NORMAL);
     return proxy->HideCurrentInput();
 }
 

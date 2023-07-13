@@ -14,24 +14,24 @@
 domain: INPUTMETHOD
 
 SERVICE_INIT_FAILED:
-  __BASE: {type: FAULT, level: CRITICAL, tag: IMFServiceFailed, desc: Inputmethod service init report}
+  __BASE: {type: FAULT, level: CRITICAL, tag: IMFServiceFailed, desc: Input method service init fault}
   USER_ID: {type: INT32, desc: The user id}
   COMPONENT_ID: {type: STRING, desc: Component name}
   ERROR_CODE: {type: INT32, desc: Error code}
 
 INPUTMETHOD_UNAVAILABLE:
-  __BASE: {type: FAULT, level: CRITICAL, tag: IMEUnavaliable, desc: inputmethod unavailable}
+  __BASE: {type: FAULT, level: CRITICAL, tag: IMEUnavaliable, desc: Inputmethod unavailable}
   USER_ID: {type: INT32, desc: The user id}
-  APP_NAME: {type: STRING, desc: app name}
+  APP_NAME: {type: STRING, desc: App name}
   ERROR_CODE: {type: INT32, desc: Error code}
   INFO: {type: STRING, desc: Error information}
 
 IME_USAGE:
-  __BASE: {type: STATISTIC, level: MINOR, tag: IMEUsage, desc: inputmethod using report}
-  IME_START: {type: INT32, desc: the number of ime starts}
-  IME_CHANGE: {type: INT32, desc: the number of ime switchs}
+  __BASE: {type: STATISTIC, level: MINOR, tag: IMEUsage, desc: Inputmethod using report}
+  IME_START: {type: INT32, desc: The count of ime starts}
+  IME_CHANGE: {type: INT32, desc: The count of ime switchs}
 
 OPERATE_SOFTKEYBOARD:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: IMEOperate, desc: Operate the soft keyboard report}
-  OPERATING: {type: STRING, desc: show, hide or unbind soft keyboard}
+  OPERATING: {type: STRING, desc: Show, hide or unbind soft keyboard}
   OPERATE_INFO: {type: STRING, desc: Manipulate to show, hide, or unbind soft keyboard information}

@@ -73,7 +73,11 @@ InputMethodSystemAbility::~InputMethodSystemAbility()
 void InputMethodSystemAbility::OnStart()
 {
     IMSA_HILOGI("InputMethodSystemAbility::OnStart.");
-    InputMethodSysEvent::StartTimerForReport();
+    if (!InputMethodSysEvent::StartTimerForReport()) {
+        IMSA_HILOGE("Start timer failed. Try again.");
+        auto callback = [=]() { InputMethodSysEvent::StartTimerForReport(); };
+        serviceHandler_->PostTask(callback, RETRY_INTERVAL);
+    }
     if (state_ == ServiceRunningState::STATE_RUNNING) {
         IMSA_HILOGI("ImsaService is already running.");
         return;
@@ -369,7 +373,7 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission)
 {
     IMSA_HILOGD("run in, switchInfo: %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
-    InputMethodSysEvent::EventRecorder(IMEBehaviour::CHANGE_IME);
+    InputMethodSysEvent::RecordEvent(IMEBehaviour::CHANGE_IME);
     if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);

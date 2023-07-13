@@ -562,7 +562,7 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
         if (mapClient.second->pid == pid) {
             IMSA_HILOGI("clear unfocused client info: %{public}d", pid);
             UnbindClient(mapClient.second->client);
-            InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
+            InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
             break;
         }
     }
