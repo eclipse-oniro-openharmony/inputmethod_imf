@@ -76,7 +76,6 @@ void InputMethodSysEvent::InputmethodFaultReporter(int32_t errCode, const std::s
 void InputMethodSysEvent::ImeUsageBehaviourReporter()
 {
     IMSA_HILOGD("run in.");
-    std::lock_guard<std::mutex> lock(behaviourMutex_);
     int ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::INPUTMETHOD, "IME_USAGE",
         HiSysEventNameSpace::EventType::STATISTIC, "IME_START",
         inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::START_IME)], "IME_CHANGE",
@@ -84,8 +83,11 @@ void InputMethodSysEvent::ImeUsageBehaviourReporter()
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("hisysevent BehaviourReporter failed! ret %{public}d", ret);
     }
-    inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::START_IME)] = 0;
-    inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::CHANGE_IME)] = 0;
+    {
+        std::lock_guard<std::mutex> lock(behaviourMutex_);
+        inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::START_IME)] = 0;
+        inputmethodBehaviour_[static_cast<int32_t>(IMEBehaviour::CHANGE_IME)] = 0;
+    }
     StartTimerForReport();
 }
 
@@ -201,11 +203,10 @@ int32_t InputMethodSysEvent::GetReportTime()
     }
     int32_t currentHour = localTime.tm_hour;
     int32_t currentMin = localTime.tm_min;
-    IMSA_HILOGD("get");
     if ((EXEC_MIN_TIME - currentMin) != EXEC_MIN_TIME) {
         int32_t nHours = EXEC_HOUR_TIME - currentHour;
         int32_t nMin = EXEC_MIN_TIME - currentMin;
-        int32_t nTime = (nMin)*ONE_MINUTE_IN_SECONDS + (nHours)*ONE_HOUR_IN_SECONDS;
+        int32_t nTime = nMin * ONE_MINUTE_IN_SECONDS + nHours * ONE_HOUR_IN_SECONDS;
         IMSA_HILOGD(
             " StartTimerThread if needHours=%{public}d,needMin=%{public}d,needTime=%{public}d", nHours, nMin, nTime);
         return nTime * SECONDS_TO_MILLISECONDS;

@@ -548,7 +548,7 @@ void PerUserSession::OnFocused(int32_t pid, int32_t uid)
     }
     IMSA_HILOGI("focus shifts to pid: %{public}d, start unbinding", pid);
     UnbindClient(client);
-    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
 }
 
 void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
