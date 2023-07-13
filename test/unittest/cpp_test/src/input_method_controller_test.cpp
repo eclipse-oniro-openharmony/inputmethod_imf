@@ -944,6 +944,7 @@ constexpr uint32_t WAIT_SET_KEYBOARD_STATUS = 300;
         ret = kill(pid, SIGTERM);
         EXPECT_EQ(ret, 0);
         EXPECT_TRUE(WaitRemoteDiedCallback());
+        sleep(1);
         inputMethodController_->OnRemoteSaDied(nullptr);
         EXPECT_TRUE(TextListener::WaitIMACallback());
         bool result = inputMethodController_->WasAttached();
