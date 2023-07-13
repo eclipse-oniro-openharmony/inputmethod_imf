@@ -634,7 +634,7 @@ bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
             ErrorCode::ERROR_IME_START_FAILED, imeName, "StartInputService, failed to start ability.");
     } else if (isImeStarted_.GetValue()) {
         IMSA_HILOGI("ime started successfully");
-        InputMethodSysEvent::EventRecorder(IMEBehaviour::START_IME);
+        InputMethodSysEvent::RecordEvent(IMEBehaviour::START_IME);
         return true;
     }
     if (isRetry) {
