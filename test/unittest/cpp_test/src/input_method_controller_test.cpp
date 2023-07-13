@@ -61,7 +61,6 @@ namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
-constexpr uint32_t WAIT_SET_KEYBOARD_STATUS = 300;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
