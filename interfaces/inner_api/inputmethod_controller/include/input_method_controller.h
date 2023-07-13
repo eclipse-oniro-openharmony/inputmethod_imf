@@ -456,6 +456,8 @@ private:
     void SaveTextConfig(const TextConfig &textConfig);
     void GetText(const Message *msg);
     void GetTextIndexAtCursor(const Message *msg);
+    sptr<OnTextChangedListener> GetTextListener();
+    void SetTextListener(sptr<OnTextChangedListener> listener);
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
