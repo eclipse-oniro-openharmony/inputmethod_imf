@@ -14,6 +14,7 @@
  */
 #define private public
 #define protected public
+#include "input_method_ability.h"
 #include "input_method_controller.h"
 #undef private
 
@@ -103,6 +104,18 @@ constexpr uint32_t WAIT_SET_KEYBOARD_STATUS = 300;
     {
         IMSA_HILOGD("InputMethodEngineListenerImpl::OnSetSubtype");
     }
+
+    class InputMethodEngineListenerMock : public InputMethodEngineListener {
+    public:
+        InputMethodEngineListenerMock() = default;
+        ~InputMethodEngineListenerMock() override = default;
+
+        MOCK_METHOD1(OnKeyboardStatus, void(bool isShow));
+        MOCK_METHOD0(OnInputStart, void());
+        MOCK_METHOD1(OnInputStop, void(const std::string &imeId));
+        MOCK_METHOD1(OnSetCallingWindow, void(uint32_t windowId));
+        MOCK_METHOD1(OnSetSubtype, void(const SubProperty &property));
+    };
 
     class SelectListenerMock : public ControllerListener {
     public:
@@ -792,12 +805,14 @@ constexpr uint32_t WAIT_SET_KEYBOARD_STATUS = 300;
     HWTEST_F(InputMethodControllerTest, testIMCInputStopSession, TestSize.Level0)
     {
         IMSA_HILOGI("IMC StopInputSession Test START");
-        imeListener_->keyboardState_ = true;
-        TextListener::keyboardStatus_ = KeyboardStatus::NONE;
+        std::shared_ptr<InputMethodEngineListenerMock> listener = std::make_shared<InputMethodEngineListenerMock>();
+        inputMethodAbility_->imeListener_ = nullptr;
+        inputMethodAbility_->SetImeListener(listener);
+        EXPECT_CALL(*listener, OnKeyboardStatus(Eq(false))).Times(1);
         int32_t ret = inputMethodController_->StopInputSession();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        usleep(WAIT_SET_KEYBOARD_STATUS);
-        EXPECT_TRUE(!imeListener_->keyboardState_);
+        inputMethodAbility_->imeListener_ = nullptr;
+        inputMethodAbility_->SetImeListener(imeListener_);
     }
 
     /**
@@ -808,11 +823,13 @@ constexpr uint32_t WAIT_SET_KEYBOARD_STATUS = 300;
     HWTEST_F(InputMethodControllerTest, testIMCHideTextInput, TestSize.Level0)
     {
         IMSA_HILOGI("IMC HideTextInput Test START");
-        imeListener_->keyboardState_ = true;
-        TextListener::keyboardStatus_ = KeyboardStatus::NONE;
+        std::shared_ptr<InputMethodEngineListenerMock> listener = std::make_shared<InputMethodEngineListenerMock>();
+        inputMethodAbility_->imeListener_ = nullptr;
+        inputMethodAbility_->SetImeListener(listener);
+        EXPECT_CALL(*listener, OnKeyboardStatus(Eq(false))).Times(1);
         inputMethodController_->HideTextInput();
-        usleep(WAIT_SET_KEYBOARD_STATUS);
-        EXPECT_TRUE(!imeListener_->keyboardState_);
+        inputMethodAbility_->imeListener_ = nullptr;
+        inputMethodAbility_->SetImeListener(imeListener_);
     }
 
     /**
