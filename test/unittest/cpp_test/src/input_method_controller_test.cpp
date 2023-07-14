@@ -61,6 +61,7 @@ namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
+constexpr uint32_t IMSA_RESTART_TIME = 1;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -943,7 +944,7 @@ constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
         ret = kill(pid, SIGTERM);
         EXPECT_EQ(ret, 0);
         EXPECT_TRUE(WaitRemoteDiedCallback());
-        sleep(1);
+        sleep(IMSA_RESTART_TIME);
         inputMethodController_->OnRemoteSaDied(nullptr);
         EXPECT_TRUE(TextListener::WaitIMACallback());
         bool result = inputMethodController_->WasAttached();
