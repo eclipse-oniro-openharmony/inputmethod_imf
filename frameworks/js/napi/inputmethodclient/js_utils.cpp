@@ -24,6 +24,7 @@ constexpr size_t ARGC_MAX = 6;
 const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED, EXCEPTION_CONTROLLER },
     { ErrorCode::ERROR_STATUS_PERMISSION_DENIED, EXCEPTION_PERMISSION },
+    { ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION, EXCEPTION_SYSTEM_PERMISSION },
     { ErrorCode::ERROR_REMOTE_CLIENT_DIED, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NOT_FOUND, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_CLIENT_NULL_POINTER, EXCEPTION_IMCLIENT },
@@ -51,6 +52,7 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_PERMISSION, "the permissions check fails." },
+    { EXCEPTION_SYSTEM_PERMISSION, "not system application." },
     { EXCEPTION_PARAMCHECK, "the parameters check fails." },
     { EXCEPTION_UNSUPPORTED, "call unsupported api." },
     { EXCEPTION_PACKAGEMANAGER, "package manager error." },
