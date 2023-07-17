@@ -61,7 +61,7 @@ namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
-constexpr uint32_t IMSA_RESTART_TIME = 1;
+constexpr uint32_t RETRY_TIME = 100 * 1000;
 using WindowMgr = TddUtil::WindowManager;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
@@ -71,6 +71,8 @@ using WindowMgr = TddUtil::WindowManager;
         static bool keyboardState_;
         static bool isInputStart_;
         static uint32_t windowId_;
+        static std::mutex imeListenerMutex_;
+        static std::condition_variable imeListenerCv_;
         void OnKeyboardStatus(bool isShow) override;
         void OnInputStart() override;
         void OnInputStop(const std::string &imeId) override;
@@ -80,11 +82,15 @@ using WindowMgr = TddUtil::WindowManager;
     bool InputMethodEngineListenerImpl::keyboardState_ = false;
     bool InputMethodEngineListenerImpl::isInputStart_ = false;
     uint32_t InputMethodEngineListenerImpl::windowId_ = 0;
+    std::mutex InputMethodEngineListenerImpl::imeListenerMutex_;
+    std::condition_variable InputMethodEngineListenerImpl::imeListenerCv_;
 
     void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
     {
         IMSA_HILOGI("InputMethodEngineListenerImpl::OnKeyboardStatus %{public}s", isShow ? "show" : "hide");
+        std::lock_guard<std::mutex> lock(imeListenerMutex_);
         keyboardState_ = isShow;
+        imeListenerCv_.notify_one();
     }
     void InputMethodEngineListenerImpl::OnInputStart()
     {
@@ -106,18 +112,6 @@ using WindowMgr = TddUtil::WindowManager;
         IMSA_HILOGD("InputMethodEngineListenerImpl::OnSetSubtype");
     }
 
-    class InputMethodEngineListenerMock : public InputMethodEngineListener {
-    public:
-        InputMethodEngineListenerMock() = default;
-        ~InputMethodEngineListenerMock() override = default;
-
-        MOCK_METHOD1(OnKeyboardStatus, void(bool isShow));
-        MOCK_METHOD0(OnInputStart, void());
-        MOCK_METHOD1(OnInputStop, void(const std::string &imeId));
-        MOCK_METHOD1(OnSetCallingWindow, void(uint32_t windowId));
-        MOCK_METHOD1(OnSetSubtype, void(const SubProperty &property));
-    };
-
     class SelectListenerMock : public ControllerListener {
     public:
         SelectListenerMock() = default;
@@ -137,9 +131,11 @@ using WindowMgr = TddUtil::WindowManager;
         static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
         static bool CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
         static bool WaitRemoteDiedCallback();
+        static void WaitKeyboardStatusCallback();
         static void TriggerConfigurationChangeCallback(Configuration &info);
         static void TriggerCursorUpdateCallback(CursorInfo &info);
         static void TriggerSelectionChangeCallback(std::u16string &text, int start, int end);
+        static void CheckProxyObject();
         static sptr<InputMethodController> inputMethodController_;
         static sptr<InputMethodAbility> inputMethodAbility_;
         static std::shared_ptr<MMI::KeyEvent> keyEvent_;
@@ -346,6 +342,24 @@ using WindowMgr = TddUtil::WindowManager;
         return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(2)) != std::cv_status::timeout;
     }
 
+    void InputMethodControllerTest::CheckProxyObject()
+    {
+        for (uint32_t i = 0; i < 5; ++i) {
+            sptr<ISystemAbilityManager> systemAbilityManager =
+                SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+            if (systemAbilityManager == nullptr) {
+                IMSA_HILOGI("InputMethodControllerTest, system ability manager is nullptr");
+                continue;
+            }
+            auto systemAbility = systemAbilityManager->CheckSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID);
+            if (systemAbility != nullptr) {
+                IMSA_HILOGI("InputMethodControllerTest, system ability is nullptr");
+                break;
+            }
+            usleep(RETRY_TIME);
+        }
+    }
+
     bool InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
     {
         bool ret = keyEvent->GetKeyCode() == keyEvent_->GetKeyCode();
@@ -378,6 +392,14 @@ using WindowMgr = TddUtil::WindowManager;
         ret = keyEvent->GetKeyItem()->GetUnicode() == keyEvent_->GetKeyItem()->GetUnicode();
         EXPECT_TRUE(ret);
         return ret;
+    }
+
+    void InputMethodControllerTest::WaitKeyboardStatusCallback(bool keyboardState)
+    {
+        std::lock_guard<std::mutex> lock(InputMethodEngineListenerImpl::imeListenerMutex_);
+        InputMethodEngineListenerImpl::imeListenerCv_.wait_for(lock,
+            std::chrono::seconds(InputMethodControllerTest::DELAY_TIME),
+            [&text] { return InputMethodEngineListenerImpl::keyboardState_ == keyboardState; });
     }
 
     void InputMethodControllerTest::TriggerConfigurationChangeCallback(Configuration &info)
@@ -809,14 +831,12 @@ using WindowMgr = TddUtil::WindowManager;
     HWTEST_F(InputMethodControllerTest, testIMCInputStopSession, TestSize.Level0)
     {
         IMSA_HILOGI("IMC StopInputSession Test START");
-        std::shared_ptr<InputMethodEngineListenerMock> listener = std::make_shared<InputMethodEngineListenerMock>();
-        inputMethodAbility_->imeListener_ = nullptr;
-        inputMethodAbility_->SetImeListener(listener);
-        EXPECT_CALL(*listener, OnKeyboardStatus(Eq(false))).Times(1);
+        imeListener_->keyboardState_ = true;
+        TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         int32_t ret = inputMethodController_->StopInputSession();
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        inputMethodAbility_->imeListener_ = nullptr;
-        inputMethodAbility_->SetImeListener(imeListener_);
+        WaitKeyboardStatusCallback(false);
+        EXPECT_TRUE(!imeListener_->keyboardState_);
     }
 
     /**
@@ -827,13 +847,11 @@ using WindowMgr = TddUtil::WindowManager;
     HWTEST_F(InputMethodControllerTest, testIMCHideTextInput, TestSize.Level0)
     {
         IMSA_HILOGI("IMC HideTextInput Test START");
-        std::shared_ptr<InputMethodEngineListenerMock> listener = std::make_shared<InputMethodEngineListenerMock>();
-        inputMethodAbility_->imeListener_ = nullptr;
-        inputMethodAbility_->SetImeListener(listener);
-        EXPECT_CALL(*listener, OnKeyboardStatus(Eq(false))).Times(1);
+        imeListener_->keyboardState_ = true;
+        TextListener::keyboardStatus_ = KeyboardStatus::NONE;
         inputMethodController_->HideTextInput();
-        inputMethodAbility_->imeListener_ = nullptr;
-        inputMethodAbility_->SetImeListener(imeListener_);
+        WaitKeyboardStatusCallback(false);
+        EXPECT_TRUE(!imeListener_->keyboardState_);
     }
 
     /**
@@ -948,12 +966,12 @@ using WindowMgr = TddUtil::WindowManager;
         ret = kill(pid, SIGTERM);
         EXPECT_EQ(ret, 0);
         EXPECT_TRUE(WaitRemoteDiedCallback());
-        sleep(IMSA_RESTART_TIME);
+        CheckProxyObject();
         inputMethodController_->OnRemoteSaDied(nullptr);
         EXPECT_TRUE(TextListener::WaitIMACallback());
         bool result = inputMethodController_->WasAttached();
         EXPECT_TRUE(result);
         inputMethodController_->Close();
     }
-} // namespace MiscServices
+    } // namespace MiscServices
 } // namespace OHOS
