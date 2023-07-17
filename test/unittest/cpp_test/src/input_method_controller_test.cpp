@@ -14,7 +14,6 @@
  */
 #define private public
 #define protected public
-#include "input_method_ability.h"
 #include "input_method_controller.h"
 #undef private
 
@@ -62,6 +61,7 @@ namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
 constexpr uint32_t RETRY_TIME = 100 * 1000;
+constexpr uint32_t RETRY_TIMES = 5;
 using WindowMgr = TddUtil::WindowManager;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
@@ -344,7 +344,7 @@ using WindowMgr = TddUtil::WindowManager;
 
     void InputMethodControllerTest::CheckProxyObject()
     {
-        for (uint32_t i = 0; i < 5; ++i) {
+        for (uint32_t i = 0; i < RETRY_TIMES; ++i) {
             sptr<ISystemAbilityManager> systemAbilityManager =
                 SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
             if (systemAbilityManager == nullptr) {
