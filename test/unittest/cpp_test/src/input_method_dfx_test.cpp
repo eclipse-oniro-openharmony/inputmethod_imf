@@ -40,6 +40,7 @@ using namespace testing::ext;
 using namespace OHOS::HiviewDFX;
 namespace OHOS {
 namespace MiscServices {
+using WindowMgr = TddUtil::WindowManager;
 constexpr const char *CMD1 = "hidumper -s 3703 -a -a";
 constexpr const char *CMD2 = "hidumper -s 3703 -a -h";
 constexpr const char *CMD3 = "hidumper -s 3703 -a -test";
@@ -136,9 +137,7 @@ bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr<Watcher> watcher, InputMe
         return false;
     }
     std::unique_lock<std::mutex> lock(watcher->cvMutex_);
-    TddUtil::SetTestUid();
     exec();
-    TddUtil::RestoreSelfUid();
     bool result = watcher->watcherCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
     ret = OHOS::HiviewDFX::HiSysEventManager::RemoveListener(watcher);
     if (ret != SUCCESS || !result) {
@@ -163,7 +162,8 @@ void InputMethodDfxTest::SetUpTestCase(void)
 
     inputMethodController_ = InputMethodController::GetInstance();
     textListener_ = new TextListener();
-    TddUtil::StorageSelfUid();
+    WindowMgr::CreateWindow();
+    WindowMgr::ShowWindow();
 }
 
 void InputMethodDfxTest::TearDownTestCase(void)
@@ -171,6 +171,8 @@ void InputMethodDfxTest::TearDownTestCase(void)
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
     TddUtil::KillImsaProcess();
+    WindowMgr::HideWindow();
+    WindowMgr::DestroyWindow();
 }
 
 void InputMethodDfxTest::SetUp(void)

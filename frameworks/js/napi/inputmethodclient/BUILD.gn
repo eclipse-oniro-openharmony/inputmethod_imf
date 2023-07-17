@@ -58,6 +58,7 @@ ohos_shared_library("inputmethod") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "input:libmmi-client",
+    "napi:ace_napi",
   ]
 
   public_configs = [ ":imf_public_config" ]

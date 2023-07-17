@@ -17,9 +17,7 @@
 
 #include <unistd.h>
 
-#include "ability_connect_callback_proxy.h"
-#include "ability_manager_errors.h"
-#include "ability_manager_interface.h"
+#include "ability_manager_client.h"
 #include "application_info.h"
 #include "bundle_checker.h"
 #include "combination_key.h"
@@ -36,7 +34,6 @@
 #include "message_handler.h"
 #include "os_account_manager.h"
 #include "sys/prctl.h"
-#include "system_ability.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -208,7 +205,7 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingUid())) {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     auto ret = GenerateClientInfo(clientInfo);
@@ -232,7 +229,6 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(InputClientInfo &clientInfo
     clientInfo.uid = IPCSkeleton::GetCallingUid();
     clientInfo.userID = userId_;
     clientInfo.deathRecipient = deathRecipient;
-    clientInfo.tokenID = IPCSkeleton::GetCallingTokenID();
     return ErrorCode::NO_ERROR;
 }
 
@@ -247,7 +243,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 
 int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag)
 {
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingUid())) {
+    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     if (client == nullptr) {
@@ -259,7 +255,7 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
 
 int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 {
-    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     if (client == nullptr) {
@@ -271,7 +267,7 @@ int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 
 int32_t InputMethodSystemAbility::StopInputSession()
 {
-    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnHideKeyboardSelf();
@@ -301,7 +297,7 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
     if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnHideKeyboardSelf();
@@ -312,7 +308,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
     if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnShowKeyboardSelf();
@@ -447,7 +443,7 @@ int32_t InputMethodSystemAbility::SwitchSubType(const ImeInfo &info)
 // Deprecated because of no permission check, kept for compatibility
 int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 {
-    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnHideKeyboardSelf();
@@ -455,7 +451,7 @@ int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 {
-    if (!userSession_->CheckFocused(IPCSkeleton::GetCallingTokenID())) {
+    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnShowKeyboardSelf();
@@ -618,39 +614,16 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
 {
     IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod");
-    auto abilityManager = GetAbilityManagerService();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::get ability manager failed");
-        return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
-    }
     AAFwk::Want want;
     want.SetAction(SELECT_DIALOG_ACTION);
     want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
-    int32_t ret = abilityManager->StartAbility(want);
+    int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want);
     if (ret != ErrorCode::NO_ERROR && ret != START_SERVICE_ABILITY_ACTIVATING) {
         IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", ret);
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
     }
     IMSA_HILOGI("InputMethodSystemAbility::Start InputMethod ability success.");
     return ErrorCode::NO_ERROR;
-}
-
-sptr<AAFwk::IAbilityManager> InputMethodSystemAbility::GetAbilityManagerService()
-{
-    IMSA_HILOGD("InputMethodSystemAbility::GetAbilityManagerService start");
-    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        IMSA_HILOGE("SystemAbilityManager is nullptr.");
-        return nullptr;
-    }
-
-    auto abilityMsObj = systemAbilityManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
-    if (abilityMsObj == nullptr) {
-        IMSA_HILOGE("Failed to get ability manager service.");
-        return nullptr;
-    }
-
-    return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
 }
 
 int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
@@ -747,9 +720,10 @@ int32_t InputMethodSystemAbility::InitKeyEventMonitor()
 bool InputMethodSystemAbility::InitFocusChangeMonitor()
 {
     return ImCommonEventManager::GetInstance()->SubscribeWindowManagerService(
-        [this](int32_t pid, int32_t uid) { return userSession_->OnUnfocused(pid, uid); },
-        [this](int32_t userId) { StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_)); }
-    );
+        [this](bool isOnFocused, int32_t pid, int32_t uid) {
+            return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
+        },
+        [this](int32_t userId) { StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_)); });
 }
 } // namespace MiscServices
 } // namespace OHOS

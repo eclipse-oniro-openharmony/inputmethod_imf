@@ -45,7 +45,7 @@
               "os_account",
               "hisysevent",
               "hitrace",
-              "graphic_standard"
+              "graphic_2d"
           ], 
           "third_party": [
               "jsoncpp"

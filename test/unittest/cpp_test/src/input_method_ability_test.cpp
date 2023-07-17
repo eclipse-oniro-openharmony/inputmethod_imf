@@ -43,6 +43,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+using WindowMgr = TddUtil::WindowManager;
 constexpr uint32_t DEALY_TIME = 1;
 class InputMethodAbilityTest : public testing::Test {
 public:
@@ -101,13 +102,11 @@ public:
         inputMethodAbility_->SetCoreAndAgent();
         TddUtil::RestoreSelfTokenID();
 
-        // Set the uid to the uid of the focus app
-        TddUtil::StorageSelfUid();
-        TddUtil::SetTestUid();
+        WindowMgr::CreateWindow();
+        WindowMgr::ShowWindow();
         sptr<OnTextChangedListener> textListener = new TextListener();
         imc_ = InputMethodController::GetInstance();
         imc_->Attach(textListener);
-        TddUtil::RestoreSelfUid();
         TextListener::ResetParam();
     }
     static void TearDownTestCase(void)
@@ -116,6 +115,8 @@ public:
         imc_->Close();
         TddUtil::KillImsaProcess();
         TextListener::ResetParam();
+        WindowMgr::HideWindow();
+        WindowMgr::DestroyWindow();
     }
     void SetUp()
     {

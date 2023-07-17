@@ -17,8 +17,8 @@
 
 #include <vector>
 
-#include "ability_connect_callback_proxy.h"
-#include "ability_manager_interface.h"
+#include "ability_manager_client.h"
+#include "bundle_checker.h"
 #include "element_name.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
@@ -32,7 +32,6 @@
 #include "message_parcel.h"
 #include "parcel.h"
 #include "sys/prctl.h"
-#include "system_ability_definition.h"
 #include "unistd.h"
 #include "want.h"
 
@@ -214,9 +213,9 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
     RemoveClient(remote->AsObject(), true);
 }
 
-/** Handle the situation a input method service died
- * It's called when an input method service died
- * @param the remote object handler of input method service who died.
+/** Handle the situation that an ime died
+ * It's called when an ime died
+ * @param the remote object handler of the ime who died.
  */
 void PerUserSession::OnImsDied(const sptr<IInputMethodCore> &remote)
 {
@@ -224,10 +223,6 @@ void PerUserSession::OnImsDied(const sptr<IInputMethodCore> &remote)
         return;
     }
     ClearImeData(CURRENT_IME);
-    if (GetCurrentClient() == nullptr) {
-        IMSA_HILOGD("not bound to a client, no need to restart at once");
-        return;
-    }
     if (!IsRestartIme(CURRENT_IME)) {
         IMSA_HILOGI("ime deaths over max num");
         return;
@@ -536,41 +531,64 @@ void PerUserSession::SetAgent(sptr<IInputMethodAgent> agent)
     agent_ = agent;
 }
 
-void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
+void PerUserSession::OnFocused(int32_t pid, int32_t uid)
 {
+    if (IsCurrentClient(pid, uid)) {
+        IMSA_HILOGD("pid[%{public}d] same as current client", pid);
+        return;
+    }
     auto client = GetCurrentClient();
     if (client == nullptr) {
+        IMSA_HILOGD("no client in bound state");
         return;
     }
-    auto clientInfo = GetClientInfo(client->AsObject());
-    if (clientInfo == nullptr) {
+    IMSA_HILOGI("focus shifts to pid: %{public}d, start unbinding", pid);
+    UnbindClient(client);
+    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
+}
+
+void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
+{
+    if (IsCurrentClient(pid, uid)) {
+        IMSA_HILOGD("pid[%{public}d] same as current client", pid);
         return;
     }
-    if (clientInfo->pid != pid || clientInfo->uid != uid) {
+    std::lock_guard<std::recursive_mutex> lock(mtx);
+    for (const auto &mapClient : mapClients_) {
+        if (mapClient.second->pid == pid) {
+            IMSA_HILOGI("clear unfocused client info: %{public}d", pid);
+            UnbindClient(mapClient.second->client);
+            InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
+            break;
+        }
+    }
+}
+
+void PerUserSession::UnbindClient(const sptr<IInputClient> &client)
+{
+    if (client == nullptr) {
+        IMSA_HILOGE("client is nullptr");
         return;
     }
-    IMSA_HILOGI("current client is unfocused, start unbinding");
     int32_t ret = client->OnInputStop();
     IMSA_HILOGI("OnInputStop ret: %{public}d", ret);
     ret = OnReleaseInput(client);
-    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
     IMSA_HILOGI("release input ret: %{public}d", ret);
 }
 
-sptr<AAFwk::IAbilityManager> PerUserSession::GetAbilityManagerService()
+bool PerUserSession::IsCurrentClient(int32_t pid, int32_t uid)
 {
-    IMSA_HILOGD("InputMethodSystemAbility::GetAbilityManagerService start");
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (samgr == nullptr) {
-        IMSA_HILOGE("SystemAbilityManager is nullptr.");
-        return nullptr;
+    auto client = GetCurrentClient();
+    if (client == nullptr) {
+        IMSA_HILOGD("no client in bound state");
+        return false;
     }
-    auto abilityMsObj = samgr->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
-    if (abilityMsObj == nullptr) {
-        IMSA_HILOGE("Failed to get ability manager service.");
-        return nullptr;
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        IMSA_HILOGE("failed to get client info");
+        return false;
     }
-    return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
+    return clientInfo->pid == pid && clientInfo->uid == uid;
 }
 
 bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
@@ -581,16 +599,12 @@ bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
         IMSA_HILOGE("invalid ime name");
         return false;
     }
-    auto abms = GetAbilityManagerService();
-    if (abms == nullptr) {
-        IMSA_HILOGE("failed to get ability manager service");
-        return false;
-    }
     IMSA_HILOGI("ime: %{public}s", imeName.c_str());
     AAFwk::Want want;
     want.SetElementName(imeName.substr(0, pos), imeName.substr(pos + 1));
     isImeStarted_.Clear(false);
-    if (abms->StartAbility(want) != ErrorCode::NO_ERROR) {
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want);
+    if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start ability");
     } else if (isImeStarted_.GetValue()) {
         IMSA_HILOGI("ime started successfully");
@@ -608,7 +622,7 @@ bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
     return false;
 }
 
-bool PerUserSession::CheckFocused(uint32_t tokenId)
+bool PerUserSession::IsFocused(int64_t callingPid, uint32_t callingTokenId)
 {
     auto client = GetCurrentClient();
     if (client == nullptr) {
@@ -618,7 +632,7 @@ bool PerUserSession::CheckFocused(uint32_t tokenId)
     if (clientInfo == nullptr) {
         return false;
     }
-    return clientInfo->tokenID == tokenId;
+    return BundleChecker::IsFocused(callingPid, callingTokenId, clientInfo->pid);
 }
 
 int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)

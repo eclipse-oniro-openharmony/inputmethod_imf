@@ -186,44 +186,46 @@ void InputMethodController::WorkThread()
     prctl(PR_SET_NAME, "IMCWorkThread");
     while (!stop_) {
         Message *msg = msgHandler_->GetMessage();
-        std::lock_guard<std::mutex> lock(textListenerLock_);
         switch (msg->msgId_) {
             case MSG_ID_INSERT_CHAR: {
                 IMSA_HILOGD("insert text");
-                if (!isEditable_.load() || textListener_ == nullptr) {
+                auto listener = GetTextListener();
+                if (!isEditable_.load() || listener == nullptr) {
                     IMSA_HILOGE("not editable or textListener is nullptr");
                     break;
                 }
                 MessageParcel *data = msg->msgContent_;
-                textListener_->InsertText(data->ReadString16());
+                listener->InsertText(data->ReadString16());
                 break;
             }
             case MSG_ID_DELETE_FORWARD: {
                 IMSA_HILOGD("delete forward");
-                if (!isEditable_.load() || textListener_ == nullptr) {
+                auto listener = GetTextListener();
+                if (!isEditable_.load() || listener == nullptr) {
                     IMSA_HILOGE("not editable or textListener is nullptr");
                     break;
                 }
                 MessageParcel *data = msg->msgContent_;
                 // reverse for compatibility
-                textListener_->DeleteBackward(data->ReadInt32());
+                listener->DeleteBackward(data->ReadInt32());
                 break;
             }
             case MSG_ID_DELETE_BACKWARD: {
                 IMSA_HILOGD("delete backward");
-                if (!isEditable_.load() || textListener_ == nullptr) {
+                auto listener = GetTextListener();
+                if (!isEditable_.load() || listener == nullptr) {
                     IMSA_HILOGE("not editable or textListener is nullptr");
                     break;
                 }
                 MessageParcel *data = msg->msgContent_;
                 // reverse for compatibility
-                textListener_->DeleteForward(data->ReadInt32());
+                listener->DeleteForward(data->ReadInt32());
                 break;
             }
             case MSG_ID_ON_INPUT_STOP: {
                 isBound_.store(false);
                 isEditable_.store(false);
-                textListener_ = nullptr;
+                SetTextListener(nullptr);
                 {
                     std::lock_guard<std::mutex> autoLock(agentLock_);
                     agent_ = nullptr;
@@ -233,39 +235,42 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_SEND_KEYBOARD_STATUS: {
-                if (!isEditable_.load() || textListener_ == nullptr) {
+                auto listener = GetTextListener();
+                if (!isEditable_.load() || listener == nullptr) {
                     IMSA_HILOGE("not editable or textListener_ is nullptr");
                     break;
                 }
                 MessageParcel *data = msg->msgContent_;
                 KeyboardStatus status = static_cast<KeyboardStatus>(data->ReadInt32());
-                textListener_->SendKeyboardStatus(status);
+                listener->SendKeyboardStatus(status);
                 if (status == KeyboardStatus::HIDE) {
                     clientInfo_.isShowKeyboard = false;
                 }
                 break;
             }
             case MSG_ID_SEND_FUNCTION_KEY: {
-                if (!isEditable_.load() || textListener_ == nullptr) {
+                auto listener = GetTextListener();
+                if (!isEditable_.load() || listener == nullptr) {
                     IMSA_HILOGE("not editable or textListener_ is nullptr");
                     break;
                 }
                 MessageParcel *data = msg->msgContent_;
                 FunctionKey *info = new FunctionKey();
                 info->SetEnterKeyType(static_cast<EnterKeyType>(data->ReadInt32()));
-                textListener_->SendFunctionKey(*info);
+                listener->SendFunctionKey(*info);
                 delete info;
                 break;
             }
             case MSG_ID_MOVE_CURSOR: {
                 IMSA_HILOGD("move cursor");
-                if (!isEditable_.load() || textListener_ == nullptr) {
+                auto listener = GetTextListener();
+                if (!isEditable_.load() || listener == nullptr) {
                     IMSA_HILOGE("not editable or textListener_ is nullptr");
                     break;
                 }
                 MessageParcel *data = msg->msgContent_;
                 Direction direction = static_cast<Direction>(data->ReadInt32());
-                textListener_->MoveCursor(direction);
+                listener->MoveCursor(direction);
                 break;
             }
             case MSG_ID_ON_SWITCH_INPUT: {
@@ -411,10 +416,7 @@ int32_t InputMethodController::Attach(
 {
     IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
     InputmethodTrace tracer("InputMethodController Attach with textConfig trace.");
-    {
-        std::lock_guard<std::mutex> lock(textListenerLock_);
-        textListener_ = listener;
-    }
+    SetTextListener(listener);
     clientInfo_.isShowKeyboard = isShowKeyboard;
     SaveTextConfig(textConfig);
 
@@ -510,10 +512,7 @@ int32_t InputMethodController::Close()
     isEditable_.store(false);
     bool isReportHide = clientInfo_.isShowKeyboard;
     InputmethodTrace tracer("InputMethodController Close trace.");
-    {
-        std::lock_guard<std::mutex> lock(textListenerLock_);
-        textListener_ = nullptr;
-    }
+    SetTextListener(nullptr);
     {
         std::lock_guard<std::mutex> lock(agentLock_);
         agent_ = nullptr;
@@ -694,7 +693,8 @@ void InputMethodController::RestoreAttachInfoInSaDied()
             tempConfig.range.start = selectNewBegin_;
             tempConfig.range.end = selectNewEnd_;
         }
-        auto errCode = Attach(textListener_, clientInfo_.isShowKeyboard, tempConfig);
+        auto listener = GetTextListener();
+        auto errCode = Attach(listener, clientInfo_.isShowKeyboard, tempConfig);
         IMSA_HILOGI("attach end, errCode = %{public}d", errCode);
         return errCode == ErrorCode::NO_ERROR;
     };
@@ -795,7 +795,8 @@ void InputMethodController::GetText(const Message *msg)
 {
     std::u16string text;
     auto resultHandler = msg->textResultHandler_;
-    if (!isEditable_.load() || textListener_ == nullptr) {
+    auto listener = GetTextListener();
+    if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
         resultHandler->SetValue(text);
         return;
@@ -806,9 +807,9 @@ void InputMethodController::GetText(const Message *msg)
         return;
     }
     if (msg->msgId_ == MSG_ID_GET_TEXT_BEFORE_CURSOR) {
-        text = textListener_->GetLeftTextOfCursor(number);
+        text = listener->GetLeftTextOfCursor(number);
     } else {
-        text = textListener_->GetRightTextOfCursor(number);
+        text = listener->GetRightTextOfCursor(number);
     }
     IMSA_HILOGI("get text success, msgId:%{public}d", msg->msgId_);
     resultHandler->SetValue(text);
@@ -818,12 +819,13 @@ void InputMethodController::GetTextIndexAtCursor(const Message *msg)
 {
     int32_t index = -1;
     auto resultHandler = msg->indexResultHandler_;
-    if (!isEditable_.load() || textListener_ == nullptr) {
+    auto listener = GetTextListener();
+    if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
         resultHandler->SetValue(index);
         return;
     }
-    index = textListener_->GetTextIndexAtCursor();
+    index = listener->GetTextIndexAtCursor();
     IMSA_HILOGI("get text index success");
     resultHandler->SetValue(index);
 }
@@ -1038,8 +1040,9 @@ void InputMethodController::ClearEditorCache()
 void InputMethodController::OnSelectByRange(int32_t start, int32_t end)
 {
     IMSA_HILOGI("InputMethodController run in");
-    if (isEditable_.load() && textListener_ != nullptr) {
-        textListener_->HandleSetSelection(start, end);
+    auto listener = GetTextListener();
+    if (isEditable_.load() && listener != nullptr) {
+        listener->HandleSetSelection(start, end);
     } else {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
     }
@@ -1054,8 +1057,9 @@ void InputMethodController::OnSelectByRange(int32_t start, int32_t end)
 void InputMethodController::OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip)
 {
     IMSA_HILOGI("InputMethodController run in");
-    if (isEditable_.load() && textListener_ != nullptr) {
-        textListener_->HandleSelect(CURSOR_DIRECTION_BASE_VALUE + direction, cursorMoveSkip);
+    auto listener = GetTextListener();
+    if (isEditable_.load() && listener != nullptr) {
+        listener->HandleSelect(CURSOR_DIRECTION_BASE_VALUE + direction, cursorMoveSkip);
     } else {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
     }
@@ -1070,11 +1074,24 @@ void InputMethodController::OnSelectByMovement(int32_t direction, int32_t cursor
 void InputMethodController::HandleExtendAction(int32_t action)
 {
     IMSA_HILOGI("InputMethodController run in");
-    if (!isEditable_.load() || textListener_ == nullptr) {
+    auto listener = GetTextListener();
+    if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
         return;
     }
-    textListener_->HandleExtendAction(action);
+    listener->HandleExtendAction(action);
+}
+
+sptr<OnTextChangedListener> InputMethodController::GetTextListener()
+{
+    std::lock_guard<std::mutex> lock(textListenerLock_);
+    return textListener_;
+}
+
+void InputMethodController::SetTextListener(sptr<OnTextChangedListener> listener)
+{
+    std::lock_guard<std::mutex> lock(textListenerLock_);
+    textListener_ = listener;
 }
 } // namespace MiscServices
 } // namespace OHOS

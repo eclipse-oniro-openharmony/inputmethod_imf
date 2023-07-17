@@ -22,8 +22,6 @@
 #include <mutex>
 #include <thread>
 
-#include "ability_connect_callback_proxy.h"
-#include "ability_manager_interface.h"
 #include "block_data.h"
 #include "event_handler.h"
 #include "event_status_manager.h"
@@ -84,8 +82,9 @@ public:
     void StopInputService(std::string imeId);
     int32_t OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch);
     void UpdateCurrentUserId(int32_t userId);
+    void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
-    bool CheckFocused(uint32_t tokenId);
+    bool IsFocused(int64_t callingPid, uint32_t callingTokenId);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
     bool StartInputService(const std::string &imeName, bool isRetry);
@@ -136,7 +135,8 @@ private:
     sptr<IInputMethodCore> GetImsCore(int32_t index);
     void SetAgent(sptr<IInputMethodAgent> agent);
     sptr<IInputMethodAgent> GetAgent();
-    sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
+    bool IsCurrentClient(int32_t pid, int32_t uid);
+    void UnbindClient(const sptr<IInputClient> &client);
 
     static inline bool IsValid(int32_t index)
     {

@@ -20,7 +20,6 @@
 #include <map>
 #include <thread>
 
-#include "ability_manager_interface.h"
 #include "application_info.h"
 #include "bundle_mgr_proxy.h"
 #include "event_handler.h"
@@ -100,7 +99,6 @@ private:
     int32_t OnUserRemoved(const Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
     int32_t OnDisplayOptionalInputMethod();
-    static sptr<AAFwk::IAbilityManager> GetAbilityManagerService();
     void StartUserIdListener();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);
     int32_t OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission);
