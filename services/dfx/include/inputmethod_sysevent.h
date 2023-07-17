@@ -45,38 +45,33 @@ enum class IMEBehaviour : int32_t {
 
 class InputMethodSysEvent {
 public:
-    static void ServiceFaultReporter(const std::string &bundleName, int32_t errCode);
-    static void InputmethodFaultReporter(int32_t errCode, const std::string &name, const std::string &info);
-    static void RecordEvent(IMEBehaviour behaviour);
-    static void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
-    static bool StartTimerForReport();
-    static void SetUserId(int32_t userId);
+    static InputMethodSysEvent &GetInstance();
+    void ServiceFaultReporter(const std::string &componentName, int32_t errCode);
+    void InputmethodFaultReporter(int32_t errCode, const std::string &name, const std::string &info);
+    void RecordEvent(IMEBehaviour behaviour);
+    void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
+    bool StartTimerForReport();
+    void SetUserId(int32_t userId);
 
 private:
     using TimerCallback = std::function<void()>;
-    static void ImeUsageBehaviourReporter();
-    static const std::string GetOperateInfo(int32_t infoCode);
-    static std::string GetOperateAction(int32_t infoCode);
-    static bool StartTimer(const TimerCallback &callback, uint32_t interval);
-    static int32_t GetReportTime();
-    static void UpdateTimer(const TimerCallback &callback, uint32_t interval);
+    void ImeUsageBehaviourReporter();
+    const std::string GetOperateInfo(int32_t infoCode);
+    std::string GetOperateAction(int32_t infoCode);
+    bool StartTimer(const TimerCallback &callback, uint32_t interval);
 
 private:
     static const std::unordered_map<int32_t, std::string> operateInfo_;
     static std::map<int32_t, int32_t> inputmethodBehaviour_;
-    static std::mutex behaviourMutex_;
+    std::mutex behaviourMutex_;
 
-    static Utils::Timer timer_;
-    static int32_t userId_;
-    static uint32_t timerId_;
-    static std::mutex timerLock_;
-    static bool isTimerStart_;
-    static inline constexpr int32_t ONE_DAY_IN_HOURS = 24;
-    static inline constexpr int32_t EXEC_HOUR_TIME = 23;
-    static inline constexpr int32_t EXEC_MIN_TIME = 60;
-    static inline constexpr int32_t ONE_MINUTE_IN_SECONDS = 60;
-    static inline constexpr int32_t ONE_HOUR_IN_SECONDS = 1 * 60 * 60; // 1 hour
-    static inline constexpr int32_t SECONDS_TO_MILLISECONDS = 1000;
+    sptr<Utils::Timer> timer_ = nullptr;
+    int32_t timerId_ = 0;
+    uint32_t timerId_ = 0;
+    std::mutex timerLock_;
+    inline constexpr int32_t ONE_DAY_IN_HOURS = 24;
+    inline constexpr int32_t ONE_HOUR_IN_SECONDS = 1 * 60 * 60; // 1 hour
+    inline constexpr int32_t SECONDS_TO_MILLISECONDS = 1000;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -45,18 +45,18 @@ std::map<int32_t, int32_t> InputMethodSysEvent::inputmethodBehaviour_ = {
     {static_cast<int32_t>(IMEBehaviour::CHANGE_IME), 0}
 };
 
-Utils::Timer InputMethodSysEvent::timer_("imfTimer");
-uint32_t InputMethodSysEvent::timerId_(0);
-std::mutex InputMethodSysEvent::behaviourMutex_;
-std::mutex InputMethodSysEvent::timerLock_;
-bool InputMethodSysEvent::isTimerStart_ = false;
-int32_t InputMethodSysEvent::userId_ = 0;
+InputMethodSysEvent &InputMethodSysEvent::GetInstance()
+{
+    static InputMethodSysEvent instance;
+    return instance;
+}
 
-void InputMethodSysEvent::ServiceFaultReporter(const std::string &bundleName, int32_t errCode)
+void InputMethodSysEvent::ServiceFaultReporter(const std::string &componentName, int32_t errCode)
 {
     IMSA_HILOGD("run in.");
     int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "SERVICE_INIT_FAILED",
-        HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId_, "COMPONENT_ID", bundleName, "ERROR_CODE", errCode);
+        HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId_, "COMPONENT_ID", componentName, "ERROR_CODE",
+        errCode);
     if (ret != HiviewDFX::SUCCESS) {
         IMSA_HILOGE("hisysevent ServiceFaultReporter failed! ret %{public}d,errCode %{public}d", ret, errCode);
     }
@@ -152,22 +152,21 @@ void InputMethodSysEvent::SetUserId(int32_t userId)
 bool InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t interval)
 {
     IMSA_HILOGD("run in");
-    isTimerStart_ = true;
-    uint32_t ret = timer_.Setup();
-    if (ret != Utils::TIMER_ERR_OK) {
-        IMSA_HILOGE("Create Timer error");
-        isTimerStart_ = false;
-        return false;
+    if (timer_ == nullptr) {
+        timer_ = new Utils::Timer("imfTimer");
+        uint32_t ret = timer_.Setup();
+        if (ret != Utils::TIMER_ERR_OK) {
+            IMSA_HILOGE("Create Timer error");
+            isTimerStart_ = false;
+            return false;
+        }
+        timerId_ = timer_.Register(callback, interval, true);
+    } else {
+        IMSA_HILOGD("timer_ is not nullptr, Update timer.");
+        timer_.Unregister(timerId_);
+        timerId_ = timer_.Register(callback, interval, false);
     }
-    timerId_ = timer_.Register(callback, interval, true);
     return true;
-}
-
-void InputMethodSysEvent::UpdateTimer(const TimerCallback &callback, uint32_t interval)
-{
-    IMSA_HILOGD("run in");
-    timer_.Unregister(timerId_);
-    timerId_ = timer_.Register(callback, interval, false);
 }
 
 bool InputMethodSysEvent::StartTimerForReport()
@@ -175,44 +174,8 @@ bool InputMethodSysEvent::StartTimerForReport()
     IMSA_HILOGD("run in");
     auto reportCallback = []() { ImeUsageBehaviourReporter(); };
     std::lock_guard<std::mutex> lock(timerLock_);
-    if (isTimerStart_) {
-        IMSA_HILOGD("isTimerStart_ is true. Update timer.");
-        UpdateTimer(reportCallback, ONE_DAY_IN_HOURS * ONE_HOUR_IN_SECONDS * SECONDS_TO_MILLISECONDS);
-        return true;
-    }
-    int32_t interval = GetReportTime();
-    if (interval >= 0) {
-        return StartTimer(reportCallback, interval);
-    }
+    StartTimer(reportCallback, ONE_DAY_IN_HOURS * ONE_HOUR_IN_SECONDS * SECONDS_TO_MILLISECONDS);
     return false;
-}
-
-int32_t InputMethodSysEvent::GetReportTime()
-{
-    IMSA_HILOGD("run in.");
-    time_t current = time(nullptr);
-    if (current == -1) {
-        IMSA_HILOGE("Get current time failed!");
-        return -1;
-    }
-    tm localTime = { 0 };
-    tm *result = localtime_r(&current, &localTime);
-    if (result == nullptr) {
-        IMSA_HILOGE("Get local time failed!");
-        return -1;
-    }
-    int32_t currentHour = localTime.tm_hour;
-    int32_t currentMin = localTime.tm_min;
-    if ((EXEC_MIN_TIME - currentMin) != EXEC_MIN_TIME) {
-        int32_t nHours = EXEC_HOUR_TIME - currentHour;
-        int32_t nMin = EXEC_MIN_TIME - currentMin;
-        int32_t nTime = nMin * ONE_MINUTE_IN_SECONDS + nHours * ONE_HOUR_IN_SECONDS;
-        IMSA_HILOGD(
-            " StartTimerThread if needHours=%{public}d,needMin=%{public}d,needTime=%{public}d", nHours, nMin, nTime);
-        return nTime * SECONDS_TO_MILLISECONDS;
-    } else {
-        return ONE_HOUR_IN_SECONDS * (ONE_DAY_IN_HOURS - currentHour) * SECONDS_TO_MILLISECONDS;
-    }
 }
 } // namespace MiscServices
 } // namespace OHOS
