@@ -17,9 +17,7 @@
 
 #include <unistd.h>
 
-#include "ability_connect_callback_proxy.h"
-#include "ability_manager_errors.h"
-#include "ability_manager_interface.h"
+#include "ability_manager_client.h"
 #include "application_info.h"
 #include "bundle_checker.h"
 #include "combination_key.h"
@@ -36,7 +34,6 @@
 #include "message_handler.h"
 #include "os_account_manager.h"
 #include "sys/prctl.h"
-#include "system_ability.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -617,39 +614,16 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
 {
     IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod");
-    auto abilityManager = GetAbilityManagerService();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::get ability manager failed");
-        return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
-    }
     AAFwk::Want want;
     want.SetAction(SELECT_DIALOG_ACTION);
     want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
-    int32_t ret = abilityManager->StartAbility(want);
+    int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want);
     if (ret != ErrorCode::NO_ERROR && ret != START_SERVICE_ABILITY_ACTIVATING) {
         IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", ret);
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
     }
     IMSA_HILOGI("InputMethodSystemAbility::Start InputMethod ability success.");
     return ErrorCode::NO_ERROR;
-}
-
-sptr<AAFwk::IAbilityManager> InputMethodSystemAbility::GetAbilityManagerService()
-{
-    IMSA_HILOGD("InputMethodSystemAbility::GetAbilityManagerService start");
-    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemAbilityManager == nullptr) {
-        IMSA_HILOGE("SystemAbilityManager is nullptr.");
-        return nullptr;
-    }
-
-    auto abilityMsObj = systemAbilityManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
-    if (abilityMsObj == nullptr) {
-        IMSA_HILOGE("Failed to get ability manager service.");
-        return nullptr;
-    }
-
-    return iface_cast<AAFwk::IAbilityManager>(abilityMsObj);
 }
 
 int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
