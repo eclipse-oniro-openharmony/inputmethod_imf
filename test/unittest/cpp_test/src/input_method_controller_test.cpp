@@ -58,8 +58,6 @@ using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-constexpr uint32_t DELAY_TIME = 1;
-constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
 constexpr uint32_t RETRY_TIME = 200 * 1000;
 constexpr uint32_t RETRY_TIMES = 5;
 using WindowMgr = TddUtil::WindowManager;
