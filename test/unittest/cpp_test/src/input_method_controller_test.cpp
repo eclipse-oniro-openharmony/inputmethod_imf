@@ -58,7 +58,7 @@ using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-constexpr uint32_t DEALY_TIME = 1;
+constexpr uint32_t DELAY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
 constexpr uint32_t RETRY_TIME = 100 * 1000;
 constexpr uint32_t RETRY_TIMES = 5;
@@ -131,7 +131,7 @@ using WindowMgr = TddUtil::WindowManager;
         static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
         static bool CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
         static bool WaitRemoteDiedCallback();
-        static void WaitKeyboardStatusCallback();
+        static void WaitKeyboardStatusCallback(bool keyboardState);
         static void TriggerConfigurationChangeCallback(Configuration &info);
         static void TriggerCursorUpdateCallback(CursorInfo &info);
         static void TriggerSelectionChangeCallback(std::u16string &text, int start, int end);
@@ -344,7 +344,8 @@ using WindowMgr = TddUtil::WindowManager;
 
     void InputMethodControllerTest::CheckProxyObject()
     {
-        for (uint32_t i = 0; i < RETRY_TIMES; ++i) {
+        for (uint32_t retryTimes = 0; retryTimes < RETRY_TIMES; ++retryTimes) {
+            IMSA_HILOGI("CheckProxyObject times = %{public}d", retryTimes);
             sptr<ISystemAbilityManager> systemAbilityManager =
                 SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
             if (systemAbilityManager == nullptr) {
@@ -396,10 +397,10 @@ using WindowMgr = TddUtil::WindowManager;
 
     void InputMethodControllerTest::WaitKeyboardStatusCallback(bool keyboardState)
     {
-        std::lock_guard<std::mutex> lock(InputMethodEngineListenerImpl::imeListenerMutex_);
+        std::unique_lock<std::mutex> lock(InputMethodEngineListenerImpl::imeListenerMutex_);
         InputMethodEngineListenerImpl::imeListenerCv_.wait_for(lock,
             std::chrono::seconds(InputMethodControllerTest::DELAY_TIME),
-            [&text] { return InputMethodEngineListenerImpl::keyboardState_ == keyboardState; });
+            [keyboardState] { return InputMethodEngineListenerImpl::keyboardState_ == keyboardState; });
     }
 
     void InputMethodControllerTest::TriggerConfigurationChangeCallback(Configuration &info)
