@@ -956,7 +956,7 @@ describe('InputMethodTest', function () {
     try {
       inputMethodCtrl.updateAttribute(attribute, (err) => {
         if (err) {
-          expect(error.code === 12800009).assertTrue();
+          expect(err.code === 12800009).assertTrue();
           done();
         }
         expect().assertFail();
