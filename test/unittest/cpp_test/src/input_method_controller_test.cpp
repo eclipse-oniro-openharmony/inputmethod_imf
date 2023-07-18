@@ -60,7 +60,7 @@ namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DELAY_TIME = 1;
 constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
-constexpr uint32_t RETRY_TIME = 100 * 1000;
+constexpr uint32_t RETRY_TIME = 200 * 1000;
 constexpr uint32_t RETRY_TIMES = 5;
 using WindowMgr = TddUtil::WindowManager;
 
@@ -345,16 +345,16 @@ using WindowMgr = TddUtil::WindowManager;
     void InputMethodControllerTest::CheckProxyObject()
     {
         for (uint32_t retryTimes = 0; retryTimes < RETRY_TIMES; ++retryTimes) {
-            IMSA_HILOGI("CheckProxyObject times = %{public}d", retryTimes);
+            IMSA_HILOGI("times = %{public}d", retryTimes);
             sptr<ISystemAbilityManager> systemAbilityManager =
                 SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
             if (systemAbilityManager == nullptr) {
-                IMSA_HILOGI("InputMethodControllerTest, system ability manager is nullptr");
+                IMSA_HILOGI("system ability manager is nullptr");
                 continue;
             }
             auto systemAbility = systemAbilityManager->CheckSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID);
             if (systemAbility != nullptr) {
-                IMSA_HILOGI("InputMethodControllerTest, system ability is nullptr");
+                IMSA_HILOGI("CheckProxyObject success!");
                 break;
             }
             usleep(RETRY_TIME);
