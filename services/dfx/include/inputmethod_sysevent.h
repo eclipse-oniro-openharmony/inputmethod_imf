@@ -66,12 +66,12 @@ private:
     std::mutex behaviourMutex_;
 
     sptr<Utils::Timer> timer_ = nullptr;
-    int32_t timerId_ = 0;
+    int32_t userId_ = 0;
     uint32_t timerId_ = 0;
     std::mutex timerLock_;
-    inline constexpr int32_t ONE_DAY_IN_HOURS = 24;
-    inline constexpr int32_t ONE_HOUR_IN_SECONDS = 1 * 60 * 60; // 1 hour
-    inline constexpr int32_t SECONDS_TO_MILLISECONDS = 1000;
+    static inline constexpr int32_t ONE_DAY_IN_HOURS = 24;
+    static inline constexpr int32_t ONE_HOUR_IN_SECONDS = 1 * 60 * 60; // 1 hour
+    static inline constexpr int32_t SECONDS_TO_MILLISECONDS = 1000;
 };
 } // namespace MiscServices
 } // namespace OHOS

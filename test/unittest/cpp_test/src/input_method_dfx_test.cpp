@@ -251,8 +251,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Leve
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSize.Level0)
 {
-    auto watcher = std::make_shared<Watcher>(
-        InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNEDITABLE)));
+    auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetInstance().GetOperateInfo(
+        static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNEDITABLE)));
     auto hideTextInput = []() { inputMethodController_->HideTextInput(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, hideTextInput));
 }
@@ -264,8 +264,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSi
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowTextInput, TestSize.Level0)
 {
-    auto watcher = std::make_shared<Watcher>(
-        InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ENEDITABLE)));
+    auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetInstance().GetOperateInfo(
+        static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ENEDITABLE)));
     auto showTextInput = []() { inputMethodController_->ShowTextInput(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatch(watcher, showTextInput));
 }

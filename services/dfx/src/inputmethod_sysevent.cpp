@@ -154,17 +154,17 @@ bool InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t int
     IMSA_HILOGD("run in");
     if (timer_ == nullptr) {
         timer_ = new Utils::Timer("imfTimer");
-        uint32_t ret = timer_.Setup();
+        uint32_t ret = timer_->Setup();
         if (ret != Utils::TIMER_ERR_OK) {
             IMSA_HILOGE("Create Timer error");
             isTimerStart_ = false;
             return false;
         }
-        timerId_ = timer_.Register(callback, interval, true);
+        timerId_ = timer_->Register(callback, interval, true);
     } else {
         IMSA_HILOGD("timer_ is not nullptr, Update timer.");
-        timer_.Unregister(timerId_);
-        timerId_ = timer_.Register(callback, interval, false);
+        timer_->Unregister(timerId_);
+        timerId_ = timer_->Register(callback, interval, false);
     }
     return true;
 }
