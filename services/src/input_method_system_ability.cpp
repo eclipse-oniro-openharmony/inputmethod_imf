@@ -74,9 +74,7 @@ void InputMethodSystemAbility::OnStart()
 {
     IMSA_HILOGI("InputMethodSystemAbility::OnStart.");
     if (!InputMethodSysEvent::GetInstance().StartTimerForReport()) {
-        IMSA_HILOGE("Start timer failed. Try again.");
-        auto callback = [=]() { InputMethodSysEvent::GetInstance().StartTimerForReport(); };
-        serviceHandler_->PostTask(callback, RETRY_INTERVAL);
+        IMSA_HILOGE("Start sysevent timer failed!");
     }
     if (state_ == ServiceRunningState::STATE_RUNNING) {
         IMSA_HILOGI("ImsaService is already running.");

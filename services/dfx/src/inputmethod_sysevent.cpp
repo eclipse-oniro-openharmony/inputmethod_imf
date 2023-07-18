@@ -173,8 +173,7 @@ bool InputMethodSysEvent::StartTimerForReport()
     IMSA_HILOGD("run in");
     auto reportCallback = [this]() { ImeUsageBehaviourReporter(); };
     std::lock_guard<std::mutex> lock(timerLock_);
-    StartTimer(reportCallback, ONE_DAY_IN_HOURS * ONE_HOUR_IN_SECONDS * SECONDS_TO_MILLISECONDS);
-    return false;
+    return StartTimer(reportCallback, ONE_DAY_IN_HOURS * ONE_HOUR_IN_SECONDS * SECONDS_TO_MILLISECONDS);
 }
 } // namespace MiscServices
 } // namespace OHOS
