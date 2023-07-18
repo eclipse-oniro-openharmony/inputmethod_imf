@@ -153,11 +153,10 @@ bool InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t int
 {
     IMSA_HILOGD("run in");
     if (timer_ == nullptr) {
-        timer_ = new Utils::Timer("imfTimer");
+        timer_ = std::make_shared<Utils::Timer>("imfTimer");
         uint32_t ret = timer_->Setup();
         if (ret != Utils::TIMER_ERR_OK) {
             IMSA_HILOGE("Create Timer error");
-            isTimerStart_ = false;
             return false;
         }
         timerId_ = timer_->Register(callback, interval, true);
@@ -172,7 +171,7 @@ bool InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t int
 bool InputMethodSysEvent::StartTimerForReport()
 {
     IMSA_HILOGD("run in");
-    auto reportCallback = []() { ImeUsageBehaviourReporter(); };
+    auto reportCallback = [this]() { ImeUsageBehaviourReporter(); };
     std::lock_guard<std::mutex> lock(timerLock_);
     StartTimer(reportCallback, ONE_DAY_IN_HOURS * ONE_HOUR_IN_SECONDS * SECONDS_TO_MILLISECONDS);
     return false;

@@ -65,7 +65,7 @@ private:
     static std::map<int32_t, int32_t> inputmethodBehaviour_;
     std::mutex behaviourMutex_;
 
-    sptr<Utils::Timer> timer_ = nullptr;
+    std::shared_ptr<Utils::Timer> timer_ = nullptr;
     int32_t userId_ = 0;
     uint32_t timerId_ = 0;
     std::mutex timerLock_;
