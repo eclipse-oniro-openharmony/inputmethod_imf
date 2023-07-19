@@ -317,8 +317,7 @@ void JsGetInputMethodController::UnRegisterListener(napi_value callback, std::st
     }
 
     for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end(); item++) {
-        if ((callback != nullptr)
-            && (JsUtils::Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
+        if ((JsUtils::Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
             jsCbMap_[type].erase(item);
             break;
         }
