@@ -308,7 +308,6 @@ int32_t PerUserSession::SendAgentToSingleClient(const sptr<IInputClient> &client
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGI("agent is nullptr");
-        InputMethodSysEvent::CreateComponentFailed(userId_, ErrorCode::ERROR_NULL_POINTER);
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return client->OnInputReady(agent);
@@ -544,7 +543,7 @@ void PerUserSession::OnFocused(int32_t pid, int32_t uid)
     }
     IMSA_HILOGI("focus shifts to pid: %{public}d, start unbinding", pid);
     UnbindClient(client);
-    InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
+    InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
 }
 
 void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
@@ -558,7 +557,7 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
         if (mapClient.second->pid == pid) {
             IMSA_HILOGI("clear unfocused client info: %{public}d", pid);
             UnbindClient(mapClient.second->client);
-            InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_UNFOCUSED);
+            InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
             break;
         }
     }
@@ -606,8 +605,11 @@ bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start ability");
+        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
+            ErrorCode::ERROR_IME_START_FAILED, imeName, "StartInputService, failed to start ability.");
     } else if (isImeStarted_.GetValue()) {
         IMSA_HILOGI("ime started successfully");
+        InputMethodSysEvent::GetInstance().RecordEvent(IMEBehaviour::START_IME);
         return true;
     }
     if (isRetry) {
