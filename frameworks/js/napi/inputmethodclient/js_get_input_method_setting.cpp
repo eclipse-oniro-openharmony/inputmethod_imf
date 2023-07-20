@@ -408,7 +408,7 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
         std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
     auto ret = engine->RegisterListener(argv[ARGC_ONE], type, callback);
     auto errCode = JsUtils::Convert(ret);
-    if (errCode == EXCEPTION_PERMISSION) {
+    if (errCode == EXCEPTION_SYSTEM_PERMISSION) {
         JsUtils::ThrowException(env, errCode, "", TYPE_NONE);
     }
     napi_value result = nullptr;

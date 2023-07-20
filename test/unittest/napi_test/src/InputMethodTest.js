@@ -1127,4 +1127,42 @@ describe('InputMethodTest', function () {
       done();
     }
   });
+
+  /*
+  * @tc.number  inputmethod_settings_test_on_imeShow_001
+  * @tc.name    Test whether the register the callback of the input method is valid.
+  * @tc.desc    Function test
+  * @tc.level   2
+  */
+  it('inputmethod_setting_test_on_imeShow_001', 0, async function (done) {
+    let inputMethodSetting = inputMethod.getSetting();
+    try {
+      inputMethodSetting.on('imeShow', (info) => {});
+      expect(true).assertTrue();
+      done();
+    } catch (error) {
+      console.info(`inputmethod_setting_test_on_imeShow_001 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+    /*
+  * @tc.number  inputmethod_settings_test_on_imeHide_001
+  * @tc.name    Test whether the register the callback of the input method is valid.
+  * @tc.desc    Function test
+  * @tc.level   2
+  */
+    it('inputmethod_setting_test_on_imeHide_001', 0, async function (done) {
+      let inputMethodSetting = inputMethod.getSetting();
+      try {
+        inputMethodSetting.on('imeHide', (info) => {});
+        expect(true).assertTrue();
+        done();
+      } catch (error) {
+        console.info(`inputmethod_setting_test_on_imeHide_001 result: ${JSON.stringify(error)}`);
+        expect().assertFail();
+        done();
+      }
+    });
 });
