@@ -520,7 +520,7 @@ void JsInputMethodEngineSetting::OnInputStart()
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -549,7 +549,8 @@ void JsInputMethodEngineSetting::OnInputStart()
             };
             // 2 means callback has 2 params.
             JsCallbackHandler::Traverse(entry->vecCopy, { 2, getInputStartProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
@@ -561,7 +562,7 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -569,7 +570,8 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
                 delete work;
             });
             JsCallbackHandler::Traverse(entry->vecCopy);
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
@@ -581,7 +583,7 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -602,7 +604,8 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
             };
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInputStopProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
@@ -614,7 +617,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -635,7 +638,8 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
             };
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getCallingWindowProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
@@ -647,7 +651,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -673,7 +677,8 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
             };
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSubtypeProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)

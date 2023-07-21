@@ -78,7 +78,7 @@ napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec, const std::st
     napi_create_async_work(env, nullptr, resource, AsyncCall::OnExecute, AsyncCall::OnComplete, context_, &work);
     context_->work = work;
     context_ = nullptr;
-    napi_queue_async_work(env, work);
+    napi_queue_async_work_with_qos(env, work, napi_qos_user_initiated);
     return promise;
 }
 

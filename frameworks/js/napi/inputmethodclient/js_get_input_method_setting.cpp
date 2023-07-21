@@ -488,7 +488,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -517,7 +517,8 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
             };
             // 2 means callback has two params.
             JsCallbackHandler::Traverse(entry->vecCopy, { 2, getImeChangeProperty });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 void JsGetInputMethodSetting::OnPanelStatusChange(
@@ -534,7 +535,7 @@ void JsGetInputMethodSetting::OnPanelStatusChange(
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    uv_queue_work(
+    uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -560,7 +561,8 @@ void JsGetInputMethodSetting::OnPanelStatusChange(
             };
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getWindowInfo });
-        });
+        },
+        uv_qos_user_initiated);
 }
 
 uv_work_t *JsGetInputMethodSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
