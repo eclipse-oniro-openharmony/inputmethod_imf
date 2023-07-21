@@ -42,7 +42,7 @@ constexpr int32_t LOOP_COUNT = 5;
 constexpr int64_t DELAY_TIME = 100;
 const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
     { "imeHide", IME_HIDE } };
-InputMethodController::InputMethodController() : stop_(false)
+InputMethodController::InputMethodController() : msgHandler_(nullptr), stop_(false)
 {
     IMSA_HILOGI("InputMethodController structure");
 }
