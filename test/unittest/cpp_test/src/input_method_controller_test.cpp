@@ -857,7 +857,9 @@ HWTEST_F(InputMethodControllerTest, testSetControllerListener, TestSize.Level0)
     inputMethodAbility_->SelectByRange(1, 2);
 
     Sequence s;
-    EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::UP)))).Times(1).InSequence(s);
+    EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::UP))))
+        .Times(1)
+        .InSequence(s);
     EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::DOWN))))
         .Times(1)
         .InSequence(s);
