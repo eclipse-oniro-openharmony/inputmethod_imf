@@ -46,7 +46,7 @@ public:
 
     virtual int32_t ShowKeyboard(
         const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, bool attachFlag) = 0;
-    virtual bool HideKeyboard(int32_t flags) = 0;
+    virtual int32_t HideKeyboard() = 0;
     virtual int32_t InitInputControlChannel(
         sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) = 0;
     virtual void StopInputService(std::string imeId) = 0;

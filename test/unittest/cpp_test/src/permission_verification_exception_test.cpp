@@ -28,6 +28,7 @@
 #include "global.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
+#include "input_method_engine_listener_impl.h"
 #include "tdd_util.h"
 #include "text_listener.h"
 
@@ -57,6 +58,7 @@ void PermissionVerificationExceptionTest::SetUpTestCase(void)
     TddUtil::StorageSelfTokenID();
     ima_ = InputMethodAbility::GetInstance();
     ima_->OnImeReady();
+    ima_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     PermissionVerificationExceptionTest::textListener_ = new TextListener();
     imc_ = InputMethodController::GetInstance();
     auto property = InputMethodController::GetInstance()->GetCurrentInputMethod();

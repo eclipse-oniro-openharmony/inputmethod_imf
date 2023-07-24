@@ -18,17 +18,10 @@
 #include <utility>
 
 #include "input_method_ability.h"
+#include "input_method_engine_listener_impl.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
-class EngineListener : public InputMethodEngineListener {
-    void OnKeyboardStatus(bool isShow) {}
-    void OnInputStart() {}
-    void OnInputStop(const std::string &imeId) {}
-    void OnSetCallingWindow(uint32_t windowId) {}
-    void OnSetSubtype(const SubProperty &property) {}
-};
-
 class KeyboardListenerImpl : public KeyboardListener {
     bool OnKeyEvent(int32_t keyCode, int32_t keyStatus)
     {
@@ -53,7 +46,7 @@ void TestInsertText(std::string fuzzedString)
 void TestSetImeListener()
 {
     sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    auto engineListener = std::make_shared<EngineListener>();
+    auto engineListener = std::make_shared<InputMethodEngineListenerImpl>();
     ability->SetImeListener(engineListener);
 }
 

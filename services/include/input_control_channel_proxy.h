@@ -32,7 +32,7 @@ public:
     InputControlChannelProxy(const sptr<IRemoteObject> &impl);
     ~InputControlChannelProxy();
 
-    int32_t HideKeyboardSelf(int flags) override;
+    int32_t HideKeyboardSelf() override;
 };
 } // namespace MiscServices
 } // namespace OHOS

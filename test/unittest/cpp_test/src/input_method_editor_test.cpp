@@ -32,7 +32,7 @@
 #include "input_data_channel_stub.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
-#include "input_method_engine_listener.h"
+#include "input_method_engine_listener_impl.h"
 #include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "keyboard_listener.h"
@@ -85,44 +85,6 @@ void KeyboardListenerImpl::OnTextChange(const std::string &text)
 }
 void KeyboardListenerImpl::OnEditorAttributeChange(const InputAttribute &inputAttribute)
 {
-}
-
-class InputMethodEngineListenerImpl : public InputMethodEngineListener {
-public:
-    InputMethodEngineListenerImpl(){};
-    ~InputMethodEngineListenerImpl(){};
-    static bool keyboardState_;
-    static bool isInputStart_;
-    static uint32_t windowId_;
-    void OnKeyboardStatus(bool isShow) override;
-    void OnInputStart() override;
-    void OnInputStop(const std::string &imeId) override;
-    void OnSetCallingWindow(uint32_t windowId) override;
-    void OnSetSubtype(const SubProperty &property) override;
-};
-bool InputMethodEngineListenerImpl::keyboardState_ = false;
-bool InputMethodEngineListenerImpl::isInputStart_ = false;
-uint32_t InputMethodEngineListenerImpl::windowId_ = 0;
-
-void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
-{
-    keyboardState_ = isShow;
-}
-void InputMethodEngineListenerImpl::OnInputStart()
-{
-    isInputStart_ = true;
-}
-void InputMethodEngineListenerImpl::OnInputStop(const std::string &imeId)
-{
-    isInputStart_ = false;
-}
-void InputMethodEngineListenerImpl::OnSetCallingWindow(uint32_t windowId)
-{
-    windowId_ = windowId;
-}
-void InputMethodEngineListenerImpl::OnSetSubtype(const SubProperty &property)
-{
-    IMSA_HILOGD("InputMethodEngineListenerImpl::OnSetSubtype");
 }
 
 class InputMethodEditorTest : public testing::Test {

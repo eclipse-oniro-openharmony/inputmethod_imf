@@ -42,6 +42,7 @@ ohos_fuzztest("SystemAbilityStubFuzzTest") {
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/common:inputmethod_test_common",
     "//third_party/jsoncpp:jsoncpp",
   ]
 
