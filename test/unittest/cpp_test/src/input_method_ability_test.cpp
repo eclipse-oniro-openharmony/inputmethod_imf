@@ -101,12 +101,6 @@ public:
         inputMethodAbility_->OnImeReady();
         inputMethodAbility_->SetCoreAndAgent();
         TddUtil::RestoreSelfTokenID();
-
-        WindowMgr::CreateWindow();
-        WindowMgr::ShowWindow();
-        sptr<OnTextChangedListener> textListener = new TextListener();
-        imc_ = InputMethodController::GetInstance();
-        imc_->Attach(textListener);
         TextListener::ResetParam();
     }
     static void TearDownTestCase(void)
@@ -175,12 +169,35 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
     sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
     sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
     auto ret = coreProxy->ShowKeyboard(channelProxy, false, false);
-    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
-    auto cvStatus = InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME));
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(cvStatus, std::cv_status::timeout);
-    EXPECT_TRUE(InputMethodAbilityTest::showKeyboard_);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
     delete msgHandler;
+}
+
+/**
+* @tc.name: testShowKeyboardException
+* @tc.desc: InputMethodAbility ShowKeyboard without imeListener
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodAbilityTest, testShowKeyboardException, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testShowKeyboardException start.");
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
+    auto ret = inputMethodAbility_->ShowKeyboard(channelStub->AsObject(), false, false);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
+}
+
+/**
+* @tc.name: testHideKeyboard
+* @tc.desc: InputMethodAbility HideKeyboard
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodAbilityTest, testHideKeyboard, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testHideKeyboard start.");
+    auto ret = inputMethodAbility_->HideKeyboard();
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 }
 
 /**
@@ -203,6 +220,23 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelfWithoutImeListener, TestSiz
 }
 
 /**
+* @tc.name: testShowKeyboard
+* @tc.desc: InputMethodAbility ShowKeyboard
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodAbilityTest, testShowKeyboard, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testShowKeyboard start.");
+    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
+    auto ret = inputMethodAbility_->ShowKeyboard(channelStub->AsObject(), false, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodAbility_->HideKeyboard();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
 * @tc.name: testHideKeyboardSelf
 * @tc.desc: InputMethodAbility HideKeyboardSelf
 * @tc.type: FUNC
@@ -212,6 +246,11 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelfWithoutImeListener, TestSiz
 HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
+    WindowMgr::CreateWindow();
+    WindowMgr::ShowWindow();
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    imc_ = InputMethodController::GetInstance();
+    imc_->Attach(textListener);
     std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
     InputMethodAbilityTest::showKeyboard_ = true;
     inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());

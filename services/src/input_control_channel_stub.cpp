@@ -44,7 +44,7 @@ int32_t InputControlChannelStub::OnRemoteRequest(
     }
     switch (code) {
         case HIDE_KEYBOARD_SELF: {
-            reply.WriteInt32(HideKeyboardSelf(data.ReadInt32()));
+            reply.WriteInt32(HideKeyboardSelf());
             break;
         }
         default: {
@@ -54,11 +54,10 @@ int32_t InputControlChannelStub::OnRemoteRequest(
     return NO_ERROR;
 }
 
-int32_t InputControlChannelStub::HideKeyboardSelf(int flags)
+int32_t InputControlChannelStub::HideKeyboardSelf()
 {
-    IMSA_HILOGI("InputControlChannelStub::HideKeyboardSelf flags = %{public}d", flags);
+    IMSA_HILOGI("InputControlChannelStub run in.");
     MessageParcel *parcel = new MessageParcel();
-    parcel->WriteInt32(flags);
 
     Message *msg = new Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, parcel);
     MessageHandler::Instance()->SendMessage(msg);

@@ -34,6 +34,7 @@ describe('InputMethodTest', function () {
   afterEach(function () {
     console.info('afterEach called');
   });
+  let propertyBeforeSwitch = undefined;
   let bundleName = 'com.example.newTestIme';
   let extName = 'InputMethodExtAbility';
   let subName = ['lowerInput', 'upperInput', 'chineseInput'];
@@ -253,7 +254,7 @@ describe('InputMethodTest', function () {
       expect(true).assertTrue();
       done();
     }).catch((err) => {
-      console.info(`inputmethod_test_listCurrentInputMethodSubtype_001 err: ${JSON.stringify(err.message)}`);
+      console.info(`inputmethod_test_listCurrentInputMethodSubtype_002 err: ${JSON.stringify(err.message)}`);
       expect().assertFail();
       done();
     });
@@ -470,6 +471,7 @@ describe('InputMethodTest', function () {
     expect(isImeChange).assertTrue();
     let subProp = inputMethod.getCurrentInputMethodSubtype();
     let prop = inputMethod.getCurrentInputMethod();
+    propertyBeforeSwitch = prop;
     expect(imeChangeSubProp.name).assertEqual(subProp.name);
     expect(imeChangeSubProp.id).assertEqual(subProp.id);
     expect(imeChangeProp.name).assertEqual(prop.name);
@@ -687,6 +689,27 @@ describe('InputMethodTest', function () {
       console.info(`inputmethod_test_stopInputSession_002 err, ${JSON.stringify(err.message)}`);
       expect(err.code === 12800003).assertTrue();
       done();
+    })
+  });
+
+  /*
+   * @tc.number  inputmethod_test_switchInputMethod_002
+   * @tc.name    Switch to ime before testcases run.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_switchInputMethod_002', 0, async function (done) {
+    console.info('************* inputmethod_test_switchInputMethod_002 Test start*************');
+    inputMethod.switchInputMethod(propertyBeforeSwitch).then(ret => {
+      expect(ret).assertTrue();
+      let property = inputMethod.getCurrentInputMethod();
+      expect(property.name).assertEqual(propertyBeforeSwitch.name);
+      expect(property.id).assertEqual(propertyBeforeSwitch.id);
+      console.info('************* inputmethod_test_switchInputMethod_001 Test end*************');
+      done();
+    }).catch( err=> {
+      console.info(`inputmethod_test_switchInputMethod_001 err: ${JSON.stringify(err.message)}`);
+      expect().assertFail();
     })
   });
 
@@ -955,11 +978,11 @@ describe('InputMethodTest', function () {
     let attribute = {textInputType: inputMethod.TextInputType.TEXT, enterKeyType: inputMethod.EnterKeyType.NONE};
     try {
       inputMethodCtrl.updateAttribute(attribute, (err) => {
-        if (err) {
-          expect(err.code === 12800009).assertTrue();
-          done();
+        if (err.code === 12800009) {
+          expect(true).assertTrue();
+        } else {
+          expect().assertFail();
         }
-        expect().assertFail();
         done();
       });
     } catch (error) {

@@ -33,6 +33,7 @@
 #include "hisysevent_record.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
+#include "input_method_engine_listener_impl.h"
 #include "tdd_util.h"
 #include "text_listener.h"
 
@@ -47,32 +48,6 @@ constexpr const char *CMD3 = "hidumper -s 3703 -a -test";
 constexpr const char *PARAM_KEY = "OPERATE_INFO";
 constexpr const char *DOMAIN = "INPUTMETHOD";
 constexpr const char *EVENT_NAME = "OPERATE_SOFTKEYBOARD";
-
-class InputMethodEngineListenerImpl : public InputMethodEngineListener {
-public:
-    InputMethodEngineListenerImpl() = default;
-    ~InputMethodEngineListenerImpl() = default;
-    void OnKeyboardStatus(bool isShow)
-    {
-        IMSA_HILOGI("InputMethodEngineListenerImpl OnKeyboardStatus");
-    }
-    void OnInputStart()
-    {
-        IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStart");
-    }
-    void OnInputStop(const std::string &imeId)
-    {
-        IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStop");
-    }
-    void OnSetCallingWindow(uint32_t windowId)
-    {
-        IMSA_HILOGI("InputMethodEngineListenerImpl OnSetCallingWindow");
-    }
-    void OnSetSubtype(const SubProperty &property)
-    {
-        IMSA_HILOGI("InputMethodEngineListenerImpl OnSetSubtype");
-    }
-};
 
 class Watcher : public HiSysEventListener {
 public:

@@ -21,6 +21,7 @@
 #include "input_attribute.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
+#include "input_method_engine_listener_impl.h"
 #include "tdd_util.h"
 #include "text_listener.h"
 
@@ -34,36 +35,6 @@ public:
     static sptr<InputMethodController> inputMethodController_;
     static sptr<InputMethodAbility> inputMethodAbility_;
 
-    class EngineListenerImpl : public InputMethodEngineListener {
-    public:
-        EngineListenerImpl() = default;
-        ~EngineListenerImpl() = default;
-
-        void OnKeyboardStatus(bool isShow)
-        {
-            IMSA_HILOGI("EngineListenerImpl OnKeyboardStatus");
-        }
-
-        void OnInputStart()
-        {
-            IMSA_HILOGI("EngineListenerImpl OnInputStart");
-        }
-
-        void OnInputStop(const std::string &imeId)
-        {
-            IMSA_HILOGI("EngineListenerImpl OnInputStop");
-        }
-
-        void OnSetCallingWindow(uint32_t windowId)
-        {
-            IMSA_HILOGI("EngineListenerImpl OnSetCallingWindow");
-        }
-
-        void OnSetSubtype(const SubProperty &property)
-        {
-            IMSA_HILOGI("EngineListenerImpl OnSetSubtype");
-        }
-    };
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodAttachTest::SetUpTestCase");
@@ -75,6 +46,7 @@ public:
         inputMethodAbility_ = InputMethodAbility::GetInstance();
         inputMethodAbility_->OnImeReady();
         inputMethodAbility_->SetCoreAndAgent();
+        inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
         TddUtil::RestoreSelfTokenID();
 
         WindowMgr::CreateWindow();
