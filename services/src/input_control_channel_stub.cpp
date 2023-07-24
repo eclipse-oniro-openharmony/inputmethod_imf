@@ -57,9 +57,10 @@ int32_t InputControlChannelStub::OnRemoteRequest(
 int32_t InputControlChannelStub::HideKeyboardSelf()
 {
     IMSA_HILOGI("InputControlChannelStub run in.");
-    MessageParcel *parcel = new MessageParcel();
-
-    Message *msg = new Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, parcel);
+    Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, nullptr);
+    if (msg == nullptr) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
     MessageHandler::Instance()->SendMessage(msg);
     return ErrorCode::NO_ERROR;
 }

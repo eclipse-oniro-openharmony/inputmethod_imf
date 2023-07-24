@@ -57,7 +57,7 @@ sptr<InputMethodAbility> InputMethodAbility::GetInstance()
         std::lock_guard<std::mutex> autoLock(instanceLock_);
         if (instance_ == nullptr) {
             IMSA_HILOGI("InputMethodAbility::GetInstance need new IMA");
-            instance_ = new (std::nothrow)InputMethodAbility();
+            instance_ = new (std::nothrow) InputMethodAbility();
             if (instance_ == nullptr) {
                 IMSA_HILOGI("instance is nullptr.");
                 return instance_;

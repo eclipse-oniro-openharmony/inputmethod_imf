@@ -37,7 +37,6 @@ namespace OHOS {
 namespace MiscServices {
 using WindowMgr = TddUtil::WindowManager;
 class PermissionVerificationExceptionTest : public testing::Test {
-
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);

@@ -20,6 +20,7 @@ describe('InputMethodTest', function () {
   beforeAll(function () {
     console.info('beforeAll called');
     inputMethod.getSetting().on('imeChange', imeChange);
+    propertyBeforeSwitch = inputMethod.getCurrentInputMethod();
   });
 
   afterAll(function () {
@@ -471,7 +472,6 @@ describe('InputMethodTest', function () {
     expect(isImeChange).assertTrue();
     let subProp = inputMethod.getCurrentInputMethodSubtype();
     let prop = inputMethod.getCurrentInputMethod();
-    propertyBeforeSwitch = prop;
     expect(imeChangeSubProp.name).assertEqual(subProp.name);
     expect(imeChangeSubProp.id).assertEqual(subProp.id);
     expect(imeChangeProp.name).assertEqual(prop.name);

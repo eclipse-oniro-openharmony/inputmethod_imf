@@ -553,7 +553,7 @@ HWTEST_F(InputMethodControllerTest, testIMCOnCursorUpdate01, TestSize.Level0)
 
     InputMethodControllerTest::cursorInfo_ = {};
     InputMethodControllerTest::TriggerCursorUpdateCallback(info);
-        EXPECT_FALSE(InputMethodControllerTest::cursorInfo_ == info);
+    EXPECT_FALSE(InputMethodControllerTest::cursorInfo_ == info);
 }
 
 /**
