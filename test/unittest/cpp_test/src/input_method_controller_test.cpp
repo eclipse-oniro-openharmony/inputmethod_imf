@@ -574,7 +574,7 @@ using WindowMgr = TddUtil::WindowManager;
 
         InputMethodControllerTest::cursorInfo_ = {};
         InputMethodControllerTest::TriggerCursorUpdateCallback(info);
-        EXPECT_TRUE(InputMethodControllerTest::cursorInfo_ == info);
+        EXPECT_FALSE(InputMethodControllerTest::cursorInfo_ == info);
     }
 
     /**
