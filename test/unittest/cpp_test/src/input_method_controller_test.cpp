@@ -58,6 +58,8 @@ using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+constexpr uint32_t RETRY_TIME = 200 * 1000;
+constexpr uint32_t RETRY_TIMES = 5;
 using WindowMgr = TddUtil::WindowManager;
 
 class InputMethodEngineListenerImpl : public InputMethodEngineListener {
@@ -67,6 +69,8 @@ public:
     static bool keyboardState_;
     static bool isInputStart_;
     static uint32_t windowId_;
+    static std::mutex imeListenerMutex_;
+    static std::condition_variable imeListenerCv_;
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStart() override;
     void OnInputStop(const std::string &imeId) override;
@@ -76,11 +80,15 @@ public:
 bool InputMethodEngineListenerImpl::keyboardState_ = false;
 bool InputMethodEngineListenerImpl::isInputStart_ = false;
 uint32_t InputMethodEngineListenerImpl::windowId_ = 0;
+std::mutex InputMethodEngineListenerImpl::imeListenerMutex_;
+std::condition_variable InputMethodEngineListenerImpl::imeListenerCv_;
 
 void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
 {
     IMSA_HILOGI("InputMethodEngineListenerImpl::OnKeyboardStatus %{public}s", isShow ? "show" : "hide");
+    std::lock_guard<std::mutex> lock(imeListenerMutex_);
     keyboardState_ = isShow;
+    imeListenerCv_.notify_one();
 }
 void InputMethodEngineListenerImpl::OnInputStart()
 {
