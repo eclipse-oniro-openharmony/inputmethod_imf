@@ -741,7 +741,7 @@ bool InputMethodSystemAbility::InitFocusChangeMonitor()
         [this](bool isOnFocused, int32_t pid, int32_t uid) {
             return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
         },
-        [this](int32_t userId) { StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_)); });
+        [this]() { StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_)); });
 }
 } // namespace MiscServices
 } // namespace OHOS

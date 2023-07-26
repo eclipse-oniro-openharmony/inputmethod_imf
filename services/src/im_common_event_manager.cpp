@@ -19,14 +19,14 @@
 
 #include "global.h"
 #include "ime_info_inquirer.h"
-#include "input_method_system_ability_stub.h"
 #include "input_method_system_ability.h"
+#include "input_method_system_ability_stub.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "message_handler.h"
-#include "system_ability_definition.h"
 #include "os_account_manager.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -121,17 +121,10 @@ bool ImCommonEventManager::SubscribeWindowManagerService(FocusHandle handle, Sta
         IMSA_HILOGE("abilityManager is nullptr");
         return false;
     }
-    std::vector<int32_t> userIds;
-    int32_t userId = -1;
-    if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
-            return AccountSA::OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
-        })) {
-        userId = userIds[0];
-    }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener(
-        [handle, userId, inputHandler]() {
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow)
+        SystemAbilityStatusChangeListener([handle, inputHandler]() {
             if (inputHandler != nullptr) {
-                inputHandler(userId);
+                inputHandler();
             }
             FocusMonitorManager::GetInstance().RegisterFocusChangedListener(handle);
         });
