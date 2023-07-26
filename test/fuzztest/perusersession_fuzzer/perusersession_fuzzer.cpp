@@ -15,10 +15,16 @@
 
 #include "perusersession_fuzzer.h"
 
+#define private public
+#define protected public
+#include "peruser_session.h"
+#undef private
+
+#include <string_ex.h>
+
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <string_ex.h>
 
 #include "global.h"
 #include "i_input_method_agent.h"
@@ -32,7 +38,6 @@
 #include "input_method_property.h"
 #include "iremote_broker.h"
 #include "message_parcel.h"
-#include "peruser_session.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
@@ -48,32 +53,57 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
     return bigVar;
 }
 
+bool InitializeClientInfo(InputClientInfo &clientInfo)
+{
+    auto clientStub = new (std::nothrow) InputClientStub();
+    if (clientStub == nullptr) {
+        IMSA_HILOGE("failed to create client");
+        return false;
+    }
+    auto deathRecipient = new (std::nothrow) InputDeathRecipient();
+    if (deathRecipient == nullptr) {
+        IMSA_HILOGE("failed to new deathRecipient");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    clientInfo = { .userID = MAIN_USER_ID, .client = clientStub, .deathRecipient = deathRecipient };
+    return true;
+}
+
 bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
 {
+    std::string str(rawData, rawData + size);
     Property property;
     SubProperty subProperty;
-
-    std::string str(rawData, rawData + size);
-    bool isShowKeyboard = true;
-    sptr<IInputClient> client = new (std::nothrow) InputClientStub();
-    sptr<IRemoteObject> object = client->AsObject();
+    InputClientInfo clientInfo;
+    if (!InitializeClientInfo(clientInfo)) {
+        return false;
+    }
+    auto client = iface_cast<IInputClient>(clientInfo.client->AsObject());
+    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(MAIN_USER_ID);
+    if (coreStub == nullptr) {
+        return false;
+    }
+    auto core = iface_cast<IInputMethodCore>(coreStub->AsObject());
+    sptr<InputMethodAgentStub> agentStub = new InputMethodAgentStub();
+    if (agentStub == nullptr) {
+        return false;
+    }
+    auto agent = iface_cast<IInputMethodAgent>(agentStub);
     static std::shared_ptr<PerUserSession> userSessions = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    sptr<IInputMethodCore> core = new InputMethodCoreProxy(object);
-    sptr<IInputMethodAgent> agent = new InputMethodAgentProxy(object);
-    InputMethodInfo *ime = new InputMethodInfo();
+    userSessions->SetImsCore(0, core);
+    userSessions->SetAgent(agent);
 
+    userSessions->OnPrepareInput(clientInfo);
+    userSessions->OnSetCoreAndAgent(core, agent);
     userSessions->OnShowKeyboardSelf();
+    userSessions->OnStartInput(client, false, false);
+    userSessions->OnStartInput(client, true, false);
     userSessions->OnSwitchIme(property, subProperty, false);
     userSessions->OnSwitchIme(property, subProperty, true);
-    userSessions->StopInputService(str);
     userSessions->OnHideKeyboardSelf();
-    userSessions->OnStartInput(client, isShowKeyboard, false);
     userSessions->OnStopInput(client);
     userSessions->OnReleaseInput(client);
-    userSessions->OnSetCoreAndAgent(core, agent);
-
-    delete ime;
-    ime = nullptr;
+    userSessions->StopInputService(str);
     return true;
 }
 } // namespace OHOS
