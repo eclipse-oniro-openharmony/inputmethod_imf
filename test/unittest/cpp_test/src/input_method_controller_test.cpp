@@ -535,13 +535,13 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent003, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCOnCursorUpdate01
-     * @tc.desc: Test update cursorInfo, call 'OnCursorUpdate' twice, if cursorInfo is the same,
-     *           the second time will not get callback.
-     * @tc.type: FUNC
-     * @tc.require:
-     * @tc.author: Zhaolinglan
-     */
+ * @tc.name: testIMCOnCursorUpdate01
+ * @tc.desc: Test update cursorInfo, call 'OnCursorUpdate' twice, if cursorInfo is the same,
+ *           the second time will not get callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
 HWTEST_F(InputMethodControllerTest, testIMCOnCursorUpdate01, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCOnCursorUpdate01 Test START");
@@ -557,13 +557,13 @@ HWTEST_F(InputMethodControllerTest, testIMCOnCursorUpdate01, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCOnCursorUpdate02
-     * @tc.desc: Test update cursorInfo, 'Attach'->'OnCursorUpdate'->'Close'->'Attach'->'OnCursorUpdate',
-     *           it will get callback two time.
-     * @tc.type: FUNC
-     * @tc.require:
-     * @tc.author: Zhaolinglan
-     */
+ * @tc.name: testIMCOnCursorUpdate02
+ * @tc.desc: Test update cursorInfo, 'Attach'->'OnCursorUpdate'->'Close'->'Attach'->'OnCursorUpdate',
+ *           it will get callback two time.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
 HWTEST_F(InputMethodControllerTest, testIMCOnCursorUpdate02, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCOnCursorUpdate02 Test START");

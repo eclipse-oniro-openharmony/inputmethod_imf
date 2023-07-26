@@ -24,11 +24,8 @@
 #include "js_runtime_utils.h"
 #include "panel_status_listener.h"
 #include "window.h"
-#include "window_option.h"
-#include "wm_common.h"
 
 namespace OHOS {
-using namespace OHOS::Rosen;
 namespace MiscServices {
 enum PanelType {
     SOFT_KEYBOARD = 0,
@@ -72,8 +69,8 @@ private:
     bool MarkListener(const std::string &type, bool isRegister);
     static uint32_t GenerateSequenceId();
 
-    sptr<Window> window_ = nullptr;
-    sptr<WindowOption> winOption_ = nullptr;
+    sptr<OHOS::Rosen::Window> window_ = nullptr;
+    sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
     PanelFlag panelFlag_ = PanelFlag::FLG_FIXED;
     bool showRegistered_ = false;

@@ -18,11 +18,12 @@
 #include "display_manager.h"
 #include "global.h"
 #include "input_method_ability_utils.h"
-#include "window.h"
-#include "wm_common.h"
+#include "transaction/rs_interfaces.h"
+#include "ui/rs_surface_node.h"
 
 namespace OHOS {
 namespace MiscServices {
+class RSTransaction;
 using WMError = OHOS::Rosen::WMError;
 using WindowGravity = OHOS::Rosen::WindowGravity;
 using WindowState = OHOS::Rosen::WindowState;
@@ -41,10 +42,6 @@ int32_t InputMethodPanel::CreatePanel(
     }
     winOption_->SetWindowType(OHOS::Rosen::WindowType::WINDOW_TYPE_INPUT_METHOD_FLOAT);
     WMError wmError = WMError::WM_OK;
-    WindowGravity gravity = WindowGravity::WINDOW_GRAVITY_FLOAT;
-    if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
-        gravity = WindowGravity::WINDOW_GRAVITY_BOTTOM;
-    }
     uint32_t sequenceId = GenerateSequenceId();
     std::string windowName = panelType_ == SOFT_KEYBOARD ? "softKeyboard" + std::to_string(sequenceId)
                                                          : "statusBar" + std::to_string(sequenceId);
@@ -59,12 +56,21 @@ int32_t InputMethodPanel::CreatePanel(
     }
     windowId_ = window_->GetWindowId();
     IMSA_HILOGD("GetWindowId, windowId = %{public}u", windowId_);
+    WindowGravity gravity = WindowGravity::WINDOW_GRAVITY_FLOAT;
+    if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
+        gravity = WindowGravity::WINDOW_GRAVITY_BOTTOM;
+    } else if (panelFlag_ == FLG_FLOATING) {
+        window_->GetSurfaceNode()->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
+        Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    }
     wmError = window_->SetWindowGravity(gravity, invalidGravityPercent);
     if (wmError == WMError::WM_OK) {
         return ErrorCode::NO_ERROR;
     }
+    IMSA_HILOGE("SetWindowGravity failed, wmError is %{public}d, start destroy window.", wmError);
     wmError = window_->Destroy();
-    return wmError == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
+    IMSA_HILOGI("Destroy window end, wmError is %{public}d.", wmError);
+    return ErrorCode::ERROR_OPERATE_PANEL;
 }
 
 int32_t InputMethodPanel::DestroyPanel()
@@ -140,6 +146,9 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
     WindowGravity gravity = WindowGravity::WINDOW_GRAVITY_FLOAT;
     if (panelFlag == FLG_FIXED) {
         gravity = WindowGravity::WINDOW_GRAVITY_BOTTOM;
+    } else {
+        window_->GetSurfaceNode()->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
+        Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     }
     auto ret = window_->SetWindowGravity(gravity, invalidGravityPercent);
     IMSA_HILOGI("InputMethodPanel, ChangePanelFlag end, ret = %{public}d", ret);
