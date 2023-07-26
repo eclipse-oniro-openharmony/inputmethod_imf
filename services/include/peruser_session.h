@@ -127,6 +127,7 @@ private:
     int32_t ClearDataChannel(const sptr<IInputDataChannel> &channel);
     int32_t SendAgentToSingleClient(const sptr<IInputClient> &client);
     int32_t InitInputControlChannel();
+    bool IsReadyToStartIme();
     bool IsRestartIme(uint32_t index);
     void ClearImeData(uint32_t index);
     void SetCurrentClient(sptr<IInputClient> client);

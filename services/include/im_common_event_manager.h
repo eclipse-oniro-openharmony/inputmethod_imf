@@ -32,7 +32,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-using StartInputHandler = std::function<void(int32_t)>;
+using StartInputHandler = std::function<void()>;
 class ImCommonEventManager : public RefBase {
 public:
     ImCommonEventManager();

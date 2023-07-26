@@ -32,6 +32,7 @@
 #include "message_parcel.h"
 #include "parcel.h"
 #include "sys/prctl.h"
+#include "system_ability_definition.h"
 #include "unistd.h"
 #include "want.h"
 
@@ -225,6 +226,9 @@ void PerUserSession::OnImsDied(const sptr<IInputMethodCore> &remote)
         return;
     }
     IMSA_HILOGI("user %{public}d ime died, restart!", userId_);
+    if (!IsReadyToStartIme()) {
+        return;
+    }
     StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_), true);
 }
 
@@ -680,6 +684,22 @@ int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInf
         mapClients_.erase(remoteClient);
     }
     return ErrorCode::NO_ERROR;
+}
+
+bool PerUserSession::IsReadyToStartIme()
+{
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        IMSA_HILOGI("system ability manager is nullptr");
+        return false;
+    }
+    auto systemAbility = systemAbilityManager->GetSystemAbility(WINDOW_MANAGER_SERVICE_ID, "");
+    if (systemAbility == nullptr) {
+        IMSA_HILOGI("window manager service not found");
+        return false;
+    }
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS
