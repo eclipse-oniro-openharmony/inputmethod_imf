@@ -696,7 +696,7 @@ bool PerUserSession::IsReadyToStartIme()
     }
     auto systemAbility = systemAbilityManager->GetSystemAbility(WINDOW_MANAGER_SERVICE_ID, "");
     if (systemAbility == nullptr) {
-        IMSA_HILOGI("system ability is nullptr");
+        IMSA_HILOGI("window manager service not found");
         return false;
     }
     return true;

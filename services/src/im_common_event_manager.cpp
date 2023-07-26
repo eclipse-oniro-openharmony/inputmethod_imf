@@ -25,7 +25,6 @@
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "message_handler.h"
-#include "os_account_manager.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -34,8 +33,6 @@ using namespace MessageID;
 sptr<ImCommonEventManager> ImCommonEventManager::instance_;
 std::mutex ImCommonEventManager::instanceLock_;
 using namespace OHOS::EventFwk;
-constexpr uint32_t RETRY_INTERVAL = 100;
-constexpr uint32_t BLOCK_RETRY_TIMES = 100;
 ImCommonEventManager::ImCommonEventManager()
 {
 }
