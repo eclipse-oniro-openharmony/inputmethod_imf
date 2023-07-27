@@ -56,6 +56,9 @@ public:
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();
+    int32_t ShowKeyboard(const sptr<IRemoteObject> &channelObject, bool isShowKeyboard, bool attachFlag);
+    int32_t HideKeyboard();
+    void ClearDataChannel(const sptr<IRemoteObject> &channel);
     int32_t SendExtendAction(int32_t action);
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
@@ -77,9 +80,7 @@ public:
 private:
     std::thread workThreadHandler;
     MessageHandler *msgHandler;
-    InputAttribute editorAttribute;
-    InputChannel *writeInputChannel;
-    bool stop_;
+    bool stop_ = false;
     int32_t KEYBOARD_HIDE = 1;
     int32_t KEYBOARD_SHOW = 2;
 
@@ -103,7 +104,7 @@ private:
     sptr<ServiceDeathRecipient> deathRecipientPtr_{ nullptr };
     sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
 
-    void SetInputDataChannel(sptr<IRemoteObject> &object);
+    void SetInputDataChannel(const sptr<IRemoteObject> &object);
     std::shared_ptr<InputDataChannelProxy> GetInputDataChannelProxy();
     void SetInputControlChannel(sptr<IRemoteObject> &object);
     std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
@@ -112,17 +113,13 @@ private:
     void WorkThread();
     void QuitWorkThread();
 
-    void OnShowKeyboard(Message *msg);
-    void OnHideKeyboard(Message *msg);
     void OnInitInputControlChannel(Message *msg);
     void OnSetSubtype(Message *msg);
-    void OnClearDataChannel(Message *msg);
 
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
     void OnConfigurationChange(Message *msg);
-    void ShowInputWindow(bool isShowKeyboard);
-    void DismissInputWindow();
+    int32_t ShowInputWindow(bool isShowKeyboard);
     void OnTextConfigChange(const TextTotalConfig &textConfig);
     bool isImeReady_{ false };
     InputStartNotifier notifier_;

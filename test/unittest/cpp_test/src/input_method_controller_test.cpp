@@ -42,7 +42,7 @@
 #include "input_data_channel_stub.h"
 #include "input_death_recipient.h"
 #include "input_method_ability.h"
-#include "input_method_engine_listener.h"
+#include "input_method_engine_listener_impl.h"
 #include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "iservice_registry.h"
@@ -61,54 +61,6 @@ namespace MiscServices {
 constexpr uint32_t RETRY_TIME = 200 * 1000;
 constexpr uint32_t RETRY_TIMES = 5;
 using WindowMgr = TddUtil::WindowManager;
-
-class InputMethodEngineListenerImpl : public InputMethodEngineListener {
-public:
-    InputMethodEngineListenerImpl(){};
-    ~InputMethodEngineListenerImpl(){};
-    static bool keyboardState_;
-    static bool isInputStart_;
-    static uint32_t windowId_;
-    static std::mutex imeListenerMutex_;
-    static std::condition_variable imeListenerCv_;
-    void OnKeyboardStatus(bool isShow) override;
-    void OnInputStart() override;
-    void OnInputStop(const std::string &imeId) override;
-    void OnSetCallingWindow(uint32_t windowId) override;
-    void OnSetSubtype(const SubProperty &property) override;
-};
-bool InputMethodEngineListenerImpl::keyboardState_ = false;
-bool InputMethodEngineListenerImpl::isInputStart_ = false;
-uint32_t InputMethodEngineListenerImpl::windowId_ = 0;
-std::mutex InputMethodEngineListenerImpl::imeListenerMutex_;
-std::condition_variable InputMethodEngineListenerImpl::imeListenerCv_;
-
-void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
-{
-    IMSA_HILOGI("InputMethodEngineListenerImpl::OnKeyboardStatus %{public}s", isShow ? "show" : "hide");
-    std::lock_guard<std::mutex> lock(imeListenerMutex_);
-    keyboardState_ = isShow;
-    imeListenerCv_.notify_one();
-}
-void InputMethodEngineListenerImpl::OnInputStart()
-{
-    IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStart");
-    isInputStart_ = true;
-}
-void InputMethodEngineListenerImpl::OnInputStop(const std::string &imeId)
-{
-    IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStop %{public}s", imeId.c_str());
-    isInputStart_ = false;
-}
-void InputMethodEngineListenerImpl::OnSetCallingWindow(uint32_t windowId)
-{
-    IMSA_HILOGI("InputMethodEngineListenerImpl::OnSetCallingWindow %{public}d", windowId);
-    windowId_ = windowId;
-}
-void InputMethodEngineListenerImpl::OnSetSubtype(const SubProperty &property)
-{
-    IMSA_HILOGD("InputMethodEngineListenerImpl::OnSetSubtype");
-}
 
 class SelectListenerMock : public ControllerListener {
 public:

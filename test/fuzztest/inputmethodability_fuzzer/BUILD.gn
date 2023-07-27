@@ -39,6 +39,7 @@ ohos_fuzztest("InputMethodAbilityFuzzTest") {
   deps = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/common:inputmethod_test_common",
   ]
 
   external_deps = [

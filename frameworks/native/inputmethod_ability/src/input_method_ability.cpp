@@ -39,11 +39,7 @@ sptr<InputMethodAbility> InputMethodAbility::instance_;
 std::mutex InputMethodAbility::instanceLock_;
 constexpr double INVALID_CURSOR_VALUE = -1.0;
 constexpr int32_t INVALID_SELECTION_VALUE = -1;
-InputMethodAbility::InputMethodAbility() : stop_(false)
-{
-    writeInputChannel = nullptr;
-    Initialize();
-}
+InputMethodAbility::InputMethodAbility() : stop_(false) {}
 
 InputMethodAbility::~InputMethodAbility()
 {
@@ -61,7 +57,12 @@ sptr<InputMethodAbility> InputMethodAbility::GetInstance()
         std::lock_guard<std::mutex> autoLock(instanceLock_);
         if (instance_ == nullptr) {
             IMSA_HILOGI("InputMethodAbility::GetInstance need new IMA");
-            instance_ = new InputMethodAbility();
+            instance_ = new (std::nothrow) InputMethodAbility();
+            if (instance_ == nullptr) {
+                IMSA_HILOGI("instance is nullptr.");
+                return instance_;
+            }
+            instance_->Initialize();
         }
     }
     return instance_;
@@ -176,14 +177,6 @@ void InputMethodAbility::WorkThread()
                 OnInitInputControlChannel(msg);
                 break;
             }
-            case MSG_ID_SHOW_KEYBOARD: {
-                OnShowKeyboard(msg);
-                break;
-            }
-            case MSG_ID_HIDE_KEYBOARD: {
-                OnHideKeyboard(msg);
-                break;
-            }
             case MSG_ID_ON_CURSOR_UPDATE: {
                 OnCursorUpdate(msg);
                 break;
@@ -207,10 +200,6 @@ void InputMethodAbility::WorkThread()
             }
             case MSG_ID_SET_SUBTYPE: {
                 OnSetSubtype(msg);
-                break;
-            }
-            case MSG_ID_CLEAR_DATA_CHANNEL: {
-                OnClearDataChannel(msg);
                 break;
             }
             default: {
@@ -238,20 +227,12 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
     SetInputControlChannel(channelObject);
 }
 
-void InputMethodAbility::OnShowKeyboard(Message *msg)
+int32_t InputMethodAbility::ShowKeyboard(const sptr<IRemoteObject> &channelObject, bool isShowKeyboard, bool attachFlag)
 {
-    IMSA_HILOGI("InputMethodAbility::OnShowKeyboard");
-    MessageParcel *data = msg->msgContent_;
-    sptr<IRemoteObject> channelObject = nullptr;
-    bool isShowKeyboard = false;
-    bool attachFlag = false;
-    if (!ITypesUtil::Unmarshal(*data, channelObject, isShowKeyboard, attachFlag)) {
-        IMSA_HILOGE("InputMethodAbility::OnShowKeyboard read message parcel failed");
-        return;
-    }
+    IMSA_HILOGI("InputMethodAbility::ShowKeyboard");
     if (channelObject == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::OnShowKeyboard channelObject is nullptr");
-        return;
+        IMSA_HILOGE("InputMethodAbility::ShowKeyboard channelObject is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     SetInputDataChannel(channelObject);
     if (attachFlag) {
@@ -259,17 +240,11 @@ void InputMethodAbility::OnShowKeyboard(Message *msg)
         int32_t ret = GetTextConfig(textConfig);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
-            return;
+            return ret;
         }
         OnTextConfigChange(textConfig);
     }
-    ShowInputWindow(isShowKeyboard);
-}
-
-void InputMethodAbility::OnHideKeyboard(Message *msg)
-{
-    IMSA_HILOGI("InputMethodAbility::OnHideKeyboard");
-    DismissInputWindow();
+    return ShowInputWindow(isShowKeyboard);
 }
 
 void InputMethodAbility::OnSetSubtype(Message *msg)
@@ -288,15 +263,9 @@ void InputMethodAbility::OnSetSubtype(Message *msg)
     imeListener_->OnSetSubtype(subProperty);
 }
 
-void InputMethodAbility::OnClearDataChannel(Message *msg)
+void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
 {
     IMSA_HILOGI("run in");
-    auto data = msg->msgContent_;
-    sptr<IRemoteObject> channel = nullptr;
-    if (!ITypesUtil::Unmarshal(*data, channel)) {
-        IMSA_HILOGE("failed to read message parcel");
-        return;
-    }
     std::lock_guard<std::mutex> lock(dataChannelLock_);
     if (dataChannelObject_ == nullptr || channel == nullptr) {
         return;
@@ -386,29 +355,29 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
-void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
+int32_t InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
 {
     IMSA_HILOGI("InputMethodAbility::ShowInputWindow");
     if (!isImeReady_) {
         IMSA_HILOGE("InputMethodAbility::ime is unready, store notifier_");
         notifier_.isNotify = true;
         notifier_.isShowKeyboard = isShowKeyboard;
-        return;
+        return ErrorCode::ERROR_IME_NOT_READY;
     }
     if (imeListener_ == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::ShowInputWindow imeListener_ is nullptr");
-        return;
+        IMSA_HILOGE("InputMethodAbility, imeListener is nullptr");
+        return ErrorCode::ERROR_IME;
     }
     imeListener_->OnInputStart();
     if (!isShowKeyboard) {
         IMSA_HILOGI("InputMethodAbility::ShowInputWindow will not show keyboard");
-        return;
+        return ErrorCode::NO_ERROR;
     }
     imeListener_->OnKeyboardStatus(true);
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("InputMethodAbility::ShowInputWindow channel is nullptr");
-        return;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     channel->SendKeyboardStatus(KEYBOARD_SHOW);
     auto result = panels_.Find(SOFT_KEYBOARD);
@@ -418,8 +387,9 @@ void InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
         }
-        return;
+        return ret;
     }
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
@@ -456,30 +426,28 @@ void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
     IMSA_HILOGD("setCallingWindow end.");
 }
 
-void InputMethodAbility::DismissInputWindow()
+int32_t InputMethodAbility::HideKeyboard()
 {
-    IMSA_HILOGI("InputMethodAbility::DismissInputWindow");
+    IMSA_HILOGI("InputMethodAbility::HideKeyboard");
     if (imeListener_ == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::DismissInputWindow imeListener_ is nullptr");
-        return;
+        IMSA_HILOGE("InputMethodAbility::HideKeyboard imeListener_ is nullptr");
+        return ErrorCode::ERROR_IME;
     }
     imeListener_->OnKeyboardStatus(false);
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::DismissInputWindow channel is nullptr");
-        return;
+        IMSA_HILOGE("InputMethodAbility::HideKeyboard channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     channel->SendKeyboardStatus(KEYBOARD_HIDE);
     auto result = panels_.Find(SOFT_KEYBOARD);
     if (!result.first) {
         IMSA_HILOGE("Not find SOFT_KEYBOARD panel.");
-        return;
+        return ErrorCode::NO_ERROR;
     }
     auto ret = result.second->HidePanel();
-    if (ret != NO_ERROR) {
-        IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
-        return;
-    }
+    IMSA_HILOGD("Hide panel, ret = %{public}d.", ret);
+    return ret;
 }
 
 int32_t InputMethodAbility::InsertText(const std::string text)
@@ -533,7 +501,7 @@ int32_t InputMethodAbility::HideKeyboardSelf()
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     InputMethodSysEvent::OperateSoftkeyboardBehaviour(IME_HIDE_SELF);
-    return controlChannel->HideKeyboardSelf(1);
+    return controlChannel->HideKeyboardSelf();
 }
 
 int32_t InputMethodAbility::SendExtendAction(int32_t action)
@@ -645,7 +613,7 @@ int32_t InputMethodAbility::GetTextConfig(TextTotalConfig &textConfig)
     return channel->GetTextConfig(textConfig);
 }
 
-void InputMethodAbility::SetInputDataChannel(sptr<IRemoteObject> &object)
+void InputMethodAbility::SetInputDataChannel(const sptr<IRemoteObject> &object)
 {
     IMSA_HILOGD("run in SetInputDataChannel");
     std::lock_guard<std::mutex> lock(dataChannelLock_);
