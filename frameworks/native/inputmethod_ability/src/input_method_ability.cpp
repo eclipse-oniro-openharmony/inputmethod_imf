@@ -39,7 +39,7 @@ sptr<InputMethodAbility> InputMethodAbility::instance_;
 std::mutex InputMethodAbility::instanceLock_;
 constexpr double INVALID_CURSOR_VALUE = -1.0;
 constexpr int32_t INVALID_SELECTION_VALUE = -1;
-InputMethodAbility::InputMethodAbility() : stop_(false) {}
+InputMethodAbility::InputMethodAbility() : msgHandler(nullptr), stop_(false) {}
 
 InputMethodAbility::~InputMethodAbility()
 {
