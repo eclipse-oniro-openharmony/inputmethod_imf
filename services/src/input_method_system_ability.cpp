@@ -316,7 +316,7 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
     if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
         return userSession_->OnHideKeyboardSelf();
     }
-    if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+    if (!BundleChecker::CheckPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
 
@@ -333,7 +333,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
         return userSession_->OnShowKeyboardSelf();
     }
 
-    if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+    if (!BundleChecker::CheckPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
 
