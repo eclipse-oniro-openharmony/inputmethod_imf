@@ -63,6 +63,7 @@ bool InitializeClientInfo(InputClientInfo &clientInfo)
     auto deathRecipient = new (std::nothrow) InputDeathRecipient();
     if (deathRecipient == nullptr) {
         IMSA_HILOGE("failed to new deathRecipient");
+        delete clientStub;
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     clientInfo = { .userID = MAIN_USER_ID, .client = clientStub, .deathRecipient = deathRecipient };
@@ -79,12 +80,12 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
         return false;
     }
     auto client = iface_cast<IInputClient>(clientInfo.client->AsObject());
-    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(MAIN_USER_ID);
+    sptr<InputMethodCoreStub> coreStub = new (std::nothrow) InputMethodCoreStub(MAIN_USER_ID);
     if (coreStub == nullptr) {
         return false;
     }
     auto core = iface_cast<IInputMethodCore>(coreStub->AsObject());
-    sptr<InputMethodAgentStub> agentStub = new InputMethodAgentStub();
+    sptr<InputMethodAgentStub> agentStub = new (std::nothrow) InputMethodAgentStub();
     if (agentStub == nullptr) {
         return false;
     }
