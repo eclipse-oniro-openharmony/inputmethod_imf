@@ -40,6 +40,7 @@ namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
 using namespace AccountSA;
+using namespace Security::AccessToken;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
@@ -211,8 +212,11 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    AccessTokenId tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+        if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
     }
     auto ret = GenerateClientInfo(clientInfo);
     if (ret != ErrorCode::NO_ERROR) {
@@ -249,8 +253,11 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 
 int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag)
 {
-    if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    AccessTokenId tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+        if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
     }
     if (client == nullptr) {
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
@@ -261,8 +268,11 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
 
 int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 {
-    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    AccessTokenId tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+        if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
     }
     if (client == nullptr) {
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
@@ -273,8 +283,11 @@ int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 
 int32_t InputMethodSystemAbility::StopInputSession()
 {
-    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    AccessTokenId tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+        if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
     }
     return userSession_->OnHideKeyboardSelf();
 }
@@ -299,10 +312,15 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
 {
+    AccessTokenId tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+        return userSession_->OnHideKeyboardSelf();
+    }
     if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
+
+    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnHideKeyboardSelf();
@@ -310,10 +328,16 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
 
 int32_t InputMethodSystemAbility::ShowCurrentInput()
 {
+    AccessTokenId tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+        return userSession_->OnShowKeyboardSelf();
+    }
+
     if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
+
+    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnShowKeyboardSelf();
@@ -455,16 +479,22 @@ int32_t InputMethodSystemAbility::SwitchSubType(const ImeInfo &info)
 // Deprecated because of no permission check, kept for compatibility
 int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 {
-    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    AccessTokenId tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+        if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
     }
     return userSession_->OnHideKeyboardSelf();
 };
 
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 {
-    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    AccessTokenId tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+        if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
     }
     return userSession_->OnShowKeyboardSelf();
 };
