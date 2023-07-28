@@ -313,7 +313,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
 int32_t InputMethodSystemAbility::HideCurrentInput()
 {
     AccessTokenId tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE) {
         return userSession_->OnHideKeyboardSelf();
     }
     if (!BundleChecker::CheckPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
@@ -329,7 +329,7 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
 int32_t InputMethodSystemAbility::ShowCurrentInput()
 {
     AccessTokenId tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE) {
         return userSession_->OnShowKeyboardSelf();
     }
 
