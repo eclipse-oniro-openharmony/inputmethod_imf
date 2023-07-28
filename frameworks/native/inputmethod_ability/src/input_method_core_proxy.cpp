@@ -55,12 +55,9 @@ void InputMethodCoreProxy::StopInputService(std::string imeId)
     });
 }
 
-bool InputMethodCoreProxy::HideKeyboard(int32_t flags)
+int32_t InputMethodCoreProxy::HideKeyboard()
 {
-    auto status = SendRequest(HIDE_KEYBOARD, [flags](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, flags);
-    });
-    return status == ErrorCode::NO_ERROR;
+    return SendRequest(HIDE_KEYBOARD);
 }
 
 int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)

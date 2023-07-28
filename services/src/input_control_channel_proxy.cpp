@@ -36,7 +36,7 @@ InputControlChannelProxy::~InputControlChannelProxy()
 {
 }
 
-int32_t InputControlChannelProxy::HideKeyboardSelf(int flags)
+int32_t InputControlChannelProxy::HideKeyboardSelf()
 {
     IMSA_HILOGI("InputControlChannelProxy::HideKeyboardSelf");
     MessageParcel data;
@@ -44,10 +44,6 @@ int32_t InputControlChannelProxy::HideKeyboardSelf(int flags)
     MessageOption option;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("InputControlChannelProxy::HideKeyboardSelf descriptor is not match");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    if (!ITypesUtil::Marshal(data, flags)) {
-        IMSA_HILOGE("Marshalling failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto ret = Remote()->SendRequest(HIDE_KEYBOARD_SELF, data, reply, option);

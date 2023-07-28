@@ -182,12 +182,9 @@ int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &inputClient)
     if (inputClient != nullptr) {
         UpdateClient(inputClient->AsObject(), false);
     }
-    bool ret = core->HideKeyboard(1);
-    if (!ret) {
-        IMSA_HILOGE("core->HideKeyboard failed");
-        return ErrorCode::ERROR_KBD_HIDE_FAILED;
-    }
-    return ErrorCode::NO_ERROR;
+    auto ret = core->HideKeyboard();
+    IMSA_HILOGD("HideKeyboard end, ret = %{public}d", ret);
+    return ret;
 }
 
 int32_t PerUserSession::ClearDataChannel(const sptr<IInputDataChannel> &channel)
