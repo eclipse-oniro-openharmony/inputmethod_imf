@@ -213,7 +213,7 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
         if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
@@ -254,7 +254,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
         if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
@@ -269,7 +269,7 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
 int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
         if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
@@ -284,7 +284,7 @@ int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 int32_t InputMethodSystemAbility::StopInputSession()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
         if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
@@ -480,7 +480,7 @@ int32_t InputMethodSystemAbility::SwitchSubType(const ImeInfo &info)
 int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
         if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
@@ -491,7 +491,7 @@ int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!(AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE)) {
+    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
         if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
