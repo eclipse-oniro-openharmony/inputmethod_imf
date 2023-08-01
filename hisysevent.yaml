@@ -33,5 +33,5 @@ IME_USAGE:
 
 OPERATE_SOFTKEYBOARD:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: IMEOperate, desc: Operate the soft keyboard report}
-  OPERATING: {type: STRING, desc: Show, hide or unbind soft keyboard}
-  OPERATE_INFO: {type: STRING, desc: Manipulate to show, hide, or unbind soft keyboard information}
+  OPERATING: {type: STRING, desc: 'Show, hide or unbind soft keyboard'}
+  OPERATE_INFO: {type: STRING, desc: 'Manipulate to show, hide, or unbind soft keyboard information'}
