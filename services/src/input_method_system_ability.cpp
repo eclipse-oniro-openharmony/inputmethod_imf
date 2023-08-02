@@ -32,6 +32,7 @@
 #include "itypes_util.h"
 #include "key_event.h"
 #include "message_handler.h"
+#include "native_token_info.h"
 #include "os_account_manager.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
@@ -40,7 +41,6 @@ namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
 using namespace AccountSA;
-using namespace Security::AccessToken;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
@@ -213,7 +213,7 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
+    if (!CheckBrokerTokenID(tokenId)) {
         if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
@@ -254,7 +254,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
+    if (!CheckBrokerTokenID(tokenId)) {
         if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
@@ -269,7 +269,7 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
 int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
+    if (!CheckBrokerTokenID(tokenId)) {
         if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
@@ -284,7 +284,7 @@ int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 int32_t InputMethodSystemAbility::StopInputSession()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
+    if (!CheckBrokerTokenID(tokenId)) {
         if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
@@ -313,7 +313,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
 int32_t InputMethodSystemAbility::HideCurrentInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE) {
+    if (CheckBrokerTokenID(tokenId)) {
         return userSession_->OnHideKeyboardSelf();
     }
     if (!BundleChecker::CheckPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
@@ -329,7 +329,7 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
 int32_t InputMethodSystemAbility::ShowCurrentInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE) {
+    if (CheckBrokerTokenID(tokenId)) {
         return userSession_->OnShowKeyboardSelf();
     }
 
@@ -480,7 +480,7 @@ int32_t InputMethodSystemAbility::SwitchSubType(const ImeInfo &info)
 int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
+    if (!CheckBrokerTokenID(tokenId)) {
         if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
@@ -491,7 +491,7 @@ int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (AccessTokenKit::GetTokenType(tokenId) != TypeATokenTypeEnum::TOKEN_NATIVE) {
+    if (!CheckBrokerTokenID(tokenId)) {
         if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
@@ -772,6 +772,17 @@ bool InputMethodSystemAbility::InitFocusChangeMonitor()
             return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
         },
         [this]() { StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_)); });
+}
+
+bool InputMethodSystemAbility::CheckBrokerTokenID(AccessTokenID tokenId)
+{
+    NativeTokenInfo nativeTokenInfoRes;
+    AccessTokenKit::GetNativeTokenInfo(tokenId, nativeTokenInfoRes);
+    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE
+        && nativeTokenInfoRes.processName == "broker" && nativeTokenInfoRes.apl == ATokenAplEnum::APL_SYSTEM_BASIC) {
+        return true;
+    }
+    return false;
 }
 } // namespace MiscServices
 } // namespace OHOS
