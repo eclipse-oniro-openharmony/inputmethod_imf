@@ -32,7 +32,6 @@
 #include "itypes_util.h"
 #include "key_event.h"
 #include "message_handler.h"
-#include "native_token_info.h"
 #include "os_account_manager.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
