@@ -158,8 +158,8 @@ void InputMethodSysEvent::StopTimer()
 {
     IMSA_HILOGD("run in");
     std::lock_guard<std::mutex> lock(timerLock_);
-    timer_.Unregister(timerId_);
-    timer_.Shutdown();
+    timer_->Unregister(timerId_);
+    timer_->Shutdown();
 }
 
 bool InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t interval)
