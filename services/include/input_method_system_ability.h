@@ -20,6 +20,7 @@
 #include <map>
 #include <thread>
 
+#include "access_token.h"
 #include "application_info.h"
 #include "bundle_mgr_proxy.h"
 #include "event_handler.h"
@@ -122,6 +123,7 @@ private:
     int32_t SwitchLanguage();
     int32_t SwitchType();
     int32_t GenerateClientInfo(InputClientInfo &clientInfo);
+    bool CheckBrokerTokenID(AccessTokenID tokenId);
 };
 } // namespace MiscServices
 } // namespace OHOS
