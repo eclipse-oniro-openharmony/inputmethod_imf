@@ -158,6 +158,10 @@ void InputMethodSysEvent::StopTimer()
 {
     IMSA_HILOGD("run in");
     std::lock_guard<std::mutex> lock(timerLock_);
+    if (timer_ == nullptr) {
+        IMSA_HILOGE("timer_ is nullptr.");
+        return;
+    }
     timer_->Unregister(timerId_);
     timer_->Shutdown();
 }
