@@ -153,11 +153,13 @@ void InputMethodDfxTest::TearDownTestCase(void)
 void InputMethodDfxTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::SetUp");
+    WindowMgr::ShowWindow();
 }
 
 void InputMethodDfxTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::TearDown");
+    WindowMgr::HideWindow();
 }
 
 /**

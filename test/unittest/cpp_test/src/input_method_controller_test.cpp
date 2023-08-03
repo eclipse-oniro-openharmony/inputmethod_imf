@@ -245,11 +245,13 @@ void InputMethodControllerTest::TearDownTestCase(void)
 void InputMethodControllerTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodControllerTest::SetUp");
+    WindowMgr::ShowWindow();
 }
 
 void InputMethodControllerTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodControllerTest::TearDown");
+    WindowMgr::HideWindow();
 }
 
 void InputMethodControllerTest::SetInputDeathRecipient()
