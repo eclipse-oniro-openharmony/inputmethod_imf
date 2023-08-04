@@ -15,13 +15,14 @@
 
 #include "ime_cfg_manager.h"
 
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include <algorithm>
 #include <cstdio>
-#include <fstream>
+#include <ios>
 #include <string>
 
 #include "file_ex.h"
@@ -32,6 +33,7 @@ namespace {
 constexpr const char *IME_CFG_DIR = "/data/service/el1/public/imf/ime_cfg";
 constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg/ime_cfg.json";
 static constexpr int32_t SUCCESS = 0;
+static constexpr uint32_t MAX_FILE_LENGTH = 10000;
 using json = nlohmann::json;
 } // namespace
 ImeCfgManager &ImeCfgManager::GetInstance()
@@ -166,28 +168,53 @@ bool ImeCfgManager::IsCachePathExit(std::string &path)
 
 bool ImeCfgManager::ReadCacheFile(const std::string &path, json &jsonCfg)
 {
-    std::ifstream jsonFs(path);
-    if (!jsonFs.is_open()) {
-        IMSA_HILOGE("file read open failed");
+    auto fd = open(path.c_str(), O_RDONLY);
+    if (fd <= 0) {
+        IMSA_HILOGE("file open failed, fd: %{public}d", fd);
         return false;
     }
-    jsonCfg = json::parse(jsonFs, nullptr, false);
+    char cfg[MAX_FILE_LENGTH] = { 0 };
+    auto ret = read(fd, cfg, MAX_FILE_LENGTH);
+    if (ret <= 0) {
+        IMSA_HILOGE("file read failed, ret: %{public}zd", ret);
+        close(fd);
+        return false;
+    }
+    close(fd);
+
+    if (cfg[0] == '\0') {
+        IMSA_HILOGE("imeCfg is empty");
+        return false;
+    }
+    jsonCfg = json::parse(cfg, nullptr, false);
     if (jsonCfg.is_null() || jsonCfg.is_discarded()) {
-        IMSA_HILOGE("json parse failed");
+        IMSA_HILOGE("json parse failed.");
         return false;
     }
-    IMSA_HILOGI("json: %{public}s", jsonCfg.dump().c_str());
+    IMSA_HILOGD("imeCfg json: %{public}s", jsonCfg.dump().c_str());
     return true;
 }
+
 bool ImeCfgManager::WriteCacheFile(const std::string &path, const json &jsonCfg)
 {
-    std::ofstream jsonFs(path);
-    if (!jsonFs.is_open()) {
-        IMSA_HILOGE("file write open failed");
+    std::string cfg = jsonCfg.dump();
+    if (cfg.empty()) {
+        IMSA_HILOGE("imeCfg is empty");
         return false;
     }
-    constexpr int32_t width = 2;
-    jsonFs << std::setw(width) << jsonCfg << std::endl;
+    IMSA_HILOGD("imeCfg json: %{public}s", cfg.c_str());
+    auto fd = open(path.c_str(), O_CREAT | O_WRONLY | O_SYNC | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd <= 0) {
+        IMSA_HILOGE("file open failed, fd: %{public}d", fd);
+        return false;
+    }
+    auto ret = write(fd, cfg.c_str(), cfg.size());
+    if (ret <= 0) {
+        IMSA_HILOGE("file write failed, ret: %{public}zd", ret);
+        close(fd);
+        return false;
+    }
+    close(fd);
     return true;
 }
 } // namespace MiscServices
