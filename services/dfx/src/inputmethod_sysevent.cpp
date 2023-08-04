@@ -45,6 +45,11 @@ std::map<int32_t, int32_t> InputMethodSysEvent::inputmethodBehaviour_ = {
     {static_cast<int32_t>(IMEBehaviour::CHANGE_IME), 0}
 };
 
+InputMethodSysEvent::~InputMethodSysEvent()
+{
+    StopTimer();
+}
+
 InputMethodSysEvent &InputMethodSysEvent::GetInstance()
 {
     static InputMethodSysEvent instance;
@@ -147,6 +152,18 @@ std::string InputMethodSysEvent::GetOperateAction(int32_t infoCode)
 void InputMethodSysEvent::SetUserId(int32_t userId)
 {
     userId_ = userId;
+}
+
+void InputMethodSysEvent::StopTimer()
+{
+    IMSA_HILOGD("run in");
+    std::lock_guard<std::mutex> lock(timerLock_);
+    if (timer_ == nullptr) {
+        IMSA_HILOGE("timer_ is nullptr.");
+        return;
+    }
+    timer_->Unregister(timerId_);
+    timer_->Shutdown();
 }
 
 bool InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t interval)

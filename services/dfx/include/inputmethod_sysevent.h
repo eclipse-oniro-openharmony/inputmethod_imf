@@ -54,11 +54,14 @@ public:
     void SetUserId(int32_t userId);
 
 private:
+    InputMethodSysEvent() = default;
+    ~InputMethodSysEvent();
     using TimerCallback = std::function<void()>;
     void ImeUsageBehaviourReporter();
     const std::string GetOperateInfo(int32_t infoCode);
     std::string GetOperateAction(int32_t infoCode);
     bool StartTimer(const TimerCallback &callback, uint32_t interval);
+    void StopTimer();
 
 private:
     static const std::unordered_map<int32_t, std::string> operateInfo_;
