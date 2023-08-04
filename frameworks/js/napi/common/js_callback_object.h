@@ -17,6 +17,7 @@
 
 #include <thread>
 
+#include "block_data.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -29,6 +30,7 @@ public:
     napi_ref callback_ = nullptr;
     napi_env env_{};
     std::thread::id threadId_;
+    std::shared_ptr<BlockData<bool>> isDone_;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -27,7 +27,10 @@ config("inputmethod_js_common_config") {
 
 config("inputmethod_js_common_public_config") {
   visibility = [ "./*" ]
-  include_dirs = [ "./" ]
+  include_dirs = [
+    "./",
+    "${inputmethod_path}/frameworks/common",
+  ]
 }
 
 ohos_static_library("inputmethod_js_common") {
