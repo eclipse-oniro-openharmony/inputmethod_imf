@@ -203,14 +203,20 @@ void TddUtil::WindowManager::CreateWindow()
 void TddUtil::WindowManager::ShowWindow()
 {
     if (window_ != nullptr) {
-        window_->Show();
+        auto ret = window_->Show();
+        if (ret != WMError::WM_OK) {
+            IMSA_HILOGE("Show window error, err = %{public}d", ret);
+        }
     }
 }
 
 void TddUtil::WindowManager::HideWindow()
 {
     if (window_ != nullptr) {
-        window_->Hide();
+        auto ret = window_->Hide();
+        if (ret != WMError::WM_OK) {
+            IMSA_HILOGE("Hide window error, err = %{public}d", ret);
+        }
     }
 }
 

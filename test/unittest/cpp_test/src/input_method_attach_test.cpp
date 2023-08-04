@@ -60,10 +60,12 @@ public:
     void SetUp()
     {
         IMSA_HILOGI("InputMethodAttachTest::SetUp");
+        WindowMgr::ShowWindow();
     }
     void TearDown()
     {
         IMSA_HILOGI("InputMethodAttachTest::TearDown");
+        WindowMgr::HideWindow();
         inputMethodController_->Close();
     }
 };
