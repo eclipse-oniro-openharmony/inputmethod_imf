@@ -20,6 +20,7 @@
 #include <map>
 #include <thread>
 
+#include "access_token.h"
 #include "application_info.h"
 #include "bundle_mgr_proxy.h"
 #include "event_handler.h"
@@ -36,6 +37,7 @@ namespace OHOS {
 namespace MiscServices {
 using AbilityType = AppExecFwk::ExtensionAbilityType;
 using namespace AppExecFwk;
+using namespace Security::AccessToken;
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
 struct SwitchInfo {
@@ -121,6 +123,7 @@ private:
     int32_t SwitchLanguage();
     int32_t SwitchType();
     int32_t GenerateClientInfo(InputClientInfo &clientInfo);
+    bool CheckBrokerTokenID(AccessTokenID tokenId);
 };
 } // namespace MiscServices
 } // namespace OHOS

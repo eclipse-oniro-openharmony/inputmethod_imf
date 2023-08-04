@@ -229,6 +229,11 @@ void InputMethodController::WorkThread()
                 break;
             }
             case MSG_ID_ON_INPUT_STOP: {
+                auto listener = GetTextListener();
+                if (listener != nullptr) {
+                    IMSA_HILOGE("textListener_ is not nullptr");
+                    listener->SendKeyboardStatus(KeyboardStatus::HIDE);
+                }
                 isBound_.store(false);
                 isEditable_.store(false);
                 SetTextListener(nullptr);
