@@ -34,17 +34,14 @@ JSCallbackObject::~JSCallbackObject()
             env_ = nullptr;
             return;
         }
-        uv_work_t *work = new (std::nothrow) uv_work_t;
-        if (work == nullptr) {
-            return;
-        }
+        std::shared_ptr<uv_work_t> work = std::make_shared<uv_work_t>();
         isDone_ = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
         work->data = this;
         uv_loop_s *loop = nullptr;
         napi_delete_reference(env_, callback_);
         napi_get_uv_event_loop(env_, &loop);
         uv_queue_work_with_qos(
-            loop, work, [](uv_work_t *work) {},
+            loop, work.get(), [](uv_work_t *work) {},
             [](uv_work_t *work, int status) {
                 JSCallbackObject *jsObject = static_cast<JSCallbackObject *>(work->data);
                 napi_delete_reference(jsObject->env_, jsObject->callback_);
@@ -52,8 +49,8 @@ JSCallbackObject::~JSCallbackObject()
                 jsObject->isDone_->SetValue(isFinish);
             },
             uv_qos_user_initiated);
+        isDone_->GetValue();
     }
-    isDone_->GetValue();
     env_ = nullptr;
 }
 } // namespace MiscServices
