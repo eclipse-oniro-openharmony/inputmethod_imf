@@ -38,7 +38,6 @@ JSCallbackObject::~JSCallbackObject()
         isDone_ = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
         work->data = this;
         uv_loop_s *loop = nullptr;
-        napi_delete_reference(env_, callback_);
         napi_get_uv_event_loop(env_, &loop);
         uv_queue_work_with_qos(
             loop, work.get(), [](uv_work_t *work) {},
