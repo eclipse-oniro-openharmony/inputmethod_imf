@@ -383,7 +383,12 @@ int32_t InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
     auto result = panels_.Find(SOFT_KEYBOARD);
     if (result.first) {
         IMSA_HILOGI("find SOFT_KEYBOARD panel.");
-        auto ret = result.second->ShowPanel();
+        auto panel = result.second;
+        if (panel->GetPanelFlag() == PanelFlag::FLG_CANDIDATE_COLUMN) {
+            IMSA_HILOGD("panel flag is candidate, not need to show.");
+            return ErrorCode::NO_ERROR;
+        }
+        auto ret = panel->ShowPanel();
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
         }
@@ -445,7 +450,12 @@ int32_t InputMethodAbility::HideKeyboard()
         IMSA_HILOGE("Not find SOFT_KEYBOARD panel.");
         return ErrorCode::NO_ERROR;
     }
-    auto ret = result.second->HidePanel();
+    auto panel = result.second;
+    if (panel->GetPanelFlag() == PanelFlag::FLG_CANDIDATE_COLUMN) {
+        IMSA_HILOGD("panel flag is candidate, not need to hide.");
+        return ErrorCode::NO_ERROR;
+    }
+    auto ret = panel->HidePanel();
     IMSA_HILOGD("Hide panel, ret = %{public}d.", ret);
     return ret;
 }

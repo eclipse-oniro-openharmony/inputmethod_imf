@@ -18,15 +18,14 @@
 #include "display_manager.h"
 #include "global.h"
 #include "input_method_ability_utils.h"
-#include "transaction/rs_interfaces.h"
 #include "ui/rs_surface_node.h"
 
 namespace OHOS {
 namespace MiscServices {
-class RSTransaction;
 using WMError = OHOS::Rosen::WMError;
 using WindowGravity = OHOS::Rosen::WindowGravity;
 using WindowState = OHOS::Rosen::WindowState;
+constexpr float SCREEN_RATIO = 0.6;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_{ 0 };
 InputMethodPanel::~InputMethodPanel() = default;
 
@@ -99,12 +98,9 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
         IMSA_HILOGE("width or height over maximum");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    // the resize width can not exceed the width of display width of device
-    // the resize height can not exceed half of the display height of device
-    // 2 means half of height of defaultDisplay
     if (static_cast<int32_t>(width) > defaultDisplay->GetWidth() ||
-        static_cast<int32_t>(height) > defaultDisplay->GetHeight() / 2) {
-        IMSA_HILOGD("GetDefaultDisplay, defaultDisplay->width = %{public}d, defaultDisplay->height = %{public}d, "
+        static_cast<float>(height) > defaultDisplay->GetHeight() * SCREEN_RATIO) {
+        IMSA_HILOGE("GetDefaultDisplay, defaultDisplay->width = %{public}d, defaultDisplay->height = %{public}d, "
                     "width = %{public}u, height = %{public}u",
             defaultDisplay->GetWidth(), defaultDisplay->GetHeight(), width, height);
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -158,6 +154,11 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
 PanelType InputMethodPanel::GetPanelType()
 {
     return panelType_;
+}
+
+PanelFlag InputMethodPanel::GetPanelFlag()
+{
+    return panelFlag_;
 }
 
 int32_t InputMethodPanel::ShowPanel()
