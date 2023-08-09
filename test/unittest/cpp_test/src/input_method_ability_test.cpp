@@ -102,12 +102,12 @@ public:
         inputMethodAbility_->SetCoreAndAgent();
         TddUtil::RestoreSelfTokenID();
         TextListener::ResetParam();
+        TddUtil::WindowManager::RegisterFocusChangeListener();
     }
     static void TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodAbilityTest::TearDownTestCase");
         imc_->Close();
-        TddUtil::KillImsaProcess();
         TextListener::ResetParam();
         WindowMgr::HideWindow();
         WindowMgr::DestroyWindow();
@@ -154,6 +154,7 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 */
 HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.Level0)
 {
+    IMSA_HILOGI("testShowKeyboardInputMethodCoreProxy start.");
     sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
     sptr<IInputMethodCore> core = coreStub;
     auto msgHandler = new (std::nothrow) MessageHandler();
@@ -248,6 +249,8 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
     WindowMgr::CreateWindow();
     WindowMgr::ShowWindow();
+    bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
+    IMSA_HILOGI("testHideKeyboardSelf getFocus end, isFocused = %{public}d", isFocused);
     sptr<OnTextChangedListener> textListener = new TextListener();
     imc_ = InputMethodController::GetInstance();
     imc_->Attach(textListener);

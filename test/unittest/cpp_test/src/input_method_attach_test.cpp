@@ -47,8 +47,11 @@ public:
         inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
         TddUtil::RestoreSelfTokenID();
 
+        TddUtil::WindowManager::RegisterFocusChangeListener();
         WindowMgr::CreateWindow();
         WindowMgr::ShowWindow();
+        bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
+        IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
         inputMethodController_ = InputMethodController::GetInstance();
     }
     static void TearDownTestCase(void)
@@ -60,12 +63,10 @@ public:
     void SetUp()
     {
         IMSA_HILOGI("InputMethodAttachTest::SetUp");
-        WindowMgr::ShowWindow();
     }
     void TearDown()
     {
         IMSA_HILOGI("InputMethodAttachTest::TearDown");
-        WindowMgr::HideWindow();
         inputMethodController_->Close();
     }
 };

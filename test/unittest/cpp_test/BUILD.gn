@@ -55,6 +55,7 @@ ohos_unittest("InputMethodControllerTest") {
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "window_manager:libwm",
   ]
 }
 
@@ -82,6 +83,7 @@ ohos_unittest("InputMethodAttachTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "napi:ace_napi",
+    "window_manager:libwm",
   ]
 }
 ohos_unittest("InputMethodAbilityTest") {
@@ -193,6 +195,7 @@ ohos_unittest("InputMethodDfxTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "window_manager:libwm",
   ]
 }
 
@@ -326,6 +329,7 @@ ohos_unittest("InputMethodEditorTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "window_manager:libwm",
   ]
 }
 
