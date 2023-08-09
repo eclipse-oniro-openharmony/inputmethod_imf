@@ -115,6 +115,7 @@ ohos_unittest("InputMethodAbilityTest") {
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "graphic_2d:window_animation",
+    "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
