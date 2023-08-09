@@ -35,6 +35,7 @@ enum PanelType {
 enum PanelFlag {
     FLG_FIXED = 0,
     FLG_FLOATING,
+    FLG_CANDIDATE_COLUMN,
 };
 
 struct PanelInfo {
@@ -55,6 +56,7 @@ public:
     int32_t MoveTo(int32_t x, int32_t y);
     int32_t ChangePanelFlag(PanelFlag panelFlag);
     PanelType GetPanelType();
+    PanelFlag GetPanelFlag();
     int32_t ShowPanel();
     int32_t HidePanel();
     void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);

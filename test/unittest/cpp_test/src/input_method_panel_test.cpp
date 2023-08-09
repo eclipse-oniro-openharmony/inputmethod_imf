@@ -294,16 +294,16 @@ HWTEST_F(InputMethodPanelTest, testResizePanel, TestSize.Level0)
     int32_t width = defaultDisplay->GetWidth();
     int32_t height = defaultDisplay->GetHeight();
 
-    ret = inputMethodPanel->Resize(width - 1, height / 2 - 1);
+    ret = inputMethodPanel->Resize(width - 1, height * 0.6 - 1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    ret = inputMethodPanel->Resize(width, height / 2);
+    ret = inputMethodPanel->Resize(width, height * 0.6);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    ret = inputMethodPanel->Resize(width + 1, height / 2);
+    ret = inputMethodPanel->Resize(width + 1, height * 0.6);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 
-    ret = inputMethodPanel->Resize(width, height / 2 + 1);
+    ret = inputMethodPanel->Resize(width, height * 0.6 + 1);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -435,6 +435,30 @@ HWTEST_F(InputMethodPanelTest, testGetPanelType, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto type = inputMethodPanel->GetPanelType();
     EXPECT_EQ(type, panelInfo.panelType);
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testGetPanelFlag
+ * @tc.desc: Test GetPanelFlag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testGetPanelFlag, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testGetPanelFlag start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto flag = inputMethodPanel->GetPanelFlag();
+    EXPECT_EQ(flag, panelInfo.panelFlag);
+
+    ret = inputMethodPanel->ChangePanelFlag(PanelFlag::FLG_CANDIDATE_COLUMN);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    flag = inputMethodPanel->GetPanelFlag();
+    EXPECT_EQ(flag, PanelFlag::FLG_CANDIDATE_COLUMN);
+
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
