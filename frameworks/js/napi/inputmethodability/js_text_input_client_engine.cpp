@@ -16,6 +16,7 @@
 #include "js_text_input_client_engine.h"
 
 #include "input_method_ability.h"
+#include "js_util.h"
 #include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -43,6 +44,16 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("selectByRange", SelectByRange),
         DECLARE_NAPI_FUNCTION("selectByMovement", SelectByMovement),
         DECLARE_NAPI_FUNCTION("sendExtendAction", SendExtendAction),
+        DECLARE_NAPI_FUNCTION("insertTextSync", InsertTextSync),
+        DECLARE_NAPI_FUNCTION("moveCursorSync", MoveCursorSync),
+        DECLARE_NAPI_FUNCTION("getEditorAttributeSync", GetEditorAttributeSync),
+        DECLARE_NAPI_FUNCTION("selectByRangeSync", SelectByRangeSync),
+        DECLARE_NAPI_FUNCTION("selectByMovementSync", SelectByMovementSync),
+        DECLARE_NAPI_FUNCTION("getTextIndexAtCursorSync", GetTextIndexAtCursorSync),
+        DECLARE_NAPI_FUNCTION("deleteForwardSync", DeleteForwardSync),
+        DECLARE_NAPI_FUNCTION("deleteBackwardSync", DeleteBackwardSync),
+        DECLARE_NAPI_FUNCTION("getForwardSync", GetForwardSync),
+        DECLARE_NAPI_FUNCTION("getBackwardSync", GetBackwardSync)
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(), JsConstructor, nullptr,
@@ -80,6 +91,31 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
     // 2 means JsAPI:moveCursor has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec, "moveCursor");
+}
+
+napi_value JsTextInputClientEngine::MoveCursorSync(napi_env env, napi_callback_info info)
+{
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::MOVE_CURSOR};
+    editorQueue_.Push(eventInfo);
+    editorQueue_.Wait(eventInfo);
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    int32_t direction = 0;
+    // 1 means least param num.
+    if (argc < 1 || JsUtil::GetType(env, argv[0]) != napi_number || !JsUtil::GetValue(env, argv[0], direction)
+        || direction < 0) {
+        editorQueue_.Pop();
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    IMSA_HILOGD("moveCursor , direction: %{public}d", direction);
+    int32_t ret = InputMethodAbility::GetInstance()->MoveCursor(direction);
+    editorQueue_.Pop();
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to move cursor", TYPE_NONE);
+    }
+    return JsUtil::Const::Null(env);
 }
 
 napi_value JsTextInputClientEngine::JsConstructor(napi_env env, napi_callback_info cbinfo)
@@ -208,6 +244,31 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
     return asyncCall.Call(env, exec, "sendKeyFunction");
 }
 
+napi_value JsTextInputClientEngine::DeleteForwardSync(napi_env env, napi_callback_info info)
+{
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::DELETE_FORWARD };
+    editorQueue_.Push(eventInfo);
+    editorQueue_.Wait(eventInfo);
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    int32_t length = 0;
+    // 1 means least param num.
+    if (argc < 1 || JsUtil::GetType(env, argv[0]) != napi_number || !JsUtil::GetValue(env, argv[0], length)
+        || length < 0) {
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
+        editorQueue_.Pop();
+        return JsUtil::Const::Null(env);
+    }
+    IMSA_HILOGD("Delete forward, length: %{public}d", length);
+    int32_t ret = InputMethodAbility::GetInstance()->DeleteForward(length);
+    editorQueue_.Pop();
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to delete forward", TYPE_NONE);
+    }
+    return JsUtil::Const::Null(env);
+}
+
 napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<DeleteForwardContext>();
@@ -240,6 +301,31 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
     // 2 means JsAPI:deleteForward has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec, "deleteForward");
+}
+
+napi_value JsTextInputClientEngine::DeleteBackwardSync(napi_env env, napi_callback_info info)
+{
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::DELETE_BACKWARD };
+    editorQueue_.Push(eventInfo);
+    editorQueue_.Wait(eventInfo);
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    int32_t length = 0;
+    // 1 means least param num.
+    if (argc < 1 || JsUtil::GetType(env, argv[0]) != napi_number || !JsUtil::GetValue(env, argv[0], length)
+        || length < 0) {
+        editorQueue_.Pop();
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    IMSA_HILOGD("Delete backward, length: %{public}d", length);
+    int32_t ret = InputMethodAbility::GetInstance()->DeleteBackward(length);
+    editorQueue_.Pop();
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to delete backward", TYPE_NONE);
+    }
+    return JsUtil::Const::Null(env);
 }
 
 napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_info info)
@@ -310,6 +396,60 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
     return asyncCall.Call(env, exec, "insertText");
 }
 
+napi_value JsTextInputClientEngine::InsertTextSync(napi_env env, napi_callback_info info)
+{
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::INSERT_TEXT};
+    editorQueue_.Push(eventInfo);
+    editorQueue_.Wait(eventInfo);
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    std::string text = "";
+    // 1 means least param num.
+    if (argc < 1 || JsUtil::GetType(env, argv[0]) != napi_string || !JsUtil::GetValue(env, argv[0], text)) {
+        editorQueue_.Pop();
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    IMSA_HILOGD("insert text , text: %{public}s", text.c_str());
+    int32_t ret = InputMethodAbility::GetInstance()->InsertText(text);
+    editorQueue_.Pop();
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to insert text", TYPE_NONE);
+    }
+    return JsUtil::Const::Null(env);
+}
+
+napi_value JsTextInputClientEngine::GetForwardSync(napi_env env, napi_callback_info info)
+{
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::GET_FORWARD };
+    editorQueue_.Push(eventInfo);
+    editorQueue_.Wait(eventInfo);
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    int32_t length = 0;
+    // 1 means least param num.
+    if (argc < 1 || JsUtil::GetType(env, argv[0]) != napi_number || !JsUtil::GetValue(env, argv[0], length)
+        || length < 0) {
+        editorQueue_.Pop();
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    IMSA_HILOGD("Get forward, length: %{public}d", length);
+    std::u16string text;
+    int32_t ret = InputMethodAbility::GetInstance()->GetTextBeforeCursor(length, text);
+    editorQueue_.Pop();
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get forward", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    napi_value result = nullptr;
+    auto status = JsUtils::GetValue(env, Str16ToStr8(text), result);
+    CHECK_RETURN(status == napi_ok, "GetValue failed", JsUtil::Const::Null(env));
+    return result;
+}
+
 napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<GetForwardContext>();
@@ -346,6 +486,36 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
     return asyncCall.Call(env, exec, "getForward");
 }
 
+napi_value JsTextInputClientEngine::GetBackwardSync(napi_env env, napi_callback_info info)
+{
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::GET_BACKWARD };
+    editorQueue_.Push(eventInfo);
+    editorQueue_.Wait(eventInfo);
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    int32_t length = 0;
+    // 1 means least param num.
+    if (argc < 1 || JsUtil::GetType(env, argv[0]) != napi_number || !JsUtil::GetValue(env, argv[0], length)
+        || length < 0) {
+        editorQueue_.Pop();
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    IMSA_HILOGD("Get backward, length: %{public}d", length);
+    std::u16string text;
+    int32_t ret = InputMethodAbility::GetInstance()->GetTextAfterCursor(length, text);
+    editorQueue_.Pop();
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get backward", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    napi_value result = nullptr;
+    auto status = JsUtils::GetValue(env, Str16ToStr8(text), result);
+    CHECK_RETURN(status == napi_ok, "GetValue failed", JsUtil::Const::Null(env));
+    return result;
+}
+
 napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<GetBackwardContext>();
@@ -380,6 +550,26 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
     // 2 means JsAPI:getBackward has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec, "getBackward");
+}
+
+napi_value JsTextInputClientEngine::GetEditorAttributeSync(napi_env env, napi_callback_info info)
+{
+    int32_t enterKeyType = 0;
+    int32_t ret =  InputMethodAbility::GetInstance()->GetEnterKeyType(enterKeyType);
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to getEnterKeyType", TYPE_NONE);
+    }
+    IMSA_HILOGD("getEditorAttribute, enterKeyType: %{public}d", enterKeyType);
+
+    int32_t inputPattern = 0;
+    ret =  InputMethodAbility::GetInstance()->GetInputPattern(inputPattern);
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to getInputPattern", TYPE_NONE);
+    }
+    IMSA_HILOGD("getEditorAttribute, patternCode: %{public}d", inputPattern);
+
+    const InputAttribute attribute =  { .inputPattern = enterKeyType, .enterKeyType = inputPattern };
+    return JsUtils::GetValue(env, attribute);
 }
 
 napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callback_info info)
@@ -442,6 +632,66 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
     return asyncCall.Call(env, exec, "selectByRange");
 }
 
+napi_value JsTextInputClientEngine::SelectByRangeSync(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGD("SelectByRangeSync");
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_RANGE};
+    editorQueue_.Push(eventInfo);
+    editorQueue_.Wait(eventInfo);
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    if (argc < 1 || JsUtil::GetType(env, argv[0]) != napi_object) {
+        editorQueue_.Pop();
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    auto ctxt = std::make_shared<SelectContext>();
+    auto status = GetSelectRange(env, argv[0], ctxt);
+    if (status != napi_ok) {
+        editorQueue_.Pop();
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "failed to get start or end.", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    IMSA_HILOGD("selectByRangeSync, start: %{public}d, end: %{public}d", ctxt->start, ctxt->end);
+    int32_t ret = InputMethodAbility::GetInstance()->SelectByRange(ctxt->start, ctxt->end);
+    editorQueue_.Pop();
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to select by range.", TYPE_NONE);
+    }
+    return JsUtil::Const::Null(env);
+}
+
+napi_value JsTextInputClientEngine::SelectByMovementSync(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGD("SelectByMovementSync");
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_MOVEMENT};
+    editorQueue_.Push(eventInfo);
+    editorQueue_.Wait(eventInfo);
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    if (argc < 1 || JsUtil::GetType(env, argv[0]) != napi_object) {
+        editorQueue_.Pop();
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    auto ctxt = std::make_shared<SelectContext>();
+    auto status = GetSelectMovement(env, argv[0], ctxt);
+    if (status != napi_ok) {
+        editorQueue_.Pop();
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "failed to get direction.", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    IMSA_HILOGD("selectByMovement , direction: %{public}d", ctxt->direction);
+    int32_t ret = InputMethodAbility::GetInstance()->SelectByMovement(ctxt->direction);
+    editorQueue_.Pop();
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to select by movement.", TYPE_NONE);
+    }
+    return JsUtil::Const::Null(env);
+}
+
 napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("run in");
@@ -450,7 +700,7 @@ napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback
         PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "movement", TYPE_NUMBER, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "movement", TYPE_OBJECT, napi_generic_failure);
         auto status = GetSelectMovement(env, argv[0], ctxt);
         if (status == napi_ok) {
             ctxt->info = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_MOVEMENT };
@@ -531,6 +781,21 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
     // 1 means JsAPI:getTextIndexAtCursor has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "getTextIndexAtCursor");
+}
+
+napi_value JsTextInputClientEngine::GetTextIndexAtCursorSync(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGE("GetTextIndexAtCursorSync");
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::GET_TEXT_INDEX_AT_CURSOR};
+    editorQueue_.Push(eventInfo);
+    editorQueue_.Wait(eventInfo);
+    int32_t index = 0;
+    int32_t ret = InputMethodAbility::GetInstance()->GetTextIndexAtCursor(index);
+    editorQueue_.Pop();
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get text index at cursor.", TYPE_NONE);
+    }
+    return JsUtil::GetValue(env, index);
 }
 } // namespace MiscServices
 } // namespace OHOS
