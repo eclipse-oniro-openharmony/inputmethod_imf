@@ -40,7 +40,6 @@ public:
         std::shared_ptr<JSCallbackObject> cbCopy;
         explicit UvEntry(const std::shared_ptr<JSCallbackObject> &cb) : cbCopy(cb) {}
     };
-    napi_env env_ = nullptr;
     ConcurrentMap<uint32_t, ConcurrentMap<std::string, std::shared_ptr<JSCallbackObject>>> callbacks_;
     static std::mutex listenerMutex_;
     static std::shared_ptr<PanelListenerImpl> instance_;
