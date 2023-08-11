@@ -17,7 +17,7 @@ import window from '@ohos.window';
 import display from '@ohos.display';
 import inputMethod from '@ohos.inputMethod';
 import prompt from '@ohos.prompt';
-import type Want from './@ohos.app.ab
+import type Want from './@ohos.app.ab';
 import commonEvent from '@ohos.commonEvent';
 
 let TAG = '[InputMethodChooseDialog]';
@@ -27,6 +27,7 @@ let subscribeInfo = {
   events: [commonEvent1, commonEvent2]
 };
 const EXIT_TIME = 1000;
+
 export default class ServiceExtAbility extends ServiceExtensionAbility {
   onCreate(want): void {
     console.log(TAG, 'onCreate');
@@ -44,9 +45,9 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
         height: 300,
       };
       let windowConfig = {
-        name:'inputmethod Dialog',
-        windowType:window.WindowType.TYPE_FLOAT,
-        ctx:this.context
+        name: 'inputmethod Dialog',
+        windowType: window.WindowType.TYPE_FLOAT,
+        ctx: this.context
       };
       this.getInputMethods().then(() => {
         this.createWindow(windowConfig, dialogRect);
