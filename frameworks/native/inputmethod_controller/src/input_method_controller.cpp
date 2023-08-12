@@ -416,7 +416,7 @@ int32_t InputMethodController::Attach(
     sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const InputAttribute &attribute)
 {
     IMSA_HILOGI("InputMethodController::Attach isShowKeyboard %{public}s", isShowKeyboard ? "true" : "false");
-    InputmethodTrace tracer("InputMethodController Attach trace.");
+    InputMethodSyncTrace tracer("InputMethodController Attach trace.");
     TextConfig textConfig;
     textConfig.inputAttribute = attribute;
     return Attach(listener, isShowKeyboard, textConfig);
@@ -426,7 +426,7 @@ int32_t InputMethodController::Attach(
     sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const TextConfig &textConfig)
 {
     IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
-    InputmethodTrace tracer("InputMethodController Attach with textConfig trace.");
+    InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
     SetTextListener(listener);
     clientInfo_.isShowKeyboard = isShowKeyboard;
     SaveTextConfig(textConfig);
@@ -522,7 +522,7 @@ int32_t InputMethodController::Close()
     isBound_.store(false);
     isEditable_.store(false);
     bool isReportHide = clientInfo_.isShowKeyboard;
-    InputmethodTrace tracer("InputMethodController Close trace.");
+    InputMethodSyncTrace tracer("InputMethodController Close trace.");
     SetTextListener(nullptr);
     {
         std::lock_guard<std::mutex> lock(agentLock_);

@@ -25,13 +25,13 @@ constexpr uint64_t HITRACE_TAG_MISC = (1ULL << 41); // Notification module tag.
 void InitHiTrace();
 void ValueTrace(const std::string &name, int64_t count);
 
-void StartAsync(uint64_t label, const std::string &value, int32_t taskId);
-void FinishAsync(uint64_t label, const std::string &value, int32_t taskId);
+void StartAsync(const std::string &value, int32_t taskId);
+void FinishAsync(const std::string &value, int32_t taskId);
 
-class InputmethodTrace {
+class InputMethodSyncTrace {
 public:
-    explicit InputmethodTrace(const std::string &value);
-    virtual ~InputmethodTrace();
+    explicit InputMethodSyncTrace(const std::string &value);
+    virtual ~InputMethodSyncTrace();
 };
 
 enum class TraceTaskId : int32_t {
@@ -40,6 +40,8 @@ enum class TraceTaskId : int32_t {
     ONCREATE_EXTENSION,
     ONCONNECT_EXTENSION,
     ONCONNECT_MIDDLE_EXTENSION,
+    ON_KEY_EVENT,
+    ON_FULL_KEY_EVENT,
 };
 } // namespace MiscServices
 } // namespace OHOS

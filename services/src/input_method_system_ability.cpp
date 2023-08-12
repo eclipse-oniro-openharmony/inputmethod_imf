@@ -88,7 +88,7 @@ void InputMethodSystemAbility::OnStart()
         IMSA_HILOGE("Init failed. Try again 10s later");
     }
     InitHiTrace();
-    InputmethodTrace tracer("InputMethodController Attach trace.");
+    InputMethodSyncTrace tracer("InputMethodController Attach trace.");
     InputmethodDump::GetInstance().AddDumpAllMethod(
         std::bind(&InputMethodSystemAbility::DumpAllMethod, this, std::placeholders::_1));
     IMSA_HILOGI("Start ImsaService ErrorCode::NO_ERROR.");
