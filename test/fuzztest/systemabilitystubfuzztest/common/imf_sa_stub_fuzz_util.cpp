@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,20 +13,7 @@
  * limitations under the License.
  */
 
-#ifndef IMF_SA_STUB_FUZZ_UTIL_H
-#define IMF_SA_STUB_FUZZ_UTIL_H
-
-#define private public
-#define protected public
-#include "input_method_system_ability.h"
-#include "input_method_system_ability_proxy.h"
-#undef private
-
-#include <string_ex.h>
-
-#include <atomic>
-#include <cstddef>
-#include <cstdint>
+#include "imf_sa_stub_fuzz_util.h"
 
 #include "accesstoken_kit.h"
 #include "global.h"
@@ -41,19 +28,6 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace OHOS::Security::AccessToken;
-const std::u16string SYSTEMABILITY_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.IInputMethodSystemAbility";
-constexpr const int32_t USER_ID = 100;
-class ImfSaStubFuzzUtil {
-public:
-    static bool FuzzInputMethodSystemAbility(const uint8_t *rawData, size_t size, InputMethodInterfaceCode code);
-
-private:
-    static void InitKeyboardDelegate();
-    static void Initialize();
-    static void GrantNativePermission();
-    static bool isInitialize_;
-    static std::mutex initMutex_;
-};
 bool ImfSaStubFuzzUtil::isInitialize_ = false;
 std::mutex ImfSaStubFuzzUtil::initMutex_;
 
@@ -120,4 +94,3 @@ void ImfSaStubFuzzUtil::Initialize()
 }
 } // namespace MiscServices
 } // namespace OHOS
-#endif // IMF_SA_STUB_FUZZ_UTIL_H
