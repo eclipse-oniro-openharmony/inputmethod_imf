@@ -23,6 +23,7 @@ config("inputmethodengine_native_config") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
+    "${inputmethod_path}/services/dfx/include",
   ]
   ldflags = [ "-Wl,--exclude-libs=ALL" ]
   cflags = [

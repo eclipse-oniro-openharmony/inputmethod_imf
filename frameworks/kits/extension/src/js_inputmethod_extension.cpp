@@ -156,7 +156,7 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
     StartAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
     StartAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
     Extension::OnStart(want);
-    FinishAsync(HITRACE_TAG_MISC, "Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
+    FinishAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
     IMSA_HILOGI("JsInputMethodExtension OnStart begin..");
     HandleScope handleScope(jsRuntime_);
     NativeEngine *nativeEngine = &jsRuntime_.GetNativeEngine();
@@ -168,7 +168,7 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
     InputMethodAbility::GetInstance()->OnImeReady();
     auto ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
     IMSA_HILOGI("ime bind imf ret: %{public}d", ret);
-    FinishAsync(HITRACE_TAG_MISC, "onCreate", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
+    FinishAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
 }
 
 void JsInputMethodExtension::OnStop()
@@ -189,8 +189,7 @@ sptr<IRemoteObject> JsInputMethodExtension::OnConnect(const AAFwk::Want &want)
     StartAsync("OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_EXTENSION));
     StartAsync("Extension::OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_MIDDLE_EXTENSION));
     Extension::OnConnect(want);
-    FinishAsync(
-        HITRACE_TAG_MISC, "Extension::OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_MIDDLE_EXTENSION));
+    FinishAsync("Extension::OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_MIDDLE_EXTENSION));
     IMSA_HILOGI("%{public}s begin.", __func__);
     HandleScope handleScope(jsRuntime_);
     NativeEngine *nativeEngine = &jsRuntime_.GetNativeEngine();
@@ -224,7 +223,7 @@ sptr<IRemoteObject> JsInputMethodExtension::OnConnect(const AAFwk::Want &want)
     if (remoteObj == nullptr) {
         IMSA_HILOGE("remoteObj nullptr.");
     }
-    FinishAsync(HITRACE_TAG_MISC, "OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_EXTENSION));
+    FinishAsync("OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_EXTENSION));
     return remoteObj;
 }
 
