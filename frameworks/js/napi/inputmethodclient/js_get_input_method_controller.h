@@ -206,7 +206,7 @@ private:
     static napi_value GetJsDirectionProperty(napi_env env);
     static napi_value GetJsExtendActionProperty(napi_env env);
     static const std::set<std::string> TEXT_EVENT_TYPE;
-    static constexpr int32_t MAX_TIMEOUT = 3000;
+    static constexpr int32_t MAX_TIMEOUT = 2500;
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
