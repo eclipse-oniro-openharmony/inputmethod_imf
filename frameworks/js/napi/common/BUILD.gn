@@ -42,7 +42,7 @@ ohos_static_library("inputmethod_js_common") {
   ]
   configs = [ ":inputmethod_js_common_config" ]
   public_configs = [ ":inputmethod_js_common_public_config" ]
-  deps = []
+  deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
   external_deps = [ "napi:ace_napi" ]
   subsystem_name = "inputmethod"
   part_name = "imf"
