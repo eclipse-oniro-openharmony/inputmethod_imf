@@ -225,10 +225,13 @@ void InputMethodControllerTest::SetUpTestCase(void)
     keyEvent_->SetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY, 0);
     keyEvent_->SetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, 1);
     keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(false, true, "undefine"));
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, true, "undefine"));
 
+    TddUtil::WindowManager::RegisterFocusChangeListener();
     WindowMgr::CreateWindow();
     WindowMgr::ShowWindow();
+    bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
+    IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
     SetInputDeathRecipient();
     TextListener::ResetParam();
 }
@@ -245,13 +248,11 @@ void InputMethodControllerTest::TearDownTestCase(void)
 void InputMethodControllerTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodControllerTest::SetUp");
-    WindowMgr::ShowWindow();
 }
 
 void InputMethodControllerTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodControllerTest::TearDown");
-    WindowMgr::HideWindow();
 }
 
 void InputMethodControllerTest::SetInputDeathRecipient()
@@ -423,8 +424,11 @@ HWTEST_F(InputMethodControllerTest, testIMCAttach, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
 {
     IMSA_HILOGD("IMC SetCallingWindow Test START");
+    auto ret = inputMethodController_->Attach(textListener_);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     uint32_t windowId = 3;
-    inputMethodController_->SetCallingWindow(windowId);
+    ret = inputMethodController_->SetCallingWindow(windowId);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(windowId, imeListener_->windowId_);
 }
 
@@ -485,12 +489,14 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent001, TestSize.Level0)
     doesKeyEventConsume_ = true;
     doesFUllKeyEventConsume_ = false;
     blockKeyEvent_.Clear(nullptr);
+    auto res = inputMethodController_->Attach(textListener_);
+    EXPECT_EQ(res, ErrorCode::NO_ERROR);
     bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
     EXPECT_TRUE(ret);
     auto keyEvent = blockKeyEvent_.GetValue();
-    EXPECT_NE(keyEvent, nullptr);
-    ret = keyEvent->GetKeyCode() == keyEvent_->GetKeyCode() && keyEvent->GetKeyAction() == keyEvent_->GetKeyAction();
-    EXPECT_TRUE(ret);
+    ASSERT_NE(keyEvent, nullptr);
+    EXPECT_EQ(keyEvent->GetKeyCode(), keyEvent_->GetKeyCode());
+    EXPECT_EQ(keyEvent->GetKeyAction(), keyEvent_->GetKeyAction());
 }
 
 /**

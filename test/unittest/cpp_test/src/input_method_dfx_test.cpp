@@ -137,15 +137,18 @@ void InputMethodDfxTest::SetUpTestCase(void)
 
     inputMethodController_ = InputMethodController::GetInstance();
     textListener_ = new TextListener();
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, false, "undefine"));
+    TddUtil::WindowManager::RegisterFocusChangeListener();
     WindowMgr::CreateWindow();
     WindowMgr::ShowWindow();
+    bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
+    IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
 }
 
 void InputMethodDfxTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
-    TddUtil::KillImsaProcess();
     WindowMgr::HideWindow();
     WindowMgr::DestroyWindow();
 }
@@ -153,13 +156,11 @@ void InputMethodDfxTest::TearDownTestCase(void)
 void InputMethodDfxTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::SetUp");
-    WindowMgr::ShowWindow();
 }
 
 void InputMethodDfxTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::TearDown");
-    WindowMgr::HideWindow();
 }
 
 /**
@@ -230,6 +231,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Leve
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSize.Level0)
 {
+    auto ret = inputMethodController_->Attach(textListener_, true);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetInstance().GetOperateInfo(
         static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_UNEDITABLE)));
     auto hideTextInput = []() { inputMethodController_->HideTextInput(); };

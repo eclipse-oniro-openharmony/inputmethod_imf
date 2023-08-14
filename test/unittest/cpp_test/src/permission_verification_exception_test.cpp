@@ -64,6 +64,8 @@ void PermissionVerificationExceptionTest::SetUpTestCase(void)
     auto property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     EXPECT_NE(property, nullptr);
     tokenId_ = TddUtil::GetTestTokenID(property->name);
+
+    TddUtil::WindowManager::RegisterFocusChangeListener();
     WindowMgr::CreateWindow();
 }
 
@@ -98,12 +100,16 @@ HWTEST_F(PermissionVerificationExceptionTest, ShowAndHideSoftKeyboard, TestSize.
     TddUtil::RestoreSelfTokenID();
 
     WindowMgr::ShowWindow();
+    bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
+    IMSA_HILOGI("ShowAndHideSoftKeyboard getFocus end, isFocused = %{public}d", isFocused);
     PermissionVerificationExceptionTest::imc_->Attach(PermissionVerificationExceptionTest::textListener_);
     int32_t ret = PermissionVerificationExceptionTest::imc_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
     ret = PermissionVerificationExceptionTest::imc_->HideSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
     WindowMgr::HideWindow();
+    bool unFocus = FocusChangedListenerTestImpl::unFocused_->GetValue();
+    IMSA_HILOGI("ShowAndHideSoftKeyboard unFocus end, unFocus = %{public}d", unFocus);
 }
 
 /**

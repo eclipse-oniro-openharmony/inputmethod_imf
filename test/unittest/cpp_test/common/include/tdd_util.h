@@ -18,13 +18,25 @@
 
 #include <string>
 
+#include "block_data.h"
 #include "bundle_mgr_interface.h"
 #include "window.h"
+#include "window_manager.h"
 #include "window_option.h"
 #include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
+class FocusChangedListenerTestImpl : public Rosen::IFocusChangedListener {
+public:
+    FocusChangedListenerTestImpl() = default;
+    ~FocusChangedListenerTestImpl() = default;
+    void OnFocused(const sptr<Rosen::FocusChangeInfo> &focusChangeInfo) override;
+    void OnUnfocused(const sptr<Rosen::FocusChangeInfo> &focusChangeInfo) override;
+    bool getFocus_ = false;
+    static std::shared_ptr<BlockData<bool>> isFocused_;
+    static std::shared_ptr<BlockData<bool>> unFocused_;
+};
 class TddUtil {
 public:
     static void StorageSelfTokenID();
@@ -42,6 +54,8 @@ public:
         static void ShowWindow();
         static void HideWindow();
         static void DestroyWindow();
+        static void RegisterFocusChangeListener();
+        static int32_t currentWindowId_;
 
     private:
         static sptr<Rosen::Window> window_;

@@ -31,7 +31,6 @@
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "token_setproc.h"
-#include "window_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -43,9 +42,36 @@ constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
 constexpr int32_t BUFF_LENGTH = 10;
 constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
+static constexpr int32_t MAX_TIMEOUT_WAIT_FOCUS = 2000;
 uint64_t TddUtil::selfTokenID_ = 0;
 int32_t TddUtil::userID_ = INVALID_USER_ID;
 sptr<Window> TddUtil::WindowManager::window_ = nullptr;
+int32_t TddUtil::WindowManager::currentWindowId_ = 0;
+std::shared_ptr<BlockData<bool>> FocusChangedListenerTestImpl::isFocused_ =
+    std::make_shared<BlockData<bool>>(MAX_TIMEOUT_WAIT_FOCUS, false);
+std::shared_ptr<BlockData<bool>> FocusChangedListenerTestImpl::unFocused_ =
+    std::make_shared<BlockData<bool>>(MAX_TIMEOUT_WAIT_FOCUS, false);
+void FocusChangedListenerTestImpl::OnFocused(const sptr<Rosen::FocusChangeInfo> &focusChangeInfo)
+{
+    IMSA_HILOGI("get onFocus information from window manager.");
+    if (focusChangeInfo->windowId_ == TddUtil::WindowManager::currentWindowId_) {
+        getFocus_ = true;
+        isFocused_->SetValue(getFocus_);
+        unFocused_->Clear(false);
+    }
+}
+
+void FocusChangedListenerTestImpl::OnUnfocused(const sptr<Rosen::FocusChangeInfo> &focusChangeInfo)
+{
+    IMSA_HILOGI("get unfocus information from window manager.");
+    if (focusChangeInfo->windowId_ == TddUtil::WindowManager::currentWindowId_) {
+        getFocus_ = false;
+        isFocused_->Clear(false);
+        bool unFocus = !getFocus_;
+        unFocused_->SetValue(unFocus);
+    }
+}
+
 int32_t TddUtil::GetCurrentUserId()
 {
     if (userID_ != INVALID_USER_ID) {
@@ -180,7 +206,12 @@ sptr<OHOS::AppExecFwk::IBundleMgr> TddUtil::GetBundleMgr()
 
 int TddUtil::GetUserIdByBundleName(const std::string &bundleName, const int currentUserId)
 {
-    auto uid = TddUtil::GetBundleMgr()->GetUidByBundleName(bundleName, currentUserId);
+    auto bundleMgr = TddUtil::GetBundleMgr();
+    if (bundleMgr == nullptr) {
+        IMSA_HILOGE("Get bundleMgr failed.");
+        return -1;
+    }
+    auto uid = bundleMgr->GetUidByBundleName(bundleName, currentUserId);
     if (uid == -1) {
         IMSA_HILOGE("failed to get information and the parameters may be wrong.");
         return -1;
@@ -193,31 +224,33 @@ void TddUtil::WindowManager::CreateWindow()
 {
     std::string windowName = "inputmethod_test_window";
     sptr<WindowOption> winOption = new OHOS::Rosen::WindowOption();
+    winOption->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
     winOption->SetFocusable(true);
     std::shared_ptr<AbilityRuntime::Context> context = nullptr;
     WMError wmError = WMError::WM_OK;
     window_ = Window::Create(windowName, winOption, context, wmError);
     IMSA_HILOGI("Create window ret:%{public}d", wmError);
+    currentWindowId_ = window_->GetWindowId();
 }
 
 void TddUtil::WindowManager::ShowWindow()
 {
-    if (window_ != nullptr) {
-        auto ret = window_->Show();
-        if (ret != WMError::WM_OK) {
-            IMSA_HILOGE("Show window error, err = %{public}d", ret);
-        }
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window is not exist.");
+        return;
     }
+    auto ret = window_->Show();
+    IMSA_HILOGI("Show window end, ret = %{public}d", ret);
 }
 
 void TddUtil::WindowManager::HideWindow()
 {
-    if (window_ != nullptr) {
-        auto ret = window_->Hide();
-        if (ret != WMError::WM_OK) {
-            IMSA_HILOGE("Hide window error, err = %{public}d", ret);
-        }
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window is not exist.");
+        return;
     }
+    auto ret = window_->Hide();
+    IMSA_HILOGI("Hide window end, ret = %{public}d", ret);
 }
 
 void TddUtil::WindowManager::DestroyWindow()
@@ -225,6 +258,13 @@ void TddUtil::WindowManager::DestroyWindow()
     if (window_ != nullptr) {
         window_->Destroy();
     }
+}
+
+void TddUtil::WindowManager::RegisterFocusChangeListener()
+{
+    auto listener = new (std::nothrow) FocusChangedListenerTestImpl();
+    WMError ret = Rosen::WindowManager::GetInstance().RegisterFocusChangedListener(listener);
+    IMSA_HILOGI("register focus changed listener ret: %{public}d", ret);
 }
 } // namespace MiscServices
 } // namespace OHOS
