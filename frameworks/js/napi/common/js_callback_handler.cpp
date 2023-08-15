@@ -21,7 +21,7 @@ constexpr size_t MAX_ARGV_COUNT = 10;
 void JsCallbackHandler::Execute(
     const std::shared_ptr<JSCallbackObject> &object, const ArgContainer &argContainer, napi_value &output)
 {
-    InputMethodSyncTrace tracer("Execute Callback");
+    InputMethodSyncTrace executeTracer("Execute");
     if (object->threadId_ != std::this_thread::get_id()) {
         return;
     }
@@ -34,6 +34,7 @@ void JsCallbackHandler::Execute(
     napi_get_reference_value(object->env_, object->callback_, &callback);
     if (callback != nullptr) {
         napi_get_global(object->env_, &global);
+        InputMethodSyncTrace callFunctionTracer("Execute napi_call_function");
         auto status = napi_call_function(object->env_, global, callback, argContainer.argc, argv, &output);
         if (status != napi_ok) {
             output = nullptr;
