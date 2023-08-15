@@ -307,7 +307,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
                 delete work;
             });
             auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                InputMethodSyncTrace tracer("Argument provider");
+                InputMethodSyncTrace tracer("Create parameter");
                 if (argc == 0) {
                     return false;
                 }
@@ -356,7 +356,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
                 delete work;
             });
             auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                InputMethodSyncTrace tracer("Argument provider");
+                InputMethodSyncTrace tracer("Create parameter");
                 if (argc == 0) {
                     return false;
                 }
