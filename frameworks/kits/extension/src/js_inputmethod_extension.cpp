@@ -165,10 +165,11 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
     NativeValue *argv[] = { nativeWant };
     StartAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
     CallObjectMethod("onCreate", argv, ARGC_ONE);
+    FinishAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
     InputMethodAbility::GetInstance()->OnImeReady();
     auto ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
     IMSA_HILOGI("ime bind imf ret: %{public}d", ret);
-    FinishAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
+    FinishAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
 }
 
 void JsInputMethodExtension::OnStop()

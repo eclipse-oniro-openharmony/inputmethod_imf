@@ -20,8 +20,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr uint64_t HITRACE_TAG_MISC = (1ULL << 41); // Notification module tag.
-
 void InitHiTrace();
 void ValueTrace(const std::string &name, int64_t count);
 

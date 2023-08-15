@@ -297,7 +297,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
         IMSA_HILOGE("failed to get uv work");
         return false;
     }
-    StartAsync("OnFullKeyEvent START", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
+    StartAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -323,7 +323,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
             entry->isDone->SetValue(isConsumed);
-            FinishAsync("OnFullKeyEvent END", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
+            FinishAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
         },
         uv_qos_user_initiated);
     bool isConsumed = isDone->GetValue();
@@ -345,7 +345,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
         IMSA_HILOGE("failed to get uv work");
         return false;
     }
-    StartAsync("OnKeyEvent START", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
+    StartAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -372,7 +372,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
             entry->isDone->SetValue(isConsumed);
-            FinishAsync("OnKeyEvent End", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
+            FinishAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
         },
         uv_qos_user_initiated);
     bool isConsumed = isDone->GetValue();

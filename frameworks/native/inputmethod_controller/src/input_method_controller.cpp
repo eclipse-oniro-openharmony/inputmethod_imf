@@ -843,6 +843,7 @@ void InputMethodController::GetTextIndexAtCursor(const Message *msg)
 
 bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
+    InputMethodSyncTrace tracer("DispatchKeyEvent trace");
     IMSA_HILOGI("InputMethodController in");
     if (!isEditable_.load()) {
         IMSA_HILOGE("not in editable state");
