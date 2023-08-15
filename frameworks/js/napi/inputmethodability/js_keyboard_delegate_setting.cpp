@@ -17,6 +17,7 @@
 
 #include "event_checker.h"
 #include "input_method_ability.h"
+#include "inputmethod_trace.h"
 #include "js_callback_handler.h"
 #include "js_keyboard_controller_engine.h"
 #include "js_text_input_client_engine.h"
@@ -296,14 +297,17 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
         IMSA_HILOGE("failed to get uv work");
         return false;
     }
+    StartAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
+            InputMethodSyncTrace trace("OnFullKeyEvent UV_QUEUE_WORK");
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
                 delete data;
                 delete work;
             });
             auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+                InputMethodSyncTrace tracer("Create parameter");
                 if (argc == 0) {
                     return false;
                 }
@@ -320,6 +324,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
             entry->isDone->SetValue(isConsumed);
+            FinishAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
         },
         uv_qos_user_initiated);
     bool isConsumed = isDone->GetValue();
@@ -341,14 +346,17 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
         IMSA_HILOGE("failed to get uv work");
         return false;
     }
+    StartAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
+            InputMethodSyncTrace tracer("OnkeyEvent UV_QUEUE_WORK");
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
                 delete data;
                 delete work;
             });
             auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+                InputMethodSyncTrace tracer("Create parameter");
                 if (argc == 0) {
                     return false;
                 }
@@ -366,6 +374,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
             entry->isDone->SetValue(isConsumed);
+            FinishAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
         },
         uv_qos_user_initiated);
     bool isConsumed = isDone->GetValue();

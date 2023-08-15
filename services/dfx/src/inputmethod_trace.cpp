@@ -19,6 +19,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+constexpr uint64_t HITRACE_TAG_MISC = (1ULL << 41); // Notification module tag.
 void InitHiTrace()
 {
     UpdateTraceLabel();
@@ -29,22 +30,22 @@ void ValueTrace(const std::string &name, int64_t count)
     CountTrace(HITRACE_TAG_MISC, name, count);
 }
 
-void StartAsync(uint64_t label, const std::string &value, int32_t taskId)
+void StartAsync(const std::string &value, int32_t taskId)
 {
-    StartAsyncTrace(label, value, taskId);
+    StartAsyncTrace(HITRACE_TAG_MISC, value, taskId);
 }
 
-void FinishAsync(uint64_t label, const std::string &value, int32_t taskId)
+void FinishAsync(const std::string &value, int32_t taskId)
 {
-    FinishAsyncTrace(label, value, taskId);
+    FinishAsyncTrace(HITRACE_TAG_MISC, value, taskId);
 }
 
-InputmethodTrace::InputmethodTrace(const std::string &value)
+InputMethodSyncTrace::InputMethodSyncTrace(const std::string &value)
 {
     StartTrace(HITRACE_TAG_MISC, value);
 }
 
-InputmethodTrace::~InputmethodTrace()
+InputMethodSyncTrace::~InputMethodSyncTrace()
 {
     FinishTrace(HITRACE_TAG_MISC);
 }

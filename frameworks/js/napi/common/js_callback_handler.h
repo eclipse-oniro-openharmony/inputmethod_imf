@@ -15,6 +15,7 @@
 #ifndef OHOS_INPUT_CALLBACK_HANDLER_H
 #define OHOS_INPUT_CALLBACK_HANDLER_H
 
+#include "inputmethod_trace.h"
 #include "js_callback_object.h"
 #include "js_util.h"
 #include "napi/native_api.h"
@@ -43,6 +44,7 @@ public:
     static void Traverse(
         const std::vector<std::shared_ptr<JSCallbackObject>> &objects, const ArgContainer &argContainer, T &output)
     {
+        InputMethodSyncTrace tracer("Traverse callback");
         for (const auto &object : objects) {
             JsUtil::ScopeGuard scopeGuard(object->env_);
             napi_value jsOutput = nullptr;

@@ -33,6 +33,7 @@ void JsCallbackHandler::Execute(
     napi_get_reference_value(object->env_, object->callback_, &callback);
     if (callback != nullptr) {
         napi_get_global(object->env_, &global);
+        InputMethodSyncTrace tracer("Execute napi_call_function");
         auto status = napi_call_function(object->env_, global, callback, argContainer.argc, argv, &output);
         if (status != napi_ok) {
             output = nullptr;

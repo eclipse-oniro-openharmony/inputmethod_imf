@@ -153,22 +153,23 @@ void JsInputMethodExtension::BindContext(NativeEngine &engine, NativeObject *obj
 
 void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
 {
-    StartAsync(HITRACE_TAG_MISC, "OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
-    StartAsync(HITRACE_TAG_MISC, "Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
+    StartAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
+    StartAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
     Extension::OnStart(want);
-    FinishAsync(HITRACE_TAG_MISC, "Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
+    FinishAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
     IMSA_HILOGI("JsInputMethodExtension OnStart begin..");
     HandleScope handleScope(jsRuntime_);
     NativeEngine *nativeEngine = &jsRuntime_.GetNativeEngine();
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(reinterpret_cast<napi_env>(nativeEngine), want);
     NativeValue *nativeWant = reinterpret_cast<NativeValue *>(napiWant);
     NativeValue *argv[] = { nativeWant };
-    StartAsync(HITRACE_TAG_MISC, "onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
+    StartAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
     CallObjectMethod("onCreate", argv, ARGC_ONE);
+    FinishAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
     InputMethodAbility::GetInstance()->OnImeReady();
     auto ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
     IMSA_HILOGI("ime bind imf ret: %{public}d", ret);
-    FinishAsync(HITRACE_TAG_MISC, "onCreate", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
+    FinishAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
 }
 
 void JsInputMethodExtension::OnStop()
@@ -186,11 +187,10 @@ void JsInputMethodExtension::OnStop()
 sptr<IRemoteObject> JsInputMethodExtension::OnConnect(const AAFwk::Want &want)
 {
     IMSA_HILOGI("JsInputMethodExtension OnConnect begin.");
-    StartAsync(HITRACE_TAG_MISC, "OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_EXTENSION));
-    StartAsync(HITRACE_TAG_MISC, "Extension::OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_MIDDLE_EXTENSION));
+    StartAsync("OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_EXTENSION));
+    StartAsync("Extension::OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_MIDDLE_EXTENSION));
     Extension::OnConnect(want);
-    FinishAsync(
-        HITRACE_TAG_MISC, "Extension::OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_MIDDLE_EXTENSION));
+    FinishAsync("Extension::OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_MIDDLE_EXTENSION));
     IMSA_HILOGI("%{public}s begin.", __func__);
     HandleScope handleScope(jsRuntime_);
     NativeEngine *nativeEngine = &jsRuntime_.GetNativeEngine();
@@ -224,7 +224,7 @@ sptr<IRemoteObject> JsInputMethodExtension::OnConnect(const AAFwk::Want &want)
     if (remoteObj == nullptr) {
         IMSA_HILOGE("remoteObj nullptr.");
     }
-    FinishAsync(HITRACE_TAG_MISC, "OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_EXTENSION));
+    FinishAsync("OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_EXTENSION));
     return remoteObj;
 }
 
