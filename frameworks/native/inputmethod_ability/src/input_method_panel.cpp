@@ -55,6 +55,20 @@ int32_t InputMethodPanel::CreatePanel(
     }
     windowId_ = window_->GetWindowId();
     IMSA_HILOGD("GetWindowId, windowId = %{public}u", windowId_);
+    if (SetPanelProperties() != ErrorCode::NO_ERROR) {
+        wmError = window_->Destroy();
+        IMSA_HILOGI("Destroy window end, wmError is %{public}d.", wmError);
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodPanel::SetPanelProperties()
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window is not exist.");
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
     WindowGravity gravity = WindowGravity::WINDOW_GRAVITY_FLOAT;
     if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
         gravity = WindowGravity::WINDOW_GRAVITY_BOTTOM;
@@ -62,14 +76,12 @@ int32_t InputMethodPanel::CreatePanel(
         window_->GetSurfaceNode()->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
         Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     }
-    wmError = window_->SetWindowGravity(gravity, invalidGravityPercent);
-    if (wmError == WMError::WM_OK) {
-        return ErrorCode::NO_ERROR;
+    WMError wmError = window_->SetWindowGravity(gravity, invalidGravityPercent);
+    if (wmError != WMError::WM_OK) {
+        IMSA_HILOGE("SetWindowGravity failed, wmError is %{public}d, start destroy window.", wmError);
+        return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    IMSA_HILOGE("SetWindowGravity failed, wmError is %{public}d, start destroy window.", wmError);
-    wmError = window_->Destroy();
-    IMSA_HILOGI("Destroy window end, wmError is %{public}d.", wmError);
-    return ErrorCode::ERROR_OPERATE_PANEL;
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodPanel::DestroyPanel()
@@ -269,6 +281,8 @@ int32_t InputMethodPanel::SetUiContent(
     } else {
         ret = window_->SetUIContent(contentInfo, &engine, storage->Get());
     }
+    WMError wmError = window_->SetTransparent(true);
+    IMSA_HILOGI("SetTransparent end, wmError = %{public}u", wmError);
     IMSA_HILOGI("InputMethodPanel, SetUiContent ret = %{public}d", ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
