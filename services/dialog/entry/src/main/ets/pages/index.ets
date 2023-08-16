@@ -71,10 +71,6 @@ struct Dialog {
                   let prop = this.properityMap.get(item)
                   globalThis.chooseInputMethods(prop)
                 }
-                setTimeout(() => {
-                  this.win.destroy()
-                  this.context.terminateSelf()
-                }, 1000)
               })
           }
           .sticky(0 == index ? Sticky.Opacity : Sticky.None)

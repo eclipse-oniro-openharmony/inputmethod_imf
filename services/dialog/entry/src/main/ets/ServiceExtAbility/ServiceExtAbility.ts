@@ -17,9 +17,16 @@ import window from '@ohos.window';
 import display from '@ohos.display';
 import inputMethod from '@ohos.inputMethod';
 import prompt from '@ohos.prompt';
-import type Want from './@ohos.app.ability.Want';
+import type Want from './@ohos.app.ab';
+import commonEvent from '@ohos.commonEvent';
 
 let TAG = '[InputMethodChooseDialog]';
+let commonEvent1 = 'usual.event.PACKAGE_ADDED';
+let commonEvent2 = 'usual.event.PACKAGE_REMOVED';
+let subscribeInfo = {
+  events: [commonEvent1, commonEvent2]
+};
+const EXIT_TIME = 1000;
 
 export default class ServiceExtAbility extends ServiceExtensionAbility {
   onCreate(want): void {
@@ -37,66 +44,115 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
         width: 300,
         height: 300,
       };
+      let windowConfig = {
+        name: 'inputmethod Dialog',
+        windowType: window.WindowType.TYPE_FLOAT,
+        ctx: this.context
+      };
       this.getInputMethods().then(() => {
-        this.createWindow('inputmethod Dialog: ' + startId, window.WindowType.TYPE_DIALOG, dialogRect);
+        this.createWindow(windowConfig, dialogRect);
       });
     }).catch((err) => {
-      console.log(TAG + 'getDefaultDisplay err: ' + JSON.stringify(err));
+      console.log(TAG + 'getDefaultDisplay err:' + JSON.stringify(err));
+    });
+
+    commonEvent.createSubscriber(subscribeInfo, (error, subcriber) => {
+      commonEvent.subscribe(subcriber, (error, commonEventData) => {
+        if (commonEventData.event === commonEvent1 || commonEventData.event === commonEvent2) {
+          console.log(TAG + 'commonEvent:' + JSON.stringify(commonEvent1));
+          this.updateImeList();
+        }
+      });
     });
 
     globalThis.chooseInputMethods = ((prop: inputMethod.InputMethodProperty): void => {
       inputMethod.switchInputMethod(prop).then((err) => {
         if (!err) {
-          console.log(TAG + 'switchInputMethod failed, ' + JSON.stringify(err));
+          console.log(TAG + 'switchInputMethod failed,' + JSON.stringify(err));
           prompt.showToast({
             message: 'switch failed', duration: 200
           });
         } else {
-          console.log(TAG + 'switchInputMethod success.');
+          console.log(TAG + 'switchInputMethod success');
           prompt.showToast({
             message: 'switch success', duration: 200
           });
         }
-      })
-    })
+        setTimeout(() => {
+          this.releaseContext();
+        }, EXIT_TIME);
+      });
+    });
   }
 
   onDestroy(): void {
-    console.log(TAG + 'ServiceExtAbility destroyed.');
-    globalThis.extensionWin.destroy();
-    globalThis.context.terminateSelf();
+    console.log(TAG + 'ServiceExtAbility destroyed');
+    this.releaseContext();
   }
 
-  private async createWindow(name: string, windowType: number, rect): Promise<void> {
-    console.log(TAG + 'createWindow execute.');
+  private async createWindow(config: window.Configuration, rect): Promise<void> {
+    console.log(TAG + 'createWindow execute');
     try {
       if (globalThis.windowNum > 0) {
-        globalThis.windowNum = 0;
-        globalThis.extensionWin.destroy();
-        globalThis.context.terminateSelf();
+        this.updateImeList();
+        return;
       }
-      const win = await window.create(this.context, name, windowType);
-      globalThis.extensionWin = win;
+      try {
+        await window.createWindow(config, async (err, data) => {
+          if (err.code) {
+            console.error('Failed to create the window. Cause: ' + JSON.stringify(err));
+            return;
+          }
+          const win = data;
+          globalThis.extensionWin = win;
+          console.info('Succeeded in creating the window. Data: ' + JSON.stringify(data));
+          win.on('windowEvent', async (data) => {
+            console.log(TAG + 'windowEvent:' + JSON.stringify(data));
+            if (data === window.WindowEventType.WINDOW_INACTIVE) {
+              await this.releaseContext();
+            }
+          });
+          await win.moveTo(rect.left, rect.top);
+          await win.resetSize(rect.width, rect.height);
+          await win.loadContent('pages/index');
+          await win.show();
+          globalThis.windowNum++;
+          console.log(TAG + 'window create successfully');
+        });
+      } catch (exception) {
+        console.error('Failed to create the window. Cause: ' + JSON.stringify(exception));
+      }
       globalThis.context = this.context;
-      await win.moveTo(rect.left, rect.top);
-      await win.resetSize(rect.width, rect.height);
-      await win.loadContent('pages/index');
-      await win.show();
-      globalThis.windowNum++;
-      console.log(TAG + 'window create successfully.');
     } catch {
-      console.info(TAG + 'window create failed.');
+      console.info(TAG + 'window create failed');
     }
   }
 
   private async getInputMethods(): Promise<void> {
     globalThis.inputMethodList = [];
     try {
-      let enableList = await inputMethod.getInputMethodSetting().listInputMethod(true);
-      let disableList = await inputMethod.getInputMethodSetting().listInputMethod(false);
+      let enableList = await inputMethod.getSetting().getInputMethods(true);
+      let disableList = await inputMethod.getSetting().getInputMethods(false);
       globalThis.inputMethodList = [...enableList, ...disableList];
     } catch {
-      console.log(TAG + 'getInputMethods failed.');
+      console.log(TAG + 'getInputMethods failed');
+    }
+  }
+
+  private async updateImeList(): Promise<void> {
+    await this.getInputMethods().then(async () => {
+      await globalThis.extensionWin.loadContent('pages/index');
+      if (!globalThis.extensionWin.isWindowShowing()) {
+        await globalThis.extensionWin.show();
+      }
+    });
+  }
+
+  private async releaseContext(): Promise<void> {
+    if (globalThis.context !== null) {
+      await globalThis.extensionWin.destroy();
+      await globalThis.context.terminateSelf();
+      globalThis.context = null;
     }
   }
 };
