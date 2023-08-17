@@ -95,17 +95,6 @@ public:
     static bool Marshal(MessageParcel &parcel, const T &first, const Types &... others);
     template<typename T, typename... Types>
     static bool Unmarshal(MessageParcel &parcel, T &first, Types &... others);
-
-    template<typename T>
-    static int32_t MarshalToBuffer(const T &input, int size, MessageParcel &data);
-
-    template<typename T>
-    static int32_t MarshalToBuffer(const std::vector<T> &input, int size, MessageParcel &data);
-
-    template<typename T>
-    static int32_t UnmarshalFromBuffer(MessageParcel &data, int size, T &output);
-    template<typename T>
-    static int32_t UnmarshalFromBuffer(MessageParcel &data, int size, std::vector<T> &output);
 };
 
 template<class T>
@@ -153,88 +142,6 @@ bool ITypesUtil::Unmarshalling(std::vector<T> &val, MessageParcel &parcel)
     }
 
     return true;
-}
-
-template<typename T>
-int32_t ITypesUtil::MarshalToBuffer(const T &input, int size, MessageParcel &data)
-{
-    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(size);
-    if (!data.WriteBool(buffer != nullptr)) {
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    if (buffer == nullptr) {
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-
-    int leftSize = size;
-    uint8_t *cursor = buffer.get();
-    if (!input.WriteToBuffer(cursor, leftSize)) {
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    return data.WriteRawData(buffer.get(), size) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
-template<typename T>
-int32_t ITypesUtil::MarshalToBuffer(const std::vector<T> &input, int size, MessageParcel &data)
-{
-    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(size);
-    if (!data.WriteBool(buffer != nullptr)) {
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    if (buffer == nullptr) {
-        return ErrorCode::ERROR_EX_ILLEGAL_STATE;
-    }
-    uint8_t *cursor = buffer.get();
-    for (const auto &entry : input) {
-        if (!entry.WriteToBuffer(cursor, size)) {
-            return ErrorCode::ERROR_EX_PARCELABLE;
-        }
-    }
-    if (!data.WriteInt32(input.size())) {
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    return data.WriteRawData(buffer.get(), size) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
-template<typename T>
-int32_t ITypesUtil::UnmarshalFromBuffer(MessageParcel &data, int size, T &output)
-{
-    if (size < 0) {
-        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
-    }
-    if (!data.ReadBool()) {
-        return ErrorCode::ERROR_EX_ILLEGAL_STATE;
-    }
-    const uint8_t *buffer = reinterpret_cast<const uint8_t *>(data.ReadRawData(size));
-    if (buffer == nullptr) {
-        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
-    }
-    return output.ReadFromBuffer(buffer, size) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
-template<typename T>
-int32_t ITypesUtil::UnmarshalFromBuffer(MessageParcel &data, int size, std::vector<T> &output)
-{
-    if (size < 0) {
-        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
-    }
-    if (!data.ReadBool()) {
-        return ErrorCode::ERROR_EX_ILLEGAL_STATE;
-    }
-    int count = data.ReadInt32();
-    const uint8_t *buffer = reinterpret_cast<const uint8_t *>(data.ReadRawData(size));
-    if (count < 0 || buffer == nullptr) {
-        return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
-    }
-
-    output.resize(count);
-    for (auto &entry : output) {
-        if (!entry.ReadFromBuffer(buffer, size)) {
-            output.clear();
-            return ErrorCode::ERROR_EX_PARCELABLE;
-        }
-    }
-    return ErrorCode::NO_ERROR;
 }
 
 template<typename T, typename... Types>
