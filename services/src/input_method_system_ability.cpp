@@ -703,6 +703,10 @@ int32_t InputMethodSystemAbility::SwitchMode()
         IMSA_HILOGE("current ime is abnormal, ret: %{public}d", ret);
         return ret;
     }
+    if (info.isNewIme) {
+        IMSA_HILOGD("the switching operation is handed over to ime");
+        return ErrorCode::NO_ERROR;
+    }
     auto condition = info.subProp.mode == "upper" ? Condition::LOWER : Condition::UPPER;
     auto target = ImeInfoInquirer::GetInstance().GetImeSubProp(info.subProps, condition);
     if (target == nullptr) {
@@ -723,6 +727,10 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("current ime is abnormal, ret: %{public}d", ret);
         return ret;
+    }
+    if (info.isNewIme) {
+        IMSA_HILOGD("the switching operation is handed over to ime");
+        return ErrorCode::NO_ERROR;
     }
     if (info.subProp.language != "chinese" && info.subProp.language != "english") {
         return ErrorCode::NO_ERROR;
