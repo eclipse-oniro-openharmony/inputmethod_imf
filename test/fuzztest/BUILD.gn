@@ -26,5 +26,6 @@ group("fuzztest") {
     "inputmethodcontroller_fuzzer:fuzztest",
     "perusersession_fuzzer:fuzztest",
     "systemabilitystub_fuzzer:fuzztest",
+    "systemabilitystubfuzztest:system_ability_stub_fuzztest",
   ]
 }
