@@ -119,9 +119,7 @@ void InputMethodController::UpdateNativeEventFlag(EventType eventType, bool isOn
 void InputMethodController::SetControllerListener(std::shared_ptr<ControllerListener> controllerListener)
 {
     IMSA_HILOGI("InputMethodController run in");
-    if (controllerListener_ == nullptr) {
-        controllerListener_ = std::move(controllerListener);
-    }
+    controllerListener_ = std::move(controllerListener);
 }
 
 int32_t InputMethodController::Initialize()
