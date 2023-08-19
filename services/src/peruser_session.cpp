@@ -18,7 +18,6 @@
 #include <vector>
 
 #include "ability_manager_client.h"
-#include "bundle_checker.h"
 #include "element_name.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
@@ -41,6 +40,7 @@ namespace MiscServices {
 using namespace MessageID;
 constexpr uint32_t IME_RESTART_TIMES = 5;
 constexpr uint32_t IME_RESTART_INTERVAL = 300;
+constexpr int64_t INVALID_PID = -1;
 PerUserSession::PerUserSession(int32_t userId) : userId_(userId), imsDeathRecipient_(new InputDeathRecipient())
 {
 }
@@ -318,7 +318,7 @@ int32_t PerUserSession::SendAgentToSingleClient(const sptr<IInputClient> &client
  * @param the parameters from remote client
  * @return ErrorCode
  */
-int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient>& client)
+int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
 {
     IMSA_HILOGI("PerUserSession::Start");
     if (client == nullptr) {
@@ -625,17 +625,17 @@ bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
     return false;
 }
 
-bool PerUserSession::IsFocused(int64_t callingPid, uint32_t callingTokenId)
+int64_t PerUserSession::GetCurrentClientPid()
 {
     auto client = GetCurrentClient();
     if (client == nullptr) {
-        return false;
+        return INVALID_PID;
     }
     auto clientInfo = GetClientInfo(client->AsObject());
     if (clientInfo == nullptr) {
-        return false;
+        return INVALID_PID;
     }
-    return BundleChecker::IsFocused(callingPid, callingTokenId, clientInfo->pid);
+    return clientInfo->pid;
 }
 
 int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)

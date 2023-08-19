@@ -37,7 +37,6 @@ enum {
     MSG_ID_HANDLE_EXTEND_ACTION,
 
     MSG_ID_HIDE_KEYBOARD_SELF, // hide the current keyboard
-    MSG_ID_START_INPUT_SERVICE,
 
     // the request from IMSA to IMC
     MSG_ID_INSERT_CHAR,

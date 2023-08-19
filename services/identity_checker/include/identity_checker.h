@@ -13,26 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef SERVICES_INCLUDE_BUNDLE_CHECKER_H
-#define SERVICES_INCLUDE_BUNDLE_CHECKER_H
+#ifndef SERVICES_INCLUDE_IDENTITY_CHECKER_H
+#define SERVICES_INCLUDE_IDENTITY_CHECKER_H
 
-#include "accesstoken_kit.h"
-#include "event_status_manager.h"
+#include <string>
 
+#include "access_token.h"
 namespace OHOS {
 namespace MiscServices {
-class BundleChecker {
+class IdentityChecker {
 public:
-    static bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID);
-    static bool IsSystemApp(uint64_t fullTokenID);
-    static bool IsCurrentIme(uint32_t tokenID, const std::string &currentIme);
-    static bool CheckPermission(uint32_t tokenID, const std::string &permission);
-
-private:
     static constexpr int64_t INVALID_PID = -1;
-    static std::string GetBundleNameByToken(uint32_t tokenID);
+    virtual ~IdentityChecker() = default;
+    virtual bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID) = 0;
+    virtual bool IsSystemApp(uint64_t fullTokenId) = 0;
+    virtual bool IsCurrentIme(uint32_t tokenId, const std::string &currentBundleName) = 0;
+    virtual bool HasPermission(uint32_t tokenId, const std::string &permission) = 0;
+    virtual bool IsBroker(Security::AccessToken::AccessTokenID tokenId) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif // SERVICES_INCLUDE_BUNDLE_CHECKER_H
+#endif // SERVICES_INCLUDE_IDENTITY_CHECKER_H

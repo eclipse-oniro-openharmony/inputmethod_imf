@@ -20,10 +20,11 @@
 #include <map>
 #include <thread>
 
-#include "access_token.h"
 #include "application_info.h"
+#include "block_queue.h"
 #include "bundle_mgr_proxy.h"
 #include "event_handler.h"
+#include "identity_checker_impl.h"
 #include "ime_info_inquirer.h"
 #include "input_method_status.h"
 #include "input_method_system_ability_stub.h"
@@ -31,7 +32,6 @@
 #include "inputmethod_trace.h"
 #include "peruser_session.h"
 #include "system_ability.h"
-#include "block_queue.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -94,6 +94,7 @@ private:
 
     std::thread workThreadHandler; /*!< thread handler of the WorkThread */
     std::shared_ptr<PerUserSession> userSession_ = nullptr;
+    std::shared_ptr<IdentityChecker> identityChecker_ = nullptr;
     void WorkThread();
     bool StartInputService(const std::string &imeId);
     void StopInputService(const std::string &imeId);
@@ -123,7 +124,6 @@ private:
     int32_t SwitchLanguage();
     int32_t SwitchType();
     int32_t GenerateClientInfo(InputClientInfo &clientInfo);
-    bool CheckBrokerTokenID(AccessTokenID tokenId);
 };
 } // namespace MiscServices
 } // namespace OHOS
