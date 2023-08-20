@@ -243,6 +243,7 @@ void InputMethodControllerTest::TearDownTestCase(void)
     TextListener::ResetParam();
     WindowMgr::HideWindow();
     WindowMgr::DestroyWindow();
+    inputMethodController_->SetControllerListener(nullptr);
 }
 
 void InputMethodControllerTest::SetUp(void)
@@ -833,6 +834,7 @@ HWTEST_F(InputMethodControllerTest, testSetControllerListener, TestSize.Level0)
     inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
     inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
     inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::RIGHT));
+    controllerListener_ = nullptr;
 }
 
 /**
