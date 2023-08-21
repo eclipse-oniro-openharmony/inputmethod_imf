@@ -68,6 +68,7 @@ private:
     bool IsShowing();
     bool IsHidden();
     int32_t SetPanelProperties();
+    std::string GeneratePanelName();
     void PanelStatusChange(const InputWindowStatus &status);
     bool MarkListener(const std::string &type, bool isRegister);
     static uint32_t GenerateSequenceId();
