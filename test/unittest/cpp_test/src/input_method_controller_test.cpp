@@ -243,6 +243,7 @@ void InputMethodControllerTest::TearDownTestCase(void)
     TextListener::ResetParam();
     WindowMgr::HideWindow();
     WindowMgr::DestroyWindow();
+    inputMethodController_->SetControllerListener(nullptr);
 }
 
 void InputMethodControllerTest::SetUp(void)
@@ -399,11 +400,11 @@ void InputMethodControllerTest::TriggerSelectionChangeCallback(std::u16string &t
 }
 
 /**
-     * @tc.name: testIMCAttach
-     * @tc.desc: IMC Attach.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
+ * @tc.name: testIMCAttach
+ * @tc.desc: IMC Attach.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodControllerTest, testIMCAttach, TestSize.Level0)
 {
     IMSA_HILOGD("IMC Attach Test START");
@@ -416,11 +417,11 @@ HWTEST_F(InputMethodControllerTest, testIMCAttach, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCSetCallingWindow
-     * @tc.desc: IMC SetCallingWindow.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
+ * @tc.name: testIMCSetCallingWindow
+ * @tc.desc: IMC SetCallingWindow.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
 {
     IMSA_HILOGD("IMC SetCallingWindow Test START");
@@ -433,10 +434,10 @@ HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testGetIMSAProxy
-     * @tc.desc: Get Imsa Proxy.
-     * @tc.type: FUNC
-     */
+ * @tc.name: testGetIMSAProxy
+ * @tc.desc: Get Imsa Proxy.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodControllerTest, testGetIMSAProxy, TestSize.Level0)
 {
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -446,10 +447,10 @@ HWTEST_F(InputMethodControllerTest, testGetIMSAProxy, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testWriteReadIInputDataChannel
-     * @tc.desc: Checkout IInputDataChannel.
-     * @tc.type: FUNC
-     */
+ * @tc.name: testWriteReadIInputDataChannel
+ * @tc.desc: Checkout IInputDataChannel.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodControllerTest, testWriteReadIInputDataChannel, TestSize.Level0)
 {
     sptr<InputDataChannelStub> mInputDataChannel = new InputDataChannelStub();
@@ -462,10 +463,10 @@ HWTEST_F(InputMethodControllerTest, testWriteReadIInputDataChannel, TestSize.Lev
 }
 
 /**
-     * @tc.name: testIMCBindToIMSA
-     * @tc.desc: Bind IMSA.
-     * @tc.type: FUNC
-     */
+ * @tc.name: testIMCBindToIMSA
+ * @tc.desc: Bind IMSA.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodControllerTest, testIMCBindToIMSA, TestSize.Level0)
 {
     sptr<InputClientStub> mClient = new InputClientStub();
@@ -478,11 +479,11 @@ HWTEST_F(InputMethodControllerTest, testIMCBindToIMSA, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCDispatchKeyEvent001
-     * @tc.desc: test IMC DispatchKeyEvent with 'keyDown/KeyUP'.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
+ * @tc.name: testIMCDispatchKeyEvent001
+ * @tc.desc: test IMC DispatchKeyEvent with 'keyDown/KeyUP'.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent001, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCDispatchKeyEvent001 Test START");
@@ -500,11 +501,11 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent001, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCDispatchKeyEvent002
-     * @tc.desc: test IMC DispatchKeyEvent with 'keyEvent'.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
+ * @tc.name: testIMCDispatchKeyEvent002
+ * @tc.desc: test IMC DispatchKeyEvent with 'keyEvent'.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent002, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCDispatchKeyEvent002 Test START");
@@ -519,11 +520,11 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent002, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCDispatchKeyEvent003
-     * @tc.desc: test IMC DispatchKeyEvent with 'keyDown/KeyUP' and 'keyEvent'.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
+ * @tc.name: testIMCDispatchKeyEvent003
+ * @tc.desc: test IMC DispatchKeyEvent with 'keyDown/KeyUP' and 'keyEvent'.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent003, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCDispatchKeyEvent003 Test START");
@@ -591,13 +592,13 @@ HWTEST_F(InputMethodControllerTest, testIMCOnCursorUpdate02, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCOnSelectionChange01
-     * @tc.desc: Test change selection, call 'OnSelectionChange' twice, if selection is the same,
-     *           the second time will not get callback.
-     * @tc.type: FUNC
-     * @tc.require:
-     * @tc.author: Zhaolinglan
-     */
+ * @tc.name: testIMCOnSelectionChange01
+ * @tc.desc: Test change selection, call 'OnSelectionChange' twice, if selection is the same,
+ *           the second time will not get callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
 HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange01, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCOnSelectionChange01 Test START");
@@ -615,13 +616,13 @@ HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange01, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCOnSelectionChange02
-     * @tc.desc: Test change selection, 'Attach'->'OnSelectionChange'->'Close'->'Attach'->'OnSelectionChange',
-     *           it will get callback two time.
-     * @tc.type: FUNC
-     * @tc.require:
-     * @tc.author: Zhaolinglan
-     */
+ * @tc.name: testIMCOnSelectionChange02
+ * @tc.desc: Test change selection, 'Attach'->'OnSelectionChange'->'Close'->'Attach'->'OnSelectionChange',
+ *           it will get callback two time.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
 HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange02, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testIMCOnSelectionChange02 Test START");
@@ -641,10 +642,10 @@ HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange02, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testShowTextInput
-     * @tc.desc: IMC ShowTextInput
-     * @tc.type: FUNC
-     */
+ * @tc.name: testShowTextInput
+ * @tc.desc: IMC ShowTextInput
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodControllerTest, testShowTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("IMC ShowTextInput Test START");
@@ -655,10 +656,10 @@ HWTEST_F(InputMethodControllerTest, testShowTextInput, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testShowSoftKeyboard
-     * @tc.desc: IMC ShowSoftKeyboard
-     * @tc.type: FUNC
-     */
+ * @tc.name: testShowSoftKeyboard
+ * @tc.desc: IMC ShowSoftKeyboard
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodControllerTest, testShowSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
@@ -671,10 +672,10 @@ HWTEST_F(InputMethodControllerTest, testShowSoftKeyboard, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testShowCurrentInput
-     * @tc.desc: IMC ShowCurrentInput
-     * @tc.type: FUNC
-     */
+ * @tc.name: testShowCurrentInput
+ * @tc.desc: IMC ShowCurrentInput
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodControllerTest, testShowCurrentInput, TestSize.Level0)
 {
     IMSA_HILOGI("IMC ShowCurrentInput Test START");
@@ -687,11 +688,11 @@ HWTEST_F(InputMethodControllerTest, testShowCurrentInput, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCGetEnterKeyType
-     * @tc.desc: IMC testGetEnterKeyType.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
+ * @tc.name: testIMCGetEnterKeyType
+ * @tc.desc: IMC testGetEnterKeyType.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodControllerTest, testIMCGetEnterKeyType, TestSize.Level0)
 {
     IMSA_HILOGI("IMC GetEnterKeyType Test START");
@@ -702,11 +703,11 @@ HWTEST_F(InputMethodControllerTest, testIMCGetEnterKeyType, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCGetInputPattern
-     * @tc.desc: IMC testGetInputPattern.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
+ * @tc.name: testIMCGetInputPattern
+ * @tc.desc: IMC testGetInputPattern.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodControllerTest, testIMCGetInputPattern, TestSize.Level0)
 {
     IMSA_HILOGI("IMC GetInputPattern Test START");
@@ -717,11 +718,11 @@ HWTEST_F(InputMethodControllerTest, testIMCGetInputPattern, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testOnEditorAttributeChanged
-     * @tc.desc: IMC testOnEditorAttributeChanged.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
+ * @tc.name: testOnEditorAttributeChanged
+ * @tc.desc: IMC testOnEditorAttributeChanged.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testOnEditorAttributeChanged Test START");
@@ -736,10 +737,10 @@ HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged, TestSize.Level
 }
 
 /**
-     * @tc.name: testHideSoftKeyboard
-     * @tc.desc: IMC HideSoftKeyboard
-     * @tc.type: FUNC
-     */
+ * @tc.name: testHideSoftKeyboard
+ * @tc.desc: IMC HideSoftKeyboard
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodControllerTest, testHideSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("IMC HideSoftKeyboard Test START");
@@ -752,11 +753,11 @@ HWTEST_F(InputMethodControllerTest, testHideSoftKeyboard, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCHideCurrentInput
-     * @tc.desc: IMC HideCurrentInput.
-     * @tc.type: FUNC
-     * @tc.require:
-     */
+ * @tc.name: testIMCHideCurrentInput
+ * @tc.desc: IMC HideCurrentInput.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodControllerTest, testIMCHideCurrentInput, TestSize.Level0)
 {
     IMSA_HILOGI("IMC HideCurrentInput Test START");
@@ -769,12 +770,12 @@ HWTEST_F(InputMethodControllerTest, testIMCHideCurrentInput, TestSize.Level0)
 }
 
 /**
-    * @tc.name: testIMCInputStopSession
-    * @tc.desc: IMC testInputStopSession.
-    * @tc.type: FUNC
-    * @tc.require: issueI5U8FZ
-    * @tc.author: Hollokin
-    */
+ * @tc.name: testIMCInputStopSession
+ * @tc.desc: IMC testInputStopSession.
+ * @tc.type: FUNC
+ * @tc.require: issueI5U8FZ
+ * @tc.author: Hollokin
+ */
 HWTEST_F(InputMethodControllerTest, testIMCInputStopSession, TestSize.Level0)
 {
     IMSA_HILOGI("IMC StopInputSession Test START");
@@ -787,10 +788,10 @@ HWTEST_F(InputMethodControllerTest, testIMCInputStopSession, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testIMCHideTextInput.
-     * @tc.desc: IMC testHideTextInput.
-     * @tc.type: FUNC
-     */
+ * @tc.name: testIMCHideTextInput.
+ * @tc.desc: IMC testHideTextInput.
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodControllerTest, testIMCHideTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("IMC HideTextInput Test START");
@@ -802,10 +803,10 @@ HWTEST_F(InputMethodControllerTest, testIMCHideTextInput, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testSetControllerListener
-     * @tc.desc: IMC SetControllerListener
-     * @tc.type: FUNC
-     */
+ * @tc.name: testSetControllerListener
+ * @tc.desc: IMC SetControllerListener
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodControllerTest, testSetControllerListener, TestSize.Level0)
 {
     IMSA_HILOGI("IMC SetControllerListener Test START");
@@ -833,13 +834,14 @@ HWTEST_F(InputMethodControllerTest, testSetControllerListener, TestSize.Level0)
     inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
     inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
     inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::RIGHT));
+    controllerListener_ = nullptr;
 }
 
 /**
-     * @tc.name: testWasAttached
-     * @tc.desc: IMC WasAttached
-     * @tc.type: FUNC
-     */
+ * @tc.name: testWasAttached
+ * @tc.desc: IMC WasAttached
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodControllerTest, testWasAttached, TestSize.Level0)
 {
     IMSA_HILOGI("IMC WasAttached Test START");
@@ -854,11 +856,11 @@ HWTEST_F(InputMethodControllerTest, testWasAttached, TestSize.Level0)
 }
 
 /**
-    * @tc.name: testWithoutEditableState
-    * @tc.desc: IMC testWithoutEditableState
-    * @tc.type: FUNC
-    * @tc.require:
-    */
+ * @tc.name: testWithoutEditableState
+ * @tc.desc: IMC testWithoutEditableState
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(InputMethodControllerTest, testWithoutEditableState, TestSize.Level0)
 {
     IMSA_HILOGI("IMC WithouteEditableState Test START");
@@ -899,10 +901,10 @@ HWTEST_F(InputMethodControllerTest, testWithoutEditableState, TestSize.Level0)
 }
 
 /**
-     * @tc.name: testOnRemoteDied
-     * @tc.desc: IMC OnRemoteDied
-     * @tc.type: FUNC
-     */
+ * @tc.name: testOnRemoteDied
+ * @tc.desc: IMC OnRemoteDied
+ * @tc.type: FUNC
+ */
 HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
 {
     IMSA_HILOGI("IMC OnRemoteDied Test START");
