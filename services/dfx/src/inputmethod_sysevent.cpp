@@ -70,7 +70,7 @@ void InputMethodSysEvent::ServiceFaultReporter(const std::string &componentName,
 void InputMethodSysEvent::InputmethodFaultReporter(int32_t errCode, const std::string &name, const std::string &info)
 {
     IMSA_HILOGD("run in.");
-    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "INPUTMETHOD_UNAVAILABLE",
+    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "UNAVAILABLE_INPUTMETHOD",
         HiSysEventNameSpace::EventType::FAULT, "USER_ID", userId_, "APP_NAME", name, "ERROR_CODE", errCode, "INFO",
         info);
     if (ret != HiviewDFX::SUCCESS) {

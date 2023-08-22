@@ -19,7 +19,7 @@ SERVICE_INIT_FAILED:
   COMPONENT_ID: {type: STRING, desc: Component name}
   ERROR_CODE: {type: INT32, desc: Error code}
 
-INPUTMETHOD_UNAVAILABLE:
+UNAVAILABLE_INPUTMETHOD:
   __BASE: {type: FAULT, level: CRITICAL, tag: IMEUnavaliable, desc: Inputmethod unavailable}
   USER_ID: {type: INT32, desc: The user id}
   APP_NAME: {type: STRING, desc: App name}
