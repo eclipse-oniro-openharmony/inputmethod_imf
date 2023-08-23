@@ -129,10 +129,7 @@ ohos_unittest("InputMethodAbilityTest") {
 ohos_unittest("InputMethodServiceTest") {
   module_out_path = module_output_path
 
-  sources = [
-    "src/input_method_service_test.cpp",
-    "src/permission_verification_exception_test.cpp",
-  ]
+  sources = [ "src/input_method_service_test.cpp" ]
 
   configs = [ ":module_private_config" ]
 
@@ -285,6 +282,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -299,6 +297,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "ipc:ipc_core",
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
+    "window_manager:libwm",
   ]
 }
 
@@ -352,6 +351,43 @@ ohos_unittest("NewImeSwitchTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "input:libmmi-client",
+    "window_manager:libwm",
+  ]
+}
+
+ohos_unittest("IdentityCheckerTest") {
+  module_out_path = module_output_path
+
+  sources = [ "src/identity_checker_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
+
+  include_dirs = [
+    "${windowmanager_path}/interfaces/innerkits/dm",
+    "${windowmanager_path}/interfaces/innerkits/wm",
+  ]
+
+  deps = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/common:inputmethod_test_common",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "//third_party/googletest:gmock",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:ability_manager",
+    "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "napi:ace_napi",
+    "window_manager:libdm",
     "window_manager:libwm",
   ]
 }

@@ -39,6 +39,7 @@ public:
 };
 class TddUtil {
 public:
+    static int32_t GetCurrentUserId();
     static void StorageSelfTokenID();
     static uint64_t AllocTestTokenID(bool isSystemApp, bool needPermission, const std::string &bundleName);
     static uint64_t GetTestTokenID(const std::string &bundleName);
@@ -62,7 +63,6 @@ public:
     };
 
 private:
-    static int32_t GetCurrentUserId();
     static sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
     static int GetUserIdByBundleName(const std::string &bundleName, const int currentUserId);
     static uint64_t selfTokenID_;

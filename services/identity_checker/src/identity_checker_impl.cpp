@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "bundle_checker.h"
+#include "identity_checker_impl.h"
 
 #include <cinttypes>
 
@@ -26,7 +26,7 @@ namespace OHOS {
 namespace MiscServices {
 using namespace Rosen;
 using namespace Security::AccessToken;
-bool BundleChecker::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid)
+bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid)
 {
     int64_t realFocusedPid = focusedPid;
     if (realFocusedPid == INVALID_PID) {
@@ -45,29 +45,29 @@ bool BundleChecker::IsFocused(int64_t callingPid, uint32_t callingTokenId, int64
     return ret == ErrorCode::NO_ERROR && isFocused;
 }
 
-bool BundleChecker::IsSystemApp(uint64_t fullTokenID)
+bool IdentityCheckerImpl::IsSystemApp(uint64_t fullTokenId)
 {
-    return TokenIdKit::IsSystemAppByFullTokenID(fullTokenID);
+    return TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
 }
 
-bool BundleChecker::IsCurrentIme(uint32_t tokenID, const std::string &currentIme)
+bool IdentityCheckerImpl::IsCurrentIme(uint32_t tokenId, const std::string &currentBundleName)
 {
-    std::string bundleName = GetBundleNameByToken(tokenID);
+    std::string bundleName = GetBundleNameByToken(tokenId);
     if (bundleName.empty()) {
         return false;
     }
-    if (bundleName != currentIme) {
+    if (bundleName != currentBundleName) {
         IMSA_HILOGE(
-            "not current ime, caller: %{public}s, current ime: %{public}s", bundleName.c_str(), currentIme.c_str());
+            "not current ime, caller: %{public}s, current: %{public}s", bundleName.c_str(), currentBundleName.c_str());
         return false;
     }
     IMSA_HILOGD("checked ime successfully");
     return true;
 }
 
-bool BundleChecker::CheckPermission(uint32_t tokenID, const std::string &permission)
+bool IdentityCheckerImpl::HasPermission(uint32_t tokenId, const std::string &permission)
 {
-    if (AccessTokenKit::VerifyAccessToken(tokenID, permission) != PERMISSION_GRANTED) {
+    if (AccessTokenKit::VerifyAccessToken(tokenId, permission) != PERMISSION_GRANTED) {
         IMSA_HILOGE("Permission [%{public}s] not granted", permission.c_str());
         return false;
     }
@@ -75,15 +75,26 @@ bool BundleChecker::CheckPermission(uint32_t tokenID, const std::string &permiss
     return true;
 }
 
-std::string BundleChecker::GetBundleNameByToken(uint32_t tokenID)
+bool IdentityCheckerImpl::IsBroker(AccessTokenID tokenId)
 {
-    auto tokenType = AccessTokenKit::GetTokenTypeFlag(tokenID);
+    NativeTokenInfo nativeTokenInfoRes;
+    AccessTokenKit::GetNativeTokenInfo(tokenId, nativeTokenInfoRes);
+    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE
+        && nativeTokenInfoRes.processName == "broker" && nativeTokenInfoRes.apl == ATokenAplEnum::APL_SYSTEM_BASIC) {
+        return true;
+    }
+    return false;
+}
+
+std::string IdentityCheckerImpl::GetBundleNameByToken(uint32_t tokenId)
+{
+    auto tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
     if (tokenType != TOKEN_HAP) {
         IMSA_HILOGE("invalid token");
         return "";
     }
     HapTokenInfo info;
-    int ret = AccessTokenKit::GetHapTokenInfo(tokenID, info);
+    int ret = AccessTokenKit::GetHapTokenInfo(tokenId, info);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to get hap info, ret: %{public}d", ret);
         return "";

@@ -19,6 +19,7 @@ group("unittest") {
   deps = []
 
   deps += [
+    "cpp_test:IdentityCheckerTest",
     "cpp_test:InputMethodAbilityTest",
     "cpp_test:InputMethodAttachTest",
     "cpp_test:InputMethodControllerTest",

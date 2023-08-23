@@ -19,7 +19,6 @@
 
 #include "ability_manager_client.h"
 #include "application_info.h"
-#include "bundle_checker.h"
 #include "combination_key.h"
 #include "common_event_support.h"
 #include "errors.h"
@@ -182,6 +181,7 @@ void InputMethodSystemAbility::Initialize()
     // init work thread to handle the messages
     workThreadHandler = std::thread([this] { WorkThread(); });
     userSession_ = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    identityChecker_ = std::make_shared<IdentityCheckerImpl>();
     userId_ = MAIN_USER_ID;
 }
 
@@ -213,8 +213,8 @@ void InputMethodSystemAbility::StopInputService(const std::string &imeId)
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!CheckBrokerTokenID(tokenId)) {
-        if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+    if (!identityChecker_->IsBroker(tokenId)) {
+        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
@@ -254,8 +254,8 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!CheckBrokerTokenID(tokenId)) {
-        if (!BundleChecker::IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+    if (!identityChecker_->IsBroker(tokenId)) {
+        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
@@ -269,8 +269,8 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
 int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!CheckBrokerTokenID(tokenId)) {
-        if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+    if (!identityChecker_->IsBroker(tokenId)) {
+        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
@@ -284,8 +284,8 @@ int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
 int32_t InputMethodSystemAbility::StopInputSession()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!CheckBrokerTokenID(tokenId)) {
-        if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+    if (!identityChecker_->IsBroker(tokenId)) {
+        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
@@ -296,11 +296,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    if (currentImeCfg == nullptr) {
-        IMSA_HILOGE("failed to get current ime");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    if (!BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName)) {
+    if (!identityChecker_->IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName)) {
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
     if (core == nullptr || agent == nullptr) {
@@ -313,14 +309,14 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
 int32_t InputMethodSystemAbility::HideCurrentInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (CheckBrokerTokenID(tokenId)) {
+    if (identityChecker_->IsBroker(tokenId)) {
         return userSession_->OnHideKeyboardSelf();
     }
-    if (!BundleChecker::CheckPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+    if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
 
-    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnHideKeyboardSelf();
@@ -329,15 +325,15 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
 int32_t InputMethodSystemAbility::ShowCurrentInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (CheckBrokerTokenID(tokenId)) {
+    if (identityChecker_->IsBroker(tokenId)) {
         return userSession_->OnShowKeyboardSelf();
     }
 
-    if (!BundleChecker::CheckPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+    if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
 
-    if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnShowKeyboardSelf();
@@ -346,11 +342,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
 int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
 {
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    if (currentImeCfg == nullptr) {
-        IMSA_HILOGE("failed to get current ime");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    if (!BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName)) {
+    if (!identityChecker_->IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName)) {
         IMSA_HILOGE("not current ime");
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
@@ -361,7 +353,7 @@ int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientI
 {
     IMSA_HILOGI("eventType: %{public}u, eventFlag: %{public}u", eventType, clientInfo.eventFlag);
     if ((eventType == IME_SHOW || eventType == IME_HIDE)
-        && !BundleChecker::IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
+        && !identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
         IMSA_HILOGE("not system application");
         return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
     }
@@ -375,7 +367,7 @@ int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientI
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
-    if (!BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+    if (!identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return OnDisplayOptionalInputMethod();
@@ -399,11 +391,11 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
     }
     IMSA_HILOGD("start switch %{public}s", (switchInfo.bundleName + '/' + switchInfo.subName).c_str());
     // if currentIme is switching subtype, permission verification is not performed.
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
+    auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
     if (isCheckPermission
-        && !BundleChecker::CheckPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
-        && !(switchInfo.bundleName == currentIme
-             && BundleChecker::IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentIme))) {
+        && !identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
+        && !(identityChecker_->IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentBundleName)
+             && switchInfo.bundleName == currentBundleName && !switchInfo.subName.empty())) {
         switchQueue_.Pop();
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
             ErrorCode::ERROR_STATUS_PERMISSION_DENIED, switchInfo.bundleName, "switch inputmethod failed!");
@@ -480,8 +472,8 @@ int32_t InputMethodSystemAbility::SwitchSubType(const ImeInfo &info)
 int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!CheckBrokerTokenID(tokenId)) {
-        if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+    if (!identityChecker_->IsBroker(tokenId)) {
+        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
@@ -491,8 +483,8 @@ int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!CheckBrokerTokenID(tokenId)) {
-        if (!userSession_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
+    if (!identityChecker_->IsBroker(tokenId)) {
+        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
@@ -554,10 +546,6 @@ void InputMethodSystemAbility::WorkThread()
             }
             case MSG_ID_HIDE_KEYBOARD_SELF: {
                 userSession_->OnHideKeyboardSelf();
-                break;
-            }
-            case MSG_ID_START_INPUT_SERVICE: {
-                StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_));
                 break;
             }
             case MSG_ID_QUIT_WORKER_THREAD: {
@@ -780,17 +768,6 @@ bool InputMethodSystemAbility::InitFocusChangeMonitor()
             return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
         },
         [this]() { StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_)); });
-}
-
-bool InputMethodSystemAbility::CheckBrokerTokenID(AccessTokenID tokenId)
-{
-    NativeTokenInfo nativeTokenInfoRes;
-    AccessTokenKit::GetNativeTokenInfo(tokenId, nativeTokenInfoRes);
-    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE
-        && nativeTokenInfoRes.processName == "broker" && nativeTokenInfoRes.apl == ATokenAplEnum::APL_SYSTEM_BASIC) {
-        return true;
-    }
-    return false;
 }
 } // namespace MiscServices
 } // namespace OHOS

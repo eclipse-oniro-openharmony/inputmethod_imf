@@ -14,11 +14,12 @@
  */
 #define private public
 #define protected public
+#include "ime_cfg_manager.h"
+#include "ime_info_inquirer.h"
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
 #include "peruser_session.h"
 #undef private
-
 #include <gtest/gtest.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -34,17 +35,21 @@
 #include "input_method_agent_proxy.h"
 #include "input_method_agent_stub.h"
 #include "input_method_core_stub.h"
+#include "keyboard_event.h"
 #include "os_account_manager.h"
+#include "tdd_util.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+constexpr uint32_t MAX_SUBTYPE_NUM = 256;
 class InputMethodPrivateMemberTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
+    static sptr<InputMethodSystemAbility> service_;
 };
 constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr std::int32_t CURRENT_IME = 0;
@@ -52,44 +57,31 @@ constexpr std::int32_t SECURITY_IME = 1;
 void InputMethodPrivateMemberTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUpTestCase");
+    service_ = new InputMethodSystemAbility();
+    service_->OnStart();
 }
 
 void InputMethodPrivateMemberTest::TearDownTestCase(void)
 {
+    service_->OnStop();
+    TddUtil::KillImsaProcess();
     IMSA_HILOGI("InputMethodPrivateMemberTest::TearDownTestCase");
 }
 
 void InputMethodPrivateMemberTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUp");
+    ImeCfgManager::GetInstance().imeConfigs_.clear();
+    ImeInfoInquirer::GetInstance().ResetCurrentImeInfo();
 }
 
 void InputMethodPrivateMemberTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::TearDown");
+    ImeCfgManager::GetInstance().imeConfigs_.clear();
+    ImeInfoInquirer::GetInstance().ResetCurrentImeInfo();
 }
-
-/**
-* @tc.name: SA_ServiceStartAbnormal
-* @tc.desc: SA Service Start Abnormal.
-* @tc.type: FUNC
-* @tc.require: issuesI640YZ
-*/
-HWTEST_F(InputMethodPrivateMemberTest, SA_ServiceStartAbnormal, TestSize.Level0)
-{
-    auto service = new InputMethodSystemAbility();
-    service->state_ = ServiceRunningState::STATE_RUNNING;
-    service->OnStart();
-
-    EXPECT_NE(service->userId_, MAIN_USER_ID);
-    EXPECT_TRUE(InputMethodSystemAbility::serviceHandler_ == nullptr);
-
-    service->OnStop();
-    EXPECT_EQ(service->state_, ServiceRunningState::STATE_NOT_START);
-    service->OnStop();
-    delete service;
-    service = nullptr;
-}
+sptr<InputMethodSystemAbility> InputMethodPrivateMemberTest::service_;
 
 /**
 * @tc.name: SA_GetExtends
@@ -115,37 +107,101 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_GetExtends, TestSize.Level0)
 }
 
 /**
-* @tc.name: SA_OnPackageRemovedWithNullMessage
-* @tc.desc: SA OnPackageRemoved With Null Message.
+* @tc.name: SA_TestOnPackageRemoved
+* @tc.desc: SA_TestOnPackageRemoved
 * @tc.type: FUNC
-* @tc.require: issuesI640YZ
+* @tc.require:
 */
-HWTEST_F(InputMethodPrivateMemberTest, SA_OnPackageRemovedWithNullMessage, TestSize.Level0)
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnPackageRemoved, TestSize.Level0)
 {
-    InputMethodSystemAbility service;
-    constexpr int32_t messageId = 5;
-    auto *msg = new Message(messageId, nullptr);
-    auto ret = service.OnPackageRemoved(msg);
+    // msg is nullptr
+    auto *msg = new Message(MessageID::MSG_ID_PACKAGE_REMOVED, nullptr);
+    auto ret = service_->OnPackageRemoved(msg);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-    delete msg;
-    msg = nullptr;
+    MessageHandler::Instance()->SendMessage(msg);
+
+    // PARCELABLE failed
+    MessageParcel *parcel1 = new (std::nothrow) MessageParcel();
+    auto bundleName = "testBundleName1";
+    parcel1->WriteString(bundleName);
+    auto msg1 = std::make_shared<Message>(MessageID::MSG_ID_PACKAGE_REMOVED, parcel1);
+    auto ret1 = service_->OnPackageRemoved(msg1.get());
+    EXPECT_EQ(ret1, ErrorCode::ERROR_EX_PARCELABLE);
+
+    // userId is not same
+    auto parcel2 = new (std::nothrow) MessageParcel();
+    auto userId = 50;
+    service_->userId_ = 60;
+    parcel2->WriteInt32(userId);
+    parcel2->WriteString(bundleName);
+    auto msg2 = std::make_shared<Message>(MessageID::MSG_ID_PACKAGE_REMOVED, parcel2);
+    auto ret2 = service_->OnPackageRemoved(msg2.get());
+    EXPECT_EQ(ret2, ErrorCode::NO_ERROR);
+
+    //remove bundle not current ime
+    auto parcel3 = new (std::nothrow) MessageParcel();
+    service_->userId_ = userId;
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 60, "testBundleName/testExtName", "testSubName" });
+    parcel3->WriteInt32(userId);
+    parcel3->WriteString(bundleName);
+    auto msg3 = std::make_shared<Message>(MessageID::MSG_ID_PACKAGE_REMOVED, parcel3);
+    auto ret3 = service_->OnPackageRemoved(msg3.get());
+    EXPECT_EQ(ret3, ErrorCode::NO_ERROR);
 }
 
 /**
-* @tc.name: SA_OnUserStartedWithNullMessage
-* @tc.desc: SA OnUserStarted With Null Message.
+* @tc.name: SA_TestOnUserStarted
+* @tc.desc: SA_TestOnUserStarted.
 * @tc.type: FUNC
-* @tc.require: issuesI669E8
+* @tc.require:
 */
-HWTEST_F(InputMethodPrivateMemberTest, SA_OnUserStartedWithNullMessage, TestSize.Level0)
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
 {
-    InputMethodSystemAbility service;
-    constexpr int32_t messageId = 5;
-    auto *msg = new Message(messageId, nullptr);
-    auto ret = service.OnUserStarted(msg);
+    // msg is nullptr
+    auto *msg = new Message(MessageID::MSG_ID_USER_START, nullptr);
+    auto ret = service_->OnUserStarted(msg);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-    delete msg;
-    msg = nullptr;
+    MessageHandler::Instance()->SendMessage(msg);
+
+    // userId is same
+    service_->userId_ = 50;
+    MessageParcel *parcel1 = new MessageParcel();
+    parcel1->WriteInt32(50);
+    auto msg1 = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel1);
+    auto ret1 = service_->OnUserStarted(msg1.get());
+    EXPECT_EQ(ret1, ErrorCode::NO_ERROR);
+
+    //start ime failed
+    service_->userId_ = 50;
+    auto currentUserId = TddUtil::GetCurrentUserId();
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ currentUserId, "testBundleName/testExtName", "testSubName" });
+    auto parcel2 = new MessageParcel();
+    parcel2->WriteInt32(currentUserId);
+    auto msg2 = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel2);
+    auto ret2 = service_->OnUserStarted(msg2.get());
+    EXPECT_EQ(ret2, ErrorCode::ERROR_IME_START_FAILED);
+}
+
+/**
+* @tc.name: SA_TestOnUserRemoved
+* @tc.desc: SA_TestOnUserRemoved.
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserRemoved, TestSize.Level0)
+{
+    // msg is nullptr
+    auto *msg = new Message(MessageID::MSG_ID_USER_START, nullptr);
+    auto ret = service_->OnUserRemoved(msg);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    MessageHandler::Instance()->SendMessage(msg);
+
+    // move userId
+    MessageParcel *parcel1 = new MessageParcel();
+    parcel1->WriteInt32(60);
+    auto msg1 = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel1);
+    auto ret1 = service_->OnUserRemoved(msg1.get());
+    EXPECT_EQ(ret1, ErrorCode::NO_ERROR);
 }
 
 /**
@@ -233,8 +289,6 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionClientError, TestSize.Level
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     ret = userSession->OnShowKeyboardSelf();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
-    bool result = userSession->IsFocused(1, 1);
-    EXPECT_FALSE(result);
 
     userSession->SetCurrentClient(imc->clientInfo_.client);
     ret = userSession->OnShowKeyboardSelf();
@@ -306,6 +360,421 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr003, TestSi
     userSession->SetImsCore(CURRENT_IME, core);
     int32_t ret = userSession->ClearDataChannel(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
+ * @tc.name: SA_ImeCfgManagerTest_002
+ * @tc.desc: getImeCfg failed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_ImeCfgManagerTest_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest SA_ImeCfgManagerTest_002 TEST START");
+    ImeCfgManager cfgManager;
+    auto cfg = cfgManager.GetImeCfg(100);
+    EXPECT_TRUE(cfg.currentSubName.empty());
+    EXPECT_TRUE(cfg.currentIme.empty());
+}
+
+/**
+ * @tc.name: SA_SwitchByCombinationKey_001
+ * @tc.desc: keycode = MMI::KeyEvent::KEYCODE_0
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_001 TEST START");
+    ImeCfgManager cfgManager;
+    auto ret = service_->SwitchByCombinationKey(0);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION);
+}
+
+/**
+ * @tc.name: SA_SwitchByCombinationKey_002
+ * @tc.desc: SwitchLanguage()/SwitchMode():GetImeInfo failed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_002 TEST START");
+    ImeCfgManager cfgManager;
+    auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+}
+
+/**
+ * @tc.name: SA_SwitchByCombinationKey_003
+ * @tc.desc: SwitchLanguage()/SwitchMode():is newIme
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_003 TEST START");
+    ImeCfgManager cfgManager;
+    service_->userId_ = 50;
+    ImeInfo info;
+    info.isNewIme = true;
+    info.prop = { .name = "testBundleName" };
+    info.subProp = { .id = "testSubName" };
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
+    auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: SA_SwitchByCombinationKey_004
+ * @tc.desc: SwitchLanguage():info.subProp.language == "French"
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_004, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_004 TEST START");
+    service_->userId_ = 50;
+    ImeInfo info;
+    info.prop = { .name = "testBundleName", .id = "testExtName" };
+    info.subProp = { .name = "testBundleName", .id = "testSubName", .language = "French" };
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
+    auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: SA_SwitchByCombinationKey_005
+ * @tc.desc: SwitchLanguage()/SwitchMode():GetImeSubProp failed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_005, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_005 TEST START");
+    service_->userId_ = 50;
+    ImeInfo info;
+    info.prop = { .name = "testBundleName", .id = "testExtName" };
+    info.subProp = {
+        .name = "testBundleName",
+        .id = "testSubName",
+        .mode = "upper",
+        .language = "english",
+    };
+    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" } };
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
+    auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+}
+
+/**
+ * @tc.name: SA_SwitchByCombinationKey_006
+ * @tc.desc: SwitchLanguage()/SwitchMode():StartInputService() failed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_006, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_006 TEST START");
+    service_->userId_ = 50;
+    ImeInfo info;
+    info.prop = { .name = "testBundleName", .id = "testExtName" };
+    info.subProp = { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" };
+    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" },
+        { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" } };
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
+    // english->chinese
+    auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+    // upper->lower
+    ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+
+    info.subProp = { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" };
+    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" },
+        { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" } };
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName1" });
+    // chinese->english
+    ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+    // lower->upper
+    ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+}
+
+/**
+ * @tc.name: SA_SwitchByCombinationKey_007
+ * @tc.desc: SwitchType():StartInputService() failed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_007, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_007 TEST START");
+    auto userId = TddUtil::GetCurrentUserId();
+    service_->userId_ = userId;
+    std::vector<Property> props;
+    InputMethodController::GetInstance()->ListInputMethod(props);
+    if (props.size() == 1) {
+        auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK | KeyboardEvent::CTRL_RIGHT_MASK);
+        EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+    }
+}
+
+/**
+ * @tc.name: SA_SwitchByCombinationKey_008
+ * @tc.desc: SwitchType():find_if failed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_008, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_008 TEST START");
+    auto userId = TddUtil::GetCurrentUserId();
+    service_->userId_ = userId;
+    auto prop = InputMethodController::GetInstance()->GetCurrentInputMethod();
+    auto subProp = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ userId, prop->name + "/" + prop->id, subProp->id });
+    std::vector<Property> props;
+    InputMethodController::GetInstance()->ListInputMethod(props);
+    if (props.size() == 1) {
+        auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK | KeyboardEvent::CTRL_RIGHT_MASK);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    }
+}
+
+/**
+ * @tc.name: SA_testReleaseInput_001
+ * @tc.desc: client is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, SA_testReleaseInput_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest SA_testReleaseInput_001 TEST START");
+    auto ret = service_->ReleaseInput(nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
+ * @tc.name: III_TestParseSubProp_001
+ * @tc.desc: json not contain label/id/icon/mode/locale
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_001 TEST START");
+    nlohmann::json js;
+    js["test"] = "test";
+    SubProperty subProp{};
+    ImeInfoInquirer::GetInstance().ParseSubProp(js, subProp);
+    EXPECT_TRUE(subProp.label.empty());
+    EXPECT_TRUE(subProp.icon.empty());
+}
+
+/**
+ * @tc.name: III_TestParseSubProp_002
+ * @tc.desc: json contain label/id/icon/mode/locale,but not correct type
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_002 TEST START");
+    nlohmann::json js;
+    js["label"] = 100;
+    js["id"] = 100;
+    js["icon"] = 100;
+    js["mode"] = 100;
+    js["locale"] = 100;
+    SubProperty subProp{};
+    ImeInfoInquirer::GetInstance().ParseSubProp(js, subProp);
+    EXPECT_TRUE(subProp.label.empty());
+    EXPECT_TRUE(subProp.icon.empty());
+    EXPECT_TRUE(subProp.id.empty());
+    EXPECT_TRUE(subProp.mode.empty());
+    EXPECT_TRUE(subProp.locale.empty());
+}
+
+/**
+ * @tc.name: III_TestParseSubProp_003
+ * @tc.desc: json contain label/id/icon/mode/locale,but not correct type
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_003 TEST START");
+    nlohmann::json js;
+    js["label"] = 100;
+    js["id"] = 100;
+    js["icon"] = 100;
+    js["mode"] = 100;
+    js["locale"] = 100;
+    SubProperty subProp{};
+    ImeInfoInquirer::GetInstance().ParseSubProp(js, subProp);
+    EXPECT_TRUE(subProp.label.empty());
+    EXPECT_TRUE(subProp.icon.empty());
+    EXPECT_TRUE(subProp.id.empty());
+    EXPECT_TRUE(subProp.mode.empty());
+    EXPECT_TRUE(subProp.locale.empty());
+}
+
+/**
+ * @tc.name: III_TestParseSubProp_004
+ * @tc.desc: js num >MAX_SUBTYPE_NUM
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_004, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_004 TEST START");
+    constexpr int32_t jsNum = 300;
+    nlohmann::json js;
+    for (uint32_t i = 0; i < jsNum; i++) {
+        nlohmann::json temp;
+        temp["label"] = 100;
+        js["subtypes"].push_back(temp);
+    }
+    std::vector<SubProperty> subProps;
+    ImeInfoInquirer::GetInstance().ParseSubProp(js, subProps);
+    EXPECT_EQ(subProps.size(), MAX_SUBTYPE_NUM);
+}
+
+/**
+ * @tc.name: III_TestParseSubProp_005
+ * @tc.desc: profiles is abnormal
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_005, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_005 TEST START");
+    std::vector<std::string> profiles;
+    std::vector<SubProperty> subProps;
+    auto ret = ImeInfoInquirer::GetInstance().ParseSubProp(profiles, subProps);
+    EXPECT_FALSE(ret);
+    profiles.emplace_back("AA");
+    profiles.emplace_back("BB");
+    ret = ImeInfoInquirer::GetInstance().ParseSubProp(profiles, subProps);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: III_TestGetCurrentInputMethodSubtype_001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentInputMethodSubtype_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestGetCurrentInputMethodSubtype_001 TEST START");
+    // currentIme is empty
+    auto currentUserId = TddUtil::GetCurrentUserId();
+    auto subProp = ImeInfoInquirer::GetInstance().GetCurrentInputMethodSubtype(currentUserId);
+    EXPECT_TRUE(subProp == nullptr);
+
+    // subName is not find
+    auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
+    ImeCfgManager::GetInstance().imeConfigs_.push_back(
+        { currentUserId, currentProp->name + "/" + currentProp->id, "tt" });
+    subProp = ImeInfoInquirer::GetInstance().GetCurrentInputMethodSubtype(currentUserId);
+    EXPECT_TRUE(subProp != nullptr);
+    EXPECT_TRUE(subProp->name == currentProp->name);
+
+    // get correct subProp
+    auto currentSubProp = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
+    ImeCfgManager::GetInstance().imeConfigs_.push_back(
+        { currentUserId, currentProp->name + "/" + currentProp->id, currentSubProp->id });
+    subProp = ImeInfoInquirer::GetInstance().GetCurrentInputMethodSubtype(currentUserId);
+    ASSERT_TRUE(subProp != nullptr);
+    EXPECT_TRUE(subProp->id == currentSubProp->id);
+}
+
+/**
+ * @tc.name: III_TestGetCurrentInputMethod_001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentInputMethod_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestGetCurrentInputMethod_001 TEST START");
+    // currentIme is empty
+    auto currentUserId = TddUtil::GetCurrentUserId();
+    auto prop = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(currentUserId);
+    EXPECT_TRUE(prop == nullptr);
+
+    // get correct prop
+    auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
+    ImeCfgManager::GetInstance().imeConfigs_.push_back(
+        { currentUserId, currentProp->name + "/" + currentProp->id, "test" });
+    prop = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(currentUserId);
+    ASSERT_TRUE(prop != nullptr);
+    EXPECT_TRUE(prop->id == currentProp->id);
+}
+
+/**
+ * @tc.name: III_TestListEnabledInputMethod_001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestListEnabledInputMethod_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestListEnabledInputMethod_001 TEST START");
+    // currentIme is empty
+    std::vector<Property> props;
+    auto currentUserId = TddUtil::GetCurrentUserId();
+    auto ret = ImeInfoInquirer::GetInstance().ListEnabledInputMethod(currentUserId, props);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
+ * @tc.name: III_TestListCurrentInputMethodSubtype_001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestListCurrentInputMethodSubtype_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestListCurrentInputMethodSubtype_001 TEST START");
+    // currentIme is empty
+    std::vector<SubProperty> subProps;
+    auto currentUserId = TddUtil::GetCurrentUserId();
+    auto ret = ImeInfoInquirer::GetInstance().ListCurrentInputMethodSubtype(currentUserId, subProps);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
 } // namespace MiscServices
 } // namespace OHOS
