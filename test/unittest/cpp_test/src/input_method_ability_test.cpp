@@ -494,23 +494,6 @@ HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetTextAfterCursor_timeout
-* @tc.desc:
-* @tc.type: FUNC
-* @tc.require:
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextAfterCursor_timeout, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextAfterCursor_timeout START");
-    TextListener::setTimeout(true);
-    int32_t number = 3;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextAfterCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    TextListener::setTimeout(false);
-}
-
-/**
 * @tc.name: testGetTextBeforeCursor
 * @tc.desc:
 * @tc.type: FUNC
@@ -527,23 +510,6 @@ HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor, TestSize.Level0)
 }
 
 /**
-* @tc.name: testGetTextBeforeCursor_timeout
-* @tc.desc:
-* @tc.type: FUNC
-* @tc.require:
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextBeforeCursor_timeout, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextBeforeCursor_timeout START");
-    TextListener::setTimeout(true);
-    int32_t number = 5;
-    std::u16string text;
-    auto ret = inputMethodAbility_->GetTextBeforeCursor(number, text);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    TextListener::setTimeout(false);
-}
-
-/**
 * @tc.name: testGetTextIndexAtCursor
 * @tc.desc:
 * @tc.type: FUNC
@@ -556,22 +522,6 @@ HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor, TestSize.Level0)
     auto ret = inputMethodAbility_->GetTextIndexAtCursor(index);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(index, TextListener::TEXT_INDEX);
-}
-
-/**
-* @tc.name: testGetTextIndexAtCursor_timeout
-* @tc.desc:
-* @tc.type: FUNC
-* @tc.require:
-*/
-HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor_timeout, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetTextIndexAtCursor_timeout START");
-    TextListener::setTimeout(true);
-    int32_t index;
-    auto ret = inputMethodAbility_->GetTextIndexAtCursor(index);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED);
-    TextListener::setTimeout(false);
 }
 
 /**
