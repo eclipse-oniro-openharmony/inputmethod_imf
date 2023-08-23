@@ -131,7 +131,7 @@ HWTEST_F(IdentityCheckerTest, testPrepareInput_002, TestSize.Level0)
 
 /**
  * @tc.name: testPrepareInput_003
- * @tc.desc: is broker, is focused app
+ * @tc.desc: is broker, focused app
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
