@@ -692,7 +692,7 @@ int32_t InputMethodSystemAbility::SwitchMode()
         return ret;
     }
     if (info.isNewIme) {
-        IMSA_HILOGD("the switching");
+        IMSA_HILOGD("the switching operation is handed over to ime");
         return ErrorCode::NO_ERROR;
     }
     auto condition = info.subProp.mode == "upper" ? Condition::LOWER : Condition::UPPER;
@@ -717,7 +717,7 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
         return ret;
     }
     if (info.isNewIme) {
-        IMSA_HILOGD("the switching");
+        IMSA_HILOGD("the switching operation is handed over to ime");
         return ErrorCode::NO_ERROR;
     }
     if (info.subProp.language != "chinese" && info.subProp.language != "english") {

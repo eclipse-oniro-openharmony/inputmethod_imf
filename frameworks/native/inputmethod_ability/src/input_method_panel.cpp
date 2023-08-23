@@ -39,13 +39,13 @@ int32_t InputMethodPanel::CreatePanel(
     if (winOption_ == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    winOption_->SetWindowType(OHOS::Rosen::WindowType::WINDOW_TYPE_INPUT_METHOD_FLOAT);
+    if (panelInfo.panelType == PanelType::STATUS_BAR) {
+        winOption_->SetWindowType(OHOS::Rosen::WindowType::WINDOW_TYPE_INPUT_METHOD_STATUS_BAR);
+    } else {
+        winOption_->SetWindowType(OHOS::Rosen::WindowType::WINDOW_TYPE_INPUT_METHOD_FLOAT);
+    }
     WMError wmError = WMError::WM_OK;
-    uint32_t sequenceId = GenerateSequenceId();
-    std::string windowName = panelType_ == SOFT_KEYBOARD ? "softKeyboard" + std::to_string(sequenceId)
-                                                         : "statusBar" + std::to_string(sequenceId);
-    IMSA_HILOGD("InputMethodPanel,  windowName = %{public}s", windowName.c_str());
-    window_ = OHOS::Rosen::Window::Create(windowName, winOption_, context, wmError);
+    window_ = OHOS::Rosen::Window::Create(GeneratePanelName(), winOption_, context, wmError);
     if (wmError == WMError::WM_ERROR_INVALID_PERMISSION || wmError == WMError::WM_ERROR_NOT_SYSTEM_APP) {
         IMSA_HILOGE("Create window failed, permission denied, %{public}d", wmError);
         return ErrorCode::ERROR_NOT_IME;
@@ -63,6 +63,15 @@ int32_t InputMethodPanel::CreatePanel(
     return ErrorCode::NO_ERROR;
 }
 
+std::string InputMethodPanel::GeneratePanelName()
+{
+    uint32_t sequenceId = GenerateSequenceId();
+    std::string windowName = panelType_ == SOFT_KEYBOARD ? "softKeyboard" + std::to_string(sequenceId)
+                                                         : "statusBar" + std::to_string(sequenceId);
+    IMSA_HILOGD("InputMethodPanel,  windowName = %{public}s", windowName.c_str());
+    return windowName;
+}
+
 int32_t InputMethodPanel::SetPanelProperties()
 {
     if (window_ == nullptr) {
@@ -72,9 +81,13 @@ int32_t InputMethodPanel::SetPanelProperties()
     WindowGravity gravity = WindowGravity::WINDOW_GRAVITY_FLOAT;
     if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
         gravity = WindowGravity::WINDOW_GRAVITY_BOTTOM;
-    } else if (panelFlag_ == FLG_FLOATING) {
+    } else if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FLOATING) {
         window_->GetSurfaceNode()->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
         Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    } else if (panelType_ == STATUS_BAR) {
+        window_->GetSurfaceNode()->SetFrameGravity(Rosen::Gravity::TOP_LEFT);
+        Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        return ErrorCode::NO_ERROR;
     }
     WMError wmError = window_->SetWindowGravity(gravity, invalidGravityPercent);
     if (wmError != WMError::WM_OK) {
