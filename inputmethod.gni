@@ -24,3 +24,5 @@ windowmanager_path = "//foundation/window/window_manager"
 bundllemanager_path = "//foundation/bundlemanager/bundle_framework"
 
 multimodalinput_path = "//foundation/multimodalinput/input"
+
+resourceschedule_ffrt_path = "//foundation/resourceschedule/ffrt"
