@@ -183,14 +183,15 @@ private:
             IMSA_HILOGI("startAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
-                IMSA_HILOGW("context is released");
                 task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
                 return;
             }
             ErrCode errcode = (argc == ARGC_TWO) ? context->StartAbilityWithAccount(want, accountId)
                                                  : context->StartAbilityWithAccount(want, accountId, startOptions);
-            errcode == 0 ? task.Resolve(engine, engine.CreateUndefined())
-                         : task.Reject(engine, CreateJsError(engine, errcode, "Start Ability failed."));
+            if (errcode == 0) {
+                task.Resolve(engine, engine.CreateUndefined());
+            }
+            task.Reject(engine, CreateJsError(engine, errcode, "Start Ability failed."));
         };
         NativeValue *lastParam = (info.argc == argc) ? nullptr : info.argv[argc];
         NativeValue *result = nullptr;

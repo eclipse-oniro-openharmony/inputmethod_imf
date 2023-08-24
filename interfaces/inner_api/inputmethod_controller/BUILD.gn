@@ -18,10 +18,12 @@ config("inputmethod_client_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
+    "${inputmethod_path}/common",
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/services/dfx/include",
     "${inputmethod_path}/services/include",
+    "${resourceschedule_ffrt_path}/interfaces/kits",
   ]
 }
 
@@ -112,6 +114,7 @@ ohos_static_library("inputmethod_client_static") {
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
