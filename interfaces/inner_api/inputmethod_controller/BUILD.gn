@@ -18,7 +18,6 @@ config("inputmethod_client_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
-    "${inputmethod_path}/common",
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/services/dfx/include",
@@ -31,7 +30,6 @@ config("inputmethod_client_native_public_config") {
   visibility = [ "./*" ]
   include_dirs = [
     "include",
-    "${inputmethod_path}/common",
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",

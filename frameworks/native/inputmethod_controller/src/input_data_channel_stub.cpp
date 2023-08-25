@@ -15,7 +15,7 @@
 
 #include "input_data_channel_stub.h"
 
-#include "ffrt_utils.h"
+#include "ffrt_inner.h"
 #include "global.h"
 #include "input_method_controller.h"
 #include "ipc_object_stub.h"
@@ -26,8 +26,6 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t MAX_TIMEOUT = 2500;
-using BlockTask = std::function<int32_t()>;
-using BlockTaskVoid = std::function<void()>;
 InputDataChannelStub::InputDataChannelStub()
 {
 }
