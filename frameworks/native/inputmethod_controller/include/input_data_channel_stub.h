@@ -54,6 +54,12 @@ public:
     int32_t GetTextConfig(TextTotalConfig &textConfig) override;
 
 private:
+    template<class T>
+    struct ResultInfo {
+        T data;
+        int32_t errCode{0};
+    };
+
     int32_t InsertTextOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t DeleteForwardOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t DeleteBackwardOnRemote(MessageParcel &data, MessageParcel &reply);
