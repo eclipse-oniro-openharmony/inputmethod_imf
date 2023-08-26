@@ -321,7 +321,7 @@ int32_t InputDataChannelStub::GetInputPattern(int32_t &inputPattern)
     auto ret = std::make_shared<BlockData<ResultInfo<int32_t>>>(MAX_TIMEOUT);
     auto blockTask = [ret]() {
         ResultInfo<int32_t> info;
-        info.errCode = InputMethodController::GetInstance()->GetEnterKeyType(info.data);
+        info.errCode = InputMethodController::GetInstance()->GetInputPattern(info.data);
         ret->SetValue(info);
     };
     ffrt::submit(blockTask);
