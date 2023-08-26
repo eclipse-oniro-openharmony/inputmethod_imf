@@ -330,5 +330,10 @@ napi_value JsUtils::GetValue(napi_env env, const InputAttribute &attribute)
     ret = ret && JsUtil::Object::WriteProperty(env, editorAttribute, "enterKeyType", attribute.enterKeyType);
     return ret ? editorAttribute : JsUtil::Const::Null(env);
 }
+
+napi_status JsUtils::GetValue(napi_env env, const std::string &in, napi_value &out)
+{
+    return napi_create_string_utf8(env, in.c_str(), in.size(), &out);
+}
 } // namespace MiscServices
 } // namespace OHOS
