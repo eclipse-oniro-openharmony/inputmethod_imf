@@ -22,6 +22,7 @@ group("unittest") {
     "cpp_test:IdentityCheckerTest",
     "cpp_test:InputMethodAbilityTest",
     "cpp_test:InputMethodAttachTest",
+    "cpp_test:TextListenerInnerApiTest",
     "cpp_test:InputMethodControllerTest",
     "cpp_test:InputMethodDfxTest",
     "cpp_test:InputMethodEditorTest",

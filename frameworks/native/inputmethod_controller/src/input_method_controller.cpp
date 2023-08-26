@@ -608,6 +608,7 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
 
 int32_t InputMethodController::GetLeft(int32_t length, std::u16string &text)
 {
+    IMSA_HILOGD("run in, length: %{public}d", length);
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or listener is nullptr");
@@ -619,6 +620,7 @@ int32_t InputMethodController::GetLeft(int32_t length, std::u16string &text)
 
 int32_t InputMethodController::GetRight(int32_t length, std::u16string &text)
 {
+    IMSA_HILOGD("run in, length: %{public}d", length);
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
@@ -630,6 +632,7 @@ int32_t InputMethodController::GetRight(int32_t length, std::u16string &text)
 
 int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 {
+    IMSA_HILOGD("run in");
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
@@ -925,7 +928,7 @@ void InputMethodController::SetTextListener(sptr<OnTextChangedListener> listener
 
 int32_t InputMethodController::InsertText(const std::u16string &text)
 {
-    IMSA_HILOGD("insert text");
+    IMSA_HILOGD("in");
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener is nullptr");
@@ -937,7 +940,7 @@ int32_t InputMethodController::InsertText(const std::u16string &text)
 
 int32_t InputMethodController::DeleteForward(int32_t length)
 {
-    IMSA_HILOGD("delete forward");
+    IMSA_HILOGD("run in, length: %{public}d", length);
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener is nullptr");
@@ -950,7 +953,7 @@ int32_t InputMethodController::DeleteForward(int32_t length)
 
 int32_t InputMethodController::DeleteBackward(int32_t length)
 {
-    IMSA_HILOGD("delete backward");
+    IMSA_HILOGD("run in, length: %{public}d", length);
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener is nullptr");
@@ -963,7 +966,7 @@ int32_t InputMethodController::DeleteBackward(int32_t length)
 
 int32_t InputMethodController::MoveCursor(Direction direction)
 {
-    IMSA_HILOGD("move cursor");
+    IMSA_HILOGD("run in, direction: %{public}d", static_cast<int32_t>(direction));
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
@@ -975,6 +978,7 @@ int32_t InputMethodController::MoveCursor(Direction direction)
 
 void InputMethodController::SendKeyboardStatus(int32_t status)
 {
+    IMSA_HILOGD("run in, status: %{public}d", status);
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");

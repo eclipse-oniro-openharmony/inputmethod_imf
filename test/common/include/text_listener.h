@@ -58,6 +58,7 @@ public:
     static int32_t selectionStart_;
     static int32_t selectionEnd_;
     static int32_t selectionDirection_;
+    static int32_t selectionSkip_;
     static int32_t action_;
     static KeyboardStatus keyboardStatus_;
     static bool isTimeout_;
