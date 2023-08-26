@@ -18,33 +18,22 @@
 #define protected public
 #include "input_method_ability.h"
 #undef private
-
+#include "input_method_engine_listener_impl.h"
 #include "key_event_util.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t DEALY_TIME = 20;
 class InputMethodAbilityExceptionTest : public testing::Test {
 public:
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodAbilityExceptionTest::SetUpTestCase");
         inputMethodAbility_ = InputMethodAbility::GetInstance();
-        inputMethodAbility_->SetCoreAndAgent();
-        inputMethodAbility_->OnImeReady();
-        imeListener_ = std::make_shared<ImeListenerImpl>();
-        inputMethodAbility_->SetImeListener(imeListener_);
-        std::unique_lock<std::mutex> lock(lock_);
-        cv_.wait_for(lock, std::chrono::milliseconds(DEALY_TIME),
-            [] { return InputMethodAbilityExceptionTest::isInputStart_; });
-        inputMethodAbility_->dataChannelProxy_ = nullptr;
-        inputMethodAbility_->dataChannelObject_ = nullptr;
     }
     static void TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodAbilityExceptionTest::TearDownTestCase");
-        inputMethodAbility_->imeListener_ = nullptr;
     }
     void SetUp()
     {
@@ -52,47 +41,17 @@ public:
     void TearDown()
     {
     }
-    class ImeListenerImpl : public InputMethodEngineListener {
-    public:
-        ImeListenerImpl(){};
-        ~ImeListenerImpl(){};
-        void OnKeyboardStatus(bool isShow) override;
-        void OnInputStart() override;
-        void OnInputStop(const std::string &imeId) override;
-        void OnSetCallingWindow(uint32_t windowId) override;
-        void OnSetSubtype(const SubProperty &property) override;
-    };
+    static void ResetMemberVar()
+    {
+        inputMethodAbility_->isImeReady_ = false;
+        inputMethodAbility_->dataChannelProxy_ = nullptr;
+        inputMethodAbility_->dataChannelObject_ = nullptr;
+        inputMethodAbility_->imeListener_ = nullptr;
+        inputMethodAbility_->panels_.Clear();
+    }
     static sptr<InputMethodAbility> inputMethodAbility_;
-
-private:
-    static std::shared_ptr<ImeListenerImpl> imeListener_;
-    static std::mutex lock_;
-    static std::condition_variable cv_;
-    static bool isInputStart_;
 };
-void InputMethodAbilityExceptionTest::ImeListenerImpl::OnKeyboardStatus(bool isShow)
-{
-}
-void InputMethodAbilityExceptionTest::ImeListenerImpl::OnInputStart()
-{
-    std::unique_lock<std::mutex> lock(InputMethodAbilityExceptionTest::lock_);
-    InputMethodAbilityExceptionTest::isInputStart_ = true;
-    InputMethodAbilityExceptionTest::cv_.notify_one();
-}
-void InputMethodAbilityExceptionTest::ImeListenerImpl::OnInputStop(const std::string &imeId)
-{
-}
-void InputMethodAbilityExceptionTest::ImeListenerImpl::OnSetCallingWindow(uint32_t windowId)
-{
-}
-void InputMethodAbilityExceptionTest::ImeListenerImpl::OnSetSubtype(const SubProperty &property)
-{
-}
 sptr<InputMethodAbility> InputMethodAbilityExceptionTest::inputMethodAbility_;
-std::shared_ptr<InputMethodAbilityExceptionTest::ImeListenerImpl> InputMethodAbilityExceptionTest::imeListener_;
-std::mutex InputMethodAbilityExceptionTest::lock_;
-std::condition_variable InputMethodAbilityExceptionTest::cv_;
-bool InputMethodAbilityExceptionTest::isInputStart_ = false;
 
 /**
  * @tc.name: testMoveCursorException
@@ -161,9 +120,25 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSendExtendActionException, TestSiz
 HWTEST_F(InputMethodAbilityExceptionTest, testSelectByRangeException, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testSelectByRange START");
-    constexpr int32_t start = 1;
-    constexpr int32_t end = 2;
+    // start < 0, end < 0
+    int32_t start = -1;
+    int32_t end = -2;
     auto ret = inputMethodAbility_->SelectByRange(start, end);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    // start < 0, end >0
+    start = -1;
+    end = 2;
+    ret = inputMethodAbility_->SelectByRange(start, end);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    //end < 0, start > 0
+    start = 1;
+    end = -2;
+    ret = inputMethodAbility_->SelectByRange(start, end);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    // dataChannel == nullptr
+    start = 1;
+    end = 2;
+    ret = inputMethodAbility_->SelectByRange(start, end);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -248,9 +223,135 @@ HWTEST_F(InputMethodAbilityExceptionTest, testGetEnterKeyTypeException, TestSize
 HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest DispatchKeyEvent START");
-    auto keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
+    // keyEvent == nullptr;
+    std::shared_ptr<MMI::KeyEvent> keyEvent = nullptr;
     auto ret = inputMethodAbility_->DispatchKeyEvent(keyEvent);
     EXPECT_FALSE(ret);
+
+    // kdListener_ == nullptr
+    keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
+    ret = inputMethodAbility_->DispatchKeyEvent(keyEvent);
+    EXPECT_FALSE(ret);
 }
+
+/**
+ * @tc.name: testHideKeyboardSelf_001
+ * @tc.desc: controlChannel == nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboardSelf_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest testHideKeyboardSelf_001 START");
+    auto ret = inputMethodAbility_->HideKeyboardSelf();
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
+ * @tc.name: testShowKeyboard_001
+ * @tc.desc: ShowKeyboard Exception
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest testShowKeyboard_001 START");
+    // channelObject == nullptr
+    auto ret = inputMethodAbility_->ShowKeyboard(nullptr, false, true);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+
+    // GetTextConfig failed
+    sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
+    ret = inputMethodAbility_->ShowKeyboard(channelObject->AsObject(), false, true);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_READY);
+
+    ResetMemberVar();
+}
+
+/**
+ * @tc.name: testShowInputWindow_001
+ * @tc.desc: ShowInputWindow Exception
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, testShowInputWindow_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest testShowInputWindow_001 START");
+    // isImeReady_ is false
+    auto ret = inputMethodAbility_->ShowInputWindow(true);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_READY);
+
+    // imeListener_ == nullptr
+    inputMethodAbility_->isImeReady_ = true;
+    ret = inputMethodAbility_->ShowInputWindow(true);
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
+
+    // channel == nullptr
+    auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
+    inputMethodAbility_->SetImeListener(imeListener);
+    ret = inputMethodAbility_->ShowInputWindow(true);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+
+    // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
+    sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
+    inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
+    auto panel = std::make_shared<InputMethodPanel>();
+    panel->panelFlag_ = FLG_CANDIDATE_COLUMN;
+    inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
+    ret = inputMethodAbility_->ShowInputWindow(true);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // ShowPanel failed
+    inputMethodAbility_->panels_.Clear();
+    panel->panelFlag_ = FLG_FIXED;
+    inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
+    ret = inputMethodAbility_->ShowInputWindow(true);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    ResetMemberVar();
+}
+
+/**
+ * @tc.name: testHideKeyboard_001
+ * @tc.desc: HideKeyboard Exception
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest testHideKeyboard_001 START");
+    // imeListener_ == nullptr
+    auto ret = inputMethodAbility_->HideKeyboard();
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
+
+    // channel == nullptr
+    auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
+    inputMethodAbility_->SetImeListener(imeListener);
+    ret = inputMethodAbility_->HideKeyboard();
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+
+    // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
+    sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
+    inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
+    auto panel = std::make_shared<InputMethodPanel>();
+    panel->panelFlag_ = FLG_CANDIDATE_COLUMN;
+    inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
+    ret = inputMethodAbility_->HideKeyboard();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // ShowPanel failed
+    inputMethodAbility_->panels_.Clear();
+    panel->panelFlag_ = FLG_FIXED;
+    inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
+    ret = inputMethodAbility_->HideKeyboard();
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    ResetMemberVar();
+}
+
 } // namespace MiscServices
 } // namespace OHOS

@@ -133,7 +133,7 @@ std::shared_ptr<ImeNativeCfg> ImeCfgManager::GetCurrentImeCfg(int32_t userId)
 void ImeCfgManager::FromJson(const json &jsonConfigs, std::vector<ImePersistCfg> &configs)
 {
     if (!jsonConfigs.contains("imeCfg_list")) {
-        IMSA_HILOGE("imeCfg_list not find");
+        IMSA_HILOGE("imeCfg_list is not contained or is not a array");
         return;
     }
     for (auto &jsonCfg : jsonConfigs["imeCfg_list"]) {

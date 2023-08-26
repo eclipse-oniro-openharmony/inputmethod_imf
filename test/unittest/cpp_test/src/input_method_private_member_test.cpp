@@ -84,6 +84,20 @@ void InputMethodPrivateMemberTest::TearDown(void)
 sptr<InputMethodSystemAbility> InputMethodPrivateMemberTest::service_;
 
 /**
+* @tc.name: SA_TestOnStart
+* @tc.desc: SA OnStart.
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnStart, TestSize.Level0)
+{
+    InputMethodSystemAbility ability;
+    ability.state_ = ServiceRunningState::STATE_RUNNING;
+    ability.OnStart();
+    EXPECT_EQ(ability.userSession_, nullptr);
+}
+
+/**
 * @tc.name: SA_GetExtends
 * @tc.desc: SA GetExtends.
 * @tc.type: FUNC
@@ -191,7 +205,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
 HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserRemoved, TestSize.Level0)
 {
     // msg is nullptr
-    auto *msg = new Message(MessageID::MSG_ID_USER_START, nullptr);
+    auto *msg = new Message(MessageID::MSG_ID_USER_REMOVED, nullptr);
     auto ret = service_->OnUserRemoved(msg);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
     MessageHandler::Instance()->SendMessage(msg);
@@ -199,7 +213,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserRemoved, TestSize.Level0)
     // move userId
     MessageParcel *parcel1 = new MessageParcel();
     parcel1->WriteInt32(60);
-    auto msg1 = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel1);
+    auto msg1 = std::make_shared<Message>(MessageID::MSG_ID_USER_REMOVED, parcel1);
     auto ret1 = service_->OnUserRemoved(msg1.get());
     EXPECT_EQ(ret1, ErrorCode::NO_ERROR);
 }
@@ -507,8 +521,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_006, TestSize.L
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
 
-    info.subProp = { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" };
-    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" },
+    info.subProp = { .name = "testBundleName", .id = "testSubName1", .mode = "upper", .language = "chinese" };
+    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "lower", .language = "english" },
         { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" } };
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
     ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName1" });
@@ -622,7 +636,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_002, TestSize.Level0
 
 /**
  * @tc.name: III_TestParseSubProp_003
- * @tc.desc: json contain label/id/icon/mode/locale,but not correct type
+ * @tc.desc: json is array, not contain subtypes
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: chenyu
@@ -630,24 +644,22 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_002, TestSize.Level0
 HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_003 TEST START");
+    constexpr int32_t jsNum = 300;
     nlohmann::json js;
-    js["label"] = 100;
-    js["id"] = 100;
-    js["icon"] = 100;
-    js["mode"] = 100;
-    js["locale"] = 100;
-    SubProperty subProp{};
-    ImeInfoInquirer::GetInstance().ParseSubProp(js, subProp);
-    EXPECT_TRUE(subProp.label.empty());
-    EXPECT_TRUE(subProp.icon.empty());
-    EXPECT_TRUE(subProp.id.empty());
-    EXPECT_TRUE(subProp.mode.empty());
-    EXPECT_TRUE(subProp.locale.empty());
+    for (uint32_t i = 0; i < jsNum; i++) {
+        nlohmann::json temp;
+        temp["label"] = 100;
+        js["test"].push_back(temp);
+    }
+    std::vector<SubProperty> subProps;
+    auto ret = ImeInfoInquirer::GetInstance().ParseSubProp(js, subProps);
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(subProps.empty());
 }
 
 /**
  * @tc.name: III_TestParseSubProp_004
- * @tc.desc: js num >MAX_SUBTYPE_NUM
+ * @tc.desc: json contain subtypes, but not array
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: chenyu
@@ -655,6 +667,73 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_003, TestSize.Level0
 HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_004 TEST START");
+    nlohmann::json js;
+    js["subtypes"] = 100;
+    std::vector<SubProperty> subProps;
+    auto ret = ImeInfoInquirer::GetInstance().ParseSubProp(js, subProps);
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(subProps.empty());
+}
+
+/**
+ * @tc.name: III_TestParseSubProp_005
+ * @tc.desc: json contain subtypes, is a empty array
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_005, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_005 TEST START");
+    nlohmann::json js;
+    js["subtypes"] = nlohmann::json::array();
+    std::vector<SubProperty> subProps;
+    auto ret = ImeInfoInquirer::GetInstance().ParseSubProp(js, subProps);
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(subProps.empty());
+}
+
+/**
+ * @tc.name: III_TestParseSubProp_006
+ * @tc.desc: json contain subtypes, is a array
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_006, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_006 TEST START");
+    constexpr int32_t jsNum = 1;
+    nlohmann::json js;
+    for (uint32_t i = 0; i < jsNum; i++) {
+        nlohmann::json temp;
+        temp["label"] = "label";
+        temp["id"] = "id";
+        temp["icon"] = 100;
+        temp["mode"] = "mode";
+        temp["locale"] = "locale";
+        js["subtypes"].push_back(temp);
+    }
+    std::vector<SubProperty> subProps;
+    auto ret = ImeInfoInquirer::GetInstance().ParseSubProp(js, subProps);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(subProps[0].label, "label");
+    EXPECT_EQ(subProps[0].id, "id");
+    EXPECT_TRUE(subProps[0].icon.empty());
+    EXPECT_EQ(subProps[0].mode, "mode");
+    EXPECT_EQ(subProps[0].locale, "locale");
+}
+
+/**
+ * @tc.name: III_TestParseSubProp_007
+ * @tc.desc: json is array, num >MAX_SUBTYPE_NUM
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_007, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_007 TEST START");
     constexpr int32_t jsNum = 300;
     nlohmann::json js;
     for (uint32_t i = 0; i < jsNum; i++) {
@@ -668,15 +747,15 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_004, TestSize.Level0
 }
 
 /**
- * @tc.name: III_TestParseSubProp_005
+ * @tc.name: III_TestParseSubProp_008
  * @tc.desc: profiles is abnormal
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_005, TestSize.Level0)
+HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_008, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_005 TEST START");
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestParseSubProp_008 TEST START");
     std::vector<std::string> profiles;
     std::vector<SubProperty> subProps;
     auto ret = ImeInfoInquirer::GetInstance().ParseSubProp(profiles, subProps);
@@ -775,6 +854,152 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestListCurrentInputMethodSubtype_001
     auto currentUserId = TddUtil::GetCurrentUserId();
     auto ret = ImeInfoInquirer::GetInstance().ListCurrentInputMethodSubtype(currentUserId, subProps);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+}
+
+/**
+ * @tc.name: III_TestListInputMethod_001
+ * @tc.desc: status is error
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestListInputMethod_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestListInputMethod_001 TEST START");
+    std::vector<Property> props;
+    auto ret = ImeInfoInquirer::GetInstance().ListInputMethod(60, InputMethodStatus(10), props);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+}
+
+/**
+ * @tc.name: III_TestIsNewExtInfos_001
+ * @tc.desc: has no metadata name = SUBTYPE_PROFILE_METADATA_NAME
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, III_TestIsNewExtInfos_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest III_TestIsNewExtInfos_001 TEST START");
+    ExtensionAbilityInfo extInfo;
+    std::vector<SubProperty> subProps;
+    auto ret = ImeInfoInquirer::GetInstance().ListInputMethodSubtype(50, extInfo, subProps);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+}
+
+/**
+ * @tc.name: ICM_TestDeleteImeCfg_001
+ * @tc.desc: delete ime cfg correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, ICM_TestDeleteImeCfg_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest ICM_TestDeleteImeCfg_001 TEST START");
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ 100, "testBundleName", "testSubName" });
+    ImeCfgManager::GetInstance().DeleteImeCfg(100);
+    EXPECT_TRUE(ImeCfgManager::GetInstance().imeConfigs_.empty());
+}
+
+/**
+ * @tc.name: ICM_TestWriteCacheFile_001
+ * @tc.desc: json is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, ICM_TestWriteCacheFile_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest ICM_TestDeleteImeCfg_001 TEST START");
+    std::string path;
+    nlohmann::json jsonCfg;
+    auto ret = ImeCfgManager::GetInstance().WriteCacheFile(path, jsonCfg);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: ICM_TestFromJson_001
+ * @tc.desc: json is array, not contain "imeCfg_list"
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, ICM_TestFromJson_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest ICM_TestFromJson_001 TEST START");
+
+    constexpr int32_t jsNum = 2;
+    nlohmann::json js;
+    for (uint32_t i = 0; i < jsNum; i++) {
+        nlohmann::json temp;
+        temp["userId"] = 100;
+        js["test"].push_back(temp);
+    }
+    std::vector<ImePersistCfg> configs;
+    ImeCfgManager::GetInstance().FromJson(js, configs);
+    EXPECT_TRUE(configs.empty());
+}
+
+/**
+ * @tc.name: ICM_TestFromJson_002
+ * @tc.desc: json contain "imeCfg_list", but not array
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, ICM_TestFromJson_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest ICM_TestFromJson_002 TEST START");
+    nlohmann::json js;
+    js["imeCfg_list"] = 100;
+    std::vector<ImePersistCfg> configs;
+    ImeCfgManager::GetInstance().FromJson(js, configs);
+    EXPECT_TRUE(configs.empty());
+}
+
+/**
+ * @tc.name: ICM_TestFromJson_003
+ * @tc.desc: json contain "imeCfg_list", is a empty array
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, ICM_TestFromJson_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest ICM_TestFromJson_003 TEST START");
+    nlohmann::json js;
+    js["imeCfg_list"] = nlohmann::json::array();
+    std::vector<ImePersistCfg> configs;
+    ImeCfgManager::GetInstance().FromJson(js, configs);
+    EXPECT_TRUE(configs.empty());
+}
+
+/**
+ * @tc.name: ICM_TestFromJson_004
+ * @tc.desc: json contain "imeCfg_list", is a array
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, ICM_TestFromJson_004, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest ICM_TestFromJson_004 TEST START");
+    constexpr int32_t jsNum = 1;
+    nlohmann::json js;
+    for (uint32_t i = 0; i < jsNum; i++) {
+        nlohmann::json temp;
+        temp["userId"] = "userId";
+        temp["currentIme"] = 60;
+        temp["currentSubName"] = "currentSubName";
+        js["imeCfg_list"].push_back(temp);
+    }
+    std::vector<ImePersistCfg> configs;
+    ImeCfgManager::GetInstance().FromJson(js, configs);
+    EXPECT_EQ(configs.size(), jsNum);
+    EXPECT_EQ(configs[0].userId, ImePersistCfg::INVALID_USERID);
+    EXPECT_EQ(configs[0].currentSubName, "currentSubName");
+    EXPECT_TRUE(configs[0].currentIme.empty());
 }
 } // namespace MiscServices
 } // namespace OHOS
