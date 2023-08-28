@@ -445,6 +445,9 @@ int32_t InputMethodController::Attach(
 
     if (isShowKeyboard) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ATTACH);
+        if (listener != nullptr) {
+            listener->SendKeyboardStatus(KeyboardStatus::SHOW);
+        }
     }
     return ErrorCode::NO_ERROR;
 }
