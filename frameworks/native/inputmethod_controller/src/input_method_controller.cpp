@@ -245,8 +245,8 @@ void InputMethodController::WorkThread()
             }
             case MSG_ID_SEND_KEYBOARD_STATUS: {
                 auto listener = GetTextListener();
-                if (!isEditable_.load() || listener == nullptr) {
-                    IMSA_HILOGE("not editable or textListener_ is nullptr");
+                if (listener == nullptr) {
+                    IMSA_HILOGE("textListener_ is nullptr");
                     break;
                 }
                 MessageParcel *data = msg->msgContent_;
@@ -445,9 +445,6 @@ int32_t InputMethodController::Attach(
 
     if (isShowKeyboard) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ATTACH);
-        if (listener != nullptr) {
-            listener->SendKeyboardStatus(KeyboardStatus::SHOW);
-        }
     }
     return ErrorCode::NO_ERROR;
 }
