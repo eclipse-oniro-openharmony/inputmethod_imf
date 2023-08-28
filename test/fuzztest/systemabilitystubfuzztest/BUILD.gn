@@ -38,6 +38,8 @@ group("system_ability_stub_fuzztest") {
     ":StopInputFuzzTest",
     ":StopInputSessionFuzzTest",
     ":UpdateListenEventFlagFuzzTest",
+    ":SwitchInputMethodFuzzTest",
+    ":DisplayOptionalInputMethodFuzzTest",
   ]
 }
 
@@ -432,6 +434,50 @@ ohos_fuzztest("UpdateListenEventFlagFuzzTest") {
   ]
 
   sources = [ "updatelisteneventflag_fuzzer/updatelisteneventflag_fuzzer.cpp" ]
+
+  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_core",
+    "hilog:libhilog",
+    "input:libmmi-client",
+  ]
+}
+
+ohos_fuzztest("SwitchInputMethodFuzzTest") {
+  module_out_path = "inputmethod/inputmethod"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/switchinputmethod_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/switchinputmethod_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "switchinputmethod_fuzzer/switchinputmethod_fuzzer.cpp" ]
+
+  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_core",
+    "hilog:libhilog",
+    "input:libmmi-client",
+  ]
+}
+
+ohos_fuzztest("DisplayOptionalInputMethodFuzzTest") {
+  module_out_path = "inputmethod/inputmethod"
+
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/displayoptionalinputmethod_fuzzer"
+
+  include_dirs = [
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/displayoptionalinputmethod_fuzzer",
+    "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
+  ]
+
+  sources = [ "displayoptionalinputmethod_fuzzer/displayoptionalinputmethod_fuzzer.cpp" ]
 
   deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
 
