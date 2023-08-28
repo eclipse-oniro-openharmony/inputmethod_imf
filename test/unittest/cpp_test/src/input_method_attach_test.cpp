@@ -236,6 +236,7 @@ HWTEST_F(InputMethodAttachTest, testAttach006, TestSize.Level0)
     EXPECT_EQ(TextListener::keyboardStatus_, KeyboardStatus::NONE);
 
     InputMethodAttachTest::inputMethodController_->Close();
+    TextListener::ResetParam();
     ret = InputMethodAttachTest::inputMethodController_->Attach(textListener, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(TextListener::keyboardStatus_, KeyboardStatus::SHOW);
