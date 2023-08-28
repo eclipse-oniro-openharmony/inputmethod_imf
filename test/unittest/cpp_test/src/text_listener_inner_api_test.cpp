@@ -80,11 +80,9 @@ HWTEST_F(TextListenerInnerApiTest, testInsertText01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testInsertText01 START");
     TextListener::ResetParam();
-    IMSA_HILOGI("zll before attach");
     TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
     std::string text = "text";
     std::u16string u16Text = Str8ToStr16(text);
-    IMSA_HILOGI("zll insert text");
     int32_t ret = imc_->InsertText(u16Text);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(TextListener::insertText_, u16Text);
