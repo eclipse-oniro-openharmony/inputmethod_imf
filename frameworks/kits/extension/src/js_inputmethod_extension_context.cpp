@@ -156,15 +156,13 @@ private:
             IMSA_HILOGE("Not enough params");
             return engine.CreateUndefined();
         }
-
-        decltype(info.argc) unwrapArgc = 0;
+        decltype(info.argc) argc = 0;
         AAFwk::Want want;
         OHOS::AppExecFwk::UnwrapWant(
             reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ZERO]), want);
-        IMSA_HILOGI("%{public}s bundlename:%{public}s abilityname:%{public}s", __func__, want.GetBundle().c_str(),
+        IMSA_HILOGI("bundleName:%{public}s abilityName:%{public}s", want.GetBundle().c_str(),
             want.GetElement().GetAbilityName().c_str());
-        unwrapArgc++;
-
+        argc++;
         int32_t accountId = 0;
         if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(
             reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), accountId)) {
@@ -172,37 +170,30 @@ private:
             return engine.CreateUndefined();
         }
         IMSA_HILOGI("%{public}d accountId:", accountId);
-        unwrapArgc++;
-
+        argc++;
         AAFwk::StartOptions startOptions;
         if (info.argc > ARGC_TWO && info.argv[INDEX_TWO]->TypeOf() == NATIVE_OBJECT) {
             IMSA_HILOGI("OnStartAbilityWithAccount start options is used.");
             AppExecFwk::UnwrapStartOptions(
                 reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_TWO]), startOptions);
-            unwrapArgc++;
+            argc++;
         }
-
-        AsyncTask::CompleteCallback complete = [weak = context_, want, accountId, startOptions, unwrapArgc](
+        AsyncTask::CompleteCallback complete = [weak = context_, want, accountId, startOptions, argc](
                                                    NativeEngine &engine, AsyncTask &task, int32_t status) {
             IMSA_HILOGI("startAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
-                IMSA_HILOGW("context is released");
                 task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
                 return;
             }
-
-            ErrCode errcode = ERR_OK;
-            (unwrapArgc == ARGC_TWO) ? errcode = context->StartAbilityWithAccount(want, accountId)
-                                     : errcode = context->StartAbilityWithAccount(want, accountId, startOptions);
+            ErrCode errcode = (argc == ARGC_TWO) ? context->StartAbilityWithAccount(want, accountId)
+                                                 : context->StartAbilityWithAccount(want, accountId, startOptions);
             if (errcode == 0) {
                 task.Resolve(engine, engine.CreateUndefined());
-            } else {
-                task.Reject(engine, CreateJsError(engine, errcode, "Start Ability failed."));
             }
+            task.Reject(engine, CreateJsError(engine, errcode, "Start Ability failed."));
         };
-
-        NativeValue *lastParam = (info.argc == unwrapArgc) ? nullptr : info.argv[unwrapArgc];
+        NativeValue *lastParam = (info.argc == argc) ? nullptr : info.argv[argc];
         NativeValue *result = nullptr;
         AsyncTask::Schedule("InputMethodExtensionContext::OnStartAbilityWithAccount", engine,
             CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));

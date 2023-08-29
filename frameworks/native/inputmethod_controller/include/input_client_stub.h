@@ -35,7 +35,6 @@ public:
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     InputClientStub();
     ~InputClientStub();
-    void SetHandler(MessageHandler *handler);
 
     int32_t OnInputReady(const sptr<IInputMethodAgent> &agent) override;
     int32_t OnInputStop() override;
@@ -44,13 +43,10 @@ public:
         const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) override;
 
 private:
-    MessageHandler *msgHandler = nullptr;
-    using ParcelHandler = std::function<bool(MessageParcel &)>;
-    int32_t SendMessage(int code, ParcelHandler input = nullptr);
     void OnInputReadyOnRemote(MessageParcel &data, MessageParcel &reply);
-    void OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply);
-    void OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply);
-    void OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply);
 };
 } // namespace MiscServices
 } // namespace OHOS

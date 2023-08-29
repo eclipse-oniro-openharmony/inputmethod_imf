@@ -43,9 +43,16 @@ public:
     {
         std::unique_lock<std::mutex> lock(mutex_);
         cv_.wait_for(lock, std::chrono::milliseconds(INTERVAL), [this]() { return isSet_; });
-        isTimeOut_ = !isSet_;
         T data = data_;
         return data;
+    }
+
+    bool GetValue(T &data)
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        cv_.wait_for(lock, std::chrono::milliseconds(INTERVAL), [this]() { return isSet_; });
+        data = data_;
+        return isSet_;
     }
 
     void Clear(const T &invalid = T())
@@ -55,16 +62,10 @@ public:
         data_ = invalid;
     }
 
-    bool IsTimeOut()
-    {
-        return isTimeOut_;
-    }
-
 private:
     bool isSet_ = false;
     const uint32_t INTERVAL;
     T data_;
-    bool isTimeOut_{ false };
     std::mutex mutex_;
     std::condition_variable cv_;
 };

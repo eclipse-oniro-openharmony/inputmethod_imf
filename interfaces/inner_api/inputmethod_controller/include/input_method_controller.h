@@ -429,6 +429,175 @@ public:
      */
     IMF_API void OnInputReady(sptr<IRemoteObject> agentObject);
 
+    /**
+     * @brief Unbind IMC with Service.
+     *
+     * This function is unbind imc with service.
+     *
+     * @since 10
+     */
+    IMF_API void OnInputStop();
+
+    /**
+     * @brief Insert text.
+     *
+     * This function is used to insert text into editor.
+     *
+     * @param text Indicates the text which will be inserted.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t InsertText(const std::u16string &text);
+
+    /**
+     * @brief Move cursor.
+     *
+     * This function is used to move cursor according to the direction.
+     *
+     * @param direction Indicates the direction according to which the cursor will be moved.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t MoveCursor(Direction direction);
+
+    /**
+     * @brief Delete forward.
+     *
+     * This function is used to delete text at the left of cursor.
+     *
+     * @param length Indicates the length of deleted text.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t DeleteForward(int32_t length);
+
+    /**
+     * @brief Delete backward.
+     *
+     * This function is used to delete text at the right of cursor.
+     *
+     * @param length Indicates the length of deleted text.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t DeleteBackward(int32_t length);
+
+    /**
+     * @brief Get text at the left of cursor.
+     *
+     * This function is used to get text at the left of cursor.
+     *
+     * @param length Indicates the length of text.
+     * @param text Indicates the text which will be get.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t GetLeft(int32_t length, std::u16string &text);
+
+    /**
+     * @brief Get text at the right of cursor.
+     *
+     * This function is used to get text at the right of cursor.
+     *
+     * @param length Indicates the length of text.
+     * @param text Indicates the text which will be get.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t GetRight(int32_t length, std::u16string &text);
+
+    /**
+     * @brief Select text in editor by range.
+     *
+     * This function is used to select text in editor by range.
+     *
+     * @param start Indicates the beginning of the range.
+     * @param start Indicates the end of the range.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API void SelectByRange(int32_t start, int32_t end);
+
+    /**
+     * @brief Select text in editor by cursor movement.
+     *
+     * This function is used to select text in editor by cursor movement.
+     *
+     * @param direction Indicates the direction of cursor movement.
+     * @param cursorMoveSkip Indicates the skip of cursor movement.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API void SelectByMovement(int32_t direction, int32_t cursorMoveSkip);
+
+    /**
+     * @brief Handle extend action code.
+     *
+     * This function is used to handle extend action code.
+     *
+     * @param action Indicates the action code which will be handled.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t HandleExtendAction(int32_t action);
+
+    /**
+     * @brief Get the index number of text at cursor.
+     *
+     * This function is used to get the index number of text at cursor.
+     *
+     * @param index Indicates the index number of text at cursor.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t GetTextIndexAtCursor(int32_t &index);
+
+    /**
+     * @brief Send keyboard status.
+     *
+     * This function is used to send keyboard status to editor.
+     *
+     * @param status Indicates the status of keyboard.
+     * @since 10
+     */
+    IMF_API void SendKeyboardStatus(int32_t status);
+
+    /**
+     * @brief Send function key.
+     *
+     * This function is used to send function key to editor.
+     *
+     * @param functionKey Indicates the function key.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t SendFunctionKey(int32_t functionKey);
+
+    /**
+     * @brief Inform the change of ime to client.
+     *
+     * This function is used to inform the change of ime to client.
+     *
+     * @param property Indicates the property of ime.
+     * @param subProperty Indicates the sub property of ime.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty);
+
+    /**
+     * @brief Inform the change panel status.
+     *
+     * This function is used to inform the change panel status.
+     *
+     * @param status Indicates the status of panel.
+     * @param windowInfo Indicates the detailed info of window.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    IMF_API int32_t OnPanelStatusChange(
+        const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo);
+
 private:
     InputMethodController();
     ~InputMethodController();
@@ -439,23 +608,14 @@ private:
     int32_t StartInput(sptr<IInputClient> &client, bool isShowKeyboard, bool attachFlag);
     int32_t StopInput(sptr<IInputClient> &client);
     int32_t ReleaseInput(sptr<IInputClient> &client);
-    void OnSwitchInput(const Property &property, const SubProperty &subProperty);
-    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo);
-    void WorkThread();
-    void QuitWorkThread();
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
     void ClearEditorCache();
-    void OnSelectByRange(int32_t start, int32_t end);
-    void OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip);
-    void HandleExtendAction(int32_t action);
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void RestoreListenInfoInSaDied();
     void RestoreAttachInfoInSaDied();
     int32_t RestoreListenEventFlag();
     void UpdateNativeEventFlag(EventType eventType, bool isOn);
     void SaveTextConfig(const TextConfig &textConfig);
-    void GetText(const Message *msg);
-    void GetTextIndexAtCursor(const Message *msg);
     sptr<OnTextChangedListener> GetTextListener();
     void SetTextListener(sptr<OnTextChangedListener> listener);
 
@@ -484,9 +644,6 @@ private:
     static std::mutex instanceLock_;
     static sptr<InputMethodController> instance_;
     static std::shared_ptr<AppExecFwk::EventHandler> handler_;
-    std::thread workThreadHandler;
-    MessageHandler *msgHandler_;
-    bool stop_;
 
     std::atomic_bool isEditable_{ false };
     std::atomic_bool isBound_{ false };

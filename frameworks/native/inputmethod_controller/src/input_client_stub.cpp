@@ -18,8 +18,8 @@
 #include "global.h"
 #include "input_method_controller.h"
 #include "ipc_object_stub.h"
-#include "ipc_types.h"
 #include "ipc_skeleton.h"
+#include "ipc_types.h"
 #include "itypes_util.h"
 #include "message.h"
 
@@ -37,7 +37,7 @@ int32_t InputClientStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     IMSA_HILOGI("code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code, IPCSkeleton::GetCallingPid(),
-                IPCSkeleton::GetCallingUid());
+        IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
@@ -52,12 +52,10 @@ int32_t InputClientStub::OnRemoteRequest(
             break;
         }
         case ON_SWITCH_INPUT: {
-            OnSwitchInputOnRemote(data, reply);
-            break;
+            return OnSwitchInputOnRemote(data, reply);
         }
         case ON_PANEL_STATUS_CHANGE: {
-            OnPanelStatusChangeOnRemote(data, reply);
-            break;
+            return OnPanelStatusChangeOnRemote(data, reply);
         }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -71,88 +69,36 @@ void InputClientStub::OnInputReadyOnRemote(MessageParcel &data, MessageParcel &r
     InputMethodController::GetInstance()->OnInputReady(object);
 }
 
-void InputClientStub::OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputClientStub::OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t ret = SendMessage(MessageID::MSG_ID_ON_INPUT_STOP);
-    if (!ITypesUtil::Marshal(reply, ret)) {
-        IMSA_HILOGE("failed to write reply");
-    }
+    return reply.WriteInt32(OnInputStop()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-void InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGI("InputClientStub::OnSwitchInputOnRemote");
-    if (msgHandler == nullptr) {
-        IMSA_HILOGE("InputClientStub::msgHandler is nullptr");
-        return;
-    }
-    auto *parcel = new (std::nothrow) MessageParcel();
-    if (parcel == nullptr) {
-        IMSA_HILOGE("parcel is nullptr");
-        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-        return;
-    }
     Property property;
     SubProperty subProperty;
     if (!ITypesUtil::Unmarshal(data, property, subProperty)) {
         IMSA_HILOGE("read message parcel failed");
-        reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
-        delete parcel;
-        return;
+        return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    if (!ITypesUtil::Marshal(*parcel, property, subProperty)) {
-        IMSA_HILOGE("write message parcel failed");
-        reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
-        delete parcel;
-        return;
-    }
-    auto *msg = new (std::nothrow) Message(MessageID::MSG_ID_ON_SWITCH_INPUT, parcel);
-    if (msg == nullptr) {
-        IMSA_HILOGE("msg is nullptr");
-        delete parcel;
-        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-        return;
-    }
-    msgHandler->SendMessage(msg);
-    reply.WriteInt32(ErrorCode::NO_ERROR);
+    return reply.WriteInt32(OnSwitchInput(property, subProperty)) ? ErrorCode::NO_ERROR
+                                                                  : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-void InputClientStub::OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputClientStub::OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGD("InputClientStub::OnPanelStatusChangeOnRemote");
-    if (msgHandler == nullptr) {
-        IMSA_HILOGE("InputClientStub::msgHandler is nullptr");
-        return;
-    }
-    auto *parcel = new (std::nothrow) MessageParcel();
-    if (parcel == nullptr) {
-        IMSA_HILOGE("parcel is nullptr");
-        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-        return;
-    }
     uint32_t status;
     std::vector<InputWindowInfo> windowInfo;
     if (!ITypesUtil::Unmarshal(data, status, windowInfo)) {
         IMSA_HILOGE("read message parcel failed");
-        reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
-        delete parcel;
-        return;
+        return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    if (!ITypesUtil::Marshal(*parcel, status, windowInfo)) {
-        IMSA_HILOGE("write message parcel failed");
-        reply.WriteInt32(ErrorCode::ERROR_EX_PARCELABLE);
-        delete parcel;
-        return;
-    }
-    auto *msg = new (std::nothrow) Message(MessageID::MSG_ID_ON_PANEL_STATUS_CHANGE, parcel);
-    if (msg == nullptr) {
-        IMSA_HILOGE("msg is nullptr");
-        delete parcel;
-        reply.WriteInt32(ErrorCode::ERROR_EX_NULL_POINTER);
-        return;
-    }
-    msgHandler->SendMessage(msg);
-    reply.WriteInt32(ErrorCode::NO_ERROR);
+    return reply.WriteInt32(OnPanelStatusChange(static_cast<InputWindowStatus>(status), windowInfo))
+               ? ErrorCode::NO_ERROR
+               : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputClientStub::OnInputReady(const sptr<IInputMethodAgent> &agent)
@@ -162,50 +108,19 @@ int32_t InputClientStub::OnInputReady(const sptr<IInputMethodAgent> &agent)
 
 int32_t InputClientStub::OnInputStop()
 {
+    InputMethodController::GetInstance()->OnInputStop();
     return ErrorCode::NO_ERROR;
-}
-
-void InputClientStub::SetHandler(MessageHandler *handler)
-{
-    msgHandler = handler;
 }
 
 int32_t InputClientStub::OnSwitchInput(const Property &property, const SubProperty &subProperty)
 {
-    return ErrorCode::NO_ERROR;
+    return InputMethodController::GetInstance()->OnSwitchInput(property, subProperty);
 }
 
 int32_t InputClientStub::OnPanelStatusChange(
     const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
 {
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputClientStub::SendMessage(int code, ParcelHandler input)
-{
-    IMSA_HILOGD("InputClientStub run in");
-    if (msgHandler == nullptr) {
-        IMSA_HILOGE("msgHandler_ is nullptr");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    auto *parcel = new (std::nothrow) MessageParcel();
-    if (parcel == nullptr) {
-        IMSA_HILOGE("parcel is nullptr");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    if (input != nullptr && (!input(*parcel))) {
-        IMSA_HILOGE("write data failed");
-        delete parcel;
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    auto *msg = new (std::nothrow) Message(code, parcel);
-    if (msg == nullptr) {
-        IMSA_HILOGE("msg is nullptr");
-        delete parcel;
-        return ErrorCode::ERROR_EX_NULL_POINTER;
-    }
-    msgHandler->SendMessage(msg);
-    return ErrorCode::NO_ERROR;
+    return InputMethodController::GetInstance()->OnPanelStatusChange(status, windowInfo);
 }
 } // namespace MiscServices
 } // namespace OHOS

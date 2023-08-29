@@ -871,32 +871,27 @@ HWTEST_F(InputMethodControllerTest, testWithoutEditableState, TestSize.Level0)
 
     int32_t deleteForwardLength = 1;
     ret = inputMethodAbility_->DeleteForward(deleteForwardLength);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    usleep(100);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::deleteForwardLength_, deleteForwardLength);
 
     int32_t deleteBackwardLength = 2;
     ret = inputMethodAbility_->DeleteBackward(deleteBackwardLength);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    usleep(100);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::deleteBackwardLength_, deleteBackwardLength);
 
     std::string insertText = "t";
     ret = inputMethodAbility_->InsertText(insertText);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    usleep(100);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::insertText_, Str8ToStr16(insertText));
 
     constexpr int32_t funcKey = 1;
     ret = inputMethodAbility_->SendFunctionKey(funcKey);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    usleep(100);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::key_, funcKey);
 
     constexpr int32_t keyCode = 4;
     ret = inputMethodAbility_->MoveCursor(keyCode);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    usleep(100);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::direction_, keyCode);
 }
 

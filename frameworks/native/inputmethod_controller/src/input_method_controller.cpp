@@ -42,16 +42,13 @@ constexpr int32_t LOOP_COUNT = 5;
 constexpr int64_t DELAY_TIME = 100;
 const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
     { "imeHide", IME_HIDE } };
-InputMethodController::InputMethodController() : msgHandler_(nullptr), stop_(false)
+InputMethodController::InputMethodController()
 {
     IMSA_HILOGI("InputMethodController structure");
 }
 
 InputMethodController::~InputMethodController()
 {
-    QuitWorkThread();
-    delete msgHandler_;
-    msgHandler_ = nullptr;
 }
 
 sptr<InputMethodController> InputMethodController::GetInstance()
@@ -124,27 +121,19 @@ void InputMethodController::SetControllerListener(std::shared_ptr<ControllerList
 
 int32_t InputMethodController::Initialize()
 {
-    auto handler = new (std::nothrow) MessageHandler();
-    if (handler == nullptr) {
-        IMSA_HILOGE("failed to new message handler");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    msgHandler_ = handler;
     auto client = new (std::nothrow) InputClientStub();
     if (client == nullptr) {
         IMSA_HILOGE("failed to new client");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    client->SetHandler(msgHandler_);
     auto channel = new (std::nothrow) InputDataChannelStub();
     if (channel == nullptr) {
+        delete client;
         IMSA_HILOGE("failed to new channel");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    channel->SetHandler(msgHandler_);
     InputAttribute attribute = { .inputPattern = InputAttribute::PATTERN_TEXT };
     clientInfo_ = { .attribute = attribute, .client = client, .channel = channel };
-    workThreadHandler = std::thread([this] { WorkThread(); });
 
     // make AppExecFwk::EventHandler handler
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
@@ -185,210 +174,27 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
     return abilityManager_;
 }
 
-void InputMethodController::WorkThread()
-{
-    prctl(PR_SET_NAME, "IMCWorkThread");
-    while (!stop_) {
-        Message *msg = msgHandler_->GetMessage();
-        switch (msg->msgId_) {
-            case MSG_ID_INSERT_CHAR: {
-                IMSA_HILOGD("insert text");
-                auto listener = GetTextListener();
-                if (!isEditable_.load() || listener == nullptr) {
-                    IMSA_HILOGE("not editable or textListener is nullptr");
-                    break;
-                }
-                MessageParcel *data = msg->msgContent_;
-                listener->InsertText(data->ReadString16());
-                break;
-            }
-            case MSG_ID_DELETE_FORWARD: {
-                IMSA_HILOGD("delete forward");
-                auto listener = GetTextListener();
-                if (!isEditable_.load() || listener == nullptr) {
-                    IMSA_HILOGE("not editable or textListener is nullptr");
-                    break;
-                }
-                MessageParcel *data = msg->msgContent_;
-                // reverse for compatibility
-                listener->DeleteBackward(data->ReadInt32());
-                break;
-            }
-            case MSG_ID_DELETE_BACKWARD: {
-                IMSA_HILOGD("delete backward");
-                auto listener = GetTextListener();
-                if (!isEditable_.load() || listener == nullptr) {
-                    IMSA_HILOGE("not editable or textListener is nullptr");
-                    break;
-                }
-                MessageParcel *data = msg->msgContent_;
-                // reverse for compatibility
-                listener->DeleteForward(data->ReadInt32());
-                break;
-            }
-            case MSG_ID_ON_INPUT_STOP: {
-                auto listener = GetTextListener();
-                if (listener != nullptr) {
-                    IMSA_HILOGE("textListener_ is not nullptr");
-                    listener->SendKeyboardStatus(KeyboardStatus::HIDE);
-                }
-                isBound_.store(false);
-                isEditable_.store(false);
-                SetTextListener(nullptr);
-                {
-                    std::lock_guard<std::mutex> autoLock(agentLock_);
-                    agent_ = nullptr;
-                    agentObject_ = nullptr;
-                }
-                ClearEditorCache();
-                break;
-            }
-            case MSG_ID_SEND_KEYBOARD_STATUS: {
-                auto listener = GetTextListener();
-                if (listener == nullptr) {
-                    IMSA_HILOGE("textListener_ is nullptr");
-                    break;
-                }
-                MessageParcel *data = msg->msgContent_;
-                KeyboardStatus status = static_cast<KeyboardStatus>(data->ReadInt32());
-                listener->SendKeyboardStatus(status);
-                if (status == KeyboardStatus::HIDE) {
-                    clientInfo_.isShowKeyboard = false;
-                }
-                break;
-            }
-            case MSG_ID_SEND_FUNCTION_KEY: {
-                auto listener = GetTextListener();
-                if (!isEditable_.load() || listener == nullptr) {
-                    IMSA_HILOGE("not editable or textListener_ is nullptr");
-                    break;
-                }
-                MessageParcel *data = msg->msgContent_;
-                FunctionKey *info = new FunctionKey();
-                info->SetEnterKeyType(static_cast<EnterKeyType>(data->ReadInt32()));
-                listener->SendFunctionKey(*info);
-                delete info;
-                break;
-            }
-            case MSG_ID_MOVE_CURSOR: {
-                IMSA_HILOGD("move cursor");
-                auto listener = GetTextListener();
-                if (!isEditable_.load() || listener == nullptr) {
-                    IMSA_HILOGE("not editable or textListener_ is nullptr");
-                    break;
-                }
-                MessageParcel *data = msg->msgContent_;
-                Direction direction = static_cast<Direction>(data->ReadInt32());
-                listener->MoveCursor(direction);
-                break;
-            }
-            case MSG_ID_ON_SWITCH_INPUT: {
-                auto data = msg->msgContent_;
-                Property property;
-                SubProperty subProperty;
-                if (!ITypesUtil::Unmarshal(*data, property, subProperty)) {
-                    IMSA_HILOGE("read property from message parcel failed");
-                    break;
-                }
-                OnSwitchInput(property, subProperty);
-                break;
-            }
-            case MSG_ID_ON_PANEL_STATUS_CHANGE: {
-                auto data = msg->msgContent_;
-                uint32_t status;
-                std::vector<InputWindowInfo> windowInfo;
-                if (!ITypesUtil::Unmarshal(*data, status, windowInfo)) {
-                    IMSA_HILOGE("read property from message parcel failed");
-                    break;
-                }
-                OnPanelStatusChange(static_cast<InputWindowStatus>(status), windowInfo);
-                break;
-            }
-            case MSG_ID_SELECT_BY_RANGE: {
-                IMSA_HILOGD("select by range");
-                MessageParcel *data = msg->msgContent_;
-                int32_t start = 0;
-                int32_t end = 0;
-                if (!ITypesUtil::Unmarshal(*data, start, end)) {
-                    IMSA_HILOGE("failed to read message parcel");
-                    break;
-                }
-                OnSelectByRange(start, end);
-                break;
-            }
-            case MSG_ID_HANDLE_EXTEND_ACTION: {
-                IMSA_HILOGD("handle extend action");
-                MessageParcel *data = msg->msgContent_;
-                int32_t action;
-                if (!ITypesUtil::Unmarshal(*data, action)) {
-                    IMSA_HILOGE("failed to read message parcel");
-                    break;
-                }
-                HandleExtendAction(action);
-                break;
-            }
-            case MSG_ID_SELECT_BY_MOVEMENT: {
-                IMSA_HILOGD("select by movement");
-                MessageParcel *data = msg->msgContent_;
-                int32_t direction = 0;
-                int32_t cursorMoveSkip = 0;
-                if (!ITypesUtil::Unmarshal(*data, direction, cursorMoveSkip)) {
-                    IMSA_HILOGE("failed to read message parcel");
-                    break;
-                }
-                OnSelectByMovement(direction, cursorMoveSkip);
-                break;
-            }
-            case MSG_ID_GET_TEXT_BEFORE_CURSOR:
-            case MSG_ID_GET_TEXT_AFTER_CURSOR: {
-                IMSA_HILOGD("get text, msgId:%{public}d", msg->msgId_);
-                GetText(msg);
-                break;
-            }
-            case MSG_ID_GET_TEXT_INDEX_AT_CURSOR: {
-                IMSA_HILOGD("get text index at cursor");
-                GetTextIndexAtCursor(msg);
-                break;
-            }
-            default: {
-                IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
-                break;
-            }
-        }
-        delete msg;
-        msg = nullptr;
-    }
-}
-
-void InputMethodController::QuitWorkThread()
-{
-    stop_ = true;
-    Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
-    msgHandler_->SendMessage(msg);
-    if (workThreadHandler.joinable()) {
-        workThreadHandler.join();
-    }
-}
-
-void InputMethodController::OnSwitchInput(const Property &property, const SubProperty &subProperty)
+int32_t InputMethodController::OnSwitchInput(const Property &property, const SubProperty &subProperty)
 {
     IMSA_HILOGE("InputMethodController::OnSwitchInput");
     if (settingListener_ == nullptr) {
         IMSA_HILOGE("imeListener_ is nullptr");
-        return;
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     settingListener_->OnImeChange(property, subProperty);
+    return ErrorCode::NO_ERROR;
 }
 
-void InputMethodController::OnPanelStatusChange(
+int32_t InputMethodController::OnPanelStatusChange(
     const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
 {
     IMSA_HILOGD("InputMethodController::OnPanelStatusChange");
     if (settingListener_ == nullptr) {
         IMSA_HILOGE("imeListener_ is nullptr");
-        return;
+        return ErrorCode::ERROR_NULL_POINTER;
     }
     settingListener_->OnPanelStatusChange(status, windowInfo);
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
@@ -800,43 +606,40 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodController::GetText(const Message *msg)
+int32_t InputMethodController::GetLeft(int32_t length, std::u16string &text)
 {
-    std::u16string text;
-    auto resultHandler = msg->textResultHandler_;
+    IMSA_HILOGD("run in, length: %{public}d", length);
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
-        IMSA_HILOGE("not editable or textListener_ is nullptr");
-        resultHandler->SetValue(text);
-        return;
+        IMSA_HILOGE("not editable or listener is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    auto number = msg->msgContent_->ReadInt32();
-    if (number < 0) {
-        resultHandler->SetValue(text);
-        return;
-    }
-    if (msg->msgId_ == MSG_ID_GET_TEXT_BEFORE_CURSOR) {
-        text = listener->GetLeftTextOfCursor(number);
-    } else {
-        text = listener->GetRightTextOfCursor(number);
-    }
-    IMSA_HILOGI("get text success, msgId:%{public}d", msg->msgId_);
-    resultHandler->SetValue(text);
+    text = listener->GetLeftTextOfCursor(length);
+    return ErrorCode::NO_ERROR;
 }
 
-void InputMethodController::GetTextIndexAtCursor(const Message *msg)
+int32_t InputMethodController::GetRight(int32_t length, std::u16string &text)
 {
-    int32_t index = -1;
-    auto resultHandler = msg->indexResultHandler_;
+    IMSA_HILOGD("run in, length: %{public}d", length);
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
-        resultHandler->SetValue(index);
-        return;
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    text = listener->GetRightTextOfCursor(length);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
+{
+    IMSA_HILOGD("run in");
+    auto listener = GetTextListener();
+    if (!isEditable_.load() || listener == nullptr) {
+        IMSA_HILOGE("not editable or textListener_ is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     index = listener->GetTextIndexAtCursor();
-    IMSA_HILOGI("get text index success");
-    resultHandler->SetValue(index);
+    return ErrorCode::NO_ERROR;
 }
 
 bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
@@ -1028,6 +831,24 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
     agent_ = agent;
 }
 
+void InputMethodController::OnInputStop()
+{
+    auto listener = GetTextListener();
+    if (listener != nullptr) {
+        IMSA_HILOGD("textListener_ is not nullptr");
+        listener->SendKeyboardStatus(KeyboardStatus::HIDE);
+    }
+    isBound_.store(false);
+    isEditable_.store(false);
+    SetTextListener(nullptr);
+    {
+        std::lock_guard<std::mutex> autoLock(agentLock_);
+        agent_ = nullptr;
+        agentObject_ = nullptr;
+    }
+    ClearEditorCache();
+}
+
 void InputMethodController::ClearEditorCache()
 {
     IMSA_HILOGD("clear editor content cache");
@@ -1047,7 +868,7 @@ void InputMethodController::ClearEditorCache()
     cursorInfo_ = {};
 }
 
-void InputMethodController::OnSelectByRange(int32_t start, int32_t end)
+void InputMethodController::SelectByRange(int32_t start, int32_t end)
 {
     IMSA_HILOGI("InputMethodController run in");
     auto listener = GetTextListener();
@@ -1064,7 +885,7 @@ void InputMethodController::OnSelectByRange(int32_t start, int32_t end)
     }
 }
 
-void InputMethodController::OnSelectByMovement(int32_t direction, int32_t cursorMoveSkip)
+void InputMethodController::SelectByMovement(int32_t direction, int32_t cursorMoveSkip)
 {
     IMSA_HILOGI("InputMethodController run in");
     auto listener = GetTextListener();
@@ -1081,15 +902,16 @@ void InputMethodController::OnSelectByMovement(int32_t direction, int32_t cursor
     }
 }
 
-void InputMethodController::HandleExtendAction(int32_t action)
+int32_t InputMethodController::HandleExtendAction(int32_t action)
 {
     IMSA_HILOGI("InputMethodController run in");
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
-        IMSA_HILOGE("not editable or textListener_ is nullptr");
-        return;
+        IMSA_HILOGE("not editable or textListener is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     listener->HandleExtendAction(action);
+    return ErrorCode::NO_ERROR;
 }
 
 sptr<OnTextChangedListener> InputMethodController::GetTextListener()
@@ -1102,6 +924,84 @@ void InputMethodController::SetTextListener(sptr<OnTextChangedListener> listener
 {
     std::lock_guard<std::mutex> lock(textListenerLock_);
     textListener_ = listener;
+}
+
+int32_t InputMethodController::InsertText(const std::u16string &text)
+{
+    IMSA_HILOGD("in");
+    auto listener = GetTextListener();
+    if (!isEditable_.load() || listener == nullptr) {
+        IMSA_HILOGE("not editable or textListener is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    listener->InsertText(text);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodController::DeleteForward(int32_t length)
+{
+    IMSA_HILOGD("run in, length: %{public}d", length);
+    auto listener = GetTextListener();
+    if (!isEditable_.load() || listener == nullptr) {
+        IMSA_HILOGE("not editable or textListener is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    // reverse for compatibility
+    listener->DeleteBackward(length);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodController::DeleteBackward(int32_t length)
+{
+    IMSA_HILOGD("run in, length: %{public}d", length);
+    auto listener = GetTextListener();
+    if (!isEditable_.load() || listener == nullptr) {
+        IMSA_HILOGE("not editable or textListener is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    // reverse for compatibility
+    listener->DeleteForward(length);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodController::MoveCursor(Direction direction)
+{
+    IMSA_HILOGD("run in, direction: %{public}d", static_cast<int32_t>(direction));
+    auto listener = GetTextListener();
+    if (!isEditable_.load() || listener == nullptr) {
+        IMSA_HILOGE("not editable or textListener_ is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    listener->MoveCursor(direction);
+    return ErrorCode::NO_ERROR;
+}
+
+void InputMethodController::SendKeyboardStatus(int32_t status)
+{
+    IMSA_HILOGD("run in, status: %{public}d", status);
+    auto listener = GetTextListener();
+    if (listener == nullptr) {
+        IMSA_HILOGE("textListener_ is nullptr");
+        return;
+    }
+    auto keyboardStatus = static_cast<KeyboardStatus>(status);
+    listener->SendKeyboardStatus(keyboardStatus);
+    if (keyboardStatus == KeyboardStatus::HIDE) {
+        clientInfo_.isShowKeyboard = false;
+    }
+}
+
+int32_t InputMethodController::SendFunctionKey(int32_t functionKey)
+{
+    auto listener = GetTextListener();
+    if (!isEditable_.load() || listener == nullptr) {
+        IMSA_HILOGE("not editable or textListener_ is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    FunctionKey funcKey;
+    funcKey.SetEnterKeyType(static_cast<EnterKeyType>(functionKey));
+    listener->SendFunctionKey(funcKey);
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS
