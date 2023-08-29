@@ -221,6 +221,28 @@ HWTEST_F(InputMethodAttachTest, testAttach005, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testAttach006
+ * @tc.desc: test Attach
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAttachTest, testAttach006, TestSize.Level0)
+{
+    IMSA_HILOGI("test testAttach006 attach.");
+    InputMethodAttachTest::inputMethodController_->Close();
+    TextListener::ResetParam();
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    auto ret = InputMethodAttachTest::inputMethodController_->Attach(textListener, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(TextListener::keyboardStatus_, KeyboardStatus::NONE);
+
+    InputMethodAttachTest::inputMethodController_->Close();
+    TextListener::ResetParam();
+    ret = InputMethodAttachTest::inputMethodController_->Attach(textListener, true);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(TextListener::keyboardStatus_, KeyboardStatus::SHOW);
+}
+
+/**
  * @tc.name: testOnConfigurationChangeWithOutAttach
  * @tc.desc: test OnConfigurationChange without attach
  * @tc.type: FUNC
