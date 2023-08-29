@@ -303,6 +303,16 @@ public:
     static napi_value SelectByRange(napi_env env, napi_callback_info info);
     static napi_value SelectByMovement(napi_env env, napi_callback_info info);
     static napi_value SendExtendAction(napi_env env, napi_callback_info info);
+    static napi_value InsertTextSync(napi_env env, napi_callback_info info);
+    static napi_value MoveCursorSync(napi_env env, napi_callback_info info);
+    static napi_value GetEditorAttributeSync(napi_env env, napi_callback_info info);
+    static napi_value SelectByRangeSync(napi_env env, napi_callback_info info);
+    static napi_value SelectByMovementSync(napi_env env, napi_callback_info info);
+    static napi_value GetTextIndexAtCursorSync(napi_env env, napi_callback_info info);
+    static napi_value DeleteForwardSync(napi_env env, napi_callback_info info);
+    static napi_value DeleteBackwardSync(napi_env env, napi_callback_info info);
+    static napi_value GetForwardSync(napi_env env, napi_callback_info info);
+    static napi_value GetBackwardSync(napi_env env, napi_callback_info info);
 
 private:
     static napi_status GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
