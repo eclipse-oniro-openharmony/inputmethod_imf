@@ -39,39 +39,22 @@
     "extensionAbilities": [
       {
         "description": "InputMethodExtDemo",
-        "icon": "$media:app_icon",
+        "icon": "$media:icon",
         "name": "InputMethodExtAbility",
         "srcEntrance": "./ets/InputMethodExtAbility/InputMethodExtAbility.ts",
         "type": "inputMethod",
         "visible": true,
         "metadata": [
           {
-            "name": "language",
-            "value": "chinese"
-          },
-          {
-            "name": "mode",
-            "value": "lower"
+            "name": "ohos.extension.input_method",
+            "resource": "$profile:input_method_config"
           }
         ]
-      },
+      }
+    ],
+    "requestPermissions": [
       {
-        "description": "InputMethodExtDemo2",
-        "icon": "$media:app_icon",
-        "name": "InputMethodExtAbility2",
-        "srcEntrance": "./ets/InputMethodExtAbility2/InputMethodExtAbility2.ts",
-        "type": "inputMethod",
-        "visible": true,
-        "metadata": [
-          {
-            "name": "language",
-            "value": "english"
-          },
-          {
-            "name": "mode",
-            "value": "upper"
-          }
-        ]
+        "name": "ohos.permission.COMMONEVENT_STICKY"
       }
     ]
   }

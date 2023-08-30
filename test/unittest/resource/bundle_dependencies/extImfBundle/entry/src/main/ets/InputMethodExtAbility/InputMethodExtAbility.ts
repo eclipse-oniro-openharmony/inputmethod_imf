@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,18 +14,15 @@
  */
 
 import ImeExtension from '@ohos.InputMethodExtensionAbility'
-import {KeyboardController} from './model/KeyboardController'
+import keyboardController from './model/KeyboardController'
 
 export default class InputMethodExtAbility extends ImeExtension {
-    private keyboardController: KeyboardController;
+  onCreate(want) {
+    console.log(`InputMethodExtAbility onCreate, want: ${want.abilityName}`);
+    keyboardController.onCreate(this.context);  // Initializes the window and registers event listeners for the input method framework
+  }
 
-    onCreate(want) {
-        console.log(`InputMethodExtAbility onCreate, want: ${want.abilityName}`);
-        this.keyboardController = new KeyboardController(this.context);
-        this.keyboardController.onCreate();
-    }
-
-    onDestroy() {
-        console.log(`InputMethodExtAbility onDestroy`);
-    }
+  onDestroy() {
+    console.log(`InputMethodExtAbility onDestroy`);
+  }
 }

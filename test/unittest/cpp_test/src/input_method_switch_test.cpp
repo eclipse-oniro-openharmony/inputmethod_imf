@@ -43,6 +43,7 @@ public:
     static std::string bundleName;
     static std::vector<std::string> extName;
     static std::vector<std::string> language;
+    static std::vector<std::string> locale;
 };
 bool InputMethodSwitchTest::imeChangeFlag = false;
 sptr<InputMethodController> InputMethodSwitchTest::imc_;
@@ -51,6 +52,7 @@ std::vector<std::string> InputMethodSwitchTest::newImeSubName{ "lowerInput", "up
 std::string InputMethodSwitchTest::bundleName = "com.example.testIme";
 std::vector<std::string> InputMethodSwitchTest::extName{ "InputMethodExtAbility", "InputMethodExtAbility2" };
 std::vector<std::string> InputMethodSwitchTest::language{ "chinese", "english" };
+std::vector<std::string> InputMethodSwitchTest::locale{ "zh-CN", "en-US" };
 constexpr uint32_t IME_EXT_NUM = 2;
 constexpr uint32_t NEW_IME_SUBTYPE_NUM = 3;
 constexpr uint32_t TOTAL_IME_MIN_NUM = 2;
@@ -123,7 +125,7 @@ void InputMethodSwitchTest::CheckCurrentSubProps()
         EXPECT_EQ(subProps[i].id, extName[i]);
         EXPECT_EQ(subProps[i].name, bundleName);
         EXPECT_EQ(subProps[i].language, language[i]);
-        EXPECT_EQ(subProps[i].locale, "");
+        EXPECT_EQ(subProps[i].locale, locale[i]);
     }
 }
 
@@ -181,8 +183,27 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
     int32_t ret = imc_->SwitchInputMethod(bundleName, extName[1]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(imeChangeFlag);
-    CheckCurrentProp(extName[1]);
+    CheckCurrentProp(extName[0]);
     CheckCurrentSubProp(extName[1]);
+    CheckCurrentSubProps();
+}
+
+/**
+* @tc.name: testSubTypeSwitch_003
+* @tc.desc: switch subtype with extName1
+* @tc.type: FUNC
+* @tc.require: issuesI62BHB
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_003, TestSize.Level0)
+{
+    IMSA_HILOGI("oldIme testSubTypeSwitch_003 Test START");
+    imeChangeFlag = false;
+    int32_t ret = imc_->SwitchInputMethod(bundleName, extName[0]);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(imeChangeFlag);
+    CheckCurrentProp(extName[0]);
+    CheckCurrentSubProp(extName[0]);
     CheckCurrentSubProps();
 }
 

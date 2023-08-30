@@ -40,6 +40,10 @@
       {
         "name": "ohos.permission.CONNECT_IME_ABILITY",
         "reason": "ceshi"
+      },
+      {
+        "name": "ohos.permission.COMMONEVENT_STICKY",
+        "reason": "ceshi"
       }
     ],
     "abilities": [

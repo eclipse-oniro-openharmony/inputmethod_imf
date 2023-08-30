@@ -43,6 +43,7 @@ describe('InputMethodTest', function () {
   let language = ['english', 'english', 'chinese'];
   let bundleName1 = 'com.example.testIme';
   let extName1 = ['InputMethodExtAbility', 'InputMethodExtAbility2'];
+  let locale1 = ['zh-CN', 'en-US'];
   let language1 = ['chinese', 'english'];
   const LEAST_ALL_IME_NUM = 2;
   const ENABLE_IME_NUM = 1;
@@ -99,7 +100,7 @@ describe('InputMethodTest', function () {
   {
     expect(subProp.name).assertEqual(bundleName1);
     expect(subProp.id).assertEqual(extName1[index]);
-    expect(subProp.locale).assertEqual('');
+    expect(subProp.locale).assertEqual(locale1[index]);
     expect(subProp.language).assertEqual(language1[index]);
   }
 
@@ -109,7 +110,7 @@ describe('InputMethodTest', function () {
     for (let i = 0; i < subProps.length; i++) {
       expect(subProps[i].name).assertEqual(bundleName1);
       expect(subProps[i].id).assertEqual(extName1[i]);
-      expect(subProps[i].locale).assertEqual('');
+      expect(subProps[i].locale).assertEqual(locale1[i]);
       expect(subProps[i].language).assertEqual(language1[i]);
     }
   }
@@ -491,8 +492,8 @@ describe('InputMethodTest', function () {
     let InputMethodSubtype = {
       name:bundleName1,
       id:extName1[0],
-      locale:'en_US.ISO-8859-1',
-      language:'en',
+      locale:locale1[0],
+      language:language1[0],
       extra:{},
     };
     let inputMethodProperty = {
