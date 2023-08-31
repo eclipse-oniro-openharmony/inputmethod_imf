@@ -460,14 +460,15 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
-    if (JsUtil::GetType(env, argv[1]) != napi_function) {
-        // if only has one param or the type of second param is napi_null/napi_undefined, delete all callback
-        if (argc == 1 || JsUtil::GetType(env, argv[1]) == napi_null || JsUtil::GetType(env, argv[1]) == napi_undefined) {
-            argv[1] = nullptr;
-        } else {
-            return nullptr;
-        }
+
+    // if the second param is not napi_function/napi_null/napi_undefined, return
+    auto paramType = JsUtil::GetType(env, argv[1]);
+    if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {
+        return nullptr;
     }
+    // if the second param is napi_function, delete it, else delete all
+    argv[1] = paramType == napi_function ? argv[1] : nullptr;
+
     IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());
 
     auto engine = reinterpret_cast<JsGetInputMethodSetting *>(JsUtils::GetNativeSelf(env, info));
