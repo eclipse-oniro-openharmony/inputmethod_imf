@@ -117,6 +117,7 @@ private:
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
     static constexpr int32_t MAX_WAIT_TIME = 5000;
     BlockQueue<SwitchInfo> switchQueue_{ MAX_WAIT_TIME };
+    bool stop_ = false;
     int32_t InitKeyEventMonitor();
     bool InitFocusChangeMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);

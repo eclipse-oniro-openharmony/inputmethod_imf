@@ -286,9 +286,14 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
         return nullptr;
     }
-    // If the type of optional parameter is wrong, make it nullptr
     if (JsUtil::GetType(env, argv[1]) != napi_function) {
-        argv[1] = nullptr;
+        // if only has one param or the type of second param is napi_null/napi_undefined, delete all callback
+        if (argc == 1 || JsUtil::GetType(env, argv[1]) == napi_null || JsUtil::GetType(env, argv[1]) == napi_undefined) {
+            argv[1] = nullptr;
+        } else {
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_FUNCTION);
+            return nullptr;
+        }
     }
     IMSA_HILOGD("UnSubscribe type:%{public}s", type.c_str());
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();

@@ -448,9 +448,13 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
-    // If the type of optional parameter is wrong, make it nullptr
     if (JsUtil::GetType(env, argv[1]) != napi_function) {
-        argv[1] = nullptr;
+        // if only has one param or the type of second param is napi_null/napi_undefined, delete all callback
+        if (argc == 1 || JsUtil::GetType(env, argv[1]) == napi_null || JsUtil::GetType(env, argv[1]) == napi_undefined) {
+            argv[1] = nullptr;
+        } else {
+            return nullptr;
+        }
     }
     IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());
     auto setting = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
@@ -704,6 +708,7 @@ uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntryS
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         IMSA_HILOGE("entry ptr is nullptr!");
+        delete entry;
         return nullptr;
     }
     work->data = entry;
