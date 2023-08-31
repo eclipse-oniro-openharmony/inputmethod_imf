@@ -60,6 +60,7 @@ InputMethodSystemAbility::InputMethodSystemAbility() : state_(ServiceRunningStat
 
 InputMethodSystemAbility::~InputMethodSystemAbility()
 {
+    stop_ = true;
     Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
     MessageHandler::Instance()->SendMessage(msg);
     if (workThreadHandler.joinable()) {
@@ -529,7 +530,7 @@ int32_t InputMethodSystemAbility::ListInputMethodSubtype(
 void InputMethodSystemAbility::WorkThread()
 {
     prctl(PR_SET_NAME, "IMSAWorkThread");
-    while (1) {
+    while (!stop_) {
         Message *msg = MessageHandler::Instance()->GetMessage();
         switch (msg->msgId_) {
             case MSG_ID_USER_START: {
@@ -548,11 +549,8 @@ void InputMethodSystemAbility::WorkThread()
                 userSession_->OnHideKeyboardSelf();
                 break;
             }
-            case MSG_ID_QUIT_WORKER_THREAD: {
-                IMSA_HILOGD("Quit Sa work thread.");
-                return;
-            }
             default: {
+                IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
             }
         }

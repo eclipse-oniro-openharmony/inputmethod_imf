@@ -27,7 +27,8 @@
 namespace OHOS {
 namespace MiscServices {
 struct ImePersistCfg {
-    int32_t userId;
+    static constexpr int32_t INVALID_USERID = -1;
+    int32_t userId{ INVALID_USERID };
     std::string currentIme;
     std::string currentSubName;
 };

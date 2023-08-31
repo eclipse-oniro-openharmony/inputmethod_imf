@@ -669,17 +669,20 @@ bool ImeInfoInquirer::ParseSubProp(const std::vector<std::string> &profiles, std
     SubProperty subProp;
     IMSA_HILOGD("profiles[0]: %{public}s", profiles[0].c_str());
     jsonSubProps = json::parse(profiles[0], nullptr, false);
-    if (jsonSubProps.is_null() || jsonSubProps.is_discarded() || !jsonSubProps.contains("subtypes")
-        || !jsonSubProps["subtypes"].is_array() || jsonSubProps["subtypes"].empty()) {
+    if (jsonSubProps.is_null() || jsonSubProps.is_discarded()) {
         IMSA_HILOGE("json parse failed");
         return false;
     }
-    ParseSubProp(jsonSubProps, subProps);
-    return true;
+    return ParseSubProp(jsonSubProps, subProps);
 }
 
-void ImeInfoInquirer::ParseSubProp(const json &jsonSubProps, std::vector<SubProperty> &subProps)
+bool ImeInfoInquirer::ParseSubProp(const json &jsonSubProps, std::vector<SubProperty> &subProps)
 {
+    if (!jsonSubProps.contains("subtypes") || !jsonSubProps["subtypes"].is_array() ||
+        jsonSubProps["subtypes"].empty()) {
+        IMSA_HILOGE("the context of json file is abnormal");
+        return false;
+    }
     IMSA_HILOGD("subType num: %{public}zu", jsonSubProps["subtypes"].size());
     for (auto &jsonCfg : jsonSubProps["subtypes"]) {
         if (subProps.size() >= MAX_SUBTYPE_NUM) {
@@ -689,6 +692,7 @@ void ImeInfoInquirer::ParseSubProp(const json &jsonSubProps, std::vector<SubProp
         ParseSubProp(jsonCfg, subProp);
         subProps.push_back(subProp);
     }
+    return true;
 }
 
 void ImeInfoInquirer::ParseSubProp(const json &jsonSubProp, SubProperty &subProp)
