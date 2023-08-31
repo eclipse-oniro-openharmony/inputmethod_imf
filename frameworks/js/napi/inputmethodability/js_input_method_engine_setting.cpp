@@ -450,7 +450,8 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     }
     if (JsUtil::GetType(env, argv[1]) != napi_function) {
         // if only has one param or the type of second param is napi_null/napi_undefined, delete all callback
-        if (argc == 1 || JsUtil::GetType(env, argv[1]) == napi_null || JsUtil::GetType(env, argv[1]) == napi_undefined) {
+        if (argc == 1 || JsUtil::GetType(env, argv[1]) == napi_null ||
+            JsUtil::GetType(env, argv[1]) == napi_undefined) {
             argv[1] = nullptr;
         } else {
             return nullptr;
