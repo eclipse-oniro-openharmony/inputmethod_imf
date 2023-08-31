@@ -52,8 +52,6 @@ void FuzzInputClientStub(const uint8_t *rawData, size_t size)
     MessageOption option;
 
     sptr<InputClientStub> mClient = new InputClientStub();
-    MessageHandler *handler = MessageHandler::Instance();
-    mClient->SetHandler(handler);
     mClient->OnRemoteRequest(code, data, reply, option);
 }
 

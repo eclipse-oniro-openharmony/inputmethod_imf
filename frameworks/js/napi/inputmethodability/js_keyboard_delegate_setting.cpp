@@ -253,10 +253,15 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
-    // If the type of optional parameter is wrong, make it nullptr
-    if (JsUtil::GetType(env, argv[1]) != napi_function) {
-        argv[1] = nullptr;
+
+    // if the second param is not napi_function/napi_null/napi_undefined, return
+    auto paramType = JsUtil::GetType(env, argv[1]);
+    if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {
+        return nullptr;
     }
+    // if the second param is napi_function, delete it, else delete all
+    argv[1] = paramType == napi_function ? argv[1] : nullptr;
+
     IMSA_HILOGD("UnSubscribe type:%{public}s.", type.c_str());
     auto delegate = reinterpret_cast<JsKeyboardDelegateSetting *>(JsUtils::GetNativeSelf(env, info));
     if (delegate == nullptr) {
@@ -558,6 +563,7 @@ uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySe
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         IMSA_HILOGE("entry ptr is nullptr!");
+        delete entry;
         return nullptr;
     }
     work->data = entry;

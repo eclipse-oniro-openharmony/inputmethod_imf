@@ -36,8 +36,6 @@ public:
     static void CheckCurrentProp(const std::string &extName);
     static void CheckCurrentSubProp(const std::string &extName);
     static void CheckCurrentSubProps();
-    static std::mutex imeChangeFlagLock;
-    static std::condition_variable conditionVar;
     static sptr<InputMethodController> imc_;
     static bool imeChangeFlag;
     static std::string newImeBundleName;
@@ -45,9 +43,8 @@ public:
     static std::string bundleName;
     static std::vector<std::string> extName;
     static std::vector<std::string> language;
+    static std::vector<std::string> locale;
 };
-std::mutex InputMethodSwitchTest::imeChangeFlagLock;
-std::condition_variable InputMethodSwitchTest::conditionVar;
 bool InputMethodSwitchTest::imeChangeFlag = false;
 sptr<InputMethodController> InputMethodSwitchTest::imc_;
 std::string InputMethodSwitchTest::newImeBundleName = "com.example.newTestIme";
@@ -55,12 +52,11 @@ std::vector<std::string> InputMethodSwitchTest::newImeSubName{ "lowerInput", "up
 std::string InputMethodSwitchTest::bundleName = "com.example.testIme";
 std::vector<std::string> InputMethodSwitchTest::extName{ "InputMethodExtAbility", "InputMethodExtAbility2" };
 std::vector<std::string> InputMethodSwitchTest::language{ "chinese", "english" };
+std::vector<std::string> InputMethodSwitchTest::locale{ "zh-CN", "en-US" };
 constexpr uint32_t IME_EXT_NUM = 2;
 constexpr uint32_t NEW_IME_SUBTYPE_NUM = 3;
 constexpr uint32_t TOTAL_IME_MIN_NUM = 2;
 constexpr uint32_t ENABLE_IME_NUM = 1;
-constexpr uint32_t SUBTYPE_SWITCH_DELAY_TIME = 20;
-constexpr uint32_t IME_SWITCH_DELAY_TIME = 200;
 constexpr uint32_t WAIT_IME_READY_TIME = 1;
 class InputMethodSettingListenerImpl : public InputMethodSettingListener {
 public:
@@ -68,11 +64,7 @@ public:
     ~InputMethodSettingListenerImpl() = default;
     void OnImeChange(const Property &property, const SubProperty &subProperty)
     {
-        {
-            std::unique_lock<std::mutex> lock(InputMethodSwitchTest::imeChangeFlagLock);
-            InputMethodSwitchTest::imeChangeFlag = true;
-        }
-        InputMethodSwitchTest::conditionVar.notify_one();
+        InputMethodSwitchTest::imeChangeFlag = true;
         IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
     }
     void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
@@ -133,7 +125,7 @@ void InputMethodSwitchTest::CheckCurrentSubProps()
         EXPECT_EQ(subProps[i].id, extName[i]);
         EXPECT_EQ(subProps[i].name, bundleName);
         EXPECT_EQ(subProps[i].language, language[i]);
-        EXPECT_EQ(subProps[i].locale, "");
+        EXPECT_EQ(subProps[i].locale, locale[i]);
     }
 }
 
@@ -147,12 +139,10 @@ void InputMethodSwitchTest::CheckCurrentSubProps()
 HWTEST_F(InputMethodSwitchTest, testImeSwitch, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testImeSwitch Test START");
-    std::unique_lock<std::mutex> lock(imeChangeFlagLock);
     imeChangeFlag = false;
     // switch to ext testIme
     auto ret = imc_->SwitchInputMethod(bundleName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    conditionVar.wait_for(lock, std::chrono::milliseconds(IME_SWITCH_DELAY_TIME), [] { return imeChangeFlag == true; });
     EXPECT_TRUE(imeChangeFlag);
     CheckCurrentProp(extName[0]);
     CheckCurrentSubProp(extName[0]);
@@ -170,12 +160,9 @@ HWTEST_F(InputMethodSwitchTest, testImeSwitch, TestSize.Level0)
 HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSubTypeSwitch_001 Test START");
-    std::unique_lock<std::mutex> lock(imeChangeFlagLock);
     imeChangeFlag = false;
     int32_t ret = imc_->SwitchInputMethod(bundleName, extName[0]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    conditionVar.wait_for(
-        lock, std::chrono::milliseconds(SUBTYPE_SWITCH_DELAY_TIME), [] { return imeChangeFlag == true; });
     EXPECT_FALSE(imeChangeFlag);
     CheckCurrentProp(extName[0]);
     CheckCurrentSubProp(extName[0]);
@@ -192,15 +179,31 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
 HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSubTypeSwitch_002 Test START");
-    std::unique_lock<std::mutex> lock(imeChangeFlagLock);
     imeChangeFlag = false;
     int32_t ret = imc_->SwitchInputMethod(bundleName, extName[1]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    conditionVar.wait_for(
-        lock, std::chrono::milliseconds(SUBTYPE_SWITCH_DELAY_TIME), [] { return imeChangeFlag == true; });
     EXPECT_TRUE(imeChangeFlag);
-    CheckCurrentProp(extName[1]);
+    CheckCurrentProp(extName[0]);
     CheckCurrentSubProp(extName[1]);
+    CheckCurrentSubProps();
+}
+
+/**
+* @tc.name: testSubTypeSwitch_003
+* @tc.desc: switch subtype with extName1
+* @tc.type: FUNC
+* @tc.require: issuesI62BHB
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_003, TestSize.Level0)
+{
+    IMSA_HILOGI("oldIme testSubTypeSwitch_003 Test START");
+    imeChangeFlag = false;
+    int32_t ret = imc_->SwitchInputMethod(bundleName, extName[0]);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(imeChangeFlag);
+    CheckCurrentProp(extName[0]);
+    CheckCurrentSubProp(extName[0]);
     CheckCurrentSubProps();
 }
 
@@ -232,13 +235,10 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitchWithErrorSubName, TestSize.Leve
 HWTEST_F(InputMethodSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSwitchToCurrentImeWithEmptySubName Test START");
-    std::unique_lock<std::mutex> lock(imeChangeFlagLock);
     imeChangeFlag = false;
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod(bundleName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    InputMethodSwitchTest::conditionVar.wait_for(
-        lock, std::chrono::milliseconds(SUBTYPE_SWITCH_DELAY_TIME), [] { return imeChangeFlag == true; });
     EXPECT_FALSE(imeChangeFlag);
     CheckCurrentProp(subName);
     CheckCurrentSubProp(subName);

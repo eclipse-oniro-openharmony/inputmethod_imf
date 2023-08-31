@@ -14,15 +14,49 @@
  */
 
 import inputMethod from '@ohos.inputMethod';
+import commonEventManager from '@ohos.commonEventManager';
 import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from 'deccjsunit/index';
 
 describe('InputMethodWithAttachTest', function () {
-  beforeAll(function () {
-      console.info('beforeAll called');
+  const WAIT_DEAL_OK = 500;
+  const TEST_RESULT_CODE = 0;
+  const TEST_FUNCTION =  {
+    INSERT_TEXT_SYNC: 0,
+    MOVE_CURSOR_SYNC: 1,
+    GET_ATTRIBUTE_SYNC: 2,
+    SELECT_BY_RANGE_SYNC: 3,
+    SELECT_BY_MOVEMENT_SYNC: 4,
+    GET_INDEX_AT_CURSOR_SYNC: 5,
+    DELETE_FORWARD_SYNC: 6,
+    DELETE_BACKWARD_SYNC: 7,
+    GET_FORWARD_SYNC: 8,
+    GET_BACKWARD_SYNC: 9
+  }
+
+  beforeAll(async function (done) {
+    console.info('beforeAll called');
+    let inputMethodProperty = {
+      name:'com.example.testIme',
+      id:'InputMethodExtAbility'
+    };
+    await inputMethod.switchInputMethod(inputMethodProperty);
+    setTimeout(()=>{
+      done();
+    }, WAIT_DEAL_OK);
   });
 
-  afterAll(function () {
-      console.info('afterAll called');
+  afterAll(async function () {
+    console.info('afterAll called');
+    let inputMethodSetting = inputMethod.getInputMethodSetting();
+    let props = await inputMethodSetting.listInputMethod();
+    let bundleName = 'com.example.newTestIme';
+    let bundleName1 = 'com.example.testIme';
+    for(let i = 0;i< props.length; i++) {
+      let prop = props[i];
+      if(prop.name !== bundleName && prop.name !== bundleName1){
+        await inputMethod.switchInputMethod(prop);
+      }
+    }
   });
 
   beforeEach(async function () {
@@ -44,6 +78,29 @@ describe('InputMethodWithAttachTest', function () {
     await inputMethodCtrl.detach();
   });
 
+  function publishCommonEvent(codeNumber) {
+    console.info(`[publishCommonEvent] publish event, codeNumber = ${codeNumber}`);
+    commonEventManager.publish('syncTestFunction', { code: codeNumber }, (err)=>{
+      console.info(`inputMethod publish finish, err = ${JSON.stringify(err)}`);
+    })
+  }
+
+  function subscribe(subscribeInfo, functionCode, done) {
+    commonEventManager.createSubscriber(subscribeInfo).then((data)=>{
+      let subscriber = data;
+      commonEventManager.subscribe(subscriber, (err, eventData)=>{
+        console.info("inputMethod subscribe");
+        if(eventData.code === TEST_RESULT_CODE) {
+          expect(true).assertTrue();
+        }else{
+          expect().assertFail();
+        }
+        commonEventManager.unsubscribe(subscriber);
+        done();
+      })
+      publishCommonEvent(functionCode);
+    })
+  }
   /*
    * @tc.number  inputmethod_with_attach_test_showTextInput_001
    * @tc.name    Test whether the keyboard is displayed successfully.
@@ -532,6 +589,238 @@ describe('InputMethodWithAttachTest', function () {
       done();
     } catch(error) {
       console.info(`inputmethod_with_attach_test_on_000 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+    /*
+   * @tc.number  inputmethod_test_insertTextSync_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+    it('inputmethod_test_insertTextSync_001', 0, async function (done) {
+      console.info('************* inputmethod_test_insertTextSync_001 Test start*************');
+      let inputMethodCtrl = inputMethod.getController();
+      try {
+        inputMethodCtrl.on('insertText', (text) => {
+          console.info(`inputMethod insertText success, text: ${JSON.stringify(text)}`);
+          expect(true).assertTrue();
+          done();
+        });
+        publishCommonEvent(TEST_FUNCTION.INSERT_TEXT_SYNC);
+      } catch(error) {
+        console.info(`inputmethod_test_insertTextSync result: ${JSON.stringify(error)}`);
+        expect().assertFail();
+        done();
+      }
+    });
+
+  /*
+   * @tc.number  inputmethod_test_moveCursorSync_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_moveCursorSync_001', 0, async function (done) {
+    console.info('************* inputmethod_test_moveCursorSync_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('moveCursor', (direction) => {
+        console.info(`inputMethod moveCursor success, direction: ${direction}`);
+        expect(true).assertTrue();
+        done();
+      });
+      publishCommonEvent(TEST_FUNCTION.MOVE_CURSOR_SYNC);
+    } catch(error) {
+      console.info(`inputmethod_text_moveCursorSync result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_getEditorAttributeSync_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+    it('inputmethod_test_getEditorAttributeSync_001', 0, async function (done) {
+      console.info('************* inputmethod_test_getEditorAttributeSync_001 Test start*************');
+      try {
+        let subscribeInfo = {
+          events: ['getEditorAttributeSyncResult']
+        };
+        subscribe(subscribeInfo, TEST_FUNCTION.GET_ATTRIBUTE_SYNC, done);
+      } catch(error) {
+        console.info(`inputmethod_test_getEditorAttributeSync_001 result: ${JSON.stringify(error)}`);
+        expect().assertFail();
+        done();
+      }
+    });
+
+  /*
+   * @tc.number  inputmethod_test_SelectByRangeSync_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_selectByRangeSync_001', 0, async function (done) {
+    console.info('************* inputmethod_test_selectByRangeSync_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('selectByRange', (range) => {
+        console.info(`inputMethod selectByRangeSync success, direction: ${range}`);
+        expect(true).assertTrue();
+        done();
+      });
+      publishCommonEvent(TEST_FUNCTION.SELECT_BY_RANGE_SYNC);
+    } catch(error) {
+      console.info(`inputmethod_text_selectByRangeSync result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+       done();
+     }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_selectByMovementSync_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_selectByMovementSync_001', 0, async function (done) {
+    console.info('************* inputmethod_test_selectByMovementSync_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('selectByMovement', (movement) => {
+        console.info(`inputMethod selectByMovementSync success, direction: ${movement}`);
+        expect(true).assertTrue();
+        done();
+      });
+      publishCommonEvent(TEST_FUNCTION.SELECT_BY_MOVEMENT_SYNC);
+    } catch(error) {
+      console.info(`inputmethod_text_selectByMovementSync result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+       done();
+     }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_selectByMovementSync_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_getTextIndexAtCursorSync_001', 0, async function (done) {
+    console.info('************* inputmethod_test_getTextIndexAtCursorSync_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('getTextIndexAtCursor', () => {
+        console.info(`inputMethod getTextIndexAtCursor success`);
+        return 2;
+      });
+      let subscribeInfo = {
+        events: ['getTextIndexAtCursorSyncResult']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.GET_INDEX_AT_CURSOR_SYNC, done);
+    } catch(error) {
+      console.info(`inputmethod_test_getTextIndexAtCursorSync_001 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_deleteForwardSync_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_deleteForwardSync_001', 0, async function (done) {
+    console.info('************* inputmethod_test_deleteForwardSync_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('deleteLeft', (movement) => {
+        console.info(`inputMethod deleteForwardSync success, direction: ${movement}`);
+        expect(true).assertTrue();
+        done();
+      });
+      publishCommonEvent(TEST_FUNCTION.DELETE_FORWARD_SYNC);
+    } catch(error) {
+      console.info(`inputmethod_text_deleteForwardSync result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_deleteBackwardSync_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_deleteBackwardSync_001', 0, async function (done) {
+    console.info('************* inputmethod_test_deleteBackwardSync_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('deleteRight', (movement) => {
+        console.info(`inputMethod deleteBackwardSync success, direction: ${movement}`);
+        expect(true).assertTrue();
+        done();
+      });
+      publishCommonEvent(TEST_FUNCTION.DELETE_BACKWARD_SYNC);
+    } catch(error) {
+      console.info(`inputmethod_text_deleteBackwardSync result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_getForwardSync_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_getForwardSync_001', 0, async function (done) {
+    console.info('************* inputmethod_test_getForwardSync_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('getLeftTextOfCursor', (length) => {
+        console.info(`inputMethod getForwardSync success, length: ${length}`);
+        return 'getLeftTextOfCursor';
+      });
+      let subscribeInfo = {
+        events: ['getForwardSyncResult']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.GET_FORWARD_SYNC, done);
+    } catch(error) {
+      console.info(`inputmethod_text_getForwardSync result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+  /*
+   * @tc.number  inputmethod_test_getBackwardSync_001
+   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_getBackwardSync_001', 0, async function (done) {
+    console.info('************* inputmethod_test_getBackwardSync_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    try {
+      inputMethodCtrl.on('getRightTextOfCursor', (length) => {
+        console.info(`inputMethod getBackwardSync success, length: ${length}`);
+        return 'getRightTextOfCursor';
+      });
+      let subscribeInfo = {
+        events: ['getBackwardSyncResult']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.GET_BACKWARD_SYNC, done);
+    } catch(error) {
+      console.info(`inputmethod_text_getBackwardSync result: ${JSON.stringify(error)}`);
       expect().assertFail();
       done();
     }

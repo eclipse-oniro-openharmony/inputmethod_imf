@@ -45,6 +45,7 @@ public:
         HANDLE_EXTEND_ACTION,
         GET_TEXT_INDEX_AT_CURSOR,
         GET_TEXT_CONFIG,
+        DATA_CHANNEL_CMD_LAST
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputDataChannel");

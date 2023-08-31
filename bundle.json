@@ -26,18 +26,18 @@
       "ram": "1024KB", 
       "deps": {
           "components": [
-              "init", 
-              "napi", 
-              "samgr", 
-              "common_event_service", 
-              "ipc", 
-              "eventhandler", 
-              "bundle_framework", 
-              "ability_runtime", 
-              "hilog", 
-              "ability_base", 
-              "safwk", 
-              "input", 
+              "init",
+              "napi",
+              "samgr",
+              "common_event_service",
+              "ipc",
+              "eventhandler",
+              "bundle_framework",
+              "ability_runtime",
+              "hilog",
+              "ability_base",
+              "safwk",
+              "input",
               "c_utils",
               "access_token",
               "i18n",
@@ -45,7 +45,8 @@
               "os_account",
               "hisysevent",
               "hitrace",
-              "graphic_2d"
+              "graphic_2d",
+              "ffrt"
           ], 
           "third_party": [
               "jsoncpp"

@@ -28,6 +28,7 @@ bool TextListener::status_ = false;
 int32_t TextListener::selectionStart_ = -1;
 int32_t TextListener::selectionEnd_ = -1;
 int32_t TextListener::selectionDirection_ = -1;
+int32_t TextListener::selectionSkip_ = -1;
 int32_t TextListener::action_ = -1;
 KeyboardStatus TextListener::keyboardStatus_ = { KeyboardStatus::NONE };
 bool TextListener::isTimeout_ = { false };
@@ -117,6 +118,7 @@ void TextListener::HandleExtendAction(int32_t action)
 void TextListener::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
 {
     selectionDirection_ = keyCode;
+    selectionSkip_ = cursorMoveSkip;
     textListenerCv_.notify_one();
     IMSA_HILOGI("TextChangeListener, selectionDirection_: %{public}d", selectionDirection_);
 }
@@ -156,6 +158,7 @@ void TextListener::ResetParam()
     selectionStart_ = -1;
     selectionEnd_ = -1;
     selectionDirection_ = -1;
+    selectionSkip_ = -1;
     action_ = -1;
     keyboardStatus_ = KeyboardStatus::NONE;
     isTimeout_ = false;
