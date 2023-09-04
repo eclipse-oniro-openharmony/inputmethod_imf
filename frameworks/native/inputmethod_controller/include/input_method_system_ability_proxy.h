@@ -25,7 +25,6 @@
 #include "i_input_method_system_ability.h"
 #include "input_attribute.h"
 #include "input_client_stub.h"
-#include "input_data_channel_stub.h"
 #include "input_method_info.h"
 #include "input_window_info.h"
 #include "iremote_broker.h"
