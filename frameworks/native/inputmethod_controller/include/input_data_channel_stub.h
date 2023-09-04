@@ -54,10 +54,9 @@ public:
     int32_t GetTextConfig(TextTotalConfig &textConfig) override;
 
 private:
-    template<class T>
-    struct ResultInfo {
+    template<class T> struct ResultInfo {
         T data;
-        int32_t errCode{0};
+        int32_t errCode{ 0 };
     };
 
     int32_t InsertTextOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -76,22 +75,22 @@ private:
     int32_t HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t GetTextIndexAtCursorOnRemote(MessageParcel &data, MessageParcel &reply);
     using RequestHandler = int32_t (InputDataChannelStub::*)(MessageParcel &, MessageParcel &);
-    static constexpr RequestHandler HANDLERS[static_cast<uint32_t>(DATA_CHANNEL_CMD_LAST)] = {
-        [static_cast<uint32_t>(INSERT_TEXT)] = &InputDataChannelStub::InsertTextOnRemote,
-        [static_cast<uint32_t>(DELETE_FORWARD)] = &InputDataChannelStub::DeleteForwardOnRemote,
-        [static_cast<uint32_t>(DELETE_BACKWARD)] = &InputDataChannelStub::DeleteBackwardOnRemote,
-        [static_cast<uint32_t>(GET_TEXT_BEFORE_CURSOR)] = &InputDataChannelStub::GetTextBeforeCursorOnRemote,
-        [static_cast<uint32_t>(GET_TEXT_AFTER_CURSOR)] = &InputDataChannelStub::GetTextAfterCursorOnRemote,
-        [static_cast<uint32_t>(GET_ENTER_KEY_TYPE)] = &InputDataChannelStub::GetEnterKeyTypeOnRemote,
-        [static_cast<uint32_t>(GET_INPUT_PATTERN)] = &InputDataChannelStub::GetInputPatternOnRemote,
-        [static_cast<uint32_t>(SEND_KEYBOARD_STATUS)] = &InputDataChannelStub::SendKeyboardStatusOnRemote,
-        [static_cast<uint32_t>(SEND_FUNCTION_KEY)] = &InputDataChannelStub::SendFunctionKeyOnRemote,
-        [static_cast<uint32_t>(MOVE_CURSOR)] = &InputDataChannelStub::MoveCursorOnRemote,
-        [static_cast<uint32_t>(SELECT_BY_RANGE)] = &InputDataChannelStub::SelectByRangeOnRemote,
-        [static_cast<uint32_t>(SELECT_BY_MOVEMENT)] = &InputDataChannelStub::SelectByMovementOnRemote,
-        [static_cast<uint32_t>(HANDLE_EXTEND_ACTION)] = &InputDataChannelStub::HandleExtendActionOnRemote,
-        [static_cast<uint32_t>(GET_TEXT_INDEX_AT_CURSOR)] = &InputDataChannelStub::GetTextIndexAtCursorOnRemote,
-        [static_cast<uint32_t>(GET_TEXT_CONFIG)] = &InputDataChannelStub::GetTextConfigOnRemote,
+    static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
+        { static_cast<uint32_t>(INSERT_TEXT), &InputDataChannelStub::InsertTextOnRemote },
+        { static_cast<uint32_t>(DELETE_FORWARD), &InputDataChannelStub::DeleteForwardOnRemote },
+        { static_cast<uint32_t>(DELETE_BACKWARD), &InputDataChannelStub::DeleteBackwardOnRemote },
+        { static_cast<uint32_t>(GET_TEXT_BEFORE_CURSOR), &InputDataChannelStub::GetTextBeforeCursorOnRemote },
+        { static_cast<uint32_t>(GET_TEXT_AFTER_CURSOR), &InputDataChannelStub::GetTextAfterCursorOnRemote },
+        { static_cast<uint32_t>(GET_ENTER_KEY_TYPE), &InputDataChannelStub::GetEnterKeyTypeOnRemote },
+        { static_cast<uint32_t>(GET_INPUT_PATTERN), &InputDataChannelStub::GetInputPatternOnRemote },
+        { static_cast<uint32_t>(SEND_KEYBOARD_STATUS), &InputDataChannelStub::SendKeyboardStatusOnRemote },
+        { static_cast<uint32_t>(SEND_FUNCTION_KEY), &InputDataChannelStub::SendFunctionKeyOnRemote },
+        { static_cast<uint32_t>(MOVE_CURSOR), &InputDataChannelStub::MoveCursorOnRemote },
+        { static_cast<uint32_t>(SELECT_BY_RANGE), &InputDataChannelStub::SelectByRangeOnRemote },
+        { static_cast<uint32_t>(SELECT_BY_MOVEMENT), &InputDataChannelStub::SelectByMovementOnRemote },
+        { static_cast<uint32_t>(HANDLE_EXTEND_ACTION), &InputDataChannelStub::HandleExtendActionOnRemote },
+        { static_cast<uint32_t>(GET_TEXT_INDEX_AT_CURSOR), &InputDataChannelStub::GetTextIndexAtCursorOnRemote },
+        { static_cast<uint32_t>(GET_TEXT_CONFIG), &InputDataChannelStub::GetTextConfigOnRemote },
     };
 };
 } // namespace MiscServices
