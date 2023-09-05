@@ -72,14 +72,14 @@ void InputMethodPrivateMemberTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUp");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
-    ImeInfoInquirer::GetInstance().ResetCurrentImeInfo();
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 }
 
 void InputMethodPrivateMemberTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::TearDown");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
-    ImeInfoInquirer::GetInstance().ResetCurrentImeInfo();
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 }
 sptr<InputMethodSystemAbility> InputMethodPrivateMemberTest::service_;
 
@@ -436,10 +436,10 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_003, TestSize.L
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_003 TEST START");
     ImeCfgManager cfgManager;
     service_->userId_ = 50;
-    ImeInfo info;
-    info.isNewIme = true;
-    info.prop = { .name = "testBundleName" };
-    info.subProp = { .id = "testSubName" };
+    auto info = std::make_shared<ImeInfo>();
+    info->isNewIme = true;
+    info->prop = { .name = "testBundleName" };
+    info->subProp = { .id = "testSubName" };
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
     ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
@@ -459,9 +459,9 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_004, TestSize.L
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_004 TEST START");
     service_->userId_ = 50;
-    ImeInfo info;
-    info.prop = { .name = "testBundleName", .id = "testExtName" };
-    info.subProp = { .name = "testBundleName", .id = "testSubName", .language = "French" };
+    auto info = std::make_shared<ImeInfo>();
+    info->prop = { .name = "testBundleName", .id = "testExtName" };
+    info->subProp = { .name = "testBundleName", .id = "testSubName", .language = "French" };
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
     ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
@@ -479,15 +479,15 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_005, TestSize.L
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_005 TEST START");
     service_->userId_ = 50;
-    ImeInfo info;
-    info.prop = { .name = "testBundleName", .id = "testExtName" };
-    info.subProp = {
+    auto info = std::make_shared<ImeInfo>();
+    info->prop = { .name = "testBundleName", .id = "testExtName" };
+    info->subProp = {
         .name = "testBundleName",
         .id = "testSubName",
         .mode = "upper",
         .language = "english",
     };
-    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" } };
+    info->subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" } };
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
     ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
     auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK);
@@ -507,10 +507,10 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_006, TestSize.L
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest SA_SwitchByCombinationKey_006 TEST START");
     service_->userId_ = 50;
-    ImeInfo info;
-    info.prop = { .name = "testBundleName", .id = "testExtName" };
-    info.subProp = { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" };
-    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" },
+    auto info = std::make_shared<ImeInfo>();
+    info->prop = { .name = "testBundleName", .id = "testExtName" };
+    info->subProp = { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" };
+    info->subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "upper", .language = "english" },
         { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" } };
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
     ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName" });
@@ -521,8 +521,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_006, TestSize.L
     ret = service_->SwitchByCombinationKey(KeyboardEvent::CAPS_MASK);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
 
-    info.subProp = { .name = "testBundleName", .id = "testSubName1", .mode = "upper", .language = "chinese" };
-    info.subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "lower", .language = "english" },
+    info->subProp = { .name = "testBundleName", .id = "testSubName1", .mode = "upper", .language = "chinese" };
+    info->subProps = { { .name = "testBundleName", .id = "testSubName", .mode = "lower", .language = "english" },
         { .name = "testBundleName", .id = "testSubName1", .mode = "lower", .language = "chinese" } };
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
     ImeCfgManager::GetInstance().imeConfigs_.push_back({ 50, "testBundleName/testExtName", "testSubName1" });
