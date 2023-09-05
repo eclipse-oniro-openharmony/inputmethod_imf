@@ -18,6 +18,7 @@
 #define protected public
 #include "input_method_ability.h"
 #undef private
+#include "input_data_channel_stub.h"
 #include "input_method_engine_listener_impl.h"
 #include "key_event_util.h"
 
