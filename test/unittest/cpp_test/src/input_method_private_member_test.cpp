@@ -292,7 +292,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionClientError, TestSize.Level
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionClientError TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
     auto imc = InputMethodController::GetInstance();
-    sptr<InputMethodCoreStub> core = new InputMethodCoreStub(0);
+    sptr<InputMethodCoreStub> core = new InputMethodCoreStub();
 
     auto clientInfo = userSession->GetClientInfo(imc->clientInfo_.client->AsObject());
     EXPECT_EQ(clientInfo, nullptr);
@@ -345,7 +345,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr002, TestSi
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr002 TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    sptr<InputMethodCoreStub> core = new InputMethodCoreStub(0);
+    sptr<InputMethodCoreStub> core = new InputMethodCoreStub();
     sptr<InputMethodAgentStub> inputMethodAgentStub(new InputMethodAgentStub());
     sptr<IInputMethodAgent> agent = sptr(new InputMethodAgentProxy(inputMethodAgentStub));
     int32_t ret = userSession->OnSetCoreAndAgent(nullptr, nullptr);
@@ -367,7 +367,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr003, TestSi
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr003 TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    sptr<InputMethodCoreStub> core = new InputMethodCoreStub(0);
+    sptr<InputMethodCoreStub> core = new InputMethodCoreStub();
     userSession->OnClientDied(nullptr);
     userSession->OnImsDied(nullptr);
     userSession->UpdateClient(nullptr, true);

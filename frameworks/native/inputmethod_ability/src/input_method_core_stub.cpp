@@ -28,9 +28,8 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
-InputMethodCoreStub::InputMethodCoreStub(int userId)
+InputMethodCoreStub::InputMethodCoreStub()
 {
-    userId_ = userId;
     msgHandler_ = nullptr;
 }
 

@@ -131,7 +131,6 @@ void InputMethodDfxTest::SetUpTestCase(void)
     TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
     inputMethodAbility_ = InputMethodAbility::GetInstance();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
-    inputMethodAbility_->OnImeReady();
     inputMethodAbility_->SetCoreAndAgent();
     inputMethodAbility_->SetImeListener(imeListener_);
 

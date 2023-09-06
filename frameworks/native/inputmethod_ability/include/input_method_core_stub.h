@@ -36,7 +36,7 @@ namespace MiscServices {
 class InputMethodCoreStub : public IRemoteStub<IInputMethodCore> {
 public:
     DISALLOW_COPY_AND_MOVE(InputMethodCoreStub);
-    explicit InputMethodCoreStub(int userId);
+    explicit InputMethodCoreStub();
     virtual ~InputMethodCoreStub();
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     int32_t ShowKeyboard(
@@ -49,7 +49,6 @@ public:
     void SetMessageHandler(MessageHandler *msgHandler);
 
 private:
-    int32_t userId_ = -1;
     MessageHandler *msgHandler_;
     void InitInputControlChannelOnRemote(MessageParcel &data, MessageParcel &reply);
     void SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
