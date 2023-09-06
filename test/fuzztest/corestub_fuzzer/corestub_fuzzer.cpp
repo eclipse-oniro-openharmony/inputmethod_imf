@@ -38,7 +38,6 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
 }
 bool FuzzCoreStub(const uint8_t *rawData, size_t size)
 {
-    constexpr int32_t MAIN_USER_ID = 0;
     uint32_t code = ConvertToUint32(rawData);
     rawData = rawData + OFFSET;
     size = size - OFFSET;
