@@ -44,7 +44,6 @@ public:
     }
     static void ResetMemberVar()
     {
-        inputMethodAbility_->isImeReady_ = false;
         inputMethodAbility_->dataChannelProxy_ = nullptr;
         inputMethodAbility_->dataChannelObject_ = nullptr;
         inputMethodAbility_->imeListener_ = nullptr;
@@ -286,7 +285,6 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowInputWindow_001, TestSize.Leve
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_READY);
 
     // imeListener_ == nullptr
-    inputMethodAbility_->isImeReady_ = true;
     ret = inputMethodAbility_->ShowInputWindow(true);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
