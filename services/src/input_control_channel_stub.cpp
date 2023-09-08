@@ -36,7 +36,7 @@ InputControlChannelStub::~InputControlChannelStub()
 int32_t InputControlChannelStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGD("InputControlChannelStub, code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code,
+    IMSA_HILOGI("InputControlChannelStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
@@ -56,8 +56,7 @@ int32_t InputControlChannelStub::OnRemoteRequest(
 
 int32_t InputControlChannelStub::HideKeyboardSelf()
 {
-    IMSA_HILOGI("InputControlChannelStub run in.");
-    Message *msg = new (std::nothrow) Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, nullptr);
+    auto msg = new (std::nothrow) Message(MessageID::MSG_ID_HIDE_KEYBOARD_SELF, nullptr);
     if (msg == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
