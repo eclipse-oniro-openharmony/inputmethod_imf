@@ -682,23 +682,19 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
     const PanelInfo &panelInfo, std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
     IMSA_HILOGI("InputMethodAbility::CreatePanel start.");
-    auto result = panels_.Find(panelInfo.panelType);
-    if (result.first) {
-        IMSA_HILOGE(" type of %{public}d panel already created, can not create another", panelInfo.panelType);
-        return ErrorCode::ERROR_OPERATE_PANEL;
-    }
-    inputMethodPanel = std::make_shared<InputMethodPanel>();
-    auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("CreatePanel failed, ret = %{public}d", ret);
-        return ret;
-    }
-    IMSA_HILOGI("InputMethodAbility::CreatePanel ret = 0, success.");
-    if (!panels_.Insert(panelInfo.panelType, inputMethodPanel)) {
-        IMSA_HILOGE("insert inputMethodPanel fail.");
-        return ErrorCode::ERROR_OPERATE_PANEL;
-    }
-    return ErrorCode::NO_ERROR;
+    auto flag = panels_.ComputeIfAbsent(panelInfo.panelType,
+        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType,
+            std::shared_ptr<InputMethodPanel> &panel) {
+            inputMethodPanel = std::make_shared<InputMethodPanel>();
+            auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
+            if (ret == ErrorCode::NO_ERROR) {
+                panel = inputMethodPanel;
+                return true;
+            }
+            inputMethodPanel = nullptr;
+            return false;
+        });
+    return flag ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
 int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
