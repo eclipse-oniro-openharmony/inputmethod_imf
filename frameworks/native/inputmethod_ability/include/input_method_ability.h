@@ -96,14 +96,11 @@ private:
 
     static sptr<InputMethodAbility> instance_;
     std::mutex abilityLock_;
-    sptr<IInputMethodSystemAbility> abilityManager_;
-    struct ServiceDeathRecipient : public IRemoteObject::DeathRecipient {
-        std::shared_ptr<InputMethodEngineListener> listener{ nullptr };
-        void OnRemoteDied(const wptr<IRemoteObject> &object) override;
-        std::string currentIme_;
-    };
-    sptr<ServiceDeathRecipient> deathRecipientPtr_{ nullptr };
+    sptr<IInputMethodSystemAbility> abilityManager_{ nullptr };
+    sptr<InputDeathRecipient> deathRecipient_{ nullptr };
+    std::string currentIme_;
     sptr<IInputMethodSystemAbility> GetImsaProxy();
+    void OnRemoteSaDied(const wptr<IRemoteObject> &object);
 
     void SetInputDataChannel(const sptr<IRemoteObject> &object);
     std::shared_ptr<InputDataChannelProxy> GetInputDataChannelProxy();

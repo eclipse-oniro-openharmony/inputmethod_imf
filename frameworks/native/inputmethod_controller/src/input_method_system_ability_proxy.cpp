@@ -205,9 +205,9 @@ int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &cl
 bool InputMethodSystemAbilityProxy::IsCurrentIme()
 {
     bool isCurrentIme = false;
-    int32_t ret = SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_CURRENT_IME), nullptr,
+    SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_CURRENT_IME), nullptr,
         [&isCurrentIme](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isCurrentIme); });
-    return ret == ErrorCode::NO_ERROR ? isCurrentIme : false;
+    return isCurrentIme;
 }
 
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)

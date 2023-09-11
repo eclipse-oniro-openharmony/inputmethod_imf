@@ -90,15 +90,17 @@ sptr<IInputMethodSystemAbility> InputMethodAbility::GetImsaProxy()
         IMSA_HILOGE("systemAbility is nullptr");
         return nullptr;
     }
-    if (deathRecipientPtr_ == nullptr) {
-        deathRecipientPtr_ = new (std::nothrow) ServiceDeathRecipient();
-        if (deathRecipientPtr_ == nullptr) {
-            IMSA_HILOGE("new ServiceDeathRecipient failed");
+    if (deathRecipient_ == nullptr) {
+        deathRecipient_ = new (std::nothrow) InputDeathRecipient();
+        if (deathRecipient_ == nullptr) {
+            IMSA_HILOGE("failed to new death recipient");
             return nullptr;
         }
     }
-    if ((systemAbility->IsProxyObject()) && (!systemAbility->AddDeathRecipient(deathRecipientPtr_))) {
+    deathRecipient_->SetDeathRecipient([this](const wptr<IRemoteObject> &remote) { OnRemoteSaDied(remote); });
+    if ((systemAbility->IsProxyObject()) && (!systemAbility->AddDeathRecipient(deathRecipient_))) {
         IMSA_HILOGE("failed to add death recipient.");
+        return nullptr;
     }
     abilityManager_ = iface_cast<IInputMethodSystemAbility>(systemAbility);
     return abilityManager_;
@@ -155,9 +157,6 @@ void InputMethodAbility::SetImeListener(std::shared_ptr<InputMethodEngineListene
     IMSA_HILOGI("InputMethodAbility.");
     if (imeListener_ == nullptr) {
         imeListener_ = std::move(imeListener);
-    }
-    if (deathRecipientPtr_ != nullptr && deathRecipientPtr_->listener == nullptr) {
-        deathRecipientPtr_->listener = imeListener_;
     }
 }
 
@@ -223,9 +222,7 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
         IMSA_HILOGI("InputMethodAbility::OnInitInputControlChannel channelObject is nullptr");
         return;
     }
-    if (deathRecipientPtr_ != nullptr) {
-        deathRecipientPtr_->currentIme_ = data->ReadString();
-    }
+    currentIme_ = data->ReadString();
     SetInputControlChannel(channelObject);
 }
 
@@ -673,11 +670,15 @@ std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlCha
     return controlChannel_;
 }
 
-void InputMethodAbility::ServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
+void InputMethodAbility::OnRemoteSaDied(const wptr<IRemoteObject> &object)
 {
-    IMSA_HILOGI("ServiceDeathRecipient::OnRemoteDied");
-    if (listener != nullptr) {
-        listener->OnInputStop(currentIme_);
+    IMSA_HILOGI("input method service died");
+    {
+        std::lock_guard<std::mutex> lock(abilityLock_);
+        abilityManager_ = nullptr;
+    }
+    if (imeListener_ != nullptr) {
+        imeListener_->OnInputStop(currentIme_);
     }
 }
 
