@@ -359,7 +359,7 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
 
 int32_t InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
 {
-    IMSA_HILOGD("in, isShowKeyboard: %{public}d", isShowKeyboard);
+    IMSA_HILOGI("run in, isShowKeyboard: %{public}d", isShowKeyboard);
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("InputMethodAbility, imeListener is nullptr");
         return ErrorCode::ERROR_IME;
@@ -699,15 +699,15 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
     if (isSoftKeyboard) {
         isKeyboardUsingPanel_.store(true);
     }
-    auto flag = panels_.Compute(panelInfo.panelType,
-        [&panelInfo, &inputMethodPanel, &context](
-            const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) -> bool {
+    auto flag = panels_.ComputeIfAbsent(panelInfo.panelType,
+        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) {
             inputMethodPanel = std::make_shared<InputMethodPanel>();
             auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
             if (ret == ErrorCode::NO_ERROR) {
                 panel = inputMethodPanel;
                 return true;
             }
+            inputMethodPanel = nullptr;
             return false;
         });
     if (!flag) {
