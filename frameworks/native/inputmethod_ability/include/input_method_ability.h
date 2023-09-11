@@ -124,7 +124,7 @@ private:
     void OnTextConfigChange(const TextTotalConfig &textConfig);
     int32_t ShowPanelKeyboard();
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
-    std::atomic_bool isKeyboardUsingPanel_{ false };
+    std::atomic_bool isPanelKeyboard_{ false };
     std::atomic_bool isBound_{ false };
 };
 } // namespace MiscServices
