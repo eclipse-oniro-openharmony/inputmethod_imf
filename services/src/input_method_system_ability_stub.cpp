@@ -259,7 +259,7 @@ int32_t InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated(MessageParc
 int32_t InputMethodSystemAbilityStub::IsCurrentImeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     bool ret = IsCurrentIme();
-    return reply.WriteBool(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices
 } // namespace OHOS

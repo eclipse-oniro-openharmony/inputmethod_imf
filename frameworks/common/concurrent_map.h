@@ -265,6 +265,28 @@ public:
         return true;
     }
 
+    bool ComputeIfAbsent(const key_type &key, const std::function<bool(const key_type &, mapped_type &)> &action)
+    {
+        if (action == nullptr) {
+            return false;
+        }
+        std::lock_guard<decltype(mutex_)> lock(mutex_);
+        auto it = entries_.find(key);
+        if (it != entries_.end()) {
+            return false;
+        }
+        auto result = entries_.emplace(key, mapped_type());
+        it = result.second ? result.first : entries_.end();
+        if (it == entries_.end()) {
+            return false;
+        }
+        if (!action(it->first, it->second)) {
+            entries_.erase(key);
+            return false;
+        }
+        return true;
+    }
+
 private:
     std::map<_Key, _Tp> Steal() noexcept
     {
