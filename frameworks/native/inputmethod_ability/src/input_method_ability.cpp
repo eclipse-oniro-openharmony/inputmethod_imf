@@ -385,7 +385,7 @@ int32_t InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
 int32_t InputMethodAbility::ShowPanelKeyboard()
 {
     if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES,
-            [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
+        [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
         IMSA_HILOGE("SOFT_KEYBOARD panel not found");
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
@@ -701,7 +701,8 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
         isPanelKeyboard_.store(true);
     }
     auto flag = panels_.ComputeIfAbsent(panelInfo.panelType,
-        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) {
+        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType,
+            std::shared_ptr<InputMethodPanel> &panel) {
             inputMethodPanel = std::make_shared<InputMethodPanel>();
             auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
             if (ret == ErrorCode::NO_ERROR) {
