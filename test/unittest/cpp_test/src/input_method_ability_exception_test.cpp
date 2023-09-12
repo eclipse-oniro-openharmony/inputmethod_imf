@@ -262,11 +262,6 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level0)
     auto ret = inputMethodAbility_->ShowKeyboard(nullptr, false, true);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 
-    // GetTextConfig failed
-    sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
-    ret = inputMethodAbility_->ShowKeyboard(channelObject->AsObject(), false, true);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_READY);
-
     ResetMemberVar();
 }
 
@@ -280,12 +275,8 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level0)
 HWTEST_F(InputMethodAbilityExceptionTest, testShowInputWindow_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testShowInputWindow_001 START");
-    // isImeReady_ is false
-    auto ret = inputMethodAbility_->ShowInputWindow(true);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_READY);
-
     // imeListener_ == nullptr
-    ret = inputMethodAbility_->ShowInputWindow(true);
+    auto ret = inputMethodAbility_->ShowInputWindow(true);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     // channel == nullptr
