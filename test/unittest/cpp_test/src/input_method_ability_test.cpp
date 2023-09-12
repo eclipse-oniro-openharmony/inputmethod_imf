@@ -694,6 +694,70 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel004, TestSize.Level0)
 }
 
 /**
+* @tc.name: testCreatePanel005
+* @tc.desc: It's allowed to create one SOFT_KEYBOARD panel, but two is denied.
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodAbilityTest, testCreatePanel005, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testCreatePanel005 START.");
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, false, "undefine"));
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
+    EXPECT_TRUE(softKeyboardPanel1 != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(softKeyboardPanel1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel2 = nullptr;
+    ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel2);
+    EXPECT_TRUE(softKeyboardPanel2 != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(softKeyboardPanel2);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testCreatePanel006
+* @tc.desc: It's allowed to create one SOFT_KEYBOARD panel, but two is denied.
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(InputMethodAbilityTest, testCreatePanel006, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testCreatePanel006 START.");
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, false, "undefine"));
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
+    EXPECT_TRUE(softKeyboardPanel1 != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel2 = nullptr;
+    ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel2);
+    EXPECT_TRUE(softKeyboardPanel2 == nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_OPERATE_PANEL);
+
+    ret = inputMethodAbility_->DestroyPanel(softKeyboardPanel1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    std::shared_ptr<InputMethodPanel> softKeyboardPanel3 = nullptr;
+    ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel3);
+    EXPECT_TRUE(softKeyboardPanel3 != nullptr);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodAbility_->DestroyPanel(softKeyboardPanel2);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    ret = inputMethodAbility_->DestroyPanel(softKeyboardPanel3);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
 * @tc.name: testSetCallingWindow001
 * @tc.desc: InputMethodAbility SetCallingWindow
 * @tc.type: FUNC
