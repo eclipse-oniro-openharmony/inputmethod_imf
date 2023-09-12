@@ -48,7 +48,6 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT, EXCEPTION_IMMS },
     { ErrorCode::ERROR_EX_ILLEGAL_STATE, EXCEPTION_IMMS },
     { ErrorCode::ERROR_NOT_IME, EXCEPTION_IME },
-    { ErrorCode::ERROR_IME_NOT_READY, EXCEPTION_IMENGINE },
     { ErrorCode::ERROR_IME, EXCEPTION_IMENGINE },
 };
 
