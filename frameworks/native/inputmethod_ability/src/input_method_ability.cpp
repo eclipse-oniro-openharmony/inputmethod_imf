@@ -154,7 +154,7 @@ void InputMethodAbility::OnImeReady()
     IMSA_HILOGI("InputMethodAbility::Ime Ready, notify InputStart");
     TextTotalConfig textConfig{};
     int32_t ret = GetTextConfig(textConfig);
-    IMSA_HILOGI("InputMethodAbility, get text config failed, ret is %{public}d", ret);
+    IMSA_HILOGI("InputMethodAbility, get text config ret: %{public}d", ret);
     OnTextConfigChange(textConfig);
     ShowInputWindow(notifier_.isShowKeyboard);
 }
