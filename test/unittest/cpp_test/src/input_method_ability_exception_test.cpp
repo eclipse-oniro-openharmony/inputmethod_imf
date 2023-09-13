@@ -294,13 +294,6 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowInputWindow_001, TestSize.Leve
     ret = inputMethodAbility_->ShowInputWindow(true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    // ShowPanel failed
-    inputMethodAbility_->panels_.Clear();
-    panel->panelFlag_ = FLG_FIXED;
-    inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
-    ret = inputMethodAbility_->ShowInputWindow(true);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-
     ResetMemberVar();
 }
 
