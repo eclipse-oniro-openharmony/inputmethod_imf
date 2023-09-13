@@ -24,6 +24,7 @@ config("inputmethod_services_native_config") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/services/adapter/focus_monitor/include",
     "${inputmethod_path}/services/adapter/keyboard/include",
+    "${inputmethod_path}/services/adapter/system_language_observer/include",
     "${inputmethod_path}/services/identity_checker/include",
     "${inputmethod_path}/services/dfx/include",
   ]
@@ -37,6 +38,7 @@ ohos_shared_library("inputmethod_service") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_death_recipient.cpp",
     "${inputmethod_path}/services/adapter/focus_monitor/src/focus_change_listener.cpp",
     "${inputmethod_path}/services/adapter/focus_monitor/src/focus_monitor_manager.cpp",
+    "${inputmethod_path}/services/adapter/system_language_observer/src/system_language_observer.cpp",
     "${inputmethod_path}/services/identity_checker/src/identity_checker_impl.cpp",
     "src/global.cpp",
     "src/im_common_event_manager.cpp",
@@ -75,6 +77,7 @@ ohos_shared_library("inputmethod_service") {
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "init:libbeget_proxy",
     "init:libbegetutil",
     "input:libmmi-client",
     "ipc:ipc_single",
