@@ -32,6 +32,7 @@
 namespace OHOS {
 namespace MiscServices {
 struct ImeInfo {
+    std::string moduleName;
     Property prop;
     SubProperty subProp;
     std::vector<SubProperty> subProps;
@@ -55,10 +56,12 @@ public:
     std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype(const int32_t userId);
     std::string GetStartedIme(const int32_t userId);
     std::shared_ptr<ImeInfo> GetDefaultImeInfo(const int32_t userId);
-    int32_t GetImeInfo(
-        const int32_t userId, const std::string &bundleName, const std::string &subName, ImeInfo &info);
-    void SetCurrentImeInfo(const ImeInfo &info);
+    std::shared_ptr<ImeInfo> GetImeInfo(
+        const int32_t userId, const std::string &bundleName, const std::string &subName);
+    void SetCurrentImeInfo(std::shared_ptr<ImeInfo> info);
     void SetCurrentImeInfo(const int32_t userId);
+    std::shared_ptr<ImeInfo> GetCurrentImeInfo();
+    void UpdateCurrentImeInfo(const int32_t userId);
     void ResetCurrentImeInfo();
     int32_t ListInputMethod(const int32_t userId, const InputMethodStatus status, std::vector<Property> &props);
     int32_t ListInputMethodSubtype(
@@ -73,9 +76,10 @@ private:
     std::string GetDefaultIme();
     std::string GetStringById(
         const std::string &bundleName, const std::string &moduleName, const int32_t labelId, const int32_t userId);
-    int32_t GetImeInfoFromNative(const int32_t userId, const std::string &subName, ImeInfo &info);
-    int32_t GetImeInfoFromBundleMgr(
-        const int32_t userId, const std::string &bundleName, const std::string &subName, ImeInfo &info);
+    std::shared_ptr<ImeInfo> GetImeInfoFromCache(
+        const int32_t userId, const std::string &bundleName, const std::string &subName);
+    std::shared_ptr<ImeInfo> GetImeInfoFromBundleMgr(
+        const int32_t userId, const std::string &bundleName, const std::string &subName);
     int32_t GetExtInfosByBundleName(const int32_t userId, const std::string &bundleName,
         std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
     bool IsNewExtInfos(const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
@@ -94,10 +98,8 @@ private:
     void ParseLanguage(const std::string &locale, std::string &language);
     bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
 
-    std::recursive_mutex currentImeInfoLock_;
-    std::shared_ptr<ImeInfo> currentImeInfo_{ nullptr };
-    std::mutex defaultImeInfoLock_;
-    std::shared_ptr<ImeInfo> defaultImeInfo_{ nullptr };
+    std::mutex currentImeInfoLock_;
+    std::shared_ptr<ImeInfo> currentImeInfo_{ nullptr }; // current imeInfo of current user
 };
 } // namespace MiscServices
 } // namespace OHOS

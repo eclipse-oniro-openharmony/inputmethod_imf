@@ -389,6 +389,36 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testIsCurrentIme_001
+ * @tc.desc: not current ime
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+*/
+HWTEST_F(IdentityCheckerTest, testIsCurrentIme_001, TestSize.Level0)
+{
+    IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_001 start");
+    service_->identityChecker_ = identityCheckerImpl_;
+    bool ret = IdentityCheckerTest::service_->IsCurrentIme();
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: testIsCurrentIme_002
+ * @tc.desc: current ime
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+*/
+HWTEST_F(IdentityCheckerTest, testIsCurrentIme_002, TestSize.Level0)
+{
+    IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_002 start");
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsCurrentIme(_, _)).Times(1).WillRepeatedly(Return(true));
+    bool ret = IdentityCheckerTest::service_->IsCurrentIme();
+    EXPECT_TRUE(ret);
+}
+
+/**
  * @tc.name: testHideCurrentInput_001
  * @tc.desc: is broker
  * @tc.type: FUNC

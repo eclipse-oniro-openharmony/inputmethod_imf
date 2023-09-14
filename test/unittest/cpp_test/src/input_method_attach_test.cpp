@@ -42,7 +42,6 @@ public:
         std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
         TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
         inputMethodAbility_ = InputMethodAbility::GetInstance();
-        inputMethodAbility_->OnImeReady();
         inputMethodAbility_->SetCoreAndAgent();
         inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
         TddUtil::RestoreSelfTokenID();

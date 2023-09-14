@@ -65,6 +65,8 @@ private:
 
     int32_t UpdateListenEventFlagOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t IsCurrentImeOnRemote(MessageParcel &data, MessageParcel &reply);
+
     // Deprecated because of no permission check, kept for compatibility
     int32_t DisplayInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
 
@@ -114,6 +116,8 @@ private:
             &InputMethodSystemAbilityStub::PanelStatusChangeOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::UPDATE_LISTEN_EVENT_FLAG)] =
             &InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::IS_CURRENT_IME)] =
+            &InputMethodSystemAbilityStub::IsCurrentImeOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

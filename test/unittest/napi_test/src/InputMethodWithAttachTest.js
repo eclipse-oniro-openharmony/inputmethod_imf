@@ -594,28 +594,29 @@ describe('InputMethodWithAttachTest', function () {
     }
   });
 
-    /*
+  /*
    * @tc.number  inputmethod_test_insertTextSync_001
    * @tc.name    Test Indicates the input method which will replace the current one.
    * @tc.desc    Function test
    * @tc.level   2
    */
-    it('inputmethod_test_insertTextSync_001', 0, async function (done) {
-      console.info('************* inputmethod_test_insertTextSync_001 Test start*************');
-      let inputMethodCtrl = inputMethod.getController();
-      try {
-        inputMethodCtrl.on('insertText', (text) => {
-          console.info(`inputMethod insertText success, text: ${JSON.stringify(text)}`);
-          expect(true).assertTrue();
-          done();
-        });
-        publishCommonEvent(TEST_FUNCTION.INSERT_TEXT_SYNC);
-      } catch(error) {
-        console.info(`inputmethod_test_insertTextSync result: ${JSON.stringify(error)}`);
-        expect().assertFail();
+  it('inputmethod_test_insertTextSync_001', 0, async function (done) {
+    console.info('************* inputmethod_test_insertTextSync_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    try {
+      inputMethodCtrl.on('insertText', (text) => {
+        console.info(`inputMethod insertText success, text: ${JSON.stringify(text)}`);
+        expect(true).assertTrue();
         done();
-      }
-    });
+      });
+      publishCommonEvent(TEST_FUNCTION.INSERT_TEXT_SYNC);
+    } catch(error) {
+      console.info(`inputmethod_test_insertTextSync result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
 
   /*
    * @tc.number  inputmethod_test_moveCursorSync_001
@@ -626,6 +627,7 @@ describe('InputMethodWithAttachTest', function () {
   it('inputmethod_test_moveCursorSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_moveCursorSync_001 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
     try {
       inputMethodCtrl.on('moveCursor', (direction) => {
         console.info(`inputMethod moveCursor success, direction: ${direction}`);
@@ -646,19 +648,21 @@ describe('InputMethodWithAttachTest', function () {
    * @tc.desc    Function test
    * @tc.level   2
    */
-    it('inputmethod_test_getEditorAttributeSync_001', 0, async function (done) {
-      console.info('************* inputmethod_test_getEditorAttributeSync_001 Test start*************');
-      try {
-        let subscribeInfo = {
-          events: ['getEditorAttributeSyncResult']
-        };
-        subscribe(subscribeInfo, TEST_FUNCTION.GET_ATTRIBUTE_SYNC, done);
-      } catch(error) {
-        console.info(`inputmethod_test_getEditorAttributeSync_001 result: ${JSON.stringify(error)}`);
-        expect().assertFail();
-        done();
-      }
-    });
+  it('inputmethod_test_getEditorAttributeSync_001', 0, async function (done) {
+    console.info('************* inputmethod_test_getEditorAttributeSync_001 Test start*************');
+    let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
+    try {
+      let subscribeInfo = {
+        events: ['getEditorAttributeSyncResult']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.GET_ATTRIBUTE_SYNC, done);
+    } catch(error) {
+      console.info(`inputmethod_test_getEditorAttributeSync_001 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
 
   /*
    * @tc.number  inputmethod_test_SelectByRangeSync_001
@@ -669,6 +673,7 @@ describe('InputMethodWithAttachTest', function () {
   it('inputmethod_test_selectByRangeSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_selectByRangeSync_001 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
     try {
       inputMethodCtrl.on('selectByRange', (range) => {
         console.info(`inputMethod selectByRangeSync success, direction: ${range}`);
@@ -692,9 +697,10 @@ describe('InputMethodWithAttachTest', function () {
   it('inputmethod_test_selectByMovementSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_selectByMovementSync_001 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
     try {
       inputMethodCtrl.on('selectByMovement', (movement) => {
-        console.info(`inputMethod selectByMovementSync success, direction: ${movement}`);
+        console.info(`inputMethod selectByMovementSync success, movement: ${movement}`);
         expect(true).assertTrue();
         done();
       });
@@ -715,6 +721,7 @@ describe('InputMethodWithAttachTest', function () {
   it('inputmethod_test_getTextIndexAtCursorSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_getTextIndexAtCursorSync_001 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
     try {
       inputMethodCtrl.on('getTextIndexAtCursor', () => {
         console.info(`inputMethod getTextIndexAtCursor success`);
@@ -740,9 +747,10 @@ describe('InputMethodWithAttachTest', function () {
   it('inputmethod_test_deleteForwardSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_deleteForwardSync_001 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
     try {
-      inputMethodCtrl.on('deleteLeft', (movement) => {
-        console.info(`inputMethod deleteForwardSync success, direction: ${movement}`);
+      inputMethodCtrl.on('deleteLeft', (length) => {
+        console.info(`inputMethod deleteForwardSync success, length: ${length}`);
         expect(true).assertTrue();
         done();
       });
@@ -763,9 +771,10 @@ describe('InputMethodWithAttachTest', function () {
   it('inputmethod_test_deleteBackwardSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_deleteBackwardSync_001 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
     try {
-      inputMethodCtrl.on('deleteRight', (movement) => {
-        console.info(`inputMethod deleteBackwardSync success, direction: ${movement}`);
+      inputMethodCtrl.on('deleteRight', (length) => {
+        console.info(`inputMethod deleteBackwardSync success, length: ${length}`);
         expect(true).assertTrue();
         done();
       });
@@ -786,6 +795,7 @@ describe('InputMethodWithAttachTest', function () {
   it('inputmethod_test_getForwardSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_getForwardSync_001 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
     try {
       inputMethodCtrl.on('getLeftTextOfCursor', (length) => {
         console.info(`inputMethod getForwardSync success, length: ${length}`);
@@ -810,6 +820,7 @@ describe('InputMethodWithAttachTest', function () {
   it('inputmethod_test_getBackwardSync_001', 0, async function (done) {
     console.info('************* inputmethod_test_getBackwardSync_001 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
+    await inputMethodCtrl.showSoftKeyboard();
     try {
       inputMethodCtrl.on('getRightTextOfCursor', (length) => {
         console.info(`inputMethod getBackwardSync success, length: ${length}`);

@@ -51,12 +51,13 @@ public:
     virtual std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() = 0;
     virtual int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) = 0;
     virtual int32_t DisplayOptionalInputMethod() = 0;
-    virtual int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) = 0;
+    virtual int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) = 0;
     virtual int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) = 0;
     virtual int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) = 0;
     virtual int32_t SwitchInputMethod(const std::string &bundleName, const std::string &name) = 0;
     virtual int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) = 0;
     virtual int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) = 0;
+    virtual bool IsCurrentIme() = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;

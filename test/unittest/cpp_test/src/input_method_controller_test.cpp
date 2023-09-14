@@ -213,7 +213,6 @@ void InputMethodControllerTest::SetUpTestCase(void)
     TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
     inputMethodAbility_ = InputMethodAbility::GetInstance();
     inputMethodAbility_->SetCoreAndAgent();
-    inputMethodAbility_->OnImeReady();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     controllerListener_ = std::make_shared<SelectListenerMock>();
     textListener_ = new TextListener();

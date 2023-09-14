@@ -73,9 +73,10 @@ public:
     int32_t ListInputMethodSubtype(const std::string &bundleName, std::vector<SubProperty> &subProps) override;
     int32_t SwitchInputMethod(const std::string &bundleName, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
-    int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
+    int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
+    bool IsCurrentIme() override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;
@@ -105,9 +106,9 @@ private:
     void StartUserIdListener();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);
     int32_t OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission);
-    int32_t Switch(const std::string &bundleName, const ImeInfo &info);
-    int32_t SwitchExtension(const ImeInfo &info);
-    int32_t SwitchSubType(const ImeInfo &info);
+    int32_t Switch(const std::string &bundleName, const std::shared_ptr<ImeInfo> &info);
+    int32_t SwitchExtension(const std::shared_ptr<ImeInfo> &info);
+    int32_t SwitchSubType(const std::shared_ptr<ImeInfo> &info);
     ServiceRunningState state_;
     void InitServiceHandler();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
@@ -118,8 +119,10 @@ private:
     static constexpr int32_t MAX_WAIT_TIME = 5000;
     BlockQueue<SwitchInfo> switchQueue_{ MAX_WAIT_TIME };
     bool stop_ = false;
+    void InitMonitors();
     int32_t InitKeyEventMonitor();
     bool InitFocusChangeMonitor();
+    void InitSystemLanguageMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
     int32_t SwitchLanguage();
