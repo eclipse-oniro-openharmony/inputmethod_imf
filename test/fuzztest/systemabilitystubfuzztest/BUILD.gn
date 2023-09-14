@@ -45,7 +45,7 @@ group("system_ability_stub_fuzztest") {
 
 ##############################fuzztest##########################################
 ohos_fuzztest("GetCurrentInputmethodFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/getcurrentinputmethod_fuzzer"
 
@@ -68,7 +68,7 @@ ohos_fuzztest("GetCurrentInputmethodFuzzTest") {
 }
 
 ohos_fuzztest("DisplayOptionalInputDeprecatedFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/displayoptionalinputdeprecated_fuzzer"
 
@@ -91,7 +91,7 @@ ohos_fuzztest("DisplayOptionalInputDeprecatedFuzzTest") {
 }
 
 ohos_fuzztest("GetCurrentInputmethodSubtypeFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/getcurrentinputmethodsubtype_fuzzer"
 
@@ -114,7 +114,7 @@ ohos_fuzztest("GetCurrentInputmethodSubtypeFuzzTest") {
 }
 
 ohos_fuzztest("HideCurrentInputFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/hidecurrentinput_fuzzer"
 
@@ -137,7 +137,7 @@ ohos_fuzztest("HideCurrentInputFuzzTest") {
 }
 
 ohos_fuzztest("HideCurrentInputDeprecatedFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/hidecurrentinputdeprecated_fuzzer"
 
@@ -162,7 +162,7 @@ ohos_fuzztest("HideCurrentInputDeprecatedFuzzTest") {
 }
 
 ohos_fuzztest("ListCurrentInputmethodSubtypeFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/listcurrentinputmethodsubtype_fuzzer"
 
@@ -185,7 +185,7 @@ ohos_fuzztest("ListCurrentInputmethodSubtypeFuzzTest") {
 }
 
 ohos_fuzztest("ListInputmethodFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/listinputmethod_fuzzer"
 
@@ -208,7 +208,7 @@ ohos_fuzztest("ListInputmethodFuzzTest") {
 }
 
 ohos_fuzztest("ListInputmethodSubtypeFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/listinputmethodsubtype_fuzzer"
 
@@ -232,7 +232,7 @@ ohos_fuzztest("ListInputmethodSubtypeFuzzTest") {
 }
 
 ohos_fuzztest("PanelStatusChangeFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/panelstatuschange_fuzzer"
 
@@ -255,7 +255,7 @@ ohos_fuzztest("PanelStatusChangeFuzzTest") {
 }
 
 ohos_fuzztest("PrepareInputFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/prepareinput_fuzzer"
 
@@ -278,7 +278,7 @@ ohos_fuzztest("PrepareInputFuzzTest") {
 }
 
 ohos_fuzztest("ReleaseInputFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/releaseinput_fuzzer"
 
@@ -301,7 +301,7 @@ ohos_fuzztest("ReleaseInputFuzzTest") {
 }
 
 ohos_fuzztest("SetCoreAndAgentFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/setcoreandagent_fuzzer"
 
@@ -324,7 +324,7 @@ ohos_fuzztest("SetCoreAndAgentFuzzTest") {
 }
 
 ohos_fuzztest("ShowCurrentInputFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/showcurrentinput_fuzzer"
 
@@ -347,7 +347,7 @@ ohos_fuzztest("ShowCurrentInputFuzzTest") {
 }
 
 ohos_fuzztest("ShowCurrentInputDeprecatedFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/showcurrentinputdeprecated_fuzzer"
 
@@ -372,7 +372,7 @@ ohos_fuzztest("ShowCurrentInputDeprecatedFuzzTest") {
 }
 
 ohos_fuzztest("StartInputFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/startinput_fuzzer"
 
@@ -395,7 +395,7 @@ ohos_fuzztest("StartInputFuzzTest") {
 }
 
 ohos_fuzztest("StopInputFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/stopinput_fuzzer"
 
@@ -418,7 +418,7 @@ ohos_fuzztest("StopInputFuzzTest") {
 }
 
 ohos_fuzztest("StopInputSessionFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/stopinputsession_fuzzer"
 
@@ -441,7 +441,7 @@ ohos_fuzztest("StopInputSessionFuzzTest") {
 }
 
 ohos_fuzztest("UpdateListenEventFlagFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/updatelisteneventflag_fuzzer"
 
@@ -464,7 +464,7 @@ ohos_fuzztest("UpdateListenEventFlagFuzzTest") {
 }
 
 ohos_fuzztest("SwitchInputMethodFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/switchinputmethod_fuzzer"
 
@@ -487,7 +487,7 @@ ohos_fuzztest("SwitchInputMethodFuzzTest") {
 }
 
 ohos_fuzztest("DisplayOptionalInputMethodFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/displayoptionalinputmethod_fuzzer"
 

@@ -20,7 +20,7 @@ import("//build/test.gni")
 
 ##############################fuzztest##########################################
 ohos_fuzztest("DataChannelStubFuzzTest") {
-  module_out_path = "inputmethod/inputmethod"
+  module_out_path = "imf/imf"
 
   fuzz_config_file =
       "//base/inputmethod/imf/test/fuzztest/datachannelstub_fuzzer"
