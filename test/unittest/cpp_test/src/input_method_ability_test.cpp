@@ -98,7 +98,6 @@ public:
         std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
         TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
         inputMethodAbility_ = InputMethodAbility::GetInstance();
-        inputMethodAbility_->OnImeReady();
         inputMethodAbility_->SetCoreAndAgent();
         TddUtil::RestoreSelfTokenID();
         TextListener::ResetParam();
@@ -155,7 +154,7 @@ HWTEST_F(InputMethodAbilityTest, testSerializedInputAttribute, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.Level0)
 {
     IMSA_HILOGI("testShowKeyboardInputMethodCoreProxy start.");
-    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub(0);
+    sptr<InputMethodCoreStub> coreStub = new InputMethodCoreStub();
     sptr<IInputMethodCore> core = coreStub;
     auto msgHandler = new (std::nothrow) MessageHandler();
     coreStub->SetMessageHandler(msgHandler);

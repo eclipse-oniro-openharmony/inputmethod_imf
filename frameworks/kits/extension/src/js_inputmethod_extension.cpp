@@ -166,7 +166,6 @@ void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
     StartAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
     CallObjectMethod("onCreate", argv, ARGC_ONE);
     FinishAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
-    InputMethodAbility::GetInstance()->OnImeReady();
     auto ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
     IMSA_HILOGI("ime bind imf ret: %{public}d", ret);
     FinishAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));

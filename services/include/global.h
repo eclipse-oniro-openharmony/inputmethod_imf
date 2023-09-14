@@ -96,8 +96,7 @@ enum {
     ERROR_NOT_IME = 22,
     ERROR_ADD_DEATH_RECIPIENT_FAILED = 23,
     ERROR_STATUS_SYSTEM_PERMISSION = 24, // not system application
-    ERROR_IME_NOT_READY = 25,
-    ERROR_IME = 26,
+    ERROR_IME = 25,
 };
 }; // namespace ErrorCode
 

@@ -190,7 +190,7 @@ std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInput
 
 bool JsInputMethodEngineSetting::InitInputMethodSetting()
 {
-    if (InputMethodAbility::GetInstance()->SetCoreAndAgent() != ErrorCode::NO_ERROR) {
+    if (!InputMethodAbility::GetInstance()->IsCurrentIme()) {
         return false;
     }
     auto engine = GetInputMethodEngineSetting();

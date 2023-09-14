@@ -72,14 +72,14 @@ public:
     int32_t GetInputPattern(int32_t &inputPattern);
     int32_t GetTextIndexAtCursor(int32_t &index);
     int32_t GetTextConfig(TextTotalConfig &textConfig);
-    void OnImeReady();
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo,
         std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     int32_t DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
+    bool IsCurrentIme();
 
 private:
     std::thread workThreadHandler;
-    MessageHandler *msgHandler;
+    MessageHandler *msgHandler_;
     bool stop_ = false;
     int32_t KEYBOARD_HIDE = 1;
     int32_t KEYBOARD_SHOW = 2;
@@ -95,14 +95,12 @@ private:
     static std::mutex instanceLock_;
 
     static sptr<InputMethodAbility> instance_;
-    sptr<InputMethodSystemAbilityProxy> mImms;
-    struct ServiceDeathRecipient : public IRemoteObject::DeathRecipient {
-        std::shared_ptr<InputMethodEngineListener> listener{ nullptr };
-        void OnRemoteDied(const wptr<IRemoteObject> &object) override;
-        std::string currentIme_;
-    };
-    sptr<ServiceDeathRecipient> deathRecipientPtr_{ nullptr };
-    sptr<InputMethodSystemAbilityProxy> GetImsaProxy();
+    std::mutex abilityLock_;
+    sptr<IInputMethodSystemAbility> abilityManager_{ nullptr };
+    sptr<InputDeathRecipient> deathRecipient_{ nullptr };
+    std::string currentIme_;
+    sptr<IInputMethodSystemAbility> GetImsaProxy();
+    void OnRemoteSaDied(const wptr<IRemoteObject> &object);
 
     void SetInputDataChannel(const sptr<IRemoteObject> &object);
     std::shared_ptr<InputDataChannelProxy> GetInputDataChannelProxy();
@@ -121,9 +119,9 @@ private:
     void OnConfigurationChange(Message *msg);
     int32_t ShowInputWindow(bool isShowKeyboard);
     void OnTextConfigChange(const TextTotalConfig &textConfig);
-    bool isImeReady_{ false };
-    InputStartNotifier notifier_;
+    int32_t ShowPanelKeyboard();
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
+    std::atomic_bool isPanelKeyboard_{ false };
     std::atomic_bool isBound_{ false };
 };
 } // namespace MiscServices

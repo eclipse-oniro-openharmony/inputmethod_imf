@@ -290,11 +290,11 @@ int32_t InputMethodSystemAbility::StopInputSession()
     return userSession_->OnHideKeyboardSelf();
 }
 
-int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
+int32_t InputMethodSystemAbility::SetCoreAndAgent(
+    const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
-    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    if (!identityChecker_->IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName)) {
+    if (!IsCurrentIme()) {
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
     if (core == nullptr || agent == nullptr) {
@@ -302,7 +302,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(sptr<IInputMethodCore> core, s
         return ErrorCode::ERROR_NULL_POINTER;
     }
     return userSession_->OnSetCoreAndAgent(core, agent);
-};
+}
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
 {
@@ -360,6 +360,12 @@ int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientI
         return ret;
     }
     return userSession_->OnUpdateListenEventFlag(clientInfo);
+}
+
+bool InputMethodSystemAbility::IsCurrentIme()
+{
+    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    return identityChecker_->IsCurrentIme(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName);
 }
 
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()

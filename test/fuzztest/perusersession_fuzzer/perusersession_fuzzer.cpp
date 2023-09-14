@@ -80,7 +80,7 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
         return false;
     }
     auto client = iface_cast<IInputClient>(clientInfo.client->AsObject());
-    sptr<InputMethodCoreStub> coreStub = new (std::nothrow) InputMethodCoreStub(MAIN_USER_ID);
+    sptr<InputMethodCoreStub> coreStub = new (std::nothrow) InputMethodCoreStub();
     if (coreStub == nullptr) {
         return false;
     }

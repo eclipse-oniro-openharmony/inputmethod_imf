@@ -86,7 +86,8 @@ int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethod()
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_METHOD));
 }
 
-int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
+int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(
+    const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
     IMSA_HILOGD("%{public}s in", __func__);
     return SendRequest(
@@ -199,6 +200,14 @@ int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &cl
         [&clientInfo, eventType](MessageParcel &data) {
             return ITypesUtil::Marshal(data, clientInfo, eventType);
         });
+}
+
+bool InputMethodSystemAbilityProxy::IsCurrentIme()
+{
+    bool isCurrentIme = false;
+    SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_CURRENT_IME), nullptr,
+        [&isCurrentIme](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isCurrentIme); });
+    return isCurrentIme;
 }
 
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)

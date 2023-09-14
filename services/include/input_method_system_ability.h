@@ -73,9 +73,10 @@ public:
     int32_t ListInputMethodSubtype(const std::string &bundleName, std::vector<SubProperty> &subProps) override;
     int32_t SwitchInputMethod(const std::string &bundleName, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
-    int32_t SetCoreAndAgent(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent) override;
+    int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
+    bool IsCurrentIme() override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;

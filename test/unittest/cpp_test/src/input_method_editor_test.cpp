@@ -115,7 +115,6 @@ void InputMethodEditorTest::SetUpTestCase(void)
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
     TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
     inputMethodAbility_ = InputMethodAbility::GetInstance();
-    inputMethodAbility_->OnImeReady();
     inputMethodAbility_->SetCoreAndAgent();
     kbListener_ = std::make_shared<KeyboardListenerImpl>();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();

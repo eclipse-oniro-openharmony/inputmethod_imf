@@ -101,7 +101,7 @@ std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::GetKeyboar
 
 bool JsKeyboardDelegateSetting::InitKeyboardDelegate()
 {
-    if (InputMethodAbility::GetInstance()->SetCoreAndAgent() != ErrorCode::NO_ERROR) {
+    if (!InputMethodAbility::GetInstance()->IsCurrentIme()) {
         return false;
     }
     auto delegate = GetKeyboardDelegateSetting();

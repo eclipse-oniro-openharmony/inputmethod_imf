@@ -44,7 +44,6 @@ public:
     }
     static void ResetMemberVar()
     {
-        inputMethodAbility_->isImeReady_ = false;
         inputMethodAbility_->dataChannelProxy_ = nullptr;
         inputMethodAbility_->dataChannelObject_ = nullptr;
         inputMethodAbility_->imeListener_ = nullptr;
@@ -263,11 +262,6 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level0)
     auto ret = inputMethodAbility_->ShowKeyboard(nullptr, false, true);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 
-    // GetTextConfig failed
-    sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
-    ret = inputMethodAbility_->ShowKeyboard(channelObject->AsObject(), false, true);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_READY);
-
     ResetMemberVar();
 }
 
@@ -281,13 +275,8 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level0)
 HWTEST_F(InputMethodAbilityExceptionTest, testShowInputWindow_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testShowInputWindow_001 START");
-    // isImeReady_ is false
-    auto ret = inputMethodAbility_->ShowInputWindow(true);
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_READY);
-
     // imeListener_ == nullptr
-    inputMethodAbility_->isImeReady_ = true;
-    ret = inputMethodAbility_->ShowInputWindow(true);
+    auto ret = inputMethodAbility_->ShowInputWindow(true);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     // channel == nullptr
@@ -304,13 +293,6 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowInputWindow_001, TestSize.Leve
     inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
     ret = inputMethodAbility_->ShowInputWindow(true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-    // ShowPanel failed
-    inputMethodAbility_->panels_.Clear();
-    panel->panelFlag_ = FLG_FIXED;
-    inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
-    ret = inputMethodAbility_->ShowInputWindow(true);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
     ResetMemberVar();
 }
