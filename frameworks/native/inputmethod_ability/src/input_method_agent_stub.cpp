@@ -37,7 +37,7 @@ InputMethodAgentStub::~InputMethodAgentStub()
 int32_t InputMethodAgentStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("InputMethodAgentStub, code = %{public}u, callingPid:%{public}d, callingUid:%{public}d", code,
+    IMSA_HILOGI("InputMethodAgentStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {

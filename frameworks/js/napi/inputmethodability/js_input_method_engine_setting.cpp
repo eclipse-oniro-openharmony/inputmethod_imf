@@ -561,7 +561,7 @@ void JsInputMethodEngineSetting::OnInputStart()
 void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
 {
     std::string type = isShow ? "keyboardShow" : "keyboardHide";
-    IMSA_HILOGD("run in, %{public}s", type.c_str());
+    IMSA_HILOGI("run in, %{public}s", type.c_str());
     uv_work_t *work = GetUVwork(type);
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
@@ -694,7 +694,7 @@ uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntryS
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
+            IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);

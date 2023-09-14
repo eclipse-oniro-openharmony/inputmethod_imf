@@ -71,7 +71,7 @@ void InputMethodAgentProxy::OnConfigurationChange(const Configuration &config)
 
 int32_t InputMethodAgentProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGD("InputMethodAgentProxy::%{public}s in", __func__);
+    IMSA_HILOGI("InputMethodAgentProxy run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_SYNC };
@@ -90,7 +90,7 @@ int32_t InputMethodAgentProxy::SendRequest(int code, ParcelHandler input, Parcel
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("InputMethodCoreProxy::SendRequest failed, ret %{public}d", ret);
+        IMSA_HILOGE("InputMethodCoreProxy send request failed, code: %{public}d, ret: %{public}d", code, ret);
         return ret;
     }
     if (output != nullptr && (!output(reply))) {

@@ -73,7 +73,7 @@ int32_t InputMethodCoreProxy::ClearDataChannel(const sptr<IInputDataChannel> &ch
 
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGD("InputMethodCoreProxy, run in, code = %{public}d", code);
+    IMSA_HILOGI("InputMethodCoreProxy, run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_SYNC };
@@ -87,7 +87,7 @@ int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelH
     }
     auto ret = Remote()->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("InputMethodCoreProxy::SendRequest failed, ret %{public}d", ret);
+        IMSA_HILOGE("InputMethodCoreProxy send request failed, code: %{public}d, ret %{public}d", code, ret);
         return ret;
     }
     ret = reply.ReadInt32();

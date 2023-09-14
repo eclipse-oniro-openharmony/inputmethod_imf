@@ -68,7 +68,7 @@ int32_t InputClientProxy::SendRequest(int code, ParcelHandler input, ParcelHandl
     }
     auto ret = Remote()->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
-        IMSA_HILOGE("InputClientProxy::SendRequest failed, ret %{public}d", ret);
+        IMSA_HILOGE("InputClientProxy send request failed, code: %{public}d, ret: %{public}d", code, ret);
         return ret;
     }
     ret = reply.ReadInt32();
