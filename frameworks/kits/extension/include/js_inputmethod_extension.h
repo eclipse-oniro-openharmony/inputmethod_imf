@@ -18,7 +18,6 @@
 
 #include "inputmethod_extension.h"
 #include "js_runtime.h"
-#include "native_engine/native_value.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -105,9 +104,9 @@ public:
     virtual void OnStop() override;
 
 private:
-    NativeValue *CallObjectMethod(const char *name, NativeValue *const *argv = nullptr, size_t argc = 0);
+    napi_value CallObjectMethod(const char *name, const napi_value *argv = nullptr, size_t argc = 0);
 
-    void BindContext(NativeEngine &engine, NativeObject *obj);
+    void BindContext(napi_env env, napi_value obj);
 
     void GetSrcPath(std::string &srcPath);
 
