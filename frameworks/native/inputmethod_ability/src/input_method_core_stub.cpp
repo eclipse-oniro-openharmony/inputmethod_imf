@@ -52,8 +52,8 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
             InitInputControlChannelOnRemote(data, reply);
             break;
         }
-        case SHOW_KEYBOARD: {
-            ShowKeyboardOnRemote(data, reply);
+        case START_INPUT: {
+            StartInputOnRemote(data, reply);
             break;
         }
         case HIDE_KEYBOARD: {
@@ -69,8 +69,12 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
             SetSubtypeOnRemote(data, reply);
             break;
         }
-        case CLEAR_DATA_CHANNEL: {
-            reply.WriteInt32(ClearDataChannelOnRemote(data));
+        case STOP_INPUT: {
+            reply.WriteInt32(StopInputOnRemote(data));
+            break;
+        }
+        case SHOW_KEYBOARD: {
+            reply.WriteInt32(ShowKeyboard());
             break;
         }
         default: {
@@ -97,6 +101,12 @@ int32_t InputMethodCoreStub::InitInputControlChannel(
     Message *msg = new Message(MessageID::MSG_ID_INIT_INPUT_CONTROL_CHANNEL, data);
     msgHandler_->SendMessage(msg);
     return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodCoreStub::ShowKeyboard()
+{
+    IMSA_HILOGD("InputMethodCoreStub::ShowKeyboard");
+    return InputMethodAbility::GetInstance()->ShowKeyboard();
 }
 
 int32_t InputMethodCoreStub::HideKeyboard()
@@ -141,17 +151,16 @@ void InputMethodCoreStub::InitInputControlChannelOnRemote(MessageParcel &data, M
     reply.WriteInt32(ret);
 }
 
-void InputMethodCoreStub::ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply)
+void InputMethodCoreStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGD("InputMethodCoreStub::ShowKeyboardOnRemote");
     sptr<IRemoteObject> channel;
     bool isShowKeyboard = false;
-    bool attachFlag = false;
-    if (!ITypesUtil::Unmarshal(data, channel, isShowKeyboard, attachFlag)) {
+    if (!ITypesUtil::Unmarshal(data, channel, isShowKeyboard)) {
         IMSA_HILOGE("Unmarshal failed.");
         return;
     }
-    auto ret = InputMethodAbility::GetInstance()->ShowKeyboard(channel, isShowKeyboard, attachFlag);
+    auto ret = InputMethodAbility::GetInstance()->StartInput(channel, isShowKeyboard);
     reply.WriteInt32(ret);
 }
 
@@ -165,19 +174,18 @@ void InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel 
     reply.WriteInt32(ret);
 }
 
-int32_t InputMethodCoreStub::ClearDataChannelOnRemote(MessageParcel &data)
+int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data)
 {
     sptr<IRemoteObject> channel = nullptr;
     if (!ITypesUtil::Unmarshal(data, channel)) {
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    InputMethodAbility::GetInstance()->ClearDataChannel(channel);
+    InputMethodAbility::GetInstance()->StopInput(channel);
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodCoreStub::ShowKeyboard(
-    const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, bool attachFlag)
+int32_t InputMethodCoreStub::StartInput(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard)
 {
     return ErrorCode::NO_ERROR;
 }
@@ -187,7 +195,7 @@ int32_t InputMethodCoreStub::SetSubtype(const SubProperty &property)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodCoreStub::ClearDataChannel(const sptr<IInputDataChannel> &channel)
+int32_t InputMethodCoreStub::StopInput(const sptr<IInputDataChannel> &channel)
 {
     return ErrorCode::NO_ERROR;
 }

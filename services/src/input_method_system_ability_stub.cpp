@@ -63,8 +63,7 @@ int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, Me
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     bool isShowKeyboard = data.ReadBool();
-    bool attachFlag = data.ReadBool();
-    int32_t ret = StartInput(iface_cast<IInputClient>(clientObject), isShowKeyboard, attachFlag);
+    int32_t ret = StartInput(iface_cast<IInputClient>(clientObject), isShowKeyboard);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -86,14 +85,25 @@ int32_t InputMethodSystemAbilityStub::StopInputSessionOnRemote(MessageParcel &da
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputMethodSystemAbilityStub::StopInputOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputMethodSystemAbilityStub::ShowInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     auto clientObject = data.ReadRemoteObject();
     if (clientObject == nullptr) {
         IMSA_HILOGE("clientObject is nullptr");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = StopInput(iface_cast<IInputClient>(clientObject));
+    int32_t ret = ShowInput(iface_cast<IInputClient>(clientObject));
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::HideInputOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    auto clientObject = data.ReadRemoteObject();
+    if (clientObject == nullptr) {
+        IMSA_HILOGE("clientObject is nullptr");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    int32_t ret = HideInput(iface_cast<IInputClient>(clientObject));
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

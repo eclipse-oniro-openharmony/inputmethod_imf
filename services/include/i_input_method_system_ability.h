@@ -41,11 +41,12 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
 
     virtual int32_t PrepareInput(InputClientInfo &clientInfo) = 0;
-    virtual int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag) = 0;
+    virtual int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) = 0;
     virtual int32_t ShowCurrentInput() = 0;
     virtual int32_t HideCurrentInput() = 0;
     virtual int32_t StopInputSession() = 0;
-    virtual int32_t StopInput(sptr<IInputClient> client) = 0;
+    virtual int32_t ShowInput(sptr<IInputClient> client) = 0;
+    virtual int32_t HideInput(sptr<IInputClient> client) = 0;
     virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
     virtual std::shared_ptr<Property> GetCurrentInputMethod() = 0;
     virtual std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() = 0;

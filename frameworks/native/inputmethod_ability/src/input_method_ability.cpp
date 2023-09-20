@@ -226,24 +226,21 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
     SetInputControlChannel(channelObject);
 }
 
-int32_t InputMethodAbility::ShowKeyboard(const sptr<IRemoteObject> &channelObject, bool isShowKeyboard, bool attachFlag)
+int32_t InputMethodAbility::StartInput(const sptr<IRemoteObject> &channelObject, bool isShowKeyboard)
 {
-    IMSA_HILOGI("InputMethodAbility::ShowKeyboard");
+    IMSA_HILOGI("InputMethodAbility::StartInput");
     if (channelObject == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::ShowKeyboard channelObject is nullptr");
+        IMSA_HILOGE("InputMethodAbility::channelObject is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     SetInputDataChannel(channelObject);
-    if (attachFlag) {
-        TextTotalConfig textConfig = {};
-        int32_t ret = GetTextConfig(textConfig);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
-            return ret;
-        }
-        OnTextConfigChange(textConfig);
+    NotifyAllTextConfig();
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("InputMethodAbility, imeListener is nullptr");
+        return ErrorCode::ERROR_IME;
     }
-    return ShowInputWindow(isShowKeyboard);
+    imeListener_->OnInputStart();
+    return isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
 
 void InputMethodAbility::OnSetSubtype(Message *msg)
@@ -274,6 +271,14 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
         dataChannelObject_ = nullptr;
         dataChannelProxy_ = nullptr;
     }
+}
+
+int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
+{
+    IMSA_HILOGI("run in");
+    ClearDataChannel(channelObject);
+    HideKeyboard();
+    return ErrorCode::NO_ERROR;
 }
 
 bool InputMethodAbility::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
@@ -354,17 +359,12 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
-int32_t InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
+int32_t InputMethodAbility::ShowKeyboard()
 {
-    IMSA_HILOGI("run in, isShowKeyboard: %{public}d", isShowKeyboard);
+    IMSA_HILOGI("run in");
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("InputMethodAbility, imeListener is nullptr");
         return ErrorCode::ERROR_IME;
-    }
-    imeListener_->OnInputStart();
-    if (!isShowKeyboard) {
-        IMSA_HILOGI("InputMethodAbility::ShowInputWindow will not show keyboard");
-        return ErrorCode::NO_ERROR;
     }
     imeListener_->OnKeyboardStatus(true);
     if (isPanelKeyboard_.load()) {
@@ -405,6 +405,17 @@ int32_t InputMethodAbility::ShowPanelKeyboard()
         IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
     }
     return ret;
+}
+
+void InputMethodAbility::NotifyAllTextConfig()
+{
+    TextTotalConfig textConfig = {};
+    int32_t ret = GetTextConfig(textConfig);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
+        return;
+    }
+    OnTextConfigChange(textConfig);
 }
 
 void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
@@ -664,6 +675,12 @@ void InputMethodAbility::SetInputControlChannel(sptr<IRemoteObject> &object)
     controlChannel_ = channelProxy;
 }
 
+void InputMethodAbility::ClearInputControlChannel()
+{
+    std::lock_guard<std::mutex> lock(controlChannelLock_);
+    controlChannel_ = nullptr;
+}
+
 std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlChannel()
 {
     std::lock_guard<std::mutex> lock(controlChannelLock_);
@@ -673,6 +690,7 @@ std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlCha
 void InputMethodAbility::OnRemoteSaDied(const wptr<IRemoteObject> &object)
 {
     IMSA_HILOGI("input method service died");
+    ClearInputControlChannel();
     {
         std::lock_guard<std::mutex> lock(abilityLock_);
         abilityManager_ = nullptr;

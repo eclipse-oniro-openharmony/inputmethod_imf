@@ -24,18 +24,20 @@
 
 namespace OHOS {
 namespace MiscServices {
+enum class UpdateFlag : uint32_t { EVENTFLAG = 0, ISSHOWKEYBOARD, BINDSTATUS};
+enum class BindStatus : uint32_t { NO_BIND = 0, BIND_WITH_IMA, BIND_WITH_PROXY };
 struct InputClientInfo {
-    pid_t pid{ -1 };                                        // process id
-    pid_t uid{ -1 };                                        // uid
+    pid_t pid{ -1 };                                       // process id
+    pid_t uid{ -1 };                                       // uid
     int32_t userID{ 0 };                                   // user id of input client
     int32_t displayID{ 0 };                                // the display id on which the input client is showing
     bool isShowKeyboard{ false };                          // soft keyboard status
-    bool isValid{ false };                                 // whether client is valid
+    BindStatus bindStatus{ BindStatus::NO_BIND };          // client bind status
     uint32_t eventFlag{ EventStatusManager::NO_EVENT_ON }; // the flag of the all listen event
     InputAttribute attribute;                              // the input client attribute
-    sptr<IInputClient> client;                // the remote object handler for service to callback input client
-    sptr<IInputDataChannel> channel;          // the remote object handler for ime to callback input client
-    sptr<InputDeathRecipient> deathRecipient; // death recipient of client
+    sptr<IInputClient> client{ nullptr };       // the remote object handler for service to callback input client
+    sptr<IInputDataChannel> channel{ nullptr }; // the remote object handler for ime to callback input client
+    sptr<InputDeathRecipient> deathRecipient{ nullptr }; // death recipient of client
 };
 } // namespace MiscServices
 } // namespace OHOS

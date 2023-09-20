@@ -56,9 +56,10 @@ public:
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();
-    int32_t ShowKeyboard(const sptr<IRemoteObject> &channelObject, bool isShowKeyboard, bool attachFlag);
+    int32_t StartInput(const sptr<IRemoteObject> &channelObject, bool isShowKeyboard);
+    int32_t StopInput(const sptr<IRemoteObject> &channelObject);
+    int32_t ShowKeyboard();
     int32_t HideKeyboard();
-    void ClearDataChannel(const sptr<IRemoteObject> &channel);
     int32_t SendExtendAction(int32_t action);
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
@@ -104,7 +105,9 @@ private:
 
     void SetInputDataChannel(const sptr<IRemoteObject> &object);
     std::shared_ptr<InputDataChannelProxy> GetInputDataChannelProxy();
+    void ClearDataChannel(const sptr<IRemoteObject> &channel);
     void SetInputControlChannel(sptr<IRemoteObject> &object);
+    void ClearInputControlChannel();
     std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
 
     void Initialize();
@@ -113,11 +116,10 @@ private:
 
     void OnInitInputControlChannel(Message *msg);
     void OnSetSubtype(Message *msg);
-
+    void NotifyAllTextConfig();
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
     void OnConfigurationChange(Message *msg);
-    int32_t ShowInputWindow(bool isShowKeyboard);
     void OnTextConfigChange(const TextTotalConfig &textConfig);
     int32_t ShowPanelKeyboard();
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};

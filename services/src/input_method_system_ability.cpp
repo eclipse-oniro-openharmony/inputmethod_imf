@@ -249,7 +249,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
     return userSession_->OnReleaseInput(client);
 };
 
-int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag)
+int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId)) {
@@ -261,10 +261,10 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return userSession_->OnStartInput(client, isShowKeyboard, attachFlag);
+    return userSession_->OnStartInput(client, isShowKeyboard);
 };
 
-int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
+int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId)) {
@@ -276,7 +276,22 @@ int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return userSession_->OnStopInput(client);
+    return userSession_->OnShowInput(client);
+}
+
+int32_t InputMethodSystemAbility::HideInput(sptr<IInputClient> client)
+{
+    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!identityChecker_->IsBroker(tokenId)) {
+        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
+    }
+    if (client == nullptr) {
+        IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return userSession_->OnHideInput(client);
 };
 
 int32_t InputMethodSystemAbility::StopInputSession()
@@ -287,7 +302,7 @@ int32_t InputMethodSystemAbility::StopInputSession()
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
-    return userSession_->OnHideKeyboardSelf();
+    return userSession_->OnHideCurrentInput();
 }
 
 int32_t InputMethodSystemAbility::SetCoreAndAgent(
@@ -308,7 +323,7 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (identityChecker_->IsBroker(tokenId)) {
-        return userSession_->OnHideKeyboardSelf();
+        return userSession_->OnHideCurrentInput();
     }
     if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
@@ -317,14 +332,14 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
     if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
-    return userSession_->OnHideKeyboardSelf();
+    return userSession_->OnHideCurrentInput();
 };
 
 int32_t InputMethodSystemAbility::ShowCurrentInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (identityChecker_->IsBroker(tokenId)) {
-        return userSession_->OnShowKeyboardSelf();
+        return userSession_->OnShowCurrentInput();
     }
 
     if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
@@ -334,7 +349,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
     if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
-    return userSession_->OnShowKeyboardSelf();
+    return userSession_->OnShowCurrentInput();
 };
 
 int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
@@ -480,7 +495,7 @@ int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
-    return userSession_->OnHideKeyboardSelf();
+    return userSession_->OnHideCurrentInput();
 };
 
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
@@ -491,7 +506,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
-    return userSession_->OnShowKeyboardSelf();
+    return userSession_->OnShowCurrentInput();
 };
 
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethodDeprecated()
@@ -548,7 +563,7 @@ void InputMethodSystemAbility::WorkThread()
                 break;
             }
             case MSG_ID_HIDE_KEYBOARD_SELF: {
-                userSession_->OnHideKeyboardSelf();
+                userSession_->OnHideCurrentInput();
                 break;
             }
             default: {

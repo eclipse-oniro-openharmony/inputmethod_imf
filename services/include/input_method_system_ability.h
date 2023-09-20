@@ -60,10 +60,11 @@ public:
     ~InputMethodSystemAbility();
 
     int32_t PrepareInput(InputClientInfo &clientInfo) override;
-    int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag) override;
+    int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) override;
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
-    int32_t StopInput(sptr<IInputClient> client) override;
+    int32_t ShowInput(sptr<IInputClient> client) override;
+    int32_t HideInput(sptr<IInputClient> client) override;
     int32_t StopInputSession() override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;

@@ -21,6 +21,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <variant>
 
 #include "block_data.h"
 #include "event_handler.h"
@@ -49,7 +50,11 @@ struct ResetManager {
     uint32_t num{ 0 };
     time_t last{};
 };
-
+enum class UnBindCause : uint32_t {
+    CLIENT_DIED,
+    UNFOCUSED,
+    SELF_CLOSE,
+};
 /**@class PerUserSession
  *
  * @brief The class provides session management in input method management service
@@ -73,12 +78,13 @@ public:
     ~PerUserSession();
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
-    int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard, bool attachFlag);
-    int32_t OnStopInput(sptr<IInputClient> client);
+    int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
-    int OnHideKeyboardSelf();
-    int OnShowKeyboardSelf();
+    int OnHideCurrentInput();
+    int OnShowCurrentInput();
+    int32_t OnShowInput(sptr<IInputClient> client);
+    int32_t OnHideInput(sptr<IInputClient> client);
     void StopInputService(std::string imeId);
     int32_t OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch);
     void UpdateCurrentUserId(int32_t userId);
@@ -97,15 +103,15 @@ private:
     static const int MAX_IME_START_TIME = 1000;
 
     std::mutex imsCoreLock_;
-    sptr<IInputMethodCore> imsCore[MAX_IME];       // the remote handlers of input method service
+    sptr<IInputMethodCore> imsCore[MAX_IME]; // the remote handlers of input method service
 
     std::mutex agentLock_;
     sptr<IInputMethodAgent> agent_;
     std::mutex clientLock_;
-    sptr<IInputClient> currentClient_;              // the current input client
+    sptr<IInputClient> currentClient_; // the current input client
 
     sptr<InputDeathRecipient> imsDeathRecipient_ = nullptr;
-    std::recursive_mutex mtx;             // mutex to lock the operations among multi work threads
+    std::recursive_mutex mtx; // mutex to lock the operations among multi work threads
     std::mutex resetLock;
     ResetManager manager[MAX_IME];
 
@@ -113,19 +119,32 @@ private:
     PerUserSession &operator=(const PerUserSession &);
     PerUserSession(const PerUserSession &&);
     PerUserSession &operator=(const PerUserSession &&);
-    std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
 
     void OnClientDied(sptr<IInputClient> remote);
     void OnImsDied(const sptr<IInputMethodCore> &remote);
 
+    std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
+    void UpdateClientInfo(const sptr<IRemoteObject> &client,
+        const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, BindStatus>> &updateInfos);
+
+    int32_t ClearClient(const sptr<IInputClient> &client, UnBindCause cause);
+    int32_t UnBindClient(const sptr<IInputClient> &client, UnBindCause cause);
+    void UnBindImcWithIma(const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel, UnBindCause cause);
+    int32_t StopImaInput(const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel);
+    void UnBindImcWithProxy(const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel, UnBindCause cause);
+    int32_t RemoveClient(const sptr<IRemoteObject> &client);
+
     int AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
-    void UpdateClient(sptr<IRemoteObject> inputClient, bool isShowKeyboard);
-    int32_t RemoveClient(const sptr<IRemoteObject> &client, bool isClientDied);
-    int32_t ShowKeyboard(const sptr<IInputDataChannel> &channel, const sptr<IInputClient> &inputClient,
-        bool isShowKeyboard, bool attachFlag);
+    int32_t BindClient(const sptr<IInputClient> &client, bool isShowKeyboard);
+    int32_t BindImcWitchIma(
+        const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel, bool isShowKeyboard);
+    int32_t SendAgentToImc(const sptr<IInputClient> &client);
+    int32_t StartImaInput(
+        const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel, bool isShowKeyboard);
+    int32_t BindImcWitchProxy();
+
     int32_t HideKeyboard(const sptr<IInputClient> &inputClient);
-    int32_t ClearDataChannel(const sptr<IInputDataChannel> &channel);
-    int32_t SendAgentToSingleClient(const sptr<IInputClient> &client);
+    int32_t ShowKeyboard(const sptr<IInputClient> &inputClient);
     int32_t InitInputControlChannel();
     bool IsReadyToStartIme();
     bool IsRestartIme(uint32_t index);
@@ -137,7 +156,6 @@ private:
     void SetAgent(sptr<IInputMethodAgent> agent);
     sptr<IInputMethodAgent> GetAgent();
     bool IsCurrentClient(int32_t pid, int32_t uid);
-    void UnbindClient(const sptr<IInputClient> &client);
 
     static inline bool IsValid(int32_t index)
     {

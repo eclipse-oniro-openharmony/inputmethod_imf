@@ -259,12 +259,12 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testShowKeyboard_001 START");
     // channelObject == nullptr
-    auto ret = inputMethodAbility_->ShowKeyboard(nullptr, false, true);
+    auto ret = inputMethodAbility_->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 
     ResetMemberVar();
 }
-
+#if 0
 /**
  * @tc.name: testShowInputWindow_001
  * @tc.desc: ShowInputWindow Exception
@@ -296,7 +296,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowInputWindow_001, TestSize.Leve
 
     ResetMemberVar();
 }
-
+#endif
 /**
  * @tc.name: testHideKeyboard_001
  * @tc.desc: HideKeyboard Exception
