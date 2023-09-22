@@ -436,7 +436,7 @@ public:
      *
      * @since 10
      */
-    IMF_API void OnInputStop();
+    IMF_API void OnInputStop(UnBindCause cause);
 
     /**
      * @brief Insert text.

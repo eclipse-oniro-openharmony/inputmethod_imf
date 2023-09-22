@@ -200,6 +200,11 @@ int32_t InputMethodCoreStub::StopInput(const sptr<IInputDataChannel> &channel)
     return ErrorCode::NO_ERROR;
 }
 
+bool InputMethodCoreStub::IsEnable()
+{
+    return true;
+}
+
 int32_t InputMethodCoreStub::SendMessage(int code, ParcelHandler input)
 {
     IMSA_HILOGD("InputMethodCoreStub::SendMessage");

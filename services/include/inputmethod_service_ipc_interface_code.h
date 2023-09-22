@@ -42,6 +42,8 @@ enum class InputMethodInterfaceCode {
     PANEL_STATUS_CHANGE,
     UPDATE_LISTEN_EVENT_FLAG,
     IS_CURRENT_IME,
+    CLEAR_CORE_AND_AGENT,
+    CHANGE_PROXY_STATUS,
     IMS_CMD_LAST
 };
 } // namespace MiscServices

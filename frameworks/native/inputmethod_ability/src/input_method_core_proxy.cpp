@@ -75,6 +75,14 @@ int32_t InputMethodCoreProxy::StopInput(const sptr<IInputDataChannel> &channel)
         STOP_INPUT, [&channel](MessageParcel &data) { return ITypesUtil::Marshal(data, channel->AsObject()); });
 }
 
+bool InputMethodCoreProxy::IsEnable()
+{
+    bool isEnable = false;
+    SendRequest(
+        IS_ENABLE, nullptr, [&isEnable](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isEnable); });
+    return isEnable;
+}
+
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
     IMSA_HILOGI("InputMethodCoreProxy, run in, code = %{public}d", code);

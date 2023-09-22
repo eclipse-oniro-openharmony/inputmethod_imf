@@ -33,9 +33,10 @@ int32_t InputClientProxy::OnInputReady(const sptr<IInputMethodAgent> &agent)
         ON_INPUT_READY, [agent](MessageParcel &data) { return ITypesUtil::Marshal(data, agent->AsObject()); });
 }
 
-int32_t InputClientProxy::OnInputStop()
+int32_t InputClientProxy::OnInputStop(UnBindCause cause)
 {
-    return SendRequest(ON_INPUT_STOP);
+    return SendRequest(
+        ON_INPUT_STOP, [&cause](MessageParcel &data) { return data.WriteUint32(static_cast<uint32_t>(cause)); });
 }
 
 int32_t InputClientProxy::OnSwitchInput(const Property &property, const SubProperty &subProperty)

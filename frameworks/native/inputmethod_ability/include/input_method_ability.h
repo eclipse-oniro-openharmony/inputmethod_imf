@@ -39,10 +39,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-struct InputStartNotifier {
-    bool isNotify{ false };
-    bool isShowKeyboard{ false };
-};
 class MessageHandler;
 class InputMethodAbility : public RefBase {
 public:
@@ -50,6 +46,7 @@ public:
     ~InputMethodAbility();
     static sptr<InputMethodAbility> GetInstance();
     int32_t SetCoreAndAgent();
+    int32_t ClearCoreAndAgent();
     int32_t InsertText(const std::string text);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
@@ -77,6 +74,7 @@ public:
         std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     int32_t DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     bool IsCurrentIme();
+    bool IsEnable();
 
 private:
     std::thread workThreadHandler;
@@ -93,8 +91,8 @@ private:
     std::shared_ptr<InputDataChannelProxy> dataChannelProxy_ = nullptr;
     std::shared_ptr<InputMethodEngineListener> imeListener_;
     std::shared_ptr<KeyboardListener> kdListener_;
-    static std::mutex instanceLock_;
 
+    static std::mutex instanceLock_;
     static sptr<InputMethodAbility> instance_;
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_{ nullptr };

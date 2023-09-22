@@ -141,6 +141,11 @@ int32_t InputMethodAbility::SetCoreAndAgent()
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodAbility::ClearCoreAndAgent()
+{
+    return ErrorCode::NO_ERROR;
+}
+
 void InputMethodAbility::Initialize()
 {
     IMSA_HILOGI("InputMethodAbility::Initialize");
@@ -276,8 +281,8 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
 int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
 {
     IMSA_HILOGI("run in");
-    ClearDataChannel(channelObject);
     HideKeyboard();
+    ClearDataChannel(channelObject);
     return ErrorCode::NO_ERROR;
 }
 
@@ -763,6 +768,14 @@ bool InputMethodAbility::IsCurrentIme()
         return false;
     }
     return proxy->IsCurrentIme();
+}
+
+bool InputMethodAbility::IsEnable()
+{
+    if (imeListener_ == nullptr) {
+        return false;
+    }
+    return imeListener_->IsEnable();
 }
 } // namespace MiscServices
 } // namespace OHOS

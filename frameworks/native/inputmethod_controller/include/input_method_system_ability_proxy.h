@@ -57,11 +57,13 @@ public:
     int32_t SwitchInputMethod(const std::string &name, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
+    int32_t ClearCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
     int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) override;
     int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
     bool IsCurrentIme() override;
+    int32_t ChangeProxyStatus(bool isEnable) override;  //todo 不一定需要
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;

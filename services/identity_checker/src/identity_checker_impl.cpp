@@ -86,6 +86,11 @@ bool IdentityCheckerImpl::IsBroker(AccessTokenID tokenId)
     return false;
 }
 
+bool IdentityCheckerImpl::IsNativeSa(AccessTokenID tokenId)
+{
+    return false;
+}
+
 std::string IdentityCheckerImpl::GetBundleNameByToken(uint32_t tokenId)
 {
     auto tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);

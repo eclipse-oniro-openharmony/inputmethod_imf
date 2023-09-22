@@ -46,6 +46,7 @@ public:
     int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) override;
     void StopInputService(std::string imeId) override;
     int32_t SetSubtype(const SubProperty &property) override;
+    bool IsEnable() override;
     void SetMessageHandler(MessageHandler *msgHandler);
 
 private:

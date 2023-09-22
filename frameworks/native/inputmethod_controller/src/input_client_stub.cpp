@@ -71,7 +71,9 @@ void InputClientStub::OnInputReadyOnRemote(MessageParcel &data, MessageParcel &r
 
 int32_t InputClientStub::OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    return reply.WriteInt32(OnInputStop()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    auto cause = data.ReadUint32();
+    return reply.WriteInt32(OnInputStop(static_cast<UnBindCause>(cause))) ? ErrorCode::NO_ERROR
+                                                                          : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -106,9 +108,9 @@ int32_t InputClientStub::OnInputReady(const sptr<IInputMethodAgent> &agent)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputClientStub::OnInputStop()
+int32_t InputClientStub::OnInputStop(UnBindCause cause)
 {
-    InputMethodController::GetInstance()->OnInputStop();
+    InputMethodController::GetInstance()->OnInputStop(cause);
     return ErrorCode::NO_ERROR;
 }
 

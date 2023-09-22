@@ -309,6 +309,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(
     const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
+    // todo 此处权限校验
     if (!IsCurrentIme()) {
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
@@ -316,6 +317,7 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(
         IMSA_HILOGE("InputMethodSystemAbility::core or agent is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
+    // todo 可以在此处根据是否当前ime或者native，区分ima和proxy
     return userSession_->OnSetCoreAndAgent(core, agent);
 }
 
@@ -797,6 +799,19 @@ void InputMethodSystemAbility::InitSystemLanguageMonitor()
 {
     SystemLanguageObserver::GetInstance().Watch(
         [this]() { ImeInfoInquirer::GetInstance().UpdateCurrentImeInfo(userId_); });
+}
+
+int32_t InputMethodSystemAbility::ClearCoreAndAgent(
+    const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
+{
+    // todo 权限校验
+    userSession_->OnClearCoreAndAgent(core, agent);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbility::ChangeProxyStatus(bool isEnable)
+{
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

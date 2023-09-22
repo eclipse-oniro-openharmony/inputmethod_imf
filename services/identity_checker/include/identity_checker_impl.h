@@ -27,6 +27,7 @@ public:
     bool IsCurrentIme(uint32_t tokenId, const std::string &currentBundleName) override;
     bool HasPermission(uint32_t tokenId, const std::string &permission) override;
     bool IsBroker(Security::AccessToken::AccessTokenID tokenId) override;
+    bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) override;
 
 private:
     static std::string GetBundleNameByToken(uint32_t tokenId);

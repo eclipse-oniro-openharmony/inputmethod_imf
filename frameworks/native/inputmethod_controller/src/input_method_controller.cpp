@@ -842,12 +842,18 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
     agent_ = agent;
 }
 
-void InputMethodController::OnInputStop()
+void InputMethodController::OnInputStop(UnBindCause cause)
 {
+    if (cause == UnBindCause::IME_DIED || cause == UnBindCause::IME_SWITCH) {
+        std::lock_guard<std::mutex> autoLock(agentLock_);
+        agent_ = nullptr;
+        agentObject_ = nullptr;
+        return;
+    }
     auto listener = GetTextListener();
     if (listener != nullptr) {
         IMSA_HILOGD("textListener_ is not nullptr");
-        listener->SendKeyboardStatus(KeyboardStatus::HIDE);
+        listener->SendKeyboardStatus(KeyboardStatus::HIDE); //todo 此处DC是否要做特殊处理
     }
     isBound_.store(false);
     isEditable_.store(false);

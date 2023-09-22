@@ -41,6 +41,7 @@ public:
         SET_SUBTYPE,
         START_INPUT,
         STOP_INPUT,
+        IS_ENABLE,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodCore");
@@ -54,6 +55,7 @@ public:
         sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) = 0;
     virtual void StopInputService(std::string imeId) = 0;
     virtual int32_t SetSubtype(const SubProperty &property) = 0;
+    virtual bool IsEnable() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

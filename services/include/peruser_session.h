@@ -43,17 +43,13 @@
 #include "iremote_object.h"
 #include "message.h"
 #include "message_handler.h"
-
+#include "unbind_cause.h"
 namespace OHOS {
 namespace MiscServices {
-struct ResetManager {
-    uint32_t num{ 0 };
-    time_t last{};
-};
-enum class UnBindCause : uint32_t {
-    CLIENT_DIED,
-    UNFOCUSED,
-    SELF_CLOSE,
+struct ImeData {
+    sptr<IInputMethodCore> core{ nullptr };
+    sptr<IInputMethodAgent> agent{ nullptr };
+    sptr<InputDeathRecipient> deathRecipient{ nullptr };
 };
 /**@class PerUserSession
  *
@@ -62,17 +58,6 @@ enum class UnBindCause : uint32_t {
  * This class manages the sessions between input clients and input method engines for each unlocked user.
  */
 class PerUserSession {
-    enum : int32_t {
-        CURRENT_IME = 0, // index for current ime
-        SECURITY_IME,    // index for security ime
-        MAX_IME          // the maximum count of ime started for a user
-    };
-
-    enum ClientAddEvent : int32_t {
-        PREPARE_INPUT = 0,
-        START_LISTENING,
-    };
-
 public:
     explicit PerUserSession(int userId);
     ~PerUserSession();
@@ -81,6 +66,8 @@ public:
     int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
+    int32_t OnClearCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
+    int32_t RegisterProxy(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
     int OnHideCurrentInput();
     int OnShowCurrentInput();
     int32_t OnShowInput(sptr<IInputClient> client);
@@ -96,24 +83,26 @@ public:
     bool StartInputService(const std::string &imeName, bool isRetry);
 
 private:
+    struct ResetManager {
+        uint32_t num{ 0 };
+        time_t last{};
+    };
+    enum ClientAddEvent : int32_t {
+        PREPARE_INPUT = 0,
+        START_LISTENING,
+    };
+    enum ImeType : int32_t { IMA = 0, PROXY, END };
+
     int32_t userId_; // the id of the user to whom the object is linking
+    std::recursive_mutex mtx;
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> mapClients_;
     static const int MAX_RESTART_NUM = 3;
     static const int IME_RESET_TIME_OUT = 3;
     static const int MAX_IME_START_TIME = 1000;
-
-    std::mutex imsCoreLock_;
-    sptr<IInputMethodCore> imsCore[MAX_IME]; // the remote handlers of input method service
-
-    std::mutex agentLock_;
-    sptr<IInputMethodAgent> agent_;
     std::mutex clientLock_;
     sptr<IInputClient> currentClient_; // the current input client
-
-    sptr<InputDeathRecipient> imsDeathRecipient_ = nullptr;
-    std::recursive_mutex mtx; // mutex to lock the operations among multi work threads
     std::mutex resetLock;
-    ResetManager manager[MAX_IME];
+    ResetManager manager;
 
     PerUserSession(const PerUserSession &);
     PerUserSession &operator=(const PerUserSession &);
@@ -122,47 +111,43 @@ private:
 
     void OnClientDied(sptr<IInputClient> remote);
     void OnImsDied(const sptr<IInputMethodCore> &remote);
+    void OnProxyDied(const sptr<IInputMethodCore> &remote);
 
+    int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     void UpdateClientInfo(const sptr<IRemoteObject> &client,
         const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, BindStatus>> &updateInfos);
+    void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied);
 
     int32_t ClearClient(const sptr<IInputClient> &client, UnBindCause cause);
-    int32_t UnBindClient(const sptr<IInputClient> &client, UnBindCause cause);
-    void UnBindImcWithIma(const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel, UnBindCause cause);
-    int32_t StopImaInput(const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel);
-    void UnBindImcWithProxy(const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel, UnBindCause cause);
-    int32_t RemoveClient(const sptr<IRemoteObject> &client);
+    void ClearIme(const sptr<IInputMethodCore> &core, ImeType type);
 
-    int AddClient(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
+    int32_t UnBindClient(const sptr<IInputClient> &client, UnBindCause cause);
+    void UnBindClient(
+        const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel, UnBindCause cause, ImeType type);
+
     int32_t BindClient(const sptr<IInputClient> &client, bool isShowKeyboard);
-    int32_t BindImcWitchIma(
-        const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel, bool isShowKeyboard);
-    int32_t SendAgentToImc(const sptr<IInputClient> &client);
-    int32_t StartImaInput(
-        const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel, bool isShowKeyboard);
-    int32_t BindImcWitchProxy();
+    int32_t BindClient(
+        const sptr<IInputClient> &client, const sptr<IInputDataChannel> &channel, bool isShowKeyboard, ImeType type);
 
     int32_t HideKeyboard(const sptr<IInputClient> &inputClient);
     int32_t ShowKeyboard(const sptr<IInputClient> &inputClient);
+
     int32_t InitInputControlChannel();
     bool IsReadyToStartIme();
-    bool IsRestartIme(uint32_t index);
-    void ClearImeData(uint32_t index);
+    bool IsRestartIme();
+
     void SetCurrentClient(sptr<IInputClient> client);
     sptr<IInputClient> GetCurrentClient();
-    void SetImsCore(int32_t index, sptr<IInputMethodCore> core);
-    sptr<IInputMethodCore> GetImsCore(int32_t index);
-    void SetAgent(sptr<IInputMethodAgent> agent);
-    sptr<IInputMethodAgent> GetAgent();
     bool IsCurrentClient(int32_t pid, int32_t uid);
 
-    static inline bool IsValid(int32_t index)
-    {
-        return index >= CURRENT_IME && index <= SECURITY_IME;
-    }
+    int32_t StorageImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
+    std::shared_ptr<ImeData> GetImeData(ImeType type);
+    void ClearImeData(ImeType type);
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
+    std::mutex imeDataLock_;
+    std::unordered_map<ImeType, std::shared_ptr<ImeData>> imeData_;
 };
 } // namespace MiscServices
 } // namespace OHOS

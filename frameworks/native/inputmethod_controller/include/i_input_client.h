@@ -22,7 +22,7 @@
 #include "input_method_property.h"
 #include "input_window_info.h"
 #include "iremote_broker.h"
-
+#include "unbind_cause.h"
 /**
  * brief Definition of interface IInputClient
  * It defines the remote calls from input method management service to input client.
@@ -36,7 +36,7 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputClient");
 
     virtual int32_t OnInputReady(const sptr<IInputMethodAgent> &agent) = 0;
-    virtual int32_t OnInputStop() = 0;
+    virtual int32_t OnInputStop(UnBindCause cause) = 0;
     virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
     virtual int32_t OnPanelStatusChange(
         const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) = 0;

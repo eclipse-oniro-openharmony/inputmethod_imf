@@ -196,6 +196,17 @@ bool InputMethodSystemAbilityProxy::IsCurrentIme()
     return isCurrentIme;
 }
 
+int32_t InputMethodSystemAbilityProxy::ClearCoreAndAgent(
+    const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
+{
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbilityProxy::ChangeProxyStatus(bool isEnable)
+{
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
     IMSA_HILOGI("InputMethodSystemAbilityProxy run in, code = %{public}d", code);

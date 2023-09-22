@@ -271,5 +271,15 @@ int32_t InputMethodSystemAbilityStub::IsCurrentImeOnRemote(MessageParcel &data, 
     bool ret = IsCurrentIme();
     return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
+
+int32_t InputMethodSystemAbilityStub::ClearCoreAndAgentOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodSystemAbilityStub::ChangeProxyStatusOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return ErrorCode::NO_ERROR;
+}
 } // namespace MiscServices
 } // namespace OHOS
