@@ -109,12 +109,12 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
             status = napi_typeof(env, argv[1], &valueType);
             CHECK_RETURN(status == napi_ok, "get valueType failed!", status);
             if (valueType == napi_object) {
-                NativeValue *storage = nullptr;
-                storage = reinterpret_cast<NativeValue *>(argv[1]);
+                napi_ref storage = nullptr;
+                napi_create_reference(env, argv[1], 1, &storage);
                 auto contentStorage = (storage == nullptr)
                                           ? nullptr
                                           : std::shared_ptr<NativeReference>(
-                                                reinterpret_cast<NativeEngine *>(env)->CreateReference(storage, 1));
+                                              reinterpret_cast<NativeReference *>(storage));
                 ctxt->contentStorage = contentStorage;
             }
         }

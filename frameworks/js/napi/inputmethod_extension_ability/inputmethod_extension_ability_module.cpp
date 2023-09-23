@@ -20,16 +20,16 @@ extern const char _binary_inputmethod_extension_ability_js_end[];
 extern const char _binary_inputmethod_extension_ability_abc_start[];
 extern const char _binary_inputmethod_extension_ability_abc_end[];
 
+static napi_module g_ExtensionModule = {
+    .nm_version = 0,
+    .nm_modname = "InputMethodExtensionAbility",
+    .nm_filename = "libinputmethodextensionability_napi.so/inputmethod_extension_ability.js",
+};
+
+
 extern "C" __attribute__((constructor)) void NAPI_InputMethodExtensionAbility_AutoRegister()
 {
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "InputMethodExtensionAbility",
-        .fileName = "libinputmethodextensionability_napi.so/inputmethod_extension_ability.js",
-    };
-    if (moduleManager != nullptr) {
-        moduleManager->Register(&newModuleInfo);
-    }
+    napi_module_register(&g_ExtensionModule);
 }
 
 extern "C" __attribute__((visibility("default"))) void NAPI_InputMethodExtensionAbility_GetJSCode(
