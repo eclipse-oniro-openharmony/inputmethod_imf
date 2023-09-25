@@ -114,10 +114,6 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
     if (window_ == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (width > INT32_MAX || height > INT32_MAX) {
-        IMSA_HILOGE("width or height over maximum");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
     if (!IsSizeValid(width, height)) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
@@ -347,18 +343,23 @@ uint32_t InputMethodPanel::GenerateSequenceId()
 
 bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
 {
-    if (panelType_ != PanelType::SOFT_KEYBOARD || panelFlag_ != PanelFlag::FLG_FIXED) {
-        return true;
+    if (width > INT32_MAX || height > INT32_MAX) {
+        IMSA_HILOGE("width or height over maximum");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     if (defaultDisplay == nullptr) {
         IMSA_HILOGE("GetDefaultDisplay failed.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    if (static_cast<int32_t>(width) > defaultDisplay->GetWidth()
-        || static_cast<float>(height) > defaultDisplay->GetHeight() * SCREEN_RATIO) {
-        IMSA_HILOGE("size invalid, defaultDisplay: width = %{public}d, height = %{public}d; "
-                    "current size: width = %{public}u, height = %{public}u",
+    if (panelType_ == PanelType::SOFT_KEYBOARD && panelFlag_ == PanelFlag::FLG_FIXED
+        && static_cast<float>(height) > defaultDisplay->GetHeight() * SCREEN_RATIO) {
+        IMSA_HILOGE("height invalid, defaultDisplay height = %{public}d, target height = %{public}u",
+            defaultDisplay->GetHeight(), height);
+        return false;
+    }
+    if (static_cast<int32_t>(width) > defaultDisplay->GetWidth()) {
+        IMSA_HILOGE("width invalid, defaultDisplay width = %{public}d, target width = %{public}u",
             defaultDisplay->GetWidth(), defaultDisplay->GetHeight(), width, height);
         return false;
     }
