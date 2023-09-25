@@ -360,7 +360,7 @@ bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
     }
     if (static_cast<int32_t>(width) > defaultDisplay->GetWidth()) {
         IMSA_HILOGE("width invalid, defaultDisplay width = %{public}d, target width = %{public}u",
-            defaultDisplay->GetWidth(), defaultDisplay->GetHeight(), width, height);
+            defaultDisplay->GetWidth(), width);
         return false;
     }
     return true;
