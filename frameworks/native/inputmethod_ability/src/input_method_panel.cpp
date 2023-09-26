@@ -114,20 +114,7 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
     if (window_ == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    if (defaultDisplay == nullptr) {
-        IMSA_HILOGE("GetDefaultDisplay failed.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    if (width > INT32_MAX || height > INT32_MAX) {
-        IMSA_HILOGE("width or height over maximum");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    if (static_cast<int32_t>(width) > defaultDisplay->GetWidth() ||
-        static_cast<float>(height) > defaultDisplay->GetHeight() * SCREEN_RATIO) {
-        IMSA_HILOGE("GetDefaultDisplay, defaultDisplay->width = %{public}d, defaultDisplay->height = %{public}d, "
-                    "width = %{public}u, height = %{public}u",
-            defaultDisplay->GetWidth(), defaultDisplay->GetHeight(), width, height);
+    if (!IsSizeValid(width, height)) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto ret = window_->Resize(width, height);
@@ -352,6 +339,31 @@ uint32_t InputMethodPanel::GenerateSequenceId()
         return ++sequenceId_;
     }
     return seqId;
+}
+
+bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
+{
+    if (width > INT32_MAX || height > INT32_MAX) {
+        IMSA_HILOGE("width or height over maximum");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    if (defaultDisplay == nullptr) {
+        IMSA_HILOGE("GetDefaultDisplay failed.");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (panelType_ == PanelType::SOFT_KEYBOARD && panelFlag_ == PanelFlag::FLG_FIXED
+        && static_cast<float>(height) > defaultDisplay->GetHeight() * SCREEN_RATIO) {
+        IMSA_HILOGE("height invalid, defaultDisplay height = %{public}d, target height = %{public}u",
+            defaultDisplay->GetHeight(), height);
+        return false;
+    }
+    if (static_cast<int32_t>(width) > defaultDisplay->GetWidth()) {
+        IMSA_HILOGE("width invalid, defaultDisplay width = %{public}d, target width = %{public}u",
+            defaultDisplay->GetWidth(), width);
+        return false;
+    }
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS
