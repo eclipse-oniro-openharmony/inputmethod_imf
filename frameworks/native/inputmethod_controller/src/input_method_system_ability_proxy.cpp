@@ -93,6 +93,12 @@ int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(
         });
 }
 
+int32_t InputMethodSystemAbilityProxy::ClearCoreAndAgent(int32_t type, const sptr<IInputMethodCore> &core)
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::CLEAR_CORE_AND_AGENT),
+        [&type, &core](MessageParcel &data) { return ITypesUtil::Marshal(data, type, core->AsObject()); });
+}
+
 std::shared_ptr<Property> InputMethodSystemAbilityProxy::GetCurrentInputMethod()
 {
     std::shared_ptr<Property> property = nullptr;
@@ -194,17 +200,6 @@ bool InputMethodSystemAbilityProxy::IsCurrentIme()
     SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_CURRENT_IME), nullptr,
         [&isCurrentIme](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isCurrentIme); });
     return isCurrentIme;
-}
-
-int32_t InputMethodSystemAbilityProxy::ClearCoreAndAgent(
-    const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
-{
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodSystemAbilityProxy::ChangeProxyStatus(bool isEnable)
-{
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)

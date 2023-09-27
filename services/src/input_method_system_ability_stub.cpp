@@ -274,12 +274,14 @@ int32_t InputMethodSystemAbilityStub::IsCurrentImeOnRemote(MessageParcel &data, 
 
 int32_t InputMethodSystemAbilityStub::ClearCoreAndAgentOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodSystemAbilityStub::ChangeProxyStatusOnRemote(MessageParcel &data, MessageParcel &reply)
-{
-    return ErrorCode::NO_ERROR;
+    int32_t type = -1;
+    sptr<IRemoteObject> coreObject = nullptr;
+    if (!ITypesUtil::Unmarshal(data, type, coreObject) || coreObject == nullptr) {
+        IMSA_HILOGE("coreObject is nullptr");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    int32_t ret = ClearCoreAndAgent(type, iface_cast<IInputMethodCore>(coreObject));
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices
 } // namespace OHOS

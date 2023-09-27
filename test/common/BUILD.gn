@@ -33,7 +33,9 @@ config("test_common_public_config") {
 ohos_static_library("inputmethod_test_common") {
   testonly = true
   sources = [
+    "src/ime_setting_listener_test_impl.cpp",
     "src/input_method_engine_listener_impl.cpp",
+    "src/keyboard_listener_test_impl.cpp",
     "src/text_listener.cpp",
   ]
   configs = [ ":test_common_config" ]

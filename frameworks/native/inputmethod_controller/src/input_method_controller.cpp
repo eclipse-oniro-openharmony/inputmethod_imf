@@ -323,17 +323,9 @@ int32_t InputMethodController::ShowCurrentInput()
 int32_t InputMethodController::Close()
 {
     IMSA_HILOGI("InputMethodController::Close");
-    isBound_.store(false);
-    isEditable_.store(false);
+    //此处不能清楚缓存等，会导致keyboard隐藏回调传不到编辑框
     bool isReportHide = clientInfo_.isShowKeyboard;
     InputMethodSyncTrace tracer("InputMethodController Close trace.");
-    SetTextListener(nullptr);
-    {
-        std::lock_guard<std::mutex> lock(agentLock_);
-        agent_ = nullptr;
-        agentObject_ = nullptr;
-    }
-    ClearEditorCache();
     isReportHide ? InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNBIND)
                  : InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_UNBIND);
     return ReleaseInput(clientInfo_.client);
@@ -541,6 +533,10 @@ void InputMethodController::RestoreAttachInfoInSaDied()
 
 int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 {
+    {
+        std::lock_guard<std::mutex> lock(textConfigLock_);
+        textConfig_.cursorInfo = cursorInfo;
+    }
     if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -569,6 +565,10 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 int32_t InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
 {
     IMSA_HILOGD("size: %{public}zu, start: %{public}d, end: %{public}d", text.size(), start, end);
+    {
+        std::lock_guard<std::mutex> lock(textConfigLock_);
+        textConfig_.range = { start, end };
+    }
     if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -714,6 +714,10 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
 
 int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
 {
+    {
+        std::lock_guard<std::mutex> lock(textConfigLock_);
+        textConfig_.windowId = windowId;
+    }
     if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -844,7 +848,7 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
 
 void InputMethodController::OnInputStop(UnBindCause cause)
 {
-    if (cause == UnBindCause::IME_DIED || cause == UnBindCause::IME_SWITCH) {
+    if (cause == UnBindCause::IME_DIED || cause == UnBindCause::IME_SWITCH || cause == UnBindCause::IME_CLEAR_SELF) {
         std::lock_guard<std::mutex> autoLock(agentLock_);
         agent_ = nullptr;
         agentObject_ = nullptr;
@@ -853,7 +857,7 @@ void InputMethodController::OnInputStop(UnBindCause cause)
     auto listener = GetTextListener();
     if (listener != nullptr) {
         IMSA_HILOGD("textListener_ is not nullptr");
-        listener->SendKeyboardStatus(KeyboardStatus::HIDE); //todo 此处DC是否要做特殊处理
+        listener->SendKeyboardStatus(KeyboardStatus::HIDE);
     }
     isBound_.store(false);
     isEditable_.store(false);

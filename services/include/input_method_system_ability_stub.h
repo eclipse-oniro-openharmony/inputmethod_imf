@@ -71,8 +71,6 @@ private:
 
     int32_t IsCurrentImeOnRemote(MessageParcel &data, MessageParcel &reply);
 
-    int32_t ChangeProxyStatusOnRemote(MessageParcel &data, MessageParcel &reply); // todo 不一定需要
-
     // Deprecated because of no permission check, kept for compatibility
     int32_t DisplayInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
 
@@ -128,8 +126,6 @@ private:
             &InputMethodSystemAbilityStub::IsCurrentImeOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::CLEAR_CORE_AND_AGENT)] =
             &InputMethodSystemAbilityStub::ClearCoreAndAgentOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::CHANGE_PROXY_STATUS)] =
-            &InputMethodSystemAbilityStub::ChangeProxyStatusOnRemote,    // todo 不一定需要
     };
 };
 } // namespace OHOS::MiscServices

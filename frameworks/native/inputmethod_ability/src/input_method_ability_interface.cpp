@@ -38,14 +38,9 @@ int32_t InputMethodAbilityInterface::RegisteredProxy()
     return InputMethodAbility::GetInstance()->SetCoreAndAgent();
 }
 
-int32_t InputMethodAbilityInterface::UnRegisterProxy(uint32_t type)
+int32_t InputMethodAbilityInterface::UnRegisteredProxy(int32_t type)
 {
-    return InputMethodAbility::GetInstance()->ClearCoreAndAgent();
-}
-
-int32_t InputMethodAbilityInterface::ChangeProxyStatus(bool isEnable)
-{
-    return 0;
+    return InputMethodAbility::GetInstance()->ClearCoreAndAgent(type);
 }
 
 int32_t InputMethodAbilityInterface::InsertText(const std::string &text)

@@ -309,16 +309,19 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(
     const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
-    // todo 此处权限校验
-    if (!IsCurrentIme()) {
-        return ErrorCode::ERROR_NOT_CURRENT_IME;
-    }
     if (core == nullptr || agent == nullptr) {
         IMSA_HILOGE("InputMethodSystemAbility::core or agent is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    // todo 可以在此处根据是否当前ime或者native，区分ima和proxy
-    return userSession_->OnSetCoreAndAgent(core, agent);
+    ImeType type = ImeType::NONE;
+    if (IsCurrentIme()) {
+        type = ImeType::IMA;
+    } else if (identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        type = ImeType::PROXY;
+    } else {
+        return ErrorCode::ERROR_NOT_CURRENT_IME;
+    }
+    return userSession_->OnSetCoreAndAgent(core, agent, type);
 }
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
@@ -682,6 +685,10 @@ int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
 int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
 {
     IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinationKey");
+    if (userSession_->IsProxyEnable()) {
+        IMSA_HILOGI("proxy enable, not switch");
+        return ErrorCode::NO_ERROR;
+    }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_MODE, state)) {
         IMSA_HILOGI("switch mode");
         return SwitchMode();
@@ -801,17 +808,13 @@ void InputMethodSystemAbility::InitSystemLanguageMonitor()
         [this]() { ImeInfoInquirer::GetInstance().UpdateCurrentImeInfo(userId_); });
 }
 
-int32_t InputMethodSystemAbility::ClearCoreAndAgent(
-    const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
+int32_t InputMethodSystemAbility::ClearCoreAndAgent(int32_t type, const sptr<IInputMethodCore> &core)
 {
-    // todo 权限校验
-    userSession_->OnClearCoreAndAgent(core, agent);
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodSystemAbility::ChangeProxyStatus(bool isEnable)
-{
-    return ErrorCode::NO_ERROR;
+    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGI("InputMethodSystemAbility::not native sa");
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
+    return userSession_->OnClearCoreAndAgent(type, core);
 }
 } // namespace MiscServices
 } // namespace OHOS

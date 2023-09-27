@@ -41,7 +41,7 @@ int32_t InputMethodCoreProxy::InitInputControlChannel(
 
 int32_t InputMethodCoreProxy::StartInput(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard)
 {
-    IMSA_HILOGD("InputMethodCoreProxy::showKeyboard");
+    IMSA_HILOGD("InputMethodCoreProxy::StartInput");
     return SendRequest(START_INPUT, [&inputDataChannel, isShowKeyboard](MessageParcel &data) {
         return ITypesUtil::Marshal(data, inputDataChannel->AsObject(), isShowKeyboard);
     });

@@ -208,6 +208,7 @@ int32_t InputMethodPanel::ShowPanel()
 
 int32_t InputMethodPanel::HidePanel()
 {
+    // 外接键盘情况下，退出编辑状态时，回调输入法应用keyboardhide，很可能channel已经置空，输入法应用才调用此接口隐藏小的悬浮态键盘，会导致隐藏不掉
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;

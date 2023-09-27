@@ -18,8 +18,8 @@
 
 #include <thread>
 
-#include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
 #include "concurrent_map.h"
+#include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
 #include "i_input_control_channel.h"
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
@@ -28,6 +28,7 @@
 #include "input_channel.h"
 #include "input_control_channel_proxy.h"
 #include "input_data_channel_proxy.h"
+#include "input_method_agent_stub.h"
 #include "input_method_core_stub.h"
 #include "input_method_engine_listener.h"
 #include "input_method_panel.h"
@@ -46,7 +47,7 @@ public:
     ~InputMethodAbility();
     static sptr<InputMethodAbility> GetInstance();
     int32_t SetCoreAndAgent();
-    int32_t ClearCoreAndAgent();
+    int32_t ClearCoreAndAgent(int32_t type);
     int32_t InsertText(const std::string text);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
@@ -123,6 +124,8 @@ private:
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isPanelKeyboard_{ false };
     std::atomic_bool isBound_{ false };
+    sptr<InputMethodCoreStub> coreStub_{ nullptr };
+    sptr<InputMethodAgentStub> agentStub_{ nullptr };
 };
 } // namespace MiscServices
 } // namespace OHOS

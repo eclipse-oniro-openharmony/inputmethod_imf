@@ -24,6 +24,7 @@ namespace MiscServices {
 enum class InputWindowStatus : uint32_t {
     SHOW,
     HIDE,
+    NONE
 };
 
 struct InputWindowInfo {

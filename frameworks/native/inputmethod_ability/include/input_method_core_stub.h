@@ -53,8 +53,10 @@ private:
     MessageHandler *msgHandler_;
     void InitInputControlChannelOnRemote(MessageParcel &data, MessageParcel &reply);
     void SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
-    void StartInputOnRemote(MessageParcel &data, MessageParcel &reply);
-    int32_t StopInputOnRemote(MessageParcel &data);
+    int32_t StartInputOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t StopInputOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t IsEnableOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
 };

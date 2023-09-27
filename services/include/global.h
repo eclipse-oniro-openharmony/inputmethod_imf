@@ -97,6 +97,7 @@ enum {
     ERROR_ADD_DEATH_RECIPIENT_FAILED = 23,
     ERROR_STATUS_SYSTEM_PERMISSION = 24, // not system application
     ERROR_IME = 25,
+    ERROR_IME_START_INPUT_FAILED = 26,
 };
 }; // namespace ErrorCode
 

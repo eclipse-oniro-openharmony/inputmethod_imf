@@ -19,11 +19,12 @@
 namespace OHOS {
 namespace MiscServices {
 enum class UnBindCause : uint32_t {
-    CLIENT_DIED = 0, //IMA停止输入core->StopInput()，removeclient()
-    CLIENT_UNFOCUSED, // 清理imc的agent、监听、绑定标记等等(client->OnInputStop)，core->StopInput()， removeclient()
-    CLIENT_CLOSE_SELF, //清理imc的agent、监听、绑定标记等等(发起close时已清理)，core->StopInput()， removeclient()
-    IME_DIED,   //清理imc的agent
-    IME_SWITCH, //清理imc的agent，core->StopInput()
+    CLIENT_DIED = 0, //IMA停止输入core->StopInput()，removeclient() 不更新isshowkeyboard
+    CLIENT_UNFOCUSED, // 清理imc的agent、监听、绑定标记等等(client->OnInputStop)，core->StopInput()， removeclient() 不更新isshowkeyboard
+    CLIENT_CLOSE_SELF, //清理imc的agent、监听、绑定标记等等(发起close时已清理)，core->StopInput()， removeclient() 不更新isshowkeyboard
+    IME_DIED,   //清理imc的agent   不更新isshowkeyboard
+    IME_SWITCH, //清理imc的agent，core->StopInput(), 不更新isshowkeyboard
+    IME_CLEAR_SELF,   //清理imc的agent，core->StopInput()  仅限proxy,不更新isshowkeyboard
 };
 } // namespace MiscServices
 } // namespace OHOS

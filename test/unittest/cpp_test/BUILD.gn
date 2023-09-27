@@ -425,3 +425,44 @@ ohos_unittest("TextListenerInnerApiTest") {
     "window_manager:libwm",
   ]
 }
+
+ohos_unittest("ImeProxyTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "src/ime_proxy_test.cpp",
+  ]
+
+  configs = [ ":module_private_config" ]
+
+  include_dirs = [
+    "${windowmanager_path}/interfaces/innerkits/dm",
+    "${windowmanager_path}/interfaces/innerkits/wm",
+  ]
+
+  deps = [
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/test/common:inputmethod_test_common",
+    "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/editorBox:editorBox",
+    "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:ability_manager",
+    "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
+    "graphic_2d:window_animation",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "napi:ace_napi",
+    "window_manager:libdm",
+    "window_manager:libwm",
+  ]
+}

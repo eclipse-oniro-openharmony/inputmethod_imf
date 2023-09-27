@@ -85,6 +85,32 @@ int32_t TddUtil::GetCurrentUserId()
     }
     return userIds[0];
 }
+
+void TddUtil::GrantNativePermission()
+{
+    const char **perms = new const char *[1];
+    perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
+    TokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = perms,
+        .acls = nullptr,
+        .processName = "inputmethod_imf",
+        .aplStr = "system_core",
+    };
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    int res = SetSelfTokenID(tokenId);
+    if (res == 0) {
+        IMSA_HILOGI("SetSelfTokenID success!");
+    } else {
+        IMSA_HILOGE("SetSelfTokenID fail!");
+    }
+    AccessTokenKit::ReloadNativeTokenInfo();
+    delete[] perms;
+}
+
 void TddUtil::StorageSelfTokenID()
 {
     selfTokenID_ = GetSelfTokenID();

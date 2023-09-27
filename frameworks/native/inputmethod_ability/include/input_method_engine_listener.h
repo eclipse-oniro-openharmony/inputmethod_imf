@@ -28,6 +28,9 @@ public:
     virtual void OnInputStop(const std::string &imeId) = 0;
     virtual void OnSetCallingWindow(uint32_t windowId) = 0;
     virtual void OnSetSubtype(const SubProperty &property) = 0;
+    virtual void OnInputFinish()
+    {
+    }
     virtual bool IsEnable()
     {
         return false;

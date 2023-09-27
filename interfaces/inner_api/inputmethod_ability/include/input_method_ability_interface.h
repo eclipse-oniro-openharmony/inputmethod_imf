@@ -16,29 +16,29 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_INPUT_METHOD_ABILITY_INTERFACE_H
 #define FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_INPUT_METHOD_ABILITY_INTERFACE_H
 
-#include "input_method_engine_listener.h"
-#include "keyboard_listener.h"
-
 #include <cstdint>
 #include <memory>
 #include <mutex>
+
+#include "input_method_engine_listener.h"
+#include "keyboard_listener.h"
 
 namespace OHOS {
 namespace MiscServices {
 class InputMethodAbilityInterface {
 public:
     InputMethodAbilityInterface() = default;
-    ~InputMethodAbilityInterface()= default;
+    ~InputMethodAbilityInterface() = default;
     static std::shared_ptr<InputMethodAbilityInterface> GetInstance();
     int32_t RegisteredProxy();
-    int32_t UnRegisterProxy(uint32_t type);
-    int32_t ChangeProxyStatus(bool isEnable);
+    int32_t UnRegisteredProxy(int32_t type); // type::0:stop proxy  1:switch to ima
     int32_t InsertText(const std::string &text);
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
     int32_t MoveCursor(int32_t keyCode);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
+
 private:
     static std::mutex instanceLock_;
     static std::shared_ptr<InputMethodAbilityInterface> instance_;
