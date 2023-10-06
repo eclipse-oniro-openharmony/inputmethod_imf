@@ -306,6 +306,9 @@ HWTEST_F(InputMethodPanelTest, testResizePanel001, TestSize.Level0)
     ret = inputMethodPanel->Resize(width, height * 0.6 + 1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
+    ret = inputMethodPanel->Resize(width, height + 1);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
