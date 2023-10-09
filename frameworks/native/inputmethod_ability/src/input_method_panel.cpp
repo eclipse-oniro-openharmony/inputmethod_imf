@@ -25,8 +25,8 @@ namespace MiscServices {
 using WMError = OHOS::Rosen::WMError;
 using WindowGravity = OHOS::Rosen::WindowGravity;
 using WindowState = OHOS::Rosen::WindowState;
-constexpr float FIXED_SOFT_KEYBOARD_SCREEN_RATIO = 0.6;
-constexpr float FULL_SCREEN_RATIO = 1;
+constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.6;
+constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_{ 0 };
 InputMethodPanel::~InputMethodPanel() = default;
 
@@ -354,8 +354,8 @@ bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     float ratio = panelType_ == PanelType::SOFT_KEYBOARD && panelFlag_ == PanelFlag::FLG_FIXED
-                      ? FIXED_SOFT_KEYBOARD_SCREEN_RATIO
-                      : FULL_SCREEN_RATIO;
+                      ? FIXED_SOFT_KEYBOARD_PANEL_RATIO
+                      : NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO;
     if (static_cast<float>(height) > defaultDisplay->GetHeight() * ratio) {
         IMSA_HILOGE("height invalid, defaultDisplay height = %{public}d, target height = %{public}u",
             defaultDisplay->GetHeight(), height);
