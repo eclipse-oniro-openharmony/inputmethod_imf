@@ -623,6 +623,7 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
         } else {
+            ctxt->status = napi_generic_failure;
             ctxt->SetErrorCode(code);
         }
     };
@@ -717,6 +718,7 @@ napi_value JsTextInputClientEngine::SelectByMovement(napi_env env, napi_callback
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
         } else {
+            ctxt->status = napi_generic_failure;
             ctxt->SetErrorCode(code);
         }
     };
