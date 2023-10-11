@@ -27,6 +27,9 @@ const std::map<int32_t, uint8_t> MASK_MAP{
     { MMI::KeyEvent::KEYCODE_CTRL_LEFT, KeyboardEvent::CTRL_LEFT_MASK },
     { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, KeyboardEvent::CTRL_RIGHT_MASK },
     { MMI::KeyEvent::KEYCODE_CAPS_LOCK, KeyboardEvent::CAPS_MASK },
+    { MMI::KeyEvent::KEYCODE_SPACE, KeyboardEvent::SPACE_MASK },
+    { MMI::KeyEvent::KEYCODE_META_LEFT, KeyboardEvent::META_LEFT_MASK },
+    { MMI::KeyEvent::KEYCODE_META_RIGHT, KeyboardEvent::META_RIGHT_MASK },
 };
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const

@@ -61,6 +61,7 @@ ohos_shared_library("inputmethod_service") {
 
   deps = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/services/adapter/keyboard:keboard_event_static",
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
   ]
@@ -75,6 +76,8 @@ ohos_shared_library("inputmethod_service") {
     "c_utils:utils",
     "common_event_service:cesfwk_core",
     "common_event_service:cesfwk_innerkits",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "init:libbeget_proxy",

@@ -211,10 +211,18 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
     IMSA_HILOGI("run in GetInputMethods");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "should has one parameter.", TYPE_NONE, napi_invalid_arg);
+        if (argc < 1) {
+            ctxt->inputMethodStatus = InputMethodStatus::ALL;
+            return napi_ok;
+        }
         bool enable = false;
-        napi_status status = JsUtils::GetValue(env, argv[ARGC_ZERO], enable);
-        PARAM_CHECK_RETURN(env, status == napi_ok, "enable.", TYPE_NUMBER, napi_invalid_arg);
+        if (JsUtil::GetType(env, argv[argc - 1]) == napi_function && argc == 1) {
+            ctxt->inputMethodStatus = InputMethodStatus::ALL;
+            return napi_ok;
+        }
+        // 0 means first param index
+        napi_status status = JsUtils::GetValue(env, argv[0], enable);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "enable.", TYPE_BOOLEAN, napi_invalid_arg);
         ctxt->inputMethodStatus = enable ? InputMethodStatus::ENABLE : InputMethodStatus::DISABLE;
         return napi_ok;
     };
@@ -223,8 +231,10 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode =
-            InputMethodController::GetInstance()->ListInputMethod(ctxt->inputMethodStatus == ENABLE, ctxt->properties);
+        int32_t errCode = ctxt->inputMethodStatus == InputMethodStatus::ALL
+                              ? InputMethodController::GetInstance()->ListInputMethod(ctxt->properties)
+                              : InputMethodController::GetInstance()->ListInputMethod(
+                                  ctxt->inputMethodStatus == ENABLE, ctxt->properties);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec ---- GetInputMethods success");
             ctxt->status = napi_ok;
@@ -237,6 +247,32 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
     // 2 means JsAPI:getInputMethods has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec, "getInputMethods");
+}
+
+napi_value JsGetInputMethodSetting::getInputMethodsSync(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGI("run in");
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    std::vector<Property> properties;
+    int32_t ret = 0;
+    if (argc <= 0) {
+        ret = InputMethodController::GetInstance()->ListInputMethod(properties);
+    } else {
+        bool enable = false;
+        PARAM_CHECK_RETURN(
+            env, JsUtil::GetType(env, argv[0]) == napi_boolean, "enable.", TYPE_BOOLEAN, JsUtil::Const::Null(env));
+        // 0 means first param index
+        napi_get_value_bool(env, argv[0], &enable);
+        ret = InputMethodController::GetInstance()->ListInputMethod(enable, properties);
+    }
+
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get Inputmethods", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    return JsInputMethod::GetJSInputMethodProperties(env, properties);
 }
 
 napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, napi_callback_info info)

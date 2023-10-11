@@ -104,6 +104,7 @@ public:
     static napi_value ListInputMethodSubtype(napi_env env, napi_callback_info info);
     static napi_value ListCurrentInputMethodSubtype(napi_env env, napi_callback_info info);
     static napi_value GetInputMethods(napi_env env, napi_callback_info info);
+    static napi_value getInputMethodsSync(napi_env env, napi_callback_info info);
     static napi_value DisplayOptionalInputMethod(napi_env env, napi_callback_info info);
     static napi_value ShowOptionalInputMethods(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);

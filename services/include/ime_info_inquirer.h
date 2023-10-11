@@ -31,6 +31,7 @@
 #include "refbase.h"
 namespace OHOS {
 namespace MiscServices {
+
 struct ImeInfo {
     std::string moduleName;
     Property prop;
@@ -63,7 +64,8 @@ public:
     std::shared_ptr<ImeInfo> GetCurrentImeInfo();
     void UpdateCurrentImeInfo(const int32_t userId);
     void ResetCurrentImeInfo();
-    int32_t ListInputMethod(const int32_t userId, const InputMethodStatus status, std::vector<Property> &props);
+    int32_t ListInputMethod(
+        const int32_t userId, const InputMethodStatus status, std::vector<Property> &props, bool enableOn);
     int32_t ListInputMethodSubtype(
         const int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);
     int32_t ListCurrentInputMethodSubtype(const int32_t userId, std::vector<SubProperty> &subProps);
@@ -86,8 +88,8 @@ private:
     bool IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName);
     std::vector<InputMethodInfo> ListInputMethodInfo(const int32_t userId);
     int32_t ListInputMethod(const int32_t userId, std::vector<Property> &props);
-    int32_t ListEnabledInputMethod(const int32_t userId, std::vector<Property> &props);
-    int32_t ListDisabledInputMethod(const int32_t userId, std::vector<Property> &props);
+    int32_t ListEnabledInputMethod(const int32_t userId, std::vector<Property> &props, bool enableOn);
+    int32_t ListDisabledInputMethod(const int32_t userId, std::vector<Property> &props, bool enableOn);
     int32_t ListInputMethodSubtype(const int32_t userId,
         const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, std::vector<SubProperty> &subProps);
     int32_t ListInputMethodSubtype(const int32_t userId, const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo,
