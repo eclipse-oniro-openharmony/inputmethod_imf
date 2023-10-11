@@ -16,9 +16,10 @@
 #ifndef SERVICES_INCLUDE_GLOBAL_H
 #define SERVICES_INCLUDE_GLOBAL_H
 
-#include <errno.h>
 #include <sys/time.h>
-#include <time.h>
+
+#include <cerrno>
+#include <ctime>
 
 #include "hilog/log.h"
 #include "ipc_object_stub.h"
@@ -56,23 +57,20 @@ void LogTimeStamp();
 // Error Code
 namespace ErrorCode {
 // Error Code definition in the input method management system
-enum {
-    NO_ERROR = 0, // no error
+constexpr int32_t NO_ERROR = 0;
 
-    // system service error
-    ERROR_NULL_POINTER = 1,
-    ERROR_KEYWORD_NOT_FOUND = 26,
-    ERROR_ENABLE_IME = 27,
-};
+// system service error
+constexpr int32_t ERROR_NULL_POINTER = 1;
+constexpr int32_t ERROR_KEYWORD_NOT_FOUND = 26;
+constexpr int32_t ERROR_ENABLE_IME = 27;
+
 }; // namespace ErrorCode
 
-namespace NativeRdb {
-enum {
-    E_OK = 0,
-};
-}; // namespace NativeRdb
+namespace DataShare {
+constexpr int32_t E_OK = 0;
+}; // namespace DataShare
 
-static constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD001C00, "ImsaKit" };
+constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD001C00, "ImsaKit" };
 
 #define IMSA_HILOGD(fmt, ...)                                                       \
     (void)OHOS::HiviewDFX::HiLog::Debug(OHOS::MiscServices::g_SMALL_SERVICES_LABEL, \

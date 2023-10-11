@@ -18,6 +18,7 @@
 #include "ime_info_inquirer.h"
 #include "iservice_registry.h"
 #include "nlohmann/json.hpp"
+#include "datashare_errno.h"
 #include "system_ability_definition.h"
 #include "uri.h"
 
@@ -83,7 +84,7 @@ void EnableImeDataParser::OnUserChanged(const int32_t targetUserId)
     currrentUserId_ = targetUserId;
     if (GetEnableData(ENABLE_IME, enableList_[std::string(ENABLE_IME)], targetUserId) != ErrorCode::NO_ERROR
         || GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], targetUserId)
-               != ErrorCode::NO_ERROR) {
+           != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("get enable list failed.");
         return;
     }
@@ -164,35 +165,36 @@ bool EnableImeDataParser::ReleaseDataShareHelper(std::shared_ptr<DataShare::Data
 
 int32_t EnableImeDataParser::GetNextSwitchInfo(SwitchInfo &switchInfo, const int32_t userId)
 {
+    IMSA_HILOGD("Run in.");
     std::vector<std::string> enableVec;
     int32_t ret = GetEnableData(ENABLE_IME, enableVec, userId);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("Get enable list abnormal.");
         return ret;
     }
+    enableVec.insert(enableVec.begin(), GetDefaultIme()->name);
     auto currentIme = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId);
     switchInfo.bundleName = GetDefaultIme()->name;
     switchInfo.subName = "";
 
-    if (enableVec.empty()) {
-        IMSA_HILOGE("Enable ime list empty.");
-        return ErrorCode::NO_ERROR;
-    }
-    if (currentIme->name == GetDefaultIme()->name) {
-        switchInfo.bundleName = enableVec[0];
-        return ErrorCode::NO_ERROR;
-    }
-
     auto iter = std::find_if(
         enableVec.begin(), enableVec.end(), [&currentIme](const std::string &ime) { return currentIme->name == ime; });
-    if (iter != enableVec.end() && ++iter != enableVec.end()) {
-        switchInfo.bundleName = *iter;
+    if (iter == enableVec.end()) {
+        IMSA_HILOGW("Enable list is not contain current ime, get default ime.");
+        return ErrorCode::NO_ERROR;
     }
+    auto nextIter = std::next(iter);
+    if (nextIter == enableVec.end()) {
+        IMSA_HILOGW("Current ime is last ime in enable list, get default ime.");
+        return ErrorCode::NO_ERROR;
+    }
+    switchInfo.bundleName = *nextIter;
     return ErrorCode::NO_ERROR;
 }
 
 bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &switchInfo, const int32_t userId)
 {
+    IMSA_HILOGD("Run in, data changed.");
     auto currentIme = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId);
     switchInfo.bundleName = GetDefaultIme()->name;
     switchInfo.subName = "";
@@ -249,6 +251,7 @@ bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t 
 bool EnableImeDataParser::CheckTargetEnableName(
     const std::string &key, const std::string &targetName, std::string &nextIme, const int32_t userId)
 {
+    IMSA_HILOGD("Run in.");
     std::vector<std::string> enableVec;
     int32_t ret = GetEnableData(key, enableVec, userId);
     if (ret != ErrorCode::NO_ERROR) {
@@ -268,14 +271,16 @@ bool EnableImeDataParser::CheckTargetEnableName(
         enableList_[key].assign(enableVec.begin(), enableVec.end());
         return false;
     }
-
     auto it = std::find_if(enableList_[key].begin(), enableList_[key].end(),
         [&targetName](const std::string &ime) { return ime == targetName; });
-
-    if (it != enableList_[key].end() && ++it != enableList_[key].end()) {
-        auto result = std::find_first_of(it, enableList_[key].end(), enableVec.begin(), enableVec.end());
-        nextIme = *result;
+    if (it != enableList_[key].end()) {
+        auto nextIter = std::next(it);
+        if (nextIter != enableList_[key].end()) {
+            auto result = std::find_first_of(nextIter, enableList_[key].end(), enableVec.begin(), enableVec.end());
+            nextIme = *result;
+        }
     }
+
     enableList_[key].assign(enableVec.begin(), enableVec.end());
     return true;
 }
@@ -336,6 +341,7 @@ int32_t EnableImeDataParser::GetEnableData(
 
 int32_t EnableImeDataParser::GetStringValue(const std::string &key, std::string &value)
 {
+    IMSA_HILOGD("Run in.");
     auto helper = CreateDataShareHelper();
     if (helper == nullptr) {
         IMSA_HILOGE("CreateDataShareHelper return nullptr.");
@@ -364,7 +370,7 @@ int32_t EnableImeDataParser::GetStringValue(const std::string &key, std::string 
     resultSet->GoToFirstRow();
     resultSet->GetColumnIndex(SETTING_COLUMN_VALUE, columIndex);
     int32_t ret = resultSet->GetString(columIndex, value);
-    if (ret != NativeRdb::E_OK) {
+    if (ret != DataShare::E_OK) {
         IMSA_HILOGE("GetString failed, ret=%{public}d", ret);
     }
     resultSet->Close();

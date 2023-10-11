@@ -22,7 +22,6 @@ config("enable_ime_config") {
   ]
 }
 
-
 ohos_static_library("enable_ime_static") {
   sources = [
     "src/enable_ime_data_observer.cpp",
@@ -36,11 +35,11 @@ ohos_static_library("enable_ime_static") {
   external_deps = [
     "ability_base:zuri",
     "ability_runtime:dataobs_manager",
-    "hilog:libhilog",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
-    "bundle_framework:appexecfwk_core",
-    "c_utils:utils"
+    "hilog:libhilog",
   ]
 
   subsystem_name = "inputmethod"

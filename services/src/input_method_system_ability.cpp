@@ -758,9 +758,15 @@ int32_t InputMethodSystemAbility::SwitchType()
         auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
         auto iter = std::find_if(props.begin(), props.end(),
             [&currentImeBundle](const Property &property) { return property.name == currentImeBundle; });
-        switchInfo.subName = (iter != props.end() && ++iter != props.end())
-                                 ? iter->name
-                                 : ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId_)->prop.name;
+        switchInfo.bundleName = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId_)->prop.name;
+        if (iter == props.end()) {
+            IMSA_HILOGE("Can not found current ime");
+        } else {
+            auto nextIter = std::next(iter);
+            if (nextIter != props.end()) {
+                switchInfo.bundleName = nextIter->name;
+            }
+        }
         switchInfo.subName = "";
         switchInfo.timestamp = std::chrono::system_clock::now();
     }
