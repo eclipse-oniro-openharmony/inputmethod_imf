@@ -230,6 +230,7 @@ int32_t InputMethodController::Attach(
     sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const TextConfig &textConfig)
 {
     IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
+    ClearEditorCache();
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
     SetTextListener(listener);
     clientInfo_.isShowKeyboard = isShowKeyboard;
@@ -245,8 +246,6 @@ int32_t InputMethodController::Attach(
         IMSA_HILOGE("failed to start input, ret:%{public}d", ret);
         return ret;
     }
-    isBound_.store(true);
-    isEditable_.store(true);
     IMSA_HILOGI("bind imf successfully, enter editable state");
 
     if (isShowKeyboard) {
@@ -323,7 +322,6 @@ int32_t InputMethodController::ShowCurrentInput()
 int32_t InputMethodController::Close()
 {
     IMSA_HILOGI("InputMethodController::Close");
-    //此处不能清楚缓存等，会导致keyboard隐藏回调传不到编辑框
     bool isReportHide = clientInfo_.isShowKeyboard;
     InputMethodSyncTrace tracer("InputMethodController Close trace.");
     isReportHide ? InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNBIND)
@@ -533,10 +531,6 @@ void InputMethodController::RestoreAttachInfoInSaDied()
 
 int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 {
-    {
-        std::lock_guard<std::mutex> lock(textConfigLock_);
-        textConfig_.cursorInfo = cursorInfo;
-    }
     if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -544,6 +538,10 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
     if (!isEditable_.load()) {
         IMSA_HILOGE("not in editable state");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    {
+        std::lock_guard<std::mutex> lock(textConfigLock_);
+        textConfig_.cursorInfo = cursorInfo;
     }
     std::lock_guard<std::mutex> lock(agentLock_);
     if (agent_ == nullptr) {
@@ -565,10 +563,6 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 int32_t InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
 {
     IMSA_HILOGD("size: %{public}zu, start: %{public}d, end: %{public}d", text.size(), start, end);
-    {
-        std::lock_guard<std::mutex> lock(textConfigLock_);
-        textConfig_.range = { start, end };
-    }
     if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -577,7 +571,10 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         IMSA_HILOGE("not in editable state");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-
+    {
+        std::lock_guard<std::mutex> lock(textConfigLock_);
+        textConfig_.range = { start, end };
+    }
     if (textString_ == text && selectNewBegin_ == start && selectNewEnd_ == end) {
         IMSA_HILOGI("same to last update");
         return ErrorCode::NO_ERROR;
@@ -714,10 +711,6 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
 
 int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
 {
-    {
-        std::lock_guard<std::mutex> lock(textConfigLock_);
-        textConfig_.windowId = windowId;
-    }
     if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -725,6 +718,10 @@ int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
     if (!isEditable_.load()) {
         IMSA_HILOGE("not in editable state");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    {
+        std::lock_guard<std::mutex> lock(textConfigLock_);
+        textConfig_.windowId = windowId;
     }
     IMSA_HILOGI("InputMethodController::SetCallingWindow windowId = %{public}d", windowId);
     std::lock_guard<std::mutex> lock(agentLock_);
@@ -844,15 +841,16 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
     }
     agentObject_ = agentObject;
     agent_ = agent;
+    isBound_.store(true);
+    isEditable_.store(true);
 }
 
-void InputMethodController::OnInputStop(UnBindCause cause)
+void InputMethodController::OnInputStop()
 {
-    if (cause == UnBindCause::IME_DIED || cause == UnBindCause::IME_SWITCH || cause == UnBindCause::IME_CLEAR_SELF) {
+    {
         std::lock_guard<std::mutex> autoLock(agentLock_);
         agent_ = nullptr;
         agentObject_ = nullptr;
-        return;
     }
     auto listener = GetTextListener();
     if (listener != nullptr) {
@@ -861,13 +859,6 @@ void InputMethodController::OnInputStop(UnBindCause cause)
     }
     isBound_.store(false);
     isEditable_.store(false);
-    SetTextListener(nullptr);
-    {
-        std::lock_guard<std::mutex> autoLock(agentLock_);
-        agent_ = nullptr;
-        agentObject_ = nullptr;
-    }
-    ClearEditorCache();
 }
 
 void InputMethodController::ClearEditorCache()

@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace MiscServices {
 enum class UpdateFlag : uint32_t { EVENTFLAG = 0, ISSHOWKEYBOARD, BINDIMETYPE };
-enum class ImeType : int32_t { IMA = 0, PROXY, NONE };
+enum class ImeType : int32_t { IME = 0, PROXY_IME, NONE };
 struct InputClientInfo {
     pid_t pid{ -1 };                                       // process id
     pid_t uid{ -1 };                                       // uid

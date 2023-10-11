@@ -33,6 +33,7 @@
 #include "input_window_info.h"
 #include "iremote_broker.h"
 #include "message_parcel.h"
+#include "unRegistered_type.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -53,7 +54,7 @@ public:
     virtual int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) = 0;
     virtual int32_t DisplayOptionalInputMethod() = 0;
     virtual int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) = 0;
-    virtual int32_t ClearCoreAndAgent(int32_t type, const sptr<IInputMethodCore> &core) = 0;
+    virtual int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) = 0;
     virtual int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) = 0;
     virtual int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) = 0;
     virtual int32_t SwitchInputMethod(const std::string &bundleName, const std::string &name) = 0;

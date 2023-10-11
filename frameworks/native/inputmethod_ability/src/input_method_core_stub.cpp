@@ -181,8 +181,8 @@ int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParce
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    InputMethodAbility::GetInstance()->StopInput(channel);
-    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    auto ret = InputMethodAbility::GetInstance()->StopInput(channel);
+    return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::IsEnableOnRemote(MessageParcel &data, MessageParcel &reply)

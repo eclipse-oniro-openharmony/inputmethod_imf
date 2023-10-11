@@ -272,7 +272,7 @@ int32_t InputMethodSystemAbilityStub::IsCurrentImeOnRemote(MessageParcel &data, 
     return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputMethodSystemAbilityStub::ClearCoreAndAgentOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputMethodSystemAbilityStub::UnRegisteredProxyImeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     int32_t type = -1;
     sptr<IRemoteObject> coreObject = nullptr;
@@ -280,7 +280,7 @@ int32_t InputMethodSystemAbilityStub::ClearCoreAndAgentOnRemote(MessageParcel &d
         IMSA_HILOGE("coreObject is nullptr");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = ClearCoreAndAgent(type, iface_cast<IInputMethodCore>(coreObject));
+    int32_t ret = UnRegisteredProxyIme(static_cast<UnRegisteredType>(type), iface_cast<IInputMethodCore>(coreObject));
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices

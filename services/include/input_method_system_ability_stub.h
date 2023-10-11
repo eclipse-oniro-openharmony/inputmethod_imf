@@ -59,7 +59,7 @@ private:
 
     int32_t SetCoreAndAgentOnRemote(MessageParcel &data, MessageParcel &reply);
 
-    int32_t ClearCoreAndAgentOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t UnRegisteredProxyImeOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t ListInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
 
@@ -124,8 +124,8 @@ private:
             &InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::IS_CURRENT_IME)] =
             &InputMethodSystemAbilityStub::IsCurrentImeOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::CLEAR_CORE_AND_AGENT)] =
-            &InputMethodSystemAbilityStub::ClearCoreAndAgentOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTERED_PROXY_IME)] =
+            &InputMethodSystemAbilityStub::UnRegisteredProxyImeOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

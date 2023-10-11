@@ -91,9 +91,10 @@
                   "name": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
                   "header": {
                       "header_files": [
-                          "../../../../frameworks/native/inputmethod_ability/include/input_method_engine_listener.h",
-                          "../../../../frameworks/native/inputmethod_ability/include/keyboard_listener.h",
-                          "input_method_ability_interface.h"
+                          "input_method_ability_interface.h",
+                          "input_method_engine_listener.h",
+                          "keyboard_listener.h",
+                          "unRegistered_type.h"
                       ],
                       "header_base": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_ability/include"
                   }

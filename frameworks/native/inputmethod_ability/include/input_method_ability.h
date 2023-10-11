@@ -37,6 +37,7 @@
 #include "keyboard_listener.h"
 #include "message.h"
 #include "message_handler.h"
+#include "unRegistered_type.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -47,7 +48,7 @@ public:
     ~InputMethodAbility();
     static sptr<InputMethodAbility> GetInstance();
     int32_t SetCoreAndAgent();
-    int32_t ClearCoreAndAgent(int32_t type);
+    int32_t UnRegisteredProxyIme(UnRegisteredType type);
     int32_t InsertText(const std::string text);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);

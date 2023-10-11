@@ -128,7 +128,7 @@ int32_t InputMethodAbility::SetCoreAndAgent()
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::ClearCoreAndAgent(int32_t type)
+int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
 {
     isBound_.store(false);
     auto proxy = GetImsaProxy();
@@ -136,7 +136,7 @@ int32_t InputMethodAbility::ClearCoreAndAgent(int32_t type)
         IMSA_HILOGE("imsa proxy is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    return proxy->ClearCoreAndAgent(type, coreStub_);
+    return proxy->UnRegisteredProxyIme(type, coreStub_);
 }
 
 void InputMethodAbility::Initialize()

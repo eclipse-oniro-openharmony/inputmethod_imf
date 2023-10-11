@@ -43,7 +43,7 @@
 #include "iremote_object.h"
 #include "message.h"
 #include "message_handler.h"
-#include "unbind_cause.h"
+#include "unRegistered_type.h"
 namespace OHOS {
 namespace MiscServices {
 struct ImeData {
@@ -54,14 +54,6 @@ struct ImeData {
         : core(std::move(core)), agent(std::move(agent)), deathRecipient(std::move(deathRecipient))
     {
     }
-};
-enum class SpecialScene : int32_t {
-    IMA_START_IN_BIND,
-    PROXY_START_IN_BIND,
-    PROXY_START_IN_IMA_BIND,
-    PROXY_ATTACH_IN_IMA_BIND,
-    IMA_ATTACH_IN_PROXY_BIND,
-    NONE
 };
 /**@class PerUserSession
  *
@@ -77,8 +69,7 @@ public:
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
     int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
-    int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent, ImeType type);
-    int32_t OnClearCoreAndAgent(int32_t type, const sptr<IInputMethodCore> &core);
+    int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
     int OnHideCurrentInput();
     int OnShowCurrentInput();
     int32_t OnShowInput(sptr<IInputClient> client);
@@ -92,7 +83,9 @@ public:
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
     bool StartInputService(const std::string &imeName, bool isRetry);
-    bool IsProxyEnable();
+    int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
+    int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
+    bool IsProxyImeEnable();
 
 private:
     struct ResetManager {
@@ -120,27 +113,24 @@ private:
     PerUserSession &operator=(const PerUserSession &&);
 
     void OnClientDied(sptr<IInputClient> remote);
-    void OnImsDied(const sptr<IInputMethodCore> &remote);
-    void OnProxyDied(const sptr<IInputMethodCore> &remote);
+    void OnImeDied(const sptr<IInputMethodCore> &remote, ImeType type);
 
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     void UpdateClientInfo(const sptr<IRemoteObject> &client,
         const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType>> &updateInfos);
-    void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied);
+    void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     void RemoveImeData(ImeType type);
 
-    int32_t RemoveClient(const sptr<IInputClient> &client, UnBindCause cause);
-    int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type, UnBindCause cause);
-
-    void HandleSpecialScene(
-        const std::shared_ptr<InputClientInfo> &currentClientInfo, ImeType startImeType = ImeType::NONE);
-    SpecialScene GetSpecialScene(ImeType bindImeType, ImeType startImeType);
+    int32_t RemoveClient(const sptr<IInputClient> &client);
+    int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
 
     int32_t BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type);
-    void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo, UnBindCause cause);
+    void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo);
+    void StopClientInput(const sptr<IInputClient> &currentClient);
+    void StopImeInput(ImeType currentType, const sptr<IInputDataChannel> &currentChannel);
 
     int32_t HideKeyboard(const sptr<IInputClient> &currentClient);
     int32_t ShowKeyboard(const sptr<IInputClient> &currentClient);
@@ -148,11 +138,18 @@ private:
     int32_t InitInputControlChannel();
     bool IsReadyToStartIme();
     bool IsRestartIme();
+    void RestartIme();
 
     void SetCurrentClient(sptr<IInputClient> client);
     sptr<IInputClient> GetCurrentClient();
     bool IsCurrentClient(int32_t pid, int32_t uid);
     bool IsCurrentClient(sptr<IInputClient> client);
+
+    bool IsImeStartInBind(ImeType bindImeType, ImeType startImeType);
+    bool IsProxyImeStartInBind(ImeType bindImeType, ImeType startImeType);
+    bool IsProxyImeStartInImeBind(ImeType bindImeType, ImeType startImeType);
+    bool IsBindProxyImeInImeBind(ImeType bindImeType);
+    bool IsBindImeInProxyImeBind(ImeType bindImeType);
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;

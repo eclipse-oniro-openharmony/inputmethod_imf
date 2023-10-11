@@ -19,18 +19,10 @@
 #include "input_method_ability.h"
 namespace OHOS {
 namespace MiscServices {
-std::mutex InputMethodAbilityInterface::instanceLock_;
-std::shared_ptr<InputMethodAbilityInterface> InputMethodAbilityInterface::instance_;
-std::shared_ptr<InputMethodAbilityInterface> InputMethodAbilityInterface::GetInstance()
+InputMethodAbilityInterface &InputMethodAbilityInterface::GetInstance()
 {
-    if (instance_ == nullptr) {
-        std::lock_guard<std::mutex> lock(instanceLock_);
-        if (instance_ == nullptr) {
-            IMSA_HILOGI("InputMethodAbility::GetInstance need new IMA");
-            instance_ = std::make_shared<InputMethodAbilityInterface>();
-        }
-    }
-    return instance_;
+    static InputMethodAbilityInterface interface;
+    return interface;
 }
 
 int32_t InputMethodAbilityInterface::RegisteredProxy()
@@ -38,9 +30,9 @@ int32_t InputMethodAbilityInterface::RegisteredProxy()
     return InputMethodAbility::GetInstance()->SetCoreAndAgent();
 }
 
-int32_t InputMethodAbilityInterface::UnRegisteredProxy(int32_t type)
+int32_t InputMethodAbilityInterface::UnRegisteredProxy(UnRegisteredType type)
 {
-    return InputMethodAbility::GetInstance()->ClearCoreAndAgent(type);
+    return InputMethodAbility::GetInstance()->UnRegisteredProxyIme(type);
 }
 
 int32_t InputMethodAbilityInterface::InsertText(const std::string &text)

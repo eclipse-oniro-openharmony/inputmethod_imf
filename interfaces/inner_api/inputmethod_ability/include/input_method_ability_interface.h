@@ -22,16 +22,15 @@
 
 #include "input_method_engine_listener.h"
 #include "keyboard_listener.h"
+#include "unRegistered_type.h"
 
 namespace OHOS {
 namespace MiscServices {
 class InputMethodAbilityInterface {
 public:
-    InputMethodAbilityInterface() = default;
-    ~InputMethodAbilityInterface() = default;
-    static std::shared_ptr<InputMethodAbilityInterface> GetInstance();
+    static InputMethodAbilityInterface &GetInstance();
     int32_t RegisteredProxy();
-    int32_t UnRegisteredProxy(int32_t type); // type::0:stop proxy  1:switch to ima
+    int32_t UnRegisteredProxy(UnRegisteredType type);
     int32_t InsertText(const std::string &text);
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
@@ -40,8 +39,7 @@ public:
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
 
 private:
-    static std::mutex instanceLock_;
-    static std::shared_ptr<InputMethodAbilityInterface> instance_;
+    InputMethodAbilityInterface() = default;
 };
 } // namespace MiscServices
 } // namespace OHOS

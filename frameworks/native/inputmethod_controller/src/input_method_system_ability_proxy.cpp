@@ -93,10 +93,12 @@ int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(
         });
 }
 
-int32_t InputMethodSystemAbilityProxy::ClearCoreAndAgent(int32_t type, const sptr<IInputMethodCore> &core)
+int32_t InputMethodSystemAbilityProxy::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)
 {
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::CLEAR_CORE_AND_AGENT),
-        [&type, &core](MessageParcel &data) { return ITypesUtil::Marshal(data, type, core->AsObject()); });
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTERED_PROXY_IME), [&type, &core](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, static_cast<int32_t>(type), core->AsObject());
+        });
 }
 
 std::shared_ptr<Property> InputMethodSystemAbilityProxy::GetCurrentInputMethod()

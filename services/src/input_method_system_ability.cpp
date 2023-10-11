@@ -309,19 +309,13 @@ int32_t InputMethodSystemAbility::SetCoreAndAgent(
     const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
-    if (core == nullptr || agent == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::core or agent is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    ImeType type = ImeType::NONE;
     if (IsCurrentIme()) {
-        type = ImeType::IMA;
-    } else if (identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
-        type = ImeType::PROXY;
-    } else {
-        return ErrorCode::ERROR_NOT_CURRENT_IME;
+        return userSession_->OnSetCoreAndAgent(core, agent);
     }
-    return userSession_->OnSetCoreAndAgent(core, agent, type);
+    if (identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        return userSession_->OnRegisterProxyIme(core, agent);
+    }
+    return ErrorCode::ERROR_NOT_CURRENT_IME;
 }
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
@@ -685,7 +679,7 @@ int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
 int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
 {
     IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinationKey");
-    if (userSession_->IsProxyEnable()) {
+    if (userSession_->IsProxyImeEnable()) {
         IMSA_HILOGI("proxy enable, not switch");
         return ErrorCode::NO_ERROR;
     }
@@ -808,13 +802,13 @@ void InputMethodSystemAbility::InitSystemLanguageMonitor()
         [this]() { ImeInfoInquirer::GetInstance().UpdateCurrentImeInfo(userId_); });
 }
 
-int32_t InputMethodSystemAbility::ClearCoreAndAgent(int32_t type, const sptr<IInputMethodCore> &core)
+int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)
 {
     if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
         IMSA_HILOGI("InputMethodSystemAbility::not native sa");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-    return userSession_->OnClearCoreAndAgent(type, core);
+    return userSession_->OnUnRegisteredProxyIme(type, core);
 }
 } // namespace MiscServices
 } // namespace OHOS

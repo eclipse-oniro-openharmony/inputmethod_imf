@@ -36,7 +36,7 @@ public:
     DISALLOW_COPY_AND_MOVE(InputClientProxy);
 
     int32_t OnInputReady(const sptr<IInputMethodAgent> &agent) override;
-    int32_t OnInputStop(UnBindCause cause) override;
+    int32_t OnInputStop() override;
     int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
     int32_t OnPanelStatusChange(
         const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) override;

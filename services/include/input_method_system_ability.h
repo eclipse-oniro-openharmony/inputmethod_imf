@@ -31,6 +31,7 @@
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
 #include "peruser_session.h"
+#include "unRegistered_type.h"
 #include "system_ability.h"
 
 namespace OHOS {
@@ -75,7 +76,7 @@ public:
     int32_t SwitchInputMethod(const std::string &bundleName, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
-    int32_t ClearCoreAndAgent(int32_t type, const sptr<IInputMethodCore> &core) override;
+    int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
     bool IsCurrentIme() override;
