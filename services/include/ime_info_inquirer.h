@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "bundle_mgr_proxy.h"
+#include "enable_ime_data_parser.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
@@ -69,6 +70,7 @@ public:
     int32_t ListInputMethodSubtype(
         const int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);
     int32_t ListCurrentInputMethodSubtype(const int32_t userId, std::vector<SubProperty> &subProps);
+    int32_t GetNextSwitchInfo(SwitchInfo &switchInfo, const int32_t userId, bool enableOn);
 
 private:
     ImeInfoInquirer() = default;

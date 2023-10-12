@@ -121,7 +121,7 @@ HWTEST_F(EnableImeDataParseTest, testGetEnableData_002, TestSize.Level0)
 HWTEST_F(EnableImeDataParseTest, testGetEnableData_003, TestSize.Level0)
 {
     IMSA_HILOGI("EnableImeDataParseTest testGetEnableData_003 START");
-    EnableImeDataParseTest::resultSet_->strValue_ = "";
+    EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : []}}";
     std::vector<std::string> enableVec;
     int32_t ret =
         EnableImeDataParser::GetInstance()->GetEnableData(IME_KEY, enableVec, EnableImeDataParseTest::USER_ID);
@@ -350,7 +350,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_012, TestSize.Level0)
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_005 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
-    EnableImeDataParseTest::resultSet_->strValue_ = "";
+    EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : []}}";
     SwitchInfo switchInfo;
     EnableImeDataParser::GetInstance()->enableList_[IME_KEY].push_back("xiaoyiIme");
     EnableImeDataParser::GetInstance()->enableList_[IME_KEY].push_back("baiduIme");
@@ -391,79 +391,6 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_013, TestSize.Level0)
     if (EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size() == 1) {
         EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY][0], "xiaoyiIme");
     }
-}
-
-/**
- * @tc.name: testGetNextSwitchInfo_001
- * @tc.desc: Get next enable ime info when enable list is empty.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: mashaoyin
- */
-HWTEST_F(EnableImeDataParseTest, testGetNextSwitchInfo_001, TestSize.Level0)
-{
-    IMSA_HILOGI("EnableImeDataParseTest testGetNextSwitchInfo_001 START");
-    SwitchInfo switchInfo;
-    EnableImeDataParseTest::resultSet_->strValue_ = "";
-    int32_t ret = EnableImeDataParser::GetInstance()->GetNextSwitchInfo(switchInfo, USER_ID);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(switchInfo.bundleName, EnableImeDataParser::GetInstance()->defaultImeInfo_->name);
-}
-
-/**
- * @tc.name: testGetNextSwitchInfo_002
- * @tc.desc: Get next enable ime info when the current ime is default.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: mashaoyin
- */
-HWTEST_F(EnableImeDataParseTest, testGetNextSwitchInfo_002, TestSize.Level0)
-{
-    IMSA_HILOGI("EnableImeDataParseTest testGetNextSwitchInfo_002 START");
-    SwitchInfo switchInfo;
-    EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : [ \"xiaoyiIme\", \"baiduIme\", "
-                                                    "\"sougouIme\"],\"101\" : [\"sougouIme\"]}}";
-    int32_t ret = EnableImeDataParser::GetInstance()->GetNextSwitchInfo(switchInfo, USER_ID);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(switchInfo.bundleName, "xiaoyiIme");
-}
-
-/**
- * @tc.name: testGetNextSwitchInfo_003
- * @tc.desc: Get next enable ime info when the current ime is the first.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: mashaoyin
- */
-HWTEST_F(EnableImeDataParseTest, testGetNextSwitchInfo_003, TestSize.Level0)
-{
-    IMSA_HILOGI("EnableImeDataParseTest testGetNextSwitchInfo_003 START");
-    SwitchInfo switchInfo;
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
-    EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : [ \"xiaoyiIme\", \"baiduIme\", "
-                                                    "\"sougouIme\"],\"101\" : [\"sougouIme\"]}}";
-    int32_t ret = EnableImeDataParser::GetInstance()->GetNextSwitchInfo(switchInfo, USER_ID);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(switchInfo.bundleName, "baiduIme");
-}
-
-/**
- * @tc.name: testGetNextSwitchInfo_004
- * @tc.desc: Get next enable ime info when the current ime is the last.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: mashaoyin
- */
-HWTEST_F(EnableImeDataParseTest, testGetNextSwitchInfo_004, TestSize.Level0)
-{
-    IMSA_HILOGI("EnableImeDataParseTest testGetNextSwitchInfo_004 START");
-    SwitchInfo switchInfo;
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "sougouIme";
-    EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : [ \"xiaoyiIme\", \"baiduIme\", "
-                                                    "\"sougouIme\"],\"101\" : [\"sougouIme\"]}}";
-    int32_t ret = EnableImeDataParser::GetInstance()->GetNextSwitchInfo(switchInfo, USER_ID);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(switchInfo.bundleName, EnableImeDataParser::GetInstance()->defaultImeInfo_->name);
 }
 
 /**

@@ -24,6 +24,7 @@
 
 namespace OHOS {
 namespace DataShare {
+constexpr int32_t E_OK = 0;
 class DataSharePredicates {
 public:
     DataSharePredicates *EqualTo(const std::string &field, const std::string &value);

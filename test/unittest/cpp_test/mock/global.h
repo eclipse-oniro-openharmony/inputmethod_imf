@@ -29,7 +29,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-
 using BRemoteObject = IPCObjectStub;
 
 #define LOG_INFO(fmt, args...) \
@@ -65,10 +64,6 @@ constexpr int32_t ERROR_KEYWORD_NOT_FOUND = 26;
 constexpr int32_t ERROR_ENABLE_IME = 27;
 
 }; // namespace ErrorCode
-
-namespace DataShare {
-constexpr int32_t E_OK = 0;
-}; // namespace DataShare
 
 constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD001C00, "ImsaKit" };
 

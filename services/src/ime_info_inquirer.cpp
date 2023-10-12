@@ -20,7 +20,6 @@
 
 #include "application_info.h"
 #include "bundle_mgr_client_impl.h"
-#include "enable_ime_data_parser.h"
 #include "global.h"
 #include "if_system_ability_manager.h"
 #include "ime_cfg_manager.h"
@@ -348,6 +347,30 @@ int32_t ImeInfoInquirer::ListDisabledInputMethod(const int32_t userId, std::vect
         return std::find(enableVec.begin(), enableVec.end(), prop.name) != enableVec.end();
     });
     props.erase(newEnd, props.end());
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t ImeInfoInquirer::GetNextSwitchInfo(SwitchInfo &switchInfo, const int32_t userId, bool enableOn)
+{
+    std::vector<Property> props = {};
+    switchInfo.bundleName = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId)->prop.name;
+    switchInfo.subName = "";
+    auto ret = ListEnabledInputMethod(userId, props, enableOn);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("userId: %{public}d ListEnabledInputMethod failed", userId);
+        return ret;
+    }
+    auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
+    auto iter = std::find_if(props.begin(), props.end(),
+        [&currentImeBundle](const Property &property) { return property.name == currentImeBundle; });
+    if (iter == props.end()) {
+        IMSA_HILOGE("Can not found current ime");
+    } else {
+        auto nextIter = std::next(iter);
+        if (nextIter != props.end()) {
+            switchInfo.bundleName = nextIter->name;
+        }
+    }
     return ErrorCode::NO_ERROR;
 }
 

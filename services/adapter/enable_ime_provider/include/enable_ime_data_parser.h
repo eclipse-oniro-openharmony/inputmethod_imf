@@ -25,6 +25,7 @@
 #include "enable_ime_data_observer.h"
 #include "global.h"
 #include "input_method_property.h"
+#include "uri.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -48,7 +49,6 @@ public:
     bool CheckNeedSwitch(const std::string &key, SwitchInfo &switchInfo, const int32_t userId);
     // for switch target ime
     bool CheckNeedSwitch(const SwitchInfo &info, const int32_t userId);
-    int32_t GetNextSwitchInfo(SwitchInfo &switchInfo, const int32_t userId);
     void OnUserChanged(const int32_t userId);
 
     static constexpr const char *ENABLE_IME = "settings.inputmethod.enable_ime";
@@ -62,26 +62,26 @@ private:
     std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper();
     bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
     int32_t RegisterObserver(const sptr<EnableImeDataObserver> &observer);
+    int32_t UnregisterObserver(const sptr<EnableImeDataObserver> &observer);
     int32_t GetStringValue(const std::string &key, std::string &value);
-    Uri GenerateTargetUri(const std::string &key);
+    bool ParseJsonData(const std::string &key, const std::string &valueStr, std::vector<std::string> &enableVec,
+        const int32_t userId);
+    const std::string GetJsonListName(const std::string &key);
     bool CheckTargetEnableName(
         const std::string &key, const std::string &targetName, std::string &nextIme, const int32_t userId);
     std::shared_ptr<Property> GetDefaultIme();
-    int32_t UnregisterObserver(const sptr<EnableImeDataObserver> &observer);
+    Uri GenerateTargetUri(const std::string &key);
 
 private:
     static std::mutex instanceMutex_;
     static sptr<EnableImeDataParser> instance_;
-
     std::mutex tokenMutex_;
     sptr<IRemoteObject> remoteObj_ = nullptr;
-
     std::mutex listMutex_;
     std::unordered_map<std::string, std::vector<std::string>> enableList_;
+
     std::shared_ptr<Property> defaultImeInfo_{ nullptr };
-
     std::vector<sptr<EnableImeDataObserver>> observerList_;
-
     int32_t currrentUserId_ = 0;
 };
 } // namespace MiscServices

@@ -18,22 +18,18 @@
 #include "ime_info_inquirer.h"
 #include "iservice_registry.h"
 #include "nlohmann/json.hpp"
-#include "datashare_errno.h"
 #include "system_ability_definition.h"
-#include "uri.h"
 
 namespace OHOS {
 namespace MiscServices {
 using json = nlohmann::json;
 std::mutex EnableImeDataParser::instanceMutex_;
 sptr<EnableImeDataParser> EnableImeDataParser::instance_ = nullptr;
-namespace {
 constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
 constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
 constexpr const char *SETTING_URI_PROXY = "datashare:///com.ohos.settingsdata/entry/settingsdata/"
                                           "SETTINGSDATA?Proxy=true";
 constexpr const char *SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdata.DataAbility";
-} // namespace
 EnableImeDataParser::~EnableImeDataParser()
 {
     remoteObj_ = nullptr;
@@ -163,35 +159,6 @@ bool EnableImeDataParser::ReleaseDataShareHelper(std::shared_ptr<DataShare::Data
     return true;
 }
 
-int32_t EnableImeDataParser::GetNextSwitchInfo(SwitchInfo &switchInfo, const int32_t userId)
-{
-    IMSA_HILOGD("Run in.");
-    std::vector<std::string> enableVec;
-    int32_t ret = GetEnableData(ENABLE_IME, enableVec, userId);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("Get enable list abnormal.");
-        return ret;
-    }
-    enableVec.insert(enableVec.begin(), GetDefaultIme()->name);
-    auto currentIme = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId);
-    switchInfo.bundleName = GetDefaultIme()->name;
-    switchInfo.subName = "";
-
-    auto iter = std::find_if(
-        enableVec.begin(), enableVec.end(), [&currentIme](const std::string &ime) { return currentIme->name == ime; });
-    if (iter == enableVec.end()) {
-        IMSA_HILOGW("Enable list is not contain current ime, get default ime.");
-        return ErrorCode::NO_ERROR;
-    }
-    auto nextIter = std::next(iter);
-    if (nextIter == enableVec.end()) {
-        IMSA_HILOGW("Current ime is last ime in enable list, get default ime.");
-        return ErrorCode::NO_ERROR;
-    }
-    switchInfo.bundleName = *nextIter;
-    return ErrorCode::NO_ERROR;
-}
-
 bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &switchInfo, const int32_t userId)
 {
     IMSA_HILOGD("Run in, data changed.");
@@ -200,6 +167,7 @@ bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &sw
     switchInfo.subName = "";
     if (key == std::string(ENABLE_IME)) {
         if (currentIme->name == GetDefaultIme()->name) {
+            GetEnableData(key, enableList_[key], userId);
             IMSA_HILOGD("Current ime is default, do not need switch ime.");
             return false;
         }
@@ -207,6 +175,7 @@ bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &sw
     } else if (key == std::string(ENABLE_KEYBOARD)) {
         if (currentIme->name != GetDefaultIme()->name || currentIme->id == GetDefaultIme()->id) {
             IMSA_HILOGD("Current ime is not default or id is default.");
+            GetEnableData(key, enableList_[key], userId);
             return false;
         }
         switchInfo.subName = GetDefaultIme()->id;
@@ -224,7 +193,7 @@ bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t 
     int32_t ret = 0;
     if (info.bundleName == GetDefaultIme()->name) {
         IMSA_HILOGD("Check ime keyboard.");
-        if (info.subName == GetDefaultIme()->id) {
+        if (info.subName == GetDefaultIme()->id || info.subName.empty()) {
             return true;
         }
         targetName = info.subName;
@@ -299,44 +268,63 @@ int32_t EnableImeDataParser::GetEnableData(
         return ErrorCode::ERROR_ENABLE_IME;
     }
 
-    IMSA_HILOGD("key: %{public}s.", key.c_str());
+    IMSA_HILOGD("userId: %{public}d, key: %{public}s.", userId, key.c_str());
     std::string valueStr;
     int32_t ret = GetStringValue(key, valueStr);
-    if (ret != ErrorCode::NO_ERROR) {
-        return ret;
+    if (ret != ErrorCode::NO_ERROR || valueStr.empty()) {
+        IMSA_HILOGW("Get value failed, or valueStr is empty");
+        return ErrorCode::ERROR_ENABLE_IME;
     }
 
+    if (!ParseJsonData(key, valueStr, enableVec, userId)) {
+        IMSA_HILOGE("valueStr is empty");
+        return ErrorCode::ERROR_ENABLE_IME;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+bool EnableImeDataParser::ParseJsonData(
+    const std::string &key, const std::string &valueStr, std::vector<std::string> &enableVec, const int32_t userId)
+{
     IMSA_HILOGD("valueStr: %{public}s.", valueStr.c_str());
-    if (valueStr.empty()) {
-        IMSA_HILOGW("valueStr is empty");
-        return ErrorCode::NO_ERROR;
-    }
-
     json jsonEnableData = json::parse(valueStr.c_str());
     if (jsonEnableData.is_null() || jsonEnableData.is_discarded()) {
         IMSA_HILOGE("json parse failed.");
-        return ErrorCode::ERROR_ENABLE_IME;
+        return false;
+    }
+    std::string listName = GetJsonListName(key);
+    if (listName.empty()) {
+        IMSA_HILOGE("Get list name failed.");
+        return false;
     }
 
-    if (!jsonEnableData.contains("enableImeList") || !jsonEnableData["enableImeList"].is_object()) {
-        IMSA_HILOGE("enableImeList not find or abnormal");
-        return ErrorCode::ERROR_ENABLE_IME;
+    if (!jsonEnableData.contains(listName) || !jsonEnableData[listName].is_object()) {
+        IMSA_HILOGE("listName not find or abnormal");
+        return false;
     }
 
     std::string id = std::to_string(userId);
-    if (!jsonEnableData["enableImeList"].contains(id) || !jsonEnableData["enableImeList"][id].is_array()) {
+    if (!jsonEnableData[listName].contains(id) || !jsonEnableData[listName][id].is_array()) {
         IMSA_HILOGE("user id not find or abnormal");
-        return ErrorCode::ERROR_ENABLE_IME;
+        return false;
     }
-
     std::vector<std::string> enableVecTemp;
-    for (const auto &bundleName : jsonEnableData["enableImeList"][id]) {
+    for (const auto &bundleName : jsonEnableData[listName][id]) {
         IMSA_HILOGD("enable ime string: %{public}s", std::string(bundleName).c_str());
         enableVecTemp.push_back(bundleName);
     }
     enableVec.assign(enableVecTemp.begin(), enableVecTemp.end());
+    return true;
+}
 
-    return ErrorCode::NO_ERROR;
+const std::string EnableImeDataParser::GetJsonListName(const std::string &key)
+{
+    if (key == std::string(ENABLE_IME)) {
+        return "enableImeList";
+    } else if (key == std::string(ENABLE_KEYBOARD)) {
+        return "enableKeyboardList";
+    }
+    return "";
 }
 
 int32_t EnableImeDataParser::GetStringValue(const std::string &key, std::string &value)
