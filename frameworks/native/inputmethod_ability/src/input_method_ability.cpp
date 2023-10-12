@@ -600,7 +600,7 @@ int32_t InputMethodAbility::SelectByRange(int32_t start, int32_t end)
     IMSA_HILOGD("InputMethodAbility, start = %{public}d, end = %{public}d", start, end);
     if (start < 0 || end < 0) {
         IMSA_HILOGE("check parameter failed, start: %{public}d, end: %{public}d", start, end);
-        return ErrorCode::ERROR_BAD_PARAMETERS;
+        return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
     auto dataChannel = GetInputDataChannelProxy();
     if (dataChannel == nullptr) {

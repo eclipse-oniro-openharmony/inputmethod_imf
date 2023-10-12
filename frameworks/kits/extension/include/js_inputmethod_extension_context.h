@@ -26,12 +26,12 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-NativeValue *CreateJsInputMethodExtensionContext(
-    NativeEngine &engine, std::shared_ptr<InputMethodExtensionContext> context);
+napi_value CreateJsInputMethodExtensionContext(
+    napi_env env, std::shared_ptr<InputMethodExtensionContext> context);
 
 class JSInputMethodExtensionConnection : public AbilityConnectCallback {
 public:
-    explicit JSInputMethodExtensionConnection(NativeEngine &engine);
+    explicit JSInputMethodExtensionConnection(napi_env env);
     ~JSInputMethodExtensionConnection();
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode) override;
@@ -39,11 +39,11 @@ public:
     void HandleOnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode);
     void HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
-    void SetJsConnectionObject(NativeValue *jsConnectionObject);
+    void SetJsConnectionObject(napi_value jsConnectionObject);
     void CallJsFailed(int32_t errorCode);
 
 private:
-    NativeEngine &engine_;
+    napi_env env_;
     std::unique_ptr<NativeReference> jsConnectionObject_ = nullptr;
 };
 

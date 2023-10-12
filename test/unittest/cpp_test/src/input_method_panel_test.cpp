@@ -32,6 +32,8 @@ using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 200;
+constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.6;
+constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 enum ListeningStatus : uint32_t { ON, OFF, NONE };
 class InputMethodPanelTest : public testing::Test {
 public:
@@ -274,13 +276,13 @@ HWTEST_F(InputMethodPanelTest, testDestroyPanel, TestSize.Level0)
 }
 
 /**
-* @tc.name: testResizePanel
-* @tc.desc: Test Resize panel. All panels can be resized.
+* @tc.name: testResizePanel001
+* @tc.desc: Test Resize panel. Panels non fixed soft keyboard.
 * @tc.type: FUNC
 */
-HWTEST_F(InputMethodPanelTest, testResizePanel, TestSize.Level0)
+HWTEST_F(InputMethodPanelTest, testResizePanel001, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodPanelTest::testResizePanel start.");
+    IMSA_HILOGI("InputMethodPanelTest::testResizePanel001 start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     // not CreatePanel, Resize failed
     auto ret = inputMethodPanel->Resize(1, 1);
@@ -294,17 +296,61 @@ HWTEST_F(InputMethodPanelTest, testResizePanel, TestSize.Level0)
     int32_t width = defaultDisplay->GetWidth();
     int32_t height = defaultDisplay->GetHeight();
 
-    ret = inputMethodPanel->Resize(width - 1, height * 0.6 - 1);
+    ret = inputMethodPanel->Resize(width - 1, height * NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO - 1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    ret = inputMethodPanel->Resize(width, height * 0.6);
+    ret = inputMethodPanel->Resize(width, height * NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    ret = inputMethodPanel->Resize(width + 1, height * 0.6);
+    ret = inputMethodPanel->Resize(width + 1, height * NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 
-    ret = inputMethodPanel->Resize(width, height * 0.6 + 1);
+    ret = inputMethodPanel->Resize(width, height * NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO + 1);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    ret = inputMethodPanel->Resize(width + 1, height * NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO + 1);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testResizePanel002
+* @tc.desc: Test Resize panel. Fixed soft keyboard panel .
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testResizePanel002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testResizePanel002 start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    // not CreatePanel, Resize failed
+    auto ret = inputMethodPanel->Resize(1, 1);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    EXPECT_TRUE(defaultDisplay != nullptr);
+    int32_t width = defaultDisplay->GetWidth();
+    int32_t height = defaultDisplay->GetHeight();
+
+    ret = inputMethodPanel->Resize(width - 1, height * FIXED_SOFT_KEYBOARD_PANEL_RATIO - 1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->Resize(width, height * FIXED_SOFT_KEYBOARD_PANEL_RATIO);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->Resize(width + 1, height * FIXED_SOFT_KEYBOARD_PANEL_RATIO);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    ret = inputMethodPanel->Resize(width, height * FIXED_SOFT_KEYBOARD_PANEL_RATIO + 1);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
+    ret = inputMethodPanel->Resize(width + 1, height * FIXED_SOFT_KEYBOARD_PANEL_RATIO + 1);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }

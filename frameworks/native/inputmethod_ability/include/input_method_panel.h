@@ -72,6 +72,7 @@ private:
     void PanelStatusChange(const InputWindowStatus &status);
     bool MarkListener(const std::string &type, bool isRegister);
     static uint32_t GenerateSequenceId();
+    bool IsSizeValid(uint32_t width, uint32_t height);
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;

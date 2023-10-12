@@ -50,84 +50,79 @@ public:
     {
     }
     ~JsInputMethodExtensionContext() = default;
+    JsInputMethodExtensionContext() = default;
 
-    static void Finalizer(NativeEngine *engine, void *data, void *hint)
+    static void Finalizer(napi_env env, void *data, void *hint)
     {
         IMSA_HILOGI("JsInputMethodExtensionContext::Finalizer is called");
         std::unique_ptr<JsInputMethodExtensionContext>(static_cast<JsInputMethodExtensionContext *>(data));
     }
 
-    static NativeValue *StartAbility(NativeEngine *engine, NativeCallbackInfo *info)
+    static napi_value StartAbility(napi_env env, napi_callback_info info)
     {
-        JsInputMethodExtensionContext *me = CheckParamsAndGetThis<JsInputMethodExtensionContext>(engine, info);
-        return (me != nullptr) ? me->OnStartAbility(*engine, *info) : nullptr;
+        GET_CB_INFO_AND_CALL(env, info, JsInputMethodExtensionContext, OnStartAbility);
     }
 
-    static NativeValue *StartAbilityWithAccount(NativeEngine *engine, NativeCallbackInfo *info)
+    static napi_value StartAbilityWithAccount(napi_env env, napi_callback_info info)
     {
-        JsInputMethodExtensionContext *me = CheckParamsAndGetThis<JsInputMethodExtensionContext>(engine, info);
-        return (me != nullptr) ? me->OnStartAbilityWithAccount(*engine, *info) : nullptr;
+        GET_CB_INFO_AND_CALL(env, info, JsInputMethodExtensionContext, OnStartAbilityWithAccount);
     }
 
-    static NativeValue *ConnectAbilityWithAccount(NativeEngine *engine, NativeCallbackInfo *info)
+    static napi_value ConnectAbilityWithAccount(napi_env env, napi_callback_info info)
     {
-        JsInputMethodExtensionContext *me = CheckParamsAndGetThis<JsInputMethodExtensionContext>(engine, info);
-        return (me != nullptr) ? me->OnConnectAbilityWithAccount(*engine, *info) : nullptr;
+        GET_CB_INFO_AND_CALL(env, info, JsInputMethodExtensionContext, OnConnectAbilityWithAccount);
     }
 
-    static NativeValue *TerminateAbility(NativeEngine *engine, NativeCallbackInfo *info)
+    static napi_value TerminateAbility(napi_env env, napi_callback_info info)
     {
-        JsInputMethodExtensionContext *me = CheckParamsAndGetThis<JsInputMethodExtensionContext>(engine, info);
-        return (me != nullptr) ? me->OnTerminateAbility(*engine, *info) : nullptr;
+        GET_CB_INFO_AND_CALL(env, info, JsInputMethodExtensionContext, OnTerminateAbility);
     }
 
-    static NativeValue *ConnectAbility(NativeEngine *engine, NativeCallbackInfo *info)
+    static napi_value ConnectAbility(napi_env env, napi_callback_info info)
     {
-        JsInputMethodExtensionContext *me = CheckParamsAndGetThis<JsInputMethodExtensionContext>(engine, info);
-        return (me != nullptr) ? me->OnConnectAbility(*engine, *info) : nullptr;
+        GET_CB_INFO_AND_CALL(env, info, JsInputMethodExtensionContext, OnConnectAbility);
     }
 
-    static NativeValue *DisconnectAbility(NativeEngine *engine, NativeCallbackInfo *info)
+    static napi_value DisconnectAbility(napi_env env, napi_callback_info info)
     {
-        JsInputMethodExtensionContext *me = CheckParamsAndGetThis<JsInputMethodExtensionContext>(engine, info);
-        return (me != nullptr) ? me->OnDisconnectAbility(*engine, *info) : nullptr;
+        GET_CB_INFO_AND_CALL(env, info, JsInputMethodExtensionContext, OnDisconnectAbility);
     }
 
 private:
     std::weak_ptr<InputMethodExtensionContext> context_;
 
-    NativeValue *OnStartAbility(NativeEngine &engine, NativeCallbackInfo &info)
+    napi_value OnStartAbility(napi_env env, size_t argc, napi_value *argv)
     {
         IMSA_HILOGI("InputMethodExtensionContext OnStartAbility");
         // only support one or two or three params
-        if (info.argc != ARGC_ONE && info.argc != ARGC_TWO && info.argc != ARGC_THREE) {
+        if (argc != ARGC_ONE && argc != ARGC_TWO && argc != ARGC_THREE) {
             IMSA_HILOGE("Not enough params");
-            return engine.CreateUndefined();
+            return CreateJsUndefined(env);
         }
 
-        decltype(info.argc) unwrapArgc = 0;
+        decltype(argc) unwrapArgc = 0;
         AAFwk::Want want;
-        OHOS::AppExecFwk::UnwrapWant(
-            reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ZERO]), want);
+        OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
         IMSA_HILOGI("%{public}s bundlename:%{public}s abilityname:%{public}s", __func__, want.GetBundle().c_str(),
             want.GetElement().GetAbilityName().c_str());
         unwrapArgc++;
 
         AAFwk::StartOptions startOptions;
-        if (info.argc > ARGC_ONE && info.argv[INDEX_ONE]->TypeOf() == NATIVE_OBJECT) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[INDEX_ONE],  &valueType);
+        if (argc > ARGC_ONE && valueType == napi_object) {
             IMSA_HILOGI("OnStartAbility start options is used.");
-            AppExecFwk::UnwrapStartOptions(
-                reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), startOptions);
+            AppExecFwk::UnwrapStartOptions(env, argv[INDEX_ONE], startOptions);
             unwrapArgc++;
         }
 
-        AsyncTask::CompleteCallback complete = [weak = context_, want, startOptions, unwrapArgc](
-                                                   NativeEngine &engine, AsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, startOptions, unwrapArgc](
+                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("startAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
                 IMSA_HILOGW("context is released");
-                task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
+                task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "Context is released"));
                 return;
             }
 
@@ -135,121 +130,122 @@ private:
             (unwrapArgc == 1) ? errcode = context->StartAbility(want)
                               : errcode = context->StartAbility(want, startOptions);
             if (errcode == 0) {
-                task.Resolve(engine, engine.CreateUndefined());
+                task.Resolve(env, CreateJsUndefined(env));
             } else {
-                task.Reject(engine, CreateJsError(engine, errcode, "Start Ability failed."));
+                task.Reject(env, CreateJsError(env, errcode, "Start Ability failed."));
             }
         };
 
-        NativeValue *lastParam = (info.argc == unwrapArgc) ? nullptr : info.argv[unwrapArgc];
-        NativeValue *result = nullptr;
-        AsyncTask::Schedule("InputMethodExtensionContext::OnStartAbility", engine,
-            CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+        napi_value lastParam = argc > unwrapArgc ? argv[unwrapArgc] : nullptr;
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("InputMethodExtensionContext::OnStartAbility", env,
+            CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
         return result;
     }
 
-    NativeValue *OnStartAbilityWithAccount(NativeEngine &engine, NativeCallbackInfo &info)
+    napi_value OnStartAbilityWithAccount(napi_env env, size_t argc, napi_value *argv)
     {
         IMSA_HILOGI("OnStartAbilityWithAccount is called");
         // only support two or three or four params
-        if (info.argc != ARGC_TWO && info.argc != ARGC_THREE && info.argc != ARGC_FOUR) {
+        if (argc != ARGC_TWO && argc != ARGC_THREE && argc != ARGC_FOUR) {
             IMSA_HILOGE("Not enough params");
-            return engine.CreateUndefined();
+            return CreateJsUndefined(env);
         }
-        decltype(info.argc) argc = 0;
+        decltype(argc) unwrapArgc = 0;
         AAFwk::Want want;
-        OHOS::AppExecFwk::UnwrapWant(
-            reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ZERO]), want);
+        OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
         IMSA_HILOGI("bundleName:%{public}s abilityName:%{public}s", want.GetBundle().c_str(),
             want.GetElement().GetAbilityName().c_str());
-        argc++;
+        unwrapArgc++;
+
         int32_t accountId = 0;
-        if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(
-            reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), accountId)) {
+        if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(env, argv[INDEX_ONE], accountId)) {
             IMSA_HILOGI("%{public}s called, the second parameter is invalid.", __func__);
-            return engine.CreateUndefined();
+            return CreateJsUndefined(env);
         }
         IMSA_HILOGI("%{public}d accountId:", accountId);
-        argc++;
+        unwrapArgc++;
+
         AAFwk::StartOptions startOptions;
-        if (info.argc > ARGC_TWO && info.argv[INDEX_TWO]->TypeOf() == NATIVE_OBJECT) {
+        napi_valuetype  valueType = napi_undefined;
+        napi_typeof(env, argv[INDEX_ONE],  &valueType);
+        if (argc > ARGC_TWO && valueType == napi_object) {
             IMSA_HILOGI("OnStartAbilityWithAccount start options is used.");
-            AppExecFwk::UnwrapStartOptions(
-                reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_TWO]), startOptions);
-            argc++;
+            AppExecFwk::UnwrapStartOptions(env, argv[INDEX_TWO], startOptions);
+            unwrapArgc++;
         }
-        AsyncTask::CompleteCallback complete = [weak = context_, want, accountId, startOptions, argc](
-                                                   NativeEngine &engine, AsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, accountId, startOptions, unwrapArgc](
+                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("startAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
-                task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
+                task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "Context is released"));
                 return;
             }
-            ErrCode errcode = (argc == ARGC_TWO) ? context->StartAbilityWithAccount(want, accountId)
+            ErrCode errcode = (unwrapArgc == ARGC_TWO) ? context->StartAbilityWithAccount(want, accountId)
                                                  : context->StartAbilityWithAccount(want, accountId, startOptions);
             if (errcode == 0) {
-                task.Resolve(engine, engine.CreateUndefined());
+                task.Resolve(env, CreateJsUndefined(env));
             }
-            task.Reject(engine, CreateJsError(engine, errcode, "Start Ability failed."));
+            task.Reject(env, CreateJsError(env, errcode, "Start Ability failed."));
         };
-        NativeValue *lastParam = (info.argc == argc) ? nullptr : info.argv[argc];
-        NativeValue *result = nullptr;
-        AsyncTask::Schedule("InputMethodExtensionContext::OnStartAbilityWithAccount", engine,
-            CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+
+        napi_value lastParam = argc == unwrapArgc ? nullptr : argv[unwrapArgc];
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("InputMethodExtensionContext::OnStartAbilityWithAccount", env,
+            CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
         return result;
     }
 
-    NativeValue *OnTerminateAbility(NativeEngine &engine, NativeCallbackInfo &info)
+    napi_value OnTerminateAbility(napi_env env, size_t argc, napi_value *argv)
     {
         IMSA_HILOGI("OnTerminateAbility is called");
         // only support one or zero params
-        if (info.argc != ARGC_ZERO && info.argc != ARGC_ONE) {
+        if (argc != ARGC_ZERO && argc != ARGC_ONE) {
             IMSA_HILOGE("Not enough params");
-            return engine.CreateUndefined();
+            return CreateJsUndefined(env);
         }
 
-        AsyncTask::CompleteCallback complete = [weak = context_](
-                                                   NativeEngine &engine, AsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_](
+                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("TerminateAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
                 IMSA_HILOGW("context is released");
-                task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
+                task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "Context is released"));
                 return;
             }
 
             auto errcode = context->TerminateAbility();
             if (errcode == 0) {
-                task.Resolve(engine, engine.CreateUndefined());
+                task.Resolve(env, CreateJsUndefined(env));
             } else {
-                task.Reject(engine, CreateJsError(engine, errcode, "Terminate Ability failed."));
+                task.Reject(env, CreateJsError(env, errcode, "Terminate Ability failed."));
             }
         };
 
-        NativeValue *lastParam = (info.argc == ARGC_ZERO) ? nullptr : info.argv[INDEX_ZERO];
-        NativeValue *result = nullptr;
-        AsyncTask::Schedule("InputMethodExtensionContext::OnTerminateAbility", engine,
-            CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+        napi_value lastParam = argc == ARGC_ZERO ? nullptr : argv[INDEX_ZERO];
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("InputMethodExtensionContext::OnTerminateAbility", env,
+            CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
         return result;
     }
 
-    NativeValue *OnConnectAbility(NativeEngine &engine, NativeCallbackInfo &info)
+    napi_value OnConnectAbility(napi_env env, size_t argc, napi_value *argv)
     {
         IMSA_HILOGI("OnConnectAbility");
         // only support two params
-        if (info.argc != ARGC_TWO) {
+        if (argc != ARGC_TWO) {
             IMSA_HILOGE("Not enough params");
-            return engine.CreateUndefined();
+            return CreateJsUndefined(env);
         }
 
         AAFwk::Want want;
-        OHOS::AppExecFwk::UnwrapWant(
-            reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ZERO]), want);
+        OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
         IMSA_HILOGI("%{public}s bundlename:%{public}s abilityname:%{public}s", __func__, want.GetBundle().c_str(),
             want.GetElement().GetAbilityName().c_str());
-        sptr<JSInputMethodExtensionConnection> connection = new JSInputMethodExtensionConnection(engine);
-        connection->SetJsConnectionObject(info.argv[1]);
+        sptr<JSInputMethodExtensionConnection> connection = new JSInputMethodExtensionConnection(env);
+        connection->SetJsConnectionObject(argv[1]);
         int64_t connectId = serialNumber_;
         ConnectionKey key;
         key.id = serialNumber_;
@@ -260,51 +256,52 @@ private:
         } else {
             serialNumber_ = 0;
         }
-        AsyncTask::CompleteCallback complete = [weak = context_, want, connection, connectId](
-                                                   NativeEngine &engine, AsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, connection, connectId](
+                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnConnectAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
                 IMSA_HILOGW("context is released");
-                task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
+                task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "Context is released"));
                 return;
             }
             IMSA_HILOGI("context->ConnectAbility connection:%{public}d", (int32_t)connectId);
             if (!context->ConnectAbility(want, connection)) {
                 connection->CallJsFailed(ERROR_CODE_ONE);
             }
-            task.Resolve(engine, engine.CreateUndefined());
+            task.Resolve(env, CreateJsUndefined(env));
         };
-        NativeValue *result = nullptr;
-        AsyncTask::Schedule("InputMethodExtensionContext::OnConnectAbility", engine,
-            CreateAsyncTaskWithLastParam(engine, nullptr, nullptr, std::move(complete), &result));
-        return engine.CreateNumber(connectId);
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("InputMethodExtensionContext::OnConnectAbility", env,
+            CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
+        
+        napi_value connectResult =  nullptr;
+        napi_create_int64(env, connectId, &connectResult);
+        return connectResult;
     }
 
-    NativeValue *OnConnectAbilityWithAccount(NativeEngine &engine, NativeCallbackInfo &info)
+    napi_value OnConnectAbilityWithAccount(napi_env env, size_t argc, napi_value *argv)
     {
         IMSA_HILOGI("OnConnectAbilityWithAccount is called");
         // only support three params
-        if (info.argc != ARGC_THREE) {
+        if (argc != ARGC_THREE) {
             IMSA_HILOGE("Not enough params");
-            return engine.CreateUndefined();
+            return CreateJsUndefined(env);
         }
 
         AAFwk::Want want;
-        OHOS::AppExecFwk::UnwrapWant(
-            reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ZERO]), want);
+        OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
         IMSA_HILOGI("%{public}s bundlename:%{public}s abilityname:%{public}s", __func__, want.GetBundle().c_str(),
             want.GetElement().GetAbilityName().c_str());
 
         int32_t accountId = 0;
-        if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(reinterpret_cast<napi_env>(&engine),
-            reinterpret_cast<napi_value>(info.argv[INDEX_ONE]), accountId)) {
+        if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(env, argv[INDEX_ONE], accountId)) {
             IMSA_HILOGI("%{public}s called, the second parameter is invalid.", __func__);
-            return engine.CreateUndefined();
+            return CreateJsUndefined(env);
         }
 
-        sptr<JSInputMethodExtensionConnection> connection = new JSInputMethodExtensionConnection(engine);
-        connection->SetJsConnectionObject(info.argv[1]);
+        sptr<JSInputMethodExtensionConnection> connection = new JSInputMethodExtensionConnection(env);
+        connection->SetJsConnectionObject(argv[1]);
         int64_t connectId = serialNumber_;
         ConnectionKey key;
         key.id = serialNumber_;
@@ -315,41 +312,42 @@ private:
         } else {
             serialNumber_ = 0;
         }
-        AsyncTask::CompleteCallback complete = [weak = context_, want, accountId, connection, connectId](
-                                                   NativeEngine &engine, AsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, accountId, connection, connectId](
+                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnConnectAbilityWithAccount begin");
             auto context = weak.lock();
             if (context == nullptr) {
                 IMSA_HILOGW("context is released");
-                task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
+                task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "Context is released"));
                 return;
             }
             IMSA_HILOGI("context->ConnectAbilityWithAccount connection:%{public}d", (int32_t)connectId);
             if (!context->ConnectAbilityWithAccount(want, accountId, connection)) {
                 connection->CallJsFailed(ERROR_CODE_ONE);
             }
-            task.Resolve(engine, engine.CreateUndefined());
+            task.Resolve(env, CreateJsUndefined(env));
         };
-        NativeValue *result = nullptr;
-        AsyncTask::Schedule("InputMethodExtensionContext::OnConnectAbilityWithAccount", engine,
-            CreateAsyncTaskWithLastParam(engine, nullptr, nullptr, std::move(complete), &result));
-        return engine.CreateNumber(connectId);
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("InputMethodExtensionContext::OnConnectAbilityWithAccount", env,
+            CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
+        napi_value connectResult =  nullptr;
+        napi_create_int64(env, connectId, &connectResult);
+        return connectResult;
     }
 
-    NativeValue *OnDisconnectAbility(NativeEngine &engine, NativeCallbackInfo &info)
+    napi_value OnDisconnectAbility(napi_env env, size_t argc, napi_value *argv)
     {
         IMSA_HILOGI("OnDisconnectAbility is called");
         // only support one or two params
-        if (info.argc != ARGC_ONE && info.argc != ARGC_TWO) {
+        if (argc != ARGC_ONE && argc != ARGC_TWO) {
             IMSA_HILOGE("Not enough params");
-            return engine.CreateUndefined();
+            return CreateJsUndefined(env);
         }
 
         AAFwk::Want want;
         int64_t connectId = -1;
         sptr<JSInputMethodExtensionConnection> connection = nullptr;
-        napi_get_value_int64(
-            reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(info.argv[INDEX_ZERO]), &connectId);
+        napi_get_value_int64(env, argv[INDEX_ZERO], &connectId);
         IMSA_HILOGI("OnDisconnectAbility connection:%{public}d", static_cast<int32_t>(connectId));
         auto item = std::find_if(connects_.begin(), connects_.end(),
             [&connectId](const std::map<ConnectionKey, sptr<JSInputMethodExtensionConnection>>::value_type &obj) {
@@ -361,120 +359,122 @@ private:
             connection = item->second;
         }
         // begin disconnect
-        AsyncTask::CompleteCallback complete = [weak = context_, want, connection](
-                                                   NativeEngine &engine, AsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, connection](
+                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnDisconnectAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
                 IMSA_HILOGW("context is released");
-                task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
+                task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "Context is released"));
                 return;
             }
             if (connection == nullptr) {
                 IMSA_HILOGW("connection nullptr");
-                task.Reject(engine, CreateJsError(engine, ERROR_CODE_TWO, "not found connection"));
+                task.Reject(env, CreateJsError(env, ERROR_CODE_TWO, "not found connection"));
                 return;
             }
             IMSA_HILOGI("context->DisconnectAbility");
             auto errcode = context->DisconnectAbility(want, connection);
-            errcode == 0 ? task.Resolve(engine, engine.CreateUndefined())
-                         : task.Reject(engine, CreateJsError(engine, errcode, "Disconnect Ability failed."));
+            errcode == 0 ? task.Resolve(env, CreateJsUndefined(env))
+                         : task.Reject(env, CreateJsError(env, errcode, "Disconnect Ability failed."));
         };
 
-        NativeValue *lastParam = (info.argc == ARGC_ONE) ? nullptr : info.argv[INDEX_ONE];
-        NativeValue *result = nullptr;
-        AsyncTask::Schedule("InputMethodExtensionContext::OnDisconnectAbility", engine,
-            CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+        napi_value lastParam = argc == ARGC_ONE ? nullptr : argv[INDEX_ONE];
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("InputMethodExtensionContext::OnDisconnectAbility", env,
+            CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
         return result;
     }
 };
 } // namespace
 
-NativeValue *CreateJsMetadata(NativeEngine &engine, const AppExecFwk::Metadata &Info)
+napi_value CreateJsMetadata(napi_env env, const AppExecFwk::Metadata &info)
 {
     IMSA_HILOGI("CreateJsMetadata");
-    NativeValue *objValue = engine.CreateObject();
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
 
-    object->SetProperty("name", CreateJsValue(engine, Info.name));
-    object->SetProperty("value", CreateJsValue(engine, Info.value));
-    object->SetProperty("resource", CreateJsValue(engine, Info.resource));
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+
+    napi_set_named_property(env, objValue, "name", CreateJsValue(env, info.name));
+    napi_set_named_property(env, objValue, "value", CreateJsValue(env, info.value));
+    napi_set_named_property(env, objValue, "resource", CreateJsValue(env, info.resource));
     return objValue;
 }
 
-NativeValue *CreateJsMetadataArray(NativeEngine &engine, const std::vector<AppExecFwk::Metadata> &info)
+napi_value CreateJsMetadataArray(napi_env env, const std::vector<AppExecFwk::Metadata> &info)
 {
     IMSA_HILOGI("CreateJsMetadataArray");
-    NativeValue *arrayValue = engine.CreateArray(info.size());
-    NativeArray *array = ConvertNativeValueTo<NativeArray>(arrayValue);
+    napi_value arrayValue = nullptr;
+    napi_create_array_with_length(env, info.size(), &arrayValue);
     uint32_t index = 0;
     for (const auto &item : info) {
-        array->SetElement(index++, CreateJsMetadata(engine, item));
+        napi_set_element(env, arrayValue, index++, CreateJsMetadata(env, item));
     }
     return arrayValue;
 }
 
-NativeValue *CreateJsExtensionAbilityInfo(NativeEngine &engine, const AppExecFwk::ExtensionAbilityInfo &info)
+napi_value CreateJsExtensionAbilityInfo(napi_env env, const AppExecFwk::ExtensionAbilityInfo &info)
 {
     IMSA_HILOGI("CreateJsExtensionAbilityInfo");
-    NativeValue *objValue = engine.CreateObject();
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
-    object->SetProperty("bundleName", CreateJsValue(engine, info.bundleName));
-    object->SetProperty("moduleName", CreateJsValue(engine, info.moduleName));
-    object->SetProperty("name", CreateJsValue(engine, info.name));
-    object->SetProperty("labelId", CreateJsValue(engine, info.labelId));
-    object->SetProperty("descriptionId", CreateJsValue(engine, info.descriptionId));
-    object->SetProperty("iconId", CreateJsValue(engine, info.iconId));
-    object->SetProperty("isVisible", CreateJsValue(engine, info.visible));
-    object->SetProperty("extensionAbilityType", CreateJsValue(engine, info.type));
-    NativeValue *permissionArrayValue = engine.CreateArray(info.permissions.size());
-    NativeArray *permissionArray = ConvertNativeValueTo<NativeArray>(permissionArrayValue);
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+
+    napi_set_named_property(env, objValue, "bundleName", CreateJsValue(env, info.bundleName));
+    napi_set_named_property(env, objValue, "moduleName", CreateJsValue(env, info.moduleName));
+    napi_set_named_property(env, objValue, "name", CreateJsValue(env, info.name));
+    napi_set_named_property(env, objValue, "labelId", CreateJsValue(env, info.labelId));
+    napi_set_named_property(env, objValue, "descriptionId", CreateJsValue(env, info.descriptionId));
+    napi_set_named_property(env, objValue, "iconId", CreateJsValue(env, info.iconId));
+    napi_set_named_property(env, objValue, "isVisible", CreateJsValue(env, info.visible));
+    napi_set_named_property(env, objValue, "extensionAbilityType", CreateJsValue(env, info.type));
+
+    napi_value permissionArray = nullptr;
+    napi_create_array_with_length(env, info.permissions.size(), &permissionArray);
+
     if (permissionArray != nullptr) {
         int index = 0;
         for (auto permission : info.permissions) {
-            permissionArray->SetElement(index++, CreateJsValue(engine, permission));
+            napi_set_element(env, permissionArray, index++, CreateJsValue(env, permission));
         }
     }
-    object->SetProperty("permissions", permissionArrayValue);
-    object->SetProperty("applicationInfo", CreateJsApplicationInfo(engine, info.applicationInfo));
-    object->SetProperty("metadata", CreateJsMetadataArray(engine, info.metadata));
-    object->SetProperty("enabled", CreateJsValue(engine, info.enabled));
-    object->SetProperty("readPermission", CreateJsValue(engine, info.readPermission));
-    object->SetProperty("writePermission", CreateJsValue(engine, info.writePermission));
+    napi_set_named_property(env, objValue, "permissions", permissionArray);
+    napi_set_named_property(env, objValue, "applicationInfo", CreateJsApplicationInfo(env, info.applicationInfo));
+    napi_set_named_property(env, objValue, "metadata", CreateJsMetadataArray(env, info.metadata));
+    napi_set_named_property(env, objValue, "enabled", CreateJsValue(env, info.enabled));
+    napi_set_named_property(env, objValue, "readPermission", CreateJsValue(env, info.readPermission));
+    napi_set_named_property(env, objValue, "writePermission", CreateJsValue(env, info.writePermission));
     return objValue;
 }
 
-NativeValue *CreateJsInputMethodExtensionContext(
-    NativeEngine &engine, std::shared_ptr<InputMethodExtensionContext> context)
+napi_value CreateJsInputMethodExtensionContext(
+    napi_env env, std::shared_ptr<InputMethodExtensionContext> context)
 {
     IMSA_HILOGI("CreateJsInputMethodExtensionContext begin");
     if (context != nullptr) {
         auto abilityInfo = context->GetAbilityInfo();
     }
-    NativeValue *objValue = CreateJsExtensionContext(engine, context);
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
 
+    napi_value objValue = CreateJsExtensionContext(env, context);
     std::unique_ptr<JsInputMethodExtensionContext> jsContext = std::make_unique<JsInputMethodExtensionContext>(context);
-    object->SetNativePointer(jsContext.release(), JsInputMethodExtensionContext::Finalizer, nullptr);
-
+    napi_wrap(env, objValue, jsContext.release(), JsInputMethodExtensionContext::Finalizer, nullptr, nullptr);
     // make handler
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
 
     const char *moduleName = "JsInputMethodExtensionContext";
-    BindNativeFunction(engine, *object, "startAbility", moduleName, JsInputMethodExtensionContext::StartAbility);
-    BindNativeFunction(engine, *object, "terminateSelf", moduleName, JsInputMethodExtensionContext::TerminateAbility);
-    BindNativeFunction(engine, *object, "destroy", moduleName, JsInputMethodExtensionContext::TerminateAbility);
-    BindNativeFunction(engine, *object, "connectAbility", moduleName, JsInputMethodExtensionContext::ConnectAbility);
+    BindNativeFunction(env, objValue, "startAbility", moduleName, JsInputMethodExtensionContext::StartAbility);
+    BindNativeFunction(env, objValue, "terminateSelf", moduleName, JsInputMethodExtensionContext::TerminateAbility);
+    BindNativeFunction(env, objValue, "destroy", moduleName, JsInputMethodExtensionContext::TerminateAbility);
+    BindNativeFunction(env, objValue, "connectAbility", moduleName, JsInputMethodExtensionContext::ConnectAbility);
     BindNativeFunction(
-        engine, *object, "disconnectAbility", moduleName, JsInputMethodExtensionContext::DisconnectAbility);
-    BindNativeFunction(engine, *object, "startAbilityWithAccount", moduleName,
+        env, objValue, "disconnectAbility", moduleName, JsInputMethodExtensionContext::DisconnectAbility);
+    BindNativeFunction(env, objValue, "startAbilityWithAccount", moduleName,
         JsInputMethodExtensionContext::StartAbilityWithAccount);
-    BindNativeFunction(engine, *object, "connectAbilityWithAccount", moduleName,
+    BindNativeFunction(env, objValue, "connectAbilityWithAccount", moduleName,
         JsInputMethodExtensionContext::ConnectAbilityWithAccount);
     return objValue;
 }
 
-JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(NativeEngine &engine) : engine_(engine)
+JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(napi_env env) : env_(env)
 {
 }
 
@@ -505,32 +505,33 @@ void JSInputMethodExtensionConnection::HandleOnAbilityConnectDone(
 {
     IMSA_HILOGI("HandleOnAbilityConnectDone begin, resultCode:%{public}d", resultCode);
     // wrap ElementName
-    napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(reinterpret_cast<napi_env>(&engine_), element);
-    NativeValue *nativeElementName = reinterpret_cast<NativeValue *>(napiElementName);
+    napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
 
     // wrap RemoteObject
     IMSA_HILOGI("OnAbilityConnectDone begin NAPI_ohos_rpc_CreateJsRemoteObject");
     napi_value napiRemoteObject =
-        NAPI_ohos_rpc_CreateJsRemoteObject(reinterpret_cast<napi_env>(&engine_), remoteObject);
-    NativeValue *nativeRemoteObject = reinterpret_cast<NativeValue *>(napiRemoteObject);
-    NativeValue *argv[] = { nativeElementName, nativeRemoteObject };
+        NAPI_ohos_rpc_CreateJsRemoteObject(env_, remoteObject);
+    napi_value argv[] = { napiElementName, napiRemoteObject };
+    
     if (jsConnectionObject_ == nullptr) {
         IMSA_HILOGE("jsConnectionObject_ nullptr");
         return;
     }
-    NativeValue *value = jsConnectionObject_->Get();
-    NativeObject *obj = ConvertNativeValueTo<NativeObject>(value);
+
+    napi_value obj = jsConnectionObject_->GetNapiValue();
     if (obj == nullptr) {
         IMSA_HILOGE("Failed to get object");
         return;
     }
-    NativeValue *methodOnConnect = obj->GetProperty("onConnect");
+    napi_value methodOnConnect = nullptr;
+    napi_get_named_property(env_, obj, "onConnect", &methodOnConnect);
     if (methodOnConnect == nullptr) {
         IMSA_HILOGE("Failed to get onConnect from object");
         return;
     }
     IMSA_HILOGI("JSInputMethodExtensionConnection::CallFunction onConnect, success");
-    engine_.CallFunction(value, methodOnConnect, argv, ARGC_TWO);
+    napi_value callResult = nullptr;
+    napi_call_function(env_, obj, methodOnConnect, ARGC_TWO, argv, &callResult);
     IMSA_HILOGI("OnAbilityConnectDone end");
 }
 
@@ -557,21 +558,21 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(
     const AppExecFwk::ElementName &element, int resultCode)
 {
     IMSA_HILOGI("HandleOnAbilityDisconnectDone begin, resultCode:%{public}d", resultCode);
-    napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(reinterpret_cast<napi_env>(&engine_), element);
-    NativeValue *nativeElementName = reinterpret_cast<NativeValue *>(napiElementName);
-    NativeValue *argv[] = { nativeElementName };
+    napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
+    napi_value argv[] = { napiElementName };
     if (jsConnectionObject_ == nullptr) {
         IMSA_HILOGE("jsConnectionObject_ nullptr");
         return;
     }
-    NativeValue *value = jsConnectionObject_->Get();
-    NativeObject *obj = ConvertNativeValueTo<NativeObject>(value);
+
+    napi_value obj = jsConnectionObject_->GetNapiValue();
     if (obj == nullptr) {
         IMSA_HILOGE("Failed to get object");
         return;
     }
 
-    NativeValue *method = obj->GetProperty("onDisconnect");
+    napi_value method = nullptr;
+    napi_get_named_property(env_, obj, "onDisconnect", &method);
     if (method == nullptr) {
         IMSA_HILOGE("Failed to get onDisconnect from object");
         return;
@@ -593,12 +594,15 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(
         IMSA_HILOGI("OnAbilityDisconnectDone erase connects_.size:%{public}zu", connects_.size());
     }
     IMSA_HILOGI("OnAbilityDisconnectDone CallFunction success");
-    engine_.CallFunction(value, method, argv, ARGC_ONE);
+    napi_value callResult = nullptr;
+    napi_call_function(env_, obj, method, ARGC_TWO, argv, &callResult);
 }
 
-void JSInputMethodExtensionConnection::SetJsConnectionObject(NativeValue *jsConnectionObject)
+void JSInputMethodExtensionConnection::SetJsConnectionObject(napi_value jsConnectionObject)
 {
-    jsConnectionObject_ = std::unique_ptr<NativeReference>(engine_.CreateReference(jsConnectionObject, 1));
+    napi_ref value = nullptr;
+    napi_create_reference(env_, jsConnectionObject, 1, &value);
+    jsConnectionObject_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(value));
 }
 
 void JSInputMethodExtensionConnection::CallJsFailed(int32_t errorCode)
@@ -608,21 +612,24 @@ void JSInputMethodExtensionConnection::CallJsFailed(int32_t errorCode)
         IMSA_HILOGE("jsConnectionObject_ nullptr");
         return;
     }
-    NativeValue *value = jsConnectionObject_->Get();
-    NativeObject *obj = ConvertNativeValueTo<NativeObject>(value);
+    napi_value obj = jsConnectionObject_->GetNapiValue();
     if (obj == nullptr) {
         IMSA_HILOGE("Failed to get object");
         return;
     }
 
-    NativeValue *method = obj->GetProperty("onFailed");
+    napi_value method = nullptr;
+    napi_get_named_property(env_, obj, "onFailed", &method);
     if (method == nullptr) {
         IMSA_HILOGE("Failed to get onFailed from object");
         return;
     }
-    NativeValue *argv[] = { engine_.CreateNumber(errorCode) };
+    napi_value result =  nullptr;
+    napi_create_int32(env_, errorCode, &result);
+    napi_value argv[] = { result };
     IMSA_HILOGI("CallJsFailed CallFunction success");
-    engine_.CallFunction(value, method, argv, ARGC_ONE);
+    napi_value callResult = nullptr;
+    napi_call_function(env_, obj, method, ARGC_ONE, argv, &callResult);
     IMSA_HILOGI("CallJsFailed end");
 }
 } // namespace AbilityRuntime
