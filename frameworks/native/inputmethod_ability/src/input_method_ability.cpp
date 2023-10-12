@@ -736,6 +736,19 @@ int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel>
     return ret;
 }
 
+int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
+{
+    if (inputMethodPanel == nullptr) {
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    auto type = inputMethodPanel->GetPanelType();
+    IMSA_HILOGI("InputMethodAbility::type: %{public}d.", type);
+    if (type == PanelType::SOFT_KEYBOARD) {
+        return HideKeyboardSelf();
+    }
+    return inputMethodPanel->HidePanel();
+}
+
 bool InputMethodAbility::IsCurrentIme()
 {
     IMSA_HILOGD("InputMethodAbility, in");
