@@ -239,6 +239,14 @@ struct SelectContext : public AsyncCall::Context {
         CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            output_ = nullptr;
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
 };
 
 struct GetTextIndexAtCursorContext : public AsyncCall::Context {

@@ -49,7 +49,8 @@ PerUserSession::~PerUserSession()
 {
 }
 
-int PerUserSession::AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event)
+int PerUserSession::AddClientInfo(
+    sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event)
 {
     IMSA_HILOGD("PerUserSession, run in");
     auto cacheInfo = GetClientInfo(inputClient);
@@ -247,7 +248,7 @@ void PerUserSession::UpdateCurrentUserId(int32_t userId)
     userId_ = userId;
 }
 
-int PerUserSession::OnHideCurrentInput()
+int32_t PerUserSession::OnHideCurrentInput()
 {
     IMSA_HILOGI("PerUserSession::OnHideCurrentInput");
     sptr<IInputClient> client = GetCurrentClient();
@@ -258,7 +259,7 @@ int PerUserSession::OnHideCurrentInput()
     return HideKeyboard(client);
 }
 
-int PerUserSession::OnShowCurrentInput()
+int32_t PerUserSession::OnShowCurrentInput()
 {
     IMSA_HILOGD("PerUserSession::OnShowCurrentInput");
     sptr<IInputClient> client = GetCurrentClient();

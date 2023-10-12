@@ -70,8 +70,8 @@ public:
     int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
-    int OnHideCurrentInput();
-    int OnShowCurrentInput();
+    int32_t OnHideCurrentInput();
+    int32_t OnShowCurrentInput();
     int32_t OnShowInput(sptr<IInputClient> client);
     int32_t OnHideInput(sptr<IInputClient> client);
     void StopInputService(std::string imeId);

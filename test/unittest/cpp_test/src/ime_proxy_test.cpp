@@ -21,12 +21,14 @@
 #include "input_method_controller.h"
 #include "input_method_engine_listener_impl.h"
 #include "keyboard_listener_test_impl.h"
-#include "unRegistered_type.h"
 #include "tdd_util.h"
+#include "unRegistered_type.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+constexpr int32_t WAIT_START_COMPLETE = 1;
+constexpr int32_t WAIT_STOP_COMPLETE = 200;
 class ImeProxyTest : public testing::Test {
 public:
     static sptr<InputMethodController> imc_;
@@ -54,7 +56,7 @@ public:
         std::string result;
         auto ret = TddUtil::ExecuteCmd(cmd, result);
         EXPECT_TRUE(ret);
-        sleep(1);
+        sleep(WAIT_START_COMPLETE);
     }
     static void ClickEditorInPe()
     {
@@ -82,7 +84,7 @@ public:
         std::string result;
         auto ret = TddUtil::ExecuteCmd(cmd, result);
         EXPECT_TRUE(ret);
-        usleep(200);
+        usleep(WAIT_STOP_COMPLETE);
     }
 
 private:
@@ -546,37 +548,5 @@ HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_017, TestSize.Level0)
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
 }
-
-//有解綁的打印
-/**
-* @tc.name: ProxyDiedInProxyBind_019
-* @tc.desc:
-* @tc.type: FUNC
-*/
-//HWTEST_F(ImeProxyTest, ProxyDiedInProxyBind_019, TestSize.Level0)
-//{
-//    IMSA_HILOGI("ImeProxyTest::ProxyDiedInProxyBind_019");
-//    InputMethodEngineListenerImpl::ResetParam();
-//    // RegisteredProxy not in ima bind
-//    InputMethodEngineListenerImpl::isEnable_ = true;
-//    auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
-//    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-//
-//    StartApp();
-//    ClickEditorInPc();
-//    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
-//}
-
-/**
-* @tc.name: ProxyDiedInProxyBind_019
-* @tc.desc:
-* @tc.type: FUNC
-*/
-//HWTEST_F(ImeProxyTest, ProxyDiedInProxyBind_019, TestSize.Level0)
-//{
-//    auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
-//    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-//    sleep(60); //停止期間點擊一下，彈出軟鍵盤，不會隱藏
-//}
 } // namespace MiscServices
 } // namespace OHOS
