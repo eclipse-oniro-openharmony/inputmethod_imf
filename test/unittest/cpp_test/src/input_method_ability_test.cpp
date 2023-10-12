@@ -448,12 +448,12 @@ HWTEST_F(InputMethodAbilityTest, testSelectByRange_002, TestSize.Level0)
     int32_t start = -2;
     int32_t end = 2;
     auto ret = inputMethodAbility_->SelectByRange(start, end);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
 
     start = 2;
     end = -2;
     ret = inputMethodAbility_->SelectByRange(start, end);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
 }
 
 /**

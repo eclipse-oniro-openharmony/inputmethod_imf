@@ -124,17 +124,17 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSelectByRangeException, TestSize.L
     int32_t start = -1;
     int32_t end = -2;
     auto ret = inputMethodAbility_->SelectByRange(start, end);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     // start < 0, end >0
     start = -1;
     end = 2;
     ret = inputMethodAbility_->SelectByRange(start, end);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     //end < 0, start > 0
     start = 1;
     end = -2;
     ret = inputMethodAbility_->SelectByRange(start, end);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     // dataChannel == nullptr
     start = 1;
     end = 2;
