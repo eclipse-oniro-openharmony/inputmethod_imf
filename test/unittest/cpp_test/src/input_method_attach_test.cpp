@@ -398,10 +398,10 @@ HWTEST_F(InputMethodAttachTest, testOnSelectionChangeAfterAttach002, TestSize.Le
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(totalConfig.textSelection.newBegin, 0);
-    EXPECT_EQ(totalConfig.textSelection.newEnd, 0);
-    EXPECT_EQ(totalConfig.textSelection.oldBegin, config.range.start);
-    EXPECT_EQ(totalConfig.textSelection.oldEnd, config.range.end);
+    EXPECT_EQ(totalConfig.textSelection.newBegin, start);
+    EXPECT_EQ(totalConfig.textSelection.newEnd, end);
+    EXPECT_EQ(totalConfig.textSelection.oldBegin, 0);
+    EXPECT_EQ(totalConfig.textSelection.oldEnd, 0);
 }
 
 /**

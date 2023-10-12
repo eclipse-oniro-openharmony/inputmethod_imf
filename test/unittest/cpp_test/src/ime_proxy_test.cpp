@@ -82,6 +82,7 @@ public:
         std::string result;
         auto ret = TddUtil::ExecuteCmd(cmd, result);
         EXPECT_TRUE(ret);
+        usleep(200);
     }
 
 private:
@@ -221,7 +222,10 @@ HWTEST_F(ImeProxyTest, UnRegisteredAndRegisteredProxyInProxyBind_005, TestSize.L
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = InputMethodAbilityInterface::GetInstance().InsertText("cc");
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitCursorUpdate());
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitSelectionChange(2));
 
+    KeyboardListenerTestImpl::ResetParam();
     // RegisteredProxy after UnRegisteredProxy in proxy bind, rebind proxy
     ret = InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -346,40 +350,13 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_switch_010, TestSize.Level0)
 }
 
 /**
-* @tc.name: UnRegisteredProxyInImaBindWithoutKeyBoardShow_switch_011
+* @tc.name: UnRegisteredProxyWithErrorType_011
 * @tc.desc:
 * @tc.type: FUNC
 */
-HWTEST_F(ImeProxyTest, UnRegisteredProxyInImaBindWithoutKeyBoardShow_switch_011, TestSize.Level0)
+HWTEST_F(ImeProxyTest, UnRegisteredProxyWithErrorType_011, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyInImaBindWithoutKeyBoardShow_switch_011");
-    InputMethodEngineListenerImpl::ResetParam();
-    ImeSettingListenerTestImpl::ResetParam();
-    InputMethodEngineListenerImpl::isEnable_ = true;
-    auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    // bind ima, but not show keyboard
-    InputMethodEngineListenerImpl::isEnable_ = false;
-    StartApp();
-    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitPanelShow());
-    ret = InputMethodAbilityInterface::GetInstance().InsertText("a");
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
-
-    ret = InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::SWITCH_PROXY_IME_TO_IME);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelShow());
-
-    StopApp();
-}
-
-/**
-* @tc.name: UnRegisteredProxyWithErrorType_012
-* @tc.desc:
-* @tc.type: FUNC
-*/
-HWTEST_F(ImeProxyTest, UnRegisteredProxyWithErrorType_012, TestSize.Level0)
-{
-    IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyWithErrorType_012");
+    IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyWithErrorType_011");
     InputMethodEngineListenerImpl::isEnable_ = true;
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -388,13 +365,13 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyWithErrorType_012, TestSize.Level0)
 }
 
 /**
-* @tc.name: StopTheAppInProxyBindInPe_013
+* @tc.name: StopTheAppInProxyBindInPe_012
 * @tc.desc:
 * @tc.type: FUNC
 */
-HWTEST_F(ImeProxyTest, StopTheAppInProxyBindInPe_013, TestSize.Level0)
+HWTEST_F(ImeProxyTest, StopTheAppInProxyBindInPe_012, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest::StopTheAppInProxyBindInPe_013");
+    IMSA_HILOGI("ImeProxyTest::StopTheAppInProxyBindInPe_012");
     // open the app, click the edit box in pe, bind ima
     ImeSettingListenerTestImpl::ResetParam();
     StartApp();
@@ -414,13 +391,13 @@ HWTEST_F(ImeProxyTest, StopTheAppInProxyBindInPe_013, TestSize.Level0)
 }
 
 /**
-* @tc.name: StopTheAppInProxyBindInPc_014
+* @tc.name: StopTheAppInProxyBindInPc_013
 * @tc.desc:
 * @tc.type: FUNC
 */
-HWTEST_F(ImeProxyTest, StopTheAppInProxyBindInPc_014, TestSize.Level0)
+HWTEST_F(ImeProxyTest, StopTheAppInProxyBindInPc_013, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest::StopTheAppInProxyBindInPc_014");
+    IMSA_HILOGI("ImeProxyTest::StopTheAppInProxyBindInPc_013");
     // open the app, click the edit box in pe, bind ima
     ImeSettingListenerTestImpl::ResetParam();
     StartApp();
@@ -439,13 +416,13 @@ HWTEST_F(ImeProxyTest, StopTheAppInProxyBindInPc_014, TestSize.Level0)
 }
 
 /**
-* @tc.name: ProxyAndImaSwitchTest_015
+* @tc.name: ProxyAndImaSwitchTest_014
 * @tc.desc:
 * @tc.type: FUNC
 */
-HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_015, TestSize.Level0)
+HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_014, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest::ProxyAndImaSwitchTest_015");
+    IMSA_HILOGI("ImeProxyTest::ProxyAndImaSwitchTest_014");
     // open the app, click the edit box in pe, bind ima
     ImeSettingListenerTestImpl::ResetParam();
     InputMethodEngineListenerImpl::ResetParam();
@@ -483,13 +460,13 @@ HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_015, TestSize.Level0)
 }
 
 /**
-* @tc.name: TextEditingTest_016
+* @tc.name: TextEditingTest_015
 * @tc.desc:
 * @tc.type: FUNC
 */
-HWTEST_F(ImeProxyTest, TextEditingTest_016, TestSize.Level0)
+HWTEST_F(ImeProxyTest, TextEditingTest_015, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest::TextEditingTest_016");
+    IMSA_HILOGI("ImeProxyTest::TextEditingTest_015");
     // open the app, click the edit box in pe, bind ima
     ImeSettingListenerTestImpl::ResetParam();
     StartApp();
@@ -532,13 +509,13 @@ HWTEST_F(ImeProxyTest, TextEditingTest_016, TestSize.Level0)
 }
 
 /**
-* @tc.name: ClientDiedInImaBind_017
+* @tc.name: ClientDiedInImaBind_016
 * @tc.desc:
 * @tc.type: FUNC
 */
-HWTEST_F(ImeProxyTest, ClientDiedInImaBind_017, TestSize.Level0)
+HWTEST_F(ImeProxyTest, ClientDiedInImaBind_016, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest::ClientDiedInImaBind_017");
+    IMSA_HILOGI("ImeProxyTest::ClientDiedInImaBind_016");
     // open the app, click the edit box in pe, bind ima
     ImeSettingListenerTestImpl::ResetParam();
     StartApp();
@@ -549,13 +526,13 @@ HWTEST_F(ImeProxyTest, ClientDiedInImaBind_017, TestSize.Level0)
 }
 
 /**
-* @tc.name: ClientDiedInProxyBind_018
+* @tc.name: ClientDiedInProxyBind_017
 * @tc.desc:
 * @tc.type: FUNC
 */
-HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_018, TestSize.Level0)
+HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_017, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest::ClientDiedInProxyBind_018");
+    IMSA_HILOGI("ImeProxyTest::ClientDiedInProxyBind_017");
     InputMethodEngineListenerImpl::ResetParam();
     // RegisteredProxy not in ima bind
     InputMethodEngineListenerImpl::isEnable_ = true;

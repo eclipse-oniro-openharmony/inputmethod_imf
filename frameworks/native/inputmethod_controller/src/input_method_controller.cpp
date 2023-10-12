@@ -826,6 +826,8 @@ int32_t InputMethodController::SwitchInputMethod(const std::string &name, const 
 void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
 {
     IMSA_HILOGI("InputMethodController run in");
+    isBound_.store(true);
+    isEditable_.store(true);
     std::lock_guard<std::mutex> lk(agentLock_);
     if (agentObject == nullptr) {
         IMSA_HILOGE("agentObject is nullptr");
@@ -841,8 +843,6 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
     }
     agentObject_ = agentObject;
     agent_ = agent;
-    isBound_.store(true);
-    isEditable_.store(true);
 }
 
 void InputMethodController::OnInputStop()
