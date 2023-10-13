@@ -125,7 +125,7 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         CHECK_RETURN(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
         auto code = ctxt->inputMethodPanel->SetUiContent(
-            ctxt->path, *(reinterpret_cast<NativeEngine *>(env)), ctxt->contentStorage);
+            ctxt->path, env, ctxt->contentStorage);
         CHECK_RETURN(code == ErrorCode::NO_ERROR, "SetUiContent failed!", napi_generic_failure);
         return napi_ok;
     };
