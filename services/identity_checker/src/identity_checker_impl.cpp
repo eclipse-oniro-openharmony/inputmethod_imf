@@ -86,6 +86,18 @@ bool IdentityCheckerImpl::IsBroker(AccessTokenID tokenId)
     return false;
 }
 
+bool IdentityCheckerImpl::IsNativeSa(AccessTokenID tokenId)
+{
+    NativeTokenInfo nativeTokenInfoRes;
+    AccessTokenKit::GetNativeTokenInfo(tokenId, nativeTokenInfoRes);
+    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE
+        && (nativeTokenInfoRes.apl == ATokenAplEnum::APL_SYSTEM_BASIC
+            || nativeTokenInfoRes.apl == ATokenAplEnum::APL_SYSTEM_CORE)) {
+        return true;
+    }
+    return false;
+}
+
 std::string IdentityCheckerImpl::GetBundleNameByToken(uint32_t tokenId)
 {
     auto tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);

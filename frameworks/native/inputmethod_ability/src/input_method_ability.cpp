@@ -17,11 +17,11 @@
 
 #include <unistd.h>
 
+#include <utility>
+
 #include "global.h"
 #include "input_method_agent_proxy.h"
-#include "input_method_agent_stub.h"
 #include "input_method_core_proxy.h"
-#include "input_method_core_stub.h"
 #include "input_method_utils.h"
 #include "inputmethod_sysevent.h"
 #include "iservice_registry.h"
@@ -118,20 +118,7 @@ int32_t InputMethodAbility::SetCoreAndAgent()
         IMSA_HILOGE("imsa proxy is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto coreStub = new (std::nothrow) InputMethodCoreStub();
-    if (coreStub == nullptr) {
-        IMSA_HILOGE("failed to create core");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    auto agentStub = new (std::nothrow) InputMethodAgentStub();
-    if (agentStub == nullptr) {
-        IMSA_HILOGE("failed to create agent");
-        delete coreStub;
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    coreStub->SetMessageHandler(msgHandler_);
-    agentStub->SetMessageHandler(msgHandler_);
-    int32_t ret = proxy->SetCoreAndAgent(coreStub, agentStub);
+    int32_t ret = proxy->SetCoreAndAgent(coreStub_, agentStub_);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("set failed, ret: %{public}d", ret);
         return ret;
@@ -141,14 +128,37 @@ int32_t InputMethodAbility::SetCoreAndAgent()
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
+{
+    isBound_.store(false);
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("imsa proxy is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return proxy->UnRegisteredProxyIme(type, coreStub_);
+}
+
 void InputMethodAbility::Initialize()
 {
     IMSA_HILOGI("InputMethodAbility::Initialize");
+    coreStub_ = new (std::nothrow) InputMethodCoreStub();
+    if (coreStub_ == nullptr) {
+        IMSA_HILOGE("failed to create core");
+        return;
+    }
+    agentStub_ = new (std::nothrow) InputMethodAgentStub();
+    if (agentStub_ == nullptr) {
+        IMSA_HILOGE("failed to create agent");
+        return;
+    }
     msgHandler_ = new (std::nothrow) MessageHandler();
     if (msgHandler_ == nullptr) {
         IMSA_HILOGE("failed to create message handler");
         return;
     }
+    coreStub_->SetMessageHandler(msgHandler_);
+    agentStub_->SetMessageHandler(msgHandler_);
     workThreadHandler = std::thread([this] { WorkThread(); });
 }
 
@@ -164,7 +174,7 @@ void InputMethodAbility::SetKdListener(std::shared_ptr<KeyboardListener> kdListe
 {
     IMSA_HILOGI("InputMethodAbility.");
     if (kdListener_ == nullptr) {
-        kdListener_ = kdListener;
+        kdListener_ = std::move(kdListener);
     }
 }
 
@@ -226,24 +236,21 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
     SetInputControlChannel(channelObject);
 }
 
-int32_t InputMethodAbility::ShowKeyboard(const sptr<IRemoteObject> &channelObject, bool isShowKeyboard, bool attachFlag)
+int32_t InputMethodAbility::StartInput(const sptr<IRemoteObject> &channelObject, bool isShowKeyboard)
 {
-    IMSA_HILOGI("InputMethodAbility::ShowKeyboard");
+    IMSA_HILOGI("InputMethodAbility::isShowKeyboard: %{public}d", isShowKeyboard);
     if (channelObject == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::ShowKeyboard channelObject is nullptr");
+        IMSA_HILOGE("InputMethodAbility::channelObject is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     SetInputDataChannel(channelObject);
-    if (attachFlag) {
-        TextTotalConfig textConfig = {};
-        int32_t ret = GetTextConfig(textConfig);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
-            return ret;
-        }
-        OnTextConfigChange(textConfig);
+    NotifyAllTextConfig();
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("InputMethodAbility, imeListener is nullptr");
+        return ErrorCode::ERROR_IME;
     }
-    return ShowInputWindow(isShowKeyboard);
+    imeListener_->OnInputStart();
+    return isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
 
 void InputMethodAbility::OnSetSubtype(Message *msg)
@@ -274,6 +281,17 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
         dataChannelObject_ = nullptr;
         dataChannelProxy_ = nullptr;
     }
+}
+
+int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
+{
+    IMSA_HILOGI("run in");
+    HideKeyboard();
+    ClearDataChannel(channelObject);
+    if (imeListener_ != nullptr) {
+        imeListener_->OnInputFinish();
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 bool InputMethodAbility::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
@@ -354,17 +372,12 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
-int32_t InputMethodAbility::ShowInputWindow(bool isShowKeyboard)
+int32_t InputMethodAbility::ShowKeyboard()
 {
-    IMSA_HILOGI("run in, isShowKeyboard: %{public}d", isShowKeyboard);
+    IMSA_HILOGI("run in");
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("InputMethodAbility, imeListener is nullptr");
         return ErrorCode::ERROR_IME;
-    }
-    imeListener_->OnInputStart();
-    if (!isShowKeyboard) {
-        IMSA_HILOGI("InputMethodAbility::ShowInputWindow will not show keyboard");
-        return ErrorCode::NO_ERROR;
     }
     imeListener_->OnKeyboardStatus(true);
     if (isPanelKeyboard_.load()) {
@@ -405,6 +418,17 @@ int32_t InputMethodAbility::ShowPanelKeyboard()
         IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
     }
     return ret;
+}
+
+void InputMethodAbility::NotifyAllTextConfig()
+{
+    TextTotalConfig textConfig = {};
+    int32_t ret = GetTextConfig(textConfig);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("InputMethodAbility, get text config failed, ret is %{public}d", ret);
+        return;
+    }
+    OnTextConfigChange(textConfig);
 }
 
 void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
@@ -515,9 +539,14 @@ int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey)
 
 int32_t InputMethodAbility::HideKeyboardSelf()
 {
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("InputMethodAbility::channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
     auto controlChannel = GetInputControlChannel();
     if (controlChannel == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::HideKeyboardSelf controlChannel is nullptr");
+        IMSA_HILOGE("InputMethodAbility::controlChannel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_SELF);
@@ -664,6 +693,12 @@ void InputMethodAbility::SetInputControlChannel(sptr<IRemoteObject> &object)
     controlChannel_ = channelProxy;
 }
 
+void InputMethodAbility::ClearInputControlChannel()
+{
+    std::lock_guard<std::mutex> lock(controlChannelLock_);
+    controlChannel_ = nullptr;
+}
+
 std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlChannel()
 {
     std::lock_guard<std::mutex> lock(controlChannelLock_);
@@ -673,6 +708,8 @@ std::shared_ptr<InputControlChannelProxy> InputMethodAbility::GetInputControlCha
 void InputMethodAbility::OnRemoteSaDied(const wptr<IRemoteObject> &object)
 {
     IMSA_HILOGI("input method service died");
+    isBound_.store(false);
+    ClearInputControlChannel();
     {
         std::lock_guard<std::mutex> lock(abilityLock_);
         abilityManager_ = nullptr;
@@ -745,6 +782,14 @@ bool InputMethodAbility::IsCurrentIme()
         return false;
     }
     return proxy->IsCurrentIme();
+}
+
+bool InputMethodAbility::IsEnable()
+{
+    if (imeListener_ == nullptr) {
+        return false;
+    }
+    return imeListener_->IsEnable();
 }
 } // namespace MiscServices
 } // namespace OHOS

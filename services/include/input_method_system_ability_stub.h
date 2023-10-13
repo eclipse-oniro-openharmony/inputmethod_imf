@@ -41,7 +41,9 @@ private:
 
     int32_t StopInputSessionOnRemote(MessageParcel &data, MessageParcel &reply);
 
-    int32_t StopInputOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t ShowInputOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t HideInputOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t ReleaseInputOnRemote(MessageParcel &data, MessageParcel &reply);
 
@@ -56,6 +58,8 @@ private:
     int32_t DisplayOptionalInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t SetCoreAndAgentOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t UnRegisteredProxyImeOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t ListInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
 
@@ -84,8 +88,10 @@ private:
             &InputMethodSystemAbilityStub::ShowCurrentInputOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT)] =
             &InputMethodSystemAbilityStub::HideCurrentInputOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT)] =
-            &InputMethodSystemAbilityStub::StopInputOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT)] =
+            &InputMethodSystemAbilityStub::ShowInputOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_INPUT)] =
+            &InputMethodSystemAbilityStub::HideInputOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT)] =
             &InputMethodSystemAbilityStub::ReleaseInputOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD)] =
@@ -118,6 +124,8 @@ private:
             &InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::IS_CURRENT_IME)] =
             &InputMethodSystemAbilityStub::IsCurrentImeOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTERED_PROXY_IME)] =
+            &InputMethodSystemAbilityStub::UnRegisteredProxyImeOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

@@ -24,7 +24,8 @@ enum class InputMethodInterfaceCode {
     START_INPUT,
     SHOW_CURRENT_INPUT,
     HIDE_CURRENT_INPUT,
-    STOP_INPUT,
+    SHOW_INPUT,
+    HIDE_INPUT,
     STOP_INPUT_SESSION,
     RELEASE_INPUT,
     GET_CURRENT_INPUT_METHOD,
@@ -41,6 +42,7 @@ enum class InputMethodInterfaceCode {
     PANEL_STATUS_CHANGE,
     UPDATE_LISTEN_EVENT_FLAG,
     IS_CURRENT_IME,
+    UNREGISTERED_PROXY_IME,
     IMS_CMD_LAST
 };
 } // namespace MiscServices

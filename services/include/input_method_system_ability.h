@@ -31,6 +31,7 @@
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
 #include "peruser_session.h"
+#include "unRegistered_type.h"
 #include "system_ability.h"
 
 namespace OHOS {
@@ -60,10 +61,11 @@ public:
     ~InputMethodSystemAbility();
 
     int32_t PrepareInput(InputClientInfo &clientInfo) override;
-    int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag) override;
+    int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) override;
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
-    int32_t StopInput(sptr<IInputClient> client) override;
+    int32_t ShowInput(sptr<IInputClient> client) override;
+    int32_t HideInput(sptr<IInputClient> client) override;
     int32_t StopInputSession() override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
@@ -74,6 +76,7 @@ public:
     int32_t SwitchInputMethod(const std::string &bundleName, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
+    int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
     bool IsCurrentIme() override;

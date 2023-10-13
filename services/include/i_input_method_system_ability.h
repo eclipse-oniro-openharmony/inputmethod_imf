@@ -33,6 +33,7 @@
 #include "input_window_info.h"
 #include "iremote_broker.h"
 #include "message_parcel.h"
+#include "unRegistered_type.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -41,17 +42,19 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
 
     virtual int32_t PrepareInput(InputClientInfo &clientInfo) = 0;
-    virtual int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag) = 0;
+    virtual int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) = 0;
     virtual int32_t ShowCurrentInput() = 0;
     virtual int32_t HideCurrentInput() = 0;
     virtual int32_t StopInputSession() = 0;
-    virtual int32_t StopInput(sptr<IInputClient> client) = 0;
+    virtual int32_t ShowInput(sptr<IInputClient> client) = 0;
+    virtual int32_t HideInput(sptr<IInputClient> client) = 0;
     virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
     virtual std::shared_ptr<Property> GetCurrentInputMethod() = 0;
     virtual std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() = 0;
     virtual int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) = 0;
     virtual int32_t DisplayOptionalInputMethod() = 0;
     virtual int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) = 0;
+    virtual int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) = 0;
     virtual int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) = 0;
     virtual int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) = 0;
     virtual int32_t SwitchInputMethod(const std::string &bundleName, const std::string &name) = 0;

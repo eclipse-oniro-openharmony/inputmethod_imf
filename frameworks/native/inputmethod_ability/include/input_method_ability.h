@@ -18,8 +18,8 @@
 
 #include <thread>
 
-#include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
 #include "concurrent_map.h"
+#include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
 #include "i_input_control_channel.h"
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
@@ -28,6 +28,7 @@
 #include "input_channel.h"
 #include "input_control_channel_proxy.h"
 #include "input_data_channel_proxy.h"
+#include "input_method_agent_stub.h"
 #include "input_method_core_stub.h"
 #include "input_method_engine_listener.h"
 #include "input_method_panel.h"
@@ -36,13 +37,10 @@
 #include "keyboard_listener.h"
 #include "message.h"
 #include "message_handler.h"
+#include "unRegistered_type.h"
 
 namespace OHOS {
 namespace MiscServices {
-struct InputStartNotifier {
-    bool isNotify{ false };
-    bool isShowKeyboard{ false };
-};
 class MessageHandler;
 class InputMethodAbility : public RefBase {
 public:
@@ -50,15 +48,17 @@ public:
     ~InputMethodAbility();
     static sptr<InputMethodAbility> GetInstance();
     int32_t SetCoreAndAgent();
+    int32_t UnRegisteredProxyIme(UnRegisteredType type);
     int32_t InsertText(const std::string text);
     void SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener);
     void SetKdListener(std::shared_ptr<KeyboardListener> kdListener);
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();
-    int32_t ShowKeyboard(const sptr<IRemoteObject> &channelObject, bool isShowKeyboard, bool attachFlag);
+    int32_t StartInput(const sptr<IRemoteObject> &channelObject, bool isShowKeyboard);
+    int32_t StopInput(const sptr<IRemoteObject> &channelObject);
+    int32_t ShowKeyboard();
     int32_t HideKeyboard();
-    void ClearDataChannel(const sptr<IRemoteObject> &channel);
     int32_t SendExtendAction(int32_t action);
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text);
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text);
@@ -76,6 +76,7 @@ public:
         std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     int32_t DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     bool IsCurrentIme();
+    bool IsEnable();
 
 private:
     std::thread workThreadHandler;
@@ -92,8 +93,8 @@ private:
     std::shared_ptr<InputDataChannelProxy> dataChannelProxy_ = nullptr;
     std::shared_ptr<InputMethodEngineListener> imeListener_;
     std::shared_ptr<KeyboardListener> kdListener_;
-    static std::mutex instanceLock_;
 
+    static std::mutex instanceLock_;
     static sptr<InputMethodAbility> instance_;
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_{ nullptr };
@@ -104,7 +105,9 @@ private:
 
     void SetInputDataChannel(const sptr<IRemoteObject> &object);
     std::shared_ptr<InputDataChannelProxy> GetInputDataChannelProxy();
+    void ClearDataChannel(const sptr<IRemoteObject> &channel);
     void SetInputControlChannel(sptr<IRemoteObject> &object);
+    void ClearInputControlChannel();
     std::shared_ptr<InputControlChannelProxy> GetInputControlChannel();
 
     void Initialize();
@@ -113,16 +116,17 @@ private:
 
     void OnInitInputControlChannel(Message *msg);
     void OnSetSubtype(Message *msg);
-
+    void NotifyAllTextConfig();
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
     void OnConfigurationChange(Message *msg);
-    int32_t ShowInputWindow(bool isShowKeyboard);
     void OnTextConfigChange(const TextTotalConfig &textConfig);
     int32_t ShowPanelKeyboard();
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isPanelKeyboard_{ false };
     std::atomic_bool isBound_{ false };
+    sptr<InputMethodCoreStub> coreStub_{ nullptr };
+    sptr<InputMethodAgentStub> agentStub_{ nullptr };
 };
 } // namespace MiscServices
 } // namespace OHOS

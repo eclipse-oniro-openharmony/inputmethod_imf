@@ -249,7 +249,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
     return userSession_->OnReleaseInput(client);
 };
 
-int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag)
+int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId)) {
@@ -261,10 +261,10 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return userSession_->OnStartInput(client, isShowKeyboard, attachFlag);
+    return userSession_->OnStartInput(client, isShowKeyboard);
 };
 
-int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
+int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId)) {
@@ -276,7 +276,22 @@ int32_t InputMethodSystemAbility::StopInput(sptr<IInputClient> client)
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return userSession_->OnStopInput(client);
+    return userSession_->OnShowInput(client);
+}
+
+int32_t InputMethodSystemAbility::HideInput(sptr<IInputClient> client)
+{
+    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!identityChecker_->IsBroker(tokenId)) {
+        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
+            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+        }
+    }
+    if (client == nullptr) {
+        IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return userSession_->OnHideInput(client);
 };
 
 int32_t InputMethodSystemAbility::StopInputSession()
@@ -287,28 +302,27 @@ int32_t InputMethodSystemAbility::StopInputSession()
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
-    return userSession_->OnHideKeyboardSelf();
+    return userSession_->OnHideCurrentInput();
 }
 
 int32_t InputMethodSystemAbility::SetCoreAndAgent(
     const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
-    if (!IsCurrentIme()) {
-        return ErrorCode::ERROR_NOT_CURRENT_IME;
+    if (IsCurrentIme()) {
+        return userSession_->OnSetCoreAndAgent(core, agent);
     }
-    if (core == nullptr || agent == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::core or agent is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
+    if (identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        return userSession_->OnRegisterProxyIme(core, agent);
     }
-    return userSession_->OnSetCoreAndAgent(core, agent);
+    return ErrorCode::ERROR_NOT_CURRENT_IME;
 }
 
 int32_t InputMethodSystemAbility::HideCurrentInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (identityChecker_->IsBroker(tokenId)) {
-        return userSession_->OnHideKeyboardSelf();
+        return userSession_->OnHideCurrentInput();
     }
     if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
@@ -317,14 +331,14 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
     if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
-    return userSession_->OnHideKeyboardSelf();
+    return userSession_->OnHideCurrentInput();
 };
 
 int32_t InputMethodSystemAbility::ShowCurrentInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (identityChecker_->IsBroker(tokenId)) {
-        return userSession_->OnShowKeyboardSelf();
+        return userSession_->OnShowCurrentInput();
     }
 
     if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
@@ -334,7 +348,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
     if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
-    return userSession_->OnShowKeyboardSelf();
+    return userSession_->OnShowCurrentInput();
 };
 
 int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
@@ -480,7 +494,7 @@ int32_t InputMethodSystemAbility::HideCurrentInputDeprecated()
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
-    return userSession_->OnHideKeyboardSelf();
+    return userSession_->OnHideCurrentInput();
 };
 
 int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
@@ -491,7 +505,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
-    return userSession_->OnShowKeyboardSelf();
+    return userSession_->OnShowCurrentInput();
 };
 
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethodDeprecated()
@@ -548,7 +562,7 @@ void InputMethodSystemAbility::WorkThread()
                 break;
             }
             case MSG_ID_HIDE_KEYBOARD_SELF: {
-                userSession_->OnHideKeyboardSelf();
+                userSession_->OnHideCurrentInput();
                 break;
             }
             default: {
@@ -665,6 +679,10 @@ int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
 int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
 {
     IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinationKey");
+    if (userSession_->IsProxyImeEnable()) {
+        IMSA_HILOGI("proxy enable, not switch");
+        return ErrorCode::NO_ERROR;
+    }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_MODE, state)) {
         IMSA_HILOGI("switch mode");
         return SwitchMode();
@@ -782,6 +800,15 @@ void InputMethodSystemAbility::InitSystemLanguageMonitor()
 {
     SystemLanguageObserver::GetInstance().Watch(
         [this]() { ImeInfoInquirer::GetInstance().UpdateCurrentImeInfo(userId_); });
+}
+
+int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)
+{
+    if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGI("InputMethodSystemAbility::not native sa");
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
+    return userSession_->OnUnRegisteredProxyIme(type, core);
 }
 } // namespace MiscServices
 } // namespace OHOS

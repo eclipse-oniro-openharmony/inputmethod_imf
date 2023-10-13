@@ -35,13 +35,14 @@ public:
 
     DISALLOW_COPY_AND_MOVE(InputMethodCoreProxy);
 
-    int32_t ShowKeyboard(
-        const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, bool attachFlag) override;
+    int32_t StartInput(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard) override;
+    int32_t StopInput(const sptr<IInputDataChannel> &channel) override;
+    int32_t ShowKeyboard() override;
     int32_t HideKeyboard() override;
     int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) override;
     void StopInputService(std::string imeId) override;
     int32_t SetSubtype(const SubProperty &property) override;
-    int32_t ClearDataChannel(const sptr<IInputDataChannel> &channel) override;
+    bool IsEnable() override;
 
 private:
     static inline BrokerDelegator<InputMethodCoreProxy> delegator_;

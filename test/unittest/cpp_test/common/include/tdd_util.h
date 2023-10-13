@@ -40,6 +40,7 @@ public:
 class TddUtil {
 public:
     static int32_t GetCurrentUserId();
+    static void GrantNativePermission();
     static void StorageSelfTokenID();
     static uint64_t AllocTestTokenID(bool isSystemApp, bool needPermission, const std::string &bundleName);
     static uint64_t GetTestTokenID(const std::string &bundleName);

@@ -22,7 +22,6 @@
 #include "input_method_property.h"
 #include "input_window_info.h"
 #include "iremote_broker.h"
-
 /**
  * brief Definition of interface IInputClient
  * It defines the remote calls from input method management service to input client.

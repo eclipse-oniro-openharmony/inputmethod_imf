@@ -38,6 +38,7 @@
 #include "input_method_property.h"
 #include "iremote_broker.h"
 #include "message_parcel.h"
+#include "unRegistered_type.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
@@ -91,18 +92,21 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     }
     auto agent = iface_cast<IInputMethodAgent>(agentStub);
     static std::shared_ptr<PerUserSession> userSessions = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    userSessions->SetImsCore(0, core);
-    userSessions->SetAgent(agent);
+
+    userSessions->OnRegisterProxyIme(core, agent);
+    int32_t type = 4;
+    userSessions->OnUnRegisteredProxyIme(static_cast<UnRegisteredType>(type), core);
+    userSessions->IsProxyImeEnable();
 
     userSessions->OnPrepareInput(clientInfo);
     userSessions->OnSetCoreAndAgent(core, agent);
-    userSessions->OnShowKeyboardSelf();
-    userSessions->OnStartInput(client, false, false);
-    userSessions->OnStartInput(client, true, false);
+    userSessions->OnShowCurrentInput();
+    userSessions->OnStartInput(client, false);
+    userSessions->OnStartInput(client, true);
     userSessions->OnSwitchIme(property, subProperty, false);
     userSessions->OnSwitchIme(property, subProperty, true);
-    userSessions->OnHideKeyboardSelf();
-    userSessions->OnStopInput(client);
+    userSessions->OnHideCurrentInput();
+    userSessions->OnHideInput(client);
     userSessions->OnReleaseInput(client);
     userSessions->StopInputService(str);
     return true;

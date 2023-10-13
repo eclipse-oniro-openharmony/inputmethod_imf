@@ -24,6 +24,8 @@ bool InputMethodEngineListenerImpl::isInputStart_ = false;
 uint32_t InputMethodEngineListenerImpl::windowId_ = 0;
 std::mutex InputMethodEngineListenerImpl::imeListenerMutex_;
 std::condition_variable InputMethodEngineListenerImpl::imeListenerCv_;
+bool InputMethodEngineListenerImpl::isEnable_{ false };
+bool InputMethodEngineListenerImpl::isInputFinish_{ false };
 void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
 {
     IMSA_HILOGI("InputMethodEngineListenerImpl::OnKeyboardStatus %{public}s", isShow ? "show" : "hide");
@@ -33,11 +35,11 @@ void InputMethodEngineListenerImpl::OnInputStart()
 {
     IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStart");
     isInputStart_ = true;
+    imeListenerCv_.notify_one();
 }
 void InputMethodEngineListenerImpl::OnInputStop(const std::string &imeId)
 {
     IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStop %{public}s", imeId.c_str());
-    isInputStart_ = false;
 }
 void InputMethodEngineListenerImpl::OnSetCallingWindow(uint32_t windowId)
 {
@@ -47,6 +49,34 @@ void InputMethodEngineListenerImpl::OnSetCallingWindow(uint32_t windowId)
 void InputMethodEngineListenerImpl::OnSetSubtype(const SubProperty &property)
 {
     IMSA_HILOGD("InputMethodEngineListenerImpl::OnSetSubtype");
+}
+void InputMethodEngineListenerImpl::OnInputFinish()
+{
+    IMSA_HILOGD("test");
+    isInputFinish_ = true;
+    imeListenerCv_.notify_one();
+}
+bool InputMethodEngineListenerImpl::IsEnable()
+{
+    IMSA_HILOGD("test::isEnable: %{public}d", isEnable_);
+    return isEnable_;
+}
+void InputMethodEngineListenerImpl::ResetParam()
+{
+    isInputStart_ = false;
+    isInputFinish_ = false;
+}
+bool InputMethodEngineListenerImpl::WaitInputStart()
+{
+    std::unique_lock<std::mutex> lock(imeListenerMutex_);
+    imeListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return isInputStart_; });
+    return isInputStart_;
+}
+bool InputMethodEngineListenerImpl::WaitInputFinish()
+{
+    std::unique_lock<std::mutex> lock(imeListenerMutex_);
+    imeListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return isInputFinish_; });
+    return isInputFinish_;
 }
 } // namespace MiscServices
 } // namespace OHOS

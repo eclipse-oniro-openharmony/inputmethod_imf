@@ -39,19 +39,23 @@ public:
         HIDE_KEYBOARD,
         INIT_INPUT_CONTROL_CHANNEL,
         SET_SUBTYPE,
-        CLEAR_DATA_CHANNEL
+        START_INPUT,
+        STOP_INPUT,
+        IS_ENABLE,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodCore");
 
-    virtual int32_t ShowKeyboard(
-        const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, bool attachFlag) = 0;
+    virtual int32_t StartInput(
+        const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard) = 0;
+    virtual int32_t StopInput(const sptr<IInputDataChannel> &channel) = 0;
+    virtual int32_t ShowKeyboard() = 0;
     virtual int32_t HideKeyboard() = 0;
     virtual int32_t InitInputControlChannel(
         sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) = 0;
     virtual void StopInputService(std::string imeId) = 0;
     virtual int32_t SetSubtype(const SubProperty &property) = 0;
-    virtual int32_t ClearDataChannel(const sptr<IInputDataChannel> &channel) = 0;
+    virtual bool IsEnable() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
