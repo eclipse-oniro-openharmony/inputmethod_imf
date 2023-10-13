@@ -35,6 +35,7 @@ ohos_static_library("imf_sa_stub_fuzztest_common_static") {
 
   public_deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
+    "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "//third_party/jsoncpp:jsoncpp",
@@ -49,6 +50,8 @@ ohos_static_library("imf_sa_stub_fuzztest_common_static") {
     "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",

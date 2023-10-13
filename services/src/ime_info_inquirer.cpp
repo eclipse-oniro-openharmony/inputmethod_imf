@@ -297,7 +297,6 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
 int32_t ImeInfoInquirer::ListEnabledInputMethod(const int32_t userId, std::vector<Property> &props, bool enableOn)
 {
     IMSA_HILOGD("userId: %{public}d", userId);
-
     int32_t ret = ListInputMethod(userId, props);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("userId: %{public}d listInputMethod failed", userId);
@@ -367,10 +366,9 @@ int32_t ImeInfoInquirer::GetNextSwitchInfo(SwitchInfo &switchInfo, const int32_t
         IMSA_HILOGE("Can not found current ime");
     } else {
         auto nextIter = std::next(iter);
-        if (nextIter != props.end()) {
-            switchInfo.bundleName = nextIter->name;
-        }
+        switchInfo.bundleName = nextIter == props.end() ? props[0].name.c_str() : nextIter->name;
     }
+    IMSA_HILOGD("Next ime: %{public}s", switchInfo.bundleName.c_str());
     return ErrorCode::NO_ERROR;
 }
 

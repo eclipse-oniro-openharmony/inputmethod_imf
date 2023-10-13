@@ -57,7 +57,9 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("listInputMethodSubtype", ListInputMethodSubtype),
         DECLARE_NAPI_FUNCTION("listCurrentInputMethodSubtype", ListCurrentInputMethodSubtype),
         DECLARE_NAPI_FUNCTION("getInputMethods", GetInputMethods),
-        DECLARE_NAPI_FUNCTION("getInputMethodsSync", getInputMethodsSync),
+        DECLARE_NAPI_FUNCTION("getInputMethodsSync", GetInputMethodsSync),
+        DECLARE_NAPI_FUNCTION("getAllInputMethods", GetAllInputMethods),
+        DECLARE_NAPI_FUNCTION("getAllInputMethodsSync", GetAllInputMethodsSync),
         DECLARE_NAPI_FUNCTION("displayOptionalInputMethod", DisplayOptionalInputMethod),
         DECLARE_NAPI_FUNCTION("showOptionalInputMethods", ShowOptionalInputMethods),
         DECLARE_NAPI_FUNCTION("on", Subscribe),
@@ -212,18 +214,11 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
     IMSA_HILOGI("run in GetInputMethods");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc < 1) {
-            ctxt->inputMethodStatus = InputMethodStatus::ALL;
-            return napi_ok;
-        }
+        PARAM_CHECK_RETURN(env, argc > 0, "should has one parameter.", TYPE_NONE, napi_invalid_arg);
         bool enable = false;
-        if (JsUtil::GetType(env, argv[argc - 1]) == napi_function && argc == 1) {
-            ctxt->inputMethodStatus = InputMethodStatus::ALL;
-            return napi_ok;
-        }
         // 0 means first param index
         napi_status status = JsUtils::GetValue(env, argv[0], enable);
-        PARAM_CHECK_RETURN(env, status == napi_ok, "enable.", TYPE_BOOLEAN, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "enable.", TYPE_NUMBER, napi_invalid_arg);
         ctxt->inputMethodStatus = enable ? InputMethodStatus::ENABLE : InputMethodStatus::DISABLE;
         return napi_ok;
     };
@@ -232,10 +227,8 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = ctxt->inputMethodStatus == InputMethodStatus::ALL
-                              ? InputMethodController::GetInstance()->ListInputMethod(ctxt->properties)
-                              : InputMethodController::GetInstance()->ListInputMethod(
-                                  ctxt->inputMethodStatus == ENABLE, ctxt->properties);
+        int32_t errCode =
+            InputMethodController::GetInstance()->ListInputMethod(ctxt->inputMethodStatus == ENABLE, ctxt->properties);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec ---- GetInputMethods success");
             ctxt->status = napi_ok;
@@ -250,25 +243,60 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
     return asyncCall.Call(env, exec, "getInputMethods");
 }
 
-napi_value JsGetInputMethodSetting::getInputMethodsSync(napi_env env, napi_callback_info info)
+napi_value JsGetInputMethodSetting::GetInputMethodsSync(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGI("run in");
     size_t argc = ARGC_MAX;
     napi_value argv[ARGC_MAX] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    std::vector<Property> properties;
-    int32_t ret = 0;
-    if (argc <= 0) {
-        ret = InputMethodController::GetInstance()->ListInputMethod(properties);
-    } else {
-        bool enable = false;
-        PARAM_CHECK_RETURN(
-            env, JsUtil::GetType(env, argv[0]) == napi_boolean, "enable.", TYPE_BOOLEAN, JsUtil::Const::Null(env));
-        // 0 means first param index
-        napi_get_value_bool(env, argv[0], &enable);
-        ret = InputMethodController::GetInstance()->ListInputMethod(enable, properties);
+
+    bool enable = false;
+    // 0 means first param index
+    if (argc < 1 || JsUtils::GetValue(env, argv[0], enable) != napi_ok) {
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
+        return JsUtil::Const::Null(env);
     }
 
+    std::vector<Property> properties;
+    int32_t ret = InputMethodController::GetInstance()->ListInputMethod(enable, properties);
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get Inputmethods", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    return JsInputMethod::GetJSInputMethodProperties(env, properties);
+}
+
+napi_value JsGetInputMethodSetting::GetAllInputMethods(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGI("run in GetAllInputMethods");
+    auto ctxt = std::make_shared<ListInputContext>();
+    auto input = [ctxt](
+                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        *result = JsInputMethod::GetJSInputMethodProperties(env, ctxt->properties);
+        return napi_ok;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t errCode = InputMethodController::GetInstance()->ListInputMethod(ctxt->properties);
+        if (errCode == ErrorCode::NO_ERROR) {
+            IMSA_HILOGI("exec ---- GetInputMethods success");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            return;
+        }
+        ctxt->SetErrorCode(errCode);
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    // 1 means JsAPI:getAllInputMethods has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
+    return asyncCall.Call(env, exec, "getInputMethods");
+}
+
+napi_value JsGetInputMethodSetting::GetAllInputMethodsSync(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGI("run in");
+    std::vector<Property> properties;
+    int32_t ret = InputMethodController::GetInstance()->ListInputMethod(properties);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get Inputmethods", TYPE_NONE);
         return JsUtil::Const::Null(env);

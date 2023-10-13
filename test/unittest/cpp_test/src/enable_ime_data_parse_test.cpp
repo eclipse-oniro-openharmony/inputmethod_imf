@@ -39,7 +39,8 @@ public:
 };
 std::shared_ptr<DataShareHelper> EnableImeDataParseTest::helper_;
 std::shared_ptr<DataShareResultSet> EnableImeDataParseTest::resultSet_;
-
+constexpr uint32_t USER_100_TOTAL_COUNT = 3;
+constexpr uint32_t USER_101_TOTAL_COUNT = 1;
 void EnableImeDataParseTest::SetUpTestCase(void)
 {
     std::vector<std::string> columns = { "VALUE" };
@@ -84,8 +85,8 @@ HWTEST_F(EnableImeDataParseTest, testGetEnableData_001, TestSize.Level0)
     int32_t ret =
         EnableImeDataParser::GetInstance()->GetEnableData(IME_KEY, enableVec, EnableImeDataParseTest::USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(enableVec.size(), 3);
-    if (enableVec.size() == 3) {
+    EXPECT_EQ(enableVec.size(), USER_100_TOTAL_COUNT);
+    if (enableVec.size() == USER_100_TOTAL_COUNT) {
         EXPECT_EQ(enableVec[0], "xiaoyiIme");
         EXPECT_EQ(enableVec[1], "baiduIme");
         EXPECT_EQ(enableVec[2], "sougouIme");
@@ -105,8 +106,8 @@ HWTEST_F(EnableImeDataParseTest, testGetEnableData_002, TestSize.Level0)
     std::vector<std::string> enableVec;
     int32_t ret = EnableImeDataParser::GetInstance()->GetEnableData(IME_KEY, enableVec, 101);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(enableVec.size(), 1);
-    if (enableVec.size() == 1) {
+    EXPECT_EQ(enableVec.size(), USER_101_TOTAL_COUNT);
+    if (enableVec.size() == USER_101_TOTAL_COUNT) {
         EXPECT_EQ(enableVec[0], "sougouIme");
     }
 }
@@ -201,8 +202,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_004, TestSize.Level0)
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
     EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : [\"baiduIme\", "
-                                                    "\"sougouIme\"],\"101\" : "
-                                                    "[\"sougouIme\"]}}";
+                                                    "\"sougouIme\"],\"101\" : [\"sougouIme\"]}}";
     SwitchInfo switchInfo;
     EnableImeDataParser::GetInstance()->enableList_[IME_KEY].push_back("xiaoyiIme");
     EnableImeDataParser::GetInstance()->enableList_[IME_KEY].push_back("baiduIme");
@@ -223,8 +223,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_005, TestSize.Level0)
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_005 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
-    EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : ["
-                                                    "\"sougouIme\"],\"101\" : "
+    EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : [ \"sougouIme\"],\"101\" : "
                                                     "[\"sougouIme\"]}}";
     SwitchInfo switchInfo;
     EnableImeDataParser::GetInstance()->enableList_[IME_KEY].push_back("xiaoyiIme");
@@ -376,8 +375,8 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_013, TestSize.Level0)
     bool ret = EnableImeDataParser::GetInstance()->CheckNeedSwitch(IME_KEY, switchInfo, USER_ID);
     EXPECT_FALSE(ret);
 
-    EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size(), 3);
-    if (EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size() == 3) {
+    EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size(), USER_100_TOTAL_COUNT);
+    if (EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size() == USER_100_TOTAL_COUNT) {
         EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY][0], "xiaoyiIme");
         EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY][1], "baiduIme");
         EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY][2], "sougouIme");
@@ -387,8 +386,8 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_013, TestSize.Level0)
     ret = EnableImeDataParser::GetInstance()->CheckNeedSwitch(IME_KEY, switchInfo, USER_ID);
 
     EXPECT_FALSE(ret);
-    EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size(), 1);
-    if (EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size() == 1) {
+    EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size(), USER_101_TOTAL_COUNT);
+    if (EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size() == USER_101_TOTAL_COUNT) {
         EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY][0], "xiaoyiIme");
     }
 }
@@ -406,10 +405,11 @@ HWTEST_F(EnableImeDataParseTest, testOnUserChanged_001, TestSize.Level0)
     int32_t ret = EnableImeDataParser::GetInstance()->GetEnableData(
         IME_KEY, EnableImeDataParser::GetInstance()->enableList_[IME_KEY], USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size(), 3);
+    EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size(), USER_100_TOTAL_COUNT);
+    // 101 means new user id
     EnableImeDataParser::GetInstance()->OnUserChanged(101);
-    EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size(), 1);
-    if (EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size() == 1) {
+    EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size(), USER_101_TOTAL_COUNT);
+    if (EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size() == USER_101_TOTAL_COUNT) {
         EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY][0], "sougouIme");
     }
 }

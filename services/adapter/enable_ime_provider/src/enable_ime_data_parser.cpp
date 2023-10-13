@@ -240,16 +240,21 @@ bool EnableImeDataParser::CheckTargetEnableName(
         enableList_[key].assign(enableVec.begin(), enableVec.end());
         return false;
     }
+
     auto it = std::find_if(enableList_[key].begin(), enableList_[key].end(),
         [&targetName](const std::string &ime) { return ime == targetName; });
-    if (it != enableList_[key].end()) {
-        auto nextIter = std::next(it);
-        if (nextIter != enableList_[key].end()) {
-            auto result = std::find_first_of(nextIter, enableList_[key].end(), enableVec.begin(), enableVec.end());
-            nextIme = *result;
-        }
+    if (it == enableList_[key].end()) {
+        enableList_[key].assign(enableVec.begin(), enableVec.end());
+        return true;
     }
 
+    std::rotate(enableList_[key].begin(), it, enableList_[key].end());
+    auto result =
+        std::find_first_of(enableList_[key].begin(), enableList_[key].end(), enableVec.begin(), enableVec.end());
+    if (result != enableList_[key].end()) {
+        IMSA_HILOGD("Found the next cached ime in enable ime list.");
+        nextIme = *result;
+    }
     enableList_[key].assign(enableVec.begin(), enableVec.end());
     return true;
 }
