@@ -163,10 +163,10 @@ bool InputTypeManager::ParseFromCustomSystem()
         }
         std::vector<InputTypeCfg> configs;
         if (!GetCfgsFromFile(path, configs)) {
-            IMSA_HILOGE("failed to GetCfgsFromFile");
             isSuccess = false;
             continue;
         }
+        isSuccess = true;
         std::lock_guard<std::mutex> lock(typesLock_);
         for (const auto &config : configs) {
             inputTypes_[config.type] = config.ime;

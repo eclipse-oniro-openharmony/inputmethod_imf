@@ -484,8 +484,7 @@ std::shared_ptr<Property> ImeInfoInquirer::GetImeByBundleName(int32_t userId, co
     }
     Property prop = { .name = extInfos[0].bundleName,
         .id = extInfos[0].name,
-        .label =
-            GetStringById(extInfos[0].bundleName, extInfos[0].moduleName, extInfos[0].applicationInfo.labelId, userId),
+        .label = extInfos[0].applicationInfo.label,
         .labelId = extInfos[0].applicationInfo.labelId,
         .iconId = extInfos[0].applicationInfo.iconId };
     return std::make_shared<Property>(prop);

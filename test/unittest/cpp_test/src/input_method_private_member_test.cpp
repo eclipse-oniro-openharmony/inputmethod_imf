@@ -70,14 +70,14 @@ void InputMethodPrivateMemberTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUp");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
-    ImeInfoInquirer::GetInstance().SetCurrentInfo(nullptr);
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 }
 
 void InputMethodPrivateMemberTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::TearDown");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
-    ImeInfoInquirer::GetInstance().SetCurrentInfo(nullptr);
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 }
 sptr<InputMethodSystemAbility> InputMethodPrivateMemberTest::service_;
 
@@ -368,7 +368,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_001, TestSize.L
 
 /**
  * @tc.name: SA_SwitchByCombinationKey_002
- * @tc.desc: SwitchLanguage()/SwitchMode():GetInfo failed
+ * @tc.desc: SwitchLanguage()/SwitchMode():GetImeInfo failed
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: chenyu
