@@ -40,7 +40,6 @@ public:
 class TddUtil {
 public:
     static int32_t GetCurrentUserId();
-    static void GrantNativePermission();
     static void StorageSelfTokenID();
     static uint64_t AllocTestTokenID(bool isSystemApp, bool needPermission, const std::string &bundleName);
     static uint64_t GetTestTokenID(const std::string &bundleName);
@@ -50,6 +49,9 @@ public:
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
     static pid_t GetImsaPid();
     static void KillImsaProcess();
+    static void PutEnableImeValue(const std::string &key, const std::string &value);
+    static void GrantNativePermission();
+    static int32_t CheckEnableOn(std::string &value);
     class WindowManager {
     public:
         static void CreateWindow();

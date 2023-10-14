@@ -43,6 +43,9 @@ public:
     static std::vector<std::string> subName;
     static std::vector<std::string> locale;
     static std::vector<std::string> language;
+    static bool enableOn;
+    static std::string beforeValue;
+    static std::string allEnableIme;
 };
 bool NewImeSwitchTest::imeChangeFlag = false;
 sptr<InputMethodController> NewImeSwitchTest::imc_;
@@ -51,8 +54,12 @@ std::string NewImeSwitchTest::extName = "InputMethodExtAbility";
 std::vector<std::string> NewImeSwitchTest::subName{ "lowerInput", "upperInput", "chineseInput" };
 std::vector<std::string> NewImeSwitchTest::locale{ "en-US", "en-US", "zh-CN" };
 std::vector<std::string> NewImeSwitchTest::language{ "english", "english", "chinese" };
+bool NewImeSwitchTest::enableOn = false;
+std::string NewImeSwitchTest::beforeValue;
+std::string NewImeSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.newTestIme\"]}}";
 constexpr uint32_t IME_SUBTYPE_NUM = 3;
 constexpr uint32_t WAIT_IME_READY_TIME = 1;
+constexpr const char *ENABLE_IME_KEYWORD = "settings.inputmethod.enable_ime";
 class InputMethodSettingListenerImpl : public InputMethodSettingListener {
 public:
     InputMethodSettingListenerImpl() = default;
@@ -69,6 +76,13 @@ public:
 void NewImeSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::SetUpTestCase");
+    TddUtil::GrantNativePermission();
+    int32_t ret = TddUtil::CheckEnableOn(beforeValue);
+    if (ret == ErrorCode::NO_ERROR) {
+        IMSA_HILOGI("Enable ime switch test.");
+        enableOn = true;
+        TddUtil::PutEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
+    }
     TddUtil::StorageSelfTokenID();
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, true, "ohos.inputMethod.test"));
     imc_ = InputMethodController::GetInstance();
@@ -79,6 +93,10 @@ void NewImeSwitchTest::SetUpTestCase(void)
 void NewImeSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::TearDownTestCase");
+    if (enableOn) {
+        TddUtil::GrantNativePermission();
+        TddUtil::PutEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
+    }
     InputMethodController::GetInstance()->Close();
     TddUtil::RestoreSelfTokenID();
 }
