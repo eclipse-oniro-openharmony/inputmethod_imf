@@ -55,11 +55,11 @@ public:
     std::shared_ptr<Property> GetImeByBundleName(int32_t userId, const std::string &bundleName);
     std::shared_ptr<Property> GetCurrentIme(int32_t userId);
     std::shared_ptr<SubProperty> GetCurrentSubtype(int32_t userId);
-    std::shared_ptr<ImeInfo> GetInfo(int32_t userId, const std::string &bundleName, const std::string &subName);
-    std::shared_ptr<ImeInfo> GetDefaultInfo(int32_t userId);
-    std::shared_ptr<ImeInfo> GetCurrentInfo();
-    void SetCurrentInfo(std::shared_ptr<ImeInfo> info);
-    void RefreshCurrentInfo(int32_t userId);
+    std::shared_ptr<ImeInfo> GetImeInfo(int32_t userId, const std::string &bundleName, const std::string &subName);
+    std::shared_ptr<ImeInfo> GetDefaultImeInfo(int32_t userId);
+    std::shared_ptr<ImeInfo> GetCurrentImeInfo();
+    void SetCurrentImeInfo(std::shared_ptr<ImeInfo> info);
+    void RefreshCurrentImeInfo(int32_t userId);
     int32_t ListInputMethod(int32_t userId, const InputMethodStatus status, std::vector<Property> &props);
     int32_t ListInputMethodSubtype(int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);
     int32_t ListCurrentInputMethodSubtype(int32_t userId, std::vector<SubProperty> &subProps);

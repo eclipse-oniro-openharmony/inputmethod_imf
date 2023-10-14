@@ -80,7 +80,7 @@ int32_t ImeInfoInquirer::GetExtInfosByBundleName(
     return ErrorCode::NO_ERROR;
 }
 
-std::shared_ptr<ImeInfo> ImeInfoInquirer::GetInfo(
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfo(
     int32_t userId, const std::string &bundleName, const std::string &subName)
 {
     auto info = GetImeInfoFromCache(userId, bundleName, subName);
@@ -92,7 +92,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(
 {
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, subName: %{public}s", userId, bundleName.c_str(),
         subName.c_str());
-    auto info = GetCurrentInfo();
+    auto info = GetCurrentImeInfo();
     if (info == nullptr || bundleName != info->prop.name) {
         return nullptr;
     }
@@ -162,7 +162,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(
     return info;
 }
 
-void ImeInfoInquirer::SetCurrentInfo(std::shared_ptr<ImeInfo> info)
+void ImeInfoInquirer::SetCurrentImeInfo(std::shared_ptr<ImeInfo> info)
 {
     std::lock_guard<std::mutex> lock(currentImeInfoLock_);
     currentImeInfo_ = std::move(info);
@@ -178,16 +178,16 @@ void ImeInfoInquirer::InitCache(int32_t userId)
             userId, currentImeCfg->bundleName.c_str(), currentImeCfg->subName.c_str());
         return;
     }
-    SetCurrentInfo(info);
+    SetCurrentImeInfo(info);
 }
 
-std::shared_ptr<ImeInfo> ImeInfoInquirer::GetCurrentInfo()
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetCurrentImeInfo()
 {
     std::lock_guard<std::mutex> lock(currentImeInfoLock_);
     return currentImeInfo_;
 }
 
-void ImeInfoInquirer::RefreshCurrentInfo(int32_t userId)
+void ImeInfoInquirer::RefreshCurrentImeInfo(int32_t userId)
 {
     IMSA_HILOGD("run in");
     std::lock_guard<std::mutex> lock(currentImeInfoLock_);
@@ -402,6 +402,7 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
     IMSA_HILOGD("subProps size: %{public}zu", subProps.size());
     for (auto it = subProps.begin(); it != subProps.end();) {
         auto subProp = *it;
+        // subtype which provides a particular input type should not appear in the subtype list
         if (InputTypeManager::GetInstance().IsInputType({ subProp.name, subProp.id })) {
             it = subProps.erase(it);
             continue;
@@ -555,13 +556,13 @@ std::string ImeInfoInquirer::GetImeToBeStarted(int32_t userId)
     if (currentImeCfg->imeId.empty() || !IsImeInstalled(userId, currentImeCfg->bundleName, currentImeCfg->extName)) {
         auto newUserIme = GetDefaultIme();
         std::string subName;
-        auto info = GetDefaultInfo(userId);
+        auto info = GetDefaultImeInfo(userId);
         if (info == nullptr) {
-            IMSA_HILOGE("GetDefaultInfo failed");
+            IMSA_HILOGE("GetDefaultImeInfo failed");
             subName = "";
         } else {
             subName = info->subProp.id;
-            SetCurrentInfo(info);
+            SetCurrentImeInfo(info);
         }
         currentImeCfg->imeId.empty() ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newUserIme, subName })
                                      : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newUserIme, subName });
@@ -572,7 +573,7 @@ std::string ImeInfoInquirer::GetImeToBeStarted(int32_t userId)
     return currentImeCfg->imeId;
 }
 
-std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultInfo(int32_t userId)
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 {
     auto ime = GetDefaultIme();
     auto pos = ime.find('/');

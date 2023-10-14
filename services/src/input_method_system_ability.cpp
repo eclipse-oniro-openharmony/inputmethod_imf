@@ -401,7 +401,7 @@ int32_t InputMethodSystemAbility::StartInputType(InputType type)
 
 int32_t InputMethodSystemAbility::ExitCurrentInputType()
 {
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultInfo(userId_);
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId_);
     if (defaultIme == nullptr) {
         IMSA_HILOGE("failed to get default ime");
         return ErrorCode::ERROR_PERSIST_CONFIG;
@@ -447,7 +447,7 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
         switchQueue_.Pop();
         return ErrorCode::NO_ERROR;
     }
-    auto info = ImeInfoInquirer::GetInstance().GetInfo(userId_, switchInfo.bundleName, switchInfo.subName);
+    auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, switchInfo.bundleName, switchInfo.subName);
     if (info == nullptr) {
         switchQueue_.Pop();
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -516,7 +516,7 @@ int32_t InputMethodSystemAbility::SwitchExtension(const std::shared_ptr<ImeInfo>
     userSession_->StopInputService();
     std::string targetIme = info->prop.name + "/" + info->prop.id;
     ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetIme, info->subProp.id });
-    ImeInfoInquirer::GetInstance().SetCurrentInfo(info);
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
     if (!StartInputService(targetIme)) {
         IMSA_HILOGE("start input method failed");
         return ErrorCode::ERROR_IME_START_FAILED;
@@ -535,7 +535,7 @@ int32_t InputMethodSystemAbility::SwitchSubType(const std::shared_ptr<ImeInfo> &
     }
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId;
     ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, currentIme, info->subProp.id });
-    ImeInfoInquirer::GetInstance().SetCurrentInfo(info);
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
     userSession_->NotifyImeChangeToClients(info->prop, info->subProp);
     return ErrorCode::NO_ERROR;
 }
@@ -682,7 +682,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(oldUserId)->imeId;
     userSession_->StopInputService();
     // user switch, reset currentImeInfo_ = nullptr
-    ImeInfoInquirer::GetInstance().SetCurrentInfo(nullptr);
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
     auto newIme = ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
     if (!StartInputService(newIme)) {
@@ -736,7 +736,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
     auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
     if (packageName == currentImeBundle) {
         // Switch to the default ime
-        auto info = ImeInfoInquirer::GetInstance().GetDefaultInfo(userId);
+        auto info = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId);
         if (info == nullptr) {
             return ErrorCode::ERROR_PERSIST_CONFIG;
         }
@@ -788,7 +788,7 @@ int32_t InputMethodSystemAbility::SwitchMode()
 {
     auto bundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
     auto subName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->subName;
-    auto info = ImeInfoInquirer::GetInstance().GetInfo(userId_, bundleName, subName);
+    auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName);
     if (info == nullptr) {
         IMSA_HILOGE("current ime is abnormal");
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -812,7 +812,7 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
 {
     auto bundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
     auto subName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->subName;
-    auto info = ImeInfoInquirer::GetInstance().GetInfo(userId_, bundleName, subName);
+    auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName);
     if (info == nullptr) {
         IMSA_HILOGE("current ime is abnormal");
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -884,7 +884,7 @@ bool InputMethodSystemAbility::InitFocusChangeMonitor()
 void InputMethodSystemAbility::InitSystemLanguageMonitor()
 {
     SystemLanguageObserver::GetInstance().Watch(
-        [this]() { ImeInfoInquirer::GetInstance().RefreshCurrentInfo(userId_); });
+        [this]() { ImeInfoInquirer::GetInstance().RefreshCurrentImeInfo(userId_); });
 }
 
 int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)
@@ -913,7 +913,7 @@ bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo &switchInfo)
 
 bool InputMethodSystemAbility::IsStartInputTypePermitted()
 {
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultInfo(userId_);
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId_);
     if (defaultIme == nullptr) {
         IMSA_HILOGE("failed to get default ime");
         return false;
