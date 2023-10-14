@@ -154,13 +154,13 @@ int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &currentClient)
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     auto ret = data->core->HideKeyboard();
-    ExitCurrentInputType();
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to hide keyboard, ret: %{public}d", ret);
         return ErrorCode::ERROR_KBD_HIDE_FAILED;
     }
     bool isShowKeyboard = false;
     UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
+    ExitCurrentInputType();
     return ErrorCode::NO_ERROR;
 }
 
@@ -201,6 +201,7 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
         auto clientInfo = GetClientInfo(remote->AsObject());
         StopImeInput(clientInfo->bindImeType, clientInfo->channel);
         SetCurrentClient(nullptr);
+        ExitCurrentInputType();
     }
     RemoveClientInfo(remote->AsObject(), true);
 }
@@ -338,6 +339,7 @@ int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client)
     if (IsCurrentClient(client)) {
         UnBindClientWithIme(GetClientInfo(client->AsObject()));
         SetCurrentClient(nullptr);
+        ExitCurrentInputType();
     }
     RemoveClientInfo(client->AsObject());
     return ErrorCode::NO_ERROR;
@@ -438,7 +440,6 @@ void PerUserSession::StopImeInput(ImeType currentType, const sptr<IInputDataChan
         return;
     }
     auto ret = data->core->StopInput(currentChannel);
-    ExitCurrentInputType();
     IMSA_HILOGE("stop ime input, ret: %{public}d", ret);
 }
 
