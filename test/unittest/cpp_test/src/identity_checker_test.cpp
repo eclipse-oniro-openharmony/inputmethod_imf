@@ -45,6 +45,7 @@ public:
         MOCK_METHOD2(IsCurrentIme, bool(uint32_t tokenID, const std::string &currentBundleName));
         MOCK_METHOD2(HasPermission, bool(uint32_t tokenID, const std::string &permission));
         MOCK_METHOD1(IsBroker, bool(uint32_t tokenID));
+        MOCK_METHOD1(IsNativeSa, bool(uint32_t tokenID));
     };
     static constexpr uint32_t CURRENT_USERID = 101;
     static const constexpr char *CURRENT_IME = "testBundleName/testExtname";
@@ -174,7 +175,7 @@ HWTEST_F(IdentityCheckerTest, testStartInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStartInput_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false, false);
+    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 }
 
@@ -190,7 +191,7 @@ HWTEST_F(IdentityCheckerTest, testStartInput_002, TestSize.Level0)
     IMSA_HILOGI("IdentityCheckerTest testStartInput_002 start");
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(false));
-    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false, false);
+    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -207,7 +208,7 @@ HWTEST_F(IdentityCheckerTest, testStartInput_003, TestSize.Level0)
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(true));
     InputClientInfo clientInfo{};
-    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false, false);
+    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -224,7 +225,7 @@ HWTEST_F(IdentityCheckerTest, testStartInput_004, TestSize.Level0)
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(true));
     InputClientInfo clientInfo{};
-    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false, false);
+    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -239,7 +240,7 @@ HWTEST_F(IdentityCheckerTest, testStopInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInput_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
-    int32_t ret = IdentityCheckerTest::service_->StopInput(nullptr);
+    int32_t ret = IdentityCheckerTest::service_->HideInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 }
 
@@ -255,7 +256,7 @@ HWTEST_F(IdentityCheckerTest, testStopInput_002, TestSize.Level0)
     IMSA_HILOGI("IdentityCheckerTest testStopInput_002 start");
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(false));
-    int32_t ret = IdentityCheckerTest::service_->StopInput(nullptr);
+    int32_t ret = IdentityCheckerTest::service_->HideInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -272,7 +273,7 @@ HWTEST_F(IdentityCheckerTest, testStopInput_003, TestSize.Level0)
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(true));
     InputClientInfo clientInfo{};
-    int32_t ret = IdentityCheckerTest::service_->StopInput(nullptr);
+    int32_t ret = IdentityCheckerTest::service_->HideInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -289,7 +290,7 @@ HWTEST_F(IdentityCheckerTest, testStopInput_004, TestSize.Level0)
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(true));
     InputClientInfo clientInfo{};
-    int32_t ret = IdentityCheckerTest::service_->StopInput(nullptr);
+    int32_t ret = IdentityCheckerTest::service_->HideInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
@@ -386,6 +387,52 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsCurrentIme(_, _)).Times(1).WillRepeatedly(Return(true));
     int32_t ret = IdentityCheckerTest::service_->SetCoreAndAgent(nullptr, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
+ * @tc.name: testSetCoreAndAgent_003
+ * @tc.desc: not current ime, is a sys_basic native sa
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+*/
+HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_003, TestSize.Level0)
+{
+    IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_003 start");
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsCurrentIme(_, _)).Times(1).WillRepeatedly(Return(false));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsNativeSa(_)).Times(1).WillRepeatedly(Return(true));
+    int32_t ret = IdentityCheckerTest::service_->SetCoreAndAgent(nullptr, nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
+ * @tc.name: testUnRegisteredProxyIme_001
+ * @tc.desc: not a sys_basic native sa
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+*/
+HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_001, TestSize.Level0)
+{
+    IMSA_HILOGI("IdentityCheckerTest testUnRegisteredProxyIme_001 start");
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsNativeSa(_)).Times(1).WillRepeatedly(Return(false));
+    int32_t ret = IdentityCheckerTest::service_->UnRegisteredProxyIme(UnRegisteredType::REMOVE_PROXY_IME, nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: testUnRegisteredProxyIme_002
+ * @tc.desc: a sys_basic native sa
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+*/
+HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_002, TestSize.Level0)
+{
+    IMSA_HILOGI("IdentityCheckerTest testUnRegisteredProxyIme_002 start");
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsNativeSa(_)).Times(1).WillRepeatedly(Return(true));
+    int32_t ret = IdentityCheckerTest::service_->UnRegisteredProxyIme(UnRegisteredType::NONE, nullptr);
+    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
 
 /**

@@ -102,6 +102,10 @@ public:
         TddUtil::RestoreSelfTokenID();
         TextListener::ResetParam();
         TddUtil::WindowManager::RegisterFocusChangeListener();
+        WindowMgr::CreateWindow();
+        WindowMgr::ShowWindow();
+        bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
+        IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
     }
     static void TearDownTestCase(void)
     {
@@ -168,71 +172,65 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboardInputMethodCoreProxy, TestSize.
 
     sptr<InputMethodCoreProxy> coreProxy = new InputMethodCoreProxy(coreObject);
     sptr<InputDataChannelProxy> channelProxy = new InputDataChannelProxy(channelObject);
-    auto ret = coreProxy->ShowKeyboard(channelProxy, false, false);
+    auto ret = coreProxy->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
     delete msgHandler;
 }
 
 /**
-* @tc.name: testShowKeyboardException
+* @tc.name: testShowKeyboardWithoutImeListener
 * @tc.desc: InputMethodAbility ShowKeyboard without imeListener
 * @tc.type: FUNC
 * @tc.require:
 */
-HWTEST_F(InputMethodAbilityTest, testShowKeyboardException, TestSize.Level0)
+HWTEST_F(InputMethodAbilityTest, testShowKeyboardWithoutImeListener, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityTest testShowKeyboardException start.");
-    sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
-    auto ret = inputMethodAbility_->ShowKeyboard(channelStub->AsObject(), false, false);
+    IMSA_HILOGI("InputMethodAbilityTest testShowKeyboardWithoutImeListener start.");
+    auto ret = inputMethodAbility_->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 }
 
 /**
-* @tc.name: testHideKeyboard
-* @tc.desc: InputMethodAbility HideKeyboard
+* @tc.name: testHideKeyboardWithoutImeListener
+* @tc.desc: InputMethodAbility HideKeyboard without imeListener
 * @tc.type: FUNC
 * @tc.require:
 */
-HWTEST_F(InputMethodAbilityTest, testHideKeyboard, TestSize.Level0)
+HWTEST_F(InputMethodAbilityTest, testHideKeyboardWithoutImeListener, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityTest testHideKeyboard start.");
+    IMSA_HILOGI("InputMethodAbilityTest testHideKeyboardWithoutImeListener start.");
     auto ret = inputMethodAbility_->HideKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 }
 
 /**
-* @tc.name: testHideKeyboardSelfWithoutImeListener
-* @tc.desc: InputMethodAbility HideKeyboardSelf Without ImeListener
+* @tc.name: testHideKeyboardSelfWithoutAttach
+* @tc.desc: InputMethodAbility HideKeyboardSelf Without Attach
 * @tc.type: FUNC
 * @tc.require:
 * @tc.author: Hollokin
 */
-HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelfWithoutImeListener, TestSize.Level0)
+HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelfWithoutAttach, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbility testHideKeyboardSelfWithoutImeListener START");
-    std::unique_lock<std::mutex> lock(InputMethodAbilityTest::imeListenerCallbackLock_);
-    InputMethodAbilityTest::showKeyboard_ = true;
+    IMSA_HILOGI("InputMethodAbility testHideKeyboardSelfWithoutAttach START");
     auto ret = inputMethodAbility_->HideKeyboardSelf();
-    auto cvStatus = imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME));
-    EXPECT_EQ(cvStatus, std::cv_status::timeout);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(InputMethodAbilityTest::showKeyboard_);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
 /**
-* @tc.name: testShowKeyboard
-* @tc.desc: InputMethodAbility ShowKeyboard
+* @tc.name: testStartInputWithoutPanel
+* @tc.desc: InputMethodAbility StartInput Without Panel
 * @tc.type: FUNC
 * @tc.require:
 */
-HWTEST_F(InputMethodAbilityTest, testShowKeyboard, TestSize.Level0)
+HWTEST_F(InputMethodAbilityTest, testStartInputWithoutPanel, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityTest testShowKeyboard start.");
+    IMSA_HILOGI("InputMethodAbilityTest testStartInputWithoutAttach start.");
     inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
-    auto ret = inputMethodAbility_->ShowKeyboard(channelStub->AsObject(), false, false);
+    auto ret = inputMethodAbility_->StartInput(channelStub->AsObject(), false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = inputMethodAbility_->HideKeyboard();
+    ret = inputMethodAbility_->StartInput(channelStub->AsObject(), true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
@@ -246,10 +244,6 @@ HWTEST_F(InputMethodAbilityTest, testShowKeyboard, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelf, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testHideKeyboardSelf START");
-    WindowMgr::CreateWindow();
-    WindowMgr::ShowWindow();
-    bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
-    IMSA_HILOGI("testHideKeyboardSelf getFocus end, isFocused = %{public}d", isFocused);
     sptr<OnTextChangedListener> textListener = new TextListener();
     imc_ = InputMethodController::GetInstance();
     imc_->Attach(textListener);
@@ -448,12 +442,12 @@ HWTEST_F(InputMethodAbilityTest, testSelectByRange_002, TestSize.Level0)
     int32_t start = -2;
     int32_t end = 2;
     auto ret = inputMethodAbility_->SelectByRange(start, end);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
 
     start = 2;
     end = -2;
     ret = inputMethodAbility_->SelectByRange(start, end);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
 }
 
 /**

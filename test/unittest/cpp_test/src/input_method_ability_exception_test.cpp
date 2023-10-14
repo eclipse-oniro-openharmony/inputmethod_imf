@@ -48,6 +48,7 @@ public:
         inputMethodAbility_->dataChannelObject_ = nullptr;
         inputMethodAbility_->imeListener_ = nullptr;
         inputMethodAbility_->panels_.Clear();
+        inputMethodAbility_->isPanelKeyboard_ = false;
     }
     static sptr<InputMethodAbility> inputMethodAbility_;
 };
@@ -124,17 +125,17 @@ HWTEST_F(InputMethodAbilityExceptionTest, testSelectByRangeException, TestSize.L
     int32_t start = -1;
     int32_t end = -2;
     auto ret = inputMethodAbility_->SelectByRange(start, end);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     // start < 0, end >0
     start = -1;
     end = 2;
     ret = inputMethodAbility_->SelectByRange(start, end);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     //end < 0, start > 0
     start = 1;
     end = -2;
     ret = inputMethodAbility_->SelectByRange(start, end);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
     // dataChannel == nullptr
     start = 1;
     end = 2;
@@ -259,39 +260,44 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testShowKeyboard_001 START");
     // channelObject == nullptr
-    auto ret = inputMethodAbility_->ShowKeyboard(nullptr, false, true);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    auto ret = inputMethodAbility_->ShowKeyboard();
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     ResetMemberVar();
 }
 
 /**
- * @tc.name: testShowInputWindow_001
- * @tc.desc: ShowInputWindow Exception
+ * @tc.name: testShowKeyboard_002
+ * @tc.desc: ShowKeyBoard Exception
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(InputMethodAbilityExceptionTest, testShowInputWindow_001, TestSize.Level0)
+HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAbilityExceptionTest testShowInputWindow_001 START");
+    IMSA_HILOGI("InputMethodAbilityExceptionTest testShowKeyboard_002 START");
     // imeListener_ == nullptr
-    auto ret = inputMethodAbility_->ShowInputWindow(true);
+    auto ret = inputMethodAbility_->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     // channel == nullptr
     auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->SetImeListener(imeListener);
-    ret = inputMethodAbility_->ShowInputWindow(true);
+    ret = inputMethodAbility_->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 
-    // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
     sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
     inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
+    // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
     auto panel = std::make_shared<InputMethodPanel>();
     panel->panelFlag_ = FLG_CANDIDATE_COLUMN;
+    inputMethodAbility_->isPanelKeyboard_ = true;
     inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
-    ret = inputMethodAbility_->ShowInputWindow(true);
+    ret = inputMethodAbility_->ShowKeyboard();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    // panel not exist
+    inputMethodAbility_->isPanelKeyboard_ = false;
+    ret = inputMethodAbility_->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ResetMemberVar();

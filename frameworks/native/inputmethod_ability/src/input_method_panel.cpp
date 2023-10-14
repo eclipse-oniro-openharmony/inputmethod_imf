@@ -270,7 +270,7 @@ bool InputMethodPanel::IsHidden()
 }
 
 int32_t InputMethodPanel::SetUiContent(
-    const std::string &contentInfo, NativeEngine &engine, std::shared_ptr<NativeReference> storage)
+    const std::string &contentInfo, napi_env env, std::shared_ptr<NativeReference> storage)
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr, can not SetUiContent.");
@@ -278,13 +278,13 @@ int32_t InputMethodPanel::SetUiContent(
     }
     WMError ret = WMError::WM_OK;
     if (storage == nullptr) {
-        ret = window_->SetUIContent(contentInfo, &engine, nullptr);
+        ret = window_->NapiSetUIContent(contentInfo, env, nullptr);
     } else {
-        ret = window_->SetUIContent(contentInfo, &engine, storage->Get());
+        ret = window_->NapiSetUIContent(contentInfo, env, storage->GetNapiValue());
     }
     WMError wmError = window_->SetTransparent(true);
     IMSA_HILOGI("SetTransparent end, wmError = %{public}u", wmError);
-    IMSA_HILOGI("InputMethodPanel, SetUiContent ret = %{public}d", ret);
+    IMSA_HILOGI("InputMethodPanel, NapiSetUIContent ret = %{public}d", ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 

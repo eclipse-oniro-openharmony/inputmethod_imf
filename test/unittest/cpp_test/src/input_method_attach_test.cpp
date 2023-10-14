@@ -344,10 +344,7 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdateAfterAttach001, TestSize.Level
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(totalConfig.cursorInfo.height, -1);
-    EXPECT_EQ(totalConfig.cursorInfo.width, -1);
-    EXPECT_EQ(totalConfig.cursorInfo.left, -1);
-    EXPECT_EQ(totalConfig.cursorInfo.top, -1);
+    EXPECT_EQ(totalConfig.cursorInfo, cursorInfo);
 }
 
 /**
@@ -373,7 +370,7 @@ HWTEST_F(InputMethodAttachTest, testOnCursorUpdateAfterAttach002, TestSize.Level
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(totalConfig.cursorInfo, config.cursorInfo);
+    EXPECT_EQ(totalConfig.cursorInfo, cursorInfo);
 }
 
 /**
@@ -401,8 +398,8 @@ HWTEST_F(InputMethodAttachTest, testOnSelectionChangeAfterAttach002, TestSize.Le
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(totalConfig.textSelection.newBegin, config.range.start);
-    EXPECT_EQ(totalConfig.textSelection.newEnd, config.range.end);
+    EXPECT_EQ(totalConfig.textSelection.newBegin, start);
+    EXPECT_EQ(totalConfig.textSelection.newEnd, end);
     EXPECT_EQ(totalConfig.textSelection.oldBegin, 0);
     EXPECT_EQ(totalConfig.textSelection.oldEnd, 0);
 }
@@ -487,7 +484,7 @@ HWTEST_F(InputMethodAttachTest, testSetCallingWindowAfterAttach002, TestSize.Lev
     TextTotalConfig totalConfig;
     ret = inputMethodAbility_->GetTextConfig(totalConfig);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(totalConfig.windowId, config.windowId);
+    EXPECT_EQ(totalConfig.windowId, windowId);
 }
 
 /**

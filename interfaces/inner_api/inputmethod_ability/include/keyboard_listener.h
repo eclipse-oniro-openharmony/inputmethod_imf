@@ -16,8 +16,8 @@
 #ifndef INPUTMETHOD_IMF_KEYBOARD_LISTENER_H
 #define INPUTMETHOD_IMF_KEYBOARD_LISTENER_H
 
+#include "input_attribute.h"
 #include "key_event.h"
-
 namespace OHOS {
 namespace MiscServices {
 class KeyboardListener {

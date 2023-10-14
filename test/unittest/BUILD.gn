@@ -21,6 +21,7 @@ group("unittest") {
   deps += [
     "cpp_test:EnableImeDataParseTest",
     "cpp_test:IdentityCheckerTest",
+    "cpp_test:ImeProxyTest",
     "cpp_test:InputMethodAbilityTest",
     "cpp_test:InputMethodAttachTest",
     "cpp_test:InputMethodControllerTest",
@@ -35,6 +36,7 @@ group("unittest") {
     "cpp_test:TextListenerInnerApiTest",
     "cpp_test/common:inputmethod_tdd_util",
     "napi_test/src:GetInputMethodJsTest",
+    "resource/bundle_dependencies/editorBox:editorBox",
     "resource/bundle_dependencies/extImfBundle:extImf",
     "resource/bundle_dependencies/newTestIme:newTestIme",
     "resource/ohos_test:copy_ohos_test",

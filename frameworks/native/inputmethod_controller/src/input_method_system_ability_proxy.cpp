@@ -37,12 +37,11 @@ int32_t InputMethodSystemAbilityProxy::PrepareInput(InputClientInfo &inputClient
         });
 }
 
-int32_t InputMethodSystemAbilityProxy::StartInput(sptr<IInputClient> client, bool isShowKeyboard, bool attachFlag)
+int32_t InputMethodSystemAbilityProxy::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
 {
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT),
-        [isShowKeyboard, client, attachFlag](MessageParcel &data) {
-            return data.WriteRemoteObject(client->AsObject()) && data.WriteBool(isShowKeyboard) &&
-                   data.WriteBool(attachFlag);
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT), [isShowKeyboard, client](MessageParcel &data) {
+            return data.WriteRemoteObject(client->AsObject()) && data.WriteBool(isShowKeyboard);
         });
 }
 
@@ -61,11 +60,16 @@ int32_t InputMethodSystemAbilityProxy::StopInputSession()
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT_SESSION));
 }
 
-int32_t InputMethodSystemAbilityProxy::StopInput(sptr<IInputClient> client)
+int32_t InputMethodSystemAbilityProxy::ShowInput(sptr<IInputClient> client)
 {
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT), [client](MessageParcel &data) {
-        return data.WriteRemoteObject(client->AsObject());
-    });
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT),
+        [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
+}
+
+int32_t InputMethodSystemAbilityProxy::HideInput(sptr<IInputClient> client)
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_INPUT),
+        [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
 }
 
 int32_t InputMethodSystemAbilityProxy::ReleaseInput(sptr<IInputClient> client)
@@ -86,6 +90,14 @@ int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(
     return SendRequest(
         static_cast<uint32_t>(InputMethodInterfaceCode::SET_CORE_AND_AGENT), [core, agent](MessageParcel &data) {
             return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent->AsObject());
+        });
+}
+
+int32_t InputMethodSystemAbilityProxy::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)
+{
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTERED_PROXY_IME), [&type, &core](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, static_cast<int32_t>(type), core->AsObject());
         });
 }
 

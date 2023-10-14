@@ -16,6 +16,8 @@
 #ifndef INPUTMETHOD_IMF_INPUT_METHOD_ENGINE_LISTENER_IMPL_H
 #define INPUTMETHOD_IMF_INPUT_METHOD_ENGINE_LISTENER_IMPL_H
 
+#include <condition_variable>
+
 #include "input_method_engine_listener.h"
 
 namespace OHOS {
@@ -29,11 +31,18 @@ public:
     static uint32_t windowId_;
     static std::mutex imeListenerMutex_;
     static std::condition_variable imeListenerCv_;
+    static bool isEnable_;
+    static bool isInputFinish_;
+    static void ResetParam();
+    static bool WaitInputStart();
+    static bool WaitInputFinish();
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStart() override;
     void OnInputStop(const std::string &imeId) override;
     void OnSetCallingWindow(uint32_t windowId) override;
     void OnSetSubtype(const SubProperty &property) override;
+    void OnInputFinish()override;
+    bool IsEnable()override;
 };
 } // namespace MiscServices
 } // namespace OHOS

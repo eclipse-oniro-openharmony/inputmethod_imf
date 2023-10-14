@@ -65,9 +65,9 @@
                   "//base/inputmethod/imf/etc/init:inputmethodservice.cfg", 
                   "//base/inputmethod/imf/etc/para:inputmethod.para.dac",
                   "//base/inputmethod/imf/etc/para:inputmethod.para",
+                  "//base/inputmethod/imf/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
                   "//base/inputmethod/imf/profile:inputmethod_inputmethod_sa_profiles",
                   "//base/inputmethod/imf/services:inputmethod_service",
-                  "//base/inputmethod/imf/frameworks/native/inputmethod_ability:inputmethod_ability",  
                   "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension",
                   "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension_module", 
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethodability:inputmethodengine", 
@@ -86,6 +86,18 @@
                           "../../../../frameworks/native/inputmethod_controller/include/input_method_utils.h"
                       ], 
                       "header_base": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_controller/include"
+                  }
+              },
+              {
+                  "name": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+                  "header": {
+                      "header_files": [
+                          "input_method_ability_interface.h",
+                          "input_method_engine_listener.h",
+                          "keyboard_listener.h",
+                          "unRegistered_type.h"
+                      ],
+                      "header_base": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_ability/include"
                   }
               }
           ], 

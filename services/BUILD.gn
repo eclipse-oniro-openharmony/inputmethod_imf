@@ -22,6 +22,7 @@ config("inputmethod_services_native_config") {
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability/include",
     "${inputmethod_path}/services/adapter/focus_monitor/include",
     "${inputmethod_path}/services/adapter/keyboard/include",
     "${inputmethod_path}/services/adapter/system_language_observer/include",
@@ -60,7 +61,7 @@ ohos_shared_library("inputmethod_service") {
   public_configs = [ ":inputmethod_services_native_config" ]
 
   deps = [
-    "${inputmethod_path}/frameworks/native/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/services/adapter/keyboard:keboard_event_static",
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",

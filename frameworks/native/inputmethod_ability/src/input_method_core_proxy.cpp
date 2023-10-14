@@ -39,12 +39,11 @@ int32_t InputMethodCoreProxy::InitInputControlChannel(
     });
 }
 
-int32_t InputMethodCoreProxy::ShowKeyboard(
-    const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard, bool attachFlag)
+int32_t InputMethodCoreProxy::StartInput(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard)
 {
-    IMSA_HILOGD("InputMethodCoreProxy::showKeyboard");
-    return SendRequest(SHOW_KEYBOARD, [&inputDataChannel, isShowKeyboard, attachFlag](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, inputDataChannel->AsObject(), isShowKeyboard, attachFlag);
+    IMSA_HILOGD("InputMethodCoreProxy::StartInput");
+    return SendRequest(START_INPUT, [&inputDataChannel, isShowKeyboard](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, inputDataChannel->AsObject(), isShowKeyboard);
     });
 }
 
@@ -53,6 +52,11 @@ void InputMethodCoreProxy::StopInputService(std::string imeId)
     SendRequest(STOP_INPUT_SERVICE, [&imeId](MessageParcel &data) {
         return ITypesUtil::Marshal(data, Str8ToStr16(imeId));
     });
+}
+
+int32_t InputMethodCoreProxy::ShowKeyboard()
+{
+    return SendRequest(SHOW_KEYBOARD);
 }
 
 int32_t InputMethodCoreProxy::HideKeyboard()
@@ -65,10 +69,18 @@ int32_t InputMethodCoreProxy::SetSubtype(const SubProperty &property)
     return SendRequest(SET_SUBTYPE, [&property](MessageParcel &data) { return ITypesUtil::Marshal(data, property); });
 }
 
-int32_t InputMethodCoreProxy::ClearDataChannel(const sptr<IInputDataChannel> &channel)
+int32_t InputMethodCoreProxy::StopInput(const sptr<IInputDataChannel> &channel)
 {
-    return SendRequest(CLEAR_DATA_CHANNEL,
-        [&channel](MessageParcel &data) { return ITypesUtil::Marshal(data, channel->AsObject()); });
+    return SendRequest(
+        STOP_INPUT, [&channel](MessageParcel &data) { return ITypesUtil::Marshal(data, channel->AsObject()); });
+}
+
+bool InputMethodCoreProxy::IsEnable()
+{
+    bool isEnable = false;
+    SendRequest(
+        IS_ENABLE, nullptr, [&isEnable](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isEnable); });
+    return isEnable;
 }
 
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
