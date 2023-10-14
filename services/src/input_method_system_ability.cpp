@@ -549,21 +549,24 @@ int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
         return ret;
     }
     IMSA_HILOGD("need to switch ime: %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
-    userSession_->StopInputService();
     auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeByBundleName(userId_, switchInfo.bundleName);
     if (targetImeProperty == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
+
+    userSession_->StopInputService();
     std::string targetIme = switchInfo.bundleName + '/' + targetImeProperty->id;
+    InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
     if (!StartInputService(targetIme)) {
         IMSA_HILOGE("start input method failed");
+        InputTypeManager::GetInstance().Set(false);
         return ErrorCode::ERROR_IME_START_FAILED;
     }
     int32_t ret = userSession_->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
     if (ret != ErrorCode::NO_ERROR) {
+        InputTypeManager::GetInstance().Set(false);
         return ret;
     }
-    InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
     return ErrorCode::NO_ERROR;
 }
 

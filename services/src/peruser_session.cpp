@@ -399,7 +399,7 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
     }
     auto ret = data->core->StartInput(clientInfo->channel, clientInfo->isShowKeyboard);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("stop client input failed, ret: %{public}d", ret);
+        IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_IME_START_INPUT_FAILED;
     }
     ret = clientInfo->client->OnInputReady(data->agent);
@@ -438,6 +438,7 @@ void PerUserSession::StopImeInput(ImeType currentType, const sptr<IInputDataChan
         return;
     }
     auto ret = data->core->StopInput(currentChannel);
+    ExitCurrentInputType();
     IMSA_HILOGE("stop ime input, ret: %{public}d", ret);
 }
 
