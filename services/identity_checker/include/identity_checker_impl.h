@@ -24,7 +24,7 @@ class IdentityCheckerImpl : public IdentityChecker {
 public:
     bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID) override;
     bool IsSystemApp(uint64_t fullTokenId) override;
-    bool IsCurrentIme(uint32_t tokenId, const std::string &currentBundleName) override;
+    bool IsBundleNameValid(uint32_t tokenId, const std::string &validBundleName) override;
     bool HasPermission(uint32_t tokenId, const std::string &permission) override;
     bool IsBroker(Security::AccessToken::AccessTokenID tokenId) override;
     bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) override;

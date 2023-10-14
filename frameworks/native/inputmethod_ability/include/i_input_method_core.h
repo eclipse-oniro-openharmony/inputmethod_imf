@@ -51,9 +51,8 @@ public:
     virtual int32_t StopInput(const sptr<IInputDataChannel> &channel) = 0;
     virtual int32_t ShowKeyboard() = 0;
     virtual int32_t HideKeyboard() = 0;
-    virtual int32_t InitInputControlChannel(
-        sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) = 0;
-    virtual void StopInputService(std::string imeId) = 0;
+    virtual int32_t InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel) = 0;
+    virtual void StopInputService() = 0;
     virtual int32_t SetSubtype(const SubProperty &property) = 0;
     virtual bool IsEnable() = 0;
 };

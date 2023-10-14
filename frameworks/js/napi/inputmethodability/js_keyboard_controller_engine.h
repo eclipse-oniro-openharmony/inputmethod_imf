@@ -60,6 +60,25 @@ struct HideContext : public AsyncCall::Context {
     }
 };
 
+struct ExitContext : public AsyncCall::Context {
+    napi_status status = napi_generic_failure;
+    ExitContext() : Context(nullptr, nullptr){};
+
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            output_ = nullptr;
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
 class JsKeyboardControllerEngine {
 public:
     JsKeyboardControllerEngine() = default;
@@ -68,6 +87,7 @@ public:
     static napi_value GetKeyboardControllerInstance(napi_env env);
     static napi_value HideKeyboard(napi_env env, napi_callback_info info);
     static napi_value Hide(napi_env env, napi_callback_info info);
+    static napi_value ExitCurrentInputType(napi_env env, napi_callback_info info);
 
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info info);

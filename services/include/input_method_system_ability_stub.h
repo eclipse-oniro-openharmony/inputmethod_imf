@@ -71,6 +71,12 @@ private:
 
     int32_t IsCurrentImeOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t IsInputTypeSupportedOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t StartInputTypeOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t ExitCurrentInputTypeOnRemote(MessageParcel &data, MessageParcel &reply);
+
     // Deprecated because of no permission check, kept for compatibility
     int32_t DisplayInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
 
@@ -126,6 +132,12 @@ private:
             &InputMethodSystemAbilityStub::IsCurrentImeOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTERED_PROXY_IME)] =
             &InputMethodSystemAbilityStub::UnRegisteredProxyImeOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::IS_INPUT_TYPE_SUPPORTED)] =
+            &InputMethodSystemAbilityStub::IsInputTypeSupportedOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT_TYPE)] =
+            &InputMethodSystemAbilityStub::StartInputTypeOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::EXIT_CURRENT_INPUT_TYPE)] =
+            &InputMethodSystemAbilityStub::ExitCurrentInputTypeOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

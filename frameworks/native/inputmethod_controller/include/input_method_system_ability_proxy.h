@@ -63,6 +63,9 @@ public:
     int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
     bool IsCurrentIme() override;
+    bool IsInputTypeSupported(InputType type) override;
+    int32_t StartInputType(InputType type) override;
+    int32_t ExitCurrentInputType() override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;

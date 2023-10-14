@@ -43,6 +43,9 @@ enum class InputMethodInterfaceCode {
     UPDATE_LISTEN_EVENT_FLAG,
     IS_CURRENT_IME,
     UNREGISTERED_PROXY_IME,
+    IS_INPUT_TYPE_SUPPORTED,
+    START_INPUT_TYPE,
+    EXIT_CURRENT_INPUT_TYPE,
     IMS_CMD_LAST
 };
 } // namespace MiscServices

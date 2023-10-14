@@ -50,18 +50,18 @@ bool IdentityCheckerImpl::IsSystemApp(uint64_t fullTokenId)
     return TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
 }
 
-bool IdentityCheckerImpl::IsCurrentIme(uint32_t tokenId, const std::string &currentBundleName)
+bool IdentityCheckerImpl::IsBundleNameValid(uint32_t tokenId, const std::string &validBundleName)
 {
     std::string bundleName = GetBundleNameByToken(tokenId);
     if (bundleName.empty()) {
         return false;
     }
-    if (bundleName != currentBundleName) {
-        IMSA_HILOGE(
-            "not current ime, caller: %{public}s, current: %{public}s", bundleName.c_str(), currentBundleName.c_str());
+    if (bundleName != validBundleName) {
+        IMSA_HILOGE("bundleName invalid, caller: %{public}s, current: %{public}s", bundleName.c_str(),
+            validBundleName.c_str());
         return false;
     }
-    IMSA_HILOGD("checked ime successfully");
+    IMSA_HILOGD("checked successfully");
     return true;
 }
 

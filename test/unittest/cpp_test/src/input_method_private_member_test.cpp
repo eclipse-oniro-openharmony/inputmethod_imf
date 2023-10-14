@@ -70,14 +70,14 @@ void InputMethodPrivateMemberTest::SetUp(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUp");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
-    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
+    ImeInfoInquirer::GetInstance().SetCurrentInfo(nullptr);
 }
 
 void InputMethodPrivateMemberTest::TearDown(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::TearDown");
     ImeCfgManager::GetInstance().imeConfigs_.clear();
-    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
+    ImeInfoInquirer::GetInstance().SetCurrentInfo(nullptr);
 }
 sptr<InputMethodSystemAbility> InputMethodPrivateMemberTest::service_;
 
@@ -262,7 +262,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionCoreOrAgentNullptr, TestSiz
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     ret = userSession->InitInputControlChannel();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
-    userSession->StopInputService("test");
+    userSession->StopInputService();
     ret = userSession->OnSwitchIme({}, {}, true);
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
 }
@@ -368,7 +368,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_001, TestSize.L
 
 /**
  * @tc.name: SA_SwitchByCombinationKey_002
- * @tc.desc: SwitchLanguage()/SwitchMode():GetImeInfo failed
+ * @tc.desc: SwitchLanguage()/SwitchMode():GetInfo failed
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: chenyu
@@ -429,7 +429,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_004, TestSize.L
 
 /**
  * @tc.name: SA_SwitchByCombinationKey_005
- * @tc.desc: SwitchLanguage()/SwitchMode():GetImeSubProp failed
+ * @tc.desc: SwitchLanguage()/SwitchMode():FindTargetSubtypeByCondition failed
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: chenyu

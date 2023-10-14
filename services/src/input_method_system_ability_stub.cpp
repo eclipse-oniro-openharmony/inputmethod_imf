@@ -268,8 +268,8 @@ int32_t InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated(MessageParc
 
 int32_t InputMethodSystemAbilityStub::IsCurrentImeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    bool ret = IsCurrentIme();
-    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, IsCurrentIme()) ? ErrorCode::NO_ERROR
+                                                                           : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::UnRegisteredProxyImeOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -282,6 +282,32 @@ int32_t InputMethodSystemAbilityStub::UnRegisteredProxyImeOnRemote(MessageParcel
     }
     int32_t ret = UnRegisteredProxyIme(static_cast<UnRegisteredType>(type), iface_cast<IInputMethodCore>(coreObject));
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::IsInputTypeSupportedOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    InputType type;
+    if (!ITypesUtil::Unmarshal(data, type)) {
+        IMSA_HILOGE("unmarshal failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, IsInputTypeSupported(type)) ? ErrorCode::NO_ERROR
+                                                                                       : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::StartInputTypeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    InputType type;
+    if (!ITypesUtil::Unmarshal(data, type)) {
+        IMSA_HILOGE("unmarshal failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return ITypesUtil::Marshal(reply, StartInputType(type)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::ExitCurrentInputTypeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return ITypesUtil::Marshal(reply, ExitCurrentInputType()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices
 } // namespace OHOS

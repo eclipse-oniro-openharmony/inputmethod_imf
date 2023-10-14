@@ -28,6 +28,7 @@ napi_value JsKeyboardControllerEngine::Init(napi_env env, napi_value info)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("hideKeyboard", HideKeyboard),
         DECLARE_NAPI_FUNCTION("hide", Hide),
+        DECLARE_NAPI_FUNCTION("exitCurrentInputType", ExitCurrentInputType),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, KCE_CLASS_NAME.c_str(), KCE_CLASS_NAME.size(), JsConstructor, nullptr,
@@ -116,6 +117,21 @@ napi_value JsKeyboardControllerEngine::HideKeyboard(napi_env env, napi_callback_
     // 1 means JsAPI:hideKeyboard has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "hideKeyboard");
+}
+
+napi_value JsKeyboardControllerEngine::ExitCurrentInputType(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<ExitContext>();
+    auto input = [ctxt](
+                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t errorCode = InputMethodAbility::GetInstance()->ExitCurrentInputType();
+        errorCode == ErrorCode::NO_ERROR ? ctxt->SetState(napi_ok) : ctxt->SetErrorCode(errorCode);
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    AsyncCall asyncCall(env, info, ctxt, 1);
+    return asyncCall.Call(env, exec, "exitCurrentInputType");
 }
 } // namespace MiscServices
 } // namespace OHOS

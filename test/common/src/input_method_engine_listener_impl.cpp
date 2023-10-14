@@ -37,9 +37,9 @@ void InputMethodEngineListenerImpl::OnInputStart()
     isInputStart_ = true;
     imeListenerCv_.notify_one();
 }
-void InputMethodEngineListenerImpl::OnInputStop(const std::string &imeId)
+void InputMethodEngineListenerImpl::OnInputStop()
 {
-    IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStop %{public}s", imeId.c_str());
+    IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStop");
 }
 void InputMethodEngineListenerImpl::OnSetCallingWindow(uint32_t windowId)
 {

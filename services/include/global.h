@@ -99,6 +99,7 @@ enum {
     ERROR_IME = 25,
     ERROR_PARAMETER_CHECK_FAILED = 26,
     ERROR_IME_START_INPUT_FAILED = 27,
+    ERROR_PARSE_CONFIG_FILE = 28,
 };
 }; // namespace ErrorCode
 

@@ -46,7 +46,8 @@
               "hisysevent",
               "hitrace",
               "graphic_2d",
-              "ffrt"
+              "ffrt",
+              "config_policy"
           ], 
           "third_party": [
               "jsoncpp"

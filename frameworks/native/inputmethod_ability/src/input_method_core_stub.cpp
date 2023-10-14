@@ -60,7 +60,7 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
             break;
         }
         case STOP_INPUT_SERVICE: {
-            StopInputService(Str16ToStr8(data.ReadString16()));
+            StopInputService();
             reply.WriteInt32(ErrorCode::NO_ERROR);
             break;
         }
@@ -84,20 +84,17 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
     return NO_ERROR;
 }
 
-int32_t InputMethodCoreStub::InitInputControlChannel(
-    sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId)
+int32_t InputMethodCoreStub::InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel)
 {
     IMSA_HILOGD("InputMethodCoreStub::InitInputControlChannel");
     if (msgHandler_ == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
     }
-
     MessageParcel *data = new MessageParcel();
     if (inputControlChannel != nullptr) {
         IMSA_HILOGD("InputMethodCoreStub, inputControlChannel is not nullptr");
         data->WriteRemoteObject(inputControlChannel->AsObject());
     }
-    data->WriteString(imeId);
     Message *msg = new Message(MessageID::MSG_ID_INIT_INPUT_CONTROL_CHANNEL, data);
     msgHandler_->SendMessage(msg);
     return ErrorCode::NO_ERROR;
@@ -115,15 +112,13 @@ int32_t InputMethodCoreStub::HideKeyboard()
     return InputMethodAbility::GetInstance()->HideKeyboard();
 }
 
-void InputMethodCoreStub::StopInputService(std::string imeId)
+void InputMethodCoreStub::StopInputService()
 {
     IMSA_HILOGD("InputMethodCoreStub::StopInputService");
-    if (!msgHandler_) {
+    if (msgHandler_ == nullptr) {
         return;
     }
     MessageParcel *data = new MessageParcel();
-    data->WriteString16(Str8ToStr16(imeId));
-
     Message *msg = new Message(MessageID::MSG_ID_STOP_INPUT_SERVICE, data);
     msgHandler_->SendMessage(msg);
 }
@@ -147,7 +142,7 @@ void InputMethodCoreStub::InitInputControlChannelOnRemote(MessageParcel &data, M
         reply.WriteInt32(ErrorCode::ERROR_NULL_POINTER);
         return;
     }
-    auto ret = InitInputControlChannel(inputControlChannel, data.ReadString());
+    auto ret = InitInputControlChannel(inputControlChannel);
     reply.WriteInt32(ret);
 }
 

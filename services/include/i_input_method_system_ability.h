@@ -61,6 +61,9 @@ public:
     virtual int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) = 0;
     virtual int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) = 0;
     virtual bool IsCurrentIme() = 0;
+    virtual bool IsInputTypeSupported(InputType type) = 0;
+    virtual int32_t StartInputType(InputType type) = 0;
+    virtual int32_t ExitCurrentInputType() = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;

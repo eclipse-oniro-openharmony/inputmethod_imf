@@ -47,7 +47,6 @@ using WindowMgr = TddUtil::WindowManager;
 constexpr uint32_t DEALY_TIME = 1;
 class InputMethodAbilityTest : public testing::Test {
 public:
-    static std::string imeIdStopped_;
     static std::mutex imeListenerCallbackLock_;
     static std::condition_variable imeListenerCv_;
     static bool showKeyboard_;
@@ -73,9 +72,8 @@ public:
             IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStart");
         }
 
-        void OnInputStop(const std::string &imeId)
+        void OnInputStop()
         {
-            imeIdStopped_ = imeId;
             IMSA_HILOGI("InputMethodEngineListenerImpl OnInputStop");
         }
 
@@ -125,7 +123,6 @@ public:
     }
 };
 
-std::string InputMethodAbilityTest::imeIdStopped_;
 std::mutex InputMethodAbilityTest::imeListenerCallbackLock_;
 std::condition_variable InputMethodAbilityTest::imeListenerCv_;
 bool InputMethodAbilityTest::showKeyboard_ = true;

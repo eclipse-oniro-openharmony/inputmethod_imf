@@ -579,11 +579,11 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
         uv_qos_user_initiated);
 }
 
-void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
+void JsInputMethodEngineSetting::OnInputStop()
 {
     IMSA_HILOGD("run in");
     std::string type = "inputStop";
-    uv_work_t *work = GetUVwork(type, [&imeId](UvEntry &entry) { entry.imeid = imeId; });
+    uv_work_t *work = GetUVwork(type);
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
@@ -595,20 +595,7 @@ void JsInputMethodEngineSetting::OnInputStop(const std::string &imeId)
                 delete data;
                 delete work;
             });
-            if (entry == nullptr) {
-                IMSA_HILOGE("OnInputStop:: entryptr is null");
-                return;
-            }
-            auto getInputStopProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == 0) {
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_string_utf8(env, entry->imeid.c_str(), NAPI_AUTO_LENGTH, &args[0]);
-                return true;
-            };
-            // 1 means callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInputStopProperty });
+            JsCallbackHandler::Traverse(entry->vecCopy);
         },
         uv_qos_user_initiated);
 }

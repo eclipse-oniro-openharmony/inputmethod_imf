@@ -598,6 +598,28 @@ public:
     IMF_API int32_t OnPanelStatusChange(
         const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo);
 
+    /**
+     * @brief Query whether an input type is supported.
+     *
+     * This function is used to query whether an input type is supported.
+     *
+     * @param type Indicates the input type being queried.
+     * @return Returns true for supported, false for not supported.
+     * @since 10
+     */
+    bool IsInputTypeSupported(InputType type);
+
+    /**
+     * @brief Start the input method which provides the specific input type.
+     *
+     * This function is used to start the input method which provides the specific input type.
+     *
+     * @param type Indicates the input type being specified.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    int32_t StartInputType(InputType type);
+
 private:
     InputMethodController();
     ~InputMethodController();

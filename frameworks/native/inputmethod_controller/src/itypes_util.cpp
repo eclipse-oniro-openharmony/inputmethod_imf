@@ -279,5 +279,20 @@ bool ITypesUtil::Unmarshalling(EventType &output, MessageParcel &data)
     output = static_cast<EventType>(ret);
     return true;
 }
+
+bool ITypesUtil::Marshalling(InputType input, MessageParcel &data)
+{
+    return data.WriteInt32(static_cast<int32_t>(input));
+}
+
+bool ITypesUtil::Unmarshalling(InputType &output, MessageParcel &data)
+{
+    int32_t ret = 0;
+    if (!data.ReadInt32(ret)) {
+        return false;
+    }
+    output = static_cast<InputType>(ret);
+    return true;
+}
 } // namespace MiscServices
 } // namespace OHOS
