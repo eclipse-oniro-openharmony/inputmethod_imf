@@ -46,6 +46,7 @@ constexpr int32_t INVALID_USER_ID = -1;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
 constexpr int32_t BUFF_LENGTH = 10;
+constexpr int32_t PERMISSION_NUM = 2;
 constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
 constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
 constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
@@ -110,10 +111,9 @@ uint64_t TddUtil::AllocTestTokenID(bool isSystemApp, bool needPermission, const 
         .resDeviceID = { "local" },
         .grantStatus = { PermissionState::PERMISSION_GRANTED },
         .grantFlags = { 1 } };
-    HapPolicyParams policyParams = { .apl = APL_NORMAL,
-        .domain = bundleName,
-        .permList = {},
-        .permStateList = { permissionState } };
+    HapPolicyParams policyParams = {
+        .apl = APL_NORMAL, .domain = bundleName, .permList = {}, .permStateList = { permissionState }
+    };
     if (!needPermission) {
         policyParams = { .apl = APL_NORMAL, .domain = bundleName, .permList = {}, .permStateList = {} };
     }
@@ -224,21 +224,23 @@ int TddUtil::GetUserIdByBundleName(const std::string &bundleName, const int curr
         return -1;
     }
     // 200000 means userId = uid / 200000.
-    return uid/200000;
+    return uid / 200000;
 }
 
 void TddUtil::GrantNativePermission()
 {
-    const char **perms = new const char *[1];
-    perms[0] = "ohos.permission.MANAGE_SECURE_SETTINGS";
+    const char *perms[PERMISSION_NUM] = {
+        "ohos.permission.MANAGE_SECURE_SETTINGS",
+        "ohos.permission.CONNECT_IME_ABILITY",
+    };
     TokenInfoParams infoInstance = {
         .dcapsNum = 0,
-        .permsNum = 1,
+        .permsNum = PERMISSION_NUM,
         .aclsNum = 0,
         .dcaps = nullptr,
         .perms = perms,
         .acls = nullptr,
-        .processName = "imf_switch_test",
+        .processName = "imf_test",
         .aplStr = "system_core",
     };
     uint64_t tokenId = GetAccessTokenId(&infoInstance);
