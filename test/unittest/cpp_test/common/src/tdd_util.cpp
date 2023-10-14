@@ -229,10 +229,9 @@ int TddUtil::GetUserIdByBundleName(const std::string &bundleName, const int curr
 
 void TddUtil::GrantNativePermission()
 {
-    const char *perms[PERMISSION_NUM] = {
-        "ohos.permission.MANAGE_SECURE_SETTINGS",
-        "ohos.permission.CONNECT_IME_ABILITY",
-    };
+    const char **perms[PERMISSION_NUM] = new const char *[PERMISSION_NUM];
+    perms[0] = "ohos.permission.MANAGE_SECURE_SETTINGS";
+    perms[1] = "ohos.permission.CONNECT_IME_ABILITY";
     TokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = PERMISSION_NUM,
