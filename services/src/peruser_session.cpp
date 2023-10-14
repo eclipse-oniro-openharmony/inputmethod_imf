@@ -857,13 +857,21 @@ int32_t PerUserSession::ExitCurrentInputType()
     auto typeIme = InputTypeManager::GetInstance().GetCurrentIme();
     auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (cfgIme->bundleName == typeIme.bundleName) {
-        IMSA_HILOGI("switch subtype to: %{public}s", cfgIme->subName.c_str());
-        return SwitchSubtype({ .name = cfgIme->bundleName, .id = cfgIme->subName });
+        IMSA_HILOGI("only need to switch subtype: %{public}s", cfgIme->subName.c_str());
+        int32_t ret = SwitchSubtype({ .name = cfgIme->bundleName, .id = cfgIme->subName });
+        if (ret == ErrorCode::NO_ERROR) {
+            InputTypeManager::GetInstance().Set(false);
+        }
+        return ret;
     }
-    IMSA_HILOGI("switch ime to: %{public}s/%{public}s", cfgIme->bundleName.c_str(), cfgIme->subName.c_str());
+    IMSA_HILOGI("need switch ime to: %{public}s/%{public}s", cfgIme->bundleName.c_str(), cfgIme->subName.c_str());
     StopInputService();
+    if (!StartInputService(cfgIme->imeId, true)) {
+        IMSA_HILOGE("failed to start ime");
+        return ErrorCode::ERROR_IME_START_FAILED;
+    }
     InputTypeManager::GetInstance().Set(false);
-    return StartInputService(cfgIme->imeId, true);
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS
