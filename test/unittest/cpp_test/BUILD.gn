@@ -284,8 +284,8 @@ ohos_unittest("InputMethodPrivateMemberTest") {
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
@@ -379,8 +379,8 @@ ohos_unittest("IdentityCheckerTest") {
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gmock",
