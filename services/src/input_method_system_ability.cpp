@@ -548,7 +548,7 @@ int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
         auto ret = userSession_->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
         return ret;
     }
-    IMSA_HILOGD("need to switch ime: %{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
+    IMSA_HILOGD("need to switch ime: %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     userSession_->StopInputService();
     auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeByBundleName(userId_, switchInfo.bundleName);
     if (targetImeProperty == nullptr) {
