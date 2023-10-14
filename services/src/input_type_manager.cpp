@@ -150,7 +150,6 @@ bool InputTypeManager::Init()
 
 bool InputTypeManager::ParseFromCustomSystem()
 {
-    IMSA_HILOGI("zll in");
     CfgFiles *cfgFiles = GetCfgFiles(IME_INPUT_TYPE_CFG_FILE_PATH);
     if (cfgFiles == nullptr) {
         IMSA_HILOGE("cfgFiles is nullptr");

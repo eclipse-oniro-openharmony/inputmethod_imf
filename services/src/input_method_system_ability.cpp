@@ -544,9 +544,11 @@ int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
 {
     auto currentImeBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
     if (switchInfo.bundleName == currentImeBundleName) {
+        IMSA_HILOGD("only need to switch subtype: %{public}s", switchInfo.subName.c_str());
         auto ret = userSession_->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
         return ret;
     }
+    IMSA_HILOGD("need to switch ime: %{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     userSession_->StopInputService();
     auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeByBundleName(userId_, switchInfo.bundleName);
     if (targetImeProperty == nullptr) {
