@@ -866,11 +866,11 @@ int32_t PerUserSession::ExitCurrentInputType()
     }
     IMSA_HILOGI("need switch ime to: %{public}s/%{public}s", cfgIme->bundleName.c_str(), cfgIme->subName.c_str());
     StopInputService();
+    InputTypeManager::GetInstance().Set(false);
     if (!StartInputService(cfgIme->imeId, true)) {
         IMSA_HILOGE("failed to start ime");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
-    InputTypeManager::GetInstance().Set(false);
     return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
