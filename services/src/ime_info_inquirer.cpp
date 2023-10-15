@@ -258,7 +258,7 @@ std::vector<InputMethodInfo> ImeInfoInquirer::ListInputMethodInfo(const int32_t 
 }
 
 int32_t ImeInfoInquirer::ListInputMethod(
-    const int32_t userId, const InputMethodStatus status, std::vector<Property> &props, bool enableOn)
+    int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn)
 {
     IMSA_HILOGD("userId: %{public}d, status: %{public}d", userId, status);
     if (status == InputMethodStatus::ALL) {
@@ -350,7 +350,7 @@ int32_t ImeInfoInquirer::ListDisabledInputMethod(const int32_t userId, std::vect
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::GetNextSwitchInfo(SwitchInfo &switchInfo, const int32_t userId, bool enableOn)
+int32_t ImeInfoInquirer::GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userId, bool enableOn)
 {
     std::vector<Property> props = {};
     switchInfo.bundleName = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId)->prop.name;
@@ -539,7 +539,7 @@ std::shared_ptr<Property> ImeInfoInquirer::GetImeByBundleName(int32_t userId, co
     return std::make_shared<Property>(prop);
 }
 
-std::shared_ptr<Property> ImeInfoInquirer::GetCurrentIme(int32_t userId)
+std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
 {
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     IMSA_HILOGD("currentIme: %{public}s", currentImeCfg->imeId.c_str());

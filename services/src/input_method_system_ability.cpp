@@ -608,7 +608,7 @@ int32_t InputMethodSystemAbility::DisplayOptionalInputMethodDeprecated()
 
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
-    return ImeInfoInquirer::GetInstance().GetCurrentIme(userId_);
+    return ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId_);
 }
 
 std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()

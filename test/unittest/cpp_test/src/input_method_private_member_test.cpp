@@ -769,14 +769,14 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentIme_001, TestSize.Level
     IMSA_HILOGI("InputMethodPrivateMemberTest III_TestGetCurrentInputMethod_001 TEST START");
     // currentIme is empty
     auto currentUserId = TddUtil::GetCurrentUserId();
-    auto prop = ImeInfoInquirer::GetInstance().GetCurrentIme(currentUserId);
+    auto prop = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(currentUserId);
     EXPECT_TRUE(prop == nullptr);
 
     // get correct prop
     auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
         { currentUserId, currentProp->name + "/" + currentProp->id, "test" });
-    prop = ImeInfoInquirer::GetInstance().GetCurrentIme(currentUserId);
+    prop = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(currentUserId);
     ASSERT_TRUE(prop != nullptr);
     EXPECT_TRUE(prop->id == currentProp->id);
 }
