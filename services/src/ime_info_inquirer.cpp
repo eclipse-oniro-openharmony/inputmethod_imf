@@ -418,6 +418,7 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
             subProp.iconId = atoi(subProp.icon.substr(pos + 1).c_str());
         }
         ParseLanguage(subProp.locale, subProp.language);
+        *it = subProp;
         ++it;
     }
     return ErrorCode::NO_ERROR;

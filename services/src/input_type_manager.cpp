@@ -141,6 +141,9 @@ bool InputTypeManager::Init()
             std::lock_guard<std::mutex> lock(listLock_);
             inputTypeImeList_.insert(cfg.second);
         }
+    } else {
+        std::lock_guard<std::mutex> lk(typesLock_);
+        inputTypes_.clear();
     }
     isTypeCfgReady_.store(isSuccess);
     isInitSuccess_.SetValue(isSuccess);
@@ -156,23 +159,26 @@ bool InputTypeManager::ParseFromCustomSystem()
         return false;
     }
     bool isSuccess = true;
-    // parse config files, ordered by priority from low to high
-    for (const auto &path : cfgFiles->paths) {
+    // parse config files, ordered by priority from high to low
+    for (int32_t i = MAX_CFG_POLICY_DIRS_CNT - 1; i >= 0; i--) {
+        auto path = cfgFiles->paths[i];
         if (path == nullptr || *path == '\0') {
             continue;
         }
         isSuccess = false;
-        char cfgPath[PATH_MAX + 1] = { 0x00 };
-        if (strlen(path) == 0 || strlen(path) > PATH_MAX || realpath(path, cfgPath) == nullptr) {
+        char realPath[PATH_MAX + 1] = { 0x00 };
+        if (strlen(path) == 0 || strlen(path) > PATH_MAX || realpath(path, realPath) == nullptr) {
             IMSA_HILOGE("failed to get realpath");
-            continue;
+            break;
         }
-        std::string configFilePath(path);
-        if (!GetCfgsFromFile(configFilePath)) {
-            isSuccess = true;
+        std::string cfgPath(realPath);
+        if (!GetCfgsFromFile(cfgPath)) {
+            break;
         }
+        isSuccess = true;
     }
     FreeCfgFiles(cfgFiles);
+    IMSA_HILOGI("parse result: %{public}d", isSuccess);
     return isSuccess;
 }
 
@@ -197,7 +203,7 @@ bool InputTypeManager::GetCfgsFromFile(const std::string &cfgPath)
     std::vector<InputTypeCfg> configs = jsonCfg.at(SUPPORTED_INPUT_TYPE_LIST).get<std::vector<InputTypeCfg>>();
     std::lock_guard<std::mutex> lock(typesLock_);
     for (const auto &config : configs) {
-        inputTypes_[config.type] = config.ime;
+        inputTypes_.insert({ config.type, config.ime });
     }
     return true;
 }
