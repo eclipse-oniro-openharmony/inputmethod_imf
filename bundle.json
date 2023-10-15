@@ -47,7 +47,8 @@
               "hitrace",
               "graphic_2d",
               "ffrt",
-              "config_policy"
+              "config_policy",
+              "data_share"
           ], 
           "third_party": [
               "jsoncpp"

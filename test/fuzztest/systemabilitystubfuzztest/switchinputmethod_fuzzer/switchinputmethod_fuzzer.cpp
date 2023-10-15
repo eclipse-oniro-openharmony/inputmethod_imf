@@ -20,14 +20,10 @@
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
-constexpr size_t THRESHOLD = 10;
 } // namespace OHOS
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
-    if (size < OHOS::THRESHOLD) {
-        return 0;
-    }
     /* Run your code on data */
     ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(data, size, InputMethodInterfaceCode::SWITCH_INPUT_METHOD);
     return 0;

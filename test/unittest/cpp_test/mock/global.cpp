@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,19 +13,22 @@
  * limitations under the License.
  */
 
-#include "displayoptionalinputdeprecated_fuzzer.h"
+#include "global.h"
 
-#include "imf_sa_stub_fuzz_util.h"
-#include "inputmethod_service_ipc_interface_code.h"
+#include <cstdio>
+#include <thread>
 
-using namespace OHOS::MiscServices;
 namespace OHOS {
-} // namespace OHOS
-/* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+namespace MiscServices {
+void LogTimeStamp()
 {
-    /* Run your code on data */
-    ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(
-        data, size, InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_DEPRECATED);
-    return 0;
+    struct timeval tv;
+    gettimeofday(&tv, nullptr);
+    struct tm nowTime;
+    localtime_r(&tv.tv_sec, &nowTime);
+    int32_t millSec = 1000;
+    printf("%02d-%02d %02d:%02d:%02d.%03d\t", nowTime.tm_mon, nowTime.tm_mday, nowTime.tm_hour, nowTime.tm_min,
+        nowTime.tm_sec, static_cast<int32_t>(tv.tv_usec) / millSec);
 }
+} // namespace MiscServices
+} // namespace OHOS

@@ -12,17 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define private public
+#define protected public
+#include "enable_ime_data_parser.h"
+#undef private
 
-#include "tdd_util.h"
+#include <unistd.h>
 
 #include <csignal>
 #include <cstdint>
 #include <sstream>
 #include <string>
-#include <unistd.h>
 #include <vector>
 
 #include "accesstoken_kit.h"
+#include "datashare_helper.h"
 #include "global.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
@@ -30,6 +34,7 @@
 #include "os_account_manager.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
+#include "tdd_util.h"
 #include "token_setproc.h"
 
 namespace OHOS {
@@ -41,7 +46,10 @@ constexpr int32_t INVALID_USER_ID = -1;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
 constexpr int32_t BUFF_LENGTH = 10;
+constexpr int32_t PERMISSION_NUM = 2;
 constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
+constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
+constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
 static constexpr int32_t MAX_TIMEOUT_WAIT_FOCUS = 2000;
 uint64_t TddUtil::selfTokenID_ = 0;
 int32_t TddUtil::userID_ = INVALID_USER_ID;
@@ -85,32 +93,6 @@ int32_t TddUtil::GetCurrentUserId()
     }
     return userIds[0];
 }
-
-void TddUtil::GrantNativePermission()
-{
-    const char **perms = new const char *[1];
-    perms[0] = "ohos.permission.CONNECT_IME_ABILITY";
-    TokenInfoParams infoInstance = {
-        .dcapsNum = 0,
-        .permsNum = 1,
-        .aclsNum = 0,
-        .dcaps = nullptr,
-        .perms = perms,
-        .acls = nullptr,
-        .processName = "inputmethod_imf",
-        .aplStr = "system_core",
-    };
-    uint64_t tokenId = GetAccessTokenId(&infoInstance);
-    int res = SetSelfTokenID(tokenId);
-    if (res == 0) {
-        IMSA_HILOGI("SetSelfTokenID success!");
-    } else {
-        IMSA_HILOGE("SetSelfTokenID fail!");
-    }
-    AccessTokenKit::ReloadNativeTokenInfo();
-    delete[] perms;
-}
-
 void TddUtil::StorageSelfTokenID()
 {
     selfTokenID_ = GetSelfTokenID();
@@ -129,10 +111,9 @@ uint64_t TddUtil::AllocTestTokenID(bool isSystemApp, bool needPermission, const 
         .resDeviceID = { "local" },
         .grantStatus = { PermissionState::PERMISSION_GRANTED },
         .grantFlags = { 1 } };
-    HapPolicyParams policyParams = { .apl = APL_NORMAL,
-        .domain = bundleName,
-        .permList = {},
-        .permStateList = { permissionState } };
+    HapPolicyParams policyParams = {
+        .apl = APL_NORMAL, .domain = bundleName, .permList = {}, .permStateList = { permissionState }
+    };
     if (!needPermission) {
         policyParams = { .apl = APL_NORMAL, .domain = bundleName, .permList = {}, .permStateList = {} };
     }
@@ -243,7 +224,60 @@ int TddUtil::GetUserIdByBundleName(const std::string &bundleName, const int curr
         return -1;
     }
     // 200000 means userId = uid / 200000.
-    return uid/200000;
+    return uid / 200000;
+}
+
+void TddUtil::GrantNativePermission()
+{
+    const char **perms = new const char *[PERMISSION_NUM];
+    perms[0] = "ohos.permission.MANAGE_SECURE_SETTINGS";
+    perms[1] = "ohos.permission.CONNECT_IME_ABILITY";
+    TokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = PERMISSION_NUM,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = perms,
+        .acls = nullptr,
+        .processName = "imf_test",
+        .aplStr = "system_core",
+    };
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    int res = SetSelfTokenID(tokenId);
+    if (res == 0) {
+        IMSA_HILOGI("SetSelfTokenID success!");
+    } else {
+        IMSA_HILOGE("SetSelfTokenID fail!");
+    }
+    AccessTokenKit::ReloadNativeTokenInfo();
+    delete[] perms;
+}
+
+void TddUtil::PutEnableImeValue(const std::string &key, const std::string &value)
+{
+    auto helper = EnableImeDataParser::GetInstance()->CreateDataShareHelper();
+    if (helper == nullptr) {
+        IMSA_HILOGE("helper is nullptr.");
+        return;
+    }
+    DataShare::DataShareValueObject keyObj(key);
+    DataShare::DataShareValueObject valueObj(value);
+    DataShare::DataShareValuesBucket bucket;
+    bucket.Put(SETTING_COLUMN_KEYWORD, keyObj);
+    bucket.Put(SETTING_COLUMN_VALUE, valueObj);
+    DataShare::DataSharePredicates predicates;
+    predicates.EqualTo(SETTING_COLUMN_KEYWORD, key);
+    Uri uri(EnableImeDataParser::GetInstance()->GenerateTargetUri(key));
+    if (helper->Update(uri, predicates, bucket) <= 0) {
+        IMSA_HILOGD("no data exist, insert one row");
+        helper->Insert(uri, bucket);
+    }
+    EnableImeDataParser::GetInstance()->ReleaseDataShareHelper(helper);
+}
+
+int32_t TddUtil::CheckEnableOn(std::string &value)
+{
+    return EnableImeDataParser::GetInstance()->GetStringValue(EnableImeDataParser::ENABLE_IME, value);
 }
 
 void TddUtil::WindowManager::CreateWindow()

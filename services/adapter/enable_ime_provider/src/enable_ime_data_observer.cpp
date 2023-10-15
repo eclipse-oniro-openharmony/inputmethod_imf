@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,19 +13,20 @@
  * limitations under the License.
  */
 
-#include "displayoptionalinputdeprecated_fuzzer.h"
+#include "enable_ime_data_observer.h"
 
-#include "imf_sa_stub_fuzz_util.h"
-#include "inputmethod_service_ipc_interface_code.h"
-
-using namespace OHOS::MiscServices;
 namespace OHOS {
-} // namespace OHOS
-/* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+namespace MiscServices {
+void EnableImeDataObserver::OnChange()
 {
-    /* Run your code on data */
-    ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(
-        data, size, InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_DEPRECATED);
-    return 0;
+    if (func_ != nullptr) {
+        func_();
+    }
 }
+
+const std::string &EnableImeDataObserver::GetKey()
+{
+    return key_;
+}
+} // namespace MiscServices
+} // namespace OHOS

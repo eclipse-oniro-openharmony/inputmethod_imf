@@ -16,9 +16,10 @@
 #ifndef SERVICES_INCLUDE_GLOBAL_H
 #define SERVICES_INCLUDE_GLOBAL_H
 
-#include <errno.h>
 #include <sys/time.h>
-#include <time.h>
+
+#include <cerrno>
+#include <ctime>
 
 #include "hilog/log.h"
 #include "ipc_object_stub.h"
@@ -28,7 +29,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-
 using BRemoteObject = IPCObjectStub;
 
 #define LOG_INFO(fmt, args...) \
@@ -56,56 +56,16 @@ void LogTimeStamp();
 // Error Code
 namespace ErrorCode {
 // Error Code definition in the input method management system
-enum {
-    ERROR_STATUS_PERMISSION_DENIED = -EPERM,                          // permission denied
-    ERROR_STATUS_UNKNOWN_TRANSACTION = -EBADMSG,                      // unknown transaction
+constexpr int32_t NO_ERROR = 0;
 
-    // binder exception error code from Status.h
-    ERROR_EX_ILLEGAL_ARGUMENT = -3,      // illegal argument exception
-    ERROR_EX_NULL_POINTER = -4,          // null pointer exception
-    ERROR_EX_ILLEGAL_STATE = -5,         // illegal state exception
-    ERROR_EX_PARCELABLE  = -6,           // parcelable exception
-    ERROR_EX_UNSUPPORTED_OPERATION = -7, // unsupported operation exception
-    ERROR_EX_SERVICE_SPECIFIC = -8,      // service specific exception
-    // no error
-    NO_ERROR = 0, // no error
+// system service error
+constexpr int32_t ERROR_NULL_POINTER = 1;
+constexpr int32_t ERROR_KEYWORD_NOT_FOUND = 26;
+constexpr int32_t ERROR_ENABLE_IME = 27;
 
-    // system service error
-    ERROR_NULL_POINTER = 1,          // null pointer
-    ERROR_BAD_PARAMETERS = 2,        // bad parameters
-    ERROR_CLIENT_NOT_FOUND = 3,
-    ERROR_CLIENT_NULL_POINTER = 4,
-    ERROR_SUBSCRIBE_KEYBOARD_EVENT = 5,
-    ERROR_IME_NOT_STARTED = 6,
-    ERROR_SERVICE_START_FAILED = 7,
-
-    ERROR_CONTROLLER_INVOKING_FAILED = 8,
-    ERROR_PERSIST_CONFIG = 9,
-    ERROR_KBD_HIDE_FAILED = 10,
-    ERROR_SWITCH_IME = 11,
-    ERROR_PACKAGE_MANAGER = 12,
-    ERROR_REMOTE_CLIENT_DIED = 13,
-    ERROR_IME_START_FAILED = 14,          // failed to start IME service
-    ERROR_KBD_SHOW_FAILED = 15,           // failed to show keyboard
-    ERROR_CLIENT_NOT_BOUND = 16,
-    ERROR_CLIENT_NOT_EDITABLE = 17,
-    ERROR_CLIENT_NOT_FOCUSED = 18,
-    ERROR_CLIENT_ADD_FAILED = 19,
-    ERROR_OPERATE_PANEL = 20,
-    ERROR_NOT_CURRENT_IME = 21,
-    ERROR_NOT_IME = 22,
-    ERROR_ADD_DEATH_RECIPIENT_FAILED = 23,
-    ERROR_STATUS_SYSTEM_PERMISSION = 24, // not system application
-    ERROR_IME = 25,
-	ERROR_PARAMETER_CHECK_FAILED = 26,
-    ERROR_IME_START_INPUT_FAILED = 27,
-    ERROR_KEYWORD_NOT_FOUND = 28,
-    ERROR_ENABLE_IME = 29,
-    ERROR_PARSE_CONFIG_FILE = 30,
-};
 }; // namespace ErrorCode
 
-static constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD001C00, "ImsaKit" };
+constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD001C00, "ImsaKit" };
 
 #define IMSA_HILOGD(fmt, ...)                                                       \
     (void)OHOS::HiviewDFX::HiLog::Debug(OHOS::MiscServices::g_SMALL_SERVICES_LABEL, \
@@ -122,8 +82,6 @@ static constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD0
 #define IMSA_HILOGW(fmt, ...)                                                      \
     (void)OHOS::HiviewDFX::HiLog::Warn(OHOS::MiscServices::g_SMALL_SERVICES_LABEL, \
         "line: %{public}d, function: %{public}s," fmt, __LINE__, __FUNCTION__, ##__VA_ARGS__)
-using Function = std::function<bool()>;
-bool BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func);
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_GLOBAL_H
