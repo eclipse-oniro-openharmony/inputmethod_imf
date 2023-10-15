@@ -43,8 +43,8 @@ public:
     int32_t StopInput(const sptr<IInputDataChannel> &channel) override;
     int32_t ShowKeyboard() override;
     int32_t HideKeyboard() override;
-    int32_t InitInputControlChannel(sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId) override;
-    void StopInputService(std::string imeId) override;
+    int32_t InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel) override;
+    void StopInputService() override;
     int32_t SetSubtype(const SubProperty &property) override;
     bool IsEnable() override;
     void SetMessageHandler(MessageHandler *msgHandler);

@@ -25,7 +25,7 @@ ImeInfoInquirer &ImeInfoInquirer::GetInstance()
     return instance;
 }
 
-std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(const int32_t userId)
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 {
     if (defaultIme_ != nullptr) {
         return defaultIme_;
@@ -34,7 +34,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(const int32_t userId
     return defaultIme_;
 }
 
-std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(const int32_t userId)
+std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
 {
     if (currentIme_ != nullptr) {
         return currentIme_;

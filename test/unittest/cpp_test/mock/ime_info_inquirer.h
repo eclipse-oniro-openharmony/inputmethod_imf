@@ -36,8 +36,8 @@ struct ImeInfo {
 class ImeInfoInquirer {
 public:
     static ImeInfoInquirer &GetInstance();
-    std::shared_ptr<ImeInfo> GetDefaultImeInfo(const int32_t userId);
-    std::shared_ptr<Property> GetCurrentInputMethod(const int32_t userId);
+    std::shared_ptr<ImeInfo> GetDefaultImeInfo(int32_t userId);
+    std::shared_ptr<Property> GetCurrentInputMethod(int32_t userId);
 
 private:
     static std::shared_ptr<ImeInfo> defaultIme_;

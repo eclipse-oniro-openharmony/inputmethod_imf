@@ -74,8 +74,9 @@ public:
     int32_t OnShowCurrentInput();
     int32_t OnShowInput(sptr<IInputClient> client);
     int32_t OnHideInput(sptr<IInputClient> client);
-    void StopInputService(std::string imeId);
-    int32_t OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch);
+    void StopInputService();
+    void NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);
+    int32_t SwitchSubtype(const SubProperty &subProperty);
     void UpdateCurrentUserId(int32_t userId);
     void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
@@ -86,6 +87,8 @@ public:
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
     bool IsProxyImeEnable();
+    bool IsBoundToClient();
+    int32_t ExitCurrentInputType();
 
 private:
     struct ResetManager {

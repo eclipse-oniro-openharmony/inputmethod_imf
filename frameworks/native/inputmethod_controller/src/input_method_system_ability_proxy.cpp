@@ -204,6 +204,27 @@ bool InputMethodSystemAbilityProxy::IsCurrentIme()
     return isCurrentIme;
 }
 
+bool InputMethodSystemAbilityProxy::IsInputTypeSupported(InputType type)
+{
+    bool isSupported = false;
+    SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::IS_INPUT_TYPE_SUPPORTED),
+        [type](MessageParcel &data) { return ITypesUtil::Marshal(data, type); },
+        [&isSupported](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isSupported); });
+    return isSupported;
+}
+
+int32_t InputMethodSystemAbilityProxy::StartInputType(InputType type)
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT_TYPE),
+        [&type](MessageParcel &data) { return ITypesUtil::Marshal(data, type); });
+}
+
+int32_t InputMethodSystemAbilityProxy::ExitCurrentInputType()
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::EXIT_CURRENT_INPUT_TYPE));
+}
+
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
     IMSA_HILOGI("InputMethodSystemAbilityProxy run in, code = %{public}d", code);

@@ -78,6 +78,7 @@ public:
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     bool IsCurrentIme();
     bool IsEnable();
+    int32_t ExitCurrentInputType();
 
 private:
     std::thread workThreadHandler;
@@ -100,7 +101,6 @@ private:
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_{ nullptr };
     sptr<InputDeathRecipient> deathRecipient_{ nullptr };
-    std::string currentIme_;
     sptr<IInputMethodSystemAbility> GetImsaProxy();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
 

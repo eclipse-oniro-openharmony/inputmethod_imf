@@ -31,11 +31,10 @@ InputMethodCoreProxy::InputMethodCoreProxy(const OHOS::sptr<OHOS::IRemoteObject>
 
 InputMethodCoreProxy::~InputMethodCoreProxy() = default;
 
-int32_t InputMethodCoreProxy::InitInputControlChannel(
-    sptr<IInputControlChannel> &inputControlChannel, const std::string &imeId)
+int32_t InputMethodCoreProxy::InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel)
 {
-    return SendRequest(INIT_INPUT_CONTROL_CHANNEL, [&inputControlChannel, &imeId](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, inputControlChannel->AsObject(), imeId);
+    return SendRequest(INIT_INPUT_CONTROL_CHANNEL, [&inputControlChannel](MessageParcel &data) {
+        return ITypesUtil::Marshal(data, inputControlChannel->AsObject());
     });
 }
 
@@ -47,11 +46,9 @@ int32_t InputMethodCoreProxy::StartInput(const sptr<IInputDataChannel> &inputDat
     });
 }
 
-void InputMethodCoreProxy::StopInputService(std::string imeId)
+void InputMethodCoreProxy::StopInputService()
 {
-    SendRequest(STOP_INPUT_SERVICE, [&imeId](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, Str8ToStr16(imeId));
-    });
+    SendRequest(STOP_INPUT_SERVICE);
 }
 
 int32_t InputMethodCoreProxy::ShowKeyboard()

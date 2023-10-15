@@ -27,7 +27,7 @@ public:
     virtual ~IdentityChecker() = default;
     virtual bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID) = 0;
     virtual bool IsSystemApp(uint64_t fullTokenId) = 0;
-    virtual bool IsCurrentIme(uint32_t tokenId, const std::string &currentBundleName) = 0;
+    virtual bool IsBundleNameValid(uint32_t tokenId, const std::string &validBundleName) = 0;
     virtual bool HasPermission(uint32_t tokenId, const std::string &permission) = 0;
     virtual bool IsBroker(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) = 0;

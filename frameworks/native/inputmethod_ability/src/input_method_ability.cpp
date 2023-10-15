@@ -201,10 +201,8 @@ void InputMethodAbility::WorkThread()
                 break;
             }
             case MSG_ID_STOP_INPUT_SERVICE: {
-                MessageParcel *data = msg->msgContent_;
-                std::string imeId = Str16ToStr8(data->ReadString16());
                 if (imeListener_ != nullptr) {
-                    imeListener_->OnInputStop(imeId);
+                    imeListener_->OnInputStop();
                 }
                 isBound_.store(false);
                 break;
@@ -232,7 +230,6 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
         IMSA_HILOGI("InputMethodAbility::OnInitInputControlChannel channelObject is nullptr");
         return;
     }
-    currentIme_ = data->ReadString();
     SetInputControlChannel(channelObject);
 }
 
@@ -715,7 +712,7 @@ void InputMethodAbility::OnRemoteSaDied(const wptr<IRemoteObject> &object)
         abilityManager_ = nullptr;
     }
     if (imeListener_ != nullptr) {
-        imeListener_->OnInputStop(currentIme_);
+        imeListener_->OnInputStop();
     }
 }
 
@@ -803,6 +800,17 @@ bool InputMethodAbility::IsEnable()
         return false;
     }
     return imeListener_->IsEnable();
+}
+
+int32_t InputMethodAbility::ExitCurrentInputType()
+{
+    IMSA_HILOGD("InputMethodAbility, in");
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("failed to get imsa proxy");
+        return false;
+    }
+    return proxy->ExitCurrentInputType();
 }
 } // namespace MiscServices
 } // namespace OHOS

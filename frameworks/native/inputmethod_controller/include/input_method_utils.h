@@ -139,6 +139,11 @@ struct TextConfig {
     SelectionRange range = {};
     uint32_t windowId = INVALID_WINDOW_ID;
 };
+
+enum class InputType {
+    NONE = -1,
+    CAMERA_INPUT = 0,
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_UTILS_H

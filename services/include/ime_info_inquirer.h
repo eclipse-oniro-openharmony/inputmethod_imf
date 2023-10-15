@@ -52,30 +52,28 @@ class ImeInfoInquirer {
 public:
     using CompareHandler = std::function<bool(const SubProperty &)>;
     static ImeInfoInquirer &GetInstance();
-    std::shared_ptr<SubProperty> GetImeSubProp(const std::vector<SubProperty> &subProps, const Condition &condition);
-    std::string GetInputMethodParam(const int32_t userId);
-    std::shared_ptr<Property> GetCurrentInputMethod(const int32_t userId);
-    std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype(const int32_t userId);
-    std::string GetStartedIme(const int32_t userId);
-    std::shared_ptr<ImeInfo> GetDefaultImeInfo(const int32_t userId);
-    std::shared_ptr<ImeInfo> GetImeInfo(
-        const int32_t userId, const std::string &bundleName, const std::string &subName);
-    void SetCurrentImeInfo(std::shared_ptr<ImeInfo> info);
-    void SetCurrentImeInfo(const int32_t userId);
+    std::string GetDumpInfo(int32_t userId);
+    std::string GetImeToBeStarted(int32_t userId);
+    std::shared_ptr<Property> GetImeByBundleName(int32_t userId, const std::string &bundleName);
+    std::shared_ptr<Property> GetCurrentInputMethod(int32_t userId);
+    std::shared_ptr<SubProperty> GetCurrentSubtype(int32_t userId);
+    std::shared_ptr<ImeInfo> GetImeInfo(int32_t userId, const std::string &bundleName, const std::string &subName);
+    std::shared_ptr<ImeInfo> GetDefaultImeInfo(int32_t userId);
     std::shared_ptr<ImeInfo> GetCurrentImeInfo();
-    void UpdateCurrentImeInfo(const int32_t userId);
-    void ResetCurrentImeInfo();
-    int32_t ListInputMethod(
-        const int32_t userId, const InputMethodStatus status, std::vector<Property> &props, bool enableOn);
-    int32_t ListInputMethodSubtype(
-        const int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);
-    int32_t ListCurrentInputMethodSubtype(const int32_t userId, std::vector<SubProperty> &subProps);
-    int32_t GetNextSwitchInfo(SwitchInfo &switchInfo, const int32_t userId, bool enableOn);
+    void SetCurrentImeInfo(std::shared_ptr<ImeInfo> info);
+    void RefreshCurrentImeInfo(int32_t userId);
+    std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(
+        const std::vector<SubProperty> &subProps, const Condition &condition);
+    int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);
+    int32_t ListInputMethodSubtype(int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);
+    int32_t ListCurrentInputMethodSubtype(int32_t userId, std::vector<SubProperty> &subProps);
+    int32_t GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userId, bool enableOn);
 
 private:
     ImeInfoInquirer() = default;
     ~ImeInfoInquirer() = default;
     OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
+    void InitCache(int32_t userId);
     SubProperty GetExtends(const std::vector<OHOS::AppExecFwk::Metadata> &metaData);
     std::string GetDefaultIme();
     std::string GetStringById(

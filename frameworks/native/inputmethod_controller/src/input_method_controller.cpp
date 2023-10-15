@@ -1015,5 +1015,27 @@ int32_t InputMethodController::SendFunctionKey(int32_t functionKey)
     listener->SendFunctionKey(funcKey);
     return ErrorCode::NO_ERROR;
 }
+
+bool InputMethodController::IsInputTypeSupported(InputType type)
+{
+    IMSA_HILOGI("InputMethodController, type: %{public}d", static_cast<int32_t>(type));
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return proxy->IsInputTypeSupported(type);
+}
+
+int32_t InputMethodController::StartInputType(InputType type)
+{
+    IMSA_HILOGI("InputMethodController, type: %{public}d", static_cast<int32_t>(type));
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return proxy->StartInputType(type);
+}
 } // namespace MiscServices
 } // namespace OHOS

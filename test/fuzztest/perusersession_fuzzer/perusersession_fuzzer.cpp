@@ -103,12 +103,11 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     userSessions->OnShowCurrentInput();
     userSessions->OnStartInput(client, false);
     userSessions->OnStartInput(client, true);
-    userSessions->OnSwitchIme(property, subProperty, false);
-    userSessions->OnSwitchIme(property, subProperty, true);
+    userSessions->NotifyImeChangeToClients(property, subProperty);
     userSessions->OnHideCurrentInput();
     userSessions->OnHideInput(client);
     userSessions->OnReleaseInput(client);
-    userSessions->StopInputService(str);
+    userSessions->StopInputService();
     return true;
 }
 } // namespace OHOS

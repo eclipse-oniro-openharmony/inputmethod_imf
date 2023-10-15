@@ -81,6 +81,9 @@ public:
     static bool Marshalling(EventType input, MessageParcel &data);
     static bool Unmarshalling(EventType &output, MessageParcel &data);
 
+    static bool Marshalling(InputType input, MessageParcel &data);
+    static bool Unmarshalling(InputType &output, MessageParcel &data);
+
     template<class T>
     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);
     template<class T>

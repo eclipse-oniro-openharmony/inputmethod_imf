@@ -71,6 +71,9 @@ public:
     int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
     bool IsCurrentIme() override;
+    bool IsInputTypeSupported(InputType type) override;
+    int32_t StartInputType(InputType type) override;
+    int32_t ExitCurrentInputType() override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;
@@ -92,17 +95,20 @@ private:
     std::shared_ptr<IdentityChecker> identityChecker_ = nullptr;
     void WorkThread();
     bool StartInputService(const std::string &imeId);
-    void StopInputService(const std::string &imeId);
     int32_t OnUserStarted(const Message *msg);
     int32_t OnUserRemoved(const Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
     int32_t OnDisplayOptionalInputMethod();
     void StartUserIdListener();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);
+    bool IsSwitchPermitted(const SwitchInfo &switchInfo);
+    bool IsStartInputTypePermitted();
     int32_t OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission);
+    int32_t OnStartInputType(const SwitchInfo &switchInfo);
     int32_t Switch(const std::string &bundleName, const std::shared_ptr<ImeInfo> &info);
     int32_t SwitchExtension(const std::shared_ptr<ImeInfo> &info);
     int32_t SwitchSubType(const std::shared_ptr<ImeInfo> &info);
+    int32_t SwitchInputType(const SwitchInfo &switchInfo);
     ServiceRunningState state_;
     void InitServiceHandler();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;

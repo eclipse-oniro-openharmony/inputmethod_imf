@@ -262,8 +262,8 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionCoreOrAgentNullptr, TestSiz
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     ret = userSession->InitInputControlChannel();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
-    userSession->StopInputService("test");
-    ret = userSession->OnSwitchIme({}, {}, true);
+    userSession->StopInputService();
+    ret = userSession->SwitchSubtype({});
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
 }
 
@@ -429,7 +429,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_004, TestSize.L
 
 /**
  * @tc.name: SA_SwitchByCombinationKey_005
- * @tc.desc: SwitchLanguage()/SwitchMode():GetImeSubProp failed
+ * @tc.desc: SwitchLanguage()/SwitchMode():FindTargetSubtypeByCondition failed
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: chenyu
@@ -732,19 +732,19 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestParseSubProp_008, TestSize.Level0
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentInputMethodSubtype_001, TestSize.Level0)
+HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentSubtype_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest III_TestGetCurrentInputMethodSubtype_001 TEST START");
     // currentIme is empty
     auto currentUserId = TddUtil::GetCurrentUserId();
-    auto subProp = ImeInfoInquirer::GetInstance().GetCurrentInputMethodSubtype(currentUserId);
+    auto subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
     EXPECT_TRUE(subProp == nullptr);
 
     // subName is not find
     auto currentProp = InputMethodController::GetInstance()->GetCurrentInputMethod();
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
         { currentUserId, currentProp->name + "/" + currentProp->id, "tt" });
-    subProp = ImeInfoInquirer::GetInstance().GetCurrentInputMethodSubtype(currentUserId);
+    subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
     EXPECT_TRUE(subProp != nullptr);
     EXPECT_TRUE(subProp->name == currentProp->name);
 
@@ -752,7 +752,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentInputMethodSubtype_001,
     auto currentSubProp = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
         { currentUserId, currentProp->name + "/" + currentProp->id, currentSubProp->id });
-    subProp = ImeInfoInquirer::GetInstance().GetCurrentInputMethodSubtype(currentUserId);
+    subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
     ASSERT_TRUE(subProp != nullptr);
     EXPECT_TRUE(subProp->id == currentSubProp->id);
 }
@@ -764,7 +764,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentInputMethodSubtype_001,
  * @tc.require:
  * @tc.author: chenyu
  */
-HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentInputMethod_001, TestSize.Level0)
+HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentIme_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest III_TestGetCurrentInputMethod_001 TEST START");
     // currentIme is empty

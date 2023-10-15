@@ -47,7 +47,7 @@ public:
     static napi_value DestroyPanel(napi_env env, napi_callback_info info);
     void OnInputStart() override;
     void OnKeyboardStatus(bool isShow) override;
-    void OnInputStop(const std::string &imeId) override;
+    void OnInputStop() override;
     void OnSetCallingWindow(uint32_t windowId) override;
     void OnSetSubtype(const SubProperty &property) override;
 
@@ -94,7 +94,6 @@ private:
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
-        std::string imeid;
         uint32_t windowid = 0;
         SubProperty subProperty;
         UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)

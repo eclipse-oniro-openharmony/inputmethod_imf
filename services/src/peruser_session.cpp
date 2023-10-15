@@ -26,6 +26,7 @@
 #include "input_data_channel_proxy.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_core_proxy.h"
+#include "input_type_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "message_parcel.h"
@@ -159,6 +160,7 @@ int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &currentClient)
     }
     bool isShowKeyboard = false;
     UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
+    ExitCurrentInputType();
     return ErrorCode::NO_ERROR;
 }
 
@@ -199,6 +201,7 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
         auto clientInfo = GetClientInfo(remote->AsObject());
         StopImeInput(clientInfo->bindImeType, clientInfo->channel);
         SetCurrentClient(nullptr);
+        ExitCurrentInputType();
     }
     RemoveClientInfo(remote->AsObject(), true);
 }
@@ -220,6 +223,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
         StopClientInput(client);
     }
     if (type == ImeType::IME) {
+        InputTypeManager::GetInstance().Set(false);
         RestartIme();
     }
 }
@@ -336,6 +340,7 @@ int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client)
     if (IsCurrentClient(client)) {
         UnBindClientWithIme(GetClientInfo(client->AsObject()));
         SetCurrentClient(nullptr);
+        ExitCurrentInputType();
     }
     RemoveClientInfo(client->AsObject());
     return ErrorCode::NO_ERROR;
@@ -385,7 +390,7 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
     auto data = GetImeData(type);
     if (data == nullptr && type == ImeType::IME) {
         IMSA_HILOGI("current ime is empty, try to restart it");
-        if (!StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_), true)) {
+        if (!StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_), true)) {
             IMSA_HILOGE("failed to restart ime");
             return ErrorCode::ERROR_IME_START_FAILED;
         }
@@ -397,7 +402,7 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
     }
     auto ret = data->core->StartInput(clientInfo->channel, clientInfo->isShowKeyboard);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("stop client input failed, ret: %{public}d", ret);
+        IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_IME_START_INPUT_FAILED;
     }
     ret = clientInfo->client->OnInputReady(data->agent);
@@ -519,11 +524,10 @@ int32_t PerUserSession::InitInputControlChannel()
         IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    return data->core->InitInputControlChannel(
-        inputControlChannel, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId);
+    return data->core->InitInputControlChannel(inputControlChannel);
 }
 
-void PerUserSession::StopInputService(std::string imeId)
+void PerUserSession::StopInputService()
 {
     IMSA_HILOGI("PerUserSession::StopInputService");
     auto data = GetImeData(ImeType::IME);
@@ -537,7 +541,7 @@ void PerUserSession::StopInputService(std::string imeId)
     if (clientInfo != nullptr && clientInfo->bindImeType == ImeType::IME) {
         StopClientInput(client);
     }
-    data->core->StopInputService(imeId);
+    data->core->StopInputService();
 }
 
 bool PerUserSession::IsRestartIme()
@@ -562,7 +566,7 @@ void PerUserSession::RestartIme()
         return;
     }
     IMSA_HILOGI("user %{public}d ime died, restart!", userId_);
-    StartInputService(ImeInfoInquirer::GetInstance().GetStartedIme(userId_), true);
+    StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_), true);
 }
 
 void PerUserSession::SetCurrentClient(sptr<IInputClient> client)
@@ -578,21 +582,9 @@ sptr<IInputClient> PerUserSession::GetCurrentClient()
     return currentClient_;
 }
 
-int32_t PerUserSession::OnSwitchIme(const Property &property, const SubProperty &subProperty, bool isSubtypeSwitch)
+void PerUserSession::NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty)
 {
-    IMSA_HILOGD("PerUserSession::OnSwitchIme");
-    if (isSubtypeSwitch) {
-        auto data = GetImeData(ImeType::IME);
-        if (data == nullptr) {
-            IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
-            return ErrorCode::ERROR_IME_NOT_STARTED;
-        }
-        int32_t ret = data->core->SetSubtype(subProperty);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("PerUserSession::SetSubtype failed, ret %{public}d", ret);
-            return ret;
-        }
-    }
+    IMSA_HILOGD("PerUserSession::NotifyImeChangeToClients");
     std::lock_guard<std::recursive_mutex> lock(mtx);
     for (const auto &client : mapClients_) {
         auto clientInfo = client.second;
@@ -607,7 +599,6 @@ int32_t PerUserSession::OnSwitchIme(const Property &property, const SubProperty 
             continue;
         }
     }
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t PerUserSession::AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent)
@@ -837,6 +828,51 @@ bool PerUserSession::IsBindProxyImeInImeBind(ImeType bindImeType)
 bool PerUserSession::IsBindImeInProxyImeBind(ImeType bindImeType)
 {
     return bindImeType == ImeType::PROXY_IME && !IsProxyImeEnable();
+}
+
+int32_t PerUserSession::SwitchSubtype(const SubProperty &subProperty)
+{
+    auto data = GetImeData(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    return data->core->SetSubtype(subProperty);
+}
+
+bool PerUserSession::IsBoundToClient()
+{
+    if (GetCurrentClient() == nullptr) {
+        IMSA_HILOGE("not in bound state");
+        return false;
+    }
+    return true;
+}
+
+int32_t PerUserSession::ExitCurrentInputType()
+{
+    if (!InputTypeManager::GetInstance().IsStarted()) {
+        IMSA_HILOGD("already exit");
+        return ErrorCode::NO_ERROR;
+    }
+    auto typeIme = InputTypeManager::GetInstance().GetCurrentIme();
+    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (cfgIme->bundleName == typeIme.bundleName) {
+        IMSA_HILOGI("only need to switch subtype: %{public}s", cfgIme->subName.c_str());
+        int32_t ret = SwitchSubtype({ .name = cfgIme->bundleName, .id = cfgIme->subName });
+        if (ret == ErrorCode::NO_ERROR) {
+            InputTypeManager::GetInstance().Set(false);
+        }
+        return ret;
+    }
+    IMSA_HILOGI("need switch ime to: %{public}s/%{public}s", cfgIme->bundleName.c_str(), cfgIme->subName.c_str());
+    StopInputService();
+    InputTypeManager::GetInstance().Set(false);
+    if (!StartInputService(cfgIme->imeId, true)) {
+        IMSA_HILOGE("failed to start ime");
+        return ErrorCode::ERROR_IME_START_FAILED;
+    }
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

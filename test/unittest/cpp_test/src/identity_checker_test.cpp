@@ -42,7 +42,7 @@ public:
         virtual ~IdentityCheckerMock() = default;
         MOCK_METHOD3(IsFocused, bool(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid));
         MOCK_METHOD1(IsSystemApp, bool(uint64_t fullTokenID));
-        MOCK_METHOD2(IsCurrentIme, bool(uint32_t tokenID, const std::string &currentBundleName));
+        MOCK_METHOD2(IsBundleNameValid, bool(uint32_t tokenID, const std::string &validBundleName));
         MOCK_METHOD2(HasPermission, bool(uint32_t tokenID, const std::string &permission));
         MOCK_METHOD1(IsBroker, bool(uint32_t tokenID));
         MOCK_METHOD1(IsNativeSa, bool(uint32_t tokenID));
@@ -384,7 +384,9 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsCurrentIme(_, _)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
+        .Times(1)
+        .WillRepeatedly(Return(true));
     int32_t ret = IdentityCheckerTest::service_->SetCoreAndAgent(nullptr, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
@@ -399,7 +401,9 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsCurrentIme(_, _)).Times(1).WillRepeatedly(Return(false));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
+        .Times(1)
+        .WillRepeatedly(Return(false));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsNativeSa(_)).Times(1).WillRepeatedly(Return(true));
     int32_t ret = IdentityCheckerTest::service_->SetCoreAndAgent(nullptr, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
@@ -460,7 +464,9 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testIsCurrentIme_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsCurrentIme(_, _)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
+        .Times(1)
+        .WillRepeatedly(Return(true));
     bool ret = IdentityCheckerTest::service_->IsCurrentIme();
     EXPECT_TRUE(ret);
 }
@@ -622,7 +628,9 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testPanelStatusChange_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testPanelStatusChange_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsCurrentIme(_, _)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
+        .Times(1)
+        .WillRepeatedly(Return(true));
     InputWindowStatus status = InputWindowStatus::SHOW;
     InputWindowInfo windowInfo{};
     int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, windowInfo);
@@ -720,7 +728,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_001 start");
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, HasPermission(_, _)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsCurrentIme(_, _)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _)).Times(1).WillRepeatedly(Return(true));
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(CURRENT_BUNDLENAME, CURRENT_SUBNAME);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -736,7 +744,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_003 start");
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, HasPermission(_, _)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsCurrentIme(_, _)).WillRepeatedly(Return(false));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _)).WillRepeatedly(Return(false));
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(CURRENT_BUNDLENAME, CURRENT_SUBNAME);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
