@@ -102,6 +102,7 @@ enum {
     ERROR_KEYWORD_NOT_FOUND = 28,
     ERROR_ENABLE_IME = 29,
     ERROR_PARSE_CONFIG_FILE = 30,
+    ERROR_NOT_DEFAULT_IME = 31,
 };
 }; // namespace ErrorCode
 

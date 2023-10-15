@@ -407,7 +407,7 @@ int32_t InputMethodSystemAbility::ExitCurrentInputType()
         return ErrorCode::ERROR_PERSIST_CONFIG;
     }
     if (!identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), defaultIme->prop.name)) {
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+        return ErrorCode::ERROR_NOT_DEFAULT_IME;
     }
     return userSession_->ExitCurrentInputType();
 }

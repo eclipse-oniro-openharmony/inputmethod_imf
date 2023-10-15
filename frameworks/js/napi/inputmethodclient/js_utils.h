@@ -45,6 +45,7 @@ enum IMFErrorCode : int32_t {
     EXCEPTION_SETTINGS,
     EXCEPTION_IMMS,
     EXCEPTION_DETACHED,
+    EXCEPTION_DEFAULTIME,
 };
 
 enum TypeCode : int32_t {
