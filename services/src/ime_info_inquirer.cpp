@@ -257,7 +257,6 @@ std::vector<InputMethodInfo> ImeInfoInquirer::ListInputMethodInfo(const int32_t 
     return properties;
 }
 
-
 int32_t ImeInfoInquirer::ListInputMethod(
     const int32_t userId, const InputMethodStatus status, std::vector<Property> &props, bool enableOn)
 {

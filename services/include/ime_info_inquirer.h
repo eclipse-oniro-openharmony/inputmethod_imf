@@ -60,7 +60,6 @@ public:
     std::shared_ptr<ImeInfo> GetImeInfo(int32_t userId, const std::string &bundleName, const std::string &subName);
     std::shared_ptr<ImeInfo> GetDefaultImeInfo(int32_t userId);
     std::shared_ptr<ImeInfo> GetCurrentImeInfo();
-    
     void SetCurrentImeInfo(std::shared_ptr<ImeInfo> info);
     void RefreshCurrentImeInfo(int32_t userId);
     std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(
@@ -71,7 +70,6 @@ public:
         const int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);
     int32_t ListCurrentInputMethodSubtype(const int32_t userId, std::vector<SubProperty> &subProps);
     int32_t GetNextSwitchInfo(SwitchInfo &switchInfo, const int32_t userId, bool enableOn);
->>>>>>> master
 
 private:
     ImeInfoInquirer() = default;
