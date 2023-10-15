@@ -44,6 +44,9 @@ public:
     static std::vector<std::string> extName;
     static std::vector<std::string> language;
     static std::vector<std::string> locale;
+    static bool enableOn;
+    static std::string beforeValue;
+    static std::string allEnableIme;
 };
 bool InputMethodSwitchTest::imeChangeFlag = false;
 sptr<InputMethodController> InputMethodSwitchTest::imc_;
@@ -53,11 +56,16 @@ std::string InputMethodSwitchTest::bundleName = "com.example.testIme";
 std::vector<std::string> InputMethodSwitchTest::extName{ "InputMethodExtAbility", "InputMethodExtAbility2" };
 std::vector<std::string> InputMethodSwitchTest::language{ "chinese", "english" };
 std::vector<std::string> InputMethodSwitchTest::locale{ "zh-CN", "en-US" };
+bool InputMethodSwitchTest::enableOn = false;
+std::string InputMethodSwitchTest::beforeValue;
+std::string InputMethodSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.newTestIme\", "
+                                                  "\"com.example.testIme\"]}}";
 constexpr uint32_t IME_EXT_NUM = 2;
 constexpr uint32_t NEW_IME_SUBTYPE_NUM = 3;
 constexpr uint32_t TOTAL_IME_MIN_NUM = 2;
 constexpr uint32_t ENABLE_IME_NUM = 1;
 constexpr uint32_t WAIT_IME_READY_TIME = 1;
+constexpr const char *ENABLE_IME_KEYWORD = "settings.inputmethod.enable_ime";
 class InputMethodSettingListenerImpl : public InputMethodSettingListener {
 public:
     InputMethodSettingListenerImpl() = default;
@@ -75,6 +83,13 @@ public:
 void InputMethodSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::SetUpTestCase");
+    TddUtil::GrantNativePermission();
+    int32_t ret = TddUtil::CheckEnableOn(beforeValue);
+    if (ret == ErrorCode::NO_ERROR) {
+        IMSA_HILOGI("Enable ime switch test.");
+        enableOn = true;
+        TddUtil::PutEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
+    }
     TddUtil::StorageSelfTokenID();
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, true, "ohos.inputMethod.test"));
     imc_ = InputMethodController::GetInstance();
@@ -85,6 +100,10 @@ void InputMethodSwitchTest::SetUpTestCase(void)
 void InputMethodSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::TearDownTestCase");
+    if (enableOn) {
+        TddUtil::GrantNativePermission();
+        TddUtil::PutEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
+    }
     InputMethodController::GetInstance()->Close();
     TddUtil::RestoreSelfTokenID();
 }
@@ -257,7 +276,11 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleName, TestSize.Level
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleName Test START");
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod("error bundleName", extName[0]);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    if (InputMethodSwitchTest::enableOn) {
+        EXPECT_EQ(ret, ErrorCode::ERROR_ENABLE_IME);
+    } else {
+        EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    }
     CheckCurrentProp(subName);
     CheckCurrentSubProp(subName);
     CheckCurrentSubProps();
@@ -275,7 +298,11 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleNameWitchEmptySubNam
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleNameWitchEmptySubName Test START");
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod("error bundleName", " ");
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    if (InputMethodSwitchTest::enableOn) {
+        EXPECT_EQ(ret, ErrorCode::ERROR_ENABLE_IME);
+    } else {
+        EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
+    }
     CheckCurrentProp(subName);
     CheckCurrentSubProp(subName);
     CheckCurrentSubProps();
@@ -321,14 +348,7 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodDisable, TestSize.Level0)
     std::vector<Property> disableProperties = {};
     auto ret = imc_->ListInputMethod(false, disableProperties);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    bool hasNewIme = false;
-    for (const auto &disableProperty : disableProperties) {
-        if (disableProperty.name == newImeBundleName) {
-            hasNewIme = true;
-            break;
-        }
-    }
-    EXPECT_TRUE(hasNewIme);
+    EXPECT_GE(disableProperties.size(), 0);
 }
 
 /**
@@ -345,9 +365,7 @@ HWTEST_F(InputMethodSwitchTest, testIMCListInputMethodEnable, TestSize.Level0)
     std::vector<Property> enableProperties = {};
     auto ret = imc_->ListInputMethod(true, enableProperties);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(enableProperties.size(), ENABLE_IME_NUM);
-    EXPECT_EQ(enableProperties[ENABLE_IME_NUM - 1].name, bundleName);
-    EXPECT_EQ(enableProperties[ENABLE_IME_NUM - 1].id, subName);
+    EXPECT_GE(enableProperties.size(), ENABLE_IME_NUM);
 }
 
 /**

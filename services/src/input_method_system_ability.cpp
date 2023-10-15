@@ -394,6 +394,11 @@ int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
 int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleName, const std::string &subName)
 {
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), bundleName, subName };
+    if (enableImeOn_ && !EnableImeDataParser::GetInstance()->CheckNeedSwitch(switchInfo, userId_)) {
+        IMSA_HILOGW("Enable mode off or switch is not enable, stoped!");
+        return ErrorCode::ERROR_ENABLE_IME;
+    }
+    switchInfo.timestamp = std::chrono::system_clock::now();
     switchQueue_.Push(switchInfo);
     return OnSwitchInputMethod(switchInfo, true);
 }
@@ -525,7 +530,7 @@ std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubt
 
 int32_t InputMethodSystemAbility::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
-    return ImeInfoInquirer::GetInstance().ListInputMethod(userId_, status, props);
+    return ImeInfoInquirer::GetInstance().ListInputMethod(userId_, status, props, enableImeOn_);
 }
 
 int32_t InputMethodSystemAbility::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
@@ -594,6 +599,9 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGI("%{public}d switch to %{public}d.", oldUserId, userId_);
+    if (enableImeOn_) {
+        EnableImeDataParser::GetInstance()->OnUserChanged(userId_);
+    }
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(oldUserId)->imeId;
     StopInputService(currentIme);
     // user switch, reset currentImeInfo_ = nullptr
@@ -752,21 +760,16 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
 
 int32_t InputMethodSystemAbility::SwitchType()
 {
-    std::vector<Property> props = {};
-    auto ret = ImeInfoInquirer::GetInstance().ListInputMethod(userId_, ALL, props);
+    SwitchInfo switchInfo = { std::chrono::system_clock::now(), "", "" };
+    int32_t ret = ImeInfoInquirer::GetInstance().GetNextSwitchInfo(switchInfo, userId_, enableImeOn_);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("ListProperty failed");
+        IMSA_HILOGE("Get next SwitchInfo failed, stop switching ime.");
         return ret;
     }
-    auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
-    auto iter = std::find_if(props.begin(), props.end(),
-        [&currentImeBundle](const Property &property) { return property.name != currentImeBundle; });
-    if (iter != props.end()) {
-        SwitchInfo switchInfo = { std::chrono::system_clock::now(), iter->name, "" };
-        switchQueue_.Push(switchInfo);
-        return OnSwitchInputMethod(switchInfo, false);
-    }
-    return ErrorCode::NO_ERROR;
+    IMSA_HILOGD("switch to: %{public}s", switchInfo.bundleName.c_str());
+    switchInfo.timestamp = std::chrono::system_clock::now();
+    switchQueue_.Push(switchInfo);
+    return OnSwitchInputMethod(switchInfo, false);
 }
 
 void InputMethodSystemAbility::InitMonitors()
@@ -777,6 +780,11 @@ void InputMethodSystemAbility::InitMonitors()
     ret = InitFocusChangeMonitor();
     IMSA_HILOGI("init focus change monitor, ret: %{public}d", ret);
     InitSystemLanguageMonitor();
+    if (EnableImeDataParser::GetInstance()->Initialize(userId_) == ErrorCode::NO_ERROR) {
+        IMSA_HILOGW("Enter enable mode");
+        enableImeOn_ = true;
+        RegisterEnableImeObserver();
+    }
 }
 
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
@@ -800,6 +808,28 @@ void InputMethodSystemAbility::InitSystemLanguageMonitor()
 {
     SystemLanguageObserver::GetInstance().Watch(
         [this]() { ImeInfoInquirer::GetInstance().UpdateCurrentImeInfo(userId_); });
+}
+
+void InputMethodSystemAbility::RegisterEnableImeObserver()
+{
+    int32_t ret = EnableImeDataParser::GetInstance()->CreateAndRegisterObserver(
+        EnableImeDataParser::ENABLE_IME, [this]() { DatashareCallback(EnableImeDataParser::ENABLE_IME); });
+    IMSA_HILOGI("Register enable ime observer, ret: %{public}d", ret);
+    ret = EnableImeDataParser::GetInstance()->CreateAndRegisterObserver(
+        EnableImeDataParser::ENABLE_KEYBOARD, [this]() { DatashareCallback(EnableImeDataParser::ENABLE_KEYBOARD); });
+    IMSA_HILOGI("Register enable keyboard observer, ret: %{public}d", ret);
+}
+
+void InputMethodSystemAbility::DatashareCallback(const std::string &key)
+{
+    IMSA_HILOGI("run in.");
+    std::lock_guard<std::mutex> autoLock(checkMutex_);
+    SwitchInfo switchInfo;
+    if (EnableImeDataParser::GetInstance()->CheckNeedSwitch(key, switchInfo, userId_)) {
+        switchInfo.timestamp = std::chrono::system_clock::now();
+        switchQueue_.Push(switchInfo);
+        OnSwitchInputMethod(switchInfo, false);
+    }
 }
 
 int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)

@@ -43,6 +43,21 @@ group("system_ability_stub_fuzztest") {
   ]
 }
 
+common_external_deps = [
+  "ability_runtime:ability_manager",
+  "access_token:libaccesstoken_sdk",
+  "bundle_framework:appexecfwk_core",
+  "data_share:datashare_common",
+  "data_share:datashare_consumer",
+  "hilog:libhilog",
+  "input:libmmi-client",
+]
+
+common_deps = [
+  "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
+  "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static",
+]
+
 ##############################fuzztest##########################################
 ohos_fuzztest("GetCurrentInputmethodFuzzTest") {
   module_out_path = "imf/imf"
@@ -56,15 +71,9 @@ ohos_fuzztest("GetCurrentInputmethodFuzzTest") {
     "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common",
   ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("DisplayOptionalInputDeprecatedFuzzTest") {
@@ -79,15 +88,9 @@ ohos_fuzztest("DisplayOptionalInputDeprecatedFuzzTest") {
 
   sources = [ "displayoptionalinputdeprecated_fuzzer/displayoptionalinputdeprecated_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("GetCurrentInputmethodSubtypeFuzzTest") {
@@ -102,15 +105,9 @@ ohos_fuzztest("GetCurrentInputmethodSubtypeFuzzTest") {
 
   sources = [ "getcurrentinputmethodsubtype_fuzzer/getcurrentinputmethodsubtype_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("HideCurrentInputFuzzTest") {
@@ -125,15 +122,9 @@ ohos_fuzztest("HideCurrentInputFuzzTest") {
 
   sources = [ "hidecurrentinput_fuzzer/hidecurrentinput_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("HideCurrentInputDeprecatedFuzzTest") {
@@ -150,15 +141,9 @@ ohos_fuzztest("HideCurrentInputDeprecatedFuzzTest") {
     "hidecurrentinputdeprecated_fuzzer/hidecurrentinputdeprecated_fuzzer.cpp",
   ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("ListCurrentInputmethodSubtypeFuzzTest") {
@@ -173,15 +158,9 @@ ohos_fuzztest("ListCurrentInputmethodSubtypeFuzzTest") {
 
   sources = [ "listcurrentinputmethodsubtype_fuzzer/listcurrentinputmethodsubtype_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("ListInputmethodFuzzTest") {
@@ -196,15 +175,9 @@ ohos_fuzztest("ListInputmethodFuzzTest") {
 
   sources = [ "listinputmethod_fuzzer/listinputmethod_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("ListInputmethodSubtypeFuzzTest") {
@@ -220,15 +193,9 @@ ohos_fuzztest("ListInputmethodSubtypeFuzzTest") {
   sources =
       [ "listinputmethodsubtype_fuzzer/listinputmethodsubtype_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("PanelStatusChangeFuzzTest") {
@@ -243,15 +210,9 @@ ohos_fuzztest("PanelStatusChangeFuzzTest") {
 
   sources = [ "panelstatuschange_fuzzer/panelstatuschange_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("PrepareInputFuzzTest") {
@@ -266,15 +227,9 @@ ohos_fuzztest("PrepareInputFuzzTest") {
 
   sources = [ "prepareinput_fuzzer/prepareinput_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("ReleaseInputFuzzTest") {
@@ -289,15 +244,9 @@ ohos_fuzztest("ReleaseInputFuzzTest") {
 
   sources = [ "releaseinput_fuzzer/releaseinput_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("SetCoreAndAgentFuzzTest") {
@@ -312,15 +261,9 @@ ohos_fuzztest("SetCoreAndAgentFuzzTest") {
 
   sources = [ "setcoreandagent_fuzzer/setcoreandagent_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("ShowCurrentInputFuzzTest") {
@@ -335,15 +278,9 @@ ohos_fuzztest("ShowCurrentInputFuzzTest") {
 
   sources = [ "showcurrentinput_fuzzer/showcurrentinput_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("ShowCurrentInputDeprecatedFuzzTest") {
@@ -360,15 +297,9 @@ ohos_fuzztest("ShowCurrentInputDeprecatedFuzzTest") {
     "showcurrentinputdeprecated_fuzzer/showcurrentinputdeprecated_fuzzer.cpp",
   ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("StartInputFuzzTest") {
@@ -383,15 +314,9 @@ ohos_fuzztest("StartInputFuzzTest") {
 
   sources = [ "startinput_fuzzer/startinput_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("StopInputFuzzTest") {
@@ -406,15 +331,9 @@ ohos_fuzztest("StopInputFuzzTest") {
 
   sources = [ "stopinput_fuzzer/stopinput_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("StopInputSessionFuzzTest") {
@@ -429,15 +348,9 @@ ohos_fuzztest("StopInputSessionFuzzTest") {
 
   sources = [ "stopinputsession_fuzzer/stopinputsession_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("UpdateListenEventFlagFuzzTest") {
@@ -452,15 +365,9 @@ ohos_fuzztest("UpdateListenEventFlagFuzzTest") {
 
   sources = [ "updatelisteneventflag_fuzzer/updatelisteneventflag_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("SwitchInputMethodFuzzTest") {
@@ -475,15 +382,9 @@ ohos_fuzztest("SwitchInputMethodFuzzTest") {
 
   sources = [ "switchinputmethod_fuzzer/switchinputmethod_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }
 
 ohos_fuzztest("DisplayOptionalInputMethodFuzzTest") {
@@ -500,13 +401,7 @@ ohos_fuzztest("DisplayOptionalInputMethodFuzzTest") {
     "displayoptionalinputmethod_fuzzer/displayoptionalinputmethod_fuzzer.cpp",
   ]
 
-  deps = [ "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static" ]
+  deps = common_deps
 
-  external_deps = [
-    "ability_runtime:ability_manager",
-    "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_core",
-    "hilog:libhilog",
-    "input:libmmi-client",
-  ]
+  external_deps = common_external_deps
 }

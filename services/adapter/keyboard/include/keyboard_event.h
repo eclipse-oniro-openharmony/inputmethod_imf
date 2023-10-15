@@ -35,6 +35,9 @@ public:
     static constexpr uint8_t CTRL_LEFT_MASK = 0X1 << 2;
     static constexpr uint8_t CTRL_RIGHT_MASK = 0X1 << 3;
     static constexpr uint8_t CAPS_MASK = 0X1 << 4;
+    static constexpr uint8_t META_LEFT_MASK = 0X1 << 5;
+    static constexpr uint8_t META_RIGHT_MASK = 0X1 << 6;
+    static constexpr uint8_t SPACE_MASK = 0X1 << 7;
 
 private:
     static constexpr int32_t PRESS_KEY_DELAY_MS = 200;

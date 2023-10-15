@@ -23,6 +23,7 @@
 #include "application_info.h"
 #include "block_queue.h"
 #include "bundle_mgr_proxy.h"
+#include "enable_ime_data_parser.h"
 #include "event_handler.h"
 #include "identity_checker_impl.h"
 #include "ime_info_inquirer.h"
@@ -40,16 +41,6 @@ using AbilityType = AppExecFwk::ExtensionAbilityType;
 using namespace AppExecFwk;
 using namespace Security::AccessToken;
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
-
-struct SwitchInfo {
-    std::chrono::system_clock::time_point timestamp{};
-    std::string bundleName;
-    std::string subName;
-    bool operator==(const SwitchInfo &info) const
-    {
-        return (timestamp == info.timestamp && bundleName == info.bundleName && subName == info.subName);
-    }
-};
 
 class InputMethodSystemAbility : public SystemAbility, public InputMethodSystemAbilityStub {
     DECLARE_SYSTEM_ABILITY(InputMethodSystemAbility);
@@ -131,6 +122,11 @@ private:
     int32_t SwitchLanguage();
     int32_t SwitchType();
     int32_t GenerateClientInfo(InputClientInfo &clientInfo);
+    void RegisterEnableImeObserver();
+
+    std::mutex checkMutex_;
+    void DatashareCallback(const std::string &key);
+    bool enableImeOn_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

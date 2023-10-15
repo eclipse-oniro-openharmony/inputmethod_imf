@@ -40,12 +40,17 @@ ohos_static_library("inputmethod_tdd_util") {
   ]
   configs = [ ":inputmethod_tdd_util_config" ]
   public_configs = [ ":inputmethod_tdd_util_public_config" ]
-  deps = [ "${inputmethod_path}/services:inputmethod_service" ]
+  deps = [
+    "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
+  ]
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_core",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "hilog:libhilog",
     "input:libmmi-client",
     "os_account:os_account_innerkits",

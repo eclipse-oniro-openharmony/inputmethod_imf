@@ -258,6 +258,7 @@ ohos_unittest("InputMethodSwitchTest") {
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
@@ -265,6 +266,8 @@ ohos_unittest("InputMethodSwitchTest") {
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "hilog:libhilog",
     "input:libmmi-client",
     "window_manager:libwm",
@@ -282,6 +285,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
@@ -292,6 +296,8 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_core",
@@ -342,6 +348,7 @@ ohos_unittest("NewImeSwitchTest") {
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
   ]
@@ -349,6 +356,8 @@ ohos_unittest("NewImeSwitchTest") {
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "hilog:libhilog",
     "input:libmmi-client",
     "window_manager:libwm",
@@ -371,6 +380,7 @@ ohos_unittest("IdentityCheckerTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gmock",
@@ -383,6 +393,8 @@ ohos_unittest("IdentityCheckerTest") {
     "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -462,5 +474,38 @@ ohos_unittest("ImeProxyTest") {
     "napi:ace_napi",
     "window_manager:libdm",
     "window_manager:libwm",
+  ]
+}
+
+ohos_unittest("EnableImeDataParseTest") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "${inputmethod_path}/test/unittest/cpp_test/mock",
+    "${inputmethod_path}/services/adapter/enable_ime_provider/include",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+  ]
+
+  sources = [
+    "${inputmethod_path}/services/adapter/enable_ime_provider/src/enable_ime_data_observer.cpp",
+    "${inputmethod_path}/services/adapter/enable_ime_provider/src/enable_ime_data_parser.cpp",
+    "mock/datashare_helper.cpp",
+    "mock/global.cpp",
+    "mock/ime_info_inquirer.cpp",
+    "src/enable_ime_data_parse_test.cpp",
+  ]
+
+  deps = [
+    "//third_party/googletest:gmock",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:zuri",
+    "ability_runtime:dataobs_manager",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
 }
