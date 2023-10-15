@@ -223,6 +223,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
         StopClientInput(client);
     }
     if (type == ImeType::IME) {
+        InputTypeManager::GetInstance().Set(false);
         RestartIme();
     }
 }
