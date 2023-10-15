@@ -107,11 +107,11 @@ int32_t InputTypeManager::GetImeByInputType(InputType type, ImeIdentification &i
     return ErrorCode::NO_ERROR;
 }
 
-void InputTypeManager::Set(bool state, const ImeIdentification &ime)
+void InputTypeManager::Set(bool isStarted, const ImeIdentification &currentIme)
 {
     std::lock_guard<std::mutex> lock(stateLock_);
-    isStarted_ = state;
-    currentTypeIme_ = ime;
+    isStarted_ = isStarted;
+    currentTypeIme_ = currentIme;
 }
 
 bool InputTypeManager::IsStarted()

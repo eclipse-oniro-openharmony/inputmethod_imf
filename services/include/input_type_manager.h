@@ -51,7 +51,7 @@ public:
     bool IsSupported(InputType type);
     bool IsInputType(const ImeIdentification &ime);
     bool IsStarted();
-    void Set(bool state, const ImeIdentification &ime = {});
+    void Set(bool isStarted, const ImeIdentification &currentIme = {});
     ImeIdentification GetCurrentIme();
     int32_t GetImeByInputType(InputType type, ImeIdentification &ime);
 
