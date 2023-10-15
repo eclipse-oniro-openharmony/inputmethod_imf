@@ -162,7 +162,7 @@ bool EnableImeDataParser::ReleaseDataShareHelper(std::shared_ptr<DataShare::Data
 bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &switchInfo, const int32_t userId)
 {
     IMSA_HILOGD("Run in, data changed.");
-    auto currentIme = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId);
+    auto currentIme = ImeInfoInquirer::GetInstance().GetCurrentIme(userId);
     switchInfo.bundleName = GetDefaultIme()->name;
     switchInfo.subName = "";
     if (key == std::string(ENABLE_IME)) {

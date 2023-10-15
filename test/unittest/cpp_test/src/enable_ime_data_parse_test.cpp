@@ -62,8 +62,8 @@ void EnableImeDataParseTest::SetUp()
     resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : [ \"xiaoyiIme\", \"baiduIme\", "
                             "\"sougouIme\"],\"101\" : [\"sougouIme\"]}}";
 
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "defaultImeName";
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "defaultImeId";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->name = "defaultImeName";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->id = "defaultImeId";
     EnableImeDataParser::GetInstance()->enableList_.clear();
 }
 
@@ -157,8 +157,8 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_001, TestSize.Level0)
 HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_002, TestSize.Level0)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_002 START");
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->name = "xiaoyiIme";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->id = "xiaoyiImeId";
     EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : [\"baiduIme\", "
                                                     "\"sougouIme\"],\"101\" : [\"sougouIme\"]}}";
     SwitchInfo switchInfo;
@@ -179,8 +179,8 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_002, TestSize.Level0)
 HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_003, TestSize.Level0)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_003 START");
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->name = "xiaoyiIme";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->id = "xiaoyiImeId";
     EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : [ \"xiaoyiIme\", \"baiduIme\", "
                                                     "\"sougouIme\"],\"101\" : "
                                                     "[\"sougouIme\"]}}";
@@ -199,8 +199,8 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_003, TestSize.Level0)
 HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_004, TestSize.Level0)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_004 START");
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->name = "xiaoyiIme";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->id = "xiaoyiImeId";
     EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : [\"baiduIme\", "
                                                     "\"sougouIme\"],\"101\" : [\"sougouIme\"]}}";
     SwitchInfo switchInfo;
@@ -221,8 +221,8 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_004, TestSize.Level0)
 HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_005, TestSize.Level0)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_005 START");
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->name = "xiaoyiIme";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->id = "xiaoyiImeId";
     EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : [ \"sougouIme\"],\"101\" : "
                                                     "[\"sougouIme\"]}}";
     SwitchInfo switchInfo;
@@ -244,8 +244,8 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_005, TestSize.Level0)
 HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_006, TestSize.Level0)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_006 START");
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->name = "xiaoyiIme";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->id = "xiaoyiImeId";
     SwitchInfo switchInfo;
     bool ret = EnableImeDataParser::GetInstance()->CheckNeedSwitch(
         "settings.inputmethod.enable_keyboard", switchInfo, USER_ID);
@@ -262,8 +262,8 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_006, TestSize.Level0)
 HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_007, TestSize.Level0)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_007 START");
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "defaultImeName";
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "defaultImeId";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->name = "defaultImeName";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->id = "defaultImeId";
     SwitchInfo switchInfo;
     bool ret = EnableImeDataParser::GetInstance()->CheckNeedSwitch(
         "settings.inputmethod.enable_keyboard", switchInfo, USER_ID);
@@ -347,8 +347,8 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_011, TestSize.Level0)
 HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_012, TestSize.Level0)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_005 START");
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->name = "xiaoyiIme";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->id = "xiaoyiImeId";
     EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : []}}";
     SwitchInfo switchInfo;
     EnableImeDataParser::GetInstance()->enableList_[IME_KEY].push_back("xiaoyiIme");
@@ -369,8 +369,8 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_012, TestSize.Level0)
 HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_013, TestSize.Level0)
 {
     IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_005 START");
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
-    ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->name = "xiaoyiIme";
+    ImeInfoInquirer::GetInstance().GetCurrentIme(USER_ID)->id = "xiaoyiImeId";
     SwitchInfo switchInfo;
     bool ret = EnableImeDataParser::GetInstance()->CheckNeedSwitch(IME_KEY, switchInfo, USER_ID);
     EXPECT_FALSE(ret);
