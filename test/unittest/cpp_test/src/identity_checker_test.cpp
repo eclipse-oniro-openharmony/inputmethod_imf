@@ -384,7 +384,9 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
+        .Times(1)
+        .WillRepeatedly(Return(true));
     int32_t ret = IdentityCheckerTest::service_->SetCoreAndAgent(nullptr, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
@@ -399,7 +401,9 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _)).Times(1).WillRepeatedly(Return(false));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
+        .Times(1)
+        .WillRepeatedly(Return(false));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsNativeSa(_)).Times(1).WillRepeatedly(Return(true));
     int32_t ret = IdentityCheckerTest::service_->SetCoreAndAgent(nullptr, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
@@ -460,7 +464,9 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testIsCurrentIme_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
+        .Times(1)
+        .WillRepeatedly(Return(true));
     bool ret = IdentityCheckerTest::service_->IsCurrentIme();
     EXPECT_TRUE(ret);
 }
@@ -622,7 +628,9 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testPanelStatusChange_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testPanelStatusChange_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
+        .Times(1)
+        .WillRepeatedly(Return(true));
     InputWindowStatus status = InputWindowStatus::SHOW;
     InputWindowInfo windowInfo{};
     int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, windowInfo);

@@ -50,15 +50,15 @@ public:
     static InputTypeManager &GetInstance();
     bool IsSupported(InputType type);
     bool IsInputType(const ImeIdentification &ime);
-    int32_t GetImeByInputType(InputType type, ImeIdentification &ime);
-    void Set(bool state, const ImeIdentification &ime = {});
     bool IsStarted();
+    void Set(bool state, const ImeIdentification &ime = {});
     ImeIdentification GetCurrentIme();
+    int32_t GetImeByInputType(InputType type, ImeIdentification &ime);
 
 private:
     bool Init();
     bool ParseFromCustomSystem();
-    bool GetCfgsFromFile(char *cfgPath, std::vector<InputTypeCfg> &configs);
+    bool GetCfgsFromFile(const std::string &cfgPath);
     std::string ReadFile(const std::string &path);
     std::mutex stateLock_;
     bool isStarted_{ false };

@@ -111,8 +111,7 @@ void InputTypeManager::Set(bool state, const ImeIdentification &ime)
 {
     std::lock_guard<std::mutex> lock(stateLock_);
     isStarted_ = state;
-    ImeIdentification emptyIme;
-    currentTypeIme_ = state ? ime : emptyIme;
+    currentTypeIme_ = ime;
 }
 
 bool InputTypeManager::IsStarted()
@@ -137,14 +136,15 @@ bool InputTypeManager::Init()
     isInitSuccess_.Clear(false);
     bool isSuccess = ParseFromCustomSystem();
     if (isSuccess) {
-        std::lock_guard<std::mutex> lock(listLock_);
+        std::lock_guard<std::mutex> lk(typesLock_);
         for (const auto &cfg : inputTypes_) {
+            std::lock_guard<std::mutex> lock(listLock_);
             inputTypeImeList_.insert(cfg.second);
         }
     }
     isTypeCfgReady_.store(isSuccess);
-    isInitInProgress_.store(false);
     isInitSuccess_.SetValue(isSuccess);
+    isInitInProgress_.store(false);
     return isSuccess;
 }
 
@@ -161,32 +161,27 @@ bool InputTypeManager::ParseFromCustomSystem()
         if (path == nullptr || *path == '\0') {
             continue;
         }
-        std::vector<InputTypeCfg> configs;
-        if (!GetCfgsFromFile(path, configs)) {
-            isSuccess = false;
+        isSuccess = false;
+        char cfgPath[PATH_MAX + 1] = { 0x00 };
+        if (strlen(path) == 0 || strlen(path) > PATH_MAX || realpath(path, cfgPath) == nullptr) {
+            IMSA_HILOGE("failed to get realpath");
             continue;
         }
-        isSuccess = true;
-        std::lock_guard<std::mutex> lock(typesLock_);
-        for (const auto &config : configs) {
-            inputTypes_[config.type] = config.ime;
+        std::string configFilePath(path);
+        if (!GetCfgsFromFile(configFilePath)) {
+            isSuccess = true;
         }
     }
     FreeCfgFiles(cfgFiles);
     return isSuccess;
 }
 
-bool InputTypeManager::GetCfgsFromFile(char *cfgPath, std::vector<InputTypeCfg> &configs)
+bool InputTypeManager::GetCfgsFromFile(const std::string &cfgPath)
 {
-    char path[PATH_MAX + 1] = { 0x00 };
-    if (strlen(cfgPath) == 0 || strlen(cfgPath) > PATH_MAX || realpath(cfgPath, path) == nullptr) {
-        IMSA_HILOGE("failed to get realpath");
-        return false;
-    }
-    std::string configFilePath(path);
-    std::string jsonStr = ReadFile(configFilePath);
+    IMSA_HILOGD("in");
+    std::string jsonStr = ReadFile(cfgPath);
     if (jsonStr.empty()) {
-        IMSA_HILOGE("ConfigJson size is invalid");
+        IMSA_HILOGE("json config size is invalid");
         return false;
     }
     auto jsonCfg = json::parse(jsonStr, nullptr, false);
@@ -198,8 +193,12 @@ bool InputTypeManager::GetCfgsFromFile(char *cfgPath, std::vector<InputTypeCfg> 
         IMSA_HILOGE("%{public}s not find or abnormal", SUPPORTED_INPUT_TYPE_LIST.c_str());
         return false;
     }
-    IMSA_HILOGD("imeCfg json: %{public}s", jsonCfg.dump().c_str());
-    configs = jsonCfg.at(SUPPORTED_INPUT_TYPE_LIST).get<std::vector<InputTypeCfg>>();
+    IMSA_HILOGD("get json: %{public}s", jsonCfg.dump().c_str());
+    std::vector<InputTypeCfg> configs = jsonCfg.at(SUPPORTED_INPUT_TYPE_LIST).get<std::vector<InputTypeCfg>>();
+    std::lock_guard<std::mutex> lock(typesLock_);
+    for (const auto &config : configs) {
+        inputTypes_[config.type] = config.ime;
+    }
     return true;
 }
 
