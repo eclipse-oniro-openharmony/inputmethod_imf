@@ -607,7 +607,7 @@ public:
      * @return Returns true for supported, false for not supported.
      * @since 10
      */
-    bool IsInputTypeSupported(InputType type);
+    IMF_API bool IsInputTypeSupported(InputType type);
 
     /**
      * @brief Start the input method which provides the specific input type.
@@ -618,7 +618,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    int32_t StartInputType(InputType type);
+    IMF_API int32_t StartInputType(InputType type);
 
 private:
     InputMethodController();
