@@ -41,6 +41,7 @@ ohos_shared_library("inputmethod_service") {
     "${inputmethod_path}/services/adapter/focus_monitor/src/focus_monitor_manager.cpp",
     "${inputmethod_path}/services/adapter/system_language_observer/src/system_language_observer.cpp",
     "${inputmethod_path}/services/identity_checker/src/identity_checker_impl.cpp",
+    "${inputmethod_path}/common/src/input_method_config_parser.cpp",
     "src/global.cpp",
     "src/im_common_event_manager.cpp",
     "src/ime_cfg_manager.cpp",

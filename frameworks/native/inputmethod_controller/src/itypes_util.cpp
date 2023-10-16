@@ -280,6 +280,27 @@ bool ITypesUtil::Unmarshalling(EventType &output, MessageParcel &data)
     return true;
 }
 
+bool ITypesUtil::Marshalling(const OHOS::AppExecFwk::ElementName &input, MessageParcel &data)
+{
+    return data.WriteString(input.GetBundleName().c_str()) && data.WriteString(input.GetModuleName().c_str()) &&
+           data.WriteString(input.GetAbilityName().c_str());
+}
+
+bool ITypesUtil::Unmarshalling(OHOS::AppExecFwk::ElementName &output, MessageParcel &data)
+{
+    std::string bundleName;
+    std::string moduleName;
+    std::string abilityName;
+    if (data.ReadString(bundleName) && data.ReadString(moduleName) && data.ReadString(abilityName)) {
+        output.SetBundleName(bundleName);
+        output.SetModuleName(moduleName);
+        output.SetAbilityName(abilityName);
+        return true;
+    }
+    IMSA_HILOGE("read ElementName from message parcel failed");
+    return false;
+}
+
 bool ITypesUtil::Marshalling(InputType input, MessageParcel &data)
 {
     return data.WriteInt32(static_cast<int32_t>(input));

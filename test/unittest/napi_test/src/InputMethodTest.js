@@ -1189,4 +1189,51 @@ describe('InputMethodTest', function () {
         done();
       }
     });
+
+  /*
+   * @tc.number  inputmethod_test_getDefaultInputMethod_001
+   * @tc.name    Test Indicates the getDefaultInputMethod.
+   * @tc.desc    Function test
+   * @tc.level   1
+   */
+    it('inputmethod_test_getDefaultInputMethod_001', 0, async function (done) {
+      console.info('************* inputmethod_test_getDefaultInputMethod_001 Test start*************');
+      try {
+        let property = inputMethod.getDefaultInputMethod();
+        if (property.name.length > 0) {
+          expect(true).assertTrue();
+        }
+        console.info('************* inputmethod_test_getDefaultInputMethod_001 Test end*************');
+      } catch (error) {
+        if(error) {
+          console.info(`inputmethod_test_getDefaultInputMethod_001 error, result: ${JSON.stringify(error)}`);
+          expect().assertFail();
+        }
+      } finally {
+        done();
+      }
+    });
+
+  /*
+   * @tc.number  inputmethod_test_getSystemInputMethodConfigAbility_001
+   * @tc.name    Test Indicates the getSystemInputMethodConfigAbility.
+   * @tc.desc    Function test
+   * @tc.level   1
+   */
+  it('inputmethod_test_getSystemInputMethodConfigAbility_001', 0, async function (done) {
+    console.info('************* inputmethod_test_getSystemInputMethodConfigAbility_001 Test start*************');
+    try {
+      let systemInputMethodConfigAbility = inputMethod.getSystemInputMethodConfigAbility();
+      console.info('************* inputmethod_test_getSystemInputMethodConfigAbility_001 Test end*************');
+      expect(true).assertTrue();
+      done();
+    } catch (error) {
+      if(error) {
+        console.info(`inputmethod_test_getSystemInputMethodConfigAbility_001 error, result: ${JSON.stringify(error)}`);
+        expect().assertFail();
+      }
+    } finally {
+      done();
+    }
+  });
 });

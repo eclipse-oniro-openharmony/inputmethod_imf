@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 
+#include "element_name.h"
 #include "event_status_manager.h"
 #include "global.h"
 #include "input_client_info.h"
@@ -83,6 +84,9 @@ public:
 
     static bool Marshalling(InputType input, MessageParcel &data);
     static bool Unmarshalling(InputType &output, MessageParcel &data);
+
+    static bool Marshalling(const OHOS::AppExecFwk::ElementName &input, MessageParcel &data);
+    static bool Unmarshalling(OHOS::AppExecFwk::ElementName &output, MessageParcel &data);
 
     template<class T>
     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);

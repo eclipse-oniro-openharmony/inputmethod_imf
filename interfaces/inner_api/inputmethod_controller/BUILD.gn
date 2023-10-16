@@ -79,6 +79,7 @@ ohos_shared_library("inputmethod_client") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
+    "ability_base:want",
   ]
 
   configs = [ ":inputmethod_client_native_config" ]
@@ -118,6 +119,7 @@ ohos_static_library("inputmethod_client_static") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
+    "ability_base:want",
   ]
 
   subsystem_name = "inputmethod"

@@ -31,13 +31,13 @@
 
 #include "climits"
 #include "config_policy_utils.h"
+#include "input_method_config_parser.h"
 #include "global.h"
 #include "ime_cfg_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
 namespace {
-constexpr const char *IME_INPUT_TYPE_CFG_FILE_PATH = "etc/inputmethod/inputmethod_framework_config.json";
 const std::string SUPPORTED_INPUT_TYPE_LIST = "supportedInputTypeList";
 const std::string INPUT_TYPE = "inputType";
 const std::string BUNDLE_NAME = "bundleName";
@@ -134,10 +134,15 @@ bool InputTypeManager::Init()
     }
     isInitInProgress_.store(true);
     isInitSuccess_.Clear(false);
-    bool isSuccess = ParseFromCustomSystem();
+    std::vector<InputTypeCfg> configs;
+    bool isSuccess = ImeConfigParse::ParseFromCustomSystem(SUPPORTED_INPUT_TYPE_LIST, configs);
+    IMSA_HILOGD("ParseFromCustomSystem end isSuccess %{public}d", isSuccess);
     if (isSuccess) {
         std::lock_guard<std::mutex> lk(typesLock_);
-        for (const auto &cfg : inputTypes_) {
+        for (const auto& config : configs) {
+            inputTypes_.insert({ config.type, config.ime });
+        }
+        for (const auto& cfg : inputTypes_) {
             std::lock_guard<std::mutex> lock(listLock_);
             inputTypeImeList_.insert(cfg.second);
         }
@@ -149,81 +154,6 @@ bool InputTypeManager::Init()
     isInitSuccess_.SetValue(isSuccess);
     isInitInProgress_.store(false);
     return isSuccess;
-}
-
-bool InputTypeManager::ParseFromCustomSystem()
-{
-    CfgFiles *cfgFiles = GetCfgFiles(IME_INPUT_TYPE_CFG_FILE_PATH);
-    if (cfgFiles == nullptr) {
-        IMSA_HILOGE("cfgFiles is nullptr");
-        return false;
-    }
-    bool isSuccess = true;
-    // parse config files, ordered by priority from high to low
-    for (int32_t i = MAX_CFG_POLICY_DIRS_CNT - 1; i >= 0; i--) {
-        auto path = cfgFiles->paths[i];
-        if (path == nullptr || *path == '\0') {
-            continue;
-        }
-        isSuccess = false;
-        char realPath[PATH_MAX + 1] = { 0x00 };
-        if (strlen(path) == 0 || strlen(path) > PATH_MAX || realpath(path, realPath) == nullptr) {
-            IMSA_HILOGE("failed to get realpath");
-            break;
-        }
-        std::string cfgPath(realPath);
-        if (!GetCfgsFromFile(cfgPath)) {
-            break;
-        }
-        isSuccess = true;
-    }
-    FreeCfgFiles(cfgFiles);
-    IMSA_HILOGI("parse result: %{public}d", isSuccess);
-    return isSuccess;
-}
-
-bool InputTypeManager::GetCfgsFromFile(const std::string &cfgPath)
-{
-    IMSA_HILOGD("in");
-    std::string jsonStr = ReadFile(cfgPath);
-    if (jsonStr.empty()) {
-        IMSA_HILOGE("json config size is invalid");
-        return false;
-    }
-    auto jsonCfg = json::parse(jsonStr, nullptr, false);
-    if (jsonCfg.is_discarded()) {
-        IMSA_HILOGE("jsonStr parse failed");
-        return false;
-    }
-    if (!jsonCfg.contains(SUPPORTED_INPUT_TYPE_LIST) || !jsonCfg[SUPPORTED_INPUT_TYPE_LIST].is_array()) {
-        IMSA_HILOGE("%{public}s not find or abnormal", SUPPORTED_INPUT_TYPE_LIST.c_str());
-        return false;
-    }
-    IMSA_HILOGD("get json: %{public}s", jsonCfg.dump().c_str());
-    std::vector<InputTypeCfg> configs = jsonCfg.at(SUPPORTED_INPUT_TYPE_LIST).get<std::vector<InputTypeCfg>>();
-    std::lock_guard<std::mutex> lock(typesLock_);
-    for (const auto &config : configs) {
-        inputTypes_.insert({ config.type, config.ime });
-    }
-    return true;
-}
-
-std::string InputTypeManager::ReadFile(const std::string &path)
-{
-    std::ifstream infile;
-    std::string sLine;
-    std::string sAll = "";
-    infile.open(path);
-    if (!infile.is_open()) {
-        IMSA_HILOGE("path: %s Readfile fail", path.c_str());
-        return sAll;
-    }
-
-    while (getline(infile, sLine)) {
-        sAll.append(sLine);
-    }
-    infile.close();
-    return sAll;
 }
 } // namespace MiscServices
 } // namespace OHOS

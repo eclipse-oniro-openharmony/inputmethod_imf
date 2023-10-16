@@ -20,6 +20,7 @@
 #include "input_method_controller.h"
 #include "input_method_property.h"
 #include "napi/native_api.h"
+#include "js_util.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
 
@@ -31,6 +32,8 @@ napi_value JsInputMethod::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("switchInputMethod", SwitchInputMethod),
         DECLARE_NAPI_FUNCTION("getCurrentInputMethod", GetCurrentInputMethod),
         DECLARE_NAPI_FUNCTION("getCurrentInputMethodSubtype", GetCurrentInputMethodSubtype),
+        DECLARE_NAPI_FUNCTION("getDefaultInputMethod", GetDefaultInputMethod),
+        DECLARE_NAPI_FUNCTION("getSystemInputMethodConfigAbility", GetSystemInputMethodConfigAbility),
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodSubtype", SwitchCurrentInputMethodSubtype),
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodAndSubtype", SwitchCurrentInputMethodAndSubtype),
     };
@@ -172,6 +175,26 @@ napi_value JsInputMethod::GetJsInputMethodSubProperty(napi_env env, const SubPro
     return prop;
 }
 
+napi_value JsInputMethod::GetJsInputConfigElement(napi_env env, const OHOS::AppExecFwk::ElementName &elementName)
+{
+    napi_value element = nullptr;
+    napi_create_object(env, &element);
+
+    napi_value bundleName = nullptr;
+    napi_create_string_utf8(env, elementName.GetBundleName().c_str(), NAPI_AUTO_LENGTH, &bundleName);
+    napi_set_named_property(env, element, "bundleName", bundleName);
+
+    napi_value moduleName = nullptr;
+    napi_create_string_utf8(env, elementName.GetModuleName().c_str(), NAPI_AUTO_LENGTH, &moduleName);
+    napi_set_named_property(env, element, "moduleName", moduleName);
+
+    napi_value abilityName = nullptr;
+    napi_create_string_utf8(env, elementName.GetAbilityName().c_str(), NAPI_AUTO_LENGTH, &abilityName);
+    napi_set_named_property(env, element, "abilityName", abilityName);
+
+    return element;
+}
+
 napi_value JsInputMethod::GetJSInputMethodSubProperties(napi_env env, const std::vector<SubProperty> &subProperties)
 {
     uint32_t index = 0;
@@ -266,6 +289,34 @@ napi_value JsInputMethod::GetCurrentInputMethodSubtype(napi_env env, napi_callba
         return result;
     }
     return GetJsInputMethodSubProperty(env, *subProperty);
+}
+
+napi_value JsInputMethod::GetDefaultInputMethod(napi_env env, napi_callback_info info)
+{
+    std::shared_ptr<Property> property;
+    int32_t ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
+    if (property == nullptr) {
+        IMSA_HILOGE("get default input method is nullptr");
+        napi_value result = nullptr;
+        napi_get_null(env, &result);
+        return result;
+    }
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get default input method", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    return GetJsInputMethodProperty(env, *property);
+}
+
+napi_value JsInputMethod::GetSystemInputMethodConfigAbility(napi_env env, napi_callback_info info)
+{
+    OHOS::AppExecFwk::ElementName inputMethodConfig;
+    int32_t ret = InputMethodController::GetInstance()->GetInputMethodConfig(inputMethodConfig);
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get input method config", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    return GetJsInputConfigElement(env, inputMethodConfig);
 }
 
 napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_callback_info info)
