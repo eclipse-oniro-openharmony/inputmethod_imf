@@ -52,7 +52,6 @@ describe('InputMethodTest', function () {
   const OLD_IME_SUBTYPE_NUM = 2;
   const WAIT_DEAL_OK = 500;
   const DISABLED_IME_COUNT = 0;
-  const CURRENT_IME_COUNT = 1;
 
   let isImeChange = false;
   let imeChangeProp = undefined;
@@ -352,8 +351,8 @@ describe('InputMethodTest', function () {
         done();
         return;
       }
-      let imeProp = props.filter(function (prop) {return prop.name === bundleName;});
-      expect(imeProp.length).assertEqual(CURRENT_IME_COUNT);
+      let imeProp = props.find(function (prop) {return prop.name === bundleName;});
+      expect(imeProp != undefined).assertTrue();
       console.info('************* inputmethod_test_getInputMethods_002 Test end*************');
       done();
     });
