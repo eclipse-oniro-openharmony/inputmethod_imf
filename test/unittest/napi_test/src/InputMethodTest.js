@@ -26,7 +26,7 @@ describe('InputMethodTest', function () {
   afterAll(function () {
     inputMethod.getSetting().off('imeChange');
     console.info('afterAll called');
-  }); 
+  });
 
   beforeEach(function () {
     console.info('beforeEach called');
