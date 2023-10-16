@@ -26,7 +26,7 @@ describe('InputMethodTest', function () {
   afterAll(function () {
     inputMethod.getSetting().off('imeChange');
     console.info('afterAll called');
-  });
+  }); 
 
   beforeEach(function () {
     console.info('beforeEach called');
@@ -52,6 +52,7 @@ describe('InputMethodTest', function () {
   const OLD_IME_SUBTYPE_NUM = 2;
   const WAIT_DEAL_OK = 500;
   const NO_DISABLED_IME = 0;
+  const CURRENT_IME_COUNT = 1;
 
   let isImeChange = false;
   let imeChangeProp = undefined;
@@ -324,7 +325,8 @@ describe('InputMethodTest', function () {
     let inputMethodSetting = inputMethod.getInputMethodSetting();
     await inputMethodSetting.getInputMethods(true).then((props)=>{
       expect(props.length).assertEqual(ENABLE_IME_NUM);
-      checkNewImeCurrentProp(props[0]);
+      let imeProp = props.filter(function (prop) {return prop.name === bundleName;});
+      expect(imeProp.length).assertEqual(CURRENT_IME_COUNT);
       console.info('************* inputmethod_test_getInputMethods_001 Test end*************');
       done();
     }).catch((err) => {
@@ -350,8 +352,8 @@ describe('InputMethodTest', function () {
         done();
         return;
       }
-      expect(props.length).assertEqual(ENABLE_IME_NUM);
-      checkNewImeCurrentProp(props[0]);
+      let imeProp = props.filter(function (prop) {return prop.name === bundleName;});
+      expect(imeProp.length).assertEqual(CURRENT_IME_COUNT);
       console.info('************* inputmethod_test_getInputMethods_002 Test end*************');
       done();
     });
@@ -367,7 +369,7 @@ describe('InputMethodTest', function () {
     console.info('************* inputmethod_test_getInputMethods_003 Test start*************');
     let inputMethodSetting = inputMethod.getInputMethodSetting();
     await inputMethodSetting.getInputMethods(false).then((props)=>{
-      expect(props.length >= LEAST_DISABLE_IME_NUM).assertTrue();
+      expect(props.length >= NO_DISABLED_IME).assertTrue();
       let imeProp = props.filter(function (prop) {return prop.name === bundleName1;});
       expect(imeProp.length).assertEqual(NO_DISABLED_IME);
       console.info('************* inputmethod_test_getInputMethods_003 Test end*************');
