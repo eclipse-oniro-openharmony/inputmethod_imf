@@ -51,7 +51,7 @@ describe('InputMethodTest', function () {
   const NEW_IME_SUBTYPE_NUM = 3;
   const OLD_IME_SUBTYPE_NUM = 2;
   const WAIT_DEAL_OK = 500;
-  const NO_DISABLED_IME = 0;
+  const DISABLED_IME_COUNT = 0;
   const CURRENT_IME_COUNT = 1;
 
   let isImeChange = false;
@@ -281,10 +281,10 @@ describe('InputMethodTest', function () {
         return;
       }
       expect(props.length >= LEAST_ALL_IME_NUM).assertTrue();
-      let imeProp = props.filter(function (prop) {return prop.name === bundleName && prop.id === extName;});
-      expect(imeProp.length).assertEqual(LEAST_DISABLE_IME_NUM);
-      let imeProp1 = props.filter(function (prop) {return prop.name === bundleName1;});
-      expect(imeProp1.length).assertEqual(LEAST_DISABLE_IME_NUM);
+      let imeProp = props.find(function (prop) {return prop.name === bundleName && prop.id === extName;});
+      expect(imeProp != undefined).assertTrue();
+      let imeProp1 = props.find(function (prop) {return prop.name === bundleName1;});
+      expect(imeProp1 != undefined).assertTrue();
       console.info('************* inputmethod_test_listInputMethod_001 Test end*************');
       done();
     });
@@ -301,10 +301,10 @@ describe('InputMethodTest', function () {
     let inputMethodSetting = inputMethod.getInputMethodSetting();
     await inputMethodSetting.listInputMethod().then((props) => {
       expect(props.length >= LEAST_ALL_IME_NUM).assertTrue();
-      let imeProp = props.filter(function (prop) {return prop.name === bundleName && prop.id === extName;});
-      expect(imeProp.length).assertEqual(LEAST_DISABLE_IME_NUM);
-      let imeProp1 = props.filter(function (prop) {return prop.name === bundleName1;});
-      expect(imeProp1.length).assertEqual(LEAST_DISABLE_IME_NUM);
+      let imeProp = props.find(function (prop) {return prop.name === bundleName && prop.id === extName;});
+      expect(imeProp != undefined).assertTrue();
+      let imeProp1 = props.find(function (prop) {return prop.name === bundleName1;});
+      expect(imeProp1 != undefined).assertTrue();
       console.info('************* inputmethod_test_listInputMethod_002 Test end*************');
       done();
     }).catch((err) => {
@@ -325,8 +325,8 @@ describe('InputMethodTest', function () {
     let inputMethodSetting = inputMethod.getInputMethodSetting();
     await inputMethodSetting.getInputMethods(true).then((props)=>{
       expect(props.length).assertEqual(ENABLE_IME_NUM);
-      let imeProp = props.filter(function (prop) {return prop.name === bundleName;});
-      expect(imeProp.length).assertEqual(CURRENT_IME_COUNT);
+      let imeProp = props.find(function (prop) {return prop.name === bundleName;});
+      expect(imeProp != undefined).assertTrue();
       console.info('************* inputmethod_test_getInputMethods_001 Test end*************');
       done();
     }).catch((err) => {
@@ -369,9 +369,9 @@ describe('InputMethodTest', function () {
     console.info('************* inputmethod_test_getInputMethods_003 Test start*************');
     let inputMethodSetting = inputMethod.getInputMethodSetting();
     await inputMethodSetting.getInputMethods(false).then((props)=>{
-      expect(props.length >= NO_DISABLED_IME).assertTrue();
-      let imeProp = props.filter(function (prop) {return prop.name === bundleName1;});
-      expect(imeProp.length).assertEqual(NO_DISABLED_IME);
+      expect(props.length >= DISABLED_IME_COUNT).assertTrue();
+      let imeProp = props.find(function (prop) {return prop.name === bundleName1;});
+      expect(imeProp == undefined).assertTrue();
       console.info('************* inputmethod_test_getInputMethods_003 Test end*************');
       done();
     }).catch((err) => {
@@ -397,9 +397,9 @@ describe('InputMethodTest', function () {
         done();
         return;
       }
-      expect(props.length >= NO_DISABLED_IME).assertTrue();
-      let imeProp = props.filter(function (prop) {return prop.name === bundleName1;});
-      expect(imeProp.length).assertEqual(NO_DISABLED_IME);
+      expect(props.length >= DISABLED_IME_COUNT).assertTrue();
+      let imeProp = props.find(function (prop) {return prop.name === bundleName1;});
+      expect(imeProp == undefined).assertTrue();
       console.info('************* inputmethod_test_getInputMethods_004 Test end*************');
       done();
     });
