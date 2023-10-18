@@ -217,7 +217,7 @@ napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
-        auto code = InputMethodAbility::GetInstance()->HidePanel(ctxt->inputMethodPanel);
+        auto code = ctxt->inputMethodPanel->HidePanel();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->SetState(napi_ok);
             return;
