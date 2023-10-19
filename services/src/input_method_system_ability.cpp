@@ -205,12 +205,6 @@ bool InputMethodSystemAbility::StartInputService(const std::string &imeId)
 
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
-    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!identityChecker_->IsBroker(tokenId)) {
-        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
-            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
-        }
-    }
     auto ret = GenerateClientInfo(clientInfo);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
@@ -244,7 +238,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
     return userSession_->OnReleaseInput(client);
 };
 
-int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
+int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agnet)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId)) {
@@ -252,11 +246,17 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
-    if (client == nullptr) {
+
+    int32_t ret = PrepareInput(inputClientInfo);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("PrepareInput failed");
+        return ret;
+    }
+    if (inputClientInfo.client == nullptr) {
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return userSession_->OnStartInput(client, isShowKeyboard);
+    return userSession_->OnStartInput(inputClientInfo.client, inputClientInfo.isShowKeyboard, agnet);
 };
 
 int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)

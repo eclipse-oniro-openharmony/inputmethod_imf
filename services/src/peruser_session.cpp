@@ -338,7 +338,7 @@ int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client)
     }
     // if client is current client, unbind firstly
     if (IsCurrentClient(client)) {
-        UnBindClientWithIme(GetClientInfo(client->AsObject()));
+        UnBindClientWithIme(GetClientInfo(client->AsObject()), true);
         SetCurrentClient(nullptr);
         ExitCurrentInputType();
     }
@@ -358,7 +358,7 @@ bool PerUserSession::IsProxyImeEnable()
     return data != nullptr && data->core != nullptr && data->core->IsEnable();
 }
 
-int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard)
+int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard, sptr<IRemoteObject> &agnet)
 {
     IMSA_HILOGD("start input with keyboard[%{public}d]", isShowKeyboard);
     if (client == nullptr) {
@@ -377,10 +377,16 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
     }
     InputClientInfo infoTemp = { .client = client, .channel = clientInfo->channel, .isShowKeyboard = isShowKeyboard };
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
-    return BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType);
+    int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
+    }
+    agnet = GetImeData(imeType)->agent->AsObject();
+    return ret;
 }
 
-int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type)
+int32_t PerUserSession::BindClientWithIme(
+    const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type, bool isBindFromClient)
 {
     if (clientInfo == nullptr) {
         IMSA_HILOGE("clientInfo is nullptr");
@@ -400,13 +406,12 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
         IMSA_HILOGE("ime: %{public}d is abnormal", type);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    auto ret = data->core->StartInput(clientInfo->channel, clientInfo->isShowKeyboard);
+    auto ret = data->core->StartInput(clientInfo, isBindFromClient);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_IME_START_INPUT_FAILED;
     }
-    ret = clientInfo->client->OnInputReady(data->agent);
-    if (ret != ErrorCode::NO_ERROR) {
+    if (!isBindFromClient && clientInfo->client->OnInputReady(data->agent) != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
         return ret;
     }
@@ -416,12 +421,16 @@ int32_t PerUserSession::BindClientWithIme(const std::shared_ptr<InputClientInfo>
     return ErrorCode::NO_ERROR;
 }
 
-void PerUserSession::UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo)
+void PerUserSession::UnBindClientWithIme(
+    const std::shared_ptr<InputClientInfo> &currentClientInfo, bool isUnbindFromClient)
 {
     if (currentClientInfo == nullptr) {
         return;
     }
-    StopClientInput(currentClientInfo->client);
+    if (isUnbindFromClient) {
+        IMSA_HILOGD("Unbind from client.");
+        StopClientInput(currentClientInfo->client);
+    }
     StopImeInput(currentClientInfo->bindImeType, currentClientInfo->channel);
 }
 

@@ -18,7 +18,6 @@
 #include "global.h"
 #include "ipc_types.h"
 #include "itypes_util.h"
-#include "itypes_util.h"
 #include "message_option.h"
 #include "message_parcel.h"
 
@@ -131,7 +130,8 @@ int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, Parcel
     IMSA_HILOGI("InputDataChannelProxy run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option{ MessageOption::TF_SYNC };
+    MessageOption option = code == SEND_KEYBOARD_STATUS ? MessageOption::TF_ASYNC : MessageOption::TF_SYNC;
+
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("write interface token failed");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
@@ -144,6 +144,9 @@ int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, Parcel
     if (ret != NO_ERROR) {
         IMSA_HILOGE("InputDataChannelProxy send request failed, code: %{public}d ret %{public}d", code, ret);
         return ret;
+    }
+    if (code == SEND_KEYBOARD_STATUS) {
+        return ErrorCode::NO_ERROR;
     }
     ret = reply.ReadInt32();
     if (ret != NO_ERROR) {

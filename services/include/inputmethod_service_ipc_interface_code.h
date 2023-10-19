@@ -20,8 +20,7 @@
 namespace OHOS {
 namespace MiscServices {
 enum class InputMethodInterfaceCode {
-    PREPARE_INPUT = 0,
-    START_INPUT,
+    START_INPUT = 0,
     SHOW_CURRENT_INPUT,
     HIDE_CURRENT_INPUT,
     SHOW_INPUT,
