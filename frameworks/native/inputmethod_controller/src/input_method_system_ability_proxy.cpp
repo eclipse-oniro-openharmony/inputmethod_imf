@@ -207,14 +207,27 @@ int32_t InputMethodSystemAbilityProxy::ExitCurrentInputType()
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::EXIT_CURRENT_INPUT_TYPE));
 }
 
+void InputMethodSystemAbilityProxy::GetMessageOption(int32_t code, MessageOption &option)
+{
+    switch (code) {
+        case static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE): {
+            IMSA_HILOGD("Async IPC.");
+            option.SetFlags(MessageOption::TF_ASYNC);
+            break;
+        }
+        default:
+            option.SetFlags(MessageOption::TF_SYNC);
+            break;
+    }
+}
+
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
     IMSA_HILOGI("InputMethodSystemAbilityProxy run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option = code == static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE)
-                               ? MessageOption::TF_ASYNC
-                               : MessageOption::TF_SYNC;
+    MessageOption option;
+    GetMessageOption(code, option);
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("write interface token failed");
@@ -229,7 +242,7 @@ int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input
         IMSA_HILOGE("transport exceptions, code: %{public}d, ret %{public}d", code, ret);
         return ret;
     }
-    if (code == static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE)) {
+    if (option.GetFlags() == MessageOption::TF_ASYNC) {
         return ErrorCode::NO_ERROR;
     }
     ret = reply.ReadInt32();
