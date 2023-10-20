@@ -237,7 +237,6 @@ int32_t InputMethodController::Attach(
     SaveTextConfig(textConfig);
     GetTextConfig(clientInfo_.config);
 
-
     sptr<IRemoteObject> agnet = nullptr;
     int32_t ret = StartInput(clientInfo_, agnet);
     if (ret != ErrorCode::NO_ERROR) {

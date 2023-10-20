@@ -390,7 +390,9 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
+        .Times(1)
+        .WillRepeatedly(Return(true));
     int32_t ret = IdentityCheckerTest::service_->SetCoreAndAgent(nullptr, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }

@@ -413,7 +413,7 @@ int32_t PerUserSession::BindClientWithIme(
     }
     if (!isBindFromClient && clientInfo->client->OnInputReady(data->agent) != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
-        return ret;
+        return ErrorCode::ERROR_EX_PARCELABLE;
     }
     UpdateClientInfo(clientInfo->client->AsObject(),
         { { UpdateFlag::BINDIMETYPE, type }, { UpdateFlag::ISSHOWKEYBOARD, clientInfo->isShowKeyboard } });
