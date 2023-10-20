@@ -358,7 +358,7 @@ bool PerUserSession::IsProxyImeEnable()
     return data != nullptr && data->core != nullptr && data->core->IsEnable();
 }
 
-int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard, sptr<IRemoteObject> &agnet)
+int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard, sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGD("start input with keyboard[%{public}d]", isShowKeyboard);
     if (client == nullptr) {
@@ -381,7 +381,7 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
     }
-    agnet = GetImeData(imeType)->agent->AsObject();
+    agent = GetImeData(imeType)->agent->AsObject();
     return ret;
 }
 

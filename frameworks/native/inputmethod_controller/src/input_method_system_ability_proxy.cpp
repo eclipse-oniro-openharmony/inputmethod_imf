@@ -29,16 +29,13 @@ InputMethodSystemAbilityProxy::InputMethodSystemAbilityProxy(const sptr<IRemoteO
 {
 }
 
-int32_t InputMethodSystemAbilityProxy::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agnet)
+int32_t InputMethodSystemAbilityProxy::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
     return SendRequest(
         static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT),
         [&inputClientInfo](MessageParcel &data) { return ITypesUtil::Marshal(data, inputClientInfo); },
-        [&agnet](MessageParcel &reply) {
-            agnet = reply.ReadRemoteObject();
-            if (agnet == nullptr) {
-                IMSA_HILOGE("agentObject is nullptr");
-            }
+        [&agent](MessageParcel &reply) {
+            agent = reply.ReadRemoteObject();
             return true;
         });
 }

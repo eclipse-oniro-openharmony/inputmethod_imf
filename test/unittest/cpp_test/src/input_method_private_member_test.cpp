@@ -307,8 +307,8 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSi
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr001 TEST START");
     auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
-    sptr<IRemoteObject> agnet = nullptr;
-    int32_t ret = userSession->OnStartInput(nullptr, true, agnet);
+    sptr<IRemoteObject> agent = nullptr;
+    int32_t ret = userSession->OnStartInput(nullptr, true, agent);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     ret = userSession->OnReleaseInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);

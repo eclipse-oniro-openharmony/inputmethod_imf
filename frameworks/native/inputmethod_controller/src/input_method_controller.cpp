@@ -237,13 +237,13 @@ int32_t InputMethodController::Attach(
     SaveTextConfig(textConfig);
     GetTextConfig(clientInfo_.config);
 
-    sptr<IRemoteObject> agnet = nullptr;
-    int32_t ret = StartInput(clientInfo_, agnet);
+    sptr<IRemoteObject> agent = nullptr;
+    int32_t ret = StartInput(clientInfo_, agent);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input, ret:%{public}d", ret);
         return ret;
     }
-    OnInputReady(agnet);
+    OnInputReady(agent);
     if (isShowKeyboard) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ATTACH);
     }
@@ -397,7 +397,7 @@ std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype
     return property;
 }
 
-int32_t InputMethodController::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agnet)
+int32_t InputMethodController::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGI("InputMethodController::StartInput");
     auto proxy = GetSystemAbilityProxy();
@@ -405,7 +405,7 @@ int32_t InputMethodController::StartInput(InputClientInfo &inputClientInfo, sptr
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->StartInput(inputClientInfo, agnet);
+    return proxy->StartInput(inputClientInfo, agent);
 }
 
 int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)

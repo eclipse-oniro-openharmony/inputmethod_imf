@@ -626,7 +626,7 @@ private:
 
     int32_t Initialize();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
-    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agnet);
+    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent);
     int32_t ShowInput(sptr<IInputClient> &client);
     int32_t HideInput(sptr<IInputClient> &client);
     int32_t ReleaseInput(sptr<IInputClient> &client);

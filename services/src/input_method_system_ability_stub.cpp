@@ -51,15 +51,9 @@ int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, Me
         IMSA_HILOGE("read clientInfo failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    sptr<IRemoteObject> agnet = nullptr;
-    int32_t ret = StartInput(clientInfo, agnet);
-    if (agnet == nullptr) {
-        IMSA_HILOGE("agentObject is nullptr");
-    } else {
-        IMSA_HILOGE("msy agent = %{public}p", agnet.GetRefPtr());
-    }
-
-    return reply.WriteInt32(ret) && reply.WriteRemoteObject(agnet) ? ErrorCode::NO_ERROR
+    sptr<IRemoteObject> agent = nullptr;
+    int32_t ret = StartInput(clientInfo, agent);
+    return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR
                                                                    : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

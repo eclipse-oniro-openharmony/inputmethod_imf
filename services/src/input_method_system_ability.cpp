@@ -238,7 +238,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
     return userSession_->OnReleaseInput(client);
 };
 
-int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agnet)
+int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId)) {
@@ -256,7 +256,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return userSession_->OnStartInput(inputClientInfo.client, inputClientInfo.isShowKeyboard, agnet);
+    return userSession_->OnStartInput(inputClientInfo.client, inputClientInfo.isShowKeyboard, agent);
 };
 
 int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)

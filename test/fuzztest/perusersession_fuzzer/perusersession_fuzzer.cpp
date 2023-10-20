@@ -101,9 +101,9 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     userSessions->OnPrepareInput(clientInfo);
     userSessions->OnSetCoreAndAgent(core, agent);
     userSessions->OnShowCurrentInput();
-    sptr<IRemoteObject> agnet = nullptr;
-    userSessions->OnStartInput(client, false, agnet);
-    userSessions->OnStartInput(client, true, agnet);
+    sptr<IRemoteObject> agent = nullptr;
+    userSessions->OnStartInput(client, false, agent);
+    userSessions->OnStartInput(client, true, agent);
     userSessions->NotifyImeChangeToClients(property, subProperty);
     userSessions->OnHideCurrentInput();
     userSessions->OnHideInput(client);
