@@ -294,6 +294,18 @@ int32_t PerUserSession::OnShowInput(sptr<IInputClient> client)
     return ShowKeyboard(client);
 }
 
+void PerUserSession::OnHideSoftKeyBoardSelf()
+{
+    IMSA_HILOGD("run in");
+    sptr<IInputClient> client = GetCurrentClient();
+    if (client == nullptr) {
+        IMSA_HILOGE("current client is nullptr");
+        return;
+    }
+    bool isShowKeyboard = false;
+    UpdateClientInfo(client->AsObject(), { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard });
+}
+
 /** Get ClientInfo
  * @param inputClient the IRemoteObject remote handler of given input client
  * @return a pointer of ClientInfo if client is found

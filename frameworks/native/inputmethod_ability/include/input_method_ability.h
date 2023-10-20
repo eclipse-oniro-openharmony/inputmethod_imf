@@ -75,6 +75,8 @@ public:
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo,
         std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     int32_t DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
+    int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
+    int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     bool IsCurrentIme();
     bool IsEnable();
     int32_t ExitCurrentInputType();
@@ -121,7 +123,11 @@ private:
     void OnSelectionChange(Message *msg);
     void OnConfigurationChange(Message *msg);
     void OnTextConfigChange(const TextTotalConfig &textConfig);
-    int32_t ShowPanelKeyboard();
+    int32_t ShowPanelSoftKeyboard();
+    int32_t HidePanelSoftKeyboard();
+    int32_t HidePanelSoftKeyBoard(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
+    void UpdateAlphaKeyboardFlag(bool hasAlphaKeyboard);
+    bool hasAlphaKeyboard_{ false };
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isPanelKeyboard_{ false };
     std::atomic_bool isBound_{ false };
