@@ -127,7 +127,7 @@ private:
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     void RemoveImeData(ImeType type);
 
-    int32_t RemoveClient(const sptr<IInputClient> &client, isUnbindFromClient = false);
+    int32_t RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient = false);
     int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
 
     int32_t BindClientWithIme(
