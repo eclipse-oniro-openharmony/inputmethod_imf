@@ -35,13 +35,12 @@ public:
     static std::string ReadFile(const std::string &path);
     static CfgFiles* ParseFromCustom();
     static bool parseJson(const std::string &cfgPath, const std::string &parseKey, nlohmann::json &jsonCfg);
-    // static bool GetCfgs(const std::string &cfgPath, const std::string &parseKey);
     template<typename T>
     static bool ParseFromCustomSystem(const std::string &parseKey, T &data);
     template<typename T>
     static bool ParseFromCustomSystem(const std::string &parseKey, std::vector<T> &data);
     template<typename T>
-    static bool GetCfgsFromFile(const std::string& &cfgPath, const std::string &parseKey, T &data);
+    static bool GetCfgsFromFile(const std::string &cfgPath, const std::string &parseKey, T &data);
     template<typename T>
     static bool GetCfgsFromFile(const std::string &cfgPath, const std::string &parseKey, std::vector<T> &data);
 };

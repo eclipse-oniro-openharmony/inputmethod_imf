@@ -72,6 +72,7 @@ ohos_shared_library("inputmethod_client") {
   public_deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
 
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -79,7 +80,6 @@ ohos_shared_library("inputmethod_client") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
-    "ability_base:want",
   ]
 
   configs = [ ":inputmethod_client_native_config" ]
@@ -112,6 +112,7 @@ ohos_static_library("inputmethod_client_static") {
   public_deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
 
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -119,7 +120,6 @@ ohos_static_library("inputmethod_client_static") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
-    "ability_base:want",
   ]
 
   subsystem_name = "inputmethod"

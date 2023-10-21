@@ -50,7 +50,8 @@ constexpr uint32_t RETRY_INTERVAL = 100;
 constexpr uint32_t BLOCK_RETRY_TIMES = 1000;
 } // namespace
 
-void from_json(const nlohmann::json &jsonConfigs, ImeConfig &config) {
+void from_json(const nlohmann::json &jsonConfigs, ImeConfig &config)
+{
     json jsonCfg = jsonConfigs[SYSTEM_CONFIG];
     if (jsonConfigs.find(SYSTEM_INPUT_METHOD_CONFIG_ABILITY) != jsonConfigs.end() &&
         jsonConfigs[SYSTEM_INPUT_METHOD_CONFIG_ABILITY].is_string()) {

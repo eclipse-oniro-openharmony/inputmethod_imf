@@ -941,7 +941,6 @@ int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, co
 bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo& switchInfo)
 {
     auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
-
     // if currentIme is switching subtype, permission verification is not performed.
     if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName) &&
         switchInfo.bundleName == currentBundleName && !switchInfo.subName.empty()) {
