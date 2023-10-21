@@ -237,7 +237,7 @@ bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
 {
     if (!Unmarshal(
-            data, output.pid, output.uid, output.userID, output.isShowKeyboard, output.eventFlag, output.config)) {
+        data, output.pid, output.uid, output.userID, output.isShowKeyboard, output.eventFlag, output.config)) {
         IMSA_HILOGE("read InputClientInfo from message parcel failed");
         return false;
     }
