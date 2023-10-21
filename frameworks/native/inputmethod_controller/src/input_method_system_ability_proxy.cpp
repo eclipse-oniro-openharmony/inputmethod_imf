@@ -207,7 +207,7 @@ int32_t InputMethodSystemAbilityProxy::ExitCurrentInputType()
 void InputMethodSystemAbilityProxy::GetMessageOption(int32_t code, MessageOption &option)
 {
     switch (code) {
-        case static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE): {
+        case static_cast<int32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE): {
             IMSA_HILOGD("Async IPC.");
             option.SetFlags(MessageOption::TF_ASYNC);
             break;

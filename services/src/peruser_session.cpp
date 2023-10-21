@@ -328,17 +328,17 @@ int32_t PerUserSession::OnPrepareInput(const InputClientInfo &clientInfo)
 int32_t PerUserSession::OnReleaseInput(const sptr<IInputClient> &client)
 {
     IMSA_HILOGI("PerUserSession::Start");
-    return RemoveClient(client);
+    return RemoveClient(client, true);
 }
 
-int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client)
+int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient)
 {
     if (client == nullptr) {
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     // if client is current client, unbind firstly
     if (IsCurrentClient(client)) {
-        UnBindClientWithIme(GetClientInfo(client->AsObject()), true);
+        UnBindClientWithIme(GetClientInfo(client->AsObject()), isUnbindFromClient);
         SetCurrentClient(nullptr);
         ExitCurrentInputType();
     }
@@ -427,7 +427,7 @@ void PerUserSession::UnBindClientWithIme(
     if (currentClientInfo == nullptr) {
         return;
     }
-    if (isUnbindFromClient) {
+    if (!isUnbindFromClient) {
         IMSA_HILOGD("Unbind from client.");
         StopClientInput(currentClientInfo->client);
     }
