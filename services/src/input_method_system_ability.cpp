@@ -137,7 +137,6 @@ int32_t InputMethodSystemAbility::Init()
         return -1;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
-    ImeCfgManager::GetInstance().Init();
     std::vector<int32_t> userIds;
     if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
             return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
@@ -616,6 +615,16 @@ std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubt
     return ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);
 }
 
+int32_t InputMethodSystemAbility::GetDefaultInputMethod(std::shared_ptr<Property> &prop)
+{
+    return ImeInfoInquirer::GetInstance().GetDefaultInputMethod(userId_, prop);
+}
+
+int32_t InputMethodSystemAbility::GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig)
+{
+    return ImeInfoInquirer::GetInstance().GetInputMethodConfig(userId_, inputMethodConfig);
+}
+
 int32_t InputMethodSystemAbility::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
     return ImeInfoInquirer::GetInstance().ListInputMethod(userId_, status, props, enableImeOn_);
@@ -929,17 +938,28 @@ int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, co
     return userSession_->OnUnRegisteredProxyIme(type, core);
 }
 
-bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo &switchInfo)
+bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo& switchInfo)
 {
     auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
     // if currentIme is switching subtype, permission verification is not performed.
-    if (identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
-        || (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName)
-            && switchInfo.bundleName == currentBundleName && !switchInfo.subName.empty())) {
+    if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName) &&
+        switchInfo.bundleName == currentBundleName && !switchInfo.subName.empty()) {
         return true;
     }
-    InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
-        ErrorCode::ERROR_STATUS_PERMISSION_DENIED, switchInfo.bundleName, "switch inputmethod failed!");
+    if (!identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
+        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
+            ErrorCode::ERROR_STATUS_PERMISSION_DENIED, switchInfo.bundleName, "switch inputmethod failed!");
+        return false;
+    }
+    if (switchInfo.subName.empty()) {
+        return true;
+    }
+    if (identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) ||
+        identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName)) {
+        return true;
+    }
+    InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_STATUS_PERMISSION_DENIED,
+        switchInfo.bundleName, "switch inputmethod failed!");
     IMSA_HILOGE("not permitted");
     return false;
 }

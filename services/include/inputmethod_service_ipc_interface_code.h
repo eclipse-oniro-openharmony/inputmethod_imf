@@ -46,7 +46,9 @@ enum class InputMethodInterfaceCode {
     IS_INPUT_TYPE_SUPPORTED,
     START_INPUT_TYPE,
     EXIT_CURRENT_INPUT_TYPE,
-    IMS_CMD_LAST
+    GET_DEFAULT_INPUT_METHOD,
+    GET_INPUT_METHOD_SETTINGS,
+    IMS_CMD_LAST,
 };
 } // namespace MiscServices
 } // namespace OHOS

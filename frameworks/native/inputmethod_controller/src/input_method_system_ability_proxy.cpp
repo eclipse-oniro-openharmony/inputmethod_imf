@@ -15,6 +15,7 @@
 
 #include "input_method_system_ability_proxy.h"
 
+#include "element_name.h"
 #include "global.h"
 #include "inputmethod_service_ipc_interface_code.h"
 #include "itypes_util.h"
@@ -90,6 +91,23 @@ int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(
     return SendRequest(
         static_cast<uint32_t>(InputMethodInterfaceCode::SET_CORE_AND_AGENT), [core, agent](MessageParcel &data) {
             return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent->AsObject());
+        });
+}
+
+int32_t InputMethodSystemAbilityProxy::GetDefaultInputMethod(std::shared_ptr<Property> &property)
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_DEFAULT_INPUT_METHOD), nullptr,
+        [&property](MessageParcel& reply) {
+            property = std::make_shared<Property>();
+            return ITypesUtil::Unmarshal(reply, *property);
+        });
+}
+
+int32_t InputMethodSystemAbilityProxy::GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig)
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_INPUT_METHOD_SETTINGS), nullptr,
+        [&inputMethodConfig](MessageParcel& reply) {
+            return ITypesUtil::Unmarshal(reply, inputMethodConfig);
         });
 }
 
@@ -171,10 +189,11 @@ int32_t InputMethodSystemAbilityProxy::ListCurrentInputMethodSubtype(std::vector
         });
 }
 
-int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const std::string &name, const std::string &subName)
+int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const std::string& name,
+    const std::string& subName)
 {
-    return SendRequest(
-        static_cast<uint32_t>(InputMethodInterfaceCode::SWITCH_INPUT_METHOD), [&name, &subName](MessageParcel &data) {
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SWITCH_INPUT_METHOD),
+        [&name, &subName](MessageParcel& data) {
             return ITypesUtil::Marshal(data, name, subName);
         });
 }

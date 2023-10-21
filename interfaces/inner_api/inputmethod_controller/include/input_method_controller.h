@@ -22,6 +22,7 @@
 #include <thread>
 
 #include "controller_listener.h"
+#include "element_name.h"
 #include "event_handler.h"
 #include "event_status_manager.h"
 #include "global.h"
@@ -311,6 +312,26 @@ public:
      * @since 6
      */
     IMF_API std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype();
+
+    /**
+     * @brief Get default input method property.
+     *
+     * This function is used to get default input method property.
+     *
+     * @return The property of default input method.
+     * @since 10
+     */
+    IMF_API int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop);
+
+    /**
+     * @brief get input method config ability.
+     *
+     * This function is used to get input method config ability.
+     *
+     * @return The info of input settings.
+     * @since 10
+     */
+    IMF_API int32_t GetInputMethodConfig(AppExecFwk::ElementName &inputMethodConfig);
 
     /**
      * @brief Set calling window id.

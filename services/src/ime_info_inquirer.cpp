@@ -20,9 +20,11 @@
 
 #include "application_info.h"
 #include "bundle_mgr_client_impl.h"
+#include "config_policy_utils.h"
 #include "global.h"
 #include "if_system_ability_manager.h"
 #include "ime_cfg_manager.h"
+#include "input_method_config_parser.h"
 #include "input_method_info.h"
 #include "input_type_manager.h"
 #include "iservice_registry.h"
@@ -37,6 +39,9 @@ namespace {
 using json = nlohmann::json;
 using namespace OHOS::AppExecFwk;
 constexpr const char *SUBTYPE_PROFILE_METADATA_NAME = "ohos.extension.input_method";
+const std::string SYSTEM_CONFIG = "systemConfig";
+const std::string SYSTEM_INPUT_METHOD_CONFIG_ABILITY = "systemInputMethodConfigAbility";
+const std::string DEFAULT_INPUT_METHOD = "defaultInputMethod";
 constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
 constexpr uint32_t MAX_SUBTYPE_NUM = 256;
 constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
@@ -44,6 +49,19 @@ constexpr int32_t CONFIG_LEN = 128;
 constexpr uint32_t RETRY_INTERVAL = 100;
 constexpr uint32_t BLOCK_RETRY_TIMES = 1000;
 } // namespace
+
+void from_json(const nlohmann::json &jsonConfigs, ImeConfig &config)
+{
+    json jsonCfg = jsonConfigs[SYSTEM_CONFIG];
+    if (jsonConfigs.find(SYSTEM_INPUT_METHOD_CONFIG_ABILITY) != jsonConfigs.end() &&
+        jsonConfigs[SYSTEM_INPUT_METHOD_CONFIG_ABILITY].is_string()) {
+        jsonConfigs.at(SYSTEM_INPUT_METHOD_CONFIG_ABILITY).get_to(config.systemInputMethodConfigAbility);
+    }
+    if (jsonConfigs.find(DEFAULT_INPUT_METHOD) != jsonConfigs.end() && jsonConfigs[DEFAULT_INPUT_METHOD].is_string()) {
+        jsonConfigs.at(DEFAULT_INPUT_METHOD).get_to(config.defaultInputMethod);
+    }
+}
+
 ImeInfoInquirer &ImeInfoInquirer::GetInstance()
 {
     static ImeInfoInquirer instance;
@@ -621,6 +639,54 @@ std::string ImeInfoInquirer::GetImeToBeStarted(int32_t userId)
     return currentImeCfg->imeId;
 }
 
+int32_t ImeInfoInquirer::GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig)
+{
+    IMSA_HILOGD("userId: %{public}d", userId);
+    if (!ImeConfigParse::ParseFromCustomSystem(SYSTEM_CONFIG, imeConfig_)) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    if (imeConfig_.systemInputMethodConfigAbility.empty()) {
+        IMSA_HILOGE("inputMethodConfig systemInputMethodConfigAbility is null");
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGD("inputMethodConfig: %{public}s", imeConfig_.systemInputMethodConfigAbility.c_str());
+    auto pos = imeConfig_.systemInputMethodConfigAbility.find('/');
+    if (pos == std::string::npos || pos + 1 >= imeConfig_.systemInputMethodConfigAbility.size()) {
+        IMSA_HILOGE("inputMethodConfig: %{public}s is abnormal", imeConfig_.systemInputMethodConfigAbility.c_str());
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    std::string bundleName = imeConfig_.systemInputMethodConfigAbility.substr(0, pos);
+    std::string abilityName = imeConfig_.systemInputMethodConfigAbility.substr(pos + 1);
+    std::string moduleName;
+    auto pos1 = abilityName.find('/');
+    if (pos1 == std::string::npos || pos1 + 1 >= abilityName.size()) {
+        IMSA_HILOGD("inputMethodConfig moduleName is abnormal, abilityName is %{public}s", abilityName.c_str());
+    } else {
+        moduleName = abilityName.substr(0, pos1);
+        abilityName = abilityName.substr(pos1 + 1);
+    }
+    inputMethodConfig.SetBundleName(bundleName);
+    inputMethodConfig.SetModuleName(moduleName);
+    inputMethodConfig.SetAbilityName(abilityName);
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property>& prop)
+{
+    IMSA_HILOGD("userId: %{public}d", userId);
+    auto imeInfo = GetDefaultImeInfo(userId);
+    if (imeInfo == nullptr) {
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    IMSA_HILOGD("getDefaultInputMethod name: %{public}s", imeInfo->prop.name.c_str());
+    prop->name = imeInfo->prop.name;
+    prop->id = imeInfo->prop.id;
+    prop->label = imeInfo->prop.label;
+    prop->labelId = imeInfo->prop.labelId;
+    prop->iconId = imeInfo->prop.iconId;
+    return ErrorCode::NO_ERROR;
+}
+
 std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 {
     auto ime = GetDefaultIme();
@@ -650,9 +716,16 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 
 std::string ImeInfoInquirer::GetDefaultIme()
 {
-    char value[CONFIG_LEN] = { 0 };
-    auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
-    return code > 0 ? value : "";
+    if (!ImeConfigParse::ParseFromCustomSystem(SYSTEM_CONFIG, imeConfig_)) {
+        return "";
+    }
+    IMSA_HILOGI("defaultInputMethod: %{public}s", imeConfig_.defaultInputMethod.c_str());
+    if (imeConfig_.defaultInputMethod.empty()) {
+        char value[CONFIG_LEN] = { 0 };
+        auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
+        return code > 0 ? value : "";
+    }
+    return imeConfig_.defaultInputMethod;
 }
 
 sptr<OHOS::AppExecFwk::IBundleMgr> ImeInfoInquirer::GetBundleMgr()
