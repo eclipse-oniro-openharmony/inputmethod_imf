@@ -16,6 +16,7 @@
 #define INTERFACE_KITS_JS_INPUT_METHOD_H
 
 #include "async_call.h"
+#include "element_name.h"
 #include "global.h"
 #include "input_method_controller.h"
 #include "native_engine/native_engine.h"
@@ -58,10 +59,13 @@ public:
     static napi_value SwitchCurrentInputMethodAndSubtype(napi_env env, napi_callback_info info);
     static napi_value GetCurrentInputMethodSubtype(napi_env env, napi_callback_info info);
     static napi_value GetCurrentInputMethod(napi_env env, napi_callback_info info);
+    static napi_value GetDefaultInputMethod(napi_env env, napi_callback_info info);
+    static napi_value GetSystemInputMethodConfigAbility(napi_env env, napi_callback_info info);
     static napi_value GetJsInputMethodProperty(napi_env env, const Property &property);
     static napi_value GetJSInputMethodSubProperties(napi_env env, const std::vector<SubProperty> &subProperties);
     static napi_value GetJSInputMethodProperties(napi_env env, const std::vector<Property> &properties);
     static napi_value GetJsInputMethodSubProperty(napi_env env, const SubProperty &subProperty);
+    static napi_value GetJsInputConfigElement(napi_env env, const OHOS::AppExecFwk::ElementName &elementName);
 
 private:
     static napi_status GetInputMethodProperty(

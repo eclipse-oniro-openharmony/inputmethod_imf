@@ -365,6 +365,28 @@ int32_t InputMethodController::ListInputMethod(bool enable, std::vector<Property
     return ListInputMethodCommon(enable ? ENABLE : DISABLE, props);
 }
 
+int32_t InputMethodController::GetDefaultInputMethod(std::shared_ptr<Property> &property)
+{
+    IMSA_HILOGD("InputMethodController::GetDefaultInputMethod");
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    return proxy->GetDefaultInputMethod(property);
+}
+
+int32_t InputMethodController::GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig)
+{
+    IMSA_HILOGD("InputMethodController::inputMethodConfig");
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    return proxy->GetInputMethodConfig(inputMethodConfig);
+}
+
 std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
 {
     IMSA_HILOGD("InputMethodController::GetCurrentInputMethod");

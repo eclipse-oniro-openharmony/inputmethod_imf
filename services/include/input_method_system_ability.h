@@ -24,6 +24,7 @@
 #include "block_queue.h"
 #include "bundle_mgr_proxy.h"
 #include "enable_ime_data_parser.h"
+#include "element_name.h"
 #include "event_handler.h"
 #include "identity_checker_impl.h"
 #include "ime_info_inquirer.h"
@@ -41,7 +42,6 @@ using AbilityType = AppExecFwk::ExtensionAbilityType;
 using namespace AppExecFwk;
 using namespace Security::AccessToken;
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
-
 class InputMethodSystemAbility : public SystemAbility, public InputMethodSystemAbilityStub {
     DECLARE_SYSTEM_ABILITY(InputMethodSystemAbility);
 
@@ -58,6 +58,8 @@ public:
     int32_t HideInput(sptr<IInputClient> client) override;
     int32_t StopInputSession() override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
+    int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop) override;
+    int32_t GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
     std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
     int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;

@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "global.h"
+#include "element_name.h"
 #include "i_input_method_system_ability.h"
 #include "input_attribute.h"
 #include "input_client_stub.h"
@@ -52,6 +53,8 @@ public:
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
     std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
+    int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop) override;
+    int32_t GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig) override;
     int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;
     int32_t SwitchInputMethod(const std::string &name, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
