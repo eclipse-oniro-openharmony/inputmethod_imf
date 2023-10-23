@@ -251,10 +251,6 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         IMSA_HILOGE("PrepareInput failed");
         return ret;
     }
-    if (inputClientInfo.client == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
     return userSession_->OnStartInput(inputClientInfo.client, inputClientInfo.isShowKeyboard, agent);
 };
 
@@ -938,12 +934,12 @@ int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, co
     return userSession_->OnUnRegisteredProxyIme(type, core);
 }
 
-bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo& switchInfo)
+bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo &switchInfo)
 {
     auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
     // if currentIme is switching subtype, permission verification is not performed.
-    if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName) &&
-        switchInfo.bundleName == currentBundleName && !switchInfo.subName.empty()) {
+    if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName)
+        && switchInfo.bundleName == currentBundleName && !switchInfo.subName.empty()) {
         return true;
     }
     if (!identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
@@ -954,12 +950,12 @@ bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo& switchInfo)
     if (switchInfo.subName.empty()) {
         return true;
     }
-    if (identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) ||
-        identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName)) {
+    if (identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())
+        || identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName)) {
         return true;
     }
-    InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_STATUS_PERMISSION_DENIED,
-        switchInfo.bundleName, "switch inputmethod failed!");
+    InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
+        ErrorCode::ERROR_STATUS_PERMISSION_DENIED, switchInfo.bundleName, "switch inputmethod failed!");
     IMSA_HILOGE("not permitted");
     return false;
 }

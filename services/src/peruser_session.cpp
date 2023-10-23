@@ -428,7 +428,7 @@ void PerUserSession::UnBindClientWithIme(
         return;
     }
     if (!isUnbindFromClient) {
-        IMSA_HILOGD("Unbind from client.");
+        IMSA_HILOGD("Unbind from service.");
         StopClientInput(currentClientInfo->client);
     }
     StopImeInput(currentClientInfo->bindImeType, currentClientInfo->channel);
