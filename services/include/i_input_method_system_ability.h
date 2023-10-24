@@ -42,8 +42,7 @@ class IInputMethodSystemAbility : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
 
-    virtual int32_t PrepareInput(InputClientInfo &clientInfo) = 0;
-    virtual int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) = 0;
+    virtual int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent) = 0;
     virtual int32_t ShowCurrentInput() = 0;
     virtual int32_t HideCurrentInput() = 0;
     virtual int32_t StopInputSession() = 0;

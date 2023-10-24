@@ -204,12 +204,6 @@ bool InputMethodSystemAbility::StartInputService(const std::string &imeId)
 
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
-    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!identityChecker_->IsBroker(tokenId)) {
-        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
-            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
-        }
-    }
     auto ret = GenerateClientInfo(clientInfo);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
@@ -243,7 +237,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
     return userSession_->OnReleaseInput(client);
 };
 
-int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
+int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId)) {
@@ -251,11 +245,13 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
-    if (client == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+
+    int32_t ret = PrepareInput(inputClientInfo);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("PrepareInput failed");
+        return ret;
     }
-    return userSession_->OnStartInput(client, isShowKeyboard);
+    return userSession_->OnStartInput(inputClientInfo.client, inputClientInfo.isShowKeyboard, agent);
 };
 
 int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
@@ -938,7 +934,7 @@ int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, co
     return userSession_->OnUnRegisteredProxyIme(type, core);
 }
 
-bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo& switchInfo)
+bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo &switchInfo)
 {
     auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
     // if currentIme is switching subtype, permission verification is not performed.
@@ -947,8 +943,8 @@ bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo& switchInfo)
             !switchInfo.subName.empty())) {
         return true;
     }
-    InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_STATUS_PERMISSION_DENIED,
-        switchInfo.bundleName, "switch inputmethod failed!");
+    InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
+        ErrorCode::ERROR_STATUS_PERMISSION_DENIED, switchInfo.bundleName, "switch inputmethod failed!");
     IMSA_HILOGE("not permitted");
     return false;
 }

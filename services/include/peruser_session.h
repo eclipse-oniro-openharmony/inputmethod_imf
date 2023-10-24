@@ -67,7 +67,7 @@ public:
     ~PerUserSession();
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
-    int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard);
+    int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard, sptr<IRemoteObject> &agent);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
     int32_t OnHideCurrentInput();
@@ -127,11 +127,13 @@ private:
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     void RemoveImeData(ImeType type);
 
-    int32_t RemoveClient(const sptr<IInputClient> &client);
+    int32_t RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient = false);
     int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
 
-    int32_t BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type);
-    void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo);
+    int32_t BindClientWithIme(
+        const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type, bool isBindFromClient = false);
+    void UnBindClientWithIme(
+        const std::shared_ptr<InputClientInfo> &currentClientInfo, bool isUnbindFromClient = false);
     void StopClientInput(const sptr<IInputClient> &currentClient);
     void StopImeInput(ImeType currentType, const sptr<IInputDataChannel> &currentChannel);
 

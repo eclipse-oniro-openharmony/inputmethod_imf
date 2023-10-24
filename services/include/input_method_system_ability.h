@@ -33,8 +33,8 @@
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
 #include "peruser_session.h"
-#include "unRegistered_type.h"
 #include "system_ability.h"
+#include "unRegistered_type.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -51,8 +51,7 @@ public:
     InputMethodSystemAbility();
     ~InputMethodSystemAbility();
 
-    int32_t PrepareInput(InputClientInfo &clientInfo) override;
-    int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) override;
+    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent) override;
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
     int32_t ShowInput(sptr<IInputClient> client) override;
@@ -95,6 +94,7 @@ private:
     std::thread workThreadHandler; /*!< thread handler of the WorkThread */
     std::shared_ptr<PerUserSession> userSession_ = nullptr;
     std::shared_ptr<IdentityChecker> identityChecker_ = nullptr;
+    int32_t PrepareInput(InputClientInfo &clientInfo);
     void WorkThread();
     bool StartInputService(const std::string &imeId);
     int32_t OnUserStarted(const Message *msg);

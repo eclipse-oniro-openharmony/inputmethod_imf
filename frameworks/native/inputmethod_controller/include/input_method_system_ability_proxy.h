@@ -44,8 +44,7 @@ public:
     ~InputMethodSystemAbilityProxy() = default;
     DISALLOW_COPY_AND_MOVE(InputMethodSystemAbilityProxy);
 
-    int32_t PrepareInput(InputClientInfo &inputClientInfo) override;
-    int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) override;
+    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent) override;
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
     int32_t StopInputSession() override;
@@ -79,6 +78,7 @@ private:
     static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
+    void GetMessageOption(int32_t code, MessageOption &option);
 };
 } // namespace MiscServices
 } // namespace OHOS

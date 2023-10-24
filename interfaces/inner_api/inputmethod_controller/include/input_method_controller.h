@@ -647,8 +647,7 @@ private:
 
     int32_t Initialize();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
-    int32_t PrepareInput(InputClientInfo &inputClientInfo);
-    int32_t StartInput(sptr<IInputClient> &client, bool isShowKeyboard);
+    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent);
     int32_t ShowInput(sptr<IInputClient> &client);
     int32_t HideInput(sptr<IInputClient> &client);
     int32_t ReleaseInput(sptr<IInputClient> &client);
