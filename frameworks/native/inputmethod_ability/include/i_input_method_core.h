@@ -22,6 +22,7 @@
 #include "input_attribute.h"
 #include "input_channel.h"
 #include "input_method_property.h"
+#include "input_panel_info.h"
 #include "ipc_types.h"
 #include "iremote_broker.h"
 
@@ -42,6 +43,7 @@ public:
         START_INPUT,
         STOP_INPUT,
         IS_ENABLE,
+        IS_PANEL_SHOWN,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodCore");
@@ -55,6 +57,7 @@ public:
     virtual void StopInputService() = 0;
     virtual int32_t SetSubtype(const SubProperty &property) = 0;
     virtual bool IsEnable() = 0;
+    virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

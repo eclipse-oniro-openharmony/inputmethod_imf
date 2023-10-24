@@ -24,6 +24,7 @@
 #include "event_status_manager.h"
 #include "global.h"
 #include "input_client_info.h"
+#include "input_panel_info.h"
 #include "input_window_info.h"
 #include "message_parcel.h"
 
@@ -87,6 +88,9 @@ public:
 
     static bool Marshalling(const OHOS::AppExecFwk::ElementName &input, MessageParcel &data);
     static bool Unmarshalling(OHOS::AppExecFwk::ElementName &output, MessageParcel &data);
+
+    static bool Marshalling(const PanelInfo &input, MessageParcel &data);
+    static bool Unmarshalling(PanelInfo &output, MessageParcel &data);
 
     template<class T>
     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);

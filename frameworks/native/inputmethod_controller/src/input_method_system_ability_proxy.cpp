@@ -244,6 +244,14 @@ int32_t InputMethodSystemAbilityProxy::ExitCurrentInputType()
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::EXIT_CURRENT_INPUT_TYPE));
 }
 
+int32_t InputMethodSystemAbilityProxy::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
+{
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::IS_PANEL_SHOWN),
+        [&panelInfo](MessageParcel &data) { return ITypesUtil::Marshal(data, panelInfo); },
+        [&isShown](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isShown); });
+}
+
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
     IMSA_HILOGI("InputMethodSystemAbilityProxy run in, code = %{public}d", code);

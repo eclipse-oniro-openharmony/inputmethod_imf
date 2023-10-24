@@ -47,6 +47,7 @@ public:
     void StopInputService() override;
     int32_t SetSubtype(const SubProperty &property) override;
     bool IsEnable() override;
+    int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     void SetMessageHandler(MessageHandler *msgHandler);
 
 private:
@@ -57,6 +58,7 @@ private:
     int32_t StopInputOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t IsEnableOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
 };

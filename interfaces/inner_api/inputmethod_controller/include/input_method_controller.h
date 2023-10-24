@@ -33,6 +33,7 @@
 #include "input_method_setting_listener.h"
 #include "input_method_status.h"
 #include "input_method_utils.h"
+#include "input_panel_info.h"
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "key_event.h"
@@ -626,7 +627,7 @@ public:
      *
      * @param type Indicates the input type being queried.
      * @return Returns true for supported, false for not supported.
-     * @since 10
+     * @since 11
      */
     IMF_API bool IsInputTypeSupported(InputType type);
 
@@ -637,9 +638,21 @@ public:
      *
      * @param type Indicates the input type being specified.
      * @return Returns 0 for success, others for failure.
-     * @since 10
+     * @since 11
      */
     IMF_API int32_t StartInputType(InputType type);
+
+    /**
+     * @brief Query whether the specific type panel is shown.
+     *
+     * This function is used to query whether the specific type panel is shown.
+     *
+     * @param panelInfo Indicates the info of the panel.
+     * @param isShown Indicates the state of the specific panel.
+     * @return Returns 0 for success, others for failure.
+     * @since 11
+     */
+    IMF_API int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
 
 private:
     InputMethodController();

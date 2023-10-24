@@ -14,8 +14,9 @@
  */
 #include "input_method_core_stub.h"
 
-#include <cstdint>
 #include <string_ex.h>
+
+#include <cstdint>
 
 #include "i_input_data_channel.h"
 #include "input_channel.h"
@@ -76,6 +77,9 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
         }
         case IS_ENABLE: {
             return IsEnableOnRemote(data, reply);
+        }
+        case IS_PANEL_SHOWN: {
+            return IsPanelShownOnRemote(data, reply);
         }
         default: {
             return IRemoteStub::OnRemoteRequest(code, data, reply, option);
@@ -195,6 +199,18 @@ int32_t InputMethodCoreStub::ShowKeyboardOnRemote(MessageParcel &data, MessagePa
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodCoreStub::IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    PanelInfo info;
+    if (!ITypesUtil::Unmarshal(data, info)) {
+        IMSA_HILOGE("unmarshal failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    bool isShown = false;
+    int32_t ret = IsPanelShown(info, isShown);
+    return ITypesUtil::Marshal(reply, ret, isShown) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodCoreStub::StartInput(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard)
 {
     return ErrorCode::NO_ERROR;
@@ -213,6 +229,11 @@ int32_t InputMethodCoreStub::StopInput(const sptr<IInputDataChannel> &channel)
 bool InputMethodCoreStub::IsEnable()
 {
     return InputMethodAbility::GetInstance()->IsEnable();
+}
+
+int32_t InputMethodCoreStub::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
+{
+    return InputMethodAbility::GetInstance()->IsPanelShown(panelInfo, isShown);
 }
 
 int32_t InputMethodCoreStub::SendMessage(int code, ParcelHandler input)

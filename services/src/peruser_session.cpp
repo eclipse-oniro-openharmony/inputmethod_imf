@@ -874,5 +874,15 @@ int32_t PerUserSession::ExitCurrentInputType()
     }
     return ErrorCode::NO_ERROR;
 }
+
+int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
+{
+    auto ime = GetImeData(ImeType::IME);
+    if (ime == nullptr) {
+        IMSA_HILOGE("ime not started");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    return ime->core->IsPanelShown(panelInfo, isShown);
+}
 } // namespace MiscServices
 } // namespace OHOS

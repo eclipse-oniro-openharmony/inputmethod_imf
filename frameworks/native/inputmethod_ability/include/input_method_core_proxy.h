@@ -43,6 +43,7 @@ public:
     void StopInputService() override;
     int32_t SetSubtype(const SubProperty &property) override;
     bool IsEnable() override;
+    int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
 
 private:
     static inline BrokerDelegator<InputMethodCoreProxy> delegator_;

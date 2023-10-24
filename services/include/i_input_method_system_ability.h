@@ -31,6 +31,7 @@
 #include "input_client_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
+#include "input_panel_info.h"
 #include "input_window_info.h"
 #include "iremote_broker.h"
 #include "message_parcel.h"
@@ -67,6 +68,7 @@ public:
     virtual bool IsInputTypeSupported(InputType type) = 0;
     virtual int32_t StartInputType(InputType type) = 0;
     virtual int32_t ExitCurrentInputType() = 0;
+    virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;

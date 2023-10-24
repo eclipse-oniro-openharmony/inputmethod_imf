@@ -411,6 +411,15 @@ int32_t InputMethodSystemAbility::ExitCurrentInputType()
     return userSession_->ExitCurrentInputType();
 }
 
+int32_t InputMethodSystemAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
+{
+    if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
+        IMSA_HILOGE("not system application");
+        return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
+    }
+    return userSession_->IsPanelShown(panelInfo, isShown);
+}
+
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");

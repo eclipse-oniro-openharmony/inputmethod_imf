@@ -78,6 +78,7 @@ public:
     bool IsCurrentIme();
     bool IsEnable();
     int32_t ExitCurrentInputType();
+    int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
 
 private:
     std::thread workThreadHandler;

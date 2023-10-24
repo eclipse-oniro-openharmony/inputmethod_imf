@@ -80,6 +80,13 @@ bool InputMethodCoreProxy::IsEnable()
     return isEnable;
 }
 
+int32_t InputMethodCoreProxy::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
+{
+    return SendRequest(
+        IS_PANEL_SHOWN, [&panelInfo](MessageParcel &data) { return ITypesUtil::Marshal(data, panelInfo); },
+        [&isShown](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isShown); });
+}
+
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
     IMSA_HILOGI("InputMethodCoreProxy, run in, code = %{public}d", code);

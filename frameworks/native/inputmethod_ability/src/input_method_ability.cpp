@@ -799,5 +799,23 @@ int32_t InputMethodAbility::ExitCurrentInputType()
     }
     return proxy->ExitCurrentInputType();
 }
+
+int32_t InputMethodAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
+{
+    IMSA_HILOGI("InputMethodAbility, type: %{public}d, flag: %{public}d", panelInfo.panelType, panelInfo.panelFlag);
+    isShown = false;
+    auto result = panels_.Find(panelInfo.panelType);
+    if (!result.first) {
+        IMSA_HILOGD("panel not found");
+        return ErrorCode::NO_ERROR;
+    }
+    auto panel = result.second;
+    if (panel->GetPanelFlag() != panelInfo.panelFlag) {
+        IMSA_HILOGD("panel not found");
+        return ErrorCode::NO_ERROR;
+    }
+    isShown = panel->IsShowing();
+    return ErrorCode::NO_ERROR;
+}
 } // namespace MiscServices
 } // namespace OHOS

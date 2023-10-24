@@ -38,6 +38,7 @@
 #include "input_death_recipient.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
+#include "input_panel_info.h"
 #include "input_window_info.h"
 #include "inputmethod_sysevent.h"
 #include "iremote_object.h"
@@ -89,6 +90,7 @@ public:
     bool IsProxyImeEnable();
     bool IsBoundToClient();
     int32_t ExitCurrentInputType();
+    int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
 
 private:
     struct ResetManager {

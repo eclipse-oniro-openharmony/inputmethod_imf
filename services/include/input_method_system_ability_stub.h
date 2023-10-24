@@ -88,6 +88,8 @@ private:
 
     int32_t GetInputMethodConfigOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply);
+
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     static constexpr RequestHandler HANDLERS[static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_LAST)] = {
         [static_cast<uint32_t>(InputMethodInterfaceCode::PREPARE_INPUT)] =
@@ -146,6 +148,8 @@ private:
             &InputMethodSystemAbilityStub::GetDefaultInputMethodOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::GET_INPUT_METHOD_SETTINGS)] =
             &InputMethodSystemAbilityStub::GetInputMethodConfigOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::IS_PANEL_SHOWN)] =
+            &InputMethodSystemAbilityStub::IsPanelShownOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

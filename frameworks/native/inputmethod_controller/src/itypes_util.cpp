@@ -315,5 +315,23 @@ bool ITypesUtil::Unmarshalling(InputType &output, MessageParcel &data)
     output = static_cast<InputType>(ret);
     return true;
 }
+
+bool ITypesUtil::Marshalling(const PanelInfo &input, MessageParcel &data)
+{
+    return data.WriteInt32(static_cast<int32_t>(input.panelType))
+           && data.WriteInt32(static_cast<int32_t>(input.panelFlag));
+}
+
+bool ITypesUtil::Unmarshalling(PanelInfo &output, MessageParcel &data)
+{
+    int32_t panelType = 0;
+    int32_t panelFlag = 0;
+    if (!data.ReadInt32(panelType) || !data.ReadInt32(panelFlag)) {
+        return false;
+    }
+    output.panelFlag = static_cast<PanelFlag>(panelFlag);
+    output.panelType = static_cast<PanelType>(panelType);
+    return true;
+}
 } // namespace MiscServices
 } // namespace OHOS
