@@ -47,6 +47,9 @@ public:
     virtual void DeleteBackward(int32_t length) = 0;
     virtual void SendKeyEventFromInputMethod(const KeyEvent &event) = 0;
     virtual void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) = 0;
+    virtual void SendPanelState(const PanelState &state)
+    {
+    }
     virtual void SendFunctionKey(const FunctionKey &functionKey) = 0;
     virtual void SetKeyboardStatus(bool status) = 0;
     virtual void MoveCursor(const Direction direction) = 0;
@@ -561,6 +564,16 @@ public:
      * @since 10
      */
     IMF_API void SendKeyboardStatus(int32_t status);
+
+    /**
+     * @brief Send panel state.
+     *
+     * This function is used to send panel state to editor.
+     *
+     * @param status Indicates the state of panel.
+     * @since 10
+     */
+    IMF_API void SendPanelState(const PanelState &state);
 
     /**
      * @brief Send function key.

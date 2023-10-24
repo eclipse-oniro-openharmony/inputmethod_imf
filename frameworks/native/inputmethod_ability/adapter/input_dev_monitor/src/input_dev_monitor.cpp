@@ -42,9 +42,10 @@ void InputDevMonitor::InputDeviceListenerImpl::OnDeviceAdded(int32_t deviceId, c
     int32_t kbType = -1;
     auto ret = MMI::InputManager::GetInstance()->GetKeyboardType(
         deviceId, [&kbType](int32_t keyboardType) { kbType = keyboardType; });
-    IMSA_HILOGD("ret: %{public}d.", ret);
+    IMSA_HILOGD("ret: %{public}d, kbType: %{public}d", ret, kbType);
     if (ret == 0 && kbType == KeyboardType::KEYBOARD_TYPE_ALPHABETICKEYBOARD) {
         handler_(true);
+        deviceId_ = deviceId;
     }
 }
 
@@ -54,12 +55,9 @@ void InputDevMonitor::InputDeviceListenerImpl::OnDeviceRemoved(int32_t deviceId,
     if (type != "remove") {
         return;
     }
-    int32_t kbType = -1;
-    auto ret = MMI::InputManager::GetInstance()->GetKeyboardType(
-        deviceId, [&kbType](int32_t keyboardType) { kbType = keyboardType; });
-    IMSA_HILOGD("ret: %{public}d.", ret);
-    if (ret == 0 && kbType == KeyboardType::KEYBOARD_TYPE_ALPHABETICKEYBOARD) {
+    if (deviceId == deviceId_) {
         handler_(false);
+        deviceId_ = -1;
     }
 }
 } // namespace MiscServices

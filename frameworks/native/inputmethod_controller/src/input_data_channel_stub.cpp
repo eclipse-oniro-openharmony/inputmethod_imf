@@ -196,6 +196,17 @@ int32_t InputDataChannelStub::GetTextIndexAtCursorOnRemote(MessageParcel &data, 
                                                                           : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputDataChannelStub::SendPanelStateOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t status = 0;
+    if (!ITypesUtil::Unmarshal(data, status)) {
+        IMSA_HILOGE("failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    SendPanelState(static_cast<PanelState>(status));
+    return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputDataChannelStub::InsertText(const std::u16string &text)
 {
     auto result = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT);
@@ -447,6 +458,20 @@ int32_t InputDataChannelStub::HandleExtendAction(int32_t action)
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
     return ret;
+}
+
+void InputDataChannelStub::SendPanelState(const PanelState &state)
+{
+    auto result = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
+    auto blockTask = [state, result]() {
+        InputMethodController::GetInstance()->SendPanelState(state);
+        bool ret = true;
+        result->SetValue(ret);
+    };
+    ffrt::submit(blockTask);
+    if (!result->GetValue()) {
+        IMSA_HILOGE("failed due to timeout");
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS

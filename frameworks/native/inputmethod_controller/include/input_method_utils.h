@@ -95,7 +95,22 @@ struct CursorInfo {
 class KeyEvent {
 };
 
-enum class KeyboardStatus { NONE = 0, HIDE, SHOW };
+enum class KeyboardStatus { NONE = 0, HIDE, SHOW }; // soft keyboard
+enum class PanelState : int32_t {                   // all panel state
+    FIXED_SOFT_KEYBOARD_SHOW,
+    FIXED_SOFT_KEYBOARD_HIDE,
+    FLOATING_SOFT_KEYBOARD_SHOW,
+    FLOATING_SOFT_KEYBOARD_HIDE,
+    FIXED_SOFT_KEYBOARD_SHOW_BY_IME,
+    FIXED_SOFT_KEYBOARD_HIDE_BY_IME,
+    FLOATING_SOFT_KEYBOARD_SHOW_BY_IME,
+    FLOATING_SOFT_KEYBOARD_HIDE_BY_IME,
+    CANDIDATE_COLUMN_SHOW_BY_IME,
+    CANDIDATE_COLUMN_HIDE_BY_IME,
+    STATUS_BAR_SHOW_BY_IME,
+    STATUS_BAR_HIDE_BY_IME,
+    NONE
+};
 
 class FunctionKey {
 public:

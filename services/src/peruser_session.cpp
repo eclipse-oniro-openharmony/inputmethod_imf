@@ -303,7 +303,7 @@ void PerUserSession::OnHideSoftKeyBoardSelf()
         return;
     }
     bool isShowKeyboard = false;
-    UpdateClientInfo(client->AsObject(), { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard });
+    UpdateClientInfo(client->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
 }
 
 /** Get ClientInfo

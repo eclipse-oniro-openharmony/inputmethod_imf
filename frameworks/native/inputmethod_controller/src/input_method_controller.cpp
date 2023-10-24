@@ -1003,6 +1003,20 @@ void InputMethodController::SendKeyboardStatus(int32_t status)
     }
 }
 
+void InputMethodController::SendPanelState(const PanelState &state)
+{
+    IMSA_HILOGD("run in, status: %{public}d", state);
+    auto listener = GetTextListener();
+    if (listener == nullptr) {
+        IMSA_HILOGE("textListener_ is nullptr");
+        return;
+    }
+    listener->SendPanelState(state);
+//    if (keyboardStatus == KeyboardStatus::HIDE) {
+//        clientInfo_.isShowKeyboard = false;                          // todo 更新clientInfo_.isShowKeyboard
+//    }
+}
+
 int32_t InputMethodController::SendFunctionKey(int32_t functionKey)
 {
     auto listener = GetTextListener();

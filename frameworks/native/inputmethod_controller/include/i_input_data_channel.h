@@ -45,6 +45,7 @@ public:
         HANDLE_EXTEND_ACTION,
         GET_TEXT_INDEX_AT_CURSOR,
         GET_TEXT_CONFIG,
+        SEND_PANEL_STATE,
         DATA_CHANNEL_CMD_LAST
     };
 
@@ -65,6 +66,7 @@ public:
     virtual int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) = 0;
     virtual int32_t HandleExtendAction(int32_t action) = 0;
     virtual int32_t GetTextIndexAtCursor(int32_t &index) = 0;
+    virtual void SendPanelState(const PanelState &state) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

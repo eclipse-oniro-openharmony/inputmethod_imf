@@ -52,6 +52,7 @@ public:
     int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) override;
     int32_t HandleExtendAction(int32_t action) override;
     int32_t GetTextConfig(TextTotalConfig &textConfig) override;
+    void SendPanelState(const PanelState &state) override;
 
 private:
     template<class T> struct ResultInfo {
@@ -74,6 +75,7 @@ private:
     int32_t SelectByMovementOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t GetTextIndexAtCursorOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t SendPanelStateOnRemote(MessageParcel &data, MessageParcel &reply);
     using RequestHandler = int32_t (InputDataChannelStub::*)(MessageParcel &, MessageParcel &);
     static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
         { static_cast<uint32_t>(INSERT_TEXT), &InputDataChannelStub::InsertTextOnRemote },
@@ -91,6 +93,7 @@ private:
         { static_cast<uint32_t>(HANDLE_EXTEND_ACTION), &InputDataChannelStub::HandleExtendActionOnRemote },
         { static_cast<uint32_t>(GET_TEXT_INDEX_AT_CURSOR), &InputDataChannelStub::GetTextIndexAtCursorOnRemote },
         { static_cast<uint32_t>(GET_TEXT_CONFIG), &InputDataChannelStub::GetTextConfigOnRemote },
+        { static_cast<uint32_t>(SEND_PANEL_STATE), &InputDataChannelStub::SendPanelStateOnRemote },
     };
 };
 } // namespace MiscServices

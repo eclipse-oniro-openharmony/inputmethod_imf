@@ -35,6 +35,7 @@ public:
 
     private:
         FocusHandle handler_;
+        int32_t deviceId_;
     };
 
 private:
