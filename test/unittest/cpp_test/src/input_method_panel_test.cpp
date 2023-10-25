@@ -439,6 +439,103 @@ HWTEST_F(InputMethodPanelTest, testShowPanel, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testIsPanelShown_001
+ * @tc.desc: Test is panel shown.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testIsPanelShown_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_001 start.");
+    bool isShown = false;
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    int32_t ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // query when fixed soft keyboard is showing
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodPanelTest::imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(isShown);
+
+    // query when fixed soft keyboard is hidden
+    ret = inputMethodPanel->HidePanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodPanelTest::imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(isShown);
+
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testIsPanelShown_002
+ * @tc.desc: Test is panel shown.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testIsPanelShown_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_002 start.");
+    bool isShown = false;
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    int32_t ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->ChangePanelFlag(PanelFlag::FLG_FLOATING);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // query panel with old info when panel changes its flag.
+    ret = InputMethodPanelTest::imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(isShown);
+    // query panel with updated shown one's info when panel changes its flag.
+    panelInfo.panelFlag = PanelFlag::FLG_FLOATING;
+    ret = InputMethodPanelTest::imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(isShown);
+
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testIsPanelShown_003
+ * @tc.desc: Test is panel shown.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_003 start.");
+    bool isShown = false;
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = STATUS_BAR };
+    int32_t ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // query status bar's status when it is showing
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodPanelTest::imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(isShown);
+
+    // query status bar's status when it is hidden
+    ret = inputMethodPanel->HidePanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodPanelTest::imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(isShown);
+
+    ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
 * @tc.name: testSetPanelStatusListener
 * @tc.desc: Test SetPanelStatusListener.
 * @tc.type: FUNC
