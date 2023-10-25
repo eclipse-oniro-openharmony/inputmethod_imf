@@ -43,7 +43,7 @@ public:
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) override;
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text) override;
     int32_t GetTextIndexAtCursor(int32_t &index) override;
-    void SendKeyboardStatus(int32_t status) override;
+    void SendKeyboardStatus(KeyboardStatus status) override;
     int32_t SendFunctionKey(int32_t funcKey) override;
     int32_t MoveCursor(int32_t keyCode) override;
     int32_t GetEnterKeyType(int32_t &keyType) override;

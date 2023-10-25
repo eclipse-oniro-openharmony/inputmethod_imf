@@ -85,8 +85,6 @@ private:
     std::thread workThreadHandler;
     MessageHandler *msgHandler_;
     bool stop_ = false;
-    int32_t KEYBOARD_HIDE = 1;
-    int32_t KEYBOARD_SHOW = 2;
 
     std::mutex controlChannelLock_;
     std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;

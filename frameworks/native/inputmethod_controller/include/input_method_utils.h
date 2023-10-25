@@ -96,7 +96,7 @@ struct CursorInfo {
 class KeyEvent {
 };
 
-enum class KeyboardStatus { NONE = 0, HIDE, SHOW }; // soft keyboard
+enum class KeyboardStatus : int32_t { NONE = 0, HIDE, SHOW }; // soft keyboard
 
 enum Trigger : int32_t { IME_APP, IMF };
 struct PanelStatusInfo {

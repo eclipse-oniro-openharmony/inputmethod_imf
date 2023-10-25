@@ -57,7 +57,7 @@ public:
     virtual int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) = 0;
     virtual int32_t GetTextAfterCursor(int32_t number, std::u16string &text) = 0;
     virtual int32_t GetTextConfig(TextTotalConfig &textConfig) = 0;
-    virtual void SendKeyboardStatus(int32_t status) = 0;
+    virtual void SendKeyboardStatus(KeyboardStatus status) = 0;
     virtual int32_t SendFunctionKey(int32_t funcKey) = 0;
     virtual int32_t MoveCursor(int32_t keyCode) = 0;
     virtual int32_t GetEnterKeyType(int32_t &keyType) = 0;

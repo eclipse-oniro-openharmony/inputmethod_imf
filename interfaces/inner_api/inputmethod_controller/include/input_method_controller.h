@@ -561,7 +561,7 @@ public:
      * @param status Indicates the status of keyboard.
      * @since 10
      */
-    IMF_API void SendKeyboardStatus(int32_t status);
+    IMF_API void SendKeyboardStatus(KeyboardStatus status);
 
     /**
      * @brief Send panel status info.
@@ -570,7 +570,7 @@ public:
      * Only notify the status info of soft keyboard(not contain candidate column) at present
      *
      * @param info Indicates the status info of panel.
-     * @since 10
+     * @since 11
      */
     IMF_API void NotifyPanelStatusInfo(const PanelStatusInfo &info);
 

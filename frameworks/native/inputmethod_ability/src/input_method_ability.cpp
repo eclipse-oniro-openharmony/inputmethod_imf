@@ -376,23 +376,27 @@ int32_t InputMethodAbility::ShowKeyboard()
         IMSA_HILOGE("InputMethodAbility, imeListener is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    imeListener_->OnKeyboardStatus(true);
-
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("InputMethodAbility::channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
     if (isPanelKeyboard_.load()) {
         auto panel = GetSoftKeyboardPanel();
         if (panel == nullptr) {
             return ErrorCode::ERROR_IME;
         }
-        if (panel->GetPanelFlag() == FLG_CANDIDATE_COLUMN) {
+        auto flag = panel->GetPanelFlag();
+        imeListener_->OnKeyboardStatus(true);
+        if (flag == FLG_CANDIDATE_COLUMN) {
             IMSA_HILOGD("panel flag is candidate, no need to show.");
             return ErrorCode::NO_ERROR;
         }
         return ShowPanel(panel, Trigger::IMF);
     }
-    auto channel = GetInputDataChannelProxy();
-    if (channel != nullptr) {
-        channel->SendKeyboardStatus(KEYBOARD_SHOW);
-    }
+
+    channel->SendKeyboardStatus(KeyboardStatus::SHOW);
+    imeListener_->OnKeyboardStatus(true);
     return ErrorCode::NO_ERROR;
 }
 
@@ -405,7 +409,7 @@ void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
     }
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
-        info.visible ? channel->SendKeyboardStatus(KEYBOARD_SHOW) : channel->SendKeyboardStatus(KEYBOARD_HIDE);
+        info.visible ? channel->SendKeyboardStatus(KeyboardStatus::SHOW) : channel->SendKeyboardStatus(KeyboardStatus::HIDE);
         channel->NotifyPanelStatusInfo(info);
     }
 
@@ -467,23 +471,28 @@ int32_t InputMethodAbility::HideKeyboard()
         IMSA_HILOGE("InputMethodAbility::HideKeyboard imeListener_ is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    imeListener_->OnKeyboardStatus(false);
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("InputMethodAbility::channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
 
     if (isPanelKeyboard_.load()) {
         auto panel = GetSoftKeyboardPanel();
         if (panel == nullptr) {
             return ErrorCode::ERROR_IME;
         }
-        if (panel->GetPanelFlag() == FLG_CANDIDATE_COLUMN) {
+        auto flag = panel->GetPanelFlag();
+        imeListener_->OnKeyboardStatus(false);
+        if (flag == FLG_CANDIDATE_COLUMN) {
             IMSA_HILOGD("panel flag is candidate, no need to hide.");
             return ErrorCode::NO_ERROR;
         }
         return HidePanel(panel, Trigger::IMF);
     }
-    auto channel = GetInputDataChannelProxy();
-    if (channel != nullptr) {
-        channel->SendKeyboardStatus(KEYBOARD_HIDE);
-    }
+
+    channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+    imeListener_->OnKeyboardStatus(false);
     return ErrorCode::NO_ERROR;
 }
 
@@ -542,7 +551,7 @@ int32_t InputMethodAbility::HideKeyboardSelf()
         return ErrorCode::NO_ERROR;
     }
     imeListener_->OnKeyboardStatus(false);
-    channel->SendKeyboardStatus(KEYBOARD_HIDE);
+    channel->SendKeyboardStatus(KeyboardStatus::HIDE);
     auto controlChannel = GetInputControlChannel();
     if (controlChannel != nullptr) {
         controlChannel->HideKeyboardSelf();

@@ -40,7 +40,7 @@ public:
     int32_t DeleteBackward(int32_t length) override;
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) override;
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text) override;
-    void SendKeyboardStatus(int32_t status) override;
+    void SendKeyboardStatus(KeyboardStatus status) override;
     int32_t SendFunctionKey(int32_t funcKey) override;
     int32_t MoveCursor(int32_t keyCode) override;
     int32_t GetEnterKeyType(int32_t &keyType) override;

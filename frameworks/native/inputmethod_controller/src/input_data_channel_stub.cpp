@@ -119,7 +119,7 @@ int32_t InputDataChannelStub::SendKeyboardStatusOnRemote(MessageParcel &data, Me
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    SendKeyboardStatus(status);
+    SendKeyboardStatus(static_cast<KeyboardStatus>(status));
     return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -363,7 +363,7 @@ int32_t InputDataChannelStub::GetTextConfig(TextTotalConfig &textConfig)
     return result.errCode;
 }
 
-void InputDataChannelStub::SendKeyboardStatus(int32_t status)
+void InputDataChannelStub::SendKeyboardStatus(KeyboardStatus status)
 {
     auto result = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
     auto blockTask = [status, result]() {

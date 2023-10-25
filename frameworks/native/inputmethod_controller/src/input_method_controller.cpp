@@ -988,17 +988,16 @@ int32_t InputMethodController::MoveCursor(Direction direction)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodController::SendKeyboardStatus(int32_t status)
+void InputMethodController::SendKeyboardStatus(KeyboardStatus status)
 {
-    IMSA_HILOGD("run in, status: %{public}d", status);
+    IMSA_HILOGD("run in, status: %{public}d", static_cast<int32_t>(status));
     auto listener = GetTextListener();
     if (listener == nullptr) {
         IMSA_HILOGE("textListener_ is nullptr");
         return;
     }
-    auto keyboardStatus = static_cast<KeyboardStatus>(status);
-    listener->SendKeyboardStatus(keyboardStatus);
-    if (keyboardStatus == KeyboardStatus::HIDE) {
+    listener->SendKeyboardStatus(status);
+    if (status == KeyboardStatus::HIDE) {
         clientInfo_.isShowKeyboard = false;
     }
 }
