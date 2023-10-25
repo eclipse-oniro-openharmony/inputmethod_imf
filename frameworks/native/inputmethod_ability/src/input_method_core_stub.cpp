@@ -153,13 +153,13 @@ void InputMethodCoreStub::InitInputControlChannelOnRemote(MessageParcel &data, M
 int32_t InputMethodCoreStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGD("InputMethodCoreStub::StartInputOnRemote");
-    sptr<IRemoteObject> channel;
-    bool isShowKeyboard = false;
-    if (!ITypesUtil::Unmarshal(data, channel, isShowKeyboard)) {
+    bool isBindFromClient = false;
+    InputClientInfo clientInfo = {};
+    if (!ITypesUtil::Unmarshal(data, isBindFromClient, clientInfo)) {
         IMSA_HILOGE("Unmarshal failed.");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto ret = InputMethodAbility::GetInstance()->StartInput(channel, isShowKeyboard);
+    auto ret = InputMethodAbility::GetInstance()->StartInput(clientInfo, isBindFromClient);
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -211,7 +211,8 @@ int32_t InputMethodCoreStub::IsPanelShownOnRemote(MessageParcel &data, MessagePa
     return ITypesUtil::Marshal(reply, ret, isShown) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputMethodCoreStub::StartInput(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard)
+int32_t InputMethodCoreStub::StartInput(const std::shared_ptr<InputClientInfo> &clientInfo, bool isBindFromClient)
+
 {
     return ErrorCode::NO_ERROR;
 }

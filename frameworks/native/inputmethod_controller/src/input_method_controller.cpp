@@ -235,22 +235,19 @@ int32_t InputMethodController::Attach(
     SetTextListener(listener);
     clientInfo_.isShowKeyboard = isShowKeyboard;
     SaveTextConfig(textConfig);
+    GetTextConfig(clientInfo_.config);
 
-    int32_t ret = PrepareInput(clientInfo_);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to prepare, ret: %{public}d", ret);
-        return ret;
-    }
-    ret = StartInput(clientInfo_.client, isShowKeyboard);
+    sptr<IRemoteObject> agent = nullptr;
+    int32_t ret = StartInput(clientInfo_, agent);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start input, ret:%{public}d", ret);
         return ret;
     }
-    IMSA_HILOGI("bind imf successfully, enter editable state");
-
+    OnInputReady(agent);
     if (isShowKeyboard) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ATTACH);
     }
+    IMSA_HILOGI("bind imf successfully, enter editable state");
     return ErrorCode::NO_ERROR;
 }
 
@@ -327,17 +324,6 @@ int32_t InputMethodController::Close()
     isReportHide ? InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNBIND)
                  : InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_UNBIND);
     return ReleaseInput(clientInfo_.client);
-}
-
-int32_t InputMethodController::PrepareInput(InputClientInfo &inputClientInfo)
-{
-    IMSA_HILOGI("InputMethodController::PrepareInput");
-    auto proxy = GetSystemAbilityProxy();
-    if (proxy == nullptr) {
-        IMSA_HILOGE("proxy is nullptr");
-        return ErrorCode::ERROR_SERVICE_START_FAILED;
-    }
-    return proxy->PrepareInput(inputClientInfo);
 }
 
 int32_t InputMethodController::DisplayOptionalInputMethod()
@@ -433,7 +419,7 @@ std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype
     return property;
 }
 
-int32_t InputMethodController::StartInput(sptr<IInputClient> &client, bool isShowKeyboard)
+int32_t InputMethodController::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGI("InputMethodController::StartInput");
     auto proxy = GetSystemAbilityProxy();
@@ -441,7 +427,7 @@ int32_t InputMethodController::StartInput(sptr<IInputClient> &client, bool isSho
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->StartInput(client, isShowKeyboard);
+    return proxy->StartInput(inputClientInfo, agent);
 }
 
 int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
@@ -452,7 +438,11 @@ int32_t InputMethodController::ReleaseInput(sptr<IInputClient> &client)
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->ReleaseInput(client);
+    int32_t ret = proxy->ReleaseInput(client);
+    if (ret == ErrorCode::NO_ERROR) {
+        OnInputStop();
+    }
+    return ret;
 }
 
 int32_t InputMethodController::ShowInput(sptr<IInputClient> &client)

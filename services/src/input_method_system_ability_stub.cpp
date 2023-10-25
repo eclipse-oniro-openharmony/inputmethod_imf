@@ -45,27 +45,17 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(
     }
 }
 
-int32_t InputMethodSystemAbilityStub::PrepareInputOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     InputClientInfo clientInfo;
     if (!ITypesUtil::Unmarshal(data, clientInfo)) {
         IMSA_HILOGE("read clientInfo failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = PrepareInput(clientInfo);
-    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
-int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
-{
-    auto clientObject = data.ReadRemoteObject();
-    if (clientObject == nullptr) {
-        IMSA_HILOGE("clientObject is nullptr");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    bool isShowKeyboard = data.ReadBool();
-    int32_t ret = StartInput(iface_cast<IInputClient>(clientObject), isShowKeyboard);
-    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    sptr<IRemoteObject> agent = nullptr;
+    int32_t ret = StartInput(clientInfo, agent);
+    return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR
+                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::ShowCurrentInputOnRemote(MessageParcel &data, MessageParcel &reply)

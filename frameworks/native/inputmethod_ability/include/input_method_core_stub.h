@@ -39,7 +39,7 @@ public:
     InputMethodCoreStub();
     virtual ~InputMethodCoreStub();
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-    int32_t StartInput(const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard) override;
+    int32_t StartInput(const std::shared_ptr<InputClientInfo> &clientInfo, bool isBindFromClient) override;
     int32_t StopInput(const sptr<IInputDataChannel> &channel) override;
     int32_t ShowKeyboard() override;
     int32_t HideKeyboard() override;
