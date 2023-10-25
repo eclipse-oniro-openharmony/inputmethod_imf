@@ -79,10 +79,7 @@ ohos_shared_library("inputmethod_ability") {
     "window_manager:libwm",
   ]
 
-  deps = [
-    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/adapter/input_dev_monitor:input_dev_monitor",
-  ]
+  deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
 
   public_configs = [ ":inputmethod_ability_native_public_config" ]
 

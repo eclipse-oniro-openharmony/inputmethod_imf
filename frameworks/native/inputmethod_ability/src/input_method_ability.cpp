@@ -20,7 +20,6 @@
 #include <utility>
 
 #include "global.h"
-#include "input_dev_monitor.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_core_proxy.h"
 #include "input_method_utils.h"
@@ -41,7 +40,6 @@ std::mutex InputMethodAbility::instanceLock_;
 constexpr double INVALID_CURSOR_VALUE = -1.0;
 constexpr int32_t INVALID_SELECTION_VALUE = -1;
 constexpr uint32_t FIND_PANEL_RETRY_INTERVAL = 10;
-constexpr uint32_t REGISTER_DEV_LISTENER_RETRY_INTERVAL = 100;
 constexpr uint32_t MAX_RETRY_TIMES = 100;
 InputMethodAbility::InputMethodAbility() : msgHandler_(nullptr), stop_(false)
 {
@@ -162,12 +160,6 @@ void InputMethodAbility::Initialize()
     coreStub_->SetMessageHandler(msgHandler_);
     agentStub_->SetMessageHandler(msgHandler_);
     workThreadHandler = std::thread([this] { WorkThread(); });
-
-    auto handler = [this](bool hasAlphaKeyboard) { UpdateAlphaKeyboardFlag(hasAlphaKeyboard); };
-    if (!BlockRetry(REGISTER_DEV_LISTENER_RETRY_INTERVAL, MAX_RETRY_TIMES,
-            [handler]() -> bool { return InputDevMonitor::GetInstance().RegisterDevListener(handler) == 0; })) {
-        IMSA_HILOGE("register device listener failed.");
-    }
 }
 
 void InputMethodAbility::SetImeListener(std::shared_ptr<InputMethodEngineListener> imeListener)
@@ -392,38 +384,34 @@ int32_t InputMethodAbility::ShowKeyboard()
             return ErrorCode::ERROR_IME;
         }
         if (panel->GetPanelFlag() == FLG_CANDIDATE_COLUMN) {
+            IMSA_HILOGD("panel flag is candidate, no need to show.");
             return ErrorCode::NO_ERROR;
         }
-        return ShowPanel(panel, false);
-    } else {
-        if (!hasAlphaKeyboard_.load()) {
-            NotifyPanelState(PanelState::FIXED_SOFT_KEYBOARD_SHOW);
-        }
+        return ShowPanel(panel, Trigger::IMF);
+    }
+    auto channel = GetInputDataChannelProxy();
+    if (channel != nullptr) {
+        channel->SendKeyboardStatus(KEYBOARD_SHOW);
     }
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodAbility::NotifyPanelState(const PanelState &state)
+void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
+    // only notify the status info of soft keyboard(not contain candidate column) at present
+    if (info.panelInfo.panelType != PanelType::SOFT_KEYBOARD
+        || info.panelInfo.panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN) {
+        return;
+    }
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
-        channel->SendPanelState(state);
-        if (state == PanelState::FIXED_SOFT_KEYBOARD_HIDE
-            || state == PanelState::FIXED_SOFT_KEYBOARD_HIDE_BY_IME) {
-            channel->SendKeyboardStatus(KEYBOARD_HIDE);
-        }
-        if (state == PanelState::FIXED_SOFT_KEYBOARD_SHOW
-            || state == PanelState::FIXED_SOFT_KEYBOARD_SHOW_BY_IME) {
-            channel->SendKeyboardStatus(KEYBOARD_SHOW);
-        }
+        info.visible ? channel->SendKeyboardStatus(KEYBOARD_SHOW) : channel->SendKeyboardStatus(KEYBOARD_HIDE);
+        channel->NotifyPanelStatusInfo(info);
     }
-    if ((state == PanelState::FIXED_SOFT_KEYBOARD_HIDE_BY_IME
-            || state == PanelState::FLOATING_SOFT_KEYBOARD_HIDE_BY_IME)
-        && !hasAlphaKeyboard_.load()) {
-        auto controlChannel = GetInputControlChannel();
-        if (controlChannel != nullptr) {
-            controlChannel->HideKeyboardSelf();
-        }
+
+    auto controlChannel = GetInputControlChannel();
+    if (controlChannel != nullptr && info.trigger == Trigger::IME_APP && !info.visible) {
+        controlChannel->HideKeyboardSelf();
     }
 }
 
@@ -487,13 +475,14 @@ int32_t InputMethodAbility::HideKeyboard()
             return ErrorCode::ERROR_IME;
         }
         if (panel->GetPanelFlag() == FLG_CANDIDATE_COLUMN) {
+            IMSA_HILOGD("panel flag is candidate, no need to hide.");
             return ErrorCode::NO_ERROR;
         }
-        return HidePanel(panel, false);
-    } else {
-        if (!hasAlphaKeyboard_.load()) {
-            NotifyPanelState(PanelState::FIXED_SOFT_KEYBOARD_HIDE);
-        }
+        return HidePanel(panel, Trigger::IMF);
+    }
+    auto channel = GetInputDataChannelProxy();
+    if (channel != nullptr) {
+        channel->SendKeyboardStatus(KEYBOARD_HIDE);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -553,7 +542,11 @@ int32_t InputMethodAbility::HideKeyboardSelf()
         return ErrorCode::NO_ERROR;
     }
     imeListener_->OnKeyboardStatus(false);
-    NotifyPanelState(PanelState::FIXED_SOFT_KEYBOARD_HIDE_BY_IME);
+    channel->SendKeyboardStatus(KEYBOARD_HIDE);
+    auto controlChannel = GetInputControlChannel();
+    if (controlChannel != nullptr) {
+        controlChannel->HideKeyboardSelf();
+    }
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_SELF);
     return ErrorCode::NO_ERROR;
 }
@@ -780,15 +773,15 @@ int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel>
 
 int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    return ShowPanel(inputMethodPanel, true);
+    return ShowPanel(inputMethodPanel, Trigger::IME_APP);
 }
 
 int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    return HidePanel(inputMethodPanel, true);
+    return HidePanel(inputMethodPanel, Trigger::IME_APP);
 }
 
-int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, bool isByIme)
+int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -800,21 +793,21 @@ int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &i
     }
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
-        auto state = GetPanelState(inputMethodPanel, true, isByIme);
-        NotifyPanelState(state);
+        NotifyPanelStatusInfo(
+            { { inputMethodPanel->GetPanelType(), inputMethodPanel->GetPanelFlag() }, true, trigger });
     }
     return ret;
 }
 
-int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, bool isByIme)
+int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto ret = inputMethodPanel->HidePanel();
     if (ret == ErrorCode::NO_ERROR) {
-        auto state = GetPanelState(inputMethodPanel, false, isByIme);
-        NotifyPanelState(state);
+        NotifyPanelStatusInfo(
+            { { inputMethodPanel->GetPanelType(), inputMethodPanel->GetPanelFlag() }, false, trigger });
     }
     return ret;
 }
@@ -849,44 +842,9 @@ int32_t InputMethodAbility::ExitCurrentInputType()
     return proxy->ExitCurrentInputType();
 }
 
-void InputMethodAbility::UpdateAlphaKeyboardFlag(bool hasAlphaKeyboard)
-{
-    IMSA_HILOGD("hasAlphaKeyboard: %{public}d.", hasAlphaKeyboard);
-    hasAlphaKeyboard_.store(hasAlphaKeyboard);
-}
-
-PanelState InputMethodAbility::GetPanelState(
-    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, bool isShow, bool isByIme)
-{
-    auto type = inputMethodPanel->GetPanelType();
-    auto flag = inputMethodPanel->GetPanelFlag();
-    if (type == PanelType::SOFT_KEYBOARD && flag == FLG_FIXED && !isByIme) {
-        return isShow ? PanelState::FIXED_SOFT_KEYBOARD_SHOW : PanelState::FIXED_SOFT_KEYBOARD_HIDE;
-    }
-    if (type == PanelType::SOFT_KEYBOARD && flag == FLG_FLOATING && !isByIme) {
-        return isShow ? PanelState::FLOATING_SOFT_KEYBOARD_SHOW
-                      : PanelState::FLOATING_SOFT_KEYBOARD_HIDE;
-    }
-    if (type == PanelType::SOFT_KEYBOARD && flag == FLG_FIXED && isByIme) {
-        return isShow ? PanelState::FIXED_SOFT_KEYBOARD_SHOW_BY_IME
-                      : PanelState::FIXED_SOFT_KEYBOARD_HIDE_BY_IME;
-    }
-    if (type == PanelType::SOFT_KEYBOARD && flag == FLG_FLOATING && isByIme) {
-        return isShow ? PanelState::FLOATING_SOFT_KEYBOARD_SHOW_BY_IME
-                      : PanelState::FLOATING_SOFT_KEYBOARD_HIDE_BY_IME;
-    }
-    if (type == PanelType::SOFT_KEYBOARD && flag == FLG_CANDIDATE_COLUMN) {
-        return isShow ? PanelState::CANDIDATE_COLUMN_SHOW_BY_IME
-                      : PanelState::CANDIDATE_COLUMN_HIDE_BY_IME;
-    }
-    if (type == PanelType::STATUS_BAR) {
-        return isShow ? PanelState::STATUS_BAR_SHOW_BY_IME : PanelState::STATUS_BAR_HIDE_BY_IME;
-    }
-    return PanelState::NONE;
-}
-
 std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
 {
+    IMSA_HILOGD("find SOFT_KEYBOARD panel.");
     if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES,
                     [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
         IMSA_HILOGE("SOFT_KEYBOARD panel not found");

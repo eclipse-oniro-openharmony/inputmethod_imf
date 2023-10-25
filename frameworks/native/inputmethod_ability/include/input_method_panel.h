@@ -22,27 +22,12 @@
 
 #include "input_window_info.h"
 #include "js_runtime_utils.h"
+#include "panel_info.h"
 #include "panel_status_listener.h"
 #include "window.h"
 
 namespace OHOS {
 namespace MiscServices {
-enum PanelType {
-    SOFT_KEYBOARD = 0,
-    STATUS_BAR,
-};
-
-enum PanelFlag {
-    FLG_FIXED = 0,
-    FLG_FLOATING,
-    FLG_CANDIDATE_COLUMN,
-};
-
-struct PanelInfo {
-    PanelType panelType = SOFT_KEYBOARD;
-    PanelFlag panelFlag = FLG_FIXED;
-};
-
 class InputMethodPanel {
 public:
     InputMethodPanel() = default;

@@ -1003,18 +1003,19 @@ void InputMethodController::SendKeyboardStatus(int32_t status)
     }
 }
 
-void InputMethodController::SendPanelState(const PanelState &state)
+void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
-    IMSA_HILOGD("run in, status: %{public}d", state);
+    IMSA_HILOGD("run in.");
     auto listener = GetTextListener();
     if (listener == nullptr) {
         IMSA_HILOGE("textListener_ is nullptr");
         return;
     }
-    listener->SendPanelState(state);
-//    if (keyboardStatus == KeyboardStatus::HIDE) {
-//        clientInfo_.isShowKeyboard = false;                          // todo 更新clientInfo_.isShowKeyboard
-//    }
+    listener->NotifyPanelStatusInfo(info);
+    if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD
+        && info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
+        clientInfo_.isShowKeyboard = false;
+    }
 }
 
 int32_t InputMethodController::SendFunctionKey(int32_t functionKey)

@@ -67,10 +67,9 @@ void InputDataChannelProxy::SendKeyboardStatus(int32_t status)
         SEND_KEYBOARD_STATUS, [status](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, status); });
 }
 
-void InputDataChannelProxy::SendPanelState(const PanelState &state)
+void InputDataChannelProxy::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
-    SendRequest(SEND_KEYBOARD_STATUS,
-        [state](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, static_cast<int32_t>(state)); });
+    SendRequest(SEND_KEYBOARD_STATUS, [&info](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, info); });
 }
 
 int32_t InputDataChannelProxy::SendFunctionKey(int32_t funcKey)

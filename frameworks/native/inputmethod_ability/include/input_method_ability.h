@@ -125,14 +125,10 @@ private:
     void OnTextConfigChange(const TextTotalConfig &textConfig);
 
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
-    int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, bool isByIme);
-    int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, bool isByIme);
-    PanelState GetPanelState(
-        const std::shared_ptr<InputMethodPanel> &inputMethodPanel, bool isShow, bool isByIme);
-    void NotifyPanelState(const PanelState &state);
+    int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger);
+    int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger);
+    void NotifyPanelStatusInfo(const PanelStatusInfo &info);
 
-    void UpdateAlphaKeyboardFlag(bool hasAlphaKeyboard);
-    std::atomic_bool hasAlphaKeyboard_{ false };
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isPanelKeyboard_{ false };
     std::atomic_bool isBound_{ false };

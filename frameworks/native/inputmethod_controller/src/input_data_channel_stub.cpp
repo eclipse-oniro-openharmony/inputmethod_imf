@@ -196,14 +196,14 @@ int32_t InputDataChannelStub::GetTextIndexAtCursorOnRemote(MessageParcel &data, 
                                                                           : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputDataChannelStub::SendPanelStateOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputDataChannelStub::NotifyPanelStatusInfoOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t status = 0;
-    if (!ITypesUtil::Unmarshal(data, status)) {
+    PanelStatusInfo info{};
+    if (!ITypesUtil::Unmarshal(data, info)) {
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    SendPanelState(static_cast<PanelState>(status));
+    NotifyPanelStatusInfo(info);
     return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -460,11 +460,11 @@ int32_t InputDataChannelStub::HandleExtendAction(int32_t action)
     return ret;
 }
 
-void InputDataChannelStub::SendPanelState(const PanelState &state)
+void InputDataChannelStub::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
     auto result = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-    auto blockTask = [state, result]() {
-        InputMethodController::GetInstance()->SendPanelState(state);
+    auto blockTask = [info, result]() {
+        InputMethodController::GetInstance()->NotifyPanelStatusInfo(info);
         bool ret = true;
         result->SetValue(ret);
     };
