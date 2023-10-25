@@ -132,7 +132,7 @@ int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParce
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto ret = StopInput(channel);
+    auto ret = InputMethodAbility::GetInstance()->StopInput(channel);
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -189,7 +189,7 @@ int32_t InputMethodCoreStub::SetSubtype(const SubProperty &property)
 
 int32_t InputMethodCoreStub::StopInput(const sptr<IInputDataChannel> &channel)
 {
-    return InputMethodAbility::GetInstance()->StopInput(channel);
+    return ErrorCode::NO_ERROR;
 }
 
 bool InputMethodCoreStub::IsEnable()

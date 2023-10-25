@@ -67,7 +67,7 @@ public:
     virtual bool IsInputTypeSupported(InputType type) = 0;
     virtual int32_t StartInputType(InputType type) = 0;
     virtual int32_t ExitCurrentInputType() = 0;
-    virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
+    virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;

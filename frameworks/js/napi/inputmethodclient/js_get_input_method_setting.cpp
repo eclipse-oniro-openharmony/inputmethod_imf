@@ -424,8 +424,8 @@ napi_value JsGetInputMethodSetting::IsPanelShown(napi_env env, napi_callback_inf
     // 1 means least param num
     PARAM_CHECK_RETURN(env, argc >= 1, "should has 1 parameters!", TYPE_NONE, JsUtil::Const::Null(env));
     // 0 means parameter of info<PanelInfo>
-    napi_typeof(env, argv[0], &valueType);
     napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[0], &valueType);
     PARAM_CHECK_RETURN(env, valueType == napi_object, " panelInfo: ", TYPE_OBJECT, JsUtil::Const::Null(env));
 
     PanelInfo panelInfo;
