@@ -46,15 +46,13 @@ constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
 constexpr uint32_t MAX_SUBTYPE_NUM = 256;
 constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
 constexpr int32_t CONFIG_LEN = 128;
-constexpr uint32_t RETRY_INTERVAL = 100;
-constexpr uint32_t BLOCK_RETRY_TIMES = 1000;
 } // namespace
 
 void from_json(const nlohmann::json &jsonConfigs, ImeConfig &config)
 {
     json jsonCfg = jsonConfigs[SYSTEM_CONFIG];
-    if (jsonConfigs.find(SYSTEM_INPUT_METHOD_CONFIG_ABILITY) != jsonConfigs.end() &&
-        jsonConfigs[SYSTEM_INPUT_METHOD_CONFIG_ABILITY].is_string()) {
+    if (jsonConfigs.find(SYSTEM_INPUT_METHOD_CONFIG_ABILITY) != jsonConfigs.end()
+        && jsonConfigs[SYSTEM_INPUT_METHOD_CONFIG_ABILITY].is_string()) {
         jsonConfigs.at(SYSTEM_INPUT_METHOD_CONFIG_ABILITY).get_to(config.systemInputMethodConfigAbility);
     }
     if (jsonConfigs.find(DEFAULT_INPUT_METHOD) != jsonConfigs.end() && jsonConfigs[DEFAULT_INPUT_METHOD].is_string()) {
@@ -76,7 +74,11 @@ bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<Extensi
         IMSA_HILOGE("GetBundleMgr failed");
         return false;
     }
-    return bundleMgr->QueryExtensionAbilityInfos(ExtensionAbilityType::INPUTMETHOD, userId, infos);
+    if (!bundleMgr->QueryExtensionAbilityInfos(ExtensionAbilityType::INPUTMETHOD, userId, infos)) {
+        IMSA_HILOGF("Query extension infos failed from bundleMgr!");
+        return false;
+    }
+    return true;
 }
 
 int32_t ImeInfoInquirer::GetExtInfosByBundleName(
@@ -84,8 +86,10 @@ int32_t ImeInfoInquirer::GetExtInfosByBundleName(
 {
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s", userId, bundleName.c_str());
     std::vector<AppExecFwk::ExtensionAbilityInfo> tempExtInfos;
-    BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES,
-        [this, &userId, &tempExtInfos]() -> bool { return QueryImeExtInfos(userId, tempExtInfos); });
+    if (!QueryImeExtInfos(userId, tempExtInfos)) {
+        IMSA_HILOGE("QueryImeExtInfos failed!");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
     for (const auto &extInfo : tempExtInfos) {
         if (extInfo.bundleName == bundleName) {
             extInfos.emplace_back(extInfo);
@@ -295,8 +299,10 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
 {
     IMSA_HILOGD("userId: %{public}d", userId);
     std::vector<ExtensionAbilityInfo> extensionInfos;
-    BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES,
-        [this, &userId, &extensionInfos]() -> bool { return QueryImeExtInfos(userId, extensionInfos); });
+    if (!QueryImeExtInfos(userId, extensionInfos)) {
+        IMSA_HILOGE("QueryImeExtInfos failed!");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
     for (const auto &extension : extensionInfos) {
         auto it = std::find_if(props.begin(), props.end(),
             [&extension](const Property &prop) { return prop.name == extension.bundleName; });
@@ -671,7 +677,7 @@ int32_t ImeInfoInquirer::GetInputMethodConfig(const int32_t userId, AppExecFwk::
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property>& prop)
+int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop)
 {
     IMSA_HILOGD("userId: %{public}d", userId);
     auto imeInfo = GetDefaultImeInfo(userId);
