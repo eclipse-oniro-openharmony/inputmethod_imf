@@ -804,7 +804,8 @@ bool ImeInfoInquirer::ParseSubProp(const std::vector<std::string> &profiles, std
 
 bool ImeInfoInquirer::ParseSubProp(const json &jsonSubProps, std::vector<SubProperty> &subProps)
 {
-    if (!jsonSubProps.contains("subtypes") || !jsonSubProps["subtypes"].is_array() || jsonSubProps["subtypes"].empty()) {
+    if (!jsonSubProps.contains("subtypes") || !jsonSubProps["subtypes"].is_array() ||
+        jsonSubProps["subtypes"].empty()) {
         IMSA_HILOGE("the context of json file is abnormal");
         return false;
     }
