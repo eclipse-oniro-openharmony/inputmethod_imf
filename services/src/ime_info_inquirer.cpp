@@ -46,8 +46,6 @@ constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
 constexpr uint32_t MAX_SUBTYPE_NUM = 256;
 constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
 constexpr int32_t CONFIG_LEN = 128;
-constexpr uint32_t RETRY_INTERVAL = 100;
-constexpr uint32_t BLOCK_RETRY_TIMES = 1000;
 } // namespace
 
 void from_json(const nlohmann::json &jsonConfigs, ImeConfig &config)
@@ -806,8 +804,7 @@ bool ImeInfoInquirer::ParseSubProp(const std::vector<std::string> &profiles, std
 
 bool ImeInfoInquirer::ParseSubProp(const json &jsonSubProps, std::vector<SubProperty> &subProps)
 {
-    if (!jsonSubProps.contains("subtypes") || !jsonSubProps["subtypes"].is_array() ||
-        jsonSubProps["subtypes"].empty()) {
+    if (!jsonSubProps.contains("subtypes") || !jsonSubProps["subtypes"].is_array() || jsonSubProps["subtypes"].empty()) {
         IMSA_HILOGE("the context of json file is abnormal");
         return false;
     }
