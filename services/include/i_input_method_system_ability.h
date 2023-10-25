@@ -31,10 +31,10 @@
 #include "input_client_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
-#include "input_panel_info.h"
 #include "input_window_info.h"
 #include "iremote_broker.h"
 #include "message_parcel.h"
+#include "panel_info.h"
 #include "unRegistered_type.h"
 
 namespace OHOS {

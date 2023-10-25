@@ -233,7 +233,7 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
     SetInputControlChannel(channelObject);
 }
 
-int32_t InputMethodAbility::StartInput(InputClientInfo &clientInfo, bool isBindFromClient)
+int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
     IMSA_HILOGI("InputMethodAbility::isShowKeyboard: %{public}d", clientInfo.isShowKeyboard);
     if (clientInfo.channel->AsObject() == nullptr) {

@@ -38,12 +38,12 @@
 #include "input_death_recipient.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
-#include "input_panel_info.h"
 #include "input_window_info.h"
 #include "inputmethod_sysevent.h"
 #include "iremote_object.h"
 #include "message.h"
 #include "message_handler.h"
+#include "panel_info.h"
 #include "unRegistered_type.h"
 namespace OHOS {
 namespace MiscServices {

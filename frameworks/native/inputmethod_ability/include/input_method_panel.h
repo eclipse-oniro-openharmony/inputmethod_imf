@@ -20,9 +20,9 @@
 #include <map>
 #include <string>
 
-#include "input_panel_info.h"
 #include "input_window_info.h"
 #include "js_runtime_utils.h"
+#include "panel_info.h"
 #include "panel_status_listener.h"
 #include "window.h"
 

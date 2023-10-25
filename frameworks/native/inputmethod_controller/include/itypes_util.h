@@ -24,9 +24,9 @@
 #include "event_status_manager.h"
 #include "global.h"
 #include "input_client_info.h"
-#include "input_panel_info.h"
 #include "input_window_info.h"
 #include "message_parcel.h"
+#include "panel_info.h"
 
 namespace OHOS {
 namespace MiscServices {

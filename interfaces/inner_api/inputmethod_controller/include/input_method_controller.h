@@ -33,11 +33,11 @@
 #include "input_method_setting_listener.h"
 #include "input_method_status.h"
 #include "input_method_utils.h"
-#include "input_panel_info.h"
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
 #include "key_event.h"
 #include "message_handler.h"
+#include "panel_info.h"
 #include "visibility.h"
 
 namespace OHOS {

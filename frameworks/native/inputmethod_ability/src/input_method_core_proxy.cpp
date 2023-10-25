@@ -38,12 +38,11 @@ int32_t InputMethodCoreProxy::InitInputControlChannel(const sptr<IInputControlCh
     });
 }
 
-int32_t InputMethodCoreProxy::StartInput(
-    const std::shared_ptr<InputClientInfo> &clientInfo, bool isBindFromClient)
+int32_t InputMethodCoreProxy::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
     IMSA_HILOGD("InputMethodCoreProxy::StartInput");
     return SendRequest(START_INPUT, [&clientInfo, isBindFromClient](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, isBindFromClient, *clientInfo);
+        return ITypesUtil::Marshal(data, isBindFromClient, clientInfo);
     });
 }
 

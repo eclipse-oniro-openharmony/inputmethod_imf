@@ -39,7 +39,7 @@ public:
     InputMethodCoreStub();
     virtual ~InputMethodCoreStub();
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-    int32_t StartInput(const std::shared_ptr<InputClientInfo> &clientInfo, bool isBindFromClient) override;
+    int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient) override;
     int32_t StopInput(const sptr<IInputDataChannel> &channel) override;
     int32_t ShowKeyboard() override;
     int32_t HideKeyboard() override;
@@ -52,15 +52,29 @@ public:
 
 private:
     MessageHandler *msgHandler_;
-    void InitInputControlChannelOnRemote(MessageParcel &data, MessageParcel &reply);
-    void SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t StartInputOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t StopInputOnRemote(MessageParcel &data, MessageParcel &reply);
-    int32_t IsEnableOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t HideKeyboardOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t InitInputControlChannelOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t StopInputServiceOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t IsEnableOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
+    using RequestHandler = int32_t (InputMethodCoreStub::*)(MessageParcel &, MessageParcel &);
+    static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
+        { static_cast<uint32_t>(SHOW_KEYBOARD), &InputMethodCoreStub::ShowKeyboardOnRemote },
+        { static_cast<uint32_t>(STOP_INPUT_SERVICE), &InputMethodCoreStub::StopInputServiceOnRemote },
+        { static_cast<uint32_t>(HIDE_KEYBOARD), &InputMethodCoreStub::HideKeyboardOnRemote },
+        { static_cast<uint32_t>(INIT_INPUT_CONTROL_CHANNEL), &InputMethodCoreStub::InitInputControlChannelOnRemote },
+        { static_cast<uint32_t>(SET_SUBTYPE), &InputMethodCoreStub::SetSubtypeOnRemote },
+        { static_cast<uint32_t>(START_INPUT), &InputMethodCoreStub::StartInputOnRemote },
+        { static_cast<uint32_t>(STOP_INPUT), &InputMethodCoreStub::StopInputOnRemote },
+        { static_cast<uint32_t>(IS_ENABLE), &InputMethodCoreStub::IsEnableOnRemote },
+        { static_cast<uint32_t>(IS_PANEL_SHOWN), &InputMethodCoreStub::IsPanelShownOnRemote },
+    };
 };
 } // namespace MiscServices
 } // namespace OHOS
