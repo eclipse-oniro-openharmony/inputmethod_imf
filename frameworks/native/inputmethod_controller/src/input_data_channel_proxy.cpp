@@ -18,7 +18,6 @@
 #include "global.h"
 #include "ipc_types.h"
 #include "itypes_util.h"
-#include "itypes_util.h"
 #include "message_option.h"
 #include "message_parcel.h"
 
@@ -31,14 +30,12 @@ InputDataChannelProxy::InputDataChannelProxy(const sptr<IRemoteObject> &object)
 
 int32_t InputDataChannelProxy::InsertText(const std::u16string &text)
 {
-    return SendRequest(
-        INSERT_TEXT, [&text](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text); });
+    return SendRequest(INSERT_TEXT, [&text](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text); });
 }
 
 int32_t InputDataChannelProxy::DeleteForward(int32_t length)
 {
-    return SendRequest(
-        DELETE_FORWARD, [length](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, length); });
+    return SendRequest(DELETE_FORWARD, [length](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, length); });
 }
 
 int32_t InputDataChannelProxy::DeleteBackward(int32_t length)
@@ -51,14 +48,14 @@ int32_t InputDataChannelProxy::GetTextBeforeCursor(int32_t number, std::u16strin
 {
     return SendRequest(
         GET_TEXT_BEFORE_CURSOR, [number](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, number); },
-        [&text](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, text);});
+        [&text](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, text); });
 }
 
 int32_t InputDataChannelProxy::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
     return SendRequest(
         GET_TEXT_AFTER_CURSOR, [number](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, number); },
-        [&text](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, text);});
+        [&text](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, text); });
 }
 
 void InputDataChannelProxy::SendKeyboardStatus(KeyboardStatus status)
@@ -80,36 +77,31 @@ int32_t InputDataChannelProxy::SendFunctionKey(int32_t funcKey)
 
 int32_t InputDataChannelProxy::MoveCursor(int32_t keyCode)
 {
-    return SendRequest(
-        MOVE_CURSOR, [keyCode](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, keyCode); });
+    return SendRequest(MOVE_CURSOR, [keyCode](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, keyCode); });
 }
 
 int32_t InputDataChannelProxy::GetEnterKeyType(int32_t &keyType)
 {
-    return SendRequest(
-        GET_ENTER_KEY_TYPE, nullptr,
-        [&keyType](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, keyType);});
+    return SendRequest(GET_ENTER_KEY_TYPE, nullptr,
+        [&keyType](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, keyType); });
 }
 
 int32_t InputDataChannelProxy::GetInputPattern(int32_t &inputPattern)
 {
-    return SendRequest(
-        GET_INPUT_PATTERN, nullptr,
-        [&inputPattern](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, inputPattern);});
+    return SendRequest(GET_INPUT_PATTERN, nullptr,
+        [&inputPattern](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, inputPattern); });
 }
 
 int32_t InputDataChannelProxy::GetTextIndexAtCursor(int32_t &index)
 {
-    return SendRequest(
-        GET_TEXT_INDEX_AT_CURSOR, nullptr,
-        [&index](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, index);});
+    return SendRequest(GET_TEXT_INDEX_AT_CURSOR, nullptr,
+        [&index](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, index); });
 }
 
 int32_t InputDataChannelProxy::GetTextConfig(TextTotalConfig &textConfig)
 {
-    return SendRequest(GET_TEXT_CONFIG, nullptr, [&textConfig](MessageParcel &parcel) {
-        return ITypesUtil::Unmarshal(parcel, textConfig);
-    });
+    return SendRequest(GET_TEXT_CONFIG, nullptr,
+        [&textConfig](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, textConfig); });
 }
 
 int32_t InputDataChannelProxy::SelectByRange(int32_t start, int32_t end)
@@ -131,12 +123,28 @@ int32_t InputDataChannelProxy::HandleExtendAction(int32_t action)
         HANDLE_EXTEND_ACTION, [action](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, action); });
 }
 
+void InputDataChannelProxy::GetMessageOption(int32_t code, MessageOption &option)
+{
+    switch (code) {
+        case SEND_KEYBOARD_STATUS:
+            IMSA_HILOGD("Async IPC.");
+            option.SetFlags(MessageOption::TF_ASYNC);
+            break;
+
+        default:
+            option.SetFlags(MessageOption::TF_SYNC);
+            break;
+    }
+}
+
 int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
     IMSA_HILOGI("InputDataChannelProxy run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option{ MessageOption::TF_SYNC };
+    MessageOption option;
+    GetMessageOption(code, option);
+
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("write interface token failed");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
@@ -149,6 +157,9 @@ int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, Parcel
     if (ret != NO_ERROR) {
         IMSA_HILOGE("InputDataChannelProxy send request failed, code: %{public}d ret %{public}d", code, ret);
         return ret;
+    }
+    if (option.GetFlags() == MessageOption::TF_ASYNC) {
+        return ErrorCode::NO_ERROR;
     }
     ret = reply.ReadInt32();
     if (ret != NO_ERROR) {

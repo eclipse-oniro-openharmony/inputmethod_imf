@@ -17,6 +17,7 @@
 
 #include <memory>
 
+#include "element_name.h"
 #include "input_client_proxy.h"
 #include "input_data_channel_proxy.h"
 #include "input_method_agent_proxy.h"
@@ -44,27 +45,17 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(
     }
 }
 
-int32_t InputMethodSystemAbilityStub::PrepareInputOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     InputClientInfo clientInfo;
     if (!ITypesUtil::Unmarshal(data, clientInfo)) {
         IMSA_HILOGE("read clientInfo failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = PrepareInput(clientInfo);
-    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
-int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
-{
-    auto clientObject = data.ReadRemoteObject();
-    if (clientObject == nullptr) {
-        IMSA_HILOGE("clientObject is nullptr");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    bool isShowKeyboard = data.ReadBool();
-    int32_t ret = StartInput(iface_cast<IInputClient>(clientObject), isShowKeyboard);
-    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    sptr<IRemoteObject> agent = nullptr;
+    int32_t ret = StartInput(clientInfo, agent);
+    return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR
+                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::ShowCurrentInputOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -140,6 +131,22 @@ int32_t InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote(MessageParcel &dat
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodSystemAbilityStub::GetDefaultInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<Property> prop = std::make_shared<Property>();
+    auto ret = GetDefaultInputMethod(prop);
+    return ITypesUtil::Marshal(reply, ret, *prop) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::GetInputMethodConfigOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    OHOS::AppExecFwk::ElementName inputMethodConfig;
+    auto ret = GetInputMethodConfig(inputMethodConfig);
+    IMSA_HILOGD("GetInputMethodConfigOnRemote inputMethodConfig is %{public}s, %{public}s ",
+        inputMethodConfig.GetBundleName().c_str(), inputMethodConfig.GetAbilityName().c_str());
+    return ITypesUtil::Marshal(reply, ret, inputMethodConfig) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     auto property = GetCurrentInputMethod();
@@ -213,7 +220,7 @@ int32_t InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote(Mess
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel& data, MessageParcel& reply)
 {
     std::string name;
     std::string subName;
@@ -221,7 +228,8 @@ int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &d
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return reply.WriteInt32(SwitchInputMethod(name, subName)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    return reply.WriteInt32(SwitchInputMethod(name, subName)) ? ErrorCode::NO_ERROR
+                                                                          : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)

@@ -72,6 +72,7 @@ ohos_shared_library("inputmethod_client") {
   public_deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
 
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -111,6 +112,7 @@ ohos_static_library("inputmethod_client_static") {
   public_deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
 
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",

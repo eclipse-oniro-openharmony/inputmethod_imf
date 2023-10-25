@@ -25,6 +25,7 @@
 
 #include "bundle_mgr_proxy.h"
 #include "enable_ime_data_parser.h"
+#include "element_name.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
@@ -48,6 +49,11 @@ enum class Condition {
     CHINESE,
 };
 
+struct ImeConfig {
+    std::string systemInputMethodConfigAbility;
+    std::string defaultInputMethod;
+};
+
 class ImeInfoInquirer {
 public:
     using CompareHandler = std::function<bool(const SubProperty &)>;
@@ -63,7 +69,9 @@ public:
     void SetCurrentImeInfo(std::shared_ptr<ImeInfo> info);
     void RefreshCurrentImeInfo(int32_t userId);
     std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(
-        const std::vector<SubProperty> &subProps, const Condition &condition);
+    const std::vector<SubProperty> &subProps, const Condition &condition);
+    int32_t GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop);
+    int32_t GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig);
     int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);
     int32_t ListInputMethodSubtype(int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);
     int32_t ListCurrentInputMethodSubtype(int32_t userId, std::vector<SubProperty> &subProps);
@@ -100,6 +108,7 @@ private:
     void ParseLanguage(const std::string &locale, std::string &language);
     bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
 
+    ImeConfig imeConfig_;
     std::mutex currentImeInfoLock_;
     std::shared_ptr<ImeInfo> currentImeInfo_{ nullptr }; // current imeInfo of current user
 };

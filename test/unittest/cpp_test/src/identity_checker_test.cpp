@@ -110,57 +110,6 @@ HWTEST_F(IdentityCheckerTest, testPrepareInput_001, TestSize.Level0)
         IMSA_HILOGI("service_ is nullptr");
     }
     int32_t ret = IdentityCheckerTest::service_->PrepareInput(clientInfo);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
-}
-
-/**
- * @tc.name: testPrepareInput_002
- * @tc.desc: is broker, not focused app
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
-*/
-HWTEST_F(IdentityCheckerTest, testPrepareInput_002, TestSize.Level0)
-{
-    IMSA_HILOGI("IdentityCheckerTest testPrepareInput_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(false));
-    InputClientInfo clientInfo{};
-    int32_t ret = IdentityCheckerTest::service_->PrepareInput(clientInfo);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-}
-
-/**
- * @tc.name: testPrepareInput_003
- * @tc.desc: is broker, focused app
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
-*/
-HWTEST_F(IdentityCheckerTest, testPrepareInput_003, TestSize.Level0)
-{
-    IMSA_HILOGI("IdentityCheckerTest testPrepareInput_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(true));
-    InputClientInfo clientInfo{};
-    int32_t ret = IdentityCheckerTest::service_->PrepareInput(clientInfo);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-}
-
-/**
- * @tc.name: testPrepareInput_004
- * @tc.desc: not broker, is focused app
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
-*/
-HWTEST_F(IdentityCheckerTest, testPrepareInput_004, TestSize.Level0)
-{
-    IMSA_HILOGI("IdentityCheckerTest testPrepareInput_004 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(true));
-    InputClientInfo clientInfo{};
-    int32_t ret = IdentityCheckerTest::service_->PrepareInput(clientInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
 
@@ -175,7 +124,9 @@ HWTEST_F(IdentityCheckerTest, testStartInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStartInput_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
-    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false);
+    sptr<IRemoteObject> agent = nullptr;
+    InputClientInfo inputClientInfo;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 }
 
@@ -191,8 +142,10 @@ HWTEST_F(IdentityCheckerTest, testStartInput_002, TestSize.Level0)
     IMSA_HILOGI("IdentityCheckerTest testStartInput_002 start");
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(false));
-    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    sptr<IRemoteObject> agent = nullptr;
+    InputClientInfo inputClientInfo;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
 
 /**
@@ -207,9 +160,10 @@ HWTEST_F(IdentityCheckerTest, testStartInput_003, TestSize.Level0)
     IMSA_HILOGI("IdentityCheckerTest testStartInput_003 start");
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(true));
-    InputClientInfo clientInfo{};
-    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    sptr<IRemoteObject> agent = nullptr;
+    InputClientInfo inputClientInfo;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
 
 /**
@@ -224,9 +178,10 @@ HWTEST_F(IdentityCheckerTest, testStartInput_004, TestSize.Level0)
     IMSA_HILOGI("IdentityCheckerTest testStartInput_004 start");
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(true));
-    InputClientInfo clientInfo{};
-    int32_t ret = IdentityCheckerTest::service_->StartInput(nullptr, false);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    sptr<IRemoteObject> agent = nullptr;
+    InputClientInfo inputClientInfo;
+    int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
 
 /**
@@ -726,7 +681,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_001, TestSize.Level0)
 */
 HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level0)
 {
-    IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_001 start");
+    IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_002 start");
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, HasPermission(_, _)).Times(1).WillRepeatedly(Return(false));
     EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
         .Times(1)

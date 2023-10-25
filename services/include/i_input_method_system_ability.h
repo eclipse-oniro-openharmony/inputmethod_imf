@@ -21,6 +21,7 @@
 #include <memory>
 #include <vector>
 
+#include "element_name.h"
 #include "event_status_manager.h"
 #include "global.h"
 #include "i_input_client.h"
@@ -41,14 +42,15 @@ class IInputMethodSystemAbility : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodSystemAbility");
 
-    virtual int32_t PrepareInput(InputClientInfo &clientInfo) = 0;
-    virtual int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) = 0;
+    virtual int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent) = 0;
     virtual int32_t ShowCurrentInput() = 0;
     virtual int32_t HideCurrentInput() = 0;
     virtual int32_t StopInputSession() = 0;
     virtual int32_t ShowInput(sptr<IInputClient> client) = 0;
     virtual int32_t HideInput(sptr<IInputClient> client) = 0;
     virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
+    virtual int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop) = 0;
+    virtual int32_t GetInputMethodConfig(AppExecFwk::ElementName &inputMethodConfig) = 0;
     virtual std::shared_ptr<Property> GetCurrentInputMethod() = 0;
     virtual std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() = 0;
     virtual int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) = 0;

@@ -67,6 +67,7 @@ ohos_shared_library("inputmethod_ability") {
 
   external_deps = [
     "ability_base:configuration",
+    "ability_base:want",
     "ability_runtime:ability_context_native",
     "c_utils:utils",
     "graphic_2d:window_animation",

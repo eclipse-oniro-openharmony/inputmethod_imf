@@ -32,6 +32,7 @@ struct InputClientInfo {
     int32_t userID{ 0 };                                   // user id of input client
     bool isShowKeyboard{ false };                          // soft keyboard status
     ImeType bindImeType{ ImeType::NONE };                  // type of the ime client bind
+    TextTotalConfig config = {};                           // text config
     uint32_t eventFlag{ EventStatusManager::NO_EVENT_ON }; // the flag of the all listen event
     InputAttribute attribute;                              // the input client attribute
     sptr<IInputClient> client{ nullptr };       // the remote object handler for service to callback input client

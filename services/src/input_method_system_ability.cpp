@@ -137,7 +137,6 @@ int32_t InputMethodSystemAbility::Init()
         return -1;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
-    ImeCfgManager::GetInstance().Init();
     std::vector<int32_t> userIds;
     if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
             return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
@@ -205,12 +204,6 @@ bool InputMethodSystemAbility::StartInputService(const std::string &imeId)
 
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 {
-    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!identityChecker_->IsBroker(tokenId)) {
-        if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
-            return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
-        }
-    }
     auto ret = GenerateClientInfo(clientInfo);
     if (ret != ErrorCode::NO_ERROR) {
         return ret;
@@ -244,7 +237,7 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
     return userSession_->OnReleaseInput(client);
 };
 
-int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isShowKeyboard)
+int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId)) {
@@ -252,11 +245,13 @@ int32_t InputMethodSystemAbility::StartInput(sptr<IInputClient> client, bool isS
             return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
         }
     }
-    if (client == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+
+    int32_t ret = PrepareInput(inputClientInfo);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("PrepareInput failed");
+        return ret;
     }
-    return userSession_->OnStartInput(client, isShowKeyboard);
+    return userSession_->OnStartInput(inputClientInfo.client, inputClientInfo.isShowKeyboard, agent);
 };
 
 int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
@@ -616,6 +611,16 @@ std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubt
     return ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);
 }
 
+int32_t InputMethodSystemAbility::GetDefaultInputMethod(std::shared_ptr<Property> &prop)
+{
+    return ImeInfoInquirer::GetInstance().GetDefaultInputMethod(userId_, prop);
+}
+
+int32_t InputMethodSystemAbility::GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig)
+{
+    return ImeInfoInquirer::GetInstance().GetInputMethodConfig(userId_, inputMethodConfig);
+}
+
 int32_t InputMethodSystemAbility::ListInputMethod(InputMethodStatus status, std::vector<Property> &props)
 {
     return ImeInfoInquirer::GetInstance().ListInputMethod(userId_, status, props, enableImeOn_);
@@ -933,9 +938,9 @@ bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo &switchInfo)
 {
     auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
     // if currentIme is switching subtype, permission verification is not performed.
-    if (identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
-        || (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName)
-            && switchInfo.bundleName == currentBundleName && !switchInfo.subName.empty())) {
+    if (identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY) ||
+        (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName) &&
+            !switchInfo.subName.empty())) {
         return true;
     }
     InputMethodSysEvent::GetInstance().InputmethodFaultReporter(

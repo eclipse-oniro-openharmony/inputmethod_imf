@@ -21,6 +21,7 @@
 #include "i_input_data_channel.h"
 #include "input_attribute.h"
 #include "input_channel.h"
+#include "input_client_info.h"
 #include "input_method_property.h"
 #include "ipc_types.h"
 #include "iremote_broker.h"
@@ -46,8 +47,7 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodCore");
 
-    virtual int32_t StartInput(
-        const sptr<IInputDataChannel> &inputDataChannel, bool isShowKeyboard) = 0;
+    virtual int32_t StartInput(const std::shared_ptr<InputClientInfo> &clientInfo, bool isBindFromClient) = 0;
     virtual int32_t StopInput(const sptr<IInputDataChannel> &channel) = 0;
     virtual int32_t ShowKeyboard() = 0;
     virtual int32_t HideKeyboard() = 0;
