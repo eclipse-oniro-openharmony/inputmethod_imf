@@ -810,7 +810,7 @@ int32_t InputMethodAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isSho
         return ErrorCode::NO_ERROR;
     }
     auto panel = result.second;
-    if (panel->GetPanelFlag() != panelInfo.panelFlag) {
+    if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD && panel->GetPanelFlag() != panelInfo.panelFlag) {
         IMSA_HILOGD("panel not found");
         return ErrorCode::NO_ERROR;
     }

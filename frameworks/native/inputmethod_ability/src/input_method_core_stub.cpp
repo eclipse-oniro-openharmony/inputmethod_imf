@@ -44,7 +44,7 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
     IMSA_HILOGI("InputMethodCoreStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
-    if (descriptorToken != IInputDataChannel::GetDescriptor()) {
+    if (descriptorToken != IInputMethodCore::GetDescriptor()) {
         IMSA_HILOGE("InputMethodCoreStub descriptor error");
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
