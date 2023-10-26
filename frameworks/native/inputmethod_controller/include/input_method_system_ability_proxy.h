@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "global.h"
+#include "element_name.h"
 #include "i_input_method_system_ability.h"
 #include "input_attribute.h"
 #include "input_client_stub.h"
@@ -43,8 +44,7 @@ public:
     ~InputMethodSystemAbilityProxy() = default;
     DISALLOW_COPY_AND_MOVE(InputMethodSystemAbilityProxy);
 
-    int32_t PrepareInput(InputClientInfo &inputClientInfo) override;
-    int32_t StartInput(sptr<IInputClient> client, bool isShowKeyboard) override;
+    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent) override;
     int32_t ShowCurrentInput() override;
     int32_t HideCurrentInput() override;
     int32_t StopInputSession() override;
@@ -53,6 +53,8 @@ public:
     int32_t ReleaseInput(sptr<IInputClient> client) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
     std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
+    int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop) override;
+    int32_t GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig) override;
     int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;
     int32_t SwitchInputMethod(const std::string &name, const std::string &subName) override;
     int32_t DisplayOptionalInputMethod() override;
@@ -76,6 +78,7 @@ private:
     static inline BrokerDelegator<InputMethodSystemAbilityProxy> delegator_;
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
+    void GetMessageOption(int32_t code, MessageOption &option);
 };
 } // namespace MiscServices
 } // namespace OHOS

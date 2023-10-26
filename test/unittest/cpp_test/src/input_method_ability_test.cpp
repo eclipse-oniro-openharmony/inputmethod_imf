@@ -258,9 +258,12 @@ HWTEST_F(InputMethodAbilityTest, testStartInputWithoutPanel, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbilityTest testStartInputWithoutAttach start.");
     inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     sptr<InputDataChannelStub> channelStub = new InputDataChannelStub();
-    auto ret = inputMethodAbility_->StartInput(channelStub->AsObject(), false);
+    InputClientInfo clientInfo;
+    clientInfo.channel = channelStub;
+    auto ret = inputMethodAbility_->StartInput(clientInfo, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = inputMethodAbility_->StartInput(channelStub->AsObject(), true);
+    clientInfo.isShowKeyboard = true;
+    ret = inputMethodAbility_->StartInput(clientInfo, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 

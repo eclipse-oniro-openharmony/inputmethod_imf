@@ -233,21 +233,21 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
     SetInputControlChannel(channelObject);
 }
 
-int32_t InputMethodAbility::StartInput(const sptr<IRemoteObject> &channelObject, bool isShowKeyboard)
+int32_t InputMethodAbility::StartInput(InputClientInfo &clientInfo, bool isBindFromClient)
 {
-    IMSA_HILOGI("InputMethodAbility::isShowKeyboard: %{public}d", isShowKeyboard);
-    if (channelObject == nullptr) {
+    IMSA_HILOGI("InputMethodAbility::isShowKeyboard: %{public}d", clientInfo.isShowKeyboard);
+    if (clientInfo.channel->AsObject() == nullptr) {
         IMSA_HILOGE("InputMethodAbility::channelObject is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    SetInputDataChannel(channelObject);
-    NotifyAllTextConfig();
+    SetInputDataChannel(clientInfo.channel->AsObject());
+    isBindFromClient ? OnTextConfigChange(clientInfo.config) : NotifyAllTextConfig();
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("InputMethodAbility, imeListener is nullptr");
         return ErrorCode::ERROR_IME;
     }
     imeListener_->OnInputStart();
-    return isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
+    return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
 
 void InputMethodAbility::OnSetSubtype(Message *msg)
@@ -409,7 +409,8 @@ void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
     }
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
-        info.visible ? channel->SendKeyboardStatus(KeyboardStatus::SHOW) : channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+        info.visible ? channel->SendKeyboardStatus(KeyboardStatus::SHOW)
+                     : channel->SendKeyboardStatus(KeyboardStatus::HIDE);
         channel->NotifyPanelStatusInfo(info);
     }
 

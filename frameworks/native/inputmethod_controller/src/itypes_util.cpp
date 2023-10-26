@@ -226,7 +226,7 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
 
 bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
-    if (!Marshal(data, input.pid, input.uid, input.userID, input.isShowKeyboard, input.eventFlag,
+    if (!Marshal(data, input.pid, input.uid, input.userID, input.isShowKeyboard, input.eventFlag, input.config,
             input.client->AsObject(), input.channel->AsObject())) {
         IMSA_HILOGE("write InputClientInfo to message parcel failed");
         return false;
@@ -236,7 +236,8 @@ bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
 {
-    if (!Unmarshal(data, output.pid, output.uid, output.userID, output.isShowKeyboard, output.eventFlag)) {
+    if (!Unmarshal(
+        data, output.pid, output.uid, output.userID, output.isShowKeyboard, output.eventFlag, output.config)) {
         IMSA_HILOGE("read InputClientInfo from message parcel failed");
         return false;
     }
@@ -280,6 +281,27 @@ bool ITypesUtil::Unmarshalling(EventType &output, MessageParcel &data)
     return true;
 }
 
+bool ITypesUtil::Marshalling(const OHOS::AppExecFwk::ElementName &input, MessageParcel &data)
+{
+    return data.WriteString(input.GetBundleName().c_str()) && data.WriteString(input.GetModuleName().c_str()) &&
+           data.WriteString(input.GetAbilityName().c_str());
+}
+
+bool ITypesUtil::Unmarshalling(OHOS::AppExecFwk::ElementName &output, MessageParcel &data)
+{
+    std::string bundleName;
+    std::string moduleName;
+    std::string abilityName;
+    if (data.ReadString(bundleName) && data.ReadString(moduleName) && data.ReadString(abilityName)) {
+        output.SetBundleName(bundleName);
+        output.SetModuleName(moduleName);
+        output.SetAbilityName(abilityName);
+        return true;
+    }
+    IMSA_HILOGE("read ElementName from message parcel failed");
+    return false;
+}
+
 bool ITypesUtil::Marshalling(InputType input, MessageParcel &data)
 {
     return data.WriteInt32(static_cast<int32_t>(input));
@@ -297,8 +319,9 @@ bool ITypesUtil::Unmarshalling(InputType &output, MessageParcel &data)
 
 bool ITypesUtil::Marshalling(const PanelStatusInfo &input, MessageParcel &data)
 {
-    return data.WriteInt32(static_cast<int32_t>(input.panelInfo.panelType)) && data.WriteInt32(static_cast<int32_t>(input.panelInfo.panelFlag))
-           && data.WriteBool(input.visible) && data.WriteInt32(static_cast<int32_t>(input.trigger));
+    return data.WriteInt32(static_cast<int32_t>(input.panelInfo.panelType))
+           && data.WriteInt32(static_cast<int32_t>(input.panelInfo.panelFlag)) && data.WriteBool(input.visible)
+           && data.WriteInt32(static_cast<int32_t>(input.trigger));
 }
 
 bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)

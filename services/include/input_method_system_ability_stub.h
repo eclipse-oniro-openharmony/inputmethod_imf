@@ -31,8 +31,6 @@ public:
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
-    int32_t PrepareInputOnRemote(MessageParcel &data, MessageParcel &reply);
-
     int32_t StartInputOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t ShowCurrentInputOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -84,10 +82,12 @@ private:
 
     int32_t ShowCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
 
+    int32_t GetDefaultInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t GetInputMethodConfigOnRemote(MessageParcel &data, MessageParcel &reply);
+
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     static constexpr RequestHandler HANDLERS[static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_LAST)] = {
-        [static_cast<uint32_t>(InputMethodInterfaceCode::PREPARE_INPUT)] =
-            &InputMethodSystemAbilityStub::PrepareInputOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT)] =
             &InputMethodSystemAbilityStub::StartInputOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT)] =
@@ -138,6 +138,10 @@ private:
             &InputMethodSystemAbilityStub::StartInputTypeOnRemote,
         [static_cast<uint32_t>(InputMethodInterfaceCode::EXIT_CURRENT_INPUT_TYPE)] =
             &InputMethodSystemAbilityStub::ExitCurrentInputTypeOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::GET_DEFAULT_INPUT_METHOD)] =
+            &InputMethodSystemAbilityStub::GetDefaultInputMethodOnRemote,
+        [static_cast<uint32_t>(InputMethodInterfaceCode::GET_INPUT_METHOD_SETTINGS)] =
+            &InputMethodSystemAbilityStub::GetInputMethodConfigOnRemote,
     };
 };
 } // namespace OHOS::MiscServices

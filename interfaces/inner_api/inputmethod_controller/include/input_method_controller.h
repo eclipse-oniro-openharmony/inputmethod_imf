@@ -22,6 +22,7 @@
 #include <thread>
 
 #include "controller_listener.h"
+#include "element_name.h"
 #include "event_handler.h"
 #include "event_status_manager.h"
 #include "global.h"
@@ -47,7 +48,9 @@ public:
     virtual void DeleteBackward(int32_t length) = 0;
     virtual void SendKeyEventFromInputMethod(const KeyEvent &event) = 0;
     virtual void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) = 0;
-    virtual void NotifyPanelStatusInfo(const PanelStatusInfo &info){}
+    virtual void NotifyPanelStatusInfo(const PanelStatusInfo &info)
+    {
+    }
     virtual void SendFunctionKey(const FunctionKey &functionKey) = 0;
     virtual void SetKeyboardStatus(bool status) = 0;
     virtual void MoveCursor(const Direction direction) = 0;
@@ -312,6 +315,26 @@ public:
      * @since 6
      */
     IMF_API std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype();
+
+    /**
+     * @brief Get default input method property.
+     *
+     * This function is used to get default input method property.
+     *
+     * @return The property of default input method.
+     * @since 10
+     */
+    IMF_API int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop);
+
+    /**
+     * @brief get input method config ability.
+     *
+     * This function is used to get input method config ability.
+     *
+     * @return The info of input settings.
+     * @since 10
+     */
+    IMF_API int32_t GetInputMethodConfig(AppExecFwk::ElementName &inputMethodConfig);
 
     /**
      * @brief Set calling window id.
@@ -638,8 +661,7 @@ private:
 
     int32_t Initialize();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
-    int32_t PrepareInput(InputClientInfo &inputClientInfo);
-    int32_t StartInput(sptr<IInputClient> &client, bool isShowKeyboard);
+    int32_t StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent);
     int32_t ShowInput(sptr<IInputClient> &client);
     int32_t HideInput(sptr<IInputClient> &client);
     int32_t ReleaseInput(sptr<IInputClient> &client);
