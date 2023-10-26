@@ -55,7 +55,7 @@ public:
     int32_t DeleteForward(int32_t length);
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();
-    int32_t StartInput(InputClientInfo &clientInfo, bool isBindFromClient);
+    int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient);
     int32_t StopInput(const sptr<IRemoteObject> &channelObject);
     int32_t ShowKeyboard();
     int32_t HideKeyboard();
@@ -78,6 +78,7 @@ public:
     bool IsCurrentIme();
     bool IsEnable();
     int32_t ExitCurrentInputType();
+    int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
 
 private:
     std::thread workThreadHandler;

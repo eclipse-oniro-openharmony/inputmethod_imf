@@ -62,6 +62,7 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getAllInputMethodsSync", GetAllInputMethodsSync),
         DECLARE_NAPI_FUNCTION("displayOptionalInputMethod", DisplayOptionalInputMethod),
         DECLARE_NAPI_FUNCTION("showOptionalInputMethods", ShowOptionalInputMethods),
+        DECLARE_NAPI_FUNCTION("isPanelShown", IsPanelShown),
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
     };
@@ -411,6 +412,33 @@ napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, 
     // 1 means JsAPI:listCurrentInputMethodSubtype has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "listCurrentInputMethodSubtype");
+}
+
+napi_value JsGetInputMethodSetting::IsPanelShown(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGI("run in JsGetInputMethodSetting");
+    // 1 means required param num
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    // 1 means least param num
+    PARAM_CHECK_RETURN(env, argc >= 1, "should has 1 parameters!", TYPE_NONE, JsUtil::Const::Null(env));
+    // 0 means parameter of info<PanelInfo>
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[0], &valueType);
+    PARAM_CHECK_RETURN(env, valueType == napi_object, " panelInfo: ", TYPE_OBJECT, JsUtil::Const::Null(env));
+
+    PanelInfo panelInfo;
+    napi_status status = JsUtils::GetValue(env, argv[0], panelInfo);
+    PARAM_CHECK_RETURN(env, status == napi_ok, " panelInfo: ", TYPE_OBJECT, JsUtil::Const::Null(env));
+
+    bool isShown = false;
+    int32_t errorCode = InputMethodController::GetInstance()->IsPanelShown(panelInfo, isShown);
+    if (errorCode != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(errorCode), "failed to query is panel shown", TYPE_NONE);
+        return JsUtil::Const::Null(env);
+    }
+    return JsUtil::GetValue(env, isShown);
 }
 
 int32_t JsGetInputMethodSetting::RegisterListener(

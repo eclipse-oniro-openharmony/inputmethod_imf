@@ -24,6 +24,7 @@
 
 #include "display_manager.h"
 #include "global.h"
+#include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "panel_status_listener.h"
 #include "tdd_util.h"
@@ -72,6 +73,7 @@ public:
     static InputWindowStatus status_;
     static std::vector<InputWindowInfo> windowInfo_;
     static sptr<InputMethodController> imc_;
+    static sptr<InputMethodAbility> ima_;
     static uint32_t windowWidth_;
     static uint32_t windowHeight_;
     static bool showPanel_;
@@ -111,6 +113,7 @@ std::mutex InputMethodPanelTest::imcPanelStatusListenerLock_;
 InputWindowStatus InputMethodPanelTest::status_{ InputWindowStatus::HIDE };
 std::vector<InputWindowInfo> InputMethodPanelTest::windowInfo_;
 sptr<InputMethodController> InputMethodPanelTest::imc_;
+sptr<InputMethodAbility> InputMethodPanelTest::ima_;
 uint32_t InputMethodPanelTest::windowWidth_ = 0;
 uint32_t InputMethodPanelTest::windowHeight_ = 0;
 uint64_t InputMethodPanelTest::tokenId_ = 0;
@@ -119,6 +122,7 @@ void InputMethodPanelTest::SetUpTestCase(void)
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
     TddUtil::StorageSelfTokenID();
 
+    ima_ = InputMethodAbility::GetInstance();
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(listener);
@@ -435,6 +439,110 @@ HWTEST_F(InputMethodPanelTest, testShowPanel, TestSize.Level0)
     ret = inputMethodPanel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->DestroyPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testIsPanelShown_001
+ * @tc.desc: Test is panel shown.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testIsPanelShown_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_001 start.");
+    TddUtil::SetTestTokenID(tokenId_);
+    int32_t ret = ima_->SetCoreAndAgent();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    bool isShown = false;
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    ret = ima_->CreatePanel(nullptr, panelInfo, inputMethodPanel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // query when fixed soft keyboard is showing
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(isShown);
+
+    // query when fixed soft keyboard is hidden
+    ret = inputMethodPanel->HidePanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(isShown);
+
+    ret = ima_->DestroyPanel(inputMethodPanel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testIsPanelShown_002
+ * @tc.desc: Test is panel shown.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testIsPanelShown_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_002 start.");
+    TddUtil::SetTestTokenID(tokenId_);
+    int32_t ret = ima_->SetCoreAndAgent();
+    bool isShown = false;
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    ret = ima_->CreatePanel(nullptr, panelInfo, inputMethodPanel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->ChangePanelFlag(PanelFlag::FLG_FLOATING);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // query panel with old info when panel changes its flag.
+    ret = imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(isShown);
+    // query panel with updated shown one's info when panel changes its flag.
+    panelInfo.panelFlag = PanelFlag::FLG_FLOATING;
+    ret = imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(isShown);
+
+    ret = ima_->DestroyPanel(inputMethodPanel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testIsPanelShown_003
+ * @tc.desc: Test is panel shown.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_003 start.");
+    TddUtil::SetTestTokenID(tokenId_);
+    int32_t ret = ima_->SetCoreAndAgent();
+    bool isShown = false;
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = STATUS_BAR };
+    ret = ima_->CreatePanel(nullptr, panelInfo, inputMethodPanel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // query status bar's status when it is showing
+    ret = inputMethodPanel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(isShown);
+
+    // query status bar's status when it is hidden
+    ret = inputMethodPanel->HidePanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = imc_->IsPanelShown(panelInfo, isShown);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(isShown);
+
+    ret = ima_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 

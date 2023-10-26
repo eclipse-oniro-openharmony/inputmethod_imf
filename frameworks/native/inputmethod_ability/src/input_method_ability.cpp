@@ -233,7 +233,7 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
     SetInputControlChannel(channelObject);
 }
 
-int32_t InputMethodAbility::StartInput(InputClientInfo &clientInfo, bool isBindFromClient)
+int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
     IMSA_HILOGI("InputMethodAbility::isShowKeyboard: %{public}d", clientInfo.isShowKeyboard);
     if (clientInfo.channel->AsObject() == nullptr) {
@@ -798,6 +798,24 @@ int32_t InputMethodAbility::ExitCurrentInputType()
         return false;
     }
     return proxy->ExitCurrentInputType();
+}
+
+int32_t InputMethodAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
+{
+    IMSA_HILOGI("InputMethodAbility, type: %{public}d, flag: %{public}d", panelInfo.panelType, panelInfo.panelFlag);
+    isShown = false;
+    auto result = panels_.Find(panelInfo.panelType);
+    if (!result.first) {
+        IMSA_HILOGD("panel not found");
+        return ErrorCode::NO_ERROR;
+    }
+    auto panel = result.second;
+    if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD && panel->GetPanelFlag() != panelInfo.panelFlag) {
+        IMSA_HILOGD("panel not found");
+        return ErrorCode::NO_ERROR;
+    }
+    isShown = panel->IsShowing();
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

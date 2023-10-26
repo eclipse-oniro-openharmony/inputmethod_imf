@@ -109,6 +109,7 @@ public:
     static napi_value GetAllInputMethodsSync(napi_env env, napi_callback_info info);
     static napi_value DisplayOptionalInputMethod(napi_env env, napi_callback_info info);
     static napi_value ShowOptionalInputMethods(napi_env env, napi_callback_info info);
+    static napi_value IsPanelShown(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static std::shared_ptr<JsGetInputMethodSetting> GetInputMethodSettingInstance();

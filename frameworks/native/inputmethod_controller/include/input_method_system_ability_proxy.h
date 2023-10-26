@@ -68,6 +68,7 @@ public:
     bool IsInputTypeSupported(InputType type) override;
     int32_t StartInputType(InputType type) override;
     int32_t ExitCurrentInputType() override;
+    int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;

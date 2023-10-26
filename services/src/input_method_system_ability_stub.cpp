@@ -317,5 +317,17 @@ int32_t InputMethodSystemAbilityStub::ExitCurrentInputTypeOnRemote(MessageParcel
 {
     return ITypesUtil::Marshal(reply, ExitCurrentInputType()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
+
+int32_t InputMethodSystemAbilityStub::IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    PanelInfo info;
+    if (!ITypesUtil::Unmarshal(data, info)) {
+        IMSA_HILOGE("unmarshal failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    bool isShown = false;
+    int32_t ret = IsPanelShown(info, isShown);
+    return ITypesUtil::Marshal(reply, ret, isShown) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
 } // namespace MiscServices
 } // namespace OHOS

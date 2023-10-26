@@ -26,6 +26,7 @@
 #include "input_client_info.h"
 #include "input_window_info.h"
 #include "message_parcel.h"
+#include "panel_info.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -87,6 +88,9 @@ public:
 
     static bool Marshalling(const OHOS::AppExecFwk::ElementName &input, MessageParcel &data);
     static bool Unmarshalling(OHOS::AppExecFwk::ElementName &output, MessageParcel &data);
+
+    static bool Marshalling(const PanelInfo &input, MessageParcel &data);
+    static bool Unmarshalling(PanelInfo &output, MessageParcel &data);
 
     template<class T>
     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);

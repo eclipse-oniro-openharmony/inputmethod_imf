@@ -1049,5 +1049,15 @@ int32_t InputMethodController::StartInputType(InputType type)
     }
     return proxy->StartInputType(type);
 }
+
+int32_t InputMethodController::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return proxy->IsPanelShown(panelInfo, isShown);
+}
 } // namespace MiscServices
 } // namespace OHOS

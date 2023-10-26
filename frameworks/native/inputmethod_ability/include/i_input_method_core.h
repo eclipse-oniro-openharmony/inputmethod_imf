@@ -25,6 +25,7 @@
 #include "input_method_property.h"
 #include "ipc_types.h"
 #include "iremote_broker.h"
+#include "panel_info.h"
 
 /**
  * brief Definition of interface IInputMethodCore
@@ -43,11 +44,13 @@ public:
         START_INPUT,
         STOP_INPUT,
         IS_ENABLE,
+        IS_PANEL_SHOWN,
+        CORE_CMD_LAST,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodCore");
 
-    virtual int32_t StartInput(const std::shared_ptr<InputClientInfo> &clientInfo, bool isBindFromClient) = 0;
+    virtual int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient) = 0;
     virtual int32_t StopInput(const sptr<IInputDataChannel> &channel) = 0;
     virtual int32_t ShowKeyboard() = 0;
     virtual int32_t HideKeyboard() = 0;
@@ -55,6 +58,7 @@ public:
     virtual void StopInputService() = 0;
     virtual int32_t SetSubtype(const SubProperty &property) = 0;
     virtual bool IsEnable() = 0;
+    virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

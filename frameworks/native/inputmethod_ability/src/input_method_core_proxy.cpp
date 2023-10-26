@@ -38,12 +38,11 @@ int32_t InputMethodCoreProxy::InitInputControlChannel(const sptr<IInputControlCh
     });
 }
 
-int32_t InputMethodCoreProxy::StartInput(
-    const std::shared_ptr<InputClientInfo> &clientInfo, bool isBindFromClient)
+int32_t InputMethodCoreProxy::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
     IMSA_HILOGD("InputMethodCoreProxy::StartInput");
     return SendRequest(START_INPUT, [&clientInfo, isBindFromClient](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, isBindFromClient, *clientInfo);
+        return ITypesUtil::Marshal(data, isBindFromClient, clientInfo);
     });
 }
 
@@ -79,6 +78,13 @@ bool InputMethodCoreProxy::IsEnable()
     SendRequest(
         IS_ENABLE, nullptr, [&isEnable](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isEnable); });
     return isEnable;
+}
+
+int32_t InputMethodCoreProxy::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
+{
+    return SendRequest(
+        IS_PANEL_SHOWN, [&panelInfo](MessageParcel &data) { return ITypesUtil::Marshal(data, panelInfo); },
+        [&isShown](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isShown); });
 }
 
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)

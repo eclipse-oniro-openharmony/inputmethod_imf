@@ -43,6 +43,7 @@
 #include "iremote_object.h"
 #include "message.h"
 #include "message_handler.h"
+#include "panel_info.h"
 #include "unRegistered_type.h"
 namespace OHOS {
 namespace MiscServices {
@@ -89,6 +90,7 @@ public:
     bool IsProxyImeEnable();
     bool IsBoundToClient();
     int32_t ExitCurrentInputType();
+    int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
 
 private:
     struct ResetManager {

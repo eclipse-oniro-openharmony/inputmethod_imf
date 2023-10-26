@@ -406,7 +406,7 @@ int32_t PerUserSession::BindClientWithIme(
         IMSA_HILOGE("ime: %{public}d is abnormal", type);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    auto ret = data->core->StartInput(clientInfo, isBindFromClient);
+    auto ret = data->core->StartInput(*clientInfo, isBindFromClient);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_IME_START_INPUT_FAILED;
@@ -882,6 +882,16 @@ int32_t PerUserSession::ExitCurrentInputType()
         return ErrorCode::ERROR_IME_START_FAILED;
     }
     return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
+{
+    auto ime = GetImeData(ImeType::IME);
+    if (ime == nullptr) {
+        IMSA_HILOGE("ime not started");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    return ime->core->IsPanelShown(panelInfo, isShown);
 }
 } // namespace MiscServices
 } // namespace OHOS
