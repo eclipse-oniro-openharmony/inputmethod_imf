@@ -114,7 +114,7 @@ int32_t InputDataChannelStub::GetTextConfigOnRemote(MessageParcel &data, Message
 
 int32_t InputDataChannelStub::SendKeyboardStatusOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t status = 0;
+    int32_t status = -1;
     if (!ITypesUtil::Unmarshal(data, status)) {
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;

@@ -408,10 +408,11 @@ HWTEST_F(InputMethodControllerTest, testIMCAttach, TestSize.Level0)
 {
     IMSA_HILOGD("IMC Attach Test START");
     imeListener_->isInputStart_ = false;
+    TextListener::ResetParam();
     inputMethodController_->Attach(textListener_, false);
     inputMethodController_->Attach(textListener_);
     inputMethodController_->Attach(textListener_, true);
-    EXPECT_TRUE(TextListener::WaitIMACallback());
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
     EXPECT_TRUE(imeListener_->isInputStart_ && imeListener_->keyboardState_);
 }
 
@@ -648,10 +649,9 @@ HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange02, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testShowTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("IMC ShowTextInput Test START");
-    TextListener::keyboardStatus_ = KeyboardStatus::NONE;
+    TextListener::ResetParam();
     inputMethodController_->ShowTextInput();
-    EXPECT_TRUE(TextListener::WaitIMACallback());
-    EXPECT_TRUE(TextListener::keyboardStatus_ == KeyboardStatus::SHOW);
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
 }
 
 /**
@@ -663,11 +663,10 @@ HWTEST_F(InputMethodControllerTest, testShowSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
     imeListener_->keyboardState_ = false;
-    TextListener::keyboardStatus_ = KeyboardStatus::NONE;
+    TextListener::ResetParam();
     int32_t ret = inputMethodController_->ShowSoftKeyboard();
-    EXPECT_TRUE(TextListener::WaitIMACallback());
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::keyboardStatus_ == KeyboardStatus::SHOW);
+    EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
 }
 
 /**
@@ -679,11 +678,10 @@ HWTEST_F(InputMethodControllerTest, testShowCurrentInput, TestSize.Level0)
 {
     IMSA_HILOGI("IMC ShowCurrentInput Test START");
     imeListener_->keyboardState_ = false;
-    TextListener::keyboardStatus_ = KeyboardStatus::NONE;
+    TextListener::ResetParam();
     int32_t ret = inputMethodController_->ShowCurrentInput();
-    EXPECT_TRUE(TextListener::WaitIMACallback());
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::keyboardStatus_ == KeyboardStatus::SHOW);
+    EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
 }
 
 /**
@@ -744,11 +742,10 @@ HWTEST_F(InputMethodControllerTest, testHideSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("IMC HideSoftKeyboard Test START");
     imeListener_->keyboardState_ = true;
-    TextListener::keyboardStatus_ = KeyboardStatus::NONE;
+    TextListener::ResetParam();
     int32_t ret = inputMethodController_->HideSoftKeyboard();
-    EXPECT_TRUE(TextListener::WaitIMACallback());
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(!imeListener_->keyboardState_ && TextListener::keyboardStatus_ == KeyboardStatus::HIDE);
+    EXPECT_TRUE(!imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
 }
 
 /**
@@ -761,11 +758,10 @@ HWTEST_F(InputMethodControllerTest, testIMCHideCurrentInput, TestSize.Level0)
 {
     IMSA_HILOGI("IMC HideCurrentInput Test START");
     imeListener_->keyboardState_ = true;
-    TextListener::keyboardStatus_ = KeyboardStatus::NONE;
+    TextListener::ResetParam();
     int32_t ret = inputMethodController_->HideCurrentInput();
-    EXPECT_TRUE(TextListener::WaitIMACallback());
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(!imeListener_->keyboardState_ && TextListener::keyboardStatus_ == KeyboardStatus::HIDE);
+    EXPECT_TRUE(!imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
 }
 
 /**
@@ -779,7 +775,6 @@ HWTEST_F(InputMethodControllerTest, testIMCInputStopSession, TestSize.Level0)
 {
     IMSA_HILOGI("IMC StopInputSession Test START");
     imeListener_->keyboardState_ = true;
-    TextListener::keyboardStatus_ = KeyboardStatus::NONE;
     int32_t ret = inputMethodController_->StopInputSession();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     WaitKeyboardStatusCallback(false);
@@ -795,7 +790,6 @@ HWTEST_F(InputMethodControllerTest, testIMCHideTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("IMC HideTextInput Test START");
     imeListener_->keyboardState_ = true;
-    TextListener::keyboardStatus_ = KeyboardStatus::NONE;
     inputMethodController_->HideTextInput();
     WaitKeyboardStatusCallback(false);
     EXPECT_TRUE(!imeListener_->keyboardState_);
@@ -906,12 +900,13 @@ HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     pid_t pid = TddUtil::GetImsaPid();
     EXPECT_TRUE(pid > 0);
+    TextListener::ResetParam();
     ret = kill(pid, SIGTERM);
     EXPECT_EQ(ret, 0);
     EXPECT_TRUE(WaitRemoteDiedCallback());
     CheckProxyObject();
     inputMethodController_->OnRemoteSaDied(nullptr);
-    EXPECT_TRUE(TextListener::WaitIMACallback());
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
     bool result = inputMethodController_->WasAttached();
     EXPECT_TRUE(result);
     inputMethodController_->Close();

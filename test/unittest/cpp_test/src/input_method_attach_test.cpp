@@ -232,13 +232,13 @@ HWTEST_F(InputMethodAttachTest, testAttach006, TestSize.Level0)
     sptr<OnTextChangedListener> textListener = new TextListener();
     auto ret = InputMethodAttachTest::inputMethodController_->Attach(textListener, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(TextListener::keyboardStatus_, KeyboardStatus::NONE);
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::NONE));
 
     InputMethodAttachTest::inputMethodController_->Close();
     TextListener::ResetParam();
     ret = InputMethodAttachTest::inputMethodController_->Attach(textListener, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(TextListener::keyboardStatus_, KeyboardStatus::SHOW);
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
 }
 
 /**

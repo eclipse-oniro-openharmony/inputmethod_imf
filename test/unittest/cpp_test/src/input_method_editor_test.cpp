@@ -214,14 +214,14 @@ HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level0)
     InputMethodEditorTest::imeListener_->isInputStart_ = false;
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_);
-    EXPECT_TRUE(TextListener::WaitIMACallback());
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
     EXPECT_TRUE(imeListener_->isInputStart_ && imeListener_->keyboardState_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     InputMethodEditorTest::imeListener_->isInputStart_ = false;
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
-    EXPECT_TRUE(TextListener::WaitIMACallback());
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
     EXPECT_TRUE(imeListener_->isInputStart_ && imeListener_->keyboardState_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodEditorTest::inputMethodController_->Close();
@@ -243,13 +243,12 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
     bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
     IMSA_HILOGI("testShowSoftKeyboard getFocus end, isFocused = %{public}d", isFocused);
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
-    TextListener::keyboardStatus_ = KeyboardStatus::NONE;
+    TextListener::ResetParam();
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
-    EXPECT_TRUE(TextListener::WaitIMACallback());
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::keyboardStatus_ == KeyboardStatus::SHOW);
+    EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
     WindowMgr::HideWindow();
     bool unFocus = FocusChangedListenerTestImpl::unFocused_->GetValue();
     IMSA_HILOGI("testShowSoftKeyboard unFocus end, unFocus = %{public}d", unFocus);
@@ -271,7 +270,6 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     imeListener_->keyboardState_ = true;
-    TextListener::keyboardStatus_ = KeyboardStatus::NONE;
     InputMethodEditorTest::inputMethodController_->HideTextInput();
     bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
     EXPECT_FALSE(result);

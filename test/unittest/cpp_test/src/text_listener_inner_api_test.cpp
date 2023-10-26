@@ -298,9 +298,8 @@ HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus01, TestSize.Level0)
     IMSA_HILOGI("TextListenerInnerApiTest testSendKeyboardStatus01 START");
     TextListener::ResetParam();
     imc_->Attach(textListener_);
-    int32_t status = 1;
-    TextListenerInnerApiTest::imc_->SendKeyboardStatus(status);
-    EXPECT_EQ(TextListener::keyboardStatus_, static_cast<KeyboardStatus>(status));
+    TextListenerInnerApiTest::imc_->SendKeyboardStatus(KeyboardStatus::HIDE);
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
 }
 
 /**
@@ -312,18 +311,16 @@ HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus01, TestSize.Level0)
 HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus02, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSendKeyboardStatus02 START");
-    TextListener::ResetParam();
-    int32_t status = 1;
-
     TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListener::ResetParam();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
-    TextListenerInnerApiTest::imc_->SendKeyboardStatus(status);
-    EXPECT_NE(TextListener::keyboardStatus_, static_cast<KeyboardStatus>(status));
+    TextListenerInnerApiTest::imc_->SendKeyboardStatus(KeyboardStatus::HIDE);
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::NONE));
 
     TextListener::ResetParam();
     TextListenerInnerApiTest::imc_->Close();
-    TextListenerInnerApiTest::imc_->SendKeyboardStatus(status);
-    EXPECT_NE(TextListener::keyboardStatus_, static_cast<KeyboardStatus>(status));
+    TextListenerInnerApiTest::imc_->SendKeyboardStatus(KeyboardStatus::HIDE);
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::NONE));
 }
 
 /**
