@@ -269,6 +269,26 @@ bool ITypesUtil::Unmarshalling(InputWindowInfo &output, MessageParcel &data)
     return true;
 }
 
+bool ITypesUtil::Marshalling(const PanelStatusInfo &input, MessageParcel &data)
+{
+    return data.WriteInt32(static_cast<int32_t>(input.panelInfo.panelType))
+           && data.WriteInt32(static_cast<int32_t>(input.panelInfo.panelFlag)) && data.WriteBool(input.visible)
+           && data.WriteInt32(static_cast<int32_t>(input.trigger));
+}
+
+bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)
+{
+    int32_t type = -1;
+    int32_t flag = -1;
+    bool visible = false;
+    int32_t trigger = -1;
+    if (!data.ReadInt32(type) || !data.ReadInt32(flag) || !data.ReadBool(visible) || !data.ReadInt32(trigger)) {
+        return false;
+    }
+    output = { { static_cast<PanelType>(type), static_cast<PanelFlag>(flag) }, visible, static_cast<Trigger>(trigger) };
+    return true;
+}
+
 bool ITypesUtil::Marshalling(EventType input, MessageParcel &data)
 {
     return data.WriteUint32(static_cast<uint32_t>(input));
@@ -314,26 +334,6 @@ bool ITypesUtil::Unmarshalling(InputType &output, MessageParcel &data)
         return false;
     }
     output = static_cast<InputType>(ret);
-    return true;
-}
-
-bool ITypesUtil::Marshalling(const PanelStatusInfo &input, MessageParcel &data)
-{
-    return data.WriteInt32(static_cast<int32_t>(input.panelInfo.panelType))
-           && data.WriteInt32(static_cast<int32_t>(input.panelInfo.panelFlag)) && data.WriteBool(input.visible)
-           && data.WriteInt32(static_cast<int32_t>(input.trigger));
-}
-
-bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)
-{
-    int32_t type = -1;
-    int32_t flag = -1;
-    bool visible = false;
-    int32_t trigger = -1;
-    if (!data.ReadInt32(type) || !data.ReadInt32(flag) || !data.ReadBool(visible) || !data.ReadInt32(trigger)) {
-        return false;
-    }
-    output = { { static_cast<PanelType>(type), static_cast<PanelFlag>(flag) }, visible, static_cast<Trigger>(trigger) };
     return true;
 }
 } // namespace MiscServices

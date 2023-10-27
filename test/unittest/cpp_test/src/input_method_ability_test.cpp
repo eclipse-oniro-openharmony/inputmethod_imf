@@ -234,20 +234,6 @@ HWTEST_F(InputMethodAbilityTest, testHideKeyboardWithoutImeListener, TestSize.Le
 }
 
 /**
-* @tc.name: testHideKeyboardSelfWithoutAttach
-* @tc.desc: InputMethodAbility HideKeyboardSelf Without Attach
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: Hollokin
-*/
-HWTEST_F(InputMethodAbilityTest, testHideKeyboardSelfWithoutAttach, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testHideKeyboardSelfWithoutAttach START");
-    auto ret = inputMethodAbility_->HideKeyboardSelf();
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
-}
-
-/**
 * @tc.name: testStartInputWithoutPanel
 * @tc.desc: InputMethodAbility StartInput Without Panel
 * @tc.type: FUNC
@@ -908,6 +894,42 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_004, TestSize.Level0)
     CheckPanelStatusInfo(panel, { info, true, Trigger::IME_APP });
     // HidePanel
     CheckPanelStatusInfo(panel, { info, false, Trigger::IME_APP });
+
+    ret = inputMethodAbility_->DestroyPanel(panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testNotifyPanelStatusInfo_005
+* @tc.desc: HideKeyboardSelf
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_005, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_005 START");
+    PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    imc_->Attach(textListener_);
+
+    // has no panel
+    TextListener::ResetParam();
+    auto ret = inputMethodAbility_->HideKeyboardSelf();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
+    EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback({ info, false, Trigger::IME_APP }));
+
+    auto panel = std::make_shared<InputMethodPanel>();
+    ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodAbility_->ShowPanel(panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    // has panel
+    TextListener::ResetParam();
+    ret = inputMethodAbility_->HideKeyboardSelf();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback({ info, false, Trigger::IME_APP }));
 
     ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);

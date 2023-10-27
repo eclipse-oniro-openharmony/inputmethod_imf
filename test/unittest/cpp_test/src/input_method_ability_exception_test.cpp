@@ -245,8 +245,11 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSiz
 HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboardSelf_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testHideKeyboardSelf_001 START");
+    auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
+    inputMethodAbility_->SetImeListener(imeListener);
     auto ret = inputMethodAbility_->HideKeyboardSelf();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    ResetMemberVar();
 }
 
 /**

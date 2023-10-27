@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef INPUT_METHOD_PANEL_INFO_H
-#define INPUT_METHOD_PANEL_INFO_H
+#ifndef INPUTMETHOD_IMF_PANEL_INFO_H
+#define INPUTMETHOD_IMF_PANEL_INFO_H
 
 namespace OHOS {
 namespace MiscServices {
@@ -36,4 +36,4 @@ struct PanelInfo {
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif //INPUT_METHOD_PANEL_INFO_H
+#endif // INPUTMETHOD_IMF_PANEL_INFO_H
