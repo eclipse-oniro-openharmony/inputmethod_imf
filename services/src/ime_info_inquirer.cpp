@@ -722,16 +722,13 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 
 std::string ImeInfoInquirer::GetDefaultIme()
 {
-    if (!ImeConfigParse::ParseFromCustomSystem(SYSTEM_CONFIG, imeConfig_)) {
-        return "";
+    if (ImeConfigParse::ParseFromCustomSystem(SYSTEM_CONFIG, imeConfig_) && !imeConfig_.defaultInputMethod.empty()) {
+        IMSA_HILOGI("defaultInputMethod: %{public}s", imeConfig_.defaultInputMethod.c_str());
+        return imeConfig_.defaultInputMethod;
     }
-    IMSA_HILOGI("defaultInputMethod: %{public}s", imeConfig_.defaultInputMethod.c_str());
-    if (imeConfig_.defaultInputMethod.empty()) {
-        char value[CONFIG_LEN] = { 0 };
-        auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
-        return code > 0 ? value : "";
-    }
-    return imeConfig_.defaultInputMethod;
+    char value[CONFIG_LEN] = { 0 };
+    auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
+    return code > 0 ? value : "";
 }
 
 sptr<OHOS::AppExecFwk::IBundleMgr> ImeInfoInquirer::GetBundleMgr()
