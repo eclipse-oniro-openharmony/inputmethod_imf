@@ -669,7 +669,7 @@ void InputMethodSystemAbility::WorkThread()
                 break;
             }
             case MSG_ID_HIDE_KEYBOARD_SELF: {
-                userSession_->OnHideCurrentInput();
+                userSession_->OnHideSoftKeyBoardSelf();
                 break;
             }
             default: {

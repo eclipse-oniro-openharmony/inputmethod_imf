@@ -32,6 +32,7 @@ int32_t TextListener::selectionSkip_ = -1;
 int32_t TextListener::action_ = -1;
 KeyboardStatus TextListener::keyboardStatus_ = { KeyboardStatus::NONE };
 bool TextListener::isTimeout_ = { false };
+PanelStatusInfo TextListener::info_{};
 
 TextListener::TextListener()
 {
@@ -66,18 +67,8 @@ void TextListener::SendKeyEventFromInputMethod(const KeyEvent &event) {}
 void TextListener::SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
 {
     IMSA_HILOGD("TextListener::SendKeyboardStatus %{public}d", static_cast<int>(keyboardStatus));
-    constexpr int32_t interval = 20;
-    {
-        std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-        IMSA_HILOGD("TextListener::SendKeyboardStatus lock");
-        keyboardStatus_ = keyboardStatus;
-    }
-    serviceHandler_->PostTask(
-        [this]() {
-            textListenerCv_.notify_all();
-        },
-        interval);
-    IMSA_HILOGD("TextListener::SendKeyboardStatus notify_all");
+    keyboardStatus_ = keyboardStatus;
+    textListenerCv_.notify_one();
 }
 
 void TextListener::SendFunctionKey(const FunctionKey &functionKey)
@@ -143,6 +134,14 @@ int32_t TextListener::GetTextIndexAtCursor()
     }
     return TEXT_INDEX;
 }
+void TextListener::NotifyPanelStatusInfo(const PanelStatusInfo &info)
+{
+    IMSA_HILOGD("TextListener::type: %{public}d, flag: %{public}d, visible: %{public}d, trigger: %{public}d.",
+        static_cast<PanelType>(info.panelInfo.panelType), static_cast<PanelFlag>(info.panelInfo.panelFlag),
+        info.visible, static_cast<Trigger>(info.trigger));
+    info_ = info;
+    textListenerCv_.notify_one();
+}
 void TextListener::setTimeout(bool isTimeout)
 {
     isTimeout_ = isTimeout;
@@ -161,12 +160,21 @@ void TextListener::ResetParam()
     selectionSkip_ = -1;
     action_ = -1;
     keyboardStatus_ = KeyboardStatus::NONE;
+    info_ = {};
     isTimeout_ = false;
 }
-bool TextListener::WaitIMACallback()
+bool TextListener::WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    return TextListener::textListenerCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
+    textListenerCv_.wait_for(
+        lock, std::chrono::seconds(1), [&keyboardStatus]() { return keyboardStatus == keyboardStatus_; });
+    return keyboardStatus == keyboardStatus_;
+}
+bool TextListener::WaitNotifyPanelStatusInfoCallback(const PanelStatusInfo &info)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [info]() { return info == info_; });
+    return info == info_;
 }
 } // namespace MiscServices
 } // namespace OHOS

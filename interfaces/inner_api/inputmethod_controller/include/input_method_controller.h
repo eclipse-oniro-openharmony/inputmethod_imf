@@ -49,6 +49,9 @@ public:
     virtual void DeleteBackward(int32_t length) = 0;
     virtual void SendKeyEventFromInputMethod(const KeyEvent &event) = 0;
     virtual void SendKeyboardStatus(const KeyboardStatus &keyboardStatus) = 0;
+    virtual void NotifyPanelStatusInfo(const PanelStatusInfo &info)
+    {
+    }
     virtual void SendFunctionKey(const FunctionKey &functionKey) = 0;
     virtual void SetKeyboardStatus(bool status) = 0;
     virtual void MoveCursor(const Direction direction) = 0;
@@ -582,7 +585,18 @@ public:
      * @param status Indicates the status of keyboard.
      * @since 10
      */
-    IMF_API void SendKeyboardStatus(int32_t status);
+    IMF_API void SendKeyboardStatus(KeyboardStatus status);
+
+    /**
+     * @brief Send panel status info.
+     *
+     * This function is used to send panel status info to editor.
+     * Only notify the status info of soft keyboard(not contain candidate column) at present
+     *
+     * @param info Indicates the status info of panel.
+     * @since 11
+     */
+    IMF_API void NotifyPanelStatusInfo(const PanelStatusInfo &info);
 
     /**
      * @brief Send function key.

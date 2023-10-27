@@ -43,7 +43,7 @@ public:
     int32_t GetTextBeforeCursor(int32_t number, std::u16string &text) override;
     int32_t GetTextAfterCursor(int32_t number, std::u16string &text) override;
     int32_t GetTextIndexAtCursor(int32_t &index) override;
-    void SendKeyboardStatus(int32_t status) override;
+    void SendKeyboardStatus(KeyboardStatus status) override;
     int32_t SendFunctionKey(int32_t funcKey) override;
     int32_t MoveCursor(int32_t keyCode) override;
     int32_t GetEnterKeyType(int32_t &keyType) override;
@@ -52,6 +52,7 @@ public:
     int32_t SelectByMovement(int32_t direction, int32_t cursorMoveSkip) override;
     int32_t HandleExtendAction(int32_t action) override;
     int32_t GetTextConfig(TextTotalConfig &textConfig) override;
+    void NotifyPanelStatusInfo(const PanelStatusInfo &info) override;
 
 private:
     template<class T> struct ResultInfo {
@@ -74,6 +75,7 @@ private:
     int32_t SelectByMovementOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t HandleExtendActionOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t GetTextIndexAtCursorOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t NotifyPanelStatusInfoOnRemote(MessageParcel &data, MessageParcel &reply);
     using RequestHandler = int32_t (InputDataChannelStub::*)(MessageParcel &, MessageParcel &);
     static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
         { static_cast<uint32_t>(INSERT_TEXT), &InputDataChannelStub::InsertTextOnRemote },
@@ -91,6 +93,7 @@ private:
         { static_cast<uint32_t>(HANDLE_EXTEND_ACTION), &InputDataChannelStub::HandleExtendActionOnRemote },
         { static_cast<uint32_t>(GET_TEXT_INDEX_AT_CURSOR), &InputDataChannelStub::GetTextIndexAtCursorOnRemote },
         { static_cast<uint32_t>(GET_TEXT_CONFIG), &InputDataChannelStub::GetTextConfigOnRemote },
+        { static_cast<uint32_t>(NOTIFY_PANEL_STATUS_INFO), &InputDataChannelStub::NotifyPanelStatusInfoOnRemote },
     };
 };
 } // namespace MiscServices

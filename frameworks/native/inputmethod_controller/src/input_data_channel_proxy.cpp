@@ -58,9 +58,15 @@ int32_t InputDataChannelProxy::GetTextAfterCursor(int32_t number, std::u16string
         [&text](MessageParcel &parcel) { return ITypesUtil::Unmarshal(parcel, text); });
 }
 
-void InputDataChannelProxy::SendKeyboardStatus(int32_t status)
+void InputDataChannelProxy::SendKeyboardStatus(KeyboardStatus status)
 {
-    SendRequest(SEND_KEYBOARD_STATUS, [status](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, status); });
+    SendRequest(SEND_KEYBOARD_STATUS,
+        [status](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, static_cast<int32_t>(status)); });
+}
+
+void InputDataChannelProxy::NotifyPanelStatusInfo(const PanelStatusInfo &info)
+{
+    SendRequest(NOTIFY_PANEL_STATUS_INFO, [&info](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, info); });
 }
 
 int32_t InputDataChannelProxy::SendFunctionKey(int32_t funcKey)

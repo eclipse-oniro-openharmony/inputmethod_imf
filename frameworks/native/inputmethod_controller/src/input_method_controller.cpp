@@ -1000,17 +1000,33 @@ int32_t InputMethodController::MoveCursor(Direction direction)
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodController::SendKeyboardStatus(int32_t status)
+void InputMethodController::SendKeyboardStatus(KeyboardStatus status)
 {
-    IMSA_HILOGD("run in, status: %{public}d", status);
+    IMSA_HILOGD("KeyboardStatusNotify, status: %{public}d", static_cast<int32_t>(status));
     auto listener = GetTextListener();
     if (listener == nullptr) {
         IMSA_HILOGE("textListener_ is nullptr");
         return;
     }
-    auto keyboardStatus = static_cast<KeyboardStatus>(status);
-    listener->SendKeyboardStatus(keyboardStatus);
-    if (keyboardStatus == KeyboardStatus::HIDE) {
+    listener->SendKeyboardStatus(status);
+    if (status == KeyboardStatus::HIDE) {
+        clientInfo_.isShowKeyboard = false;
+    }
+}
+
+void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
+{
+    IMSA_HILOGD("PanelStatusInfoNotify, type: %{public}d, flag: %{public}d, visible: %{public}d, trigger: %{public}d.",
+        static_cast<PanelType>(info.panelInfo.panelType), static_cast<PanelFlag>(info.panelInfo.panelFlag),
+        info.visible, static_cast<Trigger>(info.trigger));
+    auto listener = GetTextListener();
+    if (listener == nullptr) {
+        IMSA_HILOGE("textListener_ is nullptr");
+        return;
+    }
+    listener->NotifyPanelStatusInfo(info);
+    if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD
+        && info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
         clientInfo_.isShowKeyboard = false;
     }
 }

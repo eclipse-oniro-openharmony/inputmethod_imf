@@ -41,12 +41,14 @@ public:
     void HandleSetSelection(int32_t start, int32_t end) override;
     void HandleExtendAction(int32_t action) override;
     void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override;
+    void NotifyPanelStatusInfo(const PanelStatusInfo &info) override;
     std::u16string GetLeftTextOfCursor(int32_t number) override;
     std::u16string GetRightTextOfCursor(int32_t number) override;
     int32_t GetTextIndexAtCursor() override;
     static void setTimeout(bool isTimeout);
     static void ResetParam();
-    static bool WaitIMACallback();
+    static bool WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus);
+    static bool WaitNotifyPanelStatusInfoCallback(const PanelStatusInfo &info);
     static std::mutex textListenerCallbackLock_;
     static std::condition_variable textListenerCv_;
     static int32_t direction_;
@@ -61,6 +63,7 @@ public:
     static int32_t selectionSkip_;
     static int32_t action_;
     static KeyboardStatus keyboardStatus_;
+    static PanelStatusInfo info_;
     static bool isTimeout_;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     static constexpr int32_t MAX_TIMEOUT = 2700000;

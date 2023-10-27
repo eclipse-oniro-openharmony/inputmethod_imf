@@ -376,45 +376,48 @@ int32_t InputMethodAbility::ShowKeyboard()
         IMSA_HILOGE("InputMethodAbility, imeListener is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    imeListener_->OnKeyboardStatus(true);
-    if (isPanelKeyboard_.load()) {
-        auto ret = ShowPanelKeyboard();
-        if (ret != ErrorCode::NO_ERROR) {
-            return ret;
-        }
-    }
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
-        IMSA_HILOGE("channel is nullptr");
+        IMSA_HILOGE("InputMethodAbility::channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    channel->SendKeyboardStatus(KEYBOARD_SHOW);
+    if (isPanelKeyboard_.load()) {
+        auto panel = GetSoftKeyboardPanel();
+        if (panel == nullptr) {
+            return ErrorCode::ERROR_IME;
+        }
+        auto flag = panel->GetPanelFlag();
+        imeListener_->OnKeyboardStatus(true);
+        if (flag == FLG_CANDIDATE_COLUMN) {
+            IMSA_HILOGD("panel flag is candidate, no need to show.");
+            return ErrorCode::NO_ERROR;
+        }
+        return ShowPanel(panel, Trigger::IMF);
+    }
+
+    channel->SendKeyboardStatus(KeyboardStatus::SHOW);
+    imeListener_->OnKeyboardStatus(true);
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::ShowPanelKeyboard()
+void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
-    if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES,
-        [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
-        IMSA_HILOGE("SOFT_KEYBOARD panel not found");
-        return ErrorCode::ERROR_OPERATE_PANEL;
+    // only notify the status info of soft keyboard(not contain candidate column) at present
+    if (info.panelInfo.panelType != PanelType::SOFT_KEYBOARD
+        || info.panelInfo.panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN) {
+        return;
     }
-    auto result = panels_.Find(SOFT_KEYBOARD);
-    if (!result.first) {
-        IMSA_HILOGE("SOFT_KEYBOARD panel not found");
-        return ErrorCode::ERROR_OPERATE_PANEL;
+    auto channel = GetInputDataChannelProxy();
+    if (channel != nullptr) {
+        info.visible ? channel->SendKeyboardStatus(KeyboardStatus::SHOW)
+                     : channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+        channel->NotifyPanelStatusInfo(info);
     }
-    IMSA_HILOGI("find SOFT_KEYBOARD panel.");
-    auto panel = result.second;
-    if (panel->GetPanelFlag() == PanelFlag::FLG_CANDIDATE_COLUMN) {
-        IMSA_HILOGD("panel flag is candidate, not need to show.");
-        return ErrorCode::NO_ERROR;
+
+    auto controlChannel = GetInputControlChannel();
+    if (controlChannel != nullptr && info.trigger == Trigger::IME_APP && !info.visible) {
+        controlChannel->HideKeyboardSelf();
     }
-    auto ret = panel->ShowPanel();
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("Show panel failed, ret = %{public}d.", ret);
-    }
-    return ret;
 }
 
 void InputMethodAbility::NotifyAllTextConfig()
@@ -464,31 +467,7 @@ void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
 
 int32_t InputMethodAbility::HideKeyboard()
 {
-    IMSA_HILOGI("InputMethodAbility::HideKeyboard");
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::HideKeyboard imeListener_ is nullptr");
-        return ErrorCode::ERROR_IME;
-    }
-    imeListener_->OnKeyboardStatus(false);
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::HideKeyboard channel is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-    channel->SendKeyboardStatus(KEYBOARD_HIDE);
-    auto result = panels_.Find(SOFT_KEYBOARD);
-    if (!result.first) {
-        IMSA_HILOGE("Not find SOFT_KEYBOARD panel.");
-        return ErrorCode::NO_ERROR;
-    }
-    auto panel = result.second;
-    if (panel->GetPanelFlag() == PanelFlag::FLG_CANDIDATE_COLUMN) {
-        IMSA_HILOGD("panel flag is candidate, not need to hide.");
-        return ErrorCode::NO_ERROR;
-    }
-    auto ret = panel->HidePanel();
-    IMSA_HILOGD("Hide panel, ret = %{public}d.", ret);
-    return ret;
+    return HideKeyboard(Trigger::IMF);
 }
 
 int32_t InputMethodAbility::InsertText(const std::string text)
@@ -536,18 +515,11 @@ int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey)
 
 int32_t InputMethodAbility::HideKeyboardSelf()
 {
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::channel is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    auto ret = HideKeyboard(Trigger::IME_APP);
+    if (ret == ErrorCode::NO_ERROR) {
+        InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_SELF);
     }
-    auto controlChannel = GetInputControlChannel();
-    if (controlChannel == nullptr) {
-        IMSA_HILOGE("InputMethodAbility::controlChannel is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-    InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_SELF);
-    return controlChannel->HideKeyboardSelf();
+    return ret == ErrorCode::ERROR_CLIENT_NULL_POINTER ? ret : ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAbility::SendExtendAction(int32_t action)
@@ -768,6 +740,99 @@ int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel>
         panels_.Erase(panelType);
     }
     return ret;
+}
+
+int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
+{
+    return ShowPanel(inputMethodPanel, Trigger::IME_APP);
+}
+
+int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
+{
+    return HidePanel(inputMethodPanel, Trigger::IME_APP);
+}
+
+int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger)
+{
+    if (inputMethodPanel == nullptr) {
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    auto ret = inputMethodPanel->ShowPanel();
+    if (ret == ErrorCode::NO_ERROR) {
+        NotifyPanelStatusInfo(
+            { { inputMethodPanel->GetPanelType(), inputMethodPanel->GetPanelFlag() }, true, trigger });
+    }
+    return ret;
+}
+
+int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger)
+{
+    if (inputMethodPanel == nullptr) {
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    auto ret = inputMethodPanel->HidePanel();
+    if (ret == ErrorCode::NO_ERROR) {
+        NotifyPanelStatusInfo(
+            { { inputMethodPanel->GetPanelType(), inputMethodPanel->GetPanelFlag() }, false, trigger });
+    }
+    return ret;
+}
+
+int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
+{
+    IMSA_HILOGI("InputMethodAbility::HideKeyboard");
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("InputMethodAbility::HideKeyboard imeListener_ is nullptr");
+        return ErrorCode::ERROR_IME;
+    }
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("InputMethodAbility::channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+
+    if (isPanelKeyboard_.load()) {
+        auto panel = GetSoftKeyboardPanel();
+        if (panel == nullptr) {
+            return ErrorCode::ERROR_IME;
+        }
+        auto flag = panel->GetPanelFlag();
+        imeListener_->OnKeyboardStatus(false);
+        if (flag == FLG_CANDIDATE_COLUMN) {
+            IMSA_HILOGD("panel flag is candidate, no need to hide.");
+            return ErrorCode::NO_ERROR;
+        }
+        return HidePanel(panel, trigger);
+    }
+
+    channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+    imeListener_->OnKeyboardStatus(false);
+    auto controlChannel = GetInputControlChannel();
+    if (controlChannel != nullptr && trigger == Trigger::IME_APP) {
+        controlChannel->HideKeyboardSelf();
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
+{
+    IMSA_HILOGD("find SOFT_KEYBOARD panel.");
+    if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES,
+            [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
+        IMSA_HILOGE("SOFT_KEYBOARD panel not found");
+        return nullptr;
+    }
+    auto result = panels_.Find(SOFT_KEYBOARD);
+    if (!result.first) {
+        IMSA_HILOGE("SOFT_KEYBOARD panel not found");
+        return nullptr;
+    }
+    return result.second;
 }
 
 bool InputMethodAbility::IsCurrentIme()

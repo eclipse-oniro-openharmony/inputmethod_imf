@@ -80,6 +80,9 @@ public:
     static bool Marshalling(const TextTotalConfig &input, MessageParcel &data);
     static bool Unmarshalling(TextTotalConfig &output, MessageParcel &data);
 
+    static bool Marshalling(const PanelStatusInfo &info, MessageParcel &data);
+    static bool Unmarshalling(PanelStatusInfo &info, MessageParcel &data);
+
     static bool Marshalling(EventType input, MessageParcel &data);
     static bool Unmarshalling(EventType &output, MessageParcel &data);
 

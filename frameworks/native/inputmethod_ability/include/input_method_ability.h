@@ -75,6 +75,8 @@ public:
     int32_t CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo,
         std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     int32_t DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
+    int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
+    int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     bool IsCurrentIme();
     bool IsEnable();
     int32_t ExitCurrentInputType();
@@ -84,8 +86,6 @@ private:
     std::thread workThreadHandler;
     MessageHandler *msgHandler_;
     bool stop_ = false;
-    int32_t KEYBOARD_HIDE = 1;
-    int32_t KEYBOARD_SHOW = 2;
 
     std::mutex controlChannelLock_;
     std::shared_ptr<InputControlChannelProxy> controlChannel_ = nullptr;
@@ -122,7 +122,13 @@ private:
     void OnSelectionChange(Message *msg);
     void OnConfigurationChange(Message *msg);
     void OnTextConfigChange(const TextTotalConfig &textConfig);
-    int32_t ShowPanelKeyboard();
+
+    int32_t HideKeyboard(Trigger trigger);
+    std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
+    int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger);
+    int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger);
+    void NotifyPanelStatusInfo(const PanelStatusInfo &info);
+
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isPanelKeyboard_{ false };
     std::atomic_bool isBound_{ false };

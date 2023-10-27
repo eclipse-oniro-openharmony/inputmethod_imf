@@ -19,6 +19,7 @@
 #include <stdint.h>
 
 #include "input_attribute.h"
+#include "panel_info.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -95,7 +96,19 @@ struct CursorInfo {
 class KeyEvent {
 };
 
-enum class KeyboardStatus { NONE = 0, HIDE, SHOW };
+enum class KeyboardStatus : int32_t { NONE = 0, HIDE, SHOW }; // soft keyboard
+
+enum Trigger : int32_t { IME_APP, IMF, END };
+struct PanelStatusInfo {
+    PanelInfo panelInfo;
+    bool visible{ false };
+    Trigger trigger{ END };
+    bool operator==(const PanelStatusInfo &info) const
+    {
+        return info.panelInfo.panelFlag == panelInfo.panelFlag && info.panelInfo.panelType == panelInfo.panelType
+               && info.visible == visible && info.trigger == trigger;
+    }
+};
 
 class FunctionKey {
 public:

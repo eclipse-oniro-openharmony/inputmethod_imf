@@ -114,12 +114,12 @@ int32_t InputDataChannelStub::GetTextConfigOnRemote(MessageParcel &data, Message
 
 int32_t InputDataChannelStub::SendKeyboardStatusOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t status = 0;
+    int32_t status = -1;
     if (!ITypesUtil::Unmarshal(data, status)) {
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    SendKeyboardStatus(status);
+    SendKeyboardStatus(static_cast<KeyboardStatus>(status));
     return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -194,6 +194,17 @@ int32_t InputDataChannelStub::GetTextIndexAtCursorOnRemote(MessageParcel &data, 
     int32_t index = -1;
     return ITypesUtil::Marshal(reply, GetTextIndexAtCursor(index), index) ? ErrorCode::NO_ERROR
                                                                           : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputDataChannelStub::NotifyPanelStatusInfoOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    PanelStatusInfo info{};
+    if (!ITypesUtil::Unmarshal(data, info)) {
+        IMSA_HILOGE("failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    NotifyPanelStatusInfo(info);
+    return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputDataChannelStub::InsertText(const std::u16string &text)
@@ -352,7 +363,7 @@ int32_t InputDataChannelStub::GetTextConfig(TextTotalConfig &textConfig)
     return result.errCode;
 }
 
-void InputDataChannelStub::SendKeyboardStatus(int32_t status)
+void InputDataChannelStub::SendKeyboardStatus(KeyboardStatus status)
 {
     auto result = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
     auto blockTask = [status, result]() {
@@ -447,6 +458,20 @@ int32_t InputDataChannelStub::HandleExtendAction(int32_t action)
         return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
     }
     return ret;
+}
+
+void InputDataChannelStub::NotifyPanelStatusInfo(const PanelStatusInfo &info)
+{
+    auto result = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
+    auto blockTask = [info, result]() {
+        InputMethodController::GetInstance()->NotifyPanelStatusInfo(info);
+        bool ret = true;
+        result->SetValue(ret);
+    };
+    ffrt::submit(blockTask);
+    if (!result->GetValue()) {
+        IMSA_HILOGE("failed due to timeout");
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS
