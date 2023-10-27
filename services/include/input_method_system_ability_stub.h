@@ -89,63 +89,63 @@ private:
     int32_t IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply);
 
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
-    static constexpr RequestHandler HANDLERS[static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_LAST)] = {
-        [static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT)] =
-            &InputMethodSystemAbilityStub::StartInputOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT)] =
-            &InputMethodSystemAbilityStub::ShowCurrentInputOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT)] =
-            &InputMethodSystemAbilityStub::HideCurrentInputOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT)] =
-            &InputMethodSystemAbilityStub::ShowInputOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_INPUT)] =
-            &InputMethodSystemAbilityStub::HideInputOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT)] =
-            &InputMethodSystemAbilityStub::ReleaseInputOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD)] =
-            &InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD_SUBTYPE)] =
-            &InputMethodSystemAbilityStub::GetCurrentInputMethodSubtypeOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::LIST_INPUT_METHOD)] =
-            &InputMethodSystemAbilityStub::ListInputMethodOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::LIST_INPUT_METHOD_SUBTYPE)] =
-            &InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::LIST_CURRENT_INPUT_METHOD_SUBTYPE)] =
-            &InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::SWITCH_INPUT_METHOD)] =
-            &InputMethodSystemAbilityStub::SwitchInputMethodOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_METHOD)] =
-            &InputMethodSystemAbilityStub::DisplayOptionalInputMethodOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::SET_CORE_AND_AGENT)] =
-            &InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT_DEPRECATED)] =
-            &InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT_DEPRECATED)] =
-            &InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_DEPRECATED)] =
-            &InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT_SESSION)] =
-            &InputMethodSystemAbilityStub::StopInputSessionOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE)] =
-            &InputMethodSystemAbilityStub::PanelStatusChangeOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::UPDATE_LISTEN_EVENT_FLAG)] =
-            &InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::IS_CURRENT_IME)] =
-            &InputMethodSystemAbilityStub::IsCurrentImeOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTERED_PROXY_IME)] =
-            &InputMethodSystemAbilityStub::UnRegisteredProxyImeOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::IS_INPUT_TYPE_SUPPORTED)] =
-            &InputMethodSystemAbilityStub::IsInputTypeSupportedOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT_TYPE)] =
-            &InputMethodSystemAbilityStub::StartInputTypeOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::EXIT_CURRENT_INPUT_TYPE)] =
-            &InputMethodSystemAbilityStub::ExitCurrentInputTypeOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::GET_DEFAULT_INPUT_METHOD)] =
-            &InputMethodSystemAbilityStub::GetDefaultInputMethodOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::GET_INPUT_METHOD_SETTINGS)] =
-            &InputMethodSystemAbilityStub::GetInputMethodConfigOnRemote,
-        [static_cast<uint32_t>(InputMethodInterfaceCode::IS_PANEL_SHOWN)] =
-            &InputMethodSystemAbilityStub::IsPanelShownOnRemote,
+    static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
+        { static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT),
+             &InputMethodSystemAbilityStub::StartInputOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT),
+             &InputMethodSystemAbilityStub::ShowCurrentInputOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT),
+            &InputMethodSystemAbilityStub::HideCurrentInputOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_INPUT),
+            &InputMethodSystemAbilityStub::ShowInputOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_INPUT),
+            &InputMethodSystemAbilityStub::HideInputOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT),
+            &InputMethodSystemAbilityStub::ReleaseInputOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD),
+            &InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD_SUBTYPE),
+            &InputMethodSystemAbilityStub::GetCurrentInputMethodSubtypeOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::LIST_INPUT_METHOD),
+            &InputMethodSystemAbilityStub::ListInputMethodOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::LIST_INPUT_METHOD_SUBTYPE),
+            &InputMethodSystemAbilityStub::ListInputMethodSubtypeOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::LIST_CURRENT_INPUT_METHOD_SUBTYPE),
+            &InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::SWITCH_INPUT_METHOD),
+            &InputMethodSystemAbilityStub::SwitchInputMethodOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_METHOD),
+            &InputMethodSystemAbilityStub::DisplayOptionalInputMethodOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::SET_CORE_AND_AGENT),
+            &InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT_DEPRECATED),
+            &InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT_DEPRECATED),
+            &InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_DEPRECATED),
+            &InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT_SESSION),
+            &InputMethodSystemAbilityStub::StopInputSessionOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE),
+            &InputMethodSystemAbilityStub::PanelStatusChangeOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::UPDATE_LISTEN_EVENT_FLAG),
+            &InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::IS_CURRENT_IME),
+            &InputMethodSystemAbilityStub::IsCurrentImeOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::UNREGISTERED_PROXY_IME),
+            &InputMethodSystemAbilityStub::UnRegisteredProxyImeOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::IS_INPUT_TYPE_SUPPORTED),
+            &InputMethodSystemAbilityStub::IsInputTypeSupportedOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT_TYPE),
+            &InputMethodSystemAbilityStub::StartInputTypeOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::EXIT_CURRENT_INPUT_TYPE),
+            &InputMethodSystemAbilityStub::ExitCurrentInputTypeOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::GET_DEFAULT_INPUT_METHOD),
+            &InputMethodSystemAbilityStub::GetDefaultInputMethodOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::GET_INPUT_METHOD_SETTINGS),
+            &InputMethodSystemAbilityStub::GetInputMethodConfigOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::IS_PANEL_SHOWN),
+            &InputMethodSystemAbilityStub::IsPanelShownOnRemote },
     };
 };
 } // namespace OHOS::MiscServices
