@@ -22,8 +22,8 @@ extern const char _binary_inputmethod_extension_ability_abc_end[];
 
 static napi_module g_ExtensionModule = {
     .nm_version = 0,
-    .nm_modname = "InputMethodExtensionAbility",
     .nm_filename = "libinputmethodextensionability_napi.so/inputmethod_extension_ability.js",
+    .nm_modname = "InputMethodExtensionAbility",
 };
 
 
