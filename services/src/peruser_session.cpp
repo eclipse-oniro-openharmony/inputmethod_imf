@@ -41,6 +41,7 @@ namespace MiscServices {
 using namespace MessageID;
 constexpr uint32_t IME_RESTART_TIMES = 5;
 constexpr uint32_t IME_RESTART_INTERVAL = 300;
+constexpr uint32_t IME_ATTACH_INTERVAL = 100;
 constexpr int64_t INVALID_PID = -1;
 PerUserSession::PerUserSession(int32_t userId) : userId_(userId)
 {
@@ -132,6 +133,10 @@ void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
             }
             case UpdateFlag::BINDIMETYPE: {
                 info->bindImeType = std::get<ImeType>(updateInfo.second);
+                break;
+            }
+            case UpdateFlag::ISATTACHING: {
+                info->isAttaching = std::get<bool>(updateInfo.second);
                 break;
             }
             default:
@@ -382,6 +387,7 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
         IMSA_HILOGE("client not find");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
+    UpdateClientInfo(clientInfo->client->AsObject(), { { UpdateFlag::ISATTACHING, true } });
     if (IsCurrentClient(client)) {
         if (IsBindImeInProxyImeBind(clientInfo->bindImeType) || IsBindProxyImeInImeBind(clientInfo->bindImeType)) {
             UnBindClientWithIme(clientInfo);
@@ -390,6 +396,11 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
     InputClientInfo infoTemp = { .client = client, .channel = clientInfo->channel, .isShowKeyboard = isShowKeyboard };
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
+    {
+        std::unique_lock<std::mutex> lock(attachLock_);
+        UpdateClientInfo(clientInfo->client->AsObject(), { { UpdateFlag::ISATTACHING, false } });
+        imeAttachCv_.notify_all();
+    }
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
     }
@@ -692,14 +703,25 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
         IMSA_HILOGD("pid[%{public}d] same as current client", pid);
         return;
     }
-    std::lock_guard<std::recursive_mutex> lock(mtx);
-    for (const auto &mapClient : mapClients_) {
-        if (mapClient.second->pid == pid) {
-            IMSA_HILOGI("clear unfocused client info: %{public}d", pid);
-            RemoveClient(mapClient.second->client);
-            InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
-            break;
+    std::shared_ptr<InputClientInfo> clientInfo;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mtx);
+        for (const auto &mapClient : mapClients_) {
+            if (mapClient.second->pid == pid) {
+                clientInfo = mapClient.second;
+                break;
+            }
         }
+    }
+    if (clientInfo != nullptr) {
+        if (clientInfo->isAttaching) {
+            std::unique_lock<std::mutex> lock(attachLock_);
+            imeAttachCv_.wait_for(lock, std::chrono::milliseconds(IME_ATTACH_INTERVAL), [&clientInfo]() {
+                return !clientInfo->isAttaching;
+            });
+        }
+        RemoveClient(clientInfo->client);
+        InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
     }
 }
 

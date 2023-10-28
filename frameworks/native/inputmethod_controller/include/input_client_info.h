@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-enum class UpdateFlag : uint32_t { EVENTFLAG = 0, ISSHOWKEYBOARD, BINDIMETYPE };
+enum class UpdateFlag : uint32_t { EVENTFLAG = 0, ISSHOWKEYBOARD, BINDIMETYPE, ISATTACHING };
 enum class ImeType : int32_t { IME = 0, PROXY_IME, NONE };
 struct InputClientInfo {
     pid_t pid{ -1 };                                       // process id
@@ -38,6 +38,7 @@ struct InputClientInfo {
     sptr<IInputClient> client{ nullptr };       // the remote object handler for service to callback input client
     sptr<IInputDataChannel> channel{ nullptr }; // the remote object handler for ime to callback input client
     sptr<InputDeathRecipient> deathRecipient{ nullptr }; // death recipient of client
+    bool isAttaching{ false }; // is attaching
 };
 } // namespace MiscServices
 } // namespace OHOS

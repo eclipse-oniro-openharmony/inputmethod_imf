@@ -162,6 +162,8 @@ private:
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;
     std::unordered_map<ImeType, std::shared_ptr<ImeData>> imeData_;
+    std::mutex attachLock_;
+    std::condition_variable imeAttachCv_;
 };
 } // namespace MiscServices
 } // namespace OHOS
