@@ -125,8 +125,8 @@ private:
 
     int32_t HideKeyboard(Trigger trigger);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
-    int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger);
-    int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger);
+    int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
+    int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};

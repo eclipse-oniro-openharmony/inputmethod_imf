@@ -392,7 +392,7 @@ int32_t InputMethodAbility::ShowKeyboard()
             IMSA_HILOGD("panel flag is candidate, no need to show.");
             return ErrorCode::NO_ERROR;
         }
-        return ShowPanel(panel, Trigger::IMF);
+        return ShowPanel(panel, flag, Trigger::IMF);
     }
 
     channel->SendKeyboardStatus(KeyboardStatus::SHOW);
@@ -744,15 +744,22 @@ int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel>
 
 int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    return ShowPanel(inputMethodPanel, Trigger::IME_APP);
+    if (inputMethodPanel == nullptr) {
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    return ShowPanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP);
 }
 
 int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    return HidePanel(inputMethodPanel, Trigger::IME_APP);
+    if (inputMethodPanel == nullptr) {
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP);
 }
 
-int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger)
+int32_t InputMethodAbility::ShowPanel(
+    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -764,21 +771,20 @@ int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &i
     }
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
-        NotifyPanelStatusInfo(
-            { { inputMethodPanel->GetPanelType(), inputMethodPanel->GetPanelFlag() }, true, trigger });
+        NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, true, trigger });
     }
     return ret;
 }
 
-int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, Trigger trigger)
+int32_t InputMethodAbility::HidePanel(
+    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto ret = inputMethodPanel->HidePanel();
     if (ret == ErrorCode::NO_ERROR) {
-        NotifyPanelStatusInfo(
-            { { inputMethodPanel->GetPanelType(), inputMethodPanel->GetPanelFlag() }, false, trigger });
+        NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
     }
     return ret;
 }
@@ -807,7 +813,7 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
             IMSA_HILOGD("panel flag is candidate, no need to hide.");
             return ErrorCode::NO_ERROR;
         }
-        return HidePanel(panel, trigger);
+        return HidePanel(panel, flag, trigger);
     }
 
     channel->SendKeyboardStatus(KeyboardStatus::HIDE);
