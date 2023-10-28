@@ -823,7 +823,7 @@ std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
 {
     IMSA_HILOGD("find SOFT_KEYBOARD panel.");
     if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES,
-            [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
+                    [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
         IMSA_HILOGE("SOFT_KEYBOARD panel not found");
         return nullptr;
     }
