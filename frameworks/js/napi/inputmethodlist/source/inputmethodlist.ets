@@ -165,10 +165,12 @@ export struct InputMethodListDialog {
     size += (this.inputMethodConfig && this.inputMethodConfig.bundleName.length > 0) ? 1 : 0;
     size += this.patternOptions && this.showHand ? 1 : 0;
     let height = size * this.listItemHeight + this.columnPadding * 2;
-    console.info(`${TAG} height: ${height}`);
+     let component = componentUtils.getRectangleById('inputDialog');
+    this.maxHeight = px2vp(component.size.height + component.windowOffset.y) - 10;
     if (this.maxHeight > height) {
       this.maxHeight = height;
     }
+    console.info(`${TAG} this.maxHeight: ${this.maxHeight}`);
     this.viewOpacity = 1;
   }
 

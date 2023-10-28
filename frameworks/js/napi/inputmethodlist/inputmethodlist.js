@@ -389,8 +389,10 @@ export class InputMethodListDialog extends ViewPU {
     o += this.inputMethodConfig && this.inputMethodConfig.bundleName.length > 0 ? 1 : 0;
     o += this.patternOptions && this.showHand ? 1 : 0;
     let n = o * this.listItemHeight + 2 * this.columnPadding;
-    console.info(`${TAG} height: ${n}`);
+    let s = componentUtils.getRectangleById("inputDialog");
+    this.maxHeight = px2vp(s.size.height + s.windowOffset.y) - 10;
     this.maxHeight > n && (this.maxHeight = n);
+    console.info(`${TAG} this.maxHeight: ${this.maxHeight}`);
     this.viewOpacity = 1;
   }
 
