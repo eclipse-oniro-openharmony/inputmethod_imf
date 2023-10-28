@@ -387,7 +387,7 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
             UnBindClientWithIme(clientInfo);
         }
     }
-    InputClientInfo infoTemp = { .client = client, .channel = clientInfo->channel, .isShowKeyboard = isShowKeyboard };
+    InputClientInfo infoTemp = { .isShowKeyboard = isShowKeyboard, .client = client, .channel = clientInfo->channel };
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
     if (ret != ErrorCode::NO_ERROR) {
@@ -529,7 +529,7 @@ int32_t PerUserSession::OnUnRegisteredProxyIme(UnRegisteredType type, const sptr
             UnBindClientWithIme(clientInfo);
         }
         InputClientInfo infoTemp = {
-            .client = clientInfo->client, .channel = clientInfo->channel, .isShowKeyboard = true
+            .isShowKeyboard = true, .client = clientInfo->client, .channel = clientInfo->channel
         };
         return BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), ImeType::IME);
     }

@@ -239,7 +239,6 @@ private:
             IMSA_HILOGE("Not enough params");
             return CreateJsUndefined(env);
         }
-
         AAFwk::Want want;
         OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
         IMSA_HILOGI("%{public}s bundlename:%{public}s abilityname:%{public}s", __func__, want.GetBundle().c_str(),
@@ -250,7 +249,10 @@ private:
         ConnectionKey key;
         key.id = serialNumber_;
         key.want = want;
-        connects_.emplace(key, connection);
+        {
+            std::lock_guard<std::mutex> lock(g_connectMapMtx);
+            connects_.emplace(key, connection);
+        }
         if (serialNumber_ < INT64_MAX) {
             serialNumber_++;
         } else {
@@ -274,7 +276,6 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("InputMethodExtensionContext::OnConnectAbility", env,
             CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
-        
         napi_value connectResult =  nullptr;
         napi_create_int64(env, connectId, &connectResult);
         return connectResult;
@@ -282,31 +283,29 @@ private:
 
     napi_value OnConnectAbilityWithAccount(napi_env env, size_t argc, napi_value *argv)
     {
-        IMSA_HILOGI("OnConnectAbilityWithAccount is called");
-        // only support three params
         if (argc != ARGC_THREE) {
             IMSA_HILOGE("Not enough params");
             return CreateJsUndefined(env);
         }
-
         AAFwk::Want want;
         OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
         IMSA_HILOGI("%{public}s bundlename:%{public}s abilityname:%{public}s", __func__, want.GetBundle().c_str(),
             want.GetElement().GetAbilityName().c_str());
-
         int32_t accountId = 0;
         if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(env, argv[INDEX_ONE], accountId)) {
             IMSA_HILOGI("%{public}s called, the second parameter is invalid.", __func__);
             return CreateJsUndefined(env);
         }
-
         sptr<JSInputMethodExtensionConnection> connection = new JSInputMethodExtensionConnection(env);
         connection->SetJsConnectionObject(argv[1]);
         int64_t connectId = serialNumber_;
         ConnectionKey key;
         key.id = serialNumber_;
         key.want = want;
-        connects_.emplace(key, connection);
+        {
+            std::lock_guard<std::mutex> lock(g_connectMapMtx);
+            connects_.emplace(key, connection);
+        }
         if (serialNumber_ < INT64_MAX) {
             serialNumber_++;
         } else {
@@ -314,7 +313,6 @@ private:
         }
         NapiAsyncTask::CompleteCallback complete = [weak = context_, want, accountId, connection, connectId](
                                                    napi_env env, NapiAsyncTask &task, int32_t status) {
-            IMSA_HILOGI("OnConnectAbilityWithAccount begin");
             auto context = weak.lock();
             if (context == nullptr) {
                 IMSA_HILOGW("context is released");
@@ -343,20 +341,22 @@ private:
             IMSA_HILOGE("Not enough params");
             return CreateJsUndefined(env);
         }
-
         AAFwk::Want want;
         int64_t connectId = -1;
         sptr<JSInputMethodExtensionConnection> connection = nullptr;
         napi_get_value_int64(env, argv[INDEX_ZERO], &connectId);
         IMSA_HILOGI("OnDisconnectAbility connection:%{public}d", static_cast<int32_t>(connectId));
-        auto item = std::find_if(connects_.begin(), connects_.end(),
-            [&connectId](const std::map<ConnectionKey, sptr<JSInputMethodExtensionConnection>>::value_type &obj) {
-                return connectId == obj.first.id;
-            });
-        if (item != connects_.end()) {
-            // match id
-            want = item->first.want;
-            connection = item->second;
+        {
+            std::lock_guard<std::mutex> lock(g_connectMapMtx);
+            auto item = std::find_if(connects_.begin(), connects_.end(),
+                [&connectId](const std::map<ConnectionKey, sptr<JSInputMethodExtensionConnection>>::value_type &obj) {
+                    return connectId == obj.first.id;
+                });
+            if (item != connects_.end()) {
+                // match id
+                want = item->first.want;
+                connection = item->second;
+            }
         }
         // begin disconnect
         NapiAsyncTask::CompleteCallback complete = [weak = context_, want, connection](
@@ -378,7 +378,6 @@ private:
             errcode == 0 ? task.Resolve(env, CreateJsUndefined(env))
                          : task.Reject(env, CreateJsError(env, errcode, "Disconnect Ability failed."));
         };
-
         napi_value lastParam = argc == ARGC_ONE ? nullptr : argv[INDEX_ONE];
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("InputMethodExtensionContext::OnDisconnectAbility", env,
@@ -564,34 +563,34 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(
         IMSA_HILOGE("jsConnectionObject_ nullptr");
         return;
     }
-
     napi_value obj = jsConnectionObject_->GetNapiValue();
     if (obj == nullptr) {
         IMSA_HILOGE("Failed to get object");
         return;
     }
-
     napi_value method = nullptr;
     napi_get_named_property(env_, obj, "onDisconnect", &method);
     if (method == nullptr) {
         IMSA_HILOGE("Failed to get onDisconnect from object");
         return;
     }
-
     // release connect
-    IMSA_HILOGI("OnAbilityDisconnectDone connects_.size:%{public}zu", connects_.size());
     std::string bundleName = element.GetBundleName();
     std::string abilityName = element.GetAbilityName();
-    auto item = std::find_if(connects_.begin(), connects_.end(),
-        [bundleName, abilityName](
-            const std::map<ConnectionKey, sptr<JSInputMethodExtensionConnection>>::value_type &obj) {
-            return (bundleName == obj.first.want.GetBundle()) &&
-                   (abilityName == obj.first.want.GetElement().GetAbilityName());
-        });
-    if (item != connects_.end()) {
-        // match bundlename && abilityname
-        connects_.erase(item);
-        IMSA_HILOGI("OnAbilityDisconnectDone erase connects_.size:%{public}zu", connects_.size());
+    {
+        std::lock_guard<std::mutex> lock(g_connectMapMtx);
+        IMSA_HILOGI("OnAbilityDisconnectDone connects_.size:%{public}zu", connects_.size());
+        auto item = std::find_if(connects_.begin(), connects_.end(),
+            [bundleName, abilityName](
+                const std::map<ConnectionKey, sptr<JSInputMethodExtensionConnection>>::value_type &obj) {
+                return (bundleName == obj.first.want.GetBundle()) &&
+                       (abilityName == obj.first.want.GetElement().GetAbilityName());
+            });
+        if (item != connects_.end()) {
+            // match bundlename && abilityname
+            connects_.erase(item);
+            IMSA_HILOGI("OnAbilityDisconnectDone erase connects_.size:%{public}zu", connects_.size());
+        }
     }
     IMSA_HILOGI("OnAbilityDisconnectDone CallFunction success");
     napi_value callResult = nullptr;
