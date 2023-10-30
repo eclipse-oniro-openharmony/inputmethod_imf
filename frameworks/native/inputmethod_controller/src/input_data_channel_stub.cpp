@@ -25,7 +25,6 @@
 #include "message.h"
 namespace OHOS {
 namespace MiscServices {
-constexpr uint32_t MAX_TIMEOUT = 2500;
 InputDataChannelStub::InputDataChannelStub()
 {
 }

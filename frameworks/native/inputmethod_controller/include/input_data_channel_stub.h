@@ -55,11 +55,6 @@ public:
     void NotifyPanelStatusInfo(const PanelStatusInfo &info) override;
 
 private:
-    template<class T> struct ResultInfo {
-        T data;
-        int32_t errCode{ 0 };
-    };
-
     int32_t InsertTextOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t DeleteForwardOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t DeleteBackwardOnRemote(MessageParcel &data, MessageParcel &reply);
