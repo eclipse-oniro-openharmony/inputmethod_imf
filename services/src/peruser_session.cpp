@@ -752,7 +752,8 @@ bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
     AAFwk::Want want;
     want.SetElementName(imeName.substr(0, pos), imeName.substr(pos + 1));
     isImeStarted_.Clear(false);
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want);
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+        want, nullptr, userId_, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start ability");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
