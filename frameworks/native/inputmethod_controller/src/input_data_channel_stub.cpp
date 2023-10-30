@@ -209,269 +209,84 @@ int32_t InputDataChannelStub::NotifyPanelStatusInfoOnRemote(MessageParcel &data,
 
 int32_t InputDataChannelStub::InsertText(const std::u16string &text)
 {
-    auto result = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT);
-    auto blockTask = [text, result]() {
-        auto ret = InputMethodController::GetInstance()->InsertText(text);
-        result->SetValue(ret);
-    };
-    ffrt::submit(blockTask);
-    int32_t ret = 0;
-    if (!result->GetValue(ret)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    return ret;
+    return InputMethodController::GetInstance()->InsertText(text);
 }
 
 int32_t InputDataChannelStub::DeleteForward(int32_t length)
 {
-    auto result = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT);
-    auto blockTask = [length, result]() {
-        auto ret = InputMethodController::GetInstance()->DeleteForward(length);
-        result->SetValue(ret);
-    };
-    ffrt::submit(blockTask);
-    int32_t ret = 0;
-    if (!result->GetValue(ret)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    return ret;
+    return InputMethodController::GetInstance()->DeleteForward(length);
 }
 
 int32_t InputDataChannelStub::DeleteBackward(int32_t length)
 {
-    auto result = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT);
-    auto blockTask = [length, result]() {
-        auto ret = InputMethodController::GetInstance()->DeleteBackward(length);
-        result->SetValue(ret);
-    };
-    ffrt::submit(blockTask);
-    int32_t ret = 0;
-    if (!result->GetValue(ret)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    return ret;
+    return InputMethodController::GetInstance()->DeleteBackward(length);
 }
 
 int32_t InputDataChannelStub::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
-    auto ret = std::make_shared<BlockData<ResultInfo<std::u16string>>>(MAX_TIMEOUT);
-    auto blockTask = [number, ret]() {
-        ResultInfo<std::u16string> info;
-        info.errCode = InputMethodController::GetInstance()->GetLeft(number, info.data);
-        ret->SetValue(info);
-    };
-    ffrt::submit(blockTask);
-    ResultInfo<std::u16string> result;
-    if (!ret->GetValue(result)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    text = result.data;
-    return result.errCode;
+    return InputMethodController::GetInstance()->GetLeft(number, text);
 }
 
 int32_t InputDataChannelStub::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
-    auto ret = std::make_shared<BlockData<ResultInfo<std::u16string>>>(MAX_TIMEOUT);
-    auto blockTask = [number, ret]() {
-        ResultInfo<std::u16string> info;
-        info.errCode = InputMethodController::GetInstance()->GetRight(number, info.data);
-        ret->SetValue(info);
-    };
-    ffrt::submit(blockTask);
-    ResultInfo<std::u16string> result;
-    if (!ret->GetValue(result)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    text = result.data;
-    return result.errCode;
+    return InputMethodController::GetInstance()->GetRight(number, text);
 }
 
 int32_t InputDataChannelStub::GetTextIndexAtCursor(int32_t &index)
 {
-    auto ret = std::make_shared<BlockData<ResultInfo<int32_t>>>(MAX_TIMEOUT);
-    auto blockTask = [ret]() {
-        ResultInfo<int32_t> info;
-        info.errCode = InputMethodController::GetInstance()->GetTextIndexAtCursor(info.data);
-        ret->SetValue(info);
-    };
-    ffrt::submit(blockTask);
-    ResultInfo<int32_t> result;
-    if (!ret->GetValue(result)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    index = result.data;
-    return result.errCode;
+    return InputMethodController::GetInstance()->GetTextIndexAtCursor(index);
 }
 
 int32_t InputDataChannelStub::GetEnterKeyType(int32_t &keyType)
 {
-    auto ret = std::make_shared<BlockData<ResultInfo<int32_t>>>(MAX_TIMEOUT);
-    auto blockTask = [ret]() {
-        ResultInfo<int32_t> info;
-        info.errCode = InputMethodController::GetInstance()->GetEnterKeyType(info.data);
-        ret->SetValue(info);
-    };
-    ffrt::submit(blockTask);
-    ResultInfo<int32_t> result;
-    if (!ret->GetValue(result)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    keyType = result.data;
-    return result.errCode;
+    return InputMethodController::GetInstance()->GetEnterKeyType(keyType);
 }
 
 int32_t InputDataChannelStub::GetInputPattern(int32_t &inputPattern)
 {
-    auto ret = std::make_shared<BlockData<ResultInfo<int32_t>>>(MAX_TIMEOUT);
-    auto blockTask = [ret]() {
-        ResultInfo<int32_t> info;
-        info.errCode = InputMethodController::GetInstance()->GetInputPattern(info.data);
-        ret->SetValue(info);
-    };
-    ffrt::submit(blockTask);
-    ResultInfo<int32_t> result;
-    if (!ret->GetValue(result)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    inputPattern = result.data;
-    return result.errCode;
+    return InputMethodController::GetInstance()->GetInputPattern(inputPattern);
 }
 
 int32_t InputDataChannelStub::GetTextConfig(TextTotalConfig &textConfig)
 {
-    auto ret = std::make_shared<BlockData<ResultInfo<TextTotalConfig>>>(MAX_TIMEOUT);
-    auto blockTask = [ret]() {
-        ResultInfo<TextTotalConfig> info;
-        info.errCode = InputMethodController::GetInstance()->GetTextConfig(info.data);
-        ret->SetValue(info);
-    };
-    ffrt::submit(blockTask);
-    ResultInfo<TextTotalConfig> result;
-    if (!ret->GetValue(result)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    textConfig = result.data;
-    return result.errCode;
+    return InputMethodController::GetInstance()->GetTextConfig(textConfig);
 }
 
 void InputDataChannelStub::SendKeyboardStatus(KeyboardStatus status)
 {
-    auto result = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-    auto blockTask = [status, result]() {
-        InputMethodController::GetInstance()->SendKeyboardStatus(status);
-        bool ret = true;
-        result->SetValue(ret);
-    };
-    ffrt::submit(blockTask);
-    if (!result->GetValue()) {
-        IMSA_HILOGE("failed due to timeout");
-    }
+    InputMethodController::GetInstance()->SendKeyboardStatus(status);
 }
 
 int32_t InputDataChannelStub::SendFunctionKey(int32_t funcKey)
 {
-    auto result = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT);
-    auto blockTask = [funcKey, result]() {
-        auto ret = InputMethodController::GetInstance()->SendFunctionKey(funcKey);
-        result->SetValue(ret);
-    };
-    ffrt::submit(blockTask);
-    int32_t ret = 0;
-    if (!result->GetValue(ret)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    return ret;
+    return InputMethodController::GetInstance()->SendFunctionKey(funcKey);
 }
 
 int32_t InputDataChannelStub::MoveCursor(int32_t keyCode)
 {
-    auto result = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT);
-    auto blockTask = [keyCode, result]() {
-        auto ret = InputMethodController::GetInstance()->MoveCursor(static_cast<Direction>(keyCode));
-        result->SetValue(ret);
-    };
-    ffrt::submit(blockTask);
-    int32_t ret = 0;
-    if (!result->GetValue(ret)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    return ret;
+    return InputMethodController::GetInstance()->MoveCursor(static_cast<Direction>(keyCode));
 }
 
 int32_t InputDataChannelStub::SelectByRange(int32_t start, int32_t end)
 {
-    auto result = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT);
-    auto blockTask = [start, end, result]() {
-        InputMethodController::GetInstance()->SelectByRange(start, end);
-        int32_t ret = ErrorCode::NO_ERROR;
-        result->SetValue(ret);
-    };
-    ffrt::submit(blockTask);
-    int32_t ret = 0;
-    if (!result->GetValue(ret)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    return ret;
+    InputMethodController::GetInstance()->SelectByRange(start, end);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputDataChannelStub::SelectByMovement(int32_t direction, int32_t cursorMoveSkip)
 {
-    auto result = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT);
-    auto blockTask = [direction, cursorMoveSkip, result]() {
-        InputMethodController::GetInstance()->SelectByMovement(direction, cursorMoveSkip);
-        int32_t ret = ErrorCode::NO_ERROR;
-        result->SetValue(ret);
-    };
-    ffrt::submit(blockTask);
-    int32_t ret = 0;
-    if (!result->GetValue(ret)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    return ret;
+    InputMethodController::GetInstance()->SelectByMovement(direction, cursorMoveSkip);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputDataChannelStub::HandleExtendAction(int32_t action)
 {
-    auto result = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT);
-    auto blockTask = [action, result]() {
-        InputMethodController::GetInstance()->HandleExtendAction(action);
-        int32_t ret = ErrorCode::NO_ERROR;
-        result->SetValue(ret);
-    };
-    ffrt::submit(blockTask);
-    int32_t ret = 0;
-    if (!result->GetValue(ret)) {
-        IMSA_HILOGE("failed due to timeout");
-        return ErrorCode::ERROR_CONTROLLER_INVOKING_FAILED;
-    }
-    return ret;
+    return InputMethodController::GetInstance()->HandleExtendAction(action);
 }
 
 void InputDataChannelStub::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
-    auto result = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-    auto blockTask = [info, result]() {
-        InputMethodController::GetInstance()->NotifyPanelStatusInfo(info);
-        bool ret = true;
-        result->SetValue(ret);
-    };
-    ffrt::submit(blockTask);
-    if (!result->GetValue()) {
-        IMSA_HILOGE("failed due to timeout");
-    }
+    InputMethodController::GetInstance()->NotifyPanelStatusInfo(info);
 }
 } // namespace MiscServices
 } // namespace OHOS
