@@ -62,6 +62,7 @@ struct key_compare {
 static std::map<ConnectionKey, sptr<JSInputMethodExtensionConnection>, key_compare> connects_;
 static int64_t serialNumber_ = 0;
 static std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+static std::mutex g_connectMapMtx;
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // ABILITY_RUNTIME_JS_INPUTMETHOD_EXTENSION_CONTEXT_H
