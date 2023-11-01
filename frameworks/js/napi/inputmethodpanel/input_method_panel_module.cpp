@@ -40,7 +40,7 @@ static napi_module _module = { .nm_version = 1,
 /*
  * module register
  */
-extern "C" __attribute__((constructor)) void Register()
+extern "C" __attribute__((constructor)) void NAPI_inputMethod_Panel_AutoRegister()
 {
     napi_module_register(&_module);
 }
