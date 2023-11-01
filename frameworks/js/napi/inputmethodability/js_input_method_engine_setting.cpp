@@ -39,6 +39,7 @@ const std::string JsInputMethodEngineSetting::IMES_CLASS_NAME = "InputMethodEngi
 thread_local napi_ref JsInputMethodEngineSetting::IMESRef_ = nullptr;
 
 std::mutex JsInputMethodEngineSetting::engineMutex_;
+bool JsInputMethodEngineSetting::isCurrentIme_ = false;
 std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::inputMethodEngine_{ nullptr };
 
 napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
@@ -190,9 +191,13 @@ std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInput
 
 bool JsInputMethodEngineSetting::InitInputMethodSetting()
 {
+    if (isCurrentIme_) {
+        return true;
+    }
     if (!InputMethodAbility::GetInstance()->IsCurrentIme()) {
         return false;
     }
+    isCurrentIme_ = true;
     auto engine = GetInputMethodEngineSetting();
     if (engine == nullptr) {
         return false;
