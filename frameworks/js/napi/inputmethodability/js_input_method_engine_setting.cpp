@@ -191,10 +191,7 @@ std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInput
 
 bool JsInputMethodEngineSetting::InitInputMethodSetting()
 {
-    if (isCurrentIme_) {
-        return true;
-    }
-    if (!InputMethodAbility::GetInstance()->IsCurrentIme()) {
+    if (!isCurrentIme_ && !InputMethodAbility::GetInstance()->IsCurrentIme()) {
         return false;
     }
     isCurrentIme_ = true;
