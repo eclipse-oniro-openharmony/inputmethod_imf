@@ -44,9 +44,8 @@ ImeCfgManager &ImeCfgManager::GetInstance()
 
 void ImeCfgManager::Init()
 {
-    std::string path(IME_CFG_DIR);
-    if (CreateCachePath(path, S_IRWXU) != SUCCESS) {
-        IMSA_HILOGE("CreateCachePath failed");
+    std::string filePath(IME_CFG_FILE_PATH);
+    if (!IsCachePathExit(filePath)) {
         return;
     }
     ReadImeCfgFile();
@@ -69,6 +68,11 @@ void ImeCfgManager::WriteImeCfgFile()
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     json jsonConfigs;
     ToJson(jsonConfigs, imeConfigs_);
+    std::string cachePath(IME_CFG_DIR);
+    if (CreateCachePath(cachePath, S_IRWXU) != SUCCESS) {
+        IMSA_HILOGE("CreateCachePath failed");
+        return;
+    }
     if (!WriteCacheFile(IME_CFG_FILE_PATH, jsonConfigs)) {
         IMSA_HILOGE("WriteJsonFile failed");
     }
