@@ -18,9 +18,7 @@
 #include "global.h"
 #include "js_runtime_utils.h"
 #include "js_util.h"
-#include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "napi_base_context.h"
 #include "panel_info.h"
 
 namespace OHOS {
