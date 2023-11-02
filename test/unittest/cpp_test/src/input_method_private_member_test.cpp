@@ -874,7 +874,7 @@ HWTEST_F(InputMethodPrivateMemberTest, ICM_TestWriteCacheFile_001, TestSize.Leve
     IMSA_HILOGI("InputMethodPrivateMemberTest ICM_TestDeleteImeCfg_001 TEST START");
     std::string path;
     nlohmann::json jsonCfg;
-    auto ret = ImeCfgManager::GetInstance().WriteCacheFile(path, jsonCfg);
+    auto ret = ImeCfgManager::GetInstance().Write(path, jsonCfg);
     EXPECT_FALSE(ret);
 }
 

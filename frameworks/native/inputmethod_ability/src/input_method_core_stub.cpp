@@ -48,7 +48,7 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
         IMSA_HILOGE("InputMethodCoreStub descriptor error");
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
-    if (code >= 0 && code < static_cast<uint32_t>(CORE_CMD_LAST)) {
+    if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(CORE_CMD_LAST)) {
         return (this->*HANDLERS.at(code))(data, reply);
     } else {
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

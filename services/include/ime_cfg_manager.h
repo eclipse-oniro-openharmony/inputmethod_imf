@@ -52,13 +52,13 @@ public:
 private:
     ImeCfgManager() = default;
     ~ImeCfgManager() = default;
-    void ReadImeCfgFile();
-    void WriteImeCfgFile();
+    void ReadImeCfg();
+    void WriteImeCfg();
     ImePersistCfg GetImeCfg(int32_t userId);
-    static int32_t CreateCachePath(std::string &path, mode_t pathMode);
-    static bool IsCachePathExit(std::string &path);
-    static bool ReadCacheFile(const std::string &path, nlohmann::json &jsonCfg);
-    static bool WriteCacheFile(const std::string &path, const nlohmann::json &jsonCfg);
+    static int32_t Create(std::string &path, mode_t pathMode);
+    static bool IsExist(std::string &path);
+    static bool Read(const std::string &path, nlohmann::json &jsonCfg);
+    static bool Write(const std::string &path, const nlohmann::json &jsonCfg);
     inline static void FromJson(const nlohmann::json &jsonCfg, ImePersistCfg &cfg)
     {
         if (jsonCfg.find("userId") != jsonCfg.end() && jsonCfg["userId"].is_number()) {
