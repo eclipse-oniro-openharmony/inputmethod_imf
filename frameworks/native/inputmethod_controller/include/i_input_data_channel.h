@@ -30,7 +30,7 @@ namespace MiscServices {
 class IInputDataChannel : public IRemoteBroker {
 public:
     enum {
-        INSERT_TEXT = 0,
+        INSERT_TEXT = FIRST_CALL_TRANSACTION,
         DELETE_FORWARD,
         DELETE_BACKWARD,
         GET_TEXT_BEFORE_CURSOR,

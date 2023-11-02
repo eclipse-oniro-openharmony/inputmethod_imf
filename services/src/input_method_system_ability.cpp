@@ -137,6 +137,7 @@ int32_t InputMethodSystemAbility::Init()
         return -1;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
+    ImeCfgManager::GetInstance().Init();
     std::vector<int32_t> userIds;
     if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
             return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();

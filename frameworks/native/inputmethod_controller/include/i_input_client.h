@@ -30,7 +30,7 @@ namespace OHOS {
 namespace MiscServices {
 class IInputClient : public IRemoteBroker {
 public:
-    enum { ON_INPUT_READY = 0, ON_INPUT_STOP, ON_SWITCH_INPUT, ON_PANEL_STATUS_CHANGE };
+    enum { ON_INPUT_READY = FIRST_CALL_TRANSACTION, ON_INPUT_STOP, ON_SWITCH_INPUT, ON_PANEL_STATUS_CHANGE };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputClient");
 
