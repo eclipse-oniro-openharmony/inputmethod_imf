@@ -844,12 +844,19 @@ std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
 bool InputMethodAbility::IsCurrentIme()
 {
     IMSA_HILOGD("InputMethodAbility, in");
+    if (isCurrentIme_) {
+        return true;
+    }
     auto proxy = GetImsaProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("failed to get imsa proxy");
         return false;
     }
-    return proxy->IsCurrentIme();
+    if (proxy->IsCurrentIme()) {
+        isCurrentIme_ = true;
+        return true;
+    }
+    return false;
 }
 
 bool InputMethodAbility::IsEnable()

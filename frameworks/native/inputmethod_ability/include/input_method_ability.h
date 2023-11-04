@@ -134,6 +134,7 @@ private:
     std::atomic_bool isBound_{ false };
     sptr<InputMethodCoreStub> coreStub_{ nullptr };
     sptr<InputMethodAgentStub> agentStub_{ nullptr };
+    bool isCurrentIme_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

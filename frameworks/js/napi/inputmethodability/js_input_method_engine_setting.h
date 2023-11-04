@@ -108,7 +108,6 @@ private:
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
     static std::mutex engineMutex_;
     static std::shared_ptr<JsInputMethodEngineSetting> inputMethodEngine_;
-    static bool isCurrentIme_;
 };
 } // namespace MiscServices
 } // namespace OHOS
