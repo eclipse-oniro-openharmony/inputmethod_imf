@@ -405,7 +405,7 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
         IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
         return ret;
     }
-    auto data = GetImeData(type);
+    auto data = GetImeData(imeType);
     if (data == nullptr || data->agent == nullptr) {
         IMSA_HILOGE("data or agent is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
