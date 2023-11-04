@@ -403,9 +403,15 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
     }
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
+        return ret;
     }
-    agent = GetImeData(imeType)->agent->AsObject();
-    return ret;
+    auto data = GetImeData(imeType);
+    if (data == nullptr || data->agent == nullptr) {
+        IMSA_HILOGE("data or agent is nullptr.");
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    agent = data->agent->AsObject();
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t PerUserSession::BindClientWithIme(
