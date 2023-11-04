@@ -844,6 +844,7 @@ std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
 bool InputMethodAbility::IsCurrentIme()
 {
     IMSA_HILOGD("InputMethodAbility, in");
+    std::lock_guard<std::mutex> lock(imeCheckMutex_);
     if (isCurrentIme_) {
         return true;
     }
