@@ -408,7 +408,7 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
     auto data = GetImeData(imeType);
     if (data == nullptr || data->agent == nullptr) {
         IMSA_HILOGE("data or agent is nullptr.");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     agent = data->agent->AsObject();
     return ErrorCode::NO_ERROR;
