@@ -393,7 +393,8 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
             UnBindClientWithIme(clientInfo);
         }
     }
-    InputClientInfo infoTemp = { .isShowKeyboard = isShowKeyboard, .client = client, .channel = clientInfo->channel };
+    InputClientInfo infoTemp = *clientInfo;
+    infoTemp.isShowKeyboard = isShowKeyboard;
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
     {

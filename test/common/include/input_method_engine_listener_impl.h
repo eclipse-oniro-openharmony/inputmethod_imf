@@ -36,6 +36,7 @@ public:
     static void ResetParam();
     static bool WaitInputStart();
     static bool WaitInputFinish();
+    static bool WaitSetCallingWindow(uint32_t windowId);
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStart() override;
     void OnInputStop() override;
