@@ -14,6 +14,7 @@
  */
 
 #include "js_utils.h"
+
 #include "js_util.h"
 
 namespace OHOS {
@@ -269,13 +270,12 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, PanelInfo &out)
     napi_value panelFlagObj = nullptr;
     status = napi_get_named_property(env, in, "flag", &panelFlagObj);
     if (status == napi_ok) {
-        status = JsUtils::GetValue(env, panelFlagObj, panelFlag);
-        CHECK_RETURN((status == napi_ok), "no value of flag ", status);
+        JsUtils::GetValue(env, panelFlagObj, panelFlag);
     }
 
     out.panelType = PanelType(panelType);
     out.panelFlag = PanelFlag(panelFlag);
-    return status;
+    return napi_ok;
 }
 
 napi_value JsUtils::GetValue(napi_env env, const std::vector<InputWindowInfo> &in)
