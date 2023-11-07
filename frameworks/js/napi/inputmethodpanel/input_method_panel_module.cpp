@@ -15,7 +15,6 @@
 
 #include "js_input_method_panel.h"
 #include "napi/native_api.h"
-#include "napi/native_node_api.h"
 
 EXTERN_C_START
 /*

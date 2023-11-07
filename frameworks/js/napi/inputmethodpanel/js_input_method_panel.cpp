@@ -18,7 +18,6 @@
 #include "global.h"
 #include "js_runtime_utils.h"
 #include "js_util.h"
-#include "napi/native_node_api.h"
 #include "panel_info.h"
 
 namespace OHOS {
@@ -32,35 +31,30 @@ napi_value JsInputMethodPanel::Init(napi_env env, napi_value exports)
 
 napi_value JsInputMethodPanel::GetJsPanelTypeProperty(napi_env env)
 {
-    napi_value panelType = nullptr;
-    NAPI_CALL(env, napi_create_object(env, &panelType));
+    napi_value objectValue = nullptr;
+    napi_create_object(env, &objectValue);
 
-    napi_value typeSoftKeyboard = nullptr;
-    napi_value typeStatusBar = nullptr;
-    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelType::SOFT_KEYBOARD), &typeSoftKeyboard));
-    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelType::STATUS_BAR), &typeStatusBar));
-
-    auto ret = JsUtil::Object::WriteProperty(env, panelType, "SOFT_KEYBOARD", typeSoftKeyboard);
-    ret = ret && JsUtil::Object::WriteProperty(env, panelType, "STATUS_BAR", typeStatusBar);
-    IMSA_HILOGI("init module inputMethodPanel PanelType: %{public}s", ret ? "successfully" : "failed");
-    return panelType;
+    auto ret = JsUtil::Object::WriteProperty(
+        env, objectValue, "SOFT_KEYBOARD", static_cast<int32_t>(PanelType::SOFT_KEYBOARD));
+    ret = ret
+          && JsUtil::Object::WriteProperty(env, objectValue, "STATUS_BAR", static_cast<int32_t>(PanelType::STATUS_BAR));
+    IMSA_HILOGI("init module inputMethod.Panel: PanelType %{public}s", ret ? "successfully" : "failed");
+    return objectValue;
 }
 
 napi_value JsInputMethodPanel::GetJsPanelFlagProperty(napi_env env)
 {
     napi_value panelFlag = nullptr;
-    napi_value flagFixed = nullptr;
-    napi_value flagFloating = nullptr;
-    napi_value flagCandidate = nullptr;
-    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelFlag::FLG_FIXED), &flagFixed));
-    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelFlag::FLG_FLOATING), &flagFloating));
-    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PanelFlag::FLG_CANDIDATE_COLUMN), &flagCandidate));
-    NAPI_CALL(env, napi_create_object(env, &panelFlag));
+    napi_create_object(env, &panelFlag);
 
-    auto ret = JsUtil::Object::WriteProperty(env, panelFlag, "FLAG_FIXED", flagFixed);
-    ret = ret && JsUtil::Object::WriteProperty(env, panelFlag, "FLAG_FLOATING", flagFloating);
-    ret = ret && JsUtil::Object::WriteProperty(env, panelFlag, "FLAG_CANDIDATE", flagCandidate);
-    IMSA_HILOGI("init module inputMethodPanel PanelFlag: %{public}s", ret ? "successfully" : "failed");
+    auto ret = JsUtil::Object::WriteProperty(env, panelFlag, "FLAG_FIXED", static_cast<int32_t>(PanelFlag::FLG_FIXED));
+    ret = ret
+          && JsUtil::Object::WriteProperty(
+              env, panelFlag, "FLAG_FLOATING", static_cast<int32_t>(PanelFlag::FLG_FLOATING));
+    ret = ret
+          && JsUtil::Object::WriteProperty(
+              env, panelFlag, "FLAG_CANDIDATE", static_cast<int32_t>(PanelFlag::FLG_CANDIDATE_COLUMN));
+    IMSA_HILOGI("init module inputMethod.Panel: PanelFlag %{public}s", ret ? "successfully" : "failed");
     return panelFlag;
 }
 } // namespace MiscServices
