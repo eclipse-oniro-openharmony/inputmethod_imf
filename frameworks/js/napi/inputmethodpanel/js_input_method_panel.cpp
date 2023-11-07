@@ -31,32 +31,28 @@ napi_value JsInputMethodPanel::Init(napi_env env, napi_value exports)
 
 napi_value JsInputMethodPanel::GetJsPanelTypeProperty(napi_env env)
 {
-    napi_value objectValue = nullptr;
-    napi_create_object(env, &objectValue);
+    napi_value obj = nullptr;
+    napi_create_object(env, &obj);
 
-    auto ret = JsUtil::Object::WriteProperty(
-        env, objectValue, "SOFT_KEYBOARD", static_cast<int32_t>(PanelType::SOFT_KEYBOARD));
-    ret = ret
-          && JsUtil::Object::WriteProperty(env, objectValue, "STATUS_BAR", static_cast<int32_t>(PanelType::STATUS_BAR));
+    auto ret = JsUtil::Object::WriteProperty(env, obj, "SOFT_KEYBOARD", static_cast<int32_t>(PanelType::SOFT_KEYBOARD));
+    ret = ret && JsUtil::Object::WriteProperty(env, obj, "STATUS_BAR", static_cast<int32_t>(PanelType::STATUS_BAR));
     IMSA_HILOGI("init module inputMethod.Panel.PanelType ret: %{public}d", ret);
-    return objectValue;
+    return obj;
 }
 
 napi_value JsInputMethodPanel::GetJsPanelFlagProperty(napi_env env)
 {
-    napi_value objectValue = nullptr;
-    napi_create_object(env, &objectValue);
+    napi_value obj = nullptr;
+    napi_create_object(env, &obj);
 
-    auto ret =
-        JsUtil::Object::WriteProperty(env, objectValue, "FLAG_FIXED", static_cast<int32_t>(PanelFlag::FLG_FIXED));
+    auto ret = JsUtil::Object::WriteProperty(env, obj, "FLAG_FIXED", static_cast<int32_t>(PanelFlag::FLG_FIXED));
+    ret = ret
+          && JsUtil::Object::WriteProperty(env, obj, "FLAG_FLOATING", static_cast<int32_t>(PanelFlag::FLG_FLOATING));
     ret = ret
           && JsUtil::Object::WriteProperty(
-              env, objectValue, "FLAG_FLOATING", static_cast<int32_t>(PanelFlag::FLG_FLOATING));
-    ret = ret
-          && JsUtil::Object::WriteProperty(
-              env, objectValue, "FLAG_CANDIDATE", static_cast<int32_t>(PanelFlag::FLG_CANDIDATE_COLUMN));
+              env, obj, "FLAG_CANDIDATE", static_cast<int32_t>(PanelFlag::FLG_CANDIDATE_COLUMN));
     IMSA_HILOGI("init module inputMethod.Panel.PanelFlag ret: %{public}d", ret);
-    return objectValue;
+    return obj;
 }
 } // namespace MiscServices
 } // namespace OHOS
