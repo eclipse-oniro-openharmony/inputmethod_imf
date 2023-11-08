@@ -16,6 +16,7 @@
 import inputMethod from '@ohos.inputMethod';
 import commonEventManager from '@ohos.commonEventManager';
 import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from 'deccjsunit/index';
+import { PanelInfo, PanelFlag, PanelType } from '@ohos.inputMethod.Panel';
 
 describe('InputMethodWithAttachTest', function () {
   const WAIT_DEAL_OK = 500;
@@ -30,7 +31,9 @@ describe('InputMethodWithAttachTest', function () {
     DELETE_FORWARD_SYNC: 6,
     DELETE_BACKWARD_SYNC: 7,
     GET_FORWARD_SYNC: 8,
-    GET_BACKWARD_SYNC: 9
+    GET_BACKWARD_SYNC: 9,
+    CHANGE_FLAG_TO_FIXED: 10,
+    CHANGE_FLAG_TO_FLOATING: 11
   }
 
   beforeAll(async function (done) {
@@ -832,6 +835,65 @@ describe('InputMethodWithAttachTest', function () {
       subscribe(subscribeInfo, TEST_FUNCTION.GET_BACKWARD_SYNC, done);
     } catch(error) {
       console.info(`inputmethod_text_getBackwardSync result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_isPanelShown_001
+   * @tc.name    Test Indicates querying by isPanelShown.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_isPanelShown_001', 0, async function (done) {
+    console.info('************* inputmethod_test_isPanelShown_001 Test start*************');
+    try {
+      let cfg = {
+        inputAttribute:
+            {
+              textInputType: inputMethod.TextInputType.TEXT,
+              enterKeyType: inputMethod.EnterKeyType.NONE
+            }
+      };
+      await inputMethod.getController().attach(true, cfg);
+      let result = inputMethod.getSetting().isPanelShown({type: PanelType.SOFT_KEYBOARD});
+      if (result) {
+        expect(true).assertTrue();
+      } else {
+        expect().assertFail();
+      }
+      done();
+    } catch (error) {
+      console.info(`inputmethod_test_isPanelShown_001 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_isPanelShown_002
+   * @tc.name    Test Indicates querying by isPanelShown.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_isPanelShown_002', 0, async function (done) {
+    console.info('************* inputmethod_test_isPanelShown_002 Test start*************');
+    try {
+      let subscribeInfo = {
+        events: ['changeFlag']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.CHANGE_FLAG_TO_FLOATING, () => {
+        let result = inputMethod.getSetting().isPanelShown({type: PanelType.SOFT_KEYBOARD, flag: PanelFlag.FLAG_FLOATING});
+        if (result) {
+          expect(true).assertTrue();
+        } else {
+          expect().assertFail();
+        }
+      });
+      subscribe(subscribeInfo, TEST_FUNCTION.CHANGE_FLAG_TO_FIXED, done);
+    } catch (error) {
+      console.info(`inputmethod_test_isPanelShown_002 result: ${JSON.stringify(error)}`);
       expect().assertFail();
       done();
     }

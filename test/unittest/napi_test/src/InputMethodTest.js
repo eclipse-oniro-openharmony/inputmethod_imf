@@ -15,7 +15,6 @@
 
 import inputMethod from '@ohos.inputMethod'
 import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from 'deccjsunit/index'
-import { PanelInfo, PanelFlag, PanelType } from '@ohos.inputMethod.Panel';
 
 describe('InputMethodTest', function () {
   beforeAll(function () {
@@ -1233,52 +1232,6 @@ describe('InputMethodTest', function () {
     } catch (error) {
       if(error) {
         console.info(`inputmethod_test_getSystemInputMethodConfigAbility_001 error, result: ${JSON.stringify(error)}`);
-        expect().assertFail();
-      }
-    } finally {
-      done();
-    }
-  });
-
-  /*
-   * @tc.number  inputmethod_test_isPanelShown_001
-   * @tc.name    Test Indicates the isPanelShown.
-   * @tc.desc    Function test
-   * @tc.level   1
-   */
-  it('inputmethod_test_isPanelShown_001', 0, async function (done) {
-    console.info('************* inputmethod_test_isPanelShown_001 Test start*************');
-    try {
-      let result = inputMethod.getSetting().isPanelShown({ type: PanelType.SOFT_KEYBOARD, flag: PanelFlag.FLAG_FIXED });
-      console.info('************* inputmethod_test_isPanelShown_001 Test end*************');
-      expect(true).assertTrue();
-      done();
-    } catch (error) {
-      if(error) {
-        console.info(`inputmethod_test_isPanelShown_001 error, result: ${JSON.stringify(error)}`);
-        expect().assertFail();
-      }
-    } finally {
-      done();
-    }
-  });
-
-  /*
-   * @tc.number  inputmethod_test_isPanelShown_002
-   * @tc.name    Test Indicates the isPanelShown.
-   * @tc.desc    Function test
-   * @tc.level   1
-   */
-  it('inputmethod_test_isPanelShown_002', 0, async function (done) {
-    console.info('************* inputmethod_test_isPanelShown_002 Test start*************');
-    try {
-      let result = inputMethod.getSetting().isPanelShown({ type: PanelType.STATUS_BAR });
-      console.info('************* inputmethod_test_isPanelShown_002 Test end*************');
-      expect(true).assertTrue();
-      done();
-    } catch (error) {
-      if(error) {
-        console.info(`inputmethod_test_isPanelShown_002 error, result: ${JSON.stringify(error)}`);
         expect().assertFail();
       }
     } finally {
