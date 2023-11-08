@@ -37,7 +37,7 @@ InputMethodAgentStub::~InputMethodAgentStub()
 int32_t InputMethodAgentStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("InputMethodAgentStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
+    IMSA_HILOGD("InputMethodAgentStub, code = %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
@@ -87,7 +87,8 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
 
 int32_t InputMethodAgentStub::DispatchKeyEventOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("run in");
+    IMSA_HILOGI("InputMethodAgentStub, callingPid: %{public}d, callingUid: %{public}d", IPCSkeleton::GetCallingPid(),
+        IPCSkeleton::GetCallingUid());
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
     if (!keyEvent->ReadFromParcel(data)) {
         IMSA_HILOGE("failed to read key event from parcel");
@@ -104,13 +105,11 @@ bool InputMethodAgentStub::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent>
 
 void InputMethodAgentStub::SetCallingWindow(uint32_t windowId)
 {
-    IMSA_HILOGI("InputMethodAgentStub::SetCallingWindow");
     InputMethodAbility::GetInstance()->SetCallingWindow(windowId);
 }
 
 void InputMethodAgentStub::OnCursorUpdate(int32_t positionX, int32_t positionY, int height)
 {
-    IMSA_HILOGI("InputMethodAgentStub::OnCursorUpdate");
     if (msgHandler_ == nullptr) {
         return;
     }
@@ -125,7 +124,6 @@ void InputMethodAgentStub::OnCursorUpdate(int32_t positionX, int32_t positionY, 
 void InputMethodAgentStub::OnSelectionChange(
     std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
-    IMSA_HILOGI("InputMethodAgentStub::OnSelectionChange");
     if (msgHandler_ == nullptr) {
         return;
     }
@@ -141,7 +139,6 @@ void InputMethodAgentStub::OnSelectionChange(
 
 void InputMethodAgentStub::OnConfigurationChange(const Configuration &config)
 {
-    IMSA_HILOGI("InputMethodAgentStub in.");
     if (msgHandler_ == nullptr) {
         return;
     }

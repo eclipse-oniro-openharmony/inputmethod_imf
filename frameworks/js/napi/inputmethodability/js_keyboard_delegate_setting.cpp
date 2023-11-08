@@ -299,7 +299,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
         entry.isDone = isDone;
     });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv work");
+        IMSA_HILOGD("failed to get uv work");
         return false;
     }
     StartAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
@@ -348,7 +348,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
         entry.isDone = isDone;
     });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv work");
+        IMSA_HILOGD("failed to get uv work");
         return false;
     }
     StartAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
@@ -548,7 +548,7 @@ uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySe
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
+            IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);

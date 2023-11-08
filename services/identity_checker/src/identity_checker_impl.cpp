@@ -36,12 +36,12 @@ bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId,
     }
     IMSA_HILOGD("focusedPid:%{public}" PRId64 ", pid:%{public}" PRId64 "", realFocusedPid, callingPid);
     if (callingPid == realFocusedPid) {
-        IMSA_HILOGI("pid is same, focused app");
+        IMSA_HILOGD("pid is same, focused app");
         return true;
     }
     bool isFocused = false;
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
-    IMSA_HILOGI("tokenId:%{public}d check result:%{public}d, isFocused:%{public}d", callingTokenId, ret, isFocused);
+    IMSA_HILOGI("tokenId: %{public}d check result:%{public}d, isFocused:%{public}d", callingTokenId, ret, isFocused);
     return ret == ErrorCode::NO_ERROR && isFocused;
 }
 

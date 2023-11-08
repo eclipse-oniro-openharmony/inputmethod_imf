@@ -33,7 +33,7 @@ void LogTimeStamp()
 
 bool BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func)
 {
-    IMSA_HILOGI("start");
+    IMSA_HILOGD("start");
     uint32_t times = 0;
     do {
         times++;
