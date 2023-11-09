@@ -165,7 +165,7 @@ napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_
 void JsKeyboardDelegateSetting::RegisterListener(
     napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
-    IMSA_HILOGI("RegisterListener %{public}s", type.c_str());
+    IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGE("methodName %{public}s not registered!", type.c_str());
