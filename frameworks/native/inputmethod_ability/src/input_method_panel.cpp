@@ -160,7 +160,7 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
         Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     }
     auto ret = window_->SetWindowGravity(gravity, invalidGravityPercent);
-    IMSA_HILOGI("InputMethodPanel, ChangePanelFlag end, ret = %{public}d", ret);
+    IMSA_HILOGI("InputMethodPanel, ChangePanelFlag: %{public}d end, ret = %{public}d", panelFlag, ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 

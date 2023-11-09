@@ -884,19 +884,21 @@ int32_t InputMethodAbility::ExitCurrentInputType()
 
 int32_t InputMethodAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
-    IMSA_HILOGI("InputMethodAbility, type: %{public}d, flag: %{public}d", panelInfo.panelType, panelInfo.panelFlag);
     isShown = false;
     auto result = panels_.Find(panelInfo.panelType);
     if (!result.first) {
-        IMSA_HILOGD("panel not found");
+        IMSA_HILOGI("panel type: %{public}d not found", static_cast<int32_t>(panelInfo.panelType));
         return ErrorCode::NO_ERROR;
     }
     auto panel = result.second;
     if (panel->GetPanelType() == PanelType::SOFT_KEYBOARD && panel->GetPanelFlag() != panelInfo.panelFlag) {
-        IMSA_HILOGD("panel not found");
+        IMSA_HILOGI("queried flag: %{public}d, current flag: %{public}d, panel not found",
+            static_cast<int32_t>(panelInfo.panelFlag), static_cast<int32_t>(panel->GetPanelFlag()));
         return ErrorCode::NO_ERROR;
     }
     isShown = panel->IsShowing();
+    IMSA_HILOGI("InputMethodAbility, type: %{public}d, flag: %{public}d, result: %{public}d",
+        static_cast<int32_t>(panelInfo.panelType), static_cast<int32_t>(panelInfo.panelFlag), isShown);
     return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices

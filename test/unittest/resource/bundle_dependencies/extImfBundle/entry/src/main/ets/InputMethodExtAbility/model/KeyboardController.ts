@@ -39,7 +39,9 @@ enum TEST_FUNCTION {
   DELETE_FORWARD_SYNC,
   DELETE_BACKWARD_SYNC,
   GET_FORWARD_SYNC,
-  GET_BACKWARD_SYNC
+  GET_BACKWARD_SYNC,
+  CHANGE_FLAG_TO_FIXED,
+  CHANGE_FLAG_TO_FLOATING,
 }
 
 export class KeyboardController {
@@ -78,7 +80,7 @@ export class KeyboardController {
     let nonBarPosition = dHeight - keyHeight;
     let panelInfo: inputMethodEngine.PanelInfo = {
       type: inputMethodEngine.PanelType.SOFT_KEYBOARD,
-      flag: inputMethodEngine.PanelFlag.FLG_FLOATING
+      flag: inputMethodEngine.PanelFlag.FLG_FIXED
     };
     inputMethodAbility.createPanel(this.mContext, panelInfo).then(async (inputPanel: inputMethodEngine.Panel) => {
       this.panel = inputPanel;
@@ -144,6 +146,12 @@ export class KeyboardController {
           case TEST_FUNCTION.GET_BACKWARD_SYNC:
             this.getBackwardSync();
             break;
+          case TEST_FUNCTION.CHANGE_FLAG_TO_FIXED:
+            this.changePanelFlag(inputMethodEngine.PanelFlag.FLG_FIXED);
+            break;
+          case TEST_FUNCTION.CHANGE_FLAG_TO_FLOATING:
+            this.changePanelFlag(inputMethodEngine.PanelFlag.FLG_FLOATING);
+            break;
           default:
             break;
         }
@@ -202,6 +210,26 @@ export class KeyboardController {
       this.publishCommonEvent('getTextIndexAtCursorSyncResult', TEST_RESULT_CODE.SUCCESS);
     } catch (err) {
       this.publishCommonEvent('getTextIndexAtCursorSyncResult', TEST_RESULT_CODE.FAILED);
+    }
+  }
+
+  changePanelFlag(panelFlag: inputMethodEngine.PanelFlag) {
+    try {
+      this.panel.hide((err) => {
+        if (err) {
+          this.addLog(`Failed to hide panel: ${JSON.stringify(err)}`);
+          this.publishCommonEvent('changeFlag', TEST_RESULT_CODE.FAILED);
+          return;
+        }
+        this.panel.changeFlag(panelFlag);
+        this.panel.show((err) => {
+          this.addLog(`Failed to show panel: ${JSON.stringify(err)}`);
+          this.publishCommonEvent('changeFlag', TEST_RESULT_CODE.SUCCESS);
+        });
+      });
+    } catch (err) {
+      this.addLog(`failed: ${JSON.stringify(err)}`);
+      this.publishCommonEvent('changeFlag', TEST_RESULT_CODE.FAILED);
     }
   }
 

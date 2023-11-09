@@ -430,7 +430,7 @@ napi_value JsGetInputMethodSetting::IsPanelShown(napi_env env, napi_callback_inf
 
     PanelInfo panelInfo;
     napi_status status = JsUtils::GetValue(env, argv[0], panelInfo);
-    PARAM_CHECK_RETURN(env, status == napi_ok, " panelInfo: ", TYPE_OBJECT, JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, status == napi_ok, "failed to get PanelInfo value", TYPE_NONE, JsUtil::Const::Null(env));
 
     bool isShown = false;
     int32_t errorCode = InputMethodController::GetInstance()->IsPanelShown(panelInfo, isShown);

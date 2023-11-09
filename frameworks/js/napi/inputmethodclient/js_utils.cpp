@@ -14,6 +14,7 @@
  */
 
 #include "js_utils.h"
+
 #include "js_util.h"
 
 namespace OHOS {
@@ -264,19 +265,17 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, PanelInfo &out)
     status = GetValue(env, propType, panelType);
     CHECK_RETURN((status == napi_ok), "no value of type ", status);
 
-    // flag is optional. flag isn't need when panelType is status_bar.
-    int32_t panelFlag = 0;
-    if (panelType != PanelType::STATUS_BAR) {
-        napi_value propFlag = nullptr;
-        status = napi_get_named_property(env, in, "flag", &propFlag);
-        CHECK_RETURN((status == napi_ok), "no property flag ", status);
-        status = JsUtils::GetValue(env, propFlag, panelFlag);
-        CHECK_RETURN((status == napi_ok), "no value of flag ", status);
+    // PanelFlag is optional, defaults to FLG_FIXED when empty.
+    int32_t panelFlag = static_cast<int32_t>(PanelFlag::FLG_FIXED);
+    napi_value panelFlagObj = nullptr;
+    status = napi_get_named_property(env, in, "flag", &panelFlagObj);
+    if (status == napi_ok) {
+        JsUtils::GetValue(env, panelFlagObj, panelFlag);
     }
 
     out.panelType = PanelType(panelType);
     out.panelFlag = PanelFlag(panelFlag);
-    return status;
+    return napi_ok;
 }
 
 napi_value JsUtils::GetValue(napi_env env, const std::vector<InputWindowInfo> &in)
