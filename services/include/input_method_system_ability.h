@@ -107,7 +107,7 @@ private:
     bool IsSwitchPermitted(const SwitchInfo &switchInfo);
     bool IsStartInputTypePermitted();
     int32_t OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission);
-    int32_t OnStartInputType(const SwitchInfo &switchInfo);
+    int32_t OnStartInputType(const SwitchInfo &switchInfo, bool isCheckPermission);
     int32_t Switch(const std::string &bundleName, const std::shared_ptr<ImeInfo> &info);
     int32_t SwitchExtension(const std::shared_ptr<ImeInfo> &info);
     int32_t SwitchSubType(const std::shared_ptr<ImeInfo> &info);
@@ -132,6 +132,7 @@ private:
     int32_t SwitchType();
     int32_t GenerateClientInfo(InputClientInfo &clientInfo);
     void RegisterEnableImeObserver();
+    void CheckSecurityMode(InputClientInfo &inputClientInfo);
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);

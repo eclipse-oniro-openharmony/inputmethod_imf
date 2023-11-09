@@ -20,7 +20,6 @@
 #include "ability_manager_client.h"
 #include "element_name.h"
 #include "ime_cfg_manager.h"
-#include "ime_info_inquirer.h"
 #include "input_client_proxy.h"
 #include "input_control_channel_proxy.h"
 #include "input_data_channel_proxy.h"
@@ -722,9 +721,8 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     if (clientInfo != nullptr) {
         if (clientInfo->isAttaching) {
             std::unique_lock<std::mutex> lock(attachLock_);
-            imeAttachCv_.wait_for(lock, std::chrono::milliseconds(IME_ATTACH_INTERVAL), [&clientInfo]() {
-                return !clientInfo->isAttaching;
-            });
+            imeAttachCv_.wait_for(lock, std::chrono::milliseconds(IME_ATTACH_INTERVAL),
+                [&clientInfo]() { return !clientInfo->isAttaching; });
         }
         RemoveClient(clientInfo->client);
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
@@ -933,6 +931,16 @@ int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     return ime->core->IsPanelShown(panelInfo, isShown);
+}
+
+bool PerUserSession::CheckSecurityMode()
+{
+    auto client = GetCurrentClient();
+    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
+    if (clientInfo != nullptr) {
+        return clientInfo->config.inputAttribute.GetSecurityFlag();
+    }
+    return false;
 }
 } // namespace MiscServices
 } // namespace OHOS

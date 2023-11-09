@@ -225,6 +225,21 @@ int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
+int32_t InputMethodPanel::SetPrivacyMode(bool isPrivacyMode)
+{
+    IMSA_HILOGI("Run in.");
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr.");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto ret = window_->SetPrivacyMode(isPrivacyMode);
+    if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("SetWindowPrivacyMode error, ret = %{public}d", ret);
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
 {
     if (status == InputWindowStatus::SHOW && showRegistered_ && panelStatusListener_ != nullptr) {

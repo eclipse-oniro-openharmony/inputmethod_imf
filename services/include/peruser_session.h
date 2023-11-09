@@ -32,6 +32,7 @@
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_core.h"
+#include "ime_info_inquirer.h"
 #include "input_attribute.h"
 #include "input_client_info.h"
 #include "input_control_channel_stub.h"
@@ -45,6 +46,7 @@
 #include "message_handler.h"
 #include "panel_info.h"
 #include "unRegistered_type.h"
+
 namespace OHOS {
 namespace MiscServices {
 struct ImeData {
@@ -92,6 +94,7 @@ public:
     bool IsBoundToClient();
     int32_t ExitCurrentInputType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
+    bool CheckSecurityMode();
 
 private:
     struct ResetManager {
