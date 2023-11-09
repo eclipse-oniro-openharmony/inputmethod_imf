@@ -35,6 +35,12 @@ config("imf_public_config") {
 }
 
 ohos_shared_library("inputmethod") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [
     "async_call.cpp",
     "input_method_module.cpp",

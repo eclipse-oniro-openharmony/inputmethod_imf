@@ -23,6 +23,12 @@ config("inputmethod_adapter_native_config") {
 }
 
 ohos_static_library("keboard_event_static") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [
     "src/combination_key.cpp",
     "src/input_event_callback.cpp",
