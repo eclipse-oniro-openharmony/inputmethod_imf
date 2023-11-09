@@ -695,7 +695,6 @@ napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_inf
 
 void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
 {
-    IMSA_HILOGD("run in, start: %{public}d, end: %{public}d", start, end);
     std::string type = "selectByRange";
     uv_work_t *work = GetUVwork("selectByRange", [start, end](UvEntry &entry) {
         entry.start = start;
@@ -705,6 +704,7 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
+    IMSA_HILOGI("run in, start: %{public}d, end: %{public}d", start, end);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -737,13 +737,13 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
 
 void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
 {
-    IMSA_HILOGD("run in, direction: %{public}d", direction);
     std::string type = "selectByMovement";
     uv_work_t *work = GetUVwork(type, [direction](UvEntry &entry) { entry.direction = direction; });
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
+    IMSA_HILOGI("run in, direction: %{public}d", direction);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -780,9 +780,10 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
     std::string type = "insertText";
     uv_work_t *work = GetUVwork(type, [&insertText](UvEntry &entry) { entry.text = insertText; });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry.");
+        IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    IMSA_HILOGI("JsGetInputMethodController, run in");
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -815,9 +816,10 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
     std::string type = "deleteRight";
     uv_work_t *work = GetUVwork(type, [&length](UvEntry &entry) { entry.length = length; });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry.");
+        IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    IMSA_HILOGI("JsGetInputMethodController, length: %{public}d", length);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -850,9 +852,10 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
     std::string type = "deleteLeft";
     uv_work_t *work = GetUVwork(type, [&length](UvEntry &entry) { entry.length = length; });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry.");
+        IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    IMSA_HILOGI("JsGetInputMethodController, length: %{public}d", length);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -886,9 +889,10 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
     uv_work_t *work =
         GetUVwork(type, [&status](UvEntry &entry) { entry.keyboardStatus = static_cast<int32_t>(status); });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry.");
+        IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    IMSA_HILOGI("JsGetInputMethodController, status: %{public}d", static_cast<int32_t>(status));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -934,9 +938,11 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
     uv_work_t *work = GetUVwork(type,
         [&functionKey](UvEntry &entry) { entry.enterKeyType = static_cast<int32_t>(functionKey.GetEnterKeyType()); });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry.");
+        IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    IMSA_HILOGI(
+        "JsGetInputMethodController, functionKey: %{public}d", static_cast<int32_t>(functionKey.GetEnterKeyType()));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -975,9 +981,10 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
     uv_work_t *work =
         GetUVwork(type, [&direction](UvEntry &entry) { entry.direction = static_cast<int32_t>(direction); });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry.");
+        IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    IMSA_HILOGI("JsGetInputMethodController, direction: %{public}d", static_cast<int32_t>(direction));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -1010,9 +1017,10 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
     std::string type = "handleExtendAction";
     uv_work_t *work = GetUVwork(type, [&action](UvEntry &entry) { entry.action = action; });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv entry.");
+        IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    IMSA_HILOGI("JsGetInputMethodController, action: %{public}d", action);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -1050,6 +1058,7 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
         IMSA_HILOGE("failed to get uv entry.");
         return u"";
     }
+    IMSA_HILOGI("JsGetInputMethodController, type: %{public}s, number: %{public}d", type.c_str(), number);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -1089,6 +1098,7 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
         IMSA_HILOGE("failed to get uv entry.");
         return -1;
     }
+    IMSA_HILOGI("JsGetInputMethodController, run in");
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -1117,7 +1127,7 @@ uv_work_t *JsGetInputMethodController::GetUVwork(const std::string &type, EntryS
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
+            IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);

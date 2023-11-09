@@ -253,7 +253,6 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
 
 void InputMethodAbility::OnSetSubtype(Message *msg)
 {
-    IMSA_HILOGD("InputMethodAbility::OnSetSubtype");
     auto data = msg->msgContent_;
     SubProperty subProperty;
     if (!ITypesUtil::Unmarshal(*data, subProperty)) {
@@ -332,7 +331,6 @@ void InputMethodAbility::OnCursorUpdate(Message *msg)
         IMSA_HILOGE("InputMethodAbility, kdListener_ is nullptr");
         return;
     }
-    IMSA_HILOGD("InputMethodAbility, x: %{public}d, y: %{public}d, height: %{public}d", positionX, positionY, height);
     kdListener_->OnCursorUpdate(positionX, positionY, height);
 }
 
@@ -349,9 +347,6 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
         IMSA_HILOGE("InputMethodAbility, kdListener_ is nullptr");
         return;
     }
-    IMSA_HILOGD("InputMethodController, oldBegin: %{public}zu, oldEnd: %{public}d, newBegin: %{public}d, newEnd: "
-                "%{public}d",
-        oldBegin, oldEnd, newBegin, newEnd);
     kdListener_->OnTextChange(text);
     kdListener_->OnSelectionChange(oldBegin, oldEnd, newBegin, newEnd);
 }
@@ -366,8 +361,6 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
     InputAttribute attribute;
     attribute.enterKeyType = data->ReadInt32();
     attribute.inputPattern = data->ReadInt32();
-    IMSA_HILOGD("InputMethodAbility, enterKeyType: %{public}d, inputPattern: %{public}d", attribute.enterKeyType,
-        attribute.inputPattern);
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
