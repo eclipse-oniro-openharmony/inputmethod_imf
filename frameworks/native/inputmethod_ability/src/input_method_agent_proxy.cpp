@@ -29,7 +29,7 @@ InputMethodAgentProxy::InputMethodAgentProxy(const sptr<IRemoteObject> &object)
 
 bool InputMethodAgentProxy::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
 {
-    IMSA_HILOGI("run in");
+    IMSA_HILOGI("InputMethodAgentProxy, run in");
     bool isConsumed = false;
     int32_t ret = SendRequest(
         DISPATCH_KEY_EVENT, [&keyEvent](MessageParcel &data) { return keyEvent->WriteToParcel(data); },

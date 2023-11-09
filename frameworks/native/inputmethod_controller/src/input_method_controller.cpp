@@ -176,11 +176,11 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
 
 int32_t InputMethodController::OnSwitchInput(const Property &property, const SubProperty &subProperty)
 {
-    IMSA_HILOGE("InputMethodController::OnSwitchInput");
     if (settingListener_ == nullptr) {
         IMSA_HILOGE("imeListener_ is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
+    IMSA_HILOGI("InputMethodController::OnSwitchInput");
     settingListener_->OnImeChange(property, subProperty);
     return ErrorCode::NO_ERROR;
 }
@@ -188,11 +188,11 @@ int32_t InputMethodController::OnSwitchInput(const Property &property, const Sub
 int32_t InputMethodController::OnPanelStatusChange(
     const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
 {
-    IMSA_HILOGD("InputMethodController::OnPanelStatusChange");
     if (settingListener_ == nullptr) {
         IMSA_HILOGE("imeListener_ is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
+    IMSA_HILOGI("InputMethodController::OnPanelStatusChange");
     settingListener_->OnPanelStatusChange(status, windowInfo);
     return ErrorCode::NO_ERROR;
 }
@@ -228,7 +228,7 @@ int32_t InputMethodController::Attach(
 int32_t InputMethodController::Attach(
     sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const TextConfig &textConfig)
 {
-    IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
+    IMSA_HILOGI("InputMethodController with isShowKeyboard %{public}d", isShowKeyboard);
     ClearEditorCache();
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
     SetTextListener(listener);
@@ -252,11 +252,11 @@ int32_t InputMethodController::Attach(
 
 int32_t InputMethodController::ShowTextInput()
 {
-    IMSA_HILOGI("InputMethodController::ShowTextInput");
     if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
+    IMSA_HILOGI("InputMethodController::ShowTextInput");
     clientInfo_.isShowKeyboard = true;
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ENEDITABLE);
     int32_t ret = ShowInput(clientInfo_.client);
@@ -271,11 +271,11 @@ int32_t InputMethodController::ShowTextInput()
 
 int32_t InputMethodController::HideTextInput()
 {
-    IMSA_HILOGI("InputMethodController::HideTextInput");
     if (!isBound_.load()) {
         IMSA_HILOGE("not bound yet");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
+    IMSA_HILOGI("InputMethodController::HideTextInput");
     isEditable_.store(false);
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNEDITABLE);
     return HideInput(clientInfo_.client);
@@ -360,7 +360,7 @@ int32_t InputMethodController::ListInputMethod(std::vector<Property> &props)
 
 int32_t InputMethodController::ListInputMethod(bool enable, std::vector<Property> &props)
 {
-    IMSA_HILOGD("InputMethodController::listInputMethod enable = %{public}s", enable ? "ENABLE" : "DISABLE");
+    IMSA_HILOGI("InputMethodController::listInputMethod enable = %{public}s", enable ? "ENABLE" : "DISABLE");
     return ListInputMethodCommon(enable ? ENABLE : DISABLE, props);
 }
 
@@ -567,7 +567,9 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         }
         cursorInfo_ = cursorInfo;
     }
-    IMSA_HILOGD("InputMethodController, update cursor");
+    IMSA_HILOGI("InputMethodController, left: %{public}d, top: %{public}d, height: %{public}d",
+        static_cast<int32_t>(cursorInfo.left), static_cast<int32_t>(cursorInfo.top),
+        static_cast<int32_t>(cursorInfo.height));
     agent_->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
     return ErrorCode::NO_ERROR;
 }
@@ -600,7 +602,8 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    IMSA_HILOGD("size: %{public}zu, start: %{public}d, end: %{public}d", text.size(), start, end);
+    IMSA_HILOGI(
+        "InputMethodController, size: %{public}zu, start: %{public}d, end: %{public}d", text.size(), start, end);
     agent_->OnSelectionChange(textString_, selectOldBegin_, selectOldEnd_, selectNewBegin_, selectNewEnd_);
     return ErrorCode::NO_ERROR;
 }
@@ -666,6 +669,7 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
     InputMethodSyncTrace tracer("DispatchKeyEvent trace");
+    IMSA_HILOGI("InputMethodController in");
     if (!isEditable_.load()) {
         IMSA_HILOGE("not in editable state");
         return false;
@@ -781,46 +785,46 @@ int32_t InputMethodController::HideSoftKeyboard()
 
 int32_t InputMethodController::StopInputSession()
 {
+    IMSA_HILOGI("InputMethodController StopInputSession");
     isEditable_.store(false);
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController, start");
     return proxy->StopInputSession();
 }
 
 int32_t InputMethodController::ShowOptionalInputMethod()
 {
+    IMSA_HILOGI("InputMethodController::ShowOptionalInputMethod");
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGD("InputMethodController, start");
     return proxy->DisplayOptionalInputMethod();
 }
 
 int32_t InputMethodController::ListInputMethodSubtype(const Property &property, std::vector<SubProperty> &subProps)
 {
+    IMSA_HILOGD("InputMethodController, ime bundleName: %{public}s", property.name.c_str());
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGD("InputMethodController, start");
     return proxy->ListInputMethodSubtype(property.name, subProps);
 }
 
 int32_t InputMethodController::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
 {
+    IMSA_HILOGD("InputMethodController::ListCurrentInputMethodSubtype");
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGD("InputMethodController, start");
     return proxy->ListCurrentInputMethodSubtype(subProps);
 }
 
@@ -831,7 +835,7 @@ int32_t InputMethodController::SwitchInputMethod(const std::string &name, const 
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController, start");
+    IMSA_HILOGI("InputMethodController, name: %{public}s, subName: %{public}s", name.c_str(), subName.c_str());
     return proxy->SwitchInputMethod(name, subName);
 }
 
@@ -894,7 +898,7 @@ void InputMethodController::ClearEditorCache()
 
 void InputMethodController::SelectByRange(int32_t start, int32_t end)
 {
-    IMSA_HILOGD("InputMethodController run in");
+    IMSA_HILOGD("InputMethodController start: %{public}d, end: %{public}d", start, end);
     auto listener = GetTextListener();
     if (isEditable_.load() && listener != nullptr) {
         listener->HandleSetSelection(start, end);
@@ -911,7 +915,7 @@ void InputMethodController::SelectByRange(int32_t start, int32_t end)
 
 void InputMethodController::SelectByMovement(int32_t direction, int32_t cursorMoveSkip)
 {
-    IMSA_HILOGD("InputMethodController run in");
+    IMSA_HILOGD("InputMethodController, direction: %{public}d, cursorMoveSkip: %{public}d", direction, cursorMoveSkip);
     auto listener = GetTextListener();
     if (isEditable_.load() && listener != nullptr) {
         listener->HandleSelect(CURSOR_DIRECTION_BASE_VALUE + direction, cursorMoveSkip);
@@ -928,7 +932,7 @@ void InputMethodController::SelectByMovement(int32_t direction, int32_t cursorMo
 
 int32_t InputMethodController::HandleExtendAction(int32_t action)
 {
-    IMSA_HILOGD("InputMethodController run in");
+    IMSA_HILOGD("InputMethodController, action: %{public}d", action);
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener is nullptr");
@@ -952,24 +956,24 @@ void InputMethodController::SetTextListener(sptr<OnTextChangedListener> listener
 
 int32_t InputMethodController::InsertText(const std::u16string &text)
 {
+    IMSA_HILOGD("in");
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    IMSA_HILOGD("in");
     listener->InsertText(text);
     return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::DeleteForward(int32_t length)
 {
+    IMSA_HILOGD("run in, length: %{public}d", length);
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    IMSA_HILOGD("run in, length: %{public}d", length);
     // reverse for compatibility
     listener->DeleteBackward(length);
     return ErrorCode::NO_ERROR;
@@ -977,12 +981,12 @@ int32_t InputMethodController::DeleteForward(int32_t length)
 
 int32_t InputMethodController::DeleteBackward(int32_t length)
 {
+    IMSA_HILOGD("run in, length: %{public}d", length);
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    IMSA_HILOGD("run in, length: %{public}d", length);
     // reverse for compatibility
     listener->DeleteForward(length);
     return ErrorCode::NO_ERROR;
@@ -990,19 +994,19 @@ int32_t InputMethodController::DeleteBackward(int32_t length)
 
 int32_t InputMethodController::MoveCursor(Direction direction)
 {
+    IMSA_HILOGD("run in, direction: %{public}d", static_cast<int32_t>(direction));
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    IMSA_HILOGD("run in, direction: %{public}d", static_cast<int32_t>(direction));
     listener->MoveCursor(direction);
     return ErrorCode::NO_ERROR;
 }
 
 void InputMethodController::SendKeyboardStatus(KeyboardStatus status)
 {
-    IMSA_HILOGD("KeyboardStatusNotify, status: %{public}d", static_cast<int32_t>(status));
+    IMSA_HILOGD("InputMethodController status: %{public}d", static_cast<int32_t>(status));
     auto listener = GetTextListener();
     if (listener == nullptr) {
         IMSA_HILOGE("textListener_ is nullptr");
@@ -1016,14 +1020,14 @@ void InputMethodController::SendKeyboardStatus(KeyboardStatus status)
 
 void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
+    IMSA_HILOGD("InputMethodController, type: %{public}d, flag: %{public}d, visible: %{public}d, trigger: %{public}d.",
+        static_cast<PanelType>(info.panelInfo.panelType), static_cast<PanelFlag>(info.panelInfo.panelFlag),
+        info.visible, static_cast<Trigger>(info.trigger));
     auto listener = GetTextListener();
     if (listener == nullptr) {
         IMSA_HILOGE("textListener_ is nullptr");
         return;
     }
-    IMSA_HILOGD("InputMethodController, type: %{public}d, flag: %{public}d, visible: %{public}d, trigger: %{public}d.",
-        static_cast<PanelType>(info.panelInfo.panelType), static_cast<PanelFlag>(info.panelInfo.panelFlag),
-        info.visible, static_cast<Trigger>(info.trigger));
     listener->NotifyPanelStatusInfo(info);
     if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD
         && info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
@@ -1033,12 +1037,12 @@ void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 
 int32_t InputMethodController::SendFunctionKey(int32_t functionKey)
 {
+    IMSA_HILOGD("run in, functionKey: %{public}d", static_cast<int32_t>(functionKey));
     auto listener = GetTextListener();
     if (!isEditable_.load() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener_ is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    IMSA_HILOGD("run in, functionKey: %{public}d", static_cast<int32_t>(functionKey));
     FunctionKey funcKey;
     funcKey.SetEnterKeyType(static_cast<EnterKeyType>(functionKey));
     listener->SendFunctionKey(funcKey);
@@ -1074,6 +1078,8 @@ int32_t InputMethodController::IsPanelShown(const PanelInfo &panelInfo, bool &is
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
+    IMSA_HILOGI("InputMethodController, type: %{public}d, flag: %{public}d", static_cast<int32_t>(panelInfo.panelType),
+        static_cast<int32_t>(panelInfo.panelFlag));
     return proxy->IsPanelShown(panelInfo, isShown);
 }
 } // namespace MiscServices
