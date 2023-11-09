@@ -136,6 +136,9 @@ private:
     sptr<InputMethodAgentStub> agentStub_{ nullptr };
     std::mutex imeCheckMutex_;
     bool isCurrentIme_ = false;
+
+    double positionY_ = 0;
+    double height_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
