@@ -73,7 +73,6 @@ bool InitializeClientInfo(InputClientInfo &clientInfo)
 
 bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
 {
-    std::string str(rawData, rawData + size);
     Property property;
     SubProperty subProperty;
     InputClientInfo clientInfo;
