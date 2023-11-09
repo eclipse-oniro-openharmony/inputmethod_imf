@@ -884,14 +884,17 @@ describe('InputMethodWithAttachTest', function () {
         events: ['changeFlag']
       };
       subscribe(subscribeInfo, TEST_FUNCTION.CHANGE_FLAG_TO_FLOATING, () => {
-        let result = inputMethod.getSetting().isPanelShown({type: PanelType.SOFT_KEYBOARD, flag: PanelFlag.FLAG_FLOATING});
+        let result = inputMethod.getSetting().isPanelShown({
+          type: PanelType.SOFT_KEYBOARD,
+          flag: PanelFlag.FLAG_FLOATING
+        });
         if (result) {
           expect(true).assertTrue();
         } else {
           expect().assertFail();
         }
+        subscribe(subscribeInfo, TEST_FUNCTION.CHANGE_FLAG_TO_FIXED, done);
       });
-      subscribe(subscribeInfo, TEST_FUNCTION.CHANGE_FLAG_TO_FIXED, done);
     } catch (error) {
       console.info(`inputmethod_test_isPanelShown_002 result: ${JSON.stringify(error)}`);
       expect().assertFail();
