@@ -23,23 +23,23 @@ DataSharePredicates *DataSharePredicates::EqualTo(const std::string &field, cons
     return this;
 }
 
-static int32_t DataShareResultSet::GetRowCount(int32_t &count)
+int32_t DataShareResultSet::GetRowCount(int32_t &count)
 {
     count = 1;
     return 0;
 }
 
-static int32_t DataShareResultSet::Close()
+int32_t DataShareResultSet::Close()
 {
     return 0;
 }
 
-static int32_t DataShareResultSet::GoToFirstRow()
+int32_t DataShareResultSet::GoToFirstRow()
 {
     return 0;
 }
 
-static int32_t DataShareResultSet::GetColumnIndex(const std::string &columnName, int32_t &columnIndex)
+int32_t DataShareResultSet::GetColumnIndex(const std::string &columnName, int32_t &columnIndex)
 {
     columnIndex = 1;
     return 0;
@@ -71,17 +71,17 @@ std::shared_ptr<DataShareResultSet> DataShareHelper::Query(Uri &uri, const DataS
     return resultSet_;
 }
 
-static void DataShareHelper::RegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+void DataShareHelper::RegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
 {
     return;
 }
 
-static void DataShareHelper::UnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
+void DataShareHelper::UnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver)
 {
     return;
 }
 
-static bool DataShareHelper::Release()
+bool DataShareHelper::Release()
 {
     return true;
 }
