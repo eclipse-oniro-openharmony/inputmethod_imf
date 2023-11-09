@@ -21,6 +21,7 @@
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "input_method_engine_listener_impl.h"
+#include "keyboard_listener_test_impl.h"
 #include "tdd_util.h"
 #include "text_listener.h"
 
@@ -617,6 +618,43 @@ HWTEST_F(InputMethodAttachTest, testSetCallingWindow, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     EXPECT_EQ(totalConfig.windowId, config.windowId);
+}
+/**
+ * @tc.name: testImeCallbackInAttach
+ * @tc.desc: test ime can receive callback in Attach
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodAttachTest, testImeCallbackInAttach, TestSize.Level0)
+{
+    IMSA_HILOGI("test testImeCallbackInAttach.");
+    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerTestImpl>());
+    sptr<OnTextChangedListener> textListener = new TextListener();
+    InputMethodEngineListenerImpl::ResetParam();
+    KeyboardListenerTestImpl::ResetParam();
+    InputAttribute attribute;
+    attribute.inputPattern = 3;
+    attribute.enterKeyType = 2;
+    TextConfig config;
+    config.inputAttribute = attribute;
+    CursorInfo cursorInfo;
+    cursorInfo.left = 0;
+    cursorInfo.top = 1;
+    cursorInfo.width = 0.5;
+    cursorInfo.height = 1.2;
+    config.cursorInfo = cursorInfo;
+    SelectionRange selectionRange;
+    selectionRange.start = 5;
+    selectionRange.end = 2;
+    config.range = selectionRange;
+    config.windowId = 10;
+    auto ret = inputMethodController_->Attach(textListener, true, config);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitSelectionChange(selectionRange.start));
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitCursorUpdate());
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitEditorAttributeChange(attribute));
+    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitSetCallingWindow(config.windowId));
 }
 } // namespace MiscServices
 } // namespace OHOS

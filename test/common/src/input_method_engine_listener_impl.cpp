@@ -45,6 +45,7 @@ void InputMethodEngineListenerImpl::OnSetCallingWindow(uint32_t windowId)
 {
     IMSA_HILOGI("InputMethodEngineListenerImpl::OnSetCallingWindow %{public}d", windowId);
     windowId_ = windowId;
+    imeListenerCv_.notify_one();
 }
 void InputMethodEngineListenerImpl::OnSetSubtype(const SubProperty &property)
 {
@@ -65,6 +66,7 @@ void InputMethodEngineListenerImpl::ResetParam()
 {
     isInputStart_ = false;
     isInputFinish_ = false;
+    windowId_ = 0;
 }
 bool InputMethodEngineListenerImpl::WaitInputStart()
 {
@@ -77,6 +79,12 @@ bool InputMethodEngineListenerImpl::WaitInputFinish()
     std::unique_lock<std::mutex> lock(imeListenerMutex_);
     imeListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return isInputFinish_; });
     return isInputFinish_;
+}
+bool InputMethodEngineListenerImpl::WaitSetCallingWindow(uint32_t windowId)
+{
+    std::unique_lock<std::mutex> lock(imeListenerMutex_);
+    imeListenerCv_.wait_for(lock, std::chrono::seconds(1), [&windowId]() { return windowId_ == windowId; });
+    return windowId_ == windowId;
 }
 } // namespace MiscServices
 } // namespace OHOS
