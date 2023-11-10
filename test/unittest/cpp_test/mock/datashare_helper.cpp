@@ -45,7 +45,7 @@ int32_t DataShareResultSet::GetColumnIndex(const std::string &columnName, int32_
     return 0;
 }
 
-int32_t DataShareResultSet::GetString(int columnIndex, std::string &value)
+int32_t DataShareResultSet::GetString(int columnIndex, std::string &value) const
 {
     value = strValue_;
     return 0;

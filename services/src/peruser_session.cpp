@@ -713,11 +713,11 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     std::shared_ptr<InputClientInfo> clientInfo;
     {
         std::lock_guard<std::recursive_mutex> lock(mtx);
-        for (const auto &mapClient : mapClients_) {
-            if (mapClient.second->pid == pid) {
-                clientInfo = mapClient.second;
-                break;
-            }
+        auto iter = std::find_if(mapClients_.begin(), mapClients_.end(), [pid](const auto &mapClient) {
+            return mapClient.second->pid == pid;
+        });
+        if (iter != mapClients_.end()) {
+            clientInfo = iter->second;
         }
     }
     if (clientInfo != nullptr) {
