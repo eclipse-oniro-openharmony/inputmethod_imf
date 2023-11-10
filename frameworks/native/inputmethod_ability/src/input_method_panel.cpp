@@ -194,6 +194,20 @@ int32_t InputMethodPanel::ShowPanel()
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodPanel::SetTextFieldAvoidInfo(double positionY, double height)
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr.");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto ret = window_->SetTextFieldAvoidInfo(positionY, height);
+    if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("SetTextFieldAvoidInfo error, err = %{public}d", ret);
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodPanel::HidePanel()
 {
     if (window_ == nullptr) {

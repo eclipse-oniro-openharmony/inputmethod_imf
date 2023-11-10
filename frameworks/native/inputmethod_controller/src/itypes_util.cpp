@@ -198,6 +198,14 @@ bool ITypesUtil::Marshalling(const TextTotalConfig &input, MessageParcel &data)
         IMSA_HILOGE("write windowId to message parcel failed");
         return false;
     }
+    if (!Marshal(data, input.positionY)) {
+        IMSA_HILOGE("write positionY to message parcel failed");
+        return false;
+    }
+    if (!Marshal(data, input.height)) {
+        IMSA_HILOGE("write height to message parcel failed");
+        return false;
+    }
     return true;
 }
 
@@ -219,6 +227,14 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
     }
     if (!Unmarshal(data, output.windowId)) {
         IMSA_HILOGE("read windowId from message parcel failed");
+        return false;
+    }
+    if (!Unmarshal(data, output.positionY)) {
+        IMSA_HILOGE("read positionY from message parcel failed");
+        return false;
+    }
+    if (!Unmarshal(data, output.height)) {
+        IMSA_HILOGE("read height from message parcel failed");
         return false;
     }
     return true;

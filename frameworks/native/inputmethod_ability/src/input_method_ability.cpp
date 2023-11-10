@@ -463,6 +463,8 @@ void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
     }
     imeListener_->OnSetCallingWindow(textConfig.windowId);
     IMSA_HILOGD("setCallingWindow end.");
+    positionY_ = textConfig.positionY;
+    height_ = textConfig.height;
 }
 
 int32_t InputMethodAbility::HideKeyboard()
@@ -768,6 +770,12 @@ int32_t InputMethodAbility::ShowPanel(
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    if (flag == FLG_FIXED && inputMethodPanel->GetPanelType() == SOFT_KEYBOARD) {
+        auto ret = inputMethodPanel->SetTextFieldAvoidInfo(positionY_, height_);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("Set Keyboard failed, ret = %{public}d", ret);
+        }
     }
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {

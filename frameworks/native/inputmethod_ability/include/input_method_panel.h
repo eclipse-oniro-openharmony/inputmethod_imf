@@ -47,6 +47,7 @@ public:
     void ClearPanelListener(const std::string &type);
     int32_t SetCallingWindow(uint32_t windowId);
     bool IsShowing();
+    int32_t SetTextFieldAvoidInfo(double positionY, double height);
     uint32_t windowId_ = 0;
 
 private:
