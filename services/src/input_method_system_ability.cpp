@@ -273,7 +273,7 @@ void InputMethodSystemAbility::CheckSecurityMode(InputClientInfo &inputClientInf
         IMSA_HILOGD("security ime is not start or camera ime started, keep current.");
         return;
     }
-    auto ret = userSession_->ExitCurrentInputType();
+    auto ret = StartInputType(InputType::NONE);
     IMSA_HILOGD("Exit security ime ret = %{public}d.", ret);
 }
 
@@ -406,16 +406,22 @@ bool InputMethodSystemAbility::IsInputTypeSupported(InputType type)
 
 int32_t InputMethodSystemAbility::StartInputType(InputType type)
 {
-    ImeIdentification ime;
-    int32_t ret = InputTypeManager::GetInstance().GetImeByInputType(type, ime);
-    if (ret != ErrorCode::NO_ERROR) {
-        return ret;
+    if (type != InputType::NONE) {
+        ImeIdentification ime;
+        int32_t ret = InputTypeManager::GetInstance().GetImeByInputType(type, ime);
+        if (ret != ErrorCode::NO_ERROR) {
+            return ret;
+        }
+        SwitchInfo switchInfo = { std::chrono::system_clock::now(), ime.bundleName, ime.subName };
+        switchQueue_.Push(switchInfo);
+        IMSA_HILOGI("start input type: %{public}d", type);
+        return type == InputType::SECURITY_INPUT ? OnStartInputType(switchInfo, false)
+                                                 : OnStartInputType(switchInfo, true);
     }
-    SwitchInfo switchInfo = { std::chrono::system_clock::now(), ime.bundleName, ime.subName };
+    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    SwitchInfo switchInfo = { std::chrono::system_clock::now(), cfgIme->bundleName, cfgIme->subName };
     switchQueue_.Push(switchInfo);
-    IMSA_HILOGI("start input type: %{public}d", type);
-    return type == InputType::SECURITY_INPUT ? OnStartInputType(switchInfo, false)
-                                             : OnStartInputType(switchInfo, true);
+    return OnStartInputType(switchInfo, false);
 }
 
 int32_t InputMethodSystemAbility::ExitCurrentInputType()
@@ -507,6 +513,13 @@ int32_t InputMethodSystemAbility::OnStartInputType(const SwitchInfo &switchInfo,
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);
         usleep(SWITCH_BLOCK_TIME);
+    }
+    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (switchInfo.bundleName == cfgIme->bundleName && switchInfo.subName == cfgIme->subName) {
+        IMSA_HILOGD("start input type is current ime, exit input type.");
+        int32_t ret = userSession_->ExitCurrentInputType();
+        switchQueue_.Pop();
+        return ret;
     }
     IMSA_HILOGD("start switch %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     if (isCheckPermission && !IsStartInputTypePermitted()) {
