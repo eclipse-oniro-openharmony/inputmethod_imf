@@ -20,6 +20,7 @@
 #include "ability_manager_client.h"
 #include "element_name.h"
 #include "ime_cfg_manager.h"
+#include "ime_info_inquirer.h"
 #include "input_client_proxy.h"
 #include "input_control_channel_proxy.h"
 #include "input_data_channel_proxy.h"
