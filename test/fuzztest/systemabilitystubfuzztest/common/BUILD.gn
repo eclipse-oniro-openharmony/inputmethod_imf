@@ -31,6 +31,12 @@ config("imf_sa_stub_fuzztest_common_config") {
 
 ohos_static_library("imf_sa_stub_fuzztest_common_static") {
   testonly = true
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [ "imf_sa_stub_fuzz_util.cpp" ]
 
   public_deps = [

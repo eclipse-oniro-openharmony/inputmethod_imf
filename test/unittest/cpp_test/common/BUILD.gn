@@ -34,6 +34,12 @@ config("inputmethod_tdd_util_public_config") {
 }
 
 ohos_static_library("inputmethod_tdd_util") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [
     "src/key_event_util.cpp",
     "src/tdd_util.cpp",
