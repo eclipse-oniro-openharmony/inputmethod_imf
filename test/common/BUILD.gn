@@ -32,12 +32,6 @@ config("test_common_public_config") {
 
 ohos_static_library("inputmethod_test_common") {
   testonly = true
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   sources = [
     "src/ime_setting_listener_test_impl.cpp",
     "src/input_method_engine_listener_impl.cpp",

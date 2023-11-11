@@ -26,12 +26,6 @@ config("module_private_config") {
 module_output_path = "imf/cpp"
 
 ohos_unittest("InputMethodControllerTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/input_method_controller_test.cpp" ]
@@ -66,12 +60,6 @@ ohos_unittest("InputMethodControllerTest") {
 }
 
 ohos_unittest("InputMethodAttachTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/input_method_attach_test.cpp" ]
@@ -99,12 +87,6 @@ ohos_unittest("InputMethodAttachTest") {
   ]
 }
 ohos_unittest("InputMethodAbilityTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [
@@ -145,12 +127,6 @@ ohos_unittest("InputMethodAbilityTest") {
 }
 
 ohos_unittest("InputMethodServiceTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/input_method_service_test.cpp" ]
@@ -187,12 +163,6 @@ ohos_unittest("InputMethodServiceTest") {
 }
 
 ohos_unittest("InputMethodDfxTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/input_method_dfx_test.cpp" ]
@@ -227,12 +197,6 @@ ohos_unittest("InputMethodDfxTest") {
 }
 
 ohos_unittest("InputMethodPanelTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/input_method_panel_test.cpp" ]
@@ -270,12 +234,6 @@ ohos_unittest("InputMethodPanelTest") {
 }
 
 ohos_unittest("InputMethodUtilsTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/input_method_utils_test.cpp" ]
@@ -293,12 +251,6 @@ ohos_unittest("InputMethodUtilsTest") {
 }
 
 ohos_unittest("InputMethodSwitchTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/input_method_switch_test.cpp" ]
@@ -325,12 +277,6 @@ ohos_unittest("InputMethodSwitchTest") {
 }
 
 ohos_unittest("InputMethodPrivateMemberTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/input_method_private_member_test.cpp" ]
@@ -364,12 +310,6 @@ ohos_unittest("InputMethodPrivateMemberTest") {
 }
 
 ohos_unittest("InputMethodEditorTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/input_method_editor_test.cpp" ]
@@ -401,12 +341,6 @@ ohos_unittest("InputMethodEditorTest") {
 }
 
 ohos_unittest("NewImeSwitchTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/newIme_switch_test.cpp" ]
@@ -433,12 +367,6 @@ ohos_unittest("NewImeSwitchTest") {
 }
 
 ohos_unittest("IdentityCheckerTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/identity_checker_test.cpp" ]
@@ -479,12 +407,6 @@ ohos_unittest("IdentityCheckerTest") {
 }
 
 ohos_unittest("TextListenerInnerApiTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/text_listener_inner_api_test.cpp" ]
@@ -519,12 +441,6 @@ ohos_unittest("TextListenerInnerApiTest") {
 }
 
 ohos_unittest("ImeProxyTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   sources = [ "src/ime_proxy_test.cpp" ]
@@ -564,12 +480,6 @@ ohos_unittest("ImeProxyTest") {
 }
 
 ohos_unittest("EnableImeDataParseTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   module_out_path = module_output_path
 
   include_dirs = [
