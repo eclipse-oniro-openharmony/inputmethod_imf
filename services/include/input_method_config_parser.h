@@ -67,10 +67,10 @@ bool ImeConfigParse::ParseFromCustomSystem(const std::string &parseKey, T &data)
             break;
         }
         std::string cfgPath(realPath);
-        if (!GetCfgsFromFile(cfgPath, parseKey, data)) {
+        if (GetCfgsFromFile(cfgPath, parseKey, data)) {
+            isSuccess = true;
             break;
         }
-        isSuccess = true;
     }
     FreeCfgFiles(cfgFiles);
     IMSA_HILOGI("parse result: %{public}d", isSuccess);

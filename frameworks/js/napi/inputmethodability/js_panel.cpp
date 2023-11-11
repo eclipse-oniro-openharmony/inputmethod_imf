@@ -45,6 +45,7 @@ napi_value JsPanel::Init(napi_env env)
         DECLARE_NAPI_FUNCTION("show", Show),
         DECLARE_NAPI_FUNCTION("hide", Hide),
         DECLARE_NAPI_FUNCTION("changeFlag", ChangeFlag),
+        DECLARE_NAPI_FUNCTION("setPrivacyMode", SetPrivacyMode),
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
     };
@@ -243,6 +244,25 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
     CHECK_RETURN(ret == ErrorCode::NO_ERROR, "ChangePanelFlag failed!", nullptr);
+    return nullptr;
+}
+
+napi_value JsPanel::SetPrivacyMode(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { nullptr };
+    napi_value thisVar = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
+    PARAM_CHECK_RETURN(env, argc > 0, " should 1 parameter! ", TYPE_NONE, nullptr);
+    bool isPrivacyMode = false;
+    // 0 means the first param flag<isPrivacyMode>
+    napi_status status = JsUtils::GetValue(env, argv[0], isPrivacyMode);
+    CHECK_RETURN(status == napi_ok, "get isPrivacyMode failed!", nullptr);
+    auto inputMethodPanel = UnwrapPanel(env, thisVar);
+    auto ret = inputMethodPanel->SetPrivacyMode(isPrivacyMode);
+    PARAM_CHECK_RETURN(env, ret != ErrorCode::ERROR_STATUS_PERMISSION_DENIED,
+        " ohos.permission.PRIVACY_WINDOW permission denied", TYPE_NONE, nullptr);
+    CHECK_RETURN(ret == ErrorCode::NO_ERROR, "SetPrivacyMode failed!", nullptr);
     return nullptr;
 }
 

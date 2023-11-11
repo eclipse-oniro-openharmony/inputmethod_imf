@@ -57,7 +57,6 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
             "ENTER_KEY_TYPE_DONE", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::DONE))),
         DECLARE_NAPI_PROPERTY(
             "ENTER_KEY_TYPE_PREVIOUS", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::PREVIOUS))),
-
         DECLARE_NAPI_PROPERTY("PATTERN_NULL", GetIntJsConstProperty(env, static_cast<int32_t>(TextInputType::NONE))),
         DECLARE_NAPI_PROPERTY("PATTERN_TEXT", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::TEXT))),
         DECLARE_NAPI_PROPERTY("PATTERN_NUMBER", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER))),
@@ -69,6 +68,10 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("PATTERN_URI", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::URL))),
         DECLARE_NAPI_PROPERTY(
             "PATTERN_PASSWORD", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::VISIBLE_PASSWORD))),
+        DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD_NUMBER",
+            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_PASSWORD))),
+        DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD_SCREEN_LOCK",
+            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::SCREEN_LOCK_PASSWORD))),
 
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
         DECLARE_NAPI_FUNCTION("getInputMethodAbility", GetInputMethodAbility),
@@ -79,7 +82,6 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
     };
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
-
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),

@@ -38,6 +38,8 @@ enum class TextInputType {
     EMAIL_ADDRESS,
     URL,
     VISIBLE_PASSWORD,
+    NUMBER_PASSWORD,
+    SCREEN_LOCK_PASSWORD,
 };
 
 enum class Direction {
@@ -93,8 +95,7 @@ struct CursorInfo {
     }
 };
 
-class KeyEvent {
-};
+class KeyEvent {};
 
 enum class KeyboardStatus : int32_t { NONE = 0, HIDE, SHOW }; // soft keyboard
 
@@ -160,6 +161,7 @@ struct TextConfig {
 enum class InputType {
     NONE = -1,
     CAMERA_INPUT = 0,
+    SECURITY_INPUT,
 };
 } // namespace MiscServices
 } // namespace OHOS

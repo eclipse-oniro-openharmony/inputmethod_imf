@@ -41,6 +41,7 @@ public:
     static napi_value Show(napi_env env, napi_callback_info info);
     static napi_value Hide(napi_env env, napi_callback_info info);
     static napi_value ChangeFlag(napi_env env, napi_callback_info info);
+    static napi_value SetPrivacyMode(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     void SetNative(const std::shared_ptr<InputMethodPanel> &panel);

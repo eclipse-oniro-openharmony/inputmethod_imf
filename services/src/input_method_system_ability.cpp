@@ -247,6 +247,9 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         }
     }
 
+    if (!userSession_->IsProxyImeEnable()) {
+        CheckSecurityMode(inputClientInfo);
+    }
     int32_t ret = PrepareInput(inputClientInfo);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("PrepareInput failed");
@@ -254,6 +257,25 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
     }
     return userSession_->OnStartInput(inputClientInfo.client, inputClientInfo.isShowKeyboard, agent);
 };
+
+void InputMethodSystemAbility::CheckSecurityMode(InputClientInfo &inputClientInfo)
+{
+    if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
+        if (InputTypeManager::GetInstance().IsStarted()) {
+            IMSA_HILOGD("security ime has started.");
+            return;
+        }
+        auto ret = StartInputType(InputType::SECURITY_INPUT);
+        IMSA_HILOGD("switch to security ime ret = %{public}d.", ret);
+        return;
+    }
+    if (!InputTypeManager::GetInstance().IsStarted() || InputTypeManager::GetInstance().IsCameraImeStarted()) {
+        IMSA_HILOGD("security ime is not start or camera ime started, keep current.");
+        return;
+    }
+    auto ret = StartInputType(InputType::NONE);
+    IMSA_HILOGD("Exit security ime ret = %{public}d.", ret);
+}
 
 int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
 {
@@ -384,15 +406,22 @@ bool InputMethodSystemAbility::IsInputTypeSupported(InputType type)
 
 int32_t InputMethodSystemAbility::StartInputType(InputType type)
 {
-    ImeIdentification ime;
-    int32_t ret = InputTypeManager::GetInstance().GetImeByInputType(type, ime);
-    if (ret != ErrorCode::NO_ERROR) {
-        return ret;
+    if (type != InputType::NONE) {
+        ImeIdentification ime;
+        int32_t ret = InputTypeManager::GetInstance().GetImeByInputType(type, ime);
+        if (ret != ErrorCode::NO_ERROR) {
+            return ret;
+        }
+        SwitchInfo switchInfo = { std::chrono::system_clock::now(), ime.bundleName, ime.subName };
+        switchQueue_.Push(switchInfo);
+        IMSA_HILOGI("start input type: %{public}d", type);
+        return type == InputType::SECURITY_INPUT ? OnStartInputType(switchInfo, false)
+                                                 : OnStartInputType(switchInfo, true);
     }
-    SwitchInfo switchInfo = { std::chrono::system_clock::now(), ime.bundleName, ime.subName };
+    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    SwitchInfo switchInfo = { std::chrono::system_clock::now(), cfgIme->bundleName, cfgIme->subName };
     switchQueue_.Push(switchInfo);
-    IMSA_HILOGI("start input type: %{public}d", type);
-    return OnStartInputType(switchInfo);
+    return OnStartInputType(switchInfo, false);
 }
 
 int32_t InputMethodSystemAbility::ExitCurrentInputType()
@@ -404,6 +433,9 @@ int32_t InputMethodSystemAbility::ExitCurrentInputType()
     }
     if (!identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), defaultIme->prop.name)) {
         return ErrorCode::ERROR_NOT_DEFAULT_IME;
+    }
+    if (userSession_->CheckSecurityMode()) {
+        return StartInputType(InputType::SECURITY_INPUT);
     }
     return userSession_->ExitCurrentInputType();
 }
@@ -435,8 +467,9 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
     }
     switchInfo.timestamp = std::chrono::system_clock::now();
     switchQueue_.Push(switchInfo);
-    return InputTypeManager::GetInstance().IsInputType({ bundleName, subName }) ? OnStartInputType(switchInfo)
-                                                                                : OnSwitchInputMethod(switchInfo, true);
+    return InputTypeManager::GetInstance().IsInputType({ bundleName, subName })
+               ? OnStartInputType(switchInfo, true)
+               : OnSwitchInputMethod(switchInfo, true);
 }
 
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission)
@@ -474,15 +507,22 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
     return ret;
 }
 
-int32_t InputMethodSystemAbility::OnStartInputType(const SwitchInfo &switchInfo)
+int32_t InputMethodSystemAbility::OnStartInputType(const SwitchInfo &switchInfo, bool isCheckPermission)
 {
     if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);
         usleep(SWITCH_BLOCK_TIME);
     }
+    auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (switchInfo.bundleName == cfgIme->bundleName && switchInfo.subName == cfgIme->subName) {
+        IMSA_HILOGD("start input type is current ime, exit input type.");
+        int32_t ret = userSession_->ExitCurrentInputType();
+        switchQueue_.Pop();
+        return ret;
+    }
     IMSA_HILOGD("start switch %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
-    if (!IsStartInputTypePermitted()) {
+    if (isCheckPermission && !IsStartInputTypePermitted()) {
         IMSA_HILOGE("not permitted to start input type");
         switchQueue_.Pop();
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
@@ -553,7 +593,10 @@ int32_t InputMethodSystemAbility::SwitchSubType(const std::shared_ptr<ImeInfo> &
 int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
 {
     auto currentImeBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
-    if (switchInfo.bundleName == currentImeBundleName) {
+    bool checkSameIme = InputTypeManager::GetInstance().IsStarted()
+                            ? switchInfo.bundleName == InputTypeManager::GetInstance().GetCurrentIme().bundleName
+                            : switchInfo.bundleName == currentImeBundleName;
+    if (checkSameIme) {
         IMSA_HILOGD("only need to switch subtype: %{public}s", switchInfo.subName.c_str());
         auto ret = userSession_->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
         if (ret == ErrorCode::NO_ERROR) {
@@ -948,9 +991,9 @@ bool InputMethodSystemAbility::IsSwitchPermitted(const SwitchInfo &switchInfo)
 {
     auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
     // if currentIme is switching subtype, permission verification is not performed.
-    if (identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY) ||
-        (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName) &&
-            !switchInfo.subName.empty())) {
+    if (identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)
+        || (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName)
+            && !switchInfo.subName.empty())) {
         return true;
     }
     InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
@@ -969,7 +1012,7 @@ bool InputMethodSystemAbility::IsStartInputTypePermitted()
     if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), defaultIme->prop.name)) {
         return true;
     }
-    if (!InputTypeManager::GetInstance().IsStarted()) {
+    if (!InputTypeManager::GetInstance().IsCameraImeStarted()) {
         return identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid())
                && userSession_->IsBoundToClient();
     }

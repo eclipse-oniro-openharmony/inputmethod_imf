@@ -45,6 +45,7 @@
 #include "message_handler.h"
 #include "panel_info.h"
 #include "unRegistered_type.h"
+
 namespace OHOS {
 namespace MiscServices {
 struct ImeData {
@@ -92,6 +93,7 @@ public:
     bool IsBoundToClient();
     int32_t ExitCurrentInputType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
+    bool CheckSecurityMode();
 
 private:
     struct ResetManager {
