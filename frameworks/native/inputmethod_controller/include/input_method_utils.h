@@ -145,8 +145,6 @@ public:
     CursorInfo cursorInfo = {};
     TextSelection textSelection = {};
     uint32_t windowId = INVALID_WINDOW_ID;
-    double positionY = 0;
-    double height = 0;
 };
 
 struct TextConfig {
@@ -154,8 +152,6 @@ struct TextConfig {
     CursorInfo cursorInfo = {};
     SelectionRange range = {};
     uint32_t windowId = INVALID_WINDOW_ID;
-    double positionY = 0;
-    double height = 0;
 };
 
 enum class InputType {

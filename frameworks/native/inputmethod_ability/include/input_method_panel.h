@@ -48,7 +48,6 @@ public:
     int32_t SetCallingWindow(uint32_t windowId);
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
-    int32_t SetTextFieldAvoidInfo(double positionY, double height);
     uint32_t windowId_ = 0;
 
 private:
