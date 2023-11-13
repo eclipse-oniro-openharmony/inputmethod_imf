@@ -170,7 +170,7 @@ bool InputMethodSysEvent::StartTimer(const TimerCallback &callback, uint32_t int
 {
     IMSA_HILOGD("run in");
     if (timer_ == nullptr) {
-        timer_ = std::make_shared<Utils::Timer>("imfTimer");
+        timer_ = std::make_shared<Utils::Timer>("OS_imfTimer");
         uint32_t ret = timer_->Setup();
         if (ret != Utils::TIMER_ERR_OK) {
             IMSA_HILOGE("Create Timer error");
