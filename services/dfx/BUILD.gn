@@ -15,6 +15,12 @@ import("//base/inputmethod/imf/inputmethod.gni")
 import("//build/ohos.gni")
 
 ohos_static_library("inputmethod_dfx_static") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [
     "src/inputmethod_dump.cpp",
     "src/inputmethod_sysevent.cpp",

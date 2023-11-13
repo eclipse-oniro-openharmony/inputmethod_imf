@@ -35,6 +35,12 @@ config("inputmethod_js_common_public_config") {
 }
 
 ohos_static_library("inputmethod_js_common") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [
     "event_checker.cpp",
     "js_callback_handler.cpp",

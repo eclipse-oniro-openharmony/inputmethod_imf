@@ -31,6 +31,12 @@ gen_js_obj("inputmethodlist_abc") {
 }
 
 ohos_shared_library("inputmethodlist") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [ "inputmethodlist.cpp" ]
 
   deps = [ ":inputmethodlist_abc" ]
