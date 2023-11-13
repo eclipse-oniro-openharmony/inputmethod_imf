@@ -12,5 +12,5 @@
 # limitations under the License.
 
 [cfi]
-src:*/test/unittest/cpp_test/src/identity_checker_test.cpp
-src:*/test/unittest/cpp_test/src/input_method_controller_test.cpp
+src:*/base/inputmethod/imf/test/unittest/cpp_test/src/*
+src:*/base/inputmethod/imf/test/*
