@@ -669,7 +669,6 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
     InputMethodSyncTrace tracer("DispatchKeyEvent trace");
-    IMSA_HILOGI("InputMethodController in");
     if (!isEditable_.load()) {
         IMSA_HILOGE("not in editable state");
         return false;
@@ -683,6 +682,7 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
         IMSA_HILOGE("agent is nullptr");
         return false;
     }
+    IMSA_HILOGI("InputMethodController start");
     return agent_->DispatchKeyEvent(keyEvent);
 }
 

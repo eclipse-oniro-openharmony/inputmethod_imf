@@ -37,7 +37,7 @@ InputDataChannelStub::~InputDataChannelStub()
 int32_t InputDataChannelStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("InputDataChannelStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
+    IMSA_HILOGD("InputDataChannelStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != IInputDataChannel::GetDescriptor()) {
@@ -53,6 +53,8 @@ int32_t InputDataChannelStub::OnRemoteRequest(
 
 int32_t InputDataChannelStub::InsertTextOnRemote(MessageParcel &data, MessageParcel &reply)
 {
+    IMSA_HILOGI("InputDataChannelStub, callingPid: %{public}d, callingUid: %{public}d", IPCSkeleton::GetCallingPid(),
+        IPCSkeleton::GetCallingUid());
     std::u16string text;
     if (!ITypesUtil::Unmarshal(data, text)) {
         IMSA_HILOGE("failed to read message parcel");
@@ -114,6 +116,8 @@ int32_t InputDataChannelStub::GetTextConfigOnRemote(MessageParcel &data, Message
 
 int32_t InputDataChannelStub::SendKeyboardStatusOnRemote(MessageParcel &data, MessageParcel &reply)
 {
+    IMSA_HILOGI("InputDataChannelStub, callingPid: %{public}d, callingUid: %{public}d", IPCSkeleton::GetCallingPid(),
+        IPCSkeleton::GetCallingUid());
     int32_t status = -1;
     if (!ITypesUtil::Unmarshal(data, status)) {
         IMSA_HILOGE("failed to read message parcel");
@@ -198,6 +202,8 @@ int32_t InputDataChannelStub::GetTextIndexAtCursorOnRemote(MessageParcel &data, 
 
 int32_t InputDataChannelStub::NotifyPanelStatusInfoOnRemote(MessageParcel &data, MessageParcel &reply)
 {
+    IMSA_HILOGI("InputDataChannelStub, callingPid: %{public}d, callingUid: %{public}d", IPCSkeleton::GetCallingPid(),
+        IPCSkeleton::GetCallingUid());
     PanelStatusInfo info{};
     if (!ITypesUtil::Unmarshal(data, info)) {
         IMSA_HILOGE("failed to read message parcel");
