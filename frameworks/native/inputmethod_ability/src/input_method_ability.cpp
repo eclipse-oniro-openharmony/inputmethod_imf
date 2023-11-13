@@ -180,7 +180,7 @@ void InputMethodAbility::SetKdListener(std::shared_ptr<KeyboardListener> kdListe
 
 void InputMethodAbility::WorkThread()
 {
-    prctl(PR_SET_NAME, "IMAWorkThread");
+    prctl(PR_SET_NAME, "OS_IMAWorkThread");
     while (!stop_) {
         Message *msg = msgHandler_->GetMessage();
         switch (msg->msgId_) {

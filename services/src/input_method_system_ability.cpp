@@ -164,7 +164,7 @@ void InputMethodSystemAbility::InitServiceHandler()
         IMSA_HILOGE("InputMethodSystemAbility, already init.");
         return;
     }
-    std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("InputMethodSystemAbility");
+    std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_InputMethodSystemAbility");
     serviceHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
 
     IMSA_HILOGI("InitServiceHandler succeeded.");
@@ -696,7 +696,7 @@ int32_t InputMethodSystemAbility::ListInputMethodSubtype(
  */
 void InputMethodSystemAbility::WorkThread()
 {
-    prctl(PR_SET_NAME, "IMSAWorkThread");
+    prctl(PR_SET_NAME, "OS_IMSAWorkThread");
     while (!stop_) {
         Message *msg = MessageHandler::Instance()->GetMessage();
         switch (msg->msgId_) {
