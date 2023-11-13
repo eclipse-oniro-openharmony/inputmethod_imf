@@ -58,7 +58,7 @@ public:
         bool IsBroker(Security::AccessToken::AccessTokenID tokenId) override
         {
             return isBroker_;
-        }       
+        }
         bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) override
         {
             return isNativeSa_;

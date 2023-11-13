@@ -59,6 +59,7 @@ namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t RETRY_TIME = 200 * 1000;
 constexpr uint32_t RETRY_TIMES = 5;
+constexpr uint32_t WAIT_INTERVAL = 500;
 using WindowMgr = TddUtil::WindowManager;
 
 class SelectListenerMock : public ControllerListener {
@@ -94,7 +95,7 @@ std::condition_variable SelectListenerMock::selectListenerCv_;
 void SelectListenerMock::WaitSelectListenerCallback()
 {
     std::unique_lock<std::mutex> lock(selectListenerMutex_);
-    selectListenerCv_.wait_for(lock, std::chrono::seconds(2));
+    selectListenerCv_.wait_for(lock, std::chrono::milliseconds(WAIT_INTERVAL));
 }
 
 class InputMethodControllerTest : public testing::Test {
