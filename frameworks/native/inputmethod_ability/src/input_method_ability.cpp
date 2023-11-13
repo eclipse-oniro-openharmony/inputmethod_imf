@@ -381,7 +381,7 @@ int32_t InputMethodAbility::ShowKeyboard()
         IMSA_HILOGE("InputMethodAbility::channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    if (isPanelKeyboard_.load()) {
+    if (panels_.Contains(SOFT_KEYBOARD)) {
         auto panel = GetSoftKeyboardPanel();
         if (panel == nullptr) {
             return ErrorCode::ERROR_IME;
@@ -704,10 +704,6 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
     const PanelInfo &panelInfo, std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
     IMSA_HILOGI("InputMethodAbility::CreatePanel start.");
-    bool isSoftKeyboard = panelInfo.panelType == PanelType::SOFT_KEYBOARD;
-    if (isSoftKeyboard) {
-        isPanelKeyboard_.store(true);
-    }
     auto flag = panels_.ComputeIfAbsent(panelInfo.panelType,
         [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType,
             std::shared_ptr<InputMethodPanel> &panel) {
@@ -720,11 +716,7 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
             inputMethodPanel = nullptr;
             return false;
         });
-    if (!flag) {
-        isPanelKeyboard_.store(false);
-        return ErrorCode::ERROR_OPERATE_PANEL;
-    }
-    return ErrorCode::NO_ERROR;
+    return flag ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
 int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
@@ -733,12 +725,9 @@ int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel>
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    PanelType panelType = inputMethodPanel->GetPanelType();
-    if (panelType == PanelType::SOFT_KEYBOARD) {
-        isPanelKeyboard_.store(false);
-    }
     auto ret = inputMethodPanel->DestroyPanel();
     if (ret == ErrorCode::NO_ERROR) {
+        PanelType panelType = inputMethodPanel->GetPanelType();
         panels_.Erase(panelType);
     }
     return ret;
@@ -810,7 +799,7 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
 
-    if (isPanelKeyboard_.load()) {
+    if (panels_.Contains(SOFT_KEYBOARD)) {
         auto panel = GetSoftKeyboardPanel();
         if (panel == nullptr) {
             return ErrorCode::ERROR_IME;
