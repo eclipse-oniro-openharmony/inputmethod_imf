@@ -18,7 +18,6 @@
 #undef private
 
 #include <event_handler.h>
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <string_ex.h>
 #include <sys/time.h>
@@ -67,9 +66,36 @@ public:
     SelectListenerMock() = default;
     ~SelectListenerMock() override = default;
 
-    MOCK_METHOD2(OnSelectByRange, void(int32_t start, int32_t end));
-    MOCK_METHOD1(OnSelectByMovement, void(int32_t direction));
+    void OnSelectByRange(int32_t start, int32_t end) override
+    {
+        start_ = start;
+        end_ = end;
+        selectListenerCv_.notify_all();
+    }
+
+    void OnSelectByMovement(int32_t direction) override
+    {
+        direction_ = direction;
+        selectListenerCv_.notify_all();
+    }
+    static void WaitSelectListenerCallback();
+    static int32_t start_;
+    static int32_t end_;
+    static int32_t direction_;
+    static std::mutex selectListenerMutex_;
+    static std::condition_variable selectListenerCv_;
 };
+
+int32_t SelectListenerMock::start_ = 0;
+int32_t SelectListenerMock::end_ = 0;
+int32_t SelectListenerMock::direction_ = 0;
+std::mutex SelectListenerMock::selectListenerMutex_;
+std::condition_variable SelectListenerMock::selectListenerCv_;
+void SelectListenerMock::WaitSelectListenerCallback()
+{
+    std::unique_lock<std::mutex> lock(selectListenerMutex_);
+    selectListenerCv_.wait_for(lock, std::chrono::seconds(2));
+}
 
 class InputMethodControllerTest : public testing::Test {
 public:
@@ -807,27 +833,32 @@ HWTEST_F(InputMethodControllerTest, testSetControllerListener, TestSize.Level0)
 
     int32_t ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_CALL(*controllerListener_, OnSelectByRange(Eq(1), Eq(2))).Times(1);
+    SelectListenerMock::start_ = 0;
+    SelectListenerMock::end_ = 0;
     inputMethodAbility_->SelectByRange(1, 2);
+    SelectListenerMock::WaitSelectListenerCallback();
+    EXPECT_EQ(SelectListenerMock::start_, 1);
+    EXPECT_EQ(SelectListenerMock::end_, 2);
 
-    Sequence s;
-    EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::UP))))
-        .Times(1)
-        .InSequence(s);
-    EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::DOWN))))
-        .Times(1)
-        .InSequence(s);
-    EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::LEFT))))
-        .Times(1)
-        .InSequence(s);
-    EXPECT_CALL(*controllerListener_, OnSelectByMovement(Eq(static_cast<int32_t>(Direction::RIGHT))))
-        .Times(1)
-        .InSequence(s);
+    SelectListenerMock::direction_ = 0;
     inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::UP));
+    SelectListenerMock::WaitSelectListenerCallback();
+    EXPECT_EQ(SelectListenerMock::direction_, static_cast<int32_t>(Direction::UP));
+
+    SelectListenerMock::direction_ = 0;
     inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::DOWN));
+    SelectListenerMock::WaitSelectListenerCallback();
+    EXPECT_EQ(SelectListenerMock::direction_, static_cast<int32_t>(Direction::DOWN));
+
+    SelectListenerMock::direction_ = 0;
     inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::LEFT));
+    SelectListenerMock::WaitSelectListenerCallback();
+    EXPECT_EQ(SelectListenerMock::direction_, static_cast<int32_t>(Direction::LEFT));
+
+    SelectListenerMock::direction_ = 0;
     inputMethodAbility_->SelectByMovement(static_cast<int32_t>(Direction::RIGHT));
-    controllerListener_ = nullptr;
+    SelectListenerMock::WaitSelectListenerCallback();
+    EXPECT_EQ(SelectListenerMock::direction_, static_cast<int32_t>(Direction::RIGHT));
 }
 
 /**

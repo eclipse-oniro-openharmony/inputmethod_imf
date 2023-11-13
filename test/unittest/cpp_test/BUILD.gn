@@ -45,7 +45,6 @@ ohos_unittest("InputMethodControllerTest") {
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -459,7 +458,6 @@ ohos_unittest("IdentityCheckerTest") {
     "${inputmethod_path}/services/adapter/enable_ime_provider:enable_ime_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
 
