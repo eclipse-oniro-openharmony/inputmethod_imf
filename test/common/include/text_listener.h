@@ -64,9 +64,7 @@ public:
     static int32_t action_;
     static KeyboardStatus keyboardStatus_;
     static PanelStatusInfo info_;
-    static bool isTimeout_;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
-    static constexpr int32_t MAX_TIMEOUT = 2700000;
     static constexpr int32_t TEXT_INDEX = 455;
     static constexpr const char *TEXT_BEFORE_CURSOR = "before";
     static constexpr const char *TEXT_AFTER_CURSOR = "after";

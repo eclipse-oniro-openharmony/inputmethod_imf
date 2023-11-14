@@ -115,23 +115,14 @@ void TextListener::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
 }
 std::u16string TextListener::GetLeftTextOfCursor(int32_t number)
 {
-    if (isTimeout_) {
-        usleep(MAX_TIMEOUT);
-    }
     return Str8ToStr16(TEXT_BEFORE_CURSOR);
 }
 std::u16string TextListener::GetRightTextOfCursor(int32_t number)
 {
-    if (isTimeout_) {
-        usleep(MAX_TIMEOUT);
-    }
     return Str8ToStr16(TEXT_AFTER_CURSOR);
 }
 int32_t TextListener::GetTextIndexAtCursor()
 {
-    if (isTimeout_) {
-        usleep(MAX_TIMEOUT);
-    }
     return TEXT_INDEX;
 }
 void TextListener::NotifyPanelStatusInfo(const PanelStatusInfo &info)
@@ -141,10 +132,6 @@ void TextListener::NotifyPanelStatusInfo(const PanelStatusInfo &info)
         info.visible, static_cast<Trigger>(info.trigger));
     info_ = info;
     textListenerCv_.notify_one();
-}
-void TextListener::setTimeout(bool isTimeout)
-{
-    isTimeout_ = isTimeout;
 }
 void TextListener::ResetParam()
 {
