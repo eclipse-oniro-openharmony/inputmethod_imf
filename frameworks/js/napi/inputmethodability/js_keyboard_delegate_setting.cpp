@@ -165,7 +165,7 @@ napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_
 void JsKeyboardDelegateSetting::RegisterListener(
     napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
 {
-    IMSA_HILOGI("RegisterListener %{public}s", type.c_str());
+    IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGE("methodName %{public}s not registered!", type.c_str());
@@ -291,7 +291,6 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
 
 bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
 {
-    IMSA_HILOGD("run in");
     std::string type = "keyEvent";
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
     uv_work_t *work = GetUVwork(type, [keyEvent, isDone](UvEntry &entry) {
@@ -299,9 +298,10 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
         entry.isDone = isDone;
     });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv work");
+        IMSA_HILOGD("failed to get uv work");
         return false;
     }
+    IMSA_HILOGI("JsKeyboardDelegateSetting, run in");
     StartAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
@@ -339,7 +339,6 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
 
 bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
-    IMSA_HILOGD("run in");
     KeyEventPara para{ keyCode, keyStatus, false };
     std::string type = (keyStatus == ARGC_TWO ? "keyDown" : "keyUp");
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
@@ -348,9 +347,10 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
         entry.isDone = isDone;
     });
     if (work == nullptr) {
-        IMSA_HILOGE("failed to get uv work");
+        IMSA_HILOGD("failed to get uv work");
         return false;
     }
+    IMSA_HILOGI("JsKeyboardDelegateSetting, run in");
     StartAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
@@ -389,7 +389,6 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 
 void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
-    IMSA_HILOGD("run in");
     CursorPara para{ positionX, positionY, height };
     std::string type = "cursorContextChange";
     uv_work_t *work = GetUVwork(type, [&para](UvEntry &entry) {
@@ -401,6 +400,8 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
+    IMSA_HILOGI(
+        "JsKeyboardDelegateSetting, x: %{public}d, y: %{public}d, height: %{public}d", positionX, positionY, height);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -429,7 +430,6 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
 
 void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
-    IMSA_HILOGD("run in");
     SelectionPara para{ oldBegin, oldEnd, newBegin, newEnd };
     std::string type = "selectionChange";
     uv_work_t *work = GetUVwork(type, [&para](UvEntry &entry) {
@@ -442,6 +442,9 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
+    IMSA_HILOGI("JsKeyboardDelegateSetting, oldBegin: %{public}d, oldEnd: %{public}d, newBegin: %{public}d, newEnd: "
+                "%{public}d",
+        oldBegin, oldEnd, newBegin, newEnd);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -472,13 +475,13 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
 
 void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 {
-    IMSA_HILOGD("run in");
     std::string type = "textChange";
     uv_work_t *work = GetUVwork(type, [&text](UvEntry &entry) { entry.text = text; });
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
+    IMSA_HILOGI("JsKeyboardDelegateSetting, run in");
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -503,15 +506,15 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 
 void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &inputAttribute)
 {
-    IMSA_HILOGI("run in");
     std::string type = "editorAttributeChanged";
-    uv_work_t *work = JsKeyboardDelegateSetting::GetUVwork(type, [&inputAttribute](UvEntry &entry) {
-        entry.inputAttribute = inputAttribute;
-    });
+    uv_work_t *work = JsKeyboardDelegateSetting::GetUVwork(
+        type, [&inputAttribute](UvEntry &entry) { entry.inputAttribute = inputAttribute; });
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
+    IMSA_HILOGI("JsKeyboardDelegateSetting, enterKeyType: %{public}d, inputPattern: %{public}d",
+        inputAttribute.enterKeyType, inputAttribute.inputPattern);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -548,7 +551,7 @@ uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySe
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
+            IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);

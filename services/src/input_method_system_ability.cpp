@@ -99,7 +99,7 @@ void InputMethodSystemAbility::OnStart()
 
 int InputMethodSystemAbility::Dump(int fd, const std::vector<std::u16string> &args)
 {
-    IMSA_HILOGI("InputMethodSystemAbility::Dump");
+    IMSA_HILOGD("InputMethodSystemAbility::Dump");
     std::vector<std::string> argsStr;
     for (auto item : args) {
         argsStr.emplace_back(Str16ToStr8(item));
@@ -110,7 +110,7 @@ int InputMethodSystemAbility::Dump(int fd, const std::vector<std::u16string> &ar
 
 void InputMethodSystemAbility::DumpAllMethod(int fd)
 {
-    IMSA_HILOGI("InputMethodSystemAbility::DumpAllMethod");
+    IMSA_HILOGD("InputMethodSystemAbility::DumpAllMethod");
     std::vector<int32_t> ids;
     int errCode = OsAccountManager::QueryActiveOsAccountIds(ids);
     if (errCode != ERR_OK) {
@@ -121,13 +121,13 @@ void InputMethodSystemAbility::DumpAllMethod(int fd)
     for (auto id : ids) {
         const auto &params = ImeInfoInquirer::GetInstance().GetDumpInfo(id);
         if (params.empty()) {
-            IMSA_HILOGI("userId: %{public}d The IME properties is empty.", id);
+            IMSA_HILOGD("userId: %{public}d The IME properties is empty.", id);
             dprintf(fd, "\n - The IME properties about the Active Id %d is empty.\n", id);
             continue;
         }
         dprintf(fd, "\n - The Active Id:%d get input method:\n%s\n", id, params.c_str());
     }
-    IMSA_HILOGI("InputMethodSystemAbility::DumpAllMethod end.");
+    IMSA_HILOGD("InputMethodSystemAbility::DumpAllMethod end.");
 }
 
 int32_t InputMethodSystemAbility::Init()

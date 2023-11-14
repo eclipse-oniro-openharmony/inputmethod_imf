@@ -54,7 +54,7 @@ int32_t InputClientProxy::OnPanelStatusChange(
 
 int32_t InputClientProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGI("InputClientProxy run in, code = %{public}d", code);
+    IMSA_HILOGD("InputClientProxy run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_SYNC };

@@ -36,7 +36,7 @@ InputClientStub::~InputClientStub()
 int32_t InputClientStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("InputClientStub code = %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
+    IMSA_HILOGD("InputClientStub code = %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != GetDescriptor()) {
@@ -65,6 +65,7 @@ int32_t InputClientStub::OnRemoteRequest(
 
 void InputClientStub::OnInputReadyOnRemote(MessageParcel &data, MessageParcel &reply)
 {
+    IMSA_HILOGI("InputClientStub, run in");
     auto object = data.ReadRemoteObject();
     InputMethodController::GetInstance()->OnInputReady(object);
 }
@@ -76,7 +77,6 @@ int32_t InputClientStub::OnInputStopOnRemote(MessageParcel &data, MessageParcel 
 
 int32_t InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("InputClientStub::OnSwitchInputOnRemote");
     Property property;
     SubProperty subProperty;
     if (!ITypesUtil::Unmarshal(data, property, subProperty)) {
@@ -89,7 +89,6 @@ int32_t InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParce
 
 int32_t InputClientStub::OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("InputClientStub::OnPanelStatusChangeOnRemote");
     uint32_t status;
     std::vector<InputWindowInfo> windowInfo;
     if (!ITypesUtil::Unmarshal(data, status, windowInfo)) {

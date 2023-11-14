@@ -576,7 +576,6 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
 
 void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
-    IMSA_HILOGD("run in");
     std::string type = "imeChange";
     uv_work_t *work = GetUVwork(type, [&property, &subProperty](UvEntry &entry) {
         entry.property = property;
@@ -586,6 +585,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
+    IMSA_HILOGI("JsGetInputMethodSetting, run in");
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -622,9 +622,9 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
 void JsGetInputMethodSetting::OnPanelStatusChange(
     const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
 {
-    IMSA_HILOGI("status: %{public}u", static_cast<uint32_t>(status));
     auto it = PANEL_STATUS.find(status);
     if (it == PANEL_STATUS.end()) {
+        IMSA_HILOGE("invalid panel status");
         return;
     }
     auto type = it->second;
@@ -633,6 +633,7 @@ void JsGetInputMethodSetting::OnPanelStatusChange(
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
+    IMSA_HILOGI("JsGetInputMethodSetting, status: %{public}u", static_cast<uint32_t>(status));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -671,7 +672,7 @@ uv_work_t *JsGetInputMethodSetting::GetUVwork(const std::string &type, EntrySett
         std::lock_guard<std::recursive_mutex> lock(mutex_);
 
         if (jsCbMap_[type].empty()) {
-            IMSA_HILOGE("%{public}s cb-vector is empty", type.c_str());
+            IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
         entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);

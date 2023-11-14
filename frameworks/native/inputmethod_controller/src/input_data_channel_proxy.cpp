@@ -30,6 +30,7 @@ InputDataChannelProxy::InputDataChannelProxy(const sptr<IRemoteObject> &object)
 
 int32_t InputDataChannelProxy::InsertText(const std::u16string &text)
 {
+    IMSA_HILOGI("InputDataChannelProxy run in");
     return SendRequest(INSERT_TEXT, [&text](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text); });
 }
 
@@ -60,12 +61,14 @@ int32_t InputDataChannelProxy::GetTextAfterCursor(int32_t number, std::u16string
 
 void InputDataChannelProxy::SendKeyboardStatus(KeyboardStatus status)
 {
+    IMSA_HILOGI("InputDataChannelProxy run in");
     SendRequest(SEND_KEYBOARD_STATUS,
         [status](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, static_cast<int32_t>(status)); });
 }
 
 void InputDataChannelProxy::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
+    IMSA_HILOGI("InputDataChannelProxy run in");
     SendRequest(NOTIFY_PANEL_STATUS_INFO, [&info](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, info); });
 }
 
@@ -139,7 +142,7 @@ void InputDataChannelProxy::GetMessageOption(int32_t code, MessageOption &option
 
 int32_t InputDataChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGI("InputDataChannelProxy run in, code = %{public}d", code);
+    IMSA_HILOGD("InputDataChannelProxy run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;

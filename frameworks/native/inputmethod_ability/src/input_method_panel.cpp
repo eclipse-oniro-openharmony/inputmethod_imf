@@ -257,11 +257,11 @@ int32_t InputMethodPanel::SetPrivacyMode(bool isPrivacyMode)
 void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
 {
     if (status == InputWindowStatus::SHOW && showRegistered_ && panelStatusListener_ != nullptr) {
-        IMSA_HILOGE("InputMethodPanel::ShowPanel panelStatusListener_ is not nullptr");
+        IMSA_HILOGD("InputMethodPanel::ShowPanel panelStatusListener_ is not nullptr");
         panelStatusListener_->OnPanelStatus(windowId_, true);
     }
     if (status == InputWindowStatus::HIDE && hideRegistered_ && panelStatusListener_ != nullptr) {
-        IMSA_HILOGE("InputMethodPanel::HidePanel panelStatusListener_ is not nullptr");
+        IMSA_HILOGD("InputMethodPanel::HidePanel panelStatusListener_ is not nullptr");
         panelStatusListener_->OnPanelStatus(windowId_, false);
     }
     auto imsa = ImaUtils::GetImsaProxy();

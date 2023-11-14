@@ -43,12 +43,12 @@ int32_t InputControlChannelProxy::HideKeyboardSelf()
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        IMSA_HILOGE("InputControlChannelProxy::HideKeyboardSelf descriptor is not match");
+        IMSA_HILOGE("InputControlChannelProxy descriptor is not match");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     auto ret = Remote()->SendRequest(HIDE_KEYBOARD_SELF, data, reply, option);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("InputControlChannelProxy::HideKeyboardSelf SendRequest failed");
+        IMSA_HILOGE("InputControlChannelProxy SendRequest failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     return reply.ReadInt32();
