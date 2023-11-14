@@ -393,7 +393,8 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
             UnBindClientWithIme(clientInfo);
         }
     }
-    InputClientInfo infoTemp = { .isShowKeyboard = isShowKeyboard, .client = client, .channel = clientInfo->channel };
+    InputClientInfo infoTemp = *clientInfo;
+    infoTemp.isShowKeyboard = isShowKeyboard;
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
     {
@@ -712,19 +713,18 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     std::shared_ptr<InputClientInfo> clientInfo;
     {
         std::lock_guard<std::recursive_mutex> lock(mtx);
-        for (const auto &mapClient : mapClients_) {
-            if (mapClient.second->pid == pid) {
-                clientInfo = mapClient.second;
-                break;
-            }
+        auto iter = std::find_if(mapClients_.begin(), mapClients_.end(), [pid](const auto &mapClient) {
+            return mapClient.second->pid == pid;
+        });
+        if (iter != mapClients_.end()) {
+            clientInfo = iter->second;
         }
     }
     if (clientInfo != nullptr) {
         if (clientInfo->isAttaching) {
             std::unique_lock<std::mutex> lock(attachLock_);
-            imeAttachCv_.wait_for(lock, std::chrono::milliseconds(IME_ATTACH_INTERVAL), [&clientInfo]() {
-                return !clientInfo->isAttaching;
-            });
+            imeAttachCv_.wait_for(lock, std::chrono::milliseconds(IME_ATTACH_INTERVAL),
+                [&clientInfo]() { return !clientInfo->isAttaching; });
         }
         RemoveClient(clientInfo->client);
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
@@ -932,6 +932,16 @@ int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     return ime->core->IsPanelShown(panelInfo, isShown);
+}
+
+bool PerUserSession::CheckSecurityMode()
+{
+    auto client = GetCurrentClient();
+    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
+    if (clientInfo != nullptr) {
+        return clientInfo->config.inputAttribute.GetSecurityFlag();
+    }
+    return false;
 }
 } // namespace MiscServices
 } // namespace OHOS

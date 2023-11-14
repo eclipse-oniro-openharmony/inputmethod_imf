@@ -34,11 +34,11 @@ class DataShareResultSet {
 public:
     DataShareResultSet() = default;
     ~DataShareResultSet() = default;
-    int32_t GetRowCount(int32_t &count);
-    int32_t Close();
-    int32_t GoToFirstRow();
-    int32_t GetColumnIndex(const std::string &columnName, int32_t &columnIndex);
-    int32_t GetString(int columnIndex, std::string &value);
+    static int32_t GetRowCount(int32_t &count);
+    static int32_t Close();
+    static int32_t GoToFirstRow();
+    static int32_t GetColumnIndex(const std::string &columnName, int32_t &columnIndex);
+    int32_t GetString(int columnIndex, std::string &value) const;
 
 private:
     std::string strValue_;
@@ -52,9 +52,9 @@ public:
         const sptr<IRemoteObject> &token, const std::string &strUri, const std::string &extUri);
     std::shared_ptr<DataShareResultSet> Query(Uri &uri, const DataSharePredicates &predicates,
         std::vector<std::string> &columns, DatashareBusinessError *businessError = nullptr);
-    void RegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
-    void UnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
-    bool Release();
+    static void RegisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
+    static void UnregisterObserver(const Uri &uri, const sptr<AAFwk::IDataAbilityObserver> &dataObserver);
+    static bool Release();
 
 private:
     static std::shared_ptr<DataShareHelper> instance_;

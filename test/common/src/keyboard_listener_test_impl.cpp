@@ -25,6 +25,7 @@ int32_t KeyboardListenerTestImpl::keyCode_{ -1 };
 int32_t KeyboardListenerTestImpl::cursorHeight_{ -1 };
 int32_t KeyboardListenerTestImpl::newBegin_{ -1 };
 std::string KeyboardListenerTestImpl::text_;
+InputAttribute KeyboardListenerTestImpl::inputAttribute_{ 0, 0, 0 };
 bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
 {
     keyCode_ = keyCode;
@@ -45,12 +46,20 @@ void KeyboardListenerTestImpl::OnTextChange(const std::string &text)
     text_ = text;
     kdListenerCv_.notify_one();
 }
+void KeyboardListenerTestImpl::OnEditorAttributeChange(const InputAttribute &inputAttribute)
+{
+    inputAttribute_ = inputAttribute;
+    kdListenerCv_.notify_one();
+}
 void KeyboardListenerTestImpl::ResetParam()
 {
     keyCode_ = -1;
     cursorHeight_ = -1;
     newBegin_ = -1;
     text_ = "";
+    inputAttribute_.inputPattern = 0;
+    inputAttribute_.enterKeyType = 0;
+    inputAttribute_.inputOption = 0;
 }
 bool KeyboardListenerTestImpl::WaitKeyEvent(int32_t keyCode)
 {
@@ -75,6 +84,13 @@ bool KeyboardListenerTestImpl::WaitTextChange(const std::string &text)
     std::unique_lock<std::mutex> lock(kdListenerLock_);
     kdListenerCv_.wait_for(lock, std::chrono::seconds(1), [&text]() { return text == text_; });
     return text == text_;
+}
+bool KeyboardListenerTestImpl::WaitEditorAttributeChange(const InputAttribute &inputAttribute)
+{
+    std::unique_lock<std::mutex> lock(kdListenerLock_);
+    kdListenerCv_.wait_for(
+        lock, std::chrono::seconds(1), [&inputAttribute]() { return inputAttribute == inputAttribute_; });
+    return inputAttribute == inputAttribute_;
 }
 } // namespace MiscServices
 } // namespace OHOS

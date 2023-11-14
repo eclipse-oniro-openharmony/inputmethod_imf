@@ -19,7 +19,6 @@
 #include "input_method_system_ability.h"
 #undef private
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -40,12 +39,36 @@ public:
     public:
         IdentityCheckerMock() = default;
         virtual ~IdentityCheckerMock() = default;
-        MOCK_METHOD3(IsFocused, bool(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid));
-        MOCK_METHOD1(IsSystemApp, bool(uint64_t fullTokenID));
-        MOCK_METHOD2(IsBundleNameValid, bool(uint32_t tokenID, const std::string &validBundleName));
-        MOCK_METHOD2(HasPermission, bool(uint32_t tokenID, const std::string &permission));
-        MOCK_METHOD1(IsBroker, bool(uint32_t tokenID));
-        MOCK_METHOD1(IsNativeSa, bool(uint32_t tokenID));
+        bool IsFocused(int64_t callingPid, uint32_t callingTokenId, int64_t focusedPid = INVALID_PID) override
+        {
+            return isFocused_;
+        }
+        bool IsSystemApp(uint64_t fullTokenId) override
+        {
+            return isSystemApp_;
+        }
+        bool IsBundleNameValid(uint32_t tokenId, const std::string &validBundleName) override
+        {
+            return isBundleNameValid_;
+        }
+        bool HasPermission(uint32_t tokenId, const std::string &permission) override
+        {
+            return hasPermission_;
+        }
+        bool IsBroker(Security::AccessToken::AccessTokenID tokenId) override
+        {
+            return isBroker_;
+        }
+        bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) override
+        {
+            return isNativeSa_;
+        }
+        static bool isFocused_;
+        static bool isSystemApp_;
+        static bool isBundleNameValid_;
+        static bool hasPermission_;
+        static bool isBroker_;
+        static bool isNativeSa_;
     };
     static constexpr uint32_t CURRENT_USERID = 101;
     static const constexpr char *CURRENT_IME = "testBundleName/testExtname";
@@ -59,6 +82,12 @@ public:
     static std::shared_ptr<IdentityCheckerMock> identityCheckerMock_;
     static std::shared_ptr<IdentityCheckerImpl> identityCheckerImpl_;
 };
+bool IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
+bool IdentityCheckerTest::IdentityCheckerMock::isSystemApp_ = false;
+bool IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
+bool IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = false;
+bool IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+bool IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = false;
 
 void IdentityCheckerTest::SetUpTestCase(void)
 {
@@ -140,8 +169,8 @@ HWTEST_F(IdentityCheckerTest, testStartInput_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testStartInput_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStartInput_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(false));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo inputClientInfo;
     int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
@@ -158,8 +187,8 @@ HWTEST_F(IdentityCheckerTest, testStartInput_002, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testStartInput_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStartInput_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo inputClientInfo;
     int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
@@ -176,8 +205,8 @@ HWTEST_F(IdentityCheckerTest, testStartInput_003, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testStartInput_004, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStartInput_004 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     sptr<IRemoteObject> agent = nullptr;
     InputClientInfo inputClientInfo;
     int32_t ret = IdentityCheckerTest::service_->StartInput(inputClientInfo, agent);
@@ -209,8 +238,8 @@ HWTEST_F(IdentityCheckerTest, testStopInput_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testStopInput_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInput_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(false));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
     int32_t ret = IdentityCheckerTest::service_->HideInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
@@ -225,8 +254,8 @@ HWTEST_F(IdentityCheckerTest, testStopInput_002, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testStopInput_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInput_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     InputClientInfo clientInfo{};
     int32_t ret = IdentityCheckerTest::service_->HideInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
@@ -242,8 +271,8 @@ HWTEST_F(IdentityCheckerTest, testStopInput_003, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testStopInput_004, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInput_004 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     InputClientInfo clientInfo{};
     int32_t ret = IdentityCheckerTest::service_->HideInput(nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
@@ -274,8 +303,8 @@ HWTEST_F(IdentityCheckerTest, testStopInputSession_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testStopInputSession_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInputSession_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(false));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
     int32_t ret = IdentityCheckerTest::service_->StopInputSession();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
@@ -290,8 +319,8 @@ HWTEST_F(IdentityCheckerTest, testStopInputSession_002, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testStopInputSession_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInputSession_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     InputClientInfo clientInfo{};
     int32_t ret = IdentityCheckerTest::service_->StopInputSession();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
@@ -307,8 +336,8 @@ HWTEST_F(IdentityCheckerTest, testStopInputSession_003, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testStopInputSession_004, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testStopInputSession_004 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     InputClientInfo clientInfo{};
     int32_t ret = IdentityCheckerTest::service_->StopInputSession();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
@@ -339,9 +368,7 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
-        .Times(1)
-        .WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     int32_t ret = IdentityCheckerTest::service_->SetCoreAndAgent(nullptr, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
@@ -356,10 +383,8 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_002, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSetCoreAndAgent_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
-        .Times(1)
-        .WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsNativeSa(_)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = true;
     int32_t ret = IdentityCheckerTest::service_->SetCoreAndAgent(nullptr, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 }
@@ -374,7 +399,7 @@ HWTEST_F(IdentityCheckerTest, testSetCoreAndAgent_003, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testUnRegisteredProxyIme_001 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsNativeSa(_)).Times(1).WillRepeatedly(Return(false));
+    IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = false;
     int32_t ret = IdentityCheckerTest::service_->UnRegisteredProxyIme(UnRegisteredType::REMOVE_PROXY_IME, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
 }
@@ -389,7 +414,7 @@ HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testUnRegisteredProxyIme_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testUnRegisteredProxyIme_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsNativeSa(_)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = true;
     int32_t ret = IdentityCheckerTest::service_->UnRegisteredProxyIme(UnRegisteredType::NONE, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
 }
@@ -419,9 +444,7 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testIsCurrentIme_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testIsCurrentIme_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
-        .Times(1)
-        .WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     bool ret = IdentityCheckerTest::service_->IsCurrentIme();
     EXPECT_TRUE(ret);
 }
@@ -436,7 +459,7 @@ HWTEST_F(IdentityCheckerTest, testIsCurrentIme_002, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testHideCurrentInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInput_001 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
     int32_t ret = IdentityCheckerTest::service_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
@@ -451,8 +474,8 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInput_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testHideCurrentInput_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInput_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, HasPermission(_, _)).Times(1).WillRepeatedly(Return(false));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = false;
     int32_t ret = IdentityCheckerTest::service_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
 }
@@ -467,9 +490,9 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInput_002, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testHideCurrentInput_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInput_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, HasPermission(_, _)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(false));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
     int32_t ret = IdentityCheckerTest::service_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 }
@@ -484,9 +507,9 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInput_003, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testHideCurrentInput_004, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInput_004 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, HasPermission(_, _)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     int32_t ret = IdentityCheckerTest::service_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
@@ -501,7 +524,7 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInput_004, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testShowCurrentInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInput_001 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
     int32_t ret = IdentityCheckerTest::service_->ShowCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
@@ -516,8 +539,8 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInput_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testShowCurrentInput_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInput_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, HasPermission(_, _)).Times(1).WillRepeatedly(Return(false));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = false;
     int32_t ret = IdentityCheckerTest::service_->ShowCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
 }
@@ -532,9 +555,9 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInput_002, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testShowCurrentInput_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInput_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, HasPermission(_, _)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(false));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
     int32_t ret = IdentityCheckerTest::service_->ShowCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 }
@@ -549,9 +572,9 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInput_003, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testShowCurrentInput_004, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInput_004 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, HasPermission(_, _)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     int32_t ret = IdentityCheckerTest::service_->ShowCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
@@ -583,9 +606,7 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testPanelStatusChange_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testPanelStatusChange_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
-        .Times(1)
-        .WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     InputWindowStatus status = InputWindowStatus::SHOW;
     InputWindowInfo windowInfo{};
     int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, windowInfo);
@@ -627,7 +648,7 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testUpdateListenEventFlag_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsSystemApp(_)).Times(2).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isSystemApp_ = true;
     InputClientInfo clientInfo{};
     EventType eventType = IME_SHOW;
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, eventType);
@@ -682,10 +703,8 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_001, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, HasPermission(_, _)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _))
-        .Times(1)
-        .WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(CURRENT_BUNDLENAME, CURRENT_SUBNAME);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -700,8 +719,8 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, HasPermission(_, _)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBundleNameValid(_, _)).WillRepeatedly(Return(false));
+    IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
     int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(CURRENT_BUNDLENAME, CURRENT_SUBNAME);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -716,7 +735,7 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level0)
 HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInputDeprecated_001 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
     int32_t ret = IdentityCheckerTest::service_->HideCurrentInputDeprecated();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
@@ -731,8 +750,8 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_001, TestSize.Level
 HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInputDeprecated_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(false));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
     int32_t ret = IdentityCheckerTest::service_->HideCurrentInputDeprecated();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 }
@@ -747,8 +766,8 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_002, TestSize.Level
 HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testHideCurrentInputDeprecated_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     int32_t ret = IdentityCheckerTest::service_->HideCurrentInputDeprecated();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
@@ -763,7 +782,7 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInputDeprecated_003, TestSize.Level
 HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInputDeprecated_001 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = true;
     int32_t ret = IdentityCheckerTest::service_->ShowCurrentInputDeprecated();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
@@ -778,8 +797,8 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_001, TestSize.Level
 HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInputDeprecated_002 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(false));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
     int32_t ret = IdentityCheckerTest::service_->ShowCurrentInputDeprecated();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 }
@@ -794,8 +813,8 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_002, TestSize.Level
 HWTEST_F(IdentityCheckerTest, testShowCurrentInputDeprecated_003, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testShowCurrentInputDeprecated_003 start");
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsBroker(_)).Times(1).WillRepeatedly(Return(false));
-    EXPECT_CALL(*IdentityCheckerTest::identityCheckerMock_, IsFocused(_, _, _)).Times(1).WillRepeatedly(Return(true));
+    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     int32_t ret = IdentityCheckerTest::service_->ShowCurrentInputDeprecated();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }

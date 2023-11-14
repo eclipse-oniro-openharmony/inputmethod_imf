@@ -194,6 +194,20 @@ int32_t InputMethodPanel::ShowPanel()
     return ErrorCode::NO_ERROR;
 }
 
+int32_t InputMethodPanel::SetTextFieldAvoidInfo(double positionY, double height)
+{
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr.");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto ret = window_->SetTextFieldAvoidInfo(positionY, height);
+    if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("SetTextFieldAvoidInfo error, err = %{public}d", ret);
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodPanel::HidePanel()
 {
     if (window_ == nullptr) {
@@ -223,6 +237,21 @@ int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
     auto ret = window_->SetCallingWindow(windowId);
     IMSA_HILOGI("InputMethodPanel, SetCallingWindow ret = %{public}d, windowId = %{public}u", ret, windowId);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
+}
+
+int32_t InputMethodPanel::SetPrivacyMode(bool isPrivacyMode)
+{
+    IMSA_HILOGI("Run in.");
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ is nullptr.");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    auto ret = window_->SetPrivacyMode(isPrivacyMode);
+    if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("SetWindowPrivacyMode error, ret = %{public}d", ret);
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)

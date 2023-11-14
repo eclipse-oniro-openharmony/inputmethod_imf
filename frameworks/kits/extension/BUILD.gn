@@ -33,6 +33,12 @@ config("ability_public_config") {
 }
 
 ohos_shared_library("inputmethod_extension") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   include_dirs = [
     "${inputmethod_path}/frameworks/kits/extension/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
@@ -75,6 +81,12 @@ ohos_shared_library("inputmethod_extension") {
 }
 
 ohos_shared_library("inputmethod_extension_module") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   include_dirs = [ "${inputmethod_path}/services/include" ]
 
   sources = [ "${inputmethod_path}/frameworks/kits/extension/src/inputmethod_extension_module_loader.cpp" ]

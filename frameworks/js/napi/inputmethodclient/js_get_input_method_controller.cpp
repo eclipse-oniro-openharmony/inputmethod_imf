@@ -149,6 +149,7 @@ napi_value JsGetInputMethodController::GetJsTextInputTypeProperty(napi_env env)
     napi_value typeEmailAddress = nullptr;
     napi_value typeUrl = nullptr;
     napi_value typeVisiblePassword = nullptr;
+    napi_value typeNumberPassword = nullptr;
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NONE), &typeNone));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::TEXT), &typeText));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::MULTILINE), &typeMultiline));
@@ -158,6 +159,7 @@ napi_value JsGetInputMethodController::GetJsTextInputTypeProperty(napi_env env)
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::EMAIL_ADDRESS), &typeEmailAddress));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::URL), &typeUrl));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::VISIBLE_PASSWORD), &typeVisiblePassword));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(TextInputType::NUMBER_PASSWORD), &typeNumberPassword));
     NAPI_CALL(env, napi_create_object(env, &textInputType));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "NONE", typeNone));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "TEXT", typeText));
@@ -168,6 +170,7 @@ napi_value JsGetInputMethodController::GetJsTextInputTypeProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "EMAIL_ADDRESS", typeEmailAddress));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "URL", typeUrl));
     NAPI_CALL(env, napi_set_named_property(env, textInputType, "VISIBLE_PASSWORD", typeVisiblePassword));
+    NAPI_CALL(env, napi_set_named_property(env, textInputType, "NUMBER_PASSWORD", typeNumberPassword));
     return textInputType;
 }
 
