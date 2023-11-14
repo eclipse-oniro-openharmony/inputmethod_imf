@@ -45,7 +45,6 @@ public:
     std::u16string GetLeftTextOfCursor(int32_t number) override;
     std::u16string GetRightTextOfCursor(int32_t number) override;
     int32_t GetTextIndexAtCursor() override;
-    static void setTimeout(bool isTimeout);
     static void ResetParam();
     static bool WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus);
     static bool WaitNotifyPanelStatusInfoCallback(const PanelStatusInfo &info);
@@ -64,9 +63,7 @@ public:
     static int32_t action_;
     static KeyboardStatus keyboardStatus_;
     static PanelStatusInfo info_;
-    static bool isTimeout_;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
-    static constexpr int32_t MAX_TIMEOUT = 2700000;
     static constexpr int32_t TEXT_INDEX = 455;
     static constexpr const char *TEXT_BEFORE_CURSOR = "before";
     static constexpr const char *TEXT_AFTER_CURSOR = "after";
