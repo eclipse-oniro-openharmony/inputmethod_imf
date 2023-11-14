@@ -31,7 +31,6 @@ int32_t TextListener::selectionDirection_ = -1;
 int32_t TextListener::selectionSkip_ = -1;
 int32_t TextListener::action_ = -1;
 KeyboardStatus TextListener::keyboardStatus_ = { KeyboardStatus::NONE };
-bool TextListener::isTimeout_ = { false };
 PanelStatusInfo TextListener::info_{};
 
 TextListener::TextListener()
@@ -148,7 +147,6 @@ void TextListener::ResetParam()
     action_ = -1;
     keyboardStatus_ = KeyboardStatus::NONE;
     info_ = {};
-    isTimeout_ = false;
 }
 bool TextListener::WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus)
 {
