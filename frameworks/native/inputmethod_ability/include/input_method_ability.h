@@ -130,7 +130,6 @@ private:
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
-    std::atomic_bool isPanelKeyboard_{ false };
     std::atomic_bool isBound_{ false };
     sptr<InputMethodCoreStub> coreStub_{ nullptr };
     sptr<InputMethodAgentStub> agentStub_{ nullptr };

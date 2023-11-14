@@ -48,7 +48,6 @@ public:
         inputMethodAbility_->dataChannelObject_ = nullptr;
         inputMethodAbility_->imeListener_ = nullptr;
         inputMethodAbility_->panels_.Clear();
-        inputMethodAbility_->isPanelKeyboard_ = false;
     }
     static sptr<InputMethodAbility> inputMethodAbility_;
 };
@@ -294,12 +293,11 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level0)
     // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
     auto panel = std::make_shared<InputMethodPanel>();
     panel->panelFlag_ = FLG_CANDIDATE_COLUMN;
-    inputMethodAbility_->isPanelKeyboard_ = true;
     inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
     ret = inputMethodAbility_->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     // panel not exist
-    inputMethodAbility_->isPanelKeyboard_ = false;
+    inputMethodAbility_->panels_.Clear();
     ret = inputMethodAbility_->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -332,7 +330,6 @@ HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level0)
     auto panel = std::make_shared<InputMethodPanel>();
     panel->panelFlag_ = FLG_CANDIDATE_COLUMN;
     inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
-    inputMethodAbility_->isPanelKeyboard_ = true;
     ret = inputMethodAbility_->HideKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
