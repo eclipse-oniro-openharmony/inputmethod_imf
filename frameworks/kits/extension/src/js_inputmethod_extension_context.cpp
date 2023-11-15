@@ -145,7 +145,6 @@ private:
 
     napi_value OnStartAbilityWithAccount(napi_env env, size_t argc, napi_value *argv)
     {
-        IMSA_HILOGI("OnStartAbilityWithAccount is called");
         // only support two or three or four params
         if (argc != ARGC_TWO && argc != ARGC_THREE && argc != ARGC_FOUR) {
             IMSA_HILOGE("Not enough params");
@@ -154,42 +153,38 @@ private:
         decltype(argc) unwrapArgc = 0;
         AAFwk::Want want;
         OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
-        IMSA_HILOGI("bundleName:%{public}s abilityName:%{public}s", want.GetBundle().c_str(),
-            want.GetElement().GetAbilityName().c_str());
         unwrapArgc++;
-
         int32_t accountId = 0;
         if (!OHOS::AppExecFwk::UnwrapInt32FromJS2(env, argv[INDEX_ONE], accountId)) {
             IMSA_HILOGI("%{public}s called, the second parameter is invalid.", __func__);
             return CreateJsUndefined(env);
         }
-        IMSA_HILOGI("%{public}d accountId:", accountId);
+        IMSA_HILOGI("bundleName: %{public}s abilityName: %{public}s accountId: %{public}d", want.GetBundle().c_str(),
+            want.GetElement().GetAbilityName().c_str(), accountId);
         unwrapArgc++;
-
         AAFwk::StartOptions startOptions;
-        napi_valuetype  valueType = napi_undefined;
-        napi_typeof(env, argv[INDEX_ONE],  &valueType);
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[INDEX_ONE], &valueType);
         if (argc > ARGC_TWO && valueType == napi_object) {
-            IMSA_HILOGI("OnStartAbilityWithAccount start options is used.");
             AppExecFwk::UnwrapStartOptions(env, argv[INDEX_TWO], startOptions);
             unwrapArgc++;
         }
         NapiAsyncTask::CompleteCallback complete = [weak = context_, want, accountId, startOptions, unwrapArgc](
-                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
+                                                       napi_env env, NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("startAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
                 task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "Context is released"));
                 return;
             }
-            ErrCode errcode = (unwrapArgc == ARGC_TWO) ? context->StartAbilityWithAccount(want, accountId)
-                                                 : context->StartAbilityWithAccount(want, accountId, startOptions);
+            ErrCode errcode = (unwrapArgc == ARGC_TWO)
+                                  ? context->StartAbilityWithAccount(want, accountId)
+                                  : context->StartAbilityWithAccount(want, accountId, startOptions);
             if (errcode == 0) {
                 task.Resolve(env, CreateJsUndefined(env));
             }
             task.Reject(env, CreateJsError(env, errcode, "Start Ability failed."));
         };
-
         napi_value lastParam = argc == unwrapArgc ? nullptr : argv[unwrapArgc];
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("InputMethodExtensionContext::OnStartAbilityWithAccount", env,
