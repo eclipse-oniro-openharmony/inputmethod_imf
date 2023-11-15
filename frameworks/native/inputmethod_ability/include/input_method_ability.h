@@ -138,6 +138,8 @@ private:
 
     double positionY_ = 0;
     double height_ = 0;
+
+    bool isPendingShowKeyboard_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS
