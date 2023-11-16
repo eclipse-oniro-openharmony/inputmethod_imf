@@ -122,6 +122,7 @@ private:
     void OnSelectionChange(Message *msg);
     void OnConfigurationChange(Message *msg);
     void OnTextConfigChange(const TextTotalConfig &textConfig);
+    void OnStopInput(Message *msg);
 
     int32_t HideKeyboard(Trigger trigger);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
