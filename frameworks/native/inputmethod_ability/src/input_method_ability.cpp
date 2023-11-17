@@ -211,6 +211,10 @@ void InputMethodAbility::WorkThread()
                 OnSetSubtype(msg);
                 break;
             }
+            case MSG_ID_STOP_INPUT: {
+                OnStopInput(msg);
+                break;
+            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -278,6 +282,17 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
         dataChannelObject_ = nullptr;
         dataChannelProxy_ = nullptr;
     }
+}
+
+void InputMethodAbility::OnStopInput(Message *msg)
+{
+    auto data = msg->msgContent_;
+    sptr<IRemoteObject> channelObject;
+    if (!ITypesUtil::Unmarshal(*data, channelObject)) {
+        IMSA_HILOGE("read message parcel failed");
+        return;
+    }
+    StopInput(channelObject);
 }
 
 int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)

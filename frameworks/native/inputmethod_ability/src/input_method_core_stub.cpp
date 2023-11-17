@@ -127,13 +127,12 @@ int32_t InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParc
 
 int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    sptr<IRemoteObject> channel = nullptr;
-    if (!ITypesUtil::Unmarshal(data, channel)) {
-        IMSA_HILOGE("failed to read message parcel");
-        return ErrorCode::ERROR_EX_PARCELABLE;
-    }
-    auto ret = InputMethodAbility::GetInstance()->StopInput(channel);
-    return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    IMSA_HILOGD("InputMethodCoreStub::StopInputOnRemote");
+    sptr<IRemoteObject> channelObject = nullptr;
+    int32_t ret = SendMessage(MessageID::MSG_ID_STOP_INPUT, [&channelObject](MessageParcel &data) {
+        return ITypesUtil::Unmarshal(data, channelObject) && ITypesUtil::Marshal(data, channelObject);
+    });
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::IsEnableOnRemote(MessageParcel &data, MessageParcel &reply)
