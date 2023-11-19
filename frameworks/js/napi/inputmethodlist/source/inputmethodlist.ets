@@ -103,7 +103,7 @@ export struct InputMethodListDialog {
   controller: CustomDialogController = new CustomDialogController({ builder: undefined });
   patternOptions?: PatternOptions;
 
-  async getDefaultInputMethodSubType() {
+  async getDefaultInputMethodSubType(): Promise<void> {
     console.info(`${TAG} getDefaultInputMethodSubType`);
     this.inputMethodConfig = inputMethod.getSystemInputMethodConfigAbility();
     if (this.inputMethodConfig) {
@@ -365,7 +365,7 @@ export struct InputMethodListDialog {
     })
   }
 
-  switchPositionPattern(mode: number) {
+  switchPositionPattern(mode: number): void {
     if (this.patternOptions) {
       this.patternMode = mode;
       AppStorage.set('patternMode', this.patternMode);
@@ -375,7 +375,7 @@ export struct InputMethodListDialog {
     }
   }
 
-  async switchMethod(inputProperty: inputMethod.InputMethodProperty) {
+  async switchMethod(inputProperty: inputMethod.InputMethodProperty): Promise<void> {
     if (this.currentInputMethod && this.currentInputMethod.name !== inputProperty.name) {
       let subTypes = await inputMethod.getSetting().listInputMethodSubtype(inputProperty);
       inputMethod.switchCurrentInputMethodAndSubtype(inputProperty, subTypes[0], (err: Error, result: boolean) => {
@@ -387,7 +387,7 @@ export struct InputMethodListDialog {
     }
   }
 
-  switchMethodSub(inputSub: InputMethodSubtype) {
+  switchMethodSub(inputSub: InputMethodSubtype): void {
     if (this.currentInputMethod && this.defaultInputMethod) {
       if (this.currentInputMethod.name !== this.defaultInputMethod.name) {
         inputMethod.switchCurrentInputMethodAndSubtype(this.defaultInputMethod, inputSub, () => {
