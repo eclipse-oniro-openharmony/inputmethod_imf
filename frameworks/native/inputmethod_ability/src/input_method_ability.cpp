@@ -252,6 +252,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         return ErrorCode::ERROR_IME;
     }
     imeListener_->OnInputStart();
+    isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
 
@@ -730,6 +731,11 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
             inputMethodPanel = nullptr;
             return false;
         });
+    // Called when creating the input method first time, if the CreatePanel is called later than the ShowKeyboard.
+    if (panelInfo.panelType == SOFT_KEYBOARD && isPendingShowKeyboard_) {
+        ShowKeyboard();
+        isPendingShowKeyboard_ = false;
+    }
     return flag ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
