@@ -56,6 +56,7 @@ public:
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();
     int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient);
+    int32_t StopInput(const sptr<IRemoteObject> &channelObject);
     int32_t ShowKeyboard();
     int32_t HideKeyboard();
     int32_t SendExtendAction(int32_t action);
@@ -102,7 +103,6 @@ private:
     sptr<InputDeathRecipient> deathRecipient_{ nullptr };
     sptr<IInputMethodSystemAbility> GetImsaProxy();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
-    int32_t StopInput(const sptr<IRemoteObject> &channelObject);
 
     void SetInputDataChannel(const sptr<IRemoteObject> &object);
     std::shared_ptr<InputDataChannelProxy> GetInputDataChannelProxy();
@@ -122,7 +122,6 @@ private:
     void OnSelectionChange(Message *msg);
     void OnConfigurationChange(Message *msg);
     void OnTextConfigChange(const TextTotalConfig &textConfig);
-    void OnStopInput(Message *msg);
 
     int32_t HideKeyboard(Trigger trigger);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
