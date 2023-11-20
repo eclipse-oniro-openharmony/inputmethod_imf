@@ -129,9 +129,9 @@ int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParce
 {
     IMSA_HILOGD("InputMethodCoreStub::StopInputOnRemote");
     sptr<IRemoteObject> channelObject = nullptr;
-    int32_t ret = SendMessage(MessageID::MSG_ID_STOP_INPUT, [&data, &channelObject]() {
-        return ITypesUtil::Unmarshal(data, channelObject) && ITypesUtil::Marshal(data, channelObject);
-    });
+    int32_t ret = SendMessage(MessageID::MSG_ID_SET_SUBTYPE, [&data, &channelObject](MessageParcel &parcel) {
+    return ITypesUtil::Unmarshal(data, channelObject ) && ITypesUtil::Marshal(parcel, channelObject );
+});
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
