@@ -12,33 +12,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import common from '@ohos.app.ability.common';
 import inputMethod from '@ohos.inputMethod';
+import prompt from '@ohos.promptAction';
+import { BusinessError } from '@ohos.base';
+
+const EXIT_TIME = 1000;
 
 @Entry
 @Component
-struct Dialog {
-  private arr: string[] = []
+struct Index {
+  private arr: string[] = [];
   private propertyMap: Map<string, inputMethod.InputMethodProperty> = new Map();
-  private inputMethods: Array<inputMethod.InputMethodProperty> = null
-  private TAG = "[InputMethodChooseDialog]"
+  @StorageLink('inputMethodList') inputMethods: Array<inputMethod.InputMethodProperty> | undefined = [];
+  private TAG = "[InputMethodChooseDialog]";
 
   aboutToAppear() {
     console.log(this.TAG, "dialog page appears")
-    this.inputMethods = globalThis.inputMethodList
-
-    for (let inputmethod of this.inputMethods) {
-      let name = inputmethod.packageName
-      this.arr.push(name)
-      this.propertyMap.set(name, inputmethod)
+    this.inputMethods = AppStorage.get('inputMethodList');
+    if (this.inputMethods) {
+      for (let inputmethod of this.inputMethods) {
+        let name = inputmethod.packageName;
+        this.arr.push(name);
+        this.propertyMap.set(name, inputmethod);
+      }
     }
   }
 
-  onPrint() {
-    console.log(this.TAG + "print file or text")
+  onPrint(): void {
+    console.log(this.TAG + "print file or text");
   }
 
-  onCopy() {
-    console.log(this.TAG + "copy file and html")
+  onCopy(): void {
+    console.log(this.TAG + "copy file and html");
   }
 
   build() {
@@ -53,7 +59,7 @@ struct Dialog {
             .backgroundColor(Color.Pink)
         }.sticky(Sticky.Normal)
 
-        ForEach(this.arr, (item, index) => {
+        ForEach(this.arr, (item: string, index: number) => {
           ListItem() {
             Text(item.split('.').length > 2 ? item.split('.')[2] : item.split('.')[-1])
               .width('100%')
@@ -64,14 +70,36 @@ struct Dialog {
               .backgroundColor($r("app.color.btn_default"))
               .onClick(async () => {
                 if (this.propertyMap.has(item)) {
-                  let prop = this.propertyMap.get(item)
-                  globalThis.chooseInputMethods(prop)
+                  let prop = this.propertyMap.get(item);
+                  this.chooseInputMethods(prop);
                 }
               })
           }
           .sticky(0 == index ? Sticky.Opacity : Sticky.None)
-        }, item => item)
+        }, (item: string) => item)
       }
+      .width('100%')
+      .height('100%')
     }.width('100%').height('100%').backgroundColor(0xDCDCDC).padding({ top: 5 })
+  }
+
+  chooseInputMethods(prop: inputMethod.InputMethodProperty): void {
+    let context = getContext(this) as common.ServiceExtensionContext;
+    inputMethod.switchInputMethod(prop).then(() => {
+      console.log(this.TAG + 'switchInputMethod success');
+      prompt.showToast({
+        message: 'switch success', duration: 200
+      });
+      setTimeout(() => {
+        context.terminateSelf();
+      }, EXIT_TIME);
+    }).catch((err: BusinessError) => {
+      if (!err) {
+        console.log(this.TAG + 'switchInputMethod failed,' + JSON.stringify(err));
+        prompt.showToast({
+          message: 'switch failed', duration: 200
+        });
+      }
+    });
   }
 }
