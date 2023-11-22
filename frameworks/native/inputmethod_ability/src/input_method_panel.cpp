@@ -25,7 +25,7 @@ namespace MiscServices {
 using WMError = OHOS::Rosen::WMError;
 using WindowGravity = OHOS::Rosen::WindowGravity;
 using WindowState = OHOS::Rosen::WindowState;
-constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.6;
+constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_{ 0 };
 InputMethodPanel::~InputMethodPanel() = default;

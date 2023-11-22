@@ -33,7 +33,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 200;
-constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.6;
+constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 enum ListeningStatus : uint32_t { ON, OFF, NONE };
 class InputMethodPanelTest : public testing::Test {
