@@ -24,6 +24,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+using WMError = OHOS::Rosen::WMError;
 const std::string JsPanel::CLASS_NAME = "Panel";
 thread_local napi_ref JsPanel::panelConstructorRef_ = nullptr;
 std::mutex JsPanel::panelConstructorMutex_;
@@ -264,7 +265,7 @@ napi_value JsPanel::SetPrivacyMode(napi_env env, napi_callback_info info)
     CHECK_RETURN(status == napi_ok, "get isPrivacyMode failed!", nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     auto ret = inputMethodPanel->SetPrivacyMode(isPrivacyMode);
-    if (ret == WMError::WM_ERROR_INVALID_PERMISSION) {
+    if (ret == static_cast<int32_t>(WMError::WM_ERROR_INVALID_PERMISSION)) {
         JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_STATUS_PERMISSION_DENIED),
                                 " ohos.permission.PRIVACY_WINDOW permission denied", TYPE_NONE);
     }
