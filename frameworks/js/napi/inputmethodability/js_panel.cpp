@@ -264,8 +264,6 @@ napi_value JsPanel::SetPrivacyMode(napi_env env, napi_callback_info info)
     CHECK_RETURN(status == napi_ok, "get isPrivacyMode failed!", nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     auto ret = inputMethodPanel->SetPrivacyMode(isPrivacyMode);
-    PARAM_CHECK_RETURN(env, ret != WMError::WM_ERROR_INVALID_PERMISSION,
-                       " ohos.permission.PRIVACY_WINDOW permission denied", TYPE_NONE, nullptr);
     if (ret == WMError::WM_ERROR_INVALID_PERMISSION) {
         JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_STATUS_PERMISSION_DENIED),
                                 " ohos.permission.PRIVACY_WINDOW permission denied", TYPE_NONE);
