@@ -115,8 +115,6 @@ int32_t InputDataChannelStub::GetTextConfigOnRemote(MessageParcel &data, Message
 
 int32_t InputDataChannelStub::SendKeyboardStatusOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("InputDataChannelStub, callingPid: %{public}d, callingUid: %{public}d", IPCSkeleton::GetCallingPid(),
-        IPCSkeleton::GetCallingUid());
     int32_t status = -1;
     if (!ITypesUtil::Unmarshal(data, status)) {
         IMSA_HILOGE("failed to read message parcel");
@@ -201,8 +199,6 @@ int32_t InputDataChannelStub::GetTextIndexAtCursorOnRemote(MessageParcel &data, 
 
 int32_t InputDataChannelStub::NotifyPanelStatusInfoOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("InputDataChannelStub, callingPid: %{public}d, callingUid: %{public}d", IPCSkeleton::GetCallingPid(),
-        IPCSkeleton::GetCallingUid());
     PanelStatusInfo info{};
     if (!ITypesUtil::Unmarshal(data, info)) {
         IMSA_HILOGE("failed to read message parcel");

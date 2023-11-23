@@ -40,7 +40,7 @@ int32_t InputMethodCoreProxy::InitInputControlChannel(const sptr<IInputControlCh
 
 int32_t InputMethodCoreProxy::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
-    IMSA_HILOGD("InputMethodCoreProxy::StartInput");
+    IMSA_HILOGI("InputMethodCoreProxy, run in");
     return SendRequest(START_INPUT, [&clientInfo, isBindFromClient](MessageParcel &data) {
         return ITypesUtil::Marshal(data, isBindFromClient, clientInfo);
     });
@@ -89,7 +89,7 @@ int32_t InputMethodCoreProxy::IsPanelShown(const PanelInfo &panelInfo, bool &isS
 
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGI("InputMethodCoreProxy, run in, code = %{public}d", code);
+    IMSA_HILOGD("InputMethodCoreProxy, run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option{ MessageOption::TF_SYNC };
