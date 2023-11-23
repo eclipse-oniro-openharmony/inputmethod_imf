@@ -24,6 +24,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+using WMError = OHOS::Rosen::WMError;
 const std::string JsPanel::CLASS_NAME = "Panel";
 thread_local napi_ref JsPanel::panelConstructorRef_ = nullptr;
 std::mutex JsPanel::panelConstructorMutex_;
@@ -250,18 +251,24 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
 napi_value JsPanel::SetPrivacyMode(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_MAX;
-    napi_value argv[ARGC_MAX] = { nullptr };
+    napi_value argv[ARGC_MAX] = {nullptr};
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     PARAM_CHECK_RETURN(env, argc > 0, " should 1 parameter! ", TYPE_NONE, nullptr);
     bool isPrivacyMode = false;
-    // 0 means the first param flag<isPrivacyMode>
+    // 0 means the first param isPrivacyMode<boolean>
     napi_status status = JsUtils::GetValue(env, argv[0], isPrivacyMode);
+    if (status != napi_ok) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_PARAMETER_CHECK_FAILED), " param check failed!",
+                                TYPE_BOOLEAN);
+    }
     CHECK_RETURN(status == napi_ok, "get isPrivacyMode failed!", nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     auto ret = inputMethodPanel->SetPrivacyMode(isPrivacyMode);
-    PARAM_CHECK_RETURN(env, ret != ErrorCode::ERROR_STATUS_PERMISSION_DENIED,
-        " ohos.permission.PRIVACY_WINDOW permission denied", TYPE_NONE, nullptr);
+    if (ret == static_cast<int32_t>(WMError::WM_ERROR_INVALID_PERMISSION)) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_STATUS_PERMISSION_DENIED),
+                                " ohos.permission.PRIVACY_WINDOW permission denied", TYPE_NONE);
+    }
     CHECK_RETURN(ret == ErrorCode::NO_ERROR, "SetPrivacyMode failed!", nullptr);
     return nullptr;
 }

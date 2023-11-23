@@ -249,7 +249,7 @@ int32_t InputMethodPanel::SetPrivacyMode(bool isPrivacyMode)
     auto ret = window_->SetPrivacyMode(isPrivacyMode);
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("SetWindowPrivacyMode error, ret = %{public}d", ret);
-        return ErrorCode::ERROR_OPERATE_PANEL;
+        return static_cast<int32_t>(ret);
     }
     return ErrorCode::NO_ERROR;
 }
