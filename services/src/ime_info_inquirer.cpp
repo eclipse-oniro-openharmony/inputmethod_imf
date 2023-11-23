@@ -649,31 +649,29 @@ int32_t ImeInfoInquirer::GetInputMethodConfig(const int32_t userId, AppExecFwk::
 {
     IMSA_HILOGD("userId: %{public}d", userId);
     if (!ImeConfigParse::ParseFromCustomSystem(SYSTEM_CONFIG, imeConfig_)) {
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    if (imeConfig_.systemInputMethodConfigAbility.empty()) {
-        IMSA_HILOGE("inputMethodConfig systemInputMethodConfigAbility is null");
+        IMSA_HILOGW("inputMethodConfig parse failed, systemInputMethodConfigAbility is null");
         return ErrorCode::NO_ERROR;
     }
-    IMSA_HILOGD("inputMethodConfig: %{public}s", imeConfig_.systemInputMethodConfigAbility.c_str());
-    auto pos = imeConfig_.systemInputMethodConfigAbility.find('/');
-    if (pos == std::string::npos || pos + 1 >= imeConfig_.systemInputMethodConfigAbility.size()) {
-        IMSA_HILOGE("inputMethodConfig: %{public}s is abnormal", imeConfig_.systemInputMethodConfigAbility.c_str());
-        return ErrorCode::ERROR_NULL_POINTER;
+    if (imeConfig_.systemInputMethodConfigAbility.empty()) {
+        IMSA_HILOGW("inputMethodConfig systemInputMethodConfigAbility is null");
+        return ErrorCode::NO_ERROR;
     }
-    std::string bundleName = imeConfig_.systemInputMethodConfigAbility.substr(0, pos);
-    std::string abilityName = imeConfig_.systemInputMethodConfigAbility.substr(pos + 1);
+    std::string bundleName = imeConfig_.systemInputMethodConfigAbility;
     std::string moduleName;
-    auto pos1 = abilityName.find('/');
-    if (pos1 == std::string::npos || pos1 + 1 >= abilityName.size()) {
-        IMSA_HILOGD("inputMethodConfig moduleName is abnormal, abilityName is %{public}s", abilityName.c_str());
-    } else {
-        moduleName = abilityName.substr(0, pos1);
-        abilityName = abilityName.substr(pos1 + 1);
+    std::string abilityName;
+    auto pos = bundleName.find('/');
+    if (pos != std::string::npos) {
+        abilityName = (pos + 1 < bundleName.size()) ? bundleName.substr(pos + 1) : "";
+        bundleName = bundleName.substr(0, pos);
     }
-    inputMethodConfig.SetBundleName(bundleName);
-    inputMethodConfig.SetModuleName(moduleName);
-    inputMethodConfig.SetAbilityName(abilityName);
+    pos = abilityName.find('/');
+    if (pos != std::string::npos) {
+        moduleName = abilityName.substr(0, pos);
+        abilityName = (pos + 1 < abilityName.size()) ? abilityName.substr(pos + 1) : "";
+    }
+    inputMethodConfig.SetBundleName(std::move(bundleName));
+    inputMethodConfig.SetModuleName(std::move(moduleName));
+    inputMethodConfig.SetAbilityName(std::move(abilityName));
     return ErrorCode::NO_ERROR;
 }
 
