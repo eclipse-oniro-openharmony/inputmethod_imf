@@ -127,7 +127,6 @@ int32_t InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParc
 
 int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("InputMethodCoreStub::StopInputOnRemote");
     sptr<IRemoteObject> channelObject = nullptr;
     int32_t ret = SendMessage(MessageID::MSG_ID_STOP_INPUT, [&data, &channelObject](MessageParcel &parcel) {
         return ITypesUtil::Unmarshal(data, channelObject) && ITypesUtil::Marshal(parcel, channelObject);

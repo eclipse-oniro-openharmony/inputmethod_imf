@@ -56,7 +56,6 @@ public:
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();
     int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient);
-
     int32_t ShowKeyboard();
     int32_t HideKeyboard();
     int32_t SendExtendAction(int32_t action);
