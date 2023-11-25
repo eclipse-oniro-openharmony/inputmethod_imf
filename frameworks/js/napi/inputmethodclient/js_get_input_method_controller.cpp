@@ -707,7 +707,7 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("run in, start: %{public}d, end: %{public}d", start, end);
+    IMSA_HILOGI("start: %{public}d, end: %{public}d", start, end);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -746,7 +746,7 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("run in, direction: %{public}d", direction);
+    IMSA_HILOGI("direction: %{public}d", direction);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -786,7 +786,7 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
-    IMSA_HILOGI("JsGetInputMethodController, run in");
+    IMSA_HILOGI("run in");
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -822,7 +822,7 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
-    IMSA_HILOGI("JsGetInputMethodController, length: %{public}d", length);
+    IMSA_HILOGI("length: %{public}d", length);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -858,7 +858,7 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
-    IMSA_HILOGI("JsGetInputMethodController, length: %{public}d", length);
+    IMSA_HILOGI("length: %{public}d", length);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -895,7 +895,7 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
-    IMSA_HILOGI("JsGetInputMethodController, status: %{public}d", static_cast<int32_t>(status));
+    IMSA_HILOGI("status: %{public}d", static_cast<int32_t>(status));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -944,8 +944,7 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
-    IMSA_HILOGI(
-        "JsGetInputMethodController, functionKey: %{public}d", static_cast<int32_t>(functionKey.GetEnterKeyType()));
+    IMSA_HILOGI("functionKey: %{public}d", static_cast<int32_t>(functionKey.GetEnterKeyType()));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -987,7 +986,7 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
-    IMSA_HILOGI("JsGetInputMethodController, direction: %{public}d", static_cast<int32_t>(direction));
+    IMSA_HILOGI("direction: %{public}d", static_cast<int32_t>(direction));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -1023,7 +1022,7 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
-    IMSA_HILOGI("JsGetInputMethodController, action: %{public}d", action);
+    IMSA_HILOGI("action: %{public}d", action);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -1061,7 +1060,7 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
         IMSA_HILOGE("failed to get uv entry.");
         return u"";
     }
-    IMSA_HILOGI("JsGetInputMethodController, type: %{public}s, number: %{public}d", type.c_str(), number);
+    IMSA_HILOGI("type: %{public}s, number: %{public}d", type.c_str(), number);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -1101,7 +1100,7 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
         IMSA_HILOGE("failed to get uv entry.");
         return -1;
     }
-    IMSA_HILOGI("JsGetInputMethodController, run in");
+    IMSA_HILOGI("run in");
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {

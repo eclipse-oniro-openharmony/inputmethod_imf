@@ -229,7 +229,7 @@ int32_t InputMethodController::Attach(
 int32_t InputMethodController::Attach(
     sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const TextConfig &textConfig)
 {
-    IMSA_HILOGI("InputMethodController with isShowKeyboard %{public}d", isShowKeyboard);
+    IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
     ClearEditorCache();
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
     SetTextListener(listener);
@@ -247,7 +247,7 @@ int32_t InputMethodController::Attach(
     if (isShowKeyboard) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ATTACH);
     }
-    IMSA_HILOGI("bind imf successfully, enter editable state");
+    IMSA_HILOGI("bind imf successfully");
     return ErrorCode::NO_ERROR;
 }
 
@@ -310,7 +310,7 @@ int32_t InputMethodController::ShowCurrentInput()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController run in");
+    IMSA_HILOGI("run in");
     clientInfo_.isShowKeyboard = true;
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_NORMAL);
     return proxy->ShowCurrentInputDeprecated();
@@ -318,7 +318,7 @@ int32_t InputMethodController::ShowCurrentInput()
 
 int32_t InputMethodController::Close()
 {
-    IMSA_HILOGI("InputMethodController, run in");
+    IMSA_HILOGI("run in");
     bool isReportHide = clientInfo_.isShowKeyboard;
     InputMethodSyncTrace tracer("InputMethodController Close trace.");
     isReportHide ? InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNBIND)
@@ -361,7 +361,7 @@ int32_t InputMethodController::ListInputMethod(std::vector<Property> &props)
 
 int32_t InputMethodController::ListInputMethod(bool enable, std::vector<Property> &props)
 {
-    IMSA_HILOGI("InputMethodController enable = %{public}s", enable ? "ENABLE" : "DISABLE");
+    IMSA_HILOGI("enable = %{public}s", enable ? "ENABLE" : "DISABLE");
     return ListInputMethodCommon(enable ? ENABLE : DISABLE, props);
 }
 
@@ -397,7 +397,7 @@ std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
     }
     auto property = proxy->GetCurrentInputMethod();
     if (property == nullptr) {
-        IMSA_HILOGE("InputMethodController::GetCurrentInputMethod property is nullptr");
+        IMSA_HILOGE("property is nullptr");
         return nullptr;
     }
     return property;
@@ -413,7 +413,7 @@ std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype
     }
     auto property = proxy->GetCurrentInputMethodSubtype();
     if (property == nullptr) {
-        IMSA_HILOGE("InputMethodController::GetCurrentInputMethodSubtype property is nullptr");
+        IMSA_HILOGE("property is nullptr");
         return nullptr;
     }
     return property;
@@ -568,9 +568,8 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    IMSA_HILOGI("InputMethodController, left: %{public}d, top: %{public}d, height: %{public}d",
-        static_cast<int32_t>(cursorInfo.left), static_cast<int32_t>(cursorInfo.top),
-        static_cast<int32_t>(cursorInfo.height));
+    IMSA_HILOGI("left: %{public}d, top: %{public}d, height: %{public}d", static_cast<int32_t>(cursorInfo.left),
+        static_cast<int32_t>(cursorInfo.top), static_cast<int32_t>(cursorInfo.height));
     agent_->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
     return ErrorCode::NO_ERROR;
 }
@@ -603,8 +602,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    IMSA_HILOGI(
-        "InputMethodController, size: %{public}zu, start: %{public}d, end: %{public}d", text.size(), start, end);
+    IMSA_HILOGI("size: %{public}zu, start: %{public}d, end: %{public}d", text.size(), start, end);
     agent_->OnSelectionChange(textString_, selectOldBegin_, selectOldEnd_, selectNewBegin_, selectNewEnd_);
     return ErrorCode::NO_ERROR;
 }
@@ -683,7 +681,7 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
         IMSA_HILOGE("agent is nullptr");
         return false;
     }
-    IMSA_HILOGI("InputMethodController start");
+    IMSA_HILOGI("start");
     return agent_->DispatchKeyEvent(keyEvent);
 }
 
@@ -744,10 +742,10 @@ int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
     }
     std::lock_guard<std::mutex> lock(agentLock_);
     if (agent_ == nullptr) {
-        IMSA_HILOGE("InputMethodController agent_ is nullptr");
+        IMSA_HILOGE("agent_ is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    IMSA_HILOGI("InputMethodController windowId = %{public}d", windowId);
+    IMSA_HILOGI("windowId = %{public}d", windowId);
     agent_->SetCallingWindow(windowId);
     return ErrorCode::NO_ERROR;
 }
@@ -763,7 +761,7 @@ int32_t InputMethodController::ShowSoftKeyboard()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController, start");
+    IMSA_HILOGI("start");
     clientInfo_.isShowKeyboard = true;
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_NORMAL);
     return proxy->ShowCurrentInput();
@@ -780,7 +778,7 @@ int32_t InputMethodController::HideSoftKeyboard()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController, start");
+    IMSA_HILOGI("start");
     clientInfo_.isShowKeyboard = false;
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_NORMAL);
     return proxy->HideCurrentInput();
@@ -811,23 +809,23 @@ int32_t InputMethodController::ShowOptionalInputMethod()
 
 int32_t InputMethodController::ListInputMethodSubtype(const Property &property, std::vector<SubProperty> &subProps)
 {
-    IMSA_HILOGD("InputMethodController, ime bundleName: %{public}s", property.name.c_str());
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    IMSA_HILOGD("ime bundleName: %{public}s", property.name.c_str());
     return proxy->ListInputMethodSubtype(property.name, subProps);
 }
 
 int32_t InputMethodController::ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps)
 {
-    IMSA_HILOGD("InputMethodController::ListCurrentInputMethodSubtype");
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    IMSA_HILOGD("run in");
     return proxy->ListCurrentInputMethodSubtype(subProps);
 }
 
@@ -838,7 +836,7 @@ int32_t InputMethodController::SwitchInputMethod(const std::string &name, const 
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController, name: %{public}s, subName: %{public}s", name.c_str(), subName.c_str());
+    IMSA_HILOGI("name: %{public}s, subName: %{public}s", name.c_str(), subName.c_str());
     return proxy->SwitchInputMethod(name, subName);
 }
 
@@ -1059,7 +1057,7 @@ bool InputMethodController::IsInputTypeSupported(InputType type)
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController, type: %{public}d", static_cast<int32_t>(type));
+    IMSA_HILOGI("type: %{public}d", static_cast<int32_t>(type));
     return proxy->IsInputTypeSupported(type);
 }
 
@@ -1070,7 +1068,7 @@ int32_t InputMethodController::StartInputType(InputType type)
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController, type: %{public}d", static_cast<int32_t>(type));
+    IMSA_HILOGI("type: %{public}d", static_cast<int32_t>(type));
     return proxy->StartInputType(type);
 }
 
@@ -1081,7 +1079,7 @@ int32_t InputMethodController::IsPanelShown(const PanelInfo &panelInfo, bool &is
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController, type: %{public}d, flag: %{public}d", static_cast<int32_t>(panelInfo.panelType),
+    IMSA_HILOGI("type: %{public}d, flag: %{public}d", static_cast<int32_t>(panelInfo.panelType),
         static_cast<int32_t>(panelInfo.panelFlag));
     return proxy->IsPanelShown(panelInfo, isShown);
 }

@@ -259,12 +259,12 @@ void PerUserSession::UpdateCurrentUserId(int32_t userId)
 
 int32_t PerUserSession::OnHideCurrentInput()
 {
-    IMSA_HILOGI("PerUserSession::OnHideCurrentInput");
     sptr<IInputClient> client = GetCurrentClient();
     if (client == nullptr) {
         IMSA_HILOGE("current client is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
+    IMSA_HILOGI("PerUserSession");
     return HideKeyboard(client);
 }
 
@@ -569,12 +569,12 @@ int32_t PerUserSession::InitInputControlChannel()
 
 void PerUserSession::StopInputService()
 {
-    IMSA_HILOGI("PerUserSession::StopInputService");
     auto data = GetImeData(ImeType::IME);
     if (data == nullptr) {
         IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
         return;
     }
+    IMSA_HILOGI("PerUserSession");
     RemoveImeData(ImeType::IME);
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;

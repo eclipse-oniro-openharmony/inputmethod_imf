@@ -40,7 +40,7 @@ int32_t InputMethodCoreProxy::InitInputControlChannel(const sptr<IInputControlCh
 
 int32_t InputMethodCoreProxy::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
-    IMSA_HILOGI("InputMethodCoreProxy, run in");
+    IMSA_HILOGI("CoreProxy");
     return SendRequest(START_INPUT, [&clientInfo, isBindFromClient](MessageParcel &data) {
         return ITypesUtil::Marshal(data, isBindFromClient, clientInfo);
     });

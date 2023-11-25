@@ -100,8 +100,8 @@ int32_t InputMethodCoreStub::InitInputControlChannelOnRemote(MessageParcel &data
 
 int32_t InputMethodCoreStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("InputMethodCoreStub, callingPid: %{public}d, callingUid: %{public}d", IPCSkeleton::GetCallingPid(),
-        IPCSkeleton::GetCallingUid());
+    IMSA_HILOGI(
+        "CoreStub, callingPid/Uid: %{public}d/%{public}d", IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     bool isBindFromClient = false;
     InputClientInfo clientInfo = {};
     if (!ITypesUtil::Unmarshal(data, isBindFromClient, clientInfo)) {

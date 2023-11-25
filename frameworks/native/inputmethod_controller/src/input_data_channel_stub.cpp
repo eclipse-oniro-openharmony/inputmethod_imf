@@ -52,8 +52,7 @@ int32_t InputDataChannelStub::OnRemoteRequest(
 
 int32_t InputDataChannelStub::InsertTextOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("InputDataChannelStub, callingPid: %{public}d, callingUid: %{public}d", IPCSkeleton::GetCallingPid(),
-        IPCSkeleton::GetCallingUid());
+    IMSA_HILOGI("callingPid/Uid: %{public}d/%{public}d", IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     std::u16string text;
     if (!ITypesUtil::Unmarshal(data, text)) {
         IMSA_HILOGE("failed to read message parcel");

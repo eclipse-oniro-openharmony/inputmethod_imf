@@ -585,7 +585,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("JsGetInputMethodSetting, run in");
+    IMSA_HILOGI("run in");
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -633,7 +633,7 @@ void JsGetInputMethodSetting::OnPanelStatusChange(
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("JsGetInputMethodSetting, status: %{public}u", static_cast<uint32_t>(status));
+    IMSA_HILOGI("status: %{public}u", static_cast<uint32_t>(status));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {

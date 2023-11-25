@@ -30,7 +30,7 @@ InputDataChannelProxy::InputDataChannelProxy(const sptr<IRemoteObject> &object)
 
 int32_t InputDataChannelProxy::InsertText(const std::u16string &text)
 {
-    IMSA_HILOGI("InputDataChannelProxy run in");
+    IMSA_HILOGI("DataChannelProxy");
     return SendRequest(INSERT_TEXT, [&text](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text); });
 }
 
