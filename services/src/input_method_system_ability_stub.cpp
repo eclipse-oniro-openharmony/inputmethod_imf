@@ -147,6 +147,15 @@ int32_t InputMethodSystemAbilityStub::GetInputMethodConfigOnRemote(MessageParcel
     return ITypesUtil::Marshal(reply, ret, inputMethodConfig) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodSystemAbilityStub::GetSecurityModeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    IMSA_HILOGD("GetSecurityModeOnRemote");
+    int32_t security;
+    auto ret = GetSecurityMode(security);
+    IMSA_HILOGD("GetSecurityModeOnRemote, security = %{public}d", security);
+    return ITypesUtil::Marshal(reply, ret, security) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     auto property = GetCurrentInputMethod();

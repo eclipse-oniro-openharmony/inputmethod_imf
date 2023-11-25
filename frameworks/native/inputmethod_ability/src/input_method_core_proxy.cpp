@@ -46,6 +46,13 @@ int32_t InputMethodCoreProxy::StartInput(const InputClientInfo &clientInfo, bool
     });
 }
 
+int32_t InputMethodCoreProxy::OnSecurityChange(int32_t security)
+{
+    return SendRequest(SECURITY_CHANGE, [security](MessageParcel& data) {
+        return ITypesUtil::Marshal(data, security);
+    });
+}
+
 void InputMethodCoreProxy::StopInputService()
 {
     SendRequest(STOP_INPUT_SERVICE);

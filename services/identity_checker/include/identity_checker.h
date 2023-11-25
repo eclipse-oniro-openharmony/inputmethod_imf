@@ -31,6 +31,7 @@ public:
     virtual bool HasPermission(uint32_t tokenId, const std::string &permission) = 0;
     virtual bool IsBroker(Security::AccessToken::AccessTokenID tokenId) = 0;
     virtual bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) = 0;
+    virtual std::string GetBundleNameByToken(uint32_t tokenId);
 };
 } // namespace MiscServices
 } // namespace OHOS

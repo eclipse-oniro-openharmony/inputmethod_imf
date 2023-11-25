@@ -88,6 +88,11 @@ public:
         {
             IMSA_HILOGI("InputMethodEngineListenerImpl OnSetSubtype");
         }
+
+        void OnSecurityChange(int32_t security)
+        {
+            IMSA_HILOGI("InputMethodEngineListenerImpl OnSecurityChange");
+        }
     };
     static void SetUpTestCase(void)
     {

@@ -39,17 +39,20 @@ public:
     JsInputMethodEngineSetting() = default;
     ~JsInputMethodEngineSetting() override = default;
     static napi_value Init(napi_env env, napi_value exports);
+    static napi_value InitProperty(napi_env env, napi_value exports);
     static napi_value GetInputMethodEngine(napi_env env, napi_callback_info info);
     static napi_value GetInputMethodAbility(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static napi_value CreatePanel(napi_env env, napi_callback_info info);
     static napi_value DestroyPanel(napi_env env, napi_callback_info info);
+    static napi_value GetSecurityMode(napi_env env, napi_callback_info info);
     void OnInputStart() override;
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStop() override;
     void OnSetCallingWindow(uint32_t windowId) override;
     void OnSetSubtype(const SubProperty &property) override;
+    void OnSecurityChange(int32_t security) override;
 
 private:
     struct PanelContext : public AsyncCall::Context {
@@ -82,6 +85,7 @@ private:
     static napi_value GetJsPanelFlagProperty(napi_env env);
     static napi_value GetJsDirectionProperty(napi_env env);
     static napi_value GetJsExtendActionProperty(napi_env env);
+    static napi_value GetJsSecurityModeProperty(napi_env env);
     static napi_value GetIntJsConstProperty(napi_env env, int32_t num);
     static napi_value GetIMEInstance(napi_env env, napi_callback_info info);
     static napi_status GetContext(napi_env env, napi_value in,
@@ -95,6 +99,7 @@ private:
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
         uint32_t windowid = 0;
+        int32_t security = 0;
         SubProperty subProperty;
         UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)

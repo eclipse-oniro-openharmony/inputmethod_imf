@@ -115,6 +115,17 @@ int32_t InputMethodCoreStub::StartInputOnRemote(MessageParcel &data, MessageParc
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodCoreStub::SecurityChangeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t security;
+    if (!ITypesUtil::Unmarshal(data, security)) {
+        IMSA_HILOGE("Unmarshal failed.");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto ret = InputMethodAbility::GetInstance()->OnSecurityChange(security);
+    return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     IMSA_HILOGD("InputMethodCoreStub::SetSubtypeOnRemote");
@@ -183,6 +194,11 @@ int32_t InputMethodCoreStub::StartInput(const InputClientInfo &clientInfo, bool 
 }
 
 int32_t InputMethodCoreStub::SetSubtype(const SubProperty &property)
+{
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodCoreStub::OnSecurityChange(int32_t security)
 {
     return ErrorCode::NO_ERROR;
 }

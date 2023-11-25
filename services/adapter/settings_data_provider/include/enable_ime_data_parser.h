@@ -22,10 +22,9 @@
 #include <vector>
 
 #include "datashare_helper.h"
-#include "enable_ime_data_observer.h"
+#include "settings_data_utils.h"
 #include "global.h"
 #include "input_method_property.h"
-#include "uri.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -43,7 +42,6 @@ class EnableImeDataParser : public RefBase {
 public:
     static sptr<EnableImeDataParser> GetInstance();
     int32_t Initialize(const int32_t userId);
-    int32_t CreateAndRegisterObserver(const std::string &key, EnableImeDataObserver::CallbackFunc func);
     int32_t GetEnableData(const std::string &key, std::vector<std::string> &enableVec, const int32_t userId);
     // for enable list changed
     bool CheckNeedSwitch(const std::string &key, SwitchInfo &switchInfo, const int32_t userId);
@@ -58,30 +56,19 @@ private:
     EnableImeDataParser() = default;
     ~EnableImeDataParser();
 
-    sptr<IRemoteObject> GetToken();
-    std::shared_ptr<DataShare::DataShareHelper> CreateDataShareHelper();
-    bool ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper);
-    int32_t RegisterObserver(const sptr<EnableImeDataObserver> &observer);
-    int32_t UnregisterObserver(const sptr<EnableImeDataObserver> &observer);
-    int32_t GetStringValue(const std::string &key, std::string &value);
     bool ParseJsonData(const std::string &key, const std::string &valueStr, std::vector<std::string> &enableVec,
         const int32_t userId);
     const std::string GetJsonListName(const std::string &key);
     bool CheckTargetEnableName(
         const std::string &key, const std::string &targetName, std::string &nextIme, const int32_t userId);
     std::shared_ptr<Property> GetDefaultIme();
-    Uri GenerateTargetUri(const std::string &key);
 
 private:
     static std::mutex instanceMutex_;
     static sptr<EnableImeDataParser> instance_;
-    std::mutex tokenMutex_;
-    sptr<IRemoteObject> remoteObj_ = nullptr;
     std::mutex listMutex_;
     std::unordered_map<std::string, std::vector<std::string>> enableList_;
-
     std::shared_ptr<Property> defaultImeInfo_{ nullptr };
-    std::vector<sptr<EnableImeDataObserver>> observerList_;
     int32_t currrentUserId_ = 0;
 };
 } // namespace MiscServices

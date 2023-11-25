@@ -63,6 +63,7 @@ constexpr int32_t ERROR_NULL_POINTER = 1;
 constexpr int32_t ERROR_KEYWORD_NOT_FOUND = 26;
 constexpr int32_t ERROR_ENABLE_IME = 27;
 
+constexpr int32_t ERROR_ENABLE_SECURITY_MODE = 32;
 }; // namespace ErrorCode
 
 constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD001C00, "ImsaKit" };

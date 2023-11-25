@@ -483,6 +483,17 @@ void PerUserSession::StopImeInput(ImeType currentType, const sptr<IInputDataChan
     IMSA_HILOGE("stop ime input, ret: %{public}d", ret);
 }
 
+void PerUserSession::OnSecurityChange(int32_t &security)
+{
+    auto data = GetImeData(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
+        return;
+    }
+    auto ret = data->core->OnSecurityChange(security);
+    IMSA_HILOGD("on security change, ret: %{public}d", ret);
+}
+
 int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
     IMSA_HILOGI("run in");

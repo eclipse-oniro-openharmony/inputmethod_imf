@@ -13,20 +13,28 @@
  * limitations under the License.
  */
 
-#include "enable_ime_data_observer.h"
+#ifndef SETTINGS_DATA_OBSERVER_H
+#define SETTINGS_DATA_OBSERVER_H
+
+#include <cstdint>
+
+#include "data_ability_observer_stub.h"
 
 namespace OHOS {
 namespace MiscServices {
-void EnableImeDataObserver::OnChange()
-{
-    if (func_ != nullptr) {
-        func_();
-    }
-}
+class SettingsDataObserver : public AAFwk::DataAbilityObserverStub {
+public:
+    using CallbackFunc = std::function<void()>;
+    SettingsDataObserver(const std::string &key, CallbackFunc &func) : key_(key), func_(func){};
+    ~SettingsDataObserver() = default;
+    void OnChange() override;
+    const std::string &GetKey();
 
-const std::string &EnableImeDataObserver::GetKey()
-{
-    return key_;
-}
+private:
+    std::string key_;
+    CallbackFunc func_ = nullptr;
+};
 } // namespace MiscServices
 } // namespace OHOS
+
+#endif // SETTINGS_DATA_OBSERVER_H

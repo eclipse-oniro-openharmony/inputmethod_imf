@@ -81,6 +81,8 @@ public:
     bool IsEnable();
     int32_t ExitCurrentInputType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
+    int32_t GetSecurityMode(int32_t &security);
+    int32_t OnSecurityChange(int32_t security);
 
 private:
     std::thread workThreadHandler;

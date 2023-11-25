@@ -18,6 +18,7 @@
 #include "ime_info_inquirer.h"
 #include "iservice_registry.h"
 #include "nlohmann/json.hpp"
+#include "settings_data_utils.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -25,20 +26,8 @@ namespace MiscServices {
 using json = nlohmann::json;
 std::mutex EnableImeDataParser::instanceMutex_;
 sptr<EnableImeDataParser> EnableImeDataParser::instance_ = nullptr;
-constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
-constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
-constexpr const char *SETTING_URI_PROXY = "datashare:///com.ohos.settingsdata/entry/settingsdata/"
-                                          "SETTINGSDATA?Proxy=true";
-constexpr const char *SETTINGS_DATA_EXT_URI = "datashare:///com.ohos.settingsdata.DataAbility";
 EnableImeDataParser::~EnableImeDataParser()
 {
-    remoteObj_ = nullptr;
-    if (!observerList_.empty()) {
-        for (auto &iter : observerList_) {
-            UnregisterObserver(iter);
-        }
-        observerList_.clear();
-    }
 }
 
 sptr<EnableImeDataParser> EnableImeDataParser::GetInstance()
@@ -84,79 +73,6 @@ void EnableImeDataParser::OnUserChanged(const int32_t targetUserId)
         IMSA_HILOGE("get enable list failed.");
         return;
     }
-}
-
-int32_t EnableImeDataParser::CreateAndRegisterObserver(const std::string &key, EnableImeDataObserver::CallbackFunc func)
-{
-    IMSA_HILOGD("key: %{public}s.", key.c_str());
-    sptr<EnableImeDataObserver> observer = new (std::nothrow) EnableImeDataObserver(key, func);
-    if (observer == nullptr) {
-        IMSA_HILOGE("new observer is nullptr.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    return RegisterObserver(observer);
-}
-
-int32_t EnableImeDataParser::RegisterObserver(const sptr<EnableImeDataObserver> &observer)
-{
-    if (observer == nullptr) {
-        IMSA_HILOGE("observer is nullptr.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-
-    auto uri = GenerateTargetUri(observer->GetKey());
-    auto helper = CreateDataShareHelper();
-    if (helper == nullptr) {
-        IMSA_HILOGE("CreateDataShareHelper return nullptr.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    helper->RegisterObserver(uri, observer);
-    ReleaseDataShareHelper(helper);
-    IMSA_HILOGD("succeed to register observer of uri=%{public}s", uri.ToString().c_str());
-    observerList_.push_back(observer);
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t EnableImeDataParser::UnregisterObserver(const sptr<EnableImeDataObserver> &observer)
-{
-    auto uri = GenerateTargetUri(observer->GetKey());
-    auto helper = CreateDataShareHelper();
-    if (helper == nullptr) {
-        return ErrorCode::ERROR_ENABLE_IME;
-    }
-    helper->UnregisterObserver(uri, observer);
-    ReleaseDataShareHelper(helper);
-    IMSA_HILOGD("succeed to unregister observer of uri=%{public}s", uri.ToString().c_str());
-    return ErrorCode::NO_ERROR;
-}
-
-std::shared_ptr<DataShare::DataShareHelper> EnableImeDataParser::CreateDataShareHelper()
-{
-    auto remoteObj = GetToken();
-    if (remoteObj == nullptr) {
-        IMSA_HILOGE("remoteObk is nullptr.");
-        return nullptr;
-    }
-
-    auto helper = DataShare::DataShareHelper::Creator(remoteObj_, SETTING_URI_PROXY, SETTINGS_DATA_EXT_URI);
-    if (helper == nullptr) {
-        IMSA_HILOGE("Create helper failed, uri=%{public}s", SETTING_URI_PROXY);
-        return nullptr;
-    }
-    return helper;
-}
-
-bool EnableImeDataParser::ReleaseDataShareHelper(std::shared_ptr<DataShare::DataShareHelper> &helper)
-{
-    if (helper == nullptr) {
-        IMSA_HILOGW("helper is nullptr.");
-        return true;
-    }
-    if (!helper->Release()) {
-        IMSA_HILOGE("Release data share helper failed.");
-        return false;
-    }
-    return true;
 }
 
 bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &switchInfo, const int32_t userId)
@@ -259,12 +175,6 @@ bool EnableImeDataParser::CheckTargetEnableName(
     return true;
 }
 
-Uri EnableImeDataParser::GenerateTargetUri(const std::string &key)
-{
-    Uri uri(std::string(SETTING_URI_PROXY) + "&key=" + key);
-    return uri;
-}
-
 int32_t EnableImeDataParser::GetEnableData(
     const std::string &key, std::vector<std::string> &enableVec, const int32_t userId)
 {
@@ -275,7 +185,7 @@ int32_t EnableImeDataParser::GetEnableData(
 
     IMSA_HILOGD("userId: %{public}d, key: %{public}s.", userId, key.c_str());
     std::string valueStr;
-    int32_t ret = GetStringValue(key, valueStr);
+    int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(key, valueStr);
     if (ret != ErrorCode::NO_ERROR || valueStr.empty()) {
         IMSA_HILOGW("Get value failed, or valueStr is empty");
         return ErrorCode::ERROR_ENABLE_IME;
@@ -330,64 +240,6 @@ const std::string EnableImeDataParser::GetJsonListName(const std::string &key)
         return "enableKeyboardList";
     }
     return "";
-}
-
-int32_t EnableImeDataParser::GetStringValue(const std::string &key, std::string &value)
-{
-    IMSA_HILOGD("Run in.");
-    auto helper = CreateDataShareHelper();
-    if (helper == nullptr) {
-        IMSA_HILOGE("CreateDataShareHelper return nullptr.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    std::vector<std::string> columns = { SETTING_COLUMN_VALUE };
-    DataShare::DataSharePredicates predicates;
-    predicates.EqualTo(SETTING_COLUMN_KEYWORD, key);
-    Uri uri(GenerateTargetUri(key));
-    auto resultSet = helper->Query(uri, predicates, columns);
-    ReleaseDataShareHelper(helper);
-    if (resultSet == nullptr) {
-        IMSA_HILOGE("helper->Query return nullptr.");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-
-    int32_t count = 0;
-    resultSet->GetRowCount(count);
-    if (count <= 0) {
-        IMSA_HILOGW("Not found keyword, key=%{public}s, count=%{public}d", key.c_str(), count);
-        resultSet->Close();
-        return ErrorCode::ERROR_KEYWORD_NOT_FOUND;
-    }
-
-    int32_t columIndex = 0;
-    resultSet->GoToFirstRow();
-    resultSet->GetColumnIndex(SETTING_COLUMN_VALUE, columIndex);
-    int32_t ret = resultSet->GetString(columIndex, value);
-    if (ret != DataShare::E_OK) {
-        IMSA_HILOGE("GetString failed, ret=%{public}d", ret);
-    }
-    resultSet->Close();
-    return ret;
-}
-
-sptr<IRemoteObject> EnableImeDataParser::GetToken()
-{
-    std::lock_guard<std::mutex> autoLock(tokenMutex_);
-    if (remoteObj_ != nullptr) {
-        return remoteObj_;
-    }
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (samgr == nullptr) {
-        IMSA_HILOGE("GetSystemAbilityManager return nullptr");
-        return nullptr;
-    }
-    auto remoteObj = samgr->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID);
-    if (remoteObj == nullptr) {
-        IMSA_HILOGE("GetSystemAbility return nullptr");
-        return nullptr;
-    }
-    remoteObj_ = remoteObj;
-    return remoteObj_;
 }
 
 std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()
