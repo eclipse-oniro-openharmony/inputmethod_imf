@@ -602,7 +602,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    IMSA_HILOGI("size: %{public}zu, start: %{public}d, end: %{public}d", text.size(), start, end);
+    IMSA_HILOGI("IMC size: %{public}zu, range: %{public}d/%{public}d", text.size(), start, end);
     agent_->OnSelectionChange(textString_, selectOldBegin_, selectOldEnd_, selectNewBegin_, selectNewEnd_);
     return ErrorCode::NO_ERROR;
 }
@@ -618,8 +618,8 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         textConfig_.inputAttribute.enterKeyType = static_cast<uint32_t>(info.GetEnterKeyType());
         textConfig_.inputAttribute.inputPattern = static_cast<uint32_t>(info.GetTextInputType());
     }
-    IMSA_HILOGI("enterKeyType: %{public}d, textInputType: %{public}d", static_cast<uint32_t>(info.GetEnterKeyType()),
-        static_cast<uint32_t>(info.GetTextInputType()));
+    IMSA_HILOGI("IMC enterKeyType: %{public}d, textInputType: %{public}d",
+        static_cast<uint32_t>(info.GetEnterKeyType()), static_cast<uint32_t>(info.GetTextInputType()));
     std::lock_guard<std::mutex> agentLock(agentLock_);
     if (agent_ == nullptr) {
         IMSA_HILOGE("agent is nullptr");
