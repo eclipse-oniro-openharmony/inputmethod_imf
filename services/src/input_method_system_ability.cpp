@@ -623,7 +623,7 @@ int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
         InputTypeManager::GetInstance().Set(false);
         return ret;
     }
-    return ErrorCode::NO_ERROR;
+    return userSession_->OnShowCurrentInput();
 }
 
 // Deprecated because of no permission check, kept for compatibility

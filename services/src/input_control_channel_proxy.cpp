@@ -38,7 +38,7 @@ InputControlChannelProxy::~InputControlChannelProxy()
 
 int32_t InputControlChannelProxy::HideKeyboardSelf()
 {
-    IMSA_HILOGI("InputControlChannelProxy::HideKeyboardSelf");
+    IMSA_HILOGD("InputControlChannelProxy::HideKeyboardSelf");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
