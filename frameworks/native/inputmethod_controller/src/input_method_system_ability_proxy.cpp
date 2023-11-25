@@ -105,6 +105,14 @@ int32_t InputMethodSystemAbilityProxy::GetInputMethodConfig(OHOS::AppExecFwk::El
         });
 }
 
+int32_t InputMethodSystemAbilityProxy::GetSecurityMode(int32_t &security)
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_SECURITY_MODE), nullptr,
+        [&security](MessageParcel& reply) {
+            return ITypesUtil::Unmarshal(reply, security);
+        });
+}
+
 int32_t InputMethodSystemAbilityProxy::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)
 {
     return SendRequest(

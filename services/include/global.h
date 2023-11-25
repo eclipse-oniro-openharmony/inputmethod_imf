@@ -103,6 +103,7 @@ enum {
     ERROR_ENABLE_IME = 29,
     ERROR_PARSE_CONFIG_FILE = 30,
     ERROR_NOT_DEFAULT_IME = 31,
+    ERROR_ENABLE_SECURITY_MODE = 32,
 };
 }; // namespace ErrorCode
 

@@ -700,6 +700,28 @@ void InputMethodAbility::QuitWorkThread()
     }
 }
 
+int32_t InputMethodAbility::GetSecurityMode(int32_t &security)
+{
+    IMSA_HILOGI("InputMethodAbility start.");
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("failed to get imsa proxy.");
+        return false;
+    }
+    return proxy->GetSecurityMode(security);
+}
+
+int32_t InputMethodAbility::OnSecurityChange(int32_t security)
+{
+    IMSA_HILOGI("InputMethodAbility start.");
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("InputMethodAbility, imeListener is nullptr");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    imeListener_->OnSecurityChange(security);
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context,
     const PanelInfo &panelInfo, std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {

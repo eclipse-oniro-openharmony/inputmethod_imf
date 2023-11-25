@@ -14,6 +14,7 @@
  */
 #define private public
 #define protected public
+#include "settings_data_utils.h"
 #include "enable_ime_data_parser.h"
 #undef private
 
@@ -255,7 +256,7 @@ void TddUtil::GrantNativePermission()
 
 void TddUtil::PutEnableImeValue(const std::string &key, const std::string &value)
 {
-    auto helper = EnableImeDataParser::GetInstance()->CreateDataShareHelper();
+    auto helper = SettingsDataUtils::GetInstance()->CreateDataShareHelper();
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr.");
         return;
@@ -267,17 +268,17 @@ void TddUtil::PutEnableImeValue(const std::string &key, const std::string &value
     bucket.Put(SETTING_COLUMN_VALUE, valueObj);
     DataShare::DataSharePredicates predicates;
     predicates.EqualTo(SETTING_COLUMN_KEYWORD, key);
-    Uri uri(EnableImeDataParser::GetInstance()->GenerateTargetUri(key));
+    Uri uri(SettingsDataUtils::GetInstance()->GenerateTargetUri(key));
     if (helper->Update(uri, predicates, bucket) <= 0) {
         IMSA_HILOGD("no data exist, insert one row");
         helper->Insert(uri, bucket);
     }
-    EnableImeDataParser::GetInstance()->ReleaseDataShareHelper(helper);
+    SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
 }
 
 int32_t TddUtil::CheckEnableOn(std::string &value)
 {
-    return EnableImeDataParser::GetInstance()->GetStringValue(EnableImeDataParser::ENABLE_IME, value);
+    return SettingsDataUtils::GetInstance()->GetStringValue(EnableImeDataParser::ENABLE_IME, value);
 }
 
 void TddUtil::WindowManager::CreateWindow()

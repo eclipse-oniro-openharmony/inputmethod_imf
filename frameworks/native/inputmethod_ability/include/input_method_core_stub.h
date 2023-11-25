@@ -48,6 +48,7 @@ public:
     int32_t SetSubtype(const SubProperty &property) override;
     bool IsEnable() override;
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
+    int32_t OnSecurityChange(int32_t security) override;
     void SetMessageHandler(MessageHandler *msgHandler);
 
 private:
@@ -61,6 +62,7 @@ private:
     int32_t SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t IsEnableOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t SecurityChangeOnRemote(MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
     using RequestHandler = int32_t (InputMethodCoreStub::*)(MessageParcel &, MessageParcel &);
@@ -74,6 +76,7 @@ private:
         { static_cast<uint32_t>(STOP_INPUT), &InputMethodCoreStub::StopInputOnRemote },
         { static_cast<uint32_t>(IS_ENABLE), &InputMethodCoreStub::IsEnableOnRemote },
         { static_cast<uint32_t>(IS_PANEL_SHOWN), &InputMethodCoreStub::IsPanelShownOnRemote },
+        { static_cast<uint32_t>(SECURITY_CHANGE), &InputMethodCoreStub::SecurityChangeOnRemote },
     };
 };
 } // namespace MiscServices

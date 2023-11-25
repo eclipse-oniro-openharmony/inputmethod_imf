@@ -26,6 +26,7 @@
 #include "js_runtime_utils.h"
 #include "js_text_input_client_engine.h"
 #include "js_util.h"
+#include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_base_context.h"
@@ -72,21 +73,27 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
             GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_PASSWORD))),
         DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD_SCREEN_LOCK",
             GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::SCREEN_LOCK_PASSWORD))),
-
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
         DECLARE_NAPI_FUNCTION("getInputMethodAbility", GetInputMethodAbility),
         DECLARE_NAPI_STATIC_PROPERTY("PanelType", GetJsPanelTypeProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("PanelFlag", GetJsPanelFlagProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("ExtendAction", GetJsExtendActionProperty(env)),
+        DECLARE_NAPI_STATIC_PROPERTY("SecurityMode", GetJsSecurityModeProperty(env)),
     };
     NAPI_CALL(
         env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
+    return InitProperty(env, exports);
+};
+
+napi_value JsInputMethodEngineSetting::InitProperty(napi_env env, napi_value exports)
+{
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
         DECLARE_NAPI_FUNCTION("createPanel", CreatePanel),
         DECLARE_NAPI_FUNCTION("destroyPanel", DestroyPanel),
+        DECLARE_NAPI_FUNCTION("getSecurityMode", GetSecurityMode),
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, IMES_CLASS_NAME.c_str(), IMES_CLASS_NAME.size(), JsConstructor, nullptr,
@@ -94,7 +101,7 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
     NAPI_CALL(env, napi_create_reference(env, cons, 1, &IMESRef_));
     NAPI_CALL(env, napi_set_named_property(env, exports, IMES_CLASS_NAME.c_str(), cons));
     return exports;
-};
+}
 
 napi_value JsInputMethodEngineSetting::GetJsConstProperty(napi_env env, uint32_t num)
 {
@@ -172,6 +179,19 @@ napi_value JsInputMethodEngineSetting::GetJsExtendActionProperty(napi_env env)
     NAPI_CALL(env, napi_set_named_property(env, action, "COPY", actionCopy));
     NAPI_CALL(env, napi_set_named_property(env, action, "PASTE", actionPaste));
     return action;
+}
+
+napi_value JsInputMethodEngineSetting::GetJsSecurityModeProperty(napi_env env)
+{
+    napi_value securityMode = nullptr;
+    napi_value basic = nullptr;
+    napi_value full = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(SecurityMode::BASIC), &basic));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(SecurityMode::FULL), &full));
+    NAPI_CALL(env, napi_create_object(env, &securityMode));
+    NAPI_CALL(env, napi_set_named_property(env, securityMode, "BASIC", basic));
+    NAPI_CALL(env, napi_set_named_property(env, securityMode, "FULL", full));
+    return securityMode;
 }
 
 std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::GetInputMethodEngineSetting()
@@ -436,6 +456,22 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
     return asyncCall.Call(env, exec, "destroyPanel");
 }
 
+napi_value JsInputMethodEngineSetting::GetSecurityMode(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGD("get security mode");
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+    int32_t security;
+    int32_t ret = InputMethodAbility::GetInstance()->GetSecurityMode(security);
+    if (ret != ErrorCode::NO_ERROR) {
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get security mode", TYPE_NONE);
+    }
+    napi_value result = nullptr;
+    napi_create_int32(env, security, &result);
+    return result;
+}
+
 napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_TWO;
@@ -671,6 +707,40 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
             };
             // 1 means callback has one param.
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSubtypeProperty });
+        },
+        uv_qos_user_initiated);
+}
+
+void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
+{
+    std::string type = "securityModeChange";
+    uv_work_t *work = GetUVwork(type, [&security](UvEntry &entry) { entry.security = security; });
+    if (work == nullptr) {
+        IMSA_HILOGD("failed to get uv entry");
+        return;
+    }
+    IMSA_HILOGI("run in: %{public}s", type.c_str());
+    uv_queue_work_with_qos(
+        loop_, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("entryptr is null");
+                return;
+            }
+            auto getSecurityProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+                if (argc == 0) {
+                    return false;
+                }
+                // 0 means the first param of callback.
+                napi_create_int32(env, entry->security, &args[0]);
+                return true;
+            };
+            // 1 means callback has one param.
+            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSecurityProperty });
         },
         uv_qos_user_initiated);
 }

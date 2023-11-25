@@ -23,10 +23,10 @@ const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> 
             "handleExtendAction", "selectByRange", "selectByMovement", "getLeftTextOfCursor", "getRightTextOfCursor",
             "getTextIndexAtCursor" } },
     { EventSubscribeModule::INPUT_METHOD_SETTING, { "imeChange", "imeShow", "imeHide" } },
-    { EventSubscribeModule::INPUT_METHOD_ABILITY,
-        { "inputStart", "inputStop", "keyboardShow", "keyboardHide", "setCallingWindow", "setSubtype" } },
+    { EventSubscribeModule::INPUT_METHOD_ABILITY, { "inputStart", "inputStop", "keyboardShow", "keyboardHide",
+                                                      "setCallingWindow", "setSubtype", "securityModeChange" } },
     { EventSubscribeModule::KEYBOARD_DELEGATE, { "editorAttributeChanged", "keyDown", "keyUp", "keyEvent",
-                                                 "cursorContextChange", "selectionChange", "textChange" } },
+                                                   "cursorContextChange", "selectionChange", "textChange" } },
     { EventSubscribeModule::PANEL, { "show", "hide" } }
 };
 bool EventChecker::IsValidEventType(EventSubscribeModule module, const std::string &type)

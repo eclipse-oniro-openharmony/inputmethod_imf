@@ -33,6 +33,7 @@ group("unittest") {
     "cpp_test:InputMethodSwitchTest",
     "cpp_test:InputMethodUtilsTest",
     "cpp_test:NewImeSwitchTest",
+    "cpp_test:SecurityModeParseTest",
     "cpp_test:TextListenerInnerApiTest",
     "cpp_test/common:inputmethod_tdd_util",
     "napi_test/src:GetInputMethodJsTest",

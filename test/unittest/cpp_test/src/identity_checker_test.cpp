@@ -63,6 +63,10 @@ public:
         {
             return isNativeSa_;
         }
+        std::string GetBundleNameByToken(uint32_t tokenId) override
+        {
+            return "";
+        }
         static bool isFocused_;
         static bool isSystemApp_;
         static bool isBundleNameValid_;

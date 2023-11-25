@@ -40,6 +40,7 @@ public:
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStart() override;
     void OnInputStop() override;
+    void OnSecurityChange(int32_t security) override;
     void OnSetCallingWindow(uint32_t windowId) override;
     void OnSetSubtype(const SubProperty &property) override;
     void OnInputFinish()override;

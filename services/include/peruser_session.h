@@ -76,6 +76,7 @@ public:
     int32_t OnShowCurrentInput();
     int32_t OnShowInput(sptr<IInputClient> client);
     int32_t OnHideInput(sptr<IInputClient> client);
+    void OnSecurityChange(int32_t &security);
     void OnHideSoftKeyBoardSelf();
     void StopInputService();
     void NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);

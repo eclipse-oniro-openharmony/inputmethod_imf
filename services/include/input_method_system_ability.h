@@ -24,6 +24,8 @@
 #include "block_queue.h"
 #include "bundle_mgr_proxy.h"
 #include "enable_ime_data_parser.h"
+#include "settings_data_utils.h"
+#include "security_mode_parser.h"
 #include "element_name.h"
 #include "event_handler.h"
 #include "identity_checker_impl.h"
@@ -76,6 +78,7 @@ public:
     int32_t StartInputType(InputType type) override;
     int32_t ExitCurrentInputType() override;
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
+    int32_t GetSecurityMode(int32_t &security) override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;
@@ -132,11 +135,13 @@ private:
     int32_t SwitchType();
     int32_t GenerateClientInfo(InputClientInfo &clientInfo);
     void RegisterEnableImeObserver();
+    void RegisterSecurityModeObserver();
     void CheckSecurityMode(InputClientInfo &inputClientInfo);
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
     bool enableImeOn_ = false;
+    bool enableSecurityMode_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

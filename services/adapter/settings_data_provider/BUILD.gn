@@ -14,15 +14,17 @@
 import("//base/inputmethod/imf/inputmethod.gni")
 import("//build/ohos.gni")
 
-config("enable_ime_config") {
+config("settings_data_config") {
   include_dirs = [
     "include",
     "${inputmethod_path}/services/include",
+    "${inputmethod_path}/services/adapter/settings_data_provider/common/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
   ]
 }
 
-ohos_static_library("enable_ime_static") {
+ohos_static_library("settings_data_static") {
   branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
@@ -30,11 +32,13 @@ ohos_static_library("enable_ime_static") {
     debug = false
   }
   sources = [
-    "src/enable_ime_data_observer.cpp",
+    "common/src/settings_data_observer.cpp",
+    "common/src/settings_data_utils.cpp",
     "src/enable_ime_data_parser.cpp",
+    "src/security_mode_parser.cpp",
   ]
 
-  public_configs = [ ":enable_ime_config" ]
+  public_configs = [ ":settings_data_config" ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
 

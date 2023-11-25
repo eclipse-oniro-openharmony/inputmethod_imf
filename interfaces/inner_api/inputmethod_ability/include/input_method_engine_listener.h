@@ -26,6 +26,7 @@ public:
     virtual void OnKeyboardStatus(bool isShow) = 0;
     virtual void OnInputStart() = 0;
     virtual void OnInputStop() = 0;
+    virtual void OnSecurityChange(int32_t security) = 0;
     virtual void OnSetCallingWindow(uint32_t windowId) = 0;
     virtual void OnSetSubtype(const SubProperty &property) = 0;
     virtual void OnInputFinish()

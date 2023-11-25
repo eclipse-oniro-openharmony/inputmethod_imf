@@ -50,6 +50,11 @@ enum class Direction {
     RIGHT,
 };
 
+enum class SecurityMode {
+    BASIC = 0,
+    FULL = 1,
+};
+
 enum class ExtendAction {
     SELECT_ALL = 0,
     CUT = 3,

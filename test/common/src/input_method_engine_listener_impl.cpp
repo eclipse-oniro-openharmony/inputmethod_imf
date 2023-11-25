@@ -31,6 +31,10 @@ void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
     IMSA_HILOGI("InputMethodEngineListenerImpl::OnKeyboardStatus %{public}s", isShow ? "show" : "hide");
     keyboardState_ = isShow;
 }
+void InputMethodEngineListenerImpl::OnSecurityChange(int32_t security)
+{
+    IMSA_HILOGI("InputMethodEngineListenerImpl::OnSecurityChange %{public}d", security);
+}
 void InputMethodEngineListenerImpl::OnInputStart()
 {
     IMSA_HILOGI("InputMethodEngineListenerImpl::OnInputStart");

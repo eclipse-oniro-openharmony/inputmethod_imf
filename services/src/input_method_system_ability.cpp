@@ -27,6 +27,7 @@
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
 #include "input_type_manager.h"
+#include "input_method_utils.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
@@ -748,6 +749,9 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     if (enableImeOn_) {
         EnableImeDataParser::GetInstance()->OnUserChanged(userId_);
     }
+    if (enableSecurityMode_) {
+        SecurityModeParser::GetInstance()->GetFullModeList(userId_);
+    }
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(oldUserId)->imeId;
     userSession_->StopInputService();
     // user switch, reset currentImeInfo_ = nullptr
@@ -931,6 +935,11 @@ void InputMethodSystemAbility::InitMonitors()
         enableImeOn_ = true;
         RegisterEnableImeObserver();
     }
+    if (SecurityModeParser::GetInstance()->Initialize(userId_) == ErrorCode::NO_ERROR) {
+        IMSA_HILOGW("Enter security mode");
+        enableSecurityMode_ = true;
+        RegisterSecurityModeObserver();
+    }
 }
 
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
@@ -958,24 +967,53 @@ void InputMethodSystemAbility::InitSystemLanguageMonitor()
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()
 {
-    int32_t ret = EnableImeDataParser::GetInstance()->CreateAndRegisterObserver(
+    int32_t ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(
         EnableImeDataParser::ENABLE_IME, [this]() { DatashareCallback(EnableImeDataParser::ENABLE_IME); });
     IMSA_HILOGI("Register enable ime observer, ret: %{public}d", ret);
-    ret = EnableImeDataParser::GetInstance()->CreateAndRegisterObserver(
+    ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(
         EnableImeDataParser::ENABLE_KEYBOARD, [this]() { DatashareCallback(EnableImeDataParser::ENABLE_KEYBOARD); });
     IMSA_HILOGI("Register enable keyboard observer, ret: %{public}d", ret);
+}
+
+void InputMethodSystemAbility::RegisterSecurityModeObserver()
+{
+    int32_t ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(
+        SecurityModeParser::SECURITY_MODE, [this]() { DatashareCallback(SecurityModeParser::SECURITY_MODE); });
+    IMSA_HILOGI("Register security mode observer, ret: %{public}d", ret);
 }
 
 void InputMethodSystemAbility::DatashareCallback(const std::string &key)
 {
     IMSA_HILOGI("run in.");
-    std::lock_guard<std::mutex> autoLock(checkMutex_);
-    SwitchInfo switchInfo;
-    if (EnableImeDataParser::GetInstance()->CheckNeedSwitch(key, switchInfo, userId_)) {
-        switchInfo.timestamp = std::chrono::system_clock::now();
-        switchQueue_.Push(switchInfo);
-        OnSwitchInputMethod(switchInfo, false);
+    if (key == EnableImeDataParser::ENABLE_KEYBOARD || key == EnableImeDataParser::ENABLE_IME) {
+        std::lock_guard<std::mutex> autoLock(checkMutex_);
+        SwitchInfo switchInfo;
+        if (EnableImeDataParser::GetInstance()->CheckNeedSwitch(key, switchInfo, userId_)) {
+            switchInfo.timestamp = std::chrono::system_clock::now();
+            switchQueue_.Push(switchInfo);
+            OnSwitchInputMethod(switchInfo, false);
+        }
     }
+
+    if (key == SecurityModeParser::SECURITY_MODE) {
+        auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
+        if (SecurityModeParser::GetInstance()->IsSecurityChange(currentBundleName, userId_)) {
+            int32_t security;
+            SecurityModeParser::GetInstance()->GetSecurityMode(currentBundleName, security, userId_);
+            userSession_->OnSecurityChange(security);
+        }
+    }
+}
+
+int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
+{
+    IMSA_HILOGD("GetSecurityMode");
+    if (!enableSecurityMode_) {
+        security = static_cast<int32_t>(SecurityMode::FULL);
+        return ErrorCode::NO_ERROR;
+    }
+    auto callBundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
+    return SecurityModeParser::GetInstance()->GetSecurityMode(callBundleName, security, userId_);
 }
 
 int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)

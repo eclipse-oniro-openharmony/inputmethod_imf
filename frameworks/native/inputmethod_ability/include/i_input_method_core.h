@@ -45,6 +45,7 @@ public:
         STOP_INPUT,
         IS_ENABLE,
         IS_PANEL_SHOWN,
+        SECURITY_CHANGE,
         CORE_CMD_LAST,
     };
 
@@ -59,6 +60,7 @@ public:
     virtual int32_t SetSubtype(const SubProperty &property) = 0;
     virtual bool IsEnable() = 0;
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
+    virtual int32_t OnSecurityChange(int32_t security) = 0 ;
 };
 } // namespace MiscServices
 } // namespace OHOS

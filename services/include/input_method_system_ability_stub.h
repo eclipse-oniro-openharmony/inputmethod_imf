@@ -88,6 +88,8 @@ private:
 
     int32_t IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t GetSecurityModeOnRemote(MessageParcel &data, MessageParcel &reply);
+
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
         { static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT),
@@ -146,6 +148,8 @@ private:
           &InputMethodSystemAbilityStub::GetInputMethodConfigOnRemote },
         { static_cast<uint32_t>(InputMethodInterfaceCode::IS_PANEL_SHOWN),
           &InputMethodSystemAbilityStub::IsPanelShownOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::GET_SECURITY_MODE),
+          &InputMethodSystemAbilityStub::GetSecurityModeOnRemote },
     };
 };
 } // namespace OHOS::MiscServices
