@@ -44,7 +44,7 @@ const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_
     { "imeHide", IME_HIDE } };
 InputMethodController::InputMethodController()
 {
-    IMSA_HILOGI("InputMethodController structure");
+    IMSA_HILOGI("IMC structure");
 }
 
 InputMethodController::~InputMethodController()
@@ -56,7 +56,7 @@ sptr<InputMethodController> InputMethodController::GetInstance()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> autoLock(instanceLock_);
         if (instance_ == nullptr) {
-            IMSA_HILOGI("InputMethodController instance_ is nullptr");
+            IMSA_HILOGI("IMC instance_ is nullptr");
             instance_ = new (std::nothrow) InputMethodController();
             if (instance_ == nullptr) {
                 return instance_;
@@ -180,7 +180,6 @@ int32_t InputMethodController::OnSwitchInput(const Property &property, const Sub
         IMSA_HILOGE("imeListener_ is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController, run in");
     settingListener_->OnImeChange(property, subProperty);
     return ErrorCode::NO_ERROR;
 }
@@ -192,7 +191,6 @@ int32_t InputMethodController::OnPanelStatusChange(
         IMSA_HILOGE("imeListener_ is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController, status: %{public}d", static_cast<uint32_t>(status));
     settingListener_->OnPanelStatusChange(status, windowInfo);
     return ErrorCode::NO_ERROR;
 }
@@ -803,7 +801,7 @@ int32_t InputMethodController::ShowOptionalInputMethod()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController run in");
+    IMSA_HILOGI("IMC run in");
     return proxy->DisplayOptionalInputMethod();
 }
 
@@ -842,7 +840,7 @@ int32_t InputMethodController::SwitchInputMethod(const std::string &name, const 
 
 void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
 {
-    IMSA_HILOGI("InputMethodController run in");
+    IMSA_HILOGI("IMC run in");
     isBound_.store(true);
     isEditable_.store(true);
     std::lock_guard<std::mutex> lk(agentLock_);
