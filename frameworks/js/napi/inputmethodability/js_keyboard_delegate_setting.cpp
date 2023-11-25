@@ -401,7 +401,6 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
         return;
     }
     IMSA_HILOGI("JsKBDelegateSetting, run in");
-    IMSA_HILOGD("JsKBDelegateSetting, x: %{public}d, y: %{public}d, height: %{public}d", positionX, positionY, height);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -443,8 +442,6 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
         return;
     }
     IMSA_HILOGI("JsKBDelegateSetting, run in");
-    IMSA_HILOGD("JsKBDelegateSetting, oldBegin/End: %{public}d/%{public}d, newBegin/End: %{public}d/%{public}d",
-        oldBegin, oldEnd, newBegin, newEnd);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -514,8 +511,6 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
         return;
     }
     IMSA_HILOGI("JsKBDelegateSetting, run in");
-    IMSA_HILOGD("JsKBDelegateSetting, enterKeyType: %{public}d, inputPattern: %{public}d", inputAttribute.enterKeyType,
-        inputAttribute.inputPattern);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {

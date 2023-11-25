@@ -332,6 +332,7 @@ void InputMethodAbility::OnCursorUpdate(Message *msg)
         IMSA_HILOGE("InputMethodAbility, kdListener_ is nullptr");
         return;
     }
+    IMSA_HILOGD("InputMethodAbility, x: %{public}d, y: %{public}d, height: %{public}d", positionX, positionY, height);
     kdListener_->OnCursorUpdate(positionX, positionY, height);
 }
 
@@ -348,6 +349,8 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
         IMSA_HILOGE("InputMethodAbility, kdListener_ is nullptr");
         return;
     }
+    IMSA_HILOGD("InputMethodAbility, oldBegin/End: %{public}d/%{public}d, newBegin/End: %{public}d/%{public}d",
+        oldBegin, oldEnd, newBegin, newEnd);
     kdListener_->OnTextChange(text);
     kdListener_->OnSelectionChange(oldBegin, oldEnd, newBegin, newEnd);
 }
@@ -362,6 +365,8 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
     InputAttribute attribute;
     attribute.enterKeyType = data->ReadInt32();
     attribute.inputPattern = data->ReadInt32();
+    IMSA_HILOGD("InputMethodAbility, enterKeyType: %{public}d, inputPattern: %{public}d", attribute.enterKeyType,
+        attribute.inputPattern);
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
@@ -435,14 +440,18 @@ void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
         IMSA_HILOGI("InputMethodAbility start to invoke callbacks");
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
         if (textConfig.cursorInfo.left != INVALID_CURSOR_VALUE) {
-            IMSA_HILOGD("send on('cursorUpdate') callback.");
+            IMSA_HILOGD("callback cursorUpdate, x: %{public}d, y: %{public}d, height: %{public}d",
+                textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
             kdListener_->OnCursorUpdate(
                 textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
         }
         if (textConfig.textSelection.newBegin != INVALID_SELECTION_VALUE) {
-            IMSA_HILOGD("send on('selectionChange') callback.");
+            IMSA_HILOGD("callback selectionChange, oldBegin/End: %{public}d/%{public}d, newBegin/End: "
+                        "%{public}d/%{public}d",
+                textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd, textConfig.textSelection.newBegin,
+                textConfig.textSelection.newEnd);
             kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
-                                           textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
+                textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
         }
     }
     if (textConfig.windowId == INVALID_WINDOW_ID) {
