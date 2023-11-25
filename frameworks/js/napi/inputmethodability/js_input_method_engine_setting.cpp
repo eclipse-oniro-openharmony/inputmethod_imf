@@ -562,7 +562,7 @@ void JsInputMethodEngineSetting::OnInputStart()
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("JsInputMethodEngineSetting, run in");
+    IMSA_HILOGI("run in");
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -604,7 +604,7 @@ void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("JsInputMethodEngineSetting, %{public}s", type.c_str());
+    IMSA_HILOGI("type: %{public}s", type.c_str());
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -625,7 +625,7 @@ void JsInputMethodEngineSetting::OnInputStop()
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("JsInputMethodEngineSetting, run in");
+    IMSA_HILOGI("run in");
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -646,7 +646,7 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("JsInputMethodEngineSetting, windowId: %{public}d", windowId);
+    IMSA_HILOGI("windowId: %{public}d", windowId);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -680,7 +680,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("JsInputMethodEngineSetting, subtypeId: %{public}s", property.id.c_str());
+    IMSA_HILOGI("subtypeId: %{public}s", property.id.c_str());
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {

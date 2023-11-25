@@ -301,7 +301,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
         IMSA_HILOGD("failed to get uv work");
         return false;
     }
-    IMSA_HILOGI("JsKeyboardDelegateSetting, run in");
+    IMSA_HILOGI("run in");
     StartAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
@@ -350,7 +350,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
         IMSA_HILOGD("failed to get uv work");
         return false;
     }
-    IMSA_HILOGI("JsKeyboardDelegateSetting, run in");
+    IMSA_HILOGI("run in");
     StartAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
@@ -400,8 +400,7 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI(
-        "JsKeyboardDelegateSetting, x: %{public}d, y: %{public}d, height: %{public}d", positionX, positionY, height);
+    IMSA_HILOGI("x: %{public}d, y: %{public}d, height: %{public}d", positionX, positionY, height);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -442,9 +441,7 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("JsKeyboardDelegateSetting, oldBegin: %{public}d, oldEnd: %{public}d, newBegin: %{public}d, newEnd: "
-                "%{public}d",
-        oldBegin, oldEnd, newBegin, newEnd);
+    IMSA_HILOGI("old: %{public}d/%{public}d, new: %{public}d/%{public}d", oldBegin, oldEnd, newBegin, newEnd);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -481,7 +478,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("JsKeyboardDelegateSetting, run in");
+    IMSA_HILOGI("run in");
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
@@ -513,8 +510,8 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("JsKeyboardDelegateSetting, enterKeyType: %{public}d, inputPattern: %{public}d",
-        inputAttribute.enterKeyType, inputAttribute.inputPattern);
+    IMSA_HILOGI("enterKeyType: %{public}d, inputPattern: %{public}d", inputAttribute.enterKeyType,
+        inputAttribute.inputPattern);
     uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {

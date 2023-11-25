@@ -176,6 +176,7 @@ PanelFlag InputMethodPanel::GetPanelFlag()
 
 int32_t InputMethodPanel::ShowPanel()
 {
+    IMSA_HILOGD("InputMethodPanel, run in");
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -210,6 +211,7 @@ int32_t InputMethodPanel::SetTextFieldAvoidInfo(double positionY, double height)
 
 int32_t InputMethodPanel::HidePanel()
 {
+    IMSA_HILOGD("InputMethodPanel, run in");
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -230,6 +232,7 @@ int32_t InputMethodPanel::HidePanel()
 
 int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
 {
+    IMSA_HILOGD("InputMethodPanel run in, windowId: %{public}d", windowId);
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;

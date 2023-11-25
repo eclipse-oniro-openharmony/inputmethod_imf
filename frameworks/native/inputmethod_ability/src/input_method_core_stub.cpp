@@ -41,7 +41,7 @@ InputMethodCoreStub::~InputMethodCoreStub()
 int32_t InputMethodCoreStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("InputMethodCoreStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
+    IMSA_HILOGD("InputMethodCoreStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != IInputMethodCore::GetDescriptor()) {
@@ -57,7 +57,6 @@ int32_t InputMethodCoreStub::OnRemoteRequest(
 
 int32_t InputMethodCoreStub::InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel)
 {
-    IMSA_HILOGD("InputMethodCoreStub::InitInputControlChannel");
     return SendMessage(MessageID::MSG_ID_INIT_INPUT_CONTROL_CHANNEL, [inputControlChannel](MessageParcel &data) {
         return ITypesUtil::Marshal(data, inputControlChannel->AsObject());
     });
@@ -65,19 +64,16 @@ int32_t InputMethodCoreStub::InitInputControlChannel(const sptr<IInputControlCha
 
 int32_t InputMethodCoreStub::ShowKeyboard()
 {
-    IMSA_HILOGD("InputMethodCoreStub::ShowKeyboard");
     return InputMethodAbility::GetInstance()->ShowKeyboard();
 }
 
 int32_t InputMethodCoreStub::HideKeyboard()
 {
-    IMSA_HILOGD("InputMethodCoreStub::hideKeyboard");
     return InputMethodAbility::GetInstance()->HideKeyboard();
 }
 
 void InputMethodCoreStub::StopInputService()
 {
-    IMSA_HILOGD("InputMethodCoreStub::StopInputService");
     SendMessage(MessageID::MSG_ID_STOP_INPUT_SERVICE);
 }
 
@@ -104,7 +100,8 @@ int32_t InputMethodCoreStub::InitInputControlChannelOnRemote(MessageParcel &data
 
 int32_t InputMethodCoreStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("InputMethodCoreStub::StartInputOnRemote");
+    IMSA_HILOGI(
+        "CoreStub, callingPid/Uid: %{public}d/%{public}d", IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     bool isBindFromClient = false;
     InputClientInfo clientInfo = {};
     if (!ITypesUtil::Unmarshal(data, isBindFromClient, clientInfo)) {
@@ -128,7 +125,6 @@ int32_t InputMethodCoreStub::SecurityChangeOnRemote(MessageParcel &data, Message
 
 int32_t InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("InputMethodCoreStub::SetSubtypeOnRemote");
     SubProperty property;
     int32_t ret = SendMessage(MessageID::MSG_ID_SET_SUBTYPE, [&data, &property](MessageParcel &parcel) {
         return ITypesUtil::Unmarshal(data, property) && ITypesUtil::Marshal(parcel, property);
@@ -149,7 +145,6 @@ int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParce
 
 int32_t InputMethodCoreStub::IsEnableOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("run in");
     bool isEnable = IsEnable();
     return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, isEnable) ? ErrorCode::NO_ERROR
                                                                      : ErrorCode::ERROR_EX_PARCELABLE;
@@ -157,21 +152,18 @@ int32_t InputMethodCoreStub::IsEnableOnRemote(MessageParcel &data, MessageParcel
 
 int32_t InputMethodCoreStub::ShowKeyboardOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("run in");
     auto ret = ShowKeyboard();
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::HideKeyboardOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("run in");
     auto ret = HideKeyboard();
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::StopInputServiceOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGD("run in");
     StopInputService();
     return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }

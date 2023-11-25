@@ -52,7 +52,7 @@ napi_value JsKeyboardControllerEngine::JsConstructor(napi_env env, napi_callback
         return result;
     }
     auto finalize = [](napi_env env, void *data, void *hint) {
-        IMSA_HILOGE("JsKeyboardControllerEngine finalize");
+        IMSA_HILOGE("JsKBCEngine finalize");
         auto *objInfo = reinterpret_cast<JsKeyboardControllerEngine *>(data);
         if (objInfo != nullptr) {
             delete objInfo;
@@ -80,7 +80,7 @@ napi_value JsKeyboardControllerEngine::GetKeyboardControllerInstance(napi_env en
         IMSA_HILOGE("GetKeyboardController::napi_new_instance not ok");
         return nullptr;
     }
-    IMSA_HILOGE("New the JsKeyboardControllerEngine instance complete");
+    IMSA_HILOGI("success");
     return instance;
 }
 

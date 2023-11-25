@@ -287,7 +287,7 @@ int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
         }
     }
     if (client == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
+        IMSA_HILOGE("IMSA, client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return userSession_->OnShowInput(client);
@@ -302,7 +302,7 @@ int32_t InputMethodSystemAbility::HideInput(sptr<IInputClient> client)
         }
     }
     if (client == nullptr) {
-        IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
+        IMSA_HILOGE("IMSA, client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     return userSession_->OnHideInput(client);
@@ -827,7 +827,7 @@ int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
     want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
     int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want);
     if (ret != ErrorCode::NO_ERROR && ret != START_SERVICE_ABILITY_ACTIVATING) {
-        IMSA_HILOGE("InputMethodSystemAbility::Start InputMethod ability failed, err = %{public}d", ret);
+        IMSA_HILOGE("Start InputMethod ability failed, err = %{public}d", ret);
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
     }
     IMSA_HILOGI("InputMethodSystemAbility::Start InputMethod ability success.");

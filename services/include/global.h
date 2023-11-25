@@ -107,7 +107,7 @@ enum {
 };
 }; // namespace ErrorCode
 
-static constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD001C00, "ImsaKit" };
+static constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD001C10, "ImsaKit" };
 
 #define IMSA_HILOGD(fmt, ...)                                                       \
     (void)OHOS::HiviewDFX::HiLog::Debug(OHOS::MiscServices::g_SMALL_SERVICES_LABEL, \

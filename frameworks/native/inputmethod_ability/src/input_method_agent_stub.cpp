@@ -87,8 +87,7 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
 
 int32_t InputMethodAgentStub::DispatchKeyEventOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("InputMethodAgentStub, callingPid: %{public}d, callingUid: %{public}d", IPCSkeleton::GetCallingPid(),
-        IPCSkeleton::GetCallingUid());
+    IMSA_HILOGI("callingPid/Uid: %{public}d/%{public}d", IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
     if (!keyEvent->ReadFromParcel(data)) {
         IMSA_HILOGE("failed to read key event from parcel");

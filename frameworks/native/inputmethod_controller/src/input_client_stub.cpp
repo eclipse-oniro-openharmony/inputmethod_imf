@@ -65,7 +65,7 @@ int32_t InputClientStub::OnRemoteRequest(
 
 void InputClientStub::OnInputReadyOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("InputClientStub, run in");
+    IMSA_HILOGI("ClientStub, run in");
     auto object = data.ReadRemoteObject();
     InputMethodController::GetInstance()->OnInputReady(object);
 }
