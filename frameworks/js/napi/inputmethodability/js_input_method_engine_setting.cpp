@@ -780,7 +780,7 @@ std::shared_ptr<AppExecFwk::EventHandler> JsInputMethodEngineSetting::GetEventHa
 std::shared_ptr<JsInputMethodEngineSetting::UvEntry> JsInputMethodEngineSetting::GetEntry(
     const std::string &type, EntrySetter entrySetter)
 {
-    IMSA_HILOGD("run in, type: %{public}s", type.c_str());
+    IMSA_HILOGD("type: %{public}s", type.c_str());
     std::shared_ptr<UvEntry> entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
