@@ -452,7 +452,6 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
             ctxt->SetState(ctxt->status);
             return;
         }
-        IMSA_HILOGI("exec %{public}d", errCode);
         if (needThrowException) {
             ctxt->SetErrorCode(errCode);
         }

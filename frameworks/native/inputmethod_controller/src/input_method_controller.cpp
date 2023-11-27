@@ -841,7 +841,7 @@ int32_t InputMethodController::SwitchInputMethod(const std::string &name, const 
 
 void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
 {
-    IMSA_HILOGI("IMC run in");
+    IMSA_HILOGI("IMC");
     isBound_.store(true);
     isEditable_.store(true);
     std::lock_guard<std::mutex> lk(agentLock_);

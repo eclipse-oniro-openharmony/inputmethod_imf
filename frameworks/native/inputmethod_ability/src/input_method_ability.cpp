@@ -283,7 +283,7 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
 
 int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
 {
-    IMSA_HILOGI("run in");
+    IMSA_HILOGI("IMA");
     HideKeyboard();
     ClearDataChannel(channelObject);
     if (imeListener_ != nullptr) {
@@ -435,7 +435,7 @@ void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
     if (kdListener_ == nullptr) {
         IMSA_HILOGE("kdListener_ is nullptr.");
     } else {
-        IMSA_HILOGI("start to invoke callbacks");
+        IMSA_HILOGD("start to invoke callbacks");
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
         if (textConfig.cursorInfo.left != INVALID_CURSOR_VALUE) {
             IMSA_HILOGD("callback cursorUpdate");

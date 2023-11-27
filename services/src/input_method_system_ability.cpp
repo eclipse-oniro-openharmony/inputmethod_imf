@@ -190,11 +190,11 @@ void InputMethodSystemAbility::StartUserIdListener()
     sptr<ImCommonEventManager> imCommonEventManager = ImCommonEventManager::GetInstance();
     bool isSuccess = imCommonEventManager->SubscribeEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
     if (isSuccess) {
-        IMSA_HILOGI("InputMethodSystemAbility::Initialize subscribe service event success");
+        IMSA_HILOGI("Initialize subscribe service event success");
         return;
     }
 
-    IMSA_HILOGE("StartUserIdListener failed. Try again 10s later");
+    IMSA_HILOGE("failed. Try again 10s later");
     auto callback = [this]() { StartUserIdListener(); };
     serviceHandler_->PostTask(callback, INIT_INTERVAL);
 }
@@ -789,7 +789,7 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
  */
 int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
 {
-    IMSA_HILOGI("Start...\n");
+    IMSA_HILOGD("Start...\n");
     MessageParcel *data = msg->msgContent_;
     if (data == nullptr) {
         IMSA_HILOGD("data is nullptr");
@@ -803,7 +803,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
     }
     // 用户移除也会有该通知，如果移除的app用户不是当前用户，则不处理
     if (userId != userId_) {
-        IMSA_HILOGI("InputMethodSystemAbility::userId: %{public}d, currentUserId: %{public}d,", userId, userId_);
+        IMSA_HILOGD("userId: %{public}d, currentUserId: %{public}d,", userId, userId_);
         return ErrorCode::NO_ERROR;
     }
     auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
@@ -814,14 +814,14 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
             return ErrorCode::ERROR_PERSIST_CONFIG;
         }
         int32_t ret = SwitchExtension(info);
-        IMSA_HILOGI("InputMethodSystemAbility::OnPackageRemoved ret = %{public}d", ret);
+        IMSA_HILOGI("OnPackageRemoved ret = %{public}d", ret);
     }
     return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
 {
-    IMSA_HILOGI("InputMethodSystemAbility::OnDisplayOptionalInputMethod");
+    IMSA_HILOGD("InputMethodSystemAbility::OnDisplayOptionalInputMethod");
     AAFwk::Want want;
     want.SetAction(SELECT_DIALOG_ACTION);
     want.SetElementName(SELECT_DIALOG_HAP, SELECT_DIALOG_ABILITY);
@@ -830,13 +830,13 @@ int32_t InputMethodSystemAbility::OnDisplayOptionalInputMethod()
         IMSA_HILOGE("Start InputMethod ability failed, err = %{public}d", ret);
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
     }
-    IMSA_HILOGI("InputMethodSystemAbility::Start InputMethod ability success.");
+    IMSA_HILOGI("Start InputMethod ability success.");
     return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
 {
-    IMSA_HILOGI("InputMethodSystemAbility::SwitchByCombinationKey");
+    IMSA_HILOGD("InputMethodSystemAbility::SwitchByCombinationKey");
     if (userSession_->IsProxyImeEnable()) {
         IMSA_HILOGI("proxy enable, not switch");
         return ErrorCode::NO_ERROR;
@@ -1019,7 +1019,7 @@ int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
 int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)
 {
     if (!identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
-        IMSA_HILOGI("InputMethodSystemAbility::not native sa");
+        IMSA_HILOGE("not native sa");
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return userSession_->OnUnRegisteredProxyIme(type, core);
