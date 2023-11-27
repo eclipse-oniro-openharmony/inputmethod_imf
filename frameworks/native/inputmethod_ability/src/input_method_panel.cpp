@@ -106,7 +106,7 @@ int32_t InputMethodPanel::DestroyPanel()
         return ret;
     }
     auto result = window_->Destroy();
-    IMSA_HILOGI("InputMethodPanel, Destroy end, ret = %{public}d", result);
+    IMSA_HILOGI("ret = %{public}d", result);
     return result == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
@@ -119,7 +119,7 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto ret = window_->Resize(width, height);
-    IMSA_HILOGI("InputMethodPanel, Resize ret = %{public}d", ret);
+    IMSA_HILOGI("ret = %{public}d", ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
@@ -134,7 +134,7 @@ int32_t InputMethodPanel::MoveTo(int32_t x, int32_t y)
         return ErrorCode::NO_ERROR;
     }
     auto ret = window_->MoveTo(x, y);
-    IMSA_HILOGI("InputMethodPanel, MoveTo ret = %{public}d", ret);
+    IMSA_HILOGI("ret = %{public}d", ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
@@ -160,7 +160,7 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
         Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     }
     auto ret = window_->SetWindowGravity(gravity, invalidGravityPercent);
-    IMSA_HILOGI("InputMethodPanel, ChangePanelFlag: %{public}d end, ret = %{public}d", panelFlag, ret);
+    IMSA_HILOGI("flag: %{public}d, ret = %{public}d", panelFlag, ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
@@ -182,7 +182,7 @@ int32_t InputMethodPanel::ShowPanel()
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (IsShowing()) {
-        IMSA_HILOGE("Panel already shown.");
+        IMSA_HILOGI("Panel already shown.");
         return ErrorCode::NO_ERROR;
     }
     auto ret = window_->Show();
@@ -190,7 +190,7 @@ int32_t InputMethodPanel::ShowPanel()
         IMSA_HILOGE("ShowPanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    IMSA_HILOGI("InputMethodPanel, ShowPanel success.");
+    IMSA_HILOGI("success");
     PanelStatusChange(InputWindowStatus::SHOW);
     return ErrorCode::NO_ERROR;
 }
@@ -217,7 +217,7 @@ int32_t InputMethodPanel::HidePanel()
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (IsHidden()) {
-        IMSA_HILOGE("Panel already hidden.");
+        IMSA_HILOGI("Panel already hidden.");
         return ErrorCode::NO_ERROR;
     }
     auto ret = window_->Hide();
@@ -225,7 +225,7 @@ int32_t InputMethodPanel::HidePanel()
         IMSA_HILOGE("HidePanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    IMSA_HILOGI("InputMethodPanel, HidePanel success.");
+    IMSA_HILOGI("success");
     PanelStatusChange(InputWindowStatus::HIDE);
     return ErrorCode::NO_ERROR;
 }
@@ -238,13 +238,13 @@ int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto ret = window_->SetCallingWindow(windowId);
-    IMSA_HILOGI("InputMethodPanel, SetCallingWindow ret = %{public}d, windowId = %{public}u", ret, windowId);
+    IMSA_HILOGI("ret = %{public}d, windowId = %{public}u", ret, windowId);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
 int32_t InputMethodPanel::SetPrivacyMode(bool isPrivacyMode)
 {
-    IMSA_HILOGI("Run in.");
+    IMSA_HILOGD("isPrivacyMode: %{public}d", isPrivacyMode);
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
@@ -254,6 +254,7 @@ int32_t InputMethodPanel::SetPrivacyMode(bool isPrivacyMode)
         IMSA_HILOGE("SetWindowPrivacyMode error, ret = %{public}d", ret);
         return static_cast<int32_t>(ret);
     }
+    IMSA_HILOGI("end, isPrivacyMode: %{public}d", isPrivacyMode);
     return ErrorCode::NO_ERROR;
 }
 
@@ -287,7 +288,7 @@ bool InputMethodPanel::IsShowing()
     if (windowState == WindowState::STATE_SHOWN) {
         return true;
     }
-    IMSA_HILOGD("InputMethodPanel windowState = %{public}d", static_cast<int>(windowState));
+    IMSA_HILOGD("windowState = %{public}d", static_cast<int>(windowState));
     return false;
 }
 
@@ -297,7 +298,7 @@ bool InputMethodPanel::IsHidden()
     if (windowState == WindowState::STATE_HIDDEN) {
         return true;
     }
-    IMSA_HILOGD("InputMethodPanel windowState = %{public}d", static_cast<int>(windowState));
+    IMSA_HILOGD("windowState = %{public}d", static_cast<int>(windowState));
     return false;
 }
 
@@ -315,8 +316,8 @@ int32_t InputMethodPanel::SetUiContent(
         ret = window_->NapiSetUIContent(contentInfo, env, storage->GetNapiValue());
     }
     WMError wmError = window_->SetTransparent(true);
-    IMSA_HILOGI("SetTransparent end, wmError = %{public}u", wmError);
-    IMSA_HILOGI("InputMethodPanel, NapiSetUIContent ret = %{public}d", ret);
+    IMSA_HILOGI("SetTransparent ret = %{public}u", wmError);
+    IMSA_HILOGI("NapiSetUIContent ret = %{public}d", ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
@@ -328,7 +329,7 @@ void InputMethodPanel::SetPanelStatusListener(
         return;
     }
     if (panelStatusListener_ != nullptr) {
-        IMSA_HILOGE("PanelStatusListener already set.");
+        IMSA_HILOGD("PanelStatusListener already set.");
         return;
     }
     panelStatusListener_ = std::move(statusListener);
@@ -343,7 +344,7 @@ void InputMethodPanel::ClearPanelListener(const std::string &type)
         return;
     }
     if (panelStatusListener_ == nullptr) {
-        IMSA_HILOGE("PanelStatusListener not set, don't need to remove.");
+        IMSA_HILOGD("PanelStatusListener not set, don't need to remove.");
         return;
     }
     if (showRegistered_ || hideRegistered_) {

@@ -30,7 +30,7 @@ constexpr int32_t MAX_WAIT_TIME = 5000;
 BlockQueue<EditorEventInfo> JsTextInputClientEngine::editorQueue_{ MAX_WAIT_TIME };
 napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
 {
-    IMSA_HILOGI("JsTextInputClientEngine init");
+    IMSA_HILOGD("JsTextInputClientEngine init");
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("sendKeyFunction", SendKeyFunction),
         DECLARE_NAPI_FUNCTION("deleteForward", DeleteForward),
@@ -131,7 +131,7 @@ napi_value JsTextInputClientEngine::JsConstructor(napi_env env, napi_callback_in
         return result;
     }
     auto finalize = [](napi_env env, void *data, void *hint) {
-        IMSA_HILOGE("JsTextInputClientEngine finalize");
+        IMSA_HILOGD("JsTextInputClientEngine finalize");
         auto *objInfo = reinterpret_cast<JsTextInputClientEngine *>(data);
         if (objInfo != nullptr) {
             delete objInfo;
@@ -559,14 +559,14 @@ napi_value JsTextInputClientEngine::GetEditorAttributeSync(napi_env env, napi_ca
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to getEnterKeyType", TYPE_NONE);
     }
-    IMSA_HILOGD("getEditorAttribute, enterKeyType: %{public}d", enterKeyType);
+    IMSA_HILOGD("enterKeyType: %{public}d", enterKeyType);
 
     int32_t inputPattern = 0;
     ret =  InputMethodAbility::GetInstance()->GetInputPattern(inputPattern);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to getInputPattern", TYPE_NONE);
     }
-    IMSA_HILOGD("getEditorAttribute, patternCode: %{public}d", inputPattern);
+    IMSA_HILOGD("patternCode: %{public}d", inputPattern);
 
     const InputAttribute attribute =  { .inputPattern = enterKeyType, .enterKeyType = inputPattern };
     return JsUtils::GetValue(env, attribute);
@@ -653,7 +653,7 @@ napi_value JsTextInputClientEngine::SelectByRangeSync(napi_env env, napi_callbac
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "failed to get start or end.", TYPE_NONE);
         return JsUtil::Const::Null(env);
     }
-    IMSA_HILOGD("selectByRangeSync, start: %{public}d, end: %{public}d", ctxt->start, ctxt->end);
+    IMSA_HILOGD("start: %{public}d, end: %{public}d", ctxt->start, ctxt->end);
     int32_t ret = InputMethodAbility::GetInstance()->SelectByRange(ctxt->start, ctxt->end);
     editorQueue_.Pop();
     if (ret != ErrorCode::NO_ERROR) {
@@ -664,7 +664,7 @@ napi_value JsTextInputClientEngine::SelectByRangeSync(napi_env env, napi_callbac
 
 napi_value JsTextInputClientEngine::SelectByMovementSync(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGD("SelectByMovementSync");
+    IMSA_HILOGD("run in");
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_MOVEMENT};
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);
@@ -683,7 +683,7 @@ napi_value JsTextInputClientEngine::SelectByMovementSync(napi_env env, napi_call
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "failed to get direction.", TYPE_NONE);
         return JsUtil::Const::Null(env);
     }
-    IMSA_HILOGD("selectByMovement , direction: %{public}d", ctxt->direction);
+    IMSA_HILOGD("direction: %{public}d", ctxt->direction);
     int32_t ret = InputMethodAbility::GetInstance()->SelectByMovement(ctxt->direction);
     editorQueue_.Pop();
     if (ret != ErrorCode::NO_ERROR) {
@@ -756,7 +756,7 @@ napi_value JsTextInputClientEngine::SendExtendAction(napi_env env, napi_callback
 
 napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGE("GetTextIndexAtCursor");
+    IMSA_HILOGD("GetTextIndexAtCursor");
     auto ctxt = std::make_shared<GetTextIndexAtCursorContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         ctxt->info = { std::chrono::system_clock::now(), EditorEvent::GET_TEXT_INDEX_AT_CURSOR };
@@ -785,7 +785,7 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
 
 napi_value JsTextInputClientEngine::GetTextIndexAtCursorSync(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGE("GetTextIndexAtCursorSync");
+    IMSA_HILOGD("run in");
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::GET_TEXT_INDEX_AT_CURSOR};
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);

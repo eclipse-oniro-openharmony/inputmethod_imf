@@ -278,14 +278,14 @@ void JsInputMethodEngineSetting::RegisterListener(
     IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty() || jsCbMap_.find(type) == jsCbMap_.end()) {
-        IMSA_HILOGE("methodName: %{public}s not registered!", type.c_str());
+        IMSA_HILOGD("methodName: %{public}s not registered!", type.c_str());
     }
     auto callbacks = jsCbMap_[type];
     bool ret = std::any_of(callbacks.begin(), callbacks.end(), [&callback](std::shared_ptr<JSCallbackObject> cb) {
         return JsUtils::Equals(cb->env_, callback, cb->callback_, cb->threadId_);
     });
     if (ret) {
-        IMSA_HILOGE("JsInputMethodEngineListener::RegisterListener callback already registered!");
+        IMSA_HILOGD("JsInputMethodEngineListener callback already registered!");
         return;
     }
 

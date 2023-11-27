@@ -73,7 +73,7 @@ napi_status JsInputMethod::GetInputMethodProperty(
     }
     PARAM_CHECK_RETURN(env, (!ctxt->packageName.empty() && !ctxt->methodId.empty()), "JsInputMethod, Parameter error.",
         TYPE_NONE, napi_invalid_arg);
-    IMSA_HILOGI("methodId:%{public}s and packageName:%{public}s", ctxt->methodId.c_str(), ctxt->packageName.c_str());
+    IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->methodId.c_str(), ctxt->packageName.c_str());
     return napi_ok;
 }
 
@@ -94,7 +94,7 @@ napi_status JsInputMethod::GetInputMethodSubProperty(
         PARAM_CHECK_RETURN(env, status == napi_ok, " id ", TYPE_STRING, status);
         status = JsUtils::GetValue(env, result, ctxt->id);
         CHECK_RETURN(status == napi_ok, "get ctxt->id failed!", status);
-        IMSA_HILOGI("name:%{public}s and id:%{public}s", ctxt->name.c_str(), ctxt->id.c_str());
+        IMSA_HILOGD("name:%{public}s and id:%{public}s", ctxt->name.c_str(), ctxt->id.c_str());
     }
     return status;
 }

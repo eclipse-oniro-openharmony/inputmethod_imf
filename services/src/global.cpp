@@ -38,7 +38,7 @@ bool BlockRetry(uint32_t interval, uint32_t maxRetryTimes, Function func)
     do {
         times++;
         if (func()) {
-            IMSA_HILOGI("success, retry times: %{public}d", times);
+            IMSA_HILOGD("success, retry times: %{public}d", times);
             return true;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));

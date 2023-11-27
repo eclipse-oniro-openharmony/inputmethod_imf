@@ -60,7 +60,7 @@ sptr<InputMethodAbility> InputMethodAbility::GetInstance()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> autoLock(instanceLock_);
         if (instance_ == nullptr) {
-            IMSA_HILOGI("InputMethodAbility::GetInstance need new IMA");
+            IMSA_HILOGI("InputMethodAbility need new IMA");
             instance_ = new (std::nothrow) InputMethodAbility();
             if (instance_ == nullptr) {
                 IMSA_HILOGE("instance is nullptr.");
@@ -141,7 +141,7 @@ int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
 
 void InputMethodAbility::Initialize()
 {
-    IMSA_HILOGI("InputMethodAbility::Initialize");
+    IMSA_HILOGD("IMA");
     coreStub_ = new (std::nothrow) InputMethodCoreStub();
     if (coreStub_ == nullptr) {
         IMSA_HILOGE("failed to create core");
