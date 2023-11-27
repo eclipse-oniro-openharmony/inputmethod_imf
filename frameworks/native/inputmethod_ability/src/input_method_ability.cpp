@@ -275,9 +275,9 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
         return;
     }
     if (dataChannelObject_.GetRefPtr() == channel.GetRefPtr()) {
-        IMSA_HILOGI("clear data channel");
         dataChannelObject_ = nullptr;
         dataChannelProxy_ = nullptr;
+        IMSA_HILOGD("end");
     }
 }
 
