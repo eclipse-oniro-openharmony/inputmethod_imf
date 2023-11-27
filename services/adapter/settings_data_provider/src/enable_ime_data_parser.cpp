@@ -249,6 +249,7 @@ std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()
     }
     defaultImeInfo_ = std::make_shared<Property>();
     auto info = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(currrentUserId_);
+    CHECK_NULL_VOID(info);
     defaultImeInfo_->name = info->prop.name;
     defaultImeInfo_->id = info->prop.id;
     return defaultImeInfo_;
