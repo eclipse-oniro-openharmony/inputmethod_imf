@@ -120,7 +120,7 @@ private:
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
-    static constexpr const char *SELECT_DIALOG_HAP = "cn.openharmony.inputmethodchoosedialog";
+    static constexpr const char *SELECT_DIALOG_HAP = "com.ohos.inputmethodchoosedialog";
     static constexpr const char *SELECT_DIALOG_ABILITY = "InputMethod";
     static constexpr int32_t MAX_WAIT_TIME = 5000;
     BlockQueue<SwitchInfo> switchQueue_{ MAX_WAIT_TIME };
