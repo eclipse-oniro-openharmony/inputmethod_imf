@@ -17,11 +17,11 @@
 
 #include <thread>
 
-#include "js_callback_handler.h"
 #include "event_checker.h"
 #include "input_method_ability.h"
 #include "input_method_property.h"
 #include "input_method_utils.h"
+#include "js_callback_handler.h"
 #include "js_keyboard_controller_engine.h"
 #include "js_runtime_utils.h"
 #include "js_text_input_client_engine.h"
@@ -41,6 +41,8 @@ thread_local napi_ref JsInputMethodEngineSetting::IMESRef_ = nullptr;
 
 std::mutex JsInputMethodEngineSetting::engineMutex_;
 std::shared_ptr<JsInputMethodEngineSetting> JsInputMethodEngineSetting::inputMethodEngine_{ nullptr };
+std::mutex JsInputMethodEngineSetting::eventHandlerMutex_;
+std::shared_ptr<AppExecFwk::EventHandler> JsInputMethodEngineSetting::handler_{ nullptr };
 
 napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
 {
@@ -220,6 +222,10 @@ bool JsInputMethodEngineSetting::InitInputMethodSetting()
         return false;
     }
     InputMethodAbility::GetInstance()->SetImeListener(engine);
+    {
+        std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+        handler_ = AppExecFwk::EventHandler::Current();
+    }
     return true;
 }
 
@@ -556,65 +562,55 @@ napi_value JsInputMethodEngineSetting::GetResultOnSetSubtype(napi_env env, const
 
 void JsInputMethodEngineSetting::OnInputStart()
 {
+    IMSA_HILOGD("JsInputMethodEngineSetting, run in");
     std::string type = "inputStart";
-    uv_work_t *work = GetUVwork(type);
-    if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv entry");
+    auto entry = GetEntry(type);
+    if (entry == nullptr) {
         return;
     }
-    IMSA_HILOGI("run in");
-    uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("OnInputStart:: entryptr is null");
-                return;
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    auto task = [entry]() {
+        auto paramGetter = [](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc < 2) {
+                return false;
             }
-            auto getInputStartProperty = [](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc < 2) {
-                    return false;
-                }
-                napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(env);
-                napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(env);
-                if (keyBoardController == nullptr || textInput == nullptr) {
-                    IMSA_HILOGE("get KBCins or TICins failed:");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                args[0] = keyBoardController;
-                // 1 means the second param of callback.
-                args[1] = textInput;
-                return true;
-            };
-            // 2 means callback has 2 params.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 2, getInputStartProperty });
-        },
-        uv_qos_user_initiated);
+            napi_value textInput = JsTextInputClientEngine::GetTextInputClientInstance(env);
+            napi_value keyBoardController = JsKeyboardControllerEngine::GetKeyboardControllerInstance(env);
+            if (keyBoardController == nullptr || textInput == nullptr) {
+                IMSA_HILOGE("get KBCins or TICins failed:");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = keyBoardController;
+            // 1 means the second param of callback.
+            args[1] = textInput;
+            return true;
+        };
+        // 2 means callback has 2 params.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 2, paramGetter });
+    };
+    handler_->PostTask(task, type);
 }
 
 void JsInputMethodEngineSetting::OnKeyboardStatus(bool isShow)
 {
     std::string type = isShow ? "keyboardShow" : "keyboardHide";
-    uv_work_t *work = GetUVwork(type);
-    if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv entry");
+    auto entry = GetEntry(type);
+    if (entry == nullptr) {
         return;
     }
-    IMSA_HILOGI("type: %{public}s", type.c_str());
-    uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            JsCallbackHandler::Traverse(entry->vecCopy);
-        },
-        uv_qos_user_initiated);
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+
+    auto task = [entry]() { JsCallbackHandler::Traverse(entry->vecCopy); };
+    handler_->PostTask(task, type);
 }
 
 void JsInputMethodEngineSetting::OnInputStop()
@@ -641,35 +637,29 @@ void JsInputMethodEngineSetting::OnInputStop()
 void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
 {
     std::string type = "setCallingWindow";
-    uv_work_t *work = GetUVwork(type, [windowId](UvEntry &entry) { entry.windowid = windowId; });
-    if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv entry");
+    auto entry = GetEntry(type, [&windowId](UvEntry &entry) { entry.windowid = windowId; });
+    if (entry == nullptr) {
         return;
     }
-    IMSA_HILOGI("windowId: %{public}d", windowId);
-    uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("setCallingWindow:: entryptr is null");
-                return;
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    IMSA_HILOGD("JsInputMethodEngineSetting, windowId: %{public}d", windowId);
+    auto task = [entry]() {
+        auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == 0) {
+                return false;
             }
-            auto getCallingWindowProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == 0) {
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_uint32(env, entry->windowid, &args[0]);
-                return true;
-            };
-            // 1 means callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getCallingWindowProperty });
-        },
-        uv_qos_user_initiated);
+            // 0 means the first param of callback.
+            napi_create_uint32(env, entry->windowid, &args[0]);
+            return true;
+        };
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
+    };
+    handler_->PostTask(task, type);
 }
 
 void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
@@ -773,6 +763,37 @@ uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntryS
     }
     work->data = entry;
     return work;
+}
+
+std::shared_ptr<AppExecFwk::EventHandler> JsInputMethodEngineSetting::GetEventHandler()
+{
+    if (handler_ != nullptr) {
+        return handler_;
+    }
+    std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+    if (handler_ == nullptr) {
+        handler_ = AppExecFwk::EventHandler::Current();
+    }
+    return handler_;
+}
+
+std::shared_ptr<JsInputMethodEngineSetting::UvEntry> JsInputMethodEngineSetting::GetEntry(
+    const std::string &type, EntrySetter entrySetter)
+{
+    IMSA_HILOGD("type: %{public}s", type.c_str());
+    std::shared_ptr<UvEntry> entry = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        if (jsCbMap_[type].empty()) {
+            IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
+            return nullptr;
+        }
+        entry = std::make_shared<UvEntry>(jsCbMap_[type], type);
+    }
+    if (entrySetter != nullptr) {
+        entrySetter(*entry);
+    }
+    return entry;
 }
 } // namespace MiscServices
 } // namespace OHOS

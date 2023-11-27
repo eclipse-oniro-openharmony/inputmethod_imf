@@ -92,12 +92,16 @@ private:
         }
     };
     using EntrySetter = std::function<void(UvEntry &)>;
+    static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
+    std::shared_ptr<UvEntry> GetEntry(const std::string &type, EntrySetter entrySetter = nullptr);
     uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
     static std::mutex keyboardMutex_;
     static std::shared_ptr<JsKeyboardDelegateSetting> keyboardDelegate_;
+    static std::mutex eventHandlerMutex_;
+    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

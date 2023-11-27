@@ -25,6 +25,7 @@
 #include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
 #include "async_call.h"
 #include "global.h"
+#include "event_handler.h"
 #include "input_method_engine_listener.h"
 #include "input_method_property.h"
 #include "js_callback_object.h"
@@ -107,12 +108,16 @@ private:
         }
     };
     using EntrySetter = std::function<void(UvEntry &)>;
+    static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
+    std::shared_ptr<UvEntry> GetEntry(const std::string &type, EntrySetter entrySetter = nullptr);
     uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
     static std::mutex engineMutex_;
     static std::shared_ptr<JsInputMethodEngineSetting> inputMethodEngine_;
+    static std::mutex eventHandlerMutex_;
+    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

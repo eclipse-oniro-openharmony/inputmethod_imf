@@ -35,6 +35,8 @@ thread_local napi_ref JsKeyboardDelegateSetting::KDSRef_ = nullptr;
 
 std::mutex JsKeyboardDelegateSetting::keyboardMutex_;
 std::shared_ptr<JsKeyboardDelegateSetting> JsKeyboardDelegateSetting::keyboardDelegate_{ nullptr };
+std::mutex JsKeyboardDelegateSetting::eventHandlerMutex_;
+std::shared_ptr<AppExecFwk::EventHandler> JsKeyboardDelegateSetting::handler_{ nullptr };
 
 napi_value JsKeyboardDelegateSetting::Init(napi_env env, napi_value exports)
 {
@@ -109,6 +111,10 @@ bool JsKeyboardDelegateSetting::InitKeyboardDelegate()
         return false;
     }
     InputMethodAbility::GetInstance()->SetKdListener(delegate);
+    {
+        std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+        handler_ = AppExecFwk::EventHandler::Current();
+    }
     return true;
 }
 
@@ -199,8 +205,8 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
     }
 
     for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end(); item++) {
-        if ((callback != nullptr) &&
-            (JsUtils::Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
+        if ((callback != nullptr)
+            && (JsUtils::Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
             jsCbMap_[type].erase(item);
             break;
         }
@@ -391,83 +397,80 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
 {
     CursorPara para{ positionX, positionY, height };
     std::string type = "cursorContextChange";
-    uv_work_t *work = GetUVwork(type, [&para](UvEntry &entry) {
+    auto entry = GetEntry(type, [&para](UvEntry &entry) {
         entry.curPara.positionX = para.positionX;
         entry.curPara.positionY = para.positionY;
         entry.curPara.height = para.height;
     });
-    if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv entry");
+    if (entry == nullptr) {
         return;
     }
-    IMSA_HILOGI("x: %{public}d, y: %{public}d, height: %{public}d", positionX, positionY, height);
-    uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-
-            auto getCursorUpdateProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc < 3) {
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_int32(env, entry->curPara.positionX, &args[0]);
-                // 1 means the second param of callback.
-                napi_create_int32(env, entry->curPara.positionY, &args[1]);
-                // 2 means the third param of callback.
-                napi_create_int32(env, entry->curPara.height, &args[2]);
-                return true;
-            };
-            // 3 means callback has three params.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 3, getCursorUpdateProperty });
-        },
-        uv_qos_user_initiated);
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    IMSA_HILOGD(
+        "JsKeyboardDelegateSetting, x: %{public}d, y: %{public}d, height: %{public}d", positionX, positionY, height);
+    auto task = [entry]() {
+        auto paramGetter = [&entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc < 3) {
+                return false;
+            }
+            // 0 means the first param of callback.
+            napi_create_int32(env, entry->curPara.positionX, &args[0]);
+            // 1 means the second param of callback.
+            napi_create_int32(env, entry->curPara.positionY, &args[1]);
+            // 2 means the third param of callback.
+            napi_create_int32(env, entry->curPara.height, &args[2]);
+            return true;
+        };
+        // 3 means callback has three params.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 3, paramGetter });
+    };
+    handler_->PostTask(task, type);
 }
 
 void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
 {
     SelectionPara para{ oldBegin, oldEnd, newBegin, newEnd };
     std::string type = "selectionChange";
-    uv_work_t *work = GetUVwork(type, [&para](UvEntry &entry) {
+    auto entry = GetEntry(type, [&para](UvEntry &entry) {
         entry.selPara.oldBegin = para.oldBegin;
         entry.selPara.oldEnd = para.oldEnd;
         entry.selPara.newBegin = para.newBegin;
         entry.selPara.newEnd = para.newEnd;
     });
-    if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv entry");
+    if (entry == nullptr) {
         return;
     }
-    IMSA_HILOGI("old: %{public}d/%{public}d, new: %{public}d/%{public}d", oldBegin, oldEnd, newBegin, newEnd);
-    uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-
-            auto getSelectionChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc < 4) {
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_int32(env, entry->selPara.oldBegin, &args[0]);
-                // 1 means the second param of callback.
-                napi_create_int32(env, entry->selPara.oldEnd, &args[1]);
-                // 2 means the third param of callback.
-                napi_create_int32(env, entry->selPara.newBegin, &args[2]);
-                // 3 means the fourth param of callback.
-                napi_create_int32(env, entry->selPara.newEnd, &args[3]);
-                return true;
-            };
-            // 4 means callback has four params.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 4, getSelectionChangeProperty });
-        },
-        uv_qos_user_initiated);
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    IMSA_HILOGD("JsKeyboardDelegateSetting, oldBegin: %{public}d, oldEnd: %{public}d, newBegin: %{public}d, newEnd: "
+                "%{public}d",
+        oldBegin, oldEnd, newBegin, newEnd);
+    auto task = [entry]() {
+        auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc < 4) {
+                return false;
+            }
+            // 0 means the first param of callback.
+            napi_create_int32(env, entry->selPara.oldBegin, &args[0]);
+            // 1 means the second param of callback.
+            napi_create_int32(env, entry->selPara.oldEnd, &args[1]);
+            // 2 means the third param of callback.
+            napi_create_int32(env, entry->selPara.newBegin, &args[2]);
+            // 3 means the fourth param of callback.
+            napi_create_int32(env, entry->selPara.newEnd, &args[3]);
+            return true;
+        };
+        // 4 means callback has four params.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 4, paramGetter });
+    };
+    handler_->PostTask(task, type);
 }
 
 void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
@@ -504,40 +507,36 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &inputAttribute)
 {
     std::string type = "editorAttributeChanged";
-    uv_work_t *work = JsKeyboardDelegateSetting::GetUVwork(
-        type, [&inputAttribute](UvEntry &entry) { entry.inputAttribute = inputAttribute; });
-    if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv entry");
+    auto entry = GetEntry(type, [&inputAttribute](UvEntry &entry) { entry.inputAttribute = inputAttribute; });
+    if (entry == nullptr) {
         return;
     }
-    IMSA_HILOGI("enterKeyType: %{public}d, inputPattern: %{public}d", inputAttribute.enterKeyType,
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d", inputAttribute.enterKeyType,
         inputAttribute.inputPattern);
-    uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
+    auto task = [entry]() {
+        auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == 0) {
+                return false;
+            }
 
-            auto getEditorAttributeChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == 0) {
-                    return false;
-                }
-
-                napi_value jsObject = JsUtils::GetValue(env, entry->inputAttribute);
-                if (jsObject == nullptr) {
-                    IMSA_HILOGE("get GetAttribute failed: jsObject is nullptr");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                args[0] = jsObject;
-                return true;
-            };
-            // 1 means callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getEditorAttributeChangeProperty });
-        },
-        uv_qos_user_initiated);
+            napi_value jsObject = JsUtils::GetValue(env, entry->inputAttribute);
+            if (jsObject == nullptr) {
+                IMSA_HILOGE("get GetAttribute failed: jsObject is nullptr");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = jsObject;
+            return true;
+        };
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
+    };
+    handler_->PostTask(task, type);
 }
 
 uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
@@ -568,6 +567,37 @@ uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySe
     }
     work->data = entry;
     return work;
+}
+
+std::shared_ptr<AppExecFwk::EventHandler> JsKeyboardDelegateSetting::GetEventHandler()
+{
+    if (handler_ != nullptr) {
+        return handler_;
+    }
+    std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+    if (handler_ == nullptr) {
+        handler_ = AppExecFwk::EventHandler::Current();
+    }
+    return handler_;
+}
+
+std::shared_ptr<JsKeyboardDelegateSetting::UvEntry> JsKeyboardDelegateSetting::GetEntry(
+    const std::string &type, EntrySetter entrySetter)
+{
+    IMSA_HILOGD("run in, type: %{public}s", type.c_str());
+    std::shared_ptr<UvEntry> entry = nullptr;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        if (jsCbMap_[type].empty()) {
+            IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
+            return nullptr;
+        }
+        entry = std::make_shared<UvEntry>(jsCbMap_[type], type);
+    }
+    if (entrySetter != nullptr) {
+        entrySetter(*entry);
+    }
+    return entry;
 }
 } // namespace MiscServices
 } // namespace OHOS
