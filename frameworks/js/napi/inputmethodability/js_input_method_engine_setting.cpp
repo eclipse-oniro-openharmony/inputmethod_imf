@@ -231,7 +231,6 @@ bool JsInputMethodEngineSetting::InitInputMethodSetting()
 
 napi_value JsInputMethodEngineSetting::JsConstructor(napi_env env, napi_callback_info cbinfo)
 {
-    IMSA_HILOGI("run in JsConstructor");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
     auto setting = GetInputMethodEngineSetting();

@@ -76,7 +76,6 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
 
 napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_info cbinfo)
 {
-    IMSA_HILOGI("JsGetInputMethodSetting");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
 
