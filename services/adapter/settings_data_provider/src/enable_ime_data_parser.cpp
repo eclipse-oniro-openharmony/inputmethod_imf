@@ -249,7 +249,10 @@ std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()
     }
     defaultImeInfo_ = std::make_shared<Property>();
     auto info = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(currrentUserId_);
-    CHECK_NULL_VOID(info);
+    if (info == nullptr) {
+        IMSA_HILOGE("GetDefaultImeInfo return nullptr");
+        return nullptr;
+    }
     defaultImeInfo_->name = info->prop.name;
     defaultImeInfo_->id = info->prop.id;
     return defaultImeInfo_;
