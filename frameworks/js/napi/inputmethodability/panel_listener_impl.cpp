@@ -73,7 +73,6 @@ void PanelListenerImpl::RemoveInfo(const std::string &type, uint32_t windowId)
 void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
 {
     std::string type = isShow ? "show" : "hide";
-    IMSA_HILOGI("windowId = %{public}u, type = %{public}s", windowId, type.c_str());
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         IMSA_HILOGE("uv_work_t is nullptr!");
@@ -92,6 +91,7 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
     work->data = new (std::nothrow) UvEntry(callback.second);
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(callback.second->env_, &loop);
+    IMSA_HILOGI("windowId = %{public}u, type = %{public}s", windowId, type.c_str());
     uv_queue_work_with_qos(
         loop, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {

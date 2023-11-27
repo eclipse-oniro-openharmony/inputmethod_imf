@@ -22,17 +22,17 @@ namespace OHOS {
 namespace MiscServices {
 sptr<IInputMethodSystemAbility> ImaUtils::GetImsaProxy()
 {
-    IMSA_HILOGI("ImaUtils::GetImsaProxy");
+    IMSA_HILOGD("ImaUtils::GetImsaProxy");
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemAbilityManager == nullptr) {
-        IMSA_HILOGI("ImaUtils::GetImsaProxy systemAbilityManager is nullptr");
+        IMSA_HILOGE("ImaUtils systemAbilityManager is nullptr");
         return nullptr;
     }
 
     auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
     if (systemAbility == nullptr) {
-        IMSA_HILOGI("ImaUtils::GetImsaProxy systemAbility is nullptr");
+        IMSA_HILOGE("ImaUtils systemAbility is nullptr");
         return nullptr;
     }
     return iface_cast<IInputMethodSystemAbility>(systemAbility);

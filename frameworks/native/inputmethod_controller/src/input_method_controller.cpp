@@ -44,7 +44,7 @@ const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_
     { "imeHide", IME_HIDE } };
 InputMethodController::InputMethodController()
 {
-    IMSA_HILOGI("IMC structure");
+    IMSA_HILOGD("IMC structure");
 }
 
 InputMethodController::~InputMethodController()
@@ -56,9 +56,10 @@ sptr<InputMethodController> InputMethodController::GetInstance()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> autoLock(instanceLock_);
         if (instance_ == nullptr) {
-            IMSA_HILOGI("IMC instance_ is nullptr");
+            IMSA_HILOGD("IMC instance_ is nullptr");
             instance_ = new (std::nothrow) InputMethodController();
             if (instance_ == nullptr) {
+                IMSA_HILOGE("failed to create InputMethodController");
                 return instance_;
             }
             int32_t ret = instance_->Initialize();
@@ -840,7 +841,7 @@ int32_t InputMethodController::SwitchInputMethod(const std::string &name, const 
 
 void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
 {
-    IMSA_HILOGI("IMC run in");
+    IMSA_HILOGI("IMC");
     isBound_.store(true);
     isEditable_.store(true);
     std::lock_guard<std::mutex> lk(agentLock_);
@@ -849,7 +850,7 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
         return;
     }
     if (agentObject_ != nullptr && agentObject_.GetRefPtr() == agentObject.GetRefPtr()) {
-        IMSA_HILOGI("agent has already been set");
+        IMSA_HILOGD("agent has already been set");
         return;
     }
     std::shared_ptr<IInputMethodAgent> agent = std::make_shared<InputMethodAgentProxy>(agentObject);

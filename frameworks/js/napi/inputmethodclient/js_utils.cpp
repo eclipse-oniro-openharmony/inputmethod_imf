@@ -110,7 +110,7 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
 
 napi_value JsUtils::ToError(napi_env env, int32_t code)
 {
-    IMSA_HILOGE("ToError start");
+    IMSA_HILOGD("ToError start");
     napi_value errorObj;
     NAPI_CALL(env, napi_create_object(env, &errorObj));
     napi_value errorCode = nullptr;
@@ -119,25 +119,25 @@ napi_value JsUtils::ToError(napi_env env, int32_t code)
     NAPI_CALL(env, napi_create_string_utf8(env, ToMessage(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
     NAPI_CALL(env, napi_set_named_property(env, errorObj, "code", errorCode));
     NAPI_CALL(env, napi_set_named_property(env, errorObj, "message", errorMessage));
-    IMSA_HILOGE("ToError end");
+    IMSA_HILOGD("ToError end");
     return errorObj;
 }
 
 int32_t JsUtils::Convert(int32_t code)
 {
-    IMSA_HILOGI("Convert start");
+    IMSA_HILOGD("Convert start");
     auto iter = ERROR_CODE_MAP.find(code);
     if (iter != ERROR_CODE_MAP.end()) {
         IMSA_HILOGE("ErrorCode: %{public}d", iter->second);
         return iter->second;
     }
-    IMSA_HILOGI("Convert end");
+    IMSA_HILOGD("Convert end");
     return ERROR_CODE_QUERY_FAILED;
 }
 
 const std::string JsUtils::ToMessage(int32_t code)
 {
-    IMSA_HILOGI("ToMessage start");
+    IMSA_HILOGD("ToMessage start");
     auto iter = ERROR_CODE_CONVERT_MESSAGE_MAP.find(code);
     if (iter != ERROR_CODE_CONVERT_MESSAGE_MAP.end()) {
         IMSA_HILOGI("ErrorMessage: %{public}s", (iter->second).c_str());

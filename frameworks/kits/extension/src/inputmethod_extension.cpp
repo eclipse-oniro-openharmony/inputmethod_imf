@@ -43,7 +43,7 @@ void InputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &recor
     const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
     const sptr<IRemoteObject> &token)
 {
-    IMSA_HILOGI("InputMethodExtension init context");
+    IMSA_HILOGI("InputMethodExtension");
     ExtensionBase<InputMethodExtensionContext>::Init(record, application, handler, token);
 }
 
@@ -51,7 +51,7 @@ std::shared_ptr<InputMethodExtensionContext> InputMethodExtension::CreateAndInit
     const std::shared_ptr<AbilityLocalRecord> &record, const std::shared_ptr<OHOSApplication> &application,
     std::shared_ptr<AbilityHandler> &handler, const sptr<IRemoteObject> &token)
 {
-    IMSA_HILOGI("InputMethodExtension CreateAndInitContext");
+    IMSA_HILOGI("InputMethodExtension");
     std::shared_ptr<InputMethodExtensionContext> context =
         ExtensionBase<InputMethodExtensionContext>::CreateAndInitContext(record, application, handler, token);
     if (context == nullptr) {

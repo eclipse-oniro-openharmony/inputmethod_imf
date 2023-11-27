@@ -63,7 +63,7 @@ napi_value JsPanel::JsNew(napi_env env, napi_callback_info info)
     JsPanel *panel = new (std::nothrow) JsPanel();
     CHECK_RETURN(panel != nullptr, "no memory for JsPanel", nullptr);
     auto finalize = [](napi_env env, void *data, void *hint) {
-        IMSA_HILOGI("jsPanel finalize.");
+        IMSA_HILOGD("jsPanel finalize.");
         auto *jsPanel = reinterpret_cast<JsPanel *>(data);
         CHECK_RETURN_VOID(jsPanel != nullptr, "finalize null!");
         jsPanel->GetNative() = nullptr;

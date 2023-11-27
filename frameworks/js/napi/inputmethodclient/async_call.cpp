@@ -115,14 +115,14 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
     if (status == napi_ok && runStatus == napi_ok) {
         napi_get_undefined(env, &result[ARG_ERROR]);
         if (output != nullptr) {
-            IMSA_HILOGD("AsyncCall::OnComplete output != nullptr");
+            IMSA_HILOGD("output != nullptr");
             result[ARG_DATA] = output;
         } else {
-            IMSA_HILOGD("AsyncCall::OnComplete output == nullptr");
+            IMSA_HILOGD("output == nullptr");
             napi_get_undefined(env, &result[ARG_DATA]);
         }
     } else {
-        IMSA_HILOGE("status[%{public}d], runStatus[%{public}d]", status, runStatus);
+        IMSA_HILOGE("runStatus[%{public}d]", runStatus);
         result[ARG_ERROR] = JsUtils::ToError(env, context->ctx->errorCode_);
         napi_get_undefined(env, &result[ARG_DATA]);
     }

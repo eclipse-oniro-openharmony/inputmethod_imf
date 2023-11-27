@@ -76,7 +76,7 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
 
 napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_info cbinfo)
 {
-    IMSA_HILOGI("run in JsConstructor");
+    IMSA_HILOGI("JsGetInputMethodSetting");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
 
@@ -184,7 +184,7 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
 
 napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("run in ListInputMethod");
+    IMSA_HILOGD("run in ListInputMethod");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         ctxt->inputMethodStatus = InputMethodStatus::ALL;
@@ -212,7 +212,7 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
 
 napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("run in GetInputMethods");
+    IMSA_HILOGD("run in GetInputMethods");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "should has one parameter.", TYPE_NONE, napi_invalid_arg);
@@ -246,7 +246,7 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
 
 napi_value JsGetInputMethodSetting::GetInputMethodsSync(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("run in");
+    IMSA_HILOGD("run in");
     size_t argc = ARGC_MAX;
     napi_value argv[ARGC_MAX] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
@@ -269,7 +269,7 @@ napi_value JsGetInputMethodSetting::GetInputMethodsSync(napi_env env, napi_callb
 
 napi_value JsGetInputMethodSetting::GetAllInputMethods(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("run in GetAllInputMethods");
+    IMSA_HILOGD("run in GetAllInputMethods");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](
                      napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
@@ -295,7 +295,7 @@ napi_value JsGetInputMethodSetting::GetAllInputMethods(napi_env env, napi_callba
 
 napi_value JsGetInputMethodSetting::GetAllInputMethodsSync(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("run in");
+    IMSA_HILOGD("run in");
     std::vector<Property> properties;
     int32_t ret = InputMethodController::GetInstance()->ListInputMethod(properties);
     if (ret != ErrorCode::NO_ERROR) {
@@ -307,7 +307,7 @@ napi_value JsGetInputMethodSetting::GetAllInputMethodsSync(napi_env env, napi_ca
 
 napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("JsGetInputMethodSetting run in");
+    IMSA_HILOGD("JsGetInputMethodSetting run in");
     auto ctxt = std::make_shared<DisplayOptionalInputMethodContext>();
     auto input = [ctxt](
                      napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
@@ -328,7 +328,7 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
 
 napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("JsGetInputMethodSetting run in");
+    IMSA_HILOGD("JsGetInputMethodSetting run in");
     auto ctxt = std::make_shared<DisplayOptionalInputMethodContext>();
     auto input = [ctxt](
                      napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
@@ -357,7 +357,7 @@ napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_
 
 napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("run in ListInputMethodSubtype");
+    IMSA_HILOGD("run in ListInputMethodSubtype");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "should has one parameter.", TYPE_NONE, napi_invalid_arg);
@@ -390,7 +390,7 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
 
 napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("run in ListCurrentInputMethodSubtype");
+    IMSA_HILOGD("run in ListCurrentInputMethodSubtype");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](
                      napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
@@ -416,7 +416,7 @@ napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, 
 
 napi_value JsGetInputMethodSetting::IsPanelShown(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGI("run in JsGetInputMethodSetting");
+    IMSA_HILOGD("run in JsGetInputMethodSetting");
     // 1 means required param num
     size_t argc = 1;
     napi_value argv[1] = { nullptr };
@@ -468,7 +468,7 @@ int32_t JsGetInputMethodSetting::RegisterListener(
         return JsUtils::Equals(cb->env_, callback, cb->callback_, cb->threadId_);
     });
     if (ret) {
-        IMSA_HILOGE("JsGetInputMethodSetting::RegisterListener callback already registered!");
+        IMSA_HILOGD("JsGetInputMethodSetting callback already registered!");
         return ErrorCode::NO_ERROR;
     }
 

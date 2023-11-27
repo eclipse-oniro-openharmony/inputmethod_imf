@@ -60,7 +60,7 @@ sptr<InputMethodAbility> InputMethodAbility::GetInstance()
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> autoLock(instanceLock_);
         if (instance_ == nullptr) {
-            IMSA_HILOGI("InputMethodAbility::GetInstance need new IMA");
+            IMSA_HILOGI("InputMethodAbility need new IMA");
             instance_ = new (std::nothrow) InputMethodAbility();
             if (instance_ == nullptr) {
                 IMSA_HILOGE("instance is nullptr.");
@@ -141,7 +141,7 @@ int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
 
 void InputMethodAbility::Initialize()
 {
-    IMSA_HILOGI("InputMethodAbility::Initialize");
+    IMSA_HILOGD("IMA");
     coreStub_ = new (std::nothrow) InputMethodCoreStub();
     if (coreStub_ == nullptr) {
         IMSA_HILOGE("failed to create core");
@@ -290,15 +290,15 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
         return;
     }
     if (dataChannelObject_.GetRefPtr() == channel.GetRefPtr()) {
-        IMSA_HILOGI("clear data channel");
         dataChannelObject_ = nullptr;
         dataChannelProxy_ = nullptr;
+        IMSA_HILOGD("end");
     }
 }
 
 int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
 {
-    IMSA_HILOGI("run in");
+    IMSA_HILOGI("IMA");
     HideKeyboard();
     ClearDataChannel(channelObject);
     if (imeListener_ != nullptr) {
@@ -450,7 +450,7 @@ void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
     if (kdListener_ == nullptr) {
         IMSA_HILOGE("kdListener_ is nullptr.");
     } else {
-        IMSA_HILOGI("start to invoke callbacks");
+        IMSA_HILOGD("start to invoke callbacks");
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
         if (textConfig.cursorInfo.left != INVALID_CURSOR_VALUE) {
             IMSA_HILOGD("callback cursorUpdate");

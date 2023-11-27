@@ -95,8 +95,7 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
 
     std::string moduleName(Extension::abilityInfo_->moduleName);
     moduleName.append("::").append(abilityInfo_->name);
-    IMSA_HILOGI(
-        "JsInputMethodExtension::Init module:%{public}s,srcPath:%{public}s.", moduleName.c_str(), srcPath.c_str());
+    IMSA_HILOGI("JsInputMethodExtension, module:%{public}s,srcPath:%{public}s.", moduleName.c_str(), srcPath.c_str());
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
     jsObj_ = jsRuntime_.LoadModule(
@@ -112,7 +111,7 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
         return;
     }
     BindContext(env, obj);
-    IMSA_HILOGI("JsInputMethodExtension::Init end.");
+    IMSA_HILOGI("JsInputMethodExtension end.");
 }
 
 void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
@@ -123,7 +122,7 @@ void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
         IMSA_HILOGE("Failed to get context");
         return;
     }
-    IMSA_HILOGI("JsInputMethodExtension::Init CreateJsInputMethodExtensionContext.");
+    IMSA_HILOGD("JsInputMethodExtension::Init CreateJsInputMethodExtensionContext.");
     napi_value contextObj = CreateJsInputMethodExtensionContext(env, context);
     auto shellContextRef = jsRuntime_.LoadSystemModule("InputMethodExtensionContext", &contextObj, ARGC_ONE);
     contextObj = shellContextRef->GetNapiValue();
@@ -134,9 +133,9 @@ void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
     auto workContext = new (std::nothrow) std::weak_ptr<InputMethodExtensionContext>(context);
     napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachInputMethodExtensionContext, workContext, nullptr);
-    IMSA_HILOGI("JsInputMethodExtension::Init Bind.");
+    IMSA_HILOGD("JsInputMethodExtension::Init Bind.");
     context->Bind(jsRuntime_, shellContextRef.release());
-    IMSA_HILOGI("JsInputMethodExtension::SetProperty.");
+    IMSA_HILOGD("JsInputMethodExtension::SetProperty.");
     napi_set_named_property(env, obj, "context", contextObj);
     napi_wrap(env, contextObj, workContext,
         [](napi_env, void *data, void *) {
@@ -299,7 +298,7 @@ napi_value JsInputMethodExtension::CallObjectMethod(const char *name, const napi
 
 void JsInputMethodExtension::GetSrcPath(std::string &srcPath)
 {
-    IMSA_HILOGI("JsInputMethodExtension GetSrcPath begin.");
+    IMSA_HILOGD("JsInputMethodExtension GetSrcPath begin.");
     if (!Extension::abilityInfo_->isModuleJson) {
         /* temporary compatibility api8 + config.json */
         srcPath.append(Extension::abilityInfo_->package);

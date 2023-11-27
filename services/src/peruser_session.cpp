@@ -106,7 +106,7 @@ void PerUserSession::RemoveClientInfo(const sptr<IRemoteObject> &client, bool is
         clientInfo->deathRecipient = nullptr;
     }
     mapClients_.erase(client);
-    IMSA_HILOGI("client[%{public}d] is removed successfully", clientInfo->pid);
+    IMSA_HILOGI("client[%{public}d] is removed", clientInfo->pid);
 }
 
 void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
@@ -711,7 +711,7 @@ void PerUserSession::OnFocused(int32_t pid, int32_t uid)
         IMSA_HILOGD("no client in bound state");
         return;
     }
-    IMSA_HILOGI("focus shifts to pid: %{public}d, start clear unfocused client info", pid);
+    IMSA_HILOGI("focus shifts to pid: %{public}d, clear unfocused client", pid);
     RemoveClient(client);
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
 }
