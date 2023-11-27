@@ -56,7 +56,6 @@ public:
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();
     int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient);
-    int32_t StopInput(const sptr<IRemoteObject> &channelObject);
     int32_t ShowKeyboard();
     int32_t HideKeyboard();
     int32_t SendExtendAction(int32_t action);
@@ -130,6 +129,9 @@ private:
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
+
+    int32_t StopInput(const sptr<IRemoteObject> &channelObject);
+    void OnStopInput(Message *msg);
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isBound_{ false };
