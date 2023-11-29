@@ -130,7 +130,7 @@ void InputMethodEditorTest::SetUpTestCase(void)
     keyEvent_->SetKeyAction(keyAction);
     keyEvent_->SetKeyCode(keyCode);
     TextListener::ResetParam();
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, false, "undefine"));
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine"));
     TddUtil::WindowManager::RegisterFocusChangeListener();
     WindowMgr::CreateWindow();
 }
@@ -238,7 +238,7 @@ HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest ShowSoftKeyboard Test START");
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, true, "undefined"));
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefined", { "ohos.permission.CONNECT_IME_ABILITY" }));
     WindowMgr::ShowWindow();
     bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
     IMSA_HILOGI("testShowSoftKeyboard getFocus end, isFocused = %{public}d", isFocused);
