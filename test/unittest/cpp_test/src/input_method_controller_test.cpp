@@ -251,7 +251,7 @@ void InputMethodControllerTest::SetUpTestCase(void)
     keyEvent_->SetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY, 0);
     keyEvent_->SetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, 1);
     keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, true, "undefine"));
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine", { "ohos.permission.CONNECT_IME_ABILITY" }));
 
     TddUtil::WindowManager::RegisterFocusChangeListener();
     WindowMgr::CreateWindow();

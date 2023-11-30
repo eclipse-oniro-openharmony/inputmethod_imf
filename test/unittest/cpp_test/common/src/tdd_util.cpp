@@ -14,8 +14,8 @@
  */
 #define private public
 #define protected public
-#include "settings_data_utils.h"
 #include "enable_ime_data_parser.h"
+#include "settings_data_utils.h"
 #undef private
 
 #include <unistd.h>
@@ -99,7 +99,8 @@ void TddUtil::StorageSelfTokenID()
     selfTokenID_ = GetSelfTokenID();
 }
 
-uint64_t TddUtil::AllocTestTokenID(bool isSystemApp, bool needPermission, const std::string &bundleName)
+uint64_t TddUtil::AllocTestTokenID(
+    bool isSystemApp, const std::string &bundleName, const std::vector<std::string> &premission)
 {
     IMSA_HILOGI("bundleName: %{public}s", bundleName.c_str());
     HapInfoParams infoParams = { .userID = GetCurrentUserId(),
@@ -107,15 +108,19 @@ uint64_t TddUtil::AllocTestTokenID(bool isSystemApp, bool needPermission, const 
         .instIndex = 0,
         .appIDDesc = bundleName,
         .isSystemApp = isSystemApp };
-    PermissionStateFull permissionState = { .permissionName = "ohos.permission.CONNECT_IME_ABILITY",
-        .isGeneral = true,
-        .resDeviceID = { "local" },
-        .grantStatus = { PermissionState::PERMISSION_GRANTED },
-        .grantFlags = { 1 } };
+    std::vector<PermissionStateFull> permStateList;
+    for (const auto &prem : premission) {
+        PermissionStateFull permissionState = { .permissionName = prem,
+            .isGeneral = true,
+            .resDeviceID = { "local" },
+            .grantStatus = { PermissionState::PERMISSION_GRANTED },
+            .grantFlags = { 1 } };
+        permStateList.push_back(permissionState);
+    }
     HapPolicyParams policyParams = {
-        .apl = APL_NORMAL, .domain = bundleName, .permList = {}, .permStateList = { permissionState }
+        .apl = APL_NORMAL, .domain = bundleName, .permList = {}, .permStateList = permStateList
     };
-    if (!needPermission) {
+    if (premission.empty()) {
         policyParams = { .apl = APL_NORMAL, .domain = bundleName, .permList = {}, .permStateList = {} };
     }
     auto tokenInfo = AccessTokenKit::AllocHapToken(infoParams, policyParams);

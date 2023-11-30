@@ -84,7 +84,8 @@ void NewImeSwitchTest::SetUpTestCase(void)
         TddUtil::PutEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
     }
     TddUtil::StorageSelfTokenID();
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, true, "ohos.inputMethod.test"));
+    TddUtil::SetTestTokenID(
+        TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(std::make_shared<InputMethodSettingListenerImpl>());
     imc_->UpdateListenEventFlag("imeChange", true);

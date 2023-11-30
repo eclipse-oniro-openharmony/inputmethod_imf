@@ -79,6 +79,7 @@ public:
     }
     std::mutex cvMutex_;
     std::condition_variable watcherCv_;
+
 private:
     std::string operateInfo_;
 };
@@ -136,7 +137,8 @@ void InputMethodDfxTest::SetUpTestCase(void)
 
     inputMethodController_ = InputMethodController::GetInstance();
     textListener_ = new TextListener();
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, false, "undefine"));
+    TddUtil::SetTestTokenID(
+        TddUtil::AllocTestTokenID(true, "undefine", { "ohos.permission.READ_DFX_SYSEVENT", "ohos.permission.DUMP" }));
     TddUtil::WindowManager::RegisterFocusChangeListener();
     WindowMgr::CreateWindow();
     WindowMgr::ShowWindow();

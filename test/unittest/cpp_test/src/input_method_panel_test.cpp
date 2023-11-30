@@ -126,7 +126,7 @@ void InputMethodPanelTest::SetUpTestCase(void)
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(listener);
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, true, "undefined"));
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefined", { "ohos.permission.CONNECT_IME_ABILITY" }));
     auto ret = imc_->SwitchInputMethod("com.example.testIme");
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGI("SwitchInputMethod failed, ret = %{public}d", ret);
@@ -135,7 +135,7 @@ void InputMethodPanelTest::SetUpTestCase(void)
     TddUtil::RestoreSelfTokenID();
     std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-    tokenId_ = TddUtil::AllocTestTokenID(true, true, bundleName);
+    tokenId_ = TddUtil::AllocTestTokenID(true, bundleName, { "ohos.permission.CONNECT_IME_ABILITY" });
 }
 
 void InputMethodPanelTest::TearDownTestCase(void)

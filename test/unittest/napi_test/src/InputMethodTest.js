@@ -19,12 +19,10 @@ import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from '
 describe('InputMethodTest', function () {
   beforeAll(function () {
     console.info('beforeAll called');
-    inputMethod.getSetting().on('imeChange', imeChange);
     propertyBeforeSwitch = inputMethod.getCurrentInputMethod();
   });
 
   afterAll(function () {
-    inputMethod.getSetting().off('imeChange');
     console.info('afterAll called');
   });
 
@@ -52,15 +50,6 @@ describe('InputMethodTest', function () {
   const OLD_IME_SUBTYPE_NUM = 2;
   const WAIT_DEAL_OK = 500;
   const DISABLED_IME_COUNT = 0;
-
-  let isImeChange = false;
-  let imeChangeProp = undefined;
-  let imeChangeSubProp = undefined;
-  function imeChange(prop, subProp) {
-    isImeChange = true;
-    imeChangeProp = prop;
-    imeChangeSubProp = subProp;
-  }
 
   function checkNewImeCurrentProp(property)
   {
@@ -434,13 +423,33 @@ describe('InputMethodTest', function () {
   });
 
   /*
-   * @tc.number  inputmethod_test_switchCurrentInputMethodSubtype_002
-   * @tc.name    Test Indicates the input method which will replace the current one.
+   * @tc.number  inputmethod_test_imeChange_001
+   * @tc.name    Test to subscribe 'imeChange'.
    * @tc.desc    Function test
    * @tc.level   2
    */
-  it('inputmethod_test_switchCurrentInputMethodSubtype_002', 0, async function (done) {
-    console.info('************* inputmethod_test_switchCurrentInputMethodSubtype_002 Test start*************');
+  it('inputmethod_test_imeChange_001', 0, async function (done) {
+    console.info('************* inputmethod_test_imeChange_001 Test start*************');
+    let timeout = setTimeout(() => {
+      console.info(`inputmethod_test_imeChange_001 timeout`);
+      expect().assertFail();
+      inputMethod.getSetting().off('imeChange');
+      done();
+    }, 1500);
+    inputMethod.getSetting().on('imeChange', (prop, subProp)=>{
+      inputMethod.getSetting().off('imeChange');
+      timeout && clearTimeout(timeout);
+      let currentSubProp = inputMethod.getCurrentInputMethodSubtype();
+      let currentProp = inputMethod.getCurrentInputMethod();
+      expect(currentSubProp.name).assertEqual(subProp.name);
+      expect(currentSubProp.id).assertEqual(subProp.id);
+      expect(currentProp.name).assertEqual(prop.name);
+      expect(currentProp.id).assertEqual(prop.id);
+      expect(bundleName).assertEqual(prop.name);
+      expect(subName[0]).assertEqual(subProp.id);
+      console.info('************* inputmethod_test_imeChange_001 Test end*************');
+      done();});
+
     let InputMethodSubtype = {
       name:bundleName,
       id:subName[0],
@@ -450,37 +459,13 @@ describe('InputMethodTest', function () {
     };
     inputMethod.switchCurrentInputMethodSubtype(InputMethodSubtype, (err, ret)=>{
       if(err){
-        console.info(`inputmethod_test_switchCurrentInputMethodSubtype_002 err, ${JSON.stringify(err.message)}`);
+        console.info(`inputmethod_test_imeChange_001 switchCurrentInputMethodSubtype err, ${JSON.stringify(err.message)}`);
         expect().assertFail();
         done();
         return;
       }
       expect(ret).assertTrue();
-      let subProp = inputMethod.getCurrentInputMethodSubtype();
-      checkNewImeCurrentSubProp(subProp, 0);
-      console.info('************* inputmethod_test_switchCurrentInputMethodSubtype_002 Test end*************');
-      wait(WAIT_DEAL_OK);
-      done();
     });
-  });
-
-  /*
-   * @tc.number  inputmethod_test_imeChange_001
-   * @tc.name    Test to subscribe 'imeChange'.
-   * @tc.desc    Function test
-   * @tc.level   2
-   */
-  it('inputmethod_test_imeChange_001', 0, async function (done) {
-    console.info('************* inputmethod_test_imeChange_001 Test start*************');
-    expect(isImeChange).assertTrue();
-    let subProp = inputMethod.getCurrentInputMethodSubtype();
-    let prop = inputMethod.getCurrentInputMethod();
-    expect(imeChangeSubProp.name).assertEqual(subProp.name);
-    expect(imeChangeSubProp.id).assertEqual(subProp.id);
-    expect(imeChangeProp.name).assertEqual(prop.name);
-    expect(imeChangeProp.id).assertEqual(prop.id);
-    console.info('************* inputmethod_test_imeChange_001 Test end*************');
-    done();
   });
 
   /*

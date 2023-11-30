@@ -22,8 +22,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-class InputMethodInfo {
-public:
+struct InputMethodInfo {
     std::string mImeId;
     std::string mPackageName;
     std::string mAbilityName;
@@ -34,11 +33,6 @@ public:
     int32_t descriptionId = 0;
     std::string label;
     std::string description;
-
-    InputMethodInfo();
-    ~InputMethodInfo();
-    InputMethodInfo(const InputMethodInfo &property);
-    InputMethodInfo &operator=(const InputMethodInfo &property);
 };
 } // namespace MiscServices
 } // namespace OHOS

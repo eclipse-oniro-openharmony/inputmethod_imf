@@ -53,11 +53,11 @@ void InputMethodEngineListenerImpl::OnSetCallingWindow(uint32_t windowId)
 }
 void InputMethodEngineListenerImpl::OnSetSubtype(const SubProperty &property)
 {
-    IMSA_HILOGD("InputMethodEngineListenerImpl::OnSetSubtype");
+    IMSA_HILOGI("InputMethodEngineListenerImpl::OnSetSubtype");
 }
 void InputMethodEngineListenerImpl::OnInputFinish()
 {
-    IMSA_HILOGD("test");
+    IMSA_HILOGI("OnInputFinish");
     isInputFinish_ = true;
     imeListenerCv_.notify_one();
 }

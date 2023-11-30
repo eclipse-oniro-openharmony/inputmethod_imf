@@ -546,7 +546,7 @@ HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testCreatePanel001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel001 START. You can not create two SOFT_KEYBOARD panel.");
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, false, "undefine"));
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine"));
     std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
@@ -666,7 +666,7 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel004, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testCreatePanel005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel005 START.");
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, false, "undefine"));
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine"));
     std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
@@ -694,7 +694,7 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel005, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testCreatePanel006, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel006 START.");
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, false, "undefine"));
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine"));
     std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);

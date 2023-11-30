@@ -36,9 +36,11 @@ public:
     static void ResetParam();
     static bool WaitPanelHide();
     static bool WaitPanelShow();
+    static bool WaitImeChange(const SubProperty &subProperty);
 
 private:
     static InputWindowStatus status_;
+    static SubProperty subProperty_;
     static std::mutex imeSettingListenerLock_;
     static std::condition_variable imeSettingListenerCv_;
 }; // namespace MiscServices

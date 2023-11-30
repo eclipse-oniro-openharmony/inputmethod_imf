@@ -544,6 +544,7 @@ ohos_unittest("ImeProxyTest") {
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "${inputmethod_path}/test/unittest/resource/bundle_dependencies/editorBox:editorBox",
+    "${inputmethod_path}/test/unittest/resource/bundle_dependencies/extImfBundle:extImf",
     "${inputmethod_path}/test/unittest/resource/ohos_test:copy_ohos_test",
     "//third_party/googletest:gtest_main",
   ]

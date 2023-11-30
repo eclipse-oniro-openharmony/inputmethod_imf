@@ -19,7 +19,6 @@
 #include "parameter.h"
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t HANDLE_OK = 0;
 SystemLanguageObserver::ChangeHandler SystemLanguageObserver::handler_;
 SystemLanguageObserver &SystemLanguageObserver::GetInstance()
 {
@@ -29,12 +28,9 @@ SystemLanguageObserver &SystemLanguageObserver::GetInstance()
 
 void SystemLanguageObserver::Watch(ChangeHandler handler)
 {
-    IMSA_HILOGI("run in");
     handler_ = std::move(handler);
     auto errNo = WatchParameter(SYSTEM_LANGUAGE_KEY, OnChange, nullptr);
-    if (errNo != HANDLE_OK) {
-        IMSA_HILOGE("watch failed: %{public}d", errNo);
-    }
+    IMSA_HILOGD("ret: %{public}d", errNo);
 }
 
 void SystemLanguageObserver::OnChange(const char *key, const char *value, void *context)

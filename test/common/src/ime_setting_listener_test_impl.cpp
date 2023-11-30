@@ -18,11 +18,13 @@
 namespace OHOS {
 namespace MiscServices {
 InputWindowStatus ImeSettingListenerTestImpl::status_{ InputWindowStatus::NONE };
+SubProperty ImeSettingListenerTestImpl::subProperty_{};
 std::mutex ImeSettingListenerTestImpl::imeSettingListenerLock_;
 std::condition_variable ImeSettingListenerTestImpl::imeSettingListenerCv_;
 void ImeSettingListenerTestImpl::ResetParam()
 {
     status_ = InputWindowStatus::NONE;
+    subProperty_ = {};
 }
 bool ImeSettingListenerTestImpl::WaitPanelHide()
 {
@@ -36,8 +38,17 @@ bool ImeSettingListenerTestImpl::WaitPanelShow()
     imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return status_ == InputWindowStatus::SHOW; });
     return status_ == InputWindowStatus::SHOW;
 }
+bool ImeSettingListenerTestImpl::WaitImeChange(const SubProperty &subProperty)
+{
+    std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1),
+        [&subProperty]() { return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name; });
+    return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name;
+}
 void ImeSettingListenerTestImpl::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
+    subProperty_ = subProperty;
+    imeSettingListenerCv_.notify_one();
 }
 void ImeSettingListenerTestImpl::OnPanelStatusChange(
     const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
