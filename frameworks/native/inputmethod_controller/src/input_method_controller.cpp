@@ -325,6 +325,28 @@ int32_t InputMethodController::Close()
     return ReleaseInput(clientInfo_.client);
 }
 
+int32_t InputMethodController::RequestShowInput()
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    IMSA_HILOGI("InputMethodController, run in");
+    return proxy->RequestShowInput();
+}
+
+int32_t InputMethodController::RequestHideInput()
+{
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    IMSA_HILOGI("InputMethodController, run in");
+    return proxy->RequestHideInput();
+}
+
 int32_t InputMethodController::DisplayOptionalInputMethod()
 {
     IMSA_HILOGD("InputMethodController::DisplayOptionalInputMethod");

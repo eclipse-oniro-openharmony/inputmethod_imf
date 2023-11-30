@@ -839,12 +839,6 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
         IMSA_HILOGE("imeListener_ is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
-        IMSA_HILOGE("channel is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-
     IMSA_HILOGI("IMA, trigger: %{public}d", static_cast<int32_t>(trigger));
     if (panels_.Contains(SOFT_KEYBOARD)) {
         auto panel = GetSoftKeyboardPanel();
@@ -860,8 +854,11 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
         return HidePanel(panel, flag, trigger);
     }
 
-    channel->SendKeyboardStatus(KeyboardStatus::HIDE);
     imeListener_->OnKeyboardStatus(false);
+    auto channel = GetInputDataChannelProxy();
+    if (channel != nullptr) {
+        channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+    }
     auto controlChannel = GetInputControlChannel();
     if (controlChannel != nullptr && trigger == Trigger::IME_APP) {
         controlChannel->HideKeyboardSelf();
