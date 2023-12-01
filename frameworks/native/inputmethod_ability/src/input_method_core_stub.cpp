@@ -19,7 +19,6 @@
 #include <cstdint>
 
 #include "i_input_data_channel.h"
-#include "input_channel.h"
 #include "input_control_channel_proxy.h"
 #include "input_method_ability.h"
 #include "ipc_skeleton.h"

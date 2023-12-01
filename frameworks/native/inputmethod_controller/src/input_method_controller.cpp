@@ -751,10 +751,6 @@ int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
 
 int32_t InputMethodController::ShowSoftKeyboard()
 {
-    if (!isEditable_.load()) {
-        IMSA_HILOGE("not in editable state");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
@@ -768,10 +764,6 @@ int32_t InputMethodController::ShowSoftKeyboard()
 
 int32_t InputMethodController::HideSoftKeyboard()
 {
-    if (!isEditable_.load()) {
-        IMSA_HILOGE("not in editable state");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");

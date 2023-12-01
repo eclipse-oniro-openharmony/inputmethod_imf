@@ -16,7 +16,6 @@
 #include "input_control_channel_stub.h"
 
 #include "i_input_control_channel.h"
-#include "input_channel.h"
 #include "input_method_agent_proxy.h"
 #include "ipc_skeleton.h"
 #include "message_handler.h"

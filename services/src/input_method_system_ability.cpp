@@ -341,10 +341,6 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
     if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-
-    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
-    }
     return userSession_->OnHideCurrentInput();
 };
 
@@ -357,10 +353,6 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
 
     if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
-
-    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnShowCurrentInput();
 };
