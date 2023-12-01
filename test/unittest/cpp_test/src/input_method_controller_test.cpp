@@ -823,6 +823,34 @@ HWTEST_F(InputMethodControllerTest, testIMCHideTextInput, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testIMCRequestShowInput.
+ * @tc.desc: IMC testIMCRequestShowInput.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, testIMCRequestShowInput, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCRequestShowInput Test START");
+    imeListener_->keyboardState_ = false;
+    int32_t ret = InputMethodControllerTest::inputMethodController_->RequestShowInput();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(imeListener_->keyboardState_);
+}
+
+/**
+ * @tc.name: testIMCRequestHideInput.
+ * @tc.desc: IMC testIMCRequestHideInput.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, testIMCRequestHideInput, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCRequestHideInput Test START");
+    imeListener_->keyboardState_ = true;
+    int32_t ret = InputMethodControllerTest::inputMethodController_->RequestHideInput();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(imeListener_->keyboardState_);
+}
+
+/**
  * @tc.name: testSetControllerListener
  * @tc.desc: IMC SetControllerListener
  * @tc.type: FUNC

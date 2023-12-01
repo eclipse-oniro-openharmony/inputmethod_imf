@@ -311,6 +311,46 @@ void PerUserSession::OnHideSoftKeyBoardSelf()
     UpdateClientInfo(client->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
 }
 
+int32_t PerUserSession::OnRequestShowInput()
+{
+    IMSA_HILOGD("run in");
+    auto data = GetImeData(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("ime: %{public}d doesn't exist", ImeType::IME);
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    auto ret = data->core->ShowKeyboard();
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to show keyboard, ret: %{public}d", ret);
+        return ErrorCode::ERROR_KBD_SHOW_FAILED;
+    }
+    auto currentClient = GetCurrentClient();
+    if (currentClient != nullptr) {
+        UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, true } });
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t PerUserSession::OnRequestHideInput()
+{
+    IMSA_HILOGD("run in");
+    auto data = GetImeData(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("ime: %{public}d doesn't exist", ImeType::IME);
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    auto ret = data->core->HideKeyboard();
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to hide keyboard, ret: %{public}d", ret);
+        return ErrorCode::ERROR_KBD_HIDE_FAILED;
+    }
+    auto currentClient = GetCurrentClient();
+    if (currentClient != nullptr) {
+        UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, false } });
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 /** Get ClientInfo
  * @param inputClient the IRemoteObject remote handler of given input client
  * @return a pointer of ClientInfo if client is found

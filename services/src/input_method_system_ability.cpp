@@ -319,6 +319,24 @@ int32_t InputMethodSystemAbility::StopInputSession()
     return userSession_->OnHideCurrentInput();
 }
 
+int32_t InputMethodSystemAbility::RequestShowInput()
+{
+    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGE("not focused");
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
+    return userSession_->OnRequestShowInput();
+}
+
+int32_t InputMethodSystemAbility::RequestHideInput()
+{
+    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
+        IMSA_HILOGE("not focused");
+        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    }
+    return userSession_->OnRequestHideInput();
+}
+
 int32_t InputMethodSystemAbility::SetCoreAndAgent(
     const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {

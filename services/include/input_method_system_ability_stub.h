@@ -45,6 +45,10 @@ private:
 
     int32_t ReleaseInputOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t RequestShowInputOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t RequestHideInputOnRemote(MessageParcel &data, MessageParcel &reply);
+
     int32_t GetCurrentInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t GetCurrentInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -104,6 +108,10 @@ private:
           &InputMethodSystemAbilityStub::HideInputOnRemote },
         { static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT),
           &InputMethodSystemAbilityStub::ReleaseInputOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_SHOW_INPUT),
+            &InputMethodSystemAbilityStub::RequestShowInputOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_HIDE_INPUT),
+            &InputMethodSystemAbilityStub::RequestHideInputOnRemote },
         { static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD),
           &InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote },
         { static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD_SUBTYPE),

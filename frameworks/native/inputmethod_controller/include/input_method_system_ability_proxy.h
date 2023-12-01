@@ -51,6 +51,8 @@ public:
     int32_t ShowInput(sptr<IInputClient> client) override;
     int32_t HideInput(sptr<IInputClient> client) override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
+    int32_t RequestShowInput() override;
+    int32_t RequestHideInput() override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
     std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
     int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop) override;
