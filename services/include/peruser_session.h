@@ -127,19 +127,19 @@ private:
     void OnImeDied(const sptr<IInputMethodCore> &remote, ImeType type);
 
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
+    void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);
+    int32_t RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient = false);
+    void DeactivateClient(const sptr<IInputClient> &client);
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     std::shared_ptr<InputClientInfo> GetClientInfo(pid_t pid);
     void UpdateClientInfo(const sptr<IRemoteObject> &client,
         const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState>> &updateInfos);
-    void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);
+
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
+    void RemoveImeData(ImeType type);
+    int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     std::shared_ptr<ImeData> GetValidIme(ImeType type);
-    void RemoveImeData(ImeType type);
-
-    void DeactivateClient(const sptr<IInputClient> &client);
-    int32_t RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient = false);
-    int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
 
     int32_t BindClientWithIme(
         const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type, bool isBindFromClient = false);

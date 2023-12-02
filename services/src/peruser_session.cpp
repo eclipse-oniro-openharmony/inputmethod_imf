@@ -375,6 +375,7 @@ std::shared_ptr<InputClientInfo> PerUserSession::GetClientInfo(pid_t pid)
     auto iter = std::find_if(
         mapClients_.begin(), mapClients_.end(), [pid](const auto &mapClient) { return mapClient.second->pid == pid; });
     if (iter == mapClients_.end()) {
+        IMSA_HILOGD("not found");
         return nullptr;
     }
     return iter->second;

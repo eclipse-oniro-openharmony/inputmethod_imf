@@ -249,7 +249,6 @@ int32_t InputMethodController::Attach(
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
     SetTextListener(listener);
     clientInfo_.isShowKeyboard = isShowKeyboard;
-    clientInfo_.state = ClientState::ACTIVE;
     SaveTextConfig(textConfig);
     GetTextConfig(clientInfo_.config);
 
@@ -259,6 +258,7 @@ int32_t InputMethodController::Attach(
         IMSA_HILOGE("failed to start input, ret:%{public}d", ret);
         return ret;
     }
+    clientInfo_.state = ClientState::ACTIVE;
     OnInputReady(agent);
     if (isShowKeyboard) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_SHOW_ATTACH);
