@@ -94,12 +94,24 @@ int32_t InputMethodCoreProxy::IsPanelShown(const PanelInfo &panelInfo, bool &isS
         [&isShown](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isShown); });
 }
 
-int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
+void InputMethodCoreProxy::OnClientInactive(const sptr<IInputDataChannel> &channel)
+{
+    SendRequest(
+        ON_CLIENT_INACTIVE, [&channel](MessageParcel &data) { return ITypesUtil::Marshal(data, channel->AsObject()); },
+        nullptr, MessageOption::TF_ASYNC);
+}
+
+int32_t InputMethodCoreProxy::OnTextConfigChange(const TextTotalConfig &config)
+{
+    return SendRequest(
+        ON_TEXT_CONFIG_CHANGE, [&config](MessageParcel &data) { return ITypesUtil::Marshal(data, config); });
+}
+
+int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output, MessageOption option)
 {
     IMSA_HILOGD("InputMethodCoreProxy, run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option{ MessageOption::TF_SYNC };
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("InputMethodCoreProxy::write interface token failed");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;

@@ -190,7 +190,8 @@ int32_t InputMethodPanel::ShowPanel()
         IMSA_HILOGE("ShowPanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    IMSA_HILOGI("success");
+    IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
+        static_cast<int32_t>(panelFlag_));
     PanelStatusChange(InputWindowStatus::SHOW);
     return ErrorCode::NO_ERROR;
 }
@@ -225,7 +226,8 @@ int32_t InputMethodPanel::HidePanel()
         IMSA_HILOGE("HidePanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    IMSA_HILOGI("success");
+    IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
+        static_cast<int32_t>(panelFlag_));
     PanelStatusChange(InputWindowStatus::HIDE);
     return ErrorCode::NO_ERROR;
 }
@@ -261,11 +263,11 @@ int32_t InputMethodPanel::SetPrivacyMode(bool isPrivacyMode)
 void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
 {
     if (status == InputWindowStatus::SHOW && showRegistered_ && panelStatusListener_ != nullptr) {
-        IMSA_HILOGD("InputMethodPanel::ShowPanel panelStatusListener_ is not nullptr");
+        IMSA_HILOGD("ShowPanel panelStatusListener_ is not nullptr");
         panelStatusListener_->OnPanelStatus(windowId_, true);
     }
     if (status == InputWindowStatus::HIDE && hideRegistered_ && panelStatusListener_ != nullptr) {
-        IMSA_HILOGD("InputMethodPanel::HidePanel panelStatusListener_ is not nullptr");
+        IMSA_HILOGD("HidePanel panelStatusListener_ is not nullptr");
         panelStatusListener_->OnPanelStatus(windowId_, false);
     }
     auto imsa = ImaUtils::GetImsaProxy();

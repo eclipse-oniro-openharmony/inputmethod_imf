@@ -655,6 +655,15 @@ public:
         const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo);
 
     /**
+     * @brief Deactivate the input client.
+     *
+     * This function is used to deactivate the input client.
+     *
+     * @since 11
+     */
+    IMF_API void DeactivateClient();
+
+    /**
      * @brief Query whether an input type is supported.
      *
      * This function is used to query whether an input type is supported.
@@ -708,6 +717,8 @@ private:
     void SaveTextConfig(const TextConfig &textConfig);
     sptr<OnTextChangedListener> GetTextListener();
     void SetTextListener(sptr<OnTextChangedListener> listener);
+    bool IsEditable();
+    bool IsBound();
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
