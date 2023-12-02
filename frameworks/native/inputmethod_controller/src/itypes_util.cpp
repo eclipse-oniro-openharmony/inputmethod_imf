@@ -373,13 +373,13 @@ bool ITypesUtil::Unmarshalling(PanelInfo &output, MessageParcel &data)
 
 bool ITypesUtil::Marshalling(ClientState input, MessageParcel &data)
 {
-    return data.WriteInt32(static_cast<int32_t>(input));
+    return data.WriteUint32(static_cast<uint32_t>(input));
 }
 
 bool ITypesUtil::Unmarshalling(ClientState &output, MessageParcel &data)
 {
-    int32_t ret = 0;
-    if (!data.ReadInt32(ret)) {
+    uint32_t ret = 0;
+    if (!data.ReadUint32(ret)) {
         return false;
     }
     output = static_cast<ClientState>(ret);
