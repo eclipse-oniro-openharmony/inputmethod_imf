@@ -127,16 +127,19 @@ private:
     void OnImeDied(const sptr<IInputMethodCore> &remote, ImeType type);
 
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
-    std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
-    void UpdateClientInfo(const sptr<IRemoteObject> &client,
-        const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType>> &updateInfos);
     void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);
-    int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
-    std::shared_ptr<ImeData> GetImeData(ImeType type);
-    void RemoveImeData(ImeType type);
-
     int32_t RemoveClient(const sptr<IInputClient> &client, bool isUnbindFromClient = false);
+    void DeactivateClient(const sptr<IInputClient> &client);
+    std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
+    std::shared_ptr<InputClientInfo> GetClientInfo(pid_t pid);
+    void UpdateClientInfo(const sptr<IRemoteObject> &client,
+        const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState>> &updateInfos);
+
+    int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
+    void RemoveImeData(ImeType type);
     int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
+    std::shared_ptr<ImeData> GetImeData(ImeType type);
+    std::shared_ptr<ImeData> GetValidIme(ImeType type);
 
     int32_t BindClientWithIme(
         const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type, bool isBindFromClient = false);
@@ -155,6 +158,9 @@ private:
 
     void SetCurrentClient(sptr<IInputClient> client);
     sptr<IInputClient> GetCurrentClient();
+    void ReplaceCurrentClient(const sptr<IInputClient> &client);
+    void SetInactiveClient(sptr<IInputClient> client);
+    sptr<IInputClient> GetInactiveClient();
     bool IsCurrentClient(int32_t pid, int32_t uid);
     bool IsCurrentClient(sptr<IInputClient> client);
 
@@ -163,12 +169,16 @@ private:
     bool IsProxyImeStartInImeBind(ImeType bindImeType, ImeType startImeType);
     bool IsBindProxyImeInImeBind(ImeType bindImeType);
     bool IsBindImeInProxyImeBind(ImeType bindImeType);
+    bool IsImeBindChanged(ImeType bindImeType);
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;
     std::unordered_map<ImeType, std::shared_ptr<ImeData>> imeData_;
     std::mutex attachLock_;
     std::condition_variable imeAttachCv_;
+    std::mutex inactiveClientLock_;
+    sptr<IInputClient> inactiveClient_; // the inactive input client
+    std::mutex focusedClientLock_;
 };
 } // namespace MiscServices
 } // namespace OHOS

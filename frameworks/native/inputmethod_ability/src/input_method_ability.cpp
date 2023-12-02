@@ -942,5 +942,17 @@ int32_t InputMethodAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isSho
         static_cast<int32_t>(panelInfo.panelFlag), isShown);
     return ErrorCode::NO_ERROR;
 }
+
+void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
+{
+    IMSA_HILOGI("client inactive");
+    ClearDataChannel(channel);
+    panels_.ForEach([](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+        if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
+            panel->HidePanel();
+        }
+        return false;
+    });
+}
 } // namespace MiscServices
 } // namespace OHOS

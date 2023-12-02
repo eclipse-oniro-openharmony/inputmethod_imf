@@ -41,12 +41,14 @@ public:
     int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
     int32_t OnPanelStatusChange(
         const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) override;
+    void DeactivateClient() override;
 
 private:
     void OnInputReadyOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t OnInputStopOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t OnSwitchInputOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t DeactivateClientOnRemote(MessageParcel &data, MessageParcel &reply);
 };
 } // namespace MiscServices
 } // namespace OHOS

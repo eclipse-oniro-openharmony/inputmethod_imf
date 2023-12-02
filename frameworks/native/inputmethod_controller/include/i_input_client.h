@@ -30,7 +30,13 @@ namespace OHOS {
 namespace MiscServices {
 class IInputClient : public IRemoteBroker {
 public:
-    enum { ON_INPUT_READY = FIRST_CALL_TRANSACTION, ON_INPUT_STOP, ON_SWITCH_INPUT, ON_PANEL_STATUS_CHANGE };
+    enum {
+        ON_INPUT_READY = FIRST_CALL_TRANSACTION,
+        ON_INPUT_STOP,
+        ON_SWITCH_INPUT,
+        ON_PANEL_STATUS_CHANGE,
+        DEACTIVATE_CLIENT
+    };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputClient");
 
@@ -39,6 +45,7 @@ public:
     virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
     virtual int32_t OnPanelStatusChange(
         const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) = 0;
+    virtual void DeactivateClient() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

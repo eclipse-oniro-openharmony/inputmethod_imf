@@ -45,11 +45,14 @@ public:
     bool IsEnable() override;
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     int32_t OnSecurityChange(int32_t security) override;
+    void OnClientInactive(const sptr<IInputDataChannel> &channel) override;
+    int32_t OnTextConfigChange(const TextTotalConfig &config) override;
 
 private:
     static inline BrokerDelegator<InputMethodCoreProxy> delegator_;
     using ParcelHandler = std::function<bool(MessageParcel &)>;
-    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
+    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr,
+        MessageOption option = MessageOption::TF_SYNC);
 };
 } // namespace MiscServices
 } // namespace OHOS

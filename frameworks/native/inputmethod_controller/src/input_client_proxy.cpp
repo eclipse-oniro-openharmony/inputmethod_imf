@@ -52,12 +52,16 @@ int32_t InputClientProxy::OnPanelStatusChange(
     });
 }
 
-int32_t InputClientProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
+void InputClientProxy::DeactivateClient()
+{
+    SendRequest(DEACTIVATE_CLIENT, nullptr, nullptr, MessageOption::TF_ASYNC);
+}
+
+int32_t InputClientProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output, MessageOption option)
 {
     IMSA_HILOGD("InputClientProxy run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option{ MessageOption::TF_SYNC };
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("InputClientProxy::write interface token failed");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;

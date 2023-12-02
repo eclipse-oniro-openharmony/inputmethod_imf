@@ -46,6 +46,8 @@ public:
         IS_ENABLE,
         IS_PANEL_SHOWN,
         SECURITY_CHANGE,
+        ON_CLIENT_INACTIVE,
+        ON_TEXT_CONFIG_CHANGE,
         CORE_CMD_LAST,
     };
 
@@ -61,6 +63,8 @@ public:
     virtual bool IsEnable() = 0;
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
     virtual int32_t OnSecurityChange(int32_t security) = 0 ;
+    virtual void OnClientInactive(const sptr<IInputDataChannel> &channel) = 0;
+    virtual int32_t OnTextConfigChange(const TextTotalConfig &config) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

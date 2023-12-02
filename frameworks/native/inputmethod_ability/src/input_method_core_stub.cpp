@@ -178,6 +178,28 @@ int32_t InputMethodCoreStub::IsPanelShownOnRemote(MessageParcel &data, MessagePa
     return ITypesUtil::Marshal(reply, ret, isShown) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodCoreStub::OnClientInactiveOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> channel = nullptr;
+    if (!ITypesUtil::Unmarshal(data, channel)) {
+        IMSA_HILOGE("failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    InputMethodAbility::GetInstance()->OnClientInactive(channel);
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodCoreStub::OnTextConfigChangeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    TextTotalConfig config;
+    if (!ITypesUtil::Unmarshal(data, config)) {
+        IMSA_HILOGE("failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    InputMethodAbility::GetInstance()->OnTextConfigChange(config);
+    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodCoreStub::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
     return InputMethodAbility::GetInstance()->StartInput(clientInfo, isBindFromClient);
@@ -206,6 +228,15 @@ bool InputMethodCoreStub::IsEnable()
 int32_t InputMethodCoreStub::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
     return InputMethodAbility::GetInstance()->IsPanelShown(panelInfo, isShown);
+}
+
+void InputMethodCoreStub::OnClientInactive(const sptr<IInputDataChannel> &channel)
+{
+}
+
+int32_t InputMethodCoreStub::OnTextConfigChange(const TextTotalConfig &config)
+{
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodCoreStub::SendMessage(int code, ParcelHandler input)

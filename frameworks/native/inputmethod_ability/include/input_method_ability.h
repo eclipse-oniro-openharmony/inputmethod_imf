@@ -82,6 +82,8 @@ public:
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     int32_t GetSecurityMode(int32_t &security);
     int32_t OnSecurityChange(int32_t security);
+    void OnClientInactive(const sptr<IRemoteObject> &channel);
+    void OnTextConfigChange(const TextTotalConfig &textConfig);
 
 private:
     std::thread workThreadHandler;
@@ -122,7 +124,6 @@ private:
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
     void OnConfigurationChange(Message *msg);
-    void OnTextConfigChange(const TextTotalConfig &textConfig);
 
     int32_t HideKeyboard(Trigger trigger);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();

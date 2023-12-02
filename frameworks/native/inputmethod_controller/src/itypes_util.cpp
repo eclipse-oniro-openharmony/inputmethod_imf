@@ -243,7 +243,7 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, input.pid, input.uid, input.userID, input.isShowKeyboard, input.eventFlag, input.config,
-                 input.client->AsObject(), input.channel->AsObject())) {
+        input.state, input.client->AsObject(), input.channel->AsObject())) {
         IMSA_HILOGE("write InputClientInfo to message parcel failed");
         return false;
     }
@@ -252,8 +252,8 @@ bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
 {
-    if (!Unmarshal(
-        data, output.pid, output.uid, output.userID, output.isShowKeyboard, output.eventFlag, output.config)) {
+    if (!Unmarshal(data, output.pid, output.uid, output.userID, output.isShowKeyboard, output.eventFlag, output.config,
+        output.state)) {
         IMSA_HILOGE("read InputClientInfo from message parcel failed");
         return false;
     }
@@ -368,6 +368,22 @@ bool ITypesUtil::Unmarshalling(PanelInfo &output, MessageParcel &data)
     }
     output.panelFlag = static_cast<PanelFlag>(panelFlag);
     output.panelType = static_cast<PanelType>(panelType);
+    return true;
+}
+
+bool ITypesUtil::Marshalling(ClientState input, MessageParcel &data)
+{
+    return data.WriteUint32(static_cast<uint32_t>(input));
+}
+
+bool ITypesUtil::Unmarshalling(ClientState &output, MessageParcel &data)
+{
+    uint32_t state = 0;
+    if (!data.ReadUint32(state)) {
+        IMSA_HILOGE("ClientState read failed");
+        return false;
+    }
+    output = static_cast<ClientState>(state);
     return true;
 }
 } // namespace MiscServices
