@@ -423,6 +423,7 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
     if (clientInfo == nullptr) {
         return;
     }
+    IMSA_HILOGI("deactive client[%{public}d]", clientInfo->pid);
     UpdateClientInfo(client->AsObject(), { { UpdateFlag::STATE, ClientState::INACTIVE } });
     if (IsCurrentClient(client)) {
         SetCurrentClient(nullptr);
@@ -682,7 +683,6 @@ void PerUserSession::SetCurrentClient(sptr<IInputClient> client)
 sptr<IInputClient> PerUserSession::GetCurrentClient()
 {
     std::lock_guard<std::mutex> lock(clientLock_);
-    IMSA_HILOGD("get current client");
     return currentClient_;
 }
 

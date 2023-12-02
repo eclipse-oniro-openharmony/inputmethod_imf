@@ -291,6 +291,7 @@ int32_t InputMethodController::ShowTextInput()
 int32_t InputMethodController::HideTextInput()
 {
     if (!IsBound()) {
+        IMSA_HILOGE("not bound");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
     IMSA_HILOGI("run in");
@@ -303,6 +304,7 @@ int32_t InputMethodController::HideCurrentInput()
 {
     IMSA_HILOGD("InputMethodController::HideCurrentInput");
     if (!IsEditable()) {
+        IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     auto proxy = GetSystemAbilityProxy();
@@ -318,7 +320,7 @@ int32_t InputMethodController::HideCurrentInput()
 int32_t InputMethodController::ShowCurrentInput()
 {
     if (!IsEditable()) {
-        IMSA_HILOGE("not in editable state");
+        IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     auto proxy = GetSystemAbilityProxy();
@@ -547,6 +549,7 @@ void InputMethodController::RestoreListenInfoInSaDied()
 void InputMethodController::RestoreAttachInfoInSaDied()
 {
     if (!IsEditable()) {
+        IMSA_HILOGD("not editable");
         return;
     }
     auto attach = [=]() -> bool {
@@ -581,6 +584,7 @@ void InputMethodController::RestoreAttachInfoInSaDied()
 int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 {
     if (!IsEditable()) {
+        IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     {
@@ -609,6 +613,7 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 int32_t InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
 {
     if (!IsEditable()) {
+        IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     {
@@ -642,6 +647,7 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         textConfig_.inputAttribute.inputPattern = static_cast<uint32_t>(info.GetTextInputType());
     }
     if (!IsEditable()) {
+        IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     IMSA_HILOGI("IMC enterKeyType: %{public}d, textInputType: %{public}d",
@@ -695,6 +701,7 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
 {
     InputMethodSyncTrace tracer("DispatchKeyEvent trace");
     if (!IsEditable()) {
+        IMSA_HILOGD("not editable");
         return false;
     }
     if (keyEvent == nullptr) {
@@ -754,6 +761,7 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
 int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
 {
     if (!IsEditable()) {
+        IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     {
@@ -773,6 +781,7 @@ int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
 int32_t InputMethodController::ShowSoftKeyboard()
 {
     if (!IsEditable()) {
+        IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     auto proxy = GetSystemAbilityProxy();
@@ -789,6 +798,7 @@ int32_t InputMethodController::ShowSoftKeyboard()
 int32_t InputMethodController::HideSoftKeyboard()
 {
     if (!IsEditable()) {
+        IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     auto proxy = GetSystemAbilityProxy();
