@@ -199,6 +199,10 @@ int32_t InputMethodController::OnPanelStatusChange(
 void InputMethodController::DeactivateClient()
 {
     {
+        std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
+        clientInfo_.state = ClientState::INACTIVE;
+    }
+    {
         std::lock_guard<std::mutex> autoLock(agentLock_);
         agent_ = nullptr;
         agentObject_ = nullptr;
@@ -208,8 +212,6 @@ void InputMethodController::DeactivateClient()
         IMSA_HILOGD("textListener_ is not nullptr");
         listener->SendKeyboardStatus(KeyboardStatus::NONE);
     }
-    std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
-    clientInfo_.state = ClientState::INACTIVE;
 }
 
 void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
