@@ -31,6 +31,7 @@
 #include "iservice_registry.h"
 #include "message_parcel.h"
 #include "parcel.h"
+#include "scene_board_judgement.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "unistd.h"
@@ -809,6 +810,11 @@ void PerUserSession::OnFocused(int32_t pid, int32_t uid)
     }
     if (IsCurrentClient(pid, uid)) {
         IMSA_HILOGD("pid[%{public}d] same as current client", pid);
+        return;
+    }
+    if (!OHOS::Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        IMSA_HILOGI("focus shifts to pid: %{public}d, remove current client", pid);
+        RemoveClient(client);
         return;
     }
     IMSA_HILOGI("focus shifts to pid: %{public}d, deactivate current client", pid);
