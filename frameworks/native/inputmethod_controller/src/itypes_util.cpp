@@ -243,7 +243,7 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, input.pid, input.uid, input.userID, input.isShowKeyboard, input.eventFlag, input.config,
-            input.client->AsObject(), input.channel->AsObject(), input.state)) {
+            input.state, input.client->AsObject(), input.channel->AsObject())) {
         IMSA_HILOGE("write InputClientInfo to message parcel failed");
         return false;
     }
@@ -378,11 +378,12 @@ bool ITypesUtil::Marshalling(ClientState input, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(ClientState &output, MessageParcel &data)
 {
-    uint32_t ret = 0;
-    if (!data.ReadUint32(ret)) {
+    uint32_t state = 0;
+    if (!data.ReadUint32(state)) {
+        IMSA_HILOGE("ClientState read failed");
         return false;
     }
-    output = static_cast<ClientState>(ret);
+    output = static_cast<ClientState>(state);
     return true;
 }
 } // namespace MiscServices
