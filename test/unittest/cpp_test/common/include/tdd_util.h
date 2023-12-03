@@ -53,6 +53,10 @@ public:
     static void PutEnableImeValue(const std::string &key, const std::string &value);
     static void GrantNativePermission();
     static int32_t CheckEnableOn(std::string &value);
+    static void InitWindow(bool isShow);
+    static void DestroyWindow();
+    static bool GetFocused();
+    static bool GetUnfocused();
     class WindowManager {
     public:
         static void CreateWindow();

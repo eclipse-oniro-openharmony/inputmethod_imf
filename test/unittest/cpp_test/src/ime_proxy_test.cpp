@@ -33,14 +33,12 @@ constexpr int32_t RETRY_TIME = 30;
 constexpr int32_t WAIT_APP_START_COMPLETE = 1;
 constexpr int32_t WAIT_BIND_COMPLETE = 1;
 constexpr const char *BUNDLENAME = "com.example.editorbox";
-using WindowMgr = TddUtil::WindowManager;
 class ImeProxyTest : public testing::Test {
 public:
     static sptr<InputMethodController> imc_;
     static void SetUpTestCase(void)
     {
-        WindowMgr::RegisterFocusChangeListener();
-        WindowMgr::CreateWindow();
+        TddUtil::InitWindow(false);
         imc_ = InputMethodController::GetInstance();
         RegisterImeSettingListener();
         SwitchToTestIme();
@@ -50,7 +48,7 @@ public:
     }
     static void TearDownTestCase(void)
     {
-        WindowMgr::DestroyWindow();
+        TddUtil::DestroyWindow();
     }
     void SetUp()
     {
@@ -74,22 +72,6 @@ public:
     {
         isPc ? InputMethodEngineListenerImpl::isEnable_ = true : InputMethodEngineListenerImpl::isEnable_ = false;
         imc_->Close();
-    }
-
-    static bool ShowWindow()
-    {
-        WindowMgr::ShowWindow();
-        bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
-        IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
-        return isFocused;
-    }
-
-    static bool HideWindow()
-    {
-        WindowMgr::HideWindow();
-        bool unFocused = FocusChangedListenerTestImpl::unFocused_->GetValue();
-        IMSA_HILOGI("unFocused end, unFocused = %{public}d", unFocused);
-        return unFocused;
     }
 
     static void StartApp() // bind client default, not show keyboard
@@ -184,7 +166,7 @@ HWTEST_F(ImeProxyTest, RegisteredProxyNotInEditor_001, TestSize.Level0)
 HWTEST_F(ImeProxyTest, AttachInPcAfterRegisteredProxyNotInEditor_002, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::AttachInPcAfterRegisteredProxyNotInEditor_002");
-    ASSERT_TRUE(ShowWindow());
+    ASSERT_TRUE(TddUtil::GetFocused());
     // RegisteredProxy not in ima bind
     InputMethodEngineListenerImpl::isEnable_ = true;
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
@@ -199,7 +181,7 @@ HWTEST_F(ImeProxyTest, AttachInPcAfterRegisteredProxyNotInEditor_002, TestSize.L
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
     Close(false);
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
-    HideWindow();
+    TddUtil::GetUnfocused();
 }
 
 /**
@@ -210,7 +192,7 @@ HWTEST_F(ImeProxyTest, AttachInPcAfterRegisteredProxyNotInEditor_002, TestSize.L
 HWTEST_F(ImeProxyTest, AttachInPeAfterRegisteredProxyNotInEditor_003, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::AttachInPeAfterRegisteredProxyNotInEditor_003");
-    ASSERT_TRUE(ShowWindow());
+    ASSERT_TRUE(TddUtil::GetFocused());
     // RegisteredProxy not in ima bind
     InputMethodEngineListenerImpl::isEnable_ = true;
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
@@ -225,7 +207,7 @@ HWTEST_F(ImeProxyTest, AttachInPeAfterRegisteredProxyNotInEditor_003, TestSize.L
     EXPECT_FALSE(InputMethodEngineListenerImpl::WaitInputStart());
     Close(false);
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
-    HideWindow();
+    TddUtil::GetUnfocused();
 }
 
 /**
@@ -236,7 +218,7 @@ HWTEST_F(ImeProxyTest, AttachInPeAfterRegisteredProxyNotInEditor_003, TestSize.L
 HWTEST_F(ImeProxyTest, RegisteredProxyInImaEditor_004, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::RegisteredProxyInImaEditor_004");
-    ASSERT_TRUE(ShowWindow());
+    ASSERT_TRUE(TddUtil::GetFocused());
     // mock click the edit box in pe, bind ima
     ImeSettingListenerTestImpl::ResetParam();
     auto ret = Attach(false);
@@ -255,7 +237,7 @@ HWTEST_F(ImeProxyTest, RegisteredProxyInImaEditor_004, TestSize.Level0)
     EXPECT_TRUE(KeyboardListenerTestImpl::WaitCursorUpdate());
     Close(false);
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
-    HideWindow();
+    TddUtil::GetUnfocused();
 }
 
 /**
@@ -266,7 +248,7 @@ HWTEST_F(ImeProxyTest, RegisteredProxyInImaEditor_004, TestSize.Level0)
 HWTEST_F(ImeProxyTest, UnRegisteredAndRegisteredProxyInProxyBind_005, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredAndRegisteredProxyInProxyBind_005");
-    ASSERT_TRUE(ShowWindow());
+    ASSERT_TRUE(TddUtil::GetFocused());
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -292,7 +274,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredAndRegisteredProxyInProxyBind_005, TestSize.L
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
     Close(false);
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
-    HideWindow();
+    TddUtil::GetUnfocused();
 }
 
 /**
@@ -320,7 +302,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_stop_006, TestSize.Level0)
 HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_stop_007, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyInProxyBind_stop_007");
-    ASSERT_TRUE(ShowWindow());
+    ASSERT_TRUE(TddUtil::GetFocused());
     InputMethodEngineListenerImpl::isEnable_ = true;
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -338,7 +320,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_stop_007, TestSize.Level0)
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
     EXPECT_FALSE(ImeSettingListenerTestImpl::WaitPanelShow());
     Close(false);
-    HideWindow();
+    TddUtil::GetUnfocused();
 }
 
 /**
@@ -349,7 +331,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_stop_007, TestSize.Level0)
 HWTEST_F(ImeProxyTest, UnRegisteredProxyInImaBind_stop_008, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyInImaBind_stop_008");
-    ASSERT_TRUE(ShowWindow());
+    ASSERT_TRUE(TddUtil::GetFocused());
     InputMethodEngineListenerImpl::isEnable_ = true;
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -367,7 +349,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInImaBind_stop_008, TestSize.Level0)
     EXPECT_FALSE(ImeSettingListenerTestImpl::WaitPanelHide());
     EXPECT_FALSE(InputMethodEngineListenerImpl::WaitInputFinish());
     Close(false);
-    HideWindow();
+    TddUtil::GetUnfocused();
 }
 
 /**
@@ -393,7 +375,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyNotInBind_switch_009, TestSize.Level0)
 HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_switch_010, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::UnRegisteredProxyInProxyBind_switch_010");
-    ASSERT_TRUE(ShowWindow());
+    ASSERT_TRUE(TddUtil::GetFocused());
     InputMethodEngineListenerImpl::isEnable_ = true;
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -411,7 +393,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_switch_010, TestSize.Level0)
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
     EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelShow());
     Close(false);
-    HideWindow();
+    TddUtil::GetUnfocused();
 }
 
 /**
@@ -437,7 +419,7 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyWithErrorType_011, TestSize.Level0)
 HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPe_012, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::AppUnFocusInProxyBindInPe_012");
-    ASSERT_TRUE(ShowWindow());
+    ASSERT_TRUE(TddUtil::GetFocused());
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -454,7 +436,7 @@ HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPe_012, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 
     ret = InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
-    HideWindow();
+    TddUtil::GetUnfocused();
 }
 
 /**
@@ -465,7 +447,7 @@ HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPe_012, TestSize.Level0)
 HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPc_013, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::AppUnFocusInProxyBindInPc_013");
-    ASSERT_TRUE(ShowWindow());
+    ASSERT_TRUE(TddUtil::GetFocused());
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -482,7 +464,7 @@ HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPc_013, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
-    HideWindow();
+    TddUtil::GetUnfocused();
 }
 
 /**
@@ -493,7 +475,7 @@ HWTEST_F(ImeProxyTest, AppUnFocusInProxyBindInPc_013, TestSize.Level0)
 HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_014, TestSize.Level0)
 {
     IMSA_HILOGI("ImeProxyTest::ProxyAndImaSwitchTest_014");
-    ASSERT_TRUE(ShowWindow());
+    ASSERT_TRUE(TddUtil::GetFocused());
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -521,7 +503,7 @@ HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_014, TestSize.Level0)
 
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
     Close(false);
-    HideWindow();
+    TddUtil::GetUnfocused();
 }
 
 /**

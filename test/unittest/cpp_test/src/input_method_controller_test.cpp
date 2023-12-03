@@ -60,7 +60,6 @@ namespace MiscServices {
 constexpr uint32_t RETRY_TIME = 200 * 1000;
 constexpr uint32_t RETRY_TIMES = 5;
 constexpr uint32_t WAIT_INTERVAL = 500;
-using WindowMgr = TddUtil::WindowManager;
 
 class SelectListenerMock : public ControllerListener {
 public:
@@ -253,11 +252,7 @@ void InputMethodControllerTest::SetUpTestCase(void)
     keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine", { "ohos.permission.CONNECT_IME_ABILITY" }));
 
-    TddUtil::WindowManager::RegisterFocusChangeListener();
-    WindowMgr::CreateWindow();
-    WindowMgr::ShowWindow();
-    bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
-    IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
+    TddUtil::InitWindow(true);
     SetInputDeathRecipient();
     TextListener::ResetParam();
 }
@@ -267,8 +262,7 @@ void InputMethodControllerTest::TearDownTestCase(void)
     IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
     TextListener::ResetParam();
-    WindowMgr::HideWindow();
-    WindowMgr::DestroyWindow();
+    TddUtil::DestroyWindow();
     inputMethodController_->SetControllerListener(nullptr);
 }
 
