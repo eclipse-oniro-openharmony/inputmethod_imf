@@ -250,7 +250,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeWithOutAttach, TestSize
     TextInputType textInputType = TextInputType::DATETIME;
     config.SetTextInputType(textInputType);
     auto ret = inputMethodController_->OnConfigurationChange(config);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
 }
 
 /**
