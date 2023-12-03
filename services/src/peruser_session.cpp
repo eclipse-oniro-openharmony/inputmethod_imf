@@ -815,6 +815,7 @@ void PerUserSession::OnFocused(int32_t pid, int32_t uid)
     if (!OHOS::Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         IMSA_HILOGI("focus shifts to pid: %{public}d, remove current client", pid);
         RemoveClient(client);
+        InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
         return;
     }
     IMSA_HILOGI("focus shifts to pid: %{public}d, deactivate current client", pid);

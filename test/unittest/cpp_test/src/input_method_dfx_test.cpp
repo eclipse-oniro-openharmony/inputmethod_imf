@@ -139,19 +139,14 @@ void InputMethodDfxTest::SetUpTestCase(void)
     textListener_ = new TextListener();
     TddUtil::SetTestTokenID(
         TddUtil::AllocTestTokenID(true, "undefine", { "ohos.permission.READ_DFX_SYSEVENT", "ohos.permission.DUMP" }));
-    TddUtil::WindowManager::RegisterFocusChangeListener();
-    WindowMgr::CreateWindow();
-    WindowMgr::ShowWindow();
-    bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
-    IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
+    TddUtil::InitWindow(true);
 }
 
 void InputMethodDfxTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
-    WindowMgr::HideWindow();
-    WindowMgr::DestroyWindow();
+    TddUtil::DestroyWindow();
 }
 
 void InputMethodDfxTest::SetUp(void)

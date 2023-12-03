@@ -28,7 +28,6 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-using WindowMgr = TddUtil::WindowManager;
 class InputMethodAttachTest : public testing::Test {
 public:
     static sptr<InputMethodController> inputMethodController_;
@@ -47,18 +46,13 @@ public:
         inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
         TddUtil::RestoreSelfTokenID();
 
-        TddUtil::WindowManager::RegisterFocusChangeListener();
-        WindowMgr::CreateWindow();
-        WindowMgr::ShowWindow();
-        bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
-        IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
+        TddUtil::InitWindow(true);
         inputMethodController_ = InputMethodController::GetInstance();
     }
     static void TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodAttachTest::TearDownTestCase");
-        WindowMgr::HideWindow();
-        WindowMgr::DestroyWindow();
+        TddUtil::DestroyWindow();
     }
     void SetUp()
     {
@@ -256,7 +250,7 @@ HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeWithOutAttach, TestSize
     TextInputType textInputType = TextInputType::DATETIME;
     config.SetTextInputType(textInputType);
     auto ret = inputMethodController_->OnConfigurationChange(config);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
 }
 
 /**

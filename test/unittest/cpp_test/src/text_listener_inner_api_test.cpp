@@ -30,7 +30,6 @@ using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-using WindowMgr = TddUtil::WindowManager;
 constexpr int CURSOR_DIRECTION_BASE_VALUE = 2011;
 class TextListenerInnerApiTest : public testing::Test {
 public:
@@ -38,11 +37,7 @@ public:
     static sptr<OnTextChangedListener> textListener_;
     static void SetUpTestCase(void)
     {
-        WindowMgr::RegisterFocusChangeListener();
-        WindowMgr::CreateWindow();
-        WindowMgr::ShowWindow();
-        bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
-        IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
+        TddUtil::InitWindow(true);
         TextListener::ResetParam();
 
         textListener_ = new TextListener();
@@ -53,8 +48,7 @@ public:
         IMSA_HILOGI("InputMethodInnerApiTest::TearDownTestCase");
         imc_->Close();
         TextListener::ResetParam();
-        WindowMgr::HideWindow();
-        WindowMgr::DestroyWindow();
+        TddUtil::DestroyWindow();
     }
     void SetUp()
     {
