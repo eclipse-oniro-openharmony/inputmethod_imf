@@ -302,6 +302,8 @@ HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
     // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
+    auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
+    inputMethodAbility_->SetImeListener(imeListener);
     sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
     inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
     auto panel = std::make_shared<InputMethodPanel>();
