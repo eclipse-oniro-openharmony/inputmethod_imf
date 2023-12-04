@@ -159,7 +159,6 @@ napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_
         IMSA_HILOGE("napi_get_reference_value(env, KDSRef_, &cons) != napi_ok");
         return nullptr;
     }
-    IMSA_HILOGE("Get a reference to the global variable appAccountRef_ complete");
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
         IMSA_HILOGE("napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok");
         return nullptr;
