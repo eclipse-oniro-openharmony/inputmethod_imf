@@ -193,11 +193,16 @@ export class KeyboardController {
     }
   }
 
-  getAttributeSync() {
+  async getAttributeSync() {
     try {
       let editAttribute = globalThis.textInputClient.getEditorAttributeSync();
+      let editAttribute1 = await globalThis.textInputClient.getEditorAttribute();
       this.addLog(`[inputDemo] publish getEditorAttributeSync editAttribute= ${JSON.stringify(editAttribute)}`);
-      this.publishCommonEvent('getEditorAttributeSyncResult', TEST_RESULT_CODE.SUCCESS);
+      if(editAttribute.inputPattern == editAttribute1.inputPattern && editAttribute.enterKeyType == editAttribute1.enterKeyType) {
+        this.publishCommonEvent('getEditorAttributeSyncResult', TEST_RESULT_CODE.SUCCESS);
+      } else{
+        this.publishCommonEvent('getEditorAttributeSyncResult', TEST_RESULT_CODE.FAILED);
+      }
     } catch (err) {
       this.publishCommonEvent('getEditorAttributeSyncResult', TEST_RESULT_CODE.FAILED);
     }

@@ -568,7 +568,7 @@ napi_value JsTextInputClientEngine::GetEditorAttributeSync(napi_env env, napi_ca
     }
     IMSA_HILOGD("patternCode: %{public}d", inputPattern);
 
-    const InputAttribute attribute =  { .inputPattern = enterKeyType, .enterKeyType = inputPattern };
+    const InputAttribute attribute =  { .inputPattern = inputPattern, .enterKeyType = enterKeyType };
     return JsUtils::GetValue(env, attribute);
 }
 
