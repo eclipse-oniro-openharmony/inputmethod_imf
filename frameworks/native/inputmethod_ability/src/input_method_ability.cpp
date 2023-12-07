@@ -374,11 +374,6 @@ int32_t InputMethodAbility::ShowKeyboard()
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
-        IMSA_HILOGE("channel is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
     IMSA_HILOGI("IMA start");
     if (panels_.Contains(SOFT_KEYBOARD)) {
         auto panel = GetSoftKeyboardPanel();
@@ -393,8 +388,10 @@ int32_t InputMethodAbility::ShowKeyboard()
         }
         return ShowPanel(panel, flag, Trigger::IMF);
     }
-
-    channel->SendKeyboardStatus(KeyboardStatus::SHOW);
+    auto channel = GetInputDataChannelProxy();
+    if (channel != nullptr) {
+        channel->SendKeyboardStatus(KeyboardStatus::SHOW);
+    }
     imeListener_->OnKeyboardStatus(true);
     return ErrorCode::NO_ERROR;
 }
@@ -787,8 +784,7 @@ int32_t InputMethodAbility::ShowPanel(
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
+    if (trigger == Trigger::IME_APP && GetInputDataChannelProxy() == nullptr) {
         IMSA_HILOGE("channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }

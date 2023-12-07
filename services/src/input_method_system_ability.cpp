@@ -321,18 +321,20 @@ int32_t InputMethodSystemAbility::StopInputSession()
 
 int32_t InputMethodSystemAbility::RequestShowInput()
 {
-    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
-        IMSA_HILOGE("not focused");
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)
+        && !identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return userSession_->OnRequestShowInput();
 }
 
 int32_t InputMethodSystemAbility::RequestHideInput()
 {
-    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingTokenID())) {
-        IMSA_HILOGE("not focused");
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
+    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)
+        && !identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return userSession_->OnRequestHideInput();
 }
