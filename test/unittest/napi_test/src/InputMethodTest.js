@@ -841,7 +841,7 @@ describe('InputMethodTest', function () {
     console.info('************* inputmethod_test_hideTextInput_001 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
     inputMethodCtrl.hideTextInput((err) => {
-      console.info(`inputmethod_test_setCallingWindow_001 err: ${JSON.stringify(err)}`);
+      console.info(`inputmethod_test_hideTextInput_001 err: ${JSON.stringify(err)}`);
       if (err.code === 12800009) {
         expect(true).assertTrue();
       } else {
@@ -864,7 +864,7 @@ describe('InputMethodTest', function () {
     try {
       inputMethodCtrl.setCallingWindow(windowId, (err) => {
         console.info(`inputmethod_test_setCallingWindow_001 err: ${JSON.stringify(err)}`);
-        if (err.code === 12800009) {
+        if (err.code === 12800003) {
           expect(true).assertTrue();
         } else {
           expect().assertFail();
@@ -912,7 +912,7 @@ describe('InputMethodTest', function () {
     let cursorInfo = { left: 100, top: 110, width: 600, height: 800 };
     try {
       inputMethodCtrl.updateCursor(cursorInfo, (err) => {
-        if (err.code === 12800009) {
+        if (err.code === 12800003) {
           expect(true).assertTrue();
         } else {
           expect().assertFail();
@@ -940,7 +940,7 @@ describe('InputMethodTest', function () {
     let end = 5;
     try {
       inputMethodCtrl.changeSelection(text, start, end, (err) => {
-        if (err.code === 12800009) {
+        if (err.code === 12800003) {
           expect(true).assertTrue();
         } else {
           expect().assertFail();
@@ -966,7 +966,7 @@ describe('InputMethodTest', function () {
     let attribute = {textInputType: inputMethod.TextInputType.TEXT, enterKeyType: inputMethod.EnterKeyType.NONE};
     try {
       inputMethodCtrl.updateAttribute(attribute, (err) => {
-        if (err.code === 12800009) {
+        if (err.code === 12800003) {
           expect(true).assertTrue();
         } else {
           expect().assertFail();
