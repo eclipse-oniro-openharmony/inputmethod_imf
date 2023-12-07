@@ -366,7 +366,7 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
 
 /**
  * @tc.name: testRequestShowInput.
- * @tc.desc: InputMethodEditorTest testIMCRequestShowInput with focused.
+ * @tc.desc: InputMethodEditorTest testRequestShowInput with focused.
  * @tc.type: FUNC
  */
 HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level0)
@@ -375,7 +375,7 @@ HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level0)
     TddUtil::GetFocused();
     InputMethodEditorTest::inputMethodController_->Close();
     imeListener_->keyboardState_ = false;
-    int32_t ret = InputMethodControllerTest::inputMethodController_->RequestShowInput();
+    int32_t ret = InputMethodEditorTest::inputMethodController_->RequestShowInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(imeListener_->keyboardState_);
     TddUtil::GetUnfocused();
@@ -392,7 +392,7 @@ HWTEST_F(InputMethodEditorTest, testRequestHideInput, TestSize.Level0)
     TddUtil::GetFocused();
     InputMethodEditorTest::inputMethodController_->Close();
     imeListener_->keyboardState_ = true;
-    int32_t ret = InputMethodControllerTest::inputMethodController_->RequestHideInput();
+    int32_t ret = InputMethodEditorTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_FALSE(imeListener_->keyboardState_);
     TddUtil::GetUnfocused();
@@ -408,9 +408,9 @@ HWTEST_F(InputMethodEditorTest, testRequestInput001, TestSize.Level0)
     IMSA_HILOGI("InputMethodEditorTest testRequestInput001 Test START");
     TddUtil::GetUnfocused();
     InputMethodEditorTest::inputMethodController_->Close();
-    int32_t ret = InputMethodControllerTest::inputMethodController_->RequestShowInput();
+    int32_t ret = InputMethodEditorTest::inputMethodController_->RequestShowInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
-    ret = InputMethodControllerTest::inputMethodController_->RequestHideInput();
+    ret = InputMethodEditorTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
 }
 
@@ -426,9 +426,9 @@ HWTEST_F(InputMethodEditorTest, testRequestInput002, TestSize.Level0)
     InputMethodEditorTest::inputMethodController_->Close();
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine", { "ohos.permission.CONNECT_IME_ABILITY" }));
 
-    int32_t ret = InputMethodControllerTest::inputMethodController_->RequestShowInput();
+    int32_t ret = InputMethodEditorTest::inputMethodController_->RequestShowInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = InputMethodControllerTest::inputMethodController_->RequestHideInput();
+    ret = InputMethodEditorTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
