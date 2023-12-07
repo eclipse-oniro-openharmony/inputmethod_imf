@@ -134,8 +134,8 @@ int32_t InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParc
 
 int32_t InputMethodCoreStub::StopInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    sptr<IRemoteObject> channelObject = nullptr;
-    if(!ITypesUtil::Unmarshal(data, channel)) {
+    sptr<IRemoteObject> channel = nullptr;
+    if (!ITypesUtil::Unmarshal(data, channel)) {
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
