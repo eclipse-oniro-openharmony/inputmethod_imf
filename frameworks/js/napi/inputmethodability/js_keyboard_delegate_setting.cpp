@@ -297,45 +297,42 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
 {
     std::string type = "keyEvent";
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-    uv_work_t *work = GetUVwork(type, [keyEvent, isDone](UvEntry &entry) {
+    auto entry = GetEntry(type, [keyEvent, isDone](UvEntry &entry) {
         entry.pullKeyEventPara = keyEvent;
         entry.isDone = isDone;
     });
-    if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv work");
+    if (entry == nullptr) {
+        return false;
+    }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
         return false;
     }
     IMSA_HILOGI("run in");
     StartAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
-    uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            InputMethodSyncTrace trace("OnFullKeyEvent UV_QUEUE_WORK");
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                InputMethodSyncTrace tracer("Create parameter");
-                if (argc == 0) {
-                    return false;
-                }
-                napi_value keyEventObject{};
-                auto result = napi_create_object(env, &keyEventObject);
-                CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create object", false);
-                result = MMI::KeyEventNapi::CreateKeyEvent(env, entry->pullKeyEventPara, keyEventObject);
-                CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create key event object", false);
-                // 0 means the first param of callback.
-                args[0] = keyEventObject;
-                return true;
-            };
-            bool isConsumed = false;
-            // 1 means callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
-            entry->isDone->SetValue(isConsumed);
-            FinishAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
-        },
-        uv_qos_user_initiated);
+    auto task = [entry]() {
+        auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            InputMethodSyncTrace tracer("Create parameter");
+            if (argc == 0) {
+                return false;
+            }
+            napi_value keyEventObject{};
+            auto result = napi_create_object(env, &keyEventObject);
+            CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create object", false);
+            result = MMI::KeyEventNapi::CreateKeyEvent(env, entry->pullKeyEventPara, keyEventObject);
+            CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create key event object", false);
+            // 0 means the first param of callback.
+            args[0] = keyEventObject;
+            return true;
+        };
+        bool isConsumed = false;
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
+        entry->isDone->SetValue(isConsumed);
+        FinishAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
+    };
+    handler_->PostTask(task, type);
     bool isConsumed = isDone->GetValue();
     IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
     return isConsumed;
@@ -346,46 +343,43 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
     KeyEventPara para{ keyCode, keyStatus, false };
     std::string type = (keyStatus == ARGC_TWO ? "keyDown" : "keyUp");
     auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-    uv_work_t *work = GetUVwork(type, [&para, isDone](UvEntry &entry) {
+    auto entry = GetEntry(type, [&para, isDone](UvEntry &entry) {
         entry.keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
         entry.isDone = isDone;
     });
-    if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv work");
+    if (entry == nullptr) {
+        return false;
+    }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
         return false;
     }
     IMSA_HILOGI("run in");
     StartAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
-    uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            InputMethodSyncTrace tracer("OnkeyEvent UV_QUEUE_WORK");
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                InputMethodSyncTrace tracer("Create parameter");
-                if (argc == 0) {
-                    return false;
-                }
-                napi_value jsObject =
-                    GetResultOnKeyEvent(env, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
-                if (jsObject == nullptr) {
-                    IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                args[0] = jsObject;
-                return true;
-            };
-            bool isConsumed = false;
-            // 1 means callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
-            entry->isDone->SetValue(isConsumed);
-            FinishAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
-        },
-        uv_qos_user_initiated);
+    auto task = [entry]() {
+        InputMethodSyncTrace tracer("OnkeyEvent UV_QUEUE_WORK");
+        auto getKeyEventProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            InputMethodSyncTrace tracer("Create parameter");
+            if (argc == 0) {
+                return false;
+            }
+            napi_value jsObject = GetResultOnKeyEvent(env, entry->keyEventPara.keyCode, entry->keyEventPara.keyStatus);
+            if (jsObject == nullptr) {
+                IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = jsObject;
+            return true;
+        };
+        bool isConsumed = false;
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
+        entry->isDone->SetValue(isConsumed);
+        FinishAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
+    };
+    handler_->PostTask(task, type);
     bool isConsumed = isDone->GetValue();
     IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
     return isConsumed;

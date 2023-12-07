@@ -21,6 +21,7 @@
 #include <mutex>
 #include <thread>
 
+#include "block_queue.h"
 #include "controller_listener.h"
 #include "element_name.h"
 #include "event_handler.h"
@@ -717,8 +718,8 @@ private:
     void SaveTextConfig(const TextConfig &textConfig);
     sptr<OnTextChangedListener> GetTextListener();
     void SetTextListener(sptr<OnTextChangedListener> listener);
-    bool IsEditable();
-    bool IsBound();
+    void SetAgent(sptr<IRemoteObject> &agentObject);
+    std::shared_ptr<IInputMethodAgent> GetAgent();
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
@@ -757,6 +758,17 @@ private:
 
     std::mutex textConfigLock_;
     TextConfig textConfig_;
+
+    struct KeyeventInfo {
+        std::chrono::system_clock::time_point timestamp{};
+        std::shared_ptr<MMI::KeyEvent> keyEvent;
+        bool operator==(const KeyeventInfo &info) const
+        {
+            return (timestamp == info.timestamp && keyEvent == info.keyEvent);
+        }
+    };
+    static constexpr int32_t MAX_WAIT_TIME = 5000;
+    BlockQueue<KeyeventInfo> keyeventQueue_{ MAX_WAIT_TIME };
 };
 } // namespace MiscServices
 } // namespace OHOS

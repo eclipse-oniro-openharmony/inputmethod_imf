@@ -42,6 +42,8 @@ enum TEST_FUNCTION {
   GET_BACKWARD_SYNC,
   CHANGE_FLAG_TO_FIXED,
   CHANGE_FLAG_TO_FLOATING,
+  SETPRIVACYMODE_WITHOUT_PERMISSION,
+  SETPRIVACYMODE_ERROR_PARAM,
 }
 
 export class KeyboardController {
@@ -152,6 +154,12 @@ export class KeyboardController {
           case TEST_FUNCTION.CHANGE_FLAG_TO_FLOATING:
             this.changePanelFlag(inputMethodEngine.PanelFlag.FLG_FLOATING);
             break;
+          case TEST_FUNCTION.SETPRIVACYMODE_WITHOUT_PERMISSION:
+            this.setPrivacyModeWithoutPermission();
+            break;
+          case TEST_FUNCTION.SETPRIVACYMODE_ERROR_PARAM:
+            this.setPrivacyModeErrorParam();
+            break;
           default:
             break;
         }
@@ -236,6 +244,33 @@ export class KeyboardController {
       this.addLog(`failed: ${JSON.stringify(err)}`);
       this.publishCommonEvent('changeFlag', TEST_RESULT_CODE.FAILED);
     }
+  }
+
+  setPrivacyModeWithoutPermission() {
+    try {
+      let isSetPrivacyMode: boolean = true;
+      this.panel.setPrivacyMode(isSetPrivacyMode);
+    } catch (err) {
+      this.addLog(`failed: ${JSON.stringify(err)}`);
+      if (err.code === 201) {
+        this.publishCommonEvent('setPrivacyModeWithoutPermissionResult', TEST_RESULT_CODE.SUCCESS);
+        return;
+      }
+    }
+    this.publishCommonEvent('setPrivacyModeWithoutPermissionResult', TEST_RESULT_CODE.FAILED);
+  }
+
+  setPrivacyModeErrorParam() {
+    try {
+      this.panel.setPrivacyMode(undefined);
+    } catch (err) {
+      this.addLog(`failed: ${JSON.stringify(err)}`);
+      if (err.code === 401) {
+        this.publishCommonEvent('setPrivacyModeErrorParamResult', TEST_RESULT_CODE.SUCCESS);
+        return;
+      }
+    }
+    this.publishCommonEvent('setPrivacyModeErrorParamResult', TEST_RESULT_CODE.FAILED);
   }
 
   private addLog(message): void {
