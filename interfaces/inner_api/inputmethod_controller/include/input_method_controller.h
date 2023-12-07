@@ -718,6 +718,8 @@ private:
     void SaveTextConfig(const TextConfig &textConfig);
     sptr<OnTextChangedListener> GetTextListener();
     void SetTextListener(sptr<OnTextChangedListener> listener);
+    bool IsEditable();
+    bool IsBound();
     void SetAgent(sptr<IRemoteObject> &agentObject);
     std::shared_ptr<IInputMethodAgent> GetAgent();
 
