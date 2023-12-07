@@ -366,7 +366,7 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
 
 /**
  * @tc.name: testRequestShowInput.
- * @tc.desc: InputMethodEditorTest testIMCRequestShowInput with focused but not permitted.
+ * @tc.desc: InputMethodEditorTest testIMCRequestShowInput with focused.
  * @tc.type: FUNC
  */
 HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level0)
@@ -383,7 +383,7 @@ HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level0)
 
 /**
  * @tc.name: testRequestHideInput.
- * @tc.desc: InputMethodEditorTest testRequestHideInput with focused but not permitted.
+ * @tc.desc: InputMethodEditorTest testRequestHideInput with focused.
  * @tc.type: FUNC
  */
 HWTEST_F(InputMethodEditorTest, testRequestHideInput, TestSize.Level0)
@@ -416,7 +416,7 @@ HWTEST_F(InputMethodEditorTest, testRequestInput001, TestSize.Level0)
 
 /**
  * @tc.name: testRequestInput002.
- * @tc.desc: InputMethodEditorTest RequestShowInput/RequestHideInput with permitted but not focused.
+ * @tc.desc: InputMethodEditorTest RequestShowInput/RequestHideInput with permitted and not focused.
  * @tc.type: FUNC
  */
 HWTEST_F(InputMethodEditorTest, testRequestInput002, TestSize.Level0)
