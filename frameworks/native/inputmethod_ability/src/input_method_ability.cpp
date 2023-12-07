@@ -799,7 +799,7 @@ int32_t InputMethodAbility::ShowPanel(
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    if (trigger == Trigger::IME_APP && GetInputDataChannelProxy()) {
+    if (trigger == Trigger::IME_APP && GetInputDataChannelProxy() == nullptr) {
         IMSA_HILOGE("channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
