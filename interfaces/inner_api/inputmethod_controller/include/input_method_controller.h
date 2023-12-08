@@ -761,16 +761,16 @@ private:
     std::mutex textConfigLock_;
     TextConfig textConfig_;
 
-    struct KeyeventInfo {
+    struct KeyEventInfo {
         std::chrono::system_clock::time_point timestamp{};
         std::shared_ptr<MMI::KeyEvent> keyEvent;
-        bool operator==(const KeyeventInfo &info) const
+        bool operator==(const KeyEventInfo &info) const
         {
             return (timestamp == info.timestamp && keyEvent == info.keyEvent);
         }
     };
     static constexpr int32_t MAX_WAIT_TIME = 5000;
-    BlockQueue<KeyeventInfo> keyeventQueue_{ MAX_WAIT_TIME };
+    BlockQueue<KeyEventInfo> keyEventQueue_{ MAX_WAIT_TIME };
 };
 } // namespace MiscServices
 } // namespace OHOS

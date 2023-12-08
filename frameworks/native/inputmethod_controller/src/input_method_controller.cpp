@@ -699,28 +699,29 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 
 bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
+    KeyEventInfo keyEventInfo = { std::chrono::system_clock::now(), keyEvent };
+    keyEventQueue_.Push(keyEventInfo);
     InputMethodSyncTrace tracer("DispatchKeyEvent trace");
+    keyEventQueue_.Wait(keyEventInfo);
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
+        keyEventQueue_.Pop();
         return false;
     }
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
+        keyEventQueue_.Pop();
         return false;
     }
-
-    KeyeventInfo keyeventInfo = { std::chrono::system_clock::now(), keyEvent };
-    keyeventQueue_.Push(keyeventInfo);
-    keyeventQueue_.Wait(keyeventInfo);
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
-        keyeventQueue_.Pop();
+        keyEventQueue_.Pop();
         return false;
     }
     IMSA_HILOGI("start");
     bool ret = agent->DispatchKeyEvent(keyEvent);
-    keyeventQueue_.Pop();
+    keyEventQueue_.Pop();
     return ret;
 }
 
