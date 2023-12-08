@@ -139,6 +139,7 @@ int32_t InputMethodSystemAbility::Init()
     }
     state_ = ServiceRunningState::STATE_RUNNING;
     ImeCfgManager::GetInstance().Init();
+    ImeInfoInquirer::GetInstance().InitConfig();
     std::vector<int32_t> userIds;
     if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
             return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
@@ -955,7 +956,7 @@ void InputMethodSystemAbility::InitMonitors()
         enableImeOn_ = true;
         RegisterEnableImeObserver();
     }
-    if (SecurityModeParser::GetInstance()->Initialize(userId_) == ErrorCode::NO_ERROR) {
+    if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         IMSA_HILOGW("Enter security mode");
         enableSecurityMode_ = true;
         RegisterSecurityModeObserver();
