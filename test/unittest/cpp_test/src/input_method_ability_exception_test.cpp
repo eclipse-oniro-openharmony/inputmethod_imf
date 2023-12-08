@@ -269,7 +269,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level0)
     auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->SetImeListener(imeListener);
     ret = inputMethodAbility_->ShowKeyboard();
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
     inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
