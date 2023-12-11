@@ -583,6 +583,10 @@ void InputMethodController::RestoreAttachInfoInSaDied()
 
 int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 {
+    if (!IsBound()) {
+        IMSA_HILOGD("not bound");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
@@ -612,6 +616,10 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 
 int32_t InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
 {
+    if (!IsBound()) {
+        IMSA_HILOGD("not bound");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
@@ -641,6 +649,10 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
 
 int32_t InputMethodController::OnConfigurationChange(Configuration info)
 {
+    if (!IsBound()) {
+        IMSA_HILOGD("not bound");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_.inputAttribute.enterKeyType = static_cast<uint32_t>(info.GetEnterKeyType());
@@ -760,6 +772,10 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
 
 int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
 {
+    if (!IsBound()) {
+        IMSA_HILOGD("not bound");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;

@@ -127,7 +127,12 @@ napi_value JsKeyboardControllerEngine::ExitCurrentInputType(napi_env env, napi_c
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         int32_t errorCode = InputMethodAbility::GetInstance()->ExitCurrentInputType();
-        errorCode == ErrorCode::NO_ERROR ? ctxt->SetState(napi_ok) : ctxt->SetErrorCode(errorCode);
+        if (errorCode == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(napi_ok);
+        } else {
+            ctxt->SetErrorCode(errorCode);
+        }
     };
     ctxt->SetAction(std::move(input), std::move(output));
     AsyncCall asyncCall(env, info, ctxt, 1);

@@ -237,20 +237,20 @@ HWTEST_F(InputMethodAttachTest, testAttach006, TestSize.Level0)
 }
 
 /**
- * @tc.name: testOnConfigurationChangeWithOutAttach
+ * @tc.name: testOnConfigurationChangeWithoutAttach
  * @tc.desc: test OnConfigurationChange without attach
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeWithOutAttach, TestSize.Level0)
+HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeWithoutAttach, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAttachTest testOnConfigurationChangeWithOutAttach in.");
+    IMSA_HILOGI("InputMethodAttachTest testOnConfigurationChangeWithoutAttach in.");
     Configuration config;
     EnterKeyType keyType = EnterKeyType::NEXT;
     config.SetEnterKeyType(keyType);
     TextInputType textInputType = TextInputType::DATETIME;
     config.SetTextInputType(textInputType);
     auto ret = inputMethodController_->OnConfigurationChange(config);
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
 }
 
 /**

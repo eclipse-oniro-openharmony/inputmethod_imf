@@ -1071,11 +1071,8 @@ bool InputMethodSystemAbility::IsStartInputTypePermitted()
     if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), defaultIme->prop.name)) {
         return true;
     }
-    if (!InputTypeManager::GetInstance().IsCameraImeStarted()) {
-        return identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid())
-               && userSession_->IsBoundToClient();
-    }
-    return false;
+    return identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid())
+           && userSession_->IsBoundToClient();
 }
 } // namespace MiscServices
 } // namespace OHOS

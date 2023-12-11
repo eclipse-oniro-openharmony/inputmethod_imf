@@ -101,10 +101,10 @@ void InputMethodCoreProxy::OnClientInactive(const sptr<IInputDataChannel> &chann
         nullptr, MessageOption::TF_ASYNC);
 }
 
-int32_t InputMethodCoreProxy::OnTextConfigChange(const TextTotalConfig &config)
+int32_t InputMethodCoreProxy::OnTextConfigChange(const InputClientInfo &clientInfo)
 {
     return SendRequest(
-        ON_TEXT_CONFIG_CHANGE, [&config](MessageParcel &data) { return ITypesUtil::Marshal(data, config); });
+        ON_TEXT_CONFIG_CHANGE, [&clientInfo](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo); });
 }
 
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output, MessageOption option)
