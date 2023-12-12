@@ -64,7 +64,7 @@ public:
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
     virtual int32_t OnSecurityChange(int32_t security) = 0 ;
     virtual void OnClientInactive(const sptr<IInputDataChannel> &channel) = 0;
-    virtual int32_t OnTextConfigChange(const TextTotalConfig &config) = 0;
+    virtual int32_t OnTextConfigChange(const InputClientInfo &clientInfo) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

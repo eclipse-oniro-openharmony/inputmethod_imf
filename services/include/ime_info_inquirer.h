@@ -52,6 +52,8 @@ enum class Condition {
 struct ImeConfig {
     std::string systemInputMethodConfigAbility;
     std::string defaultInputMethod;
+    bool enableInputMethodFeature = false;
+    bool enableFullExperienceFeature = false;
 };
 
 class ImeInfoInquirer {
@@ -76,6 +78,9 @@ public:
     int32_t ListInputMethodSubtype(int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);
     int32_t ListCurrentInputMethodSubtype(int32_t userId, std::vector<SubProperty> &subProps);
     int32_t GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userId, bool enableOn);
+    bool IsEnableInputMethod();
+    bool IsEnableSecurityMode();
+    void InitConfig();
 
 private:
     ImeInfoInquirer() = default;

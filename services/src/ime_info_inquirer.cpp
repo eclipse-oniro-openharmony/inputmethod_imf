@@ -42,6 +42,8 @@ constexpr const char *SUBTYPE_PROFILE_METADATA_NAME = "ohos.extension.input_meth
 const std::string SYSTEM_CONFIG = "systemConfig";
 const std::string SYSTEM_INPUT_METHOD_CONFIG_ABILITY = "systemInputMethodConfigAbility";
 const std::string DEFAULT_INPUT_METHOD = "defaultInputMethod";
+const std::string ENABLE_INPUT_METHOD_FEATURE = "enableInputMethodFeature";
+const std::string ENABLE_FULL_EXPERIENCE_FEATURE = "enableFullExperienceFeature";
 constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
 constexpr uint32_t MAX_SUBTYPE_NUM = 256;
 constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
@@ -58,12 +60,35 @@ void from_json(const nlohmann::json &jsonConfigs, ImeConfig &config)
     if (jsonConfigs.find(DEFAULT_INPUT_METHOD) != jsonConfigs.end() && jsonConfigs[DEFAULT_INPUT_METHOD].is_string()) {
         jsonConfigs.at(DEFAULT_INPUT_METHOD).get_to(config.defaultInputMethod);
     }
+    if (jsonConfigs.find(ENABLE_INPUT_METHOD_FEATURE) != jsonConfigs.end()
+        && jsonConfigs[ENABLE_INPUT_METHOD_FEATURE].is_boolean()) {
+        jsonConfigs.at(ENABLE_INPUT_METHOD_FEATURE).get_to(config.enableInputMethodFeature);
+    }
+    if (jsonConfigs.find(ENABLE_FULL_EXPERIENCE_FEATURE) != jsonConfigs.end()
+        && jsonConfigs[ENABLE_FULL_EXPERIENCE_FEATURE].is_boolean()) {
+        jsonConfigs.at(ENABLE_FULL_EXPERIENCE_FEATURE).get_to(config.enableFullExperienceFeature);
+    }
 }
 
 ImeInfoInquirer &ImeInfoInquirer::GetInstance()
 {
     static ImeInfoInquirer instance;
     return instance;
+}
+
+void ImeInfoInquirer::InitConfig()
+{
+    ImeConfigParse::ParseFromCustomSystem(SYSTEM_CONFIG, imeConfig_);
+}
+
+bool ImeInfoInquirer::IsEnableInputMethod()
+{
+    return imeConfig_.enableInputMethodFeature;
+}
+
+bool ImeInfoInquirer::IsEnableSecurityMode()
+{
+    return imeConfig_.enableFullExperienceFeature;
 }
 
 bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
@@ -648,10 +673,6 @@ std::string ImeInfoInquirer::GetImeToBeStarted(int32_t userId)
 int32_t ImeInfoInquirer::GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig)
 {
     IMSA_HILOGD("userId: %{public}d", userId);
-    if (!ImeConfigParse::ParseFromCustomSystem(SYSTEM_CONFIG, imeConfig_)) {
-        IMSA_HILOGW("inputMethodConfig parse failed, systemInputMethodConfigAbility is null");
-        return ErrorCode::NO_ERROR;
-    }
     if (imeConfig_.systemInputMethodConfigAbility.empty()) {
         IMSA_HILOGW("inputMethodConfig systemInputMethodConfigAbility is null");
         return ErrorCode::NO_ERROR;
@@ -720,7 +741,7 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 
 std::string ImeInfoInquirer::GetDefaultIme()
 {
-    if (ImeConfigParse::ParseFromCustomSystem(SYSTEM_CONFIG, imeConfig_) && !imeConfig_.defaultInputMethod.empty()) {
+    if (!imeConfig_.defaultInputMethod.empty()) {
         IMSA_HILOGI("defaultInputMethod: %{public}s", imeConfig_.defaultInputMethod.c_str());
         return imeConfig_.defaultInputMethod;
     }

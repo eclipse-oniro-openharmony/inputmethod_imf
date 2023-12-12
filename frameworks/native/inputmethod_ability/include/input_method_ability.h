@@ -56,6 +56,7 @@ public:
     int32_t DeleteBackward(int32_t length);
     int32_t HideKeyboardSelf();
     int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient);
+    int32_t StopInput(const sptr<IRemoteObject> &channelObject);
     int32_t ShowKeyboard();
     int32_t HideKeyboard();
     int32_t SendExtendAction(int32_t action);
@@ -83,7 +84,7 @@ public:
     int32_t GetSecurityMode(int32_t &security);
     int32_t OnSecurityChange(int32_t security);
     void OnClientInactive(const sptr<IRemoteObject> &channel);
-    void OnTextConfigChange(const TextTotalConfig &textConfig);
+    int32_t OnTextConfigChange(const InputClientInfo &clientInfo);
 
 private:
     std::thread workThreadHandler;
@@ -121,6 +122,7 @@ private:
     void OnInitInputControlChannel(Message *msg);
     void OnSetSubtype(Message *msg);
     void NotifyAllTextConfig();
+    void InvokeTextChangeCallback(const TextTotalConfig &textConfig);
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
     void OnConfigurationChange(Message *msg);
@@ -130,9 +132,6 @@ private:
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
-
-    int32_t StopInput(const sptr<IRemoteObject> &channelObject);
-    void OnStopInput(Message *msg);
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isBound_{ false };
