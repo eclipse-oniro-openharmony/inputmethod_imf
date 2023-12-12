@@ -70,7 +70,7 @@ bool ImCommonEventManager::SubscribeEvent(const std::string &event)
     }
     sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([subscriber]() {
         bool subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
-        IMSA_HILOGI("ImCommonEventManager::OnAddSystemAbility subscribeResult = %{public}d", subscribeResult);
+        IMSA_HILOGI("SubscribeCommonEvent ret = %{public}d", subscribeResult);
     });
     if (listener == nullptr) {
         IMSA_HILOGE("SubscribeEvent listener is nullptr");
@@ -110,7 +110,7 @@ bool ImCommonEventManager::SubscribeKeyboardEvent(KeyHandle handle)
     return true;
 }
 
-bool ImCommonEventManager::SubscribeWindowManagerService(FocusHandle handle, StartInputHandler inputHandler)
+bool ImCommonEventManager::SubscribeWindowManagerService(FocusHandle handle, Handler inputHandler)
 {
     IMSA_HILOGI("run in");
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -135,6 +135,30 @@ bool ImCommonEventManager::SubscribeWindowManagerService(FocusHandle handle, Sta
         return false;
     }
     focusChangeEventListener_ = listener;
+    return true;
+}
+
+bool ImCommonEventManager::SubscribeAccountManagerService(Handler handler)
+{
+    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (abilityManager == nullptr) {
+        IMSA_HILOGE("abilityManager is nullptr");
+        return false;
+    }
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
+        if (handler != nullptr) {
+            handler();
+        }
+    });
+    if (listener == nullptr) {
+        IMSA_HILOGE("failed to create listener");
+        return false;
+    }
+    int32_t ret = abilityManager->SubscribeSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, listener);
+    if (ret != ERR_OK) {
+        IMSA_HILOGE("subscribe system ability failed, ret = %{public}d", ret);
+        return false;
+    }
     return true;
 }
 
@@ -216,9 +240,9 @@ ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChan
 void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility(
     int32_t systemAbilityId, const std::string &deviceId)
 {
+    IMSA_HILOGD("systemAbilityId: %{public}d", systemAbilityId);
     if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID
-        && systemAbilityId != WINDOW_MANAGER_SERVICE_ID) {
-        IMSA_HILOGD("invalid systemAbilityId %{public}d", systemAbilityId);
+        && systemAbilityId != WINDOW_MANAGER_SERVICE_ID && systemAbilityId != SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
         return;
     }
     if (func_ != nullptr) {

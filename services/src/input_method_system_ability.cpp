@@ -140,16 +140,23 @@ int32_t InputMethodSystemAbility::Init()
     state_ = ServiceRunningState::STATE_RUNNING;
     ImeCfgManager::GetInstance().Init();
     ImeInfoInquirer::GetInstance().InitConfig();
-    std::vector<int32_t> userIds;
-    if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
-            return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
-        })) {
-        userId_ = userIds[0];
-        InputMethodSysEvent::GetInstance().SetUserId(userId_);
-        userSession_->UpdateCurrentUserId(userId_);
-    }
     InitMonitors();
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodSystemAbility::SetCurrentUserId()
+{
+    std::vector<int32_t> userIds;
+    if (!BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
+            return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
+        })) {
+        IMSA_HILOGE("get userId failed");
+        return;
+    }
+    IMSA_HILOGD("get userId success :%{public}d", userIds[0]);
+    userId_ = userIds[0];
+    InputMethodSysEvent::GetInstance().SetUserId(userId_);
+    userSession_->UpdateCurrentUserId(userId_);
 }
 
 void InputMethodSystemAbility::OnStop()
@@ -181,9 +188,10 @@ void InputMethodSystemAbility::Initialize()
     IMSA_HILOGI("InputMethodSystemAbility::Initialize");
     // init work thread to handle the messages
     workThreadHandler = std::thread([this] { WorkThread(); });
-    userSession_ = std::make_shared<PerUserSession>(MAIN_USER_ID);
     identityChecker_ = std::make_shared<IdentityCheckerImpl>();
     userId_ = MAIN_USER_ID;
+    userSession_ = std::make_shared<PerUserSession>(userId_);
+    InputMethodSysEvent::GetInstance().SetUserId(userId_);
 }
 
 void InputMethodSystemAbility::StartUserIdListener()
@@ -945,8 +953,10 @@ int32_t InputMethodSystemAbility::SwitchType()
 
 void InputMethodSystemAbility::InitMonitors()
 {
+    int32_t ret = InitAccountMonitor();
+    IMSA_HILOGI("init account monitor, ret: %{public}d", ret);
     StartUserIdListener();
-    int32_t ret = InitKeyEventMonitor();
+    ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor, ret: %{public}d", ret);
     ret = InitFocusChangeMonitor();
     IMSA_HILOGI("init focus change monitor, ret: %{public}d", ret);
@@ -963,6 +973,12 @@ void InputMethodSystemAbility::InitMonitors()
     }
 }
 
+int32_t InputMethodSystemAbility::InitAccountMonitor()
+{
+    IMSA_HILOGI("InputMethodSystemAbility::InitAccountMonitor");
+    return ImCommonEventManager::GetInstance()->SubscribeAccountManagerService([this]() { SetCurrentUserId(); });
+}
+
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor");
@@ -977,7 +993,10 @@ bool InputMethodSystemAbility::InitFocusChangeMonitor()
         [this](bool isOnFocused, int32_t pid, int32_t uid) {
             return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
         },
-        [this]() { StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_)); });
+        [this]() {
+            SetCurrentUserId();
+            StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_));
+        });
 }
 
 void InputMethodSystemAbility::InitSystemLanguageMonitor()

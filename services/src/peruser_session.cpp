@@ -535,7 +535,7 @@ void PerUserSession::StopClientInput(const sptr<IInputClient> &currentClient)
         return;
     }
     auto ret = currentClient->OnInputStop();
-    IMSA_HILOGE("stop client input, ret: %{public}d", ret);
+    IMSA_HILOGI("stop client input, ret: %{public}d", ret);
 }
 
 void PerUserSession::StopImeInput(ImeType currentType, const sptr<IInputDataChannel> &currentChannel)
@@ -545,7 +545,7 @@ void PerUserSession::StopImeInput(ImeType currentType, const sptr<IInputDataChan
         return;
     }
     auto ret = data->core->StopInput(currentChannel);
-    IMSA_HILOGE("stop ime input, ret: %{public}d", ret);
+    IMSA_HILOGI("stop ime input, ret: %{public}d", ret);
 }
 
 void PerUserSession::OnSecurityChange(int32_t &security)
