@@ -139,7 +139,7 @@ void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
                 break;
             }
             case UpdateFlag::TEXT_CONFIG: {
-                info->config = std::get<InputClientInfo>(updateInfo.second);
+                info->config = std::get<TextTotalConfig>(updateInfo.second);
             }
             default:
                 break;
