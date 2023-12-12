@@ -133,7 +133,7 @@ private:
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     std::shared_ptr<InputClientInfo> GetClientInfo(pid_t pid);
     void UpdateClientInfo(const sptr<IRemoteObject> &client,
-        const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, InputClientInfo>>
+        const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>>
             &updateInfos);
 
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);

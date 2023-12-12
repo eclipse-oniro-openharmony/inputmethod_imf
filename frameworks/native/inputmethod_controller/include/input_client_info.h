@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-enum class UpdateFlag : uint32_t { EVENTFLAG = 0, ISSHOWKEYBOARD, BINDIMETYPE, STATE, CLIENT_INFO };
+enum class UpdateFlag : uint32_t { EVENTFLAG = 0, ISSHOWKEYBOARD, BINDIMETYPE, STATE, TEXT_CONFIG };
 enum class ImeType : int32_t { IME = 0, PROXY_IME, NONE };
 enum class ClientState : uint32_t { INACTIVE = 0, ACTIVE };
 struct InputClientInfo {

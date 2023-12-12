@@ -109,7 +109,7 @@ void PerUserSession::RemoveClientInfo(const sptr<IRemoteObject> &client, bool is
 }
 
 void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
-    const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, InputClientInfo>> &updateInfos)
+    const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>> &updateInfos)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr.");
@@ -138,7 +138,7 @@ void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
                 info->state = std::get<ClientState>(updateInfo.second);
                 break;
             }
-            case UpdateFlag::CLIENT_INFO: {
+            case UpdateFlag::TEXT_CONFIG: {
                 info->config = std::get<InputClientInfo>(updateInfo.second);
             }
             default:
