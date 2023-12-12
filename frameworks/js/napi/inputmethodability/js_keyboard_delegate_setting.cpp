@@ -306,7 +306,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
     }
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
+        IMSA_HILOGE("eventHandler is nullptr");
         return false;
     }
     IMSA_HILOGI("run in");
@@ -332,7 +332,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
         entry->isDone->SetValue(isConsumed);
         FinishAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
     };
-    handler_->PostTask(task, type);
+    eventHandler->PostTask(task, type);
     bool isConsumed = isDone->GetValue();
     IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
     return isConsumed;
@@ -352,7 +352,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
     }
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
-        IMSA_HILOGE("eventHandler is nullptr!");
+        IMSA_HILOGE("eventHandler is nullptr");
         return false;
     }
     IMSA_HILOGI("run in");
@@ -379,7 +379,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
         entry->isDone->SetValue(isConsumed);
         FinishAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
     };
-    handler_->PostTask(task, type);
+    eventHandler->PostTask(task, type);
     bool isConsumed = isDone->GetValue();
     IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
     return isConsumed;
