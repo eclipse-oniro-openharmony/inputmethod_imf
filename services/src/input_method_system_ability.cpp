@@ -26,8 +26,8 @@
 #include "im_common_event_manager.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
-#include "input_type_manager.h"
 #include "input_method_utils.h"
+#include "input_type_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
@@ -38,6 +38,7 @@
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "system_language_observer.h"
+
 
 namespace OHOS {
 namespace MiscServices {
@@ -489,9 +490,8 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
     }
     switchInfo.timestamp = std::chrono::system_clock::now();
     switchQueue_.Push(switchInfo);
-    return InputTypeManager::GetInstance().IsInputType({ bundleName, subName })
-               ? OnStartInputType(switchInfo, true)
-               : OnSwitchInputMethod(switchInfo, true);
+    return InputTypeManager::GetInstance().IsInputType({ bundleName, subName }) ? OnStartInputType(switchInfo, true)
+                                                                                : OnSwitchInputMethod(switchInfo, true);
 }
 
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission)
@@ -951,8 +951,9 @@ void InputMethodSystemAbility::InitMonitors()
     ret = InitFocusChangeMonitor();
     IMSA_HILOGI("init focus change monitor, ret: %{public}d", ret);
     InitSystemLanguageMonitor();
-    if (EnableImeDataParser::GetInstance()->Initialize(userId_) == ErrorCode::NO_ERROR) {
+    if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
         IMSA_HILOGW("Enter enable mode");
+        EnableImeDataParser::GetInstance()->Initialize(userId_);
         enableImeOn_ = true;
         RegisterEnableImeObserver();
     }
