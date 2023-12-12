@@ -39,7 +39,6 @@
 #include "system_ability_definition.h"
 #include "system_language_observer.h"
 
-
 namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
@@ -490,8 +489,9 @@ int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleNam
     }
     switchInfo.timestamp = std::chrono::system_clock::now();
     switchQueue_.Push(switchInfo);
-    return InputTypeManager::GetInstance().IsInputType({ bundleName, subName }) ? OnStartInputType(switchInfo, true)
-                                                                                : OnSwitchInputMethod(switchInfo, true);
+    return InputTypeManager::GetInstance().IsInputType({ bundleName, subName })
+               ? OnStartInputType(switchInfo, true)
+               : OnSwitchInputMethod(switchInfo, true);
 }
 
 int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission)
