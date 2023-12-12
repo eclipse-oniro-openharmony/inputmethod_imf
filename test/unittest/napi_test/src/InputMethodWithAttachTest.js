@@ -33,7 +33,9 @@ describe('InputMethodWithAttachTest', function () {
     GET_FORWARD_SYNC: 8,
     GET_BACKWARD_SYNC: 9,
     CHANGE_FLAG_TO_FIXED: 10,
-    CHANGE_FLAG_TO_FLOATING: 11
+    CHANGE_FLAG_TO_FLOATING: 11,
+    SETPRIVACYMODE_WITHOUT_PERMISSION: 12,
+    SETPRIVACYMODE_ERROR_PARAM: 13
   }
 
   beforeAll(async function (done) {
@@ -901,4 +903,44 @@ describe('InputMethodWithAttachTest', function () {
       done();
     }
   });
+
+  /*
+   * @tc.number  inputmethod_test_setPrivacyModeWithoutPermission_001
+   * @tc.name    Test Indicates set panel privacy mode without permission.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+  it('inputmethod_test_setPrivacyModeWithoutPermission_001', 0, async function (done) {
+    console.info('************* inputmethod_test_setPrivacyModeWithoutPermission_001 Test start*************');
+    try {
+      let subscribeInfo = {
+        events: ['setPrivacyModeWithoutPermissionResult']
+      };
+      subscribe(subscribeInfo, TEST_FUNCTION.SETPRIVACYMODE_WITHOUT_PERMISSION, done);
+    } catch(error) {
+      console.info(`inputmethod_test_setPrivacyModeWithoutPermission_001 result: ${JSON.stringify(error)}`);
+      expect().assertFail();
+      done();
+    }
+  });
+
+  /*
+   * @tc.number  inputmethod_test_setPrivacyModeErrorParam_001
+   * @tc.name    Test Indicates set panel privacy mode with undefined param.
+   * @tc.desc    Function test
+   * @tc.level   2
+   */
+    it('inputmethod_test_setPrivacyModeErrorParam_001', 0, async function (done) {
+      console.info('************* inputmethod_test_setPrivacyModeErrorParam_001 Test start*************');
+      try {
+        let subscribeInfo = {
+          events: ['setPrivacyModeErrorParamResult']
+        };
+        subscribe(subscribeInfo, TEST_FUNCTION.SETPRIVACYMODE_ERROR_PARAM, done);
+      } catch(error) {
+        console.info(`inputmethod_test_setPrivacyModeErrorParam_001 result: ${JSON.stringify(error)}`);
+        expect().assertFail();
+        done();
+      }
+    });
 });

@@ -603,14 +603,14 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
         }
         cursorInfo_ = cursorInfo;
     }
-    std::lock_guard<std::mutex> lock(agentLock_);
-    if (agent_ == nullptr) {
+    auto agent = GetAgent();
+    if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     IMSA_HILOGI("left: %{public}d, top: %{public}d, height: %{public}d", static_cast<int32_t>(cursorInfo.left),
         static_cast<int32_t>(cursorInfo.top), static_cast<int32_t>(cursorInfo.height));
-    agent_->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
+    agent->OnCursorUpdate(cursorInfo.left, cursorInfo.top, cursorInfo.height);
     return ErrorCode::NO_ERROR;
 }
 
@@ -637,13 +637,13 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
     selectOldEnd_ = selectNewEnd_;
     selectNewBegin_ = start;
     selectNewEnd_ = end;
-    std::lock_guard<std::mutex> lock(agentLock_);
-    if (agent_ == nullptr) {
+    auto agent = GetAgent();
+    if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     IMSA_HILOGI("IMC size: %{public}zu, range: %{public}d/%{public}d", text.size(), start, end);
-    agent_->OnSelectionChange(textString_, selectOldBegin_, selectOldEnd_, selectNewBegin_, selectNewEnd_);
+    agent->OnSelectionChange(textString_, selectOldBegin_, selectOldEnd_, selectNewBegin_, selectNewEnd_);
     return ErrorCode::NO_ERROR;
 }
 
@@ -664,12 +664,12 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     }
     IMSA_HILOGI("IMC enterKeyType: %{public}d, textInputType: %{public}d",
         static_cast<uint32_t>(info.GetEnterKeyType()), static_cast<uint32_t>(info.GetTextInputType()));
-    std::lock_guard<std::mutex> agentLock(agentLock_);
-    if (agent_ == nullptr) {
+    auto agent = GetAgent();
+    if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    agent_->OnConfigurationChange(info);
+    agent->OnConfigurationChange(info);
     return ErrorCode::NO_ERROR;
 }
 
@@ -711,22 +711,30 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 
 bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
+    KeyEventInfo keyEventInfo = { std::chrono::system_clock::now(), keyEvent };
+    keyEventQueue_.Push(keyEventInfo);
     InputMethodSyncTrace tracer("DispatchKeyEvent trace");
+    keyEventQueue_.Wait(keyEventInfo);
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
+        keyEventQueue_.Pop();
         return false;
     }
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
+        keyEventQueue_.Pop();
         return false;
     }
-    std::lock_guard<std::mutex> lock(agentLock_);
-    if (agent_ == nullptr) {
+    auto agent = GetAgent();
+    if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
+        keyEventQueue_.Pop();
         return false;
     }
     IMSA_HILOGI("start");
-    return agent_->DispatchKeyEvent(keyEvent);
+    bool ret = agent->DispatchKeyEvent(keyEvent);
+    keyEventQueue_.Pop();
+    return ret;
 }
 
 int32_t InputMethodController::GetEnterKeyType(int32_t &keyType)
@@ -784,13 +792,13 @@ int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_.windowId = windowId;
     }
-    std::lock_guard<std::mutex> lock(agentLock_);
-    if (agent_ == nullptr) {
+    auto agent = GetAgent();
+    if (agent == nullptr) {
         IMSA_HILOGE("agent_ is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     IMSA_HILOGI("windowId = %{public}d", windowId);
-    agent_->SetCallingWindow(windowId);
+    agent->SetCallingWindow(windowId);
     return ErrorCode::NO_ERROR;
 }
 
@@ -889,21 +897,11 @@ void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
     IMSA_HILOGI("IMC");
     isBound_.store(true);
     isEditable_.store(true);
-    std::lock_guard<std::mutex> lk(agentLock_);
     if (agentObject == nullptr) {
         IMSA_HILOGE("agentObject is nullptr");
         return;
     }
-    if (agentObject_ != nullptr && agentObject_.GetRefPtr() == agentObject.GetRefPtr()) {
-        IMSA_HILOGD("agent has already been set");
-        return;
-    }
-    std::shared_ptr<IInputMethodAgent> agent = std::make_shared<InputMethodAgentProxy>(agentObject);
-    if (agent == nullptr) {
-        IMSA_HILOGE("failed to new agent proxy");
-    }
-    agentObject_ = agentObject;
-    agent_ = agent;
+    SetAgent(agentObject);
 }
 
 void InputMethodController::OnInputStop()
@@ -1154,6 +1152,23 @@ int32_t InputMethodController::IsPanelShown(const PanelInfo &panelInfo, bool &is
     IMSA_HILOGI("type: %{public}d, flag: %{public}d", static_cast<int32_t>(panelInfo.panelType),
         static_cast<int32_t>(panelInfo.panelFlag));
     return proxy->IsPanelShown(panelInfo, isShown);
+}
+
+void InputMethodController::SetAgent(sptr<IRemoteObject> &agentObject)
+{
+    std::lock_guard<std::mutex> autoLock(agentLock_);
+    if (agent_ != nullptr && agentObject_.GetRefPtr() == agentObject.GetRefPtr()) {
+        IMSA_HILOGD("agent has already been set");
+        return;
+    }
+    agent_ = std::make_shared<InputMethodAgentProxy>(agentObject);
+    agentObject_ = agentObject;
+}
+
+std::shared_ptr<IInputMethodAgent> InputMethodController::GetAgent()
+{
+    std::lock_guard<std::mutex> autoLock(agentLock_);
+    return agent_;
 }
 } // namespace MiscServices
 } // namespace OHOS
