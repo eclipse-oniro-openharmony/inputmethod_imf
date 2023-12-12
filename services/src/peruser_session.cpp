@@ -58,7 +58,7 @@ int PerUserSession::AddClientInfo(
     auto cacheInfo = GetClientInfo(inputClient);
     if (cacheInfo != nullptr) {
         IMSA_HILOGD("info is existed");
-        UpdateClientInfo(inputClient, { { UpdateFlag::CLIENT_INFO, clientInfo.config } });
+        UpdateClientInfo(inputClient, { { UpdateFlag::TEXT_CONFIG, clientInfo.config } });
         if (event == START_LISTENING) {
             UpdateClientInfo(inputClient, { { UpdateFlag::EVENTFLAG, clientInfo.eventFlag } });
         }
