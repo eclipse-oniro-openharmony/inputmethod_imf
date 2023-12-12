@@ -309,6 +309,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
         IMSA_HILOGE("eventHandler is nullptr");
         return false;
     }
+
     IMSA_HILOGI("run in");
     StartAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
     auto task = [entry]() {
@@ -355,6 +356,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
         IMSA_HILOGE("eventHandler is nullptr");
         return false;
     }
+
     IMSA_HILOGI("run in");
     StartAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
     auto task = [entry]() {
