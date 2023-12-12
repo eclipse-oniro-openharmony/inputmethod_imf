@@ -250,6 +250,7 @@ export class KeyboardController {
     try {
       let isSetPrivacyMode: boolean = true;
       this.panel.setPrivacyMode(isSetPrivacyMode);
+      this.publishCommonEvent('setPrivacyModeWithoutPermissionResult', TEST_RESULT_CODE.FAILED);
     } catch (err) {
       this.addLog(`failed: ${JSON.stringify(err)}`);
       if (err.code === 201) {
@@ -257,12 +258,12 @@ export class KeyboardController {
         return;
       }
     }
-    this.publishCommonEvent('setPrivacyModeWithoutPermissionResult', TEST_RESULT_CODE.FAILED);
   }
 
   setPrivacyModeErrorParam() {
     try {
       this.panel.setPrivacyMode(undefined);
+      this.publishCommonEvent('setPrivacyModeErrorParamResult', TEST_RESULT_CODE.FAILED);
     } catch (err) {
       this.addLog(`failed: ${JSON.stringify(err)}`);
       if (err.code === 401) {
@@ -270,7 +271,6 @@ export class KeyboardController {
         return;
       }
     }
-    this.publishCommonEvent('setPrivacyModeErrorParamResult', TEST_RESULT_CODE.FAILED);
   }
 
   private addLog(message): void {
