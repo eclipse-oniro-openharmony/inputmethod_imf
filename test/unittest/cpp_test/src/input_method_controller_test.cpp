@@ -112,6 +112,7 @@ public:
     static void TriggerCursorUpdateCallback(CursorInfo &info);
     static void TriggerSelectionChangeCallback(std::u16string &text, int start, int end);
     static void CheckProxyObject();
+    static void CheckTextConfig(const TextConfig &config);
     static sptr<InputMethodController> inputMethodController_;
     static sptr<InputMethodAbility> inputMethodAbility_;
     static std::shared_ptr<MMI::KeyEvent> keyEvent_;
@@ -419,15 +420,27 @@ void InputMethodControllerTest::TriggerSelectionChangeCallback(std::u16string &t
     }
 }
 
+void InputMethodControllerTest::CheckTextConfig(const TextConfig &config)
+{
+    EXPECT_EQ(imeListener_->windowId_, config.windowId);
+    EXPECT_EQ(cursorInfo_.left, config.cursorInfo.left);
+    EXPECT_EQ(cursorInfo_.top, config.cursorInfo.top);
+    EXPECT_EQ(cursorInfo_.height, config.cursorInfo.height);
+    EXPECT_EQ(newBegin_, config.range.start);
+    EXPECT_EQ(newEnd_, config.range.end);
+    EXPECT_EQ(inputAttribute_.inputPattern, config.inputAttribute.inputPattern);
+    EXPECT_EQ(inputAttribute_.enterKeyType, config.inputAttribute.enterKeyType);
+}
+
 /**
- * @tc.name: testIMCAttach
+ * @tc.name: testIMCAttach001
  * @tc.desc: IMC Attach.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodControllerTest, testIMCAttach, TestSize.Level0)
+HWTEST_F(InputMethodControllerTest, testIMCAttach001, TestSize.Level0)
 {
-    IMSA_HILOGD("IMC Attach Test START");
+    IMSA_HILOGD("IMC testIMCAttach001 Test START");
     imeListener_->isInputStart_ = false;
     TextListener::ResetParam();
     inputMethodController_->Attach(textListener_, false);
@@ -435,6 +448,39 @@ HWTEST_F(InputMethodControllerTest, testIMCAttach, TestSize.Level0)
     inputMethodController_->Attach(textListener_, true);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
     EXPECT_TRUE(imeListener_->isInputStart_ && imeListener_->keyboardState_);
+}
+
+/**
+ * @tc.name: testIMCAttach002
+ * @tc.desc: IMC Attach.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testIMCAttach002, TestSize.Level0)
+{
+    IMSA_HILOGD("IMC testIMCAttach002 Test START");
+    TextListener::ResetParam();
+    CursorInfo cursorInfo = { 1, 1, 1, 1 };
+    SelectionRange selectionRange = { 1, 2 };
+    InputAttribute attribute = { 1, 1 };
+    uint32_t windowId = 10;
+    TextConfig textConfig = {
+        .inputAttribute = attribute, .cursorInfo = cursorInfo, .range = selectionRange, .windowId = windowId
+    };
+
+    inputMethodController_->Attach(textListener_, true, textConfig);
+    InputMethodControllerTest::CheckTextConfig(textConfig);
+
+    TextListener::ResetParam();
+    cursorInfo = { 2, 2, 2, 2 };
+    selectionRange = { 3, 4 };
+    attribute = { 2, 2 };
+    windowId = 11;
+    textConfig = {
+        .inputAttribute = attribute, .cursorInfo = cursorInfo, .range = selectionRange, .windowId = windowId
+    };
+    inputMethodController_->Attach(textListener_, true, textConfig);
+    InputMethodControllerTest::CheckTextConfig(textConfig);
 }
 
 /**

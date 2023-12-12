@@ -58,6 +58,7 @@ int PerUserSession::AddClientInfo(
     auto cacheInfo = GetClientInfo(inputClient);
     if (cacheInfo != nullptr) {
         IMSA_HILOGD("info is existed");
+        UpdateClientInfo(inputClient, { { UpdateFlag::TEXT_CONFIG, clientInfo.config } });
         if (event == START_LISTENING) {
             UpdateClientInfo(inputClient, { { UpdateFlag::EVENTFLAG, clientInfo.eventFlag } });
         }
@@ -108,7 +109,8 @@ void PerUserSession::RemoveClientInfo(const sptr<IRemoteObject> &client, bool is
 }
 
 void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
-    const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState>> &updateInfos)
+    const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>>
+        &updateInfos)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr.");
@@ -136,6 +138,9 @@ void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
             case UpdateFlag::STATE: {
                 info->state = std::get<ClientState>(updateInfo.second);
                 break;
+            }
+            case UpdateFlag::TEXT_CONFIG: {
+                info->config = std::get<TextTotalConfig>(updateInfo.second);
             }
             default:
                 break;
