@@ -32,7 +32,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-using StartInputHandler = std::function<void()>;
+using Handler = std::function<void()>;
 class ImCommonEventManager : public RefBase {
 public:
     ImCommonEventManager();
@@ -40,7 +40,8 @@ public:
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvent(const std::string &event);
     bool SubscribeKeyboardEvent(KeyHandle handle);
-    bool SubscribeWindowManagerService(FocusHandle handle, StartInputHandler inputHandler);
+    bool SubscribeWindowManagerService(FocusHandle handle, Handler inputHandler);
+    bool SubscribeAccountManagerService(Handler handle);
 
     bool UnsubscribeEvent();
     class EventSubscriber : public EventFwk::CommonEventSubscriber {
