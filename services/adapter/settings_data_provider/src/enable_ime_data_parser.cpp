@@ -52,9 +52,11 @@ int32_t EnableImeDataParser::Initialize(const int32_t userId)
     enableList_.insert({ std::string(ENABLE_IME), {} });
     enableList_.insert({ std::string(ENABLE_KEYBOARD), {} });
 
-    if (GetEnableData(ENABLE_IME, enableList_[std::string(ENABLE_IME)], userId) != ErrorCode::NO_ERROR
-        || GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], userId) != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("get enable list failed.");
+    if (GetEnableData(ENABLE_IME, enableList_[std::string(ENABLE_IME)], userId) != ErrorCode::NO_ERROR) {
+        IMSA_HILOGW("get enable ime list failed");
+    }
+    if (GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], userId) != ErrorCode::NO_ERROR) {
+        IMSA_HILOGW("get enable keyboard list failed");
     }
     GetDefaultIme();
     return ErrorCode::NO_ERROR;
