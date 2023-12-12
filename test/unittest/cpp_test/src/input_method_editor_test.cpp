@@ -169,10 +169,10 @@ HWTEST_F(InputMethodEditorTest, testIMCAttachUnfocused, TestSize.Level0)
 
 /**
  * @tc.name: test Unfocused
- * @tc.desc: InputMethodEditorTest ShowTextInput Unfocused
+ * @tc.desc: InputMethodEditorTest Unfocused
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testShowTextInputUnfocused, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testUnfocused, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest Unfocused Test START");
     int32_t ret = InputMethodEditorTest::inputMethodController_->ShowTextInput();
@@ -191,6 +191,14 @@ HWTEST_F(InputMethodEditorTest, testShowTextInputUnfocused, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    ret = InputMethodEditorTest::inputMethodController_->OnCursorUpdate({});
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    ret = InputMethodEditorTest::inputMethodController_->OnSelectionChange(Str8ToStr16(""), 0, 0);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    ret = InputMethodEditorTest::inputMethodController_->SetCallingWindow(1);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    ret = InputMethodEditorTest::inputMethodController_->OnConfigurationChange({});
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
 }
 
 /**
@@ -306,6 +314,14 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    ret = InputMethodEditorTest::inputMethodController_->OnCursorUpdate({});
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    ret = InputMethodEditorTest::inputMethodController_->OnSelectionChange(Str8ToStr16(""), 0, 0);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    ret = InputMethodEditorTest::inputMethodController_->SetCallingWindow(1);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    ret = InputMethodEditorTest::inputMethodController_->OnConfigurationChange({});
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     TddUtil::GetUnfocused();
 }
 
@@ -338,6 +354,14 @@ HWTEST_F(InputMethodEditorTest, testIMCDeactivateClient, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = inputMethodController_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    ret = inputMethodController_->OnCursorUpdate({});
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    ret = inputMethodController_->OnSelectionChange(Str8ToStr16(""), 0, 0);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    ret = inputMethodController_->SetCallingWindow(1);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    ret = inputMethodController_->OnConfigurationChange({});
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
 
     ret = inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     ret = inputMethodController_->ShowTextInput();
@@ -396,6 +420,14 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    ret = InputMethodEditorTest::inputMethodController_->OnCursorUpdate({});
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    ret = InputMethodEditorTest::inputMethodController_->OnSelectionChange(Str8ToStr16(""), 0, 0);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    ret = InputMethodEditorTest::inputMethodController_->SetCallingWindow(1);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    ret = InputMethodEditorTest::inputMethodController_->OnConfigurationChange({});
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
     TddUtil::GetUnfocused();
 }
 

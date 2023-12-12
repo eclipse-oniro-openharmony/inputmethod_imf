@@ -305,8 +305,8 @@ void PerUserSession::OnHideSoftKeyBoardSelf()
         IMSA_HILOGE("current client is nullptr");
         return;
     }
-    bool isShowKeyboard = false;
-    UpdateClientInfo(client->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, isShowKeyboard } });
+    UpdateClientInfo(client->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, false } });
+    ExitCurrentInputType();
 }
 
 int32_t PerUserSession::OnRequestShowInput()
@@ -346,6 +346,7 @@ int32_t PerUserSession::OnRequestHideInput()
     if (currentClient != nullptr) {
         UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, false } });
     }
+    ExitCurrentInputType();
     return ErrorCode::NO_ERROR;
 }
 
@@ -424,13 +425,17 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
     if (clientInfo == nullptr) {
         return;
     }
-    IMSA_HILOGI("deactive client[%{public}d]", clientInfo->pid);
+    IMSA_HILOGI("deactivate client[%{public}d]", clientInfo->pid);
     UpdateClientInfo(client->AsObject(), { { UpdateFlag::STATE, ClientState::INACTIVE } });
     if (IsCurrentClient(client)) {
         SetCurrentClient(nullptr);
     }
     SetInactiveClient(client);
     client->DeactivateClient();
+    if (InputTypeManager::GetInstance().IsStarted()) {
+        ExitCurrentInputType();
+        return;
+    }
     auto data = GetImeData(clientInfo->bindImeType);
     if (data == nullptr) {
         IMSA_HILOGE("ime %{public}d doesn't exist", clientInfo->bindImeType);
@@ -489,7 +494,7 @@ int32_t PerUserSession::BindClientWithIme(
     if (data == nullptr) {
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    auto ret = InputTypeManager::GetInstance().IsStarted() ? data->core->OnTextConfigChange(clientInfo->config)
+    auto ret = InputTypeManager::GetInstance().IsStarted() ? data->core->OnTextConfigChange(*clientInfo)
                                                            : data->core->StartInput(*clientInfo, isBindFromClient);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start input failed, ret: %{public}d", ret);
@@ -562,10 +567,8 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
 
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
-    if (clientInfo != nullptr) {
-        if (IsImeStartInBind(clientInfo->bindImeType, imeType)) {
-            BindClientWithIme(clientInfo, imeType);
-        }
+    if (clientInfo != nullptr && IsImeStartInBind(clientInfo->bindImeType, imeType)) {
+        BindClientWithIme(clientInfo, imeType);
     }
     bool isStarted = true;
     isImeStarted_.SetValue(isStarted);

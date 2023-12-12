@@ -242,7 +242,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     IMSA_HILOGI(
         "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel->AsObject());
-    isBindFromClient ? OnTextConfigChange(clientInfo.config) : NotifyAllTextConfig();
+    isBindFromClient ? InvokeTextChangeCallback(clientInfo.config) : NotifyAllTextConfig();
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
@@ -424,13 +424,13 @@ void InputMethodAbility::NotifyAllTextConfig()
         IMSA_HILOGE("get text config failed, ret is %{public}d", ret);
         return;
     }
-    OnTextConfigChange(textConfig);
+    InvokeTextChangeCallback(textConfig);
 }
 
-void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
+void InputMethodAbility::InvokeTextChangeCallback(const TextTotalConfig &textConfig)
 {
     if (kdListener_ == nullptr) {
-        IMSA_HILOGE("kdListener_ is nullptr.");
+        IMSA_HILOGD("kdListener_ is nullptr.");
     } else {
         IMSA_HILOGD("start to invoke callbacks");
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
@@ -453,14 +453,13 @@ void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
         panel->SetCallingWindow(textConfig.windowId);
         return false;
     });
+    positionY_ = textConfig.positionY;
+    height_ = textConfig.height;
     if (imeListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr, do not need to send callback of setCallingWindow.");
+        IMSA_HILOGD("imeListener_ is nullptr");
         return;
     }
     imeListener_->OnSetCallingWindow(textConfig.windowId);
-    IMSA_HILOGD("setCallingWindow end.");
-    positionY_ = textConfig.positionY;
-    height_ = textConfig.height;
 }
 
 int32_t InputMethodAbility::HideKeyboard()
@@ -934,6 +933,15 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
         }
         return false;
     });
+}
+
+int32_t InputMethodAbility::OnTextConfigChange(const InputClientInfo &clientInfo)
+{
+    if (clientInfo.channel != nullptr) {
+        SetInputDataChannel(clientInfo.channel->AsObject());
+    }
+    InvokeTextChangeCallback(clientInfo.config);
+    return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

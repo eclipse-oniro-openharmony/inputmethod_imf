@@ -193,13 +193,13 @@ int32_t InputMethodCoreStub::OnClientInactiveOnRemote(MessageParcel &data, Messa
 
 int32_t InputMethodCoreStub::OnTextConfigChangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    TextTotalConfig config;
-    if (!ITypesUtil::Unmarshal(data, config)) {
+    InputClientInfo clientInfo;
+    if (!ITypesUtil::Unmarshal(data, clientInfo)) {
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    InputMethodAbility::GetInstance()->OnTextConfigChange(config);
-    return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    int32_t ret = InputMethodAbility::GetInstance()->OnTextConfigChange(clientInfo);
+    return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
@@ -236,7 +236,7 @@ void InputMethodCoreStub::OnClientInactive(const sptr<IInputDataChannel> &channe
 {
 }
 
-int32_t InputMethodCoreStub::OnTextConfigChange(const TextTotalConfig &config)
+int32_t InputMethodCoreStub::OnTextConfigChange(const InputClientInfo &clientInfo)
 {
     return ErrorCode::NO_ERROR;
 }
