@@ -129,6 +129,7 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         auto code = ctxt->inputMethodPanel->SetUiContent(
             ctxt->path, env, ctxt->contentStorage);
         CHECK_RETURN(code == ErrorCode::NO_ERROR, "SetUiContent failed!", napi_generic_failure);
+        InputMethodAbility::GetInstance()->NotifyKeyboardHeight(ctxt->inputMethodPanel);
         return napi_ok;
     };
     ctxt->SetAction(std::move(input), std::move(output));

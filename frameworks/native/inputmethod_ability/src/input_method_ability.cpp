@@ -727,8 +727,7 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
 {
     IMSA_HILOGI("IMA");
     auto flag = panels_.ComputeIfAbsent(panelInfo.panelType,
-        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType,
-            std::shared_ptr<InputMethodPanel> &panel) {
+        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) {
             inputMethodPanel = std::make_shared<InputMethodPanel>();
             auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
             if (ret == ErrorCode::NO_ERROR) {
@@ -849,7 +848,7 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
 std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
 {
     if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES,
-                    [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
+            [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
         IMSA_HILOGE("not found");
         return nullptr;
     }
@@ -942,6 +941,33 @@ int32_t InputMethodAbility::OnTextConfigChange(const InputClientInfo &clientInfo
     }
     InvokeTextChangeCallback(clientInfo.config);
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
+}
+
+void InputMethodAbility::NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel)
+{
+    if (inputMethodPanel == nullptr) {
+        IMSA_HILOGE("inputMethodPanel is nullptr");
+        return;
+    }
+    if (inputMethodPanel->GetPanelType() != PanelType::SOFT_KEYBOARD) {
+        IMSA_HILOGW("current panel is not soft keyboard");
+        return;
+    }
+    if (!inputMethodPanel->IsNeedNotifyHeight()) {
+        IMSA_HILOGD("do not need notify keyboard height");
+        return;
+    }
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("channel is nullptr");
+        return;
+    }
+    if (inputMethodPanel->GetPanelFlag() == PanelFlag::FLG_FLOATING) {
+        IMSA_HILOGD("channel is nullptr");
+        channel->NotifyKeyboardHeight(0);
+        return;
+    }
+    channel->NotifyKeyboardHeight(inputMethodPanel->GetHeight());
 }
 } // namespace MiscServices
 } // namespace OHOS

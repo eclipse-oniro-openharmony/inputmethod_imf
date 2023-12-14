@@ -207,6 +207,17 @@ int32_t InputDataChannelStub::NotifyPanelStatusInfoOnRemote(MessageParcel &data,
     return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputDataChannelStub::NotifyKeyboardHeightOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    uint32_t height = 0;
+    if (!ITypesUtil::Unmarshal(data, height)) {
+        IMSA_HILOGE("failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    NotifyKeyboardHeight(height);
+    return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputDataChannelStub::InsertText(const std::u16string &text)
 {
     return InputMethodController::GetInstance()->InsertText(text);
@@ -287,6 +298,11 @@ int32_t InputDataChannelStub::HandleExtendAction(int32_t action)
 void InputDataChannelStub::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
     InputMethodController::GetInstance()->NotifyPanelStatusInfo(info);
+}
+
+void InputDataChannelStub::NotifyKeyboardHeight(uint32_t height)
+{
+    InputMethodController::GetInstance()->NotifyKeyboardHeight(height);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -124,10 +124,17 @@ int32_t InputDataChannelProxy::HandleExtendAction(int32_t action)
         HANDLE_EXTEND_ACTION, [action](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, action); });
 }
 
+void InputDataChannelProxy::NotifyKeyboardHeight(uint32_t height)
+{
+    return SendRequest(
+        NOTIFY_KEYBOARD_HEIGHT, [height](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, height); });
+}
+
 void InputDataChannelProxy::GetMessageOption(int32_t code, MessageOption &option)
 {
     switch (code) {
         case SEND_KEYBOARD_STATUS:
+        case NOTIFY_KEYBOARD_HEIGHT:
             IMSA_HILOGD("Async IPC.");
             option.SetFlags(MessageOption::TF_ASYNC);
             break;

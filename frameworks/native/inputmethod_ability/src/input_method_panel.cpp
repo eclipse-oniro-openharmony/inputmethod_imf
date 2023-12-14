@@ -120,7 +120,15 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
     }
     auto ret = window_->Resize(width, height);
     IMSA_HILOGI("ret = %{public}d", ret);
-    return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
+    if (ret != WMError::WM_OK) {
+        return ErrorCode::ERROR_OPERATE_PANEL;
+    }
+    {
+        std::lock_guard<std::mutex> lock(notifyHeightLock_);
+        panelHeight_ = height;
+        isChangeHeight_ = true;
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodPanel::MoveTo(int32_t x, int32_t y)
@@ -402,6 +410,14 @@ bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
         return false;
     }
     return true;
+}
+
+bool InputMethodPanel::IsNeedNotifyHeight()
+{
+    std::lock_guard<std::mutex> lock(notifyHeightLock_);
+    bool tempNotifyFlag = isChangeHeight_;
+    isChangeHeight_ = false;
+    return tempNotifyFlag;
 }
 } // namespace MiscServices
 } // namespace OHOS
