@@ -17,7 +17,7 @@
 #define protected public
 #include "security_mode_parser.h"
 #include "ime_info_inquirer.h"
-
+#include "input_method_system_ability.h"
 #undef private
 
 #include <gtest/gtest.h>
@@ -37,10 +37,12 @@ public:
     void TearDown();
     static std::shared_ptr<DataShareHelper> helper_;
     static std::shared_ptr<DataShareResultSet> resultSet_;
+    static std::shared_ptr<InputMethodSystemAbility> service_;
     static constexpr int32_t USER_ID = 100;
 };
 std::shared_ptr<DataShareHelper> SecurityModeParserTest::helper_;
 std::shared_ptr<DataShareResultSet> SecurityModeParserTest::resultSet_;
+std::shared_ptr<InputMethodSystemAbility> SecurityModeParserTest::service_;
 void SecurityModeParserTest::SetUpTestCase(void)
 {
     std::vector<std::string> columns = { "VALUE" };
@@ -49,6 +51,10 @@ void SecurityModeParserTest::SetUpTestCase(void)
     Uri uri("tsetUri");
     resultSet_ = helper_->Query(uri, predicates, columns);
     SecurityModeParser::GetInstance()->Initialize(USER_ID);
+
+    service_ = std::make_shared<InputMethodSystemAbility>();
+    service_->OnStart();
+    service_->userId_ = USER_ID;
 }
 
 void SecurityModeParserTest::TearDownTestCase(void)
@@ -142,6 +148,40 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_002, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testGetSecurityMode_003
+ * @tc.desc: Get 100 user security mode
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: guojin
+ */
+HWTEST_F(SecurityModeParserTest, testGetSecurityMode_003, TestSize.Level0)
+{
+    IMSA_HILOGI("SecurityModeParserTest testGetSecurityMode_003 START");
+    service_->enableSecurityMode_ = false;
+    int32_t securityMode;
+    auto ret = service_->GetSecurityMode(securityMode);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(securityMode, 1);
+}
+
+/**
+ * @tc.name: testGetSecurityMode_004
+ * @tc.desc: Get 100 user security mode
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: guojin
+ */
+HWTEST_F(SecurityModeParserTest, testGetSecurityMode_004, TestSize.Level0)
+{
+    IMSA_HILOGI("SecurityModeParserTest testGetSecurityMode_004 START");
+    service_->enableSecurityMode_ = true;
+    int32_t securityMode;
+    auto ret = service_->GetSecurityMode(securityMode);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(securityMode, 0);
+}
+
+/**
  * @tc.name: testIsSecurityChange_001
  * @tc.desc: is security change
  * @tc.type: FUNC
@@ -159,6 +199,5 @@ HWTEST_F(SecurityModeParserTest, testIsSecurityChange_001, TestSize.Level0)
         SecurityModeParser::GetInstance()->IsSecurityChange("xiaoyiIme", SecurityModeParserTest::USER_ID);
     EXPECT_EQ(isSecurityChange, true);
 }
-
 } // namespace MiscServices
 } // namespace OHOS

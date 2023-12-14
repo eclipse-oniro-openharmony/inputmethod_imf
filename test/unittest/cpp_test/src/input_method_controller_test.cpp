@@ -949,6 +949,35 @@ HWTEST_F(InputMethodControllerTest, testWasAttached, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testGetDefaultInputMethod
+ * @tc.desc: IMC GetDefaultInputMethod
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, testGetDefaultInputMethod, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetDefaultInputMethod Test START");
+    std::shared_ptr<Property> property;
+    int32_t ret = inputMethodController_->GetDefaultInputMethod(property);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(property->name.empty());
+}
+
+/**
+ * @tc.name: testGetSystemInputMethodConfig
+ * @tc.desc: IMC GetSystemInputMethodConfig
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, GetSystemInputMethodConfig, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC GetSystemInputMethodConfig Test START");
+    OHOS::AppExecFwk::ElementName inputMethodConfig;
+    int32_t ret = inputMethodController_->GetInputMethodConfig(inputMethodConfig);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_GE(inputMethodConfig.GetBundleName().length(), 0);
+    EXPECT_GE(inputMethodConfig.GetAbilityName().length(), 0);
+}
+
+/**
  * @tc.name: testWithoutEditableState
  * @tc.desc: IMC testWithoutEditableState
  * @tc.type: FUNC
