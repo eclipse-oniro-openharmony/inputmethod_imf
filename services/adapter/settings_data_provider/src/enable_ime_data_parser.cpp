@@ -52,12 +52,12 @@ int32_t EnableImeDataParser::Initialize(const int32_t userId)
     enableList_.insert({ std::string(ENABLE_IME), {} });
     enableList_.insert({ std::string(ENABLE_KEYBOARD), {} });
 
-    if (GetEnableData(ENABLE_IME, enableList_[std::string(ENABLE_IME)], userId) != ErrorCode::NO_ERROR
-        || GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], userId) != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("get enable list failed.");
-        return ErrorCode::ERROR_ENABLE_IME;
+    if (GetEnableData(ENABLE_IME, enableList_[std::string(ENABLE_IME)], userId) != ErrorCode::NO_ERROR) {
+        IMSA_HILOGW("get enable ime list failed");
     }
-
+    if (GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], userId) != ErrorCode::NO_ERROR) {
+        IMSA_HILOGW("get enable keyboard list failed");
+    }
     GetDefaultIme();
     return ErrorCode::NO_ERROR;
 }
@@ -186,6 +186,11 @@ int32_t EnableImeDataParser::GetEnableData(
     IMSA_HILOGD("userId: %{public}d, key: %{public}s.", userId, key.c_str());
     std::string valueStr;
     int32_t ret = SettingsDataUtils::GetInstance()->GetStringValue(key, valueStr);
+    if (ret == ErrorCode::ERROR_KEYWORD_NOT_FOUND) {
+        IMSA_HILOGW("No keyword exist");
+        enableVec.clear();
+        return ErrorCode::NO_ERROR;
+    }
     if (ret != ErrorCode::NO_ERROR || valueStr.empty()) {
         IMSA_HILOGW("Get value failed, or valueStr is empty");
         return ErrorCode::ERROR_ENABLE_IME;
