@@ -823,7 +823,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
     imc_->UpdateListenEventFlag("imeHide", true);
 
     TddUtil::SetTestTokenID(tokenId_);
-    auto ret = inputMethodPanel->CreatePanel(nullptr, info);
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->Resize(windowWidth_, windowHeight_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
