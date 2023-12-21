@@ -104,21 +104,14 @@ bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &sw
 bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t userId)
 {
     IMSA_HILOGD("Current userId %{public}d, target userId %{puclic}d", currrentUserId_, userId);
-    std::vector<std::string> enableVec;
-    std::string targetName;
-    int32_t ret = 0;
     if (info.bundleName == GetDefaultIme()->name) {
-        IMSA_HILOGD("Check ime keyboard.");
-        if (info.subName == GetDefaultIme()->id || info.subName.empty()) {
-            return true;
-        }
-        targetName = info.subName;
-        ret = GetEnableData(ENABLE_KEYBOARD, enableVec, userId);
-    } else {
-        IMSA_HILOGD("Check ime.");
-        targetName = info.bundleName;
-        ret = GetEnableData(ENABLE_IME, enableVec, userId);
+        IMSA_HILOGD("Default ime, permit to switch");
+        return true;
     }
+    IMSA_HILOGD("Check ime.");
+    std::string targetName = info.bundleName;
+    std::vector<std::string> enableVec;
+    int32_t ret = GetEnableData(ENABLE_IME, enableVec, userId);
     if (ret != ErrorCode::NO_ERROR || enableVec.empty()) {
         IMSA_HILOGD("Get enable list failed, or enable list is empty.");
         return false;
