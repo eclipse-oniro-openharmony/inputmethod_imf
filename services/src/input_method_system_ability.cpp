@@ -26,8 +26,8 @@
 #include "im_common_event_manager.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
-#include "input_type_manager.h"
 #include "input_method_utils.h"
+#include "input_type_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
@@ -139,16 +139,24 @@ int32_t InputMethodSystemAbility::Init()
     }
     state_ = ServiceRunningState::STATE_RUNNING;
     ImeCfgManager::GetInstance().Init();
-    std::vector<int32_t> userIds;
-    if (BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
-            return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
-        })) {
-        userId_ = userIds[0];
-        InputMethodSysEvent::GetInstance().SetUserId(userId_);
-        userSession_->UpdateCurrentUserId(userId_);
-    }
+    ImeInfoInquirer::GetInstance().InitConfig();
     InitMonitors();
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodSystemAbility::SetCurrentUserId()
+{
+    std::vector<int32_t> userIds;
+    if (!BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
+            return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
+        })) {
+        IMSA_HILOGE("get userId failed");
+        return;
+    }
+    IMSA_HILOGD("get userId success :%{public}d", userIds[0]);
+    userId_ = userIds[0];
+    InputMethodSysEvent::GetInstance().SetUserId(userId_);
+    userSession_->UpdateCurrentUserId(userId_);
 }
 
 void InputMethodSystemAbility::OnStop()
@@ -180,9 +188,10 @@ void InputMethodSystemAbility::Initialize()
     IMSA_HILOGI("InputMethodSystemAbility::Initialize");
     // init work thread to handle the messages
     workThreadHandler = std::thread([this] { WorkThread(); });
-    userSession_ = std::make_shared<PerUserSession>(MAIN_USER_ID);
     identityChecker_ = std::make_shared<IdentityCheckerImpl>();
     userId_ = MAIN_USER_ID;
+    userSession_ = std::make_shared<PerUserSession>(userId_);
+    InputMethodSysEvent::GetInstance().SetUserId(userId_);
 }
 
 void InputMethodSystemAbility::StartUserIdListener()
@@ -319,6 +328,26 @@ int32_t InputMethodSystemAbility::StopInputSession()
     return userSession_->OnHideCurrentInput();
 }
 
+int32_t InputMethodSystemAbility::RequestShowInput()
+{
+    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)
+        && !identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
+    return userSession_->OnRequestShowInput();
+}
+
+int32_t InputMethodSystemAbility::RequestHideInput()
+{
+    AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)
+        && !identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
+    }
+    return userSession_->OnRequestHideInput();
+}
+
 int32_t InputMethodSystemAbility::SetCoreAndAgent(
     const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
 {
@@ -445,9 +474,6 @@ int32_t InputMethodSystemAbility::IsPanelShown(const PanelInfo &panelInfo, bool 
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
-    if (!identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
     return OnDisplayOptionalInputMethod();
 }
 
@@ -640,11 +666,6 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
         }
     }
     return userSession_->OnShowCurrentInput();
-};
-
-int32_t InputMethodSystemAbility::DisplayOptionalInputMethodDeprecated()
-{
-    return OnDisplayOptionalInputMethod();
 };
 
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
@@ -916,22 +937,31 @@ int32_t InputMethodSystemAbility::SwitchType()
 
 void InputMethodSystemAbility::InitMonitors()
 {
+    int32_t ret = InitAccountMonitor();
+    IMSA_HILOGI("init account monitor, ret: %{public}d", ret);
     StartUserIdListener();
-    int32_t ret = InitKeyEventMonitor();
+    ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor, ret: %{public}d", ret);
     ret = InitFocusChangeMonitor();
     IMSA_HILOGI("init focus change monitor, ret: %{public}d", ret);
     InitSystemLanguageMonitor();
-    if (EnableImeDataParser::GetInstance()->Initialize(userId_) == ErrorCode::NO_ERROR) {
+    if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
         IMSA_HILOGW("Enter enable mode");
+        EnableImeDataParser::GetInstance()->Initialize(userId_);
         enableImeOn_ = true;
         RegisterEnableImeObserver();
     }
-    if (SecurityModeParser::GetInstance()->Initialize(userId_) == ErrorCode::NO_ERROR) {
+    if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         IMSA_HILOGW("Enter security mode");
         enableSecurityMode_ = true;
         RegisterSecurityModeObserver();
     }
+}
+
+int32_t InputMethodSystemAbility::InitAccountMonitor()
+{
+    IMSA_HILOGI("InputMethodSystemAbility::InitAccountMonitor");
+    return ImCommonEventManager::GetInstance()->SubscribeAccountManagerService([this]() { SetCurrentUserId(); });
 }
 
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
@@ -948,7 +978,10 @@ bool InputMethodSystemAbility::InitFocusChangeMonitor()
         [this](bool isOnFocused, int32_t pid, int32_t uid) {
             return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
         },
-        [this]() { StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_)); });
+        [this]() {
+            SetCurrentUserId();
+            StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_));
+        });
 }
 
 void InputMethodSystemAbility::InitSystemLanguageMonitor()
@@ -1042,11 +1075,8 @@ bool InputMethodSystemAbility::IsStartInputTypePermitted()
     if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), defaultIme->prop.name)) {
         return true;
     }
-    if (!InputTypeManager::GetInstance().IsCameraImeStarted()) {
-        return identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid())
-               && userSession_->IsBoundToClient();
-    }
-    return false;
+    return identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid())
+           && userSession_->IsBoundToClient();
 }
 } // namespace MiscServices
 } // namespace OHOS

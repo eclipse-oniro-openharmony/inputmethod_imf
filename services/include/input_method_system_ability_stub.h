@@ -45,6 +45,10 @@ private:
 
     int32_t ReleaseInputOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t RequestShowInputOnRemote(MessageParcel &data, MessageParcel &reply);
+
+    int32_t RequestHideInputOnRemote(MessageParcel &data, MessageParcel &reply);
+
     int32_t GetCurrentInputMethodOnRemote(MessageParcel &data, MessageParcel &reply);
 
     int32_t GetCurrentInputMethodSubtypeOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -76,8 +80,6 @@ private:
     int32_t ExitCurrentInputTypeOnRemote(MessageParcel &data, MessageParcel &reply);
 
     // Deprecated because of no permission check, kept for compatibility
-    int32_t DisplayInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
-
     int32_t HideCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
 
     int32_t ShowCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
@@ -104,6 +106,10 @@ private:
           &InputMethodSystemAbilityStub::HideInputOnRemote },
         { static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT),
           &InputMethodSystemAbilityStub::ReleaseInputOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_SHOW_INPUT),
+            &InputMethodSystemAbilityStub::RequestShowInputOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_HIDE_INPUT),
+            &InputMethodSystemAbilityStub::RequestHideInputOnRemote },
         { static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD),
           &InputMethodSystemAbilityStub::GetCurrentInputMethodOnRemote },
         { static_cast<uint32_t>(InputMethodInterfaceCode::GET_CURRENT_INPUT_METHOD_SUBTYPE),
@@ -124,8 +130,6 @@ private:
           &InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated },
         { static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT_DEPRECATED),
           &InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated },
-        { static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_DEPRECATED),
-          &InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated },
         { static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT_SESSION),
           &InputMethodSystemAbilityStub::StopInputSessionOnRemote },
         { static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE),

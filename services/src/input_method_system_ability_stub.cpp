@@ -109,6 +109,16 @@ int32_t InputMethodSystemAbilityStub::ReleaseInputOnRemote(MessageParcel &data, 
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputMethodSystemAbilityStub::RequestShowInputOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return reply.WriteInt32(RequestShowInput()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::RequestHideInputOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return reply.WriteInt32(RequestHideInput()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputMethodSystemAbilityStub::DisplayOptionalInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     int32_t ret = DisplayOptionalInputMethod();
@@ -274,12 +284,6 @@ int32_t InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated(Message
 int32_t InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply)
 {
     int32_t ret = HideCurrentInputDeprecated();
-    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
-int32_t InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t ret = DisplayOptionalInputMethodDeprecated();
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

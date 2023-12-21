@@ -40,11 +40,13 @@ public:
     int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
     int32_t OnPanelStatusChange(
         const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) override;
+    void DeactivateClient() override;
 
 private:
     static inline BrokerDelegator<InputClientProxy> delegator_;
     using ParcelHandler = std::function<bool(MessageParcel &)>;
-    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr);
+    int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr,
+        MessageOption option = MessageOption::TF_SYNC);
 };
 } // namespace MiscServices
 } // namespace OHOS

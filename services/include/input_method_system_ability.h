@@ -60,6 +60,8 @@ public:
     int32_t HideInput(sptr<IInputClient> client) override;
     int32_t StopInputSession() override;
     int32_t ReleaseInput(sptr<IInputClient> client) override;
+    int32_t RequestShowInput() override;
+    int32_t RequestHideInput() override;
     int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop) override;
     int32_t GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig) override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
@@ -83,7 +85,6 @@ public:
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;
     int32_t ShowCurrentInputDeprecated() override;
-    int32_t DisplayOptionalInputMethodDeprecated() override;
     int Dump(int fd, const std::vector<std::u16string> &args) override;
     void DumpAllMethod(int fd);
 
@@ -117,6 +118,8 @@ private:
     int32_t SwitchInputType(const SwitchInfo &switchInfo);
     ServiceRunningState state_;
     void InitServiceHandler();
+    void SetCurrentUserId();
+    int32_t InitAccountMonitor();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";

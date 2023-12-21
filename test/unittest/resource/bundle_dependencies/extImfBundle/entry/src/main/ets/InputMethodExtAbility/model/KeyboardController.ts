@@ -42,6 +42,8 @@ enum TEST_FUNCTION {
   GET_BACKWARD_SYNC,
   CHANGE_FLAG_TO_FIXED,
   CHANGE_FLAG_TO_FLOATING,
+  SETPRIVACYMODE_WITHOUT_PERMISSION,
+  SETPRIVACYMODE_ERROR_PARAM,
 }
 
 export class KeyboardController {
@@ -152,6 +154,12 @@ export class KeyboardController {
           case TEST_FUNCTION.CHANGE_FLAG_TO_FLOATING:
             this.changePanelFlag(inputMethodEngine.PanelFlag.FLG_FLOATING);
             break;
+          case TEST_FUNCTION.SETPRIVACYMODE_WITHOUT_PERMISSION:
+            this.setPrivacyModeWithoutPermission();
+            break;
+          case TEST_FUNCTION.SETPRIVACYMODE_ERROR_PARAM:
+            this.setPrivacyModeErrorParam();
+            break;
           default:
             break;
         }
@@ -193,11 +201,16 @@ export class KeyboardController {
     }
   }
 
-  getAttributeSync() {
+  async getAttributeSync() {
     try {
       let editAttribute = globalThis.textInputClient.getEditorAttributeSync();
+      let editAttribute1 = await globalThis.textInputClient.getEditorAttribute();
       this.addLog(`[inputDemo] publish getEditorAttributeSync editAttribute= ${JSON.stringify(editAttribute)}`);
-      this.publishCommonEvent('getEditorAttributeSyncResult', TEST_RESULT_CODE.SUCCESS);
+      if(editAttribute.inputPattern == editAttribute1.inputPattern && editAttribute.enterKeyType == editAttribute1.enterKeyType) {
+        this.publishCommonEvent('getEditorAttributeSyncResult', TEST_RESULT_CODE.SUCCESS);
+      } else{
+        this.publishCommonEvent('getEditorAttributeSyncResult', TEST_RESULT_CODE.FAILED);
+      }
     } catch (err) {
       this.publishCommonEvent('getEditorAttributeSyncResult', TEST_RESULT_CODE.FAILED);
     }
@@ -230,6 +243,33 @@ export class KeyboardController {
     } catch (err) {
       this.addLog(`failed: ${JSON.stringify(err)}`);
       this.publishCommonEvent('changeFlag', TEST_RESULT_CODE.FAILED);
+    }
+  }
+
+  setPrivacyModeWithoutPermission() {
+    try {
+      let isSetPrivacyMode: boolean = true;
+      this.panel.setPrivacyMode(isSetPrivacyMode);
+      this.publishCommonEvent('setPrivacyModeWithoutPermissionResult', TEST_RESULT_CODE.FAILED);
+    } catch (err) {
+      this.addLog(`failed: ${JSON.stringify(err)}`);
+      if (err.code === 201) {
+        this.publishCommonEvent('setPrivacyModeWithoutPermissionResult', TEST_RESULT_CODE.SUCCESS);
+        return;
+      }
+    }
+  }
+
+  setPrivacyModeErrorParam() {
+    try {
+      this.panel.setPrivacyMode(undefined);
+      this.publishCommonEvent('setPrivacyModeErrorParamResult', TEST_RESULT_CODE.FAILED);
+    } catch (err) {
+      this.addLog(`failed: ${JSON.stringify(err)}`);
+      if (err.code === 401) {
+        this.publishCommonEvent('setPrivacyModeErrorParamResult', TEST_RESULT_CODE.SUCCESS);
+        return;
+      }
     }
   }
 

@@ -96,6 +96,7 @@ ohos_shared_library("inputmethod_service") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwm",
+    "window_manager:libwsutils",
   ]
 
   subsystem_name = "inputmethod"

@@ -50,6 +50,8 @@ public:
     virtual int32_t ShowInput(sptr<IInputClient> client) = 0;
     virtual int32_t HideInput(sptr<IInputClient> client) = 0;
     virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
+    virtual int32_t RequestShowInput() = 0;
+    virtual int32_t RequestHideInput() = 0;
     virtual int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop) = 0;
     virtual int32_t GetInputMethodConfig(AppExecFwk::ElementName &inputMethodConfig) = 0;
     virtual std::shared_ptr<Property> GetCurrentInputMethod() = 0;
@@ -73,7 +75,6 @@ public:
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;
     virtual int32_t ShowCurrentInputDeprecated() = 0;
-    virtual int32_t DisplayOptionalInputMethodDeprecated() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

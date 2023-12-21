@@ -211,10 +211,6 @@ void InputMethodAbility::WorkThread()
                 OnSetSubtype(msg);
                 break;
             }
-            case MSG_ID_STOP_INPUT: {
-                OnStopInput(msg);
-                break;
-            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -223,17 +219,6 @@ void InputMethodAbility::WorkThread()
         delete msg;
         msg = nullptr;
     }
-}
-
-void InputMethodAbility::OnStopInput(Message *msg)
-{
-    auto data = msg->msgContent_;
-    sptr<IRemoteObject> channelObject;
-    if (!ITypesUtil::Unmarshal(*data, channelObject)) {
-        IMSA_HILOGE("read message parcel failed");
-        return;
-    }
-    StopInput(channelObject);
 }
 
 void InputMethodAbility::OnInitInputControlChannel(Message *msg)
@@ -257,7 +242,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     IMSA_HILOGI(
         "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel->AsObject());
-    isBindFromClient ? OnTextConfigChange(clientInfo.config) : NotifyAllTextConfig();
+    isBindFromClient ? InvokeTextChangeCallback(clientInfo.config) : NotifyAllTextConfig();
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
@@ -389,11 +374,6 @@ int32_t InputMethodAbility::ShowKeyboard()
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
-        IMSA_HILOGE("channel is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
     IMSA_HILOGI("IMA start");
     if (panels_.Contains(SOFT_KEYBOARD)) {
         auto panel = GetSoftKeyboardPanel();
@@ -408,8 +388,10 @@ int32_t InputMethodAbility::ShowKeyboard()
         }
         return ShowPanel(panel, flag, Trigger::IMF);
     }
-
-    channel->SendKeyboardStatus(KeyboardStatus::SHOW);
+    auto channel = GetInputDataChannelProxy();
+    if (channel != nullptr) {
+        channel->SendKeyboardStatus(KeyboardStatus::SHOW);
+    }
     imeListener_->OnKeyboardStatus(true);
     return ErrorCode::NO_ERROR;
 }
@@ -442,13 +424,13 @@ void InputMethodAbility::NotifyAllTextConfig()
         IMSA_HILOGE("get text config failed, ret is %{public}d", ret);
         return;
     }
-    OnTextConfigChange(textConfig);
+    InvokeTextChangeCallback(textConfig);
 }
 
-void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
+void InputMethodAbility::InvokeTextChangeCallback(const TextTotalConfig &textConfig)
 {
     if (kdListener_ == nullptr) {
-        IMSA_HILOGE("kdListener_ is nullptr.");
+        IMSA_HILOGD("kdListener_ is nullptr.");
     } else {
         IMSA_HILOGD("start to invoke callbacks");
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
@@ -471,14 +453,13 @@ void InputMethodAbility::OnTextConfigChange(const TextTotalConfig &textConfig)
         panel->SetCallingWindow(textConfig.windowId);
         return false;
     });
+    positionY_ = textConfig.positionY;
+    height_ = textConfig.height;
     if (imeListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr, do not need to send callback of setCallingWindow.");
+        IMSA_HILOGD("imeListener_ is nullptr");
         return;
     }
     imeListener_->OnSetCallingWindow(textConfig.windowId);
-    IMSA_HILOGD("setCallingWindow end.");
-    positionY_ = textConfig.positionY;
-    height_ = textConfig.height;
 }
 
 int32_t InputMethodAbility::HideKeyboard()
@@ -802,8 +783,7 @@ int32_t InputMethodAbility::ShowPanel(
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
+    if (trigger == Trigger::IME_APP && GetInputDataChannelProxy() == nullptr) {
         IMSA_HILOGE("channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
@@ -839,12 +819,6 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
         IMSA_HILOGE("imeListener_ is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
-        IMSA_HILOGE("channel is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-
     IMSA_HILOGI("IMA, trigger: %{public}d", static_cast<int32_t>(trigger));
     if (panels_.Contains(SOFT_KEYBOARD)) {
         auto panel = GetSoftKeyboardPanel();
@@ -860,8 +834,11 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
         return HidePanel(panel, flag, trigger);
     }
 
-    channel->SendKeyboardStatus(KeyboardStatus::HIDE);
     imeListener_->OnKeyboardStatus(false);
+    auto channel = GetInputDataChannelProxy();
+    if (channel != nullptr) {
+        channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+    }
     auto controlChannel = GetInputControlChannel();
     if (controlChannel != nullptr && trigger == Trigger::IME_APP) {
         controlChannel->HideKeyboardSelf();
@@ -944,6 +921,27 @@ int32_t InputMethodAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isSho
     IMSA_HILOGI("type: %{public}d, flag: %{public}d, result: %{public}d", static_cast<int32_t>(panelInfo.panelType),
         static_cast<int32_t>(panelInfo.panelFlag), isShown);
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
+{
+    IMSA_HILOGI("client inactive");
+    ClearDataChannel(channel);
+    panels_.ForEach([](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+        if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
+            panel->HidePanel();
+        }
+        return false;
+    });
+}
+
+int32_t InputMethodAbility::OnTextConfigChange(const InputClientInfo &clientInfo)
+{
+    if (clientInfo.channel != nullptr) {
+        SetInputDataChannel(clientInfo.channel->AsObject());
+    }
+    InvokeTextChangeCallback(clientInfo.config);
+    return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

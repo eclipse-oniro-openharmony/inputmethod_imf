@@ -72,7 +72,7 @@ ohos_shared_library("inputmethod_extension") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "i18n:intl_util",
-    "ipc:ipc_napi_common",
+    "ipc:ipc_napi",
     "napi:ace_napi",
   ]
 

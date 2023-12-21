@@ -43,7 +43,6 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-using WindowMgr = TddUtil::WindowManager;
 constexpr uint32_t DEALY_TIME = 1;
 class InputMethodAbilityTest : public testing::Test {
 public:
@@ -105,11 +104,7 @@ public:
         inputMethodAbility_->SetCoreAndAgent();
         TddUtil::RestoreSelfTokenID();
         TextListener::ResetParam();
-        TddUtil::WindowManager::RegisterFocusChangeListener();
-        WindowMgr::CreateWindow();
-        WindowMgr::ShowWindow();
-        bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
-        IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
+        TddUtil::InitWindow(true);
         imc_ = InputMethodController::GetInstance();
         textListener_ = new TextListener();
     }
@@ -118,8 +113,7 @@ public:
         IMSA_HILOGI("InputMethodAbilityTest::TearDownTestCase");
         imc_->Close();
         TextListener::ResetParam();
-        WindowMgr::HideWindow();
-        WindowMgr::DestroyWindow();
+        TddUtil::DestroyWindow();
     }
     void SetUp()
     {

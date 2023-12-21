@@ -60,7 +60,6 @@ namespace MiscServices {
 constexpr uint32_t RETRY_TIME = 200 * 1000;
 constexpr uint32_t RETRY_TIMES = 5;
 constexpr uint32_t WAIT_INTERVAL = 500;
-using WindowMgr = TddUtil::WindowManager;
 
 class SelectListenerMock : public ControllerListener {
 public:
@@ -113,6 +112,7 @@ public:
     static void TriggerCursorUpdateCallback(CursorInfo &info);
     static void TriggerSelectionChangeCallback(std::u16string &text, int start, int end);
     static void CheckProxyObject();
+    static void CheckTextConfig(const TextConfig &config);
     static sptr<InputMethodController> inputMethodController_;
     static sptr<InputMethodAbility> inputMethodAbility_;
     static std::shared_ptr<MMI::KeyEvent> keyEvent_;
@@ -253,11 +253,7 @@ void InputMethodControllerTest::SetUpTestCase(void)
     keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine", { "ohos.permission.CONNECT_IME_ABILITY" }));
 
-    TddUtil::WindowManager::RegisterFocusChangeListener();
-    WindowMgr::CreateWindow();
-    WindowMgr::ShowWindow();
-    bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
-    IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
+    TddUtil::InitWindow(true);
     SetInputDeathRecipient();
     TextListener::ResetParam();
 }
@@ -267,8 +263,7 @@ void InputMethodControllerTest::TearDownTestCase(void)
     IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
     TextListener::ResetParam();
-    WindowMgr::HideWindow();
-    WindowMgr::DestroyWindow();
+    TddUtil::DestroyWindow();
     inputMethodController_->SetControllerListener(nullptr);
 }
 
@@ -425,15 +420,27 @@ void InputMethodControllerTest::TriggerSelectionChangeCallback(std::u16string &t
     }
 }
 
+void InputMethodControllerTest::CheckTextConfig(const TextConfig &config)
+{
+    EXPECT_EQ(imeListener_->windowId_, config.windowId);
+    EXPECT_EQ(cursorInfo_.left, config.cursorInfo.left);
+    EXPECT_EQ(cursorInfo_.top, config.cursorInfo.top);
+    EXPECT_EQ(cursorInfo_.height, config.cursorInfo.height);
+    EXPECT_EQ(newBegin_, config.range.start);
+    EXPECT_EQ(newEnd_, config.range.end);
+    EXPECT_EQ(inputAttribute_.inputPattern, config.inputAttribute.inputPattern);
+    EXPECT_EQ(inputAttribute_.enterKeyType, config.inputAttribute.enterKeyType);
+}
+
 /**
- * @tc.name: testIMCAttach
+ * @tc.name: testIMCAttach001
  * @tc.desc: IMC Attach.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodControllerTest, testIMCAttach, TestSize.Level0)
+HWTEST_F(InputMethodControllerTest, testIMCAttach001, TestSize.Level0)
 {
-    IMSA_HILOGD("IMC Attach Test START");
+    IMSA_HILOGD("IMC testIMCAttach001 Test START");
     imeListener_->isInputStart_ = false;
     TextListener::ResetParam();
     inputMethodController_->Attach(textListener_, false);
@@ -441,6 +448,39 @@ HWTEST_F(InputMethodControllerTest, testIMCAttach, TestSize.Level0)
     inputMethodController_->Attach(textListener_, true);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
     EXPECT_TRUE(imeListener_->isInputStart_ && imeListener_->keyboardState_);
+}
+
+/**
+ * @tc.name: testIMCAttach002
+ * @tc.desc: IMC Attach.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testIMCAttach002, TestSize.Level0)
+{
+    IMSA_HILOGD("IMC testIMCAttach002 Test START");
+    TextListener::ResetParam();
+    CursorInfo cursorInfo = { 1, 1, 1, 1 };
+    SelectionRange selectionRange = { 1, 2 };
+    InputAttribute attribute = { 1, 1 };
+    uint32_t windowId = 10;
+    TextConfig textConfig = {
+        .inputAttribute = attribute, .cursorInfo = cursorInfo, .range = selectionRange, .windowId = windowId
+    };
+
+    inputMethodController_->Attach(textListener_, true, textConfig);
+    InputMethodControllerTest::CheckTextConfig(textConfig);
+
+    TextListener::ResetParam();
+    cursorInfo = { 2, 2, 2, 2 };
+    selectionRange = { 3, 4 };
+    attribute = { 2, 2 };
+    windowId = 11;
+    textConfig = {
+        .inputAttribute = attribute, .cursorInfo = cursorInfo, .range = selectionRange, .windowId = windowId
+    };
+    inputMethodController_->Attach(textListener_, true, textConfig);
+    InputMethodControllerTest::CheckTextConfig(textConfig);
 }
 
 /**
@@ -823,6 +863,34 @@ HWTEST_F(InputMethodControllerTest, testIMCHideTextInput, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testIMCRequestShowInput.
+ * @tc.desc: IMC testIMCRequestShowInput.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, testIMCRequestShowInput, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCRequestShowInput Test START");
+    imeListener_->keyboardState_ = false;
+    int32_t ret = InputMethodControllerTest::inputMethodController_->RequestShowInput();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(imeListener_->keyboardState_);
+}
+
+/**
+ * @tc.name: testIMCRequestHideInput.
+ * @tc.desc: IMC testIMCRequestHideInput.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, testIMCRequestHideInput, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCRequestHideInput Test START");
+    imeListener_->keyboardState_ = true;
+    int32_t ret = InputMethodControllerTest::inputMethodController_->RequestHideInput();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(imeListener_->keyboardState_);
+}
+
+/**
  * @tc.name: testSetControllerListener
  * @tc.desc: IMC SetControllerListener
  * @tc.type: FUNC
@@ -878,6 +946,35 @@ HWTEST_F(InputMethodControllerTest, testWasAttached, TestSize.Level0)
     result = inputMethodController_->WasAttached();
     EXPECT_TRUE(result);
     inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testGetDefaultInputMethod
+ * @tc.desc: IMC GetDefaultInputMethod
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, testGetDefaultInputMethod, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testGetDefaultInputMethod Test START");
+    std::shared_ptr<Property> property;
+    int32_t ret = inputMethodController_->GetDefaultInputMethod(property);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_FALSE(property->name.empty());
+}
+
+/**
+ * @tc.name: testGetSystemInputMethodConfig
+ * @tc.desc: IMC GetSystemInputMethodConfig
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodControllerTest, GetSystemInputMethodConfig, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC GetSystemInputMethodConfig Test START");
+    OHOS::AppExecFwk::ElementName inputMethodConfig;
+    int32_t ret = inputMethodController_->GetInputMethodConfig(inputMethodConfig);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_GE(inputMethodConfig.GetBundleName().length(), 0);
+    EXPECT_GE(inputMethodConfig.GetAbilityName().length(), 0);
 }
 
 /**

@@ -48,6 +48,8 @@ public:
     bool IsEnable() override;
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     int32_t OnSecurityChange(int32_t security) override;
+    void OnClientInactive(const sptr<IInputDataChannel> &channel) override;
+    int32_t OnTextConfigChange(const InputClientInfo &clientInfo) override;
     void SetMessageHandler(MessageHandler *msgHandler);
 
 private:
@@ -62,6 +64,8 @@ private:
     int32_t IsEnableOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SecurityChangeOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t OnClientInactiveOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t OnTextConfigChangeOnRemote(MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
     using RequestHandler = int32_t (InputMethodCoreStub::*)(MessageParcel &, MessageParcel &);
@@ -76,6 +80,8 @@ private:
         { static_cast<uint32_t>(IS_ENABLE), &InputMethodCoreStub::IsEnableOnRemote },
         { static_cast<uint32_t>(IS_PANEL_SHOWN), &InputMethodCoreStub::IsPanelShownOnRemote },
         { static_cast<uint32_t>(SECURITY_CHANGE), &InputMethodCoreStub::SecurityChangeOnRemote },
+        { static_cast<uint32_t>(ON_CLIENT_INACTIVE), &InputMethodCoreStub::OnClientInactiveOnRemote },
+        { static_cast<uint32_t>(ON_TEXT_CONFIG_CHANGE), &InputMethodCoreStub::OnTextConfigChangeOnRemote },
     };
 };
 } // namespace MiscServices

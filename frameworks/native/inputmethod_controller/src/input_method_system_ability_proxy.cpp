@@ -74,6 +74,16 @@ int32_t InputMethodSystemAbilityProxy::ReleaseInput(sptr<IInputClient> client)
         [client](MessageParcel &data) { return data.WriteRemoteObject(client->AsObject()); });
 }
 
+int32_t InputMethodSystemAbilityProxy::RequestShowInput()
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_SHOW_INPUT));
+}
+
+int32_t InputMethodSystemAbilityProxy::RequestHideInput()
+{
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::REQUEST_HIDE_INPUT));
+}
+
 int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethod()
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_METHOD));
@@ -159,11 +169,6 @@ int32_t InputMethodSystemAbilityProxy::ShowCurrentInputDeprecated()
 int32_t InputMethodSystemAbilityProxy::HideCurrentInputDeprecated()
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT_DEPRECATED));
-}
-
-int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethodDeprecated()
-{
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_DEPRECATED));
 }
 
 int32_t InputMethodSystemAbilityProxy::ListInputMethodSubtype(

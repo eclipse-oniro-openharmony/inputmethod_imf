@@ -286,6 +286,40 @@ int32_t TddUtil::CheckEnableOn(std::string &value)
     return SettingsDataUtils::GetInstance()->GetStringValue(EnableImeDataParser::ENABLE_IME, value);
 }
 
+void TddUtil::InitWindow(bool isShow)
+{
+    WindowManager::RegisterFocusChangeListener();
+    WindowManager::CreateWindow();
+    if (!isShow) {
+        return;
+    }
+    WindowManager::ShowWindow();
+    bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
+    IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
+}
+
+void TddUtil::DestroyWindow()
+{
+    WindowManager::HideWindow();
+    WindowManager::DestroyWindow();
+}
+
+bool TddUtil::GetFocused()
+{
+    WindowManager::ShowWindow();
+    bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
+    IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
+    return isFocused;
+}
+
+bool TddUtil::GetUnfocused()
+{
+    WindowManager::HideWindow();
+    bool unFocused = FocusChangedListenerTestImpl::unFocused_->GetValue();
+    IMSA_HILOGI("unFocused end, unFocused = %{public}d", unFocused);
+    return unFocused;
+}
+
 void TddUtil::WindowManager::CreateWindow()
 {
     std::string windowName = "inputmethod_test_window";

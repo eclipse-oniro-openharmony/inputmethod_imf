@@ -235,23 +235,6 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSiz
 }
 
 /**
- * @tc.name: testHideKeyboardSelf_001
- * @tc.desc: controlChannel == nullptr
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: chenyu
- */
-HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboardSelf_001, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbilityExceptionTest testHideKeyboardSelf_001 START");
-    auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
-    inputMethodAbility_->SetImeListener(imeListener);
-    auto ret = inputMethodAbility_->HideKeyboardSelf();
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
-    ResetMemberVar();
-}
-
-/**
  * @tc.name: testShowKeyboard_001
  * @tc.desc: ShowKeyboard Exception
  * @tc.type: FUNC
@@ -282,12 +265,8 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level0)
     auto ret = inputMethodAbility_->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
-    // channel == nullptr
     auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->SetImeListener(imeListener);
-    ret = inputMethodAbility_->ShowKeyboard();
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
-
     sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
     inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
     // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
@@ -318,13 +297,9 @@ HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level0)
     auto ret = inputMethodAbility_->HideKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME);
 
-    // channel == nullptr
+    // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
     auto imeListener = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->SetImeListener(imeListener);
-    ret = inputMethodAbility_->HideKeyboard();
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
-
-    // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
     sptr<InputDataChannelStub> channelObject = new InputDataChannelStub();
     inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
     auto panel = std::make_shared<InputMethodPanel>();

@@ -841,7 +841,7 @@ describe('InputMethodTest', function () {
     console.info('************* inputmethod_test_hideTextInput_001 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
     inputMethodCtrl.hideTextInput((err) => {
-      console.info(`inputmethod_test_setCallingWindow_001 err: ${JSON.stringify(err)}`);
+      console.info(`inputmethod_test_hideTextInput_001 err: ${JSON.stringify(err)}`);
       if (err.code === 12800009) {
         expect(true).assertTrue();
       } else {

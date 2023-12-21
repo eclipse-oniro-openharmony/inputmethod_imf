@@ -21,6 +21,7 @@
 #include <mutex>
 #include <thread>
 
+#include "block_queue.h"
 #include "controller_listener.h"
 #include "element_name.h"
 #include "event_handler.h"
@@ -425,6 +426,26 @@ public:
     IMF_API int32_t HideCurrentInput();
 
     /**
+     * @brief Request to show input method.
+     *
+     * This function is used to request to show input method.
+     *
+     * @return Returns 0 for success, others for failure.
+     * @since 11
+     */
+    IMF_API int32_t RequestShowInput();
+
+    /**
+     * @brief Request to hide input method.
+     *
+     * This function is used to request to hide input method.
+     *
+     * @return Returns 0 for success, others for failure.
+     * @since 11
+     */
+    IMF_API int32_t RequestHideInput();
+
+    /**
      * @brief Show input method setting extension dialog.
      *
      * This function is used to show input method setting extension dialog.
@@ -635,6 +656,15 @@ public:
         const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo);
 
     /**
+     * @brief Deactivate the input client.
+     *
+     * This function is used to deactivate the input client.
+     *
+     * @since 11
+     */
+    IMF_API void DeactivateClient();
+
+    /**
      * @brief Query whether an input type is supported.
      *
      * This function is used to query whether an input type is supported.
@@ -688,6 +718,10 @@ private:
     void SaveTextConfig(const TextConfig &textConfig);
     sptr<OnTextChangedListener> GetTextListener();
     void SetTextListener(sptr<OnTextChangedListener> listener);
+    bool IsEditable();
+    bool IsBound();
+    void SetAgent(sptr<IRemoteObject> &agentObject);
+    std::shared_ptr<IInputMethodAgent> GetAgent();
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
@@ -726,6 +760,17 @@ private:
 
     std::mutex textConfigLock_;
     TextConfig textConfig_;
+
+    struct KeyEventInfo {
+        std::chrono::system_clock::time_point timestamp{};
+        std::shared_ptr<MMI::KeyEvent> keyEvent;
+        bool operator==(const KeyEventInfo &info) const
+        {
+            return (timestamp == info.timestamp && keyEvent == info.keyEvent);
+        }
+    };
+    static constexpr int32_t MAX_WAIT_TIME = 5000;
+    BlockQueue<KeyEventInfo> keyEventQueue_{ MAX_WAIT_TIME };
 };
 } // namespace MiscServices
 } // namespace OHOS

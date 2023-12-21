@@ -28,7 +28,6 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-using WindowMgr = TddUtil::WindowManager;
 class InputMethodAttachTest : public testing::Test {
 public:
     static sptr<InputMethodController> inputMethodController_;
@@ -47,18 +46,13 @@ public:
         inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
         TddUtil::RestoreSelfTokenID();
 
-        TddUtil::WindowManager::RegisterFocusChangeListener();
-        WindowMgr::CreateWindow();
-        WindowMgr::ShowWindow();
-        bool isFocused = FocusChangedListenerTestImpl::isFocused_->GetValue();
-        IMSA_HILOGI("getFocus end, isFocused = %{public}d", isFocused);
+        TddUtil::InitWindow(true);
         inputMethodController_ = InputMethodController::GetInstance();
     }
     static void TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodAttachTest::TearDownTestCase");
-        WindowMgr::HideWindow();
-        WindowMgr::DestroyWindow();
+        TddUtil::DestroyWindow();
     }
     void SetUp()
     {
@@ -243,13 +237,13 @@ HWTEST_F(InputMethodAttachTest, testAttach006, TestSize.Level0)
 }
 
 /**
- * @tc.name: testOnConfigurationChangeWithOutAttach
+ * @tc.name: testOnConfigurationChangeWithoutAttach
  * @tc.desc: test OnConfigurationChange without attach
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeWithOutAttach, TestSize.Level0)
+HWTEST_F(InputMethodAttachTest, testOnConfigurationChangeWithoutAttach, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodAttachTest testOnConfigurationChangeWithOutAttach in.");
+    IMSA_HILOGI("InputMethodAttachTest testOnConfigurationChangeWithoutAttach in.");
     Configuration config;
     EnterKeyType keyType = EnterKeyType::NEXT;
     config.SetEnterKeyType(keyType);

@@ -617,7 +617,9 @@ ohos_unittest("SecurityModeParseTest") {
 
   include_dirs = [
     "${inputmethod_path}/test/unittest/cpp_test/mock",
+    "${inputmethod_path}/common",
     "${inputmethod_path}/services/include",
+    "${inputmethod_path}/services/identity_checker/include",
     "${inputmethod_path}/services/adapter/settings_data_provider/include",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
@@ -629,11 +631,11 @@ ohos_unittest("SecurityModeParseTest") {
     "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_utils.cpp",
     "${inputmethod_path}/services/adapter/settings_data_provider/src/security_mode_parser.cpp",
     "mock/datashare_helper.cpp",
-    "mock/global.cpp",
     "src/security_mode_parser_test.cpp",
   ]
 
   deps = [
+    "${inputmethod_path}/services:inputmethod_service",
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
@@ -641,9 +643,12 @@ ohos_unittest("SecurityModeParseTest") {
   external_deps = [
     "ability_base:zuri",
     "ability_runtime:dataobs_manager",
+    "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
 }

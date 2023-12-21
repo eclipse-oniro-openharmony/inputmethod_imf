@@ -57,6 +57,9 @@ int32_t InputClientStub::OnRemoteRequest(
         case ON_PANEL_STATUS_CHANGE: {
             return OnPanelStatusChangeOnRemote(data, reply);
         }
+        case DEACTIVATE_CLIENT: {
+            return DeactivateClientOnRemote(data, reply);
+        }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
@@ -100,6 +103,12 @@ int32_t InputClientStub::OnPanelStatusChangeOnRemote(MessageParcel &data, Messag
                : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputClientStub::DeactivateClientOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    DeactivateClient();
+    return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputClientStub::OnInputReady(const sptr<IInputMethodAgent> &agent)
 {
     return ErrorCode::NO_ERROR;
@@ -120,6 +129,11 @@ int32_t InputClientStub::OnPanelStatusChange(
     const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
 {
     return InputMethodController::GetInstance()->OnPanelStatusChange(status, windowInfo);
+}
+
+void InputClientStub::DeactivateClient()
+{
+    InputMethodController::GetInstance()->DeactivateClient();
 }
 } // namespace MiscServices
 } // namespace OHOS
