@@ -25,7 +25,6 @@
 #include "i_input_method_agent.h"
 #include "i_input_method_core.h"
 #include "input_attribute.h"
-#include "input_channel.h"
 #include "input_control_channel_proxy.h"
 #include "input_data_channel_proxy.h"
 #include "input_method_agent_stub.h"

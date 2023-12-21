@@ -80,8 +80,6 @@ private:
     int32_t ExitCurrentInputTypeOnRemote(MessageParcel &data, MessageParcel &reply);
 
     // Deprecated because of no permission check, kept for compatibility
-    int32_t DisplayInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
-
     int32_t HideCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
 
     int32_t ShowCurrentInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply);
@@ -132,8 +130,6 @@ private:
           &InputMethodSystemAbilityStub::ShowCurrentInputOnRemoteDeprecated },
         { static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT_DEPRECATED),
           &InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated },
-        { static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_DEPRECATED),
-          &InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated },
         { static_cast<uint32_t>(InputMethodInterfaceCode::STOP_INPUT_SESSION),
           &InputMethodSystemAbilityStub::StopInputSessionOnRemote },
         { static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE),

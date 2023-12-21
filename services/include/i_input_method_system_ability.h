@@ -75,7 +75,6 @@ public:
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;
     virtual int32_t ShowCurrentInputDeprecated() = 0;
-    virtual int32_t DisplayOptionalInputMethodDeprecated() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

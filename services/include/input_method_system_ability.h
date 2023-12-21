@@ -85,7 +85,6 @@ public:
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;
     int32_t ShowCurrentInputDeprecated() override;
-    int32_t DisplayOptionalInputMethodDeprecated() override;
     int Dump(int fd, const std::vector<std::u16string> &args) override;
     void DumpAllMethod(int fd);
 

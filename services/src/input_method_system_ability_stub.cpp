@@ -287,12 +287,6 @@ int32_t InputMethodSystemAbilityStub::HideCurrentInputOnRemoteDeprecated(Message
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputMethodSystemAbilityStub::DisplayInputOnRemoteDeprecated(MessageParcel &data, MessageParcel &reply)
-{
-    int32_t ret = DisplayOptionalInputMethodDeprecated();
-    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
-}
-
 int32_t InputMethodSystemAbilityStub::IsCurrentImeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR, IsCurrentIme()) ? ErrorCode::NO_ERROR

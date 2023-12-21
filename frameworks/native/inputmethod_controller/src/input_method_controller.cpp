@@ -374,7 +374,7 @@ int32_t InputMethodController::DisplayOptionalInputMethod()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    return proxy->DisplayOptionalInputMethodDeprecated();
+    return proxy->DisplayOptionalInputMethod();
 }
 
 bool InputMethodController::WasAttached()
@@ -804,10 +804,6 @@ int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
 
 int32_t InputMethodController::ShowSoftKeyboard()
 {
-    if (!IsEditable()) {
-        IMSA_HILOGD("not editable");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
@@ -821,10 +817,6 @@ int32_t InputMethodController::ShowSoftKeyboard()
 
 int32_t InputMethodController::HideSoftKeyboard()
 {
-    if (!IsEditable()) {
-        IMSA_HILOGD("not editable");
-        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");

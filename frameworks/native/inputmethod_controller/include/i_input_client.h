@@ -18,7 +18,6 @@
 
 #include "global.h"
 #include "i_input_method_agent.h"
-#include "input_channel.h"
 #include "input_method_property.h"
 #include "input_window_info.h"
 #include "iremote_broker.h"

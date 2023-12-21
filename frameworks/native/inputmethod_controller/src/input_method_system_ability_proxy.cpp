@@ -171,11 +171,6 @@ int32_t InputMethodSystemAbilityProxy::HideCurrentInputDeprecated()
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::HIDE_CURRENT_INPUT_DEPRECATED));
 }
 
-int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethodDeprecated()
-{
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::DISPLAY_OPTIONAL_INPUT_DEPRECATED));
-}
-
 int32_t InputMethodSystemAbilityProxy::ListInputMethodSubtype(
     const std::string &name, std::vector<SubProperty> &subProps)
 {

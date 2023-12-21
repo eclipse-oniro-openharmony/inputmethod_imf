@@ -498,23 +498,6 @@ HWTEST_F(IdentityCheckerTest, testHideCurrentInput_003, TestSize.Level0)
     IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
     int32_t ret = IdentityCheckerTest::service_->HideCurrentInput();
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
-}
-
-/**
- * @tc.name: testHideCurrentInput_004
- * @tc.desc: is not broker, has PERMISSION_CONNECT_IME_ABILITY, is focused app
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
-*/
-HWTEST_F(IdentityCheckerTest, testHideCurrentInput_004, TestSize.Level0)
-{
-    IMSA_HILOGI("IdentityCheckerTest testHideCurrentInput_004 start");
-    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
-    IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
-    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
-    int32_t ret = IdentityCheckerTest::service_->HideCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
 
@@ -562,23 +545,6 @@ HWTEST_F(IdentityCheckerTest, testShowCurrentInput_003, TestSize.Level0)
     IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
     IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isFocused_ = false;
-    int32_t ret = IdentityCheckerTest::service_->ShowCurrentInput();
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
-}
-
-/**
- * @tc.name: testShowCurrentInput_004
- * @tc.desc: is not broker, has PERMISSION_CONNECT_IME_ABILITY, is focused app
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
-*/
-HWTEST_F(IdentityCheckerTest, testShowCurrentInput_004, TestSize.Level0)
-{
-    IMSA_HILOGI("IdentityCheckerTest testShowCurrentInput_004 start");
-    IdentityCheckerTest::IdentityCheckerMock::isBroker_ = false;
-    IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
-    IdentityCheckerTest::IdentityCheckerMock::isFocused_ = true;
     int32_t ret = IdentityCheckerTest::service_->ShowCurrentInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
 }
@@ -669,7 +635,7 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_002, TestSize.Level0)
 
 /**
  * @tc.name: testDisplayOptionalInputMethod_001
- * @tc.desc: has no PERMISSION_CONNECT_IME_ABILITY
+ * @tc.desc: has no PERMISSION
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -679,7 +645,7 @@ HWTEST_F(IdentityCheckerTest, testDisplayOptionalInputMethod_001, TestSize.Level
     IMSA_HILOGI("IdentityCheckerTest testDisplayOptionalInputMethod_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
     int32_t ret = IdentityCheckerTest::service_->DisplayOptionalInputMethod();
-    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 /**

@@ -370,10 +370,6 @@ int32_t InputMethodSystemAbility::HideCurrentInput()
     if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
-
-    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
-    }
     return userSession_->OnHideCurrentInput();
 };
 
@@ -386,10 +382,6 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
 
     if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
-
-    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId, userSession_->GetCurrentClientPid())) {
-        return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
     return userSession_->OnShowCurrentInput();
 };
@@ -482,9 +474,6 @@ int32_t InputMethodSystemAbility::IsPanelShown(const PanelInfo &panelInfo, bool 
 int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
-    if (!identityChecker_->HasPermission(IPCSkeleton::GetCallingTokenID(), PERMISSION_CONNECT_IME_ABILITY)) {
-        return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
-    }
     return OnDisplayOptionalInputMethod();
 }
 
@@ -677,11 +666,6 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
         }
     }
     return userSession_->OnShowCurrentInput();
-};
-
-int32_t InputMethodSystemAbility::DisplayOptionalInputMethodDeprecated()
-{
-    return OnDisplayOptionalInputMethod();
 };
 
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()

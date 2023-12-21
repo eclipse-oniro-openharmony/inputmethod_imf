@@ -52,6 +52,7 @@ int32_t InputMethodPanel::CreatePanel(
         return ErrorCode::ERROR_NOT_IME;
     }
     if (window_ == nullptr || wmError != WMError::WM_OK) {
+        IMSA_HILOGE("Create window failed: %{public}d", wmError);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     windowId_ = window_->GetWindowId();

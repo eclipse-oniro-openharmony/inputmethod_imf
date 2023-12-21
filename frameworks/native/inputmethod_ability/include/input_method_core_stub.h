@@ -25,7 +25,6 @@
 #include "i_input_method_agent.h"
 #include "i_input_method_core.h"
 #include "input_attribute.h"
-#include "input_channel.h"
 #include "iremote_broker.h"
 #include "iremote_stub.h"
 #include "message_handler.h"

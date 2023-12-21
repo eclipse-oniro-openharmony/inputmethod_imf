@@ -20,7 +20,6 @@
 #include "i_input_control_channel.h"
 #include "i_input_data_channel.h"
 #include "input_attribute.h"
-#include "input_channel.h"
 #include "input_client_info.h"
 #include "input_method_property.h"
 #include "ipc_types.h"
