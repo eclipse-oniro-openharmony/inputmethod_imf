@@ -109,7 +109,6 @@ bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t 
         return true;
     }
     IMSA_HILOGD("Check ime.");
-    std::string targetName = info.bundleName;
     std::vector<std::string> enableVec;
     int32_t ret = GetEnableData(ENABLE_IME, enableVec, userId);
     if (ret != ErrorCode::NO_ERROR || enableVec.empty()) {
@@ -118,7 +117,7 @@ bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t 
     }
 
     auto iter = std::find_if(
-        enableVec.begin(), enableVec.end(), [&targetName](const std::string &ime) { return targetName == ime; });
+        enableVec.begin(), enableVec.end(), [&info](const std::string &ime) { return info.bundleName == ime; });
     if (iter != enableVec.end()) {
         IMSA_HILOGD("In enable list.");
         return true;
