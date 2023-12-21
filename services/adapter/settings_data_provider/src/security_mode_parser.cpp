@@ -107,6 +107,7 @@ bool SecurityModeParser::ParseJsonData(const std::string& valueStr, const int32_
 
 int32_t SecurityModeParser::GetSecurityMode(const std::string bundleName, int32_t &security, const int32_t userId)
 {
+    GetFullModeList(userId);
     if (IsFullMode(bundleName)) {
         security = static_cast<int32_t>(SecurityMode::FULL);
     } else {
