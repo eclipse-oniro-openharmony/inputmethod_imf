@@ -26,7 +26,17 @@ namespace MiscServices {
 constexpr uint32_t INIT_WINDOW_ID = 0;
 constexpr uint32_t INVALID_WINDOW_ID = INIT_WINDOW_ID - 1;
 constexpr int32_t INVALID_VALUE = -1;
-enum class EnterKeyType { UNSPECIFIED = 0, NONE, GO, SEARCH, SEND, NEXT, DONE, PREVIOUS };
+enum class EnterKeyType {
+    UNSPECIFIED = 0,
+    NONE,
+    GO,
+    SEARCH,
+    SEND,
+    NEXT,
+    DONE,
+    PREVIOUS,
+    NEW_LINE,
+};
 
 enum class TextInputType {
     NONE = -1,
@@ -40,6 +50,9 @@ enum class TextInputType {
     VISIBLE_PASSWORD,
     NUMBER_PASSWORD,
     SCREEN_LOCK_PASSWORD,
+    USER_NAME,
+    NEW_PASSWORD,
+    NUMBER_DECIMAL,
 };
 
 enum class Direction {
