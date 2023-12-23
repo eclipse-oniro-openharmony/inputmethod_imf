@@ -218,7 +218,7 @@ void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
 {
     std::lock_guard<std::mutex> lock(textConfigLock_);
     IMSA_HILOGD("inputPattern: %{public}d, enterKeyType: %{public}d, windowId: %{public}d",
-        textConfig.inputAttribute.enterKeyType, textConfig.inputAttribute.enterKeyType, textConfig.windowId);
+        textConfig.inputAttribute.inputPattern, textConfig.inputAttribute.enterKeyType, textConfig.windowId);
     textConfig_ = textConfig;
 }
 
@@ -655,15 +655,15 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     }
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
-        textConfig_.inputAttribute.enterKeyType = static_cast<uint32_t>(info.GetEnterKeyType());
-        textConfig_.inputAttribute.inputPattern = static_cast<uint32_t>(info.GetTextInputType());
+        textConfig_.inputAttribute.enterKeyType = static_cast<int32_t>(info.GetEnterKeyType());
+        textConfig_.inputAttribute.inputPattern = static_cast<int32_t>(info.GetTextInputType());
     }
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    IMSA_HILOGI("IMC enterKeyType: %{public}d, textInputType: %{public}d",
-        static_cast<uint32_t>(info.GetEnterKeyType()), static_cast<uint32_t>(info.GetTextInputType()));
+    IMSA_HILOGI("IMC enterKeyType: %{public}d, textInputType: %{public}d", textConfig_.inputAttribute.enterKeyType,
+        textConfig_.inputAttribute.inputPattern);
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
