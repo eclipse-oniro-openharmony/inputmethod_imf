@@ -30,8 +30,7 @@ const std::map<CombinationKeyFunction, std::set<uint8_t>> COMBINATION_KEY_MAP{
             KeyboardEvent::SHIFT_RIGHT_MASK | KeyboardEvent::CTRL_RIGHT_MASK,
             KeyboardEvent::SHIFT_LEFT_MASK | KeyboardEvent::CTRL_RIGHT_MASK,
             KeyboardEvent::SHIFT_RIGHT_MASK | KeyboardEvent::CTRL_LEFT_MASK,
-            KeyboardEvent::META_LEFT_MASK | KeyboardEvent::SPACE_MASK,
-            KeyboardEvent::META_RIGHT_MASK | KeyboardEvent::SPACE_MASK,
+            KeyboardEvent::META_MASK | KeyboardEvent::SPACE_MASK,
         } },
     { CombinationKeyFunction::SWITCH_MODE, { KeyboardEvent::CAPS_MASK } },
 };

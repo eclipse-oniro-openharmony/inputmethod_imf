@@ -103,7 +103,8 @@ bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &sw
 
 bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t userId)
 {
-    IMSA_HILOGD("Current userId %{public}d, target userId %{puclic}d", currrentUserId_, userId);
+    IMSA_HILOGD("Current userId %{public}d, target userId %{public}d, check bundleName %{public}s", currrentUserId_,
+        userId, info.bundleName.c_str());
     if (info.bundleName == GetDefaultIme()->name) {
         IMSA_HILOGD("Default ime, permit to switch");
         return true;
@@ -242,6 +243,7 @@ const std::string EnableImeDataParser::GetJsonListName(const std::string &key)
 std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()
 {
     if (defaultImeInfo_ != nullptr) {
+        IMSA_HILOGD("default ime: %{public}s", defaultImeInfo_->name.c_str());
         return defaultImeInfo_;
     }
     defaultImeInfo_ = std::make_shared<Property>();

@@ -21,6 +21,7 @@
 
 #include "global.h"
 #include "key_event.h"
+#include "key_option.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -35,9 +36,9 @@ public:
     static constexpr uint8_t CTRL_LEFT_MASK = 0X1 << 2;
     static constexpr uint8_t CTRL_RIGHT_MASK = 0X1 << 3;
     static constexpr uint8_t CAPS_MASK = 0X1 << 4;
-    static constexpr uint8_t META_LEFT_MASK = 0X1 << 5;
-    static constexpr uint8_t META_RIGHT_MASK = 0X1 << 6;
-    static constexpr uint8_t SPACE_MASK = 0X1 << 7;
+    static constexpr uint8_t META_MASK = 0X1 << 5;
+    static constexpr uint8_t SPACE_MASK = 0X1 << 6;
+    using CombinationKeyCallBack = std::function<void(std::shared_ptr<MMI::KeyEvent> keyEvent)>;
 
 private:
     static constexpr int32_t PRESS_KEY_DELAY_MS = 200;
@@ -46,6 +47,7 @@ private:
     KeyboardEvent(KeyboardEvent &&) = delete;
     KeyboardEvent &operator=(const KeyboardEvent &) = delete;
     KeyboardEvent &operator=(KeyboardEvent &&) = delete;
+    static void SubscribeCombinationKey(int32_t preKey, int32_t finalKey, CombinationKeyCallBack callback);
 };
 } // namespace MiscServices
 } // namespace OHOS
