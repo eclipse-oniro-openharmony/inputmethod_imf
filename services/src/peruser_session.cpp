@@ -36,6 +36,7 @@
 #include "system_ability_definition.h"
 #include "unistd.h"
 #include "want.h"
+#include "wms_connection_observer.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -218,12 +219,12 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
  * It's called when an ime died
  * @param the remote object handler of the ime who died.
  */
-void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType type)
+void PerUserSession::OnImeDied(int32_t userId, const sptr<IInputMethodCore> &remote, ImeType type)
 {
     if (remote == nullptr) {
         return;
     }
-    IMSA_HILOGI("type: %{public}d", type);
+    IMSA_HILOGI("user: %{public}d ime: %{public}d died", userId, type);
     RemoveImeData(type);
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
@@ -232,7 +233,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     }
     if (type == ImeType::IME) {
         InputTypeManager::GetInstance().Set(false);
-        RestartIme();
+        RestartIme(userId);
     }
 }
 
@@ -669,16 +670,17 @@ bool PerUserSession::IsRestartIme()
     return manager.num <= MAX_RESTART_NUM;
 }
 
-void PerUserSession::RestartIme()
+void PerUserSession::RestartIme(int32_t userId)
 {
+    IMSA_HILOGI("user: %{public}d ime restart", userId);
     if (!IsRestartIme()) {
         IMSA_HILOGI("ime deaths over max num");
         return;
     }
-    if (!IsReadyToStartIme()) {
+    if (!IsWmsReady(userId)) {
+        IMSA_HILOGI("wms not ready, wait");
         return;
     }
-    IMSA_HILOGI("user %{public}d ime died, restart!", userId_);
     StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_), true);
 }
 
@@ -758,7 +760,8 @@ int32_t PerUserSession::AddImeData(ImeType type, sptr<IInputMethodCore> core, sp
         IMSA_HILOGE("failed to new deathRecipient");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    deathRecipient->SetDeathRecipient([this, core, type](const wptr<IRemoteObject> &) { this->OnImeDied(core, type); });
+    int32_t userId = userId_;
+    deathRecipient->SetDeathRecipient([this, core, type, userId](const wptr<IRemoteObject> &) { this->OnImeDied(userId, core, type); });
     auto coreObject = core->AsObject();
     if (coreObject == nullptr || !coreObject->AddDeathRecipient(deathRecipient)) {
         IMSA_HILOGE("failed to add death recipient");
@@ -960,8 +963,12 @@ int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInf
     return ErrorCode::NO_ERROR;
 }
 
-bool PerUserSession::IsReadyToStartIme()
+bool PerUserSession::IsWmsReady(int32_t userId)
 {
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        IMSA_HILOGI("scb enable, but wms not connected, wait");
+        return WmsConnectionObserver::IsWmsConnected(userId);
+    }
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemAbilityManager == nullptr) {

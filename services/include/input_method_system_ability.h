@@ -130,7 +130,7 @@ private:
     bool stop_ = false;
     void InitMonitors();
     int32_t InitKeyEventMonitor();
-    bool InitFocusChangeMonitor();
+    bool InitWmsMonitor();
     void InitSystemLanguageMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
@@ -145,6 +145,7 @@ private:
     void DatashareCallback(const std::string &key);
     bool enableImeOn_ = false;
     bool enableSecurityMode_ = false;
+    bool isScbEnable_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS
