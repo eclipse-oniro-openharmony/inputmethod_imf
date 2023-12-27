@@ -344,54 +344,59 @@ int32_t ImeInfoInquirer::ListInputMethod(const int32_t userId, std::vector<Prope
     return ErrorCode::NO_ERROR;
 }
 
+std::vector<std::string> ImeInfoInquirer::GetEnableData(int32_t userId)
+{
+    std::vector<std::string> enableVec;
+    auto ret = EnableImeDataParser::GetInstance()->GetEnableData(EnableImeDataParser::ENABLE_IME, enableVec, userId);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("Get enable data failed, ret: %{public}d", ret);
+        return enableVec;
+    }
+    auto info = GetDefaultImeInfo(userId);
+    if (info != nullptr) {
+        enableVec.insert(enableVec.begin(), info->prop.name);
+    }
+    return enableVec;
+}
+
 int32_t ImeInfoInquirer::ListEnabledInputMethod(const int32_t userId, std::vector<Property> &props, bool enableOn)
 {
-    IMSA_HILOGD("userId: %{public}d", userId);
+    IMSA_HILOGD("userId: %{public}d, enableOn: %{public}d", userId, enableOn);
     int32_t ret = ListInputMethod(userId, props);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("userId: %{public}d listInputMethod failed", userId);
         return ret;
     }
-    if (enableOn) {
-        IMSA_HILOGD("enable on");
-        std::vector<std::string> enableVec;
-        ret = EnableImeDataParser::GetInstance()->GetEnableData(EnableImeDataParser::ENABLE_IME, enableVec, userId);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("Get enable data failed;");
-            return ret;
-        }
-        enableVec.insert(enableVec.begin(), GetDefaultImeInfo(userId)->prop.name);
-
-        auto newEnd = std::remove_if(props.begin(), props.end(), [&enableVec](const auto &prop) {
-            return std::find(enableVec.begin(), enableVec.end(), prop.name) == enableVec.end();
-        });
-        props.erase(newEnd, props.end());
+    if (!enableOn) {
+        return ErrorCode::NO_ERROR;
     }
+    auto enableVec = GetEnableData(userId);
+    if (enableVec.empty()) {
+        return ErrorCode::ERROR_ENABLE_IME;
+    }
+    auto newEnd = std::remove_if(props.begin(), props.end(), [&enableVec](const auto &prop) {
+        return std::find(enableVec.begin(), enableVec.end(), prop.name) == enableVec.end();
+    });
+    props.erase(newEnd, props.end());
+
     return ErrorCode::NO_ERROR;
 }
 
 int32_t ImeInfoInquirer::ListDisabledInputMethod(const int32_t userId, std::vector<Property> &props, bool enableOn)
 {
-    IMSA_HILOGD("userId: %{public}d", userId);
+    IMSA_HILOGD("userId: %{public}d, enableOn: %{public}d", userId, enableOn);
     if (!enableOn) {
-        IMSA_HILOGD("Enable mode off, get disabled ime.");
         return ErrorCode::NO_ERROR;
     }
-
     auto ret = ListInputMethod(userId, props);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("userId: %{public}d listInputMethod failed", userId);
         return ret;
     }
-
-    std::vector<std::string> enableVec;
-    ret = EnableImeDataParser::GetInstance()->GetEnableData(EnableImeDataParser::ENABLE_IME, enableVec, userId);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("Get enable data failed;");
-        return ret;
+    auto enableVec = GetEnableData(userId);
+    if (enableVec.empty()) {
+        return ErrorCode::ERROR_ENABLE_IME;
     }
-    enableVec.insert(enableVec.begin(), GetDefaultImeInfo(userId)->prop.name);
-
     auto newEnd = std::remove_if(props.begin(), props.end(), [&enableVec](const auto &prop) {
         return std::find(enableVec.begin(), enableVec.end(), prop.name) != enableVec.end();
     });
@@ -401,12 +406,10 @@ int32_t ImeInfoInquirer::ListDisabledInputMethod(const int32_t userId, std::vect
 
 int32_t ImeInfoInquirer::GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userId, bool enableOn)
 {
-    std::vector<Property> props = {};
-    switchInfo.bundleName = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId)->prop.name;
-    switchInfo.subName = "";
+    std::vector<Property> props;
     auto ret = ListEnabledInputMethod(userId, props, enableOn);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("userId: %{public}d ListEnabledInputMethod failed", userId);
+    if (ret != ErrorCode::NO_ERROR || props.empty()) {
+        IMSA_HILOGE("userId: %{public}d ListEnabledInputMethod failed, ret: %{public}d", userId, ret);
         return ret;
     }
     auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
@@ -414,10 +417,16 @@ int32_t ImeInfoInquirer::GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userI
         [&currentImeBundle](const Property &property) { return property.name == currentImeBundle; });
     if (iter == props.end()) {
         IMSA_HILOGE("Can not found current ime");
-    } else {
-        auto nextIter = std::next(iter);
-        switchInfo.bundleName = nextIter == props.end() ? props[0].name.c_str() : nextIter->name;
+        auto info = GetDefaultImeInfo(userId);
+        if (info != nullptr) {
+            switchInfo.bundleName = info->prop.name;
+            return ErrorCode::NO_ERROR;
+        }
+        IMSA_HILOGE("bundle manager error");
+        return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
+    auto nextIter = std::next(iter);
+    switchInfo.bundleName = nextIter == props.end() ? props[0].name : nextIter->name;
     IMSA_HILOGD("Next ime: %{public}s", switchInfo.bundleName.c_str());
     return ErrorCode::NO_ERROR;
 }

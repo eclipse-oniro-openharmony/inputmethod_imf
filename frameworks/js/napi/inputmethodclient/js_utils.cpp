@@ -53,6 +53,7 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_IME, EXCEPTION_IMENGINE },
     { ErrorCode::ERROR_PARAMETER_CHECK_FAILED, EXCEPTION_PARAMCHECK },
     { ErrorCode::ERROR_NOT_DEFAULT_IME, EXCEPTION_DEFAULTIME },
+    { ErrorCode::ERROR_ENABLE_IME, EXCEPTION_IMMS },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {

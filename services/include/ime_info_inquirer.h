@@ -112,6 +112,7 @@ private:
     void ParseSubProp(const nlohmann::json &jsonSubProp, SubProperty &subProp);
     void ParseLanguage(const std::string &locale, std::string &language);
     bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
+    std::vector<std::string> GetEnableData(int32_t userId);
 
     ImeConfig imeConfig_;
     std::mutex currentImeInfoLock_;
