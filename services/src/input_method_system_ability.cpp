@@ -1072,11 +1072,11 @@ bool InputMethodSystemAbility::IsStartInputTypePermitted()
         IMSA_HILOGE("failed to get default ime");
         return false;
     }
-    if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), defaultIme->prop.name)) {
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (identityChecker_->IsBundleNameValid(tokenId, defaultIme->prop.name)) {
         return true;
     }
-    return identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid())
-           && userSession_->IsBoundToClient();
+    return identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId) && userSession_->IsBoundToClient();
 }
 } // namespace MiscServices
 } // namespace OHOS
