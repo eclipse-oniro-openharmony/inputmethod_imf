@@ -953,17 +953,12 @@ void InputMethodAbility::NotifyKeyboardHeight(const std::shared_ptr<InputMethodP
         IMSA_HILOGW("current panel is not soft keyboard");
         return;
     }
-    if (!inputMethodPanel->IsNeedNotifyHeight()) {
-        IMSA_HILOGD("do not need notify keyboard height");
-        return;
-    }
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr");
         return;
     }
-    if (inputMethodPanel->GetPanelFlag() == PanelFlag::FLG_FLOATING) {
-        IMSA_HILOGD("channel is nullptr");
+    if (inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
         channel->NotifyKeyboardHeight(0);
         return;
     }

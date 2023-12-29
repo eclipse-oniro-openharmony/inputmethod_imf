@@ -129,7 +129,6 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         auto code = ctxt->inputMethodPanel->SetUiContent(
             ctxt->path, env, ctxt->contentStorage);
         CHECK_RETURN(code == ErrorCode::NO_ERROR, "SetUiContent failed!", napi_generic_failure);
-        InputMethodAbility::GetInstance()->NotifyKeyboardHeight(ctxt->inputMethodPanel);
         return napi_ok;
     };
     ctxt->SetAction(std::move(input), std::move(output));
@@ -157,6 +156,7 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
         CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
         auto code = ctxt->inputMethodPanel->Resize(ctxt->width, ctxt->height);
         if (code == ErrorCode::NO_ERROR) {
+            InputMethodAbility::GetInstance()->NotifyKeyboardHeight(ctxt->inputMethodPanel);
             ctxt->SetState(napi_ok);
             return;
         }
@@ -246,6 +246,7 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
     CHECK_RETURN(ret == ErrorCode::NO_ERROR, "ChangePanelFlag failed!", nullptr);
+    InputMethodAbility::GetInstance()->NotifyKeyboardHeight(inputMethodPanel);
     return nullptr;
 }
 

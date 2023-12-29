@@ -30,6 +30,8 @@ int32_t TextListener::selectionEnd_ = -1;
 int32_t TextListener::selectionDirection_ = -1;
 int32_t TextListener::selectionSkip_ = -1;
 int32_t TextListener::action_ = -1;
+uint32_t TextListener::height_ = 0;
+
 KeyboardStatus TextListener::keyboardStatus_ = { KeyboardStatus::NONE };
 PanelStatusInfo TextListener::info_{};
 
@@ -39,7 +41,9 @@ TextListener::TextListener()
     serviceHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
 }
 
-TextListener::~TextListener() {}
+TextListener::~TextListener()
+{
+}
 
 void TextListener::InsertText(const std::u16string &text)
 {
@@ -61,7 +65,9 @@ void TextListener::DeleteBackward(int32_t length)
     IMSA_HILOGI("TextChangeListener: DeleteBackward, direction is: %{public}d", length);
 }
 
-void TextListener::SendKeyEventFromInputMethod(const KeyEvent &event) {}
+void TextListener::SendKeyEventFromInputMethod(const KeyEvent &event)
+{
+}
 
 void TextListener::SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
 {
@@ -112,18 +118,22 @@ void TextListener::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
     textListenerCv_.notify_one();
     IMSA_HILOGI("TextChangeListener, selectionDirection_: %{public}d", selectionDirection_);
 }
+
 std::u16string TextListener::GetLeftTextOfCursor(int32_t number)
 {
     return Str8ToStr16(TEXT_BEFORE_CURSOR);
 }
+
 std::u16string TextListener::GetRightTextOfCursor(int32_t number)
 {
     return Str8ToStr16(TEXT_AFTER_CURSOR);
 }
+
 int32_t TextListener::GetTextIndexAtCursor()
 {
     return TEXT_INDEX;
 }
+
 void TextListener::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
     IMSA_HILOGD("TextListener::type: %{public}d, flag: %{public}d, visible: %{public}d, trigger: %{public}d.",
@@ -132,6 +142,14 @@ void TextListener::NotifyPanelStatusInfo(const PanelStatusInfo &info)
     info_ = info;
     textListenerCv_.notify_one();
 }
+
+void TextListener::NotifyKeyboardHeight(uint32_t height)
+{
+    IMSA_HILOGD("keyboard height: %{public}u", height);
+    height_ = height;
+    textListenerCv_.notify_one();
+}
+
 void TextListener::ResetParam()
 {
     direction_ = -1;
@@ -147,7 +165,9 @@ void TextListener::ResetParam()
     action_ = -1;
     keyboardStatus_ = KeyboardStatus::NONE;
     info_ = {};
+    height_ = 0;
 }
+
 bool TextListener::WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
@@ -155,11 +175,19 @@ bool TextListener::WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboard
         lock, std::chrono::seconds(1), [&keyboardStatus]() { return keyboardStatus == keyboardStatus_; });
     return keyboardStatus == keyboardStatus_;
 }
+
 bool TextListener::WaitNotifyPanelStatusInfoCallback(const PanelStatusInfo &info)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     textListenerCv_.wait_for(lock, std::chrono::seconds(1), [info]() { return info == info_; });
     return info == info_;
+}
+
+bool TextListener::WaitNotifyKeyboardHeightCallback(uint32_t height)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [height]() { return height_ == height; });
+    return height_ == height;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -124,9 +124,8 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     {
-        std::lock_guard<std::mutex> lock(notifyHeightLock_);
+        std::lock_guard<std::mutex> lock(heightLock_);
         panelHeight_ = height;
-        isChangeHeight_ = true;
     }
     return ErrorCode::NO_ERROR;
 }
@@ -412,12 +411,10 @@ bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
     return true;
 }
 
-bool InputMethodPanel::IsNeedNotifyHeight()
+uint32_t InputMethodPanel::GetHeight()
 {
-    std::lock_guard<std::mutex> lock(notifyHeightLock_);
-    bool tempNotifyFlag = isChangeHeight_;
-    isChangeHeight_ = false;
-    return tempNotifyFlag;
+    std::lock_guard<std::mutex> lock(heightLock_);
+    return panelHeight_;
 }
 } // namespace MiscServices
 } // namespace OHOS

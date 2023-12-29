@@ -126,7 +126,7 @@ int32_t InputDataChannelProxy::HandleExtendAction(int32_t action)
 
 void InputDataChannelProxy::NotifyKeyboardHeight(uint32_t height)
 {
-    return SendRequest(
+    SendRequest(
         NOTIFY_KEYBOARD_HEIGHT, [height](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, height); });
 }
 
