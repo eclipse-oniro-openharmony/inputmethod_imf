@@ -80,7 +80,7 @@ bool IdentityCheckerImpl::IsBroker(AccessTokenID tokenId)
     NativeTokenInfo nativeTokenInfoRes;
     AccessTokenKit::GetNativeTokenInfo(tokenId, nativeTokenInfoRes);
     if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE
-        && nativeTokenInfoRes.processName == "broker" && nativeTokenInfoRes.apl == ATokenAplEnum::APL_SYSTEM_BASIC) {
+        && nativeTokenInfoRes.processName == "broker") {
         return true;
     }
     return false;
@@ -90,9 +90,7 @@ bool IdentityCheckerImpl::IsNativeSa(AccessTokenID tokenId)
 {
     NativeTokenInfo nativeTokenInfoRes;
     AccessTokenKit::GetNativeTokenInfo(tokenId, nativeTokenInfoRes);
-    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE
-        && (nativeTokenInfoRes.apl == ATokenAplEnum::APL_SYSTEM_BASIC
-            || nativeTokenInfoRes.apl == ATokenAplEnum::APL_SYSTEM_CORE)) {
+    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE) {
         return true;
     }
     return false;
