@@ -51,6 +51,7 @@ public:
     int32_t GetTextIndexAtCursor(int32_t &index) override;
     int32_t GetTextConfig(TextTotalConfig &textConfig) override;
     void NotifyPanelStatusInfo(const PanelStatusInfo &info) override;
+    void NotifyKeyboardHeight(uint32_t height) override;
 
 private:
     static inline BrokerDelegator<InputDataChannelProxy> delegator_;

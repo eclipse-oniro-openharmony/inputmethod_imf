@@ -1098,6 +1098,17 @@ void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
     }
 }
 
+void InputMethodController::NotifyKeyboardHeight(uint32_t height)
+{
+    IMSA_HILOGD("InputMethodController, height: %{public}u.", height);
+    auto listener = GetTextListener();
+    if (listener == nullptr) {
+        IMSA_HILOGE("textListener_ is nullptr");
+        return;
+    }
+    listener->NotifyKeyboardHeight(height);
+}
+
 int32_t InputMethodController::SendFunctionKey(int32_t functionKey)
 {
     IMSA_HILOGD("run in, functionKey: %{public}d", static_cast<int32_t>(functionKey));

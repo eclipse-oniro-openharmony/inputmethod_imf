@@ -53,6 +53,9 @@ public:
     virtual void NotifyPanelStatusInfo(const PanelStatusInfo &info)
     {
     }
+    virtual void NotifyKeyboardHeight(uint32_t height)
+    {
+    }
     virtual void SendFunctionKey(const FunctionKey &functionKey) = 0;
     virtual void SetKeyboardStatus(bool status) = 0;
     virtual void MoveCursor(const Direction direction) = 0;
@@ -618,6 +621,16 @@ public:
      * @since 11
      */
     IMF_API void NotifyPanelStatusInfo(const PanelStatusInfo &info);
+
+    /**
+     * @brief Send panel height.
+     *
+     * This function is used to send panel height to editor.
+     *
+     * @param info Indicates the panel height.
+     * @since 11
+     */
+    IMF_API void NotifyKeyboardHeight(uint32_t height);
 
     /**
      * @brief Send function key.

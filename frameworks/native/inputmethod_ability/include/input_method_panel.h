@@ -49,6 +49,7 @@ public:
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
+    uint32_t GetHeight();
     uint32_t windowId_ = 0;
 
 private:
@@ -70,6 +71,8 @@ private:
     std::shared_ptr<PanelStatusListener> panelStatusListener_ = nullptr;
 
     static std::atomic<uint32_t> sequenceId_;
+    std::mutex heightLock_;
+    uint32_t panelHeight_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

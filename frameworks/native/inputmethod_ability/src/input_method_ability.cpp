@@ -944,5 +944,27 @@ int32_t InputMethodAbility::OnTextConfigChange(const InputClientInfo &clientInfo
     InvokeTextChangeCallback(clientInfo.config);
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
+
+void InputMethodAbility::NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel)
+{
+    if (inputMethodPanel == nullptr) {
+        IMSA_HILOGE("inputMethodPanel is nullptr");
+        return;
+    }
+    if (inputMethodPanel->GetPanelType() != PanelType::SOFT_KEYBOARD) {
+        IMSA_HILOGW("current panel is not soft keyboard");
+        return;
+    }
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("channel is nullptr");
+        return;
+    }
+    if (inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
+        channel->NotifyKeyboardHeight(0);
+        return;
+    }
+    channel->NotifyKeyboardHeight(inputMethodPanel->GetHeight());
+}
 } // namespace MiscServices
 } // namespace OHOS
