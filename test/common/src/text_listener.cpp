@@ -31,10 +31,8 @@ int32_t TextListener::selectionDirection_ = -1;
 int32_t TextListener::selectionSkip_ = -1;
 int32_t TextListener::action_ = -1;
 uint32_t TextListener::height_ = 0;
-
 KeyboardStatus TextListener::keyboardStatus_ = { KeyboardStatus::NONE };
 PanelStatusInfo TextListener::info_{};
-
 TextListener::TextListener()
 {
     std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("TextListenerNotifier");
