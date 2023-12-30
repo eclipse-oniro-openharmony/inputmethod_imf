@@ -398,15 +398,16 @@ int32_t InputMethodAbility::ShowKeyboard()
 
 void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
-    // only notify the status info of soft keyboard(not contain candidate column) at present
-    if (info.panelInfo.panelType != PanelType::SOFT_KEYBOARD
-        || info.panelInfo.panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN) {
+    // CANDIDATE_COLUMN not notify
+    if (info.panelInfo.panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN) {
         return;
     }
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
-        info.visible ? channel->SendKeyboardStatus(KeyboardStatus::SHOW)
-                     : channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+        if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD) {
+            info.visible ? channel->SendKeyboardStatus(KeyboardStatus::SHOW)
+                         : channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+        }
         channel->NotifyPanelStatusInfo(info);
     }
 
