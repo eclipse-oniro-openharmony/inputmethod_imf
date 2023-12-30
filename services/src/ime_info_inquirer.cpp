@@ -715,6 +715,10 @@ int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared
 std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 {
     auto defaultIme = GetDefaultImeCfgProp();
+    if (defaultIme == nullptr) {
+        IMSA_HILOGE("defaultIme is nullptr.");
+        return nullptr;
+    }
     auto info = GetImeInfoFromBundleMgr(userId, defaultIme->name, "");
     if (info == nullptr) {
         IMSA_HILOGE("userId: %{public}d, bundleName: %{public}s getImeInfoFromBundleMgr failed", userId,

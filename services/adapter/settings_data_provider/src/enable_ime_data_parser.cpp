@@ -69,7 +69,7 @@ void EnableImeDataParser::OnUserChanged(const int32_t targetUserId)
     currrentUserId_ = targetUserId;
     if (GetEnableData(ENABLE_IME, enableList_[std::string(ENABLE_IME)], targetUserId) != ErrorCode::NO_ERROR
         || GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], targetUserId)
-               != ErrorCode::NO_ERROR) {
+           != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("get enable list failed.");
         return;
     }
