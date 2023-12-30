@@ -956,7 +956,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
     inputMethodAbility_->NotifyKeyboardHeight(panel);
     EXPECT_TRUE(TextListener::WaitNotifyKeyboardHeightCallback(0));
 
-    ret = inputMethodAbility_->DestroyPanel(panel); 
+    ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
