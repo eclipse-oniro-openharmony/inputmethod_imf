@@ -714,24 +714,17 @@ int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared
 
 std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 {
-    auto ime = GetDefaultIme();
-    auto pos = ime.find('/');
-    if (pos == std::string::npos || pos + 1 >= ime.size()) {
-        IMSA_HILOGE("defaultIme: %{public}s is abnormal", ime.c_str());
-        return nullptr;
-    }
-    auto bundleName = ime.substr(0, pos);
-    auto extName = ime.substr(pos + 1);
-    auto info = GetImeInfoFromBundleMgr(userId, bundleName, "");
+    auto defaultIme = GetDefaultImeCfgProp();
+    auto info = GetImeInfoFromBundleMgr(userId, defaultIme->name, "");
     if (info == nullptr) {
-        IMSA_HILOGE(
-            "userId: %{public}d, bundleName: %{public}s getImeInfoFromBundleMgr failed", userId, bundleName.c_str());
+        IMSA_HILOGE("userId: %{public}d, bundleName: %{public}s getImeInfoFromBundleMgr failed", userId,
+            defaultIme->name.c_str());
         return nullptr;
     }
     if (!info->isNewIme) {
-        info->prop.id = extName;
+        info->prop.id = defaultIme->id;
         auto it = std::find_if(info->subProps.begin(), info->subProps.end(),
-            [&extName](const SubProperty &subProp) { return subProp.id == extName; });
+            [defaultIme](const SubProperty &subProp) { return subProp.id == defaultIme->id; });
         if (it != info->subProps.end()) {
             info->subProp = *it;
         }
@@ -820,8 +813,7 @@ bool ImeInfoInquirer::ParseSubProp(const std::vector<std::string> &profiles, std
 
 bool ImeInfoInquirer::ParseSubProp(const json &jsonSubProps, std::vector<SubProperty> &subProps)
 {
-    if (!jsonSubProps.contains("subtypes") || !jsonSubProps["subtypes"].is_array() ||
-        jsonSubProps["subtypes"].empty()) {
+    if (!jsonSubProps.contains("subtypes") || !jsonSubProps["subtypes"].is_array() || jsonSubProps["subtypes"].empty()) {
         IMSA_HILOGE("the context of json file is abnormal");
         return false;
     }
@@ -854,6 +846,20 @@ void ImeInfoInquirer::ParseSubProp(const json &jsonSubProp, SubProperty &subProp
     if (jsonSubProp.find("locale") != jsonSubProp.end() && jsonSubProp["locale"].is_string()) {
         jsonSubProp.at("locale").get_to(subProp.locale);
     }
+}
+
+std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()
+{
+    auto ime = GetDefaultIme();
+    auto pos = ime.find('/');
+    if (pos == std::string::npos || pos + 1 >= ime.size()) {
+        IMSA_HILOGE("defaultIme: %{public}s is abnormal", ime.c_str());
+        return nullptr;
+    }
+    auto defaultIme = std::make_shared<Property>();
+    auto defaultIme->name = ime.substr(0, pos);
+    auto defaultIme->id = ime.substr(pos + 1);
+    return defaultIme;
 }
 } // namespace MiscServices
 } // namespace OHOS
