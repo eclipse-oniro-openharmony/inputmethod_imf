@@ -817,7 +817,8 @@ bool ImeInfoInquirer::ParseSubProp(const std::vector<std::string> &profiles, std
 
 bool ImeInfoInquirer::ParseSubProp(const json &jsonSubProps, std::vector<SubProperty> &subProps)
 {
-    if (!jsonSubProps.contains("subtypes") || !jsonSubProps["subtypes"].is_array() || jsonSubProps["subtypes"].empty()) {
+    if (!jsonSubProps.contains("subtypes") || !jsonSubProps["subtypes"].is_array() ||
+        jsonSubProps["subtypes"].empty()) {
         IMSA_HILOGE("the context of json file is abnormal");
         return false;
     }
@@ -861,8 +862,8 @@ std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()
         return nullptr;
     }
     auto defaultIme = std::make_shared<Property>();
-    auto defaultIme->name = ime.substr(0, pos);
-    auto defaultIme->id = ime.substr(pos + 1);
+    defaultIme->name = ime.substr(0, pos);
+    defaultIme->id = ime.substr(pos + 1);
     return defaultIme;
 }
 } // namespace MiscServices
