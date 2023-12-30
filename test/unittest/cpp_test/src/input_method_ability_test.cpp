@@ -126,31 +126,43 @@ public:
     void CheckPanelStatusInfo(const std::shared_ptr<InputMethodPanel> &panel, const PanelStatusInfo &info)
     {
         TextListener::ResetParam();
-        if (info.visible) {
-            auto ret = inputMethodAbility_->ShowPanel(panel);
-            EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-            if (info.panelInfo.panelType == SOFT_KEYBOARD && info.panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
+        info.visible ? CheckPanelInfoInShow(panel, info) : CheckPanelInfoInHide(panel, info);
+    }
+    void CheckPanelInfoInShow(const std::shared_ptr<InputMethodPanel> &panel, const PanelStatusInfo &info)
+    {
+        auto ret = inputMethodAbility_->ShowPanel(panel);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        if (info.panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
+            if (info.panelInfo.panelType == SOFT_KEYBOARD) {
                 EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-                EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(
-                    { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
             } else {
                 EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-                EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(
-                    { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
             }
-            return;
-        }
-        auto ret = inputMethodAbility_->HidePanel(panel);
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        if (info.panelInfo.panelType == SOFT_KEYBOARD && info.panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
-            EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
             EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(
                 { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
-        } else {
-            EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
-            EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(
-                { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
+            return;
         }
+        EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
+        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(
+            { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
+    }
+    void CheckPanelInfoInHide(const std::shared_ptr<InputMethodPanel> &panel, const PanelStatusInfo &info)
+    {
+        auto ret = inputMethodAbility_->HidePanel(panel);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        if (info.panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
+            if (info.panelInfo.panelType == SOFT_KEYBOARD) {
+                EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
+            } else {
+                EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
+            };
+            EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(
+                { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
+            return;
+        }
+        EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
+        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(
+            { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
     }
 };
 
