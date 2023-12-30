@@ -16,6 +16,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include <condition_variable>
 #include <string>
 #include <vector>
 
@@ -36,8 +37,11 @@ public:
     static void CheckCurrentProp(const std::string &extName);
     static void CheckCurrentSubProp(const std::string &extName);
     static void CheckCurrentSubProps();
+    static bool WaitImeChangeCallback(bool isChanged);
     static sptr<InputMethodController> imc_;
     static bool imeChangeFlag;
+    static std::mutex imeChangeCallbackLock_;
+    static std::condition_variable imeChangeCv_;
     static std::string newImeBundleName;
     static std::vector<std::string> newImeSubName;
     static std::string bundleName;
@@ -49,6 +53,8 @@ public:
     static std::string allEnableIme;
 };
 bool InputMethodSwitchTest::imeChangeFlag = false;
+std::mutex InputMethodSwitchTest::imeChangeCallbackLock_;
+std::condition_variable InputMethodSwitchTest::imeChangeCv_;
 sptr<InputMethodController> InputMethodSwitchTest::imc_;
 std::string InputMethodSwitchTest::newImeBundleName = "com.example.newTestIme";
 std::vector<std::string> InputMethodSwitchTest::newImeSubName{ "lowerInput", "upperInput", "chineseInput" };
@@ -73,6 +79,7 @@ public:
     void OnImeChange(const Property &property, const SubProperty &subProperty)
     {
         InputMethodSwitchTest::imeChangeFlag = true;
+        InputMethodSwitchTest::imeChangeCv_.notify_one();
         IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
     }
     void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
@@ -147,6 +154,13 @@ void InputMethodSwitchTest::CheckCurrentSubProps()
         EXPECT_EQ(subProps[i].language, language[i]);
         EXPECT_EQ(subProps[i].locale, locale[i]);
     }
+}
+
+bool InputMethodSwitchTest::WaitImeChangeCallback(bool isChanged)
+{
+    std::unique_lock<std::mutex> lock(imeChangeCallbackLock_);
+    imeChangeCv_.wait_for(lock, std::chrono::seconds(1), [isChanged]() { return isChanged == imeChangeFlag; });
+    return isChanged == imeChangeFlag;
 }
 
 /**
@@ -451,6 +465,46 @@ HWTEST_F(InputMethodSwitchTest, testDisplayOptionalInputMethod, TestSize.Level2)
     sleep(2);
     int32_t ret = imc_->DisplayOptionalInputMethod();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testCombinationKeySwitchIme_001
+* @tc.desc: switch ime by combination key.
+* @tc.type: FUNC
+* @tc.require: issuesI8RPP3
+* @tc.author: mashaoyin
+*/
+HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_001, TestSize.Level0)
+{
+    IMSA_HILOGI("testCombinationKeySwitchIme_001 Test START");
+    std::shared_ptr<Property> property = imc_->GetCurrentInputMethod();
+    imeChangeFlag = false;
+    std::string result;
+    static std::string cmd = "uinput -K -d 2076 -d 2050";
+    auto ret = TddUtil::ExecuteCmd(cmd, result);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(InputMethodSwitchTest::WaitImeChangeCallback(true));
+    imc_->SwitchInputMethod(property->name, "");
+}
+
+/**
+* @tc.name: testCombinationKeySwitchIme_002
+* @tc.desc: switch ime by combination key.
+* @tc.type: FUNC
+* @tc.require: issuesI8RPP3
+* @tc.author: mashaoyin
+*/
+HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_002, TestSize.Level0)
+{
+    IMSA_HILOGI("testCombinationKeySwitchIme_002 Test START");
+    std::shared_ptr<Property> property = imc_->GetCurrentInputMethod();
+    imeChangeFlag = false;
+    std::string result;
+    static std::string cmd = "uinput -K -d 2077 -d 2050";
+    auto ret = TddUtil::ExecuteCmd(cmd, result);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(InputMethodSwitchTest::WaitImeChangeCallback(true));
+    imc_->SwitchInputMethod(property->name, "");
 }
 } // namespace MiscServices
 } // namespace OHOS

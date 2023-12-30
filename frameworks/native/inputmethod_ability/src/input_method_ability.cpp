@@ -398,15 +398,16 @@ int32_t InputMethodAbility::ShowKeyboard()
 
 void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
-    // only notify the status info of soft keyboard(not contain candidate column) at present
-    if (info.panelInfo.panelType != PanelType::SOFT_KEYBOARD
-        || info.panelInfo.panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN) {
+    // CANDIDATE_COLUMN not notify
+    if (info.panelInfo.panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN) {
         return;
     }
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
-        info.visible ? channel->SendKeyboardStatus(KeyboardStatus::SHOW)
-                     : channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+        if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD) {
+            info.visible ? channel->SendKeyboardStatus(KeyboardStatus::SHOW)
+                         : channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+        }
         channel->NotifyPanelStatusInfo(info);
     }
 
@@ -942,6 +943,28 @@ int32_t InputMethodAbility::OnTextConfigChange(const InputClientInfo &clientInfo
     }
     InvokeTextChangeCallback(clientInfo.config);
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
+}
+
+void InputMethodAbility::NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel)
+{
+    if (inputMethodPanel == nullptr) {
+        IMSA_HILOGE("inputMethodPanel is nullptr");
+        return;
+    }
+    if (inputMethodPanel->GetPanelType() != PanelType::SOFT_KEYBOARD) {
+        IMSA_HILOGW("current panel is not soft keyboard");
+        return;
+    }
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("channel is nullptr");
+        return;
+    }
+    if (inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
+        channel->NotifyKeyboardHeight(0);
+        return;
+    }
+    channel->NotifyKeyboardHeight(inputMethodPanel->GetHeight());
 }
 } // namespace MiscServices
 } // namespace OHOS

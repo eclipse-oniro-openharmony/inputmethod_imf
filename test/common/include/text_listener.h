@@ -16,8 +16,9 @@
 #ifndef INPUTMETHOD_TEST_TEXT_LISTENER_H
 #define INPUTMETHOD_TEST_TEXT_LISTENER_H
 
-#include <condition_variable>
 #include <unistd.h>
+
+#include <condition_variable>
 
 #include "input_method_controller.h"
 #include "input_method_utils.h"
@@ -42,12 +43,14 @@ public:
     void HandleExtendAction(int32_t action) override;
     void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override;
     void NotifyPanelStatusInfo(const PanelStatusInfo &info) override;
+    void NotifyKeyboardHeight(uint32_t height) override;
     std::u16string GetLeftTextOfCursor(int32_t number) override;
     std::u16string GetRightTextOfCursor(int32_t number) override;
     int32_t GetTextIndexAtCursor() override;
     static void ResetParam();
     static bool WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus);
     static bool WaitNotifyPanelStatusInfoCallback(const PanelStatusInfo &info);
+    static bool WaitNotifyKeyboardHeightCallback(uint32_t height);
     static std::mutex textListenerCallbackLock_;
     static std::condition_variable textListenerCv_;
     static int32_t direction_;
@@ -61,6 +64,7 @@ public:
     static int32_t selectionDirection_;
     static int32_t selectionSkip_;
     static int32_t action_;
+    static uint32_t height_;
     static KeyboardStatus keyboardStatus_;
     static PanelStatusInfo info_;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;

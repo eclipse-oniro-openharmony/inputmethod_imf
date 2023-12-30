@@ -104,7 +104,8 @@ bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &sw
 
 bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t userId)
 {
-    IMSA_HILOGD("Current userId %{public}d, target userId %{puclic}d", currrentUserId_, userId);
+    IMSA_HILOGD("Current userId %{public}d, target userId %{public}d, check bundleName %{public}s", currrentUserId_,
+        userId, info.bundleName.c_str());
     if (info.bundleName == GetDefaultIme()->name) {
         IMSA_HILOGD("Default ime, permit to switch");
         return true;
@@ -246,7 +247,7 @@ std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()
         defaultImeInfo_ = std::make_shared<Property>();
     }
     if (!defaultImeInfo_->name.empty() && !defaultImeInfo_->id.empty()) {
-        IMSA_HILOGD("defaultImeInfo_ has cached");
+        IMSA_HILOGD("defaultImeInfo_ has cached defaultime: %{public}s", defaultImeInfo_->name.c_str());
         return defaultImeInfo_;
     }
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();

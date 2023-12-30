@@ -46,6 +46,7 @@ public:
         GET_TEXT_INDEX_AT_CURSOR,
         GET_TEXT_CONFIG,
         NOTIFY_PANEL_STATUS_INFO,
+        NOTIFY_KEYBOARD_HEIGHT,
         DATA_CHANNEL_CMD_LAST
     };
 
@@ -67,6 +68,7 @@ public:
     virtual int32_t HandleExtendAction(int32_t action) = 0;
     virtual int32_t GetTextIndexAtCursor(int32_t &index) = 0;
     virtual void NotifyPanelStatusInfo(const PanelStatusInfo &info) = 0;
+    virtual void NotifyKeyboardHeight(uint32_t height) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

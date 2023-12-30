@@ -126,31 +126,43 @@ public:
     void CheckPanelStatusInfo(const std::shared_ptr<InputMethodPanel> &panel, const PanelStatusInfo &info)
     {
         TextListener::ResetParam();
-        if (info.visible) {
-            auto ret = inputMethodAbility_->ShowPanel(panel);
-            EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-            if (info.panelInfo.panelType == SOFT_KEYBOARD && info.panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
+        info.visible ? CheckPanelInfoInShow(panel, info) : CheckPanelInfoInHide(panel, info);
+    }
+    void CheckPanelInfoInShow(const std::shared_ptr<InputMethodPanel> &panel, const PanelStatusInfo &info)
+    {
+        auto ret = inputMethodAbility_->ShowPanel(panel);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        if (info.panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
+            if (info.panelInfo.panelType == SOFT_KEYBOARD) {
                 EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-                EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(
-                    { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
             } else {
                 EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-                EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(
-                    { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
             }
-            return;
-        }
-        auto ret = inputMethodAbility_->HidePanel(panel);
-        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-        if (info.panelInfo.panelType == SOFT_KEYBOARD && info.panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
-            EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
             EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(
                 { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
-        } else {
-            EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
-            EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(
-                { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
+            return;
         }
+        EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
+        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(
+            { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
+    }
+    void CheckPanelInfoInHide(const std::shared_ptr<InputMethodPanel> &panel, const PanelStatusInfo &info)
+    {
+        auto ret = inputMethodAbility_->HidePanel(panel);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+        if (info.panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
+            if (info.panelInfo.panelType == SOFT_KEYBOARD) {
+                EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
+            } else {
+                EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
+            };
+            EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(
+                { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
+            return;
+        }
+        EXPECT_FALSE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
+        EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(
+            { { info.panelInfo.panelType, info.panelInfo.panelFlag }, info.visible, info.trigger }));
     }
 };
 
@@ -789,6 +801,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_002, TestSize.Level0)
     auto panel = std::make_shared<InputMethodPanel>();
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     // ShowPanel
     CheckPanelStatusInfo(panel, { info, true, Trigger::IME_APP });
     // HidePanel
@@ -879,6 +892,81 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_005, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
     EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback({ info, false, Trigger::IME_APP }));
+
+    ret = inputMethodAbility_->DestroyPanel(panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testNotifyKeyboardHeight_001
+* @tc.desc: NotifyKeyboardHeight SOFT_KEYBOARD  FLG_FIXED
+* @tc.type: FUNC
+* @tc.require:
+
+* @tc.author: mashaoyin
+*/
+HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_001 START");
+    TextListener::ResetParam();
+    imc_->Attach(textListener_);
+    PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto panel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    panel->Resize(1, 1);
+    inputMethodAbility_->NotifyKeyboardHeight(panel);
+    EXPECT_TRUE(TextListener::WaitNotifyKeyboardHeightCallback(1));
+
+    ret = inputMethodAbility_->DestroyPanel(panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testNotifyKeyboardHeight_002
+* @tc.desc: NotifyKeyboardHeight STATUS_BAR  FLG_FIXED
+* @tc.type: FUNC
+* @tc.require:
+
+* @tc.author: mashaoyin
+*/
+HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_002 START");
+    TextListener::ResetParam();
+    imc_->Attach(textListener_);
+    PanelInfo info = { .panelType = STATUS_BAR, .panelFlag = FLG_FIXED };
+    auto panel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    panel->Resize(1, 1);
+    inputMethodAbility_->NotifyKeyboardHeight(panel);
+    EXPECT_TRUE(TextListener::WaitNotifyKeyboardHeightCallback(0));
+
+    ret = inputMethodAbility_->DestroyPanel(panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testNotifyKeyboardHeight_003
+* @tc.desc: NotifyKeyboardHeight SOFT_KEYBOARD  FLG_CANDIDATE_COLUMN
+* @tc.type: FUNC
+* @tc.require:
+
+* @tc.author: mashaoyin
+*/
+HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_003 START");
+    TextListener::ResetParam();
+    imc_->Attach(textListener_);
+    PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_CANDIDATE_COLUMN };
+    auto panel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    panel->Resize(1, 1);
+    inputMethodAbility_->NotifyKeyboardHeight(panel);
+    EXPECT_TRUE(TextListener::WaitNotifyKeyboardHeightCallback(0));
 
     ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
