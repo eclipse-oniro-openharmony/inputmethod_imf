@@ -27,9 +27,6 @@ const std::map<int32_t, uint8_t> MASK_MAP{
     { MMI::KeyEvent::KEYCODE_CTRL_LEFT, KeyboardEvent::CTRL_LEFT_MASK },
     { MMI::KeyEvent::KEYCODE_CTRL_RIGHT, KeyboardEvent::CTRL_RIGHT_MASK },
     { MMI::KeyEvent::KEYCODE_CAPS_LOCK, KeyboardEvent::CAPS_MASK },
-    { MMI::KeyEvent::KEYCODE_SPACE, KeyboardEvent::SPACE_MASK },
-    { MMI::KeyEvent::KEYCODE_META_LEFT, KeyboardEvent::META_LEFT_MASK },
-    { MMI::KeyEvent::KEYCODE_META_RIGHT, KeyboardEvent::META_RIGHT_MASK },
 };
 
 void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::KeyEvent> keyEvent) const
@@ -79,6 +76,13 @@ void InputEventCallback::OnInputEvent(std::shared_ptr<MMI::AxisEvent> axisEvent)
 void InputEventCallback::SetKeyHandle(KeyHandle handle)
 {
     keyHandler_ = std::move(handle);
+}
+
+void InputEventCallback::TriggerSwitch()
+{
+    auto state = KeyboardEvent::META_MASK | KeyboardEvent::SPACE_MASK;
+    int32_t ret = keyHandler_(state);
+    IMSA_HILOGI("handle combinationkey ret: %{public}d", ret);
 }
 } // namespace MiscServices
 } // namespace OHOS
