@@ -250,6 +250,7 @@ std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()
         IMSA_HILOGD("defaultImeInfo_ has cached defaultime: %{public}s", defaultImeInfo_->name.c_str());
         return defaultImeInfo_;
     }
+
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
     if (defaultIme == nullptr) {
         IMSA_HILOGE("GetDefaultImeCfgProp return nullptr");
