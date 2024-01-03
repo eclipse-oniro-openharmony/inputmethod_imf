@@ -19,27 +19,11 @@
 namespace OHOS {
 namespace MiscServices {
 std::mutex WmsConnectionObserver::lock_;
-std::unordered_map<int32_t, bool> WmsConnectionObserver::wmsConnectionStatus_;
-bool WmsConnectionObserver::IsWmsConnected(int32_t userId)
-{
-    std::lock_guard<std::mutex> lock(lock_);
-    auto it = wmsConnectionStatus_.find(userId);
-    if (it == wmsConnectionStatus_.end()) {
-        return false;
-    }
-    return it->second;
-}
-
-void WmsConnectionObserver::UpdateWmsConnectionStatus(int32_t userId, bool isConnected)
-{
-    std::lock_guard<std::mutex> lock(lock_);
-    wmsConnectionStatus_.insert_or_assign(userId, isConnected);
-}
-
+std::set<int32_t> WmsConnectionObserver::connectedUserId_;
 void WmsConnectionObserver::OnConnected(int32_t userId, int32_t screenId)
 {
     IMSA_HILOGI("WMS connect, userId: %{public}d, screenId: %{public}d", userId, screenId);
-    UpdateWmsConnectionStatus(userId, true);
+    Add(userId);
     if (changeHandler_ != nullptr) {
         changeHandler_(userId, screenId);
     }
@@ -47,8 +31,31 @@ void WmsConnectionObserver::OnConnected(int32_t userId, int32_t screenId)
 
 void WmsConnectionObserver::OnDisconnected(int32_t userId, int32_t screenId)
 {
-    IMSA_HILOGI("WMS connect, userId: %{public}d, screenId: %{public}d", userId, screenId);
-    UpdateWmsConnectionStatus(userId, false);
+    IMSA_HILOGI("WMS disconnect, userId: %{public}d, screenId: %{public}d", userId, screenId);
+    Remove(userId);
+}
+
+void WmsConnectionObserver::Add(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(lock_);
+    connectedUserId_.insert(userId);
+}
+
+void WmsConnectionObserver::Remove(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(lock_);
+    auto it = connectedUserId_.find(userId);
+    if (it == connectedUserId_.end()) {
+        return;
+    }
+    connectedUserId_.erase(it);
+}
+
+bool WmsConnectionObserver::IsWmsConnected(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(lock_);
+    auto it = connectedUserId_.find(userId);
+    return it != connectedUserId_.end();
 }
 } // namespace MiscServices
 } // namespace OHOS

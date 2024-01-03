@@ -132,6 +132,7 @@ private:
     int32_t InitKeyEventMonitor();
     bool InitWmsMonitor();
     void InitSystemLanguageMonitor();
+    void InitWmsConnectionMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
     int32_t SwitchLanguage();
@@ -145,7 +146,6 @@ private:
     void DatashareCallback(const std::string &key);
     bool enableImeOn_ = false;
     bool enableSecurityMode_ = false;
-    bool isScbEnable_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

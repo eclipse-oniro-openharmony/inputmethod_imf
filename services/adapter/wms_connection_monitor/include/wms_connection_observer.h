@@ -17,7 +17,7 @@
 #define IMF_WMS_CONNECTION_OBSERVER_H
 
 #include <mutex>
-#include <unordered_map>
+#include <set>
 #include <utility>
 
 #include "window_manager.h"
@@ -34,9 +34,10 @@ public:
 
 private:
     ChangeHandler changeHandler_ = nullptr;
-    static void UpdateWmsConnectionStatus(int32_t userId, bool isConnected);
+    static void Add(int32_t userId);
+    static void Remove(int32_t userId);
     static std::mutex lock_;
-    static std::unordered_map<int32_t, bool> wmsConnectionStatus_;
+    static std::set<int32_t> connectedUserId_;
 };
 } // namespace MiscServices
 } // namespace OHOS

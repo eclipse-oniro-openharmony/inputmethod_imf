@@ -19,6 +19,7 @@
 #include "input_method_controller.h"
 #include "input_method_system_ability.h"
 #include "peruser_session.h"
+#include "wms_connection_observer.h"
 #undef private
 #include <gtest/gtest.h>
 #include <sys/time.h>
@@ -960,6 +961,37 @@ HWTEST_F(InputMethodPrivateMemberTest, ICM_TestFromJson_004, TestSize.Level0)
     EXPECT_EQ(configs[0].userId, ImePersistCfg::INVALID_USERID);
     EXPECT_EQ(configs[0].currentSubName, "currentSubName");
     EXPECT_TRUE(configs[0].currentIme.empty());
+}
+
+/**
+ * @tc.name: WMSConnectObserver_001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, WMSConnectObserver_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest WMSConnectObserver_001 TEST START");
+    WmsConnectionObserver observer(nullptr);
+    int32_t userId = 100;
+    int32_t screenId = 0;
+
+    observer.OnConnected(userId, screenId);
+    EXPECT_EQ(WmsConnectionObserver::connectedUserId_.size(), 1);
+    EXPECT_TRUE(WmsConnectionObserver::IsWmsConnected(userId));
+
+    int32_t userId1 = 102;
+    observer.OnConnected(userId1, screenId);
+    EXPECT_EQ(WmsConnectionObserver::connectedUserId_.size(), 2);
+    EXPECT_TRUE(WmsConnectionObserver::IsWmsConnected(userId1));
+
+    observer.OnConnected(userId, screenId);
+    EXPECT_EQ(WmsConnectionObserver::connectedUserId_.size(), 2);
+
+    observer.OnDisconnected(userId, screenId);
+    EXPECT_EQ(WmsConnectionObserver::connectedUserId_.size(), 1);
+    EXPECT_FALSE(WmsConnectionObserver::IsWmsConnected(userId));
 }
 } // namespace MiscServices
 } // namespace OHOS

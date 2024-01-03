@@ -97,7 +97,7 @@ public:
     int32_t ExitCurrentInputType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     bool CheckSecurityMode();
-    bool IsWmsReady(int32_t userId);
+    bool IsWmsReady();
 
 private:
     struct ResetManager {
@@ -125,7 +125,7 @@ private:
     PerUserSession &operator=(const PerUserSession &&);
 
     void OnClientDied(sptr<IInputClient> remote);
-    void OnImeDied(int32_t userId, const sptr<IInputMethodCore> &remote, ImeType type);
+    void OnImeDied(const sptr<IInputMethodCore> &remote, ImeType type);
 
     int AddClientInfo(sptr<IRemoteObject> inputClient, const InputClientInfo &clientInfo, ClientAddEvent event);
     void RemoveClientInfo(const sptr<IRemoteObject> &client, bool isClientDied = false);
@@ -155,7 +155,7 @@ private:
 
     int32_t InitInputControlChannel();
     bool IsRestartIme();
-    void RestartIme(int32_t userId);
+    void RestartIme();
     void SetCurrentClient(sptr<IInputClient> client);
     sptr<IInputClient> GetCurrentClient();
     void ReplaceCurrentClient(const sptr<IInputClient> &client);

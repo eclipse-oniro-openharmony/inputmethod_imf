@@ -140,7 +140,6 @@ int32_t InputMethodSystemAbility::Init()
         return -1;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
-    isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
     ImeCfgManager::GetInstance().Init();
     ImeInfoInquirer::GetInstance().InitConfig();
     InitMonitors();
@@ -773,7 +772,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     // user switch, reset currentImeInfo_ = nullptr
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 
-    if (!userSession_->IsWmsReady(userId_)) {
+    if (!userSession_->IsWmsReady()) {
         IMSA_HILOGI("wms not ready, wait");
         return ErrorCode::NO_ERROR;
     }
@@ -987,23 +986,26 @@ bool InputMethodSystemAbility::InitWmsMonitor()
             return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
         },
         [this]() {
-            if (isScbEnable_) {
+            if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
                 IMSA_HILOGI("scb enable, register WMS connection listener");
-                // if scb enable, register wms entity start listening when wms service start
-                WmsConnectionMonitorManager::GetInstance().RegisterWMSConnectionChangedListener(
-                    [this](int32_t userId, int32_t screenId) {
-                        SetCurrentUserId();
-                        IMSA_HILOGI(
-                            "WMS connect, start ime, userId: %{public}d, currentUserId: %{public}d", userId, userId_);
-                        if (userId != userId_) {
-                            return;
-                        }
-                        StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_));
-                    });
+                InitWmsConnectionMonitor();
                 return;
             }
             IMSA_HILOGI("scb disable, start ime");
             SetCurrentUserId();
+            StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_));
+        });
+}
+
+void InputMethodSystemAbility::InitWmsConnectionMonitor()
+{
+    WmsConnectionMonitorManager::GetInstance().RegisterWMSConnectionChangedListener(
+        [this](int32_t userId, int32_t screenId) {
+            SetCurrentUserId();
+            IMSA_HILOGI("WMS connect, start ime, userId: %{public}d, currentUserId: %{public}d", userId, userId_);
+            if (userId != userId_) {
+                return;
+            }
             StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_));
         });
 }
