@@ -52,7 +52,6 @@ constexpr int32_t CONFIG_LEN = 128;
 
 void from_json(const nlohmann::json &jsonConfigs, ImeConfig &config)
 {
-    json jsonCfg = jsonConfigs[SYSTEM_CONFIG];
     if (jsonConfigs.find(SYSTEM_INPUT_METHOD_CONFIG_ABILITY) != jsonConfigs.end()
         && jsonConfigs[SYSTEM_INPUT_METHOD_CONFIG_ABILITY].is_string()) {
         jsonConfigs.at(SYSTEM_INPUT_METHOD_CONFIG_ABILITY).get_to(config.systemInputMethodConfigAbility);

@@ -40,7 +40,7 @@ CfgFiles* ImeConfigParse::ParseFromCustom()
     return GetCfgFiles(IME_INPUT_TYPE_CFG_FILE_PATH);
 }
 
-bool ImeConfigParse::parseJson(const std::string &cfgPath,  const std::string &parseKey, nlohmann::json &jsonCfg)
+bool ImeConfigParse::ParseJson(const std::string &cfgPath,  const std::string &parseKey, nlohmann::json &jsonCfg)
 {
     IMSA_HILOGD("in");
     std::string jsonStr = ImeConfigParse::ReadFile(cfgPath);
