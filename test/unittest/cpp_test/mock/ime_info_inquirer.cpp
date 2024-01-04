@@ -19,6 +19,7 @@ namespace OHOS {
 namespace MiscServices {
 std::shared_ptr<ImeInfo> ImeInfoInquirer::defaultIme_ = std::make_shared<ImeInfo>();
 std::shared_ptr<Property> ImeInfoInquirer::currentIme_ = std::make_shared<Property>();
+std::shared_ptr<Property> ImeInfoInquirer::defaultImeProperty_ std::make_shared<Property>();
 ImeInfoInquirer &ImeInfoInquirer::GetInstance()
 {
     static ImeInfoInquirer instance;
@@ -45,11 +46,11 @@ std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
 
 std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()
 {
-    if (defaultIme_ != nullptr) {
-        return defaultIme_;
+    if (defaultImeProperty_ != nullptr) {
+        return defaultImeProperty_;
     }
-    defaultIme_ = std::make_shared<Property>();
-    return defaultIme_;
+    defaultImeProperty_ = std::make_shared<Property>();
+    return defaultImeProperty_;
 }
 } // namespace MiscServices
 } // namespace OHOS

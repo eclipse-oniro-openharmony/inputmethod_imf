@@ -43,6 +43,7 @@ public:
 private:
     static std::shared_ptr<ImeInfo> defaultIme_;
     static std::shared_ptr<Property> currentIme_;
+    static std::shared_ptr<Property> defaultImeProperty_;
 };
 } // namespace MiscServices
 } // namespace OHOS
