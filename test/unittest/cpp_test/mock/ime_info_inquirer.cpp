@@ -42,5 +42,14 @@ std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
     currentIme_ = std::make_shared<Property>();
     return currentIme_;
 }
+
+std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()
+{
+    if (defaultIme_ != nullptr) {
+        return defaultIme_;
+    }
+    defaultIme_ = std::make_shared<Property>();
+    return defaultIme_;
+}
 } // namespace MiscServices
 } // namespace OHOS
