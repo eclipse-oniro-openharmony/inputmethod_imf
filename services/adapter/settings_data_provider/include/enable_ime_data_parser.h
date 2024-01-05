@@ -22,9 +22,9 @@
 #include <vector>
 
 #include "datashare_helper.h"
-#include "settings_data_utils.h"
 #include "global.h"
 #include "input_method_property.h"
+#include "settings_data_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -68,6 +68,7 @@ private:
     static sptr<EnableImeDataParser> instance_;
     std::mutex listMutex_;
     std::unordered_map<std::string, std::vector<std::string>> enableList_;
+    std::mutex defaultImeMutex_;
     std::shared_ptr<Property> defaultImeInfo_{ nullptr };
     int32_t currrentUserId_ = 0;
 };

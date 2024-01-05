@@ -244,7 +244,10 @@ const std::string EnableImeDataParser::GetJsonListName(const std::string &key)
 std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()
 {
     if (defaultImeInfo_ == nullptr) {
-        defaultImeInfo_ = std::make_shared<Property>();
+        std::lock_guard<std::mutex> lock(defaultImeMutex_);
+        if (defaultImeInfo_ == nullptr) {
+            defaultImeInfo_ = std::make_shared<Property>();
+        }
     }
     if (!defaultImeInfo_->name.empty() && !defaultImeInfo_->id.empty()) {
         IMSA_HILOGD("defaultImeInfo_ has cached defaultime: %{public}s", defaultImeInfo_->name.c_str());
