@@ -48,8 +48,8 @@ void EnableImeDataParseTest::SetUpTestCase(void)
     DataSharePredicates predicates;
     Uri uri("tsetUri");
     resultSet_ = helper_->Query(uri, predicates, columns);
-    ImeInfoInquirer::GetInstance().GetDefaultImeInfo(USER_ID)->prop.name = "defaultImeName";
-    ImeInfoInquirer::GetInstance().GetDefaultImeInfo(USER_ID)->prop.id = "defaultImeId";
+    ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp()->name = "defaultImeName";
+    ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp()->id = "defaultImeId";
     EnableImeDataParser::GetInstance()->Initialize(USER_ID);
 }
 

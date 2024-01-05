@@ -38,10 +38,12 @@ public:
     static ImeInfoInquirer &GetInstance();
     std::shared_ptr<ImeInfo> GetDefaultImeInfo(int32_t userId);
     std::shared_ptr<Property> GetCurrentInputMethod(int32_t userId);
+    std::shared_ptr<Property> GetDefaultImeCfgProp();
 
 private:
     static std::shared_ptr<ImeInfo> defaultIme_;
     static std::shared_ptr<Property> currentIme_;
+    static std::shared_ptr<Property> defaultImeProperty_;
 };
 } // namespace MiscServices
 } // namespace OHOS
