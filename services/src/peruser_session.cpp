@@ -704,12 +704,12 @@ void PerUserSession::ReplaceCurrentClient(const sptr<IInputClient> &client)
     }
     auto replacedClient = GetCurrentClient();
     SetCurrentClient(client);
-    if (replacedClient != nullptr && replacedClient != client) {
+    if (replacedClient != nullptr && replacedClient->AsObject() != client->AsObject()) {
         IMSA_HILOGD("remove replaced client");
         RemoveClient(replacedClient);
     }
     auto inactiveClient = GetInactiveClient();
-    if (inactiveClient != nullptr && inactiveClient != client) {
+    if (inactiveClient != nullptr && inactiveClient->AsObject() != client->AsObject()) {
         IMSA_HILOGD("remove inactive client");
         RemoveClientInfo(inactiveClient->AsObject());
         SetInactiveClient(nullptr);
