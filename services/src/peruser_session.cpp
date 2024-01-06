@@ -206,7 +206,7 @@ void PerUserSession::OnClientDied(sptr<IInputClient> remote)
         return;
     }
     IMSA_HILOGI("userId: %{public}d", userId_);
-    if (IsCurrentClient(remote)) {
+    if (IsSameClient(remote, GetCurrentClient())) {
         auto clientInfo = GetClientInfo(remote->AsObject());
         StopImeInput(clientInfo->bindImeType, clientInfo->channel);
         SetCurrentClient(nullptr);
@@ -286,7 +286,7 @@ int32_t PerUserSession::OnShowCurrentInput()
 int32_t PerUserSession::OnHideInput(sptr<IInputClient> client)
 {
     IMSA_HILOGD("PerUserSession::OnHideInput");
-    if (!IsCurrentClient(client)) {
+    if (!IsSameClient(client, GetCurrentClient())) {
         IMSA_HILOGE("client is not current client");
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
@@ -296,7 +296,7 @@ int32_t PerUserSession::OnHideInput(sptr<IInputClient> client)
 int32_t PerUserSession::OnShowInput(sptr<IInputClient> client)
 {
     IMSA_HILOGD("PerUserSession::OnShowInput");
-    if (!IsCurrentClient(client)) {
+    if (!IsSameClient(client, GetCurrentClient())) {
         IMSA_HILOGE("client is not current client");
         return ErrorCode::ERROR_CLIENT_NOT_FOCUSED;
     }
@@ -411,10 +411,13 @@ int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, bool isUn
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     // if client is current client, unbind firstly
-    if (IsCurrentClient(client)) {
+    if (IsSameClient(client, GetCurrentClient())) {
         UnBindClientWithIme(GetClientInfo(client->AsObject()), isUnbindFromClient);
         SetCurrentClient(nullptr);
         ExitCurrentInputType();
+    }
+    if (IsSameClient(client, GetInactiveClient())) {
+        SetInactiveClient(nullptr);
     }
     StopClientInput(client);
     RemoveClientInfo(client->AsObject());
@@ -433,7 +436,7 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
     }
     IMSA_HILOGI("deactivate client[%{public}d]", clientInfo->pid);
     UpdateClientInfo(client->AsObject(), { { UpdateFlag::STATE, ClientState::INACTIVE } });
-    if (IsCurrentClient(client)) {
+    if (IsSameClient(client, GetCurrentClient())) {
         SetCurrentClient(nullptr);
     }
     SetInactiveClient(client);
@@ -467,7 +470,7 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
     IMSA_HILOGD("start input with keyboard[%{public}d]", isShowKeyboard);
-    if (IsCurrentClient(client) && IsImeBindChanged(clientInfo->bindImeType)) {
+    if (IsSameClient(client, GetCurrentClient()) && IsImeBindChanged(clientInfo->bindImeType)) {
         UnBindClientWithIme(clientInfo);
     }
     InputClientInfo infoTemp = *clientInfo;
@@ -702,18 +705,28 @@ void PerUserSession::ReplaceCurrentClient(const sptr<IInputClient> &client)
     if (client == nullptr) {
         return;
     }
+    auto clientInfo = GetClientInfo(client->AsObject());
+    if (clientInfo == nullptr) {
+        return;
+    }
     auto replacedClient = GetCurrentClient();
     SetCurrentClient(client);
-    if (replacedClient != nullptr && replacedClient != client) {
-        IMSA_HILOGD("remove replaced client");
-        RemoveClient(replacedClient);
+    if (replacedClient != nullptr) {
+        auto replacedClientInfo = GetClientInfo(replacedClient->AsObject());
+        if (replacedClientInfo != nullptr && replacedClientInfo->pid != clientInfo->pid) {
+            IMSA_HILOGI("remove replaced client[%{public}d]", replacedClientInfo->pid);
+            RemoveClient(replacedClient);
+        }
     }
     auto inactiveClient = GetInactiveClient();
-    if (inactiveClient != nullptr && inactiveClient != client) {
-        IMSA_HILOGD("remove inactive client");
-        RemoveClientInfo(inactiveClient->AsObject());
-        SetInactiveClient(nullptr);
+    if (inactiveClient != nullptr) {
+        auto inactiveClientInfo = GetClientInfo(inactiveClient->AsObject());
+        if (inactiveClientInfo != nullptr && inactiveClientInfo->pid != clientInfo->pid) {
+            IMSA_HILOGI("remove inactive client[%{public}d]", inactiveClientInfo->pid);
+            RemoveClientInfo(inactiveClient->AsObject());
+        }
     }
+    SetInactiveClient(nullptr);
 }
 
 void PerUserSession::SetInactiveClient(sptr<IInputClient> client)
@@ -863,10 +876,9 @@ bool PerUserSession::IsCurrentClient(int32_t pid, int32_t uid)
     return clientInfo->pid == pid && clientInfo->uid == uid;
 }
 
-bool PerUserSession::IsCurrentClient(sptr<IInputClient> client)
+bool PerUserSession::IsSameClient(sptr<IInputClient> source, sptr<IInputClient> dest)
 {
-    auto currentClient = GetCurrentClient();
-    return currentClient != nullptr && client != nullptr && client->AsObject() == currentClient->AsObject();
+    return source != nullptr && dest != nullptr && source->AsObject() == dest->AsObject();
 }
 
 bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
