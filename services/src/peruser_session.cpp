@@ -416,6 +416,9 @@ int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, bool isUn
         SetCurrentClient(nullptr);
         ExitCurrentInputType();
     }
+    if (IsInactiveClient(client)) {
+        SetInactiveClient(nullptr);
+    }
     StopClientInput(client);
     RemoveClientInfo(client->AsObject());
     return ErrorCode::NO_ERROR;
@@ -867,6 +870,12 @@ bool PerUserSession::IsCurrentClient(sptr<IInputClient> client)
 {
     auto currentClient = GetCurrentClient();
     return currentClient != nullptr && client != nullptr && client->AsObject() == currentClient->AsObject();
+}
+
+bool PerUserSession::IsInactiveClient(sptr<IInputClient> client)
+{
+    auto inactiveClient = GetInactiveClient();
+    return inactiveClient != nullptr && client != nullptr && client->AsObject() == inactiveClient->AsObject();
 }
 
 bool PerUserSession::StartInputService(const std::string &imeName, bool isRetry)
