@@ -163,8 +163,7 @@ private:
     void SetInactiveClient(sptr<IInputClient> client);
     sptr<IInputClient> GetInactiveClient();
     bool IsCurrentClient(int32_t pid, int32_t uid);
-    bool IsCurrentClient(sptr<IInputClient> client);
-    bool IsInactiveClient(sptr<IInputClient> client);
+    bool IsSameClient(sptr<IInputClient> source, sptr<IInputClient> dest);
 
     bool IsImeStartInBind(ImeType bindImeType, ImeType startImeType);
     bool IsProxyImeStartInBind(ImeType bindImeType, ImeType startImeType);
