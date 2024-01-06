@@ -702,21 +702,29 @@ sptr<IInputClient> PerUserSession::GetCurrentClient()
 void PerUserSession::ReplaceCurrentClient(const sptr<IInputClient> &client)
 {
     std::lock_guard<std::mutex> lock(focusedClientLock_);
-    auto clientInfo = GetClientInfo(client);
+    if (client == nullptr) {
+        return;
+    }
+    auto clientInfo = GetClientInfo(client->AsObject());
     if (clientInfo == nullptr) {
         return;
     }
     auto replacedClient = GetCurrentClient();
     SetCurrentClient(client);
-    auto replacedClientInfo = GetClientInfo(replacedClient);
-    if (replacedClientInfo != nullptr && replacedClientInfo->pid != clientInfo->pid) {
-        IMSA_HILOGD("remove replaced client");
-        RemoveClient(replacedClient);
+    if (replacedClient != nullptr) {
+        auto replacedClientInfo = GetClientInfo(replacedClient->AsObject());
+        if (replacedClientInfo != nullptr && replacedClientInfo->pid != clientInfo->pid) {
+            IMSA_HILOGI("remove replaced client[%{public}d]", replacedClientInfo->pid);
+            RemoveClient(replacedClient);
+        }
     }
-    auto inactiveClientInfo = GetClientInfo(GetInactiveClient());
-    if (inactiveClientInfo != nullptr && inactiveClientInfo->pid != clientInfo->pid) {
-        IMSA_HILOGD("remove inactive client");
-        RemoveClientInfo(inactiveClientInfo->client->AsObject());
+    auto inactiveClient = GetInactiveClient();
+    if (inactiveClient != nullptr) {
+        auto inactiveClientInfo = GetClientInfo(inactiveClient->AsObject());
+        if (inactiveClientInfo != nullptr && inactiveClientInfo->pid != clientInfo->pid) {
+            IMSA_HILOGI("remove inactive client[%{public}d]", inactiveClientInfo->pid);
+            RemoveClientInfo(inactiveClient->AsObject());
+        }
     }
     SetInactiveClient(nullptr);
 }
