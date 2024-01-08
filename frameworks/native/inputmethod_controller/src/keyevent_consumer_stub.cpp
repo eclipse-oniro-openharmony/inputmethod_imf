@@ -39,7 +39,7 @@ int32_t KeyEventConsumerStub::OnRemoteRequest(
     IMSA_HILOGD("KeyEventConsumerStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
-    if (descriptorToken != IInputDataChannel::GetDescriptor()) {
+    if (descriptorToken != IKeyEventConsumer::GetDescriptor()) {
         IMSA_HILOGE("KeyEventConsumerStub descriptor error");
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }

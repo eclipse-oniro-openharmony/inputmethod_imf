@@ -304,8 +304,17 @@ int32_t InputMethodAbility::DispatchKeyEvent(
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     IMSA_HILOGD("InputMethodAbility, run in");
-    kdListener_->OnKeyEvent(keyEvent, consumer);
-    kdListener_->OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
+
+    bool isKeyEventConsume = kdListener_->OnKeyEvent(keyEvent, consumer);
+    if (!isKeyEventConsume) {
+        IMSA_HILOGE("KeyEvent is not consumed");
+        consumer->OnKeyEventConsumeResult(false);
+    }
+    bool isKeyCodeConsume = kdListener_->OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
+    if (!isKeyCodeConsume) {
+        IMSA_HILOGE("keyCode is not consumed");
+        consumer->OnKeyCodeConsumeResult(false);
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -729,7 +738,8 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
 {
     IMSA_HILOGI("IMA");
     auto flag = panels_.ComputeIfAbsent(panelInfo.panelType,
-        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) {
+        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType,
+            std::shared_ptr<InputMethodPanel> &panel) {
             inputMethodPanel = std::make_shared<InputMethodPanel>();
             auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
             if (ret == ErrorCode::NO_ERROR) {
@@ -850,7 +860,7 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
 std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
 {
     if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES,
-            [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
+                    [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
         IMSA_HILOGE("not found");
         return nullptr;
     }
