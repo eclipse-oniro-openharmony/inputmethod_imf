@@ -24,6 +24,7 @@
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "iremote_proxy.h"
+#include "keyevent_consumer_proxy.h"
 #include "message_parcel.h"
 #include "nocopyable.h"
 #include "refbase.h"
@@ -36,7 +37,7 @@ public:
     ~InputMethodAgentProxy() = default;
     DISALLOW_COPY_AND_MOVE(InputMethodAgentProxy);
 
-    bool DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override;
+    int32_t DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> consumer) override;
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
     void OnSelectionChange(
         std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;

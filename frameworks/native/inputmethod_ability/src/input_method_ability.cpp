@@ -292,20 +292,21 @@ int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
     return ErrorCode::NO_ERROR;
 }
 
-bool InputMethodAbility::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+int32_t InputMethodAbility::DispatchKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> consumer)
 {
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
-        return false;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     if (kdListener_ == nullptr) {
         IMSA_HILOGE("kdListener_ is nullptr");
-        return false;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     IMSA_HILOGD("InputMethodAbility, run in");
-    bool isFullKeyEventConsumed = kdListener_->OnKeyEvent(keyEvent);
-    bool isKeyEventConsumed = kdListener_->OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction());
-    return isFullKeyEventConsumed || isKeyEventConsumed;
+    kdListener_->OnKeyEvent(keyEvent, consumer);
+    kdListener_->OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodAbility::SetCallingWindow(uint32_t windowId)
@@ -728,8 +729,7 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
 {
     IMSA_HILOGI("IMA");
     auto flag = panels_.ComputeIfAbsent(panelInfo.panelType,
-        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType,
-            std::shared_ptr<InputMethodPanel> &panel) {
+        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) {
             inputMethodPanel = std::make_shared<InputMethodPanel>();
             auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
             if (ret == ErrorCode::NO_ERROR) {
@@ -850,7 +850,7 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
 std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
 {
     if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES,
-                    [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
+            [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
         IMSA_HILOGE("not found");
         return nullptr;
     }

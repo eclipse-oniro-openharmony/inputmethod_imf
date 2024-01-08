@@ -34,6 +34,7 @@
 #include "input_method_system_ability_proxy.h"
 #include "iremote_object.h"
 #include "keyboard_listener.h"
+#include "keyevent_consumer_proxy.h"
 #include "message.h"
 #include "message_handler.h"
 #include "unRegistered_type.h"
@@ -65,7 +66,7 @@ public:
     int32_t MoveCursor(int32_t keyCode);
     int32_t SelectByRange(int32_t start, int32_t end);
     int32_t SelectByMovement(int32_t direction);
-    bool DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent);
+    int32_t DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> consumer);
     void SetCallingWindow(uint32_t windowId);
     int32_t GetEnterKeyType(int32_t &keyType);
     int32_t GetInputPattern(int32_t &inputPattern);

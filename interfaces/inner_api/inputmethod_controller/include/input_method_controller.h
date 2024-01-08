@@ -67,6 +67,7 @@ public:
     virtual int32_t GetTextIndexAtCursor() = 0;
 };
 
+using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
 class InputMethodController : public RefBase {
 public:
     /**
@@ -220,7 +221,7 @@ public:
      * @return Returns true for success otherwise for failure.
      * @since 6
      */
-    IMF_API bool DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
+    IMF_API int32_t DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent, KeyEventCallback callback = nullptr);
 
     /**
      * @brief List input methods.
