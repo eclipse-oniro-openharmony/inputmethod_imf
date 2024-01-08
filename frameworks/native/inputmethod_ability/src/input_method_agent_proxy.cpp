@@ -28,7 +28,7 @@ InputMethodAgentProxy::InputMethodAgentProxy(const sptr<IRemoteObject> &object)
 }
 
 int32_t InputMethodAgentProxy::DispatchKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> consumer)
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> &consumer)
 {
     return SendRequest(DISPATCH_KEY_EVENT, [&keyEvent, &consumer](MessageParcel &data) {
         return keyEvent->WriteToParcel(data) && data.WriteRemoteObject(consumer->AsObject());

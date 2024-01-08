@@ -99,7 +99,7 @@ int32_t InputMethodAgentStub::DispatchKeyEventOnRemote(MessageParcel &data, Mess
 }
 
 int32_t InputMethodAgentStub::DispatchKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> consumer)
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> &consumer)
 {
     return false;
 }

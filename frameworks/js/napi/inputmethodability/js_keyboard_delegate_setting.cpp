@@ -296,10 +296,10 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
 }
 
 bool JsKeyboardDelegateSetting::OnKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> consumer)
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
     std::string type = "keyEvent";
-    auto entry = GetEntry(type, [keyEvent, consumer](UvEntry &entry) {
+    auto entry = GetEntry(type, [keyEvent, &consumer](UvEntry &entry) {
         entry.pullKeyEventPara = keyEvent;
         entry.keyEvenetConsumer = consumer;
     });
@@ -344,11 +344,11 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(
     return true;
 }
 
-bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> consumer)
+bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer)
 {
     KeyEventPara para{ keyCode, keyStatus, false };
     std::string type = (keyStatus == ARGC_TWO ? "keyDown" : "keyUp");
-    auto entry = GetEntry(type, [&para, consumer](UvEntry &entry) {
+    auto entry = GetEntry(type, [&para, &consumer](UvEntry &entry) {
         entry.keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
         entry.keyEvenetConsumer = consumer;
     });

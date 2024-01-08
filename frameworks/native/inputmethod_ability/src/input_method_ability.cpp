@@ -293,7 +293,7 @@ int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
 }
 
 int32_t InputMethodAbility::DispatchKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> consumer)
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
