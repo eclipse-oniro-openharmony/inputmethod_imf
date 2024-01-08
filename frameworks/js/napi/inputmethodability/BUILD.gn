@@ -22,6 +22,7 @@ config("inputmethodengine_native_config") {
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
     "${inputmethod_path}/services/dfx/include",
   ]
   ldflags = [ "-Wl,--exclude-libs=ALL" ]
@@ -40,7 +41,7 @@ config("inputmethodengine_native_public_config") {
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/js/napi/inputmethodclient",
     "${inputmethod_path}/frameworks/js/napi/inputmethodability",
-  ] 
+  ]
 }
 
 ohos_shared_library("inputmethodengine") {
@@ -53,6 +54,7 @@ ohos_shared_library("inputmethodengine") {
   sources = [
     "${inputmethod_path}/frameworks/js/napi/inputmethodclient/async_call.cpp",
     "${inputmethod_path}/frameworks/js/napi/inputmethodclient/js_utils.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
     "${inputmethod_path}/services/src/global.cpp",
     "input_method_engine_module.cpp",
     "js_input_method_engine_setting.cpp",

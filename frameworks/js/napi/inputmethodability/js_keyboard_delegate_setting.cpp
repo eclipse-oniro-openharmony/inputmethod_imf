@@ -337,6 +337,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(
             IMSA_HILOGE("consumer result: %{public}d", isConsumed);
             consumer->OnKeyEventConsumeResult(isConsumed);
         }
+        IMSA_HILOGE("msy OnKeyEvent end");
         FinishAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
     };
     eventHandler->PostTask(task, type);
@@ -386,6 +387,7 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus, s
             IMSA_HILOGE("consumer result: %{public}d", isConsumed);
             consumer->OnKeyCodeConsumeResult(isConsumed);
         }
+        IMSA_HILOGE("msy OnKeyEvent end");
         FinishAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
     };
     eventHandler->PostTask(task, type);

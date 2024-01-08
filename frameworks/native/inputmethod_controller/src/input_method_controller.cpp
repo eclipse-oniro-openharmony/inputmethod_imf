@@ -744,6 +744,7 @@ int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> k
         IMSA_HILOGE("DispatchKeyEvent failed");
     }
     keyEventQueue_.Pop();
+    IMSA_HILOGE("msy OnKeyEvent end");
     return ret;
 }
 
