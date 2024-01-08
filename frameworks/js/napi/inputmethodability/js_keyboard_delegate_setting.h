@@ -23,7 +23,6 @@
 #include <mutex>
 
 #include "async_call.h"
-#include "block_data.h"
 #include "global.h"
 #include "input_attribute.h"
 #include "js_callback_object.h"
@@ -84,7 +83,7 @@ private:
         SelectionPara selPara;
         KeyEventPara keyEventPara;
         std::shared_ptr<MMI::KeyEvent> pullKeyEventPara;
-        sptr<KeyEventConsumerProxy> keyEvenetConsumer;
+        sptr<KeyEventConsumerProxy> keyEvenetConsumer = nullptr;
         std::string text;
         InputAttribute inputAttribute;
         UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
