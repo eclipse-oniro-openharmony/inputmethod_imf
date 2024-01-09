@@ -26,9 +26,12 @@ int32_t KeyboardListenerTestImpl::cursorHeight_{ -1 };
 int32_t KeyboardListenerTestImpl::newBegin_{ -1 };
 std::string KeyboardListenerTestImpl::text_;
 InputAttribute KeyboardListenerTestImpl::inputAttribute_{ 0, 0, 0 };
-bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
+bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer)
 {
     keyCode_ = keyCode;
+    if (consumer != nullptr) {
+        consumer->OnKeyCodeConsumeResult(true);
+    }
     return false;
 }
 void KeyboardListenerTestImpl::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)

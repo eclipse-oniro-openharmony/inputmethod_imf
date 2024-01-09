@@ -27,8 +27,8 @@ class KeyboardListenerTestImpl : public KeyboardListener {
 public:
     KeyboardListenerTestImpl(){};
     ~KeyboardListenerTestImpl(){};
-    bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override;
-    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override
+    bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer) override;
+    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override
     {
         return false;
     }

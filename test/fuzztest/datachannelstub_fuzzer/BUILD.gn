@@ -37,7 +37,10 @@ ohos_fuzztest("DataChannelStubFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "datachannelstub_fuzzer.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
+    "datachannelstub_fuzzer.cpp",
+  ]
 
   deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static" ]
 
@@ -45,6 +48,7 @@ ohos_fuzztest("DataChannelStubFuzzTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "input:libmmi-client",
   ]
 }
 

@@ -50,8 +50,8 @@ public:
     static int32_t keyCode_;
     static int32_t keyStatus_;
     static CursorInfo cursorInfo_;
-    bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override;
-    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override;
+    bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer) override;
+    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override;
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void OnTextChange(const std::string &text) override;
@@ -60,15 +60,22 @@ public:
 int32_t KeyboardListenerImpl::keyCode_ = 0;
 int32_t KeyboardListenerImpl::keyStatus_ = 0;
 CursorInfo KeyboardListenerImpl::cursorInfo_ = {};
-bool KeyboardListenerImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
+bool KeyboardListenerImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer)
 {
     IMSA_HILOGD("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
     keyCode_ = keyCode;
     keyStatus_ = keyStatus;
+    if (consumer != nullptr) {
+        consumer->OnKeyCodeConsumeResult(true);
+    }
     return true;
 }
-bool KeyboardListenerImpl::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+bool KeyboardListenerImpl::OnKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
+    if (consumer != nullptr) {
+        consumer->OnKeyEventConsumeResult(true);
+    }
     return true;
 }
 void KeyboardListenerImpl::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
@@ -407,8 +414,8 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
 
     ret = InputMethodEditorTest::inputMethodController_->ShowTextInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
-    ret = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_,
-        [&consumeResult](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) { consumeResult = isConsumed; });
+    ret = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(
+        InputMethodEditorTest::keyEvent_, [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {});
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
