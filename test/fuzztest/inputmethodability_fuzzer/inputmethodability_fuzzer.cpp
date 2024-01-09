@@ -37,6 +37,12 @@ class KeyboardListenerImpl : public KeyboardListener {
         }
         return true;
     }
+    bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+    {
+        OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
+        OnKeyEvent(keyEvent, consumer);
+        return true;
+    }
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
     {
     }

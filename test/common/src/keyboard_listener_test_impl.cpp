@@ -34,6 +34,15 @@ bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sp
     }
     return false;
 }
+
+bool KeyboardListenerTestImpl::OnDealKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+{
+    OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
+    OnKeyEvent(keyEvent, consumer);
+    return true;
+}
+
 void KeyboardListenerTestImpl::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
 {
     cursorHeight_ = height;

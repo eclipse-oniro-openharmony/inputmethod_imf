@@ -295,6 +295,79 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
     return KeyboardDelegate;
 }
 
+bool JsKeyboardDelegateSetting::OnDealKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+{
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr");
+        return false;
+    }
+    auto keyEventEntry =
+        GetEntry("keyEvent", [keyEvent, &consumer](UvEntry &entry) { entry.pullKeyEventPara = keyEvent; });
+    KeyEventPara para{ keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), false };
+    std::string type = (keyEvent->GetKeyAction() == ARGC_TWO ? "keyDown" : "keyUp");
+    auto keyCodeEntry = GetEntry(type, [&para, &consumer](UvEntry &entry) {
+        entry.keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
+    });
+
+    if (keyEventEntry == nullptr && keyCodeEntry == nullptr) {
+        IMSA_HILOGW("no key event callback registered");
+        return false;
+    }
+    IMSA_HILOGI("run in");
+    auto task = [keyEventEntry, keyCodeEntry, consumer]() { DealKeyEvent(keyEventEntry, keyCodeEntry, consumer); };
+    eventHandler->PostTask(task, "OnDealKeyEvent");
+    return true;
+}
+
+void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<UvEntry> &keyEventEntry,
+    const std::shared_ptr<UvEntry> &keyCodeEntry, const sptr<KeyEventConsumerProxy> &consumer)
+{
+    bool isKeyEventConsumed = false;
+    bool isKeyCodeConsumed = false;
+    if (keyEventEntry != nullptr) {
+        auto getKeyEventProperty = [keyEventEntry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == 0) {
+                return false;
+            }
+            napi_value keyEventObject{};
+            auto result = napi_create_object(env, &keyEventObject);
+            CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create object", false);
+            result = MMI::KeyEventNapi::CreateKeyEvent(env, keyEventEntry->pullKeyEventPara, keyEventObject);
+            CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create key event object", false);
+            // 0 means the first param of callback.
+            args[0] = keyEventObject;
+            return true;
+        };
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(keyEventEntry->vecCopy, { 1, getKeyEventProperty }, isKeyEventConsumed);
+    }
+    if (keyCodeEntry != nullptr) {
+        auto getKeyEventProperty = [keyCodeEntry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            InputMethodSyncTrace tracer("Create parameter");
+            if (argc == 0) {
+                return false;
+            }
+            napi_value jsObject =
+                GetResultOnKeyEvent(env, keyCodeEntry->keyEventPara.keyCode, keyCodeEntry->keyEventPara.keyStatus);
+            if (jsObject == nullptr) {
+                IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = jsObject;
+            return true;
+        };
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(keyCodeEntry->vecCopy, { 1, getKeyEventProperty }, isKeyCodeConsumed);
+    }
+    if (consumer != nullptr) {
+        IMSA_HILOGE("consumer result: %{public}d", isKeyEventConsumed | isKeyCodeConsumed);
+        consumer->OnKeyEventResult(isKeyEventConsumed | isKeyCodeConsumed);
+    }
+}
+
 bool JsKeyboardDelegateSetting::OnKeyEvent(
     const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {

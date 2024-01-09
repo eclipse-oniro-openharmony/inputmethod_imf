@@ -47,6 +47,7 @@ public:
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void OnTextChange(const std::string &text) override;
     void OnEditorAttributeChange(const InputAttribute &inputAttribute) override;
+    bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override;
 
 private:
     static napi_value GetResultOnKeyEvent(napi_env env, int32_t keyCode, int32_t keyStatus);
@@ -55,6 +56,7 @@ private:
     static std::shared_ptr<JsKeyboardDelegateSetting> GetKeyboardDelegateSetting();
     static bool InitKeyboardDelegate();
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
+
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     static constexpr int32_t MAX_TIMEOUT = 2000;
@@ -83,8 +85,8 @@ private:
         SelectionPara selPara;
         KeyEventPara keyEventPara;
         std::shared_ptr<MMI::KeyEvent> pullKeyEventPara;
-        sptr<KeyEventConsumerProxy> keyEvenetConsumer = nullptr;
         std::string text;
+        sptr<KeyEventConsumerProxy> keyEvenetConsumer = nullptr;
         InputAttribute inputAttribute;
         UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)
@@ -95,6 +97,8 @@ private:
     static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     std::shared_ptr<UvEntry> GetEntry(const std::string &type, EntrySetter entrySetter = nullptr);
     uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
+    static void DealKeyEvent(const std::shared_ptr<UvEntry> &keyEventEntry,
+        const std::shared_ptr<UvEntry> &keyCodeEntry, const sptr<KeyEventConsumerProxy> &consumer);
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
