@@ -56,7 +56,6 @@ private:
     static std::shared_ptr<JsKeyboardDelegateSetting> GetKeyboardDelegateSetting();
     static bool InitKeyboardDelegate();
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
-
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     static constexpr int32_t MAX_TIMEOUT = 2000;

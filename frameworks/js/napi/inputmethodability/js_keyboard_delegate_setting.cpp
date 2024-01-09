@@ -304,10 +304,10 @@ bool JsKeyboardDelegateSetting::OnDealKeyEvent(
         return false;
     }
     auto keyEventEntry =
-        GetEntry("keyEvent", [keyEvent, &consumer](UvEntry &entry) { entry.pullKeyEventPara = keyEvent; });
+        GetEntry("keyEvent", [keyEvent](UvEntry &entry) { entry.pullKeyEventPara = keyEvent; });
     KeyEventPara para{ keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), false };
     std::string type = (keyEvent->GetKeyAction() == ARGC_TWO ? "keyDown" : "keyUp");
-    auto keyCodeEntry = GetEntry(type, [&para, &consumer](UvEntry &entry) {
+    auto keyCodeEntry = GetEntry(type, [&para](UvEntry &entry) {
         entry.keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
     });
 
