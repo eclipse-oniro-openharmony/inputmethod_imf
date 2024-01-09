@@ -186,7 +186,7 @@ HWTEST_F(InputMethodEditorTest, testUnfocused, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
     ret = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(
         InputMethodEditorTest::keyEvent_, [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {});
-    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
     ret = InputMethodEditorTest::inputMethodController_->HideSoftKeyboard();

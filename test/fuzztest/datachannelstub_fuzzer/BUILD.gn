@@ -47,8 +47,8 @@ ohos_fuzztest("DataChannelStubFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "ipc:ipc_single",
     "input:libmmi-client",
+    "ipc:ipc_single",
   ]
 }
 
