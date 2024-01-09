@@ -149,7 +149,7 @@ public:
             textConfigHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
         };
         ~KeyboardListenerImpl(){};
-        bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override
+        bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer) override
         {
             if (!doesKeyEventConsume_) {
                 return false;
@@ -157,9 +157,13 @@ public:
             IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
             auto keyEvent = KeyEventUtil::CreateKeyEvent(keyCode, keyStatus);
             blockKeyEvent_.SetValue(keyEvent);
+            if (consumer != nullptr) {
+                IMSA_HILOGI("consumer is not nullptr");
+                consumer->OnKeyCodeConsumeResult(true);
+            }
             return true;
         }
-        bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override
+        bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override
         {
             if (!doesFUllKeyEventConsume_) {
                 return false;
@@ -168,6 +172,10 @@ public:
                 keyEvent->GetKeyAction());
             auto fullKey = keyEvent;
             blockFullKeyEvent_.SetValue(fullKey);
+            if (consumer != nullptr) {
+                IMSA_HILOGI("consumer is not nullptr");
+                consumer->OnKeyEventConsumeResult(true);
+            }
             return true;
         }
         void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override
@@ -559,8 +567,23 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent001, TestSize.Level0)
     blockKeyEvent_.Clear(nullptr);
     auto res = inputMethodController_->Attach(textListener_);
     EXPECT_EQ(res, ErrorCode::NO_ERROR);
-    bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
-    EXPECT_TRUE(ret);
+
+    bool consumeResult = false;
+    std::condition_variable keyEventCv;
+    std::mutex keyEventLock;
+
+    bool ret = inputMethodController_->DispatchKeyEvent(
+        keyEvent_, [&consumeResult, cv_](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {
+            consumeResult = isConsumed;
+            cv_.notify_one();
+        });
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    {
+        std::unique_lock<std::mutex> lock(keyEventLock);
+        cv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [&consumeResult] { return consumeResult; });
+    }
+    EXPECT_TRUE(consumeResult)
+
     auto keyEvent = blockKeyEvent_.GetValue();
     ASSERT_NE(keyEvent, nullptr);
     EXPECT_EQ(keyEvent->GetKeyCode(), keyEvent_->GetKeyCode());
@@ -579,8 +602,9 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent002, TestSize.Level0)
     doesKeyEventConsume_ = false;
     doesFUllKeyEventConsume_ = true;
     blockFullKeyEvent_.Clear(nullptr);
-    bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
-    EXPECT_TRUE(ret);
+    int32_t ret = inputMethodController_->DispatchKeyEvent(
+        keyEvent_, [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {});
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto keyEvent = blockFullKeyEvent_.GetValue();
     EXPECT_NE(keyEvent, nullptr);
     EXPECT_TRUE(CheckKeyEvent(keyEvent));
@@ -599,8 +623,9 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent003, TestSize.Level0)
     doesFUllKeyEventConsume_ = true;
     blockKeyEvent_.Clear(nullptr);
     blockFullKeyEvent_.Clear(nullptr);
-    bool ret = inputMethodController_->DispatchKeyEvent(keyEvent_);
-    EXPECT_TRUE(ret);
+    int32_t ret = inputMethodController_->DispatchKeyEvent(
+        keyEvent_, [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {});
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto keyEvent = blockKeyEvent_.GetValue();
     auto keyFullEvent = blockFullKeyEvent_.GetValue();
     EXPECT_NE(keyEvent, nullptr);

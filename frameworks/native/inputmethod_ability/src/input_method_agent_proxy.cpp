@@ -30,9 +30,14 @@ InputMethodAgentProxy::InputMethodAgentProxy(const sptr<IRemoteObject> &object)
 int32_t InputMethodAgentProxy::DispatchKeyEvent(
     const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> &consumer)
 {
-    return SendRequest(DISPATCH_KEY_EVENT, [&keyEvent, &consumer](MessageParcel &data) {
-        return keyEvent->WriteToParcel(data) && data.WriteRemoteObject(consumer->AsObject());
-    });
+    int32_t res = -1;
+    int32_t ret = SendRequest(
+        DISPATCH_KEY_EVENT,
+        [&keyEvent, &consumer](MessageParcel &data) {
+            return keyEvent->WriteToParcel(data) && data.WriteRemoteObject(consumer->AsObject());
+        },
+        [&res](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, res); });
+    return ret == ErrorCode::NO_ERROR ? res : ret;
 }
 
 void InputMethodAgentProxy::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
@@ -62,8 +67,8 @@ void InputMethodAgentProxy::SetCallingWindow(uint32_t windowId)
 void InputMethodAgentProxy::OnConfigurationChange(const Configuration &config)
 {
     auto ret = SendRequest(ON_CONFIGURATION_CHANGE, [&config](MessageParcel &data) {
-        return data.WriteInt32(static_cast<int32_t>(config.GetEnterKeyType())) &&
-               data.WriteInt32(static_cast<int32_t>(config.GetTextInputType()));
+        return data.WriteInt32(static_cast<int32_t>(config.GetEnterKeyType()))
+               && data.WriteInt32(static_cast<int32_t>(config.GetTextInputType()));
     });
     IMSA_HILOGD("InputMethodAgentProxy, ret = %{public}d", ret);
 }

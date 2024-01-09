@@ -19,17 +19,22 @@
 #include <cstdint>
 
 #include "global.h"
+#include "input_attribute.h"
 #include "input_method_controller.h"
 #include "key_event.h"
 #include "message_parcel.h"
-#include "input_attribute.h"
 #include "text_listener.h"
+
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
 class SettingListener : public InputMethodSettingListener {
-    void OnImeChange(const Property &property, const SubProperty &subProperty) {}
-    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) {}
+    void OnImeChange(const Property &property, const SubProperty &subProperty)
+    {
+    }
+    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+    {
+    }
 };
 
 void TestListInputMethod(sptr<InputMethodController> imc)
@@ -61,7 +66,7 @@ void TestDispatchKeyEvent(sptr<InputMethodController> imc, int32_t fuzzedInt32)
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
     keyEvent->SetKeyAction(fuzzedInt32);
     keyEvent->SetKeyCode(fuzzedInt32);
-    imc->DispatchKeyEvent(keyEvent);
+    imc->DispatchKeyEvent(keyEvent, [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {});
 }
 
 void TestOnSelectionChange(

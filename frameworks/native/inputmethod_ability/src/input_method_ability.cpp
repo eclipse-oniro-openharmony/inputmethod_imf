@@ -306,12 +306,12 @@ int32_t InputMethodAbility::DispatchKeyEvent(
     IMSA_HILOGD("InputMethodAbility, run in");
 
     bool isKeyEventConsume = kdListener_->OnKeyEvent(keyEvent, consumer);
-    if (!isKeyEventConsume) {
+    if (!isKeyEventConsume && consumer != nullptr) {
         IMSA_HILOGE("KeyEvent is not consumed");
         consumer->OnKeyEventConsumeResult(false);
     }
     bool isKeyCodeConsume = kdListener_->OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
-    if (!isKeyCodeConsume) {
+    if (!isKeyCodeConsume && consumer != nullptr) {
         IMSA_HILOGE("keyCode is not consumed");
         consumer->OnKeyCodeConsumeResult(false);
     }

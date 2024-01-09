@@ -177,8 +177,9 @@ HWTEST_F(InputMethodEditorTest, testUnfocused, TestSize.Level0)
     IMSA_HILOGI("InputMethodEditorTest Unfocused Test START");
     int32_t ret = InputMethodEditorTest::inputMethodController_->ShowTextInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
-    bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
-    EXPECT_FALSE(result);
+    ret = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(
+        InputMethodEditorTest::keyEvent_, [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {});
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
     ret = InputMethodEditorTest::inputMethodController_->HideSoftKeyboard();
@@ -300,8 +301,9 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
 
     imeListener_->keyboardState_ = true;
     InputMethodEditorTest::inputMethodController_->HideTextInput();
-    bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
-    EXPECT_FALSE(result);
+    ret = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(
+        InputMethodEditorTest::keyEvent_, [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {});
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = InputMethodEditorTest::inputMethodController_->HideSoftKeyboard();
@@ -334,8 +336,9 @@ HWTEST_F(InputMethodEditorTest, testIMCDeactivateClient, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     inputMethodController_->DeactivateClient();
-    bool result = inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
-    EXPECT_FALSE(result);
+    ret = inputMethodController_->DispatchKeyEvent(
+        InputMethodEditorTest::keyEvent_, [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {});
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = inputMethodController_->ShowTextInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
     ret = inputMethodController_->HideTextInput();
@@ -379,11 +382,13 @@ HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
 
     ret = InputMethodEditorTest::inputMethodController_->ShowTextInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
-    usleep(300);
+    bool consumeResult = false;
+    ret = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_,
+        [&consumeResult](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) { consumeResult = isConsumed; });
+    usleep(1000);
     ret = ret && kbListener_->keyCode_ == keyEvent_->GetKeyCode()
           && kbListener_->keyStatus_ == keyEvent_->GetKeyAction();
-    EXPECT_TRUE(result);
+    EXPECT_TRUE(consumeResult);
     TddUtil::GetUnfocused();
 }
 
@@ -402,8 +407,9 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
 
     ret = InputMethodEditorTest::inputMethodController_->ShowTextInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
-    bool result = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_);
-    EXPECT_FALSE(result);
+    ret = InputMethodEditorTest::inputMethodController_->DispatchKeyEvent(InputMethodEditorTest::keyEvent_,
+        [&consumeResult](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) { consumeResult = isConsumed; });
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     ret = InputMethodEditorTest::inputMethodController_->HideSoftKeyboard();
