@@ -292,7 +292,6 @@ HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_001, TestSize.Level0)
     CheckCurrentProp();
     CheckCurrentSubProp(subName[1]);
     CheckCurrentSubProps();
-    sleep(WAIT_IME_READY_TIME);
 }
 
 /**
@@ -312,7 +311,6 @@ HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_002, TestSize.Level0)
     CheckCurrentProp();
     CheckCurrentSubProp(subName[0]);
     CheckCurrentSubProps();
-    sleep(WAIT_IME_READY_TIME);
 }
 
 /**
@@ -330,7 +328,6 @@ HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_003, TestSize.Level0)
     CheckCurrentProp();
     CheckCurrentSubProp(subName[0]);
     CheckCurrentSubProps();
-    sleep(WAIT_IME_READY_TIME);
 }
 
 /**
