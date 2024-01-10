@@ -305,7 +305,7 @@ int32_t InputMethodAbility::DispatchKeyEvent(
     }
     IMSA_HILOGD("InputMethodAbility, run in");
 
-    if (kdListener_->OnDealKeyEvent(keyEvent, consumer)) {
+    if (!kdListener_->OnDealKeyEvent(keyEvent, consumer)) {
         IMSA_HILOGE("keyEvent not deal");
         return ErrorCode::ERROR_DISPATCH_KEY_EVENT;
     }
