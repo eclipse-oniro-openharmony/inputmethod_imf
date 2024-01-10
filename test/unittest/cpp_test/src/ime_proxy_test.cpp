@@ -120,7 +120,7 @@ public:
             .name = "com.example.testIme",
             .id = "InputMethodExtAbility",
         };
-        auto ret = imc_->SwitchInputMethod(subProp.name, subProp.id);
+        auto ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, subProp.name, subProp.id);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange(subProp));
         TddUtil::RestoreSelfTokenID();

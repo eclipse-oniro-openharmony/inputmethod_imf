@@ -127,7 +127,7 @@ void InputMethodPanelTest::SetUpTestCase(void)
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(listener);
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefined", { "ohos.permission.CONNECT_IME_ABILITY" }));
-    auto ret = imc_->SwitchInputMethod("com.example.testIme");
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, "com.example.testIme");
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGI("SwitchInputMethod failed, ret = %{public}d", ret);
         return;
