@@ -162,10 +162,6 @@ public:
             IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
             auto keyEvent = KeyEventUtil::CreateKeyEvent(keyCode, keyStatus);
             blockKeyEvent_.SetValue(keyEvent);
-            if (consumer != nullptr) {
-                IMSA_HILOGI("consumer is not nullptr");
-                consumer->OnKeyCodeConsumeResult(true);
-            }
             return true;
         }
         bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override
@@ -177,17 +173,16 @@ public:
                 keyEvent->GetKeyAction());
             auto fullKey = keyEvent;
             blockFullKeyEvent_.SetValue(fullKey);
-            if (consumer != nullptr) {
-                IMSA_HILOGI("consumer is not nullptr");
-                consumer->OnKeyEventConsumeResult(true);
-            }
             return true;
         }
         bool OnDealKeyEvent(
             const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override
         {
-            OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
-            OnKeyEvent(keyEvent, consumer);
+            bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
+            bool isKeyEventConsume = OnKeyEvent(keyEvent, consumer);
+            if (consumer != nullptr) {
+                consumer->OnKeyEventResult(isKeyEventConsume | isKeyCodeConsume);
+            }
             return true;
         }
         void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override
@@ -605,6 +600,12 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent001, TestSize.Level0)
     ASSERT_NE(keyEvent, nullptr);
     EXPECT_EQ(keyEvent->GetKeyCode(), keyEvent_->GetKeyCode());
     EXPECT_EQ(keyEvent->GetKeyAction(), keyEvent_->GetKeyAction());
+
+    doesKeyEventConsume_ = false;
+    ret = inputMethodController_->DispatchKeyEvent(keyEvent_, DispatchKeyEventCallback);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    EXPECT_TRUE(!WaitKeyEventCallback());
 }
 
 /**

@@ -32,14 +32,17 @@ bool KeyboardListenerTestImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sp
     if (consumer != nullptr) {
         consumer->OnKeyCodeConsumeResult(true);
     }
-    return false;
+    return true;
 }
 
 bool KeyboardListenerTestImpl::OnDealKeyEvent(
     const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
-    OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
-    OnKeyEvent(keyEvent, consumer);
+    bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
+    bool isKeyEventConsume = OnKeyEvent(keyEvent, consumer);
+    if (consumer != nullptr) {
+        consumer->OnKeyEventResult(isKeyEventConsume | isKeyCodeConsume);
+    }
     return true;
 }
 

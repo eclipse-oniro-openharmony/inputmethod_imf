@@ -67,24 +67,21 @@ bool KeyboardListenerImpl::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<K
     IMSA_HILOGD("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
     keyCode_ = keyCode;
     keyStatus_ = keyStatus;
-    if (consumer != nullptr) {
-        consumer->OnKeyCodeConsumeResult(true);
-    }
     return true;
 }
 bool KeyboardListenerImpl::OnKeyEvent(
     const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
-    if (consumer != nullptr) {
-        consumer->OnKeyEventConsumeResult(true);
-    }
     return true;
 }
 bool KeyboardListenerImpl::OnDealKeyEvent(
     const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
-    OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
-    OnKeyEvent(keyEvent, consumer);
+    bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
+    bool isKeyEventConsume = OnKeyEvent(keyEvent, consumer);
+    if (consumer != nullptr) {
+        consumer->OnKeyEventResult(isKeyEventConsume | isKeyCodeConsume);
+    }
     return true;
 }
 void KeyboardListenerImpl::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
