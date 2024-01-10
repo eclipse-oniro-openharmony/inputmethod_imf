@@ -271,7 +271,7 @@ HWTEST_F(InputMethodSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize
     IMSA_HILOGI("oldIme testSwitchToCurrentImeWithEmptySubName Test START");
     imeChangeFlag = false;
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
-    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName);
+    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_FALSE(imeChangeFlag);
     CheckCurrentProp(subName);
@@ -290,7 +290,7 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleName, TestSize.Level
 {
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleName Test START");
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
-    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, "error bundleName", extName[0]);
+    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, "error bundleName", extName[0]);
     if (InputMethodSwitchTest::enableOn) {
         EXPECT_EQ(ret, ErrorCode::ERROR_ENABLE_IME);
     } else {
@@ -312,7 +312,7 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleNameWitchEmptySubNam
 {
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleNameWitchEmptySubName Test START");
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
-    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, "error bundleName", " ");
+    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, "error bundleName", " ");
     if (InputMethodSwitchTest::enableOn) {
         EXPECT_EQ(ret, ErrorCode::ERROR_ENABLE_IME);
     } else {
@@ -484,7 +484,7 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_001, TestSize.Level0
     auto ret = TddUtil::ExecuteCmd(cmd, result);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(InputMethodSwitchTest::WaitImeChangeCallback(true));
-    imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, property->name, "");
+    imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, property->name, "");
 }
 
 /**
@@ -504,7 +504,7 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_002, TestSize.Level0
     auto ret = TddUtil::ExecuteCmd(cmd, result);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(InputMethodSwitchTest::WaitImeChangeCallback(true));
-    imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, property->name, "");
+    imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, property->name, "");
 }
 } // namespace MiscServices
 } // namespace OHOS

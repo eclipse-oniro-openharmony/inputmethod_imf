@@ -274,5 +274,94 @@ HWTEST_F(NewImeSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize.Leve
     CheckCurrentSubProp(subName[0]);
     CheckCurrentSubProps();
 }
+
+/**
+* @tc.name: testSwitchInputMethod_001
+* @tc.desc: switch ime to newTestIme and switch the subtype to subName1.
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: weishaoxiong
+*/
+HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_001, TestSize.Level0)
+{
+    IMSA_HILOGI("newIme testSwitchInputMethod_001 Test START");
+    imeChangeFlag = false;
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName, subName[1]);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(imeChangeFlag);
+    CheckCurrentProp();
+    CheckCurrentSubProp(subName[1]);
+    CheckCurrentSubProps();
+    sleep(WAIT_IME_READY_TIME);
+}
+
+/**
+* @tc.name: testSwitchInputMethod_002
+* @tc.desc: switch the subtype to subName0.
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: weishaoxiong
+*/
+HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_002, TestSize.Level0)
+{
+    IMSA_HILOGI("newIme testSwitchInputMethod_002 Test START");
+    imeChangeFlag = false;
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName, subName[0]);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(imeChangeFlag);
+    CheckCurrentProp();
+    CheckCurrentSubProp(subName[0]);
+    CheckCurrentSubProps();
+    sleep(WAIT_IME_READY_TIME);
+}
+
+/**
+* @tc.name: testSwitchInputMethod_003
+* @tc.desc: switch ime to newTestIme.
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: weishaoxiong
+*/
+HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_003, TestSize.Level0)
+{
+    IMSA_HILOGI("newIme testSwitchInputMethod_003 Test START");
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    CheckCurrentProp();
+    CheckCurrentSubProp(subName[0]);
+    CheckCurrentSubProps();
+    sleep(WAIT_IME_READY_TIME);
+}
+
+/**
+* @tc.name: testSwitchInputMethod_004
+* @tc.desc: The caller is not a system app.
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: weishaoxiong
+*/
+HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_004, TestSize.Level0)
+{
+    TddUtil::SetTestTokenID(
+        TddUtil::AllocTestTokenID(false, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
+    IMSA_HILOGI("newIme testSwitchInputMethod_004 Test START");
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
+}
+
+/**
+* @tc.name: testSwitchInputMethod_005
+* @tc.desc: The caller has no permissions.
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: weishaoxiong
+*/
+HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_005, TestSize.Level0)
+{
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", {}));
+    IMSA_HILOGI("newIme testSwitchInputMethod_005 Test START");
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
+}
 } // namespace MiscServices
 } // namespace OHOS
