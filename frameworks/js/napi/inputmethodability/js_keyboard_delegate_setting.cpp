@@ -310,7 +310,6 @@ bool JsKeyboardDelegateSetting::OnDealKeyEvent(
     auto keyCodeEntry = GetEntry(type, [&para](UvEntry &entry) {
         entry.keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
     });
-
     if (keyEventEntry == nullptr && keyCodeEntry == nullptr) {
         IMSA_HILOGW("no key event callback registered");
         return false;
