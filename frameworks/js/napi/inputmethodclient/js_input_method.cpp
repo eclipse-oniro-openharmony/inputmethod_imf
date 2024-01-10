@@ -247,7 +247,7 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
             ctxt->trigger = SwitchTrigger::SYSTEM_APP;
             napi_valuetype type = napi_undefined;
             napi_typeof(env, argv[1], &type);
-            if (argc > 1 && type == napi_string){
+            if (argc > 1 && type == napi_string) {
                 JsUtils::GetValue(env, argv[0], ctxt->id);
             }
         }
