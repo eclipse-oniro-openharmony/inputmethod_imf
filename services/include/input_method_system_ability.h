@@ -69,7 +69,8 @@ public:
     int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;
     int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) override;
     int32_t ListInputMethodSubtype(const std::string &bundleName, std::vector<SubProperty> &subProps) override;
-    int32_t SwitchInputMethod(const std::string &bundleName, const std::string &subName) override;
+    int32_t SwitchInputMethod(
+        const std::string &bundleName, const std::string &subName, SwitchTrigger trigger) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
     int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) override;
@@ -108,9 +109,9 @@ private:
     int32_t OnDisplayOptionalInputMethod();
     void StartUserIdListener();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);
-    bool IsSwitchPermitted(const SwitchInfo &switchInfo);
+    int32_t CheckSwitchPermission(const SwitchInfo &switchInfo, SwitchTrigger trigger);
     bool IsStartInputTypePermitted();
-    int32_t OnSwitchInputMethod(const SwitchInfo &switchInfo, bool isCheckPermission);
+    int32_t OnSwitchInputMethod(const SwitchInfo &switchInfo, SwitchTrigger trigger);
     int32_t OnStartInputType(const SwitchInfo &switchInfo, bool isCheckPermission);
     int32_t Switch(const std::string &bundleName, const std::shared_ptr<ImeInfo> &info);
     int32_t SwitchExtension(const std::shared_ptr<ImeInfo> &info);

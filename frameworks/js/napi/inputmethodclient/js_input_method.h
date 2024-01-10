@@ -30,6 +30,7 @@ struct SwitchInputMethodContext : public AsyncCall::Context {
     std::string methodId;    // in InputMethodProperty
     std::string name;        // in InputMethodSubtype
     std::string id;          // in InputMethodSubtype
+    SwitchTrigger trigger;
     napi_status status = napi_generic_failure;
     SwitchInputMethodContext() : Context(nullptr, nullptr){};
     SwitchInputMethodContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};

@@ -360,9 +360,10 @@ public:
      * @param name      Indicates the id of target input method.
      * @param subName   Optional parameter. Indicates the subtype of target input method.
      * @return Returns 0 for success, others for failure.
-     * @since 8
+     * @since 11
      */
-    IMF_API int32_t SwitchInputMethod(const std::string &name, const std::string &subName = "");
+     // todo inner api是否可以随便变动
+    IMF_API int32_t SwitchInputMethod(SwitchTrigger trigger, const std::string &name, const std::string &subName = "");
 
     /**
      * @brief Show soft keyboard.

@@ -58,7 +58,7 @@ public:
     int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop) override;
     int32_t GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig) override;
     int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;
-    int32_t SwitchInputMethod(const std::string &name, const std::string &subName) override;
+    int32_t SwitchInputMethod(const std::string &name, const std::string &subName, SwitchTrigger trigger) override;
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
     int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) override;

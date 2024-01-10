@@ -98,6 +98,9 @@ public:
     static bool Marshalling(ClientState input, MessageParcel &data);
     static bool Unmarshalling(ClientState &output, MessageParcel &data);
 
+    static bool Marshalling(SwitchTrigger input, MessageParcel &data);
+    static bool Unmarshalling(SwitchTrigger &output, MessageParcel &data);
+
     template<class T>
     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);
     template<class T>
