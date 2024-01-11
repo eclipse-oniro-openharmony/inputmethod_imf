@@ -239,16 +239,17 @@ int32_t InputMethodSystemAbilityStub::ListCurrentInputMethodSubtypeOnRemote(Mess
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel& data, MessageParcel& reply)
+int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     std::string name;
     std::string subName;
-    if (!ITypesUtil::Unmarshal(data, name, subName)) {
+    SwitchTrigger trigger;
+    if (!ITypesUtil::Unmarshal(data, name, subName, trigger)) {
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return reply.WriteInt32(SwitchInputMethod(name, subName)) ? ErrorCode::NO_ERROR
-                                                                          : ErrorCode::ERROR_EX_PARCELABLE;
+    return reply.WriteInt32(SwitchInputMethod(name, subName, trigger)) ? ErrorCode::NO_ERROR
+                                                                       : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)

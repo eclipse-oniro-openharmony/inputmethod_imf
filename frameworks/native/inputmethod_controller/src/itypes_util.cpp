@@ -386,5 +386,21 @@ bool ITypesUtil::Unmarshalling(ClientState &output, MessageParcel &data)
     output = static_cast<ClientState>(state);
     return true;
 }
+
+bool ITypesUtil::Marshalling(SwitchTrigger input, MessageParcel &data)
+{
+    return data.WriteUint32(static_cast<uint32_t>(input));
+}
+
+bool ITypesUtil::Unmarshalling(SwitchTrigger &output, MessageParcel &data)
+{
+    uint32_t state = 0;
+    if (!data.ReadUint32(state)) {
+        IMSA_HILOGE("ClientState read failed");
+        return false;
+    }
+    output = static_cast<SwitchTrigger>(state);
+    return true;
+}
 } // namespace MiscServices
 } // namespace OHOS

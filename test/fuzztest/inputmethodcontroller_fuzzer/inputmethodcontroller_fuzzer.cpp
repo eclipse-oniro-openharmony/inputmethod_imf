@@ -97,9 +97,9 @@ void TestOnConfigurationChange(sptr<InputMethodController> imc)
     imc->GetInputPattern(inputPattern);
 }
 
-void TestSwitchInputMethod(sptr<InputMethodController> imc, std::string fuzzedString)
+void TestSwitchInputMethod(SwitchTrigger fuzzedTrigger, sptr<InputMethodController> imc, std::string fuzzedString)
 {
-    imc->SwitchInputMethod(fuzzedString, fuzzedString);
+    imc->SwitchInputMethod(fuzzedTrigger, fuzzedString, fuzzedString);
     imc->ShowOptionalInputMethod();
 }
 
@@ -163,6 +163,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     auto fuzzedInt32 = static_cast<int32_t>(size);
     auto fuzzedUInt32 = static_cast<uint32_t>(size);
     auto fuzzedDouble = static_cast<double>(size);
+    auto fuzzedTrigger = static_cast<SwitchTrigger>(size);
 
     OHOS::sptr<InputMethodController> imc = InputMethodController::GetInstance();
 
@@ -170,7 +171,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestListInputMethodSubtype(imc, fuzzedString, fuzzedInt32);
     OHOS::TestOnSelectionChange(imc, fuzzedU16String, fuzzedInt, fuzzedDouble);
     OHOS::TestOnConfigurationChange(imc);
-    OHOS::TestSwitchInputMethod(imc, fuzzedString);
+    OHOS::TestSwitchInputMethod(fuzzedTrigger, imc, fuzzedString);
     OHOS::TestSetCallingWindow(imc, fuzzedUInt32);
     OHOS::TestDispatchKeyEvent(imc, fuzzedInt32);
     OHOS::TestShowSomething(imc);

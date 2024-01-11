@@ -873,15 +873,17 @@ int32_t InputMethodController::ListCurrentInputMethodSubtype(std::vector<SubProp
     return proxy->ListCurrentInputMethodSubtype(subProps);
 }
 
-int32_t InputMethodController::SwitchInputMethod(const std::string &name, const std::string &subName)
+int32_t InputMethodController::SwitchInputMethod(
+    SwitchTrigger trigger, const std::string &name, const std::string &subName)
 {
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGI("name: %{public}s, subName: %{public}s", name.c_str(), subName.c_str());
-    return proxy->SwitchInputMethod(name, subName);
+    IMSA_HILOGI("name: %{public}s, subName: %{public}s, trigger: %{public}d", name.c_str(), subName.c_str(),
+        static_cast<uint32_t>(trigger));
+    return proxy->SwitchInputMethod(name, subName, trigger);
 }
 
 void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
