@@ -54,6 +54,7 @@ ohos_shared_library("inputmethodengine") {
   sources = [
     "${inputmethod_path}/frameworks/js/napi/inputmethodclient/async_call.cpp",
     "${inputmethod_path}/frameworks/js/napi/inputmethodclient/js_utils.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
     "${inputmethod_path}/services/src/global.cpp",
     "input_method_engine_module.cpp",
     "js_input_method_engine_setting.cpp",

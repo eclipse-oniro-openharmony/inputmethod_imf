@@ -43,6 +43,7 @@ ohos_shared_library("inputmethod_service") {
   sources = [
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_death_recipient.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
     "${inputmethod_path}/services/adapter/focus_monitor/src/focus_change_listener.cpp",
     "${inputmethod_path}/services/adapter/focus_monitor/src/focus_monitor_manager.cpp",
     "${inputmethod_path}/services/adapter/system_language_observer/src/system_language_observer.cpp",

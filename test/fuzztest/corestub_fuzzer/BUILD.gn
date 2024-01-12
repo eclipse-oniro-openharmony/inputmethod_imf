@@ -37,7 +37,10 @@ ohos_fuzztest("CoreStubFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "corestub_fuzzer.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
+    "corestub_fuzzer.cpp",
+  ]
 
   deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability" ]
 

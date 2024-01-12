@@ -28,6 +28,7 @@
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
+#include "keyevent_consumer_stub.h"
 #include "string_ex.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
@@ -709,7 +710,7 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
     return ErrorCode::NO_ERROR;
 }
 
-bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
+int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent, KeyEventCallback callback)
 {
     KeyEventInfo keyEventInfo = { std::chrono::system_clock::now(), keyEvent };
     keyEventQueue_.Push(keyEventInfo);
@@ -718,21 +719,30 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
         keyEventQueue_.Pop();
-        return false;
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
         keyEventQueue_.Pop();
-        return false;
+        return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
         keyEventQueue_.Pop();
-        return false;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     IMSA_HILOGI("start");
-    bool ret = agent->DispatchKeyEvent(keyEvent);
+    sptr<IKeyEventConsumer> consumer = new (std::nothrow) KeyEventConsumerStub(callback, keyEvent);
+    if (consumer == nullptr) {
+        IMSA_HILOGE("keyEvent is nullptr");
+        keyEventQueue_.Pop();
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    auto ret = agent->DispatchKeyEvent(keyEvent, consumer);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("DispatchKeyEvent failed");
+    }
     keyEventQueue_.Pop();
     return ret;
 }

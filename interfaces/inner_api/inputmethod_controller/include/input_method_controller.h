@@ -67,6 +67,7 @@ public:
     virtual int32_t GetTextIndexAtCursor() = 0;
 };
 
+using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
 class InputMethodController : public RefBase {
 public:
     /**
@@ -220,7 +221,17 @@ public:
      * @return Returns true for success otherwise for failure.
      * @since 6
      */
-    IMF_API bool DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
+    /**
+     * @brief Dispatch keyboard event.
+     *
+     * This function is used to Dispatch events of keyboard.
+     *
+     * @param keyEvent Indicates the events keyboard.
+     * @param callback Indicates the consumption result of key event.
+     * @return Returns 0 for success, others for failure.
+     * @since 11
+     */
+    IMF_API int32_t DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent, KeyEventCallback callback);
 
     /**
      * @brief List input methods.

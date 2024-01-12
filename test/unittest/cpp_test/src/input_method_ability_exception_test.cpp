@@ -225,13 +225,14 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEventException, TestSiz
     IMSA_HILOGI("InputMethodAbilityExceptionTest DispatchKeyEvent START");
     // keyEvent == nullptr;
     std::shared_ptr<MMI::KeyEvent> keyEvent = nullptr;
-    auto ret = inputMethodAbility_->DispatchKeyEvent(keyEvent);
-    EXPECT_FALSE(ret);
+    sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(nullptr);
+    auto ret = inputMethodAbility_->DispatchKeyEvent(keyEvent, consumer);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 
     // kdListener_ == nullptr
     keyEvent = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
-    ret = inputMethodAbility_->DispatchKeyEvent(keyEvent);
-    EXPECT_FALSE(ret);
+    ret = inputMethodAbility_->DispatchKeyEvent(keyEvent, consumer);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
 }
 
 /**

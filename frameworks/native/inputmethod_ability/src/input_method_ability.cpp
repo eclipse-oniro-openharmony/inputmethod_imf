@@ -292,20 +292,24 @@ int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
     return ErrorCode::NO_ERROR;
 }
 
-bool InputMethodAbility::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+int32_t InputMethodAbility::DispatchKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
-        return false;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     if (kdListener_ == nullptr) {
         IMSA_HILOGE("kdListener_ is nullptr");
-        return false;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     IMSA_HILOGD("InputMethodAbility, run in");
-    bool isFullKeyEventConsumed = kdListener_->OnKeyEvent(keyEvent);
-    bool isKeyEventConsumed = kdListener_->OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction());
-    return isFullKeyEventConsumed || isKeyEventConsumed;
+
+    if (!kdListener_->OnDealKeyEvent(keyEvent, consumer)) {
+        IMSA_HILOGE("keyEvent not deal");
+        return ErrorCode::ERROR_DISPATCH_KEY_EVENT;
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodAbility::SetCallingWindow(uint32_t windowId)

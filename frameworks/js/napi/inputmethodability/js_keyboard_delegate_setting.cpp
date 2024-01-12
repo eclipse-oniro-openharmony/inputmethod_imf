@@ -24,8 +24,10 @@
 #include "js_util.h"
 #include "js_utils.h"
 #include "key_event_napi.h"
+#include "keyevent_consumer_proxy.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+
 namespace OHOS {
 namespace MiscServices {
 constexpr size_t ARGC_ONE = 1;
@@ -293,13 +295,85 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
     return KeyboardDelegate;
 }
 
-bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+bool JsKeyboardDelegateSetting::OnDealKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+{
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr");
+        return false;
+    }
+    auto keyEventEntry =
+        GetEntry("keyEvent", [keyEvent](UvEntry &entry) { entry.pullKeyEventPara = keyEvent; });
+    KeyEventPara para{ keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), false };
+    std::string type = (keyEvent->GetKeyAction() == ARGC_TWO ? "keyDown" : "keyUp");
+    auto keyCodeEntry = GetEntry(type, [&para](UvEntry &entry) {
+        entry.keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
+    });
+    if (keyEventEntry == nullptr && keyCodeEntry == nullptr) {
+        IMSA_HILOGW("no key event callback registered");
+        return false;
+    }
+    IMSA_HILOGI("run in");
+    auto task = [keyEventEntry, keyCodeEntry, consumer]() { DealKeyEvent(keyEventEntry, keyCodeEntry, consumer); };
+    eventHandler->PostTask(task, "OnDealKeyEvent");
+    return true;
+}
+
+void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<UvEntry> &keyEventEntry,
+    const std::shared_ptr<UvEntry> &keyCodeEntry, const sptr<KeyEventConsumerProxy> &consumer)
+{
+    bool isKeyEventConsumed = false;
+    bool isKeyCodeConsumed = false;
+    if (keyEventEntry != nullptr) {
+        auto getKeyEventProperty = [keyEventEntry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == 0) {
+                return false;
+            }
+            napi_value keyEventObject{};
+            auto result = napi_create_object(env, &keyEventObject);
+            CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create object", false);
+            result = MMI::KeyEventNapi::CreateKeyEvent(env, keyEventEntry->pullKeyEventPara, keyEventObject);
+            CHECK_RETURN((result == napi_ok) && (keyEventObject != nullptr), "create key event object", false);
+            // 0 means the first param of callback.
+            args[0] = keyEventObject;
+            return true;
+        };
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(keyEventEntry->vecCopy, { 1, getKeyEventProperty }, isKeyEventConsumed);
+    }
+    if (keyCodeEntry != nullptr) {
+        auto getKeyEventProperty = [keyCodeEntry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            InputMethodSyncTrace tracer("Create parameter");
+            if (argc == 0) {
+                return false;
+            }
+            napi_value jsObject =
+                GetResultOnKeyEvent(env, keyCodeEntry->keyEventPara.keyCode, keyCodeEntry->keyEventPara.keyStatus);
+            if (jsObject == nullptr) {
+                IMSA_HILOGE("get GetResultOnKeyEvent failed: jsObject is nullptr");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = jsObject;
+            return true;
+        };
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(keyCodeEntry->vecCopy, { 1, getKeyEventProperty }, isKeyCodeConsumed);
+    }
+    if (consumer != nullptr) {
+        IMSA_HILOGE("consumer result: %{public}d", isKeyEventConsumed | isKeyCodeConsumed);
+        consumer->OnKeyEventResult(isKeyEventConsumed | isKeyCodeConsumed);
+    }
+}
+
+bool JsKeyboardDelegateSetting::OnKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
     std::string type = "keyEvent";
-    auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-    auto entry = GetEntry(type, [keyEvent, isDone](UvEntry &entry) {
+    auto entry = GetEntry(type, [keyEvent, &consumer](UvEntry &entry) {
         entry.pullKeyEventPara = keyEvent;
-        entry.isDone = isDone;
+        entry.keyEvenetConsumer = consumer;
     });
     if (entry == nullptr) {
         return false;
@@ -330,23 +404,24 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> 
         bool isConsumed = false;
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
-        entry->isDone->SetValue(isConsumed);
+        auto consumer = entry->keyEvenetConsumer;
+        if (consumer != nullptr) {
+            IMSA_HILOGE("consumer result: %{public}d", isConsumed);
+            consumer->OnKeyEventConsumeResult(isConsumed);
+        }
         FinishAsync("OnFullKeyEvent", static_cast<int32_t>(TraceTaskId::ON_FULL_KEY_EVENT));
     };
     eventHandler->PostTask(task, type);
-    bool isConsumed = isDone->GetValue();
-    IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
-    return isConsumed;
+    return true;
 }
 
-bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
+bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer)
 {
     KeyEventPara para{ keyCode, keyStatus, false };
     std::string type = (keyStatus == ARGC_TWO ? "keyDown" : "keyUp");
-    auto isDone = std::make_shared<BlockData<bool>>(MAX_TIMEOUT, false);
-    auto entry = GetEntry(type, [&para, isDone](UvEntry &entry) {
+    auto entry = GetEntry(type, [&para, &consumer](UvEntry &entry) {
         entry.keyEventPara = { para.keyCode, para.keyStatus, para.isOnKeyEvent };
-        entry.isDone = isDone;
+        entry.keyEvenetConsumer = consumer;
     });
     if (entry == nullptr) {
         return false;
@@ -378,13 +453,15 @@ bool JsKeyboardDelegateSetting::OnKeyEvent(int32_t keyCode, int32_t keyStatus)
         bool isConsumed = false;
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getKeyEventProperty }, isConsumed);
-        entry->isDone->SetValue(isConsumed);
+        auto consumer = entry->keyEvenetConsumer;
+        if (consumer != nullptr) {
+            IMSA_HILOGE("consumer result: %{public}d", isConsumed);
+            consumer->OnKeyCodeConsumeResult(isConsumed);
+        }
         FinishAsync("OnKeyEvent", static_cast<int32_t>(TraceTaskId::ON_KEY_EVENT));
     };
     eventHandler->PostTask(task, type);
-    bool isConsumed = isDone->GetValue();
-    IMSA_HILOGI("key event handle result: %{public}d", isConsumed);
-    return isConsumed;
+    return true;
 }
 
 void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)

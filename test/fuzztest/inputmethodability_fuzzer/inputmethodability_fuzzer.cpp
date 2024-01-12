@@ -23,18 +23,38 @@
 using namespace OHOS::MiscServices;
 namespace OHOS {
 class KeyboardListenerImpl : public KeyboardListener {
-    bool OnKeyEvent(int32_t keyCode, int32_t keyStatus)
+    bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer)
     {
+        if (consumer != nullptr) {
+            consumer->OnKeyCodeConsumeResult(true);
+        }
         return true;
     }
-    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
     {
+        if (consumer != nullptr) {
+            consumer->OnKeyEventConsumeResult(true);
+        }
         return true;
     }
-    void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) {}
-    void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) {}
-    void OnTextChange(const std::string &text) {}
-    void OnEditorAttributeChange(const InputAttribute &inputAttribute) {}
+    bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+    {
+        OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
+        OnKeyEvent(keyEvent, consumer);
+        return true;
+    }
+    void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
+    {
+    }
+    void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd)
+    {
+    }
+    void OnTextChange(const std::string &text)
+    {
+    }
+    void OnEditorAttributeChange(const InputAttribute &inputAttribute)
+    {
+    }
 };
 
 void TestInsertText(std::string fuzzedString)
@@ -113,7 +133,8 @@ void TestDispatchKeyEvent(int32_t fuzzedInt32)
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
     keyEvent->SetKeyCode(fuzzedInt32);
     keyEvent->SetKeyAction(fuzzedInt32);
-    ability->DispatchKeyEvent(keyEvent);
+    sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(nullptr);
+    ability->DispatchKeyEvent(keyEvent, consumer);
 }
 
 void TestSetCallingWindow(int32_t fuzzedInt32)
