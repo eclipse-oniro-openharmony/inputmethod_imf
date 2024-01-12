@@ -248,7 +248,7 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
             napi_valuetype type = napi_undefined;
             napi_typeof(env, argv[1], &type);
             if (argc > 1 && type == napi_string) {
-                JsUtils::GetValue(env, argv[0], ctxt->id);
+                JsUtils::GetValue(env, argv[1], ctxt->id);
             }
         }
         return status;
