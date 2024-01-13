@@ -459,8 +459,9 @@ bool PerUserSession::IsProxyImeEnable()
     return data != nullptr && data->core != nullptr && data->core->IsEnable();
 }
 
-int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard, sptr<IRemoteObject> &agent)
+int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
+    const sptr<IInputClient> &client = inputClientInfo.client;
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -469,12 +470,13 @@ int32_t PerUserSession::OnStartInput(const sptr<IInputClient> &client, bool isSh
     if (clientInfo == nullptr) {
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
-    IMSA_HILOGD("start input with keyboard[%{public}d]", isShowKeyboard);
+    IMSA_HILOGD("start input with keyboard[%{public}d]", inputClientInfo.isShowKeyboard);
     if (IsSameClient(client, GetCurrentClient()) && IsImeBindChanged(clientInfo->bindImeType)) {
         UnBindClientWithIme(clientInfo);
     }
     InputClientInfo infoTemp = *clientInfo;
-    infoTemp.isShowKeyboard = isShowKeyboard;
+    infoTemp.isShowKeyboard = inputClientInfo.isShowKeyboard;
+    infoTemp.isNotifyInputStart = inputClientInfo.isNotifyInputStart;
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
     if (ret != ErrorCode::NO_ERROR) {

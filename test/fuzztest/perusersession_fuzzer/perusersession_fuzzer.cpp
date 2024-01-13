@@ -101,8 +101,10 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     userSessions->OnSetCoreAndAgent(core, agent);
     userSessions->OnShowCurrentInput();
     sptr<IRemoteObject> agentObject = nullptr;
-    userSessions->OnStartInput(client, false, agentObject);
-    userSessions->OnStartInput(client, true, agentObject);
+    clientInfo.isShowKeyboard = false;
+    userSessions->OnStartInput(clientInfo, agentObject);
+    clientInfo.isShowKeyboard = true;
+    userSessions->OnStartInput(clientInfo, agentObject);
     userSessions->NotifyImeChangeToClients(property, subProperty);
     userSessions->OnHideCurrentInput();
     userSessions->OnHideInput(client);

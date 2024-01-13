@@ -69,7 +69,7 @@ public:
     ~PerUserSession();
 
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
-    int32_t OnStartInput(const sptr<IInputClient> &client, bool isShowKeyboard, sptr<IRemoteObject> &agent);
+    int32_t OnStartInput(const InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
     int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
     int32_t OnHideCurrentInput();
