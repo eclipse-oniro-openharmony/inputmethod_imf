@@ -489,12 +489,13 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     }
     std::shared_ptr<JSCallbackObject> callback =
         std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
-    auto ret = engine->RegisterListener(argv[ARGC_ONE], type, callback);
+    auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
     auto errCode = JsUtils::Convert(ret);
-    ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
-    IMSA_HILOGE("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str());
     if (errCode == EXCEPTION_SYSTEM_PERMISSION) {
+        IMSA_HILOGE("UpdateListenEventFlag failed, ret: %{public}d, type: %{public}s", ret, type.c_str());
         JsUtils::ThrowException(env, errCode, "", TYPE_NONE);
+    } else {
+        engine->RegisterListener(argv[ARGC_ONE], type, callback);
     }
     napi_value result = nullptr;
     napi_get_null(env, &result);
@@ -564,7 +565,7 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     engine->UnRegisterListener(argv[ARGC_ONE], type, isUpdateFlag);
     if (isUpdateFlag) {
         auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
-        IMSA_HILOGE("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str());
+        IMSA_HILOGI("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str());
     }
     napi_value result = nullptr;
     napi_get_null(env, &result);
