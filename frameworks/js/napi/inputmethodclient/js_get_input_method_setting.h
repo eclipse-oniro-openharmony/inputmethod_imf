@@ -122,7 +122,7 @@ private:
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value GetIMSetting(napi_env env, napi_callback_info info, bool needThrowException);
     int32_t RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
-    void UnRegisterListener(napi_value callback, std::string type);
+    void UnRegisterListener(napi_value callback, std::string type, bool &isUpdateFlag);
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;

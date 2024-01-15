@@ -492,7 +492,7 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     auto ret = engine->RegisterListener(argv[ARGC_ONE], type, callback);
     auto errCode = JsUtils::Convert(ret);
     ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
-    IMSA_HILOGE("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", res, type.c_str())
+    IMSA_HILOGE("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str())
     if (errCode == EXCEPTION_SYSTEM_PERMISSION) {
         JsUtils::ThrowException(env, errCode, "", TYPE_NONE);
     }
@@ -501,7 +501,7 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     return result;
 }
 
-void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::string type)
+void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::string type, bool &isUpdateFlag)
 {
     IMSA_HILOGI("UnRegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -513,6 +513,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     if (callback == nullptr) {
         jsCbMap_.erase(type);
         IMSA_HILOGI("stop all type: %{public}s listening.", type.c_str());
+        isUpdateFlag = true;
         return;
     }
 
@@ -526,6 +527,7 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     if (jsCbMap_[type].empty()) {
         IMSA_HILOGI("stop last type: %{public}s listening.", type.c_str());
         jsCbMap_.erase(type);
+        isUpdateFlag = true;
     }
 }
 
@@ -558,8 +560,12 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     if (engine == nullptr) {
         return nullptr;
     }
-    engine->UnRegisterListener(argv[ARGC_ONE], type);
-    InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
+    bool isUpdateFlag = false;
+    engine->UnRegisterListener(argv[ARGC_ONE], type, isUpdateFlag);
+    if (isUpdateFlag) {
+        ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
+        IMSA_HILOGE("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str())
+    }
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
