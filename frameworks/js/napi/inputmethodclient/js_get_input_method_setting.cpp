@@ -494,7 +494,7 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
     IMSA_HILOGE("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", res, type.c_str())
     if (errCode == EXCEPTION_SYSTEM_PERMISSION) {
-        JsUtils::ThrowException(env, errCode, "", TYPE_NONE); 
+        JsUtils::ThrowException(env, errCode, "", TYPE_NONE);
     }
     napi_value result = nullptr;
     napi_get_null(env, &result);
