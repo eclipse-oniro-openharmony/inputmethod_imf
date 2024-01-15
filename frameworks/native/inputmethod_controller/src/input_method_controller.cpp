@@ -717,6 +717,7 @@ int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> k
         IMSA_HILOGE("DispatchKeyEventInner error");
         callback(keyEvent, false);
     }
+    return ret;
 }
 
 int32_t InputMethodController::DispatchKeyEventInner(
