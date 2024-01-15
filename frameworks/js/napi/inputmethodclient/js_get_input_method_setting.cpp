@@ -492,7 +492,7 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     auto ret = engine->RegisterListener(argv[ARGC_ONE], type, callback);
     auto errCode = JsUtils::Convert(ret);
     ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
-    IMSA_HILOGE("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str())
+    IMSA_HILOGE("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str());
     if (errCode == EXCEPTION_SYSTEM_PERMISSION) {
         JsUtils::ThrowException(env, errCode, "", TYPE_NONE);
     }
@@ -563,8 +563,8 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     bool isUpdateFlag = false;
     engine->UnRegisterListener(argv[ARGC_ONE], type, isUpdateFlag);
     if (isUpdateFlag) {
-        ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
-        IMSA_HILOGE("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str())
+        auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
+        IMSA_HILOGE("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str());
     }
     napi_value result = nullptr;
     napi_get_null(env, &result);
