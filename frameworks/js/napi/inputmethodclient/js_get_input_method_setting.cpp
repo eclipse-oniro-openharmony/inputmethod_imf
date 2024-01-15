@@ -448,19 +448,9 @@ int32_t JsGetInputMethodSetting::RegisterListener(
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (jsCbMap_.empty()) {
         InputMethodController::GetInstance()->SetSettingListener(inputMethod_);
-        auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("UpdateListenEventFlag failed, ret: %{public}d, type: %{public}s", ret, type.c_str());
-            return ret;
-        }
     }
     if (!jsCbMap_.empty() && jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGI("start type: %{public}s listening.", type.c_str());
-        auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("UpdateListenEventFlag failed, ret: %{public}d, type: %{public}s", ret, type.c_str());
-            return ret;
-        }
     }
 
     auto callbacks = jsCbMap_[type];
@@ -501,8 +491,10 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
         std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
     auto ret = engine->RegisterListener(argv[ARGC_ONE], type, callback);
     auto errCode = JsUtils::Convert(ret);
+    ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
+    IMSA_HILOGE("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", res, type.c_str())
     if (errCode == EXCEPTION_SYSTEM_PERMISSION) {
-        JsUtils::ThrowException(env, errCode, "", TYPE_NONE);
+        JsUtils::ThrowException(env, errCode, "", TYPE_NONE); 
     }
     napi_value result = nullptr;
     napi_get_null(env, &result);
@@ -521,7 +513,6 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     if (callback == nullptr) {
         jsCbMap_.erase(type);
         IMSA_HILOGI("stop all type: %{public}s listening.", type.c_str());
-        InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
         return;
     }
 
@@ -535,7 +526,6 @@ void JsGetInputMethodSetting::UnRegisterListener(napi_value callback, std::strin
     if (jsCbMap_[type].empty()) {
         IMSA_HILOGI("stop last type: %{public}s listening.", type.c_str());
         jsCbMap_.erase(type);
-        InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
     }
 }
 
@@ -569,6 +559,7 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
         return nullptr;
     }
     engine->UnRegisterListener(argv[ARGC_ONE], type);
+    InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
     napi_value result = nullptr;
     napi_get_null(env, &result);
     return result;
