@@ -712,6 +712,17 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 
 int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent, KeyEventCallback callback)
 {
+    auto ret = DispatchKeyEventInner(keyEvent, callback);
+    if (ret != ErrorCode::NO_ERROR && callback != nullptr) {
+        IMSA_HILOGE("DispatchKeyEventInner error");
+        callback(keyEvent, false);
+    }
+    return ret;
+}
+
+int32_t InputMethodController::DispatchKeyEventInner(
+    std::shared_ptr<MMI::KeyEvent> &keyEvent, KeyEventCallback &callback)
+{
     KeyEventInfo keyEventInfo = { std::chrono::system_clock::now(), keyEvent };
     keyEventQueue_.Push(keyEventInfo);
     InputMethodSyncTrace tracer("DispatchKeyEvent trace");
