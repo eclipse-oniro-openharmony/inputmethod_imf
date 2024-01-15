@@ -250,6 +250,10 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
 
 int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
+    if (userSession_->GetCurrentClientPid() != IPCSkeleton::GetCallingPid()) {
+        //进程变化时需要通知inputstart
+        inputClientInfo.isNotifyInputStart = true;
+    }
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->IsBroker(tokenId)) {
         if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)) {
@@ -265,7 +269,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
         IMSA_HILOGE("PrepareInput failed");
         return ret;
     }
-    return userSession_->OnStartInput(inputClientInfo.client, inputClientInfo.isShowKeyboard, agent);
+    return userSession_->OnStartInput(inputClientInfo, agent);
 };
 
 void InputMethodSystemAbility::CheckSecurityMode(InputClientInfo &inputClientInfo)

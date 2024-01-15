@@ -247,7 +247,9 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    imeListener_->OnInputStart();
+    if (clientInfo.isNotifyInputStart) {
+        imeListener_->OnInputStart();
+    }
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }

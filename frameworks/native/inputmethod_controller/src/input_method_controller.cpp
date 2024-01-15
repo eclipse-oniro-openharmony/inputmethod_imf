@@ -250,6 +250,7 @@ int32_t InputMethodController::Attach(
     IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
     ClearEditorCache();
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
+    clientInfo_.isNotifyInputStart = GetTextListener() != listener;
     SetTextListener(listener);
     clientInfo_.isShowKeyboard = isShowKeyboard;
     SaveTextConfig(textConfig);

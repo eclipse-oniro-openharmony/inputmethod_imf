@@ -266,14 +266,14 @@ HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level0)
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-    EXPECT_TRUE(imeListener_->isInputStart_ && imeListener_->keyboardState_);
+    EXPECT_TRUE(imeListener_->keyboardState_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     InputMethodEditorTest::imeListener_->isInputStart_ = false;
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-    EXPECT_TRUE(imeListener_->isInputStart_ && imeListener_->keyboardState_);
+    EXPECT_TRUE(imeListener_->keyboardState_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodEditorTest::inputMethodController_->Close();
     TddUtil::GetUnfocused();
