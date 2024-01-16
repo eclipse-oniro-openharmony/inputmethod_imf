@@ -513,47 +513,47 @@ describe('InputMethodWithAttachTest', function () {
   });
 
   /*
-   * @tc.number  inputmethod_test_stopInputSession_001
+   * @tc.number  inputmethod_test_stopInputSessionWithAttach_001
    * @tc.name    Test Indicates the input method which will hides the keyboard.
    * @tc.desc    Function test
    * @tc.level   2
    */
-  it('inputmethod_test_stopInputSession_001', 0, function (done) {
-    console.info('************* inputmethod_test_stopInputSession_001 Test start*************');
+  it('inputmethod_test_stopInputSessionWithAttach_001', 0, function (done) {
+    console.info('************* inputmethod_test_stopInputSessionWithAttach_001 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
     inputMethodCtrl.stopInputSession((err, ret) => {
       if (err) {
-        console.info(`inputmethod_test_stopInputSession_001 err, ${JSON.stringify(err.message)}`);
+        console.info(`inputmethod_test_stopInputSessionWithAttach_001 err, ${JSON.stringify(err.message)}`);
         expect().assertFail();
         done();
         return;
       }
       expect(ret).assertTrue();
-      console.info('************* inputmethod_test_stopInputSession_001 Test end*************');
+      console.info('************* inputmethod_test_stopInputSessionWithAttach_001 Test end*************');
       done();
     });
   });
 
   /*
- * @tc.number  inputmethod_test_stopInputSession_002
+ * @tc.number  inputmethod_test_stopInputSessionWithAttach_002
  * @tc.name    Test Indicates the input method which will hides the keyboard.
  * @tc.desc    Function test
  * @tc.level   2
  */
-  it('inputmethod_test_stopInputSession_002', 0, function (done) {
-    console.info('************* inputmethod_test_stopInputSession_002 Test start*************');
+  it('inputmethod_test_stopInputSessionWithAttach_002', 0, function (done) {
+    console.info('************* inputmethod_test_stopInputSessionWithAttach_002 Test start*************');
     let inputMethodCtrl = inputMethod.getController();
     inputMethodCtrl.hideSoftKeyboard().then((result)=>{
       if (result) {
-        console.info('inputmethod_test_stopInputSession_002 failed.');
+        console.info('inputmethod_test_stopInputSessionWithAttach_002 failed.');
         expect().assertFail();
         done();
       }
-      console.info('inputmethod_test_stopInputSession_002 success.');
+      console.info('inputmethod_test_stopInputSessionWithAttach_002 success.');
       expect(true).assertTrue();
       done();
     }).catch((err) => {
-      console.info(`inputmethod_test_stopInputSession_002 err, ${JSON.stringify(err.message)}`);
+      console.info(`inputmethod_test_stopInputSessionWithAttach_002 err, ${JSON.stringify(err.message)}`);
       expect().assertFail();
       done();
     });
