@@ -210,7 +210,7 @@ void InputMethodSystemAbility::StartUserIdListener()
 
 bool InputMethodSystemAbility::StartInputService(const std::string &imeId)
 {
-    return userSession_->StartInputService(imeId, true);
+    return userSession_->StartIme(imeId, true);
 }
 
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
@@ -596,7 +596,8 @@ int32_t InputMethodSystemAbility::Switch(const std::string &bundleName, const st
 // Switch the current InputMethodExtension to the new InputMethodExtension
 int32_t InputMethodSystemAbility::SwitchExtension(const std::shared_ptr<ImeInfo> &info)
 {
-    userSession_->StopInputService();
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId;
+    userSession_->StopInputService(currentIme);
     std::string targetIme = info->prop.name + "/" + info->prop.id;
     ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetIme, info->subProp.id });
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
@@ -625,10 +626,10 @@ int32_t InputMethodSystemAbility::SwitchSubType(const std::shared_ptr<ImeInfo> &
 
 int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
 {
-    auto currentImeBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     bool checkSameIme = InputTypeManager::GetInstance().IsStarted()
                             ? switchInfo.bundleName == InputTypeManager::GetInstance().GetCurrentIme().bundleName
-                            : switchInfo.bundleName == currentImeBundleName;
+                            : switchInfo.bundleName == currentIme->bundleName;
     if (checkSameIme) {
         IMSA_HILOGD("only need to switch subtype: %{public}s", switchInfo.subName.c_str());
         auto ret = userSession_->SwitchSubtype({ .name = switchInfo.bundleName, .id = switchInfo.subName });
@@ -643,7 +644,7 @@ int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
-    userSession_->StopInputService();
+    userSession_->StopInputService(currentIme->imeId);
     std::string targetIme = switchInfo.bundleName + '/' + targetImeProperty->id;
     InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
     if (!StartInputService(targetIme)) {
@@ -780,7 +781,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         SecurityModeParser::GetInstance()->GetFullModeList(userId_);
     }
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(oldUserId)->imeId;
-    userSession_->StopInputService();
+    userSession_->StopInputService(currentIme);
     // user switch, reset currentImeInfo_ = nullptr
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
     auto newIme = ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_);

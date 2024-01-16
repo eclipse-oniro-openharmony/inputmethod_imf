@@ -80,7 +80,7 @@ public:
     int32_t OnRequestHideInput();
     void OnSecurityChange(int32_t &security);
     void OnHideSoftKeyBoardSelf();
-    void StopInputService();
+    void StopInputService(const std::string &imeName);
     void NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);
     int32_t SwitchSubtype(const SubProperty &subProperty);
     void UpdateCurrentUserId(int32_t userId);
@@ -89,7 +89,7 @@ public:
     int64_t GetCurrentClientPid();
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
-    bool StartInputService(const std::string &imeName, bool isRetry);
+    bool StartIme(const std::string &imeName, bool isRetry);
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
     bool IsProxyImeEnable();
@@ -137,10 +137,11 @@ private:
             &updateInfos);
 
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
-    void RemoveImeData(ImeType type);
+    void RemoveImeData(ImeType type, bool isImeDied = true);
     int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     std::shared_ptr<ImeData> GetValidIme(ImeType type);
+    bool StartInputService(const std::string &imeName, bool isRetry);
 
     int32_t BindClientWithIme(
         const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type, bool isBindFromClient = false);
