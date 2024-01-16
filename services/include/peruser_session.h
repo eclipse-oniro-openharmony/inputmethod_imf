@@ -171,6 +171,7 @@ private:
     bool IsBindProxyImeInImeBind(ImeType bindImeType);
     bool IsBindImeInProxyImeBind(ImeType bindImeType);
     bool IsImeBindChanged(ImeType bindImeType);
+    std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;

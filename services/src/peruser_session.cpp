@@ -932,8 +932,8 @@ int64_t PerUserSession::GetCurrentClientPid()
 
 int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
 {
-    std::lock_guard<std::recursive_mutex> lock(mtx);
-    for (const auto &client : mapClients_) {
+    auto clientMap = GetClientMap();
+    for (const auto &client : clientMap) {
         auto clientInfo = client.second;
         if (clientInfo == nullptr) {
             IMSA_HILOGD("client nullptr or no need to notify");
@@ -1085,6 +1085,12 @@ bool PerUserSession::CheckSecurityMode()
         return clientInfo->config.inputAttribute.GetSecurityFlag();
     }
     return false;
+}
+
+std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> PerUserSession::GetClientMap()
+{
+    std::lock_guard<std::recursive_mutex> lock(mtx);
+    return mapClients_;
 }
 } // namespace MiscServices
 } // namespace OHOS
