@@ -384,12 +384,13 @@ int32_t InputMethodAbility::ShowKeyboard()
     if (panels_.Contains(SOFT_KEYBOARD)) {
         auto panel = GetSoftKeyboardPanel();
         if (panel == nullptr) {
+            IMSA_HILOGE("panel not create.");
             return ErrorCode::ERROR_IME;
         }
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(true);
         if (flag == FLG_CANDIDATE_COLUMN) {
-            IMSA_HILOGD("panel flag is candidate, no need to show.");
+            IMSA_HILOGI("panel flag is candidate, no need to show.");
             return ErrorCode::NO_ERROR;
         }
         return ShowPanel(panel, flag, Trigger::IMF);
@@ -804,6 +805,9 @@ int32_t InputMethodAbility::ShowPanel(
     if (ret == ErrorCode::NO_ERROR) {
         NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, true, trigger });
     }
+    if (ret == ErrorCode::ERROR_PANEL_HAS_DEALT) {
+        ret = ErrorCode::NO_ERROR;
+    }
     return ret;
 }
 
@@ -817,6 +821,9 @@ int32_t InputMethodAbility::HidePanel(
     if (ret == ErrorCode::NO_ERROR) {
         NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
     }
+    if (ret == ErrorCode::ERROR_PANEL_HAS_DEALT) {
+        ret = ErrorCode::NO_ERROR;
+    }
     return ret;
 }
 
@@ -826,16 +833,17 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
         IMSA_HILOGE("imeListener_ is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    IMSA_HILOGI("IMA, trigger: %{public}d", static_cast<int32_t>(trigger));
+    IMSA_HILOGD("IMA, trigger: %{public}d", static_cast<int32_t>(trigger));
     if (panels_.Contains(SOFT_KEYBOARD)) {
         auto panel = GetSoftKeyboardPanel();
         if (panel == nullptr) {
+            IMSA_HILOGE("panel not create.");
             return ErrorCode::ERROR_IME;
         }
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(false);
         if (flag == FLG_CANDIDATE_COLUMN) {
-            IMSA_HILOGD("panel flag is candidate, no need to hide.");
+            IMSA_HILOGI("panel flag is candidate, no need to hide.");
             return ErrorCode::NO_ERROR;
         }
         return HidePanel(panel, flag, trigger);
@@ -857,15 +865,12 @@ std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
 {
     if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES,
                     [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
-        IMSA_HILOGE("not found");
         return nullptr;
     }
     auto result = panels_.Find(SOFT_KEYBOARD);
     if (!result.first) {
-        IMSA_HILOGE("not found");
         return nullptr;
     }
-    IMSA_HILOGI("success");
     return result.second;
 }
 

@@ -191,7 +191,7 @@ int32_t InputMethodPanel::ShowPanel()
     }
     if (IsShowing()) {
         IMSA_HILOGI("Panel already shown.");
-        return ErrorCode::NO_ERROR;
+        return ErrorCode::ERROR_PANEL_HAS_DEALT;
     }
     auto ret = window_->Show();
     if (ret != WMError::WM_OK) {
@@ -227,7 +227,7 @@ int32_t InputMethodPanel::HidePanel()
     }
     if (IsHidden()) {
         IMSA_HILOGI("Panel already hidden.");
-        return ErrorCode::NO_ERROR;
+        return ErrorCode::ERROR_PANEL_HAS_DEALT;
     }
     auto ret = window_->Hide();
     if (ret != WMError::WM_OK) {
