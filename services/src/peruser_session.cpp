@@ -505,8 +505,7 @@ int32_t PerUserSession::BindClientWithIme(
     if (data == nullptr) {
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    auto ret = InputTypeManager::GetInstance().IsStarted() ? data->core->OnTextConfigChange(*clientInfo)
-                                                           : data->core->StartInput(*clientInfo, isBindFromClient);
+    auto ret = data->core->StartInput(*clientInfo, isBindFromClient);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start input failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_IME_START_INPUT_FAILED;
