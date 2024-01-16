@@ -33,7 +33,7 @@ ImeAgingManager &ImeAgingManager::GetInstance()
     return ImeAgingManager;
 }
 
-bool ImeAgingManager::Push(const std::string &imeName, const std::shared_ptr<ImeCache> &imeCache)
+bool ImeAgingManager::Push(const std::string &imeName, const std::shared_ptr<AgingIme> &imeCache)
 {
     if (imeName.empty() || imeCache == nullptr) {
         IMSA_HILOGE("ime name invalid or imeCache is nullptr");
@@ -59,12 +59,11 @@ bool ImeAgingManager::Push(const std::string &imeName, const std::shared_ptr<Ime
 
 bool ImeAgingManager::Push(const std::string &imeName, const std::shared_ptr<ImeData> &imeData)
 {
-    if (imeName.empty() || imeCache == nullptr) {
-        IMSA_HILOGE("ime name invalid or imeCache is nullptr");
+    if (imeName.empty() || imeData == nullptr) {
+        IMSA_HILOGE("ime name invalid or imeData is nullptr");
         return false;
     }
-    auto imeCache = std::make_shared<ImeCache>(*imeData, std::chrono::system_clock::now());
-    imeCache->data.deathRecipient->SetDeathRecipient([this, imeName](const wptr<IRemoteObject> &) { Pop(imeName); });
+    auto imeCache = std::make_shared<AgingIme>(*imeData, std::chrono::system_clock::now());
 
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
     auto it = imeCaches_.find(imeName);
@@ -112,8 +111,8 @@ void ImeAgingManager::ClearOldest()
     }
     auto core = oldestIme->second->data.core;
     if (core != nullptr) {
-        IMSA_HILOGI("stop ime: %{public}s", oldestIme->first.c_str());
-        StopIme(oldestIme->second);
+        IMSA_HILOGI("clear ime: %{public}s", oldestIme->first.c_str());
+        ClearIme(oldestIme->second);
     }
     imeCaches_.erase(oldestIme);
 }
@@ -130,8 +129,8 @@ void ImeAgingManager::AgingCache()
         }
         auto core = it->second->data.core;
         if (core != nullptr) {
-            IMSA_HILOGI("stop ime: %{public}s", it->first.c_str());
-            StopIme(it->second);
+            IMSA_HILOGI("clear ime: %{public}s", it->first.c_str());
+            ClearIme(it->second);
         }
         it = imeCaches_.erase(it);
     }
@@ -140,7 +139,7 @@ void ImeAgingManager::AgingCache()
     }
 }
 
-void ImeAgingManager::StopIme(const std::shared_ptr<ImeCache> &ime)
+void ImeAgingManager::ClearIme(const std::shared_ptr<AgingIme> &ime)
 {
     auto imeData = ime->data;
     if (imeData.core == nullptr) {

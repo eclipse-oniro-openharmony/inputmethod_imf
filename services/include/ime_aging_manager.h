@@ -29,10 +29,10 @@
 
 namespace OHOS {
 namespace MiscServices {
-struct ImeCache {
+struct AgingIme {
     ImeData data;
     std::chrono::system_clock::time_point timestamp{};
-    ImeCache(ImeData data, std::chrono::system_clock::time_point timestamp)
+    AgingIme(ImeData data, std::chrono::system_clock::time_point timestamp)
         : data(std::move(data)), timestamp(timestamp)
     {
     }
@@ -46,17 +46,17 @@ public:
 
 private:
     ImeAgingManager();
-    void ClearOldest();
-    void AgingCache();
     void StartAging();
     void StopAging();
-    void StopIme(const std::shared_ptr<ImeCache> &ime);
+    void AgingCache();
+    void ClearOldest();
+    void ClearIme(const std::shared_ptr<AgingIme> &ime);
 
     std::mutex timerMutex_;
     Utils::Timer timer_;
     uint32_t timerId_;
     std::recursive_mutex cacheMutex_;
-    std::map<std::string, std::shared_ptr<ImeCache>> imeCaches_;
+    std::map<std::string, std::shared_ptr<AgingIme>> imeCaches_;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -655,6 +655,8 @@ void PerUserSession::StopInputService(const std::string &imeName)
         return;
     }
     IMSA_HILOGI("imeName: %{public}s", imeName.c_str());
+    data->deathRecipient->SetDeathRecipient(
+        [this, imeName](const wptr<IRemoteObject> &) { ImeAgingManager::GetInstance().Pop(imeName); });
     ImeAgingManager::GetInstance().Push(imeName, data);
     RemoveImeData(ImeType::IME, false);
     auto client = GetCurrentClient();
