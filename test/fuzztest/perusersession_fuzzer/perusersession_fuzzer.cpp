@@ -109,7 +109,7 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     userSessions->OnHideCurrentInput();
     userSessions->OnHideInput(client);
     userSessions->OnReleaseInput(client);
-    userSessions->StopInputService();
+    userSessions->StopInputService("");
     return true;
 }
 } // namespace OHOS
