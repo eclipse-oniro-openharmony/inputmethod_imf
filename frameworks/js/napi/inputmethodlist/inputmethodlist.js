@@ -31,33 +31,6 @@ function __Text__textStyle() {
   Text.maxLines(1);
 }
 
-function createTextComponent(i, self, flag) {
-  self.observeComponentCreation2(((t, e) => {
-    Text.create(i.label);
-    Text.fontSize(self.fontSize);
-    __Text__textStyle();
-    Text.padding({ left: self.fontPadding, right: self.fontPadding });
-    Text.height(self.listItemHeight);
-    Text.borderRadius(self.listItemRadius);
-    Text.fontColor(self.currentSub && self.currentSub.id === i.id && self.currentSub.name === i.name ?
-      self.selectedFontColor : self.fontColor);
-    ViewStackProcessor.visualState('pressed');
-    Text.backgroundColor(self.pressedColor);
-    ViewStackProcessor.visualState('normal');
-    ViewStackProcessor.visualState();
-    if (flag) {
-      Text.backgroundColor(self.currentInputMethod && self.currentInputMethod.name === i.name ?
-        self.selectedColor : self.listBgColor);
-      Text.onClick((() => {
-        self.switchMethod(i);
-      }))
-    } else {
-      Text.backgroundColor(self.currentSub && self.currentSub.id === i.id && self.currentSub.name === i.name ?
-        self.selectedColor : self.listBgColor);
-    }
-  }), Text);
-}
-
 const TAG = 'InputMethodListDialog';
 const BIG_IMAGE_SIZE = 30;
 const NORMAL_IMAGE_SIZE = 24;
@@ -547,8 +520,22 @@ export class InputMethodListDialog extends ViewPU {
             this.switchMethodSub(i);
           }));
         }), Column);
-        const self = this;
-        createTextComponent(i,self, false);
+        this.observeComponentCreation2(((t, e) => {
+          Text.create(i.label);
+          Text.fontSize(this.fontSize);
+          __Text__textStyle();
+          Text.padding({ left: this.fontPadding, right: this.fontPadding });
+          Text.height(this.listItemHeight);
+          Text.borderRadius(this.listItemRadius);
+          Text.fontColor(this.currentSub && this.currentSub.id === i.id && this.currentSub.name === i.name ?
+          this.selectedFontColor : this.fontColor);
+          ViewStackProcessor.visualState('pressed');
+          Text.backgroundColor(this.pressedColor);
+          ViewStackProcessor.visualState('normal');
+          Text.backgroundColor(this.currentSub && this.currentSub.id === i.id && this.currentSub.name === i.name ?
+          this.selectedColor : this.listBgColor);
+          ViewStackProcessor.visualState();
+        }), Text);
         Text.pop();
         this.observeComponentCreation2(((t, i) => {
           If.create();
@@ -573,8 +560,25 @@ export class InputMethodListDialog extends ViewPU {
           If.create();
           0 === this.subTypes.length || this.defaultInputMethod && i.name !== this.defaultInputMethod.name ?
           this.ifElseBranchUpdateFunction(0, (() => {
-            const self = this;
-            createTextComponent(i,self, true);
+            this.observeComponentCreation2(((t, e) => {
+              Text.create(i.label);
+              Text.fontSize(this.fontSize);
+              __Text__textStyle();
+              Text.padding({ left: this.fontPadding, right: this.fontPadding });
+              Text.height(this.listItemHeight);
+              Text.borderRadius(this.listItemRadius);
+              Text.fontColor(this.currentSub && this.currentSub.id === i.id && this.currentSub.name === i.name ?
+              this.selectedFontColor : this.fontColor);
+              ViewStackProcessor.visualState('pressed');
+              Text.backgroundColor(this.pressedColor);
+              ViewStackProcessor.visualState('normal');
+              Text.backgroundColor(this.currentInputMethod && this.currentInputMethod.name === i.name ?
+              this.selectedColor : this.listBgColor);
+              ViewStackProcessor.visualState();
+              Text.onClick((() => {
+                this.switchMethod(i);
+              }))
+            }), Text);
             Text.pop();
             this.observeComponentCreation2(((t, i) => {
               If.create();
