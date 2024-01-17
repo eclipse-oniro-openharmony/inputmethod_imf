@@ -33,30 +33,6 @@ ImeAgingManager &ImeAgingManager::GetInstance()
     return ImeAgingManager;
 }
 
-bool ImeAgingManager::Push(const std::string &imeName, const std::shared_ptr<AgingIme> &imeCache)
-{
-    if (imeName.empty() || imeCache == nullptr) {
-        IMSA_HILOGE("ime name invalid or imeCache is nullptr");
-        return false;
-    }
-    imeCache->timestamp = std::chrono::system_clock::now();
-
-    std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
-    auto it = imeCaches_.find(imeName);
-    if (it != imeCaches_.end()) {
-        it->second = imeCache;
-        return true;
-    }
-    if (imeCaches_.empty()) {
-        StartAging();
-    }
-    if (imeCaches_.size() == MAX_CACHES_SIZE) {
-        ClearOldest();
-    }
-    imeCaches_.insert({ imeName, imeCache });
-    return true;
-}
-
 bool ImeAgingManager::Push(const std::string &imeName, const std::shared_ptr<ImeData> &imeData)
 {
     if (imeName.empty() || imeData == nullptr) {

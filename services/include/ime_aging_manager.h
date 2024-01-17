@@ -41,7 +41,7 @@ struct AgingIme {
 class ImeAgingManager {
 public:
     static ImeAgingManager &GetInstance();
-    bool Push(const std::string &imeName, const std::shared_ptr<ImeData> &imeCache);
+    bool Push(const std::string &imeName, const std::shared_ptr<ImeData> &imeData);
     std::shared_ptr<ImeData> Pop(const std::string &imeName);
 
 private:
