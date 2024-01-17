@@ -892,7 +892,7 @@ bool PerUserSession::StartIme(const std::string &imeName, bool isRetry)
     auto ime = ImeAgingManager::GetInstance().Pop(imeName);
     if (ime != nullptr) {
         IMSA_HILOGI("hit the ime cache");
-        return OnSetCoreAndAgent(ime->core, ime->agent);
+        return OnSetCoreAndAgent(ime->core, ime->agent) == ErrorCode::NO_ERROR;
     }
     return StartInputService(imeName, isRetry);
 }
