@@ -658,12 +658,13 @@ void PerUserSession::StopInputService(const std::string &imeName)
     data->deathRecipient->SetDeathRecipient(
         [this, imeName](const wptr<IRemoteObject> &) { ImeAgingManager::GetInstance().Pop(imeName); });
     ImeAgingManager::GetInstance().Push(imeName, data);
-    RemoveImeData(ImeType::IME, false);
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == ImeType::IME) {
         StopClientInput(client);
+        StopImeInput(clientInfo->bindImeType, clientInfo->channel);
     }
+    RemoveImeData(ImeType::IME, false);
 }
 
 bool PerUserSession::IsRestartIme()
@@ -890,7 +891,7 @@ bool PerUserSession::StartIme(const std::string &imeName, bool isRetry)
 {
     auto ime = ImeAgingManager::GetInstance().Pop(imeName);
     if (ime != nullptr) {
-        IMSA_HILOGI("hit the ime cache");
+        IMSA_HILOGI("zll hit the ime cache");
         return OnSetCoreAndAgent(ime->core, ime->agent);
     }
     return StartInputService(imeName, isRetry);

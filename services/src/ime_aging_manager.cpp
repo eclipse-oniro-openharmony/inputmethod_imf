@@ -35,6 +35,7 @@ ImeAgingManager &ImeAgingManager::GetInstance()
 
 bool ImeAgingManager::Push(const std::string &imeName, const std::shared_ptr<ImeData> &imeData)
 {
+    IMSA_HILOGI("zll start Push imeName: %{public}s", imeName.c_str());
     if (imeName.empty() || imeData == nullptr) {
         IMSA_HILOGE("ime name invalid or imeData is nullptr");
         return false;
@@ -54,16 +55,20 @@ bool ImeAgingManager::Push(const std::string &imeName, const std::shared_ptr<Ime
         ClearOldest();
     }
     imeCaches_.insert({ imeName, imeCache });
+    IMSA_HILOGI("zll end Push imeName: %{public}s", imeName.c_str());
     return true;
 }
 
 std::shared_ptr<ImeData> ImeAgingManager::Pop(const std::string &imeName)
 {
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
+    IMSA_HILOGI("zll start Pop imeName: %{public}s", imeName.c_str());
     auto it = imeCaches_.find(imeName);
     if (it == imeCaches_.end()) {
+        IMSA_HILOGI("zll not found ime: %{public}s", imeName.c_str());
         return nullptr;
     }
+    IMSA_HILOGI("zll find ime: %{public}s", imeName.c_str());
     auto ime = it->second->data;
     if (ime.core->AsObject() != nullptr && ime.deathRecipient != nullptr) {
         ime.core->AsObject()->RemoveDeathRecipient(ime.deathRecipient);
@@ -73,12 +78,14 @@ std::shared_ptr<ImeData> ImeAgingManager::Pop(const std::string &imeName)
     if (imeCaches_.empty()) {
         StopAging();
     }
+    IMSA_HILOGI("zll end Pop imeName: %{public}s", imeName.c_str());
     return std::make_shared<ImeData>(ime);
 }
 
 void ImeAgingManager::ClearOldest()
 {
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
+    IMSA_HILOGI("zll run in");
     auto oldestIme = imeCaches_.begin();
     for (auto it = imeCaches_.begin(); it != imeCaches_.end(); it++) {
         if (it->second->timestamp < oldestIme->second->timestamp) {
@@ -96,6 +103,7 @@ void ImeAgingManager::ClearOldest()
 void ImeAgingManager::AgingCache()
 {
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
+    IMSA_HILOGI("zll run in");
     for (auto it = imeCaches_.begin(); it != imeCaches_.end();) {
         // each IME can be kept for 60 seconds, and then be stopped.
         auto now = std::chrono::system_clock::now();
@@ -105,7 +113,7 @@ void ImeAgingManager::AgingCache()
         }
         auto core = it->second->data.core;
         if (core != nullptr) {
-            IMSA_HILOGI("clear ime: %{public}s", it->first.c_str());
+            IMSA_HILOGI("zll clear ime: %{public}s", it->first.c_str());
             ClearIme(it->second);
         }
         it = imeCaches_.erase(it);
@@ -117,11 +125,13 @@ void ImeAgingManager::AgingCache()
 
 void ImeAgingManager::ClearIme(const std::shared_ptr<AgingIme> &ime)
 {
+    IMSA_HILOGI("zll run in");
     auto imeData = ime->data;
     if (imeData.core == nullptr) {
         return;
     }
     if (imeData.core->AsObject() != nullptr && imeData.deathRecipient != nullptr) {
+        IMSA_HILOGI("zll RemoveDeathRecipient");
         imeData.core->AsObject()->RemoveDeathRecipient(imeData.deathRecipient);
     }
     imeData.core->StopInputService();
@@ -130,6 +140,7 @@ void ImeAgingManager::ClearIme(const std::shared_ptr<AgingIme> &ime)
 void ImeAgingManager::StartAging()
 {
     std::lock_guard<std::mutex> lock(timerMutex_);
+    IMSA_HILOGI("zll run in");
     uint32_t ret = timer_.Setup();
     if (ret != Utils::TIMER_ERR_OK) {
         IMSA_HILOGE("failed to create timer");
@@ -141,6 +152,7 @@ void ImeAgingManager::StartAging()
 void ImeAgingManager::StopAging()
 {
     std::lock_guard<std::mutex> lock(timerMutex_);
+    IMSA_HILOGI("zll run in");
     timer_.Unregister(timerId_);
     timer_.Shutdown(false);
 }

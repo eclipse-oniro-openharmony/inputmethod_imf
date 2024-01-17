@@ -508,7 +508,6 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
     if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);
-        usleep(SWITCH_BLOCK_TIME);
     }
     IMSA_HILOGI("start switch %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     int32_t ret = CheckSwitchPermission(switchInfo, trigger);
