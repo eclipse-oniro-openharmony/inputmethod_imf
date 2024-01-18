@@ -52,7 +52,6 @@ int32_t InputDataChannelStub::OnRemoteRequest(
 
 int32_t InputDataChannelStub::InsertTextOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("callingPid/Uid: %{public}d/%{public}d", IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     std::u16string text;
     if (!ITypesUtil::Unmarshal(data, text)) {
         IMSA_HILOGE("failed to read message parcel");
@@ -220,7 +219,15 @@ int32_t InputDataChannelStub::NotifyKeyboardHeightOnRemote(MessageParcel &data, 
 
 int32_t InputDataChannelStub::InsertText(const std::u16string &text)
 {
-    return InputMethodController::GetInstance()->InsertText(text);
+    //return InputMethodController::GetInstance()->InsertText(text);
+    if (msgHandler == nullptr) {
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    MessageParcel *parcel = new MessageParcel;
+    parcel->WriteString16(text);
+    Message *msg = new Message(MessageID::MSG_ID_INSERT_CHAR, parcel);
+    msgHandler->SendMessage(msg);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputDataChannelStub::DeleteForward(int32_t length)
@@ -303,6 +310,11 @@ void InputDataChannelStub::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 void InputDataChannelStub::NotifyKeyboardHeight(uint32_t height)
 {
     InputMethodController::GetInstance()->NotifyKeyboardHeight(height);
+}
+
+void InputDataChannelStub::SetHandler(MessageHandler *handler)
+{
+    msgHandler = handler;
 }
 } // namespace MiscServices
 } // namespace OHOS

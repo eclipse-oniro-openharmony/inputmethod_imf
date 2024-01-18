@@ -381,12 +381,8 @@ int32_t InputMethodAbility::ShowKeyboard()
         return ErrorCode::ERROR_IME;
     }
     IMSA_HILOGI("IMA start");
-    if (panels_.Contains(SOFT_KEYBOARD)) {
-        auto panel = GetSoftKeyboardPanel();
-        if (panel == nullptr) {
-            IMSA_HILOGE("panel not create.");
-            return ErrorCode::ERROR_IME;
-        }
+    auto panel = GetSoftKeyboardPanel();
+    if (panel != nullptr) {
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(true);
         if (flag == FLG_CANDIDATE_COLUMN) {
@@ -395,6 +391,7 @@ int32_t InputMethodAbility::ShowKeyboard()
         }
         return ShowPanel(panel, flag, Trigger::IMF);
     }
+    IMSA_HILOGI("panel not create");
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
         channel->SendKeyboardStatus(KeyboardStatus::SHOW);
@@ -834,12 +831,8 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
         return ErrorCode::ERROR_IME;
     }
     IMSA_HILOGD("IMA, trigger: %{public}d", static_cast<int32_t>(trigger));
-    if (panels_.Contains(SOFT_KEYBOARD)) {
-        auto panel = GetSoftKeyboardPanel();
-        if (panel == nullptr) {
-            IMSA_HILOGE("panel not create.");
-            return ErrorCode::ERROR_IME;
-        }
+    auto panel = GetSoftKeyboardPanel();
+    if (panel != nullptr) {
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(false);
         if (flag == FLG_CANDIDATE_COLUMN) {
@@ -848,7 +841,7 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
         }
         return HidePanel(panel, flag, trigger);
     }
-
+    IMSA_HILOGI("panel not create");
     imeListener_->OnKeyboardStatus(false);
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
@@ -863,10 +856,6 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
 
 std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
 {
-    if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES,
-                    [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
-        return nullptr;
-    }
     auto result = panels_.Find(SOFT_KEYBOARD);
     if (!result.first) {
         return nullptr;
