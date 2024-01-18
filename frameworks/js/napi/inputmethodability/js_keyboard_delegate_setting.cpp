@@ -553,7 +553,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
         return;
     }
     IMSA_HILOGI("run in");
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -573,6 +573,11 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getTextChangeProperty });
         },
         uv_qos_user_initiated);
+    if (ret != 0) {
+        UvEntry *data = static_cast<UvEntry *>(work->data);
+        delete data;
+        delete work;
+    }
 }
 
 void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &inputAttribute)

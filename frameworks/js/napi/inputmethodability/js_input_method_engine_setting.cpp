@@ -621,7 +621,7 @@ void JsInputMethodEngineSetting::OnInputStop()
         return;
     }
     IMSA_HILOGI("run in");
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -631,6 +631,7 @@ void JsInputMethodEngineSetting::OnInputStop()
             JsCallbackHandler::Traverse(entry->vecCopy);
         },
         uv_qos_user_initiated);
+    CheckReturnValue(ret, work);
 }
 
 void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
@@ -670,7 +671,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
         return;
     }
     IMSA_HILOGI("subtypeId: %{public}s", property.id.c_str());
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -698,6 +699,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSubtypeProperty });
         },
         uv_qos_user_initiated);
+    CheckReturnValue(ret, work);
 }
 
 void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
@@ -709,7 +711,7 @@ void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
         return;
     }
     IMSA_HILOGI("run in: %{public}s", type.c_str());
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -732,6 +734,7 @@ void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSecurityProperty });
         },
         uv_qos_user_initiated);
+    CheckReturnValue(ret, work);
 }
 
 uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
@@ -793,6 +796,18 @@ std::shared_ptr<JsInputMethodEngineSetting::UvEntry> JsInputMethodEngineSetting:
         entrySetter(*entry);
     }
     return entry;
+}
+
+void JsInputMethodEngineSetting::CheckReturnValue(int ret, uv_work_t *work)
+{
+    if (work == nullptr || work->data == nullptr) {
+        return;
+    }
+    if (ret != 0) {
+        UvEntry *data = reinterpret_cast<UvEntry *>(work->data);
+        delete data;
+        delete work;
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS
