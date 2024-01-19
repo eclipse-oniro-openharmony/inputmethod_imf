@@ -804,6 +804,7 @@ void JsInputMethodEngineSetting::CheckReturnValue(int ret, uv_work_t *work)
         return;
     }
     if (ret != 0) {
+        IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
         UvEntry *data = reinterpret_cast<UvEntry *>(work->data);
         delete data;
         delete work;
