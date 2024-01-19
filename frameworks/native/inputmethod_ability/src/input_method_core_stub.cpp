@@ -165,7 +165,7 @@ int32_t InputMethodCoreStub::HideKeyboardOnRemote(MessageParcel &data, MessagePa
 int32_t InputMethodCoreStub::StopInputServiceOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     bool isTerminateIme = false;
-    if (ITypesUtil::Unmarshal(data, isTerminateIme)) {
+    if (!ITypesUtil::Unmarshal(data, isTerminateIme)) {
         IMSA_HILOGE("unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }

@@ -874,7 +874,7 @@ std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()
 {
     auto ime = GetDefaultIme();
     if (ime.bundleName.empty() || ime.extName.empty()) {
-        IMSA_HILOGE("defaultIme is abnormal", ime.bundleName.c_str());
+        IMSA_HILOGE("defaultIme is abnormal");
         return nullptr;
     }
     auto defaultIme = std::make_shared<Property>();

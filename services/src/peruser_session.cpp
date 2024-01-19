@@ -908,9 +908,9 @@ bool PerUserSession::StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isR
         IMSA_HILOGE("failed to get ime info");
         return false;
     }
-    if (!info->isNewIme) {
+    if (!info->isNewIme && StartInputService(ime, false)) {
         IMSA_HILOGD("old ime, need to start ability");
-        return StartInputService(ime, isRetry);
+        return true;
     }
     if (cacheData->core != nullptr) {
         IMSA_HILOGD("inform subtype: %{public}s", ime->subName.c_str());
