@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "global.h"
+#include "ime_info_inquirer.h"
 #include "input_method_controller.h"
 #include "input_method_property.h"
 #include "tdd_util.h"
@@ -76,12 +77,15 @@ public:
 void NewImeSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::SetUpTestCase");
+    ImeInfoInquirer::GetInstance().InitConfig();
+    enableOn = ImeInfoInquirer::GetInstance().IsEnableInputMethod();
     TddUtil::GrantNativePermission();
-    int32_t ret = TddUtil::CheckEnableOn(beforeValue);
-    if (ret == ErrorCode::NO_ERROR) {
+    if (enableOn == true) {
         IMSA_HILOGI("Enable ime switch test.");
-        enableOn = true;
-        TddUtil::PutEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
+        int32_t ret = TddUtil::GetEnableData(beforeValue);
+        if (ret == ErrorCode::NO_ERROR) {
+            TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
+        }
     }
     TddUtil::StorageSelfTokenID();
     TddUtil::SetTestTokenID(
@@ -96,7 +100,7 @@ void NewImeSwitchTest::TearDownTestCase(void)
     IMSA_HILOGI("NewImeSwitchTest::TearDownTestCase");
     if (enableOn) {
         TddUtil::GrantNativePermission();
-        TddUtil::PutEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
+        TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
     }
     InputMethodController::GetInstance()->Close();
     TddUtil::RestoreSelfTokenID();
