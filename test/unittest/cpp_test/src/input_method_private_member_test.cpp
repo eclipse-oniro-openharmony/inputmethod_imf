@@ -262,7 +262,7 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionCoreOrAgentNullptr, TestSiz
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
     ret = userSession->InitInputControlChannel();
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
-    userSession->StopInputService("");
+    userSession->StopInputService("", "");
     ret = userSession->SwitchSubtype({});
     EXPECT_EQ(ret, ErrorCode::ERROR_IME_NOT_STARTED);
 }

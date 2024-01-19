@@ -226,7 +226,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
         return;
     }
     IMSA_HILOGI("type: %{public}d", type);
-    RemoveImeData(type);
+    RemoveImeData(type, true);
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
@@ -253,7 +253,7 @@ int32_t PerUserSession::RemoveIme(const sptr<IInputMethodCore> &core, ImeType ty
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
         UnBindClientWithIme(clientInfo);
     }
-    RemoveImeData(type);
+    RemoveImeData(type, true);
     return ErrorCode::NO_ERROR;
 }
 
@@ -654,7 +654,7 @@ void PerUserSession::StopInputService(const std::string &bundleName, const std::
         IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
         return;
     }
-    IMSA_HILOGI("ime: %{public}s", bundleName.c_str());
+    IMSA_HILOGI("ime: %{public}s/%{public}s", bundleName.c_str(), subName.c_str());
     data->deathRecipient->SetDeathRecipient(
         [this, bundleName](const wptr<IRemoteObject> &) { ImeAgingManager::GetInstance().Pop(bundleName); });
     ImeAgingManager::GetInstance().Push(bundleName, data);
@@ -828,8 +828,8 @@ void PerUserSession::RemoveImeData(ImeType type, bool isImeDied)
     auto data = it->second;
     if (isImeDied && data->core != nullptr && data->core->AsObject() != nullptr) {
         data->core->AsObject()->RemoveDeathRecipient(data->deathRecipient);
+        data->deathRecipient = nullptr;
     }
-    data->deathRecipient = nullptr;
     imeData_.erase(type);
 }
 
@@ -899,6 +899,7 @@ bool PerUserSession::StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isR
     }
     auto cacheData = ImeAgingManager::GetInstance().Pop(ime->bundleName);
     if (cacheData == nullptr) {
+        IMSA_HILOGD("miss the ime cache");
         return StartInputService(ime, isRetry);
     }
     IMSA_HILOGI("hit the ime cache");
@@ -915,7 +916,7 @@ bool PerUserSession::StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isR
         IMSA_HILOGD("inform subtype: %{public}s", ime->subName.c_str());
         cacheData->core->SetSubtype(info->subProp);
     }
-    return OnSetCoreAndAgent(cacheData->core, cacheData->agent);
+    return OnSetCoreAndAgent(cacheData->core, cacheData->agent) == ErrorCode::NO_ERROR;
 }
 
 bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry)

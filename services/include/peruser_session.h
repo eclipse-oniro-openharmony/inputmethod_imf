@@ -138,7 +138,7 @@ private:
             &updateInfos);
 
     int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
-    void RemoveImeData(ImeType type, bool isImeDied = true);
+    void RemoveImeData(ImeType type, bool isImeDied);
     int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     std::shared_ptr<ImeData> GetValidIme(ImeType type);
