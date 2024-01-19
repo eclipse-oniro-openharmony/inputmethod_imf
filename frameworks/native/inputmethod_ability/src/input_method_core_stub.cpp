@@ -71,9 +71,10 @@ int32_t InputMethodCoreStub::HideKeyboard()
     return InputMethodAbility::GetInstance()->HideKeyboard();
 }
 
-void InputMethodCoreStub::StopInputService()
+void InputMethodCoreStub::StopInputService(bool isTerminateIme)
 {
-    SendMessage(MessageID::MSG_ID_STOP_INPUT_SERVICE);
+    SendMessage(MessageID::MSG_ID_STOP_INPUT_SERVICE,
+        [isTerminateIme](MessageParcel &data) { return ITypesUtil::Marshal(data, isTerminateIme); });
 }
 
 void InputMethodCoreStub::SetMessageHandler(MessageHandler *msgHandler)
@@ -163,7 +164,12 @@ int32_t InputMethodCoreStub::HideKeyboardOnRemote(MessageParcel &data, MessagePa
 
 int32_t InputMethodCoreStub::StopInputServiceOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    StopInputService();
+    bool isTerminateIme = false;
+    if (ITypesUtil::Unmarshal(data, isTerminateIme)) {
+        IMSA_HILOGE("unmarshal failed");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    StopInputService(isTerminateIme);
     return ITypesUtil::Marshal(reply, ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

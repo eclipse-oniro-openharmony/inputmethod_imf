@@ -208,7 +208,7 @@ void InputMethodSystemAbility::StartUserIdListener()
     serviceHandler_->PostTask(callback, INIT_INTERVAL);
 }
 
-bool InputMethodSystemAbility::StartInputService(const std::string &imeId)
+bool InputMethodSystemAbility::StartInputService(const std::shared_ptr<ImeNativeCfg> &imeId)
 {
     return userSession_->StartIme(imeId, true);
 }
@@ -595,12 +595,13 @@ int32_t InputMethodSystemAbility::Switch(const std::string &bundleName, const st
 // Switch the current InputMethodExtension to the new InputMethodExtension
 int32_t InputMethodSystemAbility::SwitchExtension(const std::shared_ptr<ImeInfo> &info)
 {
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->imeId;
-    userSession_->StopInputService(currentIme);
-    std::string targetIme = info->prop.name + "/" + info->prop.id;
-    ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetIme, info->subProp.id });
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    userSession_->StopInputService(currentIme->bundleName, currentIme->subName);
+    std::string targetImeName = info->prop.name + "/" + info->prop.id;
+    ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetImeName, info->subProp.id });
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
-    if (!StartInputService(targetIme)) {
+    ImeNativeCfg targetIme = { targetImeName, info->prop.name, info->subProp.id, info->prop.id };
+    if (!StartInputService(std::make_shared<ImeNativeCfg>(targetIme))) {
         IMSA_HILOGE("start input method failed");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
@@ -643,10 +644,11 @@ int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
-    userSession_->StopInputService(currentIme->imeId);
-    std::string targetIme = switchInfo.bundleName + '/' + targetImeProperty->id;
+    userSession_->StopInputService(currentIme->bundleName, currentIme->subName);
+    std::string targetName = switchInfo.bundleName + "/" + targetImeProperty->id;
+    ImeNativeCfg targetIme = { targetName, switchInfo.bundleName, switchInfo.subName, targetImeProperty->id };
     InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
-    if (!StartInputService(targetIme)) {
+    if (!StartInputService(std::make_shared<ImeNativeCfg>(targetIme))) {
         IMSA_HILOGE("start input method failed");
         InputTypeManager::GetInstance().Set(false);
         return ErrorCode::ERROR_IME_START_FAILED;
@@ -779,8 +781,8 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     if (enableSecurityMode_) {
         SecurityModeParser::GetInstance()->GetFullModeList(userId_);
     }
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(oldUserId)->imeId;
-    userSession_->StopInputService(currentIme);
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(oldUserId);
+    userSession_->StopInputService(currentIme->bundleName, currentIme->subName);
     // user switch, reset currentImeInfo_ = nullptr
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
     auto newIme = ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_);
@@ -788,7 +790,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     if (!StartInputService(newIme)) {
         IMSA_HILOGE("start input method failed");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
-            ErrorCode::ERROR_IME_START_FAILED, newIme, "user start ime failed!");
+            ErrorCode::ERROR_IME_START_FAILED, newIme->imeId, "user start ime failed!");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
     return ErrorCode::NO_ERROR;

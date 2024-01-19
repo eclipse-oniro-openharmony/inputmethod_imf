@@ -102,7 +102,7 @@ private:
     std::shared_ptr<IdentityChecker> identityChecker_ = nullptr;
     int32_t PrepareInput(InputClientInfo &clientInfo);
     void WorkThread();
-    bool StartInputService(const std::string &imeId);
+    bool StartInputService(const std::shared_ptr<ImeNativeCfg> &imeId);
     int32_t OnUserStarted(const Message *msg);
     int32_t OnUserRemoved(const Message *msg);
     int32_t OnPackageRemoved(const Message *msg);

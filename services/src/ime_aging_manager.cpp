@@ -33,16 +33,16 @@ ImeAgingManager &ImeAgingManager::GetInstance()
     return ImeAgingManager;
 }
 
-bool ImeAgingManager::Push(const std::string &imeName, const std::shared_ptr<ImeData> &imeData)
+bool ImeAgingManager::Push(const std::string &bundleName, const std::shared_ptr<ImeData> &imeData)
 {
-    if (imeName.empty() || imeData == nullptr) {
-        IMSA_HILOGE("ime name invalid or imeData is nullptr");
+    if (bundleName.empty() || imeData == nullptr || imeData->core == nullptr || imeData->agent == nullptr) {
+        IMSA_HILOGE("invalid ime data");
         return false;
     }
     auto imeCache = std::make_shared<AgingIme>(*imeData, std::chrono::system_clock::now());
 
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
-    auto it = imeCaches_.find(imeName);
+    auto it = imeCaches_.find(bundleName);
     if (it != imeCaches_.end()) {
         it->second = imeCache;
         return true;
@@ -53,15 +53,15 @@ bool ImeAgingManager::Push(const std::string &imeName, const std::shared_ptr<Ime
     if (imeCaches_.size() == MAX_CACHES_SIZE) {
         ClearOldest();
     }
-    imeCaches_.insert({ imeName, imeCache });
-    IMSA_HILOGI("push ime: %{public}s", imeName.c_str());
+    imeCaches_.insert({ bundleName, imeCache });
+    IMSA_HILOGI("push ime: %{public}s", bundleName.c_str());
     return true;
 }
 
-std::shared_ptr<ImeData> ImeAgingManager::Pop(const std::string &imeName)
+std::shared_ptr<ImeData> ImeAgingManager::Pop(const std::string &bundleName)
 {
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
-    auto it = imeCaches_.find(imeName);
+    auto it = imeCaches_.find(bundleName);
     if (it == imeCaches_.end()) {
         return nullptr;
     }
@@ -70,11 +70,11 @@ std::shared_ptr<ImeData> ImeAgingManager::Pop(const std::string &imeName)
         ime.core->AsObject()->RemoveDeathRecipient(ime.deathRecipient);
         ime.deathRecipient = nullptr;
     }
-    imeCaches_.erase(imeName);
+    imeCaches_.erase(bundleName);
     if (imeCaches_.empty()) {
         StopAging();
     }
-    IMSA_HILOGI("pop ime: %{public}s", imeName.c_str());
+    IMSA_HILOGI("pop ime: %{public}s", bundleName.c_str());
     return std::make_shared<ImeData>(ime);
 }
 
@@ -126,7 +126,7 @@ void ImeAgingManager::ClearIme(const std::shared_ptr<AgingIme> &ime)
     if (imeData.core->AsObject() != nullptr && imeData.deathRecipient != nullptr) {
         imeData.core->AsObject()->RemoveDeathRecipient(imeData.deathRecipient);
     }
-    imeData.core->StopInputService();
+    imeData.core->StopInputService(true);
 }
 
 void ImeAgingManager::StartAging()
