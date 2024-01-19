@@ -747,21 +747,23 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 
 ImeNativeCfg ImeInfoInquirer::GetDefaultIme()
 {
-    std::string ime;
+    ImeNativeCfg imeCfg;
     if (!imeConfig_.defaultInputMethod.empty()) {
         IMSA_HILOGI("defaultInputMethod: %{public}s", imeConfig_.defaultInputMethod.c_str());
-        ime = imeConfig_.defaultInputMethod;
+        imeCfg.imeId = imeConfig_.defaultInputMethod;
     } else {
         char value[CONFIG_LEN] = { 0 };
         auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
-        ime = code > 0 ? value : "";
+        imeCfg.imeId = code > 0 ? value : "";
     }
-    auto pos = ime.find('/');
-    if (pos == std::string::npos || pos + 1 >= ime.size()) {
-        IMSA_HILOGE("defaultIme: %{public}s is abnormal", ime.c_str());
+    auto pos = imeCfg.imeId.find('/');
+    if (pos == std::string::npos || pos + 1 >= imeCfg.imeId.size()) {
+        IMSA_HILOGE("defaultIme: %{public}s is abnormal", imeCfg.imeId.c_str());
         return {};
     }
-    return { .imeId = ime, .bundleName = ime.substr(0, pos), .extName = ime.substr(pos + 1) };
+    imeCfg.bundleName = imeCfg.imeId.substr(0, pos);
+    imeCfg.extName = imeCfg.imeId.substr(pos + 1);
+    return imeCfg;
 }
 
 sptr<OHOS::AppExecFwk::IBundleMgr> ImeInfoInquirer::GetBundleMgr()
