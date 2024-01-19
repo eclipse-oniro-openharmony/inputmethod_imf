@@ -631,7 +631,7 @@ void JsInputMethodEngineSetting::OnInputStop()
             JsCallbackHandler::Traverse(entry->vecCopy);
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
@@ -699,7 +699,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSubtypeProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
@@ -734,7 +734,7 @@ void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSecurityProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
@@ -798,7 +798,7 @@ std::shared_ptr<JsInputMethodEngineSetting::UvEntry> JsInputMethodEngineSetting:
     return entry;
 }
 
-void JsInputMethodEngineSetting::CheckReturnValue(int ret, uv_work_t *work)
+void JsInputMethodEngineSetting::FreeWorkIfFail(int ret, uv_work_t *work)
 {
     if (work == nullptr || work->data == nullptr) {
         return;

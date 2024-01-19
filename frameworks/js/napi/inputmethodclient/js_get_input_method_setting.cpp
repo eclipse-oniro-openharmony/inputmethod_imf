@@ -617,7 +617,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
             JsCallbackHandler::Traverse(entry->vecCopy, { 2, getImeChangeProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodSetting::OnPanelStatusChange(
@@ -663,7 +663,7 @@ void JsGetInputMethodSetting::OnPanelStatusChange(
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getWindowInfo });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 uv_work_t *JsGetInputMethodSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
@@ -695,7 +695,7 @@ uv_work_t *JsGetInputMethodSetting::GetUVwork(const std::string &type, EntrySett
     work->data = entry;
     return work;
 }
-void JsGetInputMethodSetting::CheckReturnValue(int ret, uv_work_t *work)
+void JsGetInputMethodSetting::FreeWorkIfFail(int ret, uv_work_t *work)
 {
     if (work == nullptr || work->data == nullptr) {
         return;

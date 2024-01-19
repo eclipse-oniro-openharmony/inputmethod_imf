@@ -735,7 +735,7 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
@@ -775,7 +775,7 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::InsertText(const std::u16string &text)
@@ -813,7 +813,7 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInsertTextProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::DeleteRight(int32_t length)
@@ -850,7 +850,7 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteForwardProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::DeleteLeft(int32_t length)
@@ -887,7 +887,7 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteBackwardProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
@@ -925,7 +925,7 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendKeyboardStatusProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 napi_value JsGetInputMethodController::CreateSendFunctionKey(napi_env env, int32_t functionKey)
@@ -980,7 +980,7 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendFunctionKeyProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::MoveCursor(const Direction direction)
@@ -1018,7 +1018,7 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getMoveCursorProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::HandleExtendAction(int32_t action)
@@ -1054,7 +1054,7 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getHandleExtendActionProperty });
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
 }
 
 std::u16string JsGetInputMethodController::GetText(const std::string &type, int32_t number)
@@ -1095,7 +1095,7 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
             entry->textResultHandler->SetValue(text);
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
     return Str8ToStr16(textResultHandler->GetValue());
 }
 
@@ -1127,7 +1127,7 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
             entry->indexResultHandler->SetValue(index);
         },
         uv_qos_user_initiated);
-    CheckReturnValue(ret, work);
+    FreeWorkIfFail(ret, work);
     return indexResultHandler->GetValue();
 }
 
@@ -1161,7 +1161,7 @@ uv_work_t *JsGetInputMethodController::GetUVwork(const std::string &type, EntryS
     return work;
 }
 
-void JsGetInputMethodController::CheckReturnValue(int ret, uv_work_t *work)
+void JsGetInputMethodController::FreeWorkIfFail(int ret, uv_work_t *work)
 {
     if (work == nullptr || work->data == nullptr) {
         return;
