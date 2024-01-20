@@ -697,15 +697,14 @@ uv_work_t *JsGetInputMethodSetting::GetUVwork(const std::string &type, EntrySett
 }
 void JsGetInputMethodSetting::FreeWorkIfFail(int ret, uv_work_t *work)
 {
-    if (work == nullptr || work->data == nullptr) {
+    if (ret == 0 || work == nullptr) {
         return;
     }
-    if (ret != 0) {
-        IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
-        UvEntry *data = reinterpret_cast<UvEntry *>(work->data);
-        delete data;
-        delete work;
-    }
+    
+    UvEntry *data = static_cast<UvEntry *>(work->data);
+    delete data;
+    delete work;
+    IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
 }
 } // namespace MiscServices
 } // namespace OHOS

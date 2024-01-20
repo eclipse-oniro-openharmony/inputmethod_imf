@@ -108,7 +108,7 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
         uv_qos_user_initiated);
     if (ret != 0) {
         IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
-        UvEntry *data = reinterpret_cast<UvEntry *>(work->data);
+        UvEntry *data = static_cast<UvEntry *>(work->data);
         delete data;
         delete work;
     }
