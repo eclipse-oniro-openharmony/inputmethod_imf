@@ -53,6 +53,9 @@ public:
     virtual void NotifyPanelStatusInfo(const PanelStatusInfo &info)
     {
     }
+    virtual void NotifyKeyboardHeight(uint32_t height)
+    {
+    }
     virtual void SendFunctionKey(const FunctionKey &functionKey) = 0;
     virtual void SetKeyboardStatus(bool status) = 0;
     virtual void MoveCursor(const Direction direction) = 0;
@@ -64,6 +67,7 @@ public:
     virtual int32_t GetTextIndexAtCursor() = 0;
 };
 
+using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
 class InputMethodController : public RefBase {
 public:
     /**
@@ -217,7 +221,17 @@ public:
      * @return Returns true for success otherwise for failure.
      * @since 6
      */
-    IMF_API bool DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
+    /**
+     * @brief Dispatch keyboard event.
+     *
+     * This function is used to Dispatch events of keyboard.
+     *
+     * @param keyEvent Indicates the events keyboard.
+     * @param callback Indicates the consumption result of key event.
+     * @return Returns 0 for success, others for failure.
+     * @since 11
+     */
+    IMF_API int32_t DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent, KeyEventCallback callback);
 
     /**
      * @brief List input methods.
@@ -357,9 +371,9 @@ public:
      * @param name      Indicates the id of target input method.
      * @param subName   Optional parameter. Indicates the subtype of target input method.
      * @return Returns 0 for success, others for failure.
-     * @since 8
+     * @since 11
      */
-    IMF_API int32_t SwitchInputMethod(const std::string &name, const std::string &subName = "");
+    IMF_API int32_t SwitchInputMethod(SwitchTrigger trigger, const std::string &name, const std::string &subName = "");
 
     /**
      * @brief Show soft keyboard.
@@ -620,6 +634,16 @@ public:
     IMF_API void NotifyPanelStatusInfo(const PanelStatusInfo &info);
 
     /**
+     * @brief Send panel height.
+     *
+     * This function is used to send panel height to editor.
+     *
+     * @param info Indicates the panel height.
+     * @since 11
+     */
+    IMF_API void NotifyKeyboardHeight(uint32_t height);
+
+    /**
      * @brief Send function key.
      *
      * This function is used to send function key to editor.
@@ -722,6 +746,7 @@ private:
     bool IsBound();
     void SetAgent(sptr<IRemoteObject> &agentObject);
     std::shared_ptr<IInputMethodAgent> GetAgent();
+    int32_t DispatchKeyEventInner(std::shared_ptr<MMI::KeyEvent> &keyEvent, KeyEventCallback &callback);
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;

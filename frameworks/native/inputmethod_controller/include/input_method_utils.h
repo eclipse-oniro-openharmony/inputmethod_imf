@@ -181,6 +181,8 @@ enum class InputType {
     CAMERA_INPUT = 0,
     SECURITY_INPUT,
 };
+
+enum class SwitchTrigger : uint32_t { CURRENT_IME = 0, SYSTEM_APP, IMSA };
 } // namespace MiscServices
 } // namespace OHOS
 #endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_UTILS_H

@@ -659,7 +659,8 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_001, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
-    int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(CURRENT_BUNDLENAME, CURRENT_SUBNAME);
+    int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
+        CURRENT_BUNDLENAME, CURRENT_SUBNAME, SwitchTrigger::CURRENT_IME);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
 }
 
@@ -675,7 +676,8 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_002, TestSize.Level0)
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_002 start");
     IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = false;
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
-    int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(CURRENT_BUNDLENAME, CURRENT_SUBNAME);
+    int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
+        CURRENT_BUNDLENAME, CURRENT_SUBNAME, SwitchTrigger::CURRENT_IME);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
@@ -691,7 +693,8 @@ HWTEST_F(IdentityCheckerTest, testSwitchInputMethod_003, TestSize.Level0)
     IMSA_HILOGI("IdentityCheckerTest testSwitchInputMethod_003 start");
     IdentityCheckerTest::IdentityCheckerMock::hasPermission_ = true;
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = false;
-    int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(CURRENT_BUNDLENAME, CURRENT_SUBNAME);
+    int32_t ret = IdentityCheckerTest::service_->SwitchInputMethod(
+        CURRENT_BUNDLENAME, CURRENT_SUBNAME, SwitchTrigger::CURRENT_IME);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 

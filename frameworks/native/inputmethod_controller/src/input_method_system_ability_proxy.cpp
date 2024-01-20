@@ -186,11 +186,11 @@ int32_t InputMethodSystemAbilityProxy::ListCurrentInputMethodSubtype(std::vector
         [&subProps](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, subProps); });
 }
 
-int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(const std::string& name,
-    const std::string& subName)
+int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(
+    const std::string &name, const std::string &subName, SwitchTrigger trigger)
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SWITCH_INPUT_METHOD),
-        [&name, &subName](MessageParcel &data) { return ITypesUtil::Marshal(data, name, subName); });
+        [&name, &subName, trigger](MessageParcel &data) { return ITypesUtil::Marshal(data, name, subName, trigger); });
 }
 
 int32_t InputMethodSystemAbilityProxy::PanelStatusChange(

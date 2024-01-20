@@ -34,7 +34,7 @@ class ImeConfigParse {
 public:
     static std::string ReadFile(const std::string &path);
     static CfgFiles* ParseFromCustom();
-    static bool parseJson(const std::string &cfgPath, const std::string &parseKey, nlohmann::json &jsonCfg);
+    static bool ParseJson(const std::string &cfgPath, const std::string &parseKey, nlohmann::json &jsonCfg);
     template<typename T>
     static bool ParseFromCustomSystem(const std::string &parseKey, T &data);
     template<typename T>
@@ -113,7 +113,7 @@ template<typename T>
 bool ImeConfigParse::GetCfgsFromFile(const std::string &cfgPath, const std::string &parseKey, T &data)
 {
     nlohmann::json jsonCfg;
-    if (parseJson(cfgPath, parseKey, jsonCfg)) {
+    if (ParseJson(cfgPath, parseKey, jsonCfg)) {
         data = jsonCfg.at(parseKey).get<T>();
         return true;
     }
@@ -124,7 +124,7 @@ template<typename T>
 bool ImeConfigParse::GetCfgsFromFile(const std::string &cfgPath, const std::string &parseKey, std::vector<T> &data)
 {
     nlohmann::json jsonCfg;
-    if (parseJson(cfgPath, parseKey, jsonCfg)) {
+    if (ParseJson(cfgPath, parseKey, jsonCfg)) {
         if (!jsonCfg.at(parseKey).is_array()) {
             IMSA_HILOGE("%{public}s is not array", parseKey.c_str());
             return false;

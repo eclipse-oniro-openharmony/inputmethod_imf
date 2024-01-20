@@ -28,6 +28,7 @@
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
+#include "keyevent_consumer_stub.h"
 #include "string_ex.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
@@ -249,6 +250,7 @@ int32_t InputMethodController::Attach(
     IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
     ClearEditorCache();
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
+    clientInfo_.isNotifyInputStart = GetTextListener() != listener;
     SetTextListener(listener);
     clientInfo_.isShowKeyboard = isShowKeyboard;
     SaveTextConfig(textConfig);
@@ -709,7 +711,18 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
     return ErrorCode::NO_ERROR;
 }
 
-bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
+int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent, KeyEventCallback callback)
+{
+    auto ret = DispatchKeyEventInner(keyEvent, callback);
+    if (ret != ErrorCode::NO_ERROR && callback != nullptr) {
+        IMSA_HILOGE("DispatchKeyEventInner error");
+        callback(keyEvent, false);
+    }
+    return ret;
+}
+
+int32_t InputMethodController::DispatchKeyEventInner(
+    std::shared_ptr<MMI::KeyEvent> &keyEvent, KeyEventCallback &callback)
 {
     KeyEventInfo keyEventInfo = { std::chrono::system_clock::now(), keyEvent };
     keyEventQueue_.Push(keyEventInfo);
@@ -718,21 +731,30 @@ bool InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyE
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
         keyEventQueue_.Pop();
-        return false;
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
         keyEventQueue_.Pop();
-        return false;
+        return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
         keyEventQueue_.Pop();
-        return false;
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     IMSA_HILOGI("start");
-    bool ret = agent->DispatchKeyEvent(keyEvent);
+    sptr<IKeyEventConsumer> consumer = new (std::nothrow) KeyEventConsumerStub(callback, keyEvent);
+    if (consumer == nullptr) {
+        IMSA_HILOGE("keyEvent is nullptr");
+        keyEventQueue_.Pop();
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    auto ret = agent->DispatchKeyEvent(keyEvent, consumer);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("DispatchKeyEvent failed");
+    }
     keyEventQueue_.Pop();
     return ret;
 }
@@ -873,15 +895,17 @@ int32_t InputMethodController::ListCurrentInputMethodSubtype(std::vector<SubProp
     return proxy->ListCurrentInputMethodSubtype(subProps);
 }
 
-int32_t InputMethodController::SwitchInputMethod(const std::string &name, const std::string &subName)
+int32_t InputMethodController::SwitchInputMethod(
+    SwitchTrigger trigger, const std::string &name, const std::string &subName)
 {
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGI("name: %{public}s, subName: %{public}s", name.c_str(), subName.c_str());
-    return proxy->SwitchInputMethod(name, subName);
+    IMSA_HILOGI("name: %{public}s, subName: %{public}s, trigger: %{public}d", name.c_str(), subName.c_str(),
+        static_cast<uint32_t>(trigger));
+    return proxy->SwitchInputMethod(name, subName, trigger);
 }
 
 void InputMethodController::OnInputReady(sptr<IRemoteObject> agentObject)
@@ -1096,6 +1120,17 @@ void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
         && info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
         clientInfo_.isShowKeyboard = false;
     }
+}
+
+void InputMethodController::NotifyKeyboardHeight(uint32_t height)
+{
+    IMSA_HILOGD("InputMethodController, height: %{public}u.", height);
+    auto listener = GetTextListener();
+    if (listener == nullptr) {
+        IMSA_HILOGE("textListener_ is nullptr");
+        return;
+    }
+    listener->NotifyKeyboardHeight(height);
 }
 
 int32_t InputMethodController::SendFunctionKey(int32_t functionKey)

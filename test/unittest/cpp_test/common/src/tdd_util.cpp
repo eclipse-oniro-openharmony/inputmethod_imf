@@ -259,7 +259,7 @@ void TddUtil::GrantNativePermission()
     delete[] perms;
 }
 
-void TddUtil::PutEnableImeValue(const std::string &key, const std::string &value)
+void TddUtil::PushEnableImeValue(const std::string &key, const std::string &value)
 {
     auto helper = SettingsDataUtils::GetInstance()->CreateDataShareHelper();
     if (helper == nullptr) {
@@ -281,7 +281,7 @@ void TddUtil::PutEnableImeValue(const std::string &key, const std::string &value
     SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
 }
 
-int32_t TddUtil::CheckEnableOn(std::string &value)
+int32_t TddUtil::GetEnableData(std::string &value)
 {
     return SettingsDataUtils::GetInstance()->GetStringValue(EnableImeDataParser::ENABLE_IME, value);
 }

@@ -104,6 +104,7 @@ enum {
     ERROR_PARSE_CONFIG_FILE = 30,
     ERROR_NOT_DEFAULT_IME = 31,
     ERROR_ENABLE_SECURITY_MODE = 32,
+    ERROR_DISPATCH_KEY_EVENT = 33,
 };
 }; // namespace ErrorCode
 

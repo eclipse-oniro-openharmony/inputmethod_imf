@@ -79,22 +79,23 @@ bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &sw
 {
     IMSA_HILOGD("Run in, data changed.");
     auto currentIme = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId);
-    switchInfo.bundleName = GetDefaultIme()->name;
+    auto defaultIme = GetDefaultIme();
+    switchInfo.bundleName = defaultIme->name;
     switchInfo.subName = "";
     if (key == std::string(ENABLE_IME)) {
-        if (currentIme->name == GetDefaultIme()->name) {
+        if (currentIme->name == defaultIme->name) {
             GetEnableData(key, enableList_[key], userId);
             IMSA_HILOGD("Current ime is default, do not need switch ime.");
             return false;
         }
         return CheckTargetEnableName(key, currentIme->name, switchInfo.bundleName, userId);
     } else if (key == std::string(ENABLE_KEYBOARD)) {
-        if (currentIme->name != GetDefaultIme()->name || currentIme->id == GetDefaultIme()->id) {
+        if (currentIme->name != defaultIme->name || currentIme->id == defaultIme->id) {
             IMSA_HILOGD("Current ime is not default or id is default.");
             GetEnableData(key, enableList_[key], userId);
             return false;
         }
-        switchInfo.subName = GetDefaultIme()->id;
+        switchInfo.subName = defaultIme->id;
         return CheckTargetEnableName(key, currentIme->id, switchInfo.subName, userId);
     }
     IMSA_HILOGW("Invalid key! key: %{public}s", key.c_str());
@@ -103,7 +104,8 @@ bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &sw
 
 bool EnableImeDataParser::CheckNeedSwitch(const SwitchInfo &info, const int32_t userId)
 {
-    IMSA_HILOGD("Current userId %{public}d, target userId %{puclic}d", currrentUserId_, userId);
+    IMSA_HILOGD("Current userId %{public}d, target userId %{public}d, check bundleName %{public}s", currrentUserId_,
+        userId, info.bundleName.c_str());
     if (info.bundleName == GetDefaultIme()->name) {
         IMSA_HILOGD("Default ime, permit to switch");
         return true;
@@ -241,17 +243,22 @@ const std::string EnableImeDataParser::GetJsonListName(const std::string &key)
 
 std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()
 {
-    if (defaultImeInfo_ != nullptr) {
+    std::lock_guard<std::mutex> lock(defaultImeMutex_);
+    if (defaultImeInfo_ == nullptr) {
+        defaultImeInfo_ = std::make_shared<Property>();
+    }
+    if (!defaultImeInfo_->name.empty() && !defaultImeInfo_->id.empty()) {
+        IMSA_HILOGD("defaultImeInfo_ has cached defaultime: %{public}s", defaultImeInfo_->name.c_str());
         return defaultImeInfo_;
     }
-    defaultImeInfo_ = std::make_shared<Property>();
-    auto info = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(currrentUserId_);
-    if (info == nullptr) {
-        IMSA_HILOGE("GetDefaultImeInfo return nullptr");
+
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
+    if (defaultIme == nullptr) {
+        IMSA_HILOGE("GetDefaultImeCfgProp return nullptr");
         return defaultImeInfo_;
     }
-    defaultImeInfo_->name = info->prop.name;
-    defaultImeInfo_->id = info->prop.id;
+    defaultImeInfo_->name = defaultIme->name;
+    defaultImeInfo_->id = defaultIme->id;
     return defaultImeInfo_;
 }
 } // namespace MiscServices

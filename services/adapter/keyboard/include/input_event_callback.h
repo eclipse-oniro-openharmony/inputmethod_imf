@@ -32,6 +32,7 @@ public:
     virtual void OnInputEvent(std::shared_ptr<MMI::PointerEvent> pointerEvent) const;
     virtual void OnInputEvent(std::shared_ptr<MMI::AxisEvent> axisEvent) const;
     void SetKeyHandle(KeyHandle handle);
+    void TriggerSwitch();
 
 private:
     KeyHandle keyHandler_ = nullptr;

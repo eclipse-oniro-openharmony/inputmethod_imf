@@ -53,9 +53,10 @@ int32_t InputMethodCoreProxy::OnSecurityChange(int32_t security)
     });
 }
 
-void InputMethodCoreProxy::StopInputService()
+void InputMethodCoreProxy::StopInputService(bool isTerminateIme)
 {
-    SendRequest(STOP_INPUT_SERVICE);
+    SendRequest(STOP_INPUT_SERVICE,
+        [isTerminateIme](MessageParcel &data) { return ITypesUtil::Marshal(data, isTerminateIme); });
 }
 
 int32_t InputMethodCoreProxy::ShowKeyboard()

@@ -233,31 +233,39 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
 {
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "should has 1 parameters!", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least 1 parameter", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, " target: ", TYPE_OBJECT, napi_invalid_arg);
-        napi_status status = GetInputMethodProperty(env, argv[0], ctxt);
+        PARAM_CHECK_RETURN(env, valueType == napi_object || valueType == napi_string, "type must be object or string",
+            TYPE_NONE, napi_invalid_arg);
+        napi_status status = napi_generic_failure;
+        if (valueType == napi_object) {
+            ctxt->trigger = SwitchTrigger::CURRENT_IME;
+            status = GetInputMethodProperty(env, argv[0], ctxt);
+        } else {
+            status = JsUtils::GetValue(env, argv[0], ctxt->packageName);
+            ctxt->trigger = SwitchTrigger::SYSTEM_APP;
+            napi_valuetype type = napi_undefined;
+            napi_typeof(env, argv[1], &type);
+            if (argc > 1 && type == napi_string) {
+                JsUtils::GetValue(env, argv[1], ctxt->id);
+            }
+        }
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_status status = napi_get_boolean(env, ctxt->isSwitchInput, result);
-        IMSA_HILOGE("output  napi_get_boolean != nullptr[%{public}d]", result != nullptr);
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->packageName);
+        int32_t errCode =
+            InputMethodController::GetInstance()->SwitchInputMethod(ctxt->trigger, ctxt->packageName, ctxt->id);
         if (errCode == ErrorCode::NO_ERROR) {
-            IMSA_HILOGI("exec SwitchInputMethod success");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;
-        } else if (errCode == ErrorCode::ERROR_SWITCH_IME) {
-            IMSA_HILOGE("exec SwitchInputMethod failed");
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
-            ctxt->isSwitchInput = false;
         } else {
+            IMSA_HILOGE("exec SwitchInputMethod failed ret: %{public}d", errCode);
             ctxt->SetErrorCode(errCode);
         }
     };
@@ -336,17 +344,13 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->name, ctxt->id);
+        int32_t errCode =
+            InputMethodController::GetInstance()->SwitchInputMethod(SwitchTrigger::CURRENT_IME, ctxt->name, ctxt->id);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec SwitchInputMethod success");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;
-        } else if (errCode == ErrorCode::ERROR_SWITCH_IME) {
-            IMSA_HILOGE("exec SwitchInputMethod failed");
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
-            ctxt->isSwitchInput = false;
         } else {
             ctxt->SetErrorCode(errCode);
         }
@@ -376,17 +380,13 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t errCode = InputMethodController::GetInstance()->SwitchInputMethod(ctxt->name, ctxt->id);
+        int32_t errCode =
+            InputMethodController::GetInstance()->SwitchInputMethod(SwitchTrigger::CURRENT_IME, ctxt->name, ctxt->id);
         if (errCode == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec SwitchInputMethod success");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;
-        } else if (errCode == ErrorCode::ERROR_SWITCH_IME) {
-            IMSA_HILOGE("exec SwitchInputMethod failed");
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
-            ctxt->isSwitchInput = false;
         } else {
             ctxt->SetErrorCode(errCode);
         }

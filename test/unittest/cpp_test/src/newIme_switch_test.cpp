@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "global.h"
+#include "ime_info_inquirer.h"
 #include "input_method_controller.h"
 #include "input_method_property.h"
 #include "tdd_util.h"
@@ -76,12 +77,15 @@ public:
 void NewImeSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::SetUpTestCase");
+    ImeInfoInquirer::GetInstance().InitConfig();
+    enableOn = ImeInfoInquirer::GetInstance().IsEnableInputMethod();
     TddUtil::GrantNativePermission();
-    int32_t ret = TddUtil::CheckEnableOn(beforeValue);
-    if (ret == ErrorCode::NO_ERROR) {
+    if (enableOn == true) {
         IMSA_HILOGI("Enable ime switch test.");
-        enableOn = true;
-        TddUtil::PutEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
+        int32_t ret = TddUtil::GetEnableData(beforeValue);
+        if (ret == ErrorCode::NO_ERROR) {
+            TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
+        }
     }
     TddUtil::StorageSelfTokenID();
     TddUtil::SetTestTokenID(
@@ -96,7 +100,7 @@ void NewImeSwitchTest::TearDownTestCase(void)
     IMSA_HILOGI("NewImeSwitchTest::TearDownTestCase");
     if (enableOn) {
         TddUtil::GrantNativePermission();
-        TddUtil::PutEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
+        TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
     }
     InputMethodController::GetInstance()->Close();
     TddUtil::RestoreSelfTokenID();
@@ -154,7 +158,7 @@ HWTEST_F(NewImeSwitchTest, testNewImeSwitch, TestSize.Level0)
     IMSA_HILOGI("newIme testNewImeSwitch Test START");
     imeChangeFlag = false;
     // switch to newTestIme
-    auto ret = imc_->SwitchInputMethod(bundleName);
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(imeChangeFlag);
     CheckCurrentProp();
@@ -174,7 +178,7 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_001 Test START");
     imeChangeFlag = false;
-    int32_t ret = imc_->SwitchInputMethod(bundleName, subName[0]);
+    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, subName[0]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_FALSE(imeChangeFlag);
     CheckCurrentProp();
@@ -193,7 +197,7 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_002 Test START");
     imeChangeFlag = false;
-    int32_t ret = imc_->SwitchInputMethod(bundleName, subName[1]);
+    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, subName[1]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(imeChangeFlag);
     CheckCurrentProp();
@@ -212,7 +216,7 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_003, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_003 Test START");
     imeChangeFlag = false;
-    int32_t ret = imc_->SwitchInputMethod(bundleName, subName[2]);
+    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, subName[2]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(imeChangeFlag);
     CheckCurrentProp();
@@ -231,7 +235,7 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_004, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_004 Test START");
     imeChangeFlag = false;
-    int32_t ret = imc_->SwitchInputMethod(bundleName, subName[0]);
+    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, subName[0]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(imeChangeFlag);
     CheckCurrentProp();
@@ -249,7 +253,7 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_004, TestSize.Level0)
 HWTEST_F(NewImeSwitchTest, testSubTypeSwitchWithErrorSubName, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitchWithErrorSubName Test START");
-    int32_t ret = imc_->SwitchInputMethod(bundleName, "errorSubName");
+    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, "errorSubName");
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     CheckCurrentProp();
     CheckCurrentSubProp(subName[0]);
@@ -267,12 +271,98 @@ HWTEST_F(NewImeSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize.Leve
 {
     IMSA_HILOGI("newIme testSwitchToCurrentImeWithEmptySubName Test START");
     imeChangeFlag = false;
-    int32_t ret = imc_->SwitchInputMethod(bundleName);
+    int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_FALSE(imeChangeFlag);
     CheckCurrentProp();
     CheckCurrentSubProp(subName[0]);
     CheckCurrentSubProps();
+}
+
+/**
+* @tc.name: testSwitchInputMethod_001
+* @tc.desc: switch ime to newTestIme and switch the subtype to subName1.
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: weishaoxiong
+*/
+HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_001, TestSize.Level0)
+{
+    IMSA_HILOGI("newIme testSwitchInputMethod_001 Test START");
+    imeChangeFlag = false;
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName, subName[1]);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(imeChangeFlag);
+    CheckCurrentProp();
+    CheckCurrentSubProp(subName[1]);
+    CheckCurrentSubProps();
+}
+
+/**
+* @tc.name: testSwitchInputMethod_002
+* @tc.desc: switch the subtype to subName0.
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: weishaoxiong
+*/
+HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_002, TestSize.Level0)
+{
+    IMSA_HILOGI("newIme testSwitchInputMethod_002 Test START");
+    imeChangeFlag = false;
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName, subName[0]);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(imeChangeFlag);
+    CheckCurrentProp();
+    CheckCurrentSubProp(subName[0]);
+    CheckCurrentSubProps();
+}
+
+/**
+* @tc.name: testSwitchInputMethod_003
+* @tc.desc: switch ime to newTestIme.
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: weishaoxiong
+*/
+HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_003, TestSize.Level0)
+{
+    IMSA_HILOGI("newIme testSwitchInputMethod_003 Test START");
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    CheckCurrentProp();
+    CheckCurrentSubProp(subName[0]);
+    CheckCurrentSubProps();
+}
+
+/**
+* @tc.name: testSwitchInputMethod_004
+* @tc.desc: The caller is not a system app.
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: weishaoxiong
+*/
+HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_004, TestSize.Level0)
+{
+    TddUtil::SetTestTokenID(
+        TddUtil::AllocTestTokenID(false, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
+    IMSA_HILOGI("newIme testSwitchInputMethod_004 Test START");
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
+}
+
+/**
+* @tc.name: testSwitchInputMethod_005
+* @tc.desc: The caller has no permissions.
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: weishaoxiong
+*/
+HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_005, TestSize.Level0)
+{
+    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", {}));
+    IMSA_HILOGI("newIme testSwitchInputMethod_005 Test START");
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
 }
 } // namespace MiscServices
 } // namespace OHOS

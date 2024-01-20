@@ -201,10 +201,7 @@ void InputMethodAbility::WorkThread()
                 break;
             }
             case MSG_ID_STOP_INPUT_SERVICE: {
-                if (imeListener_ != nullptr) {
-                    imeListener_->OnInputStop();
-                }
-                isBound_.store(false);
+                OnStopInputService(msg);
                 break;
             }
             case MSG_ID_SET_SUBTYPE: {
@@ -247,7 +244,9 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    imeListener_->OnInputStart();
+    if (clientInfo.isNotifyInputStart) {
+        imeListener_->OnInputStart();
+    }
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
@@ -292,20 +291,24 @@ int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
     return ErrorCode::NO_ERROR;
 }
 
-bool InputMethodAbility::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent)
+int32_t InputMethodAbility::DispatchKeyEvent(
+    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
 {
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
-        return false;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     if (kdListener_ == nullptr) {
         IMSA_HILOGE("kdListener_ is nullptr");
-        return false;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     IMSA_HILOGD("InputMethodAbility, run in");
-    bool isFullKeyEventConsumed = kdListener_->OnKeyEvent(keyEvent);
-    bool isKeyEventConsumed = kdListener_->OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction());
-    return isFullKeyEventConsumed || isKeyEventConsumed;
+
+    if (!kdListener_->OnDealKeyEvent(keyEvent, consumer)) {
+        IMSA_HILOGE("keyEvent not deal");
+        return ErrorCode::ERROR_DISPATCH_KEY_EVENT;
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodAbility::SetCallingWindow(uint32_t windowId)
@@ -368,6 +371,17 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
+void InputMethodAbility::OnStopInputService(Message *msg)
+{
+    MessageParcel *data = msg->msgContent_;
+    bool isTerminateIme = data->ReadBool();
+    IMSA_HILOGI("isTerminateIme: %{public}d", isTerminateIme);
+    if (isTerminateIme && imeListener_ != nullptr) {
+        imeListener_->OnInputStop();
+    }
+    isBound_.store(false);
+}
+
 int32_t InputMethodAbility::ShowKeyboard()
 {
     if (imeListener_ == nullptr) {
@@ -398,15 +412,16 @@ int32_t InputMethodAbility::ShowKeyboard()
 
 void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
-    // only notify the status info of soft keyboard(not contain candidate column) at present
-    if (info.panelInfo.panelType != PanelType::SOFT_KEYBOARD
-        || info.panelInfo.panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN) {
+    // CANDIDATE_COLUMN not notify
+    if (info.panelInfo.panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN) {
         return;
     }
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
-        info.visible ? channel->SendKeyboardStatus(KeyboardStatus::SHOW)
-                     : channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+        if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD) {
+            info.visible ? channel->SendKeyboardStatus(KeyboardStatus::SHOW)
+                         : channel->SendKeyboardStatus(KeyboardStatus::HIDE);
+        }
         channel->NotifyPanelStatusInfo(info);
     }
 
@@ -942,6 +957,28 @@ int32_t InputMethodAbility::OnTextConfigChange(const InputClientInfo &clientInfo
     }
     InvokeTextChangeCallback(clientInfo.config);
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
+}
+
+void InputMethodAbility::NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel)
+{
+    if (inputMethodPanel == nullptr) {
+        IMSA_HILOGE("inputMethodPanel is nullptr");
+        return;
+    }
+    if (inputMethodPanel->GetPanelType() != PanelType::SOFT_KEYBOARD) {
+        IMSA_HILOGW("current panel is not soft keyboard");
+        return;
+    }
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("channel is nullptr");
+        return;
+    }
+    if (inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
+        channel->NotifyKeyboardHeight(0);
+        return;
+    }
+    channel->NotifyKeyboardHeight(inputMethodPanel->GetHeight());
 }
 } // namespace MiscServices
 } // namespace OHOS

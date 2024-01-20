@@ -84,6 +84,8 @@ public:
     static constexpr int32_t INTERVAL = 10;
     static std::shared_ptr<AppExecFwk::EventHandler> panelHandler_;
     static uint64_t tokenId_;
+    static std::string beforeValue;
+    static std::string allEnableIme;
 };
 class InputMethodSettingListenerImpl : public InputMethodSettingListener {
 public:
@@ -117,17 +119,21 @@ sptr<InputMethodAbility> InputMethodPanelTest::ima_;
 uint32_t InputMethodPanelTest::windowWidth_ = 0;
 uint32_t InputMethodPanelTest::windowHeight_ = 0;
 uint64_t InputMethodPanelTest::tokenId_ = 0;
+std::string InputMethodPanelTest::beforeValue;
+std::string InputMethodPanelTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.testIme\"]}}";
 void InputMethodPanelTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
     TddUtil::StorageSelfTokenID();
-
     ima_ = InputMethodAbility::GetInstance();
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(listener);
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefined", { "ohos.permission.CONNECT_IME_ABILITY" }));
-    auto ret = imc_->SwitchInputMethod("com.example.testIme");
+    TddUtil::GrantNativePermission();
+    TddUtil::GetEnableData(beforeValue);
+    TddUtil::PushEnableImeValue("settings.inputmethod.enable_ime", allEnableIme);
+    auto ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, "com.example.testIme");
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGI("SwitchInputMethod failed, ret = %{public}d", ret);
         return;
@@ -141,6 +147,8 @@ void InputMethodPanelTest::SetUpTestCase(void)
 void InputMethodPanelTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::TearDownTestCase");
+    TddUtil::GrantNativePermission();
+    TddUtil::PushEnableImeValue("settings.inputmethod.enable_ime", beforeValue);
 }
 
 void InputMethodPanelTest::SetUp(void)

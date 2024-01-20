@@ -23,11 +23,11 @@
 #include <mutex>
 
 #include "async_call.h"
-#include "block_data.h"
 #include "global.h"
 #include "input_attribute.h"
 #include "js_callback_object.h"
 #include "keyboard_listener.h"
+#include "keyevent_consumer_proxy.h"
 #include "napi/native_api.h"
 
 namespace OHOS {
@@ -41,12 +41,13 @@ public:
     static napi_value GetKeyboardDelegate(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
-    bool OnKeyEvent(int32_t keyCode, int32_t keyStatus) override;
-    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent) override;
+    bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer) override;
+    bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override;
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
     void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void OnTextChange(const std::string &text) override;
     void OnEditorAttributeChange(const InputAttribute &inputAttribute) override;
+    bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override;
 
 private:
     static napi_value GetResultOnKeyEvent(napi_env env, int32_t keyCode, int32_t keyStatus);
@@ -83,8 +84,8 @@ private:
         SelectionPara selPara;
         KeyEventPara keyEventPara;
         std::shared_ptr<MMI::KeyEvent> pullKeyEventPara;
-        std::shared_ptr<BlockData<bool>> isDone;
         std::string text;
+        sptr<KeyEventConsumerProxy> keyEvenetConsumer = nullptr;
         InputAttribute inputAttribute;
         UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)
@@ -95,6 +96,8 @@ private:
     static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     std::shared_ptr<UvEntry> GetEntry(const std::string &type, EntrySetter entrySetter = nullptr);
     uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
+    static void DealKeyEvent(const std::shared_ptr<UvEntry> &keyEventEntry,
+        const std::shared_ptr<UvEntry> &keyCodeEntry, const sptr<KeyEventConsumerProxy> &consumer);
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;

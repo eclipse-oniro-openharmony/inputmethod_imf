@@ -42,6 +42,10 @@ ohos_shared_library("inputmethod") {
     debug = false
   }
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/itypes_util.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
     "async_call.cpp",
     "input_method_module.cpp",
     "js_get_input_method_controller.cpp",

@@ -50,9 +50,9 @@ public:
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
     static pid_t GetImsaPid();
     static void KillImsaProcess();
-    static void PutEnableImeValue(const std::string &key, const std::string &value);
+    static void PushEnableImeValue(const std::string &key, const std::string &value);
     static void GrantNativePermission();
-    static int32_t CheckEnableOn(std::string &value);
+    static int32_t GetEnableData(std::string &value);
     static void InitWindow(bool isShow);
     static void DestroyWindow();
     static bool GetFocused();

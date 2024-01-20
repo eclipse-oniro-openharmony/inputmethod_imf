@@ -40,6 +40,7 @@ struct InputClientInfo {
     sptr<IInputDataChannel> channel{ nullptr }; // the remote object handler for ime to callback input client
     sptr<InputDeathRecipient> deathRecipient{ nullptr }; // death recipient of client
     ClientState state{ ClientState::INACTIVE };          // the state of input client
+    bool isNotifyInputStart { true };
 };
 } // namespace MiscServices
 } // namespace OHOS
