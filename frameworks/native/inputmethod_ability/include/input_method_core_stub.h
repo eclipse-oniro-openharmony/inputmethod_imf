@@ -43,7 +43,7 @@ public:
     int32_t ShowKeyboard() override;
     int32_t HideKeyboard() override;
     int32_t InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel) override;
-    void StopInputService() override;
+    void StopInputService(bool isTerminateIme) override;
     int32_t SetSubtype(const SubProperty &property) override;
     bool IsEnable() override;
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;

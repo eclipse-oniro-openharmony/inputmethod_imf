@@ -655,28 +655,28 @@ bool ImeInfoInquirer::IsImeInstalled(const int32_t userId, const std::string &bu
     return true;
 }
 
-std::string ImeInfoInquirer::GetImeToBeStarted(int32_t userId)
+std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeToBeStarted(int32_t userId)
 {
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     IMSA_HILOGD("userId: %{public}d, currentIme: %{public}s", userId, currentImeCfg->imeId.c_str());
     if (currentImeCfg->imeId.empty() || !IsImeInstalled(userId, currentImeCfg->bundleName, currentImeCfg->extName)) {
-        auto newUserIme = GetDefaultIme();
-        std::string subName;
+        auto newIme = GetDefaultIme();
         auto info = GetDefaultImeInfo(userId);
         if (info == nullptr) {
             IMSA_HILOGE("GetDefaultImeInfo failed");
-            subName = "";
+            newIme.subName = "";
         } else {
-            subName = info->subProp.id;
+            newIme.subName = info->subProp.id;
             SetCurrentImeInfo(info);
         }
-        currentImeCfg->imeId.empty() ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newUserIme, subName })
-                                     : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newUserIme, subName });
-        return newUserIme;
+        currentImeCfg->imeId.empty()
+            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newIme.imeId, newIme.imeId })
+            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newIme.imeId, newIme.imeId });
+        return std::make_shared<ImeNativeCfg>(newIme);
     }
     // service start, user switch, set the currentImeInfo.
     InitCache(userId);
-    return currentImeCfg->imeId;
+    return currentImeCfg;
 }
 
 int32_t ImeInfoInquirer::GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig)
@@ -745,15 +745,25 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
     return info;
 }
 
-std::string ImeInfoInquirer::GetDefaultIme()
+ImeNativeCfg ImeInfoInquirer::GetDefaultIme()
 {
+    ImeNativeCfg imeCfg;
     if (!imeConfig_.defaultInputMethod.empty()) {
         IMSA_HILOGI("defaultInputMethod: %{public}s", imeConfig_.defaultInputMethod.c_str());
-        return imeConfig_.defaultInputMethod;
+        imeCfg.imeId = imeConfig_.defaultInputMethod;
+    } else {
+        char value[CONFIG_LEN] = { 0 };
+        auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
+        imeCfg.imeId = code > 0 ? value : "";
     }
-    char value[CONFIG_LEN] = { 0 };
-    auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
-    return code > 0 ? value : "";
+    auto pos = imeCfg.imeId.find('/');
+    if (pos == std::string::npos || pos + 1 >= imeCfg.imeId.size()) {
+        IMSA_HILOGE("defaultIme: %{public}s is abnormal", imeCfg.imeId.c_str());
+        return {};
+    }
+    imeCfg.bundleName = imeCfg.imeId.substr(0, pos);
+    imeCfg.extName = imeCfg.imeId.substr(pos + 1);
+    return imeCfg;
 }
 
 sptr<OHOS::AppExecFwk::IBundleMgr> ImeInfoInquirer::GetBundleMgr()
@@ -865,14 +875,13 @@ void ImeInfoInquirer::ParseSubProp(const json &jsonSubProp, SubProperty &subProp
 std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()
 {
     auto ime = GetDefaultIme();
-    auto pos = ime.find('/');
-    if (pos == std::string::npos || pos + 1 >= ime.size()) {
-        IMSA_HILOGE("defaultIme: %{public}s is abnormal", ime.c_str());
+    if (ime.bundleName.empty() || ime.extName.empty()) {
+        IMSA_HILOGE("defaultIme is abnormal");
         return nullptr;
     }
     auto defaultIme = std::make_shared<Property>();
-    defaultIme->name = ime.substr(0, pos);
-    defaultIme->id = ime.substr(pos + 1);
+    defaultIme->name = ime.bundleName;
+    defaultIme->id = ime.extName;
     return defaultIme;
 }
 } // namespace MiscServices

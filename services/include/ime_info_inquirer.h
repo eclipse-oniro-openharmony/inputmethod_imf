@@ -24,8 +24,9 @@
 #include <vector>
 
 #include "bundle_mgr_proxy.h"
-#include "enable_ime_data_parser.h"
 #include "element_name.h"
+#include "enable_ime_data_parser.h"
+#include "ime_cfg_manager.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
@@ -61,7 +62,7 @@ public:
     using CompareHandler = std::function<bool(const SubProperty &)>;
     static ImeInfoInquirer &GetInstance();
     std::string GetDumpInfo(int32_t userId);
-    std::string GetImeToBeStarted(int32_t userId);
+    std::shared_ptr<ImeNativeCfg> GetImeToBeStarted(int32_t userId);
     std::shared_ptr<Property> GetImeByBundleName(int32_t userId, const std::string &bundleName);
     std::shared_ptr<Property> GetCurrentInputMethod(int32_t userId);
     std::shared_ptr<SubProperty> GetCurrentSubtype(int32_t userId);
@@ -89,7 +90,7 @@ private:
     OHOS::sptr<OHOS::AppExecFwk::IBundleMgr> GetBundleMgr();
     void InitCache(int32_t userId);
     SubProperty GetExtends(const std::vector<OHOS::AppExecFwk::Metadata> &metaData);
-    std::string GetDefaultIme();
+    ImeNativeCfg GetDefaultIme();
     std::string GetStringById(
         const std::string &bundleName, const std::string &moduleName, const int32_t labelId, const int32_t userId);
     std::shared_ptr<ImeInfo> GetImeInfoFromCache(
