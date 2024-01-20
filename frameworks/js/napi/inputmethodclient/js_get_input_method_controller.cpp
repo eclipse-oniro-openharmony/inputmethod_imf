@@ -707,7 +707,7 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
         return;
     }
     IMSA_HILOGI("start: %{public}d, end: %{public}d", start, end);
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -735,6 +735,7 @@ void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
@@ -746,7 +747,7 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
         return;
     }
     IMSA_HILOGI("direction: %{public}d", direction);
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -774,6 +775,7 @@ void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::InsertText(const std::u16string &text)
@@ -786,7 +788,7 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
         return;
     }
     IMSA_HILOGI("run in");
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -811,6 +813,7 @@ void JsGetInputMethodController::InsertText(const std::u16string &text)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInsertTextProperty });
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::DeleteRight(int32_t length)
@@ -822,7 +825,7 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
         return;
     }
     IMSA_HILOGI("length: %{public}d", length);
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -847,6 +850,7 @@ void JsGetInputMethodController::DeleteRight(int32_t length)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteForwardProperty });
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::DeleteLeft(int32_t length)
@@ -858,7 +862,7 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
         return;
     }
     IMSA_HILOGI("length: %{public}d", length);
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -883,6 +887,7 @@ void JsGetInputMethodController::DeleteLeft(int32_t length)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteBackwardProperty });
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
@@ -895,7 +900,7 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
         return;
     }
     IMSA_HILOGI("status: %{public}d", static_cast<int32_t>(status));
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -920,6 +925,7 @@ void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendKeyboardStatusProperty });
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
 }
 
 napi_value JsGetInputMethodController::CreateSendFunctionKey(napi_env env, int32_t functionKey)
@@ -944,7 +950,7 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
         return;
     }
     IMSA_HILOGI("functionKey: %{public}d", static_cast<int32_t>(functionKey.GetEnterKeyType()));
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -974,6 +980,7 @@ void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendFunctionKeyProperty });
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::MoveCursor(const Direction direction)
@@ -986,7 +993,7 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
         return;
     }
     IMSA_HILOGI("direction: %{public}d", static_cast<int32_t>(direction));
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -1011,6 +1018,7 @@ void JsGetInputMethodController::MoveCursor(const Direction direction)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getMoveCursorProperty });
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodController::HandleExtendAction(int32_t action)
@@ -1022,7 +1030,7 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
         return;
     }
     IMSA_HILOGI("action: %{public}d", action);
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -1046,6 +1054,7 @@ void JsGetInputMethodController::HandleExtendAction(int32_t action)
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getHandleExtendActionProperty });
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
 }
 
 std::u16string JsGetInputMethodController::GetText(const std::string &type, int32_t number)
@@ -1060,7 +1069,7 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
         return u"";
     }
     IMSA_HILOGI("type: %{public}s, number: %{public}d", type.c_str(), number);
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -1086,6 +1095,7 @@ std::u16string JsGetInputMethodController::GetText(const std::string &type, int3
             entry->textResultHandler->SetValue(text);
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
     return Str8ToStr16(textResultHandler->GetValue());
 }
 
@@ -1100,7 +1110,7 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
         return -1;
     }
     IMSA_HILOGI("run in");
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -1117,6 +1127,7 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
             entry->indexResultHandler->SetValue(index);
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
     return indexResultHandler->GetValue();
 }
 
@@ -1148,6 +1159,18 @@ uv_work_t *JsGetInputMethodController::GetUVwork(const std::string &type, EntryS
     }
     work->data = entry;
     return work;
+}
+
+void JsGetInputMethodController::FreeWorkIfFail(int ret, uv_work_t *work)
+{
+    if (ret == 0 || work == nullptr) {
+        return;
+    }
+    
+    UvEntry *data = static_cast<UvEntry *>(work->data);
+    delete data;
+    delete work;
+    IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
 }
 } // namespace MiscServices
 } // namespace OHOS

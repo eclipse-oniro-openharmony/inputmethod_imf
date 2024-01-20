@@ -586,7 +586,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
         return;
     }
     IMSA_HILOGI("run in");
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -617,6 +617,7 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
             JsCallbackHandler::Traverse(entry->vecCopy, { 2, getImeChangeProperty });
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
 }
 
 void JsGetInputMethodSetting::OnPanelStatusChange(
@@ -634,7 +635,7 @@ void JsGetInputMethodSetting::OnPanelStatusChange(
         return;
     }
     IMSA_HILOGI("status: %{public}u", static_cast<uint32_t>(status));
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -662,6 +663,7 @@ void JsGetInputMethodSetting::OnPanelStatusChange(
             JsCallbackHandler::Traverse(entry->vecCopy, { 1, getWindowInfo });
         },
         uv_qos_user_initiated);
+    FreeWorkIfFail(ret, work);
 }
 
 uv_work_t *JsGetInputMethodSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
@@ -692,6 +694,17 @@ uv_work_t *JsGetInputMethodSetting::GetUVwork(const std::string &type, EntrySett
     }
     work->data = entry;
     return work;
+}
+void JsGetInputMethodSetting::FreeWorkIfFail(int ret, uv_work_t *work)
+{
+    if (ret == 0 || work == nullptr) {
+        return;
+    }
+    
+    UvEntry *data = static_cast<UvEntry *>(work->data);
+    delete data;
+    delete work;
+    IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
 }
 } // namespace MiscServices
 } // namespace OHOS

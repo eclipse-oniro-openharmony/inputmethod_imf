@@ -92,7 +92,7 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(callback.second->env_, &loop);
     IMSA_HILOGI("windowId = %{public}u, type = %{public}s", windowId, type.c_str());
-    uv_queue_work_with_qos(
+    auto ret = uv_queue_work_with_qos(
         loop, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
@@ -106,6 +106,12 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
             JsCallbackHandler::Traverse({ entry->cbCopy });
         },
         uv_qos_user_initiated);
+    if (ret != 0) {
+        IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
+        UvEntry *data = static_cast<UvEntry *>(work->data);
+        delete data;
+        delete work;
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS
