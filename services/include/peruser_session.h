@@ -98,6 +98,7 @@ public:
     int32_t ExitCurrentInputType();
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     bool CheckSecurityMode();
+    bool IsWmsReady();
 
 private:
     struct ResetManager {
@@ -155,10 +156,8 @@ private:
     int32_t ShowKeyboard(const sptr<IInputClient> &currentClient);
 
     int32_t InitInputControlChannel();
-    bool IsReadyToStartIme();
     bool IsRestartIme();
     void RestartIme();
-
     void SetCurrentClient(sptr<IInputClient> client);
     sptr<IInputClient> GetCurrentClient();
     void ReplaceCurrentClient(const sptr<IInputClient> &client);

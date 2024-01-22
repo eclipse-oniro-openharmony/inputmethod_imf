@@ -37,6 +37,7 @@
 #include "system_ability_definition.h"
 #include "unistd.h"
 #include "want.h"
+#include "wms_connection_observer.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -231,11 +232,11 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
         StopClientInput(client);
+        if (type == ImeType::IME) {
+            RestartIme();
+        }
     }
-    if (type == ImeType::IME) {
-        InputTypeManager::GetInstance().Set(false);
-        RestartIme();
-    }
+    InputTypeManager::GetInstance().Set(false);
 }
 
 int32_t PerUserSession::RemoveIme(const sptr<IInputMethodCore> &core, ImeType type)
@@ -684,14 +685,15 @@ bool PerUserSession::IsRestartIme()
 
 void PerUserSession::RestartIme()
 {
+    IMSA_HILOGI("user: %{public}d ime restart", userId_);
     if (!IsRestartIme()) {
         IMSA_HILOGI("ime deaths over max num");
         return;
     }
-    if (!IsReadyToStartIme()) {
+    if (!IsWmsReady()) {
+        IMSA_HILOGI("wms not ready, wait");
         return;
     }
-    IMSA_HILOGI("user %{public}d ime died, restart!", userId_);
     StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_), true);
 }
 
@@ -1005,8 +1007,12 @@ int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInf
     return ErrorCode::NO_ERROR;
 }
 
-bool PerUserSession::IsReadyToStartIme()
+bool PerUserSession::IsWmsReady()
 {
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        IMSA_HILOGI("scb enable");
+        return WmsConnectionObserver::IsWmsConnected(userId_);
+    }
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemAbilityManager == nullptr) {
@@ -1054,7 +1060,7 @@ bool PerUserSession::IsImeBindChanged(ImeType bindImeType)
 
 int32_t PerUserSession::SwitchSubtype(const SubProperty &subProperty)
 {
-    auto data = GetImeData(ImeType::IME);
+    auto data = GetValidIme(ImeType::IME);
     if (data == nullptr) {
         IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;

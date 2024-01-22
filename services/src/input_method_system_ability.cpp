@@ -35,9 +35,11 @@
 #include "message_handler.h"
 #include "native_token_info.h"
 #include "os_account_manager.h"
+#include "scene_board_judgement.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "system_language_observer.h"
+#include "wms_connection_observer.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -769,12 +771,13 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     }
     int32_t oldUserId = userId_;
     userId_ = msg->msgContent_->ReadInt32();
-    userSession_->UpdateCurrentUserId(userId_);
     if (oldUserId == userId_) {
         IMSA_HILOGI("device boot, userId: %{public}d", userId_);
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGI("%{public}d switch to %{public}d.", oldUserId, userId_);
+    userSession_->UpdateCurrentUserId(userId_);
+    InputMethodSysEvent::GetInstance().SetUserId(userId_);
     if (enableImeOn_) {
         EnableImeDataParser::GetInstance()->OnUserChanged(userId_);
     }
@@ -785,8 +788,13 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     userSession_->StopInputService(currentIme->bundleName, currentIme->subName);
     // user switch, reset currentImeInfo_ = nullptr
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
+
+    if (!userSession_->IsWmsReady()) {
+        IMSA_HILOGI("wms not ready, wait");
+        return ErrorCode::NO_ERROR;
+    }
+
     auto newIme = ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_);
-    InputMethodSysEvent::GetInstance().SetUserId(userId_);
     if (!StartInputService(newIme)) {
         IMSA_HILOGE("start input method failed");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
@@ -958,8 +966,8 @@ void InputMethodSystemAbility::InitMonitors()
     StartUserIdListener();
     ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor, ret: %{public}d", ret);
-    ret = InitFocusChangeMonitor();
-    IMSA_HILOGI("init focus change monitor, ret: %{public}d", ret);
+    ret = InitWmsMonitor();
+    IMSA_HILOGI("init wms monitor, ret: %{public}d", ret);
     InitSystemLanguageMonitor();
     if (ImeInfoInquirer::GetInstance().IsEnableInputMethod()) {
         IMSA_HILOGW("Enter enable mode");
@@ -988,14 +996,33 @@ int32_t InputMethodSystemAbility::InitKeyEventMonitor()
     return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
 }
 
-bool InputMethodSystemAbility::InitFocusChangeMonitor()
+bool InputMethodSystemAbility::InitWmsMonitor()
 {
     return ImCommonEventManager::GetInstance()->SubscribeWindowManagerService(
         [this](bool isOnFocused, int32_t pid, int32_t uid) {
             return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
         },
         [this]() {
+            if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+                IMSA_HILOGI("scb enable, register WMS connection listener");
+                InitWmsConnectionMonitor();
+                return;
+            }
+            IMSA_HILOGI("scb disable, start ime");
             SetCurrentUserId();
+            StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_));
+        });
+}
+
+void InputMethodSystemAbility::InitWmsConnectionMonitor()
+{
+    WmsConnectionMonitorManager::GetInstance().RegisterWMSConnectionChangedListener(
+        [this](int32_t userId, int32_t screenId) {
+            SetCurrentUserId();
+            IMSA_HILOGI("WMS connect, start ime, userId: %{public}d, currentUserId: %{public}d", userId, userId_);
+            if (userId != userId_) {
+                return;
+            }
             StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_));
         });
 }

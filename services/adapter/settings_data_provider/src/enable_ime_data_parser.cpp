@@ -65,7 +65,7 @@ int32_t EnableImeDataParser::Initialize(const int32_t userId)
 void EnableImeDataParser::OnUserChanged(const int32_t targetUserId)
 {
     std::lock_guard<std::mutex> autoLock(listMutex_);
-    IMSA_HILOGD("Current userId %{public}d, switch to %{puclic}d", currrentUserId_, targetUserId);
+    IMSA_HILOGD("Current userId %{public}d, switch to %{public}d", currrentUserId_, targetUserId);
     currrentUserId_ = targetUserId;
     if (GetEnableData(ENABLE_IME, enableList_[std::string(ENABLE_IME)], targetUserId) != ErrorCode::NO_ERROR
         || GetEnableData(ENABLE_KEYBOARD, enableList_[std::string(ENABLE_KEYBOARD)], targetUserId)
