@@ -105,7 +105,6 @@ enum {
     ERROR_NOT_DEFAULT_IME = 31,
     ERROR_ENABLE_SECURITY_MODE = 32,
     ERROR_DISPATCH_KEY_EVENT = 33,
-    ERROR_PANEL_HAS_DEALT = 34,
 };
 }; // namespace ErrorCode
 

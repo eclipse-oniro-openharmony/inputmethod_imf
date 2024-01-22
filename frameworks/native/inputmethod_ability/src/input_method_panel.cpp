@@ -55,13 +55,13 @@ int32_t InputMethodPanel::CreatePanel(
         IMSA_HILOGE("Create window failed: %{public}d", wmError);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    windowId_ = window_->GetWindowId();
-    IMSA_HILOGD("GetWindowId, windowId = %{public}u", windowId_);
     if (SetPanelProperties() != ErrorCode::NO_ERROR) {
         wmError = window_->Destroy();
         IMSA_HILOGI("Destroy window end, wmError is %{public}d.", wmError);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
+    windowId_ = window_->GetWindowId();
+    IMSA_HILOGD("GetWindowId, windowId = %{public}u", windowId_);
     return ErrorCode::NO_ERROR;
 }
 
@@ -191,7 +191,7 @@ int32_t InputMethodPanel::ShowPanel()
     }
     if (IsShowing()) {
         IMSA_HILOGI("Panel already shown.");
-        return ErrorCode::ERROR_PANEL_HAS_DEALT;
+        return ErrorCode::NO_ERROR;
     }
     auto ret = window_->Show();
     if (ret != WMError::WM_OK) {
@@ -227,7 +227,7 @@ int32_t InputMethodPanel::HidePanel()
     }
     if (IsHidden()) {
         IMSA_HILOGI("Panel already hidden.");
-        return ErrorCode::ERROR_PANEL_HAS_DEALT;
+        return ErrorCode::NO_ERROR;
     }
     auto ret = window_->Hide();
     if (ret != WMError::WM_OK) {

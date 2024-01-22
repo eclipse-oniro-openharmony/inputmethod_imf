@@ -43,16 +43,13 @@ constexpr int32_t LOOP_COUNT = 5;
 constexpr int64_t DELAY_TIME = 100;
 const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
     { "imeHide", IME_HIDE } };
-InputMethodController::InputMethodController() : msgHandler_(nullptr), stop_(false)
+InputMethodController::InputMethodController()
 {
     IMSA_HILOGD("IMC structure");
 }
 
 InputMethodController::~InputMethodController()
 {
-    QuitWorkThread();
-    delete msgHandler_;
-    msgHandler_ = nullptr;
 }
 
 sptr<InputMethodController> InputMethodController::GetInstance()
@@ -124,55 +121,8 @@ void InputMethodController::SetControllerListener(std::shared_ptr<ControllerList
     controllerListener_ = std::move(controllerListener);
 }
 
-void InputMethodController::QuitWorkThread()
-{
-    stop_ = true;
-    Message *msg = new Message(MessageID::MSG_ID_QUIT_WORKER_THREAD, nullptr);
-    msgHandler_->SendMessage(msg);
-    if (workThreadHandler.joinable()) {
-        workThreadHandler.join();
-    }
-}
-
-void InputMethodController::WorkThread()
-{
-    prctl(PR_SET_NAME, "IMCWorkThread");
-    while (!stop_) {
-        Message *msg = msgHandler_->GetMessage();
-        switch (msg->msgId_) {
-            case MSG_ID_INSERT_CHAR: {
-                InsertText(msg);
-                break;
-            }
-            default: {
-                IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
-                break;
-            }
-        }
-        delete msg;
-        msg = nullptr;
-    }
-}
-
-void InputMethodController::InsertText(Message *msg)
-{
-    auto listener = GetTextListener();
-    if (!IsEditable() || listener == nullptr) {
-        IMSA_HILOGE("not editable or textListener is nullptr");
-        return;
-    }
-    MessageParcel *data = msg->msgContent_;
-    listener->InsertText(data->ReadString16());
-}
-
 int32_t InputMethodController::Initialize()
 {
-    auto handler = new (std::nothrow) MessageHandler();
-    if (handler == nullptr) {
-        IMSA_HILOGE("failed to new message handler");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    msgHandler_ = handler;
     auto client = new (std::nothrow) InputClientStub();
     if (client == nullptr) {
         IMSA_HILOGE("failed to new client");
@@ -184,10 +134,8 @@ int32_t InputMethodController::Initialize()
         IMSA_HILOGE("failed to new channel");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    channel->SetHandler(msgHandler_);
     InputAttribute attribute = { .inputPattern = InputAttribute::PATTERN_TEXT };
     clientInfo_ = { .attribute = attribute, .client = client, .channel = channel };
-    workThreadHandler = std::thread([this] { WorkThread(); });
 
     // make AppExecFwk::EventHandler handler
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());

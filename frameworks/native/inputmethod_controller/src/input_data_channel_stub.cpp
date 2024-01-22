@@ -219,15 +219,7 @@ int32_t InputDataChannelStub::NotifyKeyboardHeightOnRemote(MessageParcel &data, 
 
 int32_t InputDataChannelStub::InsertText(const std::u16string &text)
 {
-    //return InputMethodController::GetInstance()->InsertText(text);
-    if (msgHandler == nullptr) {
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-    MessageParcel *parcel = new MessageParcel;
-    parcel->WriteString16(text);
-    Message *msg = new Message(MessageID::MSG_ID_INSERT_CHAR, parcel);
-    msgHandler->SendMessage(msg);
-    return ErrorCode::NO_ERROR;
+    return InputMethodController::GetInstance()->InsertText(text);
 }
 
 int32_t InputDataChannelStub::DeleteForward(int32_t length)
@@ -310,11 +302,6 @@ void InputDataChannelStub::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 void InputDataChannelStub::NotifyKeyboardHeight(uint32_t height)
 {
     InputMethodController::GetInstance()->NotifyKeyboardHeight(height);
-}
-
-void InputDataChannelStub::SetHandler(MessageHandler *handler)
-{
-    msgHandler = handler;
 }
 } // namespace MiscServices
 } // namespace OHOS

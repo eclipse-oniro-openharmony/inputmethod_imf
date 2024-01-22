@@ -381,8 +381,12 @@ int32_t InputMethodAbility::ShowKeyboard()
         return ErrorCode::ERROR_IME;
     }
     IMSA_HILOGI("IMA start");
-    auto panel = GetSoftKeyboardPanel();
-    if (panel != nullptr) {
+    if (panels_.Contains(SOFT_KEYBOARD)) {
+        auto panel = GetSoftKeyboardPanel();
+        if (panel == nullptr) {
+            IMSA_HILOGE("panel is nullptr.");
+            return ErrorCode::ERROR_IME;
+        }
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(true);
         if (flag == FLG_CANDIDATE_COLUMN) {
@@ -802,9 +806,6 @@ int32_t InputMethodAbility::ShowPanel(
     if (ret == ErrorCode::NO_ERROR) {
         NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, true, trigger });
     }
-    if (ret == ErrorCode::ERROR_PANEL_HAS_DEALT) {
-        ret = ErrorCode::NO_ERROR;
-    }
     return ret;
 }
 
@@ -818,9 +819,6 @@ int32_t InputMethodAbility::HidePanel(
     if (ret == ErrorCode::NO_ERROR) {
         NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
     }
-    if (ret == ErrorCode::ERROR_PANEL_HAS_DEALT) {
-        ret = ErrorCode::NO_ERROR;
-    }
     return ret;
 }
 
@@ -831,8 +829,12 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
         return ErrorCode::ERROR_IME;
     }
     IMSA_HILOGD("IMA, trigger: %{public}d", static_cast<int32_t>(trigger));
-    auto panel = GetSoftKeyboardPanel();
-    if (panel != nullptr) {
+    if (panels_.Contains(SOFT_KEYBOARD)) {
+        auto panel = GetSoftKeyboardPanel();
+        if (panel == nullptr) {
+            IMSA_HILOGE("panel is nullptr.");
+            return ErrorCode::ERROR_IME;
+        }
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(false);
         if (flag == FLG_CANDIDATE_COLUMN) {
@@ -860,7 +862,13 @@ std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
     if (!result.first) {
         return nullptr;
     }
-    return result.second;
+    auto panel = result.second;
+    if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES, [panel]() -> bool {
+            return panel != nullptr && panel->windowId_ != InputMethodPanel::INVALID_WINDOW_ID;
+        })) {
+        return nullptr;
+    }
+    return panel;
 }
 
 bool InputMethodAbility::IsCurrentIme()

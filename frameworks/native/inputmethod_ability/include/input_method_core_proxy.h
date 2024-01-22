@@ -53,7 +53,6 @@ private:
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendRequest(int code, ParcelHandler input = nullptr, ParcelHandler output = nullptr,
         MessageOption option = MessageOption::TF_SYNC);
-    void GetMessageOption(int32_t code, MessageOption &option);
 };
 } // namespace MiscServices
 } // namespace OHOS

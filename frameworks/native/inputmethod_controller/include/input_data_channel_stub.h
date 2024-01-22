@@ -37,7 +37,6 @@ public:
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
     InputDataChannelStub();
     ~InputDataChannelStub();
-    void SetHandler(MessageHandler *handler);
     int32_t InsertText(const std::u16string &text) override;
     int32_t DeleteForward(int32_t length) override;
     int32_t DeleteBackward(int32_t length) override;
@@ -57,7 +56,6 @@ public:
     void NotifyKeyboardHeight(uint32_t height) override;
 
 private:
-    MessageHandler *msgHandler;
     int32_t InsertTextOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t DeleteForwardOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t DeleteBackwardOnRemote(MessageParcel &data, MessageParcel &reply);

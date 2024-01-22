@@ -273,6 +273,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testShowKeyboard_002, TestSize.Level0)
     // panel exist, PanelFlag == FLG_CANDIDATE_COLUMN
     auto panel = std::make_shared<InputMethodPanel>();
     panel->panelFlag_ = FLG_CANDIDATE_COLUMN;
+    panel->windowId_ = 2;
     inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
     ret = inputMethodAbility_->ShowKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -305,6 +306,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level0)
     inputMethodAbility_->SetInputDataChannel(channelObject->AsObject());
     auto panel = std::make_shared<InputMethodPanel>();
     panel->panelFlag_ = FLG_CANDIDATE_COLUMN;
+    panel->windowId_ = 2;
     inputMethodAbility_->panels_.Insert(SOFT_KEYBOARD, panel);
     ret = inputMethodAbility_->HideKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);

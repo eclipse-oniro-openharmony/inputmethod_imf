@@ -30,6 +30,7 @@ namespace OHOS {
 namespace MiscServices {
 class InputMethodPanel {
 public:
+    static constexpr uint32_t INVALID_WINDOW_ID = 0;
     InputMethodPanel() = default;
     ~InputMethodPanel();
     int32_t SetUiContent(const std::string &contentInfo, napi_env env, std::shared_ptr<NativeReference> contentStorage);
@@ -50,7 +51,7 @@ public:
     bool IsShowing();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
     uint32_t GetHeight();
-    uint32_t windowId_ = 0;
+    uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
     bool IsHidden();

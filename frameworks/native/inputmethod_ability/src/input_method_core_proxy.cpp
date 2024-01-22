@@ -107,19 +107,6 @@ int32_t InputMethodCoreProxy::OnTextConfigChange(const InputClientInfo &clientIn
         ON_TEXT_CONFIG_CHANGE, [&clientInfo](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo); });
 }
 
-void InputMethodCoreProxy::GetMessageOption(int32_t code, MessageOption &option)
-{
-    switch (code) {
-        case HIDE_KEYBOARD:
-            IMSA_HILOGD("Async IPC.");
-            option.SetFlags(MessageOption::TF_ASYNC);
-            break;
-        default:
-            option.SetFlags(MessageOption::TF_SYNC);
-            break;
-    }
-}
-
 int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output, MessageOption option)
 {
     IMSA_HILOGD("InputMethodCoreProxy, run in, code = %{public}d", code);
@@ -133,7 +120,6 @@ int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelH
         IMSA_HILOGE("InputMethodCoreProxy::write data failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    GetMessageOption(code, option);
     auto ret = Remote()->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
         IMSA_HILOGE("InputMethodCoreProxy send request failed, code: %{public}d, ret %{public}d", code, ret);

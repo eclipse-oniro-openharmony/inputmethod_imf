@@ -773,13 +773,6 @@ private:
     static sptr<InputMethodController> instance_;
     static std::shared_ptr<AppExecFwk::EventHandler> handler_;
 
-    std::thread workThreadHandler;
-    MessageHandler *msgHandler_;
-    bool stop_;
-    void WorkThread();
-    void QuitWorkThread();
-    void InsertText(Message *msg);
-
     std::atomic_bool isEditable_{ false };
     std::atomic_bool isBound_{ false };
 
