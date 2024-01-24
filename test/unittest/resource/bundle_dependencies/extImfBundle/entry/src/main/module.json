@@ -55,6 +55,9 @@
     "requestPermissions": [
       {
         "name": "ohos.permission.COMMONEVENT_STICKY"
+      },
+      {
+        "name": "ohos.permission.MANAGE_SECURE_SETTINGS"
       }
     ]
   }
