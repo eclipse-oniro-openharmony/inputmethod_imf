@@ -55,13 +55,13 @@ int32_t InputMethodPanel::CreatePanel(
         IMSA_HILOGE("Create window failed: %{public}d", wmError);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    windowId_ = window_->GetWindowId();
-    IMSA_HILOGD("GetWindowId, windowId = %{public}u", windowId_);
     if (SetPanelProperties() != ErrorCode::NO_ERROR) {
         wmError = window_->Destroy();
         IMSA_HILOGI("Destroy window end, wmError is %{public}d.", wmError);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
+    windowId_ = window_->GetWindowId();
+    IMSA_HILOGD("GetWindowId, windowId = %{public}u", windowId_);
     return ErrorCode::NO_ERROR;
 }
 

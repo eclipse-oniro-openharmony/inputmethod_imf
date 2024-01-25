@@ -392,16 +392,18 @@ int32_t InputMethodAbility::ShowKeyboard()
     if (panels_.Contains(SOFT_KEYBOARD)) {
         auto panel = GetSoftKeyboardPanel();
         if (panel == nullptr) {
+            IMSA_HILOGE("panel is nullptr.");
             return ErrorCode::ERROR_IME;
         }
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(true);
         if (flag == FLG_CANDIDATE_COLUMN) {
-            IMSA_HILOGD("panel flag is candidate, no need to show.");
+            IMSA_HILOGI("panel flag is candidate, no need to show.");
             return ErrorCode::NO_ERROR;
         }
         return ShowPanel(panel, flag, Trigger::IMF);
     }
+    IMSA_HILOGI("panel not create");
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
         channel->SendKeyboardStatus(KeyboardStatus::SHOW);
@@ -834,21 +836,22 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
         IMSA_HILOGE("imeListener_ is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    IMSA_HILOGI("IMA, trigger: %{public}d", static_cast<int32_t>(trigger));
+    IMSA_HILOGD("IMA, trigger: %{public}d", static_cast<int32_t>(trigger));
     if (panels_.Contains(SOFT_KEYBOARD)) {
         auto panel = GetSoftKeyboardPanel();
         if (panel == nullptr) {
+            IMSA_HILOGE("panel is nullptr.");
             return ErrorCode::ERROR_IME;
         }
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(false);
         if (flag == FLG_CANDIDATE_COLUMN) {
-            IMSA_HILOGD("panel flag is candidate, no need to hide.");
+            IMSA_HILOGI("panel flag is candidate, no need to hide.");
             return ErrorCode::NO_ERROR;
         }
         return HidePanel(panel, flag, trigger);
     }
-
+    IMSA_HILOGI("panel not create");
     imeListener_->OnKeyboardStatus(false);
     auto channel = GetInputDataChannelProxy();
     if (channel != nullptr) {
@@ -863,18 +866,17 @@ int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
 
 std::shared_ptr<InputMethodPanel> InputMethodAbility::GetSoftKeyboardPanel()
 {
-    if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES,
-                    [this]() -> bool { return panels_.Find(SOFT_KEYBOARD).first; })) {
-        IMSA_HILOGE("not found");
-        return nullptr;
-    }
     auto result = panels_.Find(SOFT_KEYBOARD);
     if (!result.first) {
-        IMSA_HILOGE("not found");
         return nullptr;
     }
-    IMSA_HILOGI("success");
-    return result.second;
+    auto panel = result.second;
+    if (!BlockRetry(FIND_PANEL_RETRY_INTERVAL, MAX_RETRY_TIMES, [panel]() -> bool {
+            return panel != nullptr && panel->windowId_ != InputMethodPanel::INVALID_WINDOW_ID;
+        })) {
+        return nullptr;
+    }
+    return panel;
 }
 
 bool InputMethodAbility::IsCurrentIme()

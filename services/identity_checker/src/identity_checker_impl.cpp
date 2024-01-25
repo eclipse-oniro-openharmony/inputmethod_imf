@@ -79,21 +79,12 @@ bool IdentityCheckerImpl::IsBroker(AccessTokenID tokenId)
 {
     NativeTokenInfo nativeTokenInfoRes;
     AccessTokenKit::GetNativeTokenInfo(tokenId, nativeTokenInfoRes);
-    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE
-        && nativeTokenInfoRes.processName == "broker") {
-        return true;
-    }
-    return false;
+    return nativeTokenInfoRes.processName == "broker";
 }
 
 bool IdentityCheckerImpl::IsNativeSa(AccessTokenID tokenId)
 {
-    NativeTokenInfo nativeTokenInfoRes;
-    AccessTokenKit::GetNativeTokenInfo(tokenId, nativeTokenInfoRes);
-    if (AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE) {
-        return true;
-    }
-    return false;
+    return AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE;
 }
 
 std::string IdentityCheckerImpl::GetBundleNameByToken(uint32_t tokenId)

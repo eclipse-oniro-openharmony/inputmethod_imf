@@ -270,7 +270,6 @@ int32_t PerUserSession::OnHideCurrentInput()
         IMSA_HILOGE("current client is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
-    IMSA_HILOGI("PerUserSession");
     return HideKeyboard(client);
 }
 
