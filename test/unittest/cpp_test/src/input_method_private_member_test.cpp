@@ -191,6 +191,8 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
     auto parcel2 = new MessageParcel();
     parcel2->WriteInt32(currentUserId);
     auto msg2 = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel2);
+    WmsConnectionObserver observer(nullptr);
+    observer.OnConnected(100, 0);
     auto ret2 = service_->OnUserStarted(msg2.get());
     EXPECT_EQ(ret2, ErrorCode::ERROR_IME_START_FAILED);
 }
