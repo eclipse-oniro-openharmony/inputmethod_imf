@@ -93,7 +93,12 @@ int32_t InputMethodAgentStub::DispatchKeyEventOnRemote(MessageParcel &data, Mess
         IMSA_HILOGE("failed to read key event from parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(data.ReadRemoteObject());
+    auto consumerObject = data.ReadRemoteObject();
+    if (consumerObject == nullptr) {
+        IMSA_HILOGE("consumerObject is nullptr");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(consumerObject);
     auto ret = InputMethodAbility::GetInstance()->DispatchKeyEvent(keyEvent, consumer);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
