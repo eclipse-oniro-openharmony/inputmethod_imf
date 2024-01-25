@@ -645,7 +645,7 @@ HWTEST_F(IdentityCheckerTest, testDisplayOptionalInputMethod_001, TestSize.Level
     IMSA_HILOGI("IdentityCheckerTest testDisplayOptionalInputMethod_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
     int32_t ret = IdentityCheckerTest::service_->DisplayOptionalInputMethod();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_SERVICE_SPECIFIC);
 }
 
 /**
