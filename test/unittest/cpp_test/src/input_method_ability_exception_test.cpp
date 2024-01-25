@@ -334,7 +334,7 @@ HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level0)
 HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEvent_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityExceptionTest testDispatchKeyEvent_001 START");
-    sptr<InputMethodAgentStub> stub = new InputMethodAgentStub();
+    sptr<InputMethodAgentStub> agentStub = new InputMethodAgentStub();
     MessageParcel data;
     data.WriteInterfaceToken(AGENTSTUB_INTERFACE_TOKEN);
     MessageParcel reply;
@@ -342,7 +342,8 @@ HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEvent_001, TestSize.Lev
     std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
     keyEvent->WriteToParcel(data);
     data.WriteRemoteObject(nullptr);
-    auto ret = stub->OnRemoteRequest(static_cast<uint32_t>(DISPATCH_KEY_EVENT), data, reply, option);
+    auto ret =
+        agentStub->OnRemoteRequest(static_cast<uint32_t>(IInputMethodAgent::DISPATCH_KEY_EVENT), data, reply, option);
     EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
 }
 } // namespace MiscServices
