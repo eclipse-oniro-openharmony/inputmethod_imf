@@ -362,8 +362,8 @@ void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<UvEntry> &key
         JsCallbackHandler::Traverse(keyCodeEntry->vecCopy, { 1, getKeyEventProperty }, isKeyCodeConsumed);
     }
     if (consumer != nullptr) {
-        IMSA_HILOGE("consumer result: %{public}d", isKeyEventConsumed | isKeyCodeConsumed);
-        consumer->OnKeyEventResult(isKeyEventConsumed | isKeyCodeConsumed);
+        IMSA_HILOGE("consumer result: %{public}d", isKeyEventConsumed || isKeyCodeConsumed);
+        consumer->OnKeyEventResult(isKeyEventConsumed || isKeyCodeConsumed);
     }
 }
 
