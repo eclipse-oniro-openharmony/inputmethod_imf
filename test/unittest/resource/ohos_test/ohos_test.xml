@@ -64,8 +64,10 @@
             <option name="shell" value="power-shell setmode 602"/>
             <option name="shell" value="uinput -T -m 300 720 300 360 200"/>
             <option name="shell" value="uinput -T -m 650 2760 650 1380 200"/>
+            <option name="shell" value="aa start -a MainAbility -b com.example.testIme"/>
         </preparer>
         <cleaner>
+            <option name="shell" value="aa stop -a MainAbility -b com.example.testIme"/>
             <option name="shell" value="bm uninstall -n com.example.newTestIme"/>
             <option name="shell" value="bm uninstall -n com.example.testIme"/>
         </cleaner>
