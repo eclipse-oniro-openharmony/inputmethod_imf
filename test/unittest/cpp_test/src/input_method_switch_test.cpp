@@ -72,6 +72,7 @@ constexpr uint32_t NEW_IME_SUBTYPE_NUM = 3;
 constexpr uint32_t TOTAL_IME_MIN_NUM = 2;
 constexpr uint32_t ENABLE_IME_NUM = 1;
 constexpr uint32_t WAIT_IME_READY_TIME = 1;
+constexpr uint32_t WAIT_SWITCH_READY_TIME = 2;
 constexpr const char *ENABLE_IME_KEYWORD = "settings.inputmethod.enable_ime";
 class InputMethodSettingListenerImpl : public InputMethodSettingListener {
 public:
@@ -163,7 +164,8 @@ void InputMethodSwitchTest::CheckCurrentSubProps()
 bool InputMethodSwitchTest::WaitImeChangeCallback(bool isChanged)
 {
     std::unique_lock<std::mutex> lock(imeChangeCallbackLock_);
-    imeChangeCv_.wait_for(lock, std::chrono::seconds(1), [isChanged]() { return isChanged == imeChangeFlag; });
+    imeChangeCv_.wait_for(lock, std::chrono::seconds(WAIT_SWITCH_READY_TIME),
+        [isChanged]() { return isChanged == imeChangeFlag; });
     return isChanged == imeChangeFlag;
 }
 
