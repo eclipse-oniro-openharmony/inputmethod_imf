@@ -25,6 +25,7 @@ void FocusChangedListener::OnFocused(const sptr<Rosen::FocusChangeInfo> &focusCh
         IMSA_HILOGE("error nullptr");
         return;
     }
+    IMSA_HILOGD("pid: %{public}d, uid: %{public}d", focusChangeInfo->pid_, focusChangeInfo->uid_);
     focusHandle_(true, focusChangeInfo->pid_, focusChangeInfo->uid_);
 }
 
@@ -34,6 +35,7 @@ void FocusChangedListener::OnUnfocused(const sptr<Rosen::FocusChangeInfo> &focus
         IMSA_HILOGE("error nullptr");
         return;
     }
+    IMSA_HILOGD("pid: %{public}d, uid: %{public}d", focusChangeInfo->pid_, focusChangeInfo->uid_);
     focusHandle_(false, focusChangeInfo->pid_, focusChangeInfo->uid_);
 }
 } // namespace MiscServices

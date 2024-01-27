@@ -1061,6 +1061,34 @@ HWTEST_F(InputMethodControllerTest, testWithoutEditableState, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testIsInputTypeSupported
+ * @tc.desc: IsInputTypeSupported
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodControllerTest, testIsInputTypeSupported, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIsInputTypeSupported Test START");
+    auto ret = inputMethodController_->IsInputTypeSupported(InputType::NONE);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: testStartInputType
+ * @tc.desc: StartInputType
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodControllerTest, testStartInputType, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testStartInputType Test START");
+    auto ret = inputMethodController_->StartInputType(InputType::NONE);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
  * @tc.name: testOnRemoteDied
  * @tc.desc: IMC OnRemoteDied
  * @tc.type: FUNC

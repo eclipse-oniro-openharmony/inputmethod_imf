@@ -54,6 +54,7 @@ public:
     static sptr<OnTextChangedListener> textListener_;
     static sptr<InputMethodAbility> inputMethodAbility_;
     static uint32_t windowId_;
+    static int32_t security_;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -90,6 +91,7 @@ public:
 
         void OnSecurityChange(int32_t security)
         {
+            security_ = security;
             IMSA_HILOGI("InputMethodEngineListenerImpl OnSecurityChange");
         }
     };
@@ -173,6 +175,7 @@ sptr<InputMethodController> InputMethodAbilityTest::imc_;
 sptr<OnTextChangedListener> InputMethodAbilityTest::textListener_;
 sptr<InputMethodAbility> InputMethodAbilityTest::inputMethodAbility_;
 uint32_t InputMethodAbilityTest::windowId_ = 0;
+int32_t InputMethodAbilityTest::security_ = -1;
 
 /**
 * @tc.name: testSerializedInputAttribute
@@ -970,6 +973,23 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
 
     ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testOnSecurityChange
+* @tc.desc: OnSecurityChange
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: chenyu
+*/
+HWTEST_F(InputMethodAbilityTest, testOnSecurityChange, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testOnSecurityChange START");
+    int32_t security = 32;
+    inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+    auto ret = inputMethodAbility_->OnSecurityChange(security);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodAbilityTest::security_, security);
 }
 } // namespace MiscServices
 } // namespace OHOS
