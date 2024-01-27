@@ -16,16 +16,18 @@
 #ifndef FOUNDATION_ABILITYRUNTIME_OHOS_JS_INPUTMETHOD_EXTENSION_H
 #define FOUNDATION_ABILITYRUNTIME_OHOS_JS_INPUTMETHOD_EXTENSION_H
 
+#include "configuration.h"
+#include "display_manager.h"
 #include "inputmethod_extension.h"
 #include "js_runtime.h"
+#include "system_ability_status_change_stub.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 /**
  * @brief Basic inputmethod components.
  */
-class JsInputMethodExtension : public InputMethodExtension,
-                               public std::enable_shared_from_this<JsInputMethodExtension> {
+class JsInputMethodExtension : public InputMethodExtension {
 public:
     JsInputMethodExtension(JsRuntime &jsRuntime);
     virtual ~JsInputMethodExtension() override;
@@ -103,6 +105,19 @@ public:
      */
     virtual void OnStop() override;
 
+    /**
+     * @brief Called when the system configuration is updated.
+     *
+     * @param configuration Indicates the updated configuration information.
+     */
+    virtual void OnConfigurationUpdated(const AppExecFwk::Configuration& config) override;
+
+    /**
+     * @brief Called when configuration changed, including system configuration and window configuration.
+     *
+     */
+    void ConfigurationUpdated();
+
 private:
     napi_value CallObjectMethod(const char *name, const napi_value *argv = nullptr, size_t argc = 0);
 
@@ -110,8 +125,66 @@ private:
 
     void GetSrcPath(std::string &srcPath);
 
+    void ListenWindowManager();
+
     JsRuntime &jsRuntime_;
     std::unique_ptr<NativeReference> jsObj_;
+    std::shared_ptr<NativeReference> shellContextRef_ = nullptr;
+    std::shared_ptr<AbilityHandler> handler_ = nullptr;
+
+protected:
+    class JsInputMethodExtensionDisplayListener : public Rosen::DisplayManager::IDisplayListener {
+    public:
+        explicit JsInputMethodExtensionDisplayListener(const std::weak_ptr<JsInputMethodExtension> &extension)
+        {
+            jsInputMethodExtension_ = extension;
+        }
+
+        void OnCreate(Rosen::DisplayId displayId) override
+        {
+            auto inputMethodSptr = jsInputMethodExtension_.lock();
+            if (inputMethodSptr != nullptr) {
+                inputMethodSptr->OnCreate(displayId);
+            }
+        }
+
+        void OnDestroy(Rosen::DisplayId displayId) override
+        {
+            auto inputMethodSptr = jsInputMethodExtension_.lock();
+            if (inputMethodSptr != nullptr) {
+                inputMethodSptr->OnDestroy(displayId);
+            }
+        }
+
+        void OnChange(Rosen::DisplayId displayId) override
+        {
+            auto inputMethodSptr = jsInputMethodExtension_.lock();
+            if (inputMethodSptr != nullptr) {
+                inputMethodSptr->OnChange(displayId);
+            }
+        }
+
+    private:
+        std::weak_ptr<JsInputMethodExtension> jsInputMethodExtension_;
+    };
+
+    void OnCreate(Rosen::DisplayId displayId);
+    void OnDestroy(Rosen::DisplayId displayId);
+    void OnChange(Rosen::DisplayId displayId);
+
+private:
+    class SystemAbilityStatusChangeListener : public OHOS::SystemAbilityStatusChangeStub {
+    public:
+        SystemAbilityStatusChangeListener(sptr<JsInputMethodExtensionDisplayListener> displayListener)
+            : listener_(displayListener) {};
+        virtual void OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
+        virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override {}
+
+    private:
+        sptr<JsInputMethodExtensionDisplayListener> listener_ = nullptr;
+    };
+
+    sptr<JsInputMethodExtensionDisplayListener> displayListener_ = nullptr;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

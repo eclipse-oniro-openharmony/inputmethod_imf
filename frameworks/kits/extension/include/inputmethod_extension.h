@@ -25,8 +25,7 @@ namespace AbilityRuntime {
 /**
  * @brief Basic inputmethod components.
  */
-class InputMethodExtension : public ExtensionBase<InputMethodExtensionContext>,
-                             public std::enable_shared_from_this<InputMethodExtension> {
+class InputMethodExtension : public ExtensionBase<InputMethodExtensionContext> {
 public:
     InputMethodExtension() = default;
     virtual ~InputMethodExtension() = default;
@@ -63,6 +62,13 @@ public:
    * @return The InputMethodExtension instance.
    */
     static InputMethodExtension *Create(const std::unique_ptr<Runtime> &runtime);
+
+    /**
+     * @brief Called when the system configuration is updated.
+     *
+     * @param configuration Indicates the updated configuration information.
+     */
+    void OnConfigurationUpdated(const AppExecFwk::Configuration &config) override;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -17,6 +17,7 @@
 
 #include "ability_loader.h"
 #include "connection_manager.h"
+#include "configuration_utils.h"
 #include "global.h"
 #include "inputmethod_extension_context.h"
 #include "js_inputmethod_extension.h"
@@ -59,6 +60,19 @@ std::shared_ptr<InputMethodExtensionContext> InputMethodExtension::CreateAndInit
         return context;
     }
     return context;
+}
+
+void InputMethodExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &config)
+{
+    Extension::OnConfigurationUpdated(config);
+    auto context = GetContext();
+    if (context == nullptr) {
+        IMSA_HILOGE("Context is invalid");
+        return;
+    }
+
+    auto configUtils = std::make_shared<ConfigurationUtils>();
+    configUtils->UpdateGlobalConfig(config, context->GetResourceManager());
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
