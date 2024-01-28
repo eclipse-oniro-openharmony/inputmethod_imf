@@ -48,7 +48,7 @@ void KeyEventConsumerProxy::OnKeyEventConsumeResult(bool isConsumed)
 void KeyEventConsumerProxy::OnKeyCodeConsumeResult(bool isConsumed)
 {
     IMSA_HILOGI("result: %{public}d", isConsumed);
-    bool keyCodeConsume_ = true;
+    keyCodeConsume_ = true;
     keyCodeResult_ = isConsumed;
     if (keyEventConsume_ && keyCodeConsume_) {
         OnKeyEventResult(keyCodeResult_ || keyEventResult_);
