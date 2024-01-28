@@ -841,7 +841,14 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
     }
     auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
     if (packageName == currentImeBundle) {
-        IMSA_HILOGI("user[%{public}d] ime: %{public}s is removed", userId, packageName.c_str());
+        // Switch to the default ime
+        IMSA_HILOGI("user[%{public}d] ime: %{public}s is uninstalled", userId, packageName.c_str());
+        auto info = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId);
+        if (info == nullptr) {
+            return ErrorCode::ERROR_PERSIST_CONFIG;
+        }
+        int32_t ret = SwitchExtension(info);
+        IMSA_HILOGI("switch ret = %{public}d", ret);
     }
     return ErrorCode::NO_ERROR;
 }

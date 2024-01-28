@@ -228,6 +228,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     }
     IMSA_HILOGI("type: %{public}d", type);
     RemoveImeData(type, true);
+    InputTypeManager::GetInstance().Set(false);
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
@@ -236,7 +237,6 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
             RestartIme();
         }
     }
-    InputTypeManager::GetInstance().Set(false);
 }
 
 int32_t PerUserSession::RemoveIme(const sptr<IInputMethodCore> &core, ImeType type)
@@ -871,7 +871,7 @@ bool PerUserSession::StartCurrentIme(int32_t userId, bool isRetry)
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     auto imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId);
     IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s", currentIme->imeId.c_str(), imeToStart->imeId.c_str());
-    if (!StartInputService(imeToStart, isRetry)) {
+    if (!ActivateIme(imeToStart, isRetry)) {
         IMSA_HILOGE("failed to start ime");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
             ErrorCode::ERROR_IME_START_FAILED, imeToStart->imeId, "start ime failed!");
