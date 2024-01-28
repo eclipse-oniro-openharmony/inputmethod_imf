@@ -62,7 +62,7 @@ public:
     using CompareHandler = std::function<bool(const SubProperty &)>;
     static ImeInfoInquirer &GetInstance();
     std::string GetDumpInfo(int32_t userId);
-    std::shared_ptr<ImeNativeCfg> GetImeToBeStarted(int32_t userId);
+    std::shared_ptr<ImeNativeCfg> GetImeToStart(int32_t userId);
     std::shared_ptr<Property> GetImeByBundleName(int32_t userId, const std::string &bundleName);
     std::shared_ptr<Property> GetCurrentInputMethod(int32_t userId);
     std::shared_ptr<SubProperty> GetCurrentSubtype(int32_t userId);

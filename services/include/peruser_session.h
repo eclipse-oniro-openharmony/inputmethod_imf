@@ -81,7 +81,6 @@ public:
     int32_t OnRequestHideInput();
     void OnSecurityChange(int32_t &security);
     void OnHideSoftKeyBoardSelf();
-    void StopInputService(const std::string &bundleName, const std::string &subName);
     void NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);
     int32_t SwitchSubtype(const SubProperty &subProperty);
     void UpdateCurrentUserId(int32_t userId);
@@ -90,9 +89,12 @@ public:
     int64_t GetCurrentClientPid();
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
-    bool StartIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry);
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
+    bool StartCurrentIme(int32_t userId, bool isRetry);
+    void StopCurrentIme();
+    bool ActivateIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry);
+    void DeactivateIme(const std::string &bundleName, const std::string &subName);
     bool IsProxyImeEnable();
     bool IsBoundToClient();
     int32_t ExitCurrentInputType();

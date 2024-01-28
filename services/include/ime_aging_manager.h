@@ -43,6 +43,7 @@ public:
     static ImeAgingManager &GetInstance();
     bool Push(const std::string &bundleName, const std::shared_ptr<ImeData> &imeData);
     std::shared_ptr<ImeData> Pop(const std::string &bundleName);
+    void Clear();
 
 private:
     ImeAgingManager();
