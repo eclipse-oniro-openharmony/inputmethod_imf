@@ -730,7 +730,7 @@ sptr<IInputClient> PerUserSession::GetInactiveClient()
 
 void PerUserSession::NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty)
 {
-    IMSA_HILOGD("PerUserSession::NotifyImeChangeToClients");
+    IMSA_HILOGD("start");
     std::lock_guard<std::recursive_mutex> lock(mtx);
     for (const auto &client : mapClients_) {
         auto clientInfo = client.second;
@@ -738,10 +738,10 @@ void PerUserSession::NotifyImeChangeToClients(const Property &property, const Su
             IMSA_HILOGD("client nullptr or no need to notify");
             continue;
         }
+        IMSA_HILOGD("notify client[%{public}d]", static_cast<int32_t>(clientInfo->pid));
         int32_t ret = clientInfo->client->OnSwitchInput(property, subProperty);
         if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE(
-                "OnSwitchInput failed, ret: %{public}d, uid: %{public}d", ret, static_cast<int32_t>(clientInfo->uid));
+            IMSA_HILOGE("notify failed, ret: %{public}d, uid: %{public}d", ret, static_cast<int32_t>(clientInfo->uid));
             continue;
         }
     }
@@ -870,6 +870,7 @@ bool PerUserSession::StartCurrentIme(int32_t userId, bool isRetry)
 {
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     auto imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId);
+    IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s", currentIme->imeId.c_str(), imeToStart->imeId.c_str());
     if (!StartInputService(imeToStart, isRetry)) {
         IMSA_HILOGE("failed to start ime");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
@@ -877,10 +878,9 @@ bool PerUserSession::StartCurrentIme(int32_t userId, bool isRetry)
         return false;
     }
     if (currentIme->imeId == imeToStart->imeId) {
-        IMSA_HILOGD("target ime is current ime");
         return true;
     }
-    IMSA_HILOGI("current ime changed to %{public}s, notify clients", imeToStart->imeId.c_str());
+    IMSA_HILOGI("current ime changed to %{public}s", imeToStart->imeId.c_str());
     auto currentImeInfo = ImeInfoInquirer::GetInstance().GetCurrentImeInfo();
     if (currentImeInfo != nullptr) {
         NotifyImeChangeToClients(currentImeInfo->prop, currentImeInfo->subProp);

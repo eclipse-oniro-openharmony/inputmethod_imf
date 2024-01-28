@@ -823,14 +823,13 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
  */
 int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
 {
-    IMSA_HILOGD("Start...\n");
     MessageParcel *data = msg->msgContent_;
     if (data == nullptr) {
         IMSA_HILOGD("data is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     int32_t userId = 0;
-    std::string packageName = "";
+    std::string packageName;
     if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
@@ -842,13 +841,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
     }
     auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
     if (packageName == currentImeBundle) {
-        // Switch to the default ime
-        auto info = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId);
-        if (info == nullptr) {
-            return ErrorCode::ERROR_PERSIST_CONFIG;
-        }
-        int32_t ret = SwitchExtension(info);
-        IMSA_HILOGI("OnPackageRemoved ret = %{public}d", ret);
+        IMSA_HILOGI("user[%{public}d] ime: %{public}s is removed", userId, packageName.c_str());
     }
     return ErrorCode::NO_ERROR;
 }
