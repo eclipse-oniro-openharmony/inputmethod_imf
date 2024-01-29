@@ -18,6 +18,7 @@ import window from '@ohos.window';
 import inputMethod from '@ohos.inputMethod';
 import commonEvent from '@ohos.commonEventManager';
 import Want from '@ohos.app.ability.Want';
+import display from '@ohos.display';
 import { BusinessError } from '@ohos.base';
 
 let TAG: string = '[InputMethodChooseDialog]';
@@ -34,6 +35,10 @@ interface DialogRect {
   height: number;
 }
 
+const DISPLAY_SCALE: number = 0.35;
+const MIN_SIZE: number = 350;
+const MAX_SZIE: number = 550;
+
 export default class ServiceExtAbility extends ServiceExtensionAbility {
   private extensionWin: window.Window | undefined = undefined;
   private mContext: common.ServiceExtensionContext | undefined = undefined;
@@ -47,11 +52,14 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
 
   onRequest(want: Want, startId: number): void {
     console.log(TAG, 'onRequest execute');
+    let defaultDisplay = display.getDefaultDisplaySync();
+    let size = defaultDisplay.width * DISPLAY_SCALE > MIN_SIZE ? defaultDisplay.width * DISPLAY_SCALE : MIN_SIZE;
+    size = size < MAX_SZIE ? size : MAX_SZIE;
     let dialogRect: DialogRect = {
       left: 50,
-      top: 900,
-      width: 300,
-      height: 300,
+      top: defaultDisplay.height / 2,
+      width: size,
+      height: size
     };
     let windowConfig: window.Configuration = {
       name: 'inputmethod Dialog',
