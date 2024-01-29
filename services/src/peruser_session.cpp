@@ -969,7 +969,7 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime,
     AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
     isImeStarted_.Clear(false);
-    auto connection = new (std::nothrow) ImeConnection();
+    sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
     if (connection == nullptr) {
         IMSA_HILOGE("failed to create connection");
         return false;
