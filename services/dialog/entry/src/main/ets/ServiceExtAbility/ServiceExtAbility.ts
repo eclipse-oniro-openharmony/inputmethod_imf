@@ -38,6 +38,8 @@ interface DialogRect {
 const DISPLAY_SCALE: number = 0.35;
 const MIN_SIZE: number = 350;
 const MAX_SZIE: number = 550;
+const DIALOG_POSITION_X: number = 50;
+const DIALOG_POSITION_Y_SCALE: number = 0.5;
 
 export default class ServiceExtAbility extends ServiceExtensionAbility {
   private extensionWin: window.Window | undefined = undefined;
@@ -55,9 +57,10 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
     let defaultDisplay = display.getDefaultDisplaySync();
     let size = defaultDisplay.width * DISPLAY_SCALE > MIN_SIZE ? defaultDisplay.width * DISPLAY_SCALE : MIN_SIZE;
     size = size < MAX_SZIE ? size : MAX_SZIE;
+    let dialogTop = defaultDisplay.height * DIALOG_POSITION_Y_SCALE;
     let dialogRect: DialogRect = {
-      left: 50,
-      top: defaultDisplay.height / 2,
+      left: DIALOG_POSITION_X,
+      top: dialogTop,
       width: size,
       height: size
     };
