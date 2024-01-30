@@ -994,5 +994,27 @@ HWTEST_F(InputMethodPrivateMemberTest, WMSConnectObserver_001, TestSize.Level0)
     EXPECT_EQ(WmsConnectionObserver::connectedUserId_.size(), 1);
     EXPECT_FALSE(WmsConnectionObserver::IsWmsConnected(userId));
 }
+
+/**
+ * @tc.name: IMC_testDeactivateClient
+ * @tc.desc: DeactivateClient
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: chenyu
+ */
+HWTEST_F(InputMethodPrivateMemberTest, IMC_testDeactivateClient, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest IMC_testDeactivateClient Test START");
+    auto imc = InputMethodController::GetInstance();
+    imc->agent_ = std::make_shared<InputMethodAgentStub>();
+    MessageParcel data;
+    data.WriteRemoteObject(imc->agent_->AsObject());
+    imc->agentObject_ = data.ReadRemoteObject();
+    imc->clientInfo_.state = ClientState::ACTIVE;
+    imc->DeactivateClient();
+    EXPECT_EQ(imc->clientInfo_.state, ClientState::INACTIVE);
+    EXPECT_EQ(imc->agent_, nullptr);
+    EXPECT_EQ(imc->agentObject_, nullptr);
+}
 } // namespace MiscServices
 } // namespace OHOS
