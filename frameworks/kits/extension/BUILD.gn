@@ -63,11 +63,13 @@ ohos_shared_library("inputmethod_extension") {
   ]
 
   external_deps = [
+    "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
+    "ability_runtime:napi_common",
     "ability_runtime:runtime",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -75,6 +77,8 @@ ohos_shared_library("inputmethod_extension") {
     "i18n:intl_util",
     "ipc:ipc_napi",
     "napi:ace_napi",
+    "samgr:samgr_proxy",
+    "window_manager:libdm",
   ]
 
   subsystem_name = "inputmethod"
