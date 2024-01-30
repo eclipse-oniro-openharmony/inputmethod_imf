@@ -33,7 +33,8 @@ InputMethodPanel::~InputMethodPanel() = default;
 int32_t InputMethodPanel::CreatePanel(
     const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo)
 {
-    IMSA_HILOGD("InputMethodPanel start to create panel.");
+    IMSA_HILOGD(
+        "start, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_), static_cast<int32_t>(panelFlag_));
     panelType_ = panelInfo.panelType;
     panelFlag_ = panelInfo.panelFlag;
     winOption_ = new (std::nothrow) OHOS::Rosen::WindowOption();
@@ -61,7 +62,8 @@ int32_t InputMethodPanel::CreatePanel(
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     windowId_ = window_->GetWindowId();
-    IMSA_HILOGD("GetWindowId, windowId = %{public}u", windowId_);
+    IMSA_HILOGI("success, type/flag/windowId: %{public}d/%{public}d/%{public}u", static_cast<int32_t>(panelType_),
+        static_cast<int32_t>(panelFlag_), windowId_);
     return ErrorCode::NO_ERROR;
 }
 
@@ -114,16 +116,19 @@ int32_t InputMethodPanel::DestroyPanel()
 int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
 {
     if (window_ == nullptr) {
+        IMSA_HILOGE("window is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (!IsSizeValid(width, height)) {
+        IMSA_HILOGE("invalid size");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto ret = window_->Resize(width, height);
-    IMSA_HILOGI("ret = %{public}d", ret);
     if (ret != WMError::WM_OK) {
+        IMSA_HILOGE("failed to resize, ret: %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
+    IMSA_HILOGI("success, width/height: %{public}u/%{public}u", width, height);
     {
         std::lock_guard<std::mutex> lock(heightLock_);
         panelHeight_ = height;
@@ -142,7 +147,7 @@ int32_t InputMethodPanel::MoveTo(int32_t x, int32_t y)
         return ErrorCode::NO_ERROR;
     }
     auto ret = window_->MoveTo(x, y);
-    IMSA_HILOGI("ret = %{public}d", ret);
+    IMSA_HILOGI("x/y: %{public}d/%{public}d, ret = %{public}d", x, y, ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 

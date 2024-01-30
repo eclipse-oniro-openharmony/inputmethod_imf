@@ -655,7 +655,7 @@ bool ImeInfoInquirer::IsImeInstalled(const int32_t userId, const std::string &bu
     return true;
 }
 
-std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeToBeStarted(int32_t userId)
+std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeToStart(int32_t userId)
 {
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     IMSA_HILOGD("userId: %{public}d, currentIme: %{public}s", userId, currentImeCfg->imeId.c_str());
@@ -670,8 +670,8 @@ std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeToBeStarted(int32_t userId)
             SetCurrentImeInfo(info);
         }
         currentImeCfg->imeId.empty()
-            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newIme.imeId, newIme.imeId })
-            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newIme.imeId, newIme.imeId });
+            ? ImeCfgManager::GetInstance().AddImeCfg({ userId, newIme.imeId, newIme.subName })
+            : ImeCfgManager::GetInstance().ModifyImeCfg({ userId, newIme.imeId, newIme.subName });
         return std::make_shared<ImeNativeCfg>(newIme);
     }
     // service start, user switch, set the currentImeInfo.

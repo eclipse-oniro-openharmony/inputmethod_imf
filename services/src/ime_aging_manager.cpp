@@ -78,6 +78,21 @@ std::shared_ptr<ImeData> ImeAgingManager::Pop(const std::string &bundleName)
     return std::make_shared<ImeData>(ime);
 }
 
+void ImeAgingManager::Clear()
+{
+    std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
+    for (auto it = imeCaches_.begin(); it != imeCaches_.end();) {
+        auto core = it->second->data.core;
+        if (core != nullptr) {
+            IMSA_HILOGI("clear ime: %{public}s", it->first.c_str());
+            ClearIme(it->second);
+        }
+        it = imeCaches_.erase(it);
+    }
+    StopAging();
+    IMSA_HILOGI("done");
+}
+
 void ImeAgingManager::ClearOldest()
 {
     std::lock_guard<std::recursive_mutex> lock(cacheMutex_);
