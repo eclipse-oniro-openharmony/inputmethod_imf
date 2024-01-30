@@ -16,10 +16,13 @@
 #include "js_inputmethod_extension.h"
 
 #include "ability_info.h"
+#include "ability_handler.h"
+#include "configuration_utils.h"
 #include "global.h"
 #include "input_method_ability.h"
 #include "inputmethod_extension_ability_stub.h"
 #include "inputmethod_trace.h"
+#include "js_extension_context.h"
 #include "js_inputmethod_extension_context.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
@@ -28,6 +31,8 @@
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
+#include "iservice_registry.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -112,7 +117,89 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
         return;
     }
     BindContext(env, obj);
+    handler_ = handler;
+    ListenWindowManager();
     IMSA_HILOGI("JsInputMethodExtension end.");
+}
+
+void JsInputMethodExtension::ListenWindowManager()
+{
+    IMSA_HILOGD("Register window manager service listener");
+    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (abilityManager == nullptr) {
+        IMSA_HILOGE("Failed to get SaMgr");
+        return;
+    }
+
+    auto jsInputMethodExtension = std::static_pointer_cast<JsInputMethodExtension>(shared_from_this());
+    displayListener_ = sptr<JsInputMethodExtensionDisplayListener>::MakeSptr(jsInputMethodExtension);
+    if (displayListener_ == nullptr) {
+        IMSA_HILOGE("Failed to create display listener");
+        return;
+    }
+
+    auto listener = sptr<SystemAbilityStatusChangeListener>::MakeSptr(displayListener_);
+    if (listener == nullptr) {
+        IMSA_HILOGE("Failed to create status change listener");
+        return;
+    }
+
+    auto ret = abilityManager->SubscribeSystemAbility(WINDOW_MANAGER_SERVICE_ID, listener);
+    if (ret != 0) {
+        IMSA_HILOGE("subscribe system ability failed, ret = %{public}d", ret);
+    }
+}
+
+void JsInputMethodExtension::OnConfigurationUpdated(const AppExecFwk::Configuration& config)
+{
+    InputMethodExtension::OnConfigurationUpdated(config);
+    IMSA_HILOGD("call");
+    auto context = GetContext();
+    if (context == nullptr) {
+        IMSA_HILOGE("Context is invalid");
+        return;
+    }
+
+    auto contextConfig = context->GetConfiguration();
+    if (contextConfig != nullptr) {
+        std::vector<std::string> changeKeyValue;
+        contextConfig->CompareDifferent(changeKeyValue, config);
+        if (!changeKeyValue.empty()) {
+            contextConfig->Merge(changeKeyValue, config);
+        }
+        IMSA_HILOGD("Config dump merge: %{public}s", contextConfig->GetName().c_str());
+    }
+    ConfigurationUpdated();
+}
+
+void JsInputMethodExtension::ConfigurationUpdated()
+{
+    IMSA_HILOGD("called");
+    HandleScope handleScope(jsRuntime_);
+    napi_env env = jsRuntime_.GetNapiEnv();
+
+    // Notify extension context
+    auto context = GetContext();
+    if (context == nullptr) {
+        IMSA_HILOGE("Context is nullptr");
+        return;
+    }
+    auto fullConfig = context->GetConfiguration();
+    if (fullConfig == nullptr) {
+        IMSA_HILOGE("configuration is nullptr");
+        return;
+    }
+
+    JsExtensionContext::ConfigurationUpdated(env, shellContextRef_, fullConfig);
+}
+
+void JsInputMethodExtension::SystemAbilityStatusChangeListener::OnAddSystemAbility(int32_t systemAbilityId,
+    const std::string& deviceId)
+{
+    IMSA_HILOGD("systemAbilityId: %{public}d add", systemAbilityId);
+    if (systemAbilityId == WINDOW_MANAGER_SERVICE_ID) {
+        Rosen::DisplayManager::GetInstance().RegisterDisplayListener(listener_);
+    }
 }
 
 void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
@@ -286,6 +373,50 @@ void JsInputMethodExtension::GetSrcPath(std::string &srcPath)
         srcPath.append(Extension::abilityInfo_->srcEntrance);
         srcPath.erase(srcPath.rfind('.'));
         srcPath.append(".abc");
+    }
+}
+
+void JsInputMethodExtension::OnCreate(Rosen::DisplayId displayId)
+{
+    IMSA_HILOGD("enter");
+}
+
+void JsInputMethodExtension::OnDestroy(Rosen::DisplayId displayId)
+{
+    IMSA_HILOGD("exit");
+}
+
+void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
+{
+    IMSA_HILOGD("displayId: %{public}" PRIu64"", displayId);
+    auto context = GetContext();
+    if (context == nullptr) {
+        IMSA_HILOGE("Context is invalid");
+        return;
+    }
+
+    auto contextConfig = context->GetConfiguration();
+    if (contextConfig == nullptr) {
+        IMSA_HILOGE("Configuration is invalid");
+        return;
+    }
+
+    bool isConfigChanged = false;
+    auto configUtils = std::make_shared<ConfigurationUtils>();
+    configUtils->UpdateDisplayConfig(displayId, contextConfig, context->GetResourceManager(), isConfigChanged);
+    IMSA_HILOGD("OnChange, isConfigChanged: %{public}d, Config after update: %{public}s",
+        isConfigChanged, contextConfig->GetName().c_str());
+
+    if (isConfigChanged) {
+        auto inputMethodExtension = std::static_pointer_cast<JsInputMethodExtension>(shared_from_this());
+        auto task = [inputMethodExtension]() {
+            if (inputMethodExtension) {
+                inputMethodExtension->ConfigurationUpdated();
+            }
+        };
+        if (handler_ != nullptr) {
+            handler_->PostTask(task, "JsInputMethodExtension:OnChange");
+        }
     }
 }
 } // namespace AbilityRuntime
