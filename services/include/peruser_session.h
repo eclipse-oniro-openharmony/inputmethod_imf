@@ -93,6 +93,7 @@ public:
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
     bool StartCurrentIme(int32_t userId, bool isRetry);
     void StopCurrentIme();
+    bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry);
     bool ActivateIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry);
     void DeactivateIme(const std::string &bundleName, const std::string &subName);
     bool IsProxyImeEnable();
@@ -145,7 +146,6 @@ private:
     int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     std::shared_ptr<ImeData> GetValidIme(ImeType type);
-    bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry);
 
     int32_t BindClientWithIme(
         const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type, bool isBindFromClient = false);

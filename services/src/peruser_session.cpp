@@ -872,7 +872,7 @@ bool PerUserSession::StartCurrentIme(int32_t userId, bool isRetry)
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     auto imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId);
     IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s", currentIme->imeId.c_str(), imeToStart->imeId.c_str());
-    if (!ActivateIme(imeToStart, isRetry)) {
+    if (!StartInputService(imeToStart, isRetry)) {
         IMSA_HILOGE("failed to start ime");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
             ErrorCode::ERROR_IME_START_FAILED, imeToStart->imeId, "start ime failed!");
@@ -1141,9 +1141,9 @@ int32_t PerUserSession::ExitCurrentInputType()
         return ret;
     }
     IMSA_HILOGI("need switch ime to: %{public}s", cfgIme->imeId.c_str());
-    DeactivateIme(typeIme.bundleName, typeIme.subName);
+    StopCurrentIme();
     InputTypeManager::GetInstance().Set(false);
-    if (!ActivateIme(cfgIme, true)) {
+    if (!StartInputService(cfgIme, true)) {
         IMSA_HILOGE("failed to start ime");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
