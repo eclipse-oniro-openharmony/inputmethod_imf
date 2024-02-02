@@ -41,7 +41,7 @@ bool KeyboardListenerTestImpl::OnDealKeyEvent(
     bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
     bool isKeyEventConsume = OnKeyEvent(keyEvent, consumer);
     if (consumer != nullptr) {
-        consumer->OnKeyEventResult(isKeyEventConsume | isKeyCodeConsume);
+        consumer->OnKeyEventResult(isKeyEventConsume || isKeyCodeConsume);
     }
     return true;
 }

@@ -24,6 +24,7 @@
 #include "errors.h"
 #include "global.h"
 #include "im_common_event_manager.h"
+#include "ime_aging_manager.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
 #include "input_method_utils.h"
@@ -212,7 +213,12 @@ void InputMethodSystemAbility::StartUserIdListener()
 
 bool InputMethodSystemAbility::StartInputService(const std::shared_ptr<ImeNativeCfg> &imeId)
 {
-    return userSession_->StartIme(imeId, true);
+    return userSession_->StartInputService(imeId, true);
+}
+
+void InputMethodSystemAbility::StopInputService()
+{
+    userSession_->StopCurrentIme();
 }
 
 int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
@@ -597,8 +603,7 @@ int32_t InputMethodSystemAbility::Switch(const std::string &bundleName, const st
 // Switch the current InputMethodExtension to the new InputMethodExtension
 int32_t InputMethodSystemAbility::SwitchExtension(const std::shared_ptr<ImeInfo> &info)
 {
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    userSession_->StopInputService(currentIme->bundleName, currentIme->subName);
+    StopInputService();
     std::string targetImeName = info->prop.name + "/" + info->prop.id;
     ImeCfgManager::GetInstance().ModifyImeCfg({ userId_, targetImeName, info->subProp.id });
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(info);
@@ -646,7 +651,7 @@ int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
         return ErrorCode::ERROR_NULL_POINTER;
     }
 
-    userSession_->StopInputService(currentIme->bundleName, currentIme->subName);
+    StopInputService();
     std::string targetName = switchInfo.bundleName + "/" + targetImeProperty->id;
     ImeNativeCfg targetIme = { targetName, switchInfo.bundleName, switchInfo.subName, targetImeProperty->id };
     InputTypeManager::GetInstance().Set(true, { switchInfo.bundleName, switchInfo.subName });
@@ -784,8 +789,8 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
     if (enableSecurityMode_) {
         SecurityModeParser::GetInstance()->GetFullModeList(userId_);
     }
-    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(oldUserId);
-    userSession_->StopInputService(currentIme->bundleName, currentIme->subName);
+    userSession_->StopCurrentIme();
+    ImeAgingManager::GetInstance().Clear();
     // user switch, reset currentImeInfo_ = nullptr
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 
@@ -793,12 +798,8 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         IMSA_HILOGI("wms not ready, wait");
         return ErrorCode::NO_ERROR;
     }
-
-    auto newIme = ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_);
-    if (!StartInputService(newIme)) {
+    if (!userSession_->StartCurrentIme(userId_, true)) {
         IMSA_HILOGE("start input method failed");
-        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
-            ErrorCode::ERROR_IME_START_FAILED, newIme->imeId, "user start ime failed!");
         return ErrorCode::ERROR_IME_START_FAILED;
     }
     return ErrorCode::NO_ERROR;
@@ -826,14 +827,13 @@ int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
  */
 int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
 {
-    IMSA_HILOGD("Start...\n");
     MessageParcel *data = msg->msgContent_;
     if (data == nullptr) {
         IMSA_HILOGD("data is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     int32_t userId = 0;
-    std::string packageName = "";
+    std::string packageName;
     if (!ITypesUtil::Unmarshal(*data, userId, packageName)) {
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
@@ -846,12 +846,13 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
     auto currentImeBundle = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId)->bundleName;
     if (packageName == currentImeBundle) {
         // Switch to the default ime
+        IMSA_HILOGI("user[%{public}d] ime: %{public}s is uninstalled", userId, packageName.c_str());
         auto info = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId);
         if (info == nullptr) {
             return ErrorCode::ERROR_PERSIST_CONFIG;
         }
         int32_t ret = SwitchExtension(info);
-        IMSA_HILOGI("OnPackageRemoved ret = %{public}d", ret);
+        IMSA_HILOGI("switch ret = %{public}d", ret);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -1010,7 +1011,7 @@ bool InputMethodSystemAbility::InitWmsMonitor()
             }
             IMSA_HILOGI("scb disable, start ime");
             SetCurrentUserId();
-            StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_));
+            userSession_->StartCurrentIme(userId_, true);
         });
 }
 
@@ -1023,7 +1024,7 @@ void InputMethodSystemAbility::InitWmsConnectionMonitor()
             if (userId != userId_) {
                 return;
             }
-            StartInputService(ImeInfoInquirer::GetInstance().GetImeToBeStarted(userId_));
+            userSession_->StartCurrentIme(userId_, true);
         });
 }
 
