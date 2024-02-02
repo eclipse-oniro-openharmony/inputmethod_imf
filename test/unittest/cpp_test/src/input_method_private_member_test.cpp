@@ -319,6 +319,8 @@ HWTEST_F(InputMethodPrivateMemberTest, PerUserSessionParameterNullptr001, TestSi
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
     auto client = userSession->GetClientInfo(nullptr);
     EXPECT_EQ(client, nullptr);
+    bool result = userSession->ActivateIme(nullptr, true);
+    EXPECT_FALSE(result);
 }
 
 /**

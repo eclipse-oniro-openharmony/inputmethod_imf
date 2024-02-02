@@ -103,6 +103,7 @@ private:
     int32_t PrepareInput(InputClientInfo &clientInfo);
     void WorkThread();
     bool StartInputService(const std::shared_ptr<ImeNativeCfg> &imeId);
+    void StopInputService();
     int32_t OnUserStarted(const Message *msg);
     int32_t OnUserRemoved(const Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
