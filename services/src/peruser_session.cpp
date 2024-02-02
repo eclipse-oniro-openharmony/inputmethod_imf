@@ -682,6 +682,7 @@ void PerUserSession::SetCurrentClient(sptr<IInputClient> client)
 
 sptr<IInputClient> PerUserSession::GetCurrentClient()
 {
+    IMSA_HILOGD("get current client");
     std::lock_guard<std::mutex> lock(clientLock_);
     return currentClient_;
 }
