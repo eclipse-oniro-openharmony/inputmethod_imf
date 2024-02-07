@@ -20,16 +20,12 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include <functional>
+
 #include "hilog/log.h"
-#include "ipc_object_stub.h"
-#include "iremote_broker.h"
-#include "peer_holder.h"
-#include "refbase.h"
 
 namespace OHOS {
 namespace MiscServices {
-
-using BRemoteObject = IPCObjectStub;
 
 #define LOG_INFO(fmt, args...) \
     LogTimeStamp();            \

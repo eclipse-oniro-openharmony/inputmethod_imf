@@ -30,7 +30,6 @@
 #include "input_method_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
-#include "nlohmann/json.hpp"
 #include "refbase.h"
 namespace OHOS {
 namespace MiscServices {
@@ -50,11 +49,37 @@ enum class Condition {
     CHINESE,
 };
 
+struct SubtypeCfg {
+    std::string label;  // the label of subtype
+    std::string id;     // the name of subtype
+    std::string icon;   // the icon of subtype
+    std::string mode;   // the mode of subtype, containing "upper" and "lower"
+    std::string locale; // the tongues of subtype, such as "zh_CN", "en_US", etc.
+
+    bool GetValue(cJSON *node)
+    {
+        Serializable::GetValue(node, GET_NAME(label), label);
+        Serializable::GetValue(node, GET_NAME(id), id);
+        Serializable::GetValue(node, GET_NAME(icon), icon);
+        Serializable::GetValue(node, GET_NAME(mode), mode);
+        Serializable::GetValue(node, GET_NAME(locale), locale);
+        return true;
+    }
+};
+
 struct ImeConfig {
     std::string systemInputMethodConfigAbility;
     std::string defaultInputMethod;
     bool enableInputMethodFeature = false;
     bool enableFullExperienceFeature = false;
+    bool GetValue(cJSON *node)
+    {
+        Serializable::GetValue(node, GET_NAME(systemInputMethodConfigAbility), systemInputMethodConfigAbility);
+        Serializable::GetValue(node, GET_NAME(defaultInputMethod), defaultInputMethod);
+        Serializable::GetValue(node, GET_NAME(enableInputMethodFeature), enableInputMethodFeature);
+        Serializable::GetValue(node, GET_NAME(enableFullExperienceFeature), enableFullExperienceFeature);
+        return true;
+    }
 };
 
 class ImeInfoInquirer {
@@ -73,7 +98,7 @@ public:
     void SetCurrentImeInfo(std::shared_ptr<ImeInfo> info);
     void RefreshCurrentImeInfo(int32_t userId);
     std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(
-    const std::vector<SubProperty> &subProps, const Condition &condition);
+        const std::vector<SubProperty> &subProps, const Condition &condition);
     int32_t GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop);
     int32_t GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig);
     int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);
@@ -109,11 +134,11 @@ private:
         const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, std::vector<SubProperty> &subProps);
     int32_t ListInputMethodSubtype(const int32_t userId, const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo,
         std::vector<SubProperty> &subProps);
-    bool ParseSubProp(const std::vector<std::string> &profiles, std::vector<SubProperty> &subProps);
-    bool ParseSubProp(const nlohmann::json &jsonSubProps, std::vector<SubProperty> &subProps);
-    void ParseSubProp(const nlohmann::json &jsonSubProp, SubProperty &subProp);
-    void ParseLanguage(const std::string &locale, std::string &language);
+    bool ParseSubTypeCfg(const std::vector<std::string> &profiles, std::vector<SubtypeCfg> &subtypes);
+    void CovertToLanguage(const std::string &locale, std::string &language);
     bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
+    bool GetImeConfigFromFile(ImeConfig &imeCfg);
+    bool ParseImeConfig(const std::string &content, ImeConfig &imeCfg);
 
     ImeConfig imeConfig_;
     std::mutex currentImeInfoLock_;

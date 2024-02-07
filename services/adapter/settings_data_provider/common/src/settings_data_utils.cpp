@@ -22,7 +22,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-using json = nlohmann::json;
 std::mutex SettingsDataUtils::instanceMutex_;
 sptr<SettingsDataUtils> SettingsDataUtils::instance_ = nullptr;
 constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";

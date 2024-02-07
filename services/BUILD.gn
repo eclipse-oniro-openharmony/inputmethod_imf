@@ -28,7 +28,6 @@ config("inputmethod_services_native_config") {
     "${inputmethod_path}/services/adapter/system_language_observer/include",
     "${inputmethod_path}/services/adapter/wms_connection_monitor/include",
     "${inputmethod_path}/services/identity_checker/include",
-    "${inputmethod_path}/services/dfx/include",
   ]
 
   cflags_cc = [ "-fexceptions" ]
@@ -58,7 +57,6 @@ ohos_shared_library("inputmethod_service") {
     "src/ime_info_inquirer.cpp",
     "src/input_control_channel_proxy.cpp",
     "src/input_control_channel_stub.cpp",
-    "src/input_method_config_parser.cpp",
     "src/input_method_system_ability.cpp",
     "src/input_method_system_ability_stub.cpp",
     "src/input_type_manager.cpp",
@@ -76,6 +74,9 @@ ohos_shared_library("inputmethod_service") {
     "${inputmethod_path}/services/adapter/keyboard:keboard_event_static",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+    "//third_party/cJSON:cjson"
   ]
 
   external_deps = [

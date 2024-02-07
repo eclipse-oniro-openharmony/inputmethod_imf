@@ -51,7 +51,7 @@
               "data_share"
           ], 
           "third_party": [
-              "jsoncpp"
+              "cJSON"
           ]
       }, 
       "build": {

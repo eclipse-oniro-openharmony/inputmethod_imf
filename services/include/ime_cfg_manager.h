@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-#include "nlohmann/json.hpp"
+#include "serializable.h"
 namespace OHOS {
 namespace MiscServices {
 struct ImePersistCfg {
@@ -31,6 +31,20 @@ struct ImePersistCfg {
     int32_t userId{ INVALID_USERID };
     std::string currentIme;
     std::string currentSubName;
+    bool SetValue(cJSON *node) const
+    {
+        Serializable::SetValue(node, GET_NAME(userId), userId);
+        Serializable::SetValue(node, GET_NAME(currentIme), currentIme);
+        Serializable::SetValue(node, GET_NAME(currentSubName), currentSubName);
+        return true;
+    }
+    bool GetValue(cJSON *node)
+    {
+        Serializable::GetValue(node, GET_NAME(userId), userId);
+        Serializable::GetValue(node, GET_NAME(userId), currentIme);
+        Serializable::GetValue(node, GET_NAME(userId), currentSubName);
+        return true;
+    }
 };
 
 struct ImeNativeCfg {
@@ -55,29 +69,8 @@ private:
     void ReadImeCfg();
     void WriteImeCfg();
     ImePersistCfg GetImeCfg(int32_t userId);
-    static int32_t Create(std::string &path, mode_t pathMode);
-    static bool IsExist(std::string &path);
-    static bool Read(const std::string &path, nlohmann::json &jsonCfg);
-    static bool Write(const std::string &path, const nlohmann::json &jsonCfg);
-    inline static void FromJson(const nlohmann::json &jsonCfg, ImePersistCfg &cfg)
-    {
-        if (jsonCfg.find("userId") != jsonCfg.end() && jsonCfg["userId"].is_number()) {
-            jsonCfg.at("userId").get_to(cfg.userId);
-        }
-        if (jsonCfg.find("currentIme") != jsonCfg.end() && jsonCfg["currentIme"].is_string()) {
-            jsonCfg.at("currentIme").get_to(cfg.currentIme);
-        }
-        if (jsonCfg.find("currentSubName") != jsonCfg.end() && jsonCfg["currentSubName"].is_string()) {
-            jsonCfg.at("currentSubName").get_to(cfg.currentSubName);
-        }
-    }
-    inline static void ToJson(nlohmann::json &jsonCfg, const ImePersistCfg &cfg)
-    {
-        jsonCfg = nlohmann::json{ { "userId", cfg.userId }, { "currentIme", cfg.currentIme },
-            { "currentSubName", cfg.currentSubName } };
-    }
-    static void FromJson(const nlohmann::json &jsonConfigs, std::vector<ImePersistCfg> &configs);
-    static void ToJson(nlohmann::json &jsonConfigs, const std::vector<ImePersistCfg> &configs);
+    bool ParseImeCfg(const std::string &content);
+    bool PackageImeCfg(std::string &content);
     std::recursive_mutex imeCfgLock_;
     std::vector<ImePersistCfg> imeConfigs_;
 };

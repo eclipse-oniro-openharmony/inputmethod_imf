@@ -58,7 +58,7 @@ private:
 
     bool ParseJsonData(const std::string &key, const std::string &valueStr, std::vector<std::string> &enableVec,
         const int32_t userId);
-    const std::string GetJsonListName(const std::string &key);
+    std::string GetJsonListName(const std::string &key);
     bool CheckTargetEnableName(
         const std::string &key, const std::string &targetName, std::string &nextIme, const int32_t userId);
     std::shared_ptr<Property> GetDefaultIme();

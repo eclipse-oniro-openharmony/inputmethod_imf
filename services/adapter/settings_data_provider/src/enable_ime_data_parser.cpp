@@ -18,12 +18,12 @@
 #include "ime_info_inquirer.h"
 #include "iservice_registry.h"
 #include "nlohmann/json.hpp"
+#include "serializable.h"
 #include "settings_data_utils.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
 namespace MiscServices {
-using json = nlohmann::json;
 std::mutex EnableImeDataParser::instanceMutex_;
 sptr<EnableImeDataParser> EnableImeDataParser::instance_ = nullptr;
 EnableImeDataParser::~EnableImeDataParser()
@@ -201,37 +201,20 @@ bool EnableImeDataParser::ParseJsonData(
     const std::string &key, const std::string &valueStr, std::vector<std::string> &enableVec, const int32_t userId)
 {
     IMSA_HILOGD("valueStr: %{public}s.", valueStr.c_str());
-    json jsonEnableData = json::parse(valueStr.c_str());
-    if (jsonEnableData.is_null() || jsonEnableData.is_discarded()) {
-        IMSA_HILOGE("json parse failed.");
-        return false;
-    }
-    std::string listName = GetJsonListName(key);
-    if (listName.empty()) {
+    auto name = GetJsonListName(key);
+    if (name.empty()) {
         IMSA_HILOGE("Get list name failed.");
         return false;
     }
-
-    if (!jsonEnableData.contains(listName) || !jsonEnableData[listName].is_object()) {
-        IMSA_HILOGE("listName not find or abnormal");
+    auto root = Serializable::ToJson(valueStr);
+    if (root == nullptr) {
         return false;
     }
-
-    std::string id = std::to_string(userId);
-    if (!jsonEnableData[listName].contains(id) || !jsonEnableData[listName][id].is_array()) {
-        IMSA_HILOGE("user id not find or abnormal");
-        return false;
-    }
-    std::vector<std::string> enableVecTemp;
-    for (const auto &bundleName : jsonEnableData[listName][id]) {
-        IMSA_HILOGD("enable ime string: %{public}s", std::string(bundleName).c_str());
-        enableVecTemp.push_back(bundleName);
-    }
-    enableVec.assign(enableVecTemp.begin(), enableVecTemp.end());
-    return true;
+    std::vector<std::string> names{ name, GET_NAME(userId) };
+    return Serializable::GetValue(root, names, enableVec);
 }
 
-const std::string EnableImeDataParser::GetJsonListName(const std::string &key)
+std::string EnableImeDataParser::GetJsonListName(const std::string &key)
 {
     if (key == std::string(ENABLE_IME)) {
         return "enableImeList";

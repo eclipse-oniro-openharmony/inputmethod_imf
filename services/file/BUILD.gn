@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,18 +14,14 @@
 import("//base/inputmethod/imf/inputmethod.gni")
 import("//build/ohos.gni")
 
-config("settings_data_config") {
+config("imf_file_config") {
   include_dirs = [
     "include",
     "${inputmethod_path}/services/include",
-    "${inputmethod_path}/services/adapter/settings_data_provider/common/include",
-    "${inputmethod_path}/services/json/include",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
-    "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
   ]
 }
 
-ohos_static_library("settings_data_static") {
+ohos_static_library("imf_file_static") {
   branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
@@ -33,29 +29,17 @@ ohos_static_library("settings_data_static") {
     debug = false
   }
   sources = [
-    "common/src/settings_data_observer.cpp",
-    "common/src/settings_data_utils.cpp",
-    "src/enable_ime_data_parser.cpp",
-    "src/security_mode_parser.cpp",
+    "src/file_operator.cpp",
   ]
-
-  public_configs = [ ":settings_data_config" ]
+  public_configs = [ ":imf_file_config" ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
-  deps = [
-    "${inputmethod_path}/services/json:imf_json_static",
-    "//third_party/cJSON:cjson"
-  ]
+
   external_deps = [
-    "ability_base:zuri",
-    "ability_runtime:dataobs_manager",
-    "bundle_framework:appexecfwk_core",
+    "config_policy:configpolicy_util",
     "c_utils:utils",
-    "data_share:datashare_common",
-    "data_share:datashare_consumer",
     "hilog:libhilog",
   ]
-
   subsystem_name = "inputmethod"
   part_name = "imf"
 }
