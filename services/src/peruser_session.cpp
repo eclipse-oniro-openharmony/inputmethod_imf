@@ -21,7 +21,6 @@
 #include "element_name.h"
 #include "ime_aging_manager.h"
 #include "ime_cfg_manager.h"
-#include "ime_connection.h"
 #include "ime_info_inquirer.h"
 #include "input_client_proxy.h"
 #include "input_control_channel_proxy.h"
@@ -970,12 +969,8 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime,
     AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
     isImeStarted_.Clear(false);
-    sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
-    if (connection == nullptr) {
-        IMSA_HILOGE("failed to create connection");
-        return false;
-    }
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbility(want, connection, userId_);
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+        want, nullptr, userId_, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start ability");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
