@@ -20,7 +20,6 @@
 #include "configuration_utils.h"
 #include "global.h"
 #include "input_method_ability.h"
-#include "inputmethod_extension_ability_stub.h"
 #include "inputmethod_trace.h"
 #include "js_extension_context.h"
 #include "js_inputmethod_extension_context.h"
@@ -266,12 +265,42 @@ void JsInputMethodExtension::OnStop()
 sptr<IRemoteObject> JsInputMethodExtension::OnConnect(const AAFwk::Want &want)
 {
     IMSA_HILOGI("JsInputMethodExtension OnConnect begin.");
+    StartAsync("OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_EXTENSION));
+    StartAsync("Extension::OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_MIDDLE_EXTENSION));
     Extension::OnConnect(want);
-    auto remoteObj = new (std::nothrow) InputMethodExtensionAbilityStub();
-    if (remoteObj == nullptr) {
-        IMSA_HILOGE("failed to create InputMethodExtensionAbilityStub");
+    FinishAsync("Extension::OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_MIDDLE_EXTENSION));
+    IMSA_HILOGI("%{public}s begin.", __func__);
+    HandleScope handleScope(jsRuntime_);
+    napi_env env = (napi_env)jsRuntime_.GetNativeEnginePointer();
+    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
+    napi_value argv[] = { napiWant };
+    if (jsObj_ == nullptr) {
+        IMSA_HILOGE("Not found InputMethodExtension.js");
         return nullptr;
     }
+
+    napi_value obj = jsObj_->GetNapiValue();
+    if (obj == nullptr) {
+        IMSA_HILOGE("Failed to get InputMethodExtension object");
+        return nullptr;
+    }
+    napi_value method = nullptr;
+    napi_get_named_property(env, obj, "onConnect", &method);
+    if (method == nullptr) {
+        IMSA_HILOGE("Failed to get onConnect from InputMethodExtension object");
+        return nullptr;
+    }
+    IMSA_HILOGI("JsInputMethodExtension::CallFunction onConnect, success");
+    napi_value remoteNapi = nullptr;
+    napi_call_function(env, obj, method, ARGC_ONE, argv, &remoteNapi);
+    if (remoteNapi == nullptr) {
+        IMSA_HILOGE("remoteNative nullptr.");
+    }
+    auto remoteObj = NAPI_ohos_rpc_getNativeRemoteObject(env, remoteNapi);
+    if (remoteObj == nullptr) {
+        IMSA_HILOGE("remoteObj nullptr.");
+    }
+    FinishAsync("OnConnect", static_cast<int32_t>(TraceTaskId::ONCONNECT_EXTENSION));
     return remoteObj;
 }
 
