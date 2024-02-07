@@ -21,7 +21,6 @@
 #include "element_name.h"
 #include "ime_aging_manager.h"
 #include "ime_cfg_manager.h"
-#include "ime_connection.h"
 #include "ime_info_inquirer.h"
 #include "input_client_proxy.h"
 #include "input_control_channel_proxy.h"
@@ -942,24 +941,19 @@ void PerUserSession::DeactivateIme(const std::string &bundleName, const std::str
         IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
         return;
     }
-    auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName);
-    if ((info == nullptr || !info->isNewIme) && data->core != nullptr) {
-        IMSA_HILOGI("stop ime: %{public}s/%{public}s", bundleName.c_str(), subName.c_str());
-        data->core->StopInputService(true);
-        RemoveImeData(ImeType::IME, true);
-        return;
-    }
-
-    IMSA_HILOGI("deactivate ime: %{public}s/%{public}s", bundleName.c_str(), subName.c_str());
-    if (data->deathRecipient != nullptr) {
-        data->deathRecipient->SetDeathRecipient(
-            [this, bundleName](const wptr<IRemoteObject> &) { ImeAgingManager::GetInstance().Pop(bundleName); });
-    }
+    IMSA_HILOGI("ime: %{public}s/%{public}s", bundleName.c_str(), subName.c_str());
+    data->deathRecipient->SetDeathRecipient(
+        [this, bundleName](const wptr<IRemoteObject> &) { ImeAgingManager::GetInstance().Pop(bundleName); });
     ImeAgingManager::GetInstance().Push(bundleName, data);
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == ImeType::IME) {
         UnBindClientWithIme(clientInfo, false);
+    }
+    auto info = ImeInfoInquirer::GetInstance().GetImeInfo(userId_, bundleName, subName);
+    if (info != nullptr && !info->isNewIme && data->core != nullptr) {
+        IMSA_HILOGD("old ime, need to StopInputService");
+        data->core->StopInputService(false);
     }
     RemoveImeData(ImeType::IME, false);
 }
@@ -970,12 +964,8 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime,
     AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
     isImeStarted_.Clear(false);
-    sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
-    if (connection == nullptr) {
-        IMSA_HILOGE("failed to create connection");
-        return false;
-    }
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbility(want, connection, userId_);
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
+        want, nullptr, userId_, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start ability");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
