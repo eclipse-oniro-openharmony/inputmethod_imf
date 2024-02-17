@@ -21,29 +21,46 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "serializable.h"
 namespace OHOS {
 namespace MiscServices {
-struct ImePersistCfg {
+struct ImePersistCfg : public Serializable {
+    ImePersistCfg()= default;
+    ImePersistCfg(int32_t userId, std::string currentIme, std::string currentSubName)
+        : userId(userId), currentIme(std::move(currentIme)), currentSubName(std::move(currentSubName)){};
     static constexpr int32_t INVALID_USERID = -1;
     int32_t userId{ INVALID_USERID };
     std::string currentIme;
     std::string currentSubName;
-    bool SetValue(cJSON *node) const
+
+    bool Marshal(cJSON *node) const override
     {
         Serializable::SetValue(node, GET_NAME(userId), userId);
         Serializable::SetValue(node, GET_NAME(currentIme), currentIme);
         Serializable::SetValue(node, GET_NAME(currentSubName), currentSubName);
         return true;
     }
-    bool GetValue(cJSON *node)
+    bool Unmarshal(cJSON *node) override
     {
         Serializable::GetValue(node, GET_NAME(userId), userId);
         Serializable::GetValue(node, GET_NAME(userId), currentIme);
         Serializable::GetValue(node, GET_NAME(userId), currentSubName);
         return true;
+    }
+};
+
+struct ImePersistInfo : public Serializable {
+    std::vector<ImePersistCfg> imePersistCfg;
+    bool Marshal(cJSON *node) const override
+    {
+        return Serializable::SetValue(node, GET_NAME(imeCfglist), imePersistCfg);
+    }
+    bool Unmarshal(cJSON *node) override
+    {
+        return Serializable::GetValue(node, GET_NAME(imeCfglist), imePersistCfg);
     }
 };
 
@@ -70,7 +87,7 @@ private:
     void WriteImeCfg();
     ImePersistCfg GetImeCfg(int32_t userId);
     bool ParseImeCfg(const std::string &content);
-    bool PackageImeCfg(std::string &content);
+    std::string PackageImeCfg();
     std::recursive_mutex imeCfgLock_;
     std::vector<ImePersistCfg> imeConfigs_;
 };

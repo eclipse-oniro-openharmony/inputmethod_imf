@@ -23,8 +23,8 @@
 #include <vector>
 
 #include "block_data.h"
-#include "input_method_utils.h"
 #include "serializable.h"
+#include "sys_cfg_parser.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -41,20 +41,6 @@ struct ImeIdentification {
     }
 };
 
-struct InputTypeCfg {
-    InputType type{};
-    ImeIdentification ime;
-    bool GetValue(cJSON *node)
-    {
-        int32_t typeTemp = -1;
-        Serializable::GetValue(node, GET_NAME(inputType), typeTemp);
-        type = static_cast<InputType>(typeTemp);
-        Serializable::GetValue(node, GET_NAME(bundleName), ime.bundleName);
-        Serializable::GetValue(node, GET_NAME(subtypeId), ime.subName);
-        return true;
-    }
-};
-
 class InputTypeManager {
 public:
     static InputTypeManager &GetInstance();
@@ -68,8 +54,6 @@ public:
 
 private:
     bool Init();
-    bool GetInputTypeFromFile(std::vector<InputTypeCfg> &configs);
-    bool ParseInputType(const std::string &content, std::vector<InputTypeCfg> &configs);
     std::mutex stateLock_;
     bool isStarted_{ false };
     ImeIdentification currentTypeIme_;

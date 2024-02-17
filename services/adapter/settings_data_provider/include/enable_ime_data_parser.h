@@ -16,14 +16,17 @@
 #ifndef ENABLE_IME_DATA_PARSER_H
 #define ENABLE_IME_DATA_PARSER_H
 
+#include <map>
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "datashare_helper.h"
 #include "global.h"
 #include "input_method_property.h"
+#include "serializable.h"
 #include "settings_data_utils.h"
 
 namespace OHOS {
@@ -35,6 +38,43 @@ struct SwitchInfo {
     bool operator==(const SwitchInfo &info) const
     {
         return (timestamp == info.timestamp && bundleName == info.bundleName && subName == info.subName);
+    }
+};
+
+struct EnableKeyboard : public Serializable {
+    int32_t userId;
+    std::vector<std::string> keyboards;
+    explicit EnableKeyboard(int32_t userId) : userId(userId){};
+    bool Unmarshal(cJSON *node) override
+    {
+        return Serializable::GetValue(node, GET_NAME(userId), keyboards);
+    }
+};
+struct EnableKeyboardCfg : public Serializable {
+    EnableKeyboard enableKeyboard;
+    explicit EnableKeyboardCfg(const EnableKeyboard &enableKeyboard) : enableKeyboard(std::move(enableKeyboard)){};
+    bool Unmarshal(cJSON *node) override
+    {
+        return Serializable::GetValue(node, GET_NAME(enableKeyboardList), enableKeyboard);
+    }
+};
+
+struct EnableIme : public Serializable {
+    int32_t userId;
+    std::vector<std::string> imes;
+    explicit EnableIme(int32_t userId) : userId(userId){};
+    bool Unmarshal(cJSON *node) override
+    {
+        Serializable::GetValue(node, GET_NAME(userId), imes);
+        return true;
+    }
+};
+struct EnableImeCfg : public Serializable {
+    EnableIme enableIme;
+    explicit EnableImeCfg(const EnableIme &enableIme) : enableIme(std::move(enableIme)){};
+    bool Unmarshal(cJSON *node) override
+    {
+        return Serializable::GetValue(node, GET_NAME(enableImeList), enableIme);
     }
 };
 
@@ -56,9 +96,8 @@ private:
     EnableImeDataParser() = default;
     ~EnableImeDataParser();
 
-    bool ParseJsonData(const std::string &key, const std::string &valueStr, std::vector<std::string> &enableVec,
-        const int32_t userId);
-    std::string GetJsonListName(const std::string &key);
+    bool ParseEnableIme(const std::string &valueStr, std::vector<std::string> &enableVec, int32_t userId);
+    bool ParseEnableKeyboard(const std::string &valueStr, std::vector<std::string> &enableVec, int32_t userId);
     bool CheckTargetEnableName(
         const std::string &key, const std::string &targetName, std::string &nextIme, const int32_t userId);
     std::shared_ptr<Property> GetDefaultIme();

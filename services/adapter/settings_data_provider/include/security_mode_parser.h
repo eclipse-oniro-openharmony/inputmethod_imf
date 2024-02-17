@@ -16,18 +16,37 @@
 #ifndef SECURITY_MODE_PARSER_H
 #define SECURITY_MODE_PARSER_H
 
+#include <map>
 #include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "datashare_helper.h"
+#include "global.h"
+#include "serializable.h"
 #include "settings_data_observer.h"
 #include "settings_data_utils.h"
-#include "global.h"
 
 namespace OHOS {
 namespace MiscServices {
+struct SecMode : public Serializable {
+    int32_t userId;
+    std::vector<std::string> modes;
+    explicit SecMode(int32_t userId) : userId(userId){};
+    bool Unmarshal(cJSON *node) override
+    {
+        return Serializable::GetValue(node, GET_NAME(userId), modes);
+    }
+};
+struct SecModeCfg : public Serializable {
+    SecMode secMode;
+    explicit SecModeCfg(const SecMode &secMode) : secMode(std::move(secMode)){};
+    bool Unmarshal(cJSON *node) override
+    {
+        return Serializable::GetValue(node, GET_NAME(fullExperienceList), secMode);
+    }
+};
 
 class SecurityModeParser : public RefBase {
 public:
@@ -37,13 +56,12 @@ public:
     bool IsSecurityChange(const std::string bundleName, const int32_t userId);
     int32_t GetFullModeList(const int32_t userId);
     static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
-    static constexpr const char *SECURITY_KEY = "fullExperienceList";
 
 private:
     SecurityModeParser() = default;
     ~SecurityModeParser();
 
-    bool ParseJsonData(const std::string &valueStr, const int32_t userId);
+    bool ParseSecurityMode(const std::string &valueStr, const int32_t userId);
     bool IsFullMode(const std::string bundleName);
     static std::mutex instanceMutex_;
     static sptr<SecurityModeParser> instance_;

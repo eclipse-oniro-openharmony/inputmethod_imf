@@ -26,53 +26,62 @@ namespace MiscServices {
 #endif
 struct Serializable {
 public:
-    static cJSON *ToJson(const std::string &jsonStr);
-    static std::string ToStr(cJSON *node);
+    virtual ~Serializable(){};
+    bool Unmarshall(const std::string &content);
     static bool GetValue(cJSON *node, const std::string &name, std::string &value);
     static bool GetValue(cJSON *node, const std::string &name, int32_t &value);
     static bool GetValue(cJSON *node, const std::string &name, bool &value);
-    static bool GetValue(
-        cJSON *node, const std::vector<std::string> &names, std::vector<std::string> &values, uint32_t maxNum = 0);
+    static bool GetValue(cJSON *node, const std::string &name, Serializable &value);
     template<typename T>
     static bool GetValue(cJSON *node, const std::string &name, std::vector<T> &values, uint32_t maxNum = 0)
     {
-        auto array = GetSubNode(node, name);
-        if (cJSON_IsArray(array)) {
+        auto subNode = GetSubNode(node, name);
+        if (cJSON_IsArray(subNode)) {
             return false;
         }
-        auto size = cJSON_GetArraySize(array);
+        auto size = cJSON_GetArraySize(subNode);
         if (size <= 0) {
             return false;
         }
         size = maxNum != 0 && size > maxNum ? maxNum : size;
         values.resize(size);
         for (int32_t i = 0; i < size; ++i) {
-            auto item = cJSON_GetArrayItem(array, i);
-            values[i].GetValue(item);
+            auto item = cJSON_GetArrayItem(subNode, i);
+            if (item == nullptr) {
+                continue;
+            }
+            GetValue(item, "", values[i]);
         }
         return true;
     }
-    template<typename T> static bool GetValue(cJSON *node, const std::string &name, T &value)
-    {
-        auto object = GetSubNode(node, name);
-        if (cJSON_IsObject(object)) {
-            return false;
-        }
-        return value.GetValue(object);
-    }
+    virtual bool Unmarshal(cJSON *node) = 0;
 
+    template<typename T> static std::string Marshall(T &value)
+    {
+        cJSON *root = cJSON_CreateObject();
+        value.Marshal(root);
+        auto str = cJSON_PrintUnformatted(root);
+        cJSON_Delete(root);
+        std::string out(str);
+        cJSON_free(str);
+        return out;
+    }
     static bool SetValue(cJSON *node, const std::string &name, const std::string &value);
     static bool SetValue(cJSON *node, const std::string &name, const int32_t &value);
-    static bool SetValue(cJSON *node, const std::string &name, const bool &value);
     template<typename T> static bool SetValue(cJSON *node, const std::string &name, const std::vector<T> &values)
     {
-        auto array = cJSON_AddArrayToObject(node, name.c_str());
+        auto array = cJSON_CreateArray();
         for (auto &value : values) {
-            cJSON *item = cJSON_CreateObject(); // todo 释放内存
+            cJSON *item = cJSON_CreateObject();
+            value.Marshal(item);
             cJSON_AddItemToArray(array, item);
-            value.SetValue(item);
         }
+        cJSON_AddItemToObject(node, name.c_str(), array);
         return true;
+    }
+    virtual bool Marshal(cJSON *node) const
+    {
+        return false;
     }
 
 private:

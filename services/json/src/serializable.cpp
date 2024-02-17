@@ -18,18 +18,15 @@
 #include "global.h"
 namespace OHOS {
 namespace MiscServices {
-cJSON *Serializable::ToJson(const std::string &jsonStr)
+bool Serializable::Unmarshall(const std::string &content)
 {
-    auto root = cJSON_Parse(jsonStr.c_str());
+    auto root = cJSON_Parse(content.c_str());
     if (root == nullptr) {
-        IMSA_HILOGE("%{public}s: parse failed", jsonStr.c_str());
+        return false;
     }
-    return root;
-}
-
-std::string Serializable::ToStr(cJSON *node)
-{
-    return cJSON_PrintUnformatted(node);
+    auto ret = Unmarshal(root);
+    cJSON_Delete(root);
+    return ret;
 }
 
 bool Serializable::GetValue(cJSON *node, const std::string &name, std::string &value)
@@ -74,28 +71,13 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, bool &value)
     return true;
 }
 
-bool Serializable::GetValue(
-    cJSON *node, const std::vector<std::string> &names, std::vector<std::string> &values, uint32_t maxNum)
+bool Serializable::GetValue(cJSON *node, const std::string &name, Serializable &value)
 {
-    auto subNode = node;
-    for (const auto &name : names) {
-        auto subNodeTemp = GetSubNode(subNode, name);
-        subNode = subNodeTemp;
-    }
-    if (cJSON_IsArray(subNode)) {
+    auto object = GetSubNode(node, name);
+    if (cJSON_IsObject(object)) {
         return false;
     }
-    auto size = cJSON_GetArraySize(subNode);
-    if (size <= 0) {
-        return false;
-    }
-    size = maxNum != 0 && size > maxNum ? maxNum : size;
-    values.resize(size);
-    for (int32_t i = 0; i < size; ++i) {
-        auto item = cJSON_GetArrayItem(subNode, i);
-        values[i] = item->valuestring;
-    }
-    return true;
+    return value.Unmarshal(object);
 }
 
 bool Serializable::SetValue(cJSON *node, const std::string &name, const std::string &value)
@@ -110,14 +92,11 @@ bool Serializable::SetValue(cJSON *node, const std::string &name, const int32_t 
     return true;
 }
 
-bool Serializable::SetValue(cJSON *node, const std::string &name, const bool &value)
-{
-    cJSON_AddBoolToObject(node, name.c_str(), value);
-    return true;
-}
-
 cJSON *Serializable::GetSubNode(cJSON *node, const std::string &name)
 {
+    if (name.empty()) {
+        return node;
+    }
     if (!cJSON_IsObject(node)) {
         IMSA_HILOGE("The json is not object");
         return nullptr;

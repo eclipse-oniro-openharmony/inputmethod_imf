@@ -29,7 +29,6 @@
 #include <string>
 
 #include "climits"
-#include "config_policy_utils.h"
 #include "file_operator.h"
 #include "global.h"
 #include "ime_cfg_manager.h"
@@ -105,24 +104,6 @@ ImeIdentification InputTypeManager::GetCurrentIme()
     return currentTypeIme_;
 }
 
-bool InputTypeManager::GetInputTypeFromFile(std::vector<InputTypeCfg> &configs)
-{
-    auto content = FileOperator::GetContentFromSysCfgFiles(GET_NAME(supportedInputTypeList));
-    if (content.empty()) {
-        return false;
-    }
-    return ParseInputType(content, configs);
-}
-
-bool InputTypeManager::ParseInputType(const std::string &content, std::vector<InputTypeCfg> &configs)
-{
-    auto root = Serializable::ToJson(content);
-    if (root == nullptr) {
-        return false;
-    }
-    return Serializable::GetValue(root, GET_NAME(supportedInputTypeList), configs);
-}
-
 bool InputTypeManager::Init()
 {
     IMSA_HILOGD("start");
@@ -132,12 +113,13 @@ bool InputTypeManager::Init()
     isInitInProgress_.store(true);
     isInitSuccess_.Clear(false);
     std::vector<InputTypeCfg> configs;
-    bool isSuccess = GetInputTypeFromFile(configs);
+    bool isSuccess = SysCfgParser::GetInstance().ParseInputType(configs);
     IMSA_HILOGD("GetInputTypeFromFile end isSuccess %{public}d", isSuccess);
+
     if (isSuccess) {
         std::lock_guard<std::mutex> lk(typesLock_);
         for (const auto &config : configs) {
-            inputTypes_.insert({ config.type, config.ime });
+            inputTypes_.insert({ config.type, { config.bundleName, config.subName } });
         }
         for (const auto &cfg : inputTypes_) {
             std::lock_guard<std::mutex> lock(listLock_);

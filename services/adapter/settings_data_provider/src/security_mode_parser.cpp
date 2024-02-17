@@ -62,7 +62,7 @@ int32_t SecurityModeParser::GetFullModeList(const int32_t userId)
         return ErrorCode::ERROR_ENABLE_SECURITY_MODE;
     }
 
-    if (!ParseJsonData(valueStr, userId)) {
+    if (!ParseSecurityMode(valueStr, userId)) {
         IMSA_HILOGE("valueStr is empty");
         return ErrorCode::ERROR_ENABLE_SECURITY_MODE;
     }
@@ -77,21 +77,16 @@ bool SecurityModeParser::IsSecurityChange(const std::string bundleName, const in
     return oldExit!= onewExit;
 }
 
-bool SecurityModeParser::ParseJsonData(const std::string &valueStr, const int32_t userId)
+bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const int32_t userId)
 {
-    IMSA_HILOGD("valueStr: %{public}s.", valueStr.c_str());
-    auto root = Serializable::ToJson(valueStr);
-    if (root == nullptr) {
-        return false;
-    }
-    std::vector<std::string> lists;
-    std::vector<std::string> names{ SECURITY_KEY, GET_NAME(userId) };
-    auto ret = Serializable::GetValue(root, names, lists);
+    SecMode secMode(userId);
+    SecModeCfg modeCfg{ { secMode } };
+    auto ret = modeCfg.Unmarshall(valueStr);
     if (!ret) {
         return ret;
     }
     std::lock_guard<std::mutex> autoLock(listMutex_);
-    fullModeList_.assign(lists.begin(), lists.end());
+    fullModeList_ = modeCfg.secMode.modes;
     return true;
 }
 

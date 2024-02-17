@@ -189,39 +189,40 @@ int32_t EnableImeDataParser::GetEnableData(
         IMSA_HILOGW("Get value failed, or valueStr is empty");
         return ErrorCode::ERROR_ENABLE_IME;
     }
-
-    if (!ParseJsonData(key, valueStr, enableVec, userId)) {
-        IMSA_HILOGE("valueStr is empty");
-        return ErrorCode::ERROR_ENABLE_IME;
+    bool parseRet = false;
+    if (key == ENABLE_IME) {
+        parseRet = ParseEnableIme(valueStr, enableVec, userId);
     }
-    return ErrorCode::NO_ERROR;
+    if (key == ENABLE_KEYBOARD) {
+        parseRet = ParseEnableIme(valueStr, enableVec, userId);
+    }
+    return parseRet ? ErrorCode::NO_ERROR : ErrorCode::ERROR_ENABLE_IME;
 }
 
-bool EnableImeDataParser::ParseJsonData(
-    const std::string &key, const std::string &valueStr, std::vector<std::string> &enableVec, const int32_t userId)
+bool EnableImeDataParser::ParseEnableIme(
+    const std::string &valueStr, std::vector<std::string> &enableVec, int32_t userId)
 {
-    IMSA_HILOGD("valueStr: %{public}s.", valueStr.c_str());
-    auto name = GetJsonListName(key);
-    if (name.empty()) {
-        IMSA_HILOGE("Get list name failed.");
-        return false;
+    EnableIme ime(userId);
+    EnableImeCfg imeCfg{ { ime } };
+    auto ret = imeCfg.Unmarshall(valueStr);
+    if (!ret) {
+        return ret;
     }
-    auto root = Serializable::ToJson(valueStr);
-    if (root == nullptr) {
-        return false;
-    }
-    std::vector<std::string> names{ name, GET_NAME(userId) };
-    return Serializable::GetValue(root, names, enableVec);
+    enableVec = imeCfg.enableIme.imes;
+    return true;
 }
 
-std::string EnableImeDataParser::GetJsonListName(const std::string &key)
+bool EnableImeDataParser::ParseEnableKeyboard(
+    const std::string &valueStr, std::vector<std::string> &enableVec, int32_t userId)
 {
-    if (key == std::string(ENABLE_IME)) {
-        return "enableImeList";
-    } else if (key == std::string(ENABLE_KEYBOARD)) {
-        return "enableKeyboardList";
+    EnableKeyboard keyboard(userId);
+    EnableKeyboardCfg keyboardCfg{ { keyboard } };
+    auto ret = keyboardCfg.Unmarshall(valueStr);
+    if (!ret) {
+        return ret;
     }
-    return "";
+    enableVec = keyboardCfg.enableKeyboard.keyboards;
+    return true;
 }
 
 std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()

@@ -18,6 +18,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <fstream>
+
 #include "global.h"
 namespace OHOS {
 namespace MiscServices {
@@ -31,28 +33,19 @@ bool FileOperator::IsExist(const std::string &path)
     return access(path.c_str(), F_OK) == 0;
 }
 
-bool FileOperator::Read(mode_t mode, const std::string &path, std::string &content)
+bool FileOperator::Read(const std::string &path, std::string &content)
 {
-    auto fd = open(path.c_str(), mode);
-    if (fd <= 0) {
-        IMSA_HILOGE("file open failed, fd: %{public}d", fd);
+    std::ifstream infile;
+    std::string sLine;
+    infile.open(path);
+    if (!infile.is_open()) {
+        IMSA_HILOGE("path: %s Readfile fail", path.c_str());
         return false;
     }
-    char contentTemp[MAX_FILE_LENGTH] = { 0 };
-    auto ret = read(fd, contentTemp, MAX_FILE_LENGTH);
-    if (ret <= 0) {
-        IMSA_HILOGE("file read failed, ret: %{public}zd", ret);
-        close(fd);
-        return false;
+    while (getline(infile, sLine)) {
+        content.append(sLine);
     }
-    close(fd);
-
-    if (contentTemp[0] == '\0') {
-        IMSA_HILOGE("content is empty");
-        return false;
-    }
-    content = contentTemp;
-    IMSA_HILOGD("content: %{public}s", content.c_str());
+    infile.close();
     return true;
 }
 
@@ -74,13 +67,12 @@ bool FileOperator::Write(int32_t flags, const std::string &path, const std::stri
     return true;
 }
 
-std::string FileOperator::GetContentFromSysCfgFiles(const std::string &key)
+bool FileOperator::Read(const std::string &path, const std::string &key, std::string &content)
 {
-    std::string content;
-    CfgFiles *cfgFiles = GetSysCfgFiles(IME_INPUT_TYPE_CFG_FILE_PATH);
+    CfgFiles *cfgFiles = GetSysCfgFiles(path);
     if (cfgFiles == nullptr) {
         IMSA_HILOGE("cfgFiles is nullptr");
-        return content;
+        return false;
     }
     // parse config files, ordered by priority from high to low
     for (int32_t i = MAX_CFG_POLICY_DIRS_CNT - 1; i >= 0; i--) {
@@ -94,36 +86,37 @@ std::string FileOperator::GetContentFromSysCfgFiles(const std::string &key)
             continue;
         }
         std::string cfgPath(realPath);
-        std::string contentTemp;
-        if (!GetContentFromSysCfgFile(cfgPath, key, contentTemp)) {
-            continue;
+        content = Read(cfgPath, key);
+        if (!content.empty()) {
+            break;
         }
-        content = std::move(contentTemp);
     }
     FreeCfgFiles(cfgFiles);
+    if (content.empty()) {
+        return false;
+    }
     IMSA_HILOGI("content: %{public}s", content.c_str());
-    return content;
+    return true;
 }
 
 CfgFiles *FileOperator::GetSysCfgFiles(const std::string &path)
 {
-    return GetCfgFiles(IME_INPUT_TYPE_CFG_FILE_PATH);
+    return GetCfgFiles(path.c_str());
 }
 
-bool FileOperator::GetContentFromSysCfgFile(const std::string &path, const std::string &key, std::string &content)
+std::string FileOperator::Read(const std::string &path, const std::string &key)
 {
-    std::string contentTemp;
-    bool ret = Read(O_RDONLY, path, contentTemp);
+    std::string content;
+    bool ret = Read(path, content);
     if (!ret) {
         IMSA_HILOGE("failed");
-        return false;
+        return "";
     }
-    if (contentTemp.find(key) == std::string::npos) {
+    if (content.find(key) == std::string::npos) {
         IMSA_HILOGE("not contain %{public}s", key.c_str());
-        return false;
+        return "";
     }
-    content = std::move(contentTemp);
-    return true;
+    return content;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -26,11 +26,13 @@
 #include "bundle_mgr_proxy.h"
 #include "element_name.h"
 #include "enable_ime_data_parser.h"
+#include "erializable.h"
 #include "ime_cfg_manager.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
 #include "refbase.h"
+#include "sys_cfg_parser.h"
 namespace OHOS {
 namespace MiscServices {
 
@@ -49,36 +51,28 @@ enum class Condition {
     CHINESE,
 };
 
-struct SubtypeCfg {
-    std::string label;  // the label of subtype
-    std::string id;     // the name of subtype
-    std::string icon;   // the icon of subtype
-    std::string mode;   // the mode of subtype, containing "upper" and "lower"
-    std::string locale; // the tongues of subtype, such as "zh_CN", "en_US", etc.
-
-    bool GetValue(cJSON *node)
+struct ImeSubtype : public Serializable {
+    struct Subtype : public Serializable {
+        std::string label;
+        std::string id;
+        std::string icon;
+        std::string mode;
+        std::string locale;
+        bool Unmarshal(cJSON *node) override
+        {
+            Serializable::GetValue(node, GET_NAME(label), label);
+            Serializable::GetValue(node, GET_NAME(id), id);
+            Serializable::GetValue(node, GET_NAME(icon), icon);
+            Serializable::GetValue(node, GET_NAME(mode), mode);
+            Serializable::GetValue(node, GET_NAME(locale), locale);
+            return true;
+        }
+    };
+    static constexpr uint32_t MAX_SUBTYPE_NUM = 256;
+    std::vector<Subtype> subtypes;
+    bool Unmarshal(cJSON *node) override
     {
-        Serializable::GetValue(node, GET_NAME(label), label);
-        Serializable::GetValue(node, GET_NAME(id), id);
-        Serializable::GetValue(node, GET_NAME(icon), icon);
-        Serializable::GetValue(node, GET_NAME(mode), mode);
-        Serializable::GetValue(node, GET_NAME(locale), locale);
-        return true;
-    }
-};
-
-struct ImeConfig {
-    std::string systemInputMethodConfigAbility;
-    std::string defaultInputMethod;
-    bool enableInputMethodFeature = false;
-    bool enableFullExperienceFeature = false;
-    bool GetValue(cJSON *node)
-    {
-        Serializable::GetValue(node, GET_NAME(systemInputMethodConfigAbility), systemInputMethodConfigAbility);
-        Serializable::GetValue(node, GET_NAME(defaultInputMethod), defaultInputMethod);
-        Serializable::GetValue(node, GET_NAME(enableInputMethodFeature), enableInputMethodFeature);
-        Serializable::GetValue(node, GET_NAME(enableFullExperienceFeature), enableFullExperienceFeature);
-        return true;
+        return Serializable::GetValue(node, GET_NAME(subtypes), subtypes, MAX_SUBTYPE_NUM);
     }
 };
 
@@ -107,7 +101,7 @@ public:
     int32_t GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userId, bool enableOn);
     bool IsEnableInputMethod();
     bool IsEnableSecurityMode();
-    void InitConfig();
+    void InitSystemConfig();
 
 private:
     ImeInfoInquirer() = default;
@@ -134,13 +128,11 @@ private:
         const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, std::vector<SubProperty> &subProps);
     int32_t ListInputMethodSubtype(const int32_t userId, const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo,
         std::vector<SubProperty> &subProps);
-    bool ParseSubTypeCfg(const std::vector<std::string> &profiles, std::vector<SubtypeCfg> &subtypes);
+    bool ParseImeSubType(const std::vector<std::string> &profiles, ImeSubtype &imeSubtype);
     void CovertToLanguage(const std::string &locale, std::string &language);
     bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
-    bool GetImeConfigFromFile(ImeConfig &imeCfg);
-    bool ParseImeConfig(const std::string &content, ImeConfig &imeCfg);
 
-    ImeConfig imeConfig_;
+    SystemConfig systemConfig_;
     std::mutex currentImeInfoLock_;
     std::shared_ptr<ImeInfo> currentImeInfo_{ nullptr }; // current imeInfo of current user
 };

@@ -38,7 +38,6 @@ namespace {
 using namespace OHOS::AppExecFwk;
 constexpr const char *SUBTYPE_PROFILE_METADATA_NAME = "ohos.extension.input_method";
 constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
-constexpr uint32_t MAX_SUBTYPE_NUM = 256;
 constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
 constexpr int32_t CONFIG_LEN = 128;
 } // namespace
@@ -48,38 +47,20 @@ ImeInfoInquirer &ImeInfoInquirer::GetInstance()
     return instance;
 }
 
-void ImeInfoInquirer::InitConfig()
+void ImeInfoInquirer::InitSystemConfig()
 {
-    auto ret = GetImeConfigFromFile(imeConfig_);
+    auto ret = SysCfgParser::GetInstance().ParseSystemConfig(systemConfig_);
     IMSA_HILOGD("ret: %{public}d", ret);
-}
-
-bool ImeInfoInquirer::GetImeConfigFromFile(ImeConfig &imeCfg)
-{
-    auto content = FileOperator::GetContentFromSysCfgFiles(GET_NAME(systemConfig));
-    if (content.empty()) {
-        return false;
-    }
-    return ParseImeConfig(content, imeCfg);
-}
-
-bool ImeInfoInquirer::ParseImeConfig(const std::string &content, ImeConfig &imeCfg)
-{
-    auto root = Serializable::ToJson(content);
-    if (root == nullptr) {
-        return false;
-    }
-    return Serializable::GetValue(root, GET_NAME(systemConfig), imeCfg);
 }
 
 bool ImeInfoInquirer::IsEnableInputMethod()
 {
-    return imeConfig_.enableInputMethodFeature;
+    return systemConfig_.enableInputMethodFeature;
 }
 
 bool ImeInfoInquirer::IsEnableSecurityMode()
 {
-    return imeConfig_.enableFullExperienceFeature;
+    return systemConfig_.enableFullExperienceFeature;
 }
 
 bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
@@ -493,11 +474,12 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
         IMSA_HILOGE("GetProfileFromExtension failed");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
-    std::vector<SubtypeCfg> subtypes;
-    if (!ParseSubTypeCfg(profiles, subtypes)) {
+    ImeSubtype imeSubtype;
+    if (!ParseImeSubType(profiles, imeSubtype)) {
         IMSA_HILOGE("ParseSubTypeCfg failed");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
+    auto subtypes = imeSubtype.subtypes;
     IMSA_HILOGD("subtypes size: %{public}zu", subtypes.size());
     for (auto it = subtypes.begin(); it != subtypes.end();) {
         auto subtype = *it;
@@ -681,11 +663,11 @@ std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeToStart(int32_t userId)
 int32_t ImeInfoInquirer::GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig)
 {
     IMSA_HILOGD("userId: %{public}d", userId);
-    if (imeConfig_.systemInputMethodConfigAbility.empty()) {
+    if (systemConfig_.systemInputMethodConfigAbility.empty()) {
         IMSA_HILOGW("inputMethodConfig systemInputMethodConfigAbility is null");
         return ErrorCode::NO_ERROR;
     }
-    std::string bundleName = imeConfig_.systemInputMethodConfigAbility;
+    std::string bundleName = systemConfig_.systemInputMethodConfigAbility;
     std::string moduleName;
     std::string abilityName;
     auto pos = bundleName.find('/');
@@ -747,9 +729,9 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 ImeNativeCfg ImeInfoInquirer::GetDefaultIme()
 {
     ImeNativeCfg imeCfg;
-    if (!imeConfig_.defaultInputMethod.empty()) {
-        IMSA_HILOGI("defaultInputMethod: %{public}s", imeConfig_.defaultInputMethod.c_str());
-        imeCfg.imeId = imeConfig_.defaultInputMethod;
+    if (!systemConfig_.defaultInputMethod.empty()) {
+        IMSA_HILOGI("defaultInputMethod: %{public}s", systemConfig_.defaultInputMethod.c_str());
+        imeCfg.imeId = systemConfig_.defaultInputMethod;
     } else {
         char value[CONFIG_LEN] = { 0 };
         auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
@@ -816,17 +798,13 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::FindTargetSubtypeByCondition(
     return std::make_shared<SubProperty>(*it);
 }
 
-bool ImeInfoInquirer::ParseSubTypeCfg(const std::vector<std::string> &profiles, std::vector<SubtypeCfg> &subtypes)
+bool ImeInfoInquirer::ParseImeSubType(const std::vector<std::string> &profiles, ImeSubtype &imeSubtype)
 {
     if (profiles.empty() || profiles.size() != SUBTYPE_PROFILE_NUM) {
         IMSA_HILOGE("profiles size: %{public}zu", profiles.size());
         return false;
     }
-    auto root = Serializable::ToJson(profiles[0]);
-    if (root == nullptr) {
-        return false;
-    }
-    return Serializable::GetValue(root, GET_NAME(subtypes), subtypes, MAX_SUBTYPE_NUM);
+    return imeSubtype.Unmarshall(profiles[0]);
 }
 
 std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()

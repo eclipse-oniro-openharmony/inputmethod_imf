@@ -77,7 +77,7 @@ public:
 void NewImeSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::SetUpTestCase");
-    ImeInfoInquirer::GetInstance().InitConfig();
+    ImeInfoInquirer::GetInstance().InitSystemConfig();
     enableOn = ImeInfoInquirer::GetInstance().IsEnableInputMethod();
     TddUtil::GrantNativePermission();
     if (enableOn == true) {

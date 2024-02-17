@@ -49,7 +49,7 @@ void ImeCfgManager::ReadImeCfg()
         return;
     }
     std::string cfg;
-    bool ret = FileOperator::Read(O_RDONLY, path, cfg);
+    bool ret = FileOperator::Read(path, cfg);
     if (!ret) {
         IMSA_HILOGE("ReadJsonFile failed");
         return;
@@ -59,9 +59,9 @@ void ImeCfgManager::ReadImeCfg()
 
 void ImeCfgManager::WriteImeCfg()
 {
-    std::string content;
-    auto ret = PackageImeCfg(content);
-    if (!ret) {
+    auto content = PackageImeCfg();
+    if (content.empty()) {
+        IMSA_HILOGE("Package imeCfg failed");
         return;
     }
     std::string path(IME_CFG_DIR);
@@ -79,26 +79,26 @@ void ImeCfgManager::WriteImeCfg()
 
 bool ImeCfgManager::ParseImeCfg(const std::string &content)
 {
-    auto root = Serializable::ToJson(content);
-    if (root == nullptr) {
-        return false;
-    }
-    std::vector<ImePersistCfg> configs;
-    auto ret = Serializable::GetValue(root, GET_NAME(imeCfg_list), configs);
+    ImePersistInfo info;
+    auto ret = info.Unmarshall(content);
     if (!ret) {
         return false;
     }
-    std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    imeConfigs_ = std::move(configs);
+    {
+        std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
+        imeConfigs_ = info.imePersistCfg;
+    }
     return true;
 }
 
-bool ImeCfgManager::PackageImeCfg(std::string &content)
+std::string ImeCfgManager::PackageImeCfg()
 {
-    cJSON *root = cJSON_CreateObject();
-    Serializable::SetValue(root, GET_NAME(imeCfg_list), imeConfigs_);
-    content = Serializable::ToStr(root);
-    return true;
+    ImePersistInfo info;
+    {
+        std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
+        info.imePersistCfg = imeConfigs_;
+    }
+    return Serializable::Marshall(info);
 }
 
 void ImeCfgManager::AddImeCfg(const ImePersistCfg &cfg)
