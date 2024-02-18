@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef DISTRIBUTED_RDB_SERIALIZABLE_H
-#define DISTRIBUTED_RDB_SERIALIZABLE_H
+#ifndef INPUT_METHOD_SERIALIZABLE_H
+#define INPUT_METHOD_SERIALIZABLE_H
 #include <string>
 #include <vector>
 
 #include "cJSON.h"
+#include "global.h"
 namespace OHOS {
 namespace MiscServices {
 #ifndef GET_NAME
@@ -28,24 +29,29 @@ struct Serializable {
 public:
     virtual ~Serializable(){};
     bool Unmarshall(const std::string &content);
+    bool Marshall(std::string &content) const;
+    virtual bool Unmarshal(cJSON *node) = 0;
+    virtual bool Marshal(cJSON *node) const
+    {
+        return false;
+    }
     static bool GetValue(cJSON *node, const std::string &name, std::string &value);
     static bool GetValue(cJSON *node, const std::string &name, int32_t &value);
     static bool GetValue(cJSON *node, const std::string &name, bool &value);
     static bool GetValue(cJSON *node, const std::string &name, Serializable &value);
     template<typename T>
-    static bool GetValue(cJSON *node, const std::string &name, std::vector<T> &values, uint32_t maxNum = 0)
+    static bool GetValue(cJSON *node, const std::string &name, std::vector<T> &values, int32_t maxNum = 0)
     {
         auto subNode = GetSubNode(node, name);
-        if (cJSON_IsArray(subNode)) {
+        if (!cJSON_IsArray(subNode)) {
+            IMSA_HILOGE("not array");
             return false;
         }
         auto size = cJSON_GetArraySize(subNode);
-        if (size <= 0) {
-            return false;
-        }
-        size = maxNum != 0 && size > maxNum ? maxNum : size;
+        IMSA_HILOGD("size:%{public}d, maxNum:%{public}d", size, maxNum);
+        size = maxNum > 0  && size > maxNum ? maxNum : size;
         values.resize(size);
-        for (int32_t i = 0; i < size; ++i) {
+        for (auto i = 0; i < size; i++) {
             auto item = cJSON_GetArrayItem(subNode, i);
             if (item == nullptr) {
                 continue;
@@ -54,21 +60,11 @@ public:
         }
         return true;
     }
-    virtual bool Unmarshal(cJSON *node) = 0;
-
-    template<typename T> static std::string Marshall(T &value)
-    {
-        cJSON *root = cJSON_CreateObject();
-        value.Marshal(root);
-        auto str = cJSON_PrintUnformatted(root);
-        cJSON_Delete(root);
-        std::string out(str);
-        cJSON_free(str);
-        return out;
-    }
     static bool SetValue(cJSON *node, const std::string &name, const std::string &value);
     static bool SetValue(cJSON *node, const std::string &name, const int32_t &value);
-    template<typename T> static bool SetValue(cJSON *node, const std::string &name, const std::vector<T> &values)
+    template<typename T>
+    static bool SetValue(
+        cJSON *node, const std::string &name, const std::vector<T> &values)
     {
         auto array = cJSON_CreateArray();
         for (auto &value : values) {
@@ -79,14 +75,10 @@ public:
         cJSON_AddItemToObject(node, name.c_str(), array);
         return true;
     }
-    virtual bool Marshal(cJSON *node) const
-    {
-        return false;
-    }
 
 private:
     static cJSON *GetSubNode(cJSON *node, const std::string &name);
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // DISTRIBUTED_RDB_SERIALIZABLE_H
+#endif // INPUT_METHOD_SERIALIZABLE_H

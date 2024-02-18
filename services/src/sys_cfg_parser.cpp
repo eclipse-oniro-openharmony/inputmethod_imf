@@ -15,6 +15,8 @@
 
 #include "sys_cfg_parser.h"
 
+#include <map>
+
 #include "file_operator.h"
 #include "global.h"
 namespace OHOS {
@@ -25,30 +27,20 @@ SysCfgParser &SysCfgParser::GetInstance()
     return instance;
 }
 
-bool SysCfgParser::ParseInputType(std::vector<InputTypeCfg> &configs)
+bool SysCfgParser::ParseSysCfg(SysCfg &sysCfg)
 {
     std::string content;
-    auto ret = FileOperator::Read(SYS_CFG_FILE_PATH, GET_NAME(supportedInputTypeList), content);
+    auto ret = FileOperator::Read(SYS_CFG_FILE_PATH, sysCfg.parseName, content);
     if (!ret) {
-        return ret;
+        IMSA_HILOGE("get content by %{public}s failed", sysCfg.parseName.c_str());
+        return false;
     }
-    SysCfg sysCfg(ParseType::INPUT_TYPE);
-    ret = sysCfg.Unmarshall(content);
-    configs = sysCfg.inputType;
-    return ret;
+    return ParseSysCfg(content, sysCfg);
 }
 
-bool SysCfgParser::ParseSystemConfig(SystemConfig &systemConfig)
+bool SysCfgParser::ParseSysCfg(const std::string &content, SysCfg &sysCfg)
 {
-    std::string content;
-    auto ret = FileOperator::Read(SYS_CFG_FILE_PATH, GET_NAME(systemConfig), content);
-    if (!ret) {
-        return ret;
-    }
-    SysCfg sysCfg(ParseType::SYSTEM_CONFIG);
-    ret = sysCfg.Unmarshall(content);
-    systemConfig = sysCfg.systemConfig;
-    return ret;
+    return sysCfg.Unmarshall(content);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -16,6 +16,11 @@
 #ifndef SERVICES_INCLUDE_SYS_CFG_PARSE_H
 #define SERVICES_INCLUDE_SYS_CFG_PARSE_H
 
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "input_method_utils.h"
 #include "serializable.h"
 namespace OHOS {
@@ -35,7 +40,7 @@ struct SystemConfig : public Serializable {
     }
 };
 
-struct InputTypeCfg : public Serializable {
+struct InputTypeInfo : public Serializable {
     InputType type{ InputType::NONE };
     std::string bundleName;
     std::string subName;
@@ -50,30 +55,23 @@ struct InputTypeCfg : public Serializable {
     }
 };
 
-enum class ParseType : uint32_t {
-    SYSTEM_CONFIG = 0,
-    INPUT_TYPE,
-};
 struct SysCfg : public Serializable {
-    ParseType type;
+    static constexpr const char *SUPPORTED_INPUT_TYPE_LIST = "supportedInputTypeList";
+    static constexpr const char *SYSTEM_CONFIG = "systemConfig";
+    std::string parseName;
     SystemConfig systemConfig;
-    std::vector<InputTypeCfg> inputType;
-    explicit SysCfg(ParseType type) : type(type)
+    std::vector<InputTypeInfo> inputType;
+    explicit SysCfg(std::string parseName) : parseName(std::move(parseName))
     {
     }
-
     bool Unmarshal(cJSON *node) override
     {
-        switch (type) {
-            case ParseType::SYSTEM_CONFIG: {
-                return Serializable::GetValue(node, GET_NAME(systemConfig), systemConfig);
-            }
-            case ParseType::INPUT_TYPE: {
-                return Serializable::GetValue(node, GET_NAME(supportedInputTypeList), inputType);
-            }
-            default: {
-                return false;
-            }
+        if (parseName == SUPPORTED_INPUT_TYPE_LIST) {
+            return Serializable::GetValue(node, parseName, inputType);
+        } else if (parseName == SYSTEM_CONFIG) {
+            return Serializable::GetValue(node, parseName, systemConfig);
+        } else {
+            return false;
         }
     }
 };
@@ -81,13 +79,13 @@ struct SysCfg : public Serializable {
 class SysCfgParser {
 public:
     static SysCfgParser &GetInstance();
-    bool ParseInputType(std::vector<InputTypeCfg> &configs);
-    bool ParseSystemConfig(SystemConfig &systemConfig);
+    bool ParseSysCfg(SysCfg &sysCfg);
 
 private:
     static constexpr const char *SYS_CFG_FILE_PATH = "etc/inputmethod/inputmethod_framework_config.json";
     SysCfgParser() = default;
     ~SysCfgParser() = default;
+    bool ParseSysCfg(const std::string &content, SysCfg &sysCfg);
 };
 } // namespace MiscServices
 } // namespace OHOS

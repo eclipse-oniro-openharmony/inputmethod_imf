@@ -316,6 +316,7 @@ ohos_unittest("InputMethodSwitchTest") {
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -350,6 +351,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -426,6 +428,7 @@ ohos_unittest("NewImeSwitchTest") {
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -467,6 +470,7 @@ ohos_unittest("IdentityCheckerTest") {
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -603,6 +607,8 @@ ohos_unittest("EnableImeDataParseTest") {
   ]
 
   deps = [
+    "${inputmethod_path}/services/json:imf_json_static",
+    "//third_party/cJSON:cjson",
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
@@ -647,6 +653,8 @@ ohos_unittest("SecurityModeParseTest") {
 
   deps = [
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/json:imf_json_static",
+    "//third_party/cJSON:cjson",
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
@@ -662,5 +670,34 @@ ohos_unittest("SecurityModeParseTest") {
     "input:libmmi-client",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+  ]
+}
+
+ohos_unittest("JsonOperateTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  module_out_path = module_output_path
+
+  sources = [ "src/json_operate_test.cpp" ]
+
+  deps = [
+    "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+    "//third_party/cJSON:cjson",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "ipc:ipc_single",
   ]
 }

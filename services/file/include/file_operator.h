@@ -34,7 +34,6 @@ public:
     static bool IsExist(const std::string &path);
 
 private:
-    static CfgFiles *GetSysCfgFiles(const std::string &path);
     static std::string Read(const std::string &path, const std::string &key);
 };
 } // namespace MiscServices

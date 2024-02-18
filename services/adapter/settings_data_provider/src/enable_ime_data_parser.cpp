@@ -189,40 +189,34 @@ int32_t EnableImeDataParser::GetEnableData(
         IMSA_HILOGW("Get value failed, or valueStr is empty");
         return ErrorCode::ERROR_ENABLE_IME;
     }
-    bool parseRet = false;
-    if (key == ENABLE_IME) {
-        parseRet = ParseEnableIme(valueStr, enableVec, userId);
+    auto parseName = GetParseName(key);
+    if (parseName.empty()) {
+        IMSA_HILOGE("Get parseName failed.");
+        return false;
     }
-    if (key == ENABLE_KEYBOARD) {
-        parseRet = ParseEnableIme(valueStr, enableVec, userId);
+    if (!ParseEnableData(valueStr, parseName, userId, enableVec)) {
+        IMSA_HILOGE("ParseEnableData failed");
+        return ErrorCode::ERROR_ENABLE_IME;
     }
-    return parseRet ? ErrorCode::NO_ERROR : ErrorCode::ERROR_ENABLE_IME;
+    return ErrorCode::NO_ERROR;
 }
 
-bool EnableImeDataParser::ParseEnableIme(
-    const std::string &valueStr, std::vector<std::string> &enableVec, int32_t userId)
+bool EnableImeDataParser::ParseEnableData(
+    const std::string &valueStr, const std::string &parseName, int32_t userId, std::vector<std::string> &enableVec)
 {
-    EnableIme ime(userId);
-    EnableImeCfg imeCfg{ { ime } };
-    auto ret = imeCfg.Unmarshall(valueStr);
+    EnableCfg cfg(parseName, userId);
+    auto ret = cfg.Unmarshall(valueStr);
     if (!ret) {
         return ret;
     }
-    enableVec = imeCfg.enableIme.imes;
+    enableVec = cfg.enableData.data;
     return true;
 }
 
-bool EnableImeDataParser::ParseEnableKeyboard(
-    const std::string &valueStr, std::vector<std::string> &enableVec, int32_t userId)
+std::string EnableImeDataParser::GetParseName(const std::string &key)
 {
-    EnableKeyboard keyboard(userId);
-    EnableKeyboardCfg keyboardCfg{ { keyboard } };
-    auto ret = keyboardCfg.Unmarshall(valueStr);
-    if (!ret) {
-        return ret;
-    }
-    enableVec = keyboardCfg.enableKeyboard.keyboards;
-    return true;
+    auto it = PARSE_NAME.find(key);
+    return it == PARSE_NAME.end() ? "" : it->second;
 }
 
 std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()

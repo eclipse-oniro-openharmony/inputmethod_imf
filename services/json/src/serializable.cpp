@@ -15,18 +15,40 @@
 
 #include "serializable.h"
 
-#include "global.h"
 namespace OHOS {
 namespace MiscServices {
 bool Serializable::Unmarshall(const std::string &content)
 {
     auto root = cJSON_Parse(content.c_str());
     if (root == nullptr) {
+        IMSA_HILOGE("parse failed");
         return false;
     }
     auto ret = Unmarshal(root);
     cJSON_Delete(root);
     return ret;
+}
+
+bool Serializable::Marshall(std::string &content) const
+{
+    cJSON *root = cJSON_CreateObject();
+    if (root == nullptr) {
+        return false;
+    }
+    auto ret = Marshal(root);
+    if (!ret) {
+        cJSON_Delete(root);
+        return false;
+    }
+    auto str = cJSON_PrintUnformatted(root);
+    if (str == nullptr) {
+        cJSON_Delete(root);
+        return false;
+    }
+    content = str;
+    cJSON_Delete(root);
+    cJSON_free(str);
+    return true;
 }
 
 bool Serializable::GetValue(cJSON *node, const std::string &name, std::string &value)
@@ -36,6 +58,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, std::string &v
         return false;
     }
     if (!cJSON_IsString(subNode)) {
+        IMSA_HILOGE("not string");
         return false;
     }
     value = subNode->valuestring;
@@ -49,6 +72,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, int32_t &value
         return false;
     }
     if (!cJSON_IsNumber(subNode)) {
+        IMSA_HILOGE("not number");
         return false;
     }
     value = subNode->valueint;
@@ -62,6 +86,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, bool &value)
         return false;
     }
     if (!cJSON_IsBool(subNode)) {
+        IMSA_HILOGE("not bool");
         return false;
     }
     value = false;
@@ -74,7 +99,8 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, bool &value)
 bool Serializable::GetValue(cJSON *node, const std::string &name, Serializable &value)
 {
     auto object = GetSubNode(node, name);
-    if (cJSON_IsObject(object)) {
+    if (!cJSON_IsObject(object)) {
+        IMSA_HILOGE("not object");
         return false;
     }
     return value.Unmarshal(object);
@@ -95,10 +121,11 @@ bool Serializable::SetValue(cJSON *node, const std::string &name, const int32_t 
 cJSON *Serializable::GetSubNode(cJSON *node, const std::string &name)
 {
     if (name.empty()) {
+        IMSA_HILOGD("end node");
         return node;
     }
     if (!cJSON_IsObject(node)) {
-        IMSA_HILOGE("The json is not object");
+        IMSA_HILOGE("not object");
         return nullptr;
     }
     if (!cJSON_HasObjectItem(node, name.c_str())) {

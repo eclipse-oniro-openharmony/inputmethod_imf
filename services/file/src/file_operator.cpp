@@ -69,25 +69,30 @@ bool FileOperator::Write(int32_t flags, const std::string &path, const std::stri
 
 bool FileOperator::Read(const std::string &path, const std::string &key, std::string &content)
 {
-    CfgFiles *cfgFiles = GetSysCfgFiles(path);
+    if (key.empty()) {
+        IMSA_HILOGE("key is empty");
+        return false;
+    }
+    CfgFiles *cfgFiles = GetCfgFiles(path.c_str());
     if (cfgFiles == nullptr) {
         IMSA_HILOGE("cfgFiles is nullptr");
         return false;
     }
     // parse config files, ordered by priority from high to low
     for (int32_t i = MAX_CFG_POLICY_DIRS_CNT - 1; i >= 0; i--) {
-        auto path = cfgFiles->paths[i];
-        if (path == nullptr || *path == '\0') {
+        auto pathTemp = cfgFiles->paths[i];
+        if (pathTemp == nullptr || *pathTemp == '\0') {
             continue;
         }
         char realPath[PATH_MAX + 1] = { 0x00 };
-        if (strlen(path) == 0 || strlen(path) > PATH_MAX || realpath(path, realPath) == nullptr) {
+        if (strlen(pathTemp) == 0 || strlen(pathTemp) > PATH_MAX || realpath(pathTemp, realPath) == nullptr) {
             IMSA_HILOGE("failed to get realpath");
             continue;
         }
         std::string cfgPath(realPath);
-        content = Read(cfgPath, key);
-        if (!content.empty()) {
+        auto contentTemp = Read(cfgPath, key);
+        if (!contentTemp.empty()) {
+            content = std::move(contentTemp);
             break;
         }
     }
@@ -97,11 +102,6 @@ bool FileOperator::Read(const std::string &path, const std::string &key, std::st
     }
     IMSA_HILOGI("content: %{public}s", content.c_str());
     return true;
-}
-
-CfgFiles *FileOperator::GetSysCfgFiles(const std::string &path)
-{
-    return GetCfgFiles(path.c_str());
 }
 
 std::string FileOperator::Read(const std::string &path, const std::string &key)

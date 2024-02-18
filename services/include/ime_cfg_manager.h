@@ -27,9 +27,9 @@
 #include "serializable.h"
 namespace OHOS {
 namespace MiscServices {
-struct ImePersistCfg : public Serializable {
-    ImePersistCfg()= default;
-    ImePersistCfg(int32_t userId, std::string currentIme, std::string currentSubName)
+struct ImePersistInfo : public Serializable {
+    ImePersistInfo() = default;
+    ImePersistInfo(int32_t userId, std::string currentIme, std::string currentSubName)
         : userId(userId), currentIme(std::move(currentIme)), currentSubName(std::move(currentSubName)){};
     static constexpr int32_t INVALID_USERID = -1;
     int32_t userId{ INVALID_USERID };
@@ -46,21 +46,21 @@ struct ImePersistCfg : public Serializable {
     bool Unmarshal(cJSON *node) override
     {
         Serializable::GetValue(node, GET_NAME(userId), userId);
-        Serializable::GetValue(node, GET_NAME(userId), currentIme);
-        Serializable::GetValue(node, GET_NAME(userId), currentSubName);
+        Serializable::GetValue(node, GET_NAME(currentIme), currentIme);
+        Serializable::GetValue(node, GET_NAME(currentSubName), currentSubName);
         return true;
     }
 };
 
-struct ImePersistInfo : public Serializable {
-    std::vector<ImePersistCfg> imePersistCfg;
+struct ImePersistCfg : public Serializable {
+    std::vector<ImePersistInfo> imePersistInfo;
     bool Marshal(cJSON *node) const override
     {
-        return Serializable::SetValue(node, GET_NAME(imeCfglist), imePersistCfg);
+        return Serializable::SetValue(node, GET_NAME(imeCfgList), imePersistInfo);
     }
     bool Unmarshal(cJSON *node) override
     {
-        return Serializable::GetValue(node, GET_NAME(imeCfglist), imePersistCfg);
+        return Serializable::GetValue(node, GET_NAME(imeCfgList), imePersistInfo);
     }
 };
 
@@ -75,8 +75,8 @@ class ImeCfgManager {
 public:
     static ImeCfgManager &GetInstance();
     void Init();
-    void AddImeCfg(const ImePersistCfg &cfg);
-    void ModifyImeCfg(const ImePersistCfg &cfg);
+    void AddImeCfg(const ImePersistInfo &cfg);
+    void ModifyImeCfg(const ImePersistInfo &cfg);
     void DeleteImeCfg(int32_t userId);
     std::shared_ptr<ImeNativeCfg> GetCurrentImeCfg(int32_t userId);
 
@@ -85,11 +85,11 @@ private:
     ~ImeCfgManager() = default;
     void ReadImeCfg();
     void WriteImeCfg();
-    ImePersistCfg GetImeCfg(int32_t userId);
+    ImePersistInfo GetImeCfg(int32_t userId);
     bool ParseImeCfg(const std::string &content);
     std::string PackageImeCfg();
     std::recursive_mutex imeCfgLock_;
-    std::vector<ImePersistCfg> imeConfigs_;
+    std::vector<ImePersistInfo> imeConfigs_;
 };
 } // namespace MiscServices
 } // namespace OHOS

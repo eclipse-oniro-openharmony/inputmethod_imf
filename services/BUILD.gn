@@ -28,6 +28,7 @@ config("inputmethod_services_native_config") {
     "${inputmethod_path}/services/adapter/system_language_observer/include",
     "${inputmethod_path}/services/adapter/wms_connection_monitor/include",
     "${inputmethod_path}/services/identity_checker/include",
+    "${inputmethod_path}/services/dfx/include",
   ]
 
   cflags_cc = [ "-fexceptions" ]

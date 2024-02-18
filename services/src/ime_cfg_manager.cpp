@@ -79,40 +79,44 @@ void ImeCfgManager::WriteImeCfg()
 
 bool ImeCfgManager::ParseImeCfg(const std::string &content)
 {
-    ImePersistInfo info;
-    auto ret = info.Unmarshall(content);
+    IMSA_HILOGD("content:%{public}s", content.c_str());
+    ImePersistCfg cfg;
+    auto ret = cfg.Unmarshall(content);
     if (!ret) {
+        IMSA_HILOGE("Unmarshall failed");
         return false;
     }
-    {
-        std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-        imeConfigs_ = info.imePersistCfg;
-    }
+    std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
+    imeConfigs_ = cfg.imePersistInfo;
     return true;
 }
 
 std::string ImeCfgManager::PackageImeCfg()
 {
-    ImePersistInfo info;
+    ImePersistCfg cfg;
     {
         std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-        info.imePersistCfg = imeConfigs_;
+        cfg.imePersistInfo = imeConfigs_;
     }
-    return Serializable::Marshall(info);
+    std::string content;
+    auto ret = cfg.Marshall(content);
+    IMSA_HILOGD(
+        "ret:%{public}d, content:%{public}s, size:%{public}zu", ret, content.c_str(), cfg.imePersistInfo.size());
+    return content;
 }
 
-void ImeCfgManager::AddImeCfg(const ImePersistCfg &cfg)
+void ImeCfgManager::AddImeCfg(const ImePersistInfo &cfg)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     imeConfigs_.push_back(cfg);
     WriteImeCfg();
 }
 
-void ImeCfgManager::ModifyImeCfg(const ImePersistCfg &cfg)
+void ImeCfgManager::ModifyImeCfg(const ImePersistInfo &cfg)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
-        [cfg](const ImePersistCfg &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
+        [cfg](const ImePersistInfo &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
     if (it != imeConfigs_.end()) {
         *it = cfg;
     }
@@ -132,11 +136,11 @@ void ImeCfgManager::DeleteImeCfg(int32_t userId)
     WriteImeCfg();
 }
 
-ImePersistCfg ImeCfgManager::GetImeCfg(int32_t userId)
+ImePersistInfo ImeCfgManager::GetImeCfg(int32_t userId)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     auto it = std::find_if(
-        imeConfigs_.begin(), imeConfigs_.end(), [userId](const ImePersistCfg &cfg) { return cfg.userId == userId; });
+        imeConfigs_.begin(), imeConfigs_.end(), [userId](const ImePersistInfo &cfg) { return cfg.userId == userId; });
     if (it != imeConfigs_.end()) {
         return *it;
     }

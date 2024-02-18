@@ -30,24 +30,25 @@
 
 namespace OHOS {
 namespace MiscServices {
-struct SecMode : public Serializable {
-    int32_t userId;
-    std::vector<std::string> modes;
-    explicit SecMode(int32_t userId) : userId(userId){};
-    bool Unmarshal(cJSON *node) override
-    {
-        return Serializable::GetValue(node, GET_NAME(userId), modes);
-    }
-};
 struct SecModeCfg : public Serializable {
+    struct SecMode : public Serializable {
+        int32_t userId{ -1 };
+        std::vector<std::string> modes;
+        bool Unmarshal(cJSON *node) override
+        {
+            return Serializable::GetValue(node, std::to_string(userId), modes);
+        }
+    };
     SecMode secMode;
-    explicit SecModeCfg(const SecMode &secMode) : secMode(std::move(secMode)){};
+    explicit SecModeCfg(int32_t userId)
+    {
+        secMode.userId = userId;
+    }
     bool Unmarshal(cJSON *node) override
     {
         return Serializable::GetValue(node, GET_NAME(fullExperienceList), secMode);
     }
 };
-
 class SecurityModeParser : public RefBase {
 public:
     static sptr<SecurityModeParser> GetInstance();

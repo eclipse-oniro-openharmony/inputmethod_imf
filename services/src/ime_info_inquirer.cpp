@@ -49,8 +49,13 @@ ImeInfoInquirer &ImeInfoInquirer::GetInstance()
 
 void ImeInfoInquirer::InitSystemConfig()
 {
-    auto ret = SysCfgParser::GetInstance().ParseSystemConfig(systemConfig_);
-    IMSA_HILOGD("ret: %{public}d", ret);
+    SysCfg sysCfg(SysCfg::SYSTEM_CONFIG);
+    auto ret = SysCfgParser::GetInstance().ParseSysCfg(sysCfg);
+    if (!ret) {
+        IMSA_HILOGE("ParseSysCfg failed");
+        return;
+    }
+    systemConfig_ = sysCfg.systemConfig;
 }
 
 bool ImeInfoInquirer::IsEnableInputMethod()
@@ -474,12 +479,12 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
         IMSA_HILOGE("GetProfileFromExtension failed");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
-    ImeSubtype imeSubtype;
-    if (!ParseImeSubType(profiles, imeSubtype)) {
+    SubtypeCfg subtypeCfg;
+    if (!ParseSubType(profiles, subtypeCfg)) {
         IMSA_HILOGE("ParseSubTypeCfg failed");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    auto subtypes = imeSubtype.subtypes;
+    auto subtypes = subtypeCfg.subtypes;
     IMSA_HILOGD("subtypes size: %{public}zu", subtypes.size());
     for (auto it = subtypes.begin(); it != subtypes.end();) {
         auto subtype = *it;
@@ -798,13 +803,13 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::FindTargetSubtypeByCondition(
     return std::make_shared<SubProperty>(*it);
 }
 
-bool ImeInfoInquirer::ParseImeSubType(const std::vector<std::string> &profiles, ImeSubtype &imeSubtype)
+bool ImeInfoInquirer::ParseSubType(const std::vector<std::string> &profiles, SubtypeCfg &subtypeCfg)
 {
     if (profiles.empty() || profiles.size() != SUBTYPE_PROFILE_NUM) {
         IMSA_HILOGE("profiles size: %{public}zu", profiles.size());
         return false;
     }
-    return imeSubtype.Unmarshall(profiles[0]);
+    return subtypeCfg.Unmarshall(profiles[0]);
 }
 
 std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()

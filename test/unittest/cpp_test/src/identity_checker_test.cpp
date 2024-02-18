@@ -15,7 +15,6 @@
 
 #define private public
 #define protected public
-#include "ime_cfg_manager.h"
 #include "input_method_system_ability.h"
 #undef private
 

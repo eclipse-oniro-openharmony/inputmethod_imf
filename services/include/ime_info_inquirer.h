@@ -26,12 +26,12 @@
 #include "bundle_mgr_proxy.h"
 #include "element_name.h"
 #include "enable_ime_data_parser.h"
-#include "erializable.h"
 #include "ime_cfg_manager.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
 #include "refbase.h"
+#include "serializable.h"
 #include "sys_cfg_parser.h"
 namespace OHOS {
 namespace MiscServices {
@@ -51,7 +51,7 @@ enum class Condition {
     CHINESE,
 };
 
-struct ImeSubtype : public Serializable {
+struct SubtypeCfg : public Serializable {
     struct Subtype : public Serializable {
         std::string label;
         std::string id;
@@ -128,7 +128,7 @@ private:
         const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, std::vector<SubProperty> &subProps);
     int32_t ListInputMethodSubtype(const int32_t userId, const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo,
         std::vector<SubProperty> &subProps);
-    bool ParseImeSubType(const std::vector<std::string> &profiles, ImeSubtype &imeSubtype);
+    bool ParseSubType(const std::vector<std::string> &profiles, SubtypeCfg &subtypeCfg);
     void CovertToLanguage(const std::string &locale, std::string &language);
     bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
 

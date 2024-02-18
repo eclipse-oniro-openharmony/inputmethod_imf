@@ -79,8 +79,7 @@ bool SecurityModeParser::IsSecurityChange(const std::string bundleName, const in
 
 bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const int32_t userId)
 {
-    SecMode secMode(userId);
-    SecModeCfg modeCfg{ { secMode } };
+    SecModeCfg modeCfg(userId);
     auto ret = modeCfg.Unmarshall(valueStr);
     if (!ret) {
         return ret;
