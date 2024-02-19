@@ -395,6 +395,7 @@ int32_t InputMethodAbility::ShowKeyboard()
             IMSA_HILOGE("panel is nullptr.");
             return ErrorCode::ERROR_IME;
         }
+        NotifyKeyboardHeight(panel);
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(true);
         if (flag == FLG_CANDIDATE_COLUMN) {
@@ -744,8 +745,7 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
 {
     IMSA_HILOGI("IMA");
     auto flag = panels_.ComputeIfAbsent(panelInfo.panelType,
-        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType,
-            std::shared_ptr<InputMethodPanel> &panel) {
+        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) {
             inputMethodPanel = std::make_shared<InputMethodPanel>();
             auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
             if (ret == ErrorCode::NO_ERROR) {
