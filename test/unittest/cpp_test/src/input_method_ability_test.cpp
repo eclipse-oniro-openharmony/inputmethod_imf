@@ -905,7 +905,6 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_005, TestSize.Level0)
 * @tc.desc: NotifyKeyboardHeight SOFT_KEYBOARD  FLG_FIXED
 * @tc.type: FUNC
 * @tc.require:
-
 * @tc.author: mashaoyin
 */
 HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_001, TestSize.Level0)
@@ -930,7 +929,6 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_001, TestSize.Level0)
 * @tc.desc: NotifyKeyboardHeight STATUS_BAR  FLG_FIXED
 * @tc.type: FUNC
 * @tc.require:
-
 * @tc.author: mashaoyin
 */
 HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_002, TestSize.Level0)
@@ -955,7 +953,6 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_002, TestSize.Level0)
 * @tc.desc: NotifyKeyboardHeight SOFT_KEYBOARD  FLG_CANDIDATE_COLUMN
 * @tc.type: FUNC
 * @tc.require:
-
 * @tc.author: mashaoyin
 */
 HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
@@ -971,6 +968,50 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
     inputMethodAbility_->NotifyKeyboardHeight(panel);
     EXPECT_TRUE(TextListener::WaitNotifyKeyboardHeightCallback(0));
 
+    ret = inputMethodAbility_->DestroyPanel(panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testNotifyKeyboardHeight_004
+* @tc.desc: NotifyKeyboardHeight Attach with hard keyboard
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: mashaoyin
+*/
+HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_004, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_004 START");
+    TextListener::ResetParam();
+    PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_CANDIDATE_COLUMN };
+    auto panel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    panel->Resize(1, 1);
+    imc_->Attach(textListener_);
+    EXPECT_TRUE(TextListener::WaitNotifyKeyboardHeightCallback(0));
+    ret = inputMethodAbility_->DestroyPanel(panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+* @tc.name: testNotifyKeyboardHeight_005
+* @tc.desc: NotifyKeyboardHeight Attach
+* @tc.type: FUNC
+* @tc.require:
+* @tc.author: mashaoyin
+*/
+HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_005, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_005 START");
+    TextListener::ResetParam();
+    PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto panel = std::make_shared<InputMethodPanel>();
+    auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    panel->Resize(1, 1);
+    imc_->Attach(textListener_);
+    EXPECT_TRUE(TextListener::WaitNotifyKeyboardHeightCallback(1));
     ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
