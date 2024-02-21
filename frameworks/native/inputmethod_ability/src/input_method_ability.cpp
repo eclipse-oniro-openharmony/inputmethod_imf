@@ -395,6 +395,7 @@ int32_t InputMethodAbility::ShowKeyboard()
             IMSA_HILOGE("panel is nullptr.");
             return ErrorCode::ERROR_IME;
         }
+        NotifyKeyboardHeight(panel);
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(true);
         if (flag == FLG_CANDIDATE_COLUMN) {
