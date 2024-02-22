@@ -31,22 +31,10 @@
 namespace OHOS {
 namespace MiscServices {
 struct SecModeCfg : public Serializable {
-    struct SecMode : public Serializable {
-        int32_t userId{ -1 };
-        std::vector<std::string> modes;
-        bool Unmarshal(cJSON *node) override
-        {
-            return Serializable::GetValue(node, std::to_string(userId), modes);
-        }
-    };
-    SecMode secMode;
-    explicit SecModeCfg(int32_t userId)
-    {
-        secMode.userId = userId;
-    }
+    UserImeConfig userImeCfg;
     bool Unmarshal(cJSON *node) override
     {
-        return Serializable::GetValue(node, GET_NAME(fullExperienceList), secMode);
+        return GetValue(node, GET_NAME(fullExperienceList), userImeCfg);
     }
 };
 class SecurityModeParser : public RefBase {

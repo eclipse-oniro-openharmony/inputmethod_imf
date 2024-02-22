@@ -32,11 +32,18 @@ struct SystemConfig : public Serializable {
     bool enableFullExperienceFeature = false;
     bool Unmarshal(cJSON *node) override
     {
-        Serializable::GetValue(node, GET_NAME(systemInputMethodConfigAbility), systemInputMethodConfigAbility);
-        Serializable::GetValue(node, GET_NAME(defaultInputMethod), defaultInputMethod);
-        Serializable::GetValue(node, GET_NAME(enableInputMethodFeature), enableInputMethodFeature);
-        Serializable::GetValue(node, GET_NAME(enableFullExperienceFeature), enableFullExperienceFeature);
+        GetValue(node, GET_NAME(systemInputMethodConfigAbility), systemInputMethodConfigAbility);
+        GetValue(node, GET_NAME(defaultInputMethod), defaultInputMethod);
+        GetValue(node, GET_NAME(enableInputMethodFeature), enableInputMethodFeature);
+        GetValue(node, GET_NAME(enableFullExperienceFeature), enableFullExperienceFeature);
         return true;
+    }
+};
+struct ImeSystemConfig : public Serializable {
+    SystemConfig systemConfig;
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, GET_NAME(systemConfig), systemConfig);
     }
 };
 
@@ -47,45 +54,32 @@ struct InputTypeInfo : public Serializable {
     bool Unmarshal(cJSON *node) override
     {
         int32_t typeTemp = -1;
-        Serializable::GetValue(node, GET_NAME(inputType), typeTemp);
-        type = static_cast<InputType>(typeTemp);
-        Serializable::GetValue(node, GET_NAME(bundleName), bundleName);
-        Serializable::GetValue(node, GET_NAME(subtypeId), subName);
-        return true;
-    }
-};
-
-struct SysCfg : public Serializable {
-    static constexpr const char *SUPPORTED_INPUT_TYPE_LIST = "supportedInputTypeList";
-    static constexpr const char *SYSTEM_CONFIG = "systemConfig";
-    std::string parseName;
-    SystemConfig systemConfig;
-    std::vector<InputTypeInfo> inputType;
-    explicit SysCfg(std::string parseName) : parseName(std::move(parseName))
-    {
-    }
-    bool Unmarshal(cJSON *node) override
-    {
-        if (parseName == SUPPORTED_INPUT_TYPE_LIST) {
-            return Serializable::GetValue(node, parseName, inputType);
-        } else if (parseName == SYSTEM_CONFIG) {
-            return Serializable::GetValue(node, parseName, systemConfig);
-        } else {
+        auto ret = GetValue(node, GET_NAME(inputType), typeTemp);
+        if (typeTemp <= static_cast<int32_t>(InputType::NONE) || typeTemp >= static_cast<int32_t>(InputType::END)) {
             return false;
         }
+        type = static_cast<InputType>(typeTemp);
+        ret = GetValue(node, GET_NAME(bundleName), bundleName) && ret;
+        ret = GetValue(node, GET_NAME(subtypeId), subName) && ret;
+        return ret;
+    }
+};
+struct InputTypeCfg : public Serializable {
+    std::vector<InputTypeInfo> inputType;
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, GET_NAME(supportedInputTypeList), inputType);
     }
 };
 
 class SysCfgParser {
 public:
-    static SysCfgParser &GetInstance();
-    bool ParseSysCfg(SysCfg &sysCfg);
+    static bool ParseSystemConfig(SystemConfig &systemConfig);
+    static bool ParseInputType(std::vector<InputTypeInfo> &inputType);
 
 private:
     static constexpr const char *SYS_CFG_FILE_PATH = "etc/inputmethod/inputmethod_framework_config.json";
-    SysCfgParser() = default;
-    ~SysCfgParser() = default;
-    bool ParseSysCfg(const std::string &content, SysCfg &sysCfg);
+    static std::string GetSysCfgContent(const std::string &key);
 };
 } // namespace MiscServices
 } // namespace OHOS

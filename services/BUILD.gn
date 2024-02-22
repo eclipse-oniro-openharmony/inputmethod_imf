@@ -78,7 +78,7 @@ ohos_shared_library("inputmethod_service") {
     "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
     "${inputmethod_path}/services/file:imf_file_static",
     "${inputmethod_path}/services/json:imf_json_static",
-    "//third_party/cJSON:cjson"
+    "//third_party/cJSON:cjson",
   ]
 
   external_deps = [

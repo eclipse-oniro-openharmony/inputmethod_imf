@@ -35,8 +35,19 @@ public:
                                                    "extName\",\"currentSubName\":\"subName\"},{\"userId\":"
                                                    "104,\"currentIme\":\"bundleName1/"
                                                    "extName1\",\"currentSubName\":\"subName1\"}]}";
-    static constexpr const char *PARSE_NAME = "enableImeList";
-    static constexpr const char *PARSE_NAME1 = "enableKeyboardList";
+    static constexpr const char *IME_PERSIST_CFG_NULL = "{\"imeCfgList\":[]}";
+    static constexpr const char *IME_PERSIST_CFG_VALUE_TYPE_ERROR = "{\"imeCfgList\":[{\"userId\":100,\"currentIme\":"
+                                                                    "\"bundleName/"
+                                                                    "extName\",\"currentSubName\":\"subName\"},{"
+                                                                    "\"userId\":"
+                                                                    "\"104\",\"currentIme\":\"bundleName1/"
+                                                                    "extName1\",\"currentSubName\":\"subName1\"}]}";
+    static constexpr const char *IME_PERSIST_CFG_NAME_LACK = "{\"imeCfgList\":[{\"userId\":100,\"currentSubName\":"
+                                                             "\"subName\"}]}";
+    static constexpr const char *IME_PERSIST_CFG_NAME_ERROR = "{\"imeCfgList\":[{\"userId\":100, \"bundle\": "
+                                                              "\"bundleName/extNme\",\"currentSubName\":"
+                                                              "\"subName\"}]}";
+
     static constexpr const char *ENABLE_IME = "{\"enableImeList\" : {\"100\" : [ \"testIme\", \"testIme1\", "
                                               "\"testIme2\"],\"101\" : [\"testIme3\"], \"102\" : []}}";
     static constexpr const char *ENABLE_KEYBOARD = "{\"enableKeyboardList\" : {\"100\" : [ \"testKeyboard\", "
@@ -83,7 +94,7 @@ HWTEST_F(JsonOperateTest, testParseEnableIme001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testParseEnableIme001 START");
     std::vector<std::string> enableVec;
-    auto ret = EnableImeDataParser::GetInstance()->ParseEnableData(ENABLE_IME, PARSE_NAME, 100, enableVec);
+    auto ret = EnableImeDataParser::GetInstance()->ParseEnableIme(ENABLE_IME, 100, enableVec);
     ASSERT_TRUE(ret);
     ASSERT_EQ(enableVec.size(), 3);
     EXPECT_EQ(enableVec[0], "testIme");
@@ -91,26 +102,23 @@ HWTEST_F(JsonOperateTest, testParseEnableIme001, TestSize.Level0)
     EXPECT_EQ(enableVec[2], "testIme2");
 
     std::vector<std::string> enableVec1;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableData(ENABLE_IME, PARSE_NAME, 101, enableVec1);
+    ret = EnableImeDataParser::GetInstance()->ParseEnableIme(ENABLE_IME, 101, enableVec1);
     ASSERT_TRUE(ret);
     ASSERT_EQ(enableVec1.size(), 1);
     EXPECT_EQ(enableVec1[0], "testIme3");
 
     std::vector<std::string> enableVec2;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableData(ENABLE_IME, PARSE_NAME, 102, enableVec2);
+    ret = EnableImeDataParser::GetInstance()->ParseEnableIme(ENABLE_IME, 102, enableVec2);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(enableVec2.empty());
 
     std::vector<std::string> enableVec3;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableData(ENABLE_IME, PARSE_NAME, 104, enableVec3);
+    ret = EnableImeDataParser::GetInstance()->ParseEnableIme(
+        ENABLE_IME, 104, enableVec3);
     EXPECT_FALSE(ret);
 
     std::vector<std::string> enableVec4;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableData(ENABLE_IME, "", 100, enableVec4);
-    EXPECT_FALSE(ret);
-
-    std::vector<std::string> enableVec5;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableData(ENABLE_KEYBOARD, PARSE_NAME, 100, enableVec5);
+    ret = EnableImeDataParser::GetInstance()->ParseEnableIme(ENABLE_KEYBOARD, 100, enableVec4);
     EXPECT_FALSE(ret);
 }
 /**
@@ -124,29 +132,29 @@ HWTEST_F(JsonOperateTest, testParseEnableKeyboard001, TestSize.Level0)
 {
     IMSA_HILOGI("JsonOperateTest testParseEnableKeyboard001 START");
     std::vector<std::string> enableVec;
-    auto ret = EnableImeDataParser::GetInstance()->ParseEnableData(ENABLE_KEYBOARD, PARSE_NAME1, 100, enableVec);
+    auto ret = EnableImeDataParser::GetInstance()->ParseEnableKeyboard(ENABLE_KEYBOARD, 100, enableVec);
     ASSERT_TRUE(ret);
     ASSERT_EQ(enableVec.size(), 2);
     EXPECT_EQ(enableVec[0], "testKeyboard");
     EXPECT_EQ(enableVec[1], "testKeyboard1");
 
     std::vector<std::string> enableVec1;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableData(ENABLE_KEYBOARD, PARSE_NAME1, 101, enableVec1);
+    ret = EnableImeDataParser::GetInstance()->ParseEnableKeyboard(ENABLE_KEYBOARD, 101, enableVec1);
     ASSERT_TRUE(ret);
     ASSERT_EQ(enableVec1.size(), 1);
     EXPECT_EQ(enableVec1[0], "testKeyboard2");
 
     std::vector<std::string> enableVec2;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableData(ENABLE_KEYBOARD, PARSE_NAME1, 105, enableVec2);
+    ret = EnableImeDataParser::GetInstance()->ParseEnableKeyboard(ENABLE_KEYBOARD, 105, enableVec2);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(enableVec2.empty());
 
     std::vector<std::string> enableVec3;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableData(ENABLE_KEYBOARD, PARSE_NAME1, 104, enableVec3);
+    ret = EnableImeDataParser::GetInstance()->ParseEnableKeyboard(ENABLE_KEYBOARD, 104, enableVec3);
     EXPECT_FALSE(ret);
 
     std::vector<std::string> enableVec4;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableData(ENABLE_IME, PARSE_NAME1, 100, enableVec4);
+    ret = EnableImeDataParser::GetInstance()->ParseEnableKeyboard(ENABLE_IME, 100, enableVec4);
     EXPECT_FALSE(ret);
 }
 
@@ -202,6 +210,26 @@ HWTEST_F(JsonOperateTest, testParseImePersistCfg001, TestSize.Level0)
     EXPECT_EQ(cfg[1].currentIme, "bundleName1/extName1");
     EXPECT_EQ(cfg[1].currentSubName, "subName1");
 
+    ImeCfgManager::GetInstance().imeConfigs_.clear();
+    ret = ImeCfgManager::GetInstance().ParseImeCfg(JsonOperateTest::IME_PERSIST_CFG_NULL);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(ImeCfgManager::GetInstance().imeConfigs_.empty());
+
+    ImeCfgManager::GetInstance().imeConfigs_.clear();
+    ret = ImeCfgManager::GetInstance().ParseImeCfg(JsonOperateTest::IME_PERSIST_CFG_VALUE_TYPE_ERROR);
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ImeCfgManager::GetInstance().imeConfigs_.empty());
+
+    ImeCfgManager::GetInstance().imeConfigs_.clear();
+    ret = ImeCfgManager::GetInstance().ParseImeCfg(JsonOperateTest::IME_PERSIST_CFG_NAME_LACK);
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ImeCfgManager::GetInstance().imeConfigs_.empty());
+
+    ImeCfgManager::GetInstance().imeConfigs_.clear();
+    ret = ImeCfgManager::GetInstance().ParseImeCfg(JsonOperateTest::IME_PERSIST_CFG_NAME_ERROR);
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ImeCfgManager::GetInstance().imeConfigs_.empty());
+
     ret = ImeCfgManager::GetInstance().ParseImeCfg(JsonOperateTest::ENABLE_KEYBOARD);
     EXPECT_FALSE(ret);
 }
@@ -224,41 +252,39 @@ HWTEST_F(JsonOperateTest, testPackageImePersistCfg001, TestSize.Level0)
 }
 
 /**
-* @tc.name: testParseSysCfg001
+* @tc.name: testParseSystemConfig001
 * @tc.desc: parse systemConfig
 * @tc.type: FUNC
 * @tc.require:
 * @tc.author: chenyu
 */
-HWTEST_F(JsonOperateTest, testParseSysCfg001, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testParseSystemConfig001, TestSize.Level0)
 {
-    IMSA_HILOGI("JsonOperateTest testParseSysCfg001 START");
-    SysCfg sysCfg(SysCfg::SYSTEM_CONFIG);
-    auto ret = SysCfgParser::GetInstance().ParseSysCfg(JsonOperateTest::INPUT_SYS_CGF, sysCfg);
+    IMSA_HILOGI("JsonOperateTest testParseSystemConfig001 START");
+    ImeSystemConfig imeSystemConfig;
+    auto ret = imeSystemConfig.Unmarshall(INPUT_SYS_CGF);
     ASSERT_TRUE(ret);
-    auto systemConfig = sysCfg.systemConfig;
+    auto systemConfig = imeSystemConfig.systemConfig;
     EXPECT_EQ(systemConfig.systemInputMethodConfigAbility, "setAbility");
     EXPECT_EQ(systemConfig.defaultInputMethod, "bundleName/extName");
     EXPECT_TRUE(systemConfig.enableInputMethodFeature);
     EXPECT_TRUE(systemConfig.enableFullExperienceFeature);
-
-    EXPECT_TRUE(sysCfg.inputType.empty());
 }
 
 /**
-* @tc.name: testParseSysCfg002
+* @tc.name: testParseInputType001
 * @tc.desc: parse inputType
 * @tc.type: FUNC
 * @tc.require:
 * @tc.author: chenyu
 */
-HWTEST_F(JsonOperateTest, testParseSysCfg002, TestSize.Level0)
+HWTEST_F(JsonOperateTest, testParseInputType001, TestSize.Level0)
 {
-    IMSA_HILOGI("JsonOperateTest testParseSysCfg002 START");
-    SysCfg sysCfg(SysCfg::SUPPORTED_INPUT_TYPE_LIST);
-    auto ret = SysCfgParser::GetInstance().ParseSysCfg(JsonOperateTest::INPUT_SYS_CGF, sysCfg);
+    IMSA_HILOGI("JsonOperateTest testParseInputType001 START");
+    InputTypeCfg inputTypeCfg;
+    auto ret = inputTypeCfg.Unmarshall(INPUT_SYS_CGF);
     ASSERT_TRUE(ret);
-    auto inputType = sysCfg.inputType;
+    auto inputType = inputTypeCfg.inputType;
     ASSERT_EQ(inputType.size(), 2);
     EXPECT_EQ(inputType[0].type, InputType::CAMERA_INPUT);
     EXPECT_EQ(inputType[0].subName, "testSubtypeId");
@@ -266,24 +292,6 @@ HWTEST_F(JsonOperateTest, testParseSysCfg002, TestSize.Level0)
     EXPECT_EQ(inputType[1].type, InputType::SECURITY_INPUT);
     EXPECT_EQ(inputType[1].subName, "");
     EXPECT_EQ(inputType[1].bundleName, "");
-
-    EXPECT_EQ(sysCfg.systemConfig.defaultInputMethod, "");
-    EXPECT_FALSE(sysCfg.systemConfig.enableInputMethodFeature);
-}
-
-/**
-* @tc.name: testParseSysCfg003
-* @tc.desc: parse NONE
-* @tc.type: FUNC
-* @tc.require:
-* @tc.author: chenyu
-*/
-HWTEST_F(JsonOperateTest, testParseSysCfg003, TestSize.Level0)
-{
-    IMSA_HILOGI("JsonOperateTest testParseSysCfg003 START");
-    SysCfg sysCfg("");
-    auto ret = SysCfgParser::GetInstance().ParseSysCfg(JsonOperateTest::INPUT_SYS_CGF, sysCfg);
-    ASSERT_FALSE(ret);
 }
 
 /**

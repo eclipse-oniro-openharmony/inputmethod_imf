@@ -63,7 +63,7 @@ int32_t SecurityModeParser::GetFullModeList(const int32_t userId)
     }
 
     if (!ParseSecurityMode(valueStr, userId)) {
-        IMSA_HILOGE("valueStr is empty");
+        IMSA_HILOGE("Parse %{public}s failed by %{public}d", valueStr.c_str(), userId);
         return ErrorCode::ERROR_ENABLE_SECURITY_MODE;
     }
     return ErrorCode::NO_ERROR;
@@ -79,13 +79,14 @@ bool SecurityModeParser::IsSecurityChange(const std::string bundleName, const in
 
 bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const int32_t userId)
 {
-    SecModeCfg modeCfg(userId);
-    auto ret = modeCfg.Unmarshall(valueStr);
+    SecModeCfg secModeCfg;
+    secModeCfg.userImeCfg.userId = std::to_string(userId);
+    auto ret = secModeCfg.Unmarshall(valueStr);
     if (!ret) {
         return ret;
     }
     std::lock_guard<std::mutex> autoLock(listMutex_);
-    fullModeList_ = modeCfg.secMode.modes;
+    fullModeList_ = secModeCfg.userImeCfg.identities;
     return true;
 }
 

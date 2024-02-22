@@ -26,14 +26,15 @@ namespace OHOS {
 namespace MiscServices {
 class FileOperator {
 public:
-    static int32_t Create(mode_t mode, const std::string &path);
+    static bool Create(const std::string &path, mode_t mode);
+    static bool IsExist(const std::string &path);
     static bool Read(const std::string &path, std::string &content);
     static bool Read(const std::string &path, const std::string &key, std::string &content);
     static bool Write(
-        int32_t flags, const std::string &path, const std::string &content, mode_t mode = S_IRUSR | S_IWUSR);
-    static bool IsExist(const std::string &path);
+        const std::string &path, const std::string &content, int32_t flags, mode_t mode = S_IRUSR | S_IWUSR);
 
 private:
+    static constexpr int32_t SUCCESS = 0;
     static std::string Read(const std::string &path, const std::string &key);
 };
 } // namespace MiscServices

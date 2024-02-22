@@ -31,7 +31,6 @@
 #include "input_method_property.h"
 #include "input_method_status.h"
 #include "refbase.h"
-#include "serializable.h"
 #include "sys_cfg_parser.h"
 namespace OHOS {
 namespace MiscServices {
@@ -51,28 +50,28 @@ enum class Condition {
     CHINESE,
 };
 
+struct Subtype : public Serializable {
+    std::string label;
+    std::string id;
+    std::string icon;
+    std::string mode;
+    std::string locale;
+    bool Unmarshal(cJSON *node) override
+    {
+        GetValue(node, GET_NAME(label), label);
+        auto ret = GetValue(node, GET_NAME(id), id);
+        GetValue(node, GET_NAME(icon), icon);
+        GetValue(node, GET_NAME(mode), mode);
+        GetValue(node, GET_NAME(locale), locale);
+        return ret;
+    }
+};
 struct SubtypeCfg : public Serializable {
-    struct Subtype : public Serializable {
-        std::string label;
-        std::string id;
-        std::string icon;
-        std::string mode;
-        std::string locale;
-        bool Unmarshal(cJSON *node) override
-        {
-            Serializable::GetValue(node, GET_NAME(label), label);
-            Serializable::GetValue(node, GET_NAME(id), id);
-            Serializable::GetValue(node, GET_NAME(icon), icon);
-            Serializable::GetValue(node, GET_NAME(mode), mode);
-            Serializable::GetValue(node, GET_NAME(locale), locale);
-            return true;
-        }
-    };
     static constexpr uint32_t MAX_SUBTYPE_NUM = 256;
     std::vector<Subtype> subtypes;
     bool Unmarshal(cJSON *node) override
     {
-        return Serializable::GetValue(node, GET_NAME(subtypes), subtypes, MAX_SUBTYPE_NUM);
+        return GetValue(node, GET_NAME(subtypes), subtypes, MAX_SUBTYPE_NUM);
     }
 };
 
@@ -92,7 +91,7 @@ public:
     void SetCurrentImeInfo(std::shared_ptr<ImeInfo> info);
     void RefreshCurrentImeInfo(int32_t userId);
     std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(
-        const std::vector<SubProperty> &subProps, const Condition &condition);
+    const std::vector<SubProperty> &subProps, const Condition &condition);
     int32_t GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop);
     int32_t GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig);
     int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);

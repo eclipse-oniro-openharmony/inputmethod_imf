@@ -16,12 +16,9 @@
 #ifndef SERVICES_INCLUDE_IME_CFG_MANAGER_H
 #define SERVICES_INCLUDE_IME_CFG_MANAGER_H
 
-#include <sys/types.h>
-
 #include <memory>
 #include <mutex>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "serializable.h"
@@ -38,17 +35,17 @@ struct ImePersistInfo : public Serializable {
 
     bool Marshal(cJSON *node) const override
     {
-        Serializable::SetValue(node, GET_NAME(userId), userId);
-        Serializable::SetValue(node, GET_NAME(currentIme), currentIme);
-        Serializable::SetValue(node, GET_NAME(currentSubName), currentSubName);
-        return true;
+        auto ret = SetValue(node, GET_NAME(userId), userId);
+        ret = SetValue(node, GET_NAME(currentIme), currentIme) && ret;
+        SetValue(node, GET_NAME(currentSubName), currentSubName);
+        return ret;
     }
     bool Unmarshal(cJSON *node) override
     {
-        Serializable::GetValue(node, GET_NAME(userId), userId);
-        Serializable::GetValue(node, GET_NAME(currentIme), currentIme);
-        Serializable::GetValue(node, GET_NAME(currentSubName), currentSubName);
-        return true;
+        auto ret = GetValue(node, GET_NAME(userId), userId);
+        ret = GetValue(node, GET_NAME(currentIme), currentIme) && ret;
+        GetValue(node, GET_NAME(currentSubName), currentSubName);
+        return ret;
     }
 };
 
@@ -56,11 +53,11 @@ struct ImePersistCfg : public Serializable {
     std::vector<ImePersistInfo> imePersistInfo;
     bool Marshal(cJSON *node) const override
     {
-        return Serializable::SetValue(node, GET_NAME(imeCfgList), imePersistInfo);
+        return SetValue(node, GET_NAME(imeCfgList), imePersistInfo);
     }
     bool Unmarshal(cJSON *node) override
     {
-        return Serializable::GetValue(node, GET_NAME(imeCfgList), imePersistInfo);
+        return GetValue(node, GET_NAME(imeCfgList), imePersistInfo);
     }
 };
 

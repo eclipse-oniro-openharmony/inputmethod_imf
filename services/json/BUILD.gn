@@ -28,18 +28,14 @@ ohos_static_library("imf_json_static") {
     cfi_cross_dso = true
     debug = false
   }
-  sources = [
-    "src/serializable.cpp",
-  ]
+  sources = [ "src/serializable.cpp" ]
 
   public_configs = [ ":imf_json_config" ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
 
-  deps = ["//third_party/cJSON:cjson"]
-  external_deps = [
-    "hilog:libhilog",
-  ]
+  deps = [ "//third_party/cJSON:cjson" ]
+  external_deps = [ "hilog:libhilog" ]
   subsystem_name = "inputmethod"
   part_name = "imf"
 }

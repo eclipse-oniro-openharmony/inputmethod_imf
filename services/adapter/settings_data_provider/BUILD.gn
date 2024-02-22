@@ -44,7 +44,7 @@ ohos_static_library("settings_data_static") {
   cflags_cc = [ "-fvisibility=hidden" ]
   deps = [
     "${inputmethod_path}/services/json:imf_json_static",
-    "//third_party/cJSON:cjson"
+    "//third_party/cJSON:cjson",
   ]
   external_deps = [
     "ability_base:zuri",

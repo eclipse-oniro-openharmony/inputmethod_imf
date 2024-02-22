@@ -189,34 +189,40 @@ int32_t EnableImeDataParser::GetEnableData(
         IMSA_HILOGW("Get value failed, or valueStr is empty");
         return ErrorCode::ERROR_ENABLE_IME;
     }
-    auto parseName = GetParseName(key);
-    if (parseName.empty()) {
-        IMSA_HILOGE("Get parseName failed.");
-        return false;
+    auto parseRet = false;
+    if (key == ENABLE_IME) {
+        parseRet = ParseEnableIme(valueStr, userId, enableVec);
     }
-    if (!ParseEnableData(valueStr, parseName, userId, enableVec)) {
-        IMSA_HILOGE("ParseEnableData failed");
-        return ErrorCode::ERROR_ENABLE_IME;
+    if (key == ENABLE_KEYBOARD) {
+        parseRet = ParseEnableKeyboard(valueStr, userId, enableVec);
     }
-    return ErrorCode::NO_ERROR;
+    return parseRet ? ErrorCode::NO_ERROR : ErrorCode::ERROR_ENABLE_IME;
 }
 
-bool EnableImeDataParser::ParseEnableData(
-    const std::string &valueStr, const std::string &parseName, int32_t userId, std::vector<std::string> &enableVec)
+bool EnableImeDataParser::ParseEnableIme(
+    const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec)
 {
-    EnableCfg cfg(parseName, userId);
-    auto ret = cfg.Unmarshall(valueStr);
+    EnableImeCfg enableIme;
+    enableIme.userImeCfg.userId = std::to_string(userId);
+    auto ret = enableIme.Unmarshall(valueStr);
     if (!ret) {
         return ret;
     }
-    enableVec = cfg.enableData.data;
+    enableVec = enableIme.userImeCfg.identities;
     return true;
 }
 
-std::string EnableImeDataParser::GetParseName(const std::string &key)
+bool EnableImeDataParser::ParseEnableKeyboard(
+    const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec)
 {
-    auto it = PARSE_NAME.find(key);
-    return it == PARSE_NAME.end() ? "" : it->second;
+    EnableKeyBoardCfg enableKeyboard;
+    enableKeyboard.userImeCfg.userId = std::to_string(userId);
+    auto ret = enableKeyboard.Unmarshall(valueStr);
+    if (!ret) {
+        return ret;
+    }
+    enableVec = enableKeyboard.userImeCfg.identities;
+    return true;
 }
 
 std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()

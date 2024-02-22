@@ -28,16 +28,14 @@ ohos_static_library("imf_file_static") {
     cfi_cross_dso = true
     debug = false
   }
-  sources = [
-    "src/file_operator.cpp",
-  ]
+  sources = [ "src/file_operator.cpp" ]
   public_configs = [ ":imf_file_config" ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
 
   external_deps = [
-    "config_policy:configpolicy_util",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "hilog:libhilog",
   ]
   subsystem_name = "inputmethod"

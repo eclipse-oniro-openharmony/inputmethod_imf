@@ -20,8 +20,8 @@ namespace MiscServices {
 bool Serializable::Unmarshall(const std::string &content)
 {
     auto root = cJSON_Parse(content.c_str());
-    if (root == nullptr) {
-        IMSA_HILOGE("parse failed");
+    if (root == NULL) {
+        IMSA_HILOGE("%{public}s:parse failed", content.c_str());
         return false;
     }
     auto ret = Unmarshal(root);
@@ -32,7 +32,7 @@ bool Serializable::Unmarshall(const std::string &content)
 bool Serializable::Marshall(std::string &content) const
 {
     cJSON *root = cJSON_CreateObject();
-    if (root == nullptr) {
+    if (root == NULL) {
         return false;
     }
     auto ret = Marshal(root);
@@ -41,7 +41,7 @@ bool Serializable::Marshall(std::string &content) const
         return false;
     }
     auto str = cJSON_PrintUnformatted(root);
-    if (str == nullptr) {
+    if (str == NULL) {
         cJSON_Delete(root);
         return false;
     }
@@ -54,11 +54,8 @@ bool Serializable::Marshall(std::string &content) const
 bool Serializable::GetValue(cJSON *node, const std::string &name, std::string &value)
 {
     auto subNode = GetSubNode(node, name);
-    if (subNode == nullptr) {
-        return false;
-    }
     if (!cJSON_IsString(subNode)) {
-        IMSA_HILOGE("not string");
+        IMSA_HILOGE("%{public}s not string", name.c_str());
         return false;
     }
     value = subNode->valuestring;
@@ -68,11 +65,8 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, std::string &v
 bool Serializable::GetValue(cJSON *node, const std::string &name, int32_t &value)
 {
     auto subNode = GetSubNode(node, name);
-    if (subNode == nullptr) {
-        return false;
-    }
     if (!cJSON_IsNumber(subNode)) {
-        IMSA_HILOGE("not number");
+        IMSA_HILOGE("%{public}s not number", name.c_str());
         return false;
     }
     value = subNode->valueint;
@@ -82,17 +76,11 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, int32_t &value
 bool Serializable::GetValue(cJSON *node, const std::string &name, bool &value)
 {
     auto subNode = GetSubNode(node, name);
-    if (subNode == nullptr) {
-        return false;
-    }
     if (!cJSON_IsBool(subNode)) {
-        IMSA_HILOGE("not bool");
+        IMSA_HILOGE("%{public}s not bool", name.c_str());
         return false;
     }
-    value = false;
-    if (subNode->type == cJSON_True) {
-        value = true;
-    }
+    value = subNode->type == cJSON_True;
     return true;
 }
 
@@ -100,7 +88,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, Serializable &
 {
     auto object = GetSubNode(node, name);
     if (!cJSON_IsObject(object)) {
-        IMSA_HILOGE("not object");
+        IMSA_HILOGE("%{public}s not object", name.c_str());
         return false;
     }
     return value.Unmarshal(object);
@@ -108,14 +96,14 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, Serializable &
 
 bool Serializable::SetValue(cJSON *node, const std::string &name, const std::string &value)
 {
-    cJSON_AddStringToObject(node, name.c_str(), value.c_str());
-    return true;
+    auto item = cJSON_AddStringToObject(node, name.c_str(), value.c_str());
+    return item != NULL;
 }
 
 bool Serializable::SetValue(cJSON *node, const std::string &name, const int32_t &value)
 {
-    cJSON_AddNumberToObject(node, name.c_str(), value);
-    return true;
+    auto item = cJSON_AddNumberToObject(node, name.c_str(), value);
+    return item != NULL;
 }
 
 cJSON *Serializable::GetSubNode(cJSON *node, const std::string &name)
@@ -125,18 +113,14 @@ cJSON *Serializable::GetSubNode(cJSON *node, const std::string &name)
         return node;
     }
     if (!cJSON_IsObject(node)) {
-        IMSA_HILOGE("not object");
+        IMSA_HILOGE("not object, name:%{public}s", name.c_str());
         return nullptr;
     }
     if (!cJSON_HasObjectItem(node, name.c_str())) {
-        IMSA_HILOGE("subNode: %{public}s not contain", name.c_str());
+        IMSA_HILOGD("subNode: %{public}s not contain", name.c_str());
         return nullptr;
     }
-    auto *subNode = cJSON_GetObjectItem(node, name.c_str());
-    if (subNode == nullptr) {
-        IMSA_HILOGE("subNode: %{public}s is error", name.c_str());
-    }
-    return subNode;
+    return cJSON_GetObjectItem(node, name.c_str());
 }
 } // namespace MiscServices
 } // namespace OHOS

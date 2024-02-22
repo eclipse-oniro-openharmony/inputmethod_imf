@@ -112,11 +112,10 @@ bool InputTypeManager::Init()
     }
     isInitInProgress_.store(true);
     isInitSuccess_.Clear(false);
-    SysCfg sysCfg(SysCfg::SUPPORTED_INPUT_TYPE_LIST);
-    auto isSuccess = SysCfgParser::GetInstance().ParseSysCfg(sysCfg);
-    IMSA_HILOGD("ParseSysCfg isSuccess: %{public}d", isSuccess);
+    std::vector<InputTypeInfo> configs;
+    auto isSuccess = SysCfgParser::ParseInputType(configs);
+    IMSA_HILOGD("ParseInputType isSuccess: %{public}d", isSuccess);
     if (isSuccess) {
-        auto configs = sysCfg.inputType;
         std::lock_guard<std::mutex> lk(typesLock_);
         for (const auto &config : configs) {
             inputTypes_.insert({ config.type, { config.bundleName, config.subName } });

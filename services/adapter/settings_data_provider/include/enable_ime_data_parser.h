@@ -41,27 +41,20 @@ struct SwitchInfo {
     }
 };
 
-struct EnableCfg : public Serializable {
-    struct EnableData : public Serializable {
-        int32_t userId{ -1 };
-        std::vector<std::string> data;
-        bool Unmarshal(cJSON *node) override
-        {
-            return Serializable::GetValue(node, std::to_string(userId), data);
-        }
-    };
-    EnableData enableData;
-    EnableCfg(std::string parseName, int32_t userId) : parseName(std::move(parseName))
-    {
-        enableData.userId = userId;
-    }
+struct EnableKeyBoardCfg : public Serializable {
+    UserImeConfig userImeCfg;
     bool Unmarshal(cJSON *node) override
     {
-        return Serializable::GetValue(node, parseName, enableData);
+        return GetValue(node, GET_NAME(enableKeyboardList), userImeCfg);
     }
+};
 
-private:
-    std::string parseName;
+struct EnableImeCfg : public Serializable {
+    UserImeConfig userImeCfg;
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, GET_NAME(enableImeList), userImeCfg);
+    }
 };
 
 class EnableImeDataParser : public RefBase {
@@ -79,14 +72,11 @@ public:
     static constexpr const char *ENABLE_KEYBOARD = "settings.inputmethod.enable_keyboard";
 
 private:
-    const std::map<std::string, std::string> PARSE_NAME{ { ENABLE_IME, GET_NAME(enableImeList) },
-        { ENABLE_KEYBOARD, GET_NAME(enableKeyboardList) } };
     EnableImeDataParser() = default;
     ~EnableImeDataParser();
 
-    bool ParseEnableData(const std::string &valueStr, const std::string &parseName, int32_t userId,
-        std::vector<std::string> &enableVec);
-    std::string GetParseName(const std::string &key);
+    bool ParseEnableIme(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
+    bool ParseEnableKeyboard(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
     bool CheckTargetEnableName(
         const std::string &key, const std::string &targetName, std::string &nextIme, const int32_t userId);
     std::shared_ptr<Property> GetDefaultIme();

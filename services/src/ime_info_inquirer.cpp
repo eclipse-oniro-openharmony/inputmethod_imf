@@ -49,13 +49,11 @@ ImeInfoInquirer &ImeInfoInquirer::GetInstance()
 
 void ImeInfoInquirer::InitSystemConfig()
 {
-    SysCfg sysCfg(SysCfg::SYSTEM_CONFIG);
-    auto ret = SysCfgParser::GetInstance().ParseSysCfg(sysCfg);
+    auto ret = SysCfgParser::ParseSystemConfig(systemConfig_);
     if (!ret) {
-        IMSA_HILOGE("ParseSysCfg failed");
+        IMSA_HILOGE("Parse systemConfig failed");
         return;
     }
-    systemConfig_ = sysCfg.systemConfig;
 }
 
 bool ImeInfoInquirer::IsEnableInputMethod()
@@ -486,11 +484,9 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
     }
     auto subtypes = subtypeCfg.subtypes;
     IMSA_HILOGD("subtypes size: %{public}zu", subtypes.size());
-    for (auto it = subtypes.begin(); it != subtypes.end();) {
-        auto subtype = *it;
+    for (const auto &subtype : subtypes) {
         // subtype which provides a particular input type should not appear in the subtype list
         if (InputTypeManager::GetInstance().IsInputType({ extInfo.bundleName, subtype.id })) {
-            it = subtypes.erase(it);
             continue;
         }
         SubProperty subProp{ .name = extInfo.bundleName,
@@ -509,8 +505,6 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
             subProp.iconId = atoi(subProp.icon.substr(pos + 1).c_str());
         }
         CovertToLanguage(subProp.locale, subProp.language);
-        *it = subtype;
-        ++it;
         subProps.emplace_back(subProp);
     }
     return ErrorCode::NO_ERROR;

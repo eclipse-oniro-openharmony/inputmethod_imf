@@ -28,7 +28,6 @@ namespace MiscServices {
 namespace {
 constexpr const char *IME_CFG_DIR = "/data/service/el1/public/imf/ime_cfg";
 constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg/ime_cfg.json";
-static constexpr int32_t SUCCESS = 0;
 } // namespace
 ImeCfgManager &ImeCfgManager::GetInstance()
 {
@@ -66,13 +65,12 @@ void ImeCfgManager::WriteImeCfg()
     }
     std::string path(IME_CFG_DIR);
     if (!FileOperator::IsExist(path)) {
-        auto ret = FileOperator::Create(S_IRWXU, path);
-        if (ret != SUCCESS) {
+        if (!FileOperator::Create(path, S_IRWXU)) {
             IMSA_HILOGE("ime cfg dir create failed");
             return;
         }
     }
-    if (!FileOperator::Write(O_CREAT | O_WRONLY | O_SYNC | O_TRUNC, IME_CFG_FILE_PATH, content)) {
+    if (!FileOperator::Write(IME_CFG_FILE_PATH, content, O_CREAT | O_WRONLY | O_SYNC | O_TRUNC)) {
         IMSA_HILOGE("WriteJsonFile failed");
     }
 }
@@ -116,7 +114,7 @@ void ImeCfgManager::ModifyImeCfg(const ImePersistInfo &cfg)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
-        [cfg](const ImePersistInfo &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
+        [&cfg](const ImePersistInfo &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
     if (it != imeConfigs_.end()) {
         *it = cfg;
     }

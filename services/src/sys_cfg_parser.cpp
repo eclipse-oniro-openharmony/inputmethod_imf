@@ -21,26 +21,40 @@
 #include "global.h"
 namespace OHOS {
 namespace MiscServices {
-SysCfgParser &SysCfgParser::GetInstance()
+bool SysCfgParser::ParseSystemConfig(SystemConfig &systemConfig)
 {
-    static SysCfgParser instance;
-    return instance;
-}
-
-bool SysCfgParser::ParseSysCfg(SysCfg &sysCfg)
-{
-    std::string content;
-    auto ret = FileOperator::Read(SYS_CFG_FILE_PATH, sysCfg.parseName, content);
-    if (!ret) {
-        IMSA_HILOGE("get content by %{public}s failed", sysCfg.parseName.c_str());
+    auto content = GetSysCfgContent(GET_NAME(systemConfig));
+    if (content.empty()) {
+        IMSA_HILOGE("empty content");
         return false;
     }
-    return ParseSysCfg(content, sysCfg);
+    ImeSystemConfig imeSysCfg;
+    auto ret = imeSysCfg.Unmarshall(content);
+    systemConfig = imeSysCfg.systemConfig;
+    return ret;
 }
 
-bool SysCfgParser::ParseSysCfg(const std::string &content, SysCfg &sysCfg)
+bool SysCfgParser::ParseInputType(std::vector<InputTypeInfo> &inputType)
 {
-    return sysCfg.Unmarshall(content);
+    auto content = GetSysCfgContent(GET_NAME(systemConfig));
+    if (content.empty()) {
+        IMSA_HILOGE("empty content");
+        return false;
+    }
+    InputTypeCfg inputTypeCfg;
+    auto ret = inputTypeCfg.Unmarshall(content);
+    inputType = inputTypeCfg.inputType;
+    return ret;
+}
+
+std::string SysCfgParser::GetSysCfgContent(const std::string &key)
+{
+    std::string content;
+    auto ret = FileOperator::Read(SYS_CFG_FILE_PATH, key, content);
+    if (!ret) {
+        IMSA_HILOGE("get content by %{public}s failed", key.c_str());
+    }
+    return content;
 }
 } // namespace MiscServices
 } // namespace OHOS

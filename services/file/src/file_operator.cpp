@@ -23,43 +23,46 @@
 #include "global.h"
 namespace OHOS {
 namespace MiscServices {
-int32_t FileOperator::Create(mode_t mode, const std::string &path)
+bool FileOperator::Create(const std::string &path, mode_t mode)
 {
-    return mkdir(path.c_str(), mode);
+    auto ret = mkdir(path.c_str(), mode);
+    if (ret != SUCCESS) {
+        IMSA_HILOGE("%{public}s mkdir failed, errno:%{public}d", path.c_str(), errno);
+        return false;
+    }
+    return true;
 }
 
 bool FileOperator::IsExist(const std::string &path)
 {
-    return access(path.c_str(), F_OK) == 0;
+    return access(path.c_str(), F_OK) == SUCCESS;
 }
 
 bool FileOperator::Read(const std::string &path, std::string &content)
 {
-    std::ifstream infile;
-    std::string sLine;
-    infile.open(path);
-    if (!infile.is_open()) {
-        IMSA_HILOGE("path: %s Readfile fail", path.c_str());
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        IMSA_HILOGE("%{public}s open fail", path.c_str());
         return false;
     }
-    while (getline(infile, sLine)) {
+    std::string sLine;
+    while (getline(file, sLine)) {
         content.append(sLine);
     }
-    infile.close();
     return true;
 }
 
-bool FileOperator::Write(int32_t flags, const std::string &path, const std::string &content, mode_t mode)
+bool FileOperator::Write(const std::string &path, const std::string &content, int32_t flags, mode_t mode)
 {
-    IMSA_HILOGD("content: %{public}s", content.c_str());
+    IMSA_HILOGD("content:%{public}s", content.c_str());
     auto fd = open(path.c_str(), flags, mode);
-    if (fd <= 0) {
-        IMSA_HILOGE("file open failed, fd: %{public}d", fd);
+    if (fd < 0) {
+        IMSA_HILOGE("%{public}s open fail, errno:%{public}d", path.c_str(), errno);
         return false;
     }
     auto ret = write(fd, content.c_str(), content.size());
     if (ret <= 0) {
-        IMSA_HILOGE("file write failed, ret: %{public}zd", ret);
+        IMSA_HILOGE("%{public}s write fail, ret:%{public}zd, errno:%{public}d", path.c_str(), ret, errno);
         close(fd);
         return false;
     }
@@ -75,33 +78,32 @@ bool FileOperator::Read(const std::string &path, const std::string &key, std::st
     }
     CfgFiles *cfgFiles = GetCfgFiles(path.c_str());
     if (cfgFiles == nullptr) {
-        IMSA_HILOGE("cfgFiles is nullptr");
+        IMSA_HILOGE("%{public}s cfgFiles is nullptr", path.c_str());
         return false;
     }
     // parse config files, ordered by priority from high to low
     for (int32_t i = MAX_CFG_POLICY_DIRS_CNT - 1; i >= 0; i--) {
         auto pathTemp = cfgFiles->paths[i];
-        if (pathTemp == nullptr || *pathTemp == '\0') {
+        if (pathTemp == nullptr) {
             continue;
         }
-        char realPath[PATH_MAX + 1] = { 0x00 };
-        if (strlen(pathTemp) == 0 || strlen(pathTemp) > PATH_MAX || realpath(pathTemp, realPath) == nullptr) {
+        auto size = strnlen(pathTemp, PATH_MAX);
+        if (size == 0 || size == PATH_MAX) {
+            continue;
+        }
+        char realPath[PATH_MAX] = { 0x00 };
+        if (realpath(pathTemp, realPath) == nullptr) {
             IMSA_HILOGE("failed to get realpath");
             continue;
         }
         std::string cfgPath(realPath);
-        auto contentTemp = Read(cfgPath, key);
-        if (!contentTemp.empty()) {
-            content = std::move(contentTemp);
+        content = Read(cfgPath, key);
+        if (!content.empty()) {
             break;
         }
     }
     FreeCfgFiles(cfgFiles);
-    if (content.empty()) {
-        return false;
-    }
-    IMSA_HILOGI("content: %{public}s", content.c_str());
-    return true;
+    return !content.empty();
 }
 
 std::string FileOperator::Read(const std::string &path, const std::string &key)
@@ -109,11 +111,11 @@ std::string FileOperator::Read(const std::string &path, const std::string &key)
     std::string content;
     bool ret = Read(path, content);
     if (!ret) {
-        IMSA_HILOGE("failed");
+        IMSA_HILOGE("%{public}s read failed", path.c_str());
         return "";
     }
     if (content.find(key) == std::string::npos) {
-        IMSA_HILOGE("not contain %{public}s", key.c_str());
+        IMSA_HILOGE("%{public}s not contain %{public}s", path.c_str(), key.c_str());
         return "";
     }
     return content;

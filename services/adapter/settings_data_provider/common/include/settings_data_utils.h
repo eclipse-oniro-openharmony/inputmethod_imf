@@ -22,13 +22,23 @@
 #include <vector>
 
 #include "datashare_helper.h"
-#include "settings_data_observer.h"
 #include "global.h"
 #include "input_method_property.h"
+#include "serializable.h"
+#include "settings_data_observer.h"
 #include "uri.h"
 
 namespace OHOS {
 namespace MiscServices {
+struct UserImeConfig : public Serializable {
+    std::string userId;
+    std::vector<std::string> identities;
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, userId, identities);
+    }
+};
+
 class SettingsDataUtils : public RefBase {
 public:
     static sptr<SettingsDataUtils> GetInstance();
