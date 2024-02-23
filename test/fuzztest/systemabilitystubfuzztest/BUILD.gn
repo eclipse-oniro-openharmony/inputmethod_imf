@@ -54,6 +54,7 @@ common_external_deps = [
 common_deps = [
   "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
   "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/common:imf_sa_stub_fuzztest_common_static",
+  "//third_party/cJSON:cjson",
 ]
 
 ##############################fuzztest##########################################

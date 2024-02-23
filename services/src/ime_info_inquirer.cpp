@@ -20,11 +20,10 @@
 
 #include "application_info.h"
 #include "bundle_mgr_client_impl.h"
-#include "config_policy_utils.h"
+#include "file_operator.h"
 #include "global.h"
 #include "if_system_ability_manager.h"
 #include "ime_cfg_manager.h"
-#include "input_method_config_parser.h"
 #include "input_method_info.h"
 #include "input_type_manager.h"
 #include "iservice_registry.h"
@@ -36,58 +35,35 @@
 namespace OHOS {
 namespace MiscServices {
 namespace {
-using json = nlohmann::json;
 using namespace OHOS::AppExecFwk;
 constexpr const char *SUBTYPE_PROFILE_METADATA_NAME = "ohos.extension.input_method";
-const std::string SYSTEM_CONFIG = "systemConfig";
-const std::string SYSTEM_INPUT_METHOD_CONFIG_ABILITY = "systemInputMethodConfigAbility";
-const std::string DEFAULT_INPUT_METHOD = "defaultInputMethod";
-const std::string ENABLE_INPUT_METHOD_FEATURE = "enableInputMethodFeature";
-const std::string ENABLE_FULL_EXPERIENCE_FEATURE = "enableFullExperienceFeature";
 constexpr uint32_t SUBTYPE_PROFILE_NUM = 1;
-constexpr uint32_t MAX_SUBTYPE_NUM = 256;
 constexpr const char *DEFAULT_IME_KEY = "persist.sys.default_ime";
 constexpr int32_t CONFIG_LEN = 128;
 } // namespace
-
-void from_json(const nlohmann::json &jsonConfigs, ImeConfig &config)
-{
-    if (jsonConfigs.find(SYSTEM_INPUT_METHOD_CONFIG_ABILITY) != jsonConfigs.end()
-        && jsonConfigs[SYSTEM_INPUT_METHOD_CONFIG_ABILITY].is_string()) {
-        jsonConfigs.at(SYSTEM_INPUT_METHOD_CONFIG_ABILITY).get_to(config.systemInputMethodConfigAbility);
-    }
-    if (jsonConfigs.find(DEFAULT_INPUT_METHOD) != jsonConfigs.end() && jsonConfigs[DEFAULT_INPUT_METHOD].is_string()) {
-        jsonConfigs.at(DEFAULT_INPUT_METHOD).get_to(config.defaultInputMethod);
-    }
-    if (jsonConfigs.find(ENABLE_INPUT_METHOD_FEATURE) != jsonConfigs.end()
-        && jsonConfigs[ENABLE_INPUT_METHOD_FEATURE].is_boolean()) {
-        jsonConfigs.at(ENABLE_INPUT_METHOD_FEATURE).get_to(config.enableInputMethodFeature);
-    }
-    if (jsonConfigs.find(ENABLE_FULL_EXPERIENCE_FEATURE) != jsonConfigs.end()
-        && jsonConfigs[ENABLE_FULL_EXPERIENCE_FEATURE].is_boolean()) {
-        jsonConfigs.at(ENABLE_FULL_EXPERIENCE_FEATURE).get_to(config.enableFullExperienceFeature);
-    }
-}
-
 ImeInfoInquirer &ImeInfoInquirer::GetInstance()
 {
     static ImeInfoInquirer instance;
     return instance;
 }
 
-void ImeInfoInquirer::InitConfig()
+void ImeInfoInquirer::InitSystemConfig()
 {
-    ImeConfigParse::ParseFromCustomSystem(SYSTEM_CONFIG, imeConfig_);
+    auto ret = SysCfgParser::ParseSystemConfig(systemConfig_);
+    if (!ret) {
+        IMSA_HILOGE("Parse systemConfig failed");
+        return;
+    }
 }
 
 bool ImeInfoInquirer::IsEnableInputMethod()
 {
-    return imeConfig_.enableInputMethodFeature;
+    return systemConfig_.enableInputMethodFeature;
 }
 
 bool ImeInfoInquirer::IsEnableSecurityMode()
 {
-    return imeConfig_.enableFullExperienceFeature;
+    return systemConfig_.enableFullExperienceFeature;
 }
 
 bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<ExtensionAbilityInfo> &infos)
@@ -426,7 +402,7 @@ int32_t ImeInfoInquirer::GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userI
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
     auto nextIter = std::next(iter);
-    switchInfo.bundleName = nextIter == props.end() ? props[0].name: nextIter->name;
+    switchInfo.bundleName = nextIter == props.end() ? props[0].name : nextIter->name;
     IMSA_HILOGD("Next ime: %{public}s", switchInfo.bundleName.c_str());
     return ErrorCode::NO_ERROR;
 }
@@ -501,19 +477,24 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
         IMSA_HILOGE("GetProfileFromExtension failed");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
-    if (!ParseSubProp(profiles, subProps)) {
-        IMSA_HILOGE("ParseSubProp failed");
+    SubtypeCfg subtypeCfg;
+    if (!ParseSubType(profiles, subtypeCfg)) {
+        IMSA_HILOGE("ParseSubTypeCfg failed");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    IMSA_HILOGD("subProps size: %{public}zu", subProps.size());
-    for (auto it = subProps.begin(); it != subProps.end();) {
-        auto subProp = *it;
+    auto subtypes = subtypeCfg.subtypes;
+    IMSA_HILOGD("subtypes size: %{public}zu", subtypes.size());
+    for (const auto &subtype : subtypes) {
         // subtype which provides a particular input type should not appear in the subtype list
-        if (InputTypeManager::GetInstance().IsInputType({ subProp.name, subProp.id })) {
-            it = subProps.erase(it);
+        if (InputTypeManager::GetInstance().IsInputType({ extInfo.bundleName, subtype.id })) {
             continue;
         }
-        subProp.name = extInfo.bundleName;
+        SubProperty subProp{ .name = extInfo.bundleName,
+            .label = subtype.label,
+            .id = subtype.id,
+            .icon = subtype.icon,
+            .mode = subtype.mode,
+            .locale = subtype.locale };
         auto pos = subProp.label.find(':');
         if (pos != std::string::npos && pos + 1 < subProp.label.size()) {
             subProp.labelId = atoi(subProp.label.substr(pos + 1).c_str());
@@ -523,14 +504,13 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
         if (pos != std::string::npos && pos + 1 < subProp.icon.size()) {
             subProp.iconId = atoi(subProp.icon.substr(pos + 1).c_str());
         }
-        ParseLanguage(subProp.locale, subProp.language);
-        *it = subProp;
-        ++it;
+        CovertToLanguage(subProp.locale, subProp.language);
+        subProps.emplace_back(subProp);
     }
     return ErrorCode::NO_ERROR;
 }
 
-void ImeInfoInquirer::ParseLanguage(const std::string &locale, std::string &language)
+void ImeInfoInquirer::CovertToLanguage(const std::string &locale, std::string &language)
 {
     language = locale;
     auto pos = locale.find('-');
@@ -682,11 +662,11 @@ std::shared_ptr<ImeNativeCfg> ImeInfoInquirer::GetImeToStart(int32_t userId)
 int32_t ImeInfoInquirer::GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig)
 {
     IMSA_HILOGD("userId: %{public}d", userId);
-    if (imeConfig_.systemInputMethodConfigAbility.empty()) {
+    if (systemConfig_.systemInputMethodConfigAbility.empty()) {
         IMSA_HILOGW("inputMethodConfig systemInputMethodConfigAbility is null");
         return ErrorCode::NO_ERROR;
     }
-    std::string bundleName = imeConfig_.systemInputMethodConfigAbility;
+    std::string bundleName = systemConfig_.systemInputMethodConfigAbility;
     std::string moduleName;
     std::string abilityName;
     auto pos = bundleName.find('/');
@@ -748,9 +728,9 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 ImeNativeCfg ImeInfoInquirer::GetDefaultIme()
 {
     ImeNativeCfg imeCfg;
-    if (!imeConfig_.defaultInputMethod.empty()) {
-        IMSA_HILOGI("defaultInputMethod: %{public}s", imeConfig_.defaultInputMethod.c_str());
-        imeCfg.imeId = imeConfig_.defaultInputMethod;
+    if (!systemConfig_.defaultInputMethod.empty()) {
+        IMSA_HILOGI("defaultInputMethod: %{public}s", systemConfig_.defaultInputMethod.c_str());
+        imeCfg.imeId = systemConfig_.defaultInputMethod;
     } else {
         char value[CONFIG_LEN] = { 0 };
         auto code = GetParameter(DEFAULT_IME_KEY, "", value, CONFIG_LEN);
@@ -817,59 +797,13 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::FindTargetSubtypeByCondition(
     return std::make_shared<SubProperty>(*it);
 }
 
-bool ImeInfoInquirer::ParseSubProp(const std::vector<std::string> &profiles, std::vector<SubProperty> &subProps)
+bool ImeInfoInquirer::ParseSubType(const std::vector<std::string> &profiles, SubtypeCfg &subtypeCfg)
 {
     if (profiles.empty() || profiles.size() != SUBTYPE_PROFILE_NUM) {
         IMSA_HILOGE("profiles size: %{public}zu", profiles.size());
         return false;
     }
-    json jsonSubProps;
-    SubProperty subProp;
-    IMSA_HILOGD("profiles[0]: %{public}s", profiles[0].c_str());
-    jsonSubProps = json::parse(profiles[0], nullptr, false);
-    if (jsonSubProps.is_null() || jsonSubProps.is_discarded()) {
-        IMSA_HILOGE("json parse failed");
-        return false;
-    }
-    return ParseSubProp(jsonSubProps, subProps);
-}
-
-bool ImeInfoInquirer::ParseSubProp(const json &jsonSubProps, std::vector<SubProperty> &subProps)
-{
-    if (!jsonSubProps.contains("subtypes") || !jsonSubProps["subtypes"].is_array() ||
-        jsonSubProps["subtypes"].empty()) {
-        IMSA_HILOGE("the context of json file is abnormal");
-        return false;
-    }
-    IMSA_HILOGD("subType num: %{public}zu", jsonSubProps["subtypes"].size());
-    for (auto &jsonCfg : jsonSubProps["subtypes"]) {
-        if (subProps.size() >= MAX_SUBTYPE_NUM) {
-            break;
-        }
-        SubProperty subProp;
-        ParseSubProp(jsonCfg, subProp);
-        subProps.push_back(subProp);
-    }
-    return true;
-}
-
-void ImeInfoInquirer::ParseSubProp(const json &jsonSubProp, SubProperty &subProp)
-{
-    if (jsonSubProp.find("label") != jsonSubProp.end() && jsonSubProp["label"].is_string()) {
-        jsonSubProp.at("label").get_to(subProp.label);
-    }
-    if (jsonSubProp.find("id") != jsonSubProp.end() && jsonSubProp["id"].is_string()) {
-        jsonSubProp.at("id").get_to(subProp.id);
-    }
-    if (jsonSubProp.find("icon") != jsonSubProp.end() && jsonSubProp["icon"].is_string()) {
-        jsonSubProp.at("icon").get_to(subProp.icon);
-    }
-    if (jsonSubProp.find("mode") != jsonSubProp.end() && jsonSubProp["mode"].is_string()) {
-        jsonSubProp.at("mode").get_to(subProp.mode);
-    }
-    if (jsonSubProp.find("locale") != jsonSubProp.end() && jsonSubProp["locale"].is_string()) {
-        jsonSubProp.at("locale").get_to(subProp.locale);
-    }
+    return subtypeCfg.Unmarshall(profiles[0]);
 }
 
 std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()

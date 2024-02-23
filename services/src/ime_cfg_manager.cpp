@@ -16,25 +16,18 @@
 #include "ime_cfg_manager.h"
 
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include <algorithm>
-#include <cstdio>
 #include <ios>
 #include <string>
 
-#include "file_ex.h"
+#include "file_operator.h"
 #include "global.h"
 namespace OHOS {
 namespace MiscServices {
 namespace {
 constexpr const char *IME_CFG_DIR = "/data/service/el1/public/imf/ime_cfg";
 constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg/ime_cfg.json";
-static constexpr int32_t SUCCESS = 0;
-static constexpr uint32_t MAX_FILE_LENGTH = 10000;
-using json = nlohmann::json;
 } // namespace
 ImeCfgManager &ImeCfgManager::GetInstance()
 {
@@ -50,51 +43,78 @@ void ImeCfgManager::Init()
 void ImeCfgManager::ReadImeCfg()
 {
     std::string path(IME_CFG_FILE_PATH);
-    if (!IsExist(path)) {
+    if (!FileOperator::IsExist(path)) {
         IMSA_HILOGD("ime cfg file not find");
         return;
     }
-    json jsonConfigs;
-    bool ret = Read(path, jsonConfigs);
+    std::string cfg;
+    bool ret = FileOperator::Read(path, cfg);
     if (!ret) {
         IMSA_HILOGE("ReadJsonFile failed");
         return;
     }
-    std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    FromJson(jsonConfigs, imeConfigs_);
+    ParseImeCfg(cfg);
 }
 
 void ImeCfgManager::WriteImeCfg()
 {
-    std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
-    json jsonConfigs;
-    ToJson(jsonConfigs, imeConfigs_);
-
+    auto content = PackageImeCfg();
+    if (content.empty()) {
+        IMSA_HILOGE("Package imeCfg failed");
+        return;
+    }
     std::string path(IME_CFG_DIR);
-    if (!IsExist(path)) {
-        auto ret = Create(path, S_IRWXU);
-        if (ret != SUCCESS) {
+    if (!FileOperator::IsExist(path)) {
+        if (!FileOperator::Create(path, S_IRWXU)) {
             IMSA_HILOGE("ime cfg dir create failed");
             return;
         }
     }
-    if (!Write(IME_CFG_FILE_PATH, jsonConfigs)) {
+    if (!FileOperator::Write(IME_CFG_FILE_PATH, content, O_CREAT | O_WRONLY | O_SYNC | O_TRUNC)) {
         IMSA_HILOGE("WriteJsonFile failed");
     }
 }
 
-void ImeCfgManager::AddImeCfg(const ImePersistCfg &cfg)
+bool ImeCfgManager::ParseImeCfg(const std::string &content)
+{
+    IMSA_HILOGD("content:%{public}s", content.c_str());
+    ImePersistCfg cfg;
+    auto ret = cfg.Unmarshall(content);
+    if (!ret) {
+        IMSA_HILOGE("Unmarshall failed");
+        return false;
+    }
+    std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
+    imeConfigs_ = cfg.imePersistInfo;
+    return true;
+}
+
+std::string ImeCfgManager::PackageImeCfg()
+{
+    ImePersistCfg cfg;
+    {
+        std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
+        cfg.imePersistInfo = imeConfigs_;
+    }
+    std::string content;
+    auto ret = cfg.Marshall(content);
+    IMSA_HILOGD(
+        "ret:%{public}d, content:%{public}s, size:%{public}zu", ret, content.c_str(), cfg.imePersistInfo.size());
+    return content;
+}
+
+void ImeCfgManager::AddImeCfg(const ImePersistInfo &cfg)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     imeConfigs_.push_back(cfg);
     WriteImeCfg();
 }
 
-void ImeCfgManager::ModifyImeCfg(const ImePersistCfg &cfg)
+void ImeCfgManager::ModifyImeCfg(const ImePersistInfo &cfg)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     auto it = std::find_if(imeConfigs_.begin(), imeConfigs_.end(),
-        [cfg](const ImePersistCfg &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
+        [&cfg](const ImePersistInfo &imeCfg) { return imeCfg.userId == cfg.userId && !cfg.currentIme.empty(); });
     if (it != imeConfigs_.end()) {
         *it = cfg;
     }
@@ -114,11 +134,11 @@ void ImeCfgManager::DeleteImeCfg(int32_t userId)
     WriteImeCfg();
 }
 
-ImePersistCfg ImeCfgManager::GetImeCfg(int32_t userId)
+ImePersistInfo ImeCfgManager::GetImeCfg(int32_t userId)
 {
     std::lock_guard<std::recursive_mutex> lock(imeCfgLock_);
     auto it = std::find_if(
-        imeConfigs_.begin(), imeConfigs_.end(), [userId](const ImePersistCfg &cfg) { return cfg.userId == userId; });
+        imeConfigs_.begin(), imeConfigs_.end(), [userId](const ImePersistInfo &cfg) { return cfg.userId == userId; });
     if (it != imeConfigs_.end()) {
         return *it;
     }
@@ -137,90 +157,6 @@ std::shared_ptr<ImeNativeCfg> ImeCfgManager::GetCurrentImeCfg(int32_t userId)
         info.extName = info.imeId.substr(pos + 1);
     }
     return std::make_shared<ImeNativeCfg>(info);
-}
-
-void ImeCfgManager::FromJson(const json &jsonConfigs, std::vector<ImePersistCfg> &configs)
-{
-    if (!jsonConfigs.contains("imeCfg_list") || !jsonConfigs["imeCfg_list"].is_array()) {
-        IMSA_HILOGE("imeCfg_list not find or abnormal");
-        return;
-    }
-    for (auto &jsonCfg : jsonConfigs["imeCfg_list"]) {
-        ImePersistCfg cfg;
-        FromJson(jsonCfg, cfg);
-        configs.push_back(cfg);
-    }
-}
-
-void ImeCfgManager::ToJson(json &jsonConfigs, const std::vector<ImePersistCfg> &configs)
-{
-    for (auto &cfg : configs) {
-        json jsonCfg;
-        ToJson(jsonCfg, cfg);
-        jsonConfigs["imeCfg_list"].push_back(jsonCfg);
-    }
-}
-
-int32_t ImeCfgManager::Create(std::string &path, mode_t pathMode)
-{
-    return mkdir(path.c_str(), pathMode);
-}
-
-bool ImeCfgManager::IsExist(std::string &path)
-{
-    return access(path.c_str(), F_OK) == SUCCESS;
-}
-
-bool ImeCfgManager::Read(const std::string &path, json &jsonCfg)
-{
-    auto fd = open(path.c_str(), O_RDONLY);
-    if (fd <= 0) {
-        IMSA_HILOGE("file open failed, fd: %{public}d", fd);
-        return false;
-    }
-    char cfg[MAX_FILE_LENGTH] = { 0 };
-    auto ret = read(fd, cfg, MAX_FILE_LENGTH);
-    if (ret <= 0) {
-        IMSA_HILOGE("file read failed, ret: %{public}zd", ret);
-        close(fd);
-        return false;
-    }
-    close(fd);
-
-    if (cfg[0] == '\0') {
-        IMSA_HILOGE("imeCfg is empty");
-        return false;
-    }
-    jsonCfg = json::parse(cfg, nullptr, false);
-    if (jsonCfg.is_null() || jsonCfg.is_discarded()) {
-        IMSA_HILOGE("json parse failed.");
-        return false;
-    }
-    IMSA_HILOGD("imeCfg json: %{public}s", jsonCfg.dump().c_str());
-    return true;
-}
-
-bool ImeCfgManager::Write(const std::string &path, const json &jsonCfg)
-{
-    std::string cfg = jsonCfg.dump();
-    if (cfg.empty()) {
-        IMSA_HILOGE("imeCfg is empty");
-        return false;
-    }
-    IMSA_HILOGD("imeCfg json: %{public}s", cfg.c_str());
-    auto fd = open(path.c_str(), O_CREAT | O_WRONLY | O_SYNC | O_TRUNC, S_IRUSR | S_IWUSR);
-    if (fd <= 0) {
-        IMSA_HILOGE("file open failed, fd: %{public}d", fd);
-        return false;
-    }
-    auto ret = write(fd, cfg.c_str(), cfg.size());
-    if (ret <= 0) {
-        IMSA_HILOGE("file write failed, ret: %{public}zd", ret);
-        close(fd);
-        return false;
-    }
-    close(fd);
-    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS

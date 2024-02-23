@@ -18,12 +18,12 @@
 #include "ime_info_inquirer.h"
 #include "iservice_registry.h"
 #include "nlohmann/json.hpp"
+#include "serializable.h"
 #include "settings_data_utils.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
 namespace MiscServices {
-using json = nlohmann::json;
 std::mutex EnableImeDataParser::instanceMutex_;
 sptr<EnableImeDataParser> EnableImeDataParser::instance_ = nullptr;
 EnableImeDataParser::~EnableImeDataParser()
@@ -189,56 +189,40 @@ int32_t EnableImeDataParser::GetEnableData(
         IMSA_HILOGW("Get value failed, or valueStr is empty");
         return ErrorCode::ERROR_ENABLE_IME;
     }
-
-    if (!ParseJsonData(key, valueStr, enableVec, userId)) {
-        IMSA_HILOGE("valueStr is empty");
-        return ErrorCode::ERROR_ENABLE_IME;
+    auto parseRet = false;
+    if (key == ENABLE_IME) {
+        parseRet = ParseEnableIme(valueStr, userId, enableVec);
     }
-    return ErrorCode::NO_ERROR;
+    if (key == ENABLE_KEYBOARD) {
+        parseRet = ParseEnableKeyboard(valueStr, userId, enableVec);
+    }
+    return parseRet ? ErrorCode::NO_ERROR : ErrorCode::ERROR_ENABLE_IME;
 }
 
-bool EnableImeDataParser::ParseJsonData(
-    const std::string &key, const std::string &valueStr, std::vector<std::string> &enableVec, const int32_t userId)
+bool EnableImeDataParser::ParseEnableIme(
+    const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec)
 {
-    IMSA_HILOGD("valueStr: %{public}s.", valueStr.c_str());
-    json jsonEnableData = json::parse(valueStr.c_str());
-    if (jsonEnableData.is_null() || jsonEnableData.is_discarded()) {
-        IMSA_HILOGE("json parse failed.");
-        return false;
+    EnableImeCfg enableIme;
+    enableIme.userImeCfg.userId = std::to_string(userId);
+    auto ret = enableIme.Unmarshall(valueStr);
+    if (!ret) {
+        return ret;
     }
-    std::string listName = GetJsonListName(key);
-    if (listName.empty()) {
-        IMSA_HILOGE("Get list name failed.");
-        return false;
-    }
-
-    if (!jsonEnableData.contains(listName) || !jsonEnableData[listName].is_object()) {
-        IMSA_HILOGE("listName not find or abnormal");
-        return false;
-    }
-
-    std::string id = std::to_string(userId);
-    if (!jsonEnableData[listName].contains(id) || !jsonEnableData[listName][id].is_array()) {
-        IMSA_HILOGE("user id not find or abnormal");
-        return false;
-    }
-    std::vector<std::string> enableVecTemp;
-    for (const auto &bundleName : jsonEnableData[listName][id]) {
-        IMSA_HILOGD("enable ime string: %{public}s", std::string(bundleName).c_str());
-        enableVecTemp.push_back(bundleName);
-    }
-    enableVec.assign(enableVecTemp.begin(), enableVecTemp.end());
+    enableVec = enableIme.userImeCfg.identities;
     return true;
 }
 
-const std::string EnableImeDataParser::GetJsonListName(const std::string &key)
+bool EnableImeDataParser::ParseEnableKeyboard(
+    const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec)
 {
-    if (key == std::string(ENABLE_IME)) {
-        return "enableImeList";
-    } else if (key == std::string(ENABLE_KEYBOARD)) {
-        return "enableKeyboardList";
+    EnableKeyBoardCfg enableKeyboard;
+    enableKeyboard.userImeCfg.userId = std::to_string(userId);
+    auto ret = enableKeyboard.Unmarshall(valueStr);
+    if (!ret) {
+        return ret;
     }
-    return "";
+    enableVec = enableKeyboard.userImeCfg.identities;
+    return true;
 }
 
 std::shared_ptr<Property> EnableImeDataParser::GetDefaultIme()

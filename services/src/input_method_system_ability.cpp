@@ -142,7 +142,7 @@ int32_t InputMethodSystemAbility::Init()
     }
     state_ = ServiceRunningState::STATE_RUNNING;
     ImeCfgManager::GetInstance().Init();
-    ImeInfoInquirer::GetInstance().InitConfig();
+    ImeInfoInquirer::GetInstance().InitSystemConfig();
     InitMonitors();
     return ErrorCode::NO_ERROR;
 }

@@ -32,6 +32,7 @@ group("unittest") {
     "cpp_test:InputMethodServiceTest",
     "cpp_test:InputMethodSwitchTest",
     "cpp_test:InputMethodUtilsTest",
+    "cpp_test:JsonOperateTest",
     "cpp_test:NewImeSwitchTest",
     "cpp_test:SecurityModeParseTest",
     "cpp_test:TextListenerInnerApiTest",

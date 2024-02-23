@@ -19,12 +19,11 @@
 #include "input_method_utils.h"
 #include "iservice_registry.h"
 #include "nlohmann/json.hpp"
+#include "serializable.h"
 #include "settings_data_utils.h"
 #include "system_ability_definition.h"
-
 namespace OHOS {
 namespace MiscServices {
-using json = nlohmann::json;
 std::mutex SecurityModeParser::instanceMutex_;
 sptr<SecurityModeParser> SecurityModeParser::instance_ = nullptr;
 
@@ -63,8 +62,8 @@ int32_t SecurityModeParser::GetFullModeList(const int32_t userId)
         return ErrorCode::ERROR_ENABLE_SECURITY_MODE;
     }
 
-    if (!ParseJsonData(valueStr, userId)) {
-        IMSA_HILOGE("valueStr is empty");
+    if (!ParseSecurityMode(valueStr, userId)) {
+        IMSA_HILOGE("Parse %{public}s failed by %{public}d", valueStr.c_str(), userId);
         return ErrorCode::ERROR_ENABLE_SECURITY_MODE;
     }
     return ErrorCode::NO_ERROR;
@@ -78,30 +77,16 @@ bool SecurityModeParser::IsSecurityChange(const std::string bundleName, const in
     return oldExit!= onewExit;
 }
 
-bool SecurityModeParser::ParseJsonData(const std::string& valueStr, const int32_t userId)
+bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const int32_t userId)
 {
-    IMSA_HILOGD("valueStr: %{public}s.", valueStr.c_str());
-    json jsonData = json::parse(valueStr.c_str());
-    if (jsonData.is_null() || jsonData.is_discarded()) {
-        IMSA_HILOGE("json parse failed.");
-        return false;
-    }
-    if (!jsonData.contains(SECURITY_KEY) || !jsonData[SECURITY_KEY].is_object()) {
-        IMSA_HILOGE("listName not find or abnormal");
-        return false;
-    }
-    std::string id = std::to_string(userId);
-    if (!jsonData[SECURITY_KEY].contains(id) || !jsonData[SECURITY_KEY][id].is_array()) {
-        IMSA_HILOGE("user id not find or abnormal");
-        return false;
-    }
-    std::vector<std::string> vecTemp;
-    for (const auto& bundleName : jsonData[SECURITY_KEY][id]) {
-        IMSA_HILOGD(" full mode app is : %{public}s.", std::string(bundleName).c_str());
-        vecTemp.push_back(bundleName);
+    SecModeCfg secModeCfg;
+    secModeCfg.userImeCfg.userId = std::to_string(userId);
+    auto ret = secModeCfg.Unmarshall(valueStr);
+    if (!ret) {
+        return ret;
     }
     std::lock_guard<std::mutex> autoLock(listMutex_);
-    fullModeList_.assign(vecTemp.begin(), vecTemp.end());
+    fullModeList_ = secModeCfg.userImeCfg.identities;
     return true;
 }
 

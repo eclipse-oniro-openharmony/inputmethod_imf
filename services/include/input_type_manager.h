@@ -20,10 +20,11 @@
 #include <mutex>
 #include <set>
 #include <string>
+#include <vector>
 
 #include "block_data.h"
-#include "input_method_utils.h"
-#include "nlohmann/json.hpp"
+#include "serializable.h"
+#include "sys_cfg_parser.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -40,11 +41,6 @@ struct ImeIdentification {
     }
 };
 
-struct InputTypeCfg {
-    InputType type{};
-    ImeIdentification ime;
-};
-
 class InputTypeManager {
 public:
     static InputTypeManager &GetInstance();
@@ -58,9 +54,6 @@ public:
 
 private:
     bool Init();
-    bool ParseFromCustomSystem();
-    bool GetCfgsFromFile(const std::string &cfgPath);
-    std::string ReadFile(const std::string &path);
     std::mutex stateLock_;
     bool isStarted_{ false };
     ImeIdentification currentTypeIme_;

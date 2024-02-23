@@ -16,21 +16,49 @@
 #ifndef SERVICES_INCLUDE_IME_CFG_MANAGER_H
 #define SERVICES_INCLUDE_IME_CFG_MANAGER_H
 
-#include <sys/types.h>
-
 #include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
 
-#include "nlohmann/json.hpp"
+#include "serializable.h"
 namespace OHOS {
 namespace MiscServices {
-struct ImePersistCfg {
+struct ImePersistInfo : public Serializable {
+    ImePersistInfo() = default;
+    ImePersistInfo(int32_t userId, std::string currentIme, std::string currentSubName)
+        : userId(userId), currentIme(std::move(currentIme)), currentSubName(std::move(currentSubName)){};
     static constexpr int32_t INVALID_USERID = -1;
     int32_t userId{ INVALID_USERID };
     std::string currentIme;
     std::string currentSubName;
+
+    bool Marshal(cJSON *node) const override
+    {
+        auto ret = SetValue(node, GET_NAME(userId), userId);
+        ret = SetValue(node, GET_NAME(currentIme), currentIme) && ret;
+        SetValue(node, GET_NAME(currentSubName), currentSubName);
+        return ret;
+    }
+    bool Unmarshal(cJSON *node) override
+    {
+        auto ret = GetValue(node, GET_NAME(userId), userId);
+        ret = GetValue(node, GET_NAME(currentIme), currentIme) && ret;
+        GetValue(node, GET_NAME(currentSubName), currentSubName);
+        return ret;
+    }
+};
+
+struct ImePersistCfg : public Serializable {
+    std::vector<ImePersistInfo> imePersistInfo;
+    bool Marshal(cJSON *node) const override
+    {
+        return SetValue(node, GET_NAME(imeCfgList), imePersistInfo);
+    }
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, GET_NAME(imeCfgList), imePersistInfo);
+    }
 };
 
 struct ImeNativeCfg {
@@ -44,8 +72,8 @@ class ImeCfgManager {
 public:
     static ImeCfgManager &GetInstance();
     void Init();
-    void AddImeCfg(const ImePersistCfg &cfg);
-    void ModifyImeCfg(const ImePersistCfg &cfg);
+    void AddImeCfg(const ImePersistInfo &cfg);
+    void ModifyImeCfg(const ImePersistInfo &cfg);
     void DeleteImeCfg(int32_t userId);
     std::shared_ptr<ImeNativeCfg> GetCurrentImeCfg(int32_t userId);
 
@@ -54,32 +82,11 @@ private:
     ~ImeCfgManager() = default;
     void ReadImeCfg();
     void WriteImeCfg();
-    ImePersistCfg GetImeCfg(int32_t userId);
-    static int32_t Create(std::string &path, mode_t pathMode);
-    static bool IsExist(std::string &path);
-    static bool Read(const std::string &path, nlohmann::json &jsonCfg);
-    static bool Write(const std::string &path, const nlohmann::json &jsonCfg);
-    inline static void FromJson(const nlohmann::json &jsonCfg, ImePersistCfg &cfg)
-    {
-        if (jsonCfg.find("userId") != jsonCfg.end() && jsonCfg["userId"].is_number()) {
-            jsonCfg.at("userId").get_to(cfg.userId);
-        }
-        if (jsonCfg.find("currentIme") != jsonCfg.end() && jsonCfg["currentIme"].is_string()) {
-            jsonCfg.at("currentIme").get_to(cfg.currentIme);
-        }
-        if (jsonCfg.find("currentSubName") != jsonCfg.end() && jsonCfg["currentSubName"].is_string()) {
-            jsonCfg.at("currentSubName").get_to(cfg.currentSubName);
-        }
-    }
-    inline static void ToJson(nlohmann::json &jsonCfg, const ImePersistCfg &cfg)
-    {
-        jsonCfg = nlohmann::json{ { "userId", cfg.userId }, { "currentIme", cfg.currentIme },
-            { "currentSubName", cfg.currentSubName } };
-    }
-    static void FromJson(const nlohmann::json &jsonConfigs, std::vector<ImePersistCfg> &configs);
-    static void ToJson(nlohmann::json &jsonConfigs, const std::vector<ImePersistCfg> &configs);
+    ImePersistInfo GetImeCfg(int32_t userId);
+    bool ParseImeCfg(const std::string &content);
+    std::string PackageImeCfg();
     std::recursive_mutex imeCfgLock_;
-    std::vector<ImePersistCfg> imeConfigs_;
+    std::vector<ImePersistInfo> imeConfigs_;
 };
 } // namespace MiscServices
 } // namespace OHOS

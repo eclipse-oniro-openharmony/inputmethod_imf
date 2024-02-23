@@ -176,11 +176,7 @@ struct TextConfig {
     double height = 0;
 };
 
-enum class InputType {
-    NONE = -1,
-    CAMERA_INPUT = 0,
-    SECURITY_INPUT,
-};
+enum class InputType : int32_t { NONE = -1, CAMERA_INPUT = 0, SECURITY_INPUT, END };
 
 enum class SwitchTrigger : uint32_t { CURRENT_IME = 0, SYSTEM_APP, IMSA };
 } // namespace MiscServices

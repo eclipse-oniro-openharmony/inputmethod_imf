@@ -92,7 +92,7 @@ public:
 void InputMethodSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::SetUpTestCase");
-    ImeInfoInquirer::GetInstance().InitConfig();
+    ImeInfoInquirer::GetInstance().InitSystemConfig();
     enableOn = ImeInfoInquirer::GetInstance().IsEnableInputMethod();
     TddUtil::GrantNativePermission();
     if (enableOn == true) {

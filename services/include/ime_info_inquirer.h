@@ -30,8 +30,8 @@
 #include "input_method_info.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
-#include "nlohmann/json.hpp"
 #include "refbase.h"
+#include "sys_cfg_parser.h"
 namespace OHOS {
 namespace MiscServices {
 
@@ -50,11 +50,29 @@ enum class Condition {
     CHINESE,
 };
 
-struct ImeConfig {
-    std::string systemInputMethodConfigAbility;
-    std::string defaultInputMethod;
-    bool enableInputMethodFeature = false;
-    bool enableFullExperienceFeature = false;
+struct Subtype : public Serializable {
+    std::string label;
+    std::string id;
+    std::string icon;
+    std::string mode;
+    std::string locale;
+    bool Unmarshal(cJSON *node) override
+    {
+        GetValue(node, GET_NAME(label), label);
+        auto ret = GetValue(node, GET_NAME(id), id);
+        GetValue(node, GET_NAME(icon), icon);
+        GetValue(node, GET_NAME(mode), mode);
+        GetValue(node, GET_NAME(locale), locale);
+        return ret;
+    }
+};
+struct SubtypeCfg : public Serializable {
+    static constexpr uint32_t MAX_SUBTYPE_NUM = 256;
+    std::vector<Subtype> subtypes;
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, GET_NAME(subtypes), subtypes, MAX_SUBTYPE_NUM);
+    }
 };
 
 class ImeInfoInquirer {
@@ -82,7 +100,7 @@ public:
     int32_t GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userId, bool enableOn);
     bool IsEnableInputMethod();
     bool IsEnableSecurityMode();
-    void InitConfig();
+    void InitSystemConfig();
 
 private:
     ImeInfoInquirer() = default;
@@ -109,13 +127,11 @@ private:
         const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, std::vector<SubProperty> &subProps);
     int32_t ListInputMethodSubtype(const int32_t userId, const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo,
         std::vector<SubProperty> &subProps);
-    bool ParseSubProp(const std::vector<std::string> &profiles, std::vector<SubProperty> &subProps);
-    bool ParseSubProp(const nlohmann::json &jsonSubProps, std::vector<SubProperty> &subProps);
-    void ParseSubProp(const nlohmann::json &jsonSubProp, SubProperty &subProp);
-    void ParseLanguage(const std::string &locale, std::string &language);
+    bool ParseSubType(const std::vector<std::string> &profiles, SubtypeCfg &subtypeCfg);
+    void CovertToLanguage(const std::string &locale, std::string &language);
     bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
 
-    ImeConfig imeConfig_;
+    SystemConfig systemConfig_;
     std::mutex currentImeInfoLock_;
     std::shared_ptr<ImeInfo> currentImeInfo_{ nullptr }; // current imeInfo of current user
 };

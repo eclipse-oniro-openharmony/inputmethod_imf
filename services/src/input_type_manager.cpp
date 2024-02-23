@@ -29,40 +29,12 @@
 #include <string>
 
 #include "climits"
-#include "config_policy_utils.h"
-#include "input_method_config_parser.h"
+#include "file_operator.h"
 #include "global.h"
 #include "ime_cfg_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
-namespace {
-const std::string SUPPORTED_INPUT_TYPE_LIST = "supportedInputTypeList";
-const std::string INPUT_TYPE = "inputType";
-const std::string BUNDLE_NAME = "bundleName";
-const std::string SUBTYPE_ID = "subtypeId";
-using json = nlohmann::json;
-} // namespace
-
-void from_json(const json &jsonObj, InputTypeCfg &cfg)
-{
-    if (!jsonObj.contains(INPUT_TYPE) || !jsonObj[INPUT_TYPE].is_number()) {
-        IMSA_HILOGE("INPUT_TYPE is invalid");
-        return;
-    }
-    cfg.type = static_cast<InputType>(jsonObj.at(INPUT_TYPE).get<int32_t>());
-    if (!jsonObj.contains(BUNDLE_NAME) || !jsonObj[BUNDLE_NAME].is_string()) {
-        IMSA_HILOGE("BUNDLE_NAME is invalid");
-        return;
-    }
-    cfg.ime.bundleName = jsonObj.at(BUNDLE_NAME).get<std::string>();
-    if (!jsonObj.contains(SUBTYPE_ID) || !jsonObj[SUBTYPE_ID].is_string()) {
-        IMSA_HILOGE("SUBTYPE_ID is invalid");
-        return;
-    }
-    cfg.ime.subName = jsonObj.at(SUBTYPE_ID).get<std::string>();
-}
-
 InputTypeManager &InputTypeManager::GetInstance()
 {
     static InputTypeManager instance;
@@ -140,15 +112,15 @@ bool InputTypeManager::Init()
     }
     isInitInProgress_.store(true);
     isInitSuccess_.Clear(false);
-    std::vector<InputTypeCfg> configs;
-    bool isSuccess = ImeConfigParse::ParseFromCustomSystem(SUPPORTED_INPUT_TYPE_LIST, configs);
-    IMSA_HILOGD("ParseFromCustomSystem end isSuccess %{public}d", isSuccess);
+    std::vector<InputTypeInfo> configs;
+    auto isSuccess = SysCfgParser::ParseInputType(configs);
+    IMSA_HILOGD("ParseInputType isSuccess: %{public}d", isSuccess);
     if (isSuccess) {
         std::lock_guard<std::mutex> lk(typesLock_);
-        for (const auto& config : configs) {
-            inputTypes_.insert({ config.type, config.ime });
+        for (const auto &config : configs) {
+            inputTypes_.insert({ config.type, { config.bundleName, config.subName } });
         }
-        for (const auto& cfg : inputTypes_) {
+        for (const auto &cfg : inputTypes_) {
             std::lock_guard<std::mutex> lock(listLock_);
             inputTypeImeList_.insert(cfg.second);
         }
