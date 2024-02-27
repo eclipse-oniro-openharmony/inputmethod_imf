@@ -35,6 +35,7 @@ namespace MiscServices {
 constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 200;
 constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
+constexpr int32_t IMC_WAIT_TIME = 2;
 enum ListeningStatus : uint32_t { ON, OFF, NONE };
 class InputMethodPanelTest : public testing::Test {
 public:
@@ -223,7 +224,7 @@ void InputMethodPanelTest::ImcPanelListeningTestPrepare(
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     ASSERT_TRUE(defaultDisplay != nullptr);
-    windowWidth_ = defaultDisplay->GetWidth() - 1;
+    windowWidth_ = defaultDisplay->GetWidth();
     windowHeight_ = 1;
     ret = inputMethodPanel->Resize(windowWidth_, windowHeight_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -775,13 +776,16 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     InputMethodPanelTest::ImcPanelListeningTestPrepare(inputMethodPanel, panelInfo, ON);
-
+    // need to wait amoment to make sure can get the new window size.
+    sleep(IMC_WAIT_TIME);
     auto ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::SHOW, InputWindowStatus::SHOW,
         { "", 0, 0, InputMethodPanelTest::windowWidth_, InputMethodPanelTest::windowHeight_ });
 
     InputMethodPanelTest::ImcPanelListeningTestRestore(InputWindowStatus::SHOW);
+    // need to wait amoment to make sure can get the new window size.
+    sleep(IMC_WAIT_TIME);
     ret = inputMethodPanel->HidePanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelListeningTestCheck(InputWindowStatus::HIDE, InputWindowStatus::HIDE,
