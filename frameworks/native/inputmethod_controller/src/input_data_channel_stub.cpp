@@ -15,7 +15,6 @@
 
 #include "input_data_channel_stub.h"
 
-#include "ffrt_inner.h"
 #include "global.h"
 #include "input_method_controller.h"
 #include "ipc_object_stub.h"
