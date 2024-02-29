@@ -22,7 +22,6 @@ config("inputmethod_client_native_config") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/services/dfx/include",
     "${inputmethod_path}/services/include",
-    "${resourceschedule_ffrt_path}/interfaces/kits",
   ]
 }
 
@@ -37,7 +36,6 @@ config("inputmethod_client_native_public_config") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability/include",
     "${inputmethod_path}/services/include",
     "${inputmethod_path}/services/dfx/include",
-    "${resourceschedule_ffrt_path}/interfaces/kits",
   ]
 }
 
@@ -84,7 +82,6 @@ ohos_shared_library("inputmethod_client") {
     "ability_base:want",
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "ffrt:libffrt",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -132,7 +129,6 @@ ohos_static_library("inputmethod_client_static") {
     "ability_base:want",
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "ffrt:libffrt",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
