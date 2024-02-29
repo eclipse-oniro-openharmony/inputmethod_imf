@@ -17,7 +17,6 @@
 
 #include "ime_info_inquirer.h"
 #include "iservice_registry.h"
-#include "nlohmann/json.hpp"
 #include "serializable.h"
 #include "settings_data_utils.h"
 #include "system_ability_definition.h"
