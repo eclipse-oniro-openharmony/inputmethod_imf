@@ -18,13 +18,16 @@
 #define protected public
 #include "input_method_ability.h"
 #undef private
+#include "i_input_method_agent.h"
 #include "input_data_channel_stub.h"
+#include "input_method_agent_stub.h"
 #include "input_method_engine_listener_impl.h"
 #include "key_event_util.h"
 
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+const std::u16string AGENTSTUB_INTERFACE_TOKEN = u"ohos.miscservices.inputmethod.IInputMethodAgent";
 class InputMethodAbilityExceptionTest : public testing::Test {
 public:
     static void SetUpTestCase(void)
@@ -321,5 +324,27 @@ HWTEST_F(InputMethodAbilityExceptionTest, testHideKeyboard_001, TestSize.Level0)
     ResetMemberVar();
 }
 
+/**
+ * @tc.name: testDispatchKeyEvent_001
+ * @tc.desc: DispatchKeyEvent Exception
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
+HWTEST_F(InputMethodAbilityExceptionTest, testDispatchKeyEvent_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityExceptionTest testDispatchKeyEvent_001 START");
+    sptr<InputMethodAgentStub> agentStub = new InputMethodAgentStub();
+    MessageParcel data;
+    data.WriteInterfaceToken(AGENTSTUB_INTERFACE_TOKEN);
+    MessageParcel reply;
+    MessageOption option;
+    std::shared_ptr<MMI::KeyEvent> keyEvent = MMI::KeyEvent::Create();
+    keyEvent->WriteToParcel(data);
+    data.WriteRemoteObject(nullptr);
+    auto ret =
+        agentStub->OnRemoteRequest(static_cast<uint32_t>(IInputMethodAgent::DISPATCH_KEY_EVENT), data, reply, option);
+    EXPECT_EQ(ret, ErrorCode::ERROR_EX_PARCELABLE);
+}
 } // namespace MiscServices
 } // namespace OHOS
