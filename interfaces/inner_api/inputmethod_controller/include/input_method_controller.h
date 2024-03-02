@@ -746,7 +746,6 @@ private:
     bool IsBound();
     void SetAgent(sptr<IRemoteObject> &agentObject);
     std::shared_ptr<IInputMethodAgent> GetAgent();
-    int32_t DispatchKeyEventInner(std::shared_ptr<MMI::KeyEvent> &keyEvent, KeyEventCallback &callback);
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
