@@ -746,6 +746,7 @@ private:
     bool IsBound();
     void SetAgent(sptr<IRemoteObject> &agentObject);
     std::shared_ptr<IInputMethodAgent> GetAgent();
+    void PrintLogIfAceTimeout(int64_t start);
 
     std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;

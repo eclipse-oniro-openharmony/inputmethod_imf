@@ -24,6 +24,7 @@
 #include "input_method_core_proxy.h"
 #include "input_method_utils.h"
 #include "inputmethod_sysevent.h"
+#include "inputmethod_trace.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "message_parcel.h"
@@ -487,6 +488,7 @@ int32_t InputMethodAbility::HideKeyboard()
 
 int32_t InputMethodAbility::InsertText(const std::string text)
 {
+    InputMethodSyncTrace tracer("IMA_InsertText");
     IMSA_HILOGD("InputMethodAbility, in");
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
@@ -498,6 +500,7 @@ int32_t InputMethodAbility::InsertText(const std::string text)
 
 int32_t InputMethodAbility::DeleteForward(int32_t length)
 {
+    InputMethodSyncTrace tracer("IMA_DeleteForward");
     IMSA_HILOGD("InputMethodAbility, length = %{public}d", length);
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
@@ -550,6 +553,7 @@ int32_t InputMethodAbility::SendExtendAction(int32_t action)
 
 int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &text)
 {
+    InputMethodSyncTrace tracer("IMA_GetForward");
     IMSA_HILOGD("InputMethodAbility, number: %{public}d", number);
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
