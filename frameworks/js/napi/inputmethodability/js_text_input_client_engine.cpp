@@ -16,6 +16,7 @@
 #include "js_text_input_client_engine.h"
 
 #include "input_method_ability.h"
+#include "inputmethod_trace.h"
 #include "js_util.h"
 #include "js_utils.h"
 #include "napi/native_api.h"
@@ -24,6 +25,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+using namespace std::chrono;
 thread_local napi_ref JsTextInputClientEngine::TICRef_ = nullptr;
 const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";
 constexpr int32_t MAX_WAIT_TIME = 5000;
@@ -246,9 +248,12 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
 
 napi_value JsTextInputClientEngine::DeleteForwardSync(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JS_DeleteForwardSync");
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::DELETE_FORWARD };
     editorQueue_.Push(eventInfo);
+    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     editorQueue_.Wait(eventInfo);
+    PrintEditorQueueInfoIfTimeout(start, eventInfo);
     size_t argc = 1;
     napi_value argv[1] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
@@ -271,6 +276,7 @@ napi_value JsTextInputClientEngine::DeleteForwardSync(napi_env env, napi_callbac
 
 napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JS_DeleteForward");
     auto ctxt = std::make_shared<DeleteForwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
@@ -286,7 +292,10 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
+        InputMethodSyncTrace tracer("JS_DeleteForward_Exec");
+        int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
         editorQueue_.Wait(ctxt->info);
+        PrintEditorQueueInfoIfTimeout(start, ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->DeleteForward(ctxt->length);
         editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
@@ -364,6 +373,7 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
 
 napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JS_InsertText");
     auto ctxt = std::make_shared<InsertTextContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
@@ -379,7 +389,10 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
+        InputMethodSyncTrace tracer("JS_InsertText_Exec");
+        int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
         editorQueue_.Wait(ctxt->info);
+        PrintEditorQueueInfoIfTimeout(start, ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->InsertText(ctxt->text);
         editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
@@ -398,13 +411,16 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
 
 napi_value JsTextInputClientEngine::InsertTextSync(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JS_InsertTextSync");
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::INSERT_TEXT};
     editorQueue_.Push(eventInfo);
+    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     editorQueue_.Wait(eventInfo);
+    PrintEditorQueueInfoIfTimeout(start, eventInfo);
     size_t argc = 1;
     napi_value argv[1] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
-    std::string text = "";
+    std::string text;
     // 1 means least param num.
     if (argc < 1 || JsUtil::GetType(env, argv[0]) != napi_string || !JsUtil::GetValue(env, argv[0], text)) {
         editorQueue_.Pop();
@@ -422,9 +438,12 @@ napi_value JsTextInputClientEngine::InsertTextSync(napi_env env, napi_callback_i
 
 napi_value JsTextInputClientEngine::GetForwardSync(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JS_GetForwardSync");
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::GET_FORWARD };
     editorQueue_.Push(eventInfo);
+    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     editorQueue_.Wait(eventInfo);
+    PrintEditorQueueInfoIfTimeout(start, eventInfo);
     size_t argc = 1;
     napi_value argv[1] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
@@ -452,6 +471,7 @@ napi_value JsTextInputClientEngine::GetForwardSync(napi_env env, napi_callback_i
 
 napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JS_GetForward");
     auto ctxt = std::make_shared<GetForwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
@@ -468,7 +488,10 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
+        InputMethodSyncTrace tracer("JS_GetForward_Exec");
+        int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
         editorQueue_.Wait(ctxt->info);
+        PrintEditorQueueInfoIfTimeout(start, ctxt->info);
         std::u16string temp;
         int32_t code = InputMethodAbility::GetInstance()->GetTextBeforeCursor(ctxt->length, temp);
         editorQueue_.Pop();
@@ -796,6 +819,19 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursorSync(napi_env env, napi_
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get text index at cursor.", TYPE_NONE);
     }
     return JsUtil::GetValue(env, index);
+}
+
+void JsTextInputClientEngine::PrintEditorQueueInfoIfTimeout(int64_t start, const EditorEventInfo &currentInfo)
+{
+    int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    if (end - start >= MAX_WAIT_TIME) {
+        EditorEventInfo frontInfo;
+        auto ret = editorQueue_.GetFront(frontInfo);
+        int64_t frontTime = duration_cast<microseconds>(frontInfo.timestamp.time_since_epoch()).count();
+        int64_t currentTime = duration_cast<microseconds>(currentInfo.timestamp.time_since_epoch()).count();
+        IMSA_HILOGW("ret:%{public}d,front[%{public}" PRId64 ",%{public}d],current[%{public}" PRId64 ",%{public}d]", ret,
+            frontTime, static_cast<int32_t>(frontInfo.event), currentTime, static_cast<int32_t>(currentInfo.event));
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS
