@@ -31,36 +31,43 @@ public:
 
     void Pop()
     {
-        std::lock_guard<std::mutex> lock(queuesMutex_);
+        std::unique_lock<std::mutex> lock(queuesMutex_);
         queues_.pop();
         cv_.notify_all();
     }
 
     void Push(const T &data)
     {
-        std::lock_guard<std::mutex> lock(queuesMutex_);
+        std::unique_lock<std::mutex> lock(queuesMutex_);
         queues_.push(data);
     }
 
     void Wait(const T &data)
     {
-        if (!IsReady(data)) {
-            std::unique_lock<std::mutex> lock(cvMutex_);
-            cv_.wait_for(lock, std::chrono::milliseconds(timeout_), [&data, this]() { return IsReady(data); });
-        }
+        std::unique_lock<std::mutex> lock(queuesMutex_);
+        cv_.wait_for(lock, std::chrono::milliseconds(timeout_), [&data, this]() { return data == queues_.front(); });
     }
 
     bool IsReady(const T &data)
     {
-        std::lock_guard<std::mutex> lock(queuesMutex_);
+        std::unique_lock<std::mutex> lock(queuesMutex_);
         return data == queues_.front();
+    }
+
+    bool GetFront(T &data)
+    {
+        std::unique_lock<std::mutex> lock(queuesMutex_);
+        if (queues_.empty()) {
+            return false;
+        }
+        data = queues_.front();
+        return true;
     }
 
 private:
     const uint32_t timeout_;
     std::mutex queuesMutex_;
     std::queue<T> queues_;
-    std::mutex cvMutex_;
     std::condition_variable cv_;
 };
 } // namespace MiscServices

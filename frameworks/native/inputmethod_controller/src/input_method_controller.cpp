@@ -16,6 +16,7 @@
 #include "input_method_controller.h"
 
 #include <algorithm>
+#include <cinttypes>
 
 #include "block_data.h"
 #include "global.h"
@@ -36,11 +37,13 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
+using namespace std::chrono;
 sptr<InputMethodController> InputMethodController::instance_;
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodController::handler_{ nullptr };
 std::mutex InputMethodController::instanceLock_;
 constexpr int32_t LOOP_COUNT = 5;
 constexpr int64_t DELAY_TIME = 100;
+constexpr int32_t ACE_DEAL_TIME_OUT = 200;
 const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
     { "imeHide", IME_HIDE } };
 InputMethodController::InputMethodController()
@@ -677,13 +680,19 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
 
 int32_t InputMethodController::GetLeft(int32_t length, std::u16string &text)
 {
+    InputMethodSyncTrace tracer("IMC_GetForward");
     IMSA_HILOGD("run in, length: %{public}d", length);
     auto listener = GetTextListener();
     if (!IsEditable() || listener == nullptr) {
         IMSA_HILOGE("not editable or listener is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    text = listener->GetLeftTextOfCursor(length);
+    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    {
+        InputMethodSyncTrace aceTracer("ACE_GetForward");
+        text = listener->GetLeftTextOfCursor(length);
+    }
+    PrintLogIfAceTimeout(start);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1043,26 +1052,38 @@ bool InputMethodController::IsBound()
 
 int32_t InputMethodController::InsertText(const std::u16string &text)
 {
+    InputMethodSyncTrace tracer("IMC_InsertText");
     IMSA_HILOGD("in");
     auto listener = GetTextListener();
     if (!IsEditable() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    listener->InsertText(text);
+    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    {
+        InputMethodSyncTrace aceTracer("ACE_InsertText");
+        listener->InsertText(text);
+    }
+    PrintLogIfAceTimeout(start);
     return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::DeleteForward(int32_t length)
 {
+    InputMethodSyncTrace tracer("IMC_DeleteForward");
     IMSA_HILOGD("run in, length: %{public}d", length);
     auto listener = GetTextListener();
     if (!IsEditable() || listener == nullptr) {
         IMSA_HILOGE("not editable or textListener is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    // reverse for compatibility
-    listener->DeleteBackward(length);
+    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    {
+        InputMethodSyncTrace aceTracer("ACE_DeleteForward");
+        // reverse for compatibility
+        listener->DeleteBackward(length);
+    }
+    PrintLogIfAceTimeout(start);
     return ErrorCode::NO_ERROR;
 }
 
@@ -1196,6 +1217,14 @@ std::shared_ptr<IInputMethodAgent> InputMethodController::GetAgent()
 {
     std::lock_guard<std::mutex> autoLock(agentLock_);
     return agent_;
+}
+
+void InputMethodController::PrintLogIfAceTimeout(int64_t start)
+{
+    int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    if (end - start > ACE_DEAL_TIME_OUT) {
+        IMSA_HILOGW("timeout:[%{public}" PRId64 ", %{public}" PRId64 "]", start, end);
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS

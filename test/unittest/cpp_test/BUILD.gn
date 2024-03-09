@@ -284,7 +284,10 @@ ohos_unittest("InputMethodUtilsTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/input_method_utils_test.cpp" ]
+  sources = [
+    "src/block_queue_test.cpp",
+    "src/input_method_utils_test.cpp",
+  ]
 
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
