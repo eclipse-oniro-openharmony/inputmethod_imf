@@ -27,6 +27,7 @@ namespace MiscServices {
 const std::string INPUT_METHOD_SERVICE_SA_NAME = "inputmethod_service";
 bool FreezeManager::BeforeIPC(RequestType type)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (type == RequestType::REQUEST_HIDE && !imeInUse_.load()) {
         return false;
     }
@@ -39,6 +40,7 @@ bool FreezeManager::BeforeIPC(RequestType type)
 
 void FreezeManager::AfterIPC(RequestType type, bool IsIPCSuccess)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (type == RequestType::START_INPUT) {
         imeInUse_.store(IsIPCSuccess);
         SetState(!IsIPCSuccess);
