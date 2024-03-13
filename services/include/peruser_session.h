@@ -26,6 +26,7 @@
 #include "block_data.h"
 #include "event_handler.h"
 #include "event_status_manager.h"
+#include "freeze_manager.h"
 #include "global.h"
 #include "i_input_client.h"
 #include "i_input_control_channel.h"
@@ -53,8 +54,11 @@ struct ImeData {
     sptr<IInputMethodCore> core{ nullptr };
     sptr<IInputMethodAgent> agent{ nullptr };
     sptr<InputDeathRecipient> deathRecipient{ nullptr };
-    ImeData(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent, sptr<InputDeathRecipient> deathRecipient)
-        : core(std::move(core)), agent(std::move(agent)), deathRecipient(std::move(deathRecipient))
+    std::shared_ptr<FreezeManager> freezeMgr;
+    ImeData(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent, sptr<InputDeathRecipient> deathRecipient,
+        pid_t imePid)
+        : core(std::move(core)), agent(std::move(agent)), deathRecipient(std::move(deathRecipient)),
+          freezeMgr(std::make_shared<FreezeManager>(imePid))
     {
     }
 };
@@ -79,7 +83,7 @@ public:
     int32_t OnHideInput(sptr<IInputClient> client);
     int32_t OnRequestShowInput();
     int32_t OnRequestHideInput();
-    void OnSecurityChange(int32_t &security);
+    void OnSecurityChange(int32_t security);
     void OnHideSoftKeyBoardSelf();
     void NotifyImeChangeToClients(const Property &property, const SubProperty &subProperty);
     int32_t SwitchSubtype(const SubProperty &subProperty);
@@ -94,8 +98,6 @@ public:
     bool StartCurrentIme(int32_t userId, bool isRetry);
     void StopCurrentIme();
     bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry);
-    bool ActivateIme(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry);
-    void DeactivateIme(const std::string &bundleName, const std::string &subName);
     bool IsProxyImeEnable();
     bool IsBoundToClient();
     int32_t ExitCurrentInputType();
@@ -122,6 +124,7 @@ private:
     sptr<IInputClient> currentClient_; // the current input client
     std::mutex resetLock;
     ResetManager manager;
+    using IPCExec = std::function<int32_t()>;
 
     PerUserSession(const PerUserSession &);
     PerUserSession &operator=(const PerUserSession &);
@@ -141,7 +144,7 @@ private:
         const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>>
             &updateInfos);
 
-    int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent);
+    int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent, pid_t pid);
     void RemoveImeData(ImeType type, bool isImeDied);
     int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
     std::shared_ptr<ImeData> GetImeData(ImeType type);
@@ -175,6 +178,7 @@ private:
     bool IsBindImeInProxyImeBind(ImeType bindImeType);
     bool IsImeBindChanged(ImeType bindImeType);
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
+    int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IPCExec &exec);
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;
