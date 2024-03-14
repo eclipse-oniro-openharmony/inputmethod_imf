@@ -84,7 +84,6 @@ public:
     int32_t GetSecurityMode(int32_t &security);
     int32_t OnSecurityChange(int32_t security);
     void OnClientInactive(const sptr<IRemoteObject> &channel);
-    int32_t OnTextConfigChange(const InputClientInfo &clientInfo);
     void NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel);
 
 private:

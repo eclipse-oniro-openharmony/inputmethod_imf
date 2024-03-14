@@ -54,7 +54,6 @@ ohos_shared_library("inputmethod_service") {
     "src/freeze_manager.cpp",
     "src/global.cpp",
     "src/im_common_event_manager.cpp",
-    "src/ime_aging_manager.cpp",
     "src/ime_cfg_manager.cpp",
     "src/ime_info_inquirer.cpp",
     "src/input_control_channel_proxy.cpp",
