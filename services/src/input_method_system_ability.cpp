@@ -24,7 +24,6 @@
 #include "errors.h"
 #include "global.h"
 #include "im_common_event_manager.h"
-#include "ime_aging_manager.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
 #include "input_method_utils.h"
@@ -790,7 +789,6 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         SecurityModeParser::GetInstance()->GetFullModeList(userId_);
     }
     userSession_->StopCurrentIme();
-    ImeAgingManager::GetInstance().Clear();
     // user switch, reset currentImeInfo_ = nullptr
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 

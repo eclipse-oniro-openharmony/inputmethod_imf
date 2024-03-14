@@ -16,7 +16,6 @@
 #include "freeze_manager.h"
 
 #include "ability_manager_client.h"
-#include "element_name.h"
 #include "global.h"
 #include "res_sched_client.h"
 #include "res_type.h"

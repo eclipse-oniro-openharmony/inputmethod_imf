@@ -19,7 +19,6 @@
 
 #include "ability_manager_client.h"
 #include "element_name.h"
-#include "ime_aging_manager.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
 #include "input_client_proxy.h"
