@@ -27,11 +27,11 @@ const std::string INPUT_METHOD_SERVICE_SA_NAME = "inputmethod_service";
 bool FreezeManager::BeforeIPC(RequestType type)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (type == RequestType::REQUEST_HIDE && !imeInUse_.load()) {
+    if (type == RequestType::REQUEST_HIDE && !imeInUse_) {
         return false;
     }
     if (type == RequestType::START_INPUT) {
-        imeInUse_.store(true);
+        imeInUse_ = true;
     }
     SetState(false);
     return true;
@@ -41,23 +41,23 @@ void FreezeManager::AfterIPC(RequestType type, bool isSuccess)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (type == RequestType::START_INPUT) {
-        imeInUse_.store(isSuccess);
+        imeInUse_ = isSuccess;
         SetState(!isSuccess);
         return;
     }
     if (type == RequestType::STOP_INPUT) {
-        imeInUse_.store(false);
+        imeInUse_ = false;
     }
     SetState(true);
 }
 
 void FreezeManager::SetState(bool freezable)
 {
-    if (freezable_.load() == freezable) {
+    if (freezable_ == freezable) {
         IMSA_HILOGD("freezable state %{public}d not changed", freezable);
         return;
     }
-    if (freezable && imeInUse_.load()) {
+    if (freezable && imeInUse_) {
         IMSA_HILOGD("ime in use");
         return;
     }
@@ -70,7 +70,7 @@ void FreezeManager::SetState(bool freezable)
     payload["extensionType"] = std::to_string(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::INPUTMETHOD));
     payload["pid"] = std::to_string(pid_);
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
-    freezable_.store(freezable);
+    freezable_ = freezable;
 }
 } // namespace MiscServices
 } // namespace OHOS
