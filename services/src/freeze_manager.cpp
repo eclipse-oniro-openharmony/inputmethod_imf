@@ -54,7 +54,7 @@ void FreezeManager::AfterIPC(RequestType type, bool isSuccess)
 void FreezeManager::SetState(bool freezable)
 {
     if (freezable_.load() == freezable) {
-        IMSA_HILOGD("already");
+        IMSA_HILOGD("freezable state %{public}d not changed", freezable);
         return;
     }
     if (freezable && imeInUse_.load()) {
