@@ -37,12 +37,12 @@ bool FreezeManager::BeforeIPC(RequestType type)
     return true;
 }
 
-void FreezeManager::AfterIPC(RequestType type, bool IsIPCSuccess)
+void FreezeManager::AfterIPC(RequestType type, bool isSuccess)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (type == RequestType::START_INPUT) {
-        imeInUse_.store(IsIPCSuccess);
-        SetState(!IsIPCSuccess);
+        imeInUse_.store(isSuccess);
+        SetState(!isSuccess);
         return;
     }
     if (type == RequestType::STOP_INPUT) {

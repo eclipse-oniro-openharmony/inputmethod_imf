@@ -28,7 +28,7 @@ public:
     {
     }
     bool BeforeIPC(RequestType type);
-    void AfterIPC(RequestType type, bool IsIPCSuccess);
+    void AfterIPC(RequestType type, bool isSuccess);
 
 private:
     void SetState(bool freezable);
