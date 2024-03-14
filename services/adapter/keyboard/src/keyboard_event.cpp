@@ -48,6 +48,7 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
     CombinationKeyCallBack combinationKeyCallBack = [callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
         if (callback == nullptr) {
             IMSA_HILOGE("callback is nullptr.");
+            return;
         }
         callback->TriggerSwitch();
     };
