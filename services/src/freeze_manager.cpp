@@ -45,6 +45,11 @@ void FreezeManager::AfterIPC(RequestType type, bool isSuccess)
         SetState(!isSuccess);
         return;
     }
+    if (type == RequestType::REQUEST_HIDE && imeInUse_) {
+        imeInUse_ = !isSuccess;
+        SetState(isSuccess);
+        return;
+    }
     if (type == RequestType::STOP_INPUT) {
         imeInUse_ = false;
     }

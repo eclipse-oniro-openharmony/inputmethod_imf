@@ -1105,7 +1105,8 @@ int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
         IMSA_HILOGE("ime not started");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    return RequestIme(ime, RequestType::NORMAL, [&ime, &panelInfo, &isShown] { return ime->core->IsPanelShown(panelInfo, isShown); });
+    return RequestIme(ime, RequestType::NORMAL,
+        [&ime, &panelInfo, &isShown] { return ime->core->IsPanelShown(panelInfo, isShown); });
 }
 
 bool PerUserSession::CheckSecurityMode()
@@ -1127,6 +1128,7 @@ std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> PerUserSession::
 int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IPCExec &exec)
 {
     if (IsProxyImeEnable()) {
+        IMSA_HILOGI("proxy enable");
         return exec();
     }
     if (data == nullptr || data->freezeMgr == nullptr) {

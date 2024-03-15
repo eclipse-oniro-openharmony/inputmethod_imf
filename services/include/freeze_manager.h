@@ -16,7 +16,6 @@
 #ifndef INPUTMETHOD_IMF_FREEZE_MANAGER_H
 #define INPUTMETHOD_IMF_FREEZE_MANAGER_H
 
-#include <atomic>
 #include <mutex>
 
 namespace OHOS {
