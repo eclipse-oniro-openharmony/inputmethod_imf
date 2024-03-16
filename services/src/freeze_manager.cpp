@@ -57,7 +57,7 @@ void FreezeManager::AfterIpc(RequestType type, bool isSuccess)
 void FreezeManager::SetFrozen(bool isFrozen)
 {
     if (isFrozen_ == isFrozen) {
-        IMSA_HILOGD("freezable state %{public}d not changed", isFrozen);
+        IMSA_HILOGD("frozen state %{public}d not changed", isFrozen);
         return;
     }
     uint32_t type = ResourceSchedule::ResType::RES_TYPE_SA_CONTROL_APP_EVENT;
@@ -70,7 +70,7 @@ void FreezeManager::SetFrozen(bool isFrozen)
     payload["pid"] = std::to_string(pid_);
     IMSA_HILOGI("report RSS freezable: %{public}d", isFrozen);
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
-    isFrozen = isFrozen;
+    isFrozen_ = isFrozen;
 }
 } // namespace MiscServices
 } // namespace OHOS
