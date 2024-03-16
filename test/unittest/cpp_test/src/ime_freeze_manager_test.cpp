@@ -81,10 +81,11 @@ public:
         IMSA_HILOGI("run in, isSuccess: %{public}d", isSuccess);
         {
             std::lock_guard<std::mutex> lock(mtx_);
-            bool ret = freezeManager_->BeforeIpc(RequestType::REQUEST_HIDE);
+            bool ret = freezeManager_->IsIpcNeeded(RequestType::REQUEST_HIDE);
             if (!ret) {
                 return;
             }
+            freezeManager_->BeforeIpc(RequestType::REQUEST_HIDE);
             CheckFreezable(false);
         }
         usleep(IPC_COST_TIME);
