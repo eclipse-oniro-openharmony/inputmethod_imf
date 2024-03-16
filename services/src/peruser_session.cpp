@@ -1100,6 +1100,11 @@ int32_t PerUserSession::ExitCurrentInputType()
 
 int32_t PerUserSession::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
 {
+    if (GetCurrentClient() == nullptr) {
+        IMSA_HILOGI("not in bound state");
+        isShown = false;
+        return ErrorCode::NO_ERROR;
+    }
     auto ime = GetImeData(ImeType::IME);
     if (ime == nullptr) {
         IMSA_HILOGE("ime not started");

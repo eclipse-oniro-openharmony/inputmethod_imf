@@ -26,8 +26,8 @@ using namespace testing::ext;
 using namespace testing::mt;
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t TASK_NUM = 10;
-constexpr int32_t IPC_COST_TIME = 50000;
+constexpr int32_t TASK_NUM = 100;
+constexpr int32_t IPC_COST_TIME = 5000;
 class ImeFreezeManagerTest : public testing::Test {
 public:
     static void SetUpTestCase(void)
@@ -116,33 +116,14 @@ public:
         freezeManager_->isImeInUse_ = false;
         freezeManager_->isFrozen_ = true;
     }
-    static void AttachAndDetachTask()
+    static void FullTestTask()
     {
         for (int32_t i = 0; i < TASK_NUM; i++) {
+            TestAttach(false);
             TestAttach(true);
             TestDetach();
-        }
-    }
-    static void AttachAndRequestHideTask()
-    {
-        for (int32_t i = 0; i < TASK_NUM; i++) {
-            TestAttach(true);
             TestRequestHideInput(true);
-        }
-    }
-    static void NormalIPCTask1()
-    {
-        for (int32_t i = 0; i < TASK_NUM; i++) {
-            TestAttach(true);
-            TestDetach();
-            TestNormalIPC();
-        }
-    }
-    static void NormalIPCTask2()
-    {
-        for (int32_t i = 0; i < TASK_NUM; i++) {
-            TestAttach(true);
-            TestRequestHideInput(true);
+            TestRequestHideInput(false);
             TestNormalIPC();
         }
     }
@@ -256,55 +237,16 @@ HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInputAndNormalIPC_001, TestSize
 }
 
 /**
- * @tc.name: MultiThread_TestAttachAndDetach_001
+ * @tc.name: MultiThread_FullTest_001
  * @tc.desc: test freeze manager
  * @tc.type: FUNC
  */
-HWTEST_F(ImeFreezeManagerTest, MultiThread_TestAttachAndDetach_001, TestSize.Level0)
+HWTEST_F(ImeFreezeManagerTest, MultiThread_FullTest_001, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeFreezeManagerTest::MultiThread_TestAttachAndDetach_001");
+    IMSA_HILOGI("ImeFreezeManagerTest::MultiThread_FullTest_001");
     EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
     SET_THREAD_NUM(5);
-    GTEST_RUN_TASK(AttachAndDetachTask);
-}
-
-/**
- * @tc.name: MultiThread_TestAttachAndRequestHide_001
- * @tc.desc: test freeze manager
- * @tc.type: FUNC
- */
-HWTEST_F(ImeFreezeManagerTest, MultiThread_TestAttachAndRequestHide_001, TestSize.Level0)
-{
-    IMSA_HILOGI("ImeFreezeManagerTest::MultiThread_TestAttachAndRequestHide_001");
-    EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
-    SET_THREAD_NUM(5);
-    GTEST_RUN_TASK(AttachAndRequestHideTask);
-}
-
-/**
- * @tc.name: MultiThread_TestNormalIPC_001
- * @tc.desc: test freeze manager
- * @tc.type: FUNC
- */
-HWTEST_F(ImeFreezeManagerTest, MultiThread_TestNormalIPC_001, TestSize.Level0)
-{
-    IMSA_HILOGI("ImeFreezeManagerTest::MultiThread_TestNormalIPC_001");
-    EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
-    SET_THREAD_NUM(5);
-    GTEST_RUN_TASK(NormalIPCTask1);
-}
-
-/**
- * @tc.name: MultiThread_TestNormalIPC_002
- * @tc.desc: test freeze manager
- * @tc.type: FUNC
- */
-HWTEST_F(ImeFreezeManagerTest, MultiThread_TestNormalIPC_002, TestSize.Level0)
-{
-    IMSA_HILOGI("ImeFreezeManagerTest::MultiThread_TestNormalIPC_002");
-    EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
-    SET_THREAD_NUM(5);
-    GTEST_RUN_TASK(NormalIPCTask2);
+    GTEST_RUN_TASK(FullTestTask);
 }
 } // namespace MiscServices
 } // namespace OHOS
