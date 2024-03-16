@@ -27,6 +27,7 @@ using namespace testing::mt;
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t TASK_NUM = 10;
+constexpr int32_t IPC_COST_TIME = 5000;
 class ImeFreezeManagerTest : public testing::Test {
 public:
     static void SetUpTestCase(void)
@@ -53,7 +54,7 @@ public:
             freezeManager_->BeforeIPC(RequestType::START_INPUT);
             CheckAllState(true, false);
         }
-        usleep(5000);
+        usleep(IPC_COST_TIME);
         {
             std::lock_guard<std::mutex> lock(mtx_);
             freezeManager_->AfterIPC(RequestType::START_INPUT, isSuccess);
@@ -68,7 +69,7 @@ public:
             freezeManager_->BeforeIPC(RequestType::STOP_INPUT);
             CheckFreezable(false);
         }
-        usleep(5000);
+        usleep(IPC_COST_TIME);
         {
             std::lock_guard<std::mutex> lock(mtx_);
             freezeManager_->AfterIPC(RequestType::STOP_INPUT, true);
@@ -86,7 +87,7 @@ public:
             }
             CheckFreezable(false);
         }
-        usleep(5000);
+        usleep(IPC_COST_TIME);
         {
             std::lock_guard<std::mutex> lock(mtx_);
             freezeManager_->AfterIPC(RequestType::REQUEST_HIDE, isSuccess);
@@ -103,7 +104,7 @@ public:
             freezeManager_->BeforeIPC(RequestType::NORMAL);
             CheckFreezable(false);
         }
-        usleep(5000);
+        usleep(IPC_COST_TIME);
         {
             std::lock_guard<std::mutex> lock(mtx_);
             freezeManager_->AfterIPC(RequestType::NORMAL, true);
@@ -112,8 +113,8 @@ public:
     static void ClearState()
     {
         IMSA_HILOGI("run in");
-        freezeManager_->imeInUse_ = false;
-        freezeManager_->freezable_ = true;
+        freezeManager_->isImeInUse_ = false;
+        freezeManager_->isFreezable_ = true;
     }
     static void AttachAndDetachTask()
     {
@@ -151,16 +152,16 @@ public:
 private:
     static void CheckAllState(bool imeInUse, bool freezable)
     {
-        EXPECT_EQ(freezeManager_->imeInUse_, imeInUse);
-        EXPECT_EQ(freezeManager_->freezable_, freezable);
+        EXPECT_EQ(freezeManager_->isImeInUse_, imeInUse);
+        EXPECT_EQ(freezeManager_->isFreezable_, freezable);
     }
     static void CheckImeInUse(bool imeInUse)
     {
-        EXPECT_EQ(freezeManager_->imeInUse_, imeInUse);
+        EXPECT_EQ(freezeManager_->isImeInUse_, imeInUse);
     }
     static void CheckFreezable(bool freezable)
     {
-        EXPECT_EQ(freezeManager_->freezable_, freezable);
+        EXPECT_EQ(freezeManager_->isFreezable_, freezable);
     }
 };
 std::shared_ptr<FreezeManager> ImeFreezeManagerTest::freezeManager_{ nullptr };

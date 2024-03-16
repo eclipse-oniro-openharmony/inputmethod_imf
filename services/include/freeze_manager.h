@@ -32,8 +32,8 @@ public:
 private:
     void SetState(bool freezable);
     std::mutex mutex_;
-    bool imeInUse_{ false };
-    bool freezable_{ true };
+    bool isImeInUse_{ false };
+    bool isFreezable_{ true };
     pid_t pid_;
 };
 } // namespace MiscServices

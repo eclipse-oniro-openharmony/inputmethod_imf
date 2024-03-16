@@ -27,11 +27,11 @@ const std::string INPUT_METHOD_SERVICE_SA_NAME = "inputmethod_service";
 bool FreezeManager::BeforeIPC(RequestType type)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (type == RequestType::REQUEST_HIDE && !imeInUse_) {
+    if (type == RequestType::REQUEST_HIDE && !isImeInUse_) {
         return false;
     }
     if (type == RequestType::START_INPUT) {
-        imeInUse_ = true;
+        isImeInUse_ = true;
     }
     SetState(false);
     return true;
@@ -41,28 +41,28 @@ void FreezeManager::AfterIPC(RequestType type, bool isSuccess)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (type == RequestType::START_INPUT) {
-        imeInUse_ = isSuccess;
+        isImeInUse_ = isSuccess;
         SetState(!isSuccess);
         return;
     }
-    if (type == RequestType::REQUEST_HIDE && imeInUse_) {
-        imeInUse_ = !isSuccess;
+    if (type == RequestType::REQUEST_HIDE && isImeInUse_) {
+        isImeInUse_ = !isSuccess;
         SetState(isSuccess);
         return;
     }
     if (type == RequestType::STOP_INPUT) {
-        imeInUse_ = false;
+        isImeInUse_ = false;
     }
     SetState(true);
 }
 
 void FreezeManager::SetState(bool freezable)
 {
-    if (freezable_ == freezable) {
+    if (isFreezable_ == freezable) {
         IMSA_HILOGD("freezable state %{public}d not changed", freezable);
         return;
     }
-    if (freezable && imeInUse_) {
+    if (freezable && isImeInUse_) {
         IMSA_HILOGD("ime in use");
         return;
     }
@@ -76,7 +76,7 @@ void FreezeManager::SetState(bool freezable)
     payload["pid"] = std::to_string(pid_);
     IMSA_HILOGI("report RSS freezable: %{public}d", freezable);
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
-    freezable_ = freezable;
+    isFreezable_ = freezable;
 }
 } // namespace MiscServices
 } // namespace OHOS
