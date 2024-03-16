@@ -1128,7 +1128,7 @@ std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> PerUserSession::
 int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IPCExec &exec)
 {
     if (IsProxyImeEnable()) {
-        IMSA_HILOGI("proxy enable");
+        IMSA_HILOGD("proxy enable");
         return exec();
     }
     if (data == nullptr || data->freezeMgr == nullptr) {
@@ -1136,7 +1136,7 @@ int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, Request
         return ErrorCode::NO_ERROR;
     }
     if (!data->freezeMgr->BeforeIPC(type)) {
-        IMSA_HILOGD("no need to request");
+        IMSA_HILOGD("no need to request, type: %{public}d", type);
         return ErrorCode::NO_ERROR;
     }
     auto ret = exec();

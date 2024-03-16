@@ -74,6 +74,7 @@ void FreezeManager::SetState(bool freezable)
     payload["saName"] = INPUT_METHOD_SERVICE_SA_NAME;
     payload["extensionType"] = std::to_string(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::INPUTMETHOD));
     payload["pid"] = std::to_string(pid_);
+    IMSA_HILOGI("report RSS freezable: %{public}d", freezable);
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
     freezable_ = freezable;
 }
