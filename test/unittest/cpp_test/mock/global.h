@@ -66,23 +66,28 @@ constexpr int32_t ERROR_ENABLE_IME = 27;
 constexpr int32_t ERROR_ENABLE_SECURITY_MODE = 32;
 }; // namespace ErrorCode
 
-constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD001C00, "ImsaKit" };
+constexpr HiviewDFX::HiLogLabel g_SMALL_SERVICES_LABEL = { LOG_CORE, 0xD001C10, "ImsaKit" };
 
-#define IMSA_HILOGD(fmt, ...)                                                       \
-    (void)OHOS::HiviewDFX::HiLog::Debug(OHOS::MiscServices::g_SMALL_SERVICES_LABEL, \
-        "line: %{public}d, function: %{public}s," fmt, __LINE__, __FUNCTION__, ##__VA_ARGS__)
-#define IMSA_HILOGE(fmt, ...)                                                       \
-    (void)OHOS::HiviewDFX::HiLog::Error(OHOS::MiscServices::g_SMALL_SERVICES_LABEL, \
-        "line: %{public}d, function: %{public}s," fmt, __LINE__, __FUNCTION__, ##__VA_ARGS__)
-#define IMSA_HILOGF(fmt, ...)                                                       \
-    (void)OHOS::HiviewDFX::HiLog::Fatal(OHOS::MiscServices::g_SMALL_SERVICES_LABEL, \
-        "line: %{public}d, function: %{public}s," fmt, __LINE__FILE__, __FUNCTION__, ##__VA_ARGS__)
-#define IMSA_HILOGI(fmt, ...)                                                      \
-    (void)OHOS::HiviewDFX::HiLog::Info(OHOS::MiscServices::g_SMALL_SERVICES_LABEL, \
-        "line: %{public}d, function: %{public}s," fmt, __LINE__, __FUNCTION__, ##__VA_ARGS__)
-#define IMSA_HILOGW(fmt, ...)                                                      \
-    (void)OHOS::HiviewDFX::HiLog::Warn(OHOS::MiscServices::g_SMALL_SERVICES_LABEL, \
-        "line: %{public}d, function: %{public}s," fmt, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+#define IMSA_HILOGD(fmt, ...)                                                                                    \
+    (void)HILOG_IMPL(LOG_CORE, LOG_DEBUG, OHOS::MiscServices::g_SMALL_SERVICES_LABEL.domain,                     \
+        OHOS::MiscServices::g_SMALL_SERVICES_LABEL.tag, "line: %{public}d, function: %{public}s," fmt, __LINE__, \
+        __FUNCTION__, ##__VA_ARGS__)
+#define IMSA_HILOGE(fmt, ...)                                                                                    \
+    (void)HILOG_IMPL(LOG_CORE, LOG_ERROR, OHOS::MiscServices::g_SMALL_SERVICES_LABEL.domain,                     \
+        OHOS::MiscServices::g_SMALL_SERVICES_LABEL.tag, "line: %{public}d, function: %{public}s," fmt, __LINE__, \
+        __FUNCTION__, ##__VA_ARGS__)
+#define IMSA_HILOGF(fmt, ...)                                                                                    \
+    (void)HILOG_IMPL(LOG_CORE, LOG_FATAL, OHOS::MiscServices::g_SMALL_SERVICES_LABEL.domain,                     \
+        OHOS::MiscServices::g_SMALL_SERVICES_LABEL.tag, "line: %{public}d, function: %{public}s," fmt, __LINE__, \
+        __FUNCTION__, ##__VA_ARGS__)
+#define IMSA_HILOGI(fmt, ...)                                                                                    \
+    (void)HILOG_IMPL(LOG_CORE, LOG_INFO, OHOS::MiscServices::g_SMALL_SERVICES_LABEL.domain,                      \
+        OHOS::MiscServices::g_SMALL_SERVICES_LABEL.tag, "line: %{public}d, function: %{public}s," fmt, __LINE__, \
+        __FUNCTION__, ##__VA_ARGS__)
+#define IMSA_HILOGW(fmt, ...)                                                                                    \
+    (void)HILOG_IMPL(LOG_CORE, LOG_WARN, OHOS::MiscServices::g_SMALL_SERVICES_LABEL.domain,                      \
+        OHOS::MiscServices::g_SMALL_SERVICES_LABEL.tag, "line: %{public}d, function: %{public}s," fmt, __LINE__, \
+        __FUNCTION__, ##__VA_ARGS__)
 } // namespace MiscServices
 } // namespace OHOS
 #endif // SERVICES_INCLUDE_GLOBAL_H
