@@ -124,7 +124,7 @@ private:
     sptr<IInputClient> currentClient_; // the current input client
     std::mutex resetLock;
     ResetManager manager;
-    using IPCExec = std::function<int32_t()>;
+    using IpcExec = std::function<int32_t()>;
 
     PerUserSession(const PerUserSession &);
     PerUserSession &operator=(const PerUserSession &);
@@ -178,7 +178,7 @@ private:
     bool IsBindImeInProxyImeBind(ImeType bindImeType);
     bool IsImeBindChanged(ImeType bindImeType);
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
-    int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IPCExec &exec);
+    int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec);
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;

@@ -32,45 +32,56 @@ bool FreezeManager::IsIpcNeeded(RequestType type)
 
 void FreezeManager::BeforeIpc(RequestType type)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (type == RequestType::START_INPUT) {
-        isImeInUse_ = true;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (type == RequestType::START_INPUT) {
+            isImeInUse_ = true;
+        }
+        if (!isFrozen_) {
+            IMSA_HILOGD("already not frozen");
+            return;
+        }
+        isFrozen_ = false;
     }
-    SetFrozen(false);
+    ControlIme(false);
 }
 
 void FreezeManager::AfterIpc(RequestType type, bool isSuccess)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (type == RequestType::START_INPUT) {
-        isImeInUse_ = isSuccess;
+    bool shouldFreeze = false;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (type == RequestType::START_INPUT) {
+            isImeInUse_ = isSuccess;
+        }
+        if (type == RequestType::REQUEST_HIDE && isImeInUse_) {
+            isImeInUse_ = !isSuccess;
+        }
+        if (type == RequestType::STOP_INPUT) {
+            isImeInUse_ = false;
+        }
+        if (isFrozen_ == !isImeInUse_) {
+            IMSA_HILOGD("frozen state already: %{public}d", isFrozen_);
+            return;
+        }
+        isFrozen_ = !isImeInUse_;
+        shouldFreeze = isFrozen_;
     }
-    if (type == RequestType::REQUEST_HIDE && isImeInUse_) {
-        isImeInUse_ = !isSuccess;
-    }
-    if (type == RequestType::STOP_INPUT) {
-        isImeInUse_ = false;
-    }
-    SetFrozen(!isImeInUse_);
+    ControlIme(shouldFreeze);
 }
 
-void FreezeManager::SetFrozen(bool isFrozen)
+void FreezeManager::ControlIme(bool shouldFreeze)
 {
-    if (isFrozen_ == isFrozen) {
-        IMSA_HILOGD("frozen state %{public}d not changed", isFrozen);
-        return;
-    }
-    uint32_t type = ResourceSchedule::ResType::RES_TYPE_SA_CONTROL_APP_EVENT;
-    int64_t status = isFrozen ? ResourceSchedule::ResType::SaControlAppStatus::SA_STOP_APP
-                              : ResourceSchedule::ResType::SaControlAppStatus::SA_START_APP;
-    std::unordered_map<std::string, std::string> payload;
-    payload["saId"] = std::to_string(INPUT_METHOD_SYSTEM_ABILITY_ID);
-    payload["saName"] = INPUT_METHOD_SERVICE_SA_NAME;
-    payload["extensionType"] = std::to_string(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::INPUTMETHOD));
-    payload["pid"] = std::to_string(pid_);
-    IMSA_HILOGI("report RSS freezable: %{public}d", isFrozen);
+    auto type = ResourceSchedule::ResType::RES_TYPE_SA_CONTROL_APP_EVENT;
+    auto status = shouldFreeze ? ResourceSchedule::ResType::SaControlAppStatus::SA_STOP_APP
+                               : ResourceSchedule::ResType::SaControlAppStatus::SA_START_APP;
+    std::unordered_map<std::string, std::string> payload = {
+        { "saId", std::to_string(INPUT_METHOD_SYSTEM_ABILITY_ID) },
+        { "saName", INPUT_METHOD_SERVICE_SA_NAME },
+        { "extensionType", std::to_string(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::INPUTMETHOD)) },
+        { "pid", std::to_string(pid_) } };
+    IMSA_HILOGI("report RSS should freeze: %{public}d", shouldFreeze);
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
-    isFrozen_ = isFrozen;
 }
 } // namespace MiscServices
 } // namespace OHOS

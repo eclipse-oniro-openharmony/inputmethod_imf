@@ -1125,7 +1125,7 @@ std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> PerUserSession::
     return mapClients_;
 }
 
-int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IPCExec &exec)
+int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec)
 {
     if (IsProxyImeEnable()) {
         IMSA_HILOGD("proxy enable");

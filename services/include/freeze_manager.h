@@ -31,7 +31,7 @@ public:
     void AfterIpc(RequestType type, bool isSuccess);
 
 private:
-    void SetFrozen(bool isFrozen);
+    void ControlIme(bool shouldFreeze);
     std::mutex mutex_;
     bool isImeInUse_{ false };
     bool isFrozen_{ true };
