@@ -460,17 +460,35 @@ HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level0)
 }
 
 /**
- * @tc.name: testRequestHideInput.
+ * @tc.name: testRequestHideInput_001.
  * @tc.desc: InputMethodEditorTest testRequestHideInput with focused.
  * @tc.type: FUNC
  */
-HWTEST_F(InputMethodEditorTest, testRequestHideInput, TestSize.Level0)
+HWTEST_F(InputMethodEditorTest, testRequestHideInput_001, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodEditorTest testRequestHideInput Test START");
+    IMSA_HILOGI("InputMethodEditorTest testRequestHideInput_001 Test START");
     TddUtil::GetFocused();
     InputMethodEditorTest::inputMethodController_->Close();
     imeListener_->keyboardState_ = true;
     int32_t ret = InputMethodEditorTest::inputMethodController_->RequestHideInput();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    TddUtil::GetUnfocused();
+}
+
+/**
+ * @tc.name: testRequestHideInput_002.
+ * @tc.desc: InputMethodEditorTest testRequestHideInput with focused.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodEditorTest, testRequestHideInput_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodEditorTest testRequestHideInput_002 Test START");
+    TddUtil::GetFocused();
+    InputMethodEditorTest::inputMethodController_->Close();
+    int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    imeListener_->keyboardState_ = true;
+    ret = InputMethodEditorTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_FALSE(imeListener_->keyboardState_);
     TddUtil::GetUnfocused();

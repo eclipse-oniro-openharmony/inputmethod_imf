@@ -957,15 +957,6 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
     });
 }
 
-int32_t InputMethodAbility::OnTextConfigChange(const InputClientInfo &clientInfo)
-{
-    if (clientInfo.channel != nullptr) {
-        SetInputDataChannel(clientInfo.channel->AsObject());
-    }
-    InvokeTextChangeCallback(clientInfo.config);
-    return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
-}
-
 void InputMethodAbility::NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel)
 {
     if (inputMethodPanel == nullptr) {

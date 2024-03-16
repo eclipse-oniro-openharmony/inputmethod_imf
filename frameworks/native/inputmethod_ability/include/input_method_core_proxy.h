@@ -46,7 +46,6 @@ public:
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     int32_t OnSecurityChange(int32_t security) override;
     void OnClientInactive(const sptr<IInputDataChannel> &channel) override;
-    int32_t OnTextConfigChange(const InputClientInfo &clientInfo) override;
 
 private:
     static inline BrokerDelegator<InputMethodCoreProxy> delegator_;
