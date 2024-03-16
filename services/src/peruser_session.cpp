@@ -1135,12 +1135,13 @@ int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, Request
         IMSA_HILOGE("data nullptr");
         return ErrorCode::NO_ERROR;
     }
-    if (!data->freezeMgr->BeforeIPC(type)) {
+    if (!data->freezeMgr->IsIpcNeeded(type)) {
         IMSA_HILOGD("no need to request, type: %{public}d", type);
         return ErrorCode::NO_ERROR;
     }
+    data->freezeMgr->BeforeIpc(type);
     auto ret = exec();
-    data->freezeMgr->AfterIPC(type, ret == ErrorCode::NO_ERROR);
+    data->freezeMgr->AfterIpc(type, ret == ErrorCode::NO_ERROR);
     return ret;
 }
 } // namespace MiscServices

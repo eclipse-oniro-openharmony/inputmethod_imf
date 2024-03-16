@@ -26,14 +26,15 @@ public:
     explicit FreezeManager(pid_t pid) : pid_(pid)
     {
     }
-    bool BeforeIPC(RequestType type);
-    void AfterIPC(RequestType type, bool isSuccess);
+    bool IsIpcNeeded(RequestType type);
+    void BeforeIpc(RequestType type);
+    void AfterIpc(RequestType type, bool isSuccess);
 
 private:
-    void SetState(bool freezable);
+    void SetFrozen(bool isFrozen);
     std::mutex mutex_;
     bool isImeInUse_{ false };
-    bool isFreezable_{ true };
+    bool isFrozen_{ true };
     pid_t pid_;
 };
 } // namespace MiscServices

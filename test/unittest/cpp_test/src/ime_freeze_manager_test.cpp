@@ -27,7 +27,7 @@ using namespace testing::mt;
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t TASK_NUM = 10;
-constexpr int32_t IPC_COST_TIME = 5000;
+constexpr int32_t IPC_COST_TIME = 50000;
 class ImeFreezeManagerTest : public testing::Test {
 public:
     static void SetUpTestCase(void)
@@ -51,13 +51,13 @@ public:
         IMSA_HILOGI("run in, isSuccess: %{public}d", isSuccess);
         {
             std::lock_guard<std::mutex> lock(mtx_);
-            freezeManager_->BeforeIPC(RequestType::START_INPUT);
+            freezeManager_->BeforeIpc(RequestType::START_INPUT);
             CheckAllState(true, false);
         }
         usleep(IPC_COST_TIME);
         {
             std::lock_guard<std::mutex> lock(mtx_);
-            freezeManager_->AfterIPC(RequestType::START_INPUT, isSuccess);
+            freezeManager_->AfterIpc(RequestType::START_INPUT, isSuccess);
             CheckAllState(isSuccess, !isSuccess);
         }
     }
@@ -66,13 +66,13 @@ public:
         IMSA_HILOGI("run in");
         {
             std::lock_guard<std::mutex> lock(mtx_);
-            freezeManager_->BeforeIPC(RequestType::STOP_INPUT);
+            freezeManager_->BeforeIpc(RequestType::STOP_INPUT);
             CheckFreezable(false);
         }
         usleep(IPC_COST_TIME);
         {
             std::lock_guard<std::mutex> lock(mtx_);
-            freezeManager_->AfterIPC(RequestType::STOP_INPUT, true);
+            freezeManager_->AfterIpc(RequestType::STOP_INPUT, true);
             CheckAllState(false, true);
         }
     }
@@ -81,7 +81,7 @@ public:
         IMSA_HILOGI("run in, isSuccess: %{public}d", isSuccess);
         {
             std::lock_guard<std::mutex> lock(mtx_);
-            bool ret = freezeManager_->BeforeIPC(RequestType::REQUEST_HIDE);
+            bool ret = freezeManager_->BeforeIpc(RequestType::REQUEST_HIDE);
             if (!ret) {
                 return;
             }
@@ -90,7 +90,7 @@ public:
         usleep(IPC_COST_TIME);
         {
             std::lock_guard<std::mutex> lock(mtx_);
-            freezeManager_->AfterIPC(RequestType::REQUEST_HIDE, isSuccess);
+            freezeManager_->AfterIpc(RequestType::REQUEST_HIDE, isSuccess);
             if (isSuccess) {
                 CheckAllState(false, true);
             }
@@ -101,20 +101,20 @@ public:
         IMSA_HILOGI("run in");
         {
             std::lock_guard<std::mutex> lock(mtx_);
-            freezeManager_->BeforeIPC(RequestType::NORMAL);
+            freezeManager_->BeforeIpc(RequestType::NORMAL);
             CheckFreezable(false);
         }
         usleep(IPC_COST_TIME);
         {
             std::lock_guard<std::mutex> lock(mtx_);
-            freezeManager_->AfterIPC(RequestType::NORMAL, true);
+            freezeManager_->AfterIpc(RequestType::NORMAL, true);
         }
     }
     static void ClearState()
     {
         IMSA_HILOGI("run in");
         freezeManager_->isImeInUse_ = false;
-        freezeManager_->isFreezable_ = true;
+        freezeManager_->isFrozen_ = true;
     }
     static void AttachAndDetachTask()
     {
@@ -153,7 +153,7 @@ private:
     static void CheckAllState(bool imeInUse, bool freezable)
     {
         EXPECT_EQ(freezeManager_->isImeInUse_, imeInUse);
-        EXPECT_EQ(freezeManager_->isFreezable_, freezable);
+        EXPECT_EQ(freezeManager_->isFrozen_, freezable);
     }
     static void CheckImeInUse(bool imeInUse)
     {
@@ -161,7 +161,7 @@ private:
     }
     static void CheckFreezable(bool freezable)
     {
-        EXPECT_EQ(freezeManager_->isFreezable_, freezable);
+        EXPECT_EQ(freezeManager_->isFrozen_, freezable);
     }
 };
 std::shared_ptr<FreezeManager> ImeFreezeManagerTest::freezeManager_{ nullptr };
