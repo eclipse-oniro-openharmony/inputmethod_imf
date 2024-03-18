@@ -741,6 +741,7 @@ ohos_unittest("JsonOperateTest") {
     "bundle_framework:appexecfwk_core",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "hilog:libhilog",
     "ipc:ipc_single",
   ]
 }
