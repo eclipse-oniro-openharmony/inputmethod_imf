@@ -22,37 +22,39 @@ class InputMethodExtensionContext extends ExtensionContext {
   }
 
   startAbility(want, options, callback) {
-    console.log('startAbility');
     return this.__context_impl__.startAbility(want, options, callback);
   }
 
   connectAbility(want, options) {
-    console.log('connectAbility');
     return this.__context_impl__.connectAbility(want, options);
   }
 
+  connectServiceExtensionAbility(want, options) {
+    return this.__context_impl__.connectAbility(want, options);
+  }
+
+
   startAbilityWithAccount(want, accountId, options, callback) {
-    console.log('startAbilityWithAccount');
     return this.__context_impl__.startAbilityWithAccount(want, accountId, options, callback);
   }
 
   connectAbilityWithAccount(want, accountId, options) {
-    console.log('connectAbilityWithAccount');
     return this.__context_impl__.connectAbilityWithAccount(want, accountId, options);
   }
 
+  disconnectServiceExtensionAbility(want, options) {
+    return this.__context_impl__.disconnectAbility(want, options);
+  }
+
   disconnectAbility(connection, callback) {
-    console.log('disconnectAbility');
     return this.__context_impl__.disconnectAbility(connection, callback);
   }
 
   terminateSelf(callback) {
-    console.log('terminateSelf');
     return this.__context_impl__.terminateSelf(callback);
   }
 
   destroy(callback) {
-    console.log('destroy');
     return this.__context_impl__.destroy(callback);
   }
 }
