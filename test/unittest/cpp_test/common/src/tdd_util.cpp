@@ -193,7 +193,7 @@ bool TddUtil::KillImsaProcess()
         IMSA_HILOGE("Kill failed, ret: %{public}d", ret);
         return false;
     }
-    IMSA_HILOGI("Kill success.");
+    IMSA_HILOGI("Kill [%{public}d] success", pid);
     return true;
 }
 
