@@ -115,7 +115,12 @@ int32_t InputMethodCoreProxy::SendRequest(int code, ParcelHandler input, ParcelH
         IMSA_HILOGE("InputMethodCoreProxy::write data failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto ret = Remote()->SendRequest(code, data, reply, option);
+    auto remote = Remote();
+    if (remote == nullptr) {
+        IMSA_HILOGE("InputMethodCoreProxy remote is nullptr");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
         IMSA_HILOGE("InputMethodCoreProxy send request failed, code: %{public}d, ret %{public}d", code, ret);
         return ret;
