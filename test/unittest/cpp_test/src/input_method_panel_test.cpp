@@ -26,6 +26,7 @@
 #include "global.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
+#include "input_method_engine_listener_impl.h"
 #include "panel_status_listener.h"
 #include "tdd_util.h"
 #include "text_listener.h"
@@ -89,6 +90,7 @@ public:
     static std::string beforeValue;
     static std::string allEnableIme;
     static sptr<OnTextChangedListener> textListener_;
+    static std::shared_ptr<InputMethodEngineListener> imeListener_;
 };
 class InputMethodSettingListenerImpl : public InputMethodSettingListener {
 public:
@@ -125,6 +127,7 @@ uint64_t InputMethodPanelTest::tokenId_ = 0;
 std::string InputMethodPanelTest::beforeValue;
 std::string InputMethodPanelTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.testIme\"]}}";
 sptr<OnTextChangedListener> InputMethodPanelTest::textListener_{ nullptr };
+std::shared_ptr<InputMethodEngineListener> InputMethodPanelTest::imeListener_{ nullptr };
 void InputMethodPanelTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
@@ -147,6 +150,7 @@ void InputMethodPanelTest::SetUpTestCase(void)
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
     tokenId_ = TddUtil::AllocTestTokenID(true, bundleName, { "ohos.permission.CONNECT_IME_ABILITY" });
     textListener_ = new (std::nothrow) TextListener();
+    imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
 }
 
 void InputMethodPanelTest::TearDownTestCase(void)
@@ -464,6 +468,8 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_001 start.");
     TddUtil::SetTestTokenID(tokenId_);
+    TddUtil::InitWindow(true);
+    InputMethodPanelTest::ima_->SetImeListener(InputMethodPanelTest::imeListener_);
     int32_t ret = ima_->SetCoreAndAgent();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = InputMethodPanelTest::imc_->Attach(InputMethodPanelTest::textListener_, false);
@@ -490,6 +496,7 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_001, TestSize.Level0)
 
     ret = ima_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    TddUtil::DestroyWindow();
 }
 
 /**
@@ -501,6 +508,8 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_002 start.");
     TddUtil::SetTestTokenID(tokenId_);
+    TddUtil::InitWindow(true);
+    InputMethodPanelTest::ima_->SetImeListener(InputMethodPanelTest::imeListener_);
     int32_t ret = ima_->SetCoreAndAgent();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = InputMethodPanelTest::imc_->Attach(InputMethodPanelTest::textListener_, false);
@@ -528,6 +537,7 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_002, TestSize.Level0)
 
     ret = ima_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    TddUtil::DestroyWindow();
 }
 
 /**
@@ -539,6 +549,8 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_003 start.");
     TddUtil::SetTestTokenID(tokenId_);
+    TddUtil::InitWindow(true);
+    InputMethodPanelTest::ima_->SetImeListener(InputMethodPanelTest::imeListener_);
     int32_t ret = ima_->SetCoreAndAgent();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = InputMethodPanelTest::imc_->Attach(InputMethodPanelTest::textListener_, false);
@@ -565,6 +577,7 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
 
     ret = ima_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    TddUtil::DestroyWindow();
 }
 
 /**
