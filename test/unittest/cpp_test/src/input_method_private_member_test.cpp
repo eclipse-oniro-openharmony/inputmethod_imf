@@ -62,7 +62,10 @@ void InputMethodPrivateMemberTest::SetUpTestCase(void)
 void InputMethodPrivateMemberTest::TearDownTestCase(void)
 {
     service_->OnStop();
+    TddUtil::StorageSelfTokenID();
+    TddUtil::GrantNativePermission();
     TddUtil::KillImsaProcess();
+    TddUtil::RestoreSelfTokenID();
     IMSA_HILOGI("InputMethodPrivateMemberTest::TearDownTestCase");
 }
 
