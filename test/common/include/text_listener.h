@@ -47,10 +47,12 @@ public:
     std::u16string GetLeftTextOfCursor(int32_t number) override;
     std::u16string GetRightTextOfCursor(int32_t number) override;
     int32_t GetTextIndexAtCursor() override;
+    int32_t OnSendPrivateCommand(std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     static void ResetParam();
     static bool WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus);
     static bool WaitNotifyPanelStatusInfoCallback(const PanelStatusInfo &info);
     static bool WaitNotifyKeyboardHeightCallback(uint32_t height);
+    static bool WaitSendPrivateCommandCallback(std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     static std::mutex textListenerCallbackLock_;
     static std::condition_variable textListenerCv_;
     static int32_t direction_;
@@ -71,6 +73,7 @@ public:
     static constexpr int32_t TEXT_INDEX = 455;
     static constexpr const char *TEXT_BEFORE_CURSOR = "before";
     static constexpr const char *TEXT_AFTER_CURSOR = "after";
+    static std::unordered_map<std::string, PrivateDataValue> privateCommand_;
 };
 } // namespace MiscServices
 } // namespace OHOS

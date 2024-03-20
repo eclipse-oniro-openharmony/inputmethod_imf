@@ -55,6 +55,7 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_NOT_DEFAULT_IME, EXCEPTION_DEFAULTIME },
     { ErrorCode::ERROR_ENABLE_IME, EXCEPTION_IMMS },
     { ErrorCode::ERROR_NOT_CURRENT_IME, EXCEPTION_IMMS },
+    { ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE, EXCEPTION_PARAMCHECK },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -241,6 +242,62 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::string &out)
         delete[] buf;
     } else {
         status = napi_generic_failure;
+    }
+    return status;
+}
+
+/* napi_value <-> std::unordered_map<string, string> */
+napi_status JsUtils::GetValue(napi_env env, napi_value in, std::unordered_map<std::string, PrivateDataValue> &out)
+{
+    napi_value keys = nullptr;
+    napi_get_property_names(env, in, &keys);
+    uint32_t arrLen = 0;
+    napi_status status = napi_get_array_length(env, keys, &arrLen);
+    if (status != napi_ok) {
+        IMSA_HILOGE("napi_get_array_length error");
+        return status;
+    }
+    IMSA_HILOGD("length : %{public}u", arrLen);
+    for (size_t iter = 0; iter < arrLen; ++iter) {
+        napi_value key = nullptr;
+        status = napi_get_element(env, keys, iter, &key);
+        CHECK_RETURN(status == napi_ok, "napi_get_element error", status);
+
+        napi_value value = nullptr;
+        status = napi_get_property(env, in, key, &value);
+        CHECK_RETURN(status == napi_ok, "napi_get_property error", status);
+
+        std::string keyStr;
+        status = GetValue(env, key, keyStr);
+        CHECK_RETURN(status == napi_ok, "GetValue keyStr error", status);
+
+        PrivateDataValue privateCommand;
+        status = GetValue(env, value, privateCommand);
+        CHECK_RETURN(status == napi_ok, "GetValue privateCommand error", status);
+        out.emplace(keyStr, privateCommand);
+    }
+    return status;
+}
+
+napi_status JsUtils::GetValue(napi_env env, napi_value in, PrivateDataValue &out)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_status status = napi_typeof(env, in, &valueType);
+    CHECK_RETURN(status == napi_ok, "napi_typeof error", napi_generic_failure);
+    if (valueType == napi_string) {
+        std::string privateDataStr;
+        GetValue(env, in, privateDataStr);
+        out.emplace<std::string>(privateDataStr);
+    } else if (valueType == napi_boolean) {
+        bool privateDataBool = false;
+        GetValue(env, in, privateDataBool);
+        out.emplace<bool>(privateDataBool);
+    } else if (valueType == napi_number) {
+        int32_t privateDataInt = 0;
+        GetValue(env, in, privateDataInt);
+        out.emplace<int32_t>(privateDataInt);
+    } else {
+        PARAM_CHECK_RETURN(env, false, "value type must be string | boolean | number", TYPE_NONE, napi_generic_failure);
     }
     return status;
 }

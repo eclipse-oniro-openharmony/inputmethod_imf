@@ -20,6 +20,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <variant>
 
 #include "block_queue.h"
 #include "controller_listener.h"
@@ -39,6 +40,7 @@
 #include "key_event.h"
 #include "message_handler.h"
 #include "panel_info.h"
+#include "private_command_interface.h"
 #include "visibility.h"
 
 namespace OHOS {
@@ -65,10 +67,13 @@ public:
     virtual std::u16string GetLeftTextOfCursor(int32_t number) = 0;
     virtual std::u16string GetRightTextOfCursor(int32_t number) = 0;
     virtual int32_t GetTextIndexAtCursor() = 0;
+    virtual int32_t OnSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
 };
-
+using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
-class InputMethodController : public RefBase {
+class InputMethodController
+    : public RefBase
+    , public PrivateCommandInterface {
 public:
     /**
      * @brief Get the instance of InputMethodController.
@@ -721,6 +726,30 @@ public:
      * @since 11
      */
     IMF_API int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
+
+    /**
+     * @brief Send private command to ime.
+     *
+     * This function is used to send private command to ime.
+     *
+     * @param privateCommand Indicates the private command which will be send.
+     * @return Returns 0 for success, others for failure.
+     * @since 11
+     */
+    IMF_API int32_t SendPrivateCommand(
+        const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+
+    /**
+     * @brief Receive private command from ime.
+     *
+     * This function is used to receive private command from ime.
+     *
+     * @param privateCommand Indicates the private command which send from ime.
+     * @return Returns 0 for success, others for failure.
+     * @since 11
+     */
+    IMF_API int32_t OnSendPrivateCommand(
+        const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
 private:
     InputMethodController();

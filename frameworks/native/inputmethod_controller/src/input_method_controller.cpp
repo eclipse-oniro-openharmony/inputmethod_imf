@@ -1215,5 +1215,39 @@ void InputMethodController::PrintLogIfAceTimeout(int64_t start)
         IMSA_HILOGW("timeout:[%{public}" PRId64 ", %{public}" PRId64 "]", start, end);
     }
 }
+int32_t InputMethodController::OnSendPrivateCommand(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    auto listener = GetTextListener();
+    if (listener == nullptr) {
+        IMSA_HILOGE("textListener_ is nullptr");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    
+    return listener->OnSendPrivateCommand(privateCommand);
+}
+
+int32_t InputMethodController::SendPrivateCommand(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    if (!IsBound()) {
+        IMSA_HILOGD("not bound");
+        return ErrorCode::ERROR_CLIENT_NOT_BOUND;
+    }
+    if (!IsEditable()) {
+        IMSA_HILOGD("not editable");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    if (!TextTotalConfig::IsPrivateCommandValid(privateCommand)) {
+        IMSA_HILOGE("invalid private command size.");
+        return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE;
+    }
+    auto agent = GetAgent();
+    if (agent == nullptr) {
+        IMSA_HILOGE("agent is nullptr");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    return agent->SendPrivateCommand(privateCommand);
+}
 } // namespace MiscServices
 } // namespace OHOS

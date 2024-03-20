@@ -88,6 +88,7 @@ public:
     int32_t ShowCurrentInputDeprecated() override;
     int Dump(int fd, const std::vector<std::u16string> &args) override;
     void DumpAllMethod(int fd);
+    int32_t VerifyDefaultIme() override;
 
 protected:
     void OnStart() override;

@@ -101,6 +101,9 @@ public:
     static bool Marshalling(SwitchTrigger input, MessageParcel &data);
     static bool Unmarshalling(SwitchTrigger &output, MessageParcel &data);
 
+    static bool Marshalling(const PrivateDataValue input, MessageParcel &data);
+    static bool Unmarshalling(PrivateDataValue &output, MessageParcel &data);
+
     template<class T>
     static bool Marshalling(const std::vector<T> &val, MessageParcel &parcel);
     template<class T>
@@ -110,6 +113,11 @@ public:
     static bool Marshalling(const std::map<K, V> &val, MessageParcel &parcel);
     template<class K, class V>
     static bool Unmarshalling(std::map<K, V> &val, MessageParcel &parcel);
+
+    template<class K, class V>
+    static bool Marshalling(const std::unordered_map<K, V> &val, MessageParcel &parcel);
+    template<class K, class V>
+    static bool Unmarshalling(std::unordered_map<K, V> &val, MessageParcel &parcel);
 
     template<typename T, typename... Types>
     static bool Marshal(MessageParcel &parcel, const T &first, const Types &... others);
@@ -206,6 +214,54 @@ bool ITypesUtil::Unmarshalling(std::map<K, V> &val, MessageParcel &parcel)
     if (!parcel.ReadInt32(size)) {
         return false;
     }
+    if (size < 0) {
+        return false;
+    }
+
+    size_t readAbleSize = parcel.GetReadableBytes();
+    size_t len = static_cast<size_t>(size);
+    if ((len > readAbleSize) || len > val.max_size()) {
+        return false;
+    }
+
+    for (int32_t i = 0; i < size; i++) {
+        K key;
+        if (!Unmarshalling(key, parcel)) {
+            return false;
+        }
+        V value;
+        if (!Unmarshalling(value, parcel)) {
+            return false;
+        }
+        val.insert({ key, value });
+    }
+    return true;
+}
+
+template<class K, class V>
+bool ITypesUtil::Marshalling(const std::unordered_map<K, V> &result, MessageParcel &parcel)
+{
+    if (!parcel.WriteInt32(static_cast<int32_t>(result.size()))) {
+        return false;
+    }
+    for (const auto &entry : result) {
+        if (!Marshalling(entry.first, parcel)) {
+            return false;
+        }
+        if (!Marshalling(entry.second, parcel)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<class K, class V>
+bool ITypesUtil::Unmarshalling(std::unordered_map<K, V> &val, MessageParcel &parcel)
+{
+    int32_t size = 0;
+    if (!parcel.ReadInt32(size)) {
+        return false;
+    } 
     if (size < 0) {
         return false;
     }

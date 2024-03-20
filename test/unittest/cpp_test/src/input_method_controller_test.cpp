@@ -29,6 +29,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include "ability_manager_client.h"
@@ -1086,6 +1087,119 @@ HWTEST_F(InputMethodControllerTest, testStartInputType, TestSize.Level0)
     IMSA_HILOGI("IMC testStartInputType Test START");
     auto ret = inputMethodController_->StartInputType(InputType::NONE);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+/**
+ * @tc.name: testSendPrivateCommand_001
+ * @tc.desc: SendPrivateCommand not bound, and empty privateCommand.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_001, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateCommand_001 Test START");
+    inputMethodController_->Close();
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    auto ret = inputMethodController_->SendPrivateCommand(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
+
+    ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodController_->SendPrivateCommand(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateCommand_002
+ * @tc.desc: IMC SendPrivateCommand with normal private command.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_002, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateCommand_002 Test START");
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue1 = std::string("stringValue");
+    privateCommand.emplace("value1", privateDataValue1);
+    ret = inputMethodController_->SendPrivateCommand(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateCommand_003
+ * @tc.desc: IMC SendPrivateCommand with correct data format and all data type.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_003, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateCommand_003 Test START");
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue1 = std::string("stringValue");
+    PrivateDataValue privateDataValue2 = true;
+    PrivateDataValue privateDataValue3 = 100;
+    privateCommand.emplace("value1", privateDataValue1);
+    privateCommand.emplace("value2", privateDataValue2);
+    privateCommand.emplace("value3", privateDataValue3);
+    ret = inputMethodController_->SendPrivateCommand(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitSendPrivateCommand(privateCommand));
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateCommand_004
+ * @tc.desc: IMC SendPrivateCommand with more than 5 private command.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_004, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateCommand_004 Test START");
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue1 = std::string("stringValue");
+    privateCommand.emplace("value1", privateDataValue1);
+    privateCommand.emplace("value2", privateDataValue1);
+    privateCommand.emplace("value3", privateDataValue1);
+    privateCommand.emplace("value4", privateDataValue1);
+    privateCommand.emplace("value5", privateDataValue1);
+    privateCommand.emplace("value6", privateDataValue1);
+    ret = inputMethodController_->SendPrivateCommand(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateCommand_005
+ * @tc.desc: IMC SendPrivateCommand size is more than 32KB.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_005, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateCommand_005 Test START");
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    string str(32768, 'a');
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue1 = str;
+    privateCommand.emplace("value1", privateDataValue1);
+    ret = inputMethodController_->SendPrivateCommand(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
+    inputMethodController_->Close();
 }
 
 /**

@@ -33,18 +33,21 @@ public:
     static std::condition_variable imeListenerCv_;
     static bool isEnable_;
     static bool isInputFinish_;
+    static std::unordered_map<std::string, PrivateDataValue> privateCommand_;
     static void ResetParam();
     static bool WaitInputStart();
     static bool WaitInputFinish();
     static bool WaitSetCallingWindow(uint32_t windowId);
+    static bool WaitSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     void OnKeyboardStatus(bool isShow) override;
     void OnInputStart() override;
     void OnInputStop() override;
     void OnSecurityChange(int32_t security) override;
     void OnSetCallingWindow(uint32_t windowId) override;
     void OnSetSubtype(const SubProperty &property) override;
-    void OnInputFinish()override;
-    bool IsEnable()override;
+    void OnInputFinish() override;
+    void OnSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    bool IsEnable() override;
 };
 } // namespace MiscServices
 } // namespace OHOS

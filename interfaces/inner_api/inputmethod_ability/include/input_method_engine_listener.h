@@ -17,6 +17,7 @@
 #define INPUTMETHOD_IMF_INPUT_METHOD_ENGINE_LISTENER_H
 
 #include "input_method_property.h"
+#include "input_method_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -29,6 +30,7 @@ public:
     virtual void OnSecurityChange(int32_t security) = 0;
     virtual void OnSetCallingWindow(uint32_t windowId) = 0;
     virtual void OnSetSubtype(const SubProperty &property) = 0;
+    virtual void OnSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
     virtual void OnInputFinish()
     {
     }

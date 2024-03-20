@@ -79,5 +79,11 @@ int32_t JsGetInputMethodTextChangedListener::GetTextIndexAtCursor()
 {
     return JsGetInputMethodController::GetInstance()->GetTextIndexAtCursor();
 }
+
+int32_t JsGetInputMethodTextChangedListener::OnSendPrivateCommand(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    return ErrorCode::NO_ERROR;
+}
 } // namespace MiscServices
 } // namespace OHOS

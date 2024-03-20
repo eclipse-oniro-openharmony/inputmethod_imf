@@ -129,6 +129,13 @@ void InputDataChannelProxy::NotifyKeyboardHeight(uint32_t height)
         NOTIFY_KEYBOARD_HEIGHT, [height](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, height); });
 }
 
+int32_t InputDataChannelProxy::SendPrivateCommand(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    return SendRequest(SEND_PRIVATE_COMMAND,
+        [privateCommand](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, privateCommand); });
+}
+
 void InputDataChannelProxy::GetMessageOption(int32_t code, MessageOption &option)
 {
     switch (code) {

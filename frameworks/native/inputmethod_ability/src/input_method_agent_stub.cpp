@@ -78,6 +78,9 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
             reply.WriteNoException();
             return ErrorCode::NO_ERROR;
         }
+        case SEND_PRIVATE_COMMAND: {
+            return SendPrivateCommandOnRemote(data, reply);
+        }
         default: {
             return IRemoteStub::OnRemoteRequest(code, data, reply, option);
         }
@@ -100,6 +103,17 @@ int32_t InputMethodAgentStub::DispatchKeyEventOnRemote(MessageParcel &data, Mess
     }
     sptr<KeyEventConsumerProxy> consumer = new (std::nothrow) KeyEventConsumerProxy(consumerObject);
     auto ret = InputMethodAbility::GetInstance()->DispatchKeyEvent(keyEvent, consumer);
+    return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodAgentStub::SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    if (!ITypesUtil::Unmarshal(data, privateCommand)) {
+        IMSA_HILOGE("failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    auto ret = InputMethodAbility::GetInstance()->OnSendPrivateCommand(privateCommand);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -153,6 +167,12 @@ void InputMethodAgentStub::OnConfigurationChange(const Configuration &config)
     data->WriteInt32(static_cast<int32_t>(config.GetTextInputType()));
     Message *message = new Message(MessageID::MSG_ID_ON_CONFIGURATION_CHANGE, data);
     msgHandler_->SendMessage(message);
+}
+
+int32_t InputMethodAgentStub::SendPrivateCommand(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodAgentStub::SetMessageHandler(MessageHandler *msgHandler)

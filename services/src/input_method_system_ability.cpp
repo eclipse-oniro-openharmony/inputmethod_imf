@@ -459,6 +459,19 @@ int32_t InputMethodSystemAbility::StartInputType(InputType type)
 
 int32_t InputMethodSystemAbility::ExitCurrentInputType()
 {
+    auto ret = VerifyDefaultIme();
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("Not default ime.");
+        return ret;
+    }
+    if (userSession_->CheckSecurityMode()) {
+        return StartInputType(InputType::SECURITY_INPUT);
+    }
+    return userSession_->ExitCurrentInputType();
+}
+
+int32_t InputMethodSystemAbility::VerifyDefaultIme()
+{
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId_);
     if (defaultIme == nullptr) {
         IMSA_HILOGE("failed to get default ime");
@@ -467,10 +480,7 @@ int32_t InputMethodSystemAbility::ExitCurrentInputType()
     if (!identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), defaultIme->prop.name)) {
         return ErrorCode::ERROR_NOT_DEFAULT_IME;
     }
-    if (userSession_->CheckSecurityMode()) {
-        return StartInputType(InputType::SECURITY_INPUT);
-    }
-    return userSession_->ExitCurrentInputType();
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)
