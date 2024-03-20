@@ -28,6 +28,7 @@
 #include "input_method_controller.h"
 #include "panel_status_listener.h"
 #include "tdd_util.h"
+#include "text_listener.h"
 
 using namespace testing::ext;
 namespace OHOS {
@@ -87,6 +88,7 @@ public:
     static uint64_t tokenId_;
     static std::string beforeValue;
     static std::string allEnableIme;
+    static sptr<OnTextChangedListener> textListener_;
 };
 class InputMethodSettingListenerImpl : public InputMethodSettingListener {
 public:
@@ -122,6 +124,7 @@ uint32_t InputMethodPanelTest::windowHeight_ = 0;
 uint64_t InputMethodPanelTest::tokenId_ = 0;
 std::string InputMethodPanelTest::beforeValue;
 std::string InputMethodPanelTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.testIme\"]}}";
+sptr<OnTextChangedListener> InputMethodPanelTest::textListener_{ nullptr };
 void InputMethodPanelTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
@@ -143,6 +146,7 @@ void InputMethodPanelTest::SetUpTestCase(void)
     std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
     tokenId_ = TddUtil::AllocTestTokenID(true, bundleName, { "ohos.permission.CONNECT_IME_ABILITY" });
+    textListener_ = new (std::nothrow) TextListener();
 }
 
 void InputMethodPanelTest::TearDownTestCase(void)
@@ -462,6 +466,8 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_001, TestSize.Level0)
     TddUtil::SetTestTokenID(tokenId_);
     int32_t ret = ima_->SetCoreAndAgent();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodPanelTest::imc_->Attach(InputMethodPanelTest::textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     bool isShown = false;
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
@@ -496,6 +502,9 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_002, TestSize.Level0)
     IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_002 start.");
     TddUtil::SetTestTokenID(tokenId_);
     int32_t ret = ima_->SetCoreAndAgent();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodPanelTest::imc_->Attach(InputMethodPanelTest::textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     bool isShown = false;
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
@@ -531,6 +540,9 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
     IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_003 start.");
     TddUtil::SetTestTokenID(tokenId_);
     int32_t ret = ima_->SetCoreAndAgent();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodPanelTest::imc_->Attach(InputMethodPanelTest::textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     bool isShown = false;
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = STATUS_BAR };
