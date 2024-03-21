@@ -39,12 +39,12 @@ public:
     void TearDown();
     static std::shared_ptr<DataShareHelper> helper_;
     static std::shared_ptr<DataShareResultSet> resultSet_;
-    static std::shared_ptr<InputMethodSystemAbility> service_;
+    static sptr<InputMethodSystemAbility> service_;
     static constexpr int32_t USER_ID = 100;
 };
 std::shared_ptr<DataShareHelper> SecurityModeParserTest::helper_;
 std::shared_ptr<DataShareResultSet> SecurityModeParserTest::resultSet_;
-std::shared_ptr<InputMethodSystemAbility> SecurityModeParserTest::service_;
+sptr<InputMethodSystemAbility> SecurityModeParserTest::service_{ nullptr };
 void SecurityModeParserTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("SecurityModeParserTest::SetUpTestCase");
@@ -55,7 +55,11 @@ void SecurityModeParserTest::SetUpTestCase(void)
     resultSet_ = helper_->Query(uri, predicates, columns);
     SecurityModeParser::GetInstance()->Initialize(USER_ID);
 
-    service_ = std::make_shared<InputMethodSystemAbility>();
+    service_ = new (std::nothrow) InputMethodSystemAbility();
+    if (service_ == nullptr) {
+        IMSA_HILOGE("failed to new service");
+        return;
+    }
     service_->OnStart();
     service_->userId_ = USER_ID;
 }
@@ -68,6 +72,7 @@ void SecurityModeParserTest::TearDownTestCase(void)
 
 void SecurityModeParserTest::SetUp()
 {
+    IMSA_HILOGI("SecurityModeParserTest::SetUp");
     resultSet_->strValue_ = "{\"fullExperienceList\" : {\"100\" : [ \"xiaoyiIme\", \"baiduIme\", "
                             "\"sougouIme\"],\"101\" : [\"sougouIme\"]}}";
 
@@ -76,6 +81,7 @@ void SecurityModeParserTest::SetUp()
 
 void SecurityModeParserTest::TearDown()
 {
+    IMSA_HILOGI("SecurityModeParserTest::TearDown");
 }
 
 /**
@@ -199,7 +205,7 @@ HWTEST_F(SecurityModeParserTest, testIsSecurityChange_001, TestSize.Level0)
     int32_t ret = SecurityModeParser::GetInstance()->GetFullModeList(SecurityModeParserTest::USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     SecurityModeParserTest::resultSet_->strValue_ = "{\"fullExperienceList\" : {\"100\" : [ \"baiduIme\", "
-                            "\"sougouIme\"],\"101\" : [\"sougouIme\"]}}";
+                                                    "\"sougouIme\"],\"101\" : [\"sougouIme\"]}}";
     bool isSecurityChange =
         SecurityModeParser::GetInstance()->IsSecurityChange("xiaoyiIme", SecurityModeParserTest::USER_ID);
     EXPECT_EQ(isSecurityChange, true);
