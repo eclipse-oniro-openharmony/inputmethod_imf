@@ -171,6 +171,8 @@ bool TddUtil::ExecuteCmd(const std::string &cmd, std::string &result)
 
 pid_t TddUtil::GetImsaPid()
 {
+    auto currentToken = GetSelfTokenID();
+    GrantNativePermission();
     auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     SystemProcessInfo info;
     int32_t ret = saMgr->GetSystemProcessInfo(INPUT_METHOD_SYSTEM_ABILITY_ID, info);
@@ -178,6 +180,7 @@ pid_t TddUtil::GetImsaPid()
         IMSA_HILOGE("failed to get sa info, ret: %{public}d", ret);
         return -1;
     }
+    SetSelfTokenID(currentToken);
     return info.pid;
 }
 

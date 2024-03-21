@@ -61,6 +61,7 @@ void SecurityModeParserTest::SetUpTestCase(void)
 
 void SecurityModeParserTest::TearDownTestCase(void)
 {
+    service_->OnStop();
 }
 
 void SecurityModeParserTest::SetUp()

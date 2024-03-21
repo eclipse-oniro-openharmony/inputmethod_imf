@@ -1096,7 +1096,6 @@ HWTEST_F(InputMethodControllerTest, testStartInputType, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
 {
     IMSA_HILOGI("IMC OnRemoteDied Test START");
-    TddUtil::GrantNativePermission();
     int32_t ret = inputMethodController_->Attach(textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     TextListener::ResetParam();
