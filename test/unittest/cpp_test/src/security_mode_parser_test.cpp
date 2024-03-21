@@ -47,6 +47,7 @@ std::shared_ptr<DataShareResultSet> SecurityModeParserTest::resultSet_;
 std::shared_ptr<InputMethodSystemAbility> SecurityModeParserTest::service_;
 void SecurityModeParserTest::SetUpTestCase(void)
 {
+    IMSA_HILOGI("SecurityModeParserTest::SetUpTestCase");
     std::vector<std::string> columns = { "VALUE" };
     helper_ = DataShare::DataShareHelper::Creator(nullptr, "tsetUri", "tsetUri");
     DataSharePredicates predicates;
@@ -62,6 +63,7 @@ void SecurityModeParserTest::SetUpTestCase(void)
 void SecurityModeParserTest::TearDownTestCase(void)
 {
     service_->OnStop();
+    IMSA_HILOGI("SecurityModeParserTest::TearDownTestCase");
 }
 
 void SecurityModeParserTest::SetUp()
