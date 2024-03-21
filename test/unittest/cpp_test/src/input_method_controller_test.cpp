@@ -60,6 +60,7 @@ namespace MiscServices {
 constexpr uint32_t RETRY_TIME = 200 * 1000;
 constexpr uint32_t RETRY_TIMES = 5;
 constexpr uint32_t WAIT_INTERVAL = 500;
+constexpr uint32_t WAIT_SA_DIE_TIME_OUT = 3;
 
 class SelectListenerMock : public ControllerListener {
 public:
@@ -331,8 +332,7 @@ bool InputMethodControllerTest::WaitRemoteDiedCallback()
 {
     IMSA_HILOGI("InputMethodControllerTest::WaitRemoteDiedCallback");
     std::unique_lock<std::mutex> lock(onRemoteSaDiedMutex_);
-    // 2 means wait 2 seconds.
-    return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(2)) != std::cv_status::timeout;
+    return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(WAIT_SA_DIE_TIME_OUT)) != std::cv_status::timeout;
 }
 
 void InputMethodControllerTest::CheckProxyObject()
