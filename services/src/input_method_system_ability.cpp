@@ -397,14 +397,14 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
     return userSession_->OnShowCurrentInput();
 };
 
-int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
+int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const PanelTotalInfo &info)
 {
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (!identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName)) {
         IMSA_HILOGE("not current ime");
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
-    return userSession_->OnPanelStatusChange(status, windowInfo);
+    return userSession_->OnPanelStatusChange(status, info);
 }
 
 int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)

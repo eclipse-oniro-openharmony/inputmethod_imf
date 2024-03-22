@@ -88,10 +88,10 @@ public:
     static std::string beforeValue;
     static std::string allEnableIme;
 };
-class InputMethodSettingListenerImpl : public InputMethodSettingListener {
+class ImeEventListenerImpl : public ImeEventListener {
 public:
-    InputMethodSettingListenerImpl() = default;
-    ~InputMethodSettingListenerImpl() = default;
+    ImeEventListenerImpl() = default;
+    ~ImeEventListenerImpl() = default;
     void OnImeChange(const Property &property, const SubProperty &subProperty)
     {
     }
@@ -127,7 +127,7 @@ void InputMethodPanelTest::SetUpTestCase(void)
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
     TddUtil::StorageSelfTokenID();
     ima_ = InputMethodAbility::GetInstance();
-    auto listener = std::make_shared<InputMethodSettingListenerImpl>();
+    auto listener = std::make_shared<ImeEventListenerImpl>();
     imc_ = InputMethodController::GetInstance();
     imc_->SetSettingListener(listener);
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefined", { "ohos.permission.CONNECT_IME_ABILITY" }));

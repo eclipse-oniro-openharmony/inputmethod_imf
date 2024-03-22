@@ -74,7 +74,7 @@ public:
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
     int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) override;
-    int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
+    int32_t PanelStatusChange(const InputWindowStatus &status, const PanelTotalInfo &info) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
     bool IsCurrentIme() override;
     bool IsInputTypeSupported(InputType type) override;

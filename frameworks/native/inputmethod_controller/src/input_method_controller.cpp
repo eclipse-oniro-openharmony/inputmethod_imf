@@ -75,11 +75,6 @@ sptr<InputMethodController> InputMethodController::GetInstance()
     return instance_;
 }
 
-void InputMethodController::SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener)
-{
-    settingListener_ = std::move(listener);
-}
-
 int32_t InputMethodController::RestoreListenEventFlag()
 {
     auto proxy = GetSystemAbilityProxy();
@@ -90,13 +85,8 @@ int32_t InputMethodController::RestoreListenEventFlag()
     return proxy->UpdateListenEventFlag(clientInfo_, IME_NONE);
 }
 
-int32_t InputMethodController::UpdateListenEventFlag(const std::string &type, bool isOn)
+int32_t InputMethodController::UpdateListenEventFlag(EventType eventType, bool isOn)
 {
-    auto it = EVENT_TYPE.find(type);
-    if (it == EVENT_TYPE.end()) {
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    auto eventType = it->second;
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
@@ -177,27 +167,6 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
     }
     abilityManager_ = iface_cast<IInputMethodSystemAbility>(systemAbility);
     return abilityManager_;
-}
-
-int32_t InputMethodController::OnSwitchInput(const Property &property, const SubProperty &subProperty)
-{
-    if (settingListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    settingListener_->OnImeChange(property, subProperty);
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodController::OnPanelStatusChange(
-    const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
-{
-    if (settingListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    settingListener_->OnPanelStatusChange(status, windowInfo);
-    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodController::DeactivateClient()

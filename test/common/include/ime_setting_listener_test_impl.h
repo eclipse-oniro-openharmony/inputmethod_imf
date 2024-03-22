@@ -27,7 +27,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-class ImeSettingListenerTestImpl : public InputMethodSettingListener {
+class ImeSettingListenerTestImpl : public ImeEventListener {
 public:
     ImeSettingListenerTestImpl(){};
     ~ImeSettingListenerTestImpl(){};

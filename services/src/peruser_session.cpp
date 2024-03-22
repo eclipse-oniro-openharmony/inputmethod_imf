@@ -957,7 +957,7 @@ int64_t PerUserSession::GetCurrentClientPid()
     return clientInfo->pid;
 }
 
-int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
+int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const PanelTotalInfo &info)
 {
     auto clientMap = GetClientMap();
     for (const auto &client : clientMap) {
@@ -974,7 +974,7 @@ int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, con
             IMSA_HILOGD("has no imeHide callback");
             continue;
         }
-        int32_t ret = clientInfo->client->OnPanelStatusChange(status, { windowInfo });
+        int32_t ret = clientInfo->client->OnPanelStatusChange(status, { info });
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("OnPanelStatusChange failed, ret: %{public}d", ret);
             continue;

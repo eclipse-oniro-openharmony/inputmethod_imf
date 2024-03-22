@@ -288,7 +288,7 @@ void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
         IMSA_HILOGE("imsa is nullptr");
         return;
     }
-    if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
+    if (panelType_ == SOFT_KEYBOARD && (panelFlag_ == FLG_FIXED || panelFlag_ = FLG_FLOATING)) {
         auto rect = window_->GetRect();
         IMSA_HILOGD("InputMethodPanel::x:%{public}d, y:%{public}d, w:%{public}u, h:%{public}u", rect.posX_, rect.posY_,
             rect.width_, rect.height_);

@@ -17,15 +17,22 @@
 #define INPUTMETHOD_IMF_INPUT_METHOD_SETTING_LISTENER_H
 
 #include "input_method_property.h"
+#include "panel_info.h"
+#include "input_window_info.h"
 
 namespace OHOS {
 namespace MiscServices {
-class InputMethodSettingListener {
+struct PanelTotalInfo {
+    InputWindowInfo windowInfo;
+    PanelInfo panelInfo;
+};
+
+class ImeEventListener {
 public:
-    virtual ~InputMethodSettingListener() = default;
+    virtual ~ImeEventListener() = default;
     virtual void OnImeChange(const Property &property, const SubProperty &subProperty) = 0;
-    virtual void OnPanelStatusChange(
-        const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) = 0;
+    virtual void OnImeShow(const PanelTotalInfo &info) = 0;
+    virtual void OnImeHide(const PanelTotalInfo &info) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

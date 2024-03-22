@@ -201,15 +201,14 @@ public:
     IMF_API int32_t OnConfigurationChange(Configuration info);
 
     /**
-     * @brief Set InputMethodSettingListener listener.
+     * @brief Set ImeEventListener listener.
      *
-     * This function is used to set InputMethodSettingListener  listener to facilitate listening input method changes.
+     * This function is used to set ImeEventListener  listener to facilitate listening input method changes.
      *
      * @param listener Indicates the listener to be set.
      * @since 6
      */
-    IMF_API void SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener);
-    IMF_API int32_t UpdateListenEventFlag(const std::string &type, bool isOn);
+    IMF_API int32_t UpdateListenEventFlag(EventType eventType, bool isOn);
     IMF_API void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
 
     /**
@@ -655,31 +654,6 @@ public:
     IMF_API int32_t SendFunctionKey(int32_t functionKey);
 
     /**
-     * @brief Inform the change of ime to client.
-     *
-     * This function is used to inform the change of ime to client.
-     *
-     * @param property Indicates the property of ime.
-     * @param subProperty Indicates the sub property of ime.
-     * @return Returns 0 for success, others for failure.
-     * @since 10
-     */
-    IMF_API int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty);
-
-    /**
-     * @brief Inform the change panel status.
-     *
-     * This function is used to inform the change panel status.
-     *
-     * @param status Indicates the status of panel.
-     * @param windowInfo Indicates the detailed info of window.
-     * @return Returns 0 for success, others for failure.
-     * @since 10
-     */
-    IMF_API int32_t OnPanelStatusChange(
-        const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo);
-
-    /**
      * @brief Deactivate the input client.
      *
      * This function is used to deactivate the input client.
@@ -748,7 +722,6 @@ private:
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
 
-    std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;

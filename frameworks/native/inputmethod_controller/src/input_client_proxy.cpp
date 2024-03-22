@@ -44,11 +44,10 @@ int32_t InputClientProxy::OnSwitchInput(const Property &property, const SubPrope
         [&property, &subProperty](MessageParcel &data) { return ITypesUtil::Marshal(data, property, subProperty); });
 }
 
-int32_t InputClientProxy::OnPanelStatusChange(
-    const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+int32_t InputClientProxy::OnPanelStatusChange(const InputWindowStatus &status, const PanelTotalInfo &info)
 {
     return SendRequest(ON_PANEL_STATUS_CHANGE, [&status, &windowInfo](MessageParcel &data) {
-        return ITypesUtil::Marshal(data, static_cast<uint32_t>(status), windowInfo);
+        return ITypesUtil::Marshal(data, static_cast<uint32_t>(status), info);
     });
 }
 

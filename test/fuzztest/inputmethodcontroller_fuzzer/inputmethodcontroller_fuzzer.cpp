@@ -28,7 +28,7 @@
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
-class SettingListener : public InputMethodSettingListener {
+class SettingListener : public ImeEventListener {
     void OnImeChange(const Property &property, const SubProperty &subProperty)
     {
     }

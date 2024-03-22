@@ -61,14 +61,14 @@ std::string NewImeSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ 
 constexpr uint32_t IME_SUBTYPE_NUM = 3;
 constexpr uint32_t WAIT_IME_READY_TIME = 1;
 constexpr const char *ENABLE_IME_KEYWORD = "settings.inputmethod.enable_ime";
-class InputMethodSettingListenerImpl : public InputMethodSettingListener {
+class ImeEventListenerImpl : public ImeEventListener {
 public:
-    InputMethodSettingListenerImpl() = default;
-    ~InputMethodSettingListenerImpl() = default;
+    ImeEventListenerImpl() = default;
+    ~ImeEventListenerImpl() = default;
     void OnImeChange(const Property &property, const SubProperty &subProperty)
     {
         NewImeSwitchTest::imeChangeFlag = true;
-        IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
+        IMSA_HILOGI("ImeEventListenerImpl OnImeChange");
     }
     void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
     {
@@ -91,7 +91,7 @@ void NewImeSwitchTest::SetUpTestCase(void)
     TddUtil::SetTestTokenID(
         TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
     imc_ = InputMethodController::GetInstance();
-    imc_->SetSettingListener(std::make_shared<InputMethodSettingListenerImpl>());
+    imc_->SetSettingListener(std::make_shared<ImeEventListenerImpl>());
     imc_->UpdateListenEventFlag("imeChange", true);
 }
 
