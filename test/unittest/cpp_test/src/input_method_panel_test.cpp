@@ -128,7 +128,7 @@ std::shared_ptr<InputMethodPanel> InputMethodPanelTest::inputMethodPanel_{ nullp
 void InputMethodPanelTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
-    // storage original token id
+    // storage current token id
     TddUtil::StorageSelfTokenID();
     ima_ = InputMethodAbility::GetInstance();
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
