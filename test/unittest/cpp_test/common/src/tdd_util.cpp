@@ -46,9 +46,7 @@ using namespace Rosen;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
-constexpr int32_t BUFF_LENGTH = 10;
 constexpr int32_t PERMISSION_NUM = 2;
-constexpr const char *CMD_PIDOF_IMS = "pidof inputmethod_ser";
 constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
 constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
 static constexpr int32_t MAX_TIMEOUT_WAIT_FOCUS = 2000;
@@ -173,32 +171,33 @@ bool TddUtil::ExecuteCmd(const std::string &cmd, std::string &result)
 
 pid_t TddUtil::GetImsaPid()
 {
-    char buff[BUFF_LENGTH] = { 0 };
-    FILE *fp = popen(CMD_PIDOF_IMS, "r");
-    if (fp == nullptr) {
-        IMSA_HILOGI("get pid failed.");
+    auto currentToken = GetSelfTokenID();
+    GrantNativePermission();
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    SystemProcessInfo info;
+    int32_t ret = saMgr->GetSystemProcessInfo(INPUT_METHOD_SYSTEM_ABILITY_ID, info);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to get sa info, ret: %{public}d", ret);
         return -1;
     }
-    fgets(buff, sizeof(buff), fp);
-    pid_t pid = atoi(buff);
-    pclose(fp);
-    fp = nullptr;
-    return pid;
+    SetSelfTokenID(currentToken);
+    return info.pid;
 }
 
-void TddUtil::KillImsaProcess()
+bool TddUtil::KillImsaProcess()
 {
     pid_t pid = GetImsaPid();
     if (pid == -1) {
-        IMSA_HILOGE("Pid of Imsa is not exist.");
-        return;
+        IMSA_HILOGE("failed to get pid");
+        return false;
     }
     auto ret = kill(pid, SIGTERM);
     if (ret != 0) {
         IMSA_HILOGE("Kill failed, ret: %{public}d", ret);
-        return;
+        return false;
     }
-    IMSA_HILOGI("Kill success.");
+    IMSA_HILOGI("Kill [%{public}d] success", pid);
+    return true;
 }
 
 sptr<OHOS::AppExecFwk::IBundleMgr> TddUtil::GetBundleMgr()

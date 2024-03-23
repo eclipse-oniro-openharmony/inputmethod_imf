@@ -49,7 +49,7 @@ public:
     static void RestoreSelfTokenID();
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
     static pid_t GetImsaPid();
-    static void KillImsaProcess();
+    static bool KillImsaProcess();
     static void PushEnableImeValue(const std::string &key, const std::string &value);
     static void GrantNativePermission();
     static int32_t GetEnableData(std::string &value);

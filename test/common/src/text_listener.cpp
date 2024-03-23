@@ -17,6 +17,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+constexpr uint32_t KEYBOARD_STATUS_WAIT_TIME_OUT = 2;
 std::mutex TextListener::textListenerCallbackLock_;
 std::condition_variable TextListener::textListenerCv_;
 int32_t TextListener::direction_ = -1;
@@ -169,8 +170,8 @@ void TextListener::ResetParam()
 bool TextListener::WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(
-        lock, std::chrono::seconds(1), [&keyboardStatus]() { return keyboardStatus == keyboardStatus_; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(KEYBOARD_STATUS_WAIT_TIME_OUT),
+        [&keyboardStatus]() { return keyboardStatus == keyboardStatus_; });
     return keyboardStatus == keyboardStatus_;
 }
 
