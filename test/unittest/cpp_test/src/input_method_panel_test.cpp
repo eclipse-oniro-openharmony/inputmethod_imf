@@ -498,6 +498,7 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_001, TestSize.Level0)
 
     ret = ima_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::imc_->Close();
     TddUtil::DestroyWindow();
 }
 
@@ -539,6 +540,7 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_002, TestSize.Level0)
 
     ret = ima_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::imc_->Close();
     TddUtil::DestroyWindow();
 }
 
@@ -579,6 +581,7 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
 
     ret = ima_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::imc_->Close();
     TddUtil::DestroyWindow();
 }
 
