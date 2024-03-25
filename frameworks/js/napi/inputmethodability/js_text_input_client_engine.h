@@ -46,6 +46,16 @@ struct EditorEventInfo {
         return (timestamp == info.timestamp && event == info.event);
     }
 };
+
+struct PrivateCommandInfo {
+    std::chrono::system_clock::time_point timestamp{};
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    bool operator==(const PrivateCommandInfo &info) const
+    {
+        return (timestamp == info.timestamp && privateCommand == info.privateCommand);
+    }
+};
+
 struct SendKeyFunctionContext : public AsyncCall::Context {
     bool isSendKeyFunction = false;
     int32_t action = 0;
@@ -297,6 +307,7 @@ struct SendExtendActionContext : public AsyncCall::Context {
 
 struct SendPrivateCommandContext : public AsyncCall::Context {
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateCommandInfo info;
     napi_status status = napi_generic_failure;
     SendPrivateCommandContext() : Context(nullptr, nullptr){};
     SendPrivateCommandContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
@@ -361,6 +372,7 @@ private:
     static thread_local napi_ref TICRef_;
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
     static BlockQueue<EditorEventInfo> editorQueue_;
+    static BlockQueue<PrivateCommandInfo> privateCommandQueue_;
 };
 } // namespace MiscServices
 } // namespace OHOS

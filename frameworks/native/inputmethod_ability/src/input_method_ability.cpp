@@ -1026,6 +1026,10 @@ int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::str
 int32_t InputMethodAbility::OnSendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
+    if (!IsDefaultIme()) {
+        IMSA_HILOGE("current is not default ime.");
+        return ErrorCode::ERROR_NOT_DEFAULT_IME;
+    }
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;

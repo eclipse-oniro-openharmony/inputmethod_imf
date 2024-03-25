@@ -1223,8 +1223,12 @@ int32_t InputMethodController::OnSendPrivateCommand(
         IMSA_HILOGE("textListener_ is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    
-    return listener->OnSendPrivateCommand(privateCommand);
+    auto ret = listener->OnSendPrivateCommand(privateCommand);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("OnSendPrivateCommand err, ret %{public}d", ret);
+        return ErrorCode::ERROR_TEXT_LISTENER_ERROR;
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::SendPrivateCommand(

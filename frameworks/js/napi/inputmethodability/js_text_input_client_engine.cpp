@@ -30,6 +30,7 @@ thread_local napi_ref JsTextInputClientEngine::TICRef_ = nullptr;
 const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";
 constexpr int32_t MAX_WAIT_TIME = 5000;
 BlockQueue<EditorEventInfo> JsTextInputClientEngine::editorQueue_{ MAX_WAIT_TIME };
+BlockQueue<PrivateCommandInfo> JsTextInputClientEngine::privateCommandQueue_{ MAX_WAIT_TIME };
 napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
 {
     IMSA_HILOGD("JsTextInputClientEngine init");
@@ -253,11 +254,15 @@ napi_value JsTextInputClientEngine::SendPrivateCommand(napi_env env, napi_callba
         PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameters!", TYPE_NONE, napi_generic_failure);
         napi_status status = JsUtils::GetValue(env, argv[0], ctxt->privateCommand);
         CHECK_RETURN(status == napi_ok, "GetValue privateCommand error", status);
+        ctxt->info = { std::chrono::system_clock::now(), ctxt->privateCommand };
+        privateCommandQueue_.Push(ctxt->info);
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
+        privateCommandQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->SendPrivateCommand(ctxt->privateCommand);
+        privateCommandQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);

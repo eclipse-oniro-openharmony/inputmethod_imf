@@ -144,6 +144,7 @@ private:
     void RegisterEnableImeObserver();
     void RegisterSecurityModeObserver();
     void CheckSecurityMode(InputClientInfo &inputClientInfo);
+    int32_t VerifyDefaultImeFromTokenId(uint32_t tokenId);
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
