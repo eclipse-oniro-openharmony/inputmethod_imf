@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,28 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_INPUT_METHOD_SETTING_LISTENER_H
-#define INPUTMETHOD_IMF_INPUT_METHOD_SETTING_LISTENER_H
+#ifndef INPUTMETHOD_IMF_IME_EVENT_LISTENER_H
+#define INPUTMETHOD_IMF_IME_EVENT_LISTENER_H
 
 #include "input_method_property.h"
-#include "panel_info.h"
 #include "input_window_info.h"
 
 namespace OHOS {
 namespace MiscServices {
-struct PanelTotalInfo {
-    InputWindowInfo windowInfo;
-    PanelInfo panelInfo;
-};
 
 class ImeEventListener {
 public:
     virtual ~ImeEventListener() = default;
     virtual void OnImeChange(const Property &property, const SubProperty &subProperty) = 0;
-    virtual void OnImeShow(const PanelTotalInfo &info) = 0;
-    virtual void OnImeHide(const PanelTotalInfo &info) = 0;
+    virtual void OnImeShow(const ImeWindowInfo &info) = 0;
+    virtual void OnImeHide(const ImeWindowInfo &info) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif // INPUTMETHOD_IMF_INPUT_METHOD_SETTING_LISTENER_H
+#endif // INPUTMETHOD_IMF_IME_EVENT_LISTENER_H

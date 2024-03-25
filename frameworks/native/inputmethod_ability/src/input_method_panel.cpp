@@ -288,12 +288,15 @@ void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
         IMSA_HILOGE("imsa is nullptr");
         return;
     }
-    if (panelType_ == SOFT_KEYBOARD && (panelFlag_ == FLG_FIXED || panelFlag_ = FLG_FLOATING)) {
+    if (panelType_ == SOFT_KEYBOARD && (panelFlag_ == FLG_FIXED || panelFlag_ == FLG_FLOATING)) {
         auto rect = window_->GetRect();
         IMSA_HILOGD("InputMethodPanel::x:%{public}d, y:%{public}d, w:%{public}u, h:%{public}u", rect.posX_, rect.posY_,
             rect.width_, rect.height_);
         std::string name = window_->GetWindowName() + "/" + std::to_string(window_->GetWindowId());
-        imsa->PanelStatusChange(status, { std::move(name), rect.posX_, rect.posY_, rect.width_, rect.height_ });
+        ImeWindowInfo info;
+        info.panelInfo = { panelType_, panelFlag_ };
+        info.windowInfo = { std::move(name), rect.posX_, rect.posY_, rect.width_, rect.height_ };
+        imsa->PanelStatusChange(status, info);
     }
 }
 

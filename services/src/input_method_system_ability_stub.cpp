@@ -255,7 +255,7 @@ int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &d
 int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     uint32_t status;
-    PanelTotalInfo info;
+    ImeWindowInfo info;
     if (!ITypesUtil::Unmarshal(data, status, info)) {
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
