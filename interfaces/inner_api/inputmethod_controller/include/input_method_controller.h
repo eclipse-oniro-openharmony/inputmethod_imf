@@ -712,7 +712,6 @@ private:
     void RestoreListenInfoInSaDied();
     void RestoreAttachInfoInSaDied();
     int32_t RestoreListenEventFlag();
-    void UpdateNativeEventFlag(EventType eventType, bool isOn);
     void SaveTextConfig(const TextConfig &textConfig);
     sptr<OnTextChangedListener> GetTextListener();
     void SetTextListener(sptr<OnTextChangedListener> listener);

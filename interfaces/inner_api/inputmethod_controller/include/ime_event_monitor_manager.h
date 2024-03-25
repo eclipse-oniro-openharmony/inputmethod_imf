@@ -37,13 +37,14 @@ public:
 
 private:
     friend class InputClientStub;
-    const MAX_EVENT_NUMS = 3;
     ImeEventMonitorManager();
     ~ImeEventMonitorManager();
+    std::set<std::shared_ptr<ImeEventListener>>GetListeners(EventType type);
     bool IsParamValid(const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
     int32_t OnImeChange(const Property &property, const SubProperty &subProperty);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
 
+    std::mutex lock_;
     std::map<EventType, std::set<std::shared_ptr<ImeEventListener>>> listeners_{};
 };
 } // namespace MiscServices

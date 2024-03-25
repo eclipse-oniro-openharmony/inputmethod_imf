@@ -87,25 +87,23 @@ int32_t InputMethodController::RestoreListenEventFlag()
 
 int32_t InputMethodController::UpdateListenEventFlag(EventType eventType, bool isOn)
 {
+    auto oldEventFlag = clientInfo_.eventFlag;
+    uint32_t currentEvent = isOn ? 1u << eventType : ~(1u << eventType);
+    clientInfo_.eventFlag = isOn ? clientInfo_.eventFlag | currentEvent : clientInfo_.eventFlag & currentEvent;
+    if (oldEventFlag == clientInfo_.eventFlag) {
+        return ErrorCode::NO_ERROR;
+    }
     auto proxy = GetSystemAbilityProxy();
-    if (proxy == nullptr) {
+    if (proxy == nullptr && isOn) {
         IMSA_HILOGE("proxy is nullptr");
+        clientInfo_.eventFlag = oldEventFlag;
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
-    auto oldEventFlag = clientInfo_.eventFlag;
-    UpdateNativeEventFlag(eventType, isOn);
     auto ret = proxy->UpdateListenEventFlag(clientInfo_, eventType);
     if (ret != ErrorCode::NO_ERROR && isOn) {
         clientInfo_.eventFlag = oldEventFlag;
     }
     return ret;
-}
-
-void InputMethodController::UpdateNativeEventFlag(EventType eventType, bool isOn)
-{
-    uint32_t currentEvent = isOn ? 1u << eventType : ~(1u << eventType);
-    clientInfo_.eventFlag = isOn ? clientInfo_.eventFlag | currentEvent : clientInfo_.eventFlag & currentEvent;
 }
 
 void InputMethodController::SetControllerListener(std::shared_ptr<ControllerListener> controllerListener)

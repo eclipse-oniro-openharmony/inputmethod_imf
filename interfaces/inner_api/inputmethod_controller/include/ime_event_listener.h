@@ -21,13 +21,12 @@
 
 namespace OHOS {
 namespace MiscServices {
-
 class ImeEventListener {
 public:
     virtual ~ImeEventListener() = default;
-    virtual void OnImeChange(const Property &property, const SubProperty &subProperty) = 0;
-    virtual void OnImeShow(const ImeWindowInfo &info) = 0;
-    virtual void OnImeHide(const ImeWindowInfo &info) = 0;
+    virtual void OnImeChange(const Property &property, const SubProperty &subProperty){};
+    virtual void OnImeShow(const ImeWindowInfo &info){};
+    virtual void OnImeHide(const ImeWindowInfo &info){};
 };
 } // namespace MiscServices
 } // namespace OHOS

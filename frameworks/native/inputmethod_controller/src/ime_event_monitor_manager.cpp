@@ -40,6 +40,7 @@ int32_t ImeEventMonitorManager::RegisterImeEventListener(
     if (!IsParamValid(types, listener)) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
+    std::lock_guard<std::mutex> lock(lock_);
     for (const auto &type : types) {
         auto it = listeners_.find(type);
         if (it == listeners_.end()) {
@@ -63,6 +64,7 @@ int32_t ImeEventMonitorManager::UnRegisterImeEventListener(
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     bool isContainInvalidParam = false;
+    std::lock_guard<std::mutex> lock(lock_);
     for (const auto &type : types) {
         auto it = listeners_.find(type);
         if (it == listeners_.end()) {
@@ -107,12 +109,12 @@ bool ImeEventMonitorManager::IsParamValid(
 
 int32_t ImeEventMonitorManager::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
-    auto it = listeners_.find(EventType::IME_CHANGE);
-    if (it == listeners_.end()) {
-        IMSA_HILOGI("not has IME_CHANGE listeners");
+    auto listeners = GetListeners(EventType::IME_CHANGE);
+    if (listeners.empty()) {
+        IMSA_HILOGD("not has IME_CHANGE listeners");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    for (const auto &listener : it->second) {
+    for (const auto &listener : listeners) {
         listener->OnImeChange(property, subProperty);
     }
     return ErrorCode::NO_ERROR;
@@ -125,12 +127,12 @@ int32_t ImeEventMonitorManager::OnPanelStatusChange(const InputWindowStatus &sta
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto type = status == InputWindowStatus::HIDE ? EventType::IME_HIDE : EventType::IME_SHOW;
-    auto it = listeners_.find(type);
-    if (it == listeners_.end()) {
-        IMSA_HILOGI("not has %{public}d listeners", type);
+    auto listeners = GetListeners(type);
+    if (listeners.empty()) {
+        IMSA_HILOGD("not has %{public}d listeners", type);
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    for (const auto &listener : it->second) {
+    for (const auto &listener : listeners) {
         if (type == EventType::IME_HIDE) {
             listener->OnImeHide(info);
         } else {
@@ -138,6 +140,16 @@ int32_t ImeEventMonitorManager::OnPanelStatusChange(const InputWindowStatus &sta
         }
     }
     return ErrorCode::NO_ERROR;
+}
+
+std::set<std::shared_ptr<ImeEventListener>> ImeEventMonitorManager::GetListeners(EventType type)
+{
+    std::lock_guard<std::mutex> lock(lock_);
+    auto it = listeners_.find(type);
+    if (it == listeners_.end()) {
+        return {};
+    }
+    return it->second;
 }
 } // namespace MiscServices
 } // namespace OHOS
