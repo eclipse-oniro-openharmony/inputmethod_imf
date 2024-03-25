@@ -42,7 +42,7 @@ public:
     virtual int32_t OnInputReady(const sptr<IInputMethodAgent> &agent) = 0;
     virtual int32_t OnInputStop() = 0;
     virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
-    virtual int32_t OnPanelStatusChange(const InputWindowStatus &status, const PanelTotalInfo &info) = 0;
+    virtual int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) = 0;
     virtual void DeactivateClient() = 0;
 };
 } // namespace MiscServices

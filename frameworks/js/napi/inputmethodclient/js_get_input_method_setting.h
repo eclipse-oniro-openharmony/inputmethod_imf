@@ -114,8 +114,8 @@ public:
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
     static std::shared_ptr<JsGetInputMethodSetting> GetInputMethodSettingInstance();
     void OnImeChange(const Property &property, const SubProperty &subProperty) override;
-    void OnImeShow(const PanelTotalInfo &info) override;
-    void OnImeHide(const PanelTotalInfo &info) override;
+    void OnImeShow(const ImeWindowInfo &info) override;
+    void OnImeHide(const ImeWindowInfo &info) override;
 
 private:
     static napi_status GetInputMethodProperty(napi_env env, napi_value argv, std::shared_ptr<ListInputContext> ctxt);
@@ -124,7 +124,7 @@ private:
     static napi_value GetIMSetting(napi_env env, napi_callback_info info, bool needThrowException);
     int32_t RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type, bool &isUpdateFlag);
-    OnImeEvent(const std::string &type, const PanelTotalInfo &info);
+    void OnPanelStatusChange(const std::string &type, const ImeWindowInfo &info);
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;

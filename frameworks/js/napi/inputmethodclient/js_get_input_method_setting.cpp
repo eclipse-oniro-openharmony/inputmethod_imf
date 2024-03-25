@@ -16,9 +16,9 @@
 #include "js_get_input_method_setting.h"
 
 #include "event_checker.h"
+#include "ime_event_monitor_manager.h"
 #include "input_client_info.h"
 #include "input_method_controller.h"
-#include "ime_listen_event_manager.h"
 #include "input_method_status.h"
 #include "js_callback_handler.h"
 #include "js_input_method.h"
@@ -488,7 +488,7 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     }
     std::shared_ptr<JSCallbackObject> callback =
         std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
-    auto ret = ImeListenEventManager::GetInstance()->RegisterImeEventListener(eventType, inputMethod_);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ eventType }, inputMethod_);
     if (ret == ErrorCode::NO_ERROR) {
         engine->RegisterListener(argv[ARGC_ONE], type, callback);
     } else {
@@ -566,7 +566,7 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     bool isUpdateFlag = false;
     engine->UnRegisterListener(argv[ARGC_ONE], type, isUpdateFlag);
     if (isUpdateFlag) {
-        auto ret = ImeListenEventManager::GetInstance()->UnRegisterImeEventListener(eventType, inputMethod_);
+        auto ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ eventType }, inputMethod_);
         IMSA_HILOGI("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str());
     }
     napi_value result = nullptr;
@@ -620,32 +620,27 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
     FreeWorkIfFail(ret, work);
 }
 
-void JsGetInputMethodSetting::OnImeShow(const PanelTotalInfo &info)
+void JsGetInputMethodSetting::OnImeShow(const ImeWindowInfo &info)
+{
+    OnPanelStatusChange("imeShow", info);
+}
+
+void JsGetInputMethodSetting::OnImeHide(const ImeWindowInfo &info)
+{
+    OnPanelStatusChange("imeHide", info);
+}
+
+void JsGetInputMethodSetting::OnPanelStatusChange(const std::string &type, const ImeWindowInfo &info)
 {
     if (info.panelInfo.panelFlag == PanelFlag::FLG_FLOATING) {
         return;
     }
-    std::string type = "imeShow";
-    OnImeEvent(type, info);
-}
-
-void JsGetInputMethodSetting::OnImeHide(const PanelTotalInfo &info)
-{
-    if (info.panelInfo.panelFlag == PanelFlag::FLG_FLOATING) {
-        return;
-    }
-    std::string type = "imeHide";
-    OnImeEvent(type, info);
-}
-
-void JsGetInputMethodSetting::OnImeEvent(const std::string &type, const PanelTotalInfo &info)
-{
-    uv_work_t *work = GetUVwork(type, [&info](UvEntry &entry) { entry.windowInfo = info.windowInfo; });
+    uv_work_t *work = GetUVwork(type, [&info](UvEntry &entry) { entry.windowInfo = { info.windowInfo }; });
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("status: %{public}u", static_cast<uint32_t>(status));
+    IMSA_HILOGI("type: %{public}u", type.c_str());
     auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
