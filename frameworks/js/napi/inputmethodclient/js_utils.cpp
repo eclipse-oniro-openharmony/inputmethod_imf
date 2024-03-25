@@ -55,6 +55,9 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_NOT_DEFAULT_IME, EXCEPTION_DEFAULTIME },
     { ErrorCode::ERROR_ENABLE_IME, EXCEPTION_IMMS },
     { ErrorCode::ERROR_NOT_CURRENT_IME, EXCEPTION_IMMS },
+    { ErrorCode::ERROR_PANEL_NOT_FOUND, EXCEPTION_PANEL_NOT_FOUND },
+    { ErrorCode::ERROR_WINDOW_MANAGER, EXCEPTION_WINDOW_MANAGER },
+    { ErrorCode::ERROR_GET_TEXT_CONFIG, EXCEPTION_IMCLIENT },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -72,6 +75,8 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_IMMS, "input method manager service error." },
     { EXCEPTION_DETACHED, "input method not attached." },
     { EXCEPTION_DEFAULTIME, "not default input method configured by system." },
+    { EXCEPTION_PANEL_NOT_FOUND, "soft keyboard panel doesn't exist" },
+    { EXCEPTION_WINDOW_MANAGER, "window manager service error" },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {

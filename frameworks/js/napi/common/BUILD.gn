@@ -30,6 +30,7 @@ config("inputmethod_js_common_public_config") {
   include_dirs = [
     "./",
     "${inputmethod_path}/frameworks/common",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/services/dfx/include",
   ]
 }
@@ -50,7 +51,10 @@ ohos_static_library("inputmethod_js_common") {
   configs = [ ":inputmethod_js_common_config" ]
   public_configs = [ ":inputmethod_js_common_public_config" ]
   deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
-  external_deps = [ "napi:ace_napi" ]
+  external_deps = [
+    "napi:ace_napi",
+    "window_manager:libwm_lite",
+  ]
   subsystem_name = "inputmethod"
   part_name = "imf"
 }

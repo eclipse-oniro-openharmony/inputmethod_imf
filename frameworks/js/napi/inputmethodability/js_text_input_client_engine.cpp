@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -55,7 +56,8 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("deleteForwardSync", DeleteForwardSync),
         DECLARE_NAPI_FUNCTION("deleteBackwardSync", DeleteBackwardSync),
         DECLARE_NAPI_FUNCTION("getForwardSync", GetForwardSync),
-        DECLARE_NAPI_FUNCTION("getBackwardSync", GetBackwardSync)
+        DECLARE_NAPI_FUNCTION("getBackwardSync", GetBackwardSync),
+        DECLARE_NAPI_FUNCTION("getCallingWindowInfo", GetCallingWindowInfo)
     };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(), JsConstructor, nullptr,
@@ -97,7 +99,7 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
 
 napi_value JsTextInputClientEngine::MoveCursorSync(napi_env env, napi_callback_info info)
 {
-    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::MOVE_CURSOR};
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::MOVE_CURSOR };
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);
     size_t argc = 1;
@@ -412,7 +414,7 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
 napi_value JsTextInputClientEngine::InsertTextSync(napi_env env, napi_callback_info info)
 {
     InputMethodSyncTrace tracer("JS_InsertTextSync");
-    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::INSERT_TEXT};
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::INSERT_TEXT };
     editorQueue_.Push(eventInfo);
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     editorQueue_.Wait(eventInfo);
@@ -578,20 +580,20 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
 napi_value JsTextInputClientEngine::GetEditorAttributeSync(napi_env env, napi_callback_info info)
 {
     int32_t enterKeyType = 0;
-    int32_t ret =  InputMethodAbility::GetInstance()->GetEnterKeyType(enterKeyType);
+    int32_t ret = InputMethodAbility::GetInstance()->GetEnterKeyType(enterKeyType);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to getEnterKeyType", TYPE_NONE);
     }
     IMSA_HILOGD("enterKeyType: %{public}d", enterKeyType);
 
     int32_t inputPattern = 0;
-    ret =  InputMethodAbility::GetInstance()->GetInputPattern(inputPattern);
+    ret = InputMethodAbility::GetInstance()->GetInputPattern(inputPattern);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to getInputPattern", TYPE_NONE);
     }
     IMSA_HILOGD("patternCode: %{public}d", inputPattern);
 
-    const InputAttribute attribute =  { .inputPattern = inputPattern, .enterKeyType = enterKeyType };
+    const InputAttribute attribute = { .inputPattern = inputPattern, .enterKeyType = enterKeyType };
     return JsUtils::GetValue(env, attribute);
 }
 
@@ -658,7 +660,7 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
 napi_value JsTextInputClientEngine::SelectByRangeSync(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("SelectByRangeSync");
-    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_RANGE};
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_RANGE };
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);
     size_t argc = 1;
@@ -688,7 +690,7 @@ napi_value JsTextInputClientEngine::SelectByRangeSync(napi_env env, napi_callbac
 napi_value JsTextInputClientEngine::SelectByMovementSync(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("run in");
-    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_MOVEMENT};
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_MOVEMENT };
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);
     size_t argc = 1;
@@ -809,7 +811,7 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
 napi_value JsTextInputClientEngine::GetTextIndexAtCursorSync(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("run in");
-    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::GET_TEXT_INDEX_AT_CURSOR};
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::GET_TEXT_INDEX_AT_CURSOR };
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);
     int32_t index = 0;
@@ -819,6 +821,32 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursorSync(napi_env env, napi_
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get text index at cursor.", TYPE_NONE);
     }
     return JsUtil::GetValue(env, index);
+}
+
+napi_value JsTextInputClientEngine::GetCallingWindowInfo(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGD("run in");
+    auto ctxt = std::make_shared<GetCallingWindowInfoContext>();
+    auto input = [ctxt](
+                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        *result = JsUtil::GetValue(env, ctxt->windowInfo);
+        return napi_ok;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t ret = InputMethodAbility::GetInstance()->GetCallingWindowInfo(ctxt->windowInfo);
+        if (ret == ErrorCode::NO_ERROR) {
+            IMSA_HILOGI("exec GetCallingWindowInfo success");
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+            return;
+        }
+        ctxt->SetErrorCode(ret);
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    // 0 means JsAPI:getCallingWindowInfo needs no parameter.
+    AsyncCall asyncCall(env, info, ctxt, 0);
+    return asyncCall.Call(env, exec, "getCallingWindowInfo");
 }
 
 void JsTextInputClientEngine::PrintEditorQueueInfoIfTimeout(int64_t start, const EditorEventInfo &currentInfo)

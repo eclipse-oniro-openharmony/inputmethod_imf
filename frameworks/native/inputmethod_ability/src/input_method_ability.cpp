@@ -978,5 +978,26 @@ void InputMethodAbility::NotifyKeyboardHeight(const std::shared_ptr<InputMethodP
     }
     channel->NotifyKeyboardHeight(inputMethodPanel->GetHeight());
 }
+
+int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
+{
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("channel nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_FOUND;
+    }
+    TextTotalConfig textConfig;
+    int32_t ret = GetTextConfig(textConfig);
+    if (ret != ErrorCode::NO_ERROR || textConfig.windowId == INVALID_WINDOW_ID) {
+        IMSA_HILOGE("failed to get window id, ret: %{public}d", ret);
+        return ErrorCode::ERROR_GET_TEXT_CONFIG;
+    }
+    auto panel = GetSoftKeyboardPanel();
+    if (panel == nullptr) {
+        IMSA_HILOGE("panel not found");
+        return ErrorCode::ERROR_PANEL_NOT_FOUND;
+    }
+    return panel->GetCallingWindowInfo(textConfig.windowId, windowInfo);
+}
 } // namespace MiscServices
 } // namespace OHOS

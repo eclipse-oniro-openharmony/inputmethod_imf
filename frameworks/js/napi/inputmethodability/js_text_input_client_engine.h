@@ -16,10 +16,12 @@
 #define INTERFACE_KITS_JS_NAPI_INPUTMETHODENGINE_INCLUDE_JS_TEXT_INPUT_CLIENT_H
 
 #include "async_call.h"
+#include "block_queue.h"
+#include "calling_window_info.h"
 #include "global.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
-#include "block_queue.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -293,6 +295,28 @@ struct SendExtendActionContext : public AsyncCall::Context {
     }
 };
 
+struct GetCallingWindowInfoContext : public AsyncCall::Context {
+    CallingWindowInfo windowInfo{};
+    napi_status status = napi_generic_failure;
+    GetCallingWindowInfoContext() : Context(nullptr, nullptr){};
+    GetCallingWindowInfoContext(InputAction input, OutputAction output)
+        : Context(std::move(input), std::move(output)){};
+
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            output_ = nullptr;
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
 class JsTextInputClientEngine {
 public:
     JsTextInputClientEngine() = default;
@@ -321,6 +345,7 @@ public:
     static napi_value DeleteBackwardSync(napi_env env, napi_callback_info info);
     static napi_value GetForwardSync(napi_env env, napi_callback_info info);
     static napi_value GetBackwardSync(napi_env env, napi_callback_info info);
+    static napi_value GetCallingWindowInfo(napi_env env, napi_callback_info info);
 
 private:
     static napi_status GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);

@@ -18,6 +18,7 @@
 
 #include <thread>
 
+#include "calling_window_info.h"
 #include "concurrent_map.h"
 #include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
 #include "i_input_control_channel.h"
@@ -85,6 +86,7 @@ public:
     int32_t OnSecurityChange(int32_t security);
     void OnClientInactive(const sptr<IRemoteObject> &channel);
     void NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel);
+    int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
 
 private:
     std::thread workThreadHandler;
