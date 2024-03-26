@@ -88,7 +88,7 @@ public:
     int32_t ShowCurrentInputDeprecated() override;
     int Dump(int fd, const std::vector<std::u16string> &args) override;
     void DumpAllMethod(int fd);
-    int32_t VerifyDefaultIme() override;
+    int32_t IsDefaultIme() override;
 
 protected:
     void OnStart() override;
@@ -144,7 +144,7 @@ private:
     void RegisterEnableImeObserver();
     void RegisterSecurityModeObserver();
     void CheckSecurityMode(InputClientInfo &inputClientInfo);
-    int32_t VerifyDefaultImeFromTokenId(uint32_t tokenId);
+    int32_t IsDefaultImeFromTokenId(uint32_t tokenId);
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);

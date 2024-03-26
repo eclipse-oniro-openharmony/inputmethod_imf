@@ -244,7 +244,7 @@ int32_t InputMethodSystemAbilityProxy::IsPanelShown(const PanelInfo &panelInfo, 
         [&isShown](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isShown); });
 }
 
-int32_t InputMethodSystemAbilityProxy::VerifyDefaultIme()
+int32_t InputMethodSystemAbilityProxy::IsDefaultIme()
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::VERIFY_DEFAULT_IME));
 }

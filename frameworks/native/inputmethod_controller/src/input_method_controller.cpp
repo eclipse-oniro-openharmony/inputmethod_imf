@@ -794,7 +794,7 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
     }
     config.textSelection.newBegin = textConfig_.range.start;
     config.textSelection.newEnd = textConfig_.range.end;
-
+    config.privateCommand = textConfig_.privateCommand;
     return ErrorCode::NO_ERROR;
 }
 

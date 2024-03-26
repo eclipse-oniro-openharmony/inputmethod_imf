@@ -779,22 +779,22 @@ void JsInputMethodEngineSetting::OnSendPrivateCommand(
 napi_value JsInputMethodEngineSetting::GetJsPrivateCommand(
     napi_env env, const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    napi_value JsPrivateCommand = nullptr;
-    napi_create_object(env, &JsPrivateCommand);
+    napi_value jsPrivateCommand = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &jsPrivateCommand));
     for (auto iter : privateCommand) {
         size_t idx = iter.second.index();
         napi_value value = nullptr;
         if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_STRING)) {
             std::string stringValue = std::get<0>(iter.second);
-            napi_create_string_utf8(env, stringValue.c_str(), stringValue.size(), &value);
+            NAPI_CALL(env, napi_create_string_utf8(env, stringValue.c_str(), stringValue.size(), &value));
         } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_BOOL)) {
-            napi_get_boolean(env, std::get<1>(iter.second), &value);
+            NAPI_CALL(env, napi_get_boolean(env, std::get<1>(iter.second), &value));
         } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_NUMBER)) {
-            napi_create_int32(env, std::get<2>(iter.second), &value);
+            NAPI_CALL(env, napi_create_int32(env, std::get<2>(iter.second), &value));
         }
-        napi_set_named_property(env, JsPrivateCommand, iter.first.c_str(), value);
+        NAPI_CALL(env, napi_set_named_property(env, jsPrivateCommand, iter.first.c_str(), value));
     }
-    return JsPrivateCommand;
+    return jsPrivateCommand;
 }
 
 uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)

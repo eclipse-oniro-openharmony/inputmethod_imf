@@ -459,7 +459,7 @@ int32_t InputMethodSystemAbility::StartInputType(InputType type)
 
 int32_t InputMethodSystemAbility::ExitCurrentInputType()
 {
-    auto ret = VerifyDefaultImeFromTokenId(IPCSkeleton::GetCallingTokenID());
+    auto ret = IsDefaultImeFromTokenId(IPCSkeleton::GetCallingTokenID());
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("Not default ime.");
         return ret;
@@ -470,12 +470,12 @@ int32_t InputMethodSystemAbility::ExitCurrentInputType()
     return userSession_->ExitCurrentInputType();
 }
 
-int32_t InputMethodSystemAbility::VerifyDefaultIme()
+int32_t InputMethodSystemAbility::IsDefaultIme()
 {
-    return VerifyDefaultImeFromTokenId(IPCSkeleton::GetCallingTokenID());
+    return IsDefaultImeFromTokenId(IPCSkeleton::GetCallingTokenID());
 }
 
-int32_t InputMethodSystemAbility::VerifyDefaultImeFromTokenId(uint32_t tokenId)
+int32_t InputMethodSystemAbility::IsDefaultImeFromTokenId(uint32_t tokenId)
 {
     auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId_);
     if (defaultIme == nullptr) {

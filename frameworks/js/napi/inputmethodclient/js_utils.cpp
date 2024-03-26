@@ -249,10 +249,17 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::string &out)
 /* napi_value <-> std::unordered_map<string, string> */
 napi_status JsUtils::GetValue(napi_env env, napi_value in, std::unordered_map<std::string, PrivateDataValue> &out)
 {
+    napi_valuetype type = napi_undefined;
+    napi_status status = napi_typeof(env, in, &type);
+    if (type == napi_undefined) {
+        IMSA_HILOGE("type == napi_undefined");
+        PARAM_CHECK_RETURN(env, false, "param is undefined.", TYPE_NONE, napi_generic_failure);
+    }
+
     napi_value keys = nullptr;
     napi_get_property_names(env, in, &keys);
     uint32_t arrLen = 0;
-    napi_status status = napi_get_array_length(env, keys, &arrLen);
+    status = napi_get_array_length(env, keys, &arrLen);
     if (status != napi_ok) {
         IMSA_HILOGE("napi_get_array_length error");
         return status;

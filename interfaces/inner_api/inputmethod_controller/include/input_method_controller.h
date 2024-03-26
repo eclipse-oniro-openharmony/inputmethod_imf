@@ -734,7 +734,7 @@ public:
      *
      * @param privateCommand Indicates the private command which will be send.
      * @return Returns 0 for success, others for failure.
-     * @since 11
+     * @since 12
      */
     IMF_API int32_t SendPrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
@@ -746,7 +746,7 @@ public:
      *
      * @param privateCommand Indicates the private command which send from ime.
      * @return Returns 0 for success, others for failure.
-     * @since 11
+     * @since 12
      */
     IMF_API int32_t OnSendPrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;

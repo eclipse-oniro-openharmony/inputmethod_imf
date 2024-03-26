@@ -196,8 +196,8 @@ public:
             }
             totalSize = totalSize + keySize + valueSize;
         }
-        IMSA_HILOGI("totalSize : %{public}zu", totalSize);
         if (totalSize > MAX_PRIVATE_COMMAND_SIZE) {
+            IMSA_HILOGE("totalSize : %{public}zu", totalSize);
             return false;
         }
         return true;

@@ -344,9 +344,9 @@ int32_t InputMethodSystemAbilityStub::IsPanelShownOnRemote(MessageParcel &data, 
     return ITypesUtil::Marshal(reply, ret, isShown) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputMethodSystemAbilityStub::VerifyDefaultImeOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t InputMethodSystemAbilityStub::IsDefaultImeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    return ITypesUtil::Marshal(reply, VerifyDefaultIme()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    return ITypesUtil::Marshal(reply, IsDefaultIme()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices
 } // namespace OHOS
