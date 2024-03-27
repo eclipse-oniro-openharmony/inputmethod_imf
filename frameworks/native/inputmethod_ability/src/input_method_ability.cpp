@@ -925,10 +925,12 @@ bool InputMethodAbility::IsDefaultIme()
         IMSA_HILOGE("failed to get imsa proxy");
         return false;
     }
-    if (proxy->VerifyDefaultIme() == ErrorCode::NO_ERROR) {
+    auto ret = proxy->IsDefaultIme();
+    if (ret == ErrorCode::NO_ERROR) {
         isDefaultIme_ = true;
         return true;
     }
+    IMSA_HILOGE("IsDefaultIme failed, ret: %{public}d", ret);
     return false;
 }
 

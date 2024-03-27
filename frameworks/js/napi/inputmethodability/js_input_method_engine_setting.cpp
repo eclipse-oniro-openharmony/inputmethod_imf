@@ -52,9 +52,12 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_GO", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::GO))),
         DECLARE_NAPI_PROPERTY(
             "ENTER_KEY_TYPE_SEARCH", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::SEARCH))),
-        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_SEND", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::SEND))),
-        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_NEXT", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::NEXT))),
-        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_DONE", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::DONE))),
+        DECLARE_NAPI_PROPERTY(
+            "ENTER_KEY_TYPE_SEND", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::SEND))),
+        DECLARE_NAPI_PROPERTY(
+            "ENTER_KEY_TYPE_NEXT", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::NEXT))),
+        DECLARE_NAPI_PROPERTY(
+            "ENTER_KEY_TYPE_DONE", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::DONE))),
         DECLARE_NAPI_PROPERTY(
             "ENTER_KEY_TYPE_PREVIOUS", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::PREVIOUS))),
         DECLARE_NAPI_PROPERTY("PATTERN_NULL", GetIntJsConstProperty(env, static_cast<int32_t>(TextInputType::NONE))),
@@ -68,8 +71,8 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("PATTERN_URI", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::URL))),
         DECLARE_NAPI_PROPERTY(
             "PATTERN_PASSWORD", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::VISIBLE_PASSWORD))),
-        DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD_NUMBER",
-            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_PASSWORD))),
+        DECLARE_NAPI_PROPERTY(
+            "PATTERN_PASSWORD_NUMBER", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_PASSWORD))),
         DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD_SCREEN_LOCK",
             GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::SCREEN_LOCK_PASSWORD))),
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
@@ -355,8 +358,8 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     return result;
 }
 
-napi_status JsInputMethodEngineSetting::GetContext(napi_env env, napi_value in,
-    std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
+napi_status JsInputMethodEngineSetting::GetContext(
+    napi_env env, napi_value in, std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
 {
     bool stageMode = false;
     napi_status status = OHOS::AbilityRuntime::IsStageContext(env, in, stageMode);
@@ -778,15 +781,15 @@ napi_value JsInputMethodEngineSetting::GetJsPrivateCommand(
 {
     napi_value jsPrivateCommand = nullptr;
     NAPI_CALL(env, napi_create_object(env, &jsPrivateCommand));
-    for (auto iter : privateCommand) {
+    for (const auto &iter : privateCommand) {
         size_t idx = iter.second.index();
         napi_value value = nullptr;
-        if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_STRING)) {
+        if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
             std::string stringValue = std::get<std::string>(iter.second);
             NAPI_CALL(env, napi_create_string_utf8(env, stringValue.c_str(), stringValue.size(), &value));
-        } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_BOOL)) {
+        } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
             NAPI_CALL(env, napi_get_boolean(env, std::get<bool>(iter.second), &value));
-        } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_NUMBER)) {
+        } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
             NAPI_CALL(env, napi_create_int32(env, std::get<int32_t>(iter.second), &value));
         }
         NAPI_CALL(env, napi_set_named_property(env, jsPrivateCommand, iter.first.c_str(), value));

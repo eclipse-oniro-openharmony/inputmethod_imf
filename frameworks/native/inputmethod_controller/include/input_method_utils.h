@@ -29,7 +29,7 @@ namespace MiscServices {
 constexpr uint32_t INIT_WINDOW_ID = 0;
 constexpr uint32_t INVALID_WINDOW_ID = INIT_WINDOW_ID - 1;
 constexpr int32_t INVALID_VALUE = -1;
-const constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32767;
+const constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32 * 1024; // 32K
 const constexpr size_t MAX_PRIVATE_COMMAND_COUNT = 5;
 enum class EnterKeyType {
     UNSPECIFIED = 0,
@@ -162,7 +162,7 @@ struct TextSelection {
     int32_t newEnd = INVALID_VALUE;
 };
 
-enum PrivateDataValueType : int32_t { VALUE_STRING = 0, VALUE_BOOL, VALUE_NUMBER };
+enum PrivateDataValueType : int32_t { VALUE_TYPE_STRING = 0, VALUE_TYPE_BOOL, VALUE_TYPE_NUMBER };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 
 struct TextTotalConfig {
@@ -179,6 +179,7 @@ public:
     {
         size_t privateCommandSize = privateCommand.size();
         if (privateCommandSize == 0 || privateCommandSize > MAX_PRIVATE_COMMAND_COUNT) {
+            IMSA_HILOGE("privateCommand size must more than 0 and less than 5.");
             return false;
         }
         size_t totalSize = 0;
@@ -187,12 +188,12 @@ public:
             size_t idx = iter.second.index();
             size_t valueSize = 0;
 
-            if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_STRING)) {
+            if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
                 valueSize = std::get<std::string>(iter.second).size();
-            } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_BOOL)) {
-                valueSize = sizeof(std::get<bool>(iter.second));
-            } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_NUMBER)) {
-                valueSize = sizeof(std::get<int32_t>(iter.second));
+            } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
+                valueSize = sizeof(bool);
+            } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
+                valueSize = sizeof(int32_t);
             }
             totalSize = totalSize + keySize + valueSize;
         }

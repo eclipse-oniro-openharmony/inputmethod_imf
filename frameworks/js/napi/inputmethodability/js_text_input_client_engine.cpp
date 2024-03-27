@@ -251,7 +251,7 @@ napi_value JsTextInputClientEngine::SendPrivateCommand(napi_env env, napi_callba
 {
     auto ctxt = std::make_shared<SendPrivateCommandContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameters!", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameter!", TYPE_NONE, napi_generic_failure);
         napi_status status = JsUtils::GetValue(env, argv[0], ctxt->privateCommand);
         CHECK_RETURN(status == napi_ok, "GetValue privateCommand error", status);
         if (!TextTotalConfig::IsPrivateCommandValid(ctxt->privateCommand)) {

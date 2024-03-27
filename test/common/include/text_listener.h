@@ -47,7 +47,7 @@ public:
     std::u16string GetLeftTextOfCursor(int32_t number) override;
     std::u16string GetRightTextOfCursor(int32_t number) override;
     int32_t GetTextIndexAtCursor() override;
-    int32_t OnSendPrivateCommand(std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t OnSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     static void ResetParam();
     static bool WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus);
     static bool WaitNotifyPanelStatusInfoCallback(const PanelStatusInfo &info);

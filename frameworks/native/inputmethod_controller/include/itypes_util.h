@@ -101,7 +101,7 @@ public:
     static bool Marshalling(SwitchTrigger input, MessageParcel &data);
     static bool Unmarshalling(SwitchTrigger &output, MessageParcel &data);
 
-    static bool Marshalling(const PrivateDataValue input, MessageParcel &data);
+    static bool Marshalling(const PrivateDataValue &input, MessageParcel &data);
     static bool Unmarshalling(PrivateDataValue &output, MessageParcel &data);
 
     template<class T>

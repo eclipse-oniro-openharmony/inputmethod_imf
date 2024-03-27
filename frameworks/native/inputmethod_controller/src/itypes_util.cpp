@@ -153,7 +153,7 @@ bool ITypesUtil::Marshalling(const SubProperty &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.label, output.labelId, output.name, output.id, output.mode, output.locale,
-        output.language, output.icon, output.iconId)) {
+            output.language, output.icon, output.iconId)) {
         IMSA_HILOGE("ITypesUtil::read SubProperty from message parcel failed");
         return false;
     }
@@ -181,7 +181,7 @@ bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const TextTotalConfig &input, MessageParcel &data)
 {
     if (!Marshal(data, input.inputAttribute.inputPattern, input.inputAttribute.enterKeyType,
-        input.inputAttribute.inputOption)) {
+            input.inputAttribute.inputOption)) {
         IMSA_HILOGE("write InputAttribute to message parcel failed");
         return false;
     }
@@ -190,7 +190,7 @@ bool ITypesUtil::Marshalling(const TextTotalConfig &input, MessageParcel &data)
         return false;
     }
     if (!Marshal(data, input.textSelection.oldBegin, input.textSelection.oldEnd, input.textSelection.newBegin,
-        input.textSelection.newEnd)) {
+            input.textSelection.newEnd)) {
         IMSA_HILOGE("write TextSelection to message parcel failed");
         return false;
     }
@@ -251,7 +251,7 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, input.pid, input.uid, input.userID, input.isShowKeyboard, input.eventFlag, input.config,
-        input.state, input.isNotifyInputStart, input.client->AsObject(), input.channel->AsObject())) {
+            input.state, input.isNotifyInputStart, input.client->AsObject(), input.channel->AsObject())) {
         IMSA_HILOGE("write InputClientInfo to message parcel failed");
         return false;
     }
@@ -261,7 +261,7 @@ bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
 {
     if (!Unmarshal(data, output.pid, output.uid, output.userID, output.isShowKeyboard, output.eventFlag, output.config,
-        output.state, output.isNotifyInputStart)) {
+            output.state, output.isNotifyInputStart)) {
         IMSA_HILOGE("read InputClientInfo from message parcel failed");
         return false;
     }
@@ -411,14 +411,14 @@ bool ITypesUtil::Unmarshalling(SwitchTrigger &output, MessageParcel &data)
     return true;
 }
 
-bool ITypesUtil::Marshalling(const PrivateDataValue input, MessageParcel &data)
+bool ITypesUtil::Marshalling(const PrivateDataValue &input, MessageParcel &data)
 {
     size_t idx = input.index();
-    if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_STRING)) {
+    if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
         return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteString(std::get<std::string>(input));
-    } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_BOOL)) {
+    } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
         return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteBool(std::get<bool>(input));
-    } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_NUMBER)) {
+    } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
         return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteInt32(std::get<int32_t>(input));
     }
     IMSA_HILOGE("write PrivateDataValue with wrong type.");
@@ -429,15 +429,15 @@ bool ITypesUtil::Unmarshalling(PrivateDataValue &output, MessageParcel &data)
 {
     int32_t valueType = data.ReadInt32();
     bool res = false;
-    if (valueType == static_cast<int32_t>(PrivateDataValueType::VALUE_STRING)) {
+    if (valueType == static_cast<int32_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
         std::string strValue;
         res = data.ReadString(strValue);
         output.emplace<std::string>(strValue);
-    } else if (valueType == static_cast<int32_t>(PrivateDataValueType::VALUE_BOOL)) {
+    } else if (valueType == static_cast<int32_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
         bool boolValue = false;
         res = data.ReadBool(boolValue);
         output.emplace<bool>(boolValue);
-    } else if (valueType == static_cast<int32_t>(PrivateDataValueType::VALUE_NUMBER)) {
+    } else if (valueType == static_cast<int32_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
         int32_t intValue = 0;
         res = data.ReadInt32(intValue);
         output.emplace<int32_t>(intValue);

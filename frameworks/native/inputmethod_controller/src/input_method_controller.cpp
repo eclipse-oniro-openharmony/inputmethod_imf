@@ -782,6 +782,7 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
     config.windowId = textConfig_.windowId;
     config.positionY = textConfig_.positionY;
     config.height = textConfig_.height;
+    config.privateCommand = textConfig_.privateCommand;
 
     if (textConfig_.range.start == INVALID_VALUE) {
         IMSA_HILOGD("no valid SelectionRange param.");
@@ -794,7 +795,6 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
     }
     config.textSelection.newBegin = textConfig_.range.start;
     config.textSelection.newEnd = textConfig_.range.end;
-    config.privateCommand = textConfig_.privateCommand;
     return ErrorCode::NO_ERROR;
 }
 

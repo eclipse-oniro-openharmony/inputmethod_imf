@@ -77,7 +77,7 @@ int32_t InputMethodAgentProxy::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     return SendRequest(SEND_PRIVATE_COMMAND,
-        [privateCommand](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, privateCommand); });
+        [&privateCommand](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, privateCommand); });
 }
 
 int32_t InputMethodAgentProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)

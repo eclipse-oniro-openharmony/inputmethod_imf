@@ -56,6 +56,7 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_ENABLE_IME, EXCEPTION_IMMS },
     { ErrorCode::ERROR_NOT_CURRENT_IME, EXCEPTION_IMMS },
     { ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE, EXCEPTION_PARAMCHECK },
+    { ErrorCode::ERROR_TEXT_LISTENER_ERROR, EXCEPTION_IMCLIENT },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -261,6 +262,9 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::unordered_map<st
         IMSA_HILOGE("napi_get_array_length error");
         return status;
     }
+    // 5 means max private command count.
+    PARAM_CHECK_RETURN(env, arrLen <= 5 && arrLen > 0, "privateCommand must more than 0 and less than 5.", TYPE_NONE,
+        napi_generic_failure);
     IMSA_HILOGD("length : %{public}u", arrLen);
     for (size_t iter = 0; iter < arrLen; ++iter) {
         napi_value key = nullptr;
@@ -290,15 +294,18 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, PrivateDataValue &out
     CHECK_RETURN(status == napi_ok, "napi_typeof error", napi_generic_failure);
     if (valueType == napi_string) {
         std::string privateDataStr;
-        GetValue(env, in, privateDataStr);
+        status = GetValue(env, in, privateDataStr);
+        CHECK_RETURN(status == napi_ok, "GetValue napi_string error", napi_generic_failure);
         out.emplace<std::string>(privateDataStr);
     } else if (valueType == napi_boolean) {
         bool privateDataBool = false;
-        GetValue(env, in, privateDataBool);
+        status = GetValue(env, in, privateDataBool);
+        CHECK_RETURN(status == napi_ok, "GetValue napi_boolean error", napi_generic_failure);
         out.emplace<bool>(privateDataBool);
     } else if (valueType == napi_number) {
         int32_t privateDataInt = 0;
-        GetValue(env, in, privateDataInt);
+        status = GetValue(env, in, privateDataInt);
+        CHECK_RETURN(status == napi_ok, "GetValue napi_number error", napi_generic_failure);
         out.emplace<int32_t>(privateDataInt);
     } else {
         PARAM_CHECK_RETURN(env, false, "value type must be string | boolean | number", TYPE_NONE, napi_generic_failure);
