@@ -26,6 +26,7 @@
 #include "global.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
+#include "input_method_engine_listener_impl.h"
 #include "panel_status_listener.h"
 #include "tdd_util.h"
 
@@ -95,13 +96,23 @@ public:
     void OnImeChange(const Property &property, const SubProperty &subProperty)
     {
     }
-    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+    void OnImeShow(const ImeWindowInfo &info)
     {
-        IMSA_HILOGI("InputMethodPanelTest::OnPanelStatusChange");
+        IMSA_HILOGI("InputMethodPanelTest::OnImeShow");
         {
             std::unique_lock<std::mutex> lock(InputMethodPanelTest::imcPanelStatusListenerLock_);
-            InputMethodPanelTest::status_ = status;
-            InputMethodPanelTest::windowInfo_ = windowInfo;
+            InputMethodPanelTest::status_ = InputWindowStatus::SHOW;
+            InputMethodPanelTest::windowInfo_ = info.windowInfo;
+        }
+        InputMethodPanelTest::imcPanelStatusListenerCv_.notify_one();
+    }
+    void OnImeHide(const ImeWindowInfo &info)
+    {
+        IMSA_HILOGI("InputMethodPanelTest::OnImeHide");
+        {
+            std::unique_lock<std::mutex> lock(InputMethodPanelTest::imcPanelStatusListenerLock_);
+            InputMethodPanelTest::status_ = InputWindowStatus::HIDE;
+            InputMethodPanelTest::windowInfo_ = info.windowInfo;
         }
         InputMethodPanelTest::imcPanelStatusListenerCv_.notify_one();
     }
@@ -233,13 +244,13 @@ void InputMethodPanelTest::ImcPanelListeningTestPrepare(
             break;
         }
         case ListeningStatus::ON: {
-            imc_->UpdateListenEventFlag("imeShow", true);
-            imc_->UpdateListenEventFlag("imeHide", true);
+            imc_->UpdateListenEventFlag(EventType::IME_SHOW, true);
+            imc_->UpdateListenEventFlag(EventType::IME_HIDE, true);
             break;
         }
         case ListeningStatus::OFF: {
-            imc_->UpdateListenEventFlag("imeShow", false);
-            imc_->UpdateListenEventFlag("imeHide", false);
+            imc_->UpdateListenEventFlag(EventType::IME_SHOW, false);
+            imc_->UpdateListenEventFlag(EventType::IME_HIDE, false);
             break;
         }
         default:

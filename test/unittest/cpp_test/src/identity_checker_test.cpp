@@ -560,8 +560,8 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_001, TestSize.Level0)
     IMSA_HILOGI("IdentityCheckerTest testPanelStatusChange_001 start");
     service_->identityChecker_ = identityCheckerImpl_;
     InputWindowStatus status = InputWindowStatus::SHOW;
-    InputWindowInfo windowInfo{};
-    int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, windowInfo);
+    ImeWindowInfo info{};
+    int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, info);
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_CURRENT_IME);
 }
 
@@ -577,8 +577,8 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_002, TestSize.Level0)
     IMSA_HILOGI("IdentityCheckerTest testPanelStatusChange_002 start");
     IdentityCheckerTest::IdentityCheckerMock::isBundleNameValid_ = true;
     InputWindowStatus status = InputWindowStatus::SHOW;
-    InputWindowInfo windowInfo{};
-    int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, windowInfo);
+    ImeWindowInfo info{};
+    int32_t ret = IdentityCheckerTest::service_->PanelStatusChange(status, info);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 

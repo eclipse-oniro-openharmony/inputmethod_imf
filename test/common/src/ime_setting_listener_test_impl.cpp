@@ -50,10 +50,14 @@ void ImeSettingListenerTestImpl::OnImeChange(const Property &property, const Sub
     subProperty_ = subProperty;
     imeSettingListenerCv_.notify_one();
 }
-void ImeSettingListenerTestImpl::OnPanelStatusChange(
-    const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+void ImeSettingListenerTestImpl::OnImeShow(const ImeWindowInfo &info)
 {
-    status_ = status;
+    status_ = InputWindowStatus::SHOW;
+    imeSettingListenerCv_.notify_one();
+}
+void ImeSettingListenerTestImpl::OnImeHide(const ImeWindowInfo &info)
+{
+    status_ = InputWindowStatus::HIDE;
     imeSettingListenerCv_.notify_one();
 }
 } // namespace MiscServices

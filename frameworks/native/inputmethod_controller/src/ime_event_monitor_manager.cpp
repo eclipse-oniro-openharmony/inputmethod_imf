@@ -71,7 +71,12 @@ int32_t ImeEventMonitorManager::UnRegisterImeEventListener(
             isContainInvalidParam = true;
             continue;
         }
-        auto iter = it->second.earse(listener);
+
+        auto iter = it->second.find(listener);
+        if (iter != it->second.end()) {
+            iter = it->second.erase(iter);
+        }
+
         if (iter == it->second.end()) {
             isContainInvalidParam = true;
             continue;
@@ -81,7 +86,7 @@ int32_t ImeEventMonitorManager::UnRegisterImeEventListener(
             if (ret != ErrorCode::NO_ERROR) {
                 IMSA_HILOGI("UpdateListenEventFlag failed: %{public}d", ret);
             }
-            listeners_.earse(it);
+            listeners_.erase(it);
         }
     }
     return isContainInvalidParam ? ErrorCode::ERROR_BAD_PARAMETERS : ErrorCode::NO_ERROR;

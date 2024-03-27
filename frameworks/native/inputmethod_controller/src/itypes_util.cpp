@@ -289,7 +289,7 @@ bool ITypesUtil::Unmarshalling(ImeWindowInfo &output, MessageParcel &data)
         IMSA_HILOGE("read InputWindowInfo from message parcel failed");
         return false;
     }
-    output.panelInfo = { static_cast<PanelType>(panelType), static_cast<panelFlag>(panelFlag) };
+    output.panelInfo = { static_cast<PanelType>(panelType), static_cast<PanelFlag>(panelFlag) };
     output.windowInfo = windowInfo;
     return true;
 }

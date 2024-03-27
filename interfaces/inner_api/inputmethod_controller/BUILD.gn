@@ -20,6 +20,7 @@ config("inputmethod_client_native_config") {
     "include",
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
     "${inputmethod_path}/services/dfx/include",
     "${inputmethod_path}/services/include",
   ]
@@ -34,6 +35,7 @@ config("inputmethod_client_native_public_config") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability/include",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
     "${inputmethod_path}/services/include",
     "${inputmethod_path}/services/dfx/include",
   ]
@@ -59,6 +61,7 @@ ohos_shared_library("inputmethod_client") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/itypes_util.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_stub.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/ime_event_monitor_manager.cpp",
     "${inputmethod_path}/services/src/message.cpp",
     "${inputmethod_path}/services/src/message_handler.cpp",
   ]

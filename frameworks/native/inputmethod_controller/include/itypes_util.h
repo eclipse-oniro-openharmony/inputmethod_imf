@@ -74,8 +74,8 @@ public:
     static bool Marshalling(const InputClientInfo &input, MessageParcel &data);
     static bool Unmarshalling(InputClientInfo &output, MessageParcel &data);
 
-    static bool Marshalling(const InputWindowInfo &input, MessageParcel &data);
-    static bool Unmarshalling(InputWindowInfo &output, MessageParcel &data);
+    static bool Marshalling(const ImeWindowInfo &input, MessageParcel &data);
+    static bool Unmarshalling(ImeWindowInfo &output, MessageParcel &data);
 
     static bool Marshalling(const TextTotalConfig &input, MessageParcel &data);
     static bool Unmarshalling(TextTotalConfig &output, MessageParcel &data);

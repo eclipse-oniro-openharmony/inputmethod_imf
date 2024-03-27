@@ -24,6 +24,7 @@
 #include "input_method_utils.h"
 #include "key_event.h"
 #include "string_ex.h"
+#include "input_window_info.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -32,7 +33,8 @@ public:
     ImeSettingListenerTestImpl(){};
     ~ImeSettingListenerTestImpl(){};
     void OnImeChange(const Property &property, const SubProperty &subProperty) override;
-    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) override;
+    void OnImeShow(const ImeWindowInfo &info) override;
+    void OnImeHide(const ImeWindowInfo &info) override;
     static void ResetParam();
     static bool WaitPanelHide();
     static bool WaitPanelShow();

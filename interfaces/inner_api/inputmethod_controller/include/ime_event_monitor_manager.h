@@ -29,12 +29,41 @@ enum EventType : uint32_t { IME_CHANGE = 0, IME_SHOW = 1, IME_HIDE = 2, IME_NONE
 
 class ImeEventMonitorManager {
 public:
+    /**
+     * @brief Get the instance of TmeEventMonitorManager.
+     *
+     * This function is used to get the instance of TmeEventMonitorManager.
+     *
+     * @return The instance of TmeEventMonitorManager.
+     * @since 11
+    */
     IMF_API static ImeEventMonitorManager &GetInstance();
+
+    /**
+     * @brief Register Ime Event Listener.
+     *
+     * This function is used to Register Ime Event Listener.
+     *
+     * @param types Indicates the event type.
+     * @param listener Indicates the the listener to be registered.
+     * @return Returns 0 for success, others for failure.
+     * @since 11
+    */
     IMF_API int32_t RegisterImeEventListener(
         const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
+
+    /**
+     * @brief UnRegister Ime Event Listener.
+     *
+     * This function is used to UnRegister Ime Event Listener.
+     *
+     * @param types Indicates the event type.
+     * @param listener Indicates the the listener to be unregistered.
+     * @return Returns 0 for success, others for failure.
+     * @since 11
+    */
     IMF_API int32_t UnRegisterImeEventListener(
         const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
-
 private:
     friend class InputClientStub;
     ImeEventMonitorManager();

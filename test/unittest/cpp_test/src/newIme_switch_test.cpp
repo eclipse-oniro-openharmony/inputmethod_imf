@@ -70,7 +70,10 @@ public:
         NewImeSwitchTest::imeChangeFlag = true;
         IMSA_HILOGI("ImeEventListenerImpl OnImeChange");
     }
-    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+    void OnImeShow(const ImeWindowInfo &info)
+    {
+    }
+    void OnImeHide(const ImeWindowInfo &info)
     {
     }
 };
@@ -91,8 +94,8 @@ void NewImeSwitchTest::SetUpTestCase(void)
     TddUtil::SetTestTokenID(
         TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
     imc_ = InputMethodController::GetInstance();
-    imc_->SetSettingListener(std::make_shared<ImeEventListenerImpl>());
-    imc_->UpdateListenEventFlag("imeChange", true);
+    EventType eventType = IME_CHANGE;
+    imc_->UpdateListenEventFlag(eventType, true);
 }
 
 void NewImeSwitchTest::TearDownTestCase(void)

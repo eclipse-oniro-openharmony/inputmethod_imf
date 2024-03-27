@@ -16,29 +16,24 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_LISTEN_EVENT_MANAGER_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_LISTEN_EVENT_MANAGER_H
 
+#include "ime_event_monitor_manager.h"
+
 namespace OHOS {
 namespace MiscServices {
-enum EventType : uint32_t {
-    IME_CHANGE = 0,
-    IME_SHOW = 1,
-    IME_HIDE = 2,
-    IME_NONE
-};
 class EventStatusManager {
 public:
     static constexpr uint32_t NO_EVENT_ON = 0;
-
     inline static bool IsImeShowOn(uint32_t eventFlag)
     {
-        return (eventFlag & (1u << IME_SHOW)) == (1u << IME_SHOW);
+        return (eventFlag & (1u << EventType::IME_SHOW)) == (1u << EventType::IME_SHOW);
     }
     inline static bool IsImeChangeOn(uint32_t eventFlag)
     {
-        return (eventFlag & (1u << IME_CHANGE)) == (1u << IME_CHANGE);
+        return (eventFlag & (1u << EventType::IME_CHANGE)) == (1u << EventType::IME_CHANGE);
     }
     inline static bool IsImeHideOn(uint32_t eventFlag)
     {
-        return (eventFlag & (1u << IME_HIDE)) == (1u << IME_HIDE);
+        return (eventFlag & (1u << EventType::IME_HIDE)) == (1u << EventType::IME_HIDE);
     }
 };
 } // namespace MiscServices
