@@ -52,12 +52,9 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_GO", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::GO))),
         DECLARE_NAPI_PROPERTY(
             "ENTER_KEY_TYPE_SEARCH", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::SEARCH))),
-        DECLARE_NAPI_PROPERTY(
-            "ENTER_KEY_TYPE_SEND", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::SEND))),
-        DECLARE_NAPI_PROPERTY(
-            "ENTER_KEY_TYPE_NEXT", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::NEXT))),
-        DECLARE_NAPI_PROPERTY(
-            "ENTER_KEY_TYPE_DONE", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::DONE))),
+        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_SEND", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::SEND))),
+        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_NEXT", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::NEXT))),
+        DECLARE_NAPI_PROPERTY("ENTER_KEY_TYPE_DONE", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::DONE))),
         DECLARE_NAPI_PROPERTY(
             "ENTER_KEY_TYPE_PREVIOUS", GetJsConstProperty(env, static_cast<uint32_t>(EnterKeyType::PREVIOUS))),
         DECLARE_NAPI_PROPERTY("PATTERN_NULL", GetIntJsConstProperty(env, static_cast<int32_t>(TextInputType::NONE))),
@@ -71,8 +68,8 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("PATTERN_URI", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::URL))),
         DECLARE_NAPI_PROPERTY(
             "PATTERN_PASSWORD", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::VISIBLE_PASSWORD))),
-        DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD_NUMBER",
-            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_PASSWORD))),
+        DECLARE_NAPI_PROPERTY(
+            "PATTERN_PASSWORD_NUMBER", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_PASSWORD))),
         DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD_SCREEN_LOCK",
             GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::SCREEN_LOCK_PASSWORD))),
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
@@ -358,8 +355,8 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     return result;
 }
 
-napi_status JsInputMethodEngineSetting::GetContext(napi_env env, napi_value in,
-    std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
+napi_status JsInputMethodEngineSetting::GetContext(
+    napi_env env, napi_value in, std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
 {
     bool stageMode = false;
     napi_status status = OHOS::AbilityRuntime::IsStageContext(env, in, stageMode);
@@ -773,7 +770,7 @@ void JsInputMethodEngineSetting::OnSendPrivateCommand(
         // 1 means callback has 1 params.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
     };
-    handler_->PostTask(task, type);
+    eventHandler->PostTask(task, type);
 }
 
 napi_value JsInputMethodEngineSetting::GetJsPrivateCommand(
@@ -863,7 +860,7 @@ void JsInputMethodEngineSetting::FreeWorkIfFail(int ret, uv_work_t *work)
     if (ret == 0 || work == nullptr) {
         return;
     }
-    
+
     UvEntry *data = static_cast<UvEntry *>(work->data);
     delete data;
     delete work;

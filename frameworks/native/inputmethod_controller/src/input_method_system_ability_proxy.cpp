@@ -246,7 +246,7 @@ int32_t InputMethodSystemAbilityProxy::IsPanelShown(const PanelInfo &panelInfo, 
 
 int32_t InputMethodSystemAbilityProxy::IsDefaultIme()
 {
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::VERIFY_DEFAULT_IME));
+    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::IS_DEFAULT_IME));
 }
 
 void InputMethodSystemAbilityProxy::GetMessageOption(int32_t code, MessageOption &option)

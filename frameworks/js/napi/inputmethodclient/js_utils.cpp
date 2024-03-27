@@ -251,10 +251,7 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::unordered_map<st
 {
     napi_valuetype type = napi_undefined;
     napi_status status = napi_typeof(env, in, &type);
-    if (type == napi_undefined) {
-        IMSA_HILOGE("type == napi_undefined");
-        PARAM_CHECK_RETURN(env, false, "param is undefined.", TYPE_NONE, napi_generic_failure);
-    }
+    PARAM_CHECK_RETURN(env, type != napi_undefined, "param is undefined.", TYPE_NONE, napi_generic_failure);
 
     napi_value keys = nullptr;
     napi_get_property_names(env, in, &keys);

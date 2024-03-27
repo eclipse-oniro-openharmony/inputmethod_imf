@@ -67,7 +67,9 @@ public:
     virtual std::u16string GetLeftTextOfCursor(int32_t number) = 0;
     virtual std::u16string GetRightTextOfCursor(int32_t number) = 0;
     virtual int32_t GetTextIndexAtCursor() = 0;
-    virtual int32_t OnSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
+    virtual int32_t OnSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+    {
+    }
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
