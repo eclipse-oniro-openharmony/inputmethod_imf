@@ -43,9 +43,7 @@
 namespace OHOS {
 namespace MiscServices {
 class MessageHandler;
-class InputMethodAbility
-    : public RefBase
-    , public PrivateCommandInterface {
+class InputMethodAbility : public RefBase, public PrivateCommandInterface {
 public:
     InputMethodAbility();
     ~InputMethodAbility();

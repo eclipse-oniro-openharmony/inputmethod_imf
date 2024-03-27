@@ -261,7 +261,7 @@ bool ITypesUtil::Unmarshalling(std::unordered_map<K, V> &val, MessageParcel &par
     int32_t size = 0;
     if (!parcel.ReadInt32(size)) {
         return false;
-    } 
+    }
     if (size < 0) {
         return false;
     }

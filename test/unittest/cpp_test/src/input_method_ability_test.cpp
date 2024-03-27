@@ -1152,7 +1152,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_005, TestSize.Level0)
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = str;
     privateCommand.emplace("value1", privateDataValue1);
-    IMSA_HILOGE("privateDataValue1 size : %{public}zu", std::get<0>(privateDataValue1).size());
+    IMSA_HILOGE("privateDataValue1 size : %{public}zu", std::get<std::string>(privateDataValue1).size());
     auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
     TddUtil::RestoreSelfTokenID();

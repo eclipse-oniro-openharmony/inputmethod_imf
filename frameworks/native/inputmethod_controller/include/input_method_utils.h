@@ -188,11 +188,11 @@ public:
             size_t valueSize = 0;
 
             if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_STRING)) {
-                valueSize = std::get<0>(iter.second).size();
+                valueSize = std::get<std::string>(iter.second).size();
             } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_BOOL)) {
-                valueSize = sizeof(std::get<1>(iter.second));
+                valueSize = sizeof(std::get<bool>(iter.second));
             } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_NUMBER)) {
-                valueSize = sizeof(std::get<2>(iter.second));
+                valueSize = sizeof(std::get<int32_t>(iter.second));
             }
             totalSize = totalSize + keySize + valueSize;
         }

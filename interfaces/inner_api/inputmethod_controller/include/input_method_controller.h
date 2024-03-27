@@ -73,9 +73,7 @@ public:
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
-class InputMethodController
-    : public RefBase
-    , public PrivateCommandInterface {
+class InputMethodController : public RefBase , public PrivateCommandInterface {
 public:
     /**
      * @brief Get the instance of InputMethodController.

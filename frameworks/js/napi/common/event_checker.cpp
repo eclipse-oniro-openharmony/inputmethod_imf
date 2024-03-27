@@ -23,8 +23,9 @@ const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> 
             "handleExtendAction", "selectByRange", "selectByMovement", "getLeftTextOfCursor", "getRightTextOfCursor",
             "getTextIndexAtCursor" } },
     { EventSubscribeModule::INPUT_METHOD_SETTING, { "imeChange", "imeShow", "imeHide" } },
-    { EventSubscribeModule::INPUT_METHOD_ABILITY, { "inputStart", "inputStop", "keyboardShow", "keyboardHide",
-                                                      "setCallingWindow", "setSubtype", "securityModeChange", "privateCommand" } },
+    { EventSubscribeModule::INPUT_METHOD_ABILITY,
+        { "inputStart", "inputStop", "keyboardShow", "keyboardHide", "setCallingWindow", "setSubtype",
+            "securityModeChange", "privateCommand" } },
     { EventSubscribeModule::KEYBOARD_DELEGATE, { "editorAttributeChanged", "keyDown", "keyUp", "keyEvent",
                                                    "cursorContextChange", "selectionChange", "textChange" } },
     { EventSubscribeModule::PANEL, { "show", "hide" } }

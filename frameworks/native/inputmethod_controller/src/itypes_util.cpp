@@ -415,11 +415,11 @@ bool ITypesUtil::Marshalling(const PrivateDataValue input, MessageParcel &data)
 {
     size_t idx = input.index();
     if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_STRING)) {
-        return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteString(std::get<0>(input));
+        return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteString(std::get<std::string>(input));
     } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_BOOL)) {
-        return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteBool(std::get<1>(input));
+        return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteBool(std::get<bool>(input));
     } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_NUMBER)) {
-        return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteInt32(std::get<2>(input));
+        return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteInt32(std::get<int32_t>(input));
     }
     IMSA_HILOGE("write PrivateDataValue with wrong type.");
     return false;
