@@ -137,12 +137,9 @@ private:
     {
         TddUtil::StorageSelfTokenID();
         TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "ImeProxyTest"));
-        EventType eventType = IME_SHOW;
-        imc_->UpdateListenEventFlag(eventType, true);
-        eventType = IME_HIDE;
-        imc_->UpdateListenEventFlag(eventType, true);
-        eventType = IME_CHANGE;
-        imc_->UpdateListenEventFlag(eventType, true);
+        imc_->UpdateListenEventFlag(EventType::IME_SHOW, true);
+        imc_->UpdateListenEventFlag(EventType::IME_HIDE, true);
+        imc_->UpdateListenEventFlag(EventType::IME_CHANGE, true);
         TddUtil::RestoreSelfTokenID();
     }
 };

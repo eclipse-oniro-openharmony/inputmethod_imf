@@ -94,8 +94,7 @@ void NewImeSwitchTest::SetUpTestCase(void)
     TddUtil::SetTestTokenID(
         TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
     imc_ = InputMethodController::GetInstance();
-    EventType eventType = IME_CHANGE;
-    imc_->UpdateListenEventFlag(eventType, true);
+    imc_->UpdateListenEventFlag(EventType::IME_CHANGE, true);
 }
 
 void NewImeSwitchTest::TearDownTestCase(void)
