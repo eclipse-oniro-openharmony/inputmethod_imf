@@ -475,11 +475,11 @@ void InputMethodAbility::InvokeTextChangeCallback(const TextTotalConfig &textCon
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
     if (imeListener_ == nullptr) {
-        IMSA_HILOGD("imeListener_ is nullptr");
+        IMSA_HILOGE("imeListener_ is nullptr");
         return;
     }
     imeListener_->OnSetCallingWindow(textConfig.windowId);
-    if (TextTotalConfig::IsPrivateCommandValid(textConfig.privateCommand)) {
+    if (TextTotalConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
         IMSA_HILOGI("notify privateCommand.");
         imeListener_->OnSendPrivateCommand(textConfig.privateCommand);
     }

@@ -1059,6 +1059,7 @@ HWTEST_F(InputMethodAbilityTest, testOnSecurityChange, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_001 Test START");
+    TextListener::ResetParam();
     imc_->Close();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
@@ -1075,6 +1076,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_001, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_002 Test START");
+    TextListener::ResetParam();
     TddUtil::RestoreSelfTokenID();
     InputMethodAbilityTest::SetDefaultIme();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
@@ -1094,6 +1096,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_002, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_003 Test START");
+    TextListener::ResetParam();
     TddUtil::RestoreSelfTokenID();
     auto ret = imc_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1122,6 +1125,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_004 Test START");
+    TextListener::ResetParam();
     InputMethodAbilityTest::SetDefaultIme();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
@@ -1146,6 +1150,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_004, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_005 Test START");
+    TextListener::ResetParam();
     InputMethodAbilityTest::SetDefaultIme();
     string str(32768, 'a');
     IMSA_HILOGE("str size : %{public}zu", str.size());
