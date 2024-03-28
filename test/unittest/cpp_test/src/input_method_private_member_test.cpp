@@ -169,31 +169,47 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnPackageRemoved, TestSize.Level0)
 */
 HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
 {
+    // isScbEnable_ is true
+    service_->isScbEnable_ = true;
+    MessageParcel *parcel = nullptr;
+    auto msg = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel);
+    auto ret = service_->OnUserStarted(msg.get());
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
     // msg is nullptr
-    auto *msg = new Message(MessageID::MSG_ID_USER_START, nullptr);
-    auto ret = service_->OnUserStarted(msg);
+    service_->isScbEnable_ = false;
+    ret = service_->OnUserStarted(msg.get());
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-    MessageHandler::Instance()->SendMessage(msg);
 
     // userId is same
     service_->userId_ = 50;
     MessageParcel *parcel1 = new MessageParcel();
     parcel1->WriteInt32(50);
     auto msg1 = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel1);
-    auto ret1 = service_->OnUserStarted(msg1.get());
-    EXPECT_EQ(ret1, ErrorCode::NO_ERROR);
+    ret = service_->OnUserStarted(msg1.get());
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    //start ime failed
-    service_->userId_ = 50;
-    auto currentUserId = TddUtil::GetCurrentUserId();
-    ImeCfgManager::GetInstance().imeConfigs_.push_back({ currentUserId, "testBundleName/testExtName", "testSubName" });
-    auto parcel2 = new MessageParcel();
-    parcel2->WriteInt32(currentUserId);
-    auto msg2 = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel2);
+    // start ime
     WmsConnectionObserver observer(nullptr);
-    observer.OnConnected(100, 0);
-    auto ret2 = service_->OnUserStarted(msg2.get());
-    EXPECT_EQ(ret2, ErrorCode::ERROR_IME_START_FAILED);
+    observer.OnConnected(60, 0);
+    // imeStarting_ is true
+    IMSA_HILOGI("InputMethodPrivateMemberTest::imeStarting_ is true");
+    service_->imeStarting_ = true;
+    service_->userId_ = 50;
+    MessageParcel *parcel2 = new MessageParcel();
+    parcel2->WriteInt32(60);
+    auto msg2 = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel2);
+    ret = service_->OnUserStarted(msg2.get());
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    // imeStarting_ is false
+    IMSA_HILOGI("InputMethodPrivateMemberTest::imeStarting_ is false");
+    service_->imeStarting_ = false;
+    service_->userId_ = 50;
+    MessageParcel *parcel3 = new MessageParcel();
+    parcel3->WriteInt32(333);
+    auto msg3 = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel3);
+    ret = service_->OnUserStarted(msg3.get());
+    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
 }
 
 /**
@@ -701,6 +717,7 @@ HWTEST_F(InputMethodPrivateMemberTest, WMSConnectObserver_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest WMSConnectObserver_001 TEST START");
     WmsConnectionObserver observer(nullptr);
+    WmsConnectionObserver::connectedUserId_.clear();
     int32_t userId = 100;
     int32_t screenId = 0;
 

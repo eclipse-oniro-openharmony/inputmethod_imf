@@ -46,7 +46,12 @@ int32_t InputControlChannelProxy::HideKeyboardSelf()
         IMSA_HILOGE("InputControlChannelProxy descriptor is not match");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto ret = Remote()->SendRequest(HIDE_KEYBOARD_SELF, data, reply, option);
+    auto remote = Remote();
+    if (remote == nullptr) {
+        IMSA_HILOGE("InputControlChannelProxy remote is nullptr");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
+    }
+    auto ret = remote->SendRequest(HIDE_KEYBOARD_SELF, data, reply, option);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("InputControlChannelProxy SendRequest failed");
         return ErrorCode::ERROR_EX_PARCELABLE;

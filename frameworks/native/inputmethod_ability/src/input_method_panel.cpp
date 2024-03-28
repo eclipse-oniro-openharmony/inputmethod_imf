@@ -336,7 +336,7 @@ int32_t InputMethodPanel::SetUiContent(
     WMError wmError = window_->SetTransparent(true);
     IMSA_HILOGI("SetTransparent ret = %{public}u", wmError);
     IMSA_HILOGI("NapiSetUIContent ret = %{public}d", ret);
-    return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
+    return ret == WMError::WM_ERROR_INVALID_PARAM ? ErrorCode::ERROR_PARAMETER_CHECK_FAILED : ErrorCode::NO_ERROR;
 }
 
 void InputMethodPanel::SetPanelStatusListener(
@@ -397,12 +397,12 @@ bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
 {
     if (width > INT32_MAX || height > INT32_MAX) {
         IMSA_HILOGE("width or height over maximum");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
+        return false;
     }
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     if (defaultDisplay == nullptr) {
         IMSA_HILOGE("GetDefaultDisplay failed.");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return false;
     }
     float ratio = panelType_ == PanelType::SOFT_KEYBOARD && panelFlag_ == PanelFlag::FLG_FIXED
                       ? FIXED_SOFT_KEYBOARD_PANEL_RATIO

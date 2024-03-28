@@ -126,9 +126,10 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     auto exec = [ctxt](AsyncCall::Context *ctx) { ctxt->SetState(napi_ok); };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         CHECK_RETURN(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
-        auto code = ctxt->inputMethodPanel->SetUiContent(
-            ctxt->path, env, ctxt->contentStorage);
-        CHECK_RETURN(code == ErrorCode::NO_ERROR, "SetUiContent failed!", napi_generic_failure);
+        auto code = ctxt->inputMethodPanel->SetUiContent(ctxt->path, env, ctxt->contentStorage);
+        if (code == ErrorCode::ERROR_PARAMETER_CHECK_FAILED) {
+            PARAM_CHECK_RETURN(env, code == ErrorCode::NO_ERROR, "path is invalid!", TYPE_NONE, napi_generic_failure);
+        }
         return napi_ok;
     };
     ctxt->SetAction(std::move(input), std::move(output));

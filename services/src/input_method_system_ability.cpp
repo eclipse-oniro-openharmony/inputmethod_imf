@@ -146,19 +146,56 @@ int32_t InputMethodSystemAbility::Init()
     return ErrorCode::NO_ERROR;
 }
 
-void InputMethodSystemAbility::SetCurrentUserId()
+int32_t InputMethodSystemAbility::GetCurrentUserIdFromOsAccount()
 {
     std::vector<int32_t> userIds;
     if (!BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&userIds]() -> bool {
             return OsAccountManager::QueryActiveOsAccountIds(userIds) == ERR_OK && !userIds.empty();
         })) {
         IMSA_HILOGE("get userId failed");
-        return;
+        return MAIN_USER_ID;
     }
-    IMSA_HILOGD("get userId success :%{public}d", userIds[0]);
-    userId_ = userIds[0];
-    InputMethodSysEvent::GetInstance().SetUserId(userId_);
+    return userIds[0];
+}
+
+void InputMethodSystemAbility::HandleUserChanged(int32_t userId)
+{
+    IMSA_HILOGI("%{public}d switch to %{public}d", userId_, userId);
+    userId_ = userId;
     userSession_->UpdateCurrentUserId(userId_);
+    InputMethodSysEvent::GetInstance().SetUserId(userId_);
+    if (enableImeOn_) {
+        EnableImeDataParser::GetInstance()->OnUserChanged(userId_);
+    }
+    if (enableSecurityMode_) {
+        SecurityModeParser::GetInstance()->GetFullModeList(userId_);
+    }
+    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
+}
+
+int32_t InputMethodSystemAbility::StartImeWhenWmsReady()
+{
+    if (imeStarting_.exchange(true)) {
+        IMSA_HILOGD("do starting");
+        return ErrorCode::NO_ERROR;
+    }
+    IMSA_HILOGI("start ime, userId: %{public}d", userId_);
+    userSession_->StopCurrentIme();
+    auto ret = userSession_->StartCurrentIme(userId_, true);
+    if (!ret) {
+        IMSA_HILOGE("start ime failed");
+    }
+    imeStarting_.store(false);
+    return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME_START_FAILED;
+}
+
+void InputMethodSystemAbility::HandleWmsReady(int32_t userId)
+{
+    // wms ready scene: user switch(in scb enable), device boots, wms reboot
+    if (userId != userId_) {
+        HandleUserChanged(userId);
+    }
+    StartImeWhenWmsReady();
 }
 
 void InputMethodSystemAbility::OnStop()
@@ -194,6 +231,7 @@ void InputMethodSystemAbility::Initialize()
     userId_ = MAIN_USER_ID;
     userSession_ = std::make_shared<PerUserSession>(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
+    isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
 }
 
 void InputMethodSystemAbility::StartUserIdListener()
@@ -517,6 +555,7 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
     if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);
+        usleep(SWITCH_BLOCK_TIME);
     }
     IMSA_HILOGI("start switch %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     int32_t ret = CheckSwitchPermission(switchInfo, trigger);
@@ -771,38 +810,24 @@ void InputMethodSystemAbility::WorkThread()
  */
 int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
 {
+    // if scb enable, deal when receive wmsConnected.
+    if (isScbEnable_) {
+        return ErrorCode::NO_ERROR;
+    }
     if (msg->msgContent_ == nullptr) {
         IMSA_HILOGE("msgContent is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    int32_t oldUserId = userId_;
-    userId_ = msg->msgContent_->ReadInt32();
-    if (oldUserId == userId_) {
-        IMSA_HILOGI("device boot, userId: %{public}d", userId_);
+    auto newUserId = msg->msgContent_->ReadInt32();
+    if (newUserId == userId_) {
         return ErrorCode::NO_ERROR;
     }
-    IMSA_HILOGI("%{public}d switch to %{public}d.", oldUserId, userId_);
-    userSession_->UpdateCurrentUserId(userId_);
-    InputMethodSysEvent::GetInstance().SetUserId(userId_);
-    if (enableImeOn_) {
-        EnableImeDataParser::GetInstance()->OnUserChanged(userId_);
-    }
-    if (enableSecurityMode_) {
-        SecurityModeParser::GetInstance()->GetFullModeList(userId_);
-    }
-    userSession_->StopCurrentIme();
-    // user switch, reset currentImeInfo_ = nullptr
-    ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
-
+    HandleUserChanged(newUserId);
     if (!userSession_->IsWmsReady()) {
         IMSA_HILOGI("wms not ready, wait");
         return ErrorCode::NO_ERROR;
     }
-    if (!userSession_->StartCurrentIme(userId_, true)) {
-        IMSA_HILOGE("start input method failed");
-        return ErrorCode::ERROR_IME_START_FAILED;
-    }
-    return ErrorCode::NO_ERROR;
+    return StartImeWhenWmsReady();
 }
 
 int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
@@ -838,7 +863,7 @@ int32_t InputMethodSystemAbility::OnPackageRemoved(const Message *msg)
         IMSA_HILOGE("Failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    // 用户移除也会有该通知，如果移除的app用户不是当前用户，则不处理
+    // if the app that doesn't belong to current user is removed, ignore it
     if (userId != userId_) {
         IMSA_HILOGD("userId: %{public}d, currentUserId: %{public}d,", userId, userId_);
         return ErrorCode::NO_ERROR;
@@ -986,7 +1011,13 @@ void InputMethodSystemAbility::InitMonitors()
 int32_t InputMethodSystemAbility::InitAccountMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitAccountMonitor");
-    return ImCommonEventManager::GetInstance()->SubscribeAccountManagerService([this]() { SetCurrentUserId(); });
+    return ImCommonEventManager::GetInstance()->SubscribeAccountManagerService([this]() {
+        auto userId = GetCurrentUserIdFromOsAccount();
+        if (userId_ == userId) {
+            return;
+        }
+        HandleUserChanged(userId);
+    });
 }
 
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
@@ -1004,28 +1035,19 @@ bool InputMethodSystemAbility::InitWmsMonitor()
             return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
         },
         [this]() {
-            if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+            if (isScbEnable_) {
                 IMSA_HILOGI("scb enable, register WMS connection listener");
                 InitWmsConnectionMonitor();
                 return;
             }
-            IMSA_HILOGI("scb disable, start ime");
-            SetCurrentUserId();
-            userSession_->StartCurrentIme(userId_, true);
+            HandleWmsReady(GetCurrentUserIdFromOsAccount());
         });
 }
 
 void InputMethodSystemAbility::InitWmsConnectionMonitor()
 {
     WmsConnectionMonitorManager::GetInstance().RegisterWMSConnectionChangedListener(
-        [this](int32_t userId, int32_t screenId) {
-            SetCurrentUserId();
-            IMSA_HILOGI("WMS connect, start ime, userId: %{public}d, currentUserId: %{public}d", userId, userId_);
-            if (userId != userId_) {
-                return;
-            }
-            userSession_->StartCurrentIme(userId_, true);
-        });
+        [this](int32_t userId, int32_t screenId) { HandleWmsReady(userId); });
 }
 
 void InputMethodSystemAbility::InitSystemLanguageMonitor()

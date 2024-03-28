@@ -60,6 +60,7 @@ namespace MiscServices {
 constexpr uint32_t RETRY_TIME = 200 * 1000;
 constexpr uint32_t RETRY_TIMES = 5;
 constexpr uint32_t WAIT_INTERVAL = 500;
+constexpr uint32_t WAIT_SA_DIE_TIME_OUT = 3;
 
 class SelectListenerMock : public ControllerListener {
 public:
@@ -331,8 +332,7 @@ bool InputMethodControllerTest::WaitRemoteDiedCallback()
 {
     IMSA_HILOGI("InputMethodControllerTest::WaitRemoteDiedCallback");
     std::unique_lock<std::mutex> lock(onRemoteSaDiedMutex_);
-    // 2 means wait 2 seconds.
-    return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(2)) != std::cv_status::timeout;
+    return onRemoteSaDiedCv_.wait_for(lock, std::chrono::seconds(WAIT_SA_DIE_TIME_OUT)) != std::cv_status::timeout;
 }
 
 void InputMethodControllerTest::CheckProxyObject()
@@ -1098,16 +1098,14 @@ HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
     IMSA_HILOGI("IMC OnRemoteDied Test START");
     int32_t ret = inputMethodController_->Attach(textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    pid_t pid = TddUtil::GetImsaPid();
-    EXPECT_TRUE(pid > 0);
     TextListener::ResetParam();
-    ret = kill(pid, SIGTERM);
-    EXPECT_EQ(ret, 0);
+    bool result = TddUtil::KillImsaProcess();
+    EXPECT_TRUE(result);
     EXPECT_TRUE(WaitRemoteDiedCallback());
     CheckProxyObject();
     inputMethodController_->OnRemoteSaDied(nullptr);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-    bool result = inputMethodController_->WasAttached();
+    result = inputMethodController_->WasAttached();
     EXPECT_TRUE(result);
     inputMethodController_->Close();
 }
