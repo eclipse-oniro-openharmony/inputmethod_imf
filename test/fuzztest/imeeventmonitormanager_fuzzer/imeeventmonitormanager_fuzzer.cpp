@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,35 +15,25 @@
 
 #include "imeeventmonitormanager_fuzzer.h"
 
-#include <cstddef>
-#include <cstdint>
-
-#include "global.h"
-#include "input_attribute.h"
-#include "input_method_controller.h"
 #include "ime_event_monitor_manager.h"
-#include "key_event.h"
-#include "message_parcel.h"
-#include "text_listener.h"
-
+#include "ime_setting_listener_test_impl.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {
 constexpr size_t THRESHOLD = 10;
 void FuzzRegisterImeEventListener(const uint8_t *rawData, size_t size)
 {
-    std::shared_ptr<JsGetInputMethodSetting> listener_ = new JsGetInputMethodSetting();
-    std::set<EventType> eventType = {};
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ eventType }, listener_);
+    auto listener = std::make_shared<ImeSettingListenerTestImpl>();
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ static_cast<EventType>(size) }, nullptr);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ static_cast<EventType>(size) }, listener);
 }
 
 void FuzzUnRegisterImeEventListener(const uint8_t *rawData, size_t size)
 {
-    std::shared_ptr<JsGetInputMethodSetting> listener_ = new JsGetInputMethodSetting();
-    std::set<EventType> eventType = {};
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ eventType }, listener_);
+    auto listener = std::make_shared<ImeSettingListenerTestImpl>();
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ static_cast<EventType>(size) }, nullptr);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ static_cast<EventType>(size) }, listener);
 }
-} // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)

@@ -58,6 +58,7 @@ private:
     int32_t SetPanelProperties();
     std::string GeneratePanelName();
     void PanelStatusChange(const InputWindowStatus &status);
+    void PanelStatusChangeToImc(const InputWindowStatus &status);
     bool MarkListener(const std::string &type, bool isRegister);
     static uint32_t GenerateSequenceId();
     bool IsSizeValid(uint32_t width, uint32_t height);

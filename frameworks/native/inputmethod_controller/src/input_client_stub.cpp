@@ -92,7 +92,7 @@ int32_t InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParce
 
 int32_t InputClientStub::OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    uint32_t status;
+    uint32_t status = 0;
     ImeWindowInfo info;
     if (!ITypesUtil::Unmarshal(data, status, info)) {
         IMSA_HILOGE("read message parcel failed");

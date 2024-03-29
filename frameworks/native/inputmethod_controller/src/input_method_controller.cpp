@@ -498,7 +498,7 @@ void InputMethodController::RestoreListenInfoInSaDied()
 {
     {
         std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
-        if (clientInfo_.eventFlag == EventStatusManager::NO_EVENT_ON) {
+        if (clientInfo_.eventFlag == NO_EVENT_ON) {
             return;
         }
     }

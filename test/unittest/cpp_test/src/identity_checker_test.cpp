@@ -127,25 +127,6 @@ std::shared_ptr<IdentityCheckerTest::IdentityCheckerMock> IdentityCheckerTest::i
 std::shared_ptr<IdentityCheckerImpl> IdentityCheckerTest::identityCheckerImpl_;
 
 /**
- * @tc.name: testPrepareInput_001
- * @tc.desc: not broker, not focused app
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
-*/
-HWTEST_F(IdentityCheckerTest, testPrepareInput_001, TestSize.Level0)
-{
-    IMSA_HILOGI("IdentityCheckerTest testPrepareInput_001 start");
-    service_->identityChecker_ = identityCheckerImpl_;
-    InputClientInfo clientInfo{};
-    if (IdentityCheckerTest::service_ == nullptr) {
-        IMSA_HILOGI("service_ is nullptr");
-    }
-    int32_t ret = IdentityCheckerTest::service_->PrepareInput(clientInfo);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
-}
-
-/**
  * @tc.name: testStartInput_001
  * @tc.desc: not broker, not focused app
  * @tc.type: FUNC
@@ -584,7 +565,7 @@ HWTEST_F(IdentityCheckerTest, testPanelStatusChange_002, TestSize.Level0)
 
 /**
  * @tc.name: testUpdateListenEventFlag_001
- * @tc.desc: not system app
+ * @tc.desc: not system app, not native SA
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -609,7 +590,7 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_001, TestSize.Level0)
 
 /**
  * @tc.name: testUpdateListenEventFlag_002
- * @tc.desc: is system app
+ * @tc.desc: is system app, not native SA
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -618,6 +599,33 @@ HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_002, TestSize.Level0)
 {
     IMSA_HILOGI("IdentityCheckerTest testUpdateListenEventFlag_002 start");
     IdentityCheckerTest::IdentityCheckerMock::isSystemApp_ = true;
+    IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = false;
+    InputClientInfo clientInfo{};
+    EventType eventType = IME_SHOW;
+    int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, eventType);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    eventType = IME_HIDE;
+    ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, eventType);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    eventType = IME_CHANGE;
+    ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, eventType);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+}
+
+/**
+ * @tc.name: testUpdateListenEventFlag_003
+ * @tc.desc: is native SA, not system app
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+*/
+HWTEST_F(IdentityCheckerTest, testUpdateListenEventFlag_003, TestSize.Level0)
+{
+    IMSA_HILOGI("IdentityCheckerTest testUpdateListenEventFlag_003 start");
+    IdentityCheckerTest::IdentityCheckerMock::isSystemApp_ = false;
+    IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = true;
     InputClientInfo clientInfo{};
     EventType eventType = IME_SHOW;
     int32_t ret = IdentityCheckerTest::service_->UpdateListenEventFlag(clientInfo, eventType);

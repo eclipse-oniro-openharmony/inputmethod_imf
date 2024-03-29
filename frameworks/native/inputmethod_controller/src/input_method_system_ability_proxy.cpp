@@ -202,7 +202,8 @@ int32_t InputMethodSystemAbilityProxy::PanelStatusChange(const InputWindowStatus
 int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::UPDATE_LISTEN_EVENT_FLAG),
-        [&clientInfo, eventType](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, eventType); });
+        [&clientInfo, eventType](
+            MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, static_cast<uint32_t>(eventType)); });
 }
 
 bool InputMethodSystemAbilityProxy::IsCurrentIme()

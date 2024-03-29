@@ -22,7 +22,6 @@ namespace OHOS {
 namespace MiscServices {
 class EventStatusManager {
 public:
-    static constexpr uint32_t NO_EVENT_ON = 0;
     inline static bool IsImeShowOn(uint32_t eventFlag)
     {
         return (eventFlag & (1u << EventType::IME_SHOW)) == (1u << EventType::IME_SHOW);

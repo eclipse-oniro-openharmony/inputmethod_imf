@@ -314,18 +314,6 @@ bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)
     return true;
 }
 
-bool ITypesUtil::Marshalling(EventType input, MessageParcel &data)
-{
-    return data.WriteUint32(static_cast<uint32_t>(input));
-}
-
-bool ITypesUtil::Unmarshalling(EventType &output, MessageParcel &data)
-{
-    auto ret = data.ReadUint32();
-    output = static_cast<EventType>(ret);
-    return true;
-}
-
 bool ITypesUtil::Marshalling(const OHOS::AppExecFwk::ElementName &input, MessageParcel &data)
 {
     return data.WriteString(input.GetBundleName().c_str()) && data.WriteString(input.GetModuleName().c_str()) &&

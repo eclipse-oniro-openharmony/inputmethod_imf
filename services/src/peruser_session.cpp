@@ -92,7 +92,7 @@ void PerUserSession::RemoveClientInfo(const sptr<IRemoteObject> &client, bool is
         return;
     }
     // if client is subscriber and the release is not because of the client died, do not remove
-    if (clientInfo->eventFlag != EventStatusManager::NO_EVENT_ON && !isClientDied) {
+    if (clientInfo->eventFlag != NO_EVENT_ON && !isClientDied) {
         IMSA_HILOGD("is subscriber, do not remove");
         auto isShowKeyboard = false;
         auto bindImeType = ImeType::NONE;
@@ -996,7 +996,7 @@ int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInf
         IMSA_HILOGE("info is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
-    if (info->eventFlag == EventStatusManager::NO_EVENT_ON && info->bindImeType == ImeType::NONE) {
+    if (info->eventFlag == NO_EVENT_ON && info->bindImeType == ImeType::NONE) {
         RemoveClientInfo(remoteClient, false);
     }
     return ErrorCode::NO_ERROR;

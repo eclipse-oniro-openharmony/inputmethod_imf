@@ -21,7 +21,6 @@
 #include <memory>
 
 #include "element_name.h"
-#include "event_status_manager.h"
 #include "global.h"
 #include "input_client_info.h"
 #include "input_window_info.h"
@@ -82,9 +81,6 @@ public:
 
     static bool Marshalling(const PanelStatusInfo &info, MessageParcel &data);
     static bool Unmarshalling(PanelStatusInfo &info, MessageParcel &data);
-
-    static bool Marshalling(EventType input, MessageParcel &data);
-    static bool Unmarshalling(EventType &output, MessageParcel &data);
 
     static bool Marshalling(InputType input, MessageParcel &data);
     static bool Unmarshalling(InputType &output, MessageParcel &data);

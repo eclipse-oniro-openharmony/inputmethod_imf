@@ -37,8 +37,8 @@ constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_MAX = 6;
 thread_local napi_ref JsGetInputMethodSetting::IMSRef_ = nullptr;
 const std::string JsGetInputMethodSetting::IMS_CLASS_NAME = "InputMethodSetting";
-const std::map<InputWindowStatus, std::string> PANEL_STATUS{ { InputWindowStatus::SHOW, "imeShow" },
-    { InputWindowStatus::HIDE, "imeHide" } };
+const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
+    { "imeHide", IME_HIDE } };
 std::mutex JsGetInputMethodSetting::msMutex_;
 std::shared_ptr<JsGetInputMethodSetting> JsGetInputMethodSetting::inputMethod_{ nullptr };
 napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
@@ -473,7 +473,6 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
-    EventType eventType
     // 2 means least param num.
     if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
         || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type)
@@ -486,9 +485,13 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     if (engine == nullptr) {
         return nullptr;
     }
+    auto iter = EVENT_TYPE.find(type);
+    if (iter == EVENT_TYPE.end()) {
+        return nullptr;
+    }
     std::shared_ptr<JSCallbackObject> callback =
         std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ eventType }, inputMethod_);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ iter->second }, inputMethod_);
     if (ret == ErrorCode::NO_ERROR) {
         engine->RegisterListener(argv[ARGC_ONE], type, callback);
     } else {
@@ -541,7 +544,6 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     void *data = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
-    EventType eventType
     // 1 means least param num.
     if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
         || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_SETTING, type)) {
@@ -565,8 +567,12 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     }
     bool isUpdateFlag = false;
     engine->UnRegisterListener(argv[ARGC_ONE], type, isUpdateFlag);
+    auto iter = EVENT_TYPE.find(type);
+    if (iter == EVENT_TYPE.end()) {
+        return nullptr;
+    }
     if (isUpdateFlag) {
-        auto ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ eventType }, inputMethod_);
+        auto ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ iter->second }, inputMethod_);
         IMSA_HILOGI("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str());
     }
     napi_value result = nullptr;
@@ -632,7 +638,7 @@ void JsGetInputMethodSetting::OnImeHide(const ImeWindowInfo &info)
 
 void JsGetInputMethodSetting::OnPanelStatusChange(const std::string &type, const ImeWindowInfo &info)
 {
-    if (info.panelInfo.panelFlag == PanelFlag::FLG_FLOATING) {
+    if (info.panelInfo.panelType != PanelType::SOFT_KEYBOARD || info.panelInfo.panelFlag != PanelFlag::FLG_FIXED) {
         return;
     }
     uv_work_t *work = GetUVwork(type, [&info](UvEntry &entry) { entry.windowInfo = { info.windowInfo }; });
@@ -640,7 +646,7 @@ void JsGetInputMethodSetting::OnPanelStatusChange(const std::string &type, const
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("type: %{public}u", type.c_str());
+    IMSA_HILOGI("type: %{public}s", type.c_str());
     auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
