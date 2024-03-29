@@ -21,6 +21,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+enum EventType : uint32_t { IME_CHANGE = 0, IME_SHOW = 1, IME_HIDE = 2, IME_NONE };
 class ImeEventListener {
 public:
     virtual ~ImeEventListener() = default;

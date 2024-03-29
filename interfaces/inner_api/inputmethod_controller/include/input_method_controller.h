@@ -25,7 +25,6 @@
 #include "controller_listener.h"
 #include "element_name.h"
 #include "event_handler.h"
-#include "event_status_manager.h"
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"

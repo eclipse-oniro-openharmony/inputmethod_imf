@@ -15,11 +15,13 @@
 
 #include "ime_event_monitor_manager.h"
 
-#include "input_method_controller.h"
+#include <algorithm>
+
+#include "global.h"
+#include "ime_event_monitor_manager_impl.h"
 
 namespace OHOS {
 namespace MiscServices {
-;
 ImeEventMonitorManager::ImeEventMonitorManager()
 {
 }
@@ -40,21 +42,7 @@ int32_t ImeEventMonitorManager::RegisterImeEventListener(
     if (!IsParamValid(types, listener)) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    std::lock_guard<std::mutex> lock(lock_);
-    for (const auto &type : types) {
-        auto it = listeners_.find(type);
-        if (it == listeners_.end()) {
-            auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
-                return ret;
-            }
-            listeners_.insert({ type, { listener } });
-        } else {
-            it->second.insert(listener);
-        }
-    }
-    return ErrorCode::NO_ERROR;
+    return ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(types, listener);
 }
 
 int32_t ImeEventMonitorManager::UnRegisterImeEventListener(
@@ -63,29 +51,7 @@ int32_t ImeEventMonitorManager::UnRegisterImeEventListener(
     if (!IsParamValid(types, listener)) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    bool isContainInvalidParam = false;
-    std::lock_guard<std::mutex> lock(lock_);
-    for (const auto &type : types) {
-        auto it = listeners_.find(type);
-        if (it == listeners_.end()) {
-            isContainInvalidParam = true;
-            continue;
-        }
-        auto iter = it->second.find(listener);
-        if (iter == it->second.end()) {
-            isContainInvalidParam = true;
-            continue;
-        }
-        it->second.erase(iter);
-        if (it->second.empty()) {
-            auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
-            }
-            listeners_.erase(it);
-        }
-    }
-    return isContainInvalidParam ? ErrorCode::ERROR_BAD_PARAMETERS : ErrorCode::NO_ERROR;
+    return ImeEventMonitorManagerImpl::GetInstance().UnRegisterImeEventListener(types, listener);
 }
 
 bool ImeEventMonitorManager::IsParamValid(
@@ -95,62 +61,17 @@ bool ImeEventMonitorManager::IsParamValid(
         IMSA_HILOGE("listener is nullptr");
         return false;
     }
-    if (types.size() > EventType::IME_NONE) {
-        IMSA_HILOGE("over the max num");
+    if (types.empty()) {
+        IMSA_HILOGE("no eventType");
         return false;
     }
-    for (const auto &type : types) {
-        if (type >= EventType::IME_NONE) {
-            IMSA_HILOGE("eventType is error");
-            return false;
-        }
+    if (types.size() > EVENT_NUM) {
+        IMSA_HILOGE("over eventNum");
+        return false;
     }
-    return true;
-}
-
-int32_t ImeEventMonitorManager::OnImeChange(const Property &property, const SubProperty &subProperty)
-{
-    auto listeners = GetListeners(EventType::IME_CHANGE);
-    if (listeners.empty()) {
-        IMSA_HILOGD("not has IME_CHANGE listeners");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    for (const auto &listener : listeners) {
-        listener->OnImeChange(property, subProperty);
-    }
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t ImeEventMonitorManager::OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
-{
-    if (status != InputWindowStatus::HIDE && status != InputWindowStatus::SHOW) {
-        IMSA_HILOGE("status:%{public}d is invalid", status);
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    auto type = status == InputWindowStatus::HIDE ? EventType::IME_HIDE : EventType::IME_SHOW;
-    auto listeners = GetListeners(type);
-    if (listeners.empty()) {
-        IMSA_HILOGD("not has %{public}d listeners", type);
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    for (const auto &listener : listeners) {
-        if (type == EventType::IME_HIDE) {
-            listener->OnImeHide(info);
-        } else {
-            listener->OnImeShow(info);
-        }
-    }
-    return ErrorCode::NO_ERROR;
-}
-
-std::set<std::shared_ptr<ImeEventListener>> ImeEventMonitorManager::GetListeners(EventType type)
-{
-    std::lock_guard<std::mutex> lock(lock_);
-    auto it = listeners_.find(type);
-    if (it == listeners_.end()) {
-        return {};
-    }
-    return it->second;
+    auto it = std::find_if(
+        types.begin(), types.end(), [this](EventType type) { return EVENT_TYPE.find(type) == EVENT_TYPE.end(); });
+    return it == types.end();
 }
 } // namespace MiscServices
 } // namespace OHOS
