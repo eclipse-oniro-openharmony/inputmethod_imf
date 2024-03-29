@@ -29,8 +29,8 @@ namespace MiscServices {
 constexpr uint32_t INIT_WINDOW_ID = 0;
 constexpr uint32_t INVALID_WINDOW_ID = INIT_WINDOW_ID - 1;
 constexpr int32_t INVALID_VALUE = -1;
-const constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32 * 1024; // 32K
-const constexpr size_t MAX_PRIVATE_COMMAND_COUNT = 5;
+constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32 * 1024; // 32K
+constexpr size_t MAX_PRIVATE_COMMAND_COUNT = 5;
 enum class EnterKeyType {
     UNSPECIFIED = 0,
     NONE,
@@ -192,7 +192,7 @@ struct TextConfig {
             return false;
         }
         size_t totalSize = 0;
-        for (auto iter : privateCommand) {
+        for (const auto &iter : privateCommand) {
             size_t keySize = sizeof(iter.first);
             size_t idx = iter.second.index();
             size_t valueSize = 0;
