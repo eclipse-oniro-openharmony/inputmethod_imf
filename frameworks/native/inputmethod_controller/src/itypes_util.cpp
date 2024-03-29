@@ -415,11 +415,20 @@ bool ITypesUtil::Marshalling(const PrivateDataValue &input, MessageParcel &data)
 {
     size_t idx = input.index();
     if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
-        return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteString(std::get<std::string>(input));
+        auto stringValue = std::get_if<std::string>(&input);
+        if (stringValue != nullptr) {
+            return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteString(*stringValue);
+        }
     } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
-        return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteBool(std::get<bool>(input));
+        auto boolValue = std::get_if<bool>(&input);
+        if (boolValue != nullptr) {
+            return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteBool(*boolValue);
+        }
     } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
-        return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteInt32(std::get<int32_t>(input));
+        auto numberValue = std::get_if<int32_t>(&input);
+        if (numberValue != nullptr) {
+            return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteInt32(*numberValue);
+        }
     }
     IMSA_HILOGE("write PrivateDataValue with wrong type.");
     return false;

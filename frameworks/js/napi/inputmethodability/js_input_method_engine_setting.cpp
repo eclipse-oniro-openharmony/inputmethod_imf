@@ -761,7 +761,7 @@ void JsInputMethodEngineSetting::OnSendPrivateCommand(
             if (argc < 1) {
                 return false;
             }
-            napi_value jsObject = GetJsPrivateCommand(env, entry->privateCommand);
+            napi_value jsObject = JsUtils::GetJsPrivateCommand(env, entry->privateCommand);
             if (jsObject == nullptr) {
                 IMSA_HILOGE("GetJsPrivateCommand failed: jsObject is nullptr");
                 return false;
@@ -774,27 +774,6 @@ void JsInputMethodEngineSetting::OnSendPrivateCommand(
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
     };
     eventHandler->PostTask(task, type);
-}
-
-napi_value JsInputMethodEngineSetting::GetJsPrivateCommand(
-    napi_env env, const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
-{
-    napi_value jsPrivateCommand = nullptr;
-    NAPI_CALL(env, napi_create_object(env, &jsPrivateCommand));
-    for (const auto &iter : privateCommand) {
-        size_t idx = iter.second.index();
-        napi_value value = nullptr;
-        if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
-            std::string stringValue = std::get<std::string>(iter.second);
-            NAPI_CALL(env, napi_create_string_utf8(env, stringValue.c_str(), stringValue.size(), &value));
-        } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
-            NAPI_CALL(env, napi_get_boolean(env, std::get<bool>(iter.second), &value));
-        } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
-            NAPI_CALL(env, napi_create_int32(env, std::get<int32_t>(iter.second), &value));
-        }
-        NAPI_CALL(env, napi_set_named_property(env, jsPrivateCommand, iter.first.c_str(), value));
-    }
-    return jsPrivateCommand;
 }
 
 uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)

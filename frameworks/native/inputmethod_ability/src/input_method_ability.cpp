@@ -479,7 +479,7 @@ void InputMethodAbility::InvokeTextChangeCallback(const TextTotalConfig &textCon
         return;
     }
     imeListener_->OnSetCallingWindow(textConfig.windowId);
-    if (TextTotalConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
+    if (TextConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
         IMSA_HILOGI("notify privateCommand.");
         imeListener_->OnSendPrivateCommand(textConfig.privateCommand);
     }
@@ -1013,7 +1013,7 @@ int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::str
         IMSA_HILOGE("current is not default ime.");
         return ErrorCode::ERROR_NOT_DEFAULT_IME;
     }
-    if (!TextTotalConfig::IsPrivateCommandValid(privateCommand)) {
+    if (!TextConfig::IsPrivateCommandValid(privateCommand)) {
         IMSA_HILOGE("privateCommand size limit 32KB, count limit 5.");
         return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE;
     }

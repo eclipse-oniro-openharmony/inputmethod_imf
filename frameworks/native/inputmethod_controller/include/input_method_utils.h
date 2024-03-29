@@ -174,6 +174,15 @@ public:
     double positionY = 0;
     double height = 0;
     std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
+};
+struct TextConfig {
+    InputAttribute inputAttribute = {};
+    CursorInfo cursorInfo = {};
+    SelectionRange range = {};
+    uint32_t windowId = INVALID_WINDOW_ID;
+    double positionY = 0;
+    double height = 0;
+    std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
 
     static bool IsPrivateCommandValid(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
     {
@@ -189,7 +198,12 @@ public:
             size_t valueSize = 0;
 
             if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
-                valueSize = std::get<std::string>(iter.second).size();
+                auto stringValue = std::get_if<std::string>(&iter.second);
+                if (stringValue != nullptr) {
+                    valueSize = (*stringValue).size();
+                }
+                IMSA_HILOGE("get stringValue failed.");
+                return false;
             } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
                 valueSize = sizeof(bool);
             } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
@@ -203,15 +217,6 @@ public:
         }
         return true;
     }
-};
-struct TextConfig {
-    InputAttribute inputAttribute = {};
-    CursorInfo cursorInfo = {};
-    SelectionRange range = {};
-    uint32_t windowId = INVALID_WINDOW_ID;
-    double positionY = 0;
-    double height = 0;
-    std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
 };
 
 enum class InputType : int32_t { NONE = -1, CAMERA_INPUT = 0, SECURITY_INPUT, END };

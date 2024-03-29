@@ -97,8 +97,6 @@ private:
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
     static napi_value GetResultOnSetSubtype(napi_env env, const SubProperty &property);
-    static napi_value GetJsPrivateCommand(
-        napi_env env, const std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     static const std::string IMES_CLASS_NAME;
     static thread_local napi_ref IMESRef_;
     struct UvEntry {

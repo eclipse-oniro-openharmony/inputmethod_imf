@@ -254,7 +254,7 @@ napi_value JsTextInputClientEngine::SendPrivateCommand(napi_env env, napi_callba
         PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameter!", TYPE_NONE, napi_generic_failure);
         napi_status status = JsUtils::GetValue(env, argv[0], ctxt->privateCommand);
         CHECK_RETURN(status == napi_ok, "GetValue privateCommand error", status);
-        if (!TextTotalConfig::IsPrivateCommandValid(ctxt->privateCommand)) {
+        if (!TextConfig::IsPrivateCommandValid(ctxt->privateCommand)) {
             PARAM_CHECK_RETURN(
                 env, false, "privateCommand size limit 32KB, count limit 5.", TYPE_NONE, napi_generic_failure);
         }

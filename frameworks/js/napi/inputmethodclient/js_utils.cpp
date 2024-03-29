@@ -407,5 +407,33 @@ napi_status JsUtils::GetValue(napi_env env, const std::string &in, napi_value &o
 {
     return napi_create_string_utf8(env, in.c_str(), in.size(), &out);
 }
+
+napi_value JsUtils::GetJsPrivateCommand(napi_env env, const std::unordered_map<std::string, PrivateDataValue> &in)
+{
+    napi_value jsPrivateCommand = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &jsPrivateCommand));
+    for (const auto &iter : in) {
+        size_t idx = iter.second.index();
+        napi_value value = nullptr;
+        if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
+            auto stringValue = std::get_if<std::string>(&iter.second);
+            if (stringValue != nullptr) {
+                NAPI_CALL(env, napi_create_string_utf8(env, (*stringValue).c_str(), (*stringValue).size(), &value));
+            }
+        } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
+            auto boolValue = std::get_if<bool>(&iter.second);
+            if (boolValue != nullptr) {
+                NAPI_CALL(env, napi_get_boolean(env, *boolValue, &value));
+            }
+        } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
+            auto numberValue = std::get_if<int32_t>(&iter.second);
+            if (numberValue != nullptr) {
+                NAPI_CALL(env, napi_create_int32(env, *numberValue, &value));
+            }
+        }
+        NAPI_CALL(env, napi_set_named_property(env, jsPrivateCommand, iter.first.c_str(), value));
+    }
+    return jsPrivateCommand;
+}
 } // namespace MiscServices
 } // namespace OHOS

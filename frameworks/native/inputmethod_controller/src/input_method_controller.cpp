@@ -1242,7 +1242,7 @@ int32_t InputMethodController::SendPrivateCommand(
         IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    if (!TextTotalConfig::IsPrivateCommandValid(privateCommand)) {
+    if (!TextConfig::IsPrivateCommandValid(privateCommand)) {
         IMSA_HILOGE("invalid private command size.");
         return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE;
     }
