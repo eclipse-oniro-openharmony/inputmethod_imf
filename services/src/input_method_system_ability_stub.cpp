@@ -254,7 +254,7 @@ int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &d
 
 int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    uint32_t status;
+    uint32_t status = 0;
     ImeWindowInfo info;
     if (!ITypesUtil::Unmarshal(data, status, info)) {
         IMSA_HILOGE("Unmarshal failed");
@@ -267,12 +267,12 @@ int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &d
 int32_t InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     InputClientInfo clientInfo;
-    EventType type;
+    uint32_t type = 0;
     if (!ITypesUtil::Unmarshal(data, clientInfo, type)) {
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = UpdateListenEventFlag(clientInfo, type);
+    int32_t ret = UpdateListenEventFlag(clientInfo, static_cast<EventType>(type));
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

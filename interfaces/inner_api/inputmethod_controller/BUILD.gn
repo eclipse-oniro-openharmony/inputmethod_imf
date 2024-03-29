@@ -50,6 +50,7 @@ ohos_shared_library("inputmethod_client") {
   }
   sources = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/ime_event_monitor_manager.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_stub.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_proxy.cpp",
@@ -61,7 +62,6 @@ ohos_shared_library("inputmethod_client") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/itypes_util.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_stub.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/ime_event_monitor_manager.cpp",
     "${inputmethod_path}/services/src/message.cpp",
     "${inputmethod_path}/services/src/message_handler.cpp",
   ]
@@ -109,6 +109,7 @@ ohos_static_library("inputmethod_client_static") {
   }
   sources = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/ime_event_monitor_manager.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_stub.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_proxy.cpp",

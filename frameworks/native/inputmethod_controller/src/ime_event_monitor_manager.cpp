@@ -71,16 +71,12 @@ int32_t ImeEventMonitorManager::UnRegisterImeEventListener(
             isContainInvalidParam = true;
             continue;
         }
-
         auto iter = it->second.find(listener);
-        if (iter != it->second.end()) {
-            iter = it->second.erase(iter);
-        }
-
         if (iter == it->second.end()) {
             isContainInvalidParam = true;
             continue;
         }
+        it->second.erase(iter);
         if (it->second.empty()) {
             auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
             if (ret != ErrorCode::NO_ERROR) {
@@ -128,7 +124,7 @@ int32_t ImeEventMonitorManager::OnImeChange(const Property &property, const SubP
 int32_t ImeEventMonitorManager::OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
     if (status != InputWindowStatus::HIDE && status != InputWindowStatus::SHOW) {
-        IMSA_HILOGI("status:%{public}d is invalid", status);
+        IMSA_HILOGE("status:%{public}d is invalid", status);
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto type = status == InputWindowStatus::HIDE ? EventType::IME_HIDE : EventType::IME_SHOW;

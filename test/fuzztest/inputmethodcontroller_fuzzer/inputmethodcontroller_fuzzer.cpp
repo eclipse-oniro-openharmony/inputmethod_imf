@@ -25,21 +25,8 @@
 #include "message_parcel.h"
 #include "text_listener.h"
 
-
 using namespace OHOS::MiscServices;
 namespace OHOS {
-class SettingListener : public ImeEventListener {
-    void OnImeChange(const Property &property, const SubProperty &subProperty)
-    {
-    }
-    void OnImeShow(const ImeWindowInfo &info)
-    {
-    }
-    void OnImeHide(const ImeWindowInfo &info)
-    {
-    }
-};
-
 void TestListInputMethod(sptr<InputMethodController> imc)
 {
     std::vector<Property> properties = {};
@@ -124,7 +111,6 @@ void TestSetCallingWindow(sptr<InputMethodController> imc, uint32_t fuzzedUInt32
 void TestShowSomething(sptr<InputMethodController> imc)
 {
     sptr<OnTextChangedListener> textListener = new TextListener();
-    EventType eventType;
     imc->Attach(textListener);
     imc->ShowCurrentInput();
     imc->HideCurrentInput();
@@ -135,16 +121,14 @@ void TestShowSomething(sptr<InputMethodController> imc)
     imc->GetCurrentInputMethod();
     imc->GetCurrentInputMethodSubtype();
 
-    imc->UpdateListenEventFlag(eventType, true);
-
     imc->StopInputSession();
     imc->Close();
 }
 
-void TestUpdateListenEventFlag(sptr<InputMethodController> imc, EventType eventType)
+void TestUpdateListenEventFlag(sptr<InputMethodController> imc, uint32_t fuzzedUInt32)
 {
-    imc->UpdateListenEventFlag(eventType, true);
-    imc->UpdateListenEventFlag(eventType, false);
+    imc->UpdateListenEventFlag(static_cast<EventType>(fuzzedUInt32), true);
+    imc->UpdateListenEventFlag(static_cast<EventType>(fuzzedUInt32), false);
 }
 
 void TestAttach(sptr<InputMethodController> imc, int32_t fuzzedInt32)
@@ -165,7 +149,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     /* Run your code on data */
     std::string fuzzedString(data, data + size);
     std::u16string fuzzedU16String = u"insert text";
-    EventType eventType;
 
     auto fuzzedInt = static_cast<int>(size);
     auto fuzzedInt32 = static_cast<int32_t>(size);
@@ -183,6 +166,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestSetCallingWindow(imc, fuzzedUInt32);
     OHOS::TestDispatchKeyEvent(imc, fuzzedInt32);
     OHOS::TestShowSomething(imc);
-    OHOS::TestUpdateListenEventFlag(imc, eventType);
+    OHOS::TestUpdateListenEventFlag(imc, fuzzedUInt32);
     return 0;
 }

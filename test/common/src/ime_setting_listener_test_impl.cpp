@@ -20,11 +20,13 @@ namespace MiscServices {
 InputWindowStatus ImeSettingListenerTestImpl::status_{ InputWindowStatus::NONE };
 SubProperty ImeSettingListenerTestImpl::subProperty_{};
 std::mutex ImeSettingListenerTestImpl::imeSettingListenerLock_;
+bool ImeSettingListenerTestImpl::isImeChange_{ false };
 std::condition_variable ImeSettingListenerTestImpl::imeSettingListenerCv_;
 void ImeSettingListenerTestImpl::ResetParam()
 {
     status_ = InputWindowStatus::NONE;
     subProperty_ = {};
+    isImeChange_ = false;
 }
 bool ImeSettingListenerTestImpl::WaitPanelHide()
 {
@@ -41,22 +43,30 @@ bool ImeSettingListenerTestImpl::WaitPanelShow()
 bool ImeSettingListenerTestImpl::WaitImeChange(const SubProperty &subProperty)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
+    if (subProperty.name.empty()) {
+        imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1), [&subProperty]() { return isImeChange_; });
+        return isImeChange_;
+    }
     imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1),
         [&subProperty]() { return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name; });
     return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name;
 }
 void ImeSettingListenerTestImpl::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
+    std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
+    isImeChange_ = true;
     subProperty_ = subProperty;
     imeSettingListenerCv_.notify_one();
 }
 void ImeSettingListenerTestImpl::OnImeShow(const ImeWindowInfo &info)
 {
+    std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
     status_ = InputWindowStatus::SHOW;
     imeSettingListenerCv_.notify_one();
 }
 void ImeSettingListenerTestImpl::OnImeHide(const ImeWindowInfo &info)
 {
+    std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
     status_ = InputWindowStatus::HIDE;
     imeSettingListenerCv_.notify_one();
 }

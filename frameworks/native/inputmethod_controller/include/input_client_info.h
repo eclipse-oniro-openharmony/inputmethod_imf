@@ -16,7 +16,6 @@
 #ifndef INPUTMETHOD_IMF_INPUT__CLIENT_INFO_H
 #define INPUTMETHOD_IMF_INPUT__CLIENT_INFO_H
 
-#include "event_status_manager.h"
 #include "i_input_client.h"
 #include "i_input_data_channel.h"
 #include "input_attribute.h"
@@ -27,6 +26,7 @@ namespace MiscServices {
 enum class UpdateFlag : uint32_t { EVENTFLAG = 0, ISSHOWKEYBOARD, BINDIMETYPE, STATE, TEXT_CONFIG };
 enum class ImeType : int32_t { IME = 0, PROXY_IME, NONE };
 enum class ClientState : uint32_t { INACTIVE = 0, ACTIVE };
+const uint32_t NO_EVENT_ON = 0;
 struct InputClientInfo {
     pid_t pid{ -1 };                                       // process id
     pid_t uid{ -1 };                                       // uid
@@ -34,7 +34,7 @@ struct InputClientInfo {
     bool isShowKeyboard{ false };                          // soft keyboard status
     ImeType bindImeType{ ImeType::NONE };                  // type of the ime client bind
     TextTotalConfig config = {};                           // text config
-    uint32_t eventFlag{ EventStatusManager::NO_EVENT_ON }; // the flag of the all listen event
+    uint32_t eventFlag{ NO_EVENT_ON };                     // the flag of the all listen event
     InputAttribute attribute;                              // the input client attribute
     sptr<IInputClient> client{ nullptr };       // the remote object handler for service to callback input client
     sptr<IInputDataChannel> channel{ nullptr }; // the remote object handler for ime to callback input client
