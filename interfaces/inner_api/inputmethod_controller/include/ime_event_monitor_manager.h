@@ -19,13 +19,11 @@
 #include <set>
 
 #include "ime_event_listener.h"
-#include "input_client_stub.h"
 #include "visibility.h"
 
 namespace OHOS {
 namespace MiscServices {
 enum EventType : uint32_t { IME_CHANGE = 0, IME_SHOW = 1, IME_HIDE = 2, IME_NONE };
-
 class ImeEventMonitorManager {
 public:
     /**
@@ -63,14 +61,15 @@ public:
     */
     IMF_API int32_t UnRegisterImeEventListener(
         const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
-private:
-    friend class InputClientStub;
-    ImeEventMonitorManager();
-    ~ImeEventMonitorManager();
-    std::set<std::shared_ptr<ImeEventListener>>GetListeners(EventType type);
-    bool IsParamValid(const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
+
     int32_t OnImeChange(const Property &property, const SubProperty &subProperty);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
+
+private:
+    ImeEventMonitorManager();
+    ~ImeEventMonitorManager();
+    std::set<std::shared_ptr<ImeEventListener>> GetListeners(EventType type);
+    bool IsParamValid(const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
 
     std::mutex lock_;
     std::map<EventType, std::set<std::shared_ptr<ImeEventListener>>> listeners_{};

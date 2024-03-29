@@ -46,7 +46,7 @@ int32_t ImeEventMonitorManager::RegisterImeEventListener(
         if (it == listeners_.end()) {
             auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
             if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGI("UpdateListenEventFlag failed: %{public}d", ret);
+                IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
                 return ret;
             }
             listeners_.insert({ type, { listener } });
@@ -80,7 +80,7 @@ int32_t ImeEventMonitorManager::UnRegisterImeEventListener(
         if (it->second.empty()) {
             auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
             if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGI("UpdateListenEventFlag failed: %{public}d", ret);
+                IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
             }
             listeners_.erase(it);
         }
@@ -92,16 +92,16 @@ bool ImeEventMonitorManager::IsParamValid(
     const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener)
 {
     if (listener == nullptr) {
-        IMSA_HILOGI("listener is nullptr");
+        IMSA_HILOGE("listener is nullptr");
         return false;
     }
     if (types.size() > EventType::IME_NONE) {
-        IMSA_HILOGI("over the max num");
+        IMSA_HILOGE("over the max num");
         return false;
     }
     for (const auto &type : types) {
         if (type >= EventType::IME_NONE) {
-            IMSA_HILOGI("eventType is error");
+            IMSA_HILOGE("eventType is error");
             return false;
         }
     }

@@ -16,14 +16,9 @@
 #ifndef INPUTMETHOD_IMF_IME_SETTING_LISTENER_TEST_IMPL_H
 #define INPUTMETHOD_IMF_IME_SETTING_LISTENER_TEST_IMPL_H
 
-#include <unistd.h>
-
 #include <condition_variable>
 
-#include "input_method_controller.h"
-#include "input_method_utils.h"
-#include "key_event.h"
-#include "string_ex.h"
+#include "ime_event_listener.h"
 
 namespace OHOS {
 namespace MiscServices {
