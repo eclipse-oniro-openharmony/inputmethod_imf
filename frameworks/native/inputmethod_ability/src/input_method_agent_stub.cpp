@@ -113,7 +113,7 @@ int32_t InputMethodAgentStub::SendPrivateCommandOnRemote(MessageParcel &data, Me
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    auto ret = InputMethodAbility::GetInstance()->OnSendPrivateCommand(privateCommand);
+    auto ret = InputMethodAbility::GetInstance()->ReceivePrivateCommand(privateCommand);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

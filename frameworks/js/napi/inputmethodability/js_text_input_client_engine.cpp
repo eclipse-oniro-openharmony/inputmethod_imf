@@ -29,6 +29,7 @@ using namespace std::chrono;
 thread_local napi_ref JsTextInputClientEngine::TICRef_ = nullptr;
 const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";
 constexpr int32_t MAX_WAIT_TIME = 5000;
+constexpr int32_t MAX_WAIT_TIME_PRIVATE_COMMAND = 2000;
 BlockQueue<EditorEventInfo> JsTextInputClientEngine::editorQueue_{ MAX_WAIT_TIME };
 BlockQueue<PrivateCommandInfo> JsTextInputClientEngine::privateCommandQueue_{ MAX_WAIT_TIME };
 napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)

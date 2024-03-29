@@ -46,7 +46,7 @@ public:
     void OnSetCallingWindow(uint32_t windowId) override;
     void OnSetSubtype(const SubProperty &property) override;
     void OnInputFinish() override;
-    void OnSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsEnable() override;
 };
 } // namespace MiscServices

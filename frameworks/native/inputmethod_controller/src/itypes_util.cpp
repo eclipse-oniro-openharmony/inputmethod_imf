@@ -414,20 +414,24 @@ bool ITypesUtil::Unmarshalling(SwitchTrigger &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const PrivateDataValue &input, MessageParcel &data)
 {
     size_t idx = input.index();
+    if (!data.WriteInt32(static_cast<int32_t>(idx))) {
+        IMSA_HILOGE("Write index failed.");
+        return false;
+    }
     if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
         auto stringValue = std::get_if<std::string>(&input);
         if (stringValue != nullptr) {
-            return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteString(*stringValue);
+            return data.WriteString(*stringValue);
         }
     } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
         auto boolValue = std::get_if<bool>(&input);
         if (boolValue != nullptr) {
-            return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteBool(*boolValue);
+            return data.WriteBool(*boolValue);
         }
     } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
         auto numberValue = std::get_if<int32_t>(&input);
         if (numberValue != nullptr) {
-            return data.WriteInt32(static_cast<int32_t>(idx)) && data.WriteInt32(*numberValue);
+            return data.WriteInt32(*numberValue);
         }
     }
     IMSA_HILOGE("write PrivateDataValue with wrong type.");

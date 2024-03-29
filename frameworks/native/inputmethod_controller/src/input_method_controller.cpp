@@ -611,7 +611,7 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
-        return ErrorCode::ERROR_SERVICE_START_FAILED;
+        return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     IMSA_HILOGI("left: %{public}d, top: %{public}d, height: %{public}d", static_cast<int32_t>(cursorInfo.left),
         static_cast<int32_t>(cursorInfo.top), static_cast<int32_t>(cursorInfo.height));
@@ -645,7 +645,7 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
-        return ErrorCode::ERROR_SERVICE_START_FAILED;
+        return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     IMSA_HILOGI("IMC size: %{public}zu, range: %{public}d/%{public}d", text.size(), start, end);
     agent->OnSelectionChange(textString_, selectOldBegin_, selectOldEnd_, selectNewBegin_, selectNewEnd_);
@@ -672,7 +672,7 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
-        return ErrorCode::ERROR_SERVICE_START_FAILED;
+        return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     agent->OnConfigurationChange(info);
     return ErrorCode::NO_ERROR;
@@ -740,7 +740,7 @@ int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> k
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
         keyEventQueue_.Pop();
-        return ErrorCode::ERROR_SERVICE_START_FAILED;
+        return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     IMSA_HILOGI("start");
     sptr<IKeyEventConsumer> consumer = new (std::nothrow) KeyEventConsumerStub(callback, keyEvent);
@@ -815,7 +815,7 @@ int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent_ is nullptr");
-        return ErrorCode::ERROR_SERVICE_START_FAILED;
+        return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     IMSA_HILOGI("windowId = %{public}d", windowId);
     agent->SetCallingWindow(windowId);
@@ -1215,7 +1215,8 @@ void InputMethodController::PrintLogIfAceTimeout(int64_t start)
         IMSA_HILOGW("timeout:[%{public}" PRId64 ", %{public}" PRId64 "]", start, end);
     }
 }
-int32_t InputMethodController::OnSendPrivateCommand(
+
+int32_t InputMethodController::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     auto listener = GetTextListener();
@@ -1223,9 +1224,9 @@ int32_t InputMethodController::OnSendPrivateCommand(
         IMSA_HILOGE("textListener_ is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    auto ret = listener->OnSendPrivateCommand(privateCommand);
+    auto ret = listener->ReceivePrivateCommand(privateCommand);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("OnSendPrivateCommand err, ret %{public}d", ret);
+        IMSA_HILOGE("ReceivePrivateCommand err, ret %{public}d", ret);
         return ErrorCode::ERROR_TEXT_LISTENER_ERROR;
     }
     return ErrorCode::NO_ERROR;
@@ -1249,7 +1250,7 @@ int32_t InputMethodController::SendPrivateCommand(
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
-        return ErrorCode::ERROR_SERVICE_START_FAILED;
+        return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     return agent->SendPrivateCommand(privateCommand);
 }

@@ -63,10 +63,10 @@ void InputMethodEngineListenerImpl::OnInputFinish()
     isInputFinish_ = true;
     imeListenerCv_.notify_one();
 }
-void InputMethodEngineListenerImpl::OnSendPrivateCommand(
+void InputMethodEngineListenerImpl::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    IMSA_HILOGI("OnSendPrivateCommand");
+    IMSA_HILOGI("ReceivePrivateCommand");
     privateCommand_ = privateCommand;
     imeListenerCv_.notify_one();
 }

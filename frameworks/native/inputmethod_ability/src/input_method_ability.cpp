@@ -481,7 +481,7 @@ void InputMethodAbility::InvokeTextChangeCallback(const TextTotalConfig &textCon
     imeListener_->OnSetCallingWindow(textConfig.windowId);
     if (TextConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
         IMSA_HILOGI("notify privateCommand.");
-        imeListener_->OnSendPrivateCommand(textConfig.privateCommand);
+        imeListener_->ReceivePrivateCommand(textConfig.privateCommand);
     }
 }
 
@@ -1013,6 +1013,10 @@ int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::str
         IMSA_HILOGE("current is not default ime.");
         return ErrorCode::ERROR_NOT_DEFAULT_IME;
     }
+    if (!TextConfig::IsPrivateCommandValid(privateCommand)) {
+        IMSA_HILOGE("privateCommand size limit 32KB, count limit 5.");
+        return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE;
+    }
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr");
@@ -1021,7 +1025,7 @@ int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::str
     return channel->SendPrivateCommand(privateCommand);
 }
 
-int32_t InputMethodAbility::OnSendPrivateCommand(
+int32_t InputMethodAbility::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     if (!IsDefaultIme()) {
@@ -1032,7 +1036,7 @@ int32_t InputMethodAbility::OnSendPrivateCommand(
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    imeListener_->OnSendPrivateCommand(privateCommand);
+    imeListener_->ReceivePrivateCommand(privateCommand);
     return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices

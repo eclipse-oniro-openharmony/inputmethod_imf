@@ -67,7 +67,7 @@ public:
     virtual std::u16string GetLeftTextOfCursor(int32_t number) = 0;
     virtual std::u16string GetRightTextOfCursor(int32_t number) = 0;
     virtual int32_t GetTextIndexAtCursor() = 0;
-    virtual int32_t OnSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+    virtual int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
     {
         return ErrorCode::NO_ERROR;
     }
@@ -749,7 +749,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 12
      */
-    IMF_API int32_t OnSendPrivateCommand(
+    IMF_API int32_t ReceivePrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
 private:

@@ -742,7 +742,7 @@ void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
     FreeWorkIfFail(ret, work);
 }
 
-void JsInputMethodEngineSetting::OnSendPrivateCommand(
+void JsInputMethodEngineSetting::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     IMSA_HILOGD("JsInputMethodEngineSetting, run in");

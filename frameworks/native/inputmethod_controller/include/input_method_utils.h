@@ -193,17 +193,17 @@ struct TextConfig {
         }
         size_t totalSize = 0;
         for (const auto &iter : privateCommand) {
-            size_t keySize = sizeof(iter.first);
+            size_t keySize = iter.first.size();
             size_t idx = iter.second.index();
             size_t valueSize = 0;
 
             if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
                 auto stringValue = std::get_if<std::string>(&iter.second);
-                if (stringValue != nullptr) {
-                    valueSize = (*stringValue).size();
+                if (stringValue == nullptr) {
+                    IMSA_HILOGE("get stringValue failed.");
+                    return false;
                 }
-                IMSA_HILOGE("get stringValue failed.");
-                return false;
+                valueSize = (*stringValue).size();
             } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
                 valueSize = sizeof(bool);
             } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {

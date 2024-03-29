@@ -135,7 +135,7 @@ int32_t TextListener::GetTextIndexAtCursor()
     return TEXT_INDEX;
 }
 
-int32_t TextListener::OnSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+int32_t TextListener::ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     privateCommand_ = privateCommand;
     return 0;

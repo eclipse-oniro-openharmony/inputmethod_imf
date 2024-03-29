@@ -44,6 +44,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
+constexpr size_t PRIVATE_COMMAND_SIZE_MAX = 32 * 1024;
 class InputMethodAbilityTest : public testing::Test {
 public:
     static std::mutex imeListenerCallbackLock_;
@@ -95,13 +96,13 @@ public:
             IMSA_HILOGI("InputMethodEngineListenerImpl OnSecurityChange");
         }
 
-        void OnSendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+        void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
         {
-            IMSA_HILOGI("InputMethodEngineListenerImpl OnSendPrivateCommand");
+            IMSA_HILOGI("InputMethodEngineListenerImpl ReceivePrivateCommand");
         }
     };
 
-    static void SetDefaultIme()
+    static void StubSelfAsDefault()
     {
         std::shared_ptr<Property> property = std::make_shared<Property>();
         auto ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
@@ -1060,6 +1061,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_001 Test START");
     TextListener::ResetParam();
+    TddUtil::RestoreSelfTokenID();
     imc_->Close();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
@@ -1078,7 +1080,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_002, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_002 Test START");
     TextListener::ResetParam();
     TddUtil::RestoreSelfTokenID();
-    InputMethodAbilityTest::SetDefaultIme();
+    InputMethodAbilityTest::StubSelfAsDefault();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
     privateCommand.insert({ "value1", privateDataValue1 });
@@ -1100,7 +1102,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
     TddUtil::RestoreSelfTokenID();
     auto ret = imc_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    InputMethodAbilityTest::SetDefaultIme();
+    InputMethodAbilityTest::StubSelfAsDefault();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
     PrivateDataValue privateDataValue2 = true;
@@ -1125,8 +1127,9 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_004 Test START");
+    auto ret = imc_->Attach(textListener_, false);
     TextListener::ResetParam();
-    InputMethodAbilityTest::SetDefaultIme();
+    InputMethodAbilityTest::StubSelfAsDefault();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
     privateCommand.emplace("value1", privateDataValue1);
@@ -1135,9 +1138,10 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_004, TestSize.Level0)
     privateCommand.emplace("value4", privateDataValue1);
     privateCommand.emplace("value5", privateDataValue1);
     privateCommand.emplace("value6", privateDataValue1);
-    auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
+    ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
     TddUtil::RestoreSelfTokenID();
+    imc_->Close();
 }
 
 /**
@@ -1150,17 +1154,21 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_004, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_005 Test START");
+    auto ret = imc_->Attach(textListener_, false);
     TextListener::ResetParam();
-    InputMethodAbilityTest::SetDefaultIme();
-    string str(32768, 'a');
-    IMSA_HILOGE("str size : %{public}zu", str.size());
-    std::unordered_map<std::string, PrivateDataValue> privateCommand;
-    PrivateDataValue privateDataValue1 = str;
-    privateCommand.emplace("value1", privateDataValue1);
-    IMSA_HILOGE("privateDataValue1 size : %{public}zu", std::get<std::string>(privateDataValue1).size());
-    auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
+    InputMethodAbilityTest::StubSelfAsDefault();
+    string str(32767, 'a');
+    std::unordered_map<std::string, PrivateDataValue> privateCommand1{ { "v", string(PRIVATE_COMMAND_SIZE_MAX - 2, 'a') } };
+    std::unordered_map<std::string, PrivateDataValue> privateCommand2{ { "v", string(PRIVATE_COMMAND_SIZE_MAX - 1, 'a') } };
+    std::unordered_map<std::string, PrivateDataValue> privateCommand3{ { "v", string(PRIVATE_COMMAND_SIZE_MAX, 'a') } };
+    ret = inputMethodAbility_->SendPrivateCommand(privateCommand1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodAbility_->SendPrivateCommand(privateCommand2);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodAbility_->SendPrivateCommand(privateCommand3);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
     TddUtil::RestoreSelfTokenID();
+    imc_->Close();
 }
 } // namespace MiscServices
 } // namespace OHOS

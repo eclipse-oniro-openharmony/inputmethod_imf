@@ -80,7 +80,7 @@ int32_t JsGetInputMethodTextChangedListener::GetTextIndexAtCursor()
     return JsGetInputMethodController::GetInstance()->GetTextIndexAtCursor();
 }
 
-int32_t JsGetInputMethodTextChangedListener::OnSendPrivateCommand(
+int32_t JsGetInputMethodTextChangedListener::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     return ErrorCode::NO_ERROR;
