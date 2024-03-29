@@ -22,7 +22,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "ime_event_listener.h"
 #include "ime_setting_listener_test_impl.h"
 #include "tdd_util.h"
 
@@ -95,7 +94,7 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_002, TestSiz
 
 /**
 * @tc.name: testRegisterImeEventListener_003
-* @tc.desc: type size over max
+* @tc.desc: type is error
 * @tc.type: FUNC
 */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_003, TestSize.Level0)
