@@ -16,7 +16,7 @@
 #include "js_get_input_method_setting.h"
 
 #include "event_checker.h"
-#include "ime_event_monitor_manager.h"
+#include "ime_event_monitor_manager_impl.h"
 #include "input_client_info.h"
 #include "input_method_controller.h"
 #include "input_method_status.h"
@@ -491,7 +491,7 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     }
     std::shared_ptr<JSCallbackObject> callback =
         std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ iter->second }, inputMethod_);
+    auto ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener({ iter->second }, inputMethod_);
     if (ret == ErrorCode::NO_ERROR) {
         engine->RegisterListener(argv[ARGC_ONE], type, callback);
     } else {
@@ -572,7 +572,7 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
         return nullptr;
     }
     if (isUpdateFlag) {
-        auto ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ iter->second }, inputMethod_);
+        auto ret = ImeEventMonitorManagerImpl::GetInstance().UnRegisterImeEventListener({ iter->second }, inputMethod_);
         IMSA_HILOGI("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str());
     }
     napi_value result = nullptr;

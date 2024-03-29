@@ -807,16 +807,16 @@ HWTEST_F(InputMethodPanelTest, testRegisterListener, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_001 start.");
-    // todo 设置系统app
+    // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消系统app设置
+    // cancel system app
     InputWindowInfo info{ "", 0, 0, InputMethodPanelTest::windowWidth_, InputMethodPanelTest::windowHeight_ };
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // todo 设置当前ime权限
+    // set current ime
     TddUtil::SetTestTokenID(testTokenId_);
     auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -826,16 +826,16 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
     InputMethodPanelTest::ImcPanelListeningTestRestore();
     ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
     TddUtil::RestoreSelfTokenID();
-    // todo 取消当前ime权限设置
+    // cancel current ime
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelHideNumCheck(1);
     InputMethodPanelTest::ImcPanelHideInfoCheck(info);
-    // todo 设置系统app
+    // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消系统app设置
+    // cancel system app
 }
 
 /**
@@ -846,17 +846,17 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_002 start.");
-    // todo 设置系统app
+    // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消系统app设置
+    // cancel system app
     InputWindowInfo info{ "", 0, 0, InputMethodPanelTest::windowWidth_, InputMethodPanelTest::windowHeight_ };
     InputMethodPanelTest::inputMethodPanel_->panelFlag_ = FLG_FLOATING;
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // todo 设置当前ime权限
+    // set current ime
     TddUtil::SetTestTokenID(testTokenId_);
     auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -866,16 +866,16 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
     InputMethodPanelTest::ImcPanelListeningTestRestore();
     ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
     TddUtil::RestoreSelfTokenID();
-    // todo 取消当前ime权限设置
+    // cancel current ime
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelHideNumCheck(1);
     InputMethodPanelTest::ImcPanelHideInfoCheck(info);
-    // todo 设置系统app
+    // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消系统app设置
+    // cancel system app
     InputMethodPanelTest::inputMethodPanel_->panelFlag_ = FLG_FIXED;
 }
 
@@ -887,16 +887,16 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_003 start.");
-    // todo 设置系统app
+    // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消系统app设置
+    // cancel system app
     InputMethodPanelTest::inputMethodPanel_->panelFlag_ = FLG_CANDIDATE_COLUMN;
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // todo 设置当前ime权限
+    // set current ime
     TddUtil::SetTestTokenID(testTokenId_);
     auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -905,15 +905,15 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
     InputMethodPanelTest::ImcPanelListeningTestRestore();
     ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
     TddUtil::RestoreSelfTokenID();
-    // todo 取消当前ime权限设置
+    // cancel current ime
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
-    // todo 设置系统app
+    // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消系统app设置
+    // cancel system app
     InputMethodPanelTest::inputMethodPanel_->panelFlag_ = FLG_FIXED;
 }
 
@@ -925,15 +925,15 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_004 start.");
-    // todo 设置系统app
+    // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消系统app设置
+    // cancel system app
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // todo 设置当前ime权限
+    // set current ime
     TddUtil::SetTestTokenID(testTokenId_);
     auto ret = InputMethodPanelTest::inputMethodStatusBar_->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -942,15 +942,15 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
     InputMethodPanelTest::ImcPanelListeningTestRestore();
     ret = InputMethodPanelTest::inputMethodStatusBar_->HidePanel();
     TddUtil::RestoreSelfTokenID();
-    // todo 取消当前ime权限设置
+    // cancel current ime
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
-    // todo 设置系统app
+    // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消系统app设置
+    // cancel system app
 }
 
 /*
@@ -961,7 +961,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_005 start.");
-    // todo 设置native sa
+    // set native sa
     TddUtil::GrantNativePermission();
     auto listener1 = std::make_shared<InputMethodSettingListenerImpl>();
     auto listener2 = std::make_shared<InputMethodSettingListenerImpl>();
@@ -972,8 +972,8 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener2);
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener3);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消native sa设置
-    // todo 设置当前ime权限
+    // cancel native sa
+    // set current ime
     TddUtil::SetTestTokenID(testTokenId_);
     InputMethodPanelTest::ImcPanelListeningTestRestore();
     auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
@@ -983,11 +983,11 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
     InputMethodPanelTest::ImcPanelListeningTestRestore();
     ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
     TddUtil::RestoreSelfTokenID();
-    // todo 取消当前ime权限设置
+    // cancel current ime
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelHideNumCheck(2);
 
-    // todo 设置native sa
+    // set native sa
     TddUtil::GrantNativePermission();
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener1);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener1);
@@ -995,7 +995,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener2);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener3);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消native sa设置
+    // cancel native sa
 }
 
 /*
@@ -1006,7 +1006,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_006, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_006 start.");
-    // todo 设置native sa
+    // set native sa
     TddUtil::GrantNativePermission();
     auto listener1 = std::make_shared<InputMethodSettingListenerImpl>();
     auto listener2 = std::make_shared<InputMethodSettingListenerImpl>();
@@ -1017,10 +1017,10 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_006, TestSize.Level0)
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener3);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener1);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消native sa设置
+    // cancel native sa
     // UnRegister one IME_SHOW listener
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // todo 设置当前ime权限
+    // set current ime
     TddUtil::SetTestTokenID(testTokenId_);
     auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1029,20 +1029,20 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_006, TestSize.Level0)
     InputMethodPanelTest::ImcPanelListeningTestRestore();
     ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
     TddUtil::RestoreSelfTokenID();
-    // todo 取消当前ime权限设置
+    // cancel current ime
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelHideNumCheck(1);
 
     // UnRegister all listener
-    // todo 设置native sa
+    // set native sa
     TddUtil::GrantNativePermission();
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener2);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener3);
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener1);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消native sa设置
+    // cancel native sa
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // todo 设置当前ime权限
+    // set current ime
     TddUtil::SetTestTokenID(testTokenId_);
     ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1051,7 +1051,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_006, TestSize.Level0)
     InputMethodPanelTest::ImcPanelListeningTestRestore();
     ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
     TddUtil::RestoreSelfTokenID();
-    // todo 取消当前ime权限设置
+    // cancel current ime
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
 }
@@ -1064,15 +1064,15 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_006, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_007, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_007 start.");
-    // todo 设置native sa
+    // set native sa
     TddUtil::GrantNativePermission();
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
         { EventType::IME_SHOW, EventType::IME_HIDE }, listener);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消native sa设置
+    // cancel native sa
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // todo 设置当前ime权限
+    // set current ime
     TddUtil::SetTestTokenID(testTokenId_);
     auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1081,28 +1081,28 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_007, TestSize.Level0)
     InputMethodPanelTest::ImcPanelListeningTestRestore();
     ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
     TddUtil::RestoreSelfTokenID();
-    // todo 取消当前ime权限设置
+    // cancel current ime
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelHideNumCheck(1);
 
     // UnRegister all listener
-    // todo 设置native sa
+    // set native sa
     TddUtil::GrantNativePermission();
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
         { EventType::IME_SHOW, EventType::IME_HIDE }, listener);
     TddUtil::RestoreSelfTokenID();
-    // todo 取消native sa设置
+    // cancel native sa
     InputMethodPanelTest::ImcPanelListeningTestRestore();
     ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelShowNumCheck(0);
 
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // todo 设置当前ime权限
+    // set current ime
     TddUtil::SetTestTokenID(testTokenId_);
     ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
     TddUtil::RestoreSelfTokenID();
-    // todo 取消当前ime权限设置
+    // cancel current ime
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
 }

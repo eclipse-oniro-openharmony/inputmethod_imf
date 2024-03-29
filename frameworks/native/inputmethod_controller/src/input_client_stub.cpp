@@ -16,6 +16,7 @@
 #include "input_client_stub.h"
 
 #include "global.h"
+#include "ime_event_monitor_manager_impl.h"
 #include "input_method_controller.h"
 #include "ipc_object_stub.h"
 #include "ipc_skeleton.h"
@@ -122,12 +123,12 @@ int32_t InputClientStub::OnInputStop()
 
 int32_t InputClientStub::OnSwitchInput(const Property &property, const SubProperty &subProperty)
 {
-    return ImeEventMonitorManager::GetInstance().OnImeChange(property, subProperty);
+    return ImeEventMonitorManagerImpl::GetInstance().OnImeChange(property, subProperty);
 }
 
 int32_t InputClientStub::OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
-    return ImeEventMonitorManager::GetInstance().OnPanelStatusChange(status, info);
+    return ImeEventMonitorManagerImpl::GetInstance().OnPanelStatusChange(status, info);
 }
 
 void InputClientStub::DeactivateClient()

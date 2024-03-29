@@ -13,40 +13,37 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_IME_LISTEN_EVENT_MANAGER_H
-#define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_IME_LISTEN_EVENT_MANAGER_H
+#ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_IME_EVENT_MONITOR_MANAGER_H
+#define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_IME_EVENT_MONITOR_MANAGER_H
 #include <map>
 #include <set>
 
 #include "ime_event_listener.h"
-#include "input_client_stub.h"
 #include "visibility.h"
 
 namespace OHOS {
 namespace MiscServices {
-enum EventType : uint32_t { IME_CHANGE = 0, IME_SHOW = 1, IME_HIDE = 2, IME_NONE };
-
 class ImeEventMonitorManager {
 public:
     /**
-     * @brief Get the instance of TmeEventMonitorManager.
+     * @brief Get the instance of ImeEventMonitorManager.
      *
-     * This function is used to get the instance of TmeEventMonitorManager.
+     * This function is used to get the instance of ImeEventMonitorManager.
      *
-     * @return The instance of TmeEventMonitorManager.
-     * @since 11
+     * @return The instance of ImeEventMonitorManager.
+     * @since 12
     */
     IMF_API static ImeEventMonitorManager &GetInstance();
 
     /**
      * @brief Register Ime Event Listener.
      *
-     * This function is used to Register Ime Event Listener.
+     * This function is used to Register Ime Event Listener, register IME_SHOW and IME_HIDE only supported at present
      *
      * @param types Indicates the event type.
      * @param listener Indicates the the listener to be registered.
      * @return Returns 0 for success, others for failure.
-     * @since 11
+     * @since 12
     */
     IMF_API int32_t RegisterImeEventListener(
         const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
@@ -54,27 +51,23 @@ public:
     /**
      * @brief UnRegister Ime Event Listener.
      *
-     * This function is used to UnRegister Ime Event Listener.
+     * This function is used to UnRegister Ime Event Listener, unregister IME_SHOW and IME_HIDE only supported at present
      *
      * @param types Indicates the event type.
      * @param listener Indicates the the listener to be unregistered.
      * @return Returns 0 for success, others for failure.
-     * @since 11
+     * @since 12
     */
     IMF_API int32_t UnRegisterImeEventListener(
         const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
+
 private:
-    friend class InputClientStub;
+    const uint32_t EVENT_NUM = 2;
+    const std::set<EventType> EVENT_TYPE{ IME_SHOW, IME_HIDE };
     ImeEventMonitorManager();
     ~ImeEventMonitorManager();
-    std::set<std::shared_ptr<ImeEventListener>>GetListeners(EventType type);
     bool IsParamValid(const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
-    int32_t OnImeChange(const Property &property, const SubProperty &subProperty);
-    int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
-
-    std::mutex lock_;
-    std::map<EventType, std::set<std::shared_ptr<ImeEventListener>>> listeners_{};
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // INTERFACE_KITS_JS_GETINPUT_METHOD_SETTING_H
+#endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_IME_EVENT_MONITOR_MANAGER_H

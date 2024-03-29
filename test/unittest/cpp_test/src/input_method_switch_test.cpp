@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "global.h"
+#include "ime_event_monitor_manager_impl.h"
 #include "ime_info_inquirer.h"
 #include "ime_setting_listener_test_impl.h"
 #include "input_method_controller.h"
@@ -85,7 +86,7 @@ void InputMethodSwitchTest::SetUpTestCase(void)
         TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
     imc_ = InputMethodController::GetInstance();
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_CHANGE }, listener);
+    ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener({ EventType::IME_CHANGE }, listener);
 }
 
 void InputMethodSwitchTest::TearDownTestCase(void)

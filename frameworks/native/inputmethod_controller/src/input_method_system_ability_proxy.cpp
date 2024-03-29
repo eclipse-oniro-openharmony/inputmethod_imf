@@ -196,7 +196,7 @@ int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(
 int32_t InputMethodSystemAbilityProxy::PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE),
-        [status, info](MessageParcel &data) { return ITypesUtil::Marshal(data, static_cast<uint32_t>(status), info); });
+        [status, &info](MessageParcel &data) { return ITypesUtil::Marshal(data, static_cast<uint32_t>(status), info); });
 }
 
 int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)
