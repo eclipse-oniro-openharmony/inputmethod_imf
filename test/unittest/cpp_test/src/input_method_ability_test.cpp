@@ -44,7 +44,6 @@ using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t DEALY_TIME = 1;
-constexpr size_t PRIVATE_COMMAND_SIZE_MAX = 32 * 1024;
 class InputMethodAbilityTest : public testing::Test {
 public:
     static std::mutex imeListenerCallbackLock_;
@@ -1113,61 +1112,6 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
     ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendPrivateCommandCallback(privateCommand));
-    TddUtil::RestoreSelfTokenID();
-    imc_->Close();
-}
-
-/**
- * @tc.name: testSendPrivateCommand_004
- * @tc.desc: IMA SendPrivateCommand with more than 5 private command.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: mashaoyin
- */
-HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_004, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_004 Test START");
-    auto ret = imc_->Attach(textListener_, false);
-    TextListener::ResetParam();
-    InputMethodAbilityTest::StubSelfAsDefault();
-    std::unordered_map<std::string, PrivateDataValue> privateCommand;
-    PrivateDataValue privateDataValue1 = std::string("stringValue");
-    privateCommand.emplace("value1", privateDataValue1);
-    privateCommand.emplace("value2", privateDataValue1);
-    privateCommand.emplace("value3", privateDataValue1);
-    privateCommand.emplace("value4", privateDataValue1);
-    privateCommand.emplace("value5", privateDataValue1);
-    privateCommand.emplace("value6", privateDataValue1);
-    ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
-    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
-    TddUtil::RestoreSelfTokenID();
-    imc_->Close();
-}
-
-/**
- * @tc.name: testSendPrivateCommand_005
- * @tc.desc: IMA SendPrivateCommand size is more than 32KB.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: mashaoyin
- */
-HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_005, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_005 Test START");
-    auto ret = imc_->Attach(textListener_, false);
-    TextListener::ResetParam();
-    InputMethodAbilityTest::StubSelfAsDefault();
-    std::unordered_map<std::string, PrivateDataValue> privateCommand1{ { "v",
-        string(PRIVATE_COMMAND_SIZE_MAX - 2, 'a') } };
-    std::unordered_map<std::string, PrivateDataValue> privateCommand2{ { "v",
-        string(PRIVATE_COMMAND_SIZE_MAX - 1, 'a') } };
-    std::unordered_map<std::string, PrivateDataValue> privateCommand3{ { "v", string(PRIVATE_COMMAND_SIZE_MAX, 'a') } };
-    ret = inputMethodAbility_->SendPrivateCommand(privateCommand1);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = inputMethodAbility_->SendPrivateCommand(privateCommand2);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = inputMethodAbility_->SendPrivateCommand(privateCommand3);
-    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
     TddUtil::RestoreSelfTokenID();
     imc_->Close();
 }

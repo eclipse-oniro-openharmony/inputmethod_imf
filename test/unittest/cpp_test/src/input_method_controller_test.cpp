@@ -61,7 +61,7 @@ namespace MiscServices {
 constexpr uint32_t RETRY_TIME = 200 * 1000;
 constexpr uint32_t RETRY_TIMES = 5;
 constexpr uint32_t WAIT_INTERVAL = 500;
-
+constexpr size_t PRIVATE_COMMAND_SIZE_MAX = 32 * 1024;
 class SelectListenerMock : public ControllerListener {
 public:
     SelectListenerMock() = default;
@@ -1268,6 +1268,36 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_007, TestSize.Level0)
     privateCommand.emplace("value1", privateDataValue1);
     ret = inputMethodController_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
+    inputMethodController_->Close();
+}
+
+/**
+ * @tc.name: testSendPrivateCommand_008
+ * @tc.desc: IMA SendPrivateCommand total size is 32KB, 32KB - 1, 32KB + 1.
+ * @tc.type: IMC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
+HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_008, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testSendPrivateCommand_008 Test START");
+    auto ret = inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodControllerTest::SetDefaultIme();
+    TextListener::ResetParam();
+    std::unordered_map<std::string, PrivateDataValue> privateCommand1{ { "v",
+        string(PRIVATE_COMMAND_SIZE_MAX - 2, 'a') } };
+    std::unordered_map<std::string, PrivateDataValue> privateCommand2{ { "v",
+        string(PRIVATE_COMMAND_SIZE_MAX - 1, 'a') } };
+    std::unordered_map<std::string, PrivateDataValue> privateCommand3{ { "v",
+        string(PRIVATE_COMMAND_SIZE_MAX, 'a') } };
+    ret = inputMethodController_->SendPrivateCommand(privateCommand1);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodController_->SendPrivateCommand(privateCommand2);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = inputMethodController_->SendPrivateCommand(privateCommand3);
+    EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
+    TddUtil::RestoreSelfTokenID();
     inputMethodController_->Close();
 }
 
