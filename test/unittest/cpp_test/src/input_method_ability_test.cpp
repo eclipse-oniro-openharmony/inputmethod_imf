@@ -1157,9 +1157,10 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_005, TestSize.Level0)
     auto ret = imc_->Attach(textListener_, false);
     TextListener::ResetParam();
     InputMethodAbilityTest::StubSelfAsDefault();
-    string str(32767, 'a');
-    std::unordered_map<std::string, PrivateDataValue> privateCommand1{ { "v", string(PRIVATE_COMMAND_SIZE_MAX - 2, 'a') } };
-    std::unordered_map<std::string, PrivateDataValue> privateCommand2{ { "v", string(PRIVATE_COMMAND_SIZE_MAX - 1, 'a') } };
+    std::unordered_map<std::string, PrivateDataValue> privateCommand1{ { "v",
+        string(PRIVATE_COMMAND_SIZE_MAX - 2, 'a') } };
+    std::unordered_map<std::string, PrivateDataValue> privateCommand2{ { "v",
+        string(PRIVATE_COMMAND_SIZE_MAX - 1, 'a') } };
     std::unordered_map<std::string, PrivateDataValue> privateCommand3{ { "v", string(PRIVATE_COMMAND_SIZE_MAX, 'a') } };
     ret = inputMethodAbility_->SendPrivateCommand(privateCommand1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
