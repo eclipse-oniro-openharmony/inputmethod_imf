@@ -37,8 +37,8 @@ public:
 private:
     ImeEventMonitorManagerImpl();
     ~ImeEventMonitorManagerImpl();
-    std::set<std::shared_ptr<ImeEventListener>> GetListeners(EventType type);
 
+    std::set<std::shared_ptr<ImeEventListener>> GetListeners(EventType type);
     std::mutex lock_;
     std::map<EventType, std::set<std::shared_ptr<ImeEventListener>>> listeners_{};
 };

@@ -32,7 +32,8 @@ public:
     static void ResetParam();
     static bool WaitPanelHide();
     static bool WaitPanelShow();
-    static bool WaitImeChange(const SubProperty &subProperty = {});
+    static bool WaitImeChange(const SubProperty &subProperty);
+    static bool WaitImeChange();
 
 private:
     static InputWindowStatus status_;

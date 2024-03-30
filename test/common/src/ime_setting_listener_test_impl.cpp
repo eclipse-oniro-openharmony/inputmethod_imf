@@ -40,13 +40,17 @@ bool ImeSettingListenerTestImpl::WaitPanelShow()
     imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return status_ == InputWindowStatus::SHOW; });
     return status_ == InputWindowStatus::SHOW;
 }
+
+bool ImeSettingListenerTestImpl::WaitImeChange()
+{
+    std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return isImeChange_; });
+    return isImeChange_;
+}
+
 bool ImeSettingListenerTestImpl::WaitImeChange(const SubProperty &subProperty)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    if (subProperty.name.empty()) {
-        imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1), [&subProperty]() { return isImeChange_; });
-        return isImeChange_;
-    }
     imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1),
         [&subProperty]() { return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name; });
     return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name;

@@ -86,10 +86,6 @@ int32_t ImeEventMonitorManagerImpl::UnRegisterImeEventListener(
 int32_t ImeEventMonitorManagerImpl::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
     auto listeners = GetListeners(EventType::IME_CHANGE);
-    if (listeners.empty()) {
-        IMSA_HILOGD("not has IME_CHANGE listeners");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
     for (const auto &listener : listeners) {
         listener->OnImeChange(property, subProperty);
     }
@@ -98,16 +94,8 @@ int32_t ImeEventMonitorManagerImpl::OnImeChange(const Property &property, const 
 
 int32_t ImeEventMonitorManagerImpl::OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
-    if (status != InputWindowStatus::HIDE && status != InputWindowStatus::SHOW) {
-        IMSA_HILOGE("status:%{public}d is invalid", status);
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
     auto type = status == InputWindowStatus::HIDE ? EventType::IME_HIDE : EventType::IME_SHOW;
     auto listeners = GetListeners(type);
-    if (listeners.empty()) {
-        IMSA_HILOGD("not has %{public}d listeners", type);
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
     for (const auto &listener : listeners) {
         if (type == EventType::IME_HIDE) {
             listener->OnImeHide(info);

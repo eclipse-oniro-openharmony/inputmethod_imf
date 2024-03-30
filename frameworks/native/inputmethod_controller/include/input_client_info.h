@@ -26,7 +26,7 @@ namespace MiscServices {
 enum class UpdateFlag : uint32_t { EVENTFLAG = 0, ISSHOWKEYBOARD, BINDIMETYPE, STATE, TEXT_CONFIG };
 enum class ImeType : int32_t { IME = 0, PROXY_IME, NONE };
 enum class ClientState : uint32_t { INACTIVE = 0, ACTIVE };
-const uint32_t NO_EVENT_ON = 0;
+constexpr uint32_t NO_EVENT_ON = 0;
 struct InputClientInfo {
     pid_t pid{ -1 };                                       // process id
     pid_t uid{ -1 };                                       // uid

@@ -88,8 +88,11 @@ int32_t InputMethodController::RestoreListenEventFlag()
 int32_t InputMethodController::UpdateListenEventFlag(EventType eventType, bool isOn)
 {
     auto oldEventFlag = clientInfo_.eventFlag;
-    uint32_t currentEvent = isOn ? 1u << eventType : ~(1u << eventType);
-    clientInfo_.eventFlag = isOn ? clientInfo_.eventFlag | currentEvent : clientInfo_.eventFlag & currentEvent;
+    if (isOn) {
+        clientInfo_.eventFlag |= (1u << eventType);
+    } else {
+        clientInfo_.eventFlag &= (~(1u << eventType));
+    }
     if (oldEventFlag == clientInfo_.eventFlag) {
         return ErrorCode::NO_ERROR;
     }

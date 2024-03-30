@@ -198,16 +198,6 @@ public:
      * @since 6
      */
     IMF_API int32_t OnConfigurationChange(Configuration info);
-
-    /**
-     * @brief Set ImeEventListener listener.
-     *
-     * This function is used to set ImeEventListener  listener to facilitate listening input method changes.
-     *
-     * @param listener Indicates the listener to be set.
-     * @since 6
-     */
-    IMF_API int32_t UpdateListenEventFlag(EventType eventType, bool isOn);
     IMF_API void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
 
     /**
@@ -694,6 +684,7 @@ public:
      * @since 11
      */
     IMF_API int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
+    int32_t UpdateListenEventFlag(EventType eventType, bool isOn);
 
 private:
     InputMethodController();
