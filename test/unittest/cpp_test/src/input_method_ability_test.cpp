@@ -94,7 +94,23 @@ public:
             security_ = security;
             IMSA_HILOGI("InputMethodEngineListenerImpl OnSecurityChange");
         }
+
+        void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+        {
+            IMSA_HILOGI("InputMethodEngineListenerImpl ReceivePrivateCommand");
+        }
     };
+
+    static void StubSelfAsDefault()
+    {
+        std::shared_ptr<Property> property = std::make_shared<Property>();
+        auto ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
+        std::string bundleName = ret == ErrorCode::NO_ERROR ? property->name : "default.inputmethod.unittest";
+        TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
+        inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->SetCoreAndAgent();
+    }
+
     static void SetUpTestCase(void)
     {
         // Set the tokenID to the tokenID of the current ime
@@ -1031,6 +1047,73 @@ HWTEST_F(InputMethodAbilityTest, testOnSecurityChange, TestSize.Level0)
     auto ret = inputMethodAbility_->OnSecurityChange(security);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodAbilityTest::security_, security);
+}
+
+/**
+ * @tc.name: testSendPrivateCommand_001
+ * @tc.desc: IMA SendPrivateCommand current is not default ime.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
+HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_001 Test START");
+    TextListener::ResetParam();
+    TddUtil::RestoreSelfTokenID();
+    imc_->Close();
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_NOT_DEFAULT_IME);
+}
+
+/**
+ * @tc.name: testSendPrivateCommand_002
+ * @tc.desc: IMA SendPrivateCommand current data specification, default ime, not bound.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
+HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_002 Test START");
+    TextListener::ResetParam();
+    TddUtil::RestoreSelfTokenID();
+    InputMethodAbilityTest::StubSelfAsDefault();
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue1 = std::string("stringValue");
+    privateCommand.insert({ "value1", privateDataValue1 });
+    auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
+ * @tc.name: testSendPrivateCommand_003
+ * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: mashaoyin
+ */
+HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_003 Test START");
+    TextListener::ResetParam();
+    TddUtil::RestoreSelfTokenID();
+    auto ret = imc_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodAbilityTest::StubSelfAsDefault();
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateDataValue privateDataValue1 = std::string("stringValue");
+    PrivateDataValue privateDataValue2 = true;
+    PrivateDataValue privateDataValue3 = 100;
+    privateCommand.emplace("value1", privateDataValue1);
+    privateCommand.emplace("value2", privateDataValue2);
+    privateCommand.emplace("value3", privateDataValue3);
+    ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(TextListener::WaitSendPrivateCommandCallback(privateCommand));
+    TddUtil::RestoreSelfTokenID();
+    imc_->Close();
 }
 } // namespace MiscServices
 } // namespace OHOS

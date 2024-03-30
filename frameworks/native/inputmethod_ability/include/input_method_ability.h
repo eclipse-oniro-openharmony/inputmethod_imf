@@ -37,12 +37,13 @@
 #include "keyevent_consumer_proxy.h"
 #include "message.h"
 #include "message_handler.h"
+#include "private_command_interface.h"
 #include "unRegistered_type.h"
 
 namespace OHOS {
 namespace MiscServices {
 class MessageHandler;
-class InputMethodAbility : public RefBase {
+class InputMethodAbility : public RefBase, public PrivateCommandInterface {
 public:
     InputMethodAbility();
     ~InputMethodAbility();
@@ -85,6 +86,9 @@ public:
     int32_t OnSecurityChange(int32_t security);
     void OnClientInactive(const sptr<IRemoteObject> &channel);
     void NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel);
+    int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    bool IsDefaultIme();
 
 private:
     std::thread workThreadHandler;
@@ -145,6 +149,9 @@ private:
     double height_ = 0;
 
     bool isPendingShowKeyboard_ = false;
+
+    std::mutex defaultImeCheckMutex_;
+    bool isDefaultIme_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

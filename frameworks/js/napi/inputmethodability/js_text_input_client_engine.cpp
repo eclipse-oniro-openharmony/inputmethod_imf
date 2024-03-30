@@ -29,7 +29,9 @@ using namespace std::chrono;
 thread_local napi_ref JsTextInputClientEngine::TICRef_ = nullptr;
 const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";
 constexpr int32_t MAX_WAIT_TIME = 5000;
+constexpr int32_t MAX_WAIT_TIME_PRIVATE_COMMAND = 2000;
 BlockQueue<EditorEventInfo> JsTextInputClientEngine::editorQueue_{ MAX_WAIT_TIME };
+BlockQueue<PrivateCommandInfo> JsTextInputClientEngine::privateCommandQueue_{ MAX_WAIT_TIME_PRIVATE_COMMAND };
 napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
 {
     IMSA_HILOGD("JsTextInputClientEngine init");
@@ -55,8 +57,8 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("deleteForwardSync", DeleteForwardSync),
         DECLARE_NAPI_FUNCTION("deleteBackwardSync", DeleteBackwardSync),
         DECLARE_NAPI_FUNCTION("getForwardSync", GetForwardSync),
-        DECLARE_NAPI_FUNCTION("getBackwardSync", GetBackwardSync)
-    };
+        DECLARE_NAPI_FUNCTION("getBackwardSync", GetBackwardSync),
+        DECLARE_NAPI_FUNCTION("sendPrivateCommand", SendPrivateCommand) };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(), JsConstructor, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &cons));
@@ -244,6 +246,39 @@ napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_
     // 2 means JsAPI:sendKeyFunction has 2 params at most.
     AsyncCall asyncCall(env, info, ctxt, 2);
     return asyncCall.Call(env, exec, "sendKeyFunction");
+}
+
+napi_value JsTextInputClientEngine::SendPrivateCommand(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<SendPrivateCommandContext>();
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameter!", TYPE_NONE, napi_generic_failure);
+        napi_status status = JsUtils::GetValue(env, argv[0], ctxt->privateCommand);
+        CHECK_RETURN(status == napi_ok, "GetValue privateCommand error", status);
+        if (!TextConfig::IsPrivateCommandValid(ctxt->privateCommand)) {
+            PARAM_CHECK_RETURN(
+                env, false, "privateCommand size limit 32KB, count limit 5.", TYPE_NONE, napi_generic_failure);
+        }
+        ctxt->info = { std::chrono::system_clock::now(), ctxt->privateCommand };
+        privateCommandQueue_.Push(ctxt->info);
+        return status;
+    };
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        privateCommandQueue_.Wait(ctxt->info);
+        int32_t code = InputMethodAbility::GetInstance()->SendPrivateCommand(ctxt->privateCommand);
+        privateCommandQueue_.Pop();
+        if (code == ErrorCode::NO_ERROR) {
+            ctxt->status = napi_ok;
+            ctxt->SetState(ctxt->status);
+        } else {
+            ctxt->SetErrorCode(code);
+        }
+    };
+    ctxt->SetAction(std::move(input), std::move(output));
+    // 1 means JsAPI:SendPrivateCommand has 1 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 1);
+    return asyncCall.Call(env, exec, "SendPrivateCommand");
 }
 
 napi_value JsTextInputClientEngine::DeleteForwardSync(napi_env env, napi_callback_info info)

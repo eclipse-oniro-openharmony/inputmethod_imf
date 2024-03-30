@@ -72,6 +72,7 @@ public:
     virtual int32_t ExitCurrentInputType() = 0;
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
     virtual int32_t GetSecurityMode(int32_t &security) = 0;
+    virtual int32_t IsDefaultIme() = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;

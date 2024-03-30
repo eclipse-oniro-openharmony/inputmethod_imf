@@ -497,18 +497,33 @@ int32_t InputMethodSystemAbility::StartInputType(InputType type)
 
 int32_t InputMethodSystemAbility::ExitCurrentInputType()
 {
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId_);
-    if (defaultIme == nullptr) {
-        IMSA_HILOGE("failed to get default ime");
-        return ErrorCode::ERROR_PERSIST_CONFIG;
-    }
-    if (!identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), defaultIme->prop.name)) {
-        return ErrorCode::ERROR_NOT_DEFAULT_IME;
+    auto ret = IsDefaultImeFromTokenId(IPCSkeleton::GetCallingTokenID());
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("Not default ime.");
+        return ret;
     }
     if (userSession_->CheckSecurityMode()) {
         return StartInputType(InputType::SECURITY_INPUT);
     }
     return userSession_->ExitCurrentInputType();
+}
+
+int32_t InputMethodSystemAbility::IsDefaultIme()
+{
+    return IsDefaultImeFromTokenId(IPCSkeleton::GetCallingTokenID());
+}
+
+int32_t InputMethodSystemAbility::IsDefaultImeFromTokenId(uint32_t tokenId)
+{
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeInfo(userId_);
+    if (defaultIme == nullptr) {
+        IMSA_HILOGE("failed to get default ime");
+        return ErrorCode::ERROR_PERSIST_CONFIG;
+    }
+    if (!identityChecker_->IsBundleNameValid(tokenId, defaultIme->prop.name)) {
+        return ErrorCode::ERROR_NOT_DEFAULT_IME;
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::IsPanelShown(const PanelInfo &panelInfo, bool &isShown)

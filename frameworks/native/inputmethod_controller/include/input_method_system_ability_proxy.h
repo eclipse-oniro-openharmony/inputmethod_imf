@@ -72,6 +72,7 @@ public:
     int32_t ExitCurrentInputType() override;
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     int32_t GetSecurityMode(int32_t &security) override;
+    int32_t IsDefaultIme() override;
 
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;

@@ -106,11 +106,14 @@ public:
     static napi_status GetValue(napi_env env, napi_value in, bool &out);
     static napi_status GetValue(napi_env env, napi_value in, double &out);
     static napi_status GetValue(napi_env env, napi_value in, std::string &out);
+    static napi_status GetValue(napi_env env, napi_value in, std::unordered_map<std::string, PrivateDataValue> &out);
+    static napi_status GetValue(napi_env env, napi_value in, PrivateDataValue &out);
     static napi_status GetValue(napi_env env, napi_value in, const std::string &type, napi_value &out);
     static napi_status GetValue(napi_env env, napi_value in, PanelInfo &out);
     static napi_value GetValue(napi_env env, const std::vector<InputWindowInfo> &in);
     static napi_value GetValue(napi_env env, const InputWindowInfo &in);
     static napi_value GetValue(napi_env env, const InputAttribute &attribute);
+    static napi_value GetJsPrivateCommand(napi_env env, const std::unordered_map<std::string, PrivateDataValue> &in);
     static napi_status GetValue(napi_env env, const std::string &in, napi_value &out);
 
 private:

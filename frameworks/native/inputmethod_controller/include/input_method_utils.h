@@ -18,6 +18,9 @@
 
 #include <stdint.h>
 
+#include <variant>
+
+#include "global.h"
 #include "input_attribute.h"
 #include "panel_info.h"
 
@@ -26,6 +29,8 @@ namespace MiscServices {
 constexpr uint32_t INIT_WINDOW_ID = 0;
 constexpr uint32_t INVALID_WINDOW_ID = INIT_WINDOW_ID - 1;
 constexpr int32_t INVALID_VALUE = -1;
+constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32 * 1024; // 32K
+constexpr size_t MAX_PRIVATE_COMMAND_COUNT = 5;
 enum class EnterKeyType {
     UNSPECIFIED = 0,
     NONE,
@@ -157,7 +162,10 @@ struct TextSelection {
     int32_t newEnd = INVALID_VALUE;
 };
 
-class TextTotalConfig {
+enum PrivateDataValueType : int32_t { VALUE_TYPE_STRING = 0, VALUE_TYPE_BOOL, VALUE_TYPE_NUMBER };
+using PrivateDataValue = std::variant<std::string, bool, int32_t>;
+
+struct TextTotalConfig {
 public:
     InputAttribute inputAttribute = {};
     CursorInfo cursorInfo = {};
@@ -165,8 +173,8 @@ public:
     uint32_t windowId = INVALID_WINDOW_ID;
     double positionY = 0;
     double height = 0;
+    std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
 };
-
 struct TextConfig {
     InputAttribute inputAttribute = {};
     CursorInfo cursorInfo = {};
@@ -174,6 +182,41 @@ struct TextConfig {
     uint32_t windowId = INVALID_WINDOW_ID;
     double positionY = 0;
     double height = 0;
+    std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
+
+    static bool IsPrivateCommandValid(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+    {
+        size_t privateCommandSize = privateCommand.size();
+        if (privateCommandSize == 0 || privateCommandSize > MAX_PRIVATE_COMMAND_COUNT) {
+            IMSA_HILOGE("privateCommand size must more than 0 and less than 5.");
+            return false;
+        }
+        size_t totalSize = 0;
+        for (const auto &iter : privateCommand) {
+            size_t keySize = iter.first.size();
+            size_t idx = iter.second.index();
+            size_t valueSize = 0;
+
+            if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
+                auto stringValue = std::get_if<std::string>(&iter.second);
+                if (stringValue == nullptr) {
+                    IMSA_HILOGE("get stringValue failed.");
+                    return false;
+                }
+                valueSize = (*stringValue).size();
+            } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
+                valueSize = sizeof(bool);
+            } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
+                valueSize = sizeof(int32_t);
+            }
+            totalSize = totalSize + keySize + valueSize;
+        }
+        if (totalSize > MAX_PRIVATE_COMMAND_SIZE) {
+            IMSA_HILOGE("totalSize : %{public}zu", totalSize);
+            return false;
+        }
+        return true;
+    }
 };
 
 enum class InputType : int32_t { NONE = -1, CAMERA_INPUT = 0, SECURITY_INPUT, END };

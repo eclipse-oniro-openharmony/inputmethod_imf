@@ -73,6 +73,17 @@ void InputMethodAgentProxy::OnConfigurationChange(const Configuration &config)
     IMSA_HILOGD("InputMethodAgentProxy, ret = %{public}d", ret);
 }
 
+int32_t InputMethodAgentProxy::SendPrivateCommand(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    int32_t res = -1;
+    int32_t ret = SendRequest(
+        SEND_PRIVATE_COMMAND,
+        [&privateCommand](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, privateCommand); },
+        [&res](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, res); });
+    return ret == ErrorCode::NO_ERROR ? res : ret;
+}
+
 int32_t InputMethodAgentProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
     IMSA_HILOGD("InputMethodAgentProxy run in, code = %{public}d", code);

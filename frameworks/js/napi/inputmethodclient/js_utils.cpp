@@ -55,6 +55,8 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_NOT_DEFAULT_IME, EXCEPTION_DEFAULTIME },
     { ErrorCode::ERROR_ENABLE_IME, EXCEPTION_IMMS },
     { ErrorCode::ERROR_NOT_CURRENT_IME, EXCEPTION_IMMS },
+    { ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE, EXCEPTION_PARAMCHECK },
+    { ErrorCode::ERROR_TEXT_LISTENER_ERROR, EXCEPTION_IMCLIENT },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -245,6 +247,72 @@ napi_status JsUtils::GetValue(napi_env env, napi_value in, std::string &out)
     return status;
 }
 
+/* napi_value <-> std::unordered_map<string, string> */
+napi_status JsUtils::GetValue(napi_env env, napi_value in, std::unordered_map<std::string, PrivateDataValue> &out)
+{
+    napi_valuetype type = napi_undefined;
+    napi_status status = napi_typeof(env, in, &type);
+    PARAM_CHECK_RETURN(env, type != napi_undefined, "param is undefined.", TYPE_NONE, napi_generic_failure);
+
+    napi_value keys = nullptr;
+    napi_get_property_names(env, in, &keys);
+    uint32_t arrLen = 0;
+    status = napi_get_array_length(env, keys, &arrLen);
+    if (status != napi_ok) {
+        IMSA_HILOGE("napi_get_array_length error");
+        return status;
+    }
+    // 5 means max private command count.
+    PARAM_CHECK_RETURN(env, arrLen <= 5 && arrLen > 0, "privateCommand must more than 0 and less than 5.", TYPE_NONE,
+        napi_generic_failure);
+    IMSA_HILOGD("length : %{public}u", arrLen);
+    for (size_t iter = 0; iter < arrLen; ++iter) {
+        napi_value key = nullptr;
+        status = napi_get_element(env, keys, iter, &key);
+        CHECK_RETURN(status == napi_ok, "napi_get_element error", status);
+
+        napi_value value = nullptr;
+        status = napi_get_property(env, in, key, &value);
+        CHECK_RETURN(status == napi_ok, "napi_get_property error", status);
+
+        std::string keyStr;
+        status = GetValue(env, key, keyStr);
+        CHECK_RETURN(status == napi_ok, "GetValue keyStr error", status);
+
+        PrivateDataValue privateCommand;
+        status = GetValue(env, value, privateCommand);
+        CHECK_RETURN(status == napi_ok, "GetValue privateCommand error", status);
+        out.emplace(keyStr, privateCommand);
+    }
+    return status;
+}
+
+napi_status JsUtils::GetValue(napi_env env, napi_value in, PrivateDataValue &out)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_status status = napi_typeof(env, in, &valueType);
+    CHECK_RETURN(status == napi_ok, "napi_typeof error", napi_generic_failure);
+    if (valueType == napi_string) {
+        std::string privateDataStr;
+        status = GetValue(env, in, privateDataStr);
+        CHECK_RETURN(status == napi_ok, "GetValue napi_string error", napi_generic_failure);
+        out.emplace<std::string>(privateDataStr);
+    } else if (valueType == napi_boolean) {
+        bool privateDataBool = false;
+        status = GetValue(env, in, privateDataBool);
+        CHECK_RETURN(status == napi_ok, "GetValue napi_boolean error", napi_generic_failure);
+        out.emplace<bool>(privateDataBool);
+    } else if (valueType == napi_number) {
+        int32_t privateDataInt = 0;
+        status = GetValue(env, in, privateDataInt);
+        CHECK_RETURN(status == napi_ok, "GetValue napi_number error", napi_generic_failure);
+        out.emplace<int32_t>(privateDataInt);
+    } else {
+        PARAM_CHECK_RETURN(env, false, "value type must be string | boolean | number", TYPE_NONE, napi_generic_failure);
+    }
+    return status;
+}
+
 napi_status JsUtils::GetValue(napi_env env, napi_value in, const std::string &type, napi_value &out)
 {
     napi_valuetype valueType = napi_undefined;
@@ -338,6 +406,34 @@ napi_value JsUtils::GetValue(napi_env env, const InputAttribute &attribute)
 napi_status JsUtils::GetValue(napi_env env, const std::string &in, napi_value &out)
 {
     return napi_create_string_utf8(env, in.c_str(), in.size(), &out);
+}
+
+napi_value JsUtils::GetJsPrivateCommand(napi_env env, const std::unordered_map<std::string, PrivateDataValue> &in)
+{
+    napi_value jsPrivateCommand = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &jsPrivateCommand));
+    for (const auto &iter : in) {
+        size_t idx = iter.second.index();
+        napi_value value = nullptr;
+        if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
+            auto stringValue = std::get_if<std::string>(&iter.second);
+            if (stringValue != nullptr) {
+                NAPI_CALL(env, napi_create_string_utf8(env, (*stringValue).c_str(), (*stringValue).size(), &value));
+            }
+        } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
+            auto boolValue = std::get_if<bool>(&iter.second);
+            if (boolValue != nullptr) {
+                NAPI_CALL(env, napi_get_boolean(env, *boolValue, &value));
+            }
+        } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
+            auto numberValue = std::get_if<int32_t>(&iter.second);
+            if (numberValue != nullptr) {
+                NAPI_CALL(env, napi_create_int32(env, *numberValue, &value));
+            }
+        }
+        NAPI_CALL(env, napi_set_named_property(env, jsPrivateCommand, iter.first.c_str(), value));
+    }
+    return jsPrivateCommand;
 }
 } // namespace MiscServices
 } // namespace OHOS

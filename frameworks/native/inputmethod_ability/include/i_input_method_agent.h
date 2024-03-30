@@ -35,6 +35,7 @@ public:
         ON_CURSOR_UPDATE,
         ON_SELECTION_CHANGE,
         SET_CALLING_WINDOW_ID,
+        SEND_PRIVATE_COMMAND,
         ON_CONFIGURATION_CHANGE,
     };
 
@@ -47,6 +48,7 @@ public:
         std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) = 0;
     virtual void SetCallingWindow(uint32_t windowId) = 0;
     virtual void OnConfigurationChange(const Configuration &config) = 0;
+    virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

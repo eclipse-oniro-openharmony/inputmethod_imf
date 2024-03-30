@@ -38,9 +38,11 @@ public:
     void SetCallingWindow(uint32_t windowId) override;
     void OnConfigurationChange(const Configuration &config) override;
     void SetMessageHandler(MessageHandler *msgHandler);
+    int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
 private:
     int32_t DispatchKeyEventOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply);
     MessageHandler *msgHandler_;
 };
 } // namespace MiscServices

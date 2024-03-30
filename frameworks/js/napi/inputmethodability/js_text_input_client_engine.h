@@ -15,11 +15,13 @@
 #ifndef INTERFACE_KITS_JS_NAPI_INPUTMETHODENGINE_INCLUDE_JS_TEXT_INPUT_CLIENT_H
 #define INTERFACE_KITS_JS_NAPI_INPUTMETHODENGINE_INCLUDE_JS_TEXT_INPUT_CLIENT_H
 
+#include <unordered_map>
+
 #include "async_call.h"
+#include "block_queue.h"
 #include "global.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
-#include "block_queue.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -44,6 +46,16 @@ struct EditorEventInfo {
         return (timestamp == info.timestamp && event == info.event);
     }
 };
+
+struct PrivateCommandInfo {
+    std::chrono::system_clock::time_point timestamp{};
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    bool operator==(const PrivateCommandInfo &info) const
+    {
+        return (timestamp == info.timestamp && privateCommand == info.privateCommand);
+    }
+};
+
 struct SendKeyFunctionContext : public AsyncCall::Context {
     bool isSendKeyFunction = false;
     int32_t action = 0;
@@ -293,6 +305,28 @@ struct SendExtendActionContext : public AsyncCall::Context {
     }
 };
 
+struct SendPrivateCommandContext : public AsyncCall::Context {
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    PrivateCommandInfo info;
+    napi_status status = napi_generic_failure;
+    SendPrivateCommandContext() : Context(nullptr, nullptr){};
+
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status != napi_ok) {
+            output_ = nullptr;
+            return status;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
 class JsTextInputClientEngine {
 public:
     JsTextInputClientEngine() = default;
@@ -321,6 +355,7 @@ public:
     static napi_value DeleteBackwardSync(napi_env env, napi_callback_info info);
     static napi_value GetForwardSync(napi_env env, napi_callback_info info);
     static napi_value GetBackwardSync(napi_env env, napi_callback_info info);
+    static napi_value SendPrivateCommand(napi_env env, napi_callback_info info);
 
 private:
     static napi_status GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
@@ -336,6 +371,7 @@ private:
     static thread_local napi_ref TICRef_;
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
     static BlockQueue<EditorEventInfo> editorQueue_;
+    static BlockQueue<PrivateCommandInfo> privateCommandQueue_;
 };
 } // namespace MiscServices
 } // namespace OHOS
