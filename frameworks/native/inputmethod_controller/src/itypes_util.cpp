@@ -271,8 +271,8 @@ bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const ImeWindowInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, static_cast<int32_t>(input.panelInfo.panelFlag),
-            static_cast<int32_t>(input.panelInfo.panelType), input.windowInfo.name, input.windowInfo.top,
-            input.windowInfo.left, input.windowInfo.width, input.windowInfo.height)) {
+                 static_cast<int32_t>(input.panelInfo.panelType), input.windowInfo.name, input.windowInfo.top,
+                 input.windowInfo.left, input.windowInfo.width, input.windowInfo.height)) {
         IMSA_HILOGE("write InputWindowInfo to message parcel failed");
         return false;
     }
@@ -285,7 +285,7 @@ bool ITypesUtil::Unmarshalling(ImeWindowInfo &output, MessageParcel &data)
     int32_t panelType = 0;
     InputWindowInfo windowInfo;
     if (!Unmarshal(data, panelFlag, panelType, windowInfo.name, windowInfo.top, windowInfo.left, windowInfo.width,
-            windowInfo.height)) {
+                   windowInfo.height)) {
         IMSA_HILOGE("read InputWindowInfo from message parcel failed");
         return false;
     }

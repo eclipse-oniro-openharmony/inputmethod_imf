@@ -38,7 +38,7 @@ public:
     /**
      * @brief Register Ime Event Listener.
      *
-     * This function is used to Register Ime Event Listener, register IME_SHOW and IME_HIDE only supported at present
+     * This function is used to Register Ime Event Listener, only IME_SHOW and IME_HIDE supported at present
      *
      * @param types Indicates the event type.
      * @param listener Indicates the the listener to be registered.
@@ -51,7 +51,7 @@ public:
     /**
      * @brief UnRegister Ime Event Listener.
      *
-     * This function is used to UnRegister Ime Event Listener, unregister IME_SHOW and IME_HIDE only supported at present
+     * This function is used to UnRegister Ime Event Listener, only IME_SHOW and IME_HIDE supported at present
      *
      * @param types Indicates the event type.
      * @param listener Indicates the the listener to be unregistered.
@@ -62,8 +62,8 @@ public:
         const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
 
 private:
-    const uint32_t EVENT_NUM = 2;
-    const std::set<EventType> EVENT_TYPE{ IME_SHOW, IME_HIDE };
+    static constexpr uint32_t EVENT_NUM = 2;
+    static const std::set<EventType> EVENT_TYPE;
     ImeEventMonitorManager();
     ~ImeEventMonitorManager();
     bool IsParamValid(const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);

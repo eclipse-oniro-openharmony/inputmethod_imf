@@ -232,7 +232,7 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_010, TestSize.
 
 /**
 * @tc.name: testRegisterImeEventListener_011
-* @tc.desc: one listener register two same event
+* @tc.desc: one listener register three same event
 * @tc.type: FUNC
 */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_011, TestSize.Level0)
@@ -240,7 +240,7 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_011, TestSize.
     IMSA_HILOGI("testRegisterImeEventListener_011 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-        { EventType::IME_SHOW, EventType::IME_SHOW }, listener);
+        { EventType::IME_SHOW, EventType::IME_SHOW, EventType::IME_SHOW }, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 2);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);

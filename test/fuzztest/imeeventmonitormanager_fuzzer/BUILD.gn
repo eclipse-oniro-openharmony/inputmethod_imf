@@ -23,11 +23,9 @@ ohos_fuzztest("ImeEventMonitorManagerFuzzTest") {
   module_out_path = "imf/imf"
 
   fuzz_config_file =
-      "//base/inputmethod/imf/test/fuzztest/imeeventmonitormanager_fuzzer"
+      "${inputmethod_path}/test/fuzztest/imeeventmonitormanager_fuzzer"
 
-  include_dirs = [
-    "${inputmethod_path}/test/common",
-  ]
+  include_dirs = [ "${inputmethod_path}/test/common" ]
 
   cflags = [
     "-g",
