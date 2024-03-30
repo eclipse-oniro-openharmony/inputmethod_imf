@@ -22,6 +22,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+const std::set<EventType> ImeEventMonitorManager::EVENT_TYPE{ IME_SHOW, IME_HIDE };
 ImeEventMonitorManager::ImeEventMonitorManager()
 {
 }
@@ -70,7 +71,7 @@ bool ImeEventMonitorManager::IsParamValid(
         return false;
     }
     auto it = std::find_if(
-        types.begin(), types.end(), [this](EventType type) { return EVENT_TYPE.find(type) == EVENT_TYPE.end(); });
+        types.begin(), types.end(), [](EventType type) { return EVENT_TYPE.find(type) == EVENT_TYPE.end(); });
     return it == types.end();
 }
 } // namespace MiscServices
