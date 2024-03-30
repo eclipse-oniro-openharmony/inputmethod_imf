@@ -121,7 +121,10 @@ private:
     int32_t SwitchInputType(const SwitchInfo &switchInfo);
     ServiceRunningState state_;
     void InitServiceHandler();
-    void SetCurrentUserId();
+    int32_t GetCurrentUserIdFromOsAccount();
+    void HandleUserChanged(int32_t userId);
+    int32_t StartImeWhenWmsReady();
+    void HandleWmsReady(int32_t userId);
     int32_t InitAccountMonitor();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
@@ -150,6 +153,9 @@ private:
     void DatashareCallback(const std::string &key);
     bool enableImeOn_ = false;
     bool enableSecurityMode_ = false;
+
+    bool isScbEnable_ = false;
+    std::atomic<bool> imeStarting_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

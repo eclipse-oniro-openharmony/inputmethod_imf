@@ -40,7 +40,7 @@ public:
     static bool GetValue(cJSON *node, const std::string &name, bool &value);
     static bool GetValue(cJSON *node, const std::string &name, Serializable &value);
     template<typename T>
-    static bool GetValue(cJSON *node, const std::string &name, std::vector<T> &values, uint32_t maxNum = 0)
+    static bool GetValue(cJSON *node, const std::string &name, std::vector<T> &values, int32_t maxNum = 0)
     {
         auto subNode = GetSubNode(node, name);
         if (!cJSON_IsArray(subNode)) {

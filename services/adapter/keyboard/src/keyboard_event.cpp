@@ -38,7 +38,13 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
     std::shared_ptr<InputEventCallback> callback = std::make_shared<InputEventCallback>();
     callback->SetKeyHandle(handle);
     int32_t monitorId =
-        InputManager::GetInstance()->AddMonitor(std::static_pointer_cast<MMI::IInputEventConsumer>(callback));
+        InputManager::GetInstance()->AddMonitor([callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
+            if (callback == nullptr) {
+                IMSA_HILOGE("callback is nullptr.");
+                return;
+            }
+            callback->OnInputEvent(keyEvent);
+    });
     if (monitorId < 0) {
         IMSA_HILOGE("add monitor failed, id: %{public}d", monitorId);
         return ErrorCode::ERROR_SUBSCRIBE_KEYBOARD_EVENT;
@@ -48,6 +54,7 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
     CombinationKeyCallBack combinationKeyCallBack = [callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
         if (callback == nullptr) {
             IMSA_HILOGE("callback is nullptr.");
+            return;
         }
         callback->TriggerSwitch();
     };

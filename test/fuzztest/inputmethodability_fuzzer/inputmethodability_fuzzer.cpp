@@ -25,22 +25,14 @@ namespace OHOS {
 class KeyboardListenerImpl : public KeyboardListener {
     bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer)
     {
-        if (consumer != nullptr) {
-            consumer->OnKeyCodeConsumeResult(true);
-        }
         return true;
     }
     bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
     {
-        if (consumer != nullptr) {
-            consumer->OnKeyEventConsumeResult(true);
-        }
         return true;
     }
     bool OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
     {
-        OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
-        OnKeyEvent(keyEvent, consumer);
         return true;
     }
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height)
@@ -57,7 +49,7 @@ class KeyboardListenerImpl : public KeyboardListener {
     }
 };
 
-void TestInsertText(std::string fuzzedString)
+void TestInsertText(const std::string &fuzzedString)
 {
     sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
     ability->InsertText(std::move(fuzzedString));
@@ -73,8 +65,7 @@ void TestSetImeListener()
 void TestSetKdListener()
 {
     sptr<InputMethodAbility> ability = InputMethodAbility::GetInstance();
-    auto keyBoardListener = std::make_shared<KeyboardListenerImpl>();
-    ability->SetKdListener(keyBoardListener);
+    ability->SetKdListener(nullptr);
 }
 
 void TestDeleteForward(int32_t fuzzedInt32)

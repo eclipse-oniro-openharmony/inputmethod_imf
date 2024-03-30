@@ -100,8 +100,8 @@ int32_t InputMethodAgentProxy::SendRequest(int code, ParcelHandler input, Parcel
     }
     auto remote = Remote();
     if (remote == nullptr) {
-        IMSA_HILOGE("InputMethodAgentProxy::SendRequest remote is nullptr.");
-        return ERROR_EX_NULL_POINTER;
+        IMSA_HILOGE("InputMethodAgentProxy remote is nullptr");
+        return ErrorCode::ERROR_EX_NULL_POINTER;
     }
     auto ret = remote->SendRequest(code, data, reply, option);
     if (ret != NO_ERROR) {
