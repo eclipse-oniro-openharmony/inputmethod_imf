@@ -445,10 +445,10 @@ int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &sta
     return userSession_->OnPanelStatusChange(status, info);
 }
 
-int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)
+int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag)
 {
-    IMSA_HILOGI("eventType: %{public}u, eventFlag: %{public}u", eventType, clientInfo.eventFlag);
-    if (eventType == IME_SHOW || eventType == IME_HIDE) {
+    IMSA_HILOGI("finalEventFlag: %{public}u, eventFlag: %{public}u", clientInfo.eventFlag, eventFlag);
+    if (EventStatusManager::IsImeHideOn(eventFlag) || EventStatusManager::IsImeShowOn(eventFlag)) {
         if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())
             && !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
             IMSA_HILOGE("not system application");

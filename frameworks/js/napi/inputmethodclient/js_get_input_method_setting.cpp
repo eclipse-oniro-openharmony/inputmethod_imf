@@ -37,8 +37,8 @@ constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_MAX = 6;
 thread_local napi_ref JsGetInputMethodSetting::IMSRef_ = nullptr;
 const std::string JsGetInputMethodSetting::IMS_CLASS_NAME = "InputMethodSetting";
-const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
-    { "imeHide", IME_HIDE } };
+const std::unordered_map<std::string, uint32_t> EVENT_TYPE{ { "imeChange", EVENT_IME_CHANGE_MASK },
+    { "imeShow", EVENT_IME_SHOW_MASK }, { "imeHide", EVENT_IME_HIDE_MASK } };
 std::mutex JsGetInputMethodSetting::msMutex_;
 std::shared_ptr<JsGetInputMethodSetting> JsGetInputMethodSetting::inputMethod_{ nullptr };
 napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
@@ -491,7 +491,7 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     }
     std::shared_ptr<JSCallbackObject> callback =
         std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
-    auto ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener({ iter->second }, inputMethod_);
+    auto ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(iter->second, inputMethod_);
     if (ret == ErrorCode::NO_ERROR) {
         engine->RegisterListener(argv[ARGC_ONE], type, callback);
     } else {
@@ -572,7 +572,7 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
         return nullptr;
     }
     if (isUpdateFlag) {
-        auto ret = ImeEventMonitorManagerImpl::GetInstance().UnRegisterImeEventListener({ iter->second }, inputMethod_);
+        auto ret = ImeEventMonitorManagerImpl::GetInstance().UnRegisterImeEventListener(iter->second, inputMethod_);
         IMSA_HILOGI("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str());
     }
     napi_value result = nullptr;

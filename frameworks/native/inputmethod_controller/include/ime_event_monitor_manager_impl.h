@@ -27,20 +27,20 @@ namespace MiscServices {
 class ImeEventMonitorManagerImpl {
 public:
     static ImeEventMonitorManagerImpl &GetInstance();
-    int32_t RegisterImeEventListener(
-        const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
-    int32_t UnRegisterImeEventListener(
-        const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener);
+    int32_t RegisterImeEventListener(uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener);
+    int32_t UnRegisterImeEventListener(uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener);
     int32_t OnImeChange(const Property &property, const SubProperty &subProperty);
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
 
 private:
     ImeEventMonitorManagerImpl();
     ~ImeEventMonitorManagerImpl();
-
-    std::set<std::shared_ptr<ImeEventListener>> GetListeners(EventType type);
+    static constexpr uint32_t MAX_EVENT_NUM = 3;
+    int32_t OnImeShow(const ImeWindowInfo &info);
+    int32_t OnImeHide(const ImeWindowInfo &info);
+    std::set<std::shared_ptr<ImeEventListener>> GetListeners(uint32_t eventMask);
     std::mutex lock_;
-    std::map<EventType, std::set<std::shared_ptr<ImeEventListener>>> listeners_{};
+    std::map<uint32_t, std::set<std::shared_ptr<ImeEventListener>>> listeners_{};
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -684,7 +684,7 @@ public:
      * @since 11
      */
     IMF_API int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
-    int32_t UpdateListenEventFlag(EventType eventType, bool isOn);
+    int32_t UpdateListenEventFlag(uint32_t finalEventFlag, uint32_t eventFlag, bool isOn);
 
 private:
     InputMethodController();

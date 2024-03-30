@@ -44,8 +44,6 @@ std::mutex InputMethodController::instanceLock_;
 constexpr int32_t LOOP_COUNT = 5;
 constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t ACE_DEAL_TIME_OUT = 200;
-const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
-    { "imeHide", IME_HIDE } };
 InputMethodController::InputMethodController()
 {
     IMSA_HILOGD("IMC structure");
@@ -82,27 +80,21 @@ int32_t InputMethodController::RestoreListenEventFlag()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->UpdateListenEventFlag(clientInfo_, IME_NONE);
+    // 0 represent no need to check permission
+    return proxy->UpdateListenEventFlag(clientInfo_, 0);
 }
 
-int32_t InputMethodController::UpdateListenEventFlag(EventType eventType, bool isOn)
+int32_t InputMethodController::UpdateListenEventFlag(uint32_t finalEventFlag, uint32_t eventFlag, bool isOn)
 {
     auto oldEventFlag = clientInfo_.eventFlag;
-    if (isOn) {
-        clientInfo_.eventFlag |= (1u << eventType);
-    } else {
-        clientInfo_.eventFlag &= (~(1u << eventType));
-    }
-    if (oldEventFlag == clientInfo_.eventFlag) {
-        return ErrorCode::NO_ERROR;
-    }
+    clientInfo_.eventFlag = finalEventFlag;
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr && isOn) {
         IMSA_HILOGE("proxy is nullptr");
         clientInfo_.eventFlag = oldEventFlag;
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    auto ret = proxy->UpdateListenEventFlag(clientInfo_, eventType);
+    auto ret = proxy->UpdateListenEventFlag(clientInfo_, eventFlag);
     if (ret != ErrorCode::NO_ERROR && isOn) {
         clientInfo_.eventFlag = oldEventFlag;
     }

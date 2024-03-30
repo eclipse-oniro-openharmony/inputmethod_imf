@@ -92,7 +92,8 @@ void TestOnConfigurationChange(sptr<InputMethodController> imc)
     imc->GetInputPattern(inputPattern);
 }
 
-void TestSwitchInputMethod(SwitchTrigger fuzzedTrigger, sptr<InputMethodController> imc, const std::string& fuzzedString)
+void TestSwitchInputMethod(
+    SwitchTrigger fuzzedTrigger, sptr<InputMethodController> imc, const std::string &fuzzedString)
 {
     imc->SwitchInputMethod(fuzzedTrigger, fuzzedString, fuzzedString);
     imc->ShowOptionalInputMethod();
@@ -127,8 +128,8 @@ void TestShowSomething(sptr<InputMethodController> imc)
 
 void TestUpdateListenEventFlag(sptr<InputMethodController> imc, uint32_t fuzzedUint32)
 {
-    imc->UpdateListenEventFlag(static_cast<EventType>(fuzzedUint32), true);
-    imc->UpdateListenEventFlag(static_cast<EventType>(fuzzedUint32), false);
+    imc->UpdateListenEventFlag(static_cast<uint32_t>(fuzzedUint32), static_cast<uint32_t>(fuzzedUint32), true);
+    imc->UpdateListenEventFlag(static_cast<uint32_t>(fuzzedUint32), static_cast<uint32_t>(fuzzedUint32), false);
 }
 
 void TestAttach(sptr<InputMethodController> imc, int32_t fuzzedInt32)

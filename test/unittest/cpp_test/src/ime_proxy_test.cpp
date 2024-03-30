@@ -140,7 +140,7 @@ private:
         TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "ImeProxyTest"));
         auto listener = std::make_shared<ImeSettingListenerTestImpl>();
         ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(
-            { EventType::IME_CHANGE, EventType::IME_HIDE, EventType::IME_SHOW }, listener);
+            EVENT_IME_HIDE_MASK | EVENT_IME_SHOW_MASK | EVENT_IME_CHANGE_MASK, listener);
         TddUtil::RestoreSelfTokenID();
     }
 };

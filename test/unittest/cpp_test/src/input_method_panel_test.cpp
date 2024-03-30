@@ -810,8 +810,8 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
     // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     TddUtil::RestoreSelfTokenID();
     // cancel system app
     InputWindowInfo info{ "", 0, 0, InputMethodPanelTest::windowWidth_, InputMethodPanelTest::windowHeight_ };
@@ -832,8 +832,8 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
     InputMethodPanelTest::ImcPanelHideInfoCheck(info);
     // set system app
     TddUtil::SetTestTokenID(testTokenId_);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     TddUtil::RestoreSelfTokenID();
     // cancel system app
 }
@@ -849,8 +849,8 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
     // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     TddUtil::RestoreSelfTokenID();
     // cancel system app
     InputWindowInfo info{ "", 0, 0, InputMethodPanelTest::windowWidth_, InputMethodPanelTest::windowHeight_ };
@@ -872,8 +872,8 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
     InputMethodPanelTest::ImcPanelHideInfoCheck(info);
     // set system app
     TddUtil::SetTestTokenID(testTokenId_);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     TddUtil::RestoreSelfTokenID();
     // cancel system app
     InputMethodPanelTest::inputMethodPanel_->panelFlag_ = FLG_FIXED;
@@ -890,8 +890,8 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
     // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     TddUtil::RestoreSelfTokenID();
     // cancel system app
     InputMethodPanelTest::inputMethodPanel_->panelFlag_ = FLG_CANDIDATE_COLUMN;
@@ -910,8 +910,8 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
     // set system app
     TddUtil::SetTestTokenID(testTokenId_);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     TddUtil::RestoreSelfTokenID();
     // cancel system app
     InputMethodPanelTest::inputMethodPanel_->panelFlag_ = FLG_FIXED;
@@ -928,8 +928,8 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
     // set system app
     TddUtil::SetTestTokenID(testTokenId_);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     TddUtil::RestoreSelfTokenID();
     // cancel system app
     InputMethodPanelTest::ImcPanelListeningTestRestore();
@@ -947,8 +947,8 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
     // set system app
     TddUtil::SetTestTokenID(testTokenId_);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     TddUtil::RestoreSelfTokenID();
     // cancel system app
 }
@@ -966,11 +966,11 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
     auto listener1 = std::make_shared<InputMethodSettingListenerImpl>();
     auto listener2 = std::make_shared<InputMethodSettingListenerImpl>();
     auto listener3 = std::make_shared<InputMethodSettingListenerImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener1);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener1);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener2);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener2);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener3);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener1);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener1);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener2);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener2);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener3);
     TddUtil::RestoreSelfTokenID();
     // cancel native sa
     // set current ime
@@ -989,11 +989,11 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
 
     // set native sa
     TddUtil::GrantNativePermission();
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener1);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener1);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener2);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener2);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener3);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener1);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener1);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener2);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener2);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener3);
     TddUtil::RestoreSelfTokenID();
     // cancel native sa
 }
@@ -1011,11 +1011,11 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_006, TestSize.Level0)
     auto listener1 = std::make_shared<InputMethodSettingListenerImpl>();
     auto listener2 = std::make_shared<InputMethodSettingListenerImpl>();
     auto listener3 = std::make_shared<InputMethodSettingListenerImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener1);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener1);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener2);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener3);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener1);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener1);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener1);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener2);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener3);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener1);
     TddUtil::RestoreSelfTokenID();
     // cancel native sa
     // UnRegister one IME_SHOW listener
@@ -1036,9 +1036,9 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_006, TestSize.Level0)
     // UnRegister all listener
     // set native sa
     TddUtil::GrantNativePermission();
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener2);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener3);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener1);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener2);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener3);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener1);
     TddUtil::RestoreSelfTokenID();
     // cancel native sa
     InputMethodPanelTest::ImcPanelListeningTestRestore();
@@ -1067,8 +1067,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_007, TestSize.Level0)
     // set native sa
     TddUtil::GrantNativePermission();
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-        { EventType::IME_SHOW, EventType::IME_HIDE }, listener);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK | EVENT_IME_SHOW_MASK, listener);
     TddUtil::RestoreSelfTokenID();
     // cancel native sa
     InputMethodPanelTest::ImcPanelListeningTestRestore();
@@ -1089,7 +1088,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_007, TestSize.Level0)
     // set native sa
     TddUtil::GrantNativePermission();
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
-        { EventType::IME_SHOW, EventType::IME_HIDE }, listener);
+        EVENT_IME_HIDE_MASK | EVENT_IME_SHOW_MASK, listener);
     TddUtil::RestoreSelfTokenID();
     // cancel native sa
     InputMethodPanelTest::ImcPanelListeningTestRestore();

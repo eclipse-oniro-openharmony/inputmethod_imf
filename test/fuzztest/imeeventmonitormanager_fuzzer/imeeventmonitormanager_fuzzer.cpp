@@ -24,15 +24,15 @@ constexpr size_t THRESHOLD = 10;
 void FuzzRegisterImeEventListener(const uint8_t *rawData, size_t size)
 {
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ static_cast<EventType>(size) }, nullptr);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ static_cast<EventType>(size) }, listener);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(static_cast<uint32_t>(size), nullptr);
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(static_cast<uint32_t>(size), listener);
 }
 
 void FuzzUnRegisterImeEventListener(const uint8_t *rawData, size_t size)
 {
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ static_cast<EventType>(size) }, nullptr);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ static_cast<EventType>(size) }, listener);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(static_cast<uint32_t>(size), nullptr);
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(static_cast<uint32_t>(size), listener);
 }
 
 /* Fuzzer entry point */

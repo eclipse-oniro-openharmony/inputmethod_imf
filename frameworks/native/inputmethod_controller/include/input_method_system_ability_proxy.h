@@ -65,7 +65,7 @@ public:
     int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) override;
     int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) override;
-    int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
+    int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) override;
     bool IsCurrentIme() override;
     bool IsInputTypeSupported(InputType type) override;
     int32_t StartInputType(InputType type) override;
