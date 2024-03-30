@@ -22,7 +22,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-const std::set<EventType> ImeEventMonitorManager::EVENT_TYPE{ IME_SHOW, IME_HIDE };
 ImeEventMonitorManager::ImeEventMonitorManager()
 {
 }
@@ -38,41 +37,31 @@ ImeEventMonitorManager &ImeEventMonitorManager::GetInstance()
 }
 
 int32_t ImeEventMonitorManager::RegisterImeEventListener(
-    const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener)
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
-    if (!IsParamValid(types, listener)) {
+    if (!IsParamValid(eventFlag, listener)) {
+        IMSA_HILOGE("param is invalid");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    return ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(types, listener);
+    return ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(eventFlag & ALL_EVENT_MASK, listener);
 }
 
 int32_t ImeEventMonitorManager::UnRegisterImeEventListener(
-    const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener)
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
-    if (!IsParamValid(types, listener)) {
+    if (!IsParamValid(eventFlag, listener)) {
+        IMSA_HILOGE("param is invalid");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    return ImeEventMonitorManagerImpl::GetInstance().UnRegisterImeEventListener(types, listener);
+    return ImeEventMonitorManagerImpl::GetInstance().UnRegisterImeEventListener(eventFlag & ALL_EVENT_MASK, listener);
 }
-
-bool ImeEventMonitorManager::IsParamValid(
-    const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener)
+bool ImeEventMonitorManager::IsParamValid(uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
-    if (listener == nullptr) {
-        IMSA_HILOGE("listener is nullptr");
+    if (eventFlag == 0) {
+        IMSA_HILOGE("eventFlag is 0");
         return false;
     }
-    if (types.empty()) {
-        IMSA_HILOGE("no eventType");
-        return false;
-    }
-    if (types.size() > EVENT_NUM) {
-        IMSA_HILOGE("over eventNum");
-        return false;
-    }
-    auto it = std::find_if(
-        types.begin(), types.end(), [](EventType type) { return EVENT_TYPE.find(type) == EVENT_TYPE.end(); });
-    return it == types.end();
+    return listener != nullptr;
 }
 } // namespace MiscServices
 } // namespace OHOS

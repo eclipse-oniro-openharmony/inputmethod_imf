@@ -79,7 +79,7 @@ void NewImeSwitchTest::SetUpTestCase(void)
         TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
     imc_ = InputMethodController::GetInstance();
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener({ EventType::IME_CHANGE }, listener);
+    ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_CHANGE_MASK, listener);
 }
 
 void NewImeSwitchTest::TearDownTestCase(void)

@@ -201,11 +201,10 @@ int32_t InputMethodSystemAbilityProxy::PanelStatusChange(const InputWindowStatus
         });
 }
 
-int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)
+int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag)
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::UPDATE_LISTEN_EVENT_FLAG),
-        [&clientInfo, eventType](
-            MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, static_cast<uint32_t>(eventType)); });
+        [&clientInfo, eventFlag](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, eventFlag); });
 }
 
 bool InputMethodSystemAbilityProxy::IsCurrentIme()

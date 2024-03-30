@@ -65,7 +65,7 @@ public:
     virtual int32_t SwitchInputMethod(
         const std::string &bundleName, const std::string &name, SwitchTrigger trigger) = 0;
     virtual int32_t PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) = 0;
-    virtual int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) = 0;
+    virtual int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) = 0;
     virtual bool IsCurrentIme() = 0;
     virtual bool IsInputTypeSupported(InputType type) = 0;
     virtual int32_t StartInputType(InputType type) = 0;

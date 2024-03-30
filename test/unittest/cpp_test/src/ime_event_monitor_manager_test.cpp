@@ -65,61 +65,65 @@ void ImeEventMonitorManagerTest::TearDown()
 
 /**
 * @tc.name: testRegisterImeEventListener_001
-* @tc.desc: type size over max
+* @tc.desc: eventType is 0
 * @tc.type: FUNC
 */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_001, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_001 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-        { EventType::IME_HIDE, EventType::IME_SHOW, EventType::IME_CHANGE, static_cast<EventType>(10) }, listener);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(0, listener);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     EXPECT_TRUE(ImeEventMonitorManagerImpl::GetInstance().listeners_.empty());
 }
 
 /**
 * @tc.name: testUnRegisterImeEventListener_002
-* @tc.desc: type size over max
+* @tc.desc: eventFlag is 0
 * @tc.type: FUNC
 */
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_002, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_002 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
-        { EventType::IME_HIDE, EventType::IME_SHOW, EventType::IME_CHANGE, static_cast<EventType>(10) }, listener);
+    auto ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(0, listener);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     EXPECT_TRUE(ImeEventMonitorManagerImpl::GetInstance().listeners_.empty());
 }
 
 /**
 * @tc.name: testRegisterImeEventListener_003
-* @tc.desc: type is error
+* @tc.desc: eventFlag is 15
 * @tc.type: FUNC
 */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_003, TestSize.Level0)
 {
-    IMSA_HILOGI("testRegisterImeEventListener_003 start.");
+    IMSA_HILOGI("testUnRegisterImeEventListener_003 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_CHANGE }, listener);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
-    EXPECT_TRUE(ImeEventMonitorManagerImpl::GetInstance().listeners_.empty());
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(15, listener);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 2);
+    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_HIDE_MASK);
+    ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
+    it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_SHOW_MASK);
+    ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
 }
 
 /**
-* @tc.name: testUnRegisterImeEventListener_004
-* @tc.desc: type is error
+* @tc.name: testRegisterImeEventListener_004
+* @tc.desc: eventFlag is 5
 * @tc.type: FUNC
 */
-HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_004, TestSize.Level0)
+HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_004, TestSize.Level0)
 {
-    IMSA_HILOGI("testUnRegisterImeEventListener_004 start.");
+    IMSA_HILOGI("testRegisterImeEventListener_004 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
-        { EventType::IME_HIDE, EventType::IME_CHANGE }, listener);
-    EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
-    EXPECT_TRUE(ImeEventMonitorManagerImpl::GetInstance().listeners_.empty());
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(5, listener);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
+    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_HIDE_MASK);
+    ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
+    EXPECT_EQ(it->second.size(), 1);
 }
 
 /**
@@ -130,7 +134,7 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_004, TestSiz
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_005, TestSize.Level0)
 {
     IMSA_HILOGI("testRegisterImeEventListener_005 start.");
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, nullptr);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     EXPECT_TRUE(ImeEventMonitorManagerImpl::GetInstance().listeners_.empty());
 }
@@ -143,7 +147,7 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_005, TestSize.
 HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_006, TestSize.Level0)
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_006 start.");
-    auto ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, nullptr);
+    auto ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, nullptr);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     EXPECT_TRUE(ImeEventMonitorManagerImpl::GetInstance().listeners_.empty());
 }
@@ -158,7 +162,7 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_007, TestSize.
     IMSA_HILOGI("testRegisterImeEventListener_007 start.");
     TddUtil::RestoreSelfTokenID();
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
     EXPECT_TRUE(ImeEventMonitorManagerImpl::GetInstance().listeners_.empty());
 }
@@ -172,13 +176,13 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_008, TestSiz
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_008 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 4);
     TddUtil::RestoreSelfTokenID();
-    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
+    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
     EXPECT_TRUE(ImeEventMonitorManagerImpl::GetInstance().listeners_.empty());
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 0);
 }
@@ -192,11 +196,11 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_009, TestSize.
 {
     IMSA_HILOGI("testRegisterImeEventListener_009 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 4);
-    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EventType::IME_HIDE);
+    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_HIDE_MASK);
     ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
     ASSERT_EQ(it->second.size(), 1);
     auto iter = it->second.find(listener);
@@ -205,7 +209,7 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_009, TestSize.
 
 /**
 * @tc.name: testRegisterImeEventListener_010
-* @tc.desc: one listener register all event
+* @tc.desc: one listener register EVENT_IME_HIDE_MASK|EVENT_IME_SHOW_MASK
 * @tc.type: FUNC
 */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_010, TestSize.Level0)
@@ -213,17 +217,17 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_010, TestSize.
     IMSA_HILOGI("testRegisterImeEventListener_010 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-        { EventType::IME_HIDE, EventType::IME_SHOW }, listener);
+        EVENT_IME_HIDE_MASK | EVENT_IME_SHOW_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 6);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 2);
-    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EventType::IME_HIDE);
+    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_HIDE_MASK);
     ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
     ASSERT_EQ(it->second.size(), 1);
     auto iter = it->second.find(listener);
     EXPECT_NE(iter, it->second.end());
 
-    it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EventType::IME_SHOW);
+    it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_SHOW_MASK);
     ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
     ASSERT_EQ(it->second.size(), 1);
     iter = it->second.find(listener);
@@ -232,7 +236,7 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_010, TestSize.
 
 /**
 * @tc.name: testRegisterImeEventListener_011
-* @tc.desc: one listener register three same event
+* @tc.desc: one listener register EVENT_IME_SHOW_MASK|EVENT_IME_HIDE_MASK|EVENT_IME_CHANGE_MASK
 * @tc.type: FUNC
 */
 HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_011, TestSize.Level0)
@@ -240,15 +244,12 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_011, TestSize.
     IMSA_HILOGI("testRegisterImeEventListener_011 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-        { EventType::IME_SHOW, EventType::IME_SHOW, EventType::IME_SHOW }, listener);
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK | EVENT_IME_CHANGE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 2);
-    EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
-    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EventType::IME_SHOW);
-    ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
-    ASSERT_EQ(it->second.size(), 1);
-    auto iter = it->second.find(listener);
-    EXPECT_NE(iter, it->second.end());
+    EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 6);
+    EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 2);
+    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_CHANGE_MASK);
+    ASSERT_EQ(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
 }
 
 /**
@@ -262,21 +263,21 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_012, TestSize.
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto listener1 = std::make_shared<ImeSettingListenerTestImpl>();
     auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-        { EventType::IME_SHOW, EventType::IME_HIDE }, listener);
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-        { EventType::IME_SHOW, EventType::IME_HIDE }, listener1);
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 6);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 2);
-    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EventType::IME_HIDE);
+    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_HIDE_MASK);
     ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
     ASSERT_EQ(it->second.size(), 2);
     auto iter = it->second.find(listener);
     EXPECT_NE(iter, it->second.end());
     iter = it->second.find(listener1);
     EXPECT_NE(iter, it->second.end());
-    it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EventType::IME_SHOW);
+    it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_SHOW_MASK);
     ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
     ASSERT_EQ(it->second.size(), 2);
     iter = it->second.find(listener);
@@ -295,23 +296,22 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_013, TestSize.
     IMSA_HILOGI("testRegisterImeEventListener_013 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto listener1 = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-        { EventType::IME_SHOW, EventType::IME_SHOW }, listener);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-        { EventType::IME_SHOW, EventType::IME_HIDE }, listener1);
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 6);
 
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 2);
-    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EventType::IME_SHOW);
+    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_SHOW_MASK);
     ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
     ASSERT_EQ(it->second.size(), 2);
     auto iter = it->second.find(listener);
     EXPECT_NE(iter, it->second.end());
     iter = it->second.find(listener1);
     EXPECT_NE(iter, it->second.end());
-    it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EventType::IME_HIDE);
+    it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_HIDE_MASK);
     ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
     ASSERT_EQ(it->second.size(), 1);
     iter = it->second.find(listener1);
@@ -327,11 +327,11 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_014, TestSiz
 {
     IMSA_HILOGI("testUnRegisterImeEventListener_014 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 2);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
-    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener);
+    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(ImeEventMonitorManagerImpl::GetInstance().listeners_.empty());
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 0);
@@ -347,11 +347,11 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_015, TestSiz
     IMSA_HILOGI("testUnRegisterImeEventListener_015 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-        { EventType::IME_SHOW, EventType::IME_HIDE }, listener);
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 6);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 2);
-    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 2);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
@@ -367,12 +367,12 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_016, TestSiz
     IMSA_HILOGI("testUnRegisterImeEventListener_016 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-        { EventType::IME_SHOW, EventType::IME_HIDE }, listener);
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 6);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 2);
     ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
-        { EventType::IME_SHOW, EventType::IME_HIDE }, listener);
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(ImeEventMonitorManagerImpl::GetInstance().listeners_.empty());
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 0);
@@ -388,17 +388,17 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_017, TestSiz
     IMSA_HILOGI("testUnRegisterImeEventListener_017 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto listener1 = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener1);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 2);
-    EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
-    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener);
+    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 2);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
-    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EventType::IME_SHOW);
+    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 2);
+    EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
+    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_SHOW_MASK);
     ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
     ASSERT_EQ(it->second.size(), 1);
     auto iter = it->second.find(listener1);
@@ -415,17 +415,17 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_018, TestSiz
     IMSA_HILOGI("testUnRegisterImeEventListener_018 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto listener1 = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener1);
+    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 2);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
-    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 2);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
-    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EventType::IME_SHOW);
+    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_SHOW_MASK);
     ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
     ASSERT_EQ(it->second.size(), 2);
     auto iter = it->second.find(listener);
@@ -444,17 +444,17 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_019, TestSiz
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto listener1 = std::make_shared<ImeSettingListenerTestImpl>();
     auto listener2 = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
+    auto ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener1);
+    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 2);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
-    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener({ EventType::IME_SHOW }, listener2);
+    ret = ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener2);
     EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 2);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 1);
-    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EventType::IME_SHOW);
+    auto it = ImeEventMonitorManagerImpl::GetInstance().listeners_.find(EVENT_IME_SHOW_MASK);
     ASSERT_NE(it, ImeEventMonitorManagerImpl::GetInstance().listeners_.end());
     ASSERT_EQ(it->second.size(), 2);
     auto iter = it->second.find(listener);
@@ -473,9 +473,10 @@ HWTEST_F(ImeEventMonitorManagerTest, testRegisterImeEventListener_020, TestSize.
     IMSA_HILOGI("testRegisterImeEventListener_020 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto listener1 = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener({ EventType::IME_CHANGE }, listener);
+    auto ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_CHANGE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW, IME_HIDE }, listener1);
+    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 7);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 3);
@@ -491,17 +492,18 @@ HWTEST_F(ImeEventMonitorManagerTest, testUnRegisterImeEventListener_021, TestSiz
     IMSA_HILOGI("testUnRegisterImeEventListener_021 start.");
     auto listener = std::make_shared<ImeSettingListenerTestImpl>();
     auto listener1 = std::make_shared<ImeSettingListenerTestImpl>();
-    auto ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener({ EventType::IME_CHANGE }, listener);
+    auto ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_CHANGE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener({ EventType::IME_HIDE }, listener);
+    ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW }, listener);
+    ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener({ EventType::IME_SHOW, IME_HIDE }, listener1);
+    ret = ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener1);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 7);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 3);
-    ret = ImeEventMonitorManagerImpl::GetInstance().UnRegisterImeEventListener({ EventType::IME_CHANGE }, listener);
+    ret = ImeEventMonitorManagerImpl::GetInstance().UnRegisterImeEventListener(EVENT_IME_CHANGE_MASK, listener);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(InputMethodController::GetInstance()->clientInfo_.eventFlag, 6);
     EXPECT_EQ(ImeEventMonitorManagerImpl::GetInstance().listeners_.size(), 2);

@@ -36,32 +36,45 @@ ImeEventMonitorManagerImpl &ImeEventMonitorManagerImpl::GetInstance()
 }
 
 int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(
-    const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener)
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
     std::lock_guard<std::mutex> lock(lock_);
-    for (const auto &type : types) {
-        auto it = listeners_.find(type);
-        if (it == listeners_.end()) {
-            auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
-                return ret;
-            }
-            listeners_.insert({ type, { listener } });
-        } else {
-            it->second.insert(listener);
+    uint32_t currentEventFlag = 0;
+    for (const auto &listenerTemp : listeners_) {
+        currentEventFlag |= listenerTemp.first;
+    }
+    auto finalEventFlag = currentEventFlag | eventFlag;
+    auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(finalEventFlag, eventFlag, true);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
+        return ret;
+    }
+    for (uint32_t i = 0; i < MAX_EVENT_NUM; i++) {
+        auto eventMask = eventFlag & (1u << (MAX_EVENT_NUM - (i + 1)));
+        if (eventMask == 0) {
+            continue;
         }
+        auto it = listeners_.find(eventMask);
+        if (it == listeners_.end()) {
+            listeners_.insert({ eventMask, { listener } });
+            continue;
+        }
+        it->second.insert(listener);
     }
     return ErrorCode::NO_ERROR;
 }
 
 int32_t ImeEventMonitorManagerImpl::UnRegisterImeEventListener(
-    const std::set<EventType> &types, const std::shared_ptr<ImeEventListener> &listener)
+    uint32_t eventFlag, const std::shared_ptr<ImeEventListener> &listener)
 {
-    bool isAbsentParam = false;
     std::lock_guard<std::mutex> lock(lock_);
-    for (const auto &type : types) {
-        auto it = listeners_.find(type);
+    bool isAbsentParam = false;
+    for (uint32_t i = 0; i < MAX_EVENT_NUM; i++) {
+        auto eventMask = eventFlag & (1u << (MAX_EVENT_NUM - (i + 1)));
+        if (eventMask == 0) {
+            continue;
+        }
+        auto it = listeners_.find(eventMask);
         if (it == listeners_.end()) {
             isAbsentParam = true;
             continue;
@@ -73,23 +86,24 @@ int32_t ImeEventMonitorManagerImpl::UnRegisterImeEventListener(
         }
         it->second.erase(iter);
         if (it->second.empty()) {
-            auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
-            }
             listeners_.erase(it);
         }
+    }
+    uint32_t finalEventFlag = 0;
+    for (const auto &listenerTemp : listeners_) {
+        finalEventFlag |= listenerTemp.first;
+    }
+    auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(finalEventFlag, eventFlag, false);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("UpdateListenEventFlag failed: %{public}d", ret);
+        return ret;
     }
     return isAbsentParam ? ErrorCode::ERROR_BAD_PARAMETERS : ErrorCode::NO_ERROR;
 }
 
 int32_t ImeEventMonitorManagerImpl::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
-    auto listeners = GetListeners(EventType::IME_CHANGE);
-    if (listeners.empty()) {
-        IMSA_HILOGD("not has IME_CHANGE listeners");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
+    auto listeners = GetListeners(EVENT_IME_CHANGE_MASK);
     for (const auto &listener : listeners) {
         listener->OnImeChange(property, subProperty);
     }
@@ -98,30 +112,37 @@ int32_t ImeEventMonitorManagerImpl::OnImeChange(const Property &property, const 
 
 int32_t ImeEventMonitorManagerImpl::OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
-    if (status != InputWindowStatus::HIDE && status != InputWindowStatus::SHOW) {
-        IMSA_HILOGE("status:%{public}d is invalid", status);
-        return ErrorCode::ERROR_BAD_PARAMETERS;
+    if (status == InputWindowStatus::HIDE) {
+        return OnImeHide(info);
     }
-    auto type = status == InputWindowStatus::HIDE ? EventType::IME_HIDE : EventType::IME_SHOW;
-    auto listeners = GetListeners(type);
-    if (listeners.empty()) {
-        IMSA_HILOGD("not has %{public}d listeners", type);
-        return ErrorCode::ERROR_BAD_PARAMETERS;
+    if (status == InputWindowStatus::SHOW) {
+        return OnImeShow(info);
     }
+    return ErrorCode::ERROR_BAD_PARAMETERS;
+}
+
+int32_t ImeEventMonitorManagerImpl::OnImeShow(const ImeWindowInfo &info)
+{
+    auto listeners = GetListeners(EVENT_IME_SHOW_MASK);
     for (const auto &listener : listeners) {
-        if (type == EventType::IME_HIDE) {
-            listener->OnImeHide(info);
-        } else {
-            listener->OnImeShow(info);
-        }
+        listener->OnImeShow(info);
     }
     return ErrorCode::NO_ERROR;
 }
 
-std::set<std::shared_ptr<ImeEventListener>> ImeEventMonitorManagerImpl::GetListeners(EventType type)
+int32_t ImeEventMonitorManagerImpl::OnImeHide(const ImeWindowInfo &info)
+{
+    auto listeners = GetListeners(EVENT_IME_HIDE_MASK);
+    for (const auto &listener : listeners) {
+        listener->OnImeHide(info);
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+std::set<std::shared_ptr<ImeEventListener>> ImeEventMonitorManagerImpl::GetListeners(uint32_t eventMask)
 {
     std::lock_guard<std::mutex> lock(lock_);
-    auto it = listeners_.find(type);
+    auto it = listeners_.find(eventMask);
     if (it == listeners_.end()) {
         return {};
     }

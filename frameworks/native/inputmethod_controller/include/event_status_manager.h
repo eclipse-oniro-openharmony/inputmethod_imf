@@ -24,15 +24,15 @@ class EventStatusManager {
 public:
     inline static bool IsImeShowOn(uint32_t eventFlag)
     {
-        return (eventFlag & (1u << EventType::IME_SHOW)) == (1u << EventType::IME_SHOW);
+        return (eventFlag & EVENT_IME_SHOW_MASK) == EVENT_IME_SHOW_MASK;
     }
     inline static bool IsImeChangeOn(uint32_t eventFlag)
     {
-        return (eventFlag & (1u << EventType::IME_CHANGE)) == (1u << EventType::IME_CHANGE);
+        return (eventFlag & EVENT_IME_CHANGE_MASK) == EVENT_IME_CHANGE_MASK;
     }
     inline static bool IsImeHideOn(uint32_t eventFlag)
     {
-        return (eventFlag & (1u << EventType::IME_HIDE)) == (1u << EventType::IME_HIDE);
+        return (eventFlag & EVENT_IME_HIDE_MASK) == EVENT_IME_HIDE_MASK;
     }
 };
 } // namespace MiscServices
