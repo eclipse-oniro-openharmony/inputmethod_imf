@@ -26,13 +26,12 @@
 #include "controller_listener.h"
 #include "element_name.h"
 #include "event_handler.h"
-#include "event_status_manager.h"
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
+#include "ime_event_listener.h"
 #include "input_client_info.h"
 #include "input_method_property.h"
-#include "input_method_setting_listener.h"
 #include "input_method_status.h"
 #include "input_method_utils.h"
 #include "ipc_skeleton.h"
@@ -205,17 +204,6 @@ public:
      * @since 6
      */
     IMF_API int32_t OnConfigurationChange(Configuration info);
-
-    /**
-     * @brief Set InputMethodSettingListener listener.
-     *
-     * This function is used to set InputMethodSettingListener  listener to facilitate listening input method changes.
-     *
-     * @param listener Indicates the listener to be set.
-     * @since 6
-     */
-    IMF_API void SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener);
-    IMF_API int32_t UpdateListenEventFlag(const std::string &type, bool isOn);
     IMF_API void SetControllerListener(std::shared_ptr<ControllerListener> controllerListener);
 
     /**
@@ -661,31 +649,6 @@ public:
     IMF_API int32_t SendFunctionKey(int32_t functionKey);
 
     /**
-     * @brief Inform the change of ime to client.
-     *
-     * This function is used to inform the change of ime to client.
-     *
-     * @param property Indicates the property of ime.
-     * @param subProperty Indicates the sub property of ime.
-     * @return Returns 0 for success, others for failure.
-     * @since 10
-     */
-    IMF_API int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty);
-
-    /**
-     * @brief Inform the change panel status.
-     *
-     * This function is used to inform the change panel status.
-     *
-     * @param status Indicates the status of panel.
-     * @param windowInfo Indicates the detailed info of window.
-     * @return Returns 0 for success, others for failure.
-     * @since 10
-     */
-    IMF_API int32_t OnPanelStatusChange(
-        const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo);
-
-    /**
      * @brief Deactivate the input client.
      *
      * This function is used to deactivate the input client.
@@ -727,6 +690,7 @@ public:
      * @since 11
      */
     IMF_API int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
+    int32_t UpdateListenEventFlag(uint32_t finalEventFlag, uint32_t eventFlag, bool isOn);
 
     /**
      * @brief Send private command to ime.
@@ -768,7 +732,6 @@ private:
     void RestoreListenInfoInSaDied();
     void RestoreAttachInfoInSaDied();
     int32_t RestoreListenEventFlag();
-    void UpdateNativeEventFlag(EventType eventType, bool isOn);
     void SaveTextConfig(const TextConfig &textConfig);
     sptr<OnTextChangedListener> GetTextListener();
     void SetTextListener(sptr<OnTextChangedListener> listener);
@@ -778,7 +741,6 @@ private:
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
 
-    std::shared_ptr<InputMethodSettingListener> settingListener_;
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;

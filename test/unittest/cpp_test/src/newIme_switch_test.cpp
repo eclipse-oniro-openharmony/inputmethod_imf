@@ -20,7 +20,9 @@
 #include <vector>
 
 #include "global.h"
+#include "ime_event_monitor_manager_impl.h"
 #include "ime_info_inquirer.h"
+#include "ime_setting_listener_test_impl.h"
 #include "input_method_controller.h"
 #include "input_method_property.h"
 #include "tdd_util.h"
@@ -37,7 +39,6 @@ public:
     static void CheckCurrentProp();
     static void CheckCurrentSubProp(const std::string &subName);
     static void CheckCurrentSubProps();
-    static bool imeChangeFlag;
     static sptr<InputMethodController> imc_;
     static std::string bundleName;
     static std::string extName;
@@ -48,7 +49,6 @@ public:
     static std::string beforeValue;
     static std::string allEnableIme;
 };
-bool NewImeSwitchTest::imeChangeFlag = false;
 sptr<InputMethodController> NewImeSwitchTest::imc_;
 std::string NewImeSwitchTest::bundleName = "com.example.newTestIme";
 std::string NewImeSwitchTest::extName = "InputMethodExtAbility";
@@ -61,19 +61,6 @@ std::string NewImeSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ 
 constexpr uint32_t IME_SUBTYPE_NUM = 3;
 constexpr uint32_t WAIT_IME_READY_TIME = 1;
 constexpr const char *ENABLE_IME_KEYWORD = "settings.inputmethod.enable_ime";
-class InputMethodSettingListenerImpl : public InputMethodSettingListener {
-public:
-    InputMethodSettingListenerImpl() = default;
-    ~InputMethodSettingListenerImpl() = default;
-    void OnImeChange(const Property &property, const SubProperty &subProperty)
-    {
-        NewImeSwitchTest::imeChangeFlag = true;
-        IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
-    }
-    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
-    {
-    }
-};
 void NewImeSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::SetUpTestCase");
@@ -91,8 +78,8 @@ void NewImeSwitchTest::SetUpTestCase(void)
     TddUtil::SetTestTokenID(
         TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
     imc_ = InputMethodController::GetInstance();
-    imc_->SetSettingListener(std::make_shared<InputMethodSettingListenerImpl>());
-    imc_->UpdateListenEventFlag("imeChange", true);
+    auto listener = std::make_shared<ImeSettingListenerTestImpl>();
+    ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_CHANGE_MASK, listener);
 }
 
 void NewImeSwitchTest::TearDownTestCase(void)
@@ -156,11 +143,11 @@ void NewImeSwitchTest::CheckCurrentSubProps()
 HWTEST_F(NewImeSwitchTest, testNewImeSwitch, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testNewImeSwitch Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     // switch to newTestIme
     auto ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeChangeFlag);
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp();
     CheckCurrentSubProp(subName[0]);
     CheckCurrentSubProps();
@@ -177,10 +164,10 @@ HWTEST_F(NewImeSwitchTest, testNewImeSwitch, TestSize.Level0)
 HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_001 Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, subName[0]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(imeChangeFlag);
+    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp();
     CheckCurrentSubProp(subName[0]);
     CheckCurrentSubProps();
@@ -196,10 +183,10 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
 HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_002 Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, subName[1]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeChangeFlag);
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp();
     CheckCurrentSubProp(subName[1]);
     CheckCurrentSubProps();
@@ -215,10 +202,10 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_003, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_003 Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, subName[2]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeChangeFlag);
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp();
     CheckCurrentSubProp(subName[2]);
     CheckCurrentSubProps();
@@ -234,10 +221,10 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_003, TestSize.Level0)
 HWTEST_F(NewImeSwitchTest, testSubTypeSwitch_004, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSubTypeSwitch_004 Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, subName[0]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeChangeFlag);
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp();
     CheckCurrentSubProp(subName[0]);
     CheckCurrentSubProps();
@@ -270,10 +257,10 @@ HWTEST_F(NewImeSwitchTest, testSubTypeSwitchWithErrorSubName, TestSize.Level0)
 HWTEST_F(NewImeSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSwitchToCurrentImeWithEmptySubName Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(imeChangeFlag);
+    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp();
     CheckCurrentSubProp(subName[0]);
     CheckCurrentSubProps();
@@ -289,10 +276,10 @@ HWTEST_F(NewImeSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize.Leve
 HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_001, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSwitchInputMethod_001 Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName, subName[1]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeChangeFlag);
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp();
     CheckCurrentSubProp(subName[1]);
     CheckCurrentSubProps();
@@ -308,10 +295,10 @@ HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_001, TestSize.Level0)
 HWTEST_F(NewImeSwitchTest, testSwitchInputMethod_002, TestSize.Level0)
 {
     IMSA_HILOGI("newIme testSwitchInputMethod_002 Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     auto ret = imc_->SwitchInputMethod(SwitchTrigger::SYSTEM_APP, bundleName, subName[0]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeChangeFlag);
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp();
     CheckCurrentSubProp(subName[0]);
     CheckCurrentSubProps();

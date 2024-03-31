@@ -84,9 +84,13 @@
                   "header": {
                       "header_files": [
                           "../../../../frameworks/native/inputmethod_controller/include/i_input_client.h", 
-                          "../../../../frameworks/native/inputmethod_controller/include/i_input_data_channel.h",  
-                          "input_method_controller.h", 
-                          "../../../../frameworks/native/inputmethod_controller/include/input_method_utils.h"
+                          "../../../../frameworks/native/inputmethod_controller/include/i_input_data_channel.h",
+                          "../../../../frameworks/native/inputmethod_controller/include/input_method_property.h",
+                          "../../../../frameworks/native/inputmethod_controller/include/input_method_utils.h",
+                          "../../../../frameworks/native/inputmethod_controller/include/input_window_info.h",
+                          "ime_event_listener.h",
+                          "ime_event_monitor_manager.h",
+                          "input_method_controller.h"
                       ], 
                       "header_base": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_controller/include"
                   }

@@ -16,6 +16,7 @@
 #include "input_client_stub.h"
 
 #include "global.h"
+#include "ime_event_monitor_manager_impl.h"
 #include "input_method_controller.h"
 #include "ipc_object_stub.h"
 #include "ipc_skeleton.h"
@@ -92,13 +93,13 @@ int32_t InputClientStub::OnSwitchInputOnRemote(MessageParcel &data, MessageParce
 
 int32_t InputClientStub::OnPanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    uint32_t status;
-    std::vector<InputWindowInfo> windowInfo;
-    if (!ITypesUtil::Unmarshal(data, status, windowInfo)) {
+    uint32_t status = 0;
+    ImeWindowInfo info;
+    if (!ITypesUtil::Unmarshal(data, status, info)) {
         IMSA_HILOGE("read message parcel failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return reply.WriteInt32(OnPanelStatusChange(static_cast<InputWindowStatus>(status), windowInfo))
+    return reply.WriteInt32(OnPanelStatusChange(static_cast<InputWindowStatus>(status), info))
                ? ErrorCode::NO_ERROR
                : ErrorCode::ERROR_EX_PARCELABLE;
 }
@@ -122,13 +123,12 @@ int32_t InputClientStub::OnInputStop()
 
 int32_t InputClientStub::OnSwitchInput(const Property &property, const SubProperty &subProperty)
 {
-    return InputMethodController::GetInstance()->OnSwitchInput(property, subProperty);
+    return ImeEventMonitorManagerImpl::GetInstance().OnImeChange(property, subProperty);
 }
 
-int32_t InputClientStub::OnPanelStatusChange(
-    const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+int32_t InputClientStub::OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
-    return InputMethodController::GetInstance()->OnPanelStatusChange(status, windowInfo);
+    return ImeEventMonitorManagerImpl::GetInstance().OnPanelStatusChange(status, info);
 }
 
 void InputClientStub::DeactivateClient()

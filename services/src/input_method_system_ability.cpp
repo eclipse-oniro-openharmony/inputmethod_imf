@@ -435,23 +435,25 @@ int32_t InputMethodSystemAbility::ShowCurrentInput()
     return userSession_->OnShowCurrentInput();
 };
 
-int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
+int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (!identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName)) {
         IMSA_HILOGE("not current ime");
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
-    return userSession_->OnPanelStatusChange(status, windowInfo);
+    return userSession_->OnPanelStatusChange(status, info);
 }
 
-int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)
+int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag)
 {
-    IMSA_HILOGI("eventType: %{public}u, eventFlag: %{public}u", eventType, clientInfo.eventFlag);
-    if ((eventType == IME_SHOW || eventType == IME_HIDE)
-        && !identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
-        IMSA_HILOGE("not system application");
-        return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
+    IMSA_HILOGI("finalEventFlag: %{public}u, eventFlag: %{public}u", clientInfo.eventFlag, eventFlag);
+    if (EventStatusManager::IsImeHideOn(eventFlag) || EventStatusManager::IsImeShowOn(eventFlag)) {
+        if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())
+            && !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+            IMSA_HILOGE("not system application");
+            return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
+        }
     }
     auto ret = GenerateClientInfo(clientInfo);
     if (ret != ErrorCode::NO_ERROR) {

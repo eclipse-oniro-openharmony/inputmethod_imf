@@ -91,7 +91,7 @@ public:
     void OnFocused(int32_t pid, int32_t uid);
     void OnUnfocused(int32_t pid, int32_t uid);
     int64_t GetCurrentClientPid();
-    int32_t OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo);
+    int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
     int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);

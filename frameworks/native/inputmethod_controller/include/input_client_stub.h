@@ -20,6 +20,7 @@
 
 #include "i_input_client.h"
 #include "i_input_method_agent.h"
+#include "ime_event_monitor_manager.h"
 #include "iremote_stub.h"
 #include "message_handler.h"
 #include "message_option.h"
@@ -39,8 +40,7 @@ public:
     int32_t OnInputReady(const sptr<IInputMethodAgent> &agent) override;
     int32_t OnInputStop() override;
     int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
-    int32_t OnPanelStatusChange(
-        const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) override;
+    int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) override;
     void DeactivateClient() override;
 
 private:

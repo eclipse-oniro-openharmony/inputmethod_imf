@@ -16,31 +16,29 @@
 #ifndef INPUTMETHOD_IMF_IME_SETTING_LISTENER_TEST_IMPL_H
 #define INPUTMETHOD_IMF_IME_SETTING_LISTENER_TEST_IMPL_H
 
-#include <unistd.h>
-
 #include <condition_variable>
 
-#include "input_method_controller.h"
-#include "input_method_utils.h"
-#include "key_event.h"
-#include "string_ex.h"
+#include "ime_event_listener.h"
 
 namespace OHOS {
 namespace MiscServices {
-class ImeSettingListenerTestImpl : public InputMethodSettingListener {
+class ImeSettingListenerTestImpl : public ImeEventListener {
 public:
     ImeSettingListenerTestImpl(){};
     ~ImeSettingListenerTestImpl(){};
     void OnImeChange(const Property &property, const SubProperty &subProperty) override;
-    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo) override;
+    void OnImeShow(const ImeWindowInfo &info) override;
+    void OnImeHide(const ImeWindowInfo &info) override;
     static void ResetParam();
     static bool WaitPanelHide();
     static bool WaitPanelShow();
     static bool WaitImeChange(const SubProperty &subProperty);
+    static bool WaitImeChange();
 
 private:
     static InputWindowStatus status_;
     static SubProperty subProperty_;
+    static bool isImeChange_;
     static std::mutex imeSettingListenerLock_;
     static std::condition_variable imeSettingListenerCv_;
 }; // namespace MiscServices

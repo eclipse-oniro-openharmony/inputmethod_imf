@@ -164,7 +164,6 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
         IMSA_HILOGE("STATUS_BAR cannot ChangePanelFlag.");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    panelFlag_ = panelFlag;
     WindowGravity gravity = WindowGravity::WINDOW_GRAVITY_FLOAT;
     if (panelFlag == FLG_FIXED) {
         gravity = WindowGravity::WINDOW_GRAVITY_BOTTOM;
@@ -173,6 +172,9 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
         Rosen::RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     }
     auto ret = window_->SetWindowGravity(gravity, invalidGravityPercent);
+    if (ret == WMError::WM_OK) {
+        panelFlag_ = panelFlag;
+    }
     IMSA_HILOGI("flag: %{public}d, ret = %{public}d", panelFlag, ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
@@ -283,18 +285,32 @@ void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
         IMSA_HILOGD("HidePanel panelStatusListener_ is not nullptr");
         panelStatusListener_->OnPanelStatus(windowId_, false);
     }
+    PanelStatusChangeToImc(status);
+}
+
+void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status)
+{
+    if (panelType_ != SOFT_KEYBOARD) {
+        IMSA_HILOGD("not SOFT_KEYBOARD");
+        return;
+    }
+    if (panelFlag_ != FLG_FIXED && panelFlag_ != FLG_FLOATING) {
+        IMSA_HILOGD("not FLG_FIXED && FLG_FLOATING");
+        return;
+    }
     auto imsa = ImaUtils::GetImsaProxy();
     if (imsa == nullptr) {
         IMSA_HILOGE("imsa is nullptr");
         return;
     }
-    if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
-        auto rect = window_->GetRect();
-        IMSA_HILOGD("InputMethodPanel::x:%{public}d, y:%{public}d, w:%{public}u, h:%{public}u", rect.posX_, rect.posY_,
-            rect.width_, rect.height_);
-        std::string name = window_->GetWindowName() + "/" + std::to_string(window_->GetWindowId());
-        imsa->PanelStatusChange(status, { std::move(name), rect.posX_, rect.posY_, rect.width_, rect.height_ });
-    }
+    auto rect = window_->GetRect();
+    IMSA_HILOGD("InputMethodPanel::rect[%{public}d,%{public}d,%{public}u,%{public}u]", rect.posX_, rect.posY_,
+        rect.width_, rect.height_);
+    std::string name = window_->GetWindowName() + "/" + std::to_string(window_->GetWindowId());
+    ImeWindowInfo info;
+    info.panelInfo = { panelType_, panelFlag_ };
+    info.windowInfo = { std::move(name), rect.posX_, rect.posY_, rect.width_, rect.height_ };
+    imsa->PanelStatusChange(status, info);
 }
 
 bool InputMethodPanel::IsShowing()

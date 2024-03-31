@@ -25,18 +25,8 @@
 #include "message_parcel.h"
 #include "text_listener.h"
 
-
 using namespace OHOS::MiscServices;
 namespace OHOS {
-class SettingListener : public InputMethodSettingListener {
-    void OnImeChange(const Property &property, const SubProperty &subProperty)
-    {
-    }
-    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
-    {
-    }
-};
-
 void TestListInputMethod(sptr<InputMethodController> imc)
 {
     std::vector<Property> properties = {};
@@ -102,7 +92,8 @@ void TestOnConfigurationChange(sptr<InputMethodController> imc)
     imc->GetInputPattern(inputPattern);
 }
 
-void TestSwitchInputMethod(SwitchTrigger fuzzedTrigger, sptr<InputMethodController> imc, std::string fuzzedString)
+void TestSwitchInputMethod(
+    SwitchTrigger fuzzedTrigger, sptr<InputMethodController> imc, const std::string &fuzzedString)
 {
     imc->SwitchInputMethod(fuzzedTrigger, fuzzedString, fuzzedString);
     imc->ShowOptionalInputMethod();
@@ -131,18 +122,14 @@ void TestShowSomething(sptr<InputMethodController> imc)
     imc->GetCurrentInputMethod();
     imc->GetCurrentInputMethodSubtype();
 
-    auto settingListener = std::make_shared<SettingListener>();
-    imc->SetSettingListener(settingListener);
-    imc->UpdateListenEventFlag("imeChange", true);
-
     imc->StopInputSession();
     imc->Close();
 }
 
-void TestUpdateListenEventFlag(sptr<InputMethodController> imc, const std::string &fuzzedString)
+void TestUpdateListenEventFlag(sptr<InputMethodController> imc, uint32_t fuzzedUint32)
 {
-    imc->UpdateListenEventFlag(fuzzedString, true);
-    imc->UpdateListenEventFlag(fuzzedString, false);
+    imc->UpdateListenEventFlag(static_cast<uint32_t>(fuzzedUint32), static_cast<uint32_t>(fuzzedUint32), true);
+    imc->UpdateListenEventFlag(static_cast<uint32_t>(fuzzedUint32), static_cast<uint32_t>(fuzzedUint32), false);
 }
 
 void TestAttach(sptr<InputMethodController> imc, int32_t fuzzedInt32)
@@ -166,7 +153,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     auto fuzzedInt = static_cast<int>(size);
     auto fuzzedInt32 = static_cast<int32_t>(size);
-    auto fuzzedUInt32 = static_cast<uint32_t>(size);
+    auto fuzzedUint32 = static_cast<uint32_t>(size);
     auto fuzzedDouble = static_cast<double>(size);
     auto fuzzedTrigger = static_cast<SwitchTrigger>(size);
 
@@ -177,9 +164,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     OHOS::TestOnSelectionChange(imc, fuzzedU16String, fuzzedInt, fuzzedDouble);
     OHOS::TestOnConfigurationChange(imc);
     OHOS::TestSwitchInputMethod(fuzzedTrigger, imc, fuzzedString);
-    OHOS::TestSetCallingWindow(imc, fuzzedUInt32);
+    OHOS::TestSetCallingWindow(imc, fuzzedUint32);
     OHOS::TestDispatchKeyEvent(imc, fuzzedInt32);
     OHOS::TestShowSomething(imc);
-    OHOS::TestUpdateListenEventFlag(imc, fuzzedString);
+    OHOS::TestUpdateListenEventFlag(imc, fuzzedUint32);
     return 0;
 }

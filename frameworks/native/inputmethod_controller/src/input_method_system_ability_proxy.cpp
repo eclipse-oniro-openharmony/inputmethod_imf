@@ -193,18 +193,18 @@ int32_t InputMethodSystemAbilityProxy::SwitchInputMethod(
         [&name, &subName, trigger](MessageParcel &data) { return ITypesUtil::Marshal(data, name, subName, trigger); });
 }
 
-int32_t InputMethodSystemAbilityProxy::PanelStatusChange(
-    const InputWindowStatus &status, const InputWindowInfo &windowInfo)
+int32_t InputMethodSystemAbilityProxy::PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE),
-        [status, windowInfo](
-            MessageParcel &data) { return ITypesUtil::Marshal(data, static_cast<uint32_t>(status), windowInfo); });
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::PANEL_STATUS_CHANGE), [status, &info](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, static_cast<uint32_t>(status), info);
+        });
 }
 
-int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType)
+int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag)
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::UPDATE_LISTEN_EVENT_FLAG),
-        [&clientInfo, eventType](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, eventType); });
+        [&clientInfo, eventFlag](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, eventFlag); });
 }
 
 bool InputMethodSystemAbilityProxy::IsCurrentIme()

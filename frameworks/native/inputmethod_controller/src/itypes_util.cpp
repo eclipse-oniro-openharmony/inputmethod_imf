@@ -276,20 +276,29 @@ bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
     return true;
 }
 
-bool ITypesUtil::Marshalling(const InputWindowInfo &input, MessageParcel &data)
+bool ITypesUtil::Marshalling(const ImeWindowInfo &input, MessageParcel &data)
 {
-    if (!Marshal(data, input.name, input.top, input.left, input.width, input.height)) {
+    if (!Marshal(data, static_cast<int32_t>(input.panelInfo.panelFlag),
+                 static_cast<int32_t>(input.panelInfo.panelType), input.windowInfo.name, input.windowInfo.top,
+                 input.windowInfo.left, input.windowInfo.width, input.windowInfo.height)) {
         IMSA_HILOGE("write InputWindowInfo to message parcel failed");
         return false;
     }
     return true;
 }
-bool ITypesUtil::Unmarshalling(InputWindowInfo &output, MessageParcel &data)
+
+bool ITypesUtil::Unmarshalling(ImeWindowInfo &output, MessageParcel &data)
 {
-    if (!Unmarshal(data, output.name, output.top, output.left, output.width, output.height)) {
+    int32_t panelFlag = 0;
+    int32_t panelType = 0;
+    InputWindowInfo windowInfo;
+    if (!Unmarshal(data, panelFlag, panelType, windowInfo.name, windowInfo.top, windowInfo.left, windowInfo.width,
+                   windowInfo.height)) {
         IMSA_HILOGE("read InputWindowInfo from message parcel failed");
         return false;
     }
+    output.panelInfo = { static_cast<PanelType>(panelType), static_cast<PanelFlag>(panelFlag) };
+    output.windowInfo = windowInfo;
     return true;
 }
 
@@ -310,18 +319,6 @@ bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)
         return false;
     }
     output = { { static_cast<PanelType>(type), static_cast<PanelFlag>(flag) }, visible, static_cast<Trigger>(trigger) };
-    return true;
-}
-
-bool ITypesUtil::Marshalling(EventType input, MessageParcel &data)
-{
-    return data.WriteUint32(static_cast<uint32_t>(input));
-}
-
-bool ITypesUtil::Unmarshalling(EventType &output, MessageParcel &data)
-{
-    auto ret = data.ReadUint32();
-    output = static_cast<EventType>(ret);
     return true;
 }
 

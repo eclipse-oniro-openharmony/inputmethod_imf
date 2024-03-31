@@ -17,6 +17,7 @@
 
 #include "ability_manager_client.h"
 #include "global.h"
+#include "ime_event_monitor_manager_impl.h"
 #include "ime_setting_listener_test_impl.h"
 #include "input_method_ability_interface.h"
 #include "input_method_controller.h"
@@ -137,10 +138,9 @@ private:
     {
         TddUtil::StorageSelfTokenID();
         TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "ImeProxyTest"));
-        imc_->SetSettingListener(std::make_shared<ImeSettingListenerTestImpl>());
-        imc_->UpdateListenEventFlag("imeShow", true);
-        imc_->UpdateListenEventFlag("imeHide", true);
-        imc_->UpdateListenEventFlag("imeChange", true);
+        auto listener = std::make_shared<ImeSettingListenerTestImpl>();
+        ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(
+            EVENT_IME_HIDE_MASK | EVENT_IME_SHOW_MASK | EVENT_IME_CHANGE_MASK, listener);
         TddUtil::RestoreSelfTokenID();
     }
 };

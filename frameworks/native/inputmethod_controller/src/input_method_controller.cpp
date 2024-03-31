@@ -44,8 +44,6 @@ std::mutex InputMethodController::instanceLock_;
 constexpr int32_t LOOP_COUNT = 5;
 constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t ACE_DEAL_TIME_OUT = 200;
-const std::unordered_map<std::string, EventType> EVENT_TYPE{ { "imeChange", IME_CHANGE }, { "imeShow", IME_SHOW },
-    { "imeHide", IME_HIDE } };
 InputMethodController::InputMethodController()
 {
     IMSA_HILOGD("IMC structure");
@@ -75,11 +73,6 @@ sptr<InputMethodController> InputMethodController::GetInstance()
     return instance_;
 }
 
-void InputMethodController::SetSettingListener(std::shared_ptr<InputMethodSettingListener> listener)
-{
-    settingListener_ = std::move(listener);
-}
-
 int32_t InputMethodController::RestoreListenEventFlag()
 {
     auto proxy = GetSystemAbilityProxy();
@@ -87,35 +80,25 @@ int32_t InputMethodController::RestoreListenEventFlag()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->UpdateListenEventFlag(clientInfo_, IME_NONE);
+    // 0 represent no need to check permission
+    return proxy->UpdateListenEventFlag(clientInfo_, 0);
 }
 
-int32_t InputMethodController::UpdateListenEventFlag(const std::string &type, bool isOn)
+int32_t InputMethodController::UpdateListenEventFlag(uint32_t finalEventFlag, uint32_t eventFlag, bool isOn)
 {
-    auto it = EVENT_TYPE.find(type);
-    if (it == EVENT_TYPE.end()) {
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    auto eventType = it->second;
+    auto oldEventFlag = clientInfo_.eventFlag;
+    clientInfo_.eventFlag = finalEventFlag;
     auto proxy = GetSystemAbilityProxy();
-    if (proxy == nullptr) {
+    if (proxy == nullptr && isOn) {
         IMSA_HILOGE("proxy is nullptr");
+        clientInfo_.eventFlag = oldEventFlag;
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
-    auto oldEventFlag = clientInfo_.eventFlag;
-    UpdateNativeEventFlag(eventType, isOn);
-    auto ret = proxy->UpdateListenEventFlag(clientInfo_, eventType);
+    auto ret = proxy->UpdateListenEventFlag(clientInfo_, eventFlag);
     if (ret != ErrorCode::NO_ERROR && isOn) {
         clientInfo_.eventFlag = oldEventFlag;
     }
     return ret;
-}
-
-void InputMethodController::UpdateNativeEventFlag(EventType eventType, bool isOn)
-{
-    uint32_t currentEvent = isOn ? 1u << eventType : ~(1u << eventType);
-    clientInfo_.eventFlag = isOn ? clientInfo_.eventFlag | currentEvent : clientInfo_.eventFlag & currentEvent;
 }
 
 void InputMethodController::SetControllerListener(std::shared_ptr<ControllerListener> controllerListener)
@@ -177,27 +160,6 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
     }
     abilityManager_ = iface_cast<IInputMethodSystemAbility>(systemAbility);
     return abilityManager_;
-}
-
-int32_t InputMethodController::OnSwitchInput(const Property &property, const SubProperty &subProperty)
-{
-    if (settingListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    settingListener_->OnImeChange(property, subProperty);
-    return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodController::OnPanelStatusChange(
-    const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
-{
-    if (settingListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
-    }
-    settingListener_->OnPanelStatusChange(status, windowInfo);
-    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodController::DeactivateClient()
@@ -531,7 +493,7 @@ void InputMethodController::RestoreListenInfoInSaDied()
 {
     {
         std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
-        if (clientInfo_.eventFlag == EventStatusManager::NO_EVENT_ON) {
+        if (clientInfo_.eventFlag == NO_EVENT_ON) {
             return;
         }
     }
