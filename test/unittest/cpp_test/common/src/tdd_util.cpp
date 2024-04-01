@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 
+#include "access_util.h"
 #include "accesstoken_kit.h"
 #include "datashare_helper.h"
 #include "global.h"
@@ -33,6 +34,7 @@
 #include "iservice_registry.h"
 #include "nativetoken_kit.h"
 #include "os_account_manager.h"
+#include "scope_utils.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "tdd_util.h"
@@ -321,6 +323,8 @@ bool TddUtil::GetUnfocused()
 
 void TddUtil::WindowManager::CreateWindow()
 {
+    windowTokenId_ = AccessUtil::AllocTestTokenID(true, "undefined", {});
+    TokenScope scope(windowTokenId_);
     std::string windowName = "inputmethod_test_window";
     sptr<WindowOption> winOption = new OHOS::Rosen::WindowOption();
     winOption->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
@@ -348,6 +352,7 @@ void TddUtil::WindowManager::HideWindow()
         IMSA_HILOGE("window is not exist.");
         return;
     }
+    TokenScope scope(windowTokenId_);
     auto ret = window_->Hide();
     IMSA_HILOGI("Hide window end, ret = %{public}d", ret);
 }
@@ -355,6 +360,7 @@ void TddUtil::WindowManager::HideWindow()
 void TddUtil::WindowManager::DestroyWindow()
 {
     if (window_ != nullptr) {
+        TokenScope scope(windowTokenId_);
         window_->Destroy();
     }
 }

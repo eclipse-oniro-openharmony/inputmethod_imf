@@ -68,6 +68,7 @@ public:
 
     private:
         static sptr<Rosen::Window> window_;
+        static uint64_t windowTokenId_;
     };
 
 private:
