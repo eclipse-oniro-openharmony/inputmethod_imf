@@ -20,11 +20,13 @@ namespace MiscServices {
 InputWindowStatus ImeSettingListenerTestImpl::status_{ InputWindowStatus::NONE };
 SubProperty ImeSettingListenerTestImpl::subProperty_{};
 std::mutex ImeSettingListenerTestImpl::imeSettingListenerLock_;
+bool ImeSettingListenerTestImpl::isImeChange_{ false };
 std::condition_variable ImeSettingListenerTestImpl::imeSettingListenerCv_;
 void ImeSettingListenerTestImpl::ResetParam()
 {
     status_ = InputWindowStatus::NONE;
     subProperty_ = {};
+    isImeChange_ = false;
 }
 bool ImeSettingListenerTestImpl::WaitPanelHide()
 {
@@ -38,6 +40,14 @@ bool ImeSettingListenerTestImpl::WaitPanelShow()
     imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return status_ == InputWindowStatus::SHOW; });
     return status_ == InputWindowStatus::SHOW;
 }
+
+bool ImeSettingListenerTestImpl::WaitImeChange()
+{
+    std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return isImeChange_; });
+    return isImeChange_;
+}
+
 bool ImeSettingListenerTestImpl::WaitImeChange(const SubProperty &subProperty)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
@@ -47,13 +57,21 @@ bool ImeSettingListenerTestImpl::WaitImeChange(const SubProperty &subProperty)
 }
 void ImeSettingListenerTestImpl::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
+    std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
+    isImeChange_ = true;
     subProperty_ = subProperty;
     imeSettingListenerCv_.notify_one();
 }
-void ImeSettingListenerTestImpl::OnPanelStatusChange(
-    const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+void ImeSettingListenerTestImpl::OnImeShow(const ImeWindowInfo &info)
 {
-    status_ = status;
+    std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
+    status_ = InputWindowStatus::SHOW;
+    imeSettingListenerCv_.notify_one();
+}
+void ImeSettingListenerTestImpl::OnImeHide(const ImeWindowInfo &info)
+{
+    std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
+    status_ = InputWindowStatus::HIDE;
     imeSettingListenerCv_.notify_one();
 }
 } // namespace MiscServices

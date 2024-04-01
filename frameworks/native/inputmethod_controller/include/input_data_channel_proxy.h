@@ -52,6 +52,7 @@ public:
     int32_t GetTextConfig(TextTotalConfig &textConfig) override;
     void NotifyPanelStatusInfo(const PanelStatusInfo &info) override;
     void NotifyKeyboardHeight(uint32_t height) override;
+    int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
 private:
     static inline BrokerDelegator<InputDataChannelProxy> delegator_;

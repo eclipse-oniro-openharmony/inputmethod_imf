@@ -16,22 +16,24 @@
 #ifndef INTERFACE_KITS_JS_INPUT_METHOD_ENGINE_SETTING_H
 #define INTERFACE_KITS_JS_INPUT_METHOD_ENGINE_SETTING_H
 
+#include <uv.h>
+
 #include <map>
 #include <memory>
 #include <mutex>
 #include <thread>
-#include <uv.h>
+#include <unordered_map>
 
-#include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
 #include "async_call.h"
-#include "global.h"
 #include "event_handler.h"
+#include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
+#include "global.h"
 #include "input_method_engine_listener.h"
+#include "input_method_panel.h"
 #include "input_method_property.h"
 #include "js_callback_object.h"
 #include "js_panel.h"
 #include "napi/native_api.h"
-#include "input_method_panel.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -54,6 +56,7 @@ public:
     void OnSetCallingWindow(uint32_t windowId) override;
     void OnSetSubtype(const SubProperty &property) override;
     void OnSecurityChange(int32_t security) override;
+    void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
 private:
     struct PanelContext : public AsyncCall::Context {
@@ -102,6 +105,7 @@ private:
         uint32_t windowid = 0;
         int32_t security = 0;
         SubProperty subProperty;
+        std::unordered_map<std::string, PrivateDataValue> privateCommand;
         UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
             : vecCopy(cbVec), type(type)
         {

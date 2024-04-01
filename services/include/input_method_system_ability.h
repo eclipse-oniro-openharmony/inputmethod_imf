@@ -74,8 +74,8 @@ public:
     int32_t DisplayOptionalInputMethod() override;
     int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
     int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) override;
-    int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) override;
-    int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) override;
+    int32_t PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) override;
+    int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) override;
     bool IsCurrentIme() override;
     bool IsInputTypeSupported(InputType type) override;
     int32_t StartInputType(InputType type) override;
@@ -88,6 +88,7 @@ public:
     int32_t ShowCurrentInputDeprecated() override;
     int Dump(int fd, const std::vector<std::u16string> &args) override;
     void DumpAllMethod(int fd);
+    int32_t IsDefaultIme() override;
 
 protected:
     void OnStart() override;
@@ -120,7 +121,10 @@ private:
     int32_t SwitchInputType(const SwitchInfo &switchInfo);
     ServiceRunningState state_;
     void InitServiceHandler();
-    void SetCurrentUserId();
+    int32_t GetCurrentUserIdFromOsAccount();
+    void HandleUserChanged(int32_t userId);
+    int32_t StartImeWhenWmsReady();
+    void HandleWmsReady(int32_t userId);
     int32_t InitAccountMonitor();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
@@ -143,11 +147,15 @@ private:
     void RegisterEnableImeObserver();
     void RegisterSecurityModeObserver();
     void CheckSecurityMode(InputClientInfo &inputClientInfo);
+    int32_t IsDefaultImeFromTokenId(uint32_t tokenId);
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
     bool enableImeOn_ = false;
     bool enableSecurityMode_ = false;
+
+    bool isScbEnable_ = false;
+    std::atomic<bool> imeStarting_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

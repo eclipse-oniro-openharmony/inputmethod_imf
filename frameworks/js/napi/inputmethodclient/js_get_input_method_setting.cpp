@@ -16,6 +16,7 @@
 #include "js_get_input_method_setting.h"
 
 #include "event_checker.h"
+#include "ime_event_monitor_manager_impl.h"
 #include "input_client_info.h"
 #include "input_method_controller.h"
 #include "input_method_status.h"
@@ -36,8 +37,8 @@ constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_MAX = 6;
 thread_local napi_ref JsGetInputMethodSetting::IMSRef_ = nullptr;
 const std::string JsGetInputMethodSetting::IMS_CLASS_NAME = "InputMethodSetting";
-const std::map<InputWindowStatus, std::string> PANEL_STATUS{ { InputWindowStatus::SHOW, "imeShow" },
-    { InputWindowStatus::HIDE, "imeHide" } };
+const std::unordered_map<std::string, uint32_t> EVENT_TYPE{ { "imeChange", EVENT_IME_CHANGE_MASK },
+    { "imeShow", EVENT_IME_SHOW_MASK }, { "imeHide", EVENT_IME_HIDE_MASK } };
 std::mutex JsGetInputMethodSetting::msMutex_;
 std::shared_ptr<JsGetInputMethodSetting> JsGetInputMethodSetting::inputMethod_{ nullptr };
 napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
@@ -446,9 +447,6 @@ int32_t JsGetInputMethodSetting::RegisterListener(
 {
     IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    if (jsCbMap_.empty()) {
-        InputMethodController::GetInstance()->SetSettingListener(inputMethod_);
-    }
     if (!jsCbMap_.empty() && jsCbMap_.find(type) == jsCbMap_.end()) {
         IMSA_HILOGI("start type: %{public}s listening.", type.c_str());
     }
@@ -487,9 +485,13 @@ napi_value JsGetInputMethodSetting::Subscribe(napi_env env, napi_callback_info i
     if (engine == nullptr) {
         return nullptr;
     }
+    auto iter = EVENT_TYPE.find(type);
+    if (iter == EVENT_TYPE.end()) {
+        return nullptr;
+    }
     std::shared_ptr<JSCallbackObject> callback =
         std::make_shared<JSCallbackObject>(env, argv[ARGC_ONE], std::this_thread::get_id());
-    auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, true);
+    auto ret = ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(iter->second, inputMethod_);
     if (ret == ErrorCode::NO_ERROR) {
         engine->RegisterListener(argv[ARGC_ONE], type, callback);
     } else {
@@ -565,8 +567,12 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
     }
     bool isUpdateFlag = false;
     engine->UnRegisterListener(argv[ARGC_ONE], type, isUpdateFlag);
+    auto iter = EVENT_TYPE.find(type);
+    if (iter == EVENT_TYPE.end()) {
+        return nullptr;
+    }
     if (isUpdateFlag) {
-        auto ret = InputMethodController::GetInstance()->UpdateListenEventFlag(type, false);
+        auto ret = ImeEventMonitorManagerImpl::GetInstance().UnRegisterImeEventListener(iter->second, inputMethod_);
         IMSA_HILOGI("UpdateListenEventFlag, ret: %{public}d, type: %{public}s", ret, type.c_str());
     }
     napi_value result = nullptr;
@@ -620,21 +626,27 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
     FreeWorkIfFail(ret, work);
 }
 
-void JsGetInputMethodSetting::OnPanelStatusChange(
-    const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
+void JsGetInputMethodSetting::OnImeShow(const ImeWindowInfo &info)
 {
-    auto it = PANEL_STATUS.find(status);
-    if (it == PANEL_STATUS.end()) {
-        IMSA_HILOGE("invalid panel status");
+    OnPanelStatusChange("imeShow", info);
+}
+
+void JsGetInputMethodSetting::OnImeHide(const ImeWindowInfo &info)
+{
+    OnPanelStatusChange("imeHide", info);
+}
+
+void JsGetInputMethodSetting::OnPanelStatusChange(const std::string &type, const ImeWindowInfo &info)
+{
+    if (info.panelInfo.panelType != PanelType::SOFT_KEYBOARD || info.panelInfo.panelFlag != PanelFlag::FLG_FIXED) {
         return;
     }
-    auto type = it->second;
-    uv_work_t *work = GetUVwork(type, [&windowInfo](UvEntry &entry) { entry.windowInfo = windowInfo; });
+    uv_work_t *work = GetUVwork(type, [&info](UvEntry &entry) { entry.windowInfo = { info.windowInfo }; });
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("status: %{public}u", static_cast<uint32_t>(status));
+    IMSA_HILOGI("type: %{public}s", type.c_str());
     auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {

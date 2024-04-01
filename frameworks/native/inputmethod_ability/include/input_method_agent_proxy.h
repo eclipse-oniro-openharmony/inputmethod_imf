@@ -44,6 +44,7 @@ public:
         std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
     void SetCallingWindow(uint32_t windowId) override;
     void OnConfigurationChange(const Configuration &config) override;
+    int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
 private:
     static inline BrokerDelegator<InputMethodAgentProxy> delegator_;

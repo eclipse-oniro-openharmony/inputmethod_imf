@@ -254,25 +254,25 @@ int32_t InputMethodSystemAbilityStub::SwitchInputMethodOnRemote(MessageParcel &d
 
 int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    uint32_t status;
-    InputWindowInfo windowInfo;
-    if (!ITypesUtil::Unmarshal(data, status, windowInfo)) {
+    uint32_t status = 0;
+    ImeWindowInfo info;
+    if (!ITypesUtil::Unmarshal(data, status, info)) {
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = PanelStatusChange(static_cast<InputWindowStatus>(status), windowInfo);
+    int32_t ret = PanelStatusChange(static_cast<InputWindowStatus>(status), info);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     InputClientInfo clientInfo;
-    EventType type;
-    if (!ITypesUtil::Unmarshal(data, clientInfo, type)) {
+    uint32_t eventFlag = 0;
+    if (!ITypesUtil::Unmarshal(data, clientInfo, eventFlag)) {
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = UpdateListenEventFlag(clientInfo, type);
+    int32_t ret = UpdateListenEventFlag(clientInfo, eventFlag);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -342,6 +342,11 @@ int32_t InputMethodSystemAbilityStub::IsPanelShownOnRemote(MessageParcel &data, 
     bool isShown = false;
     int32_t ret = IsPanelShown(info, isShown);
     return ITypesUtil::Marshal(reply, ret, isShown) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::IsDefaultImeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return ITypesUtil::Marshal(reply, IsDefaultIme()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices
 } // namespace OHOS

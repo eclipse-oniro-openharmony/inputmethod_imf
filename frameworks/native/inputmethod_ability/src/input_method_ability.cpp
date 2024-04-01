@@ -475,10 +475,14 @@ void InputMethodAbility::InvokeTextChangeCallback(const TextTotalConfig &textCon
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
     if (imeListener_ == nullptr) {
-        IMSA_HILOGD("imeListener_ is nullptr");
+        IMSA_HILOGE("imeListener_ is nullptr");
         return;
     }
     imeListener_->OnSetCallingWindow(textConfig.windowId);
+    if (TextConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
+        IMSA_HILOGI("notify privateCommand.");
+        imeListener_->ReceivePrivateCommand(textConfig.privateCommand);
+    }
 }
 
 int32_t InputMethodAbility::HideKeyboard()
@@ -906,6 +910,30 @@ bool InputMethodAbility::IsCurrentIme()
     return false;
 }
 
+bool InputMethodAbility::IsDefaultIme()
+{
+    IMSA_HILOGD("InputMethodAbility, in");
+    if (isDefaultIme_) {
+        return true;
+    }
+    std::lock_guard<std::mutex> lock(defaultImeCheckMutex_);
+    if (isDefaultIme_) {
+        return true;
+    }
+    auto proxy = GetImsaProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("failed to get imsa proxy");
+        return false;
+    }
+    auto ret = proxy->IsDefaultIme();
+    if (ret == ErrorCode::NO_ERROR) {
+        isDefaultIme_ = true;
+        return true;
+    }
+    IMSA_HILOGE("IsDefaultIme failed, ret: %{public}d", ret);
+    return false;
+}
+
 bool InputMethodAbility::IsEnable()
 {
     if (imeListener_ == nullptr) {
@@ -998,6 +1026,35 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
         return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
     return panel->GetCallingWindowInfo(textConfig.windowId, windowInfo);
+}
+
+int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    if (!IsDefaultIme()) {
+        IMSA_HILOGE("current is not default ime.");
+        return ErrorCode::ERROR_NOT_DEFAULT_IME;
+    }
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return channel->SendPrivateCommand(privateCommand);
+}
+
+int32_t InputMethodAbility::ReceivePrivateCommand(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    if (!IsDefaultIme()) {
+        IMSA_HILOGE("current is not default ime.");
+        return ErrorCode::ERROR_NOT_DEFAULT_IME;
+    }
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("imeListener is nullptr");
+        return ErrorCode::ERROR_IME;
+    }
+    imeListener_->ReceivePrivateCommand(privateCommand);
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

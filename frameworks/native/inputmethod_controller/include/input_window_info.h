@@ -19,20 +19,22 @@
 #include <cstdint>
 #include <string>
 
+#include "panel_info.h"
 namespace OHOS {
 namespace MiscServices {
-enum class InputWindowStatus : uint32_t {
-    SHOW,
-    HIDE,
-    NONE
-};
+enum class InputWindowStatus : uint32_t { SHOW, HIDE, NONE };
 
 struct InputWindowInfo {
-    std::string name; // the name of inputWindow
-    int32_t left;     // the abscissa of the upper-left vertex of inputWindow
-    int32_t top;      // the ordinate of the upper-left vertex of inputWindow
-    uint32_t width;   // the width of inputWindow
-    uint32_t height;  // the height of inputWindow
+    std::string name;     // the name of inputWindow
+    int32_t left{ 0 };    // the abscissa of the upper-left vertex of inputWindow
+    int32_t top{ 0 };     // the ordinate of the upper-left vertex of inputWindow
+    uint32_t width{ 0 };  // the width of inputWindow
+    uint32_t height{ 0 }; // the height of inputWindow
+};
+
+struct ImeWindowInfo {
+    PanelInfo panelInfo;
+    InputWindowInfo windowInfo;
 };
 } // namespace MiscServices
 } // namespace OHOS

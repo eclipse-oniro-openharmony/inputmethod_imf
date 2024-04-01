@@ -17,6 +17,8 @@
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_DATA_CHANNEL_H
 #include <errors.h>
 
+#include <unordered_map>
+
 #include "global.h"
 #include "input_method_utils.h"
 #include "iremote_broker.h"
@@ -47,6 +49,7 @@ public:
         GET_TEXT_CONFIG,
         NOTIFY_PANEL_STATUS_INFO,
         NOTIFY_KEYBOARD_HEIGHT,
+        SEND_PRIVATE_COMMAND,
         DATA_CHANNEL_CMD_LAST
     };
 
@@ -69,6 +72,7 @@ public:
     virtual int32_t GetTextIndexAtCursor(int32_t &index) = 0;
     virtual void NotifyPanelStatusInfo(const PanelStatusInfo &info) = 0;
     virtual void NotifyKeyboardHeight(uint32_t height) = 0;
+    virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

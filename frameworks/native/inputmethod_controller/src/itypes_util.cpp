@@ -206,6 +206,10 @@ bool ITypesUtil::Marshalling(const TextTotalConfig &input, MessageParcel &data)
         IMSA_HILOGE("write height to message parcel failed");
         return false;
     }
+    if (!Marshal(data, input.privateCommand)) {
+        IMSA_HILOGE("write privateCommand to message parcel failed");
+        return false;
+    }
     return true;
 }
 
@@ -235,6 +239,10 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
     }
     if (!Unmarshal(data, output.height)) {
         IMSA_HILOGE("read height from message parcel failed");
+        return false;
+    }
+    if (!Unmarshal(data, output.privateCommand)) {
+        IMSA_HILOGE("read privateCommand from message parcel failed");
         return false;
     }
     return true;
@@ -268,20 +276,29 @@ bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
     return true;
 }
 
-bool ITypesUtil::Marshalling(const InputWindowInfo &input, MessageParcel &data)
+bool ITypesUtil::Marshalling(const ImeWindowInfo &input, MessageParcel &data)
 {
-    if (!Marshal(data, input.name, input.top, input.left, input.width, input.height)) {
+    if (!Marshal(data, static_cast<int32_t>(input.panelInfo.panelFlag),
+                 static_cast<int32_t>(input.panelInfo.panelType), input.windowInfo.name, input.windowInfo.top,
+                 input.windowInfo.left, input.windowInfo.width, input.windowInfo.height)) {
         IMSA_HILOGE("write InputWindowInfo to message parcel failed");
         return false;
     }
     return true;
 }
-bool ITypesUtil::Unmarshalling(InputWindowInfo &output, MessageParcel &data)
+
+bool ITypesUtil::Unmarshalling(ImeWindowInfo &output, MessageParcel &data)
 {
-    if (!Unmarshal(data, output.name, output.top, output.left, output.width, output.height)) {
+    int32_t panelFlag = 0;
+    int32_t panelType = 0;
+    InputWindowInfo windowInfo;
+    if (!Unmarshal(data, panelFlag, panelType, windowInfo.name, windowInfo.top, windowInfo.left, windowInfo.width,
+                   windowInfo.height)) {
         IMSA_HILOGE("read InputWindowInfo from message parcel failed");
         return false;
     }
+    output.panelInfo = { static_cast<PanelType>(panelType), static_cast<PanelFlag>(panelFlag) };
+    output.windowInfo = windowInfo;
     return true;
 }
 
@@ -302,18 +319,6 @@ bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)
         return false;
     }
     output = { { static_cast<PanelType>(type), static_cast<PanelFlag>(flag) }, visible, static_cast<Trigger>(trigger) };
-    return true;
-}
-
-bool ITypesUtil::Marshalling(EventType input, MessageParcel &data)
-{
-    return data.WriteUint32(static_cast<uint32_t>(input));
-}
-
-bool ITypesUtil::Unmarshalling(EventType &output, MessageParcel &data)
-{
-    auto ret = data.ReadUint32();
-    output = static_cast<EventType>(ret);
     return true;
 }
 
@@ -401,6 +406,56 @@ bool ITypesUtil::Unmarshalling(SwitchTrigger &output, MessageParcel &data)
     }
     output = static_cast<SwitchTrigger>(state);
     return true;
+}
+
+bool ITypesUtil::Marshalling(const PrivateDataValue &input, MessageParcel &data)
+{
+    size_t idx = input.index();
+    if (!data.WriteInt32(static_cast<int32_t>(idx))) {
+        IMSA_HILOGE("Write index failed.");
+        return false;
+    }
+    if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
+        auto stringValue = std::get_if<std::string>(&input);
+        if (stringValue != nullptr) {
+            return data.WriteString(*stringValue);
+        }
+    } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
+        auto boolValue = std::get_if<bool>(&input);
+        if (boolValue != nullptr) {
+            return data.WriteBool(*boolValue);
+        }
+    } else if (idx == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
+        auto numberValue = std::get_if<int32_t>(&input);
+        if (numberValue != nullptr) {
+            return data.WriteInt32(*numberValue);
+        }
+    }
+    IMSA_HILOGE("write PrivateDataValue with wrong type.");
+    return false;
+}
+
+bool ITypesUtil::Unmarshalling(PrivateDataValue &output, MessageParcel &data)
+{
+    int32_t valueType = data.ReadInt32();
+    bool res = false;
+    if (valueType == static_cast<int32_t>(PrivateDataValueType::VALUE_TYPE_STRING)) {
+        std::string strValue;
+        res = data.ReadString(strValue);
+        output.emplace<std::string>(strValue);
+    } else if (valueType == static_cast<int32_t>(PrivateDataValueType::VALUE_TYPE_BOOL)) {
+        bool boolValue = false;
+        res = data.ReadBool(boolValue);
+        output.emplace<bool>(boolValue);
+    } else if (valueType == static_cast<int32_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
+        int32_t intValue = 0;
+        res = data.ReadInt32(intValue);
+        output.emplace<int32_t>(intValue);
+    }
+    if (!res) {
+        IMSA_HILOGE("read PrivateDataValue from message parcel failed");
+    }
+    return res;
 }
 } // namespace MiscServices
 } // namespace OHOS

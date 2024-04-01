@@ -64,14 +64,15 @@ public:
     virtual int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) = 0;
     virtual int32_t SwitchInputMethod(
         const std::string &bundleName, const std::string &name, SwitchTrigger trigger) = 0;
-    virtual int32_t PanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo) = 0;
-    virtual int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, EventType eventType) = 0;
+    virtual int32_t PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) = 0;
+    virtual int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) = 0;
     virtual bool IsCurrentIme() = 0;
     virtual bool IsInputTypeSupported(InputType type) = 0;
     virtual int32_t StartInputType(InputType type) = 0;
     virtual int32_t ExitCurrentInputType() = 0;
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
     virtual int32_t GetSecurityMode(int32_t &security) = 0;
+    virtual int32_t IsDefaultIme() = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;

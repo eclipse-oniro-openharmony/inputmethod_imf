@@ -71,8 +71,8 @@ napi_value JsInputMethodEngineSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("PATTERN_URI", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::URL))),
         DECLARE_NAPI_PROPERTY(
             "PATTERN_PASSWORD", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::VISIBLE_PASSWORD))),
-        DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD_NUMBER",
-            GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_PASSWORD))),
+        DECLARE_NAPI_PROPERTY(
+            "PATTERN_PASSWORD_NUMBER", GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::NUMBER_PASSWORD))),
         DECLARE_NAPI_PROPERTY("PATTERN_PASSWORD_SCREEN_LOCK",
             GetJsConstProperty(env, static_cast<uint32_t>(TextInputType::SCREEN_LOCK_PASSWORD))),
         DECLARE_NAPI_FUNCTION("getInputMethodEngine", GetInputMethodEngine),
@@ -340,6 +340,10 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
         IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
+    if (type == "privateCommand" && !InputMethodAbility::GetInstance()->IsDefaultIme()) {
+        JsUtils::ThrowException(
+            env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed", TYPE_NONE);
+    }
     IMSA_HILOGD("Subscribe type:%{public}s.", type.c_str());
     auto engine = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
     if (engine == nullptr) {
@@ -354,8 +358,8 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     return result;
 }
 
-napi_status JsInputMethodEngineSetting::GetContext(napi_env env, napi_value in,
-    std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
+napi_status JsInputMethodEngineSetting::GetContext(
+    napi_env env, napi_value in, std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
 {
     bool stageMode = false;
     napi_status status = OHOS::AbilityRuntime::IsStageContext(env, in, stageMode);
@@ -440,9 +444,7 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
         return status;
     };
 
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->SetState(napi_ok);
-    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) { ctxt->SetState(napi_ok); };
 
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         CHECK_RETURN((ctxt->panel != nullptr), "inputMethodPanel is nullptr!", napi_generic_failure);
@@ -491,7 +493,10 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
-
+    if (type == "privateCommand" && !InputMethodAbility::GetInstance()->IsDefaultIme()) {
+        JsUtils::ThrowException(
+            env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed", TYPE_NONE);
+    }
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {
@@ -737,6 +742,40 @@ void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
     FreeWorkIfFail(ret, work);
 }
 
+void JsInputMethodEngineSetting::ReceivePrivateCommand(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    IMSA_HILOGD("JsInputMethodEngineSetting, run in");
+    std::string type = "privateCommand";
+    auto entry = GetEntry(type, [&privateCommand](UvEntry &entry) { entry.privateCommand = privateCommand; });
+    if (entry == nullptr) {
+        return;
+    }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    auto task = [entry]() {
+        auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc < 1) {
+                return false;
+            }
+            napi_value jsObject = JsUtils::GetJsPrivateCommand(env, entry->privateCommand);
+            if (jsObject == nullptr) {
+                IMSA_HILOGE("GetJsPrivateCommand failed: jsObject is nullptr");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = { jsObject };
+            return true;
+        };
+        // 1 means callback has 1 params.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
+    };
+    eventHandler->PostTask(task, type);
+}
+
 uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
 {
     IMSA_HILOGD("run in, type: %{public}s", type.c_str());
@@ -803,7 +842,7 @@ void JsInputMethodEngineSetting::FreeWorkIfFail(int ret, uv_work_t *work)
     if (ret == 0 || work == nullptr) {
         return;
     }
-    
+
     UvEntry *data = static_cast<UvEntry *>(work->data);
     delete data;
     delete work;

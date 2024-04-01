@@ -92,7 +92,7 @@ void PerUserSession::RemoveClientInfo(const sptr<IRemoteObject> &client, bool is
         return;
     }
     // if client is subscriber and the release is not because of the client died, do not remove
-    if (clientInfo->eventFlag != EventStatusManager::NO_EVENT_ON && !isClientDied) {
+    if (clientInfo->eventFlag != NO_EVENT_ON && !isClientDied) {
         IMSA_HILOGD("is subscriber, do not remove");
         auto isShowKeyboard = false;
         auto bindImeType = ImeType::NONE;
@@ -957,7 +957,7 @@ int64_t PerUserSession::GetCurrentClientPid()
     return clientInfo->pid;
 }
 
-int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const InputWindowInfo &windowInfo)
+int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
     auto clientMap = GetClientMap();
     for (const auto &client : clientMap) {
@@ -974,7 +974,7 @@ int32_t PerUserSession::OnPanelStatusChange(const InputWindowStatus &status, con
             IMSA_HILOGD("has no imeHide callback");
             continue;
         }
-        int32_t ret = clientInfo->client->OnPanelStatusChange(status, { windowInfo });
+        int32_t ret = clientInfo->client->OnPanelStatusChange(status, info);
         if (ret != ErrorCode::NO_ERROR) {
             IMSA_HILOGE("OnPanelStatusChange failed, ret: %{public}d", ret);
             continue;
@@ -996,7 +996,7 @@ int32_t PerUserSession::OnUpdateListenEventFlag(const InputClientInfo &clientInf
         IMSA_HILOGE("info is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
     }
-    if (info->eventFlag == EventStatusManager::NO_EVENT_ON && info->bindImeType == ImeType::NONE) {
+    if (info->eventFlag == NO_EVENT_ON && info->bindImeType == ImeType::NONE) {
         RemoveClientInfo(remoteClient, false);
     }
     return ErrorCode::NO_ERROR;

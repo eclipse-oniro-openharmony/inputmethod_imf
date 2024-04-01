@@ -36,7 +36,10 @@ ohos_unittest("InputMethodControllerTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/input_method_controller_test.cpp" ]
+  sources = [
+    "src/ime_event_monitor_manager_test.cpp",
+    "src/input_method_controller_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
@@ -319,6 +322,7 @@ ohos_unittest("InputMethodSwitchTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
@@ -431,6 +435,7 @@ ohos_unittest("NewImeSwitchTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",

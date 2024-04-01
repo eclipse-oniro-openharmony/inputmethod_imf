@@ -21,7 +21,9 @@
 #include <vector>
 
 #include "global.h"
+#include "ime_event_monitor_manager_impl.h"
 #include "ime_info_inquirer.h"
+#include "ime_setting_listener_test_impl.h"
 #include "input_method_controller.h"
 #include "input_method_property.h"
 #include "tdd_util.h"
@@ -38,11 +40,7 @@ public:
     static void CheckCurrentProp(const std::string &extName);
     static void CheckCurrentSubProp(const std::string &extName);
     static void CheckCurrentSubProps();
-    static bool WaitImeChangeCallback(bool isChanged);
     static sptr<InputMethodController> imc_;
-    static bool imeChangeFlag;
-    static std::mutex imeChangeCallbackLock_;
-    static std::condition_variable imeChangeCv_;
     static std::string newImeBundleName;
     static std::vector<std::string> newImeSubName;
     static std::string bundleName;
@@ -53,9 +51,6 @@ public:
     static std::string beforeValue;
     static std::string allEnableIme;
 };
-bool InputMethodSwitchTest::imeChangeFlag = false;
-std::mutex InputMethodSwitchTest::imeChangeCallbackLock_;
-std::condition_variable InputMethodSwitchTest::imeChangeCv_;
 sptr<InputMethodController> InputMethodSwitchTest::imc_;
 std::string InputMethodSwitchTest::newImeBundleName = "com.example.newTestIme";
 std::vector<std::string> InputMethodSwitchTest::newImeSubName{ "lowerInput", "upperInput", "chineseInput" };
@@ -72,23 +67,7 @@ constexpr uint32_t NEW_IME_SUBTYPE_NUM = 3;
 constexpr uint32_t TOTAL_IME_MIN_NUM = 2;
 constexpr uint32_t ENABLE_IME_NUM = 1;
 constexpr uint32_t WAIT_IME_READY_TIME = 1;
-constexpr uint32_t WAIT_SWITCH_READY_TIME = 2;
 constexpr const char *ENABLE_IME_KEYWORD = "settings.inputmethod.enable_ime";
-class InputMethodSettingListenerImpl : public InputMethodSettingListener {
-public:
-    InputMethodSettingListenerImpl() = default;
-    ~InputMethodSettingListenerImpl() = default;
-    void OnImeChange(const Property &property, const SubProperty &subProperty)
-    {
-        InputMethodSwitchTest::imeChangeFlag = true;
-        InputMethodSwitchTest::imeChangeCv_.notify_one();
-        IMSA_HILOGI("InputMethodSettingListenerImpl OnImeChange");
-    }
-    void OnPanelStatusChange(const InputWindowStatus &status, const std::vector<InputWindowInfo> &windowInfo)
-    {
-    }
-};
-
 void InputMethodSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::SetUpTestCase");
@@ -106,8 +85,8 @@ void InputMethodSwitchTest::SetUpTestCase(void)
     TddUtil::SetTestTokenID(
         TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
     imc_ = InputMethodController::GetInstance();
-    imc_->SetSettingListener(std::make_shared<InputMethodSettingListenerImpl>());
-    imc_->UpdateListenEventFlag("imeChange", true);
+    auto listener = std::make_shared<ImeSettingListenerTestImpl>();
+    ImeEventMonitorManagerImpl::GetInstance().RegisterImeEventListener(EVENT_IME_CHANGE_MASK, listener);
 }
 
 void InputMethodSwitchTest::TearDownTestCase(void)
@@ -161,14 +140,6 @@ void InputMethodSwitchTest::CheckCurrentSubProps()
     }
 }
 
-bool InputMethodSwitchTest::WaitImeChangeCallback(bool isChanged)
-{
-    std::unique_lock<std::mutex> lock(imeChangeCallbackLock_);
-    imeChangeCv_.wait_for(lock, std::chrono::seconds(WAIT_SWITCH_READY_TIME),
-        [isChanged]() { return isChanged == imeChangeFlag; });
-    return isChanged == imeChangeFlag;
-}
-
 /**
 * @tc.name: testImeSwitch
 * @tc.desc: switch to testIme
@@ -179,11 +150,11 @@ bool InputMethodSwitchTest::WaitImeChangeCallback(bool isChanged)
 HWTEST_F(InputMethodSwitchTest, testImeSwitch, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testImeSwitch Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     // switch to ext testIme
     auto ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeChangeFlag);
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp(extName[0]);
     CheckCurrentSubProp(extName[0]);
     CheckCurrentSubProps();
@@ -200,10 +171,10 @@ HWTEST_F(InputMethodSwitchTest, testImeSwitch, TestSize.Level0)
 HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSubTypeSwitch_001 Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, extName[0]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(imeChangeFlag);
+    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp(extName[0]);
     CheckCurrentSubProp(extName[0]);
     CheckCurrentSubProps();
@@ -219,10 +190,10 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_001, TestSize.Level0)
 HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSubTypeSwitch_002 Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, extName[1]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeChangeFlag);
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp(extName[0]);
     CheckCurrentSubProp(extName[1]);
     CheckCurrentSubProps();
@@ -238,10 +209,10 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_002, TestSize.Level0)
 HWTEST_F(InputMethodSwitchTest, testSubTypeSwitch_003, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSubTypeSwitch_003 Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName, extName[0]);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(imeChangeFlag);
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp(extName[0]);
     CheckCurrentSubProp(extName[0]);
     CheckCurrentSubProps();
@@ -275,11 +246,11 @@ HWTEST_F(InputMethodSwitchTest, testSubTypeSwitchWithErrorSubName, TestSize.Leve
 HWTEST_F(InputMethodSwitchTest, testSwitchToCurrentImeWithEmptySubName, TestSize.Level0)
 {
     IMSA_HILOGI("oldIme testSwitchToCurrentImeWithEmptySubName Test START");
-    imeChangeFlag = false;
+    ImeSettingListenerTestImpl::ResetParam();
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, bundleName);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(imeChangeFlag);
+    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitImeChange());
     CheckCurrentProp(subName);
     CheckCurrentSubProp(subName);
     CheckCurrentSubProps();
@@ -483,13 +454,13 @@ HWTEST_F(InputMethodSwitchTest, testDisplayOptionalInputMethod, TestSize.Level2)
 HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_001, TestSize.Level0)
 {
     IMSA_HILOGI("testCombinationKeySwitchIme_001 Test START");
+    ImeSettingListenerTestImpl::ResetParam();
     std::shared_ptr<Property> property = imc_->GetCurrentInputMethod();
-    imeChangeFlag = false;
     std::string result;
     static std::string cmd = "uinput -K -d 2076 -d 2050";
     auto ret = TddUtil::ExecuteCmd(cmd, result);
     EXPECT_TRUE(ret);
-    EXPECT_TRUE(InputMethodSwitchTest::WaitImeChangeCallback(true));
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, property->name, "");
 }
 
@@ -503,13 +474,13 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_001, TestSize.Level0
 HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_002, TestSize.Level0)
 {
     IMSA_HILOGI("testCombinationKeySwitchIme_002 Test START");
+    ImeSettingListenerTestImpl::ResetParam();
     std::shared_ptr<Property> property = imc_->GetCurrentInputMethod();
-    imeChangeFlag = false;
     std::string result;
     static std::string cmd = "uinput -K -d 2077 -d 2050";
     auto ret = TddUtil::ExecuteCmd(cmd, result);
     EXPECT_TRUE(ret);
-    EXPECT_TRUE(InputMethodSwitchTest::WaitImeChangeCallback(true));
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, property->name, "");
 }
 } // namespace MiscServices

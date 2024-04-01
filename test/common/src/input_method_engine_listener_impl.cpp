@@ -16,6 +16,7 @@
 #include "input_method_engine_listener_impl.h"
 
 #include "global.h"
+#include "input_method_utils.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -26,6 +27,7 @@ std::mutex InputMethodEngineListenerImpl::imeListenerMutex_;
 std::condition_variable InputMethodEngineListenerImpl::imeListenerCv_;
 bool InputMethodEngineListenerImpl::isEnable_{ false };
 bool InputMethodEngineListenerImpl::isInputFinish_{ false };
+std::unordered_map<std::string, PrivateDataValue> InputMethodEngineListenerImpl::privateCommand_{};
 void InputMethodEngineListenerImpl::OnKeyboardStatus(bool isShow)
 {
     IMSA_HILOGI("InputMethodEngineListenerImpl::OnKeyboardStatus %{public}s", isShow ? "show" : "hide");
@@ -61,6 +63,13 @@ void InputMethodEngineListenerImpl::OnInputFinish()
     isInputFinish_ = true;
     imeListenerCv_.notify_one();
 }
+void InputMethodEngineListenerImpl::ReceivePrivateCommand(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    IMSA_HILOGI("ReceivePrivateCommand");
+    privateCommand_ = privateCommand;
+    imeListenerCv_.notify_one();
+}
 bool InputMethodEngineListenerImpl::IsEnable()
 {
     IMSA_HILOGD("test::isEnable: %{public}d", isEnable_);
@@ -71,6 +80,7 @@ void InputMethodEngineListenerImpl::ResetParam()
     isInputStart_ = false;
     isInputFinish_ = false;
     windowId_ = 0;
+    privateCommand_.clear();
 }
 bool InputMethodEngineListenerImpl::WaitInputStart()
 {
@@ -89,6 +99,15 @@ bool InputMethodEngineListenerImpl::WaitSetCallingWindow(uint32_t windowId)
     std::unique_lock<std::mutex> lock(imeListenerMutex_);
     imeListenerCv_.wait_for(lock, std::chrono::seconds(1), [&windowId]() { return windowId_ == windowId; });
     return windowId_ == windowId;
+}
+bool InputMethodEngineListenerImpl::WaitSendPrivateCommand(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    std::unique_lock<std::mutex> lock(imeListenerMutex_);
+    imeListenerCv_.wait_for(
+        lock, std::chrono::seconds(1), [&privateCommand]() { return privateCommand_ == privateCommand; });
+ 
+    return privateCommand_ == privateCommand;
 }
 } // namespace MiscServices
 } // namespace OHOS

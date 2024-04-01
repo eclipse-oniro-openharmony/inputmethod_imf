@@ -15,6 +15,8 @@
 
 #include "text_listener.h"
 
+#include "input_method_utils.h"
+
 namespace OHOS {
 namespace MiscServices {
 constexpr uint32_t KEYBOARD_STATUS_WAIT_TIME_OUT = 2;
@@ -34,6 +36,7 @@ int32_t TextListener::action_ = -1;
 uint32_t TextListener::height_ = 0;
 KeyboardStatus TextListener::keyboardStatus_ = { KeyboardStatus::NONE };
 PanelStatusInfo TextListener::info_{};
+std::unordered_map<std::string, PrivateDataValue> TextListener::privateCommand_{};
 TextListener::TextListener()
 {
     std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("TextListenerNotifier");
@@ -133,6 +136,12 @@ int32_t TextListener::GetTextIndexAtCursor()
     return TEXT_INDEX;
 }
 
+int32_t TextListener::ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    privateCommand_ = privateCommand;
+    return 0;
+}
+
 void TextListener::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
     IMSA_HILOGD("TextListener::type: %{public}d, flag: %{public}d, visible: %{public}d, trigger: %{public}d.",
@@ -187,6 +196,15 @@ bool TextListener::WaitNotifyKeyboardHeightCallback(uint32_t height)
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     textListenerCv_.wait_for(lock, std::chrono::seconds(1), [height]() { return height_ == height; });
     return height_ == height;
+}
+
+bool TextListener::WaitSendPrivateCommandCallback(std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(
+        lock, std::chrono::seconds(1), [privateCommand]() { return privateCommand_ == privateCommand; });
+
+    return privateCommand_ == privateCommand;
 }
 } // namespace MiscServices
 } // namespace OHOS
