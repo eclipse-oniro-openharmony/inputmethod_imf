@@ -589,7 +589,7 @@ void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(
     }
     IMSA_HILOGI("OnAbilityDisconnectDone CallFunction success");
     napi_value callResult = nullptr;
-    napi_call_function(env_, obj, method, ARGC_TWO, argv, &callResult);
+    napi_call_function(env_, obj, method, ARGC_ONE, argv, &callResult);
 }
 
 void JSInputMethodExtensionConnection::SetJsConnectionObject(napi_value jsConnectionObject)
