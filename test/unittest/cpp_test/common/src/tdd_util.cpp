@@ -56,6 +56,7 @@ uint64_t TddUtil::selfTokenID_ = 0;
 int32_t TddUtil::userID_ = INVALID_USER_ID;
 sptr<Window> TddUtil::WindowManager::window_ = nullptr;
 int32_t TddUtil::WindowManager::currentWindowId_ = 0;
+uint64_t TddUtil::WindowManager::windowTokenId_ = 0;
 std::shared_ptr<BlockData<bool>> FocusChangedListenerTestImpl::isFocused_ =
     std::make_shared<BlockData<bool>>(MAX_TIMEOUT_WAIT_FOCUS, false);
 std::shared_ptr<BlockData<bool>> FocusChangedListenerTestImpl::unFocused_ =

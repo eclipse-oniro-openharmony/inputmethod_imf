@@ -35,6 +35,8 @@
 #include "token_setproc.h"
 namespace OHOS {
 namespace MiscServices {
+using namespace Security::AccessToken;
+using namespace AppExecFwk;
 const std::string PERMISSION_GET_BUNDLE_INFO = "ohos.permission.GET_BUNDLE_INFO";
 uint64_t AccessUtil::selfTokenID_ = 0;
 uint64_t AccessUtil::GetSelfToken()
@@ -119,7 +121,7 @@ int32_t AccessUtil::GetUid(const std::string &bundleName)
         return -1;
     }
     IMSA_HILOGI("bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), bundleInfo.uid);
-    SetTestTokenID(currentToken);
+    SetSelfToken(currentToken);
     return bundleInfo.uid;
 }
 

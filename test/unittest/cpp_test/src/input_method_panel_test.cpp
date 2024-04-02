@@ -25,12 +25,14 @@
 #include <cstdint>
 #include <string>
 
+#include "access_util.h"
 #include "display_manager.h"
 #include "global.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "input_method_engine_listener_impl.h"
 #include "panel_status_listener.h"
+#include "scope_utils.h"
 #include "tdd_util.h"
 #include "text_listener.h"
 
@@ -48,15 +50,20 @@ public:
     void SetUp();
     void TearDown();
     static std::shared_ptr<InputMethodPanel> CreatePanel();
+    static void Attach();
     static void InitPanel();
     static void ClearPanel();
-    static void TriggerShowCallback(std::shared_ptr<InputMethodPanel> &inputMethodPanel);
-    static void TriggerHideCallback(std::shared_ptr<InputMethodPanel> &inputMethodPanel);
+    static bool TriggerShowCallback(std::shared_ptr<InputMethodPanel> &inputMethodPanel);
+    static bool TriggerHideCallback(std::shared_ptr<InputMethodPanel> &inputMethodPanel);
+    static void ImaCreatePanel(const PanelInfo &info, std::shared_ptr<InputMethodPanel> &panel);
     static void ImcPanelListeningTestRestore();
     static void ImcPanelShowNumCheck(uint32_t num);
     static void ImcPanelHideNumCheck(uint32_t num);
     static void ImcPanelShowInfoCheck(const InputWindowInfo &windowInfo);
     static void ImcPanelHideInfoCheck(const InputWindowInfo &windowInfo);
+    static void TestShowPanel(const std::shared_ptr<InputMethodPanel> &panel);
+    static void TestHidePanel(const std::shared_ptr<InputMethodPanel> &panel);
+    static void TestIsPanelShown(const PanelInfo &info, bool expectedResult);
     class PanelStatusListenerImpl : public PanelStatusListener {
     public:
         PanelStatusListenerImpl()
@@ -67,8 +74,14 @@ public:
         ~PanelStatusListenerImpl() = default;
         void OnPanelStatus(uint32_t windowId, bool isShow)
         {
-            showPanel_ = isShow;
-            hidePanel_ = !isShow;
+            {
+                std::unique_lock<std::mutex> lock(InputMethodPanelTest::panelListenerLock_);
+                if (isShow) {
+                    InputMethodPanelTest::status_ = InputWindowStatus::SHOW;
+                } else {
+                    InputMethodPanelTest::status_ = InputWindowStatus::HIDE;
+                }
+            }
             InputMethodPanelTest::panelListenerCv_.notify_one();
             IMSA_HILOGI("PanelStatusListenerImpl OnPanelStatus in, isShow is %{public}s", isShow ? "true" : "false");
         }
@@ -84,14 +97,15 @@ public:
     static sptr<InputMethodAbility> ima_;
     static uint32_t windowWidth_;
     static uint32_t windowHeight_;
-    static bool showPanel_;
-    static bool hidePanel_;
     static std::condition_variable panelListenerCv_;
     static std::mutex panelListenerLock_;
     static constexpr uint32_t DELAY_TIME = 100;
     static constexpr int32_t INTERVAL = 10;
     static std::shared_ptr<AppExecFwk::EventHandler> panelHandler_;
+    static uint64_t sysTokenId_;
     static uint64_t testTokenId_;
+    static int32_t currentImeUid_;
+    static uint64_t currentImeTokenId_;
     static sptr<OnTextChangedListener> textListener_;
     static std::shared_ptr<InputMethodEngineListener> imeListener_;
     static std::shared_ptr<InputMethodPanel> inputMethodPanel_;
@@ -120,8 +134,6 @@ public:
         InputMethodPanelTest::imcPanelStatusListenerCv_.notify_one();
     }
 };
-bool InputMethodPanelTest::showPanel_ = false;
-bool InputMethodPanelTest::hidePanel_ = false;
 std::condition_variable InputMethodPanelTest::panelListenerCv_;
 std::mutex InputMethodPanelTest::panelListenerLock_;
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodPanelTest::panelHandler_{ nullptr };
@@ -135,7 +147,10 @@ sptr<InputMethodController> InputMethodPanelTest::imc_{ nullptr };
 sptr<InputMethodAbility> InputMethodPanelTest::ima_{ nullptr };
 uint32_t InputMethodPanelTest::windowWidth_ = 0;
 uint32_t InputMethodPanelTest::windowHeight_ = 0;
+uint64_t InputMethodPanelTest::sysTokenId_ = 0;
 uint64_t InputMethodPanelTest::testTokenId_ = 0;
+uint64_t InputMethodPanelTest::currentImeTokenId_ = 0;
+int32_t InputMethodPanelTest::currentImeUid_ = 0;
 sptr<OnTextChangedListener> InputMethodPanelTest::textListener_{ nullptr };
 std::shared_ptr<InputMethodEngineListener> InputMethodPanelTest::imeListener_{ nullptr };
 std::shared_ptr<InputMethodPanel> InputMethodPanelTest::inputMethodPanel_{ nullptr };
@@ -145,7 +160,6 @@ void InputMethodPanelTest::SetUpTestCase(void)
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
     // storage current token id
     TddUtil::StorageSelfTokenID();
-    ima_ = InputMethodAbility::GetInstance();
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     imc_ = InputMethodController::GetInstance();
     textListener_ = new (std::nothrow) TextListener();
@@ -154,6 +168,15 @@ void InputMethodPanelTest::SetUpTestCase(void)
     std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
     testTokenId_ = TddUtil::AllocTestTokenID(true, bundleName, {});
+    currentImeTokenId_ = AccessUtil::GetTokenID(bundleName);
+    currentImeUid_ = AccessUtil::GetUid(bundleName);
+    sysTokenId_ = AccessUtil::AllocTestTokenID(true, "undefined", {});
+    {
+        TokenScope tokenScope(currentImeTokenId_);
+        ima_ = InputMethodAbility::GetInstance();
+        ima_->SetCoreAndAgent();
+        InputMethodPanelTest::ima_->SetImeListener(imeListener_);
+    }
     InitPanel();
 }
 
@@ -161,6 +184,7 @@ void InputMethodPanelTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::TearDownTestCase");
     ClearPanel();
+    TddUtil::RestoreSelfTokenID();
 }
 
 void InputMethodPanelTest::SetUp(void)
@@ -183,10 +207,24 @@ std::shared_ptr<InputMethodPanel> InputMethodPanelTest::CreatePanel()
     return inputMethodPanel;
 }
 
+void InputMethodPanelTest::ImaCreatePanel(const PanelInfo &info, std::shared_ptr<InputMethodPanel> &panel)
+{
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto ret = ima_->CreatePanel(nullptr, info, panel);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+void InputMethodPanelTest::Attach()
+{
+    TddUtil::InitWindow(true);
+    auto ret = imc_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
 void InputMethodPanelTest::InitPanel()
 {
     IMSA_HILOGI("start");
-    TddUtil::SetTestTokenID(testTokenId_);
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     inputMethodPanel_ = std::make_shared<InputMethodPanel>();
     PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodPanel_->CreatePanel(nullptr, info);
@@ -202,8 +240,6 @@ void InputMethodPanelTest::InitPanel()
     info = { .panelType = STATUS_BAR };
     ret = inputMethodStatusBar_->CreatePanel(nullptr, info);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-    TddUtil::RestoreSelfTokenID();
     IMSA_HILOGI("end");
 }
 
@@ -213,28 +249,31 @@ void InputMethodPanelTest::ClearPanel()
         IMSA_HILOGD("nullptr");
         return;
     }
+    AccessScope(currentImeTokenId_, currentImeUid_);
     inputMethodPanel_->DestroyPanel();
 }
 
-void InputMethodPanelTest::TriggerShowCallback(std::shared_ptr<InputMethodPanel> &inputMethodPanel)
+bool InputMethodPanelTest::TriggerShowCallback(std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    panelHandler_->PostTask([&inputMethodPanel]() { inputMethodPanel->ShowPanel(); }, InputMethodPanelTest::INTERVAL);
+    IMSA_HILOGI("start");
+    status_ = InputWindowStatus::NONE;
+    panelHandler_->PostTask([&inputMethodPanel]() { TestShowPanel(inputMethodPanel); }, InputMethodPanelTest::INTERVAL);
     {
-        std::unique_lock<std::mutex> lock(InputMethodPanelTest::panelListenerLock_);
-        InputMethodPanelTest::panelListenerCv_.wait_for(lock,
-            std::chrono::milliseconds(InputMethodPanelTest::DELAY_TIME),
-            [] { return InputMethodPanelTest::showPanel_; });
+        std::unique_lock<std::mutex> lock(panelListenerLock_);
+        return panelListenerCv_.wait_for(lock, std::chrono::milliseconds(InputMethodPanelTest::DELAY_TIME),
+            [] { return status_ == InputWindowStatus::SHOW; });
     }
 }
 
-void InputMethodPanelTest::TriggerHideCallback(std::shared_ptr<InputMethodPanel> &inputMethodPanel)
+bool InputMethodPanelTest::TriggerHideCallback(std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
-    panelHandler_->PostTask([&inputMethodPanel]() { inputMethodPanel->HidePanel(); }, InputMethodPanelTest::INTERVAL);
+    IMSA_HILOGI("start");
+    status_ = InputWindowStatus::NONE;
+    panelHandler_->PostTask([&inputMethodPanel]() { TestHidePanel(inputMethodPanel); }, InputMethodPanelTest::INTERVAL);
     {
-        std::unique_lock<std::mutex> lock(InputMethodPanelTest::panelListenerLock_);
-        InputMethodPanelTest::panelListenerCv_.wait_for(lock,
-            std::chrono::milliseconds(InputMethodPanelTest::DELAY_TIME),
-            [] { return InputMethodPanelTest::hidePanel_; });
+        std::unique_lock<std::mutex> lock(panelListenerLock_);
+        return panelListenerCv_.wait_for(lock, std::chrono::milliseconds(InputMethodPanelTest::DELAY_TIME),
+            [] { return status_ == InputWindowStatus::HIDE; });
     }
 }
 
@@ -300,6 +339,32 @@ void InputMethodPanelTest::ImcPanelListeningTestRestore()
     imeHideCallbackNum_ = 0;
 }
 
+void InputMethodPanelTest::TestShowPanel(const std::shared_ptr<InputMethodPanel> &panel)
+{
+    ASSERT_NE(panel, nullptr);
+    auto ret = panel->ShowPanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+void InputMethodPanelTest::TestHidePanel(const std::shared_ptr<InputMethodPanel> &panel)
+{
+    ASSERT_NE(panel, nullptr);
+    // set tokenId and uid as current ime
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
+    auto ret = panel->HidePanel();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
+
+void InputMethodPanelTest::TestIsPanelShown(const PanelInfo &info, bool expectedResult)
+{
+    // set tokenId as system app
+    TokenScope scope(sysTokenId_);
+    bool result = !expectedResult;
+    auto ret = imc_->IsPanelShown(info, result);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(result, expectedResult);
+}
+
 /**
 * @tc.name: testCreatePanel
 * @tc.desc: Test CreatePanel.
@@ -308,6 +373,7 @@ void InputMethodPanelTest::ImcPanelListeningTestRestore()
 HWTEST_F(InputMethodPanelTest, testCreatePanel, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testCreatePanel start.");
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
@@ -343,6 +409,7 @@ HWTEST_F(InputMethodPanelTest, testResizePanel001, TestSize.Level0)
     auto ret = inputMethodPanel->Resize(1, 1);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -384,6 +451,7 @@ HWTEST_F(InputMethodPanelTest, testResizePanel002, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
@@ -423,6 +491,7 @@ HWTEST_F(InputMethodPanelTest, testMovePanel, TestSize.Level0)
     auto ret = inputMethodPanel->MoveTo(10, 100);
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
 
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -460,6 +529,9 @@ HWTEST_F(InputMethodPanelTest, testShowPanel, TestSize.Level0)
     // 0、not create panel, show panel failed.
     auto ret = inputMethodPanel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+
+    // 1 create panel, show success
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodPanel->ShowPanel();
@@ -501,32 +573,18 @@ HWTEST_F(InputMethodPanelTest, testShowPanel, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testIsPanelShown_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_001 start.");
-    TddUtil::SetTestTokenID(InputMethodPanelTest::testTokenId_);
-    TddUtil::InitWindow(true);
-    InputMethodPanelTest::ima_->SetImeListener(InputMethodPanelTest::imeListener_);
-    int32_t ret = ima_->SetCoreAndAgent();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = InputMethodPanelTest::imc_->Attach(InputMethodPanelTest::textListener_, false);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    bool isShown = false;
-    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    InputMethodPanelTest::Attach();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
-    ret = ima_->CreatePanel(nullptr, panelInfo, inputMethodPanel);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
 
     // query when fixed soft keyboard is showing
-    ret = inputMethodPanel->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = imc_->IsPanelShown(panelInfo, isShown);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(isShown);
+    InputMethodPanelTest::TestShowPanel(inputMethodPanel);
+    InputMethodPanelTest::TestIsPanelShown(panelInfo, true);
 
     // query when fixed soft keyboard is hidden
-    ret = inputMethodPanel->HidePanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = imc_->IsPanelShown(panelInfo, isShown);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(isShown);
+    InputMethodPanelTest::TestHidePanel(inputMethodPanel);
+    InputMethodPanelTest::TestIsPanelShown(panelInfo, false);
 
     ret = ima_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -542,33 +600,20 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_001, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testIsPanelShown_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_002 start.");
-    TddUtil::SetTestTokenID(InputMethodPanelTest::testTokenId_);
-    TddUtil::InitWindow(true);
-    InputMethodPanelTest::ima_->SetImeListener(InputMethodPanelTest::imeListener_);
-    int32_t ret = ima_->SetCoreAndAgent();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = InputMethodPanelTest::imc_->Attach(InputMethodPanelTest::textListener_, false);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    bool isShown = false;
+    InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
-    ret = ima_->CreatePanel(nullptr, panelInfo, inputMethodPanel);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-    ret = inputMethodPanel->ChangePanelFlag(PanelFlag::FLG_FLOATING);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = inputMethodPanel->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
 
     // query panel with old info when panel changes its flag.
-    ret = imc_->IsPanelShown(panelInfo, isShown);
+    auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag::FLG_FLOATING);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(isShown);
+    InputMethodPanelTest::TestShowPanel(inputMethodPanel);
+    InputMethodPanelTest::TestIsPanelShown(panelInfo, false);
+
     // query panel with updated shown one's info when panel changes its flag.
     panelInfo.panelFlag = PanelFlag::FLG_FLOATING;
-    ret = imc_->IsPanelShown(panelInfo, isShown);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(isShown);
+    InputMethodPanelTest::TestIsPanelShown(panelInfo, true);
 
     ret = ima_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -584,32 +629,18 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_002, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testIsPanelShown_003 start.");
-    TddUtil::SetTestTokenID(InputMethodPanelTest::testTokenId_);
-    TddUtil::InitWindow(true);
-    InputMethodPanelTest::ima_->SetImeListener(InputMethodPanelTest::imeListener_);
-    int32_t ret = ima_->SetCoreAndAgent();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = InputMethodPanelTest::imc_->Attach(InputMethodPanelTest::textListener_, false);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    bool isShown = false;
+    InputMethodPanelTest::Attach();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = STATUS_BAR };
-    ret = ima_->CreatePanel(nullptr, panelInfo, inputMethodPanel);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
 
     // query status bar's status when it is showing
-    ret = inputMethodPanel->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = imc_->IsPanelShown(panelInfo, isShown);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(isShown);
+    InputMethodPanelTest::TestShowPanel(inputMethodPanel);
+    InputMethodPanelTest::TestIsPanelShown(panelInfo, true);
 
     // query status bar's status when it is hidden
-    ret = inputMethodPanel->HidePanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    ret = imc_->IsPanelShown(panelInfo, isShown);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(isShown);
+    InputMethodPanelTest::TestHidePanel(inputMethodPanel);
+    InputMethodPanelTest::TestIsPanelShown(panelInfo, false);
 
     ret = ima_->DestroyPanel(inputMethodPanel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -628,20 +659,17 @@ HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener, TestSize.Level0)
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
     // on('show')->on('hide')->show->hide
-    std::string type = "show";
-    inputMethodPanel->SetPanelStatusListener(statusListener, type);
-    type = "hide";
-    inputMethodPanel->SetPanelStatusListener(statusListener, type);
+    inputMethodPanel->SetPanelStatusListener(statusListener, "show");
+    inputMethodPanel->SetPanelStatusListener(statusListener, "hide");
 
+    AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
-    InputMethodPanelTest::TriggerShowCallback(inputMethodPanel);
-    EXPECT_TRUE(InputMethodPanelTest::showPanel_);
+    EXPECT_TRUE(InputMethodPanelTest::TriggerShowCallback(inputMethodPanel));
+    EXPECT_TRUE(InputMethodPanelTest::TriggerHideCallback(inputMethodPanel));
 
-    InputMethodPanelTest::TriggerHideCallback(inputMethodPanel);
-    EXPECT_TRUE(InputMethodPanelTest::hidePanel_);
     ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -654,6 +682,7 @@ HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testGetPanelType, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testGetPanelType start.");
+    AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
@@ -672,6 +701,7 @@ HWTEST_F(InputMethodPanelTest, testGetPanelType, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testGetPanelFlag, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testGetPanelFlag start.");
+    AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
     auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
@@ -696,6 +726,7 @@ HWTEST_F(InputMethodPanelTest, testGetPanelFlag, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testChangePanelFlag, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testChangePanelFlag start.");
+    AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelFlag flag = FLG_FLOATING;
 
@@ -736,23 +767,16 @@ HWTEST_F(InputMethodPanelTest, testChangePanelFlag, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testClearPanelListener, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testClearPanelListener start.");
+    AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
     auto inputMethodPanel = InputMethodPanelTest::CreatePanel();
 
-    std::string subscribeType = "show";
-    inputMethodPanel->ClearPanelListener(subscribeType);
-    InputMethodPanelTest::TriggerShowCallback(inputMethodPanel);
-    EXPECT_EQ(InputMethodPanelTest::showPanel_, false);
-    InputMethodPanelTest::TriggerHideCallback(inputMethodPanel);
-    EXPECT_EQ(InputMethodPanelTest::hidePanel_, true);
-    InputMethodPanelTest::hidePanel_ = false;
+    inputMethodPanel->ClearPanelListener("show");
+    EXPECT_FALSE(InputMethodPanelTest::TriggerShowCallback(inputMethodPanel));
+    EXPECT_TRUE(InputMethodPanelTest::TriggerHideCallback(inputMethodPanel));
 
-    subscribeType = "hide";
-    inputMethodPanel->ClearPanelListener(subscribeType);
-
-    InputMethodPanelTest::TriggerShowCallback(inputMethodPanel);
-    EXPECT_EQ(InputMethodPanelTest::showPanel_, false);
-    InputMethodPanelTest::TriggerHideCallback(inputMethodPanel);
-    EXPECT_EQ(InputMethodPanelTest::hidePanel_, false);
+    inputMethodPanel->ClearPanelListener("hide");
+    EXPECT_FALSE(InputMethodPanelTest::TriggerShowCallback(inputMethodPanel));
+    EXPECT_FALSE(InputMethodPanelTest::TriggerHideCallback(inputMethodPanel));
 
     auto ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -767,33 +791,21 @@ HWTEST_F(InputMethodPanelTest, testRegisterListener, TestSize.Level0)
 {
     // on('show')->on('hide')->show->hide->off('show')->show->hide->on('show')->show
     IMSA_HILOGI("InputMethodPanelTest::testRegisterListener start.");
+    AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
     auto inputMethodPanel = InputMethodPanelTest::CreatePanel();
 
     auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
-    std::string type = "show";
-    inputMethodPanel->SetPanelStatusListener(statusListener, type);
-    type = "hide";
-    inputMethodPanel->SetPanelStatusListener(statusListener, type);
+    inputMethodPanel->SetPanelStatusListener(statusListener, "show");
+    inputMethodPanel->SetPanelStatusListener(statusListener, "hide");
+    EXPECT_TRUE(InputMethodPanelTest::TriggerShowCallback(inputMethodPanel));
+    EXPECT_TRUE(InputMethodPanelTest::TriggerHideCallback(inputMethodPanel));
 
-    InputMethodPanelTest::TriggerShowCallback(inputMethodPanel);
-    EXPECT_TRUE(InputMethodPanelTest::showPanel_);
+    inputMethodPanel->ClearPanelListener("show");
+    EXPECT_FALSE(InputMethodPanelTest::TriggerShowCallback(inputMethodPanel));
+    EXPECT_TRUE(InputMethodPanelTest::TriggerHideCallback(inputMethodPanel));
 
-    InputMethodPanelTest::TriggerHideCallback(inputMethodPanel);
-    EXPECT_TRUE(InputMethodPanelTest::hidePanel_);
-
-    type = "show";
-    inputMethodPanel->ClearPanelListener(type);
-
-    InputMethodPanelTest::TriggerShowCallback(inputMethodPanel);
-    EXPECT_TRUE(!InputMethodPanelTest::showPanel_);
-
-    InputMethodPanelTest::TriggerHideCallback(inputMethodPanel);
-    EXPECT_TRUE(InputMethodPanelTest::hidePanel_);
-
-    inputMethodPanel->SetPanelStatusListener(statusListener, type);
-
-    InputMethodPanelTest::TriggerShowCallback(inputMethodPanel);
-    EXPECT_TRUE(InputMethodPanelTest::showPanel_);
+    inputMethodPanel->SetPanelStatusListener(statusListener, "show");
+    EXPECT_TRUE(InputMethodPanelTest::TriggerShowCallback(inputMethodPanel));
 
     auto ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -807,35 +819,29 @@ HWTEST_F(InputMethodPanelTest, testRegisterListener, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_001 start.");
-    // set system app
-    TddUtil::SetTestTokenID(testTokenId_);
-    auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
-    TddUtil::RestoreSelfTokenID();
-    // cancel system app
+    {
+        // set system app
+        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
+        auto listener = std::make_shared<InputMethodSettingListenerImpl>();
+        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
+    }
     InputWindowInfo info{ "", 0, 0, InputMethodPanelTest::windowWidth_, InputMethodPanelTest::windowHeight_ };
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // set current ime
-    TddUtil::SetTestTokenID(testTokenId_);
-    auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestShowPanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelShowNumCheck(1);
     InputMethodPanelTest::ImcPanelShowInfoCheck(info);
 
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
-    TddUtil::RestoreSelfTokenID();
-    // cancel current ime
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestHidePanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelHideNumCheck(1);
     InputMethodPanelTest::ImcPanelHideInfoCheck(info);
-    // set system app
-    TddUtil::SetTestTokenID(testTokenId_);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
-    TddUtil::RestoreSelfTokenID();
-    // cancel system app
+    {
+        // set system app
+        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
+        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
+    }
 }
 
 /**
@@ -846,36 +852,30 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_002 start.");
-    // set system app
-    TddUtil::SetTestTokenID(testTokenId_);
-    auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
-    TddUtil::RestoreSelfTokenID();
-    // cancel system app
+    {
+        // set system app
+        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
+        auto listener = std::make_shared<InputMethodSettingListenerImpl>();
+        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
+    }
     InputWindowInfo info{ "", 0, 0, InputMethodPanelTest::windowWidth_, InputMethodPanelTest::windowHeight_ };
     InputMethodPanelTest::inputMethodPanel_->panelFlag_ = FLG_FLOATING;
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // set current ime
-    TddUtil::SetTestTokenID(testTokenId_);
-    auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestShowPanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelShowNumCheck(1);
     InputMethodPanelTest::ImcPanelShowInfoCheck(info);
 
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
-    TddUtil::RestoreSelfTokenID();
-    // cancel current ime
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestHidePanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelHideNumCheck(1);
     InputMethodPanelTest::ImcPanelHideInfoCheck(info);
-    // set system app
-    TddUtil::SetTestTokenID(testTokenId_);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
-    TddUtil::RestoreSelfTokenID();
-    // cancel system app
+    {
+        // set system app
+        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
+        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
+    }
     InputMethodPanelTest::inputMethodPanel_->panelFlag_ = FLG_FIXED;
 }
 
@@ -887,33 +887,27 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_003 start.");
-    // set system app
-    TddUtil::SetTestTokenID(testTokenId_);
-    auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
-    TddUtil::RestoreSelfTokenID();
-    // cancel system app
+    {
+        // set system app
+        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
+        auto listener = std::make_shared<InputMethodSettingListenerImpl>();
+        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
+    }
     InputMethodPanelTest::inputMethodPanel_->panelFlag_ = FLG_CANDIDATE_COLUMN;
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // set current ime
-    TddUtil::SetTestTokenID(testTokenId_);
-    auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestShowPanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelShowNumCheck(0);
 
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
-    TddUtil::RestoreSelfTokenID();
-    // cancel current ime
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestHidePanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
-    // set system app
-    TddUtil::SetTestTokenID(testTokenId_);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
-    TddUtil::RestoreSelfTokenID();
-    // cancel system app
+    {
+        // set system app
+        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
+        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
+    }
     InputMethodPanelTest::inputMethodPanel_->panelFlag_ = FLG_FIXED;
 }
 
@@ -925,32 +919,26 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_004 start.");
-    // set system app
-    TddUtil::SetTestTokenID(testTokenId_);
-    auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
-    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
-    TddUtil::RestoreSelfTokenID();
-    // cancel system app
+    {
+        // set system app
+        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
+        auto listener = std::make_shared<InputMethodSettingListenerImpl>();
+        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
+    }
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // set current ime
-    TddUtil::SetTestTokenID(testTokenId_);
-    auto ret = InputMethodPanelTest::inputMethodStatusBar_->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestShowPanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelShowNumCheck(0);
 
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    ret = InputMethodPanelTest::inputMethodStatusBar_->HidePanel();
-    TddUtil::RestoreSelfTokenID();
-    // cancel current ime
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestHidePanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
-    // set system app
-    TddUtil::SetTestTokenID(testTokenId_);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
-    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
-    TddUtil::RestoreSelfTokenID();
-    // cancel system app
+    {
+        // set system app
+        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
+        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener);
+        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener);
+    }
 }
 
 /*
@@ -973,18 +961,13 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_005, TestSize.Level0)
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener3);
     TddUtil::RestoreSelfTokenID();
     // cancel native sa
-    // set current ime
-    TddUtil::SetTestTokenID(testTokenId_);
+
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestShowPanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelShowNumCheck(3);
 
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
-    TddUtil::RestoreSelfTokenID();
-    // cancel current ime
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestHidePanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelHideNumCheck(2);
 
     // set native sa
@@ -1015,22 +998,17 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_006, TestSize.Level0)
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_HIDE_MASK, listener1);
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener2);
     ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK, listener3);
+    // UnRegister one IME_SHOW listener
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_SHOW_MASK, listener1);
     TddUtil::RestoreSelfTokenID();
     // cancel native sa
-    // UnRegister one IME_SHOW listener
+
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // set current ime
-    TddUtil::SetTestTokenID(testTokenId_);
-    auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestShowPanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelShowNumCheck(2);
 
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
-    TddUtil::RestoreSelfTokenID();
-    // cancel current ime
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestHidePanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelHideNumCheck(1);
 
     // UnRegister all listener
@@ -1041,18 +1019,13 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_006, TestSize.Level0)
     ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(EVENT_IME_HIDE_MASK, listener1);
     TddUtil::RestoreSelfTokenID();
     // cancel native sa
+
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // set current ime
-    TddUtil::SetTestTokenID(testTokenId_);
-    ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestShowPanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelShowNumCheck(0);
 
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
-    TddUtil::RestoreSelfTokenID();
-    // cancel current ime
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestHidePanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
 }
 
@@ -1071,17 +1044,11 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_007, TestSize.Level0)
     TddUtil::RestoreSelfTokenID();
     // cancel native sa
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // set current ime
-    TddUtil::SetTestTokenID(testTokenId_);
-    auto ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestShowPanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelShowNumCheck(1);
 
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
-    TddUtil::RestoreSelfTokenID();
-    // cancel current ime
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestHidePanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelHideNumCheck(1);
 
     // UnRegister all listener
@@ -1091,18 +1058,13 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_007, TestSize.Level0)
         EVENT_IME_HIDE_MASK | EVENT_IME_SHOW_MASK, listener);
     TddUtil::RestoreSelfTokenID();
     // cancel native sa
+
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    ret = InputMethodPanelTest::inputMethodPanel_->ShowPanel();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestShowPanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelShowNumCheck(0);
 
     InputMethodPanelTest::ImcPanelListeningTestRestore();
-    // set current ime
-    TddUtil::SetTestTokenID(testTokenId_);
-    ret = InputMethodPanelTest::inputMethodPanel_->HidePanel();
-    TddUtil::RestoreSelfTokenID();
-    // cancel current ime
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::TestHidePanel(InputMethodPanelTest::inputMethodPanel_);
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
 }
 
@@ -1114,6 +1076,7 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_007, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testSetCallingWindow, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testSetCallingWindow start.");
+    AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     // not CreatePanel, SetCallingWindow failed
     uint32_t windowId = 8;
@@ -1125,6 +1088,9 @@ HWTEST_F(InputMethodPanelTest, testSetCallingWindow, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     ret = inputMethodPanel->SetCallingWindow(windowId);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    ret = inputMethodPanel->DestroyPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
