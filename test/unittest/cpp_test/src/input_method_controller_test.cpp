@@ -49,6 +49,7 @@
 #include "key_event_util.h"
 #include "keyboard_listener.h"
 #include "message_parcel.h"
+#include "scope_utils.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "tdd_util.h"
@@ -117,7 +118,6 @@ public:
     static void CheckProxyObject();
     static void DispatchKeyEventCallback(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed);
     static bool WaitKeyEventCallback();
-    static void SetDefaultIme();
     static void CheckTextConfig(const TextConfig &config);
     static sptr<InputMethodController> inputMethodController_;
     static sptr<InputMethodAbility> inputMethodAbility_;
@@ -148,6 +148,8 @@ public:
     static constexpr uint32_t DELAY_TIME = 1;
     static constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     static constexpr int32_t TASK_DELAY_TIME = 10;
+    static uint64_t defaultImeTokenId_;
+    static uint64_t permissionTokenId_;
 
     class KeyboardListenerImpl : public KeyboardListener {
     public:
@@ -251,6 +253,8 @@ std::condition_variable InputMethodControllerTest::keyEventCv_;
 std::mutex InputMethodControllerTest::keyEventLock_;
 bool InputMethodControllerTest::consumeResult_{ false };
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodControllerTest::textConfigHandler_{ nullptr };
+uint64_t InputMethodControllerTest::defaultImeTokenId_ = 0;
+uint64_t InputMethodControllerTest::permissionTokenId_ = 0;
 
 void InputMethodControllerTest::SetUpTestCase(void)
 {
@@ -259,9 +263,11 @@ void InputMethodControllerTest::SetUpTestCase(void)
     // Set the tokenID to the tokenID of the current ime
     std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-    TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
-    inputMethodAbility_ = InputMethodAbility::GetInstance();
-    inputMethodAbility_->SetCoreAndAgent();
+    {
+        TokenScope tokenScope(TddUtil::GetTestTokenID(bundleName));
+        inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->SetCoreAndAgent();
+    }
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     controllerListener_ = std::make_shared<SelectListenerMock>();
     textListener_ = new TextListener();
@@ -273,20 +279,24 @@ void InputMethodControllerTest::SetUpTestCase(void)
     keyEvent_->SetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY, 0);
     keyEvent_->SetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, 1);
     keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine", { "ohos.permission.CONNECT_IME_ABILITY" }));
 
     TddUtil::InitWindow(true);
     SetInputDeathRecipient();
     TextListener::ResetParam();
+
+    auto ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
+    auto defaultIme = ret == ErrorCode::NO_ERROR ? property->name : "default.inputmethod.unittest";
+    defaultImeTokenId_ = TddUtil::GetTestTokenID(defaultIme);
+    permissionTokenId_ = TddUtil::AllocTestTokenID(false, "undefine", { "ohos.permission.CONNECT_IME_ABILITY" });
 }
 
 void InputMethodControllerTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
-    TddUtil::RestoreSelfTokenID();
     TextListener::ResetParam();
     TddUtil::DestroyWindow();
     inputMethodController_->SetControllerListener(nullptr);
+    TddUtil::RestoreSelfTokenID();
 }
 
 void InputMethodControllerTest::SetUp(void)
@@ -464,15 +474,6 @@ bool InputMethodControllerTest::WaitKeyEventCallback()
     std::unique_lock<std::mutex> lock(keyEventLock_);
     keyEventCv_.wait_for(lock, std::chrono::seconds(DELAY_TIME), [] { return consumeResult_; });
     return consumeResult_;
-}
-
-void InputMethodControllerTest::SetDefaultIme()
-{
-    TddUtil::RestoreSelfTokenID();
-    std::shared_ptr<Property> defaultImeProperty = std::make_shared<Property>();
-    auto ret = InputMethodController::GetInstance()->GetDefaultInputMethod(defaultImeProperty);
-    auto bundleName = ret == ErrorCode::NO_ERROR ? defaultImeProperty->name : "undefined";
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, bundleName, { "ohos.permission.CONNECT_IME_ABILITY" }));
 }
 
 /**
@@ -784,6 +785,7 @@ HWTEST_F(InputMethodControllerTest, testShowTextInput, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testShowSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
+    TokenScope scope(InputMethodControllerTest::permissionTokenId_);
     imeListener_->keyboardState_ = false;
     TextListener::ResetParam();
     int32_t ret = inputMethodController_->ShowSoftKeyboard();
@@ -863,6 +865,7 @@ HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged, TestSize.Level
 HWTEST_F(InputMethodControllerTest, testHideSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("IMC HideSoftKeyboard Test START");
+    TokenScope scope(InputMethodControllerTest::permissionTokenId_);
     imeListener_->keyboardState_ = true;
     TextListener::ResetParam();
     int32_t ret = inputMethodController_->HideSoftKeyboard();
@@ -1131,7 +1134,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_001, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_002, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_002 Test START");
-    InputMethodControllerTest::SetDefaultIme();
+    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
     InputMethodEngineListenerImpl::ResetParam();
     inputMethodController_->Close();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
@@ -1155,7 +1158,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_002, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_003, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_003 Test START");
-    InputMethodControllerTest::SetDefaultIme();
+    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
     InputMethodEngineListenerImpl::ResetParam();
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1177,7 +1180,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_003, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_004, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_004 Test START");
-    InputMethodControllerTest::SetDefaultIme();
+    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
     InputMethodEngineListenerImpl::ResetParam();
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1204,7 +1207,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_004, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_005, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_005 Test START");
-    InputMethodControllerTest::SetDefaultIme();
+    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
     InputMethodEngineListenerImpl::ResetParam();
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1231,7 +1234,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_005, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_006, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_006 Test START");
-    InputMethodControllerTest::SetDefaultIme();
+    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
     InputMethodEngineListenerImpl::ResetParam();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
@@ -1259,7 +1262,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_006, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_007, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_007 Test START");
-    InputMethodControllerTest::SetDefaultIme();
+    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
     TextListener::ResetParam();
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1284,7 +1287,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_008, TestSize.Level0)
     IMSA_HILOGI("IMC testSendPrivateCommand_008 Test START");
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    InputMethodControllerTest::SetDefaultIme();
+    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
     TextListener::ResetParam();
     std::unordered_map<std::string, PrivateDataValue> privateCommand1{ { "v",
         string(PRIVATE_COMMAND_SIZE_MAX - 2, 'a') } };

@@ -26,7 +26,6 @@
 #include <string>
 #include <vector>
 
-#include "access_util.h"
 #include "accesstoken_kit.h"
 #include "datashare_helper.h"
 #include "global.h"
@@ -152,6 +151,33 @@ void TddUtil::RestoreSelfTokenID()
 {
     auto ret = SetSelfTokenID(selfTokenID_);
     IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
+}
+
+uint64_t TddUtil::GetCurrentTokenID()
+{
+    return GetSelfTokenID();
+}
+
+int32_t TddUtil::GetUid(const std::string &bundleName)
+{
+    auto bundleMgr = GetBundleMgr();
+    if (bundleMgr == nullptr) {
+        IMSA_HILOGE("bundleMgr nullptr");
+        return -1;
+    }
+    auto uid = bundleMgr->GetUidByBundleName(bundleName, GetCurrentUserId());
+    if (uid == -1) {
+        IMSA_HILOGE("failed to get information and the parameters may be wrong.");
+        return -1;
+    }
+    IMSA_HILOGI("bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
+    return uid;
+}
+
+void TddUtil::SetSelfUid(int32_t uid)
+{
+    setuid(uid);
+    IMSA_HILOGI("set uid to: %{public}d", uid);
 }
 
 bool TddUtil::ExecuteCmd(const std::string &cmd, std::string &result)
@@ -324,7 +350,9 @@ bool TddUtil::GetUnfocused()
 
 void TddUtil::WindowManager::CreateWindow()
 {
-    windowTokenId_ = AccessUtil::AllocTestTokenID(true, "undefined", {});
+    if (windowTokenId_ == 0) {
+        windowTokenId_ = AllocTestTokenID(true, "TestWindow", {});
+    }
     TokenScope scope(windowTokenId_);
     std::string windowName = "inputmethod_test_window";
     sptr<WindowOption> winOption = new OHOS::Rosen::WindowOption();

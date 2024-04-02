@@ -42,7 +42,6 @@ ohos_static_library("inputmethod_tdd_util") {
     debug = false
   }
   sources = [
-    "src/access_util.cpp",
     "src/key_event_util.cpp",
     "src/tdd_util.cpp",
   ]
@@ -57,7 +56,6 @@ ohos_static_library("inputmethod_tdd_util") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
-    "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "data_share:datashare_common",
     "data_share:datashare_consumer",

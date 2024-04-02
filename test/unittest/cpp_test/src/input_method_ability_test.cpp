@@ -25,7 +25,6 @@
 #include <thread>
 #include <vector>
 
-#include "access_util.h"
 #include "global.h"
 #include "i_input_data_channel.h"
 #include "input_attribute.h"
@@ -111,12 +110,12 @@ public:
         // Set the tokenID to the tokenID of the current ime
         TddUtil::StorageSelfTokenID();
         std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
-        std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-        currentImeTokenId_ = AccessUtil::GetTokenID(bundleName);
-        currentImeUid_ = AccessUtil::GetUid(bundleName);
+        auto currentIme = property != nullptr ? property->name : "default.inputmethod.unittest";
+        currentImeTokenId_ = TddUtil::GetTestTokenID(currentIme);
+        currentImeUid_ = TddUtil::GetUid(currentIme);
         auto ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
-        bundleName = ret == ErrorCode::NO_ERROR ? property->name : "default.inputmethod.unittest";
-        defaultImeTokenId_ = AccessUtil::GetTokenID(bundleName);
+        auto defaultIme = ret == ErrorCode::NO_ERROR ? property->name : "default.inputmethod.unittest";
+        defaultImeTokenId_ = TddUtil::GetTestTokenID(defaultIme);
         {
             TokenScope scope(currentImeTokenId_);
             inputMethodAbility_ = InputMethodAbility::GetInstance();
@@ -133,6 +132,7 @@ public:
         imc_->Close();
         TextListener::ResetParam();
         TddUtil::DestroyWindow();
+        TddUtil::RestoreSelfTokenID();
     }
     void SetUp()
     {
@@ -167,6 +167,7 @@ public:
     }
     void CheckPanelInfoInHide(const std::shared_ptr<InputMethodPanel> &panel, const PanelStatusInfo &info)
     {
+        AccessScope scope(currentImeTokenId_, currentImeUid_);
         auto ret = inputMethodAbility_->HidePanel(panel);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         if (info.panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
@@ -1078,6 +1079,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_001, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_001 Test START");
     TextListener::ResetParam();
     imc_->Close();
+    TddUtil::RestoreSelfTokenID();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_DEFAULT_IME);

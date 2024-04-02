@@ -16,8 +16,8 @@
 #ifndef INPUTMETHOD_IMF_TEST_UNITTEST_COMMON_SCOPE_UTILS_H
 #define INPUTMETHOD_IMF_TEST_UNITTEST_COMMON_SCOPE_UTILS_H
 
-#include "access_util.h"
 #include "global.h"
+#include "tdd_util.h"
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t ROOT_UID = 0;
@@ -27,19 +27,19 @@ public:
     {
         IMSA_HILOGI("enter");
         if (tokenId > 0) {
-            originalTokenId_ = AccessUtil::GetSelfToken();
-            AccessUtil::SetSelfToken(tokenId);
+            originalTokenId_ = TddUtil::GetCurrentTokenID();
+            TddUtil::SetTestTokenID(tokenId);
         }
         if (uid > 0) {
-            AccessUtil::SetSelfUid(uid);
+            TddUtil::SetSelfUid(uid);
         }
     }
     ~AccessScope()
     {
         if (originalTokenId_ > 0) {
-            AccessUtil::SetSelfToken(originalTokenId_);
+            TddUtil::SetTestTokenID(originalTokenId_);
         }
-        AccessUtil::SetSelfUid(ROOT_UID);
+        TddUtil::SetSelfUid(ROOT_UID);
         IMSA_HILOGI("exit");
     }
 
@@ -52,12 +52,12 @@ public:
     explicit TokenScope(uint64_t tokenId)
     {
         IMSA_HILOGI("enter");
-        originalTokenId_ = AccessUtil::GetSelfToken();
-        AccessUtil::SetSelfToken(tokenId);
+        originalTokenId_ = TddUtil::GetCurrentTokenID();
+        TddUtil::SetTestTokenID(tokenId);
     }
-    virtual ~TokenScope()
+    ~TokenScope()
     {
-        AccessUtil::SetSelfToken(originalTokenId_);
+        TddUtil::SetTestTokenID(originalTokenId_);
         IMSA_HILOGI("exit");
     }
 
@@ -70,11 +70,11 @@ public:
     explicit UidScope(int32_t uid)
     {
         IMSA_HILOGI("enter, uid: %{public}d", uid);
-        AccessUtil::SetSelfUid(uid);
+        TddUtil::SetSelfUid(uid);
     }
-    virtual ~UidScope()
+    ~UidScope()
     {
-        AccessUtil::SetSelfUid(ROOT_UID);
+        TddUtil::SetSelfUid(ROOT_UID);
         IMSA_HILOGI("exit");
     }
 };
