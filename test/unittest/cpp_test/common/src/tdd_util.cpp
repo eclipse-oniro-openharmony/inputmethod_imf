@@ -33,6 +33,7 @@
 #include "iservice_registry.h"
 #include "nativetoken_kit.h"
 #include "os_account_manager.h"
+#include "scope_utils.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
 #include "tdd_util.h"
@@ -54,6 +55,7 @@ uint64_t TddUtil::selfTokenID_ = 0;
 int32_t TddUtil::userID_ = INVALID_USER_ID;
 sptr<Window> TddUtil::WindowManager::window_ = nullptr;
 int32_t TddUtil::WindowManager::currentWindowId_ = 0;
+uint64_t TddUtil::WindowManager::windowTokenId_ = 0;
 std::shared_ptr<BlockData<bool>> FocusChangedListenerTestImpl::isFocused_ =
     std::make_shared<BlockData<bool>>(MAX_TIMEOUT_WAIT_FOCUS, false);
 std::shared_ptr<BlockData<bool>> FocusChangedListenerTestImpl::unFocused_ =
@@ -149,6 +151,33 @@ void TddUtil::RestoreSelfTokenID()
 {
     auto ret = SetSelfTokenID(selfTokenID_);
     IMSA_HILOGI("SetSelfTokenID ret = %{public}d", ret);
+}
+
+uint64_t TddUtil::GetCurrentTokenID()
+{
+    return GetSelfTokenID();
+}
+
+int32_t TddUtil::GetUid(const std::string &bundleName)
+{
+    auto bundleMgr = GetBundleMgr();
+    if (bundleMgr == nullptr) {
+        IMSA_HILOGE("bundleMgr nullptr");
+        return -1;
+    }
+    auto uid = bundleMgr->GetUidByBundleName(bundleName, GetCurrentUserId());
+    if (uid == -1) {
+        IMSA_HILOGE("failed to get information and the parameters may be wrong.");
+        return -1;
+    }
+    IMSA_HILOGI("bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
+    return uid;
+}
+
+void TddUtil::SetSelfUid(int32_t uid)
+{
+    setuid(uid);
+    IMSA_HILOGI("set uid to: %{public}d", uid);
 }
 
 bool TddUtil::ExecuteCmd(const std::string &cmd, std::string &result)
@@ -321,6 +350,10 @@ bool TddUtil::GetUnfocused()
 
 void TddUtil::WindowManager::CreateWindow()
 {
+    if (windowTokenId_ == 0) {
+        windowTokenId_ = AllocTestTokenID(true, "TestWindow", {});
+    }
+    TokenScope scope(windowTokenId_);
     std::string windowName = "inputmethod_test_window";
     sptr<WindowOption> winOption = new OHOS::Rosen::WindowOption();
     winOption->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
@@ -348,6 +381,7 @@ void TddUtil::WindowManager::HideWindow()
         IMSA_HILOGE("window is not exist.");
         return;
     }
+    TokenScope scope(windowTokenId_);
     auto ret = window_->Hide();
     IMSA_HILOGI("Hide window end, ret = %{public}d", ret);
 }
@@ -355,6 +389,7 @@ void TddUtil::WindowManager::HideWindow()
 void TddUtil::WindowManager::DestroyWindow()
 {
     if (window_ != nullptr) {
+        TokenScope scope(windowTokenId_);
         window_->Destroy();
     }
 }

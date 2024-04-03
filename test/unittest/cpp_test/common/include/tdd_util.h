@@ -47,6 +47,9 @@ public:
     static void DeleteTestTokenID(uint64_t tokenId);
     static void SetTestTokenID(uint64_t tokenId);
     static void RestoreSelfTokenID();
+    static uint64_t GetCurrentTokenID();
+    static int32_t GetUid(const std::string &bundleName);
+    static void SetSelfUid(int32_t uid);
     static bool ExecuteCmd(const std::string &cmd, std::string &result);
     static pid_t GetImsaPid();
     static bool KillImsaProcess();
@@ -68,6 +71,7 @@ public:
 
     private:
         static sptr<Rosen::Window> window_;
+        static uint64_t windowTokenId_;
     };
 
 private:

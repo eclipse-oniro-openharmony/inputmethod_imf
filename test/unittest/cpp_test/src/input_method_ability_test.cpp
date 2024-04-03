@@ -37,6 +37,7 @@
 #include "input_method_core_stub.h"
 #include "input_method_panel.h"
 #include "message_handler.h"
+#include "scope_utils.h"
 #include "tdd_util.h"
 #include "text_listener.h"
 
@@ -55,6 +56,9 @@ public:
     static sptr<InputMethodAbility> inputMethodAbility_;
     static uint32_t windowId_;
     static int32_t security_;
+    static uint64_t currentImeTokenId_;
+    static uint64_t defaultImeTokenId_;
+    static int32_t currentImeUid_;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -101,26 +105,22 @@ public:
         }
     };
 
-    static void StubSelfAsDefault()
-    {
-        std::shared_ptr<Property> property = std::make_shared<Property>();
-        auto ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
-        std::string bundleName = ret == ErrorCode::NO_ERROR ? property->name : "default.inputmethod.unittest";
-        TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
-        inputMethodAbility_ = InputMethodAbility::GetInstance();
-        inputMethodAbility_->SetCoreAndAgent();
-    }
-
     static void SetUpTestCase(void)
     {
         // Set the tokenID to the tokenID of the current ime
         TddUtil::StorageSelfTokenID();
         std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
-        std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-        TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
-        inputMethodAbility_ = InputMethodAbility::GetInstance();
-        inputMethodAbility_->SetCoreAndAgent();
-        TddUtil::RestoreSelfTokenID();
+        auto currentIme = property != nullptr ? property->name : "default.inputmethod.unittest";
+        currentImeTokenId_ = TddUtil::GetTestTokenID(currentIme);
+        currentImeUid_ = TddUtil::GetUid(currentIme);
+        auto ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
+        auto defaultIme = ret == ErrorCode::NO_ERROR ? property->name : "default.inputmethod.unittest";
+        defaultImeTokenId_ = TddUtil::GetTestTokenID(defaultIme);
+        {
+            TokenScope scope(currentImeTokenId_);
+            inputMethodAbility_ = InputMethodAbility::GetInstance();
+            inputMethodAbility_->SetCoreAndAgent();
+        }
         TextListener::ResetParam();
         TddUtil::InitWindow(true);
         imc_ = InputMethodController::GetInstance();
@@ -132,6 +132,7 @@ public:
         imc_->Close();
         TextListener::ResetParam();
         TddUtil::DestroyWindow();
+        TddUtil::RestoreSelfTokenID();
     }
     void SetUp()
     {
@@ -166,6 +167,7 @@ public:
     }
     void CheckPanelInfoInHide(const std::shared_ptr<InputMethodPanel> &panel, const PanelStatusInfo &info)
     {
+        AccessScope scope(currentImeTokenId_, currentImeUid_);
         auto ret = inputMethodAbility_->HidePanel(panel);
         EXPECT_EQ(ret, ErrorCode::NO_ERROR);
         if (info.panelInfo.panelFlag != FLG_CANDIDATE_COLUMN) {
@@ -192,6 +194,9 @@ sptr<OnTextChangedListener> InputMethodAbilityTest::textListener_;
 sptr<InputMethodAbility> InputMethodAbilityTest::inputMethodAbility_;
 uint32_t InputMethodAbilityTest::windowId_ = 0;
 int32_t InputMethodAbilityTest::security_ = -1;
+uint64_t InputMethodAbilityTest::currentImeTokenId_ = 0;
+uint64_t InputMethodAbilityTest::defaultImeTokenId_ = 0;
+int32_t InputMethodAbilityTest::currentImeUid_ = 0;
 
 /**
 * @tc.name: testSerializedInputAttribute
@@ -571,7 +576,7 @@ HWTEST_F(InputMethodAbilityTest, testGetTextIndexAtCursor, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testCreatePanel001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel001 START. You can not create two SOFT_KEYBOARD panel.");
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine"));
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
@@ -599,6 +604,7 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel001, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testCreatePanel002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel002 START. You can not create two STATUS_BAR panel.");
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> statusBar1 = nullptr;
     PanelInfo panelInfo = { .panelType = STATUS_BAR };
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, statusBar1);
@@ -627,6 +633,7 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel006 START. Allowed to create one SOFT_KEYBOARD panel and "
                 "one STATUS_BAR panel.");
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> softKeyboardPanel = nullptr;
     PanelInfo panelInfo1 = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo1, softKeyboardPanel);
@@ -656,6 +663,7 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel006 START. Allowed to create one SOFT_KEYBOARD panel and "
                 "one STATUS_BAR panel.");
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> inputMethodPanel = nullptr;
     PanelInfo panelInfo1 = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo1, inputMethodPanel);
@@ -691,7 +699,7 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel004, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testCreatePanel005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel005 START.");
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine"));
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
@@ -719,7 +727,7 @@ HWTEST_F(InputMethodAbilityTest, testCreatePanel005, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testCreatePanel006, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbilityTest testCreatePanel006 START.");
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine"));
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     std::shared_ptr<InputMethodPanel> softKeyboardPanel1 = nullptr;
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto ret = inputMethodAbility_->CreatePanel(nullptr, panelInfo, softKeyboardPanel1);
@@ -780,6 +788,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_001, TestSize.Level0)
     imc_->Attach(textListener_);
     PanelInfo info = { .panelType = STATUS_BAR };
     auto panel = std::make_shared<InputMethodPanel>();
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto panel1 = std::make_shared<InputMethodPanel>();
@@ -817,6 +826,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_002, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testNotifyPanelStatusInfo_002 START");
     imc_->Attach(textListener_);
     PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto panel = std::make_shared<InputMethodPanel>();
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -843,6 +853,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_003, TestSize.Level0)
     imc_->Attach(textListener_);
     PanelInfo info = { .panelType = STATUS_BAR };
     auto panel = std::make_shared<InputMethodPanel>();
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -868,6 +879,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_004, TestSize.Level0)
     imc_->Attach(textListener_);
     PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_CANDIDATE_COLUMN };
     auto panel = std::make_shared<InputMethodPanel>();
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -900,6 +912,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_005, TestSize.Level0)
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
     EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback({ info, false, Trigger::IME_APP }));
 
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto panel = std::make_shared<InputMethodPanel>();
     ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -928,6 +941,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_001, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_001 START");
     TextListener::ResetParam();
     imc_->Attach(textListener_);
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto panel = std::make_shared<InputMethodPanel>();
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
@@ -952,6 +966,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_002, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_002 START");
     TextListener::ResetParam();
     imc_->Attach(textListener_);
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo info = { .panelType = STATUS_BAR, .panelFlag = FLG_FIXED };
     auto panel = std::make_shared<InputMethodPanel>();
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
@@ -976,6 +991,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_003 START");
     TextListener::ResetParam();
     imc_->Attach(textListener_);
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_CANDIDATE_COLUMN };
     auto panel = std::make_shared<InputMethodPanel>();
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
@@ -999,6 +1015,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_004 START");
     TextListener::ResetParam();
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_CANDIDATE_COLUMN };
     auto panel = std::make_shared<InputMethodPanel>();
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
@@ -1021,6 +1038,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_005 START");
     TextListener::ResetParam();
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     auto panel = std::make_shared<InputMethodPanel>();
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
@@ -1060,8 +1078,8 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_001 Test START");
     TextListener::ResetParam();
-    TddUtil::RestoreSelfTokenID();
     imc_->Close();
+    TddUtil::RestoreSelfTokenID();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_DEFAULT_IME);
@@ -1078,8 +1096,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_002 Test START");
     TextListener::ResetParam();
-    TddUtil::RestoreSelfTokenID();
-    InputMethodAbilityTest::StubSelfAsDefault();
+    TokenScope tokenScope(InputMethodAbilityTest::defaultImeTokenId_);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
     privateCommand.insert({ "value1", privateDataValue1 });
@@ -1098,10 +1115,9 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_003 Test START");
     TextListener::ResetParam();
-    TddUtil::RestoreSelfTokenID();
     auto ret = imc_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    InputMethodAbilityTest::StubSelfAsDefault();
+    TokenScope tokenScope(InputMethodAbilityTest::defaultImeTokenId_);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
     PrivateDataValue privateDataValue2 = true;
@@ -1112,7 +1128,6 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
     ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendPrivateCommandCallback(privateCommand));
-    TddUtil::RestoreSelfTokenID();
     imc_->Close();
 }
 } // namespace MiscServices
