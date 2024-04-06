@@ -37,6 +37,9 @@ uint32_t TextListener::height_ = 0;
 KeyboardStatus TextListener::keyboardStatus_ = { KeyboardStatus::NONE };
 PanelStatusInfo TextListener::info_{};
 std::unordered_map<std::string, PrivateDataValue> TextListener::privateCommand_{};
+std::string TextListener::previewText_;
+Range TextListener::previewRange_{};
+bool TextListener::isFinishTextPreviewCalled_{ false };
 TextListener::TextListener()
 {
     std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("TextListenerNotifier");
@@ -158,6 +161,21 @@ void TextListener::NotifyKeyboardHeight(uint32_t height)
     textListenerCv_.notify_one();
 }
 
+int32_t TextListener::SetPreviewText(const std::u16string &text, const Range &range)
+{
+    IMSA_HILOGI("TextListener, text: %{public}s, range[start, end]: [%{public}d, %{public}d]",
+        Str16ToStr8(text).c_str(), range.start, range.end);
+    previewText_ = Str16ToStr8(text);
+    previewRange_ = range;
+    return ErrorCode::NO_ERROR;
+}
+
+void TextListener::FinishTextPreview()
+{
+    IMSA_HILOGI("TextListener in");
+    isFinishTextPreviewCalled_ = true;
+}
+
 void TextListener::ResetParam()
 {
     direction_ = -1;
@@ -174,6 +192,9 @@ void TextListener::ResetParam()
     keyboardStatus_ = KeyboardStatus::NONE;
     info_ = {};
     height_ = 0;
+    previewText_ = "";
+    previewRange_ = {};
+    isFinishTextPreviewCalled_ = false;
 }
 
 bool TextListener::WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus)

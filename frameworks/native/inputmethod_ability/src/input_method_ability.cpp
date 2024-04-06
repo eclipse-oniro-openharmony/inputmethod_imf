@@ -1035,5 +1035,25 @@ int32_t InputMethodAbility::ReceivePrivateCommand(
     imeListener_->ReceivePrivateCommand(privateCommand);
     return ErrorCode::NO_ERROR;
 }
+
+int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range &range)
+{
+    auto dataChannel = GetInputDataChannelProxy();
+    if (dataChannel == nullptr) {
+        IMSA_HILOGE("dataChannel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return dataChannel->SetPreviewText(text, range);
+}
+
+int32_t InputMethodAbility::FinishTextPreview()
+{
+    auto dataChannel = GetInputDataChannelProxy();
+    if (dataChannel == nullptr) {
+        IMSA_HILOGE("dataChannel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return dataChannel->FinishTextPreview();
+}
 } // namespace MiscServices
 } // namespace OHOS

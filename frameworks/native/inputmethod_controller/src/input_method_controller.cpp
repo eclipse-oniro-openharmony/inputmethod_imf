@@ -1216,5 +1216,34 @@ int32_t InputMethodController::SendPrivateCommand(
     }
     return agent->SendPrivateCommand(privateCommand);
 }
+
+int32_t InputMethodController::SetPreviewText(const std::string text, const Range &range)
+{
+    auto listener = GetTextListener();
+    if (!IsEditable() || listener == nullptr) {
+        IMSA_HILOGE("not editable or listener is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    if (!clientInfo_.attribute.isTextPreviewSupported) {
+        IMSA_HILOGE("text preview not supported");
+        return ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED;
+    }
+    return listener->SetPreviewText(Str8ToStr16(text), range);
+}
+
+int32_t InputMethodController::FinishTextPreview()
+{
+    auto listener = GetTextListener();
+    if (!IsEditable() || listener == nullptr) {
+        IMSA_HILOGE("not editable or listener is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    if (!clientInfo_.attribute.isTextPreviewSupported) {
+        IMSA_HILOGE("text preview not supported");
+        return ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED;
+    }
+    listener->FinishTextPreview();
+    return ErrorCode::NO_ERROR;
+}
 } // namespace MiscServices
 } // namespace OHOS

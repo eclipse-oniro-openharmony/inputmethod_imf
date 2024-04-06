@@ -12,8 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#define private public
+#define protected public
 #include "input_method_ability.h"
+
+#include "input_method_controller.h"
+#undef private
 
 #include <gtest/gtest.h>
 #include <string_ex.h>
@@ -32,7 +36,6 @@
 #include "input_data_channel_proxy.h"
 #include "input_data_channel_stub.h"
 #include "input_method_agent_stub.h"
-#include "input_method_controller.h"
 #include "input_method_core_proxy.h"
 #include "input_method_core_stub.h"
 #include "input_method_panel.h"
@@ -133,6 +136,25 @@ public:
         TextListener::ResetParam();
         TddUtil::DestroyWindow();
         TddUtil::RestoreSelfTokenID();
+    }
+    static void GetIMCAttachIMA()
+    {
+        imc_->SetTextListener(textListener_);
+        imc_->clientInfo_.state = ClientState::ACTIVE;
+        imc_->isBound_.store(true);
+        imc_->isEditable_.store(true);
+        auto agent = inputMethodAbility_->agentStub_->AsObject();
+        imc_->SetAgent(agent);
+
+        auto channel = imc_->clientInfo_.channel->AsObject();
+        inputMethodAbility_->SetInputDataChannel(channel);
+        IMSA_HILOGI("end");
+    }
+    static void GetIMCDetachIMA()
+    {
+        imc_->OnInputStop();
+        inputMethodAbility_->SetInputDataChannel(nullptr);
+        IMSA_HILOGI("end");
     }
     void SetUp()
     {
@@ -1128,6 +1150,67 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
     ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendPrivateCommandCallback(privateCommand));
+    imc_->Close();
+}
+
+/**
+ * @tc.name: testSetPreviewText_001
+ * @tc.desc: IMA
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testSetPreviewText_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testSetPreviewText_001 Test START");
+    TextListener::ResetParam();
+    std::string text = "test";
+    Range range = { 1, 2 };
+    auto ret = imc_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodAbilityTest::imc_->clientInfo_.attribute.isTextPreviewSupported = true;
+    ret = InputMethodAbilityTest::inputMethodAbility_->SetPreviewText(text, range);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    imc_->Close();
+}
+
+/**
+ * @tc.name: testSetPreviewText_002
+ * @tc.desc: IMA
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testSetPreviewText_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testSetPreviewText_002 Test START");
+    TextListener::ResetParam();
+    std::string text = "test";
+    Range range = { 1, 2 };
+    InputMethodAbilityTest::inputMethodAbility_->ClearDataChannel(
+        InputMethodAbilityTest::inputMethodAbility_->dataChannelObject_);
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->SetPreviewText(text, range);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+}
+
+/**
+ * @tc.name: testSetPreviewText_003
+ * @tc.desc: IMA
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testSetPreviewText_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testSetPreviewText_003 Test START");
+    TextListener::ResetParam();
+    std::string text = "test";
+    Range range = { 1, 2 };
+    auto ret = imc_->Attach(textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodAbilityTest::imc_->clientInfo_.attribute.isTextPreviewSupported = false;
+    ret = InputMethodAbilityTest::inputMethodAbility_->SetPreviewText(text, range);
+    EXPECT_EQ(ret, ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED);
     imc_->Close();
 }
 } // namespace MiscServices

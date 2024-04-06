@@ -57,6 +57,7 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_NOT_CURRENT_IME, EXCEPTION_IMMS },
     { ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE, EXCEPTION_PARAMCHECK },
     { ErrorCode::ERROR_TEXT_LISTENER_ERROR, EXCEPTION_IMCLIENT },
+    { ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED, EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -400,6 +401,9 @@ napi_value JsUtils::GetValue(napi_env env, const InputAttribute &attribute)
 
     auto ret = JsUtil::Object::WriteProperty(env, editorAttribute, "inputPattern", attribute.inputPattern);
     ret = ret && JsUtil::Object::WriteProperty(env, editorAttribute, "enterKeyType", attribute.enterKeyType);
+    ret = ret
+          && JsUtil::Object::WriteProperty(
+              env, editorAttribute, "isTextPreviewSupported", attribute.isTextPreviewSupported);
     return ret ? editorAttribute : JsUtil::Const::Null(env);
 }
 

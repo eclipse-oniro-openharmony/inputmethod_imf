@@ -150,9 +150,13 @@ private:
     EnterKeyType enterKeyType = EnterKeyType::UNSPECIFIED;
 };
 
-struct SelectionRange {
+struct Range {
     int32_t start = INVALID_VALUE;
     int32_t end = INVALID_VALUE;
+    bool operator==(const Range &range) const
+    {
+        return start == range.start && end == range.end;
+    }
 };
 
 struct TextSelection {
@@ -178,7 +182,7 @@ public:
 struct TextConfig {
     InputAttribute inputAttribute = {};
     CursorInfo cursorInfo = {};
-    SelectionRange range = {};
+    Range range = {};
     uint32_t windowId = INVALID_WINDOW_ID;
     double positionY = 0;
     double height = 0;

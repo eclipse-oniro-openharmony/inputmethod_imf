@@ -70,6 +70,13 @@ public:
     {
         return ErrorCode::NO_ERROR;
     }
+    virtual int32_t SetPreviewText(const std::u16string &text, const Range &range)
+    {
+        return ErrorCode::NO_ERROR;
+    }
+    virtual void FinishTextPreview()
+    {
+    }
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
@@ -715,6 +722,9 @@ public:
      */
     IMF_API int32_t ReceivePrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+
+    IMF_API int32_t SetPreviewText(const std::string text, const Range &range);
+    IMF_API int32_t FinishTextPreview();
 
 private:
     InputMethodController();
