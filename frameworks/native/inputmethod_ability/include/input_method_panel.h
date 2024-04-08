@@ -48,7 +48,7 @@ public:
     void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void ClearPanelListener(const std::string &type);
     int32_t SetCallingWindow(uint32_t windowId);
-    int32_t GetCallingWindowInfo(uint32_t windowId, CallingWindowInfo &windowInfo);
+    int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);

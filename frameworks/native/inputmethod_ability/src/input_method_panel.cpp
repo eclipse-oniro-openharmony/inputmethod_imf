@@ -252,37 +252,33 @@ int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
     IMSA_HILOGD("InputMethodPanel run in, windowId: %{public}d", windowId);
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr.");
-        return ErrorCode::ERROR_NULL_POINTER;
+        return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
     auto ret = window_->SetCallingWindow(windowId);
     IMSA_HILOGI("ret = %{public}d, windowId = %{public}u", ret, windowId);
-    return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
+    return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_WINDOW_MANAGER;
 }
 
-int32_t InputMethodPanel::GetCallingWindowInfo(uint32_t windowId, CallingWindowInfo &windowInfo)
+int32_t InputMethodPanel::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
 {
-    IMSA_HILOGD("run in, windowId %{public}d", windowId);
+    IMSA_HILOGD("InputMethodPanel in");
     if (window_ == nullptr) {
         IMSA_HILOGE("window_ is nullptr");
         return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
-    if (windowId == INVALID_WINDOW_ID) {
-        IMSA_HILOGE("invalid window id");
-        return ErrorCode::ERROR_GET_TEXT_CONFIG;
-    }
-    auto ret = window_->GetWindowStatusByWindowId(windowId, windowInfo.status);
+    auto ret = window_->GetWindowStatusByWindowId(windowInfo.status);
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("get status failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    ret = window_->GetRectByWindowId(windowId, windowInfo.rect);
+    ret = window_->GetRectByWindowId(windowInfo.rect);
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("get rect failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    IMSA_HILOGI("windowId: %{public}d, status: %{public}d, x/y/w/h: %{public}d/%{public}d/%{public}d/%{public}d",
-        windowId, static_cast<uint32_t>(windowInfo.status), windowInfo.rect.posX_, windowInfo.rect.posY_,
-        windowInfo.rect.width_, windowInfo.rect.height_);
+    IMSA_HILOGI("status: %{public}d, x/y/w/h: %{public}d/%{public}d/%{public}d/%{public}d",
+        static_cast<uint32_t>(windowInfo.status), windowInfo.rect.posX_, windowInfo.rect.posY_, windowInfo.rect.width_,
+        windowInfo.rect.height_);
     return ErrorCode::NO_ERROR;
 }
 

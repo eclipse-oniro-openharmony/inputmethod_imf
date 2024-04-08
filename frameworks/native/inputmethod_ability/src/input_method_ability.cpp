@@ -314,16 +314,14 @@ int32_t InputMethodAbility::DispatchKeyEvent(
 
 void InputMethodAbility::SetCallingWindow(uint32_t windowId)
 {
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr");
-        return;
-    }
     IMSA_HILOGD("InputMethodAbility windowId: %{public}d", windowId);
     panels_.ForEach([windowId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         panel->SetCallingWindow(windowId);
         return false;
     });
-    imeListener_->OnSetCallingWindow(windowId);
+    if (imeListener_ != nullptr) {
+        imeListener_->OnSetCallingWindow(windowId);
+    }
 }
 
 void InputMethodAbility::OnCursorUpdate(Message *msg)
@@ -1009,10 +1007,16 @@ void InputMethodAbility::NotifyKeyboardHeight(const std::shared_ptr<InputMethodP
 
 int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
 {
+    IMSA_HILOGD("IMA in");
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_FOUND;
+    }
+    auto panel = GetSoftKeyboardPanel();
+    if (panel == nullptr) {
+        IMSA_HILOGE("panel not found");
+        return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
     TextTotalConfig textConfig;
     int32_t ret = GetTextConfig(textConfig);
@@ -1020,12 +1024,16 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
         IMSA_HILOGE("failed to get window id, ret: %{public}d", ret);
         return ErrorCode::ERROR_GET_TEXT_CONFIG;
     }
-    auto panel = GetSoftKeyboardPanel();
-    if (panel == nullptr) {
-        IMSA_HILOGE("panel not found");
-        return ErrorCode::ERROR_PANEL_NOT_FOUND;
+    ret = panel->SetCallingWindow(textConfig.windowId);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("SetCallingWindow failed, ret: %{public}d", ret);
+        return ret;
     }
-    return panel->GetCallingWindowInfo(textConfig.windowId, windowInfo);
+    ret = panel->GetCallingWindowInfo(windowInfo);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("GetCallingWindowInfo failed, ret: %{public}d", ret);
+    }
+    return ret;
 }
 
 int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)

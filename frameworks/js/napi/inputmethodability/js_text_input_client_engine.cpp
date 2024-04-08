@@ -59,7 +59,7 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("deleteBackwardSync", DeleteBackwardSync),
         DECLARE_NAPI_FUNCTION("getForwardSync", GetForwardSync),
         DECLARE_NAPI_FUNCTION("getBackwardSync", GetBackwardSync),
-        DECLARE_NAPI_FUNCTION("sendPrivateCommand", SendPrivateCommand) };
+        DECLARE_NAPI_FUNCTION("sendPrivateCommand", SendPrivateCommand),
         DECLARE_NAPI_FUNCTION("getCallingWindowInfo", GetCallingWindowInfo)
     };
     napi_value cons = nullptr;
