@@ -87,10 +87,10 @@ public:
     int32_t OnSecurityChange(int32_t security);
     void OnClientInactive(const sptr<IRemoteObject> &channel);
     void NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel);
-    int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsDefaultIme();
+    int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
 
 private:
     std::thread workThreadHandler;

@@ -1115,5 +1115,143 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
     TddUtil::RestoreSelfTokenID();
     imc_->Close();
 }
+
+/**
+ * @tc.name: testGetCallingWindowInfo_001
+ * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_001 Test START");
+    // not bind IMC
+    InputMethodAbilityTest::inputMethodAbility_->dataChannelProxy_ = nullptr;
+    CallingWindowInfo windowInfo;
+    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
+}
+
+/**
+ * @tc.name: testGetCallingWindowInfo_002
+ * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_002 Test START");
+    AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
+    // bind IMC
+    InputMethodAbilityTest::inputMethodAbility_->SetInputDataChannel(imc_->clientInfo_.channel->AsObject());
+    // no panel is created
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+    CallingWindowInfo windowInfo;
+    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+}
+
+/**
+ * @tc.name: testGetCallingWindowInfo_003
+ * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_003 Test START");
+    AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
+    // bind IMC
+    InputMethodAbilityTest::inputMethodAbility_->SetInputDataChannel(imc_->clientInfo_.channel->AsObject());
+    // only STATUS_BAR panel in IMA
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Insert(PanelType::STATUS_BAR, inputMethodPanel);
+    CallingWindowInfo windowInfo;
+    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+}
+
+/**
+ * @tc.name: testGetCallingWindowInfo_004
+ * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_004, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_004 Test START");
+    AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
+    // bind imc
+    InputMethodAbilityTest::inputMethodAbility_->SetInputDataChannel(imc_->clientInfo_.channel->AsObject());
+    // SOFT_KEYBOARD panel exists
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Insert(PanelType::SOFT_KEYBOARD, inputMethodPanel);
+    // invalid window id
+    InputMethodAbilityTest::imc_->clientInfo_.config.windowId = INVALID_WINDOW_ID;
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    CallingWindowInfo windowInfo;
+    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_GET_TEXT_CONFIG);
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+}
+
+/**
+ * @tc.name: testGetCallingWindowInfo_005
+ * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_005, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_005 Test START");
+    AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
+    // bind imc
+    InputMethodAbilityTest::inputMethodAbility_->SetInputDataChannel(imc_->clientInfo_.channel->AsObject());
+    // valid window id
+    InputMethodAbilityTest::imc_->clientInfo_.config.windowId = 10;
+    // SOFT_KEYBOARD panel exists, but CreatePanel is not called (window is not created)
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Insert(PanelType::SOFT_KEYBOARD, inputMethodPanel);
+    CallingWindowInfo windowInfo;
+    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+}
+
+/**
+ * @tc.name: testGetCallingWindowInfo_006
+ * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_006, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_006 Test START");
+    AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
+    // SOFT_KEYBOARD window is created
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo info = { PanelType::SOFT_KEYBOARD, PanelFlag::FLG_FIXED };
+    InputMethodAbilityTest::inputMethodAbility_->CreatePanel(nullptr, info, inputMethodPanel);
+    // bind IMSA
+    InputMethodAbilityTest::inputMethodAbility_->SetCoreAndAgent();
+    // bind IMC
+    InputMethodAbilityTest::imc_->textConfig_.config.windowId = TddUtil::WindowManager::currentWindowId_;
+    InputMethodAbilityTest::imc_->Attach(InputMethodAbilityTest::textListener_);
+    // get window info success
+    CallingWindowInfo windowInfo;
+    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS

@@ -266,12 +266,12 @@ int32_t InputMethodPanel::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
         IMSA_HILOGE("window_ is nullptr");
         return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
-    auto ret = window_->GetWindowStatusByWindowId(windowInfo.status);
+    auto ret = window_->GetCallingWindowStatus(windowInfo.status);
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("get status failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    ret = window_->GetRectByWindowId(windowInfo.rect);
+    ret = window_->GetCallingWindowRect(windowInfo.rect);
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("get rect failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;

@@ -1005,6 +1005,35 @@ void InputMethodAbility::NotifyKeyboardHeight(const std::shared_ptr<InputMethodP
     channel->NotifyKeyboardHeight(inputMethodPanel->GetHeight());
 }
 
+int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    if (!IsDefaultIme()) {
+        IMSA_HILOGE("current is not default ime.");
+        return ErrorCode::ERROR_NOT_DEFAULT_IME;
+    }
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return channel->SendPrivateCommand(privateCommand);
+}
+
+int32_t InputMethodAbility::ReceivePrivateCommand(
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+{
+    if (!IsDefaultIme()) {
+        IMSA_HILOGE("current is not default ime.");
+        return ErrorCode::ERROR_NOT_DEFAULT_IME;
+    }
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("imeListener is nullptr");
+        return ErrorCode::ERROR_IME;
+    }
+    imeListener_->ReceivePrivateCommand(privateCommand);
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
 {
     IMSA_HILOGD("IMA in");
@@ -1034,35 +1063,6 @@ int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
         IMSA_HILOGE("GetCallingWindowInfo failed, ret: %{public}d", ret);
     }
     return ret;
-}
-
-int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
-{
-    if (!IsDefaultIme()) {
-        IMSA_HILOGE("current is not default ime.");
-        return ErrorCode::ERROR_NOT_DEFAULT_IME;
-    }
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
-        IMSA_HILOGE("channel is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
-    }
-    return channel->SendPrivateCommand(privateCommand);
-}
-
-int32_t InputMethodAbility::ReceivePrivateCommand(
-    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
-{
-    if (!IsDefaultIme()) {
-        IMSA_HILOGE("current is not default ime.");
-        return ErrorCode::ERROR_NOT_DEFAULT_IME;
-    }
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGE("imeListener is nullptr");
-        return ErrorCode::ERROR_IME;
-    }
-    imeListener_->ReceivePrivateCommand(privateCommand);
-    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS
