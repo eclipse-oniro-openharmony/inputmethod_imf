@@ -18,7 +18,6 @@
 #include <string>
 #include <vector>
 
-#include "calling_window_info.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 namespace OHOS {
@@ -34,9 +33,6 @@ public:
     static bool GetValue(napi_env env, napi_value in, int64_t &out);
     static bool GetValue(napi_env env, napi_value in, bool &out);
     static bool GetValue(napi_env env, napi_value in, double &out);
-    static bool GetValue(napi_env env, napi_value in, Rosen::WindowStatus &out);
-    static bool GetValue(napi_env env, napi_value in, Rosen::Rect &out);
-    static bool GetValue(napi_env env, napi_value in, CallingWindowInfo &out);
     template<typename T> static bool GetValue(napi_env env, napi_value in, std::vector<T> &items)
     {
         uint32_t len = 0;
@@ -55,14 +51,12 @@ public:
     }
 
     // native to js
+    static napi_value GetValue(napi_env env, napi_value in);
     static napi_value GetValue(napi_env env, const std::string &in);
     static napi_value GetValue(napi_env env, int32_t in);
     static napi_value GetValue(napi_env env, uint32_t in);
     static napi_value GetValue(napi_env env, int64_t in);
     static napi_value GetValue(napi_env env, bool in);
-    static napi_value GetValue(napi_env env, const Rosen::WindowStatus &in);
-    static napi_value GetValue(napi_env env, const Rosen::Rect &in);
-    static napi_value GetValue(napi_env env, const CallingWindowInfo &in);
     template<typename T> static napi_value GetValue(napi_env env, const std::vector<T> &items)
     {
         napi_value array = nullptr;

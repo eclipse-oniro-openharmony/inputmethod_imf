@@ -276,7 +276,7 @@ int32_t InputMethodPanel::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
         IMSA_HILOGE("get rect failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    IMSA_HILOGI("status: %{public}d, x/y/w/h: %{public}d/%{public}d/%{public}d/%{public}d",
+    IMSA_HILOGI("status: %{public}d, rect[x/y/w/h]: [%{public}d/%{public}d/%{public}d/%{public}d]",
         static_cast<uint32_t>(windowInfo.status), windowInfo.rect.posX_, windowInfo.rect.posY_, windowInfo.rect.width_,
         windowInfo.rect.height_);
     return ErrorCode::NO_ERROR;

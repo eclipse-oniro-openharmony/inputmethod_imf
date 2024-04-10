@@ -67,26 +67,9 @@ bool JsUtil::GetValue(napi_env env, napi_value in, double &out)
 {
     return napi_get_value_double(env, in, &out) == napi_ok;
 }
-bool JsUtil::GetValue(napi_env env, napi_value in, Rosen::WindowStatus &out)
+napi_value JsUtil::GetValue(napi_env env, napi_value in)
 {
-    uint32_t status = 0;
-    bool result = napi_get_value_uint32(env, in, &status) == napi_ok;
-    out = static_cast<Rosen::WindowStatus>(status);
-    return result;
-}
-bool JsUtil::GetValue(napi_env env, napi_value in, Rosen::Rect &out)
-{
-    bool ret = Object::ReadProperty(env, in, "left", out.posX_);
-    ret = ret && Object::ReadProperty(env, in, "top", out.posY_);
-    ret = ret && Object::ReadProperty(env, in, "width", out.width_);
-    ret = ret && Object::ReadProperty(env, in, "height", out.height_);
-    return ret;
-}
-bool JsUtil::GetValue(napi_env env, napi_value in, CallingWindowInfo &out)
-{
-    bool ret = Object::ReadProperty(env, in, "rect", out.rect);
-    ret = ret && Object::ReadProperty(env, in, "status", out.status);
-    return ret;
+    return in;
 }
 napi_value JsUtil::GetValue(napi_env env, const std::string &in)
 {
@@ -121,28 +104,6 @@ napi_value JsUtil::GetValue(napi_env env, bool in)
     napi_value out = nullptr;
     napi_get_boolean(env, in, &out);
     return out;
-}
-napi_value JsUtil::GetValue(napi_env env, const Rosen::WindowStatus &in)
-{
-    return GetValue(env, static_cast<uint32_t>(in));
-}
-napi_value JsUtil::GetValue(napi_env env, const Rosen::Rect &in)
-{
-    napi_value objValue = nullptr;
-    napi_create_object(env, &objValue);
-    bool ret = Object::WriteProperty(env, objValue, "left", in.posX_);
-    ret = ret && Object::WriteProperty(env, objValue, "top", in.posY_);
-    ret = ret && Object::WriteProperty(env, objValue, "width", in.width_);
-    ret = ret && Object::WriteProperty(env, objValue, "height", in.height_);
-    return ret ? objValue : Const::Null(env);
-}
-napi_value JsUtil::GetValue(napi_env env, const CallingWindowInfo &in)
-{
-    napi_value outObj = nullptr;
-    napi_create_object(env, &outObj);
-    bool ret = Object::WriteProperty(env, outObj, "rect", in.rect);
-    ret = ret && Object::WriteProperty(env, outObj, "status", static_cast<uint32_t>(in.status));
-    return ret ? outObj : Const::Null(env);
 }
 } // namespace MiscServices
 } // namespace OHOS

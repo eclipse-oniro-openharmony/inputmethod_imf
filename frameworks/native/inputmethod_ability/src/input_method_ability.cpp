@@ -319,9 +319,11 @@ void InputMethodAbility::SetCallingWindow(uint32_t windowId)
         panel->SetCallingWindow(windowId);
         return false;
     });
-    if (imeListener_ != nullptr) {
-        imeListener_->OnSetCallingWindow(windowId);
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGD("imeListener_ is nullptr");
+        return;
     }
+    imeListener_->OnSetCallingWindow(windowId);
 }
 
 void InputMethodAbility::OnCursorUpdate(Message *msg)

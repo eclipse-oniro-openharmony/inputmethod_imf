@@ -1118,7 +1118,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
 
 /**
  * @tc.name: testGetCallingWindowInfo_001
- * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.desc: GetCallingWindowInfo with IMC not bound
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhaolinglan
@@ -1135,7 +1135,7 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_001, TestSize.Level0)
 
 /**
  * @tc.name: testGetCallingWindowInfo_002
- * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.desc: GetCallingWindowInfo with panel not created
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhaolinglan
@@ -1156,7 +1156,7 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_002, TestSize.Level0)
 
 /**
  * @tc.name: testGetCallingWindowInfo_003
- * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.desc: GetCallingWindowInfo with only status_bar created
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhaolinglan
@@ -1179,7 +1179,7 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_003, TestSize.Level0)
 
 /**
  * @tc.name: testGetCallingWindowInfo_004
- * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.desc: GetCallingWindowInfo with invalid windowid
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhaolinglan
@@ -1204,7 +1204,7 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_004, TestSize.Level0)
 
 /**
  * @tc.name: testGetCallingWindowInfo_005
- * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.desc: GetCallingWindowInfo with window not created
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhaolinglan
@@ -1229,7 +1229,7 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_005, TestSize.Level0)
 
 /**
  * @tc.name: testGetCallingWindowInfo_006
- * @tc.desc: IMA SendPrivateCommand with correct data specification and all data type.
+ * @tc.desc: GetCallingWindowInfo success
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhaolinglan

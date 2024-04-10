@@ -861,12 +861,10 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursorSync(napi_env env, napi_
 
 napi_value JsTextInputClientEngine::GetCallingWindowInfo(napi_env env, napi_callback_info info)
 {
-    IMSA_HILOGD("run in");
+    IMSA_HILOGD("JsTextInputClientEngine in");
     auto ctxt = std::make_shared<GetCallingWindowInfoContext>();
-    auto input = [ctxt](
-                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        *result = JsUtil::GetValue(env, ctxt->windowInfo);
+        *result = JsCallingWindowInfo::Write(env, ctxt->windowInfo);
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
@@ -879,7 +877,7 @@ napi_value JsTextInputClientEngine::GetCallingWindowInfo(napi_env env, napi_call
         }
         ctxt->SetErrorCode(ret);
     };
-    ctxt->SetAction(std::move(input), std::move(output));
+    ctxt->SetAction(nullptr, std::move(output));
     // 0 means JsAPI:getCallingWindowInfo needs no parameter.
     AsyncCall asyncCall(env, info, ctxt, 0);
     return asyncCall.Call(env, exec, "getCallingWindowInfo");

@@ -21,6 +21,7 @@
 #include "block_queue.h"
 #include "calling_window_info.h"
 #include "global.h"
+#include "js_util.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
 #include "wm_common.h"
@@ -348,6 +349,46 @@ struct GetCallingWindowInfoContext : public AsyncCall::Context {
             return status;
         }
         return Context::operator()(env, result);
+    }
+};
+
+struct JsRect {
+    static napi_value Write(napi_env env, const Rosen::Rect &nativeObject)
+    {
+        napi_value jsObject = nullptr;
+        napi_create_object(env, &jsObject);
+        bool ret = JsUtil::Object::WriteProperty(env, jsObject, "left", nativeObject.posX_);
+        ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "top", nativeObject.posY_);
+        ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", nativeObject.width_);
+        ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", nativeObject.height_);
+        return ret ? jsObject : JsUtil::Const::Null(env);
+    }
+    static bool Read(napi_env env, napi_value jsObject, Rosen::Rect &nativeObject)
+    {
+        auto ret = JsUtil::Object::ReadProperty(env, jsObject, "left", nativeObject.posX_);
+        ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "top", nativeObject.posY_);
+        ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "width", nativeObject.width_);
+        ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "height", nativeObject.height_);
+        return ret;
+    }
+};
+
+struct JsCallingWindowInfo {
+    static napi_value Write(napi_env env, const CallingWindowInfo &nativeObject)
+    {
+        napi_value jsObject = nullptr;
+        napi_create_object(env, &jsObject);
+        bool ret = JsUtil::Object::WriteProperty(env, jsObject, "rect", JsRect::Write(env, nativeObject.rect));
+        ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "status", static_cast<uint32_t>(nativeObject.status));
+        return ret ? jsObject : JsUtil::Const::Null(env);
+    }
+    static bool Read(napi_env env, napi_value object, CallingWindowInfo &nativeObject)
+    {
+        auto ret = JsUtil::Object::ReadProperty(env, object, "rect", nativeObject.rect);
+        uint32_t status = 0;
+        ret = ret && JsUtil::Object::ReadProperty(env, object, "status", status);
+        nativeObject.status = static_cast<Rosen::WindowStatus>(status);
+        return ret;
     }
 };
 
