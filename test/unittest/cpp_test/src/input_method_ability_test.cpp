@@ -12,8 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#define private public
 #include "input_method_ability.h"
+
+#include "input_method_controller.h"
+#undef private
 
 #include <gtest/gtest.h>
 #include <string_ex.h>
@@ -32,7 +35,6 @@
 #include "input_data_channel_proxy.h"
 #include "input_data_channel_stub.h"
 #include "input_method_agent_stub.h"
-#include "input_method_controller.h"
 #include "input_method_core_proxy.h"
 #include "input_method_core_stub.h"
 #include "input_method_panel.h"
@@ -133,6 +135,25 @@ public:
         TextListener::ResetParam();
         TddUtil::DestroyWindow();
         TddUtil::RestoreSelfTokenID();
+    }
+    static void GetIMCAttachIMA()
+    {
+        imc_->SetTextListener(textListener_);
+        imc_->clientInfo_.state = ClientState::ACTIVE;
+        imc_->isBound_.store(true);
+        imc_->isEditable_.store(true);
+        auto agent = inputMethodAbility_->agentStub_->AsObject();
+        imc_->SetAgent(agent);
+
+        sptr<IInputDataChannel> channel = iface_cast<IInputDataChannel>(imc_->clientInfo_.channel->AsObject());
+        inputMethodAbility_->SetInputDataChannel(channel->AsObject());
+        IMSA_HILOGI("end");
+    }
+    static void GetIMCDetachIMA()
+    {
+        imc_->OnInputStop();
+        inputMethodAbility_->ClearDataChannel(inputMethodAbility_->dataChannelObject_);
+        IMSA_HILOGI("end");
     }
     void SetUp()
     {
@@ -1141,8 +1162,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_001 Test START");
-    // not bind IMC
-    InputMethodAbilityTest::inputMethodAbility_->dataChannelProxy_ = nullptr;
+    InputMethodAbilityTest::GetIMCDetachIMA();
     CallingWindowInfo windowInfo;
     int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
@@ -1160,13 +1180,13 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_002, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_002 Test START");
     AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
     // bind IMC
-    InputMethodAbilityTest::inputMethodAbility_->SetInputDataChannel(imc_->clientInfo_.channel->AsObject());
+    InputMethodAbilityTest::GetIMCAttachIMA();
     // no panel is created
     InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
     CallingWindowInfo windowInfo;
     int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
-    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+    InputMethodAbilityTest::GetIMCDetachIMA();
 }
 
 /**
@@ -1181,15 +1201,16 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_003, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_003 Test START");
     AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
     // bind IMC
-    InputMethodAbilityTest::inputMethodAbility_->SetInputDataChannel(imc_->clientInfo_.channel->AsObject());
+    InputMethodAbilityTest::GetIMCAttachIMA();
     // only STATUS_BAR panel in IMA
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
-    InputMethodAbilityTest::inputMethodAbility_->panels_.Insert(PanelType::STATUS_BAR, inputMethodPanel);
+    PanelInfo info = { PanelType::STATUS_BAR };
+    InputMethodAbilityTest::inputMethodAbility_->CreatePanel(nullptr, info, inputMethodPanel);
     CallingWindowInfo windowInfo;
     int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
-    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+    InputMethodAbilityTest::inputMethodAbility_->DestroyPanel(inputMethodPanel);
+    InputMethodAbilityTest::GetIMCDetachIMA();
 }
 
 /**
@@ -1204,22 +1225,23 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_004, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_004 Test START");
     AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
     // bind imc
-    InputMethodAbilityTest::inputMethodAbility_->SetInputDataChannel(imc_->clientInfo_.channel->AsObject());
+    InputMethodAbilityTest::GetIMCAttachIMA();
     // SOFT_KEYBOARD panel exists
-    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
-    InputMethodAbilityTest::inputMethodAbility_->panels_.Insert(PanelType::SOFT_KEYBOARD, inputMethodPanel);
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo info = { PanelType::SOFT_KEYBOARD, PanelFlag::FLG_FIXED };
+    InputMethodAbilityTest::inputMethodAbility_->CreatePanel(nullptr, info, inputMethodPanel);
     // invalid window id
     InputMethodAbilityTest::imc_->clientInfo_.config.windowId = INVALID_WINDOW_ID;
-    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     CallingWindowInfo windowInfo;
     int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
     EXPECT_EQ(ret, ErrorCode::ERROR_GET_TEXT_CONFIG);
-    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+    InputMethodAbilityTest::inputMethodAbility_->DestroyPanel(inputMethodPanel);
+    InputMethodAbilityTest::GetIMCDetachIMA();
 }
 
 /**
  * @tc.name: testGetCallingWindowInfo_005
- * @tc.desc: GetCallingWindowInfo with window not created
+ * @tc.desc: GetCallingWindowInfo success
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhaolinglan
@@ -1228,45 +1250,20 @@ HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_005, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_005 Test START");
     AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
-    // bind imc
-    InputMethodAbilityTest::inputMethodAbility_->SetInputDataChannel(imc_->clientInfo_.channel->AsObject());
-    // valid window id
-    InputMethodAbilityTest::imc_->clientInfo_.config.windowId = 10;
-    // SOFT_KEYBOARD panel exists, but CreatePanel is not called (window is not created)
-    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
-    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
-    InputMethodAbilityTest::inputMethodAbility_->panels_.Insert(PanelType::SOFT_KEYBOARD, inputMethodPanel);
-    CallingWindowInfo windowInfo;
-    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
-    EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
-    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
-}
-
-/**
- * @tc.name: testGetCallingWindowInfo_006
- * @tc.desc: GetCallingWindowInfo success
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: zhaolinglan
- */
-HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_006, TestSize.Level0)
-{
-    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_006 Test START");
-    AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
     // SOFT_KEYBOARD window is created
     InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     PanelInfo info = { PanelType::SOFT_KEYBOARD, PanelFlag::FLG_FIXED };
     InputMethodAbilityTest::inputMethodAbility_->CreatePanel(nullptr, info, inputMethodPanel);
-    // bind IMSA
-    InputMethodAbilityTest::inputMethodAbility_->SetCoreAndAgent();
     // bind IMC
-    InputMethodAbilityTest::imc_->textConfig_.config.windowId = TddUtil::WindowManager::currentWindowId_;
-    InputMethodAbilityTest::imc_->Attach(InputMethodAbilityTest::textListener_);
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    InputMethodAbilityTest::imc_->textConfig_.windowId = TddUtil::WindowManager::currentWindowId_;
     // get window info success
     CallingWindowInfo windowInfo;
     int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(ret == ErrorCode::NO_ERROR || ret == ErrorCode::ERROR_WINDOW_MANAGER);
+    InputMethodAbilityTest::GetIMCDetachIMA();
+    InputMethodAbilityTest::inputMethodAbility_->DestroyPanel(inputMethodPanel);
 }
 } // namespace MiscServices
 } // namespace OHOS

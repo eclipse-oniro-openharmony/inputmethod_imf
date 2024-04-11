@@ -59,6 +59,16 @@ struct PrivateCommandInfo {
     }
 };
 
+struct JsRect {
+    static napi_value Write(napi_env env, const Rosen::Rect &nativeObject);
+    static bool Read(napi_env env, napi_value jsObject, Rosen::Rect &nativeObject);
+};
+
+struct JsCallingWindowInfo {
+    static napi_value Write(napi_env env, const CallingWindowInfo &nativeObject);
+    static bool Read(napi_env env, napi_value object, CallingWindowInfo &nativeObject);
+};
+
 struct SendKeyFunctionContext : public AsyncCall::Context {
     bool isSendKeyFunction = false;
     int32_t action = 0;
@@ -332,63 +342,14 @@ struct SendPrivateCommandContext : public AsyncCall::Context {
 
 struct GetCallingWindowInfoContext : public AsyncCall::Context {
     CallingWindowInfo windowInfo{};
-    napi_status status = napi_generic_failure;
     GetCallingWindowInfoContext() : Context(nullptr, nullptr){};
-    GetCallingWindowInfoContext(InputAction input, OutputAction output)
-        : Context(std::move(input), std::move(output)){};
-
-    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
-    {
-        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
-        return Context::operator()(env, argc, argv, self);
-    }
     napi_status operator()(napi_env env, napi_value *result) override
     {
-        if (status != napi_ok) {
+        if (status_ != napi_ok) {
             output_ = nullptr;
-            return status;
+            return status_;
         }
         return Context::operator()(env, result);
-    }
-};
-
-struct JsRect {
-    static napi_value Write(napi_env env, const Rosen::Rect &nativeObject)
-    {
-        napi_value jsObject = nullptr;
-        napi_create_object(env, &jsObject);
-        bool ret = JsUtil::Object::WriteProperty(env, jsObject, "left", nativeObject.posX_);
-        ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "top", nativeObject.posY_);
-        ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", nativeObject.width_);
-        ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", nativeObject.height_);
-        return ret ? jsObject : JsUtil::Const::Null(env);
-    }
-    static bool Read(napi_env env, napi_value jsObject, Rosen::Rect &nativeObject)
-    {
-        auto ret = JsUtil::Object::ReadProperty(env, jsObject, "left", nativeObject.posX_);
-        ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "top", nativeObject.posY_);
-        ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "width", nativeObject.width_);
-        ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "height", nativeObject.height_);
-        return ret;
-    }
-};
-
-struct JsCallingWindowInfo {
-    static napi_value Write(napi_env env, const CallingWindowInfo &nativeObject)
-    {
-        napi_value jsObject = nullptr;
-        napi_create_object(env, &jsObject);
-        bool ret = JsUtil::Object::WriteProperty(env, jsObject, "rect", JsRect::Write(env, nativeObject.rect));
-        ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "status", static_cast<uint32_t>(nativeObject.status));
-        return ret ? jsObject : JsUtil::Const::Null(env);
-    }
-    static bool Read(napi_env env, napi_value object, CallingWindowInfo &nativeObject)
-    {
-        auto ret = JsUtil::Object::ReadProperty(env, object, "rect", nativeObject.rect);
-        uint32_t status = 0;
-        ret = ret && JsUtil::Object::ReadProperty(env, object, "status", status);
-        nativeObject.status = static_cast<Rosen::WindowStatus>(status);
-        return ret;
     }
 };
 

@@ -871,8 +871,7 @@ napi_value JsTextInputClientEngine::GetCallingWindowInfo(napi_env env, napi_call
         int32_t ret = InputMethodAbility::GetInstance()->GetCallingWindowInfo(ctxt->windowInfo);
         if (ret == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec GetCallingWindowInfo success");
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
+            ctxt->SetState(napi_ok);
             return;
         }
         ctxt->SetErrorCode(ret);
@@ -894,6 +893,46 @@ void JsTextInputClientEngine::PrintEditorQueueInfoIfTimeout(int64_t start, const
         IMSA_HILOGW("ret:%{public}d,front[%{public}" PRId64 ",%{public}d],current[%{public}" PRId64 ",%{public}d]", ret,
             frontTime, static_cast<int32_t>(frontInfo.event), currentTime, static_cast<int32_t>(currentInfo.event));
     }
+}
+
+napi_value JsRect::Write(napi_env env, const Rosen::Rect &nativeObject)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "left", nativeObject.posX_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "top", nativeObject.posY_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", nativeObject.width_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", nativeObject.height_);
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
+bool JsRect::Read(napi_env env, napi_value jsObject, Rosen::Rect &nativeObject)
+{
+    auto ret = JsUtil::Object::ReadProperty(env, jsObject, "left", nativeObject.posX_);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "top", nativeObject.posY_);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "width", nativeObject.width_);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "height", nativeObject.height_);
+    return ret;
+}
+
+napi_value JsCallingWindowInfo::Write(napi_env env, const CallingWindowInfo &nativeObject)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "rect", JsRect::Write(env, nativeObject.rect));
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "status", static_cast<uint32_t>(nativeObject.status));
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
+bool JsCallingWindowInfo::Read(napi_env env, napi_value object, CallingWindowInfo &nativeObject)
+{
+    napi_value rectObject = nullptr;
+    napi_get_named_property(env, object, "rect", &rectObject);
+    auto ret = JsRect::Read(env, rectObject, nativeObject.rect);
+    uint32_t status = 0;
+    ret = ret && JsUtil::Object::ReadProperty(env, object, "status", status);
+    nativeObject.status = static_cast<Rosen::WindowStatus>(status);
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS
