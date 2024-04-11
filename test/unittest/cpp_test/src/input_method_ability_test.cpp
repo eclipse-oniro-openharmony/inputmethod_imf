@@ -146,14 +146,14 @@ public:
         auto agent = inputMethodAbility_->agentStub_->AsObject();
         imc_->SetAgent(agent);
 
-        auto channel = imc_->clientInfo_.channel->AsObject();
-        inputMethodAbility_->SetInputDataChannel(channel);
+        sptr<IInputDataChannel> channel = iface_cast<IInputDataChannel>(imc_->clientInfo_.channel->AsObject());
+        inputMethodAbility_->SetInputDataChannel(channel->AsObject());
         IMSA_HILOGI("end");
     }
     static void GetIMCDetachIMA()
     {
         imc_->OnInputStop();
-        inputMethodAbility_->SetInputDataChannel(nullptr);
+        inputMethodAbility_->ClearDataChannel(inputMethodAbility_->dataChannelObject_);
         IMSA_HILOGI("end");
     }
     void SetUp()
@@ -1166,12 +1166,13 @@ HWTEST_F(InputMethodAbilityTest, testSetPreviewText_001, TestSize.Level0)
     TextListener::ResetParam();
     std::string text = "test";
     Range range = { 1, 2 };
-    auto ret = imc_->Attach(textListener_, false);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodAbilityTest::GetIMCAttachIMA();
     InputMethodAbilityTest::imc_->clientInfo_.attribute.isTextPreviewSupported = true;
-    ret = InputMethodAbilityTest::inputMethodAbility_->SetPreviewText(text, range);
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->SetPreviewText(text, range);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    imc_->Close();
+    EXPECT_EQ(TextListener::previewText_, text);
+    EXPECT_EQ(TextListener::previewRange_, range);
+    InputMethodAbilityTest::GetIMCDetachIMA();
 }
 
 /**
@@ -1191,6 +1192,8 @@ HWTEST_F(InputMethodAbilityTest, testSetPreviewText_002, TestSize.Level0)
         InputMethodAbilityTest::inputMethodAbility_->dataChannelObject_);
     auto ret = InputMethodAbilityTest::inputMethodAbility_->SetPreviewText(text, range);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_NE(TextListener::previewText_, text);
+    EXPECT_FALSE(TextListener::previewRange_ == range);
 }
 
 /**
@@ -1206,12 +1209,69 @@ HWTEST_F(InputMethodAbilityTest, testSetPreviewText_003, TestSize.Level0)
     TextListener::ResetParam();
     std::string text = "test";
     Range range = { 1, 2 };
-    auto ret = imc_->Attach(textListener_, false);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodAbilityTest::GetIMCAttachIMA();
     InputMethodAbilityTest::imc_->clientInfo_.attribute.isTextPreviewSupported = false;
-    ret = InputMethodAbilityTest::inputMethodAbility_->SetPreviewText(text, range);
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->SetPreviewText(text, range);
     EXPECT_EQ(ret, ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED);
-    imc_->Close();
+    EXPECT_NE(TextListener::previewText_, text);
+    EXPECT_FALSE(TextListener::previewRange_ == range);
+    InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testFinishTextPreview_001
+ * @tc.desc: IMA
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testFinishTextPreview_001 Test START");
+    TextListener::ResetParam();
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    InputMethodAbilityTest::imc_->clientInfo_.attribute.isTextPreviewSupported = true;
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
+    InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testFinishTextPreview_002
+ * @tc.desc: IMA
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testFinishTextPreview_002 Test START");
+    TextListener::ResetParam();
+    InputMethodAbilityTest::inputMethodAbility_->ClearDataChannel(
+        InputMethodAbilityTest::inputMethodAbility_->dataChannelObject_);
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview();
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
+}
+
+/**
+ * @tc.name: testFinishTextPreview_003
+ * @tc.desc: IMA
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbilityTest testFinishTextPreview_003 Test START");
+    TextListener::ResetParam();
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    InputMethodAbilityTest::imc_->clientInfo_.attribute.isTextPreviewSupported = false;
+    auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview();
+    EXPECT_EQ(ret, ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED);
+    EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
+    InputMethodAbilityTest::GetIMCDetachIMA();
 }
 } // namespace MiscServices
 } // namespace OHOS
