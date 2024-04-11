@@ -723,7 +723,7 @@ public:
     IMF_API int32_t ReceivePrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
-    IMF_API int32_t SetPreviewText(const std::string text, const Range &range);
+    IMF_API int32_t SetPreviewText(const std::string &text, const Range &range);
     IMF_API int32_t FinishTextPreview();
 
 private:
