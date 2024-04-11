@@ -37,6 +37,7 @@ public:
     static sptr<OnTextChangedListener> textListener_;
     static void SetUpTestCase(void)
     {
+        IMSA_HILOGI("TextListenerInnerApiTest::SetUpTestCase");
         TddUtil::InitWindow(true);
         TextListener::ResetParam();
 
@@ -45,19 +46,19 @@ public:
     }
     static void TearDownTestCase(void)
     {
-        IMSA_HILOGI("InputMethodInnerApiTest::TearDownTestCase");
+        IMSA_HILOGI("TextListenerInnerApiTest::TearDownTestCase");
         imc_->Close();
         TextListener::ResetParam();
         TddUtil::DestroyWindow();
     }
     void SetUp()
     {
-        IMSA_HILOGI("InputMethodAbilityTest::SetUp");
+        IMSA_HILOGI("TextListenerInnerApiTest::SetUp");
         TextListener::ResetParam();
     }
     void TearDown()
     {
-        IMSA_HILOGI("InputMethodAbilityTest::TearDown");
+        IMSA_HILOGI("TextListenerInnerApiTest::TearDown");
         TextListener::ResetParam();
     }
     static void GetIMCAttached()
