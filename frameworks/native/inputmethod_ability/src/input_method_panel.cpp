@@ -378,10 +378,10 @@ int32_t InputMethodPanel::SetUiContent(
 void InputMethodPanel::SetPanelStatusListener(
     std::shared_ptr<PanelStatusListener> statusListener, const std::string &type)
 {
-    IMSA_HILOGD("SetPanelStatusListener start.");
     if (!MarkListener(type, true)) {
         return;
     }
+    IMSA_HILOGD("type: %{public}s", type.c_str());
     if (panelStatusListener_ != nullptr) {
         IMSA_HILOGD("PanelStatusListener already set.");
         return;
@@ -397,6 +397,7 @@ void InputMethodPanel::ClearPanelListener(const std::string &type)
     if (!MarkListener(type, false)) {
         return;
     }
+    IMSA_HILOGD("type: %{public}s", type.c_str());
     if (panelStatusListener_ == nullptr) {
         IMSA_HILOGD("PanelStatusListener not set, don't need to remove.");
         return;

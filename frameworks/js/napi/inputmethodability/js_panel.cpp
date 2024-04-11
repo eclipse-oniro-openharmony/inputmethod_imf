@@ -128,7 +128,8 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         CHECK_RETURN(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
         auto code = ctxt->inputMethodPanel->SetUiContent(ctxt->path, env, ctxt->contentStorage);
         if (code == ErrorCode::ERROR_PARAMETER_CHECK_FAILED) {
-            PARAM_CHECK_RETURN(env, code == ErrorCode::NO_ERROR, "path is invalid!", TYPE_NONE, napi_generic_failure);
+            ctxt->SetErrorCode(code);
+            return napi_generic_failure;
         }
         return napi_ok;
     };

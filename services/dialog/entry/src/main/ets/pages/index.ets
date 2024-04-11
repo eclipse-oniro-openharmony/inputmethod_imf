@@ -91,7 +91,7 @@ struct Index {
         message: 'switch success', duration: 200
       });
       setTimeout(() => {
-        context!.terminateSelf();
+        context?.terminateSelf();
       }, EXIT_TIME);
     }).catch((err: BusinessError) => {
       if (!err) {

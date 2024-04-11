@@ -142,9 +142,7 @@ export default class ServiceExtAbility extends ServiceExtensionAbility {
   }
 
   public async releaseContext(): Promise<void> {
-    if (this.mContext && this.extensionWin) {
-      await this.extensionWin.destroyWindow();
-      await this.mContext.terminateSelf();
-    }
+    await this.extensionWin?.destroyWindow();
+    await this.mContext?.terminateSelf();
   }
 };
