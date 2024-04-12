@@ -50,7 +50,6 @@ constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr uint32_t RETRY_INTERVAL = 100;
 constexpr uint32_t BLOCK_RETRY_TIMES = 100;
-constexpr uint32_t SWITCH_BLOCK_TIME = 150000;
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
@@ -606,7 +605,6 @@ int32_t InputMethodSystemAbility::OnStartInputType(const SwitchInfo &switchInfo,
     if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);
-        usleep(SWITCH_BLOCK_TIME);
     }
     auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (switchInfo.bundleName == cfgIme->bundleName && switchInfo.subName == cfgIme->subName) {
