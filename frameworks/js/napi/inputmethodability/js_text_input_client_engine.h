@@ -19,9 +19,12 @@
 
 #include "async_call.h"
 #include "block_queue.h"
+#include "calling_window_info.h"
 #include "global.h"
+#include "js_util.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -54,6 +57,16 @@ struct PrivateCommandInfo {
     {
         return (timestamp == info.timestamp && privateCommand == info.privateCommand);
     }
+};
+
+struct JsRect {
+    static napi_value Write(napi_env env, const Rosen::Rect &nativeObject);
+    static bool Read(napi_env env, napi_value jsObject, Rosen::Rect &nativeObject);
+};
+
+struct JsCallingWindowInfo {
+    static napi_value Write(napi_env env, const CallingWindowInfo &nativeObject);
+    static bool Read(napi_env env, napi_value object, CallingWindowInfo &nativeObject);
 };
 
 struct SendKeyFunctionContext : public AsyncCall::Context {
@@ -327,6 +340,19 @@ struct SendPrivateCommandContext : public AsyncCall::Context {
     }
 };
 
+struct GetCallingWindowInfoContext : public AsyncCall::Context {
+    CallingWindowInfo windowInfo{};
+    GetCallingWindowInfoContext() : Context(nullptr, nullptr){};
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status_ != napi_ok) {
+            output_ = nullptr;
+            return status_;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
 class JsTextInputClientEngine {
 public:
     JsTextInputClientEngine() = default;
@@ -355,6 +381,7 @@ public:
     static napi_value DeleteBackwardSync(napi_env env, napi_callback_info info);
     static napi_value GetForwardSync(napi_env env, napi_callback_info info);
     static napi_value GetBackwardSync(napi_env env, napi_callback_info info);
+    static napi_value GetCallingWindowInfo(napi_env env, napi_callback_info info);
     static napi_value SendPrivateCommand(napi_env env, napi_callback_info info);
 
 private:

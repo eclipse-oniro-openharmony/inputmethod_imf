@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -58,7 +59,9 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("deleteBackwardSync", DeleteBackwardSync),
         DECLARE_NAPI_FUNCTION("getForwardSync", GetForwardSync),
         DECLARE_NAPI_FUNCTION("getBackwardSync", GetBackwardSync),
-        DECLARE_NAPI_FUNCTION("sendPrivateCommand", SendPrivateCommand) };
+        DECLARE_NAPI_FUNCTION("sendPrivateCommand", SendPrivateCommand),
+        DECLARE_NAPI_FUNCTION("getCallingWindowInfo", GetCallingWindowInfo)
+    };
     napi_value cons = nullptr;
     NAPI_CALL(env, napi_define_class(env, TIC_CLASS_NAME.c_str(), TIC_CLASS_NAME.size(), JsConstructor, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &cons));
@@ -99,7 +102,7 @@ napi_value JsTextInputClientEngine::MoveCursor(napi_env env, napi_callback_info 
 
 napi_value JsTextInputClientEngine::MoveCursorSync(napi_env env, napi_callback_info info)
 {
-    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::MOVE_CURSOR};
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::MOVE_CURSOR };
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);
     size_t argc = 1;
@@ -447,7 +450,7 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
 napi_value JsTextInputClientEngine::InsertTextSync(napi_env env, napi_callback_info info)
 {
     InputMethodSyncTrace tracer("JS_InsertTextSync");
-    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::INSERT_TEXT};
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::INSERT_TEXT };
     editorQueue_.Push(eventInfo);
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     editorQueue_.Wait(eventInfo);
@@ -613,20 +616,20 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
 napi_value JsTextInputClientEngine::GetEditorAttributeSync(napi_env env, napi_callback_info info)
 {
     int32_t enterKeyType = 0;
-    int32_t ret =  InputMethodAbility::GetInstance()->GetEnterKeyType(enterKeyType);
+    int32_t ret = InputMethodAbility::GetInstance()->GetEnterKeyType(enterKeyType);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to getEnterKeyType", TYPE_NONE);
     }
     IMSA_HILOGD("enterKeyType: %{public}d", enterKeyType);
 
     int32_t inputPattern = 0;
-    ret =  InputMethodAbility::GetInstance()->GetInputPattern(inputPattern);
+    ret = InputMethodAbility::GetInstance()->GetInputPattern(inputPattern);
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to getInputPattern", TYPE_NONE);
     }
     IMSA_HILOGD("patternCode: %{public}d", inputPattern);
 
-    const InputAttribute attribute =  { .inputPattern = inputPattern, .enterKeyType = enterKeyType };
+    const InputAttribute attribute = { .inputPattern = inputPattern, .enterKeyType = enterKeyType };
     return JsUtils::GetValue(env, attribute);
 }
 
@@ -693,7 +696,7 @@ napi_value JsTextInputClientEngine::SelectByRange(napi_env env, napi_callback_in
 napi_value JsTextInputClientEngine::SelectByRangeSync(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("SelectByRangeSync");
-    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_RANGE};
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_RANGE };
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);
     size_t argc = 1;
@@ -723,7 +726,7 @@ napi_value JsTextInputClientEngine::SelectByRangeSync(napi_env env, napi_callbac
 napi_value JsTextInputClientEngine::SelectByMovementSync(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("run in");
-    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_MOVEMENT};
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SELECT_BY_MOVEMENT };
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);
     size_t argc = 1;
@@ -844,7 +847,7 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
 napi_value JsTextInputClientEngine::GetTextIndexAtCursorSync(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("run in");
-    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::GET_TEXT_INDEX_AT_CURSOR};
+    EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::GET_TEXT_INDEX_AT_CURSOR };
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);
     int32_t index = 0;
@@ -854,6 +857,29 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursorSync(napi_env env, napi_
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get text index at cursor.", TYPE_NONE);
     }
     return JsUtil::GetValue(env, index);
+}
+
+napi_value JsTextInputClientEngine::GetCallingWindowInfo(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGD("JsTextInputClientEngine in");
+    auto ctxt = std::make_shared<GetCallingWindowInfoContext>();
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        *result = JsCallingWindowInfo::Write(env, ctxt->windowInfo);
+        return napi_ok;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t ret = InputMethodAbility::GetInstance()->GetCallingWindowInfo(ctxt->windowInfo);
+        if (ret == ErrorCode::NO_ERROR) {
+            IMSA_HILOGI("exec GetCallingWindowInfo success");
+            ctxt->SetState(napi_ok);
+            return;
+        }
+        ctxt->SetErrorCode(ret);
+    };
+    ctxt->SetAction(nullptr, std::move(output));
+    // 0 means JsAPI:getCallingWindowInfo needs no parameter.
+    AsyncCall asyncCall(env, info, ctxt, 0);
+    return asyncCall.Call(env, exec, "getCallingWindowInfo");
 }
 
 void JsTextInputClientEngine::PrintEditorQueueInfoIfTimeout(int64_t start, const EditorEventInfo &currentInfo)
@@ -867,6 +893,46 @@ void JsTextInputClientEngine::PrintEditorQueueInfoIfTimeout(int64_t start, const
         IMSA_HILOGW("ret:%{public}d,front[%{public}" PRId64 ",%{public}d],current[%{public}" PRId64 ",%{public}d]", ret,
             frontTime, static_cast<int32_t>(frontInfo.event), currentTime, static_cast<int32_t>(currentInfo.event));
     }
+}
+
+napi_value JsRect::Write(napi_env env, const Rosen::Rect &nativeObject)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "left", nativeObject.posX_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "top", nativeObject.posY_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", nativeObject.width_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", nativeObject.height_);
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
+bool JsRect::Read(napi_env env, napi_value jsObject, Rosen::Rect &nativeObject)
+{
+    auto ret = JsUtil::Object::ReadProperty(env, jsObject, "left", nativeObject.posX_);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "top", nativeObject.posY_);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "width", nativeObject.width_);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "height", nativeObject.height_);
+    return ret;
+}
+
+napi_value JsCallingWindowInfo::Write(napi_env env, const CallingWindowInfo &nativeObject)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "rect", JsRect::Write(env, nativeObject.rect));
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "status", static_cast<uint32_t>(nativeObject.status));
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
+bool JsCallingWindowInfo::Read(napi_env env, napi_value object, CallingWindowInfo &nativeObject)
+{
+    napi_value rectObject = nullptr;
+    napi_get_named_property(env, object, "rect", &rectObject);
+    auto ret = JsRect::Read(env, rectObject, nativeObject.rect);
+    uint32_t status = 0;
+    ret = ret && JsUtil::Object::ReadProperty(env, object, "status", status);
+    nativeObject.status = static_cast<Rosen::WindowStatus>(status);
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

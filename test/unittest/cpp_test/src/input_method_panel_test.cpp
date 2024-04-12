@@ -1093,7 +1093,7 @@ HWTEST_F(InputMethodPanelTest, testSetCallingWindow, TestSize.Level0)
     // not CreatePanel, SetCallingWindow failed
     uint32_t windowId = 8;
     auto ret = inputMethodPanel->SetCallingWindow(windowId);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
 
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);

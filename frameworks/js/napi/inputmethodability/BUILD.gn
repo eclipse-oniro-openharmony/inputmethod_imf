@@ -85,6 +85,7 @@ ohos_shared_library("inputmethodengine") {
     "input:libmmi-util",
     "ipc:ipc_core",
     "napi:ace_napi",
+    "window_manager:libwm_lite",
   ]
 
   public_configs = [ ":inputmethodengine_native_public_config" ]
