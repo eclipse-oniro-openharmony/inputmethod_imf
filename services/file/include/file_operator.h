@@ -36,6 +36,7 @@ public:
 private:
     static constexpr int32_t SUCCESS = 0;
     static std::string Read(const std::string &path, const std::string &key);
+    static std::string GetRealPath(const char *path);
 };
 } // namespace MiscServices
 } // namespace OHOS

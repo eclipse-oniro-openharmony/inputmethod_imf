@@ -134,6 +134,8 @@ private:
 
     int32_t HideKeyboard(Trigger trigger);
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
+    /* param flag: ShowPanel is async, show/hide softkeyboard in alphabet keyboard attached,
+       flag will be changed before finishing show/hide */
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);

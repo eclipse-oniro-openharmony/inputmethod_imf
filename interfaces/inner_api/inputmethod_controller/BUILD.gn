@@ -63,6 +63,7 @@ ohos_shared_library("inputmethod_client") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/itypes_util.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_stub.cpp",
+    "${inputmethod_path}/services/src/global.cpp",
     "${inputmethod_path}/services/src/message.cpp",
     "${inputmethod_path}/services/src/message_handler.cpp",
   ]

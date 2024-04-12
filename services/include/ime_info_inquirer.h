@@ -117,7 +117,8 @@ private:
         const int32_t userId, const std::string &bundleName, const std::string &subName);
     int32_t GetExtInfosByBundleName(const int32_t userId, const std::string &bundleName,
         std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
-    bool IsNewExtInfos(const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
+    bool GetExtInfoContainSubtypeCfg(const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos,
+        OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo);
     bool IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName);
     std::vector<InputMethodInfo> ListInputMethodInfo(const int32_t userId);
     int32_t ListInputMethod(const int32_t userId, std::vector<Property> &props);

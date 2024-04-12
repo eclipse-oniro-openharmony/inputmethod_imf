@@ -44,6 +44,8 @@ std::mutex InputMethodController::instanceLock_;
 constexpr int32_t LOOP_COUNT = 5;
 constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t ACE_DEAL_TIME_OUT = 200;
+constexpr uint32_t GET_IMSA_MAX_RETRY_TIME = 10;
+constexpr uint32_t GET_IMSA_RETRY_INTERVAL = 100;
 InputMethodController::InputMethodController()
 {
     IMSA_HILOGD("IMC structure");
@@ -88,6 +90,9 @@ int32_t InputMethodController::UpdateListenEventFlag(uint32_t finalEventFlag, ui
 {
     auto oldEventFlag = clientInfo_.eventFlag;
     clientInfo_.eventFlag = finalEventFlag;
+    // js has no errcode, ensure not failed in GetSystemAbilityProxy();
+    BlockRetry(
+        GET_IMSA_RETRY_INTERVAL, GET_IMSA_MAX_RETRY_TIME, [this]() { return GetSystemAbilityProxy() != nullptr; });
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr && isOn) {
         IMSA_HILOGE("proxy is nullptr");
