@@ -570,7 +570,6 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
     if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);
-        usleep(SWITCH_BLOCK_TIME);
     }
     IMSA_HILOGI("start switch %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     int32_t ret = CheckSwitchPermission(switchInfo, trigger);
@@ -929,7 +928,19 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime");
-        return SwitchType();
+        // 0 means current swich ime task count.
+        if (!switchQueue_.IsEmpty() || switchImeCount_.load() != 0) {
+            IMSA_HILOGI("already has switch ime task.");
+            return ErrorCode::NO_ERROR; 
+        }
+        ++switchImeCount_;
+        auto switchTask = [this]() {
+            SwitchType();
+            --switchImeCount_;
+        };
+        // 0 means delay time is 0.
+        serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        return ErrorCode::NO_ERROR; 
     }
     IMSA_HILOGE("keycode undefined");
     return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
