@@ -22,6 +22,7 @@
 #include "global.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
+#include "system_cmd_channel_stub.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
@@ -234,6 +235,59 @@ int32_t InputMethodController::Attach(
     }
     IMSA_HILOGI("bind imf successfully");
     return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodController::ConnectSystemCmd(const sptr<OnSystemCmdListener> &listener)
+{
+    IMSA_HILOGD("InputMethodController::ConnectSystemCmd");
+    SetSystemCmdListener(listener);
+    if (isSystemCmdConnect_.load()) {
+        IMSA_HILOGE("in connected state");
+        return ErrorCode::NO_ERROR;
+    }
+    auto channel = new (std::nothrow) SystemCmdChannelStub();
+    if (channel == nullptr) {
+        IMSA_HILOGE("channel is nullptr");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("proxy is nullptr");
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
+    sptr<IRemoteObject> agent = nullptr;
+    int32_t ret =  proxy->ConnectSystemCmd(channel, agent);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to start input, ret:%{public}d", ret);
+        return ret;
+    }
+    OnConnectCmdReady(agent);
+    IMSA_HILOGI("connect imf successfully");
+    return ErrorCode::NO_ERROR;
+}
+
+void InputMethodController::OnConnectCmdReady(sptr<IRemoteObject> agentObject)
+{
+    IMSA_HILOGI("OnConnectCmdReady");
+    if (agentObject == nullptr) {
+        IMSA_HILOGE("agentObject is nullptr");
+        return;
+    }
+    isSystemCmdConnect_.store(true);
+    std::lock_guard<std::mutex> autoLock(systemAgentLock_);
+    if (systemAgent_ != nullptr && systemAgentObject_.GetRefPtr() == agentObject.GetRefPtr()) {
+        IMSA_HILOGD("agent has already been set");
+        return;
+    }
+    systemAgent_ = std::make_shared<InputMethodAgentProxy>(agentObject);
+    systemAgentObject_ = agentObject;
+}
+
+std::shared_ptr<IInputMethodAgent> InputMethodController::GetSystemCmdAgent()
+{
+    IMSA_HILOGD("GetSystemCmdAgent");
+    std::lock_guard<std::mutex> autoLock(systemAgentLock_);
+    return systemAgent_;
 }
 
 int32_t InputMethodController::ShowTextInput()
@@ -487,6 +541,7 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
     }
     RestoreListenInfoInSaDied();
     RestoreAttachInfoInSaDied();
+    ClearSystemCmdAgent();
 }
 
 void InputMethodController::RestoreListenInfoInSaDied()
@@ -973,6 +1028,28 @@ void InputMethodController::SetTextListener(sptr<OnTextChangedListener> listener
     textListener_ = listener;
 }
 
+void InputMethodController::SetSystemCmdListener(sptr<OnSystemCmdListener> listener)
+{
+    std::lock_guard<std::mutex> lock(systemCmdListenerLock_);
+    systemCmdListener_ = listener;
+}
+
+sptr<OnSystemCmdListener> InputMethodController::GetSystemCmdListener()
+{
+    std::lock_guard<std::mutex> lock(systemCmdListenerLock_);
+    return systemCmdListener_;
+}
+
+void InputMethodController::ClearSystemCmdAgent()
+{
+    {
+        std::lock_guard<std::mutex> autoLock(systemAgentLock_);
+        systemAgent_ = nullptr;
+        systemAgentObject_ = nullptr;
+    }
+    isSystemCmdConnect_.store(false);
+}
+
 bool InputMethodController::IsEditable()
 {
     std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
@@ -1179,24 +1256,52 @@ void InputMethodController::PrintLogIfAceTimeout(int64_t start)
 }
 
 int32_t InputMethodController::ReceivePrivateCommand(
-    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand, bool isSystemCmd)
 {
-    auto listener = GetTextListener();
-    if (listener == nullptr) {
-        IMSA_HILOGE("textListener_ is nullptr");
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+    if (isSystemCmd) {
+        auto cmdlistener = GetSystemCmdListener();
+        if (cmdlistener == nullptr) {
+            IMSA_HILOGE("cmdlistener is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        auto ret = cmdlistener->ReceivePrivateCommand(privateCommand);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("ReceivePrivateCommand err, ret %{public}d", ret);
+            return ErrorCode::ERROR_CMD_LISTENER_ERROR;
+        }
+        return ErrorCode::NO_ERROR;
+    } else {
+        auto listener = GetTextListener();
+        if (listener == nullptr) {
+            IMSA_HILOGE("textListener_ is nullptr");
+            return ErrorCode::ERROR_EX_NULL_POINTER;
+        }
+        auto ret = listener->ReceivePrivateCommand(privateCommand);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("ReceivePrivateCommand err, ret %{public}d", ret);
+            return ErrorCode::ERROR_TEXT_LISTENER_ERROR;
+        }
+        return ErrorCode::NO_ERROR;
     }
-    auto ret = listener->ReceivePrivateCommand(privateCommand);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("ReceivePrivateCommand err, ret %{public}d", ret);
-        return ErrorCode::ERROR_TEXT_LISTENER_ERROR;
-    }
-    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
+    IMSA_HILOGD("SendPrivateCommand in");
+    if (!TextConfig::IsPrivateCommandValid(privateCommand)) {
+        IMSA_HILOGE("invalid private command size.");
+        return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE;
+    }
+    if (isSystemCmdConnect_.load() && TextConfig::IsSystemPrivateCommand(privateCommand)) {
+        auto agent = GetSystemCmdAgent();
+        if (agent == nullptr) {
+            IMSA_HILOGE("agent is nullptr");
+            return ErrorCode::ERROR_IME_NOT_STARTED;
+        }
+        return agent->SendPrivateCommand(privateCommand);
+    }
+    
     if (!IsBound()) {
         IMSA_HILOGD("not bound");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -1205,16 +1310,23 @@ int32_t InputMethodController::SendPrivateCommand(
         IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    if (!TextConfig::IsPrivateCommandValid(privateCommand)) {
-        IMSA_HILOGE("invalid private command size.");
-        return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE;
-    }
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     return agent->SendPrivateCommand(privateCommand);
+}
+
+int32_t InputMethodController::NotifyIsShowSysPanel(bool isShow)
+{
+    auto listener = GetSystemCmdListener();
+    if (listener == nullptr) {
+        IMSA_HILOGE("listener is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    listener->OnNotifyIsShowSysPanel(isShow);
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

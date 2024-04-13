@@ -241,6 +241,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel->AsObject());
     isBindFromClient ? InvokeTextChangeCallback(clientInfo.config) : NotifyAllTextConfig();
+    SaveInputAttribute(clientInfo.attribute);
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
@@ -369,6 +370,12 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
     attribute.inputPattern = data->ReadInt32();
     IMSA_HILOGD("InputMethodAbility, enterKeyType: %{public}d, inputPattern: %{public}d", attribute.enterKeyType,
         attribute.inputPattern);
+    SaveInputAttribute(attribute);
+    // add for mod inputPattern when panel show
+    auto panel = GetSoftKeyboardPanel();
+    if (panel != nullptr) {
+        NotifyIsShowSysPanel(panel, panel->GetPanelFlag());
+    }
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
@@ -707,6 +714,7 @@ void InputMethodAbility::OnRemoteSaDied(const wptr<IRemoteObject> &object)
     IMSA_HILOGI("input method service died");
     isBound_.store(false);
     ClearInputControlChannel();
+    ClearSystemCmdChannel();
     {
         std::lock_guard<std::mutex> lock(abilityLock_);
         abilityManager_ = nullptr;
@@ -735,6 +743,44 @@ int32_t InputMethodAbility::GetSecurityMode(int32_t &security)
         return false;
     }
     return proxy->GetSecurityMode(security);
+}
+
+void InputMethodAbility::ClearSystemCmdChannel()
+{
+    std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
+    if (systemCmdObject_ == nullptr || systemCmdChannelProxy_ == nullptr) {
+        IMSA_HILOGD("systemCmdObject_ already nullptr");
+        return;
+    }
+    systemCmdObject_ = nullptr;
+    systemCmdChannelProxy_ = nullptr;
+    IMSA_HILOGD("end");
+}
+
+std::shared_ptr<SystemCmdChannelProxy> InputMethodAbility::GetSystemCmdChannelProxy()
+{
+    std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
+    return systemCmdChannelProxy_;
+}
+
+int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
+{
+    IMSA_HILOGD("run in SetSystemCmdChannel");
+    std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
+    auto channelProxy = std::make_shared<SystemCmdChannelProxy>(channel);
+    if (channelProxy == nullptr) {
+        IMSA_HILOGE("failed to new data channel proxy");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    systemCmdObject_ = channel;
+    systemCmdChannelProxy_ = channelProxy;
+    systemAgentStub_ = new (std::nothrow) InputMethodAgentStub();
+    if (systemAgentStub_ == nullptr) {
+        IMSA_HILOGE("failed to create agent");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    agent = systemAgentStub_->AsObject();
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAbility::OnSecurityChange(int32_t security)
@@ -819,6 +865,7 @@ int32_t InputMethodAbility::ShowPanel(
             IMSA_HILOGE("Set Keyboard failed, ret = %{public}d", ret);
         }
     }
+    NotifyIsShowSysPanel(inputMethodPanel, flag);
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
         NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, true, trigger });
@@ -837,6 +884,36 @@ int32_t InputMethodAbility::HidePanel(
         NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
     }
     return ret;
+}
+
+int32_t InputMethodAbility::NotifyIsShowSysPanel(
+    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag)
+{
+    if (inputMethodPanel->GetPanelType() != SOFT_KEYBOARD) {
+        return ErrorCode::NO_ERROR;
+    }
+    bool isShow = false;
+    if (flag == FLG_FIXED && !GetInputAttribute().GetSecurityFlag()) {
+        isShow = true;
+    }
+    auto systemChannel = GetSystemCmdChannelProxy();
+    if (systemChannel == nullptr) {
+        IMSA_HILOGE("channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return systemChannel->NotifyIsShowSysPanel(isShow);
+}
+
+void InputMethodAbility::SaveInputAttribute(const InputAttribute &inputAttribute)
+{
+    std::lock_guard<std::mutex> lock(inputAttrLock_);
+    inputAttribute_ = inputAttribute;
+}
+
+InputAttribute InputMethodAbility::GetInputAttribute()
+{
+    std::lock_guard<std::mutex> lock(inputAttrLock_);
+    return inputAttribute_;
 }
 
 int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
@@ -1013,16 +1090,29 @@ int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::str
         IMSA_HILOGE("current is not default ime.");
         return ErrorCode::ERROR_NOT_DEFAULT_IME;
     }
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
-        IMSA_HILOGE("channel is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    if (!TextConfig::IsPrivateCommandValid(privateCommand)) {
+        IMSA_HILOGE("privateCommand is limit 32KB, count limit 5.");
+        return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE;
     }
-    return channel->SendPrivateCommand(privateCommand);
+    if (TextConfig::IsSystemPrivateCommand(privateCommand)) {
+        auto systemChannel = GetSystemCmdChannelProxy();
+        if (systemChannel == nullptr) {
+            IMSA_HILOGE("channel is nullptr");
+            return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        }
+        return systemChannel->SendPrivateCommand(privateCommand);
+    } else {
+        auto channel = GetInputDataChannelProxy();
+        if (channel == nullptr) {
+            IMSA_HILOGE("channel is nullptr");
+            return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        }
+        return channel->SendPrivateCommand(privateCommand);
+    }
 }
 
 int32_t InputMethodAbility::ReceivePrivateCommand(
-    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand, bool isSystemCmd)
 {
     if (!IsDefaultIme()) {
         IMSA_HILOGE("current is not default ime.");

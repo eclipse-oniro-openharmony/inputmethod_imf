@@ -45,6 +45,7 @@ public:
     bool IsEnable() override;
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     int32_t OnSecurityChange(int32_t security) override;
+    int32_t OnConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent) override;
     void OnClientInactive(const sptr<IInputDataChannel> &channel) override;
 
 private:

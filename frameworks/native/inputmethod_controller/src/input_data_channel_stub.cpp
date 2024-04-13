@@ -316,7 +316,7 @@ void InputDataChannelStub::NotifyKeyboardHeight(uint32_t height)
 int32_t InputDataChannelStub::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    return InputMethodController::GetInstance()->ReceivePrivateCommand(privateCommand);
+    return InputMethodController::GetInstance()->ReceivePrivateCommand(privateCommand, false);
 }
 } // namespace MiscServices
 } // namespace OHOS

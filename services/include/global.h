@@ -106,6 +106,7 @@ enum {
     ERROR_PANEL_NOT_FOUND = 36,
     ERROR_WINDOW_MANAGER = 37,
     ERROR_GET_TEXT_CONFIG = 38,
+    ERROR_CMD_LISTENER_ERROR = 39,
 };
 }; // namespace ErrorCode
 

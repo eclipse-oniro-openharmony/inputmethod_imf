@@ -48,6 +48,7 @@ public:
     bool IsEnable() override;
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     int32_t OnSecurityChange(int32_t security) override;
+    int32_t OnConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent) override;
     void OnClientInactive(const sptr<IInputDataChannel> &channel) override;
     void SetMessageHandler(MessageHandler *msgHandler);
 
@@ -64,6 +65,7 @@ private:
     int32_t IsPanelShownOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SecurityChangeOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t OnClientInactiveOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t OnConnectSystemCmdOnRemote(MessageParcel &data, MessageParcel &reply);
     using ParcelHandler = std::function<bool(MessageParcel &)>;
     int32_t SendMessage(int code, ParcelHandler input = nullptr);
     using RequestHandler = int32_t (InputMethodCoreStub::*)(MessageParcel &, MessageParcel &);
@@ -79,6 +81,7 @@ private:
         { static_cast<uint32_t>(IS_PANEL_SHOWN), &InputMethodCoreStub::IsPanelShownOnRemote },
         { static_cast<uint32_t>(SECURITY_CHANGE), &InputMethodCoreStub::SecurityChangeOnRemote },
         { static_cast<uint32_t>(ON_CLIENT_INACTIVE), &InputMethodCoreStub::OnClientInactiveOnRemote },
+        { static_cast<uint32_t>(ON_CONNECT_SYSTEM_CMD), &InputMethodCoreStub::OnConnectSystemCmdOnRemote },
     };
 };
 } // namespace MiscServices

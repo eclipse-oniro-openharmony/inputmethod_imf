@@ -88,6 +88,7 @@
                           "../../../../frameworks/native/inputmethod_controller/include/input_method_property.h",
                           "../../../../frameworks/native/inputmethod_controller/include/input_method_utils.h",
                           "../../../../frameworks/native/inputmethod_controller/include/input_window_info.h",
+                          "../../../../frameworks/native/inputmethod_controller/include/i_system_cmd_channel.h",
                           "ime_event_listener.h",
                           "ime_event_monitor_manager.h",
                           "input_method_controller.h"

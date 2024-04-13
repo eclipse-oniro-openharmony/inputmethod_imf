@@ -1179,7 +1179,19 @@ bool InputMethodSystemAbility::IsStartInputTypePermitted()
     if (identityChecker_->IsBundleNameValid(tokenId, defaultIme->prop.name)) {
         return true;
     }
+    if (identityChecker_->IsSystemApp(tokenId)) {
+        return true;
+    }
     return identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId) && userSession_->IsBoundToClient();
+}
+
+int32_t InputMethodSystemAbility::ConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent)
+{
+    if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
+        IMSA_HILOGE("not system app");
+        return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
+    }
+    return userSession_->OnConnectSystemCmd(channel, agent);
 }
 } // namespace MiscServices
 } // namespace OHOS

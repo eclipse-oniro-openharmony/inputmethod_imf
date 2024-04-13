@@ -20,6 +20,7 @@
 
 #include "i_input_data_channel.h"
 #include "input_control_channel_proxy.h"
+#include "system_cmd_channel_proxy.h"
 #include "input_method_ability.h"
 #include "ipc_skeleton.h"
 #include "message_handler.h"
@@ -121,6 +122,24 @@ int32_t InputMethodCoreStub::SecurityChangeOnRemote(MessageParcel &data, Message
     }
     auto ret = InputMethodAbility::GetInstance()->OnSecurityChange(security);
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodCoreStub::OnConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent)
+{
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodCoreStub::OnConnectSystemCmdOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> channelObject = nullptr;
+    if (!ITypesUtil::Unmarshal(data, channelObject)) {
+        IMSA_HILOGE("failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    sptr<IRemoteObject> agent = nullptr;
+    auto ret = InputMethodAbility::GetInstance()->OnConnectSystemCmd(channelObject, agent);
+    return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR
+                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t InputMethodCoreStub::SetSubtypeOnRemote(MessageParcel &data, MessageParcel &reply)
