@@ -156,7 +156,9 @@ private:
 
     bool isScbEnable_ = false;
     std::atomic<bool> imeStarting_ = false;
+    std::mutex switchImeMutex_;
     std::atomic<int32_t> switchImeCount_ = false;
+    uint32_t targetSwitchCount_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
