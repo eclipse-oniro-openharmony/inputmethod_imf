@@ -158,7 +158,7 @@ private:
     std::atomic<bool> imeStarting_ = false;
     std::mutex switchImeMutex_;
     std::atomic<int32_t> switchImeCount_ = 0;
-    uint32_t targetSwitchCount_ = 0;
+    std::atomic<uint32_t> targetSwitchCount_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

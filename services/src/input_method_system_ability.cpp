@@ -927,9 +927,14 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime");
         {
+            if (switchImeCount_.load() != 0) {
+                IMSA_HILOGI("already has switch ime task.");
+                ++targetSwitchCount_;
+                return ErrorCode::NO_ERROR;
+            }
             std::lock_guard<std::mutex> lock(switchImeMutex_);
             // 0 means current swich ime task count.
-            if (!switchQueue_.IsEmpty() || switchImeCount_.load() != 0) {
+            if (switchImeCount_.load() != 0) {
                 IMSA_HILOGI("already has switch ime task.");
                 ++targetSwitchCount_;
                 return ErrorCode::NO_ERROR;
@@ -942,7 +947,6 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
             std::lock_guard<std::mutex> lock(switchImeMutex_);
             SwitchType();
             --switchImeCount_;
-            targetSwitchCount_ = 0;
         };
         // 0 means delay time is 0.
         serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
@@ -1006,8 +1010,10 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
 int32_t InputMethodSystemAbility::SwitchType()
 {
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), "", "" };
-    int32_t ret = ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(
-        switchInfo, userId_, enableImeOn_, targetSwitchCount_);
+    auto cacheCount = targetSwitchCount_.load();
+    targetSwitchCount_.store(0);
+    int32_t ret = 
+        ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId_, enableImeOn_, cacheCount);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("Get next SwitchInfo failed, stop switching ime.");
         return ret;
