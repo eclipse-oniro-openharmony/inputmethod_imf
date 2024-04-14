@@ -926,12 +926,12 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime");
+        if (switchImeCount_.load() != 0) {
+            IMSA_HILOGI("already has switch ime task.");
+            ++targetSwitchCount_;
+            return ErrorCode::NO_ERROR;
+        }
         {
-            if (switchImeCount_.load() != 0) {
-                IMSA_HILOGI("already has switch ime task.");
-                ++targetSwitchCount_;
-                return ErrorCode::NO_ERROR;
-            }
             std::lock_guard<std::mutex> lock(switchImeMutex_);
             // 0 means current swich ime task count.
             if (switchImeCount_.load() != 0) {

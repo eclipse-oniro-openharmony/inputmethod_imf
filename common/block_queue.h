@@ -64,12 +64,6 @@ public:
         return true;
     }
 
-    bool IsEmpty()
-    {
-        std::unique_lock<std::mutex> lock(queuesMutex_);
-        return queues_.empty();
-    }
-
 private:
     const uint32_t timeout_;
     std::mutex queuesMutex_;
