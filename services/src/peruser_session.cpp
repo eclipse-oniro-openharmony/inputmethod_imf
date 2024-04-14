@@ -237,7 +237,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
             RestartIme();
         }
     }
-	NotifyImeStopFinished();
+    NotifyImeStopFinished();
 }
 
 int32_t PerUserSession::RemoveIme(const sptr<IInputMethodCore> &core, ImeType type)

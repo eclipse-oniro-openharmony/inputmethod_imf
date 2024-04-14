@@ -950,7 +950,7 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
         };
         // 0 means delay time is 0.
         serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-        return ErrorCode::NO_ERROR; 
+        return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGE("keycode undefined");
     return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
@@ -1012,7 +1012,7 @@ int32_t InputMethodSystemAbility::SwitchType()
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), "", "" };
     auto cacheCount = targetSwitchCount_.load();
     targetSwitchCount_.store(0);
-    int32_t ret = 
+    int32_t ret =
         ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId_, enableImeOn_, cacheCount);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("Get next SwitchInfo failed, stop switching ime.");
