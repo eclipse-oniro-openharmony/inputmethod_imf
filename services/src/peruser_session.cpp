@@ -1185,6 +1185,7 @@ bool PerUserSession::WaitForCurrentImeStop()
 void PerUserSession::NotifyImeStopFinished()
 {
     IMSA_HILOGI("run in");
+    std::unique_lock<std::mutex> lock(imeStopMutex_);
     isSwitching_.store(false);
     imeStopCv_.notify_one();
 }

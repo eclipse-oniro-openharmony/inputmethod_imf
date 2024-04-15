@@ -1010,8 +1010,7 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
 int32_t InputMethodSystemAbility::SwitchType()
 {
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), "", "" };
-    auto cacheCount = targetSwitchCount_.load();
-    targetSwitchCount_.store(0);
+    auto cacheCount = targetSwitchCount_.exchange(0);
     int32_t ret =
         ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId_, enableImeOn_, cacheCount);
     if (ret != ErrorCode::NO_ERROR) {

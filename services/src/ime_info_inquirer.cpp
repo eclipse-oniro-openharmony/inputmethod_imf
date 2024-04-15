@@ -402,11 +402,8 @@ int32_t ImeInfoInquirer::GetSwitchInfoBySwitchCount(
         IMSA_HILOGE("bundle manager error");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
-    uint32_t nextCount = cacheCount % props.size();
-    auto currentDis = std::distance(props.begin(), iter);
-    auto targetDis = currentDis + nextCount < props.size() ? currentDis + nextCount
-                                                           : currentDis + nextCount - props.size();
-    switchInfo.bundleName = targetDis >= props.size() ? props[0].name : props[targetDis].name;
+    uint32_t nextIndex = (cacheCount + std::distance(iter, props.begin())) % props.size();
+    switchInfo.bundleName = props[nextIndex].name;
     IMSA_HILOGD("Next ime: %{public}s", switchInfo.bundleName.c_str());
     return ErrorCode::NO_ERROR;
 }
