@@ -233,7 +233,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
         StopClientInput(client);
-        if (type == ImeType::IME && isSwitching_.load()) {
+        if (type == ImeType::IME && !isSwitching_.load()) {
             RestartIme();
         }
     }
