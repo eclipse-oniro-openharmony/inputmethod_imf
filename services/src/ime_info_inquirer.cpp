@@ -403,10 +403,10 @@ int32_t ImeInfoInquirer::GetSwitchInfoBySwitchCount(
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
     uint32_t nextCount = cacheCount % props.size();
-    std::rotate(props.begin(), iter, props.end());
-    auto it = props.begin();
-    std::advance(it, nextCount);
-    switchInfo.bundleName = it == props.end() ? props[0].name : it->name;
+    auto currentDis = std::distance(props.begin(), iter);
+    auto targetDis = currentDis + nextCount < props.size() ? currentDis + nextCount
+                                                           : currentDis + nextCount - props.size();
+    switchInfo.bundleName = targetDis >= props.size() ? props[0].name : props[targetDis].name;
     IMSA_HILOGD("Next ime: %{public}s", switchInfo.bundleName.c_str());
     return ErrorCode::NO_ERROR;
 }
