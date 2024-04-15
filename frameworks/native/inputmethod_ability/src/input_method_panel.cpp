@@ -25,6 +25,7 @@ namespace MiscServices {
 using WMError = OHOS::Rosen::WMError;
 using WindowGravity = OHOS::Rosen::WindowGravity;
 using WindowState = OHOS::Rosen::WindowState;
+using namespace Rosen;
 constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_{ 0 };
@@ -64,6 +65,10 @@ int32_t InputMethodPanel::CreatePanel(
     windowId_ = window_->GetWindowId();
     IMSA_HILOGI("success, type/flag/windowId: %{public}d/%{public}d/%{public}u", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_), windowId_);
+    if (panelInfo.panelType == SOFT_KEYBOARD) {
+        RegisterOccupiedAreaChangeListener();
+        RegisterWindowChangeListener();
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -461,6 +466,50 @@ uint32_t InputMethodPanel::GetHeight()
 {
     std::lock_guard<std::mutex> lock(heightLock_);
     return panelHeight_;
+}
+
+void InputMethodPanel::RegisterWindowChangeListener()
+{
+    sptr<IWindowChangeListener> listener = new (std::nothrow)
+        WindowChangedListener([this]() { PanelStatusChangeToImc(InputWindowStatus::SHOW); });
+    if (listener == nullptr) {
+        return;
+    }
+    auto ret = window_->RegisterWindowChangeListener(listener);
+    IMSA_HILOGI("CYYYYY:ret: %{public}d", ret);
+}
+
+void InputMethodPanel::WindowChangedListener::OnSizeChange(
+    Rosen::Rect rect, WindowSizeChangeReason reason, const std::shared_ptr<RSTransaction> &rsTransaction)
+{
+    IMSA_HILOGI("CYYYYY:rect[%{public}d, %{public}d, %{public}u, %{public}u]", rect.posX_, rect.posY_, rect.width_,
+        rect.height_);
+    if (handler_ == nullptr) {
+        return;
+    }
+    handler_();
+}
+
+void InputMethodPanel::RegisterOccupiedAreaChangeListener()
+{
+    sptr<IOccupiedAreaChangeListener> listener = new (std::nothrow)
+        OccupiedAreaChangeListener([this]() { PanelStatusChangeToImc(InputWindowStatus::SHOW); });
+    if (listener == nullptr) {
+        return;
+    }
+    auto ret = window_->RegisterOccupiedAreaChangeListener(listener);
+    IMSA_HILOGI("CYYYYY:ret: %{public}d", ret);
+}
+
+void InputMethodPanel::OccupiedAreaChangeListener::OnSizeChange(
+    const sptr<OccupiedAreaChangeInfo> &info, const std::shared_ptr<RSTransaction> &rsTransaction)
+{
+    IMSA_HILOGI("CYYYYY:rect[%{public}d, %{public}d, %{public}u, %{public}u]", info->rect_.posX_, info->rect_.posY_,
+        info->rect_.width_, info->rect_.height_);
+    if (handler_ == nullptr) {
+        return;
+    }
+    handler_();
 }
 } // namespace MiscServices
 } // namespace OHOS

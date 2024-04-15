@@ -17,16 +17,18 @@
 #define INPUT_METHOD_PANEL_H
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <string>
 
 #include "calling_window_info.h"
 #include "input_window_info.h"
 #include "js_runtime_utils.h"
+//#include "occupied_area_change_info.h"
 #include "panel_info.h"
 #include "panel_status_listener.h"
 #include "window.h"
-
+#include "wm_common.h"
 namespace OHOS {
 namespace MiscServices {
 class InputMethodPanel {
@@ -56,6 +58,33 @@ public:
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
+    using ChangeHandler = std::function<void()>;
+    class WindowChangedListener : public Rosen::IWindowChangeListener {
+    public:
+        explicit WindowChangedListener(ChangeHandler handler) : handler_(std::move(handler))
+        {
+        }
+        ~WindowChangedListener() = default;
+        void OnSizeChange(Rosen::Rect Rect, Rosen::WindowSizeChangeReason reason,
+            const std::shared_ptr<Rosen::RSTransaction> &rsTransaction = nullptr) override;
+
+    private:
+        ChangeHandler handler_ = nullptr;
+    };
+    class OccupiedAreaChangeListener : public Rosen::IOccupiedAreaChangeListener {
+    public:
+        explicit OccupiedAreaChangeListener(ChangeHandler handler) : handler_(std::move(handler))
+        {
+        }
+        ~OccupiedAreaChangeListener() = default;
+        void OnSizeChange(const sptr<Rosen::OccupiedAreaChangeInfo> &info,
+            const std::shared_ptr<Rosen::RSTransaction> &rsTransaction = nullptr) override;
+
+    private:
+        ChangeHandler handler_ = nullptr;
+    };
+    void RegisterWindowChangeListener();
+    void RegisterOccupiedAreaChangeListener();
     bool IsHidden();
     int32_t SetPanelProperties();
     std::string GeneratePanelName();
