@@ -18,8 +18,8 @@
 #include "display_manager.h"
 #include "global.h"
 #include "input_method_ability_utils.h"
+#include "scene_board_judgement.h"
 #include "ui/rs_surface_node.h"
-
 namespace OHOS {
 namespace MiscServices {
 using WMError = OHOS::Rosen::WMError;
@@ -29,7 +29,14 @@ using namespace Rosen;
 constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_{ 0 };
-InputMethodPanel::~InputMethodPanel() = default;
+InputMethodPanel::~InputMethodPanel()
+{
+    if (panelType_ != SOFT_KEYBOARD) {
+        return;
+    }
+    UnregisterKeyboardPanelInfoChangeListener();
+    UnregisterWindowChangeListener();
+}
 
 int32_t InputMethodPanel::CreatePanel(
     const std::shared_ptr<AbilityRuntime::Context> &context, const PanelInfo &panelInfo)
@@ -66,8 +73,11 @@ int32_t InputMethodPanel::CreatePanel(
     IMSA_HILOGI("success, type/flag/windowId: %{public}d/%{public}d/%{public}u", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_), windowId_);
     if (panelInfo.panelType == SOFT_KEYBOARD) {
-        RegisterOccupiedAreaChangeListener();
+        isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
         RegisterWindowChangeListener();
+        if (isScbEnable_) {
+            RegisterKeyboardPanelInfoChangeListener();
+        }
     }
     return ErrorCode::NO_ERROR;
 }
@@ -213,6 +223,12 @@ int32_t InputMethodPanel::ShowPanel()
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
     PanelStatusChange(InputWindowStatus::SHOW);
+    if (panelType_ == SOFT_KEYBOARD && panelFlag_ != FLG_CANDIDATE_COLUMN && !isScbEnable_) {
+        auto rect = window_->GetRect();
+        IMSA_HILOGI("CYYYYY:rect[%{public}d, %{public}d, %{public}u, %{public}u], flag:%{public}d", rect.posX_,
+            rect.posY_, rect.width_, rect.height_, panelFlag_);
+        PanelStatusChangeToImc(InputWindowStatus::SHOW, rect);
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -249,6 +265,10 @@ int32_t InputMethodPanel::HidePanel()
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
     PanelStatusChange(InputWindowStatus::HIDE);
+    if (panelType_ == SOFT_KEYBOARD && panelFlag_ != FLG_CANDIDATE_COLUMN && !isScbEnable_) {
+        IMSA_HILOGE("CYYYYY");
+        PanelStatusChangeToImc(InputWindowStatus::SHOW, { 0, 0, 0, 0 });
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -313,27 +333,18 @@ void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
         IMSA_HILOGD("HidePanel panelStatusListener_ is not nullptr");
         panelStatusListener_->OnPanelStatus(windowId_, false);
     }
-    PanelStatusChangeToImc(status);
 }
 
-void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status)
+void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status, const Rosen::Rect &rect)
 {
-    if (panelType_ != SOFT_KEYBOARD) {
-        IMSA_HILOGD("not SOFT_KEYBOARD");
-        return;
-    }
-    if (panelFlag_ != FLG_FIXED && panelFlag_ != FLG_FLOATING) {
-        IMSA_HILOGD("not FLG_FIXED && FLG_FLOATING");
-        return;
-    }
     auto imsa = ImaUtils::GetImsaProxy();
     if (imsa == nullptr) {
         IMSA_HILOGE("imsa is nullptr");
         return;
     }
-    auto rect = window_->GetRect();
-    IMSA_HILOGD("InputMethodPanel::rect[%{public}d,%{public}d,%{public}u,%{public}u]", rect.posX_, rect.posY_,
-        rect.width_, rect.height_);
+    IMSA_HILOGD("CYYYYY:rect[%{public}d,%{public}d,%{public}u,%{public}u], status:%{public}d, "
+                "panelFlag:%{public}d",
+        rect.posX_, rect.posY_, rect.width_, rect.height_, status, panelFlag_);
     std::string name = window_->GetWindowName() + "/" + std::to_string(window_->GetWindowId());
     ImeWindowInfo info;
     info.panelInfo = { panelType_, panelFlag_ };
@@ -470,46 +481,87 @@ uint32_t InputMethodPanel::GetHeight()
 
 void InputMethodPanel::RegisterWindowChangeListener()
 {
-    sptr<IWindowChangeListener> listener = new (std::nothrow)
-        WindowChangedListener([this]() { PanelStatusChangeToImc(InputWindowStatus::SHOW); });
-    if (listener == nullptr) {
+    windowChangeListener_ = new (std::nothrow)
+        WindowChangedListener([this](const Rosen::Rect &rect) { HandleSizeChange(rect); });
+    if (windowChangeListener_ == nullptr) {
         return;
     }
-    auto ret = window_->RegisterWindowChangeListener(listener);
+    auto ret = window_->RegisterWindowChangeListener(windowChangeListener_);
     IMSA_HILOGI("CYYYYY:ret: %{public}d", ret);
+}
+
+void InputMethodPanel::UnregisterWindowChangeListener()
+{
+    window_->UnRegisterWindowChangeListener(windowChangeListener_);
 }
 
 void InputMethodPanel::WindowChangedListener::OnSizeChange(
     Rosen::Rect rect, WindowSizeChangeReason reason, const std::shared_ptr<RSTransaction> &rsTransaction)
 {
-    IMSA_HILOGI("CYYYYY:rect[%{public}d, %{public}d, %{public}u, %{public}u]", rect.posX_, rect.posY_, rect.width_,
-        rect.height_);
     if (handler_ == nullptr) {
         return;
     }
-    handler_();
+    handler_(rect);
 }
 
-void InputMethodPanel::RegisterOccupiedAreaChangeListener()
+void InputMethodPanel::HandleSizeChange(const Rosen::Rect &rect)
 {
-    sptr<IOccupiedAreaChangeListener> listener = new (std::nothrow)
-        OccupiedAreaChangeListener([this]() { PanelStatusChangeToImc(InputWindowStatus::SHOW); });
-    if (listener == nullptr) {
+    if (isScbEnable_) {
+        IMSA_HILOGI("CYYYYY:scb enable, not deal");
         return;
     }
-    auto ret = window_->RegisterOccupiedAreaChangeListener(listener);
+    if (panelFlag_ == FLG_CANDIDATE_COLUMN) {
+        IMSA_HILOGI("CYYYYY:FLG_CANDIDATE_COLUMN, not deal");
+        return;
+    }
+    if (!IsShowing()) {
+        IMSA_HILOGI("CYYYYY:panel hide, not deal");
+        return;
+    }
+    IMSA_HILOGI("CYYYYY:rect[%{public}d, %{public}d, %{public}u, %{public}u], flag:%{public}d", rect.posX_, rect.posY_,
+        rect.width_, rect.height_, panelFlag_);
+    PanelStatusChangeToImc(InputWindowStatus::SHOW, rect);
+}
+
+void InputMethodPanel::RegisterKeyboardPanelInfoChangeListener()
+{
+    kbPanelInfoListener_ = new (std::nothrow) KeyboardPanelInfoChangeListener(
+        [this](const KeyboardPanelInfo &keyboardPanelInfo) { HandleKbPanelInfoChange(keyboardPanelInfo); });
+    if (kbPanelInfoListener_ == nullptr) {
+        return;
+    }
+    auto ret = window_->RegisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
     IMSA_HILOGI("CYYYYY:ret: %{public}d", ret);
 }
 
-void InputMethodPanel::OccupiedAreaChangeListener::OnSizeChange(
-    const sptr<OccupiedAreaChangeInfo> &info, const std::shared_ptr<RSTransaction> &rsTransaction)
+void InputMethodPanel::UnregisterKeyboardPanelInfoChangeListener()
 {
-    IMSA_HILOGI("CYYYYY:rect[%{public}d, %{public}d, %{public}u, %{public}u]", info->rect_.posX_, info->rect_.posY_,
-        info->rect_.width_, info->rect_.height_);
+    window_->UnregisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
+}
+
+void InputMethodPanel::KeyboardPanelInfoChangeListener::OnKeyboardPanelInfoChanged(
+    const KeyboardPanelInfo &keyboardPanelInfo)
+{
     if (handler_ == nullptr) {
         return;
     }
-    handler_();
+    handler_(keyboardPanelInfo);
+}
+
+void InputMethodPanel::HandleKbPanelInfoChange(const KeyboardPanelInfo &keyboardPanelInfo)
+{
+    if (panelFlag_ == FLG_CANDIDATE_COLUMN) {
+        IMSA_HILOGI("CYYYYY:FLG_CANDIDATE_COLUMN");
+        return;
+    }
+    InputWindowStatus status = InputWindowStatus::HIDE;
+    if (keyboardPanelInfo.isKeyboardPanelShown) {
+        status = InputWindowStatus::SHOW;
+    }
+    IMSA_HILOGI("CYYYYY:rect[%{public}d, %{public}d, %{public}u, %{public}u], status:%{public}d, flag:%{public}d",
+        keyboardPanelInfo.keyboardPanelRect.posX_, keyboardPanelInfo.keyboardPanelRect.posY_,
+        keyboardPanelInfo.keyboardPanelRect.width_, keyboardPanelInfo.keyboardPanelRect.height_, status, panelFlag_);
+    PanelStatusChangeToImc(status, keyboardPanelInfo.keyboardPanelRect);
 }
 } // namespace MiscServices
 } // namespace OHOS

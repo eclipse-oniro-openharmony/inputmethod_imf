@@ -85,6 +85,7 @@ ohos_shared_library("inputmethod_ability") {
     "samgr:samgr_proxy",
     "window_manager:libdm",
     "window_manager:libwm",
+    "window_manager:libwsutils",
   ]
 
   deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]

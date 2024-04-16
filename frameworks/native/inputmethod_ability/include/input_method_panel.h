@@ -24,7 +24,6 @@
 #include "calling_window_info.h"
 #include "input_window_info.h"
 #include "js_runtime_utils.h"
-//#include "occupied_area_change_info.h"
 #include "panel_info.h"
 #include "panel_status_listener.h"
 #include "window.h"
@@ -58,9 +57,9 @@ public:
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
-    using ChangeHandler = std::function<void()>;
     class WindowChangedListener : public Rosen::IWindowChangeListener {
     public:
+        using ChangeHandler = std::function<void(const Rosen::Rect &rect)>;
         explicit WindowChangedListener(ChangeHandler handler) : handler_(std::move(handler))
         {
         }
@@ -71,25 +70,29 @@ private:
     private:
         ChangeHandler handler_ = nullptr;
     };
-    class OccupiedAreaChangeListener : public Rosen::IOccupiedAreaChangeListener {
+    class KeyboardPanelInfoChangeListener : public Rosen::IKeyboardPanelInfoChangeListener {
     public:
-        explicit OccupiedAreaChangeListener(ChangeHandler handler) : handler_(std::move(handler))
+        using ChangeHandler = std::function<void(const Rosen::KeyboardPanelInfo &keyboardPanelInfo)>;
+        explicit KeyboardPanelInfoChangeListener(ChangeHandler handler) : handler_(std::move(handler))
         {
         }
-        ~OccupiedAreaChangeListener() = default;
-        void OnSizeChange(const sptr<Rosen::OccupiedAreaChangeInfo> &info,
-            const std::shared_ptr<Rosen::RSTransaction> &rsTransaction = nullptr) override;
+        ~KeyboardPanelInfoChangeListener() = default;
+        void OnKeyboardPanelInfoChanged(const Rosen::KeyboardPanelInfo &keyboardPanelInfo) override;
 
     private:
         ChangeHandler handler_ = nullptr;
     };
+    void RegisterKeyboardPanelInfoChangeListener();
+    void UnregisterKeyboardPanelInfoChangeListener();
+    void HandleKbPanelInfoChange(const Rosen::KeyboardPanelInfo &keyboardPanelInfo);
     void RegisterWindowChangeListener();
-    void RegisterOccupiedAreaChangeListener();
+    void UnregisterWindowChangeListener();
+    void HandleSizeChange(const Rosen::Rect &rect);
     bool IsHidden();
     int32_t SetPanelProperties();
     std::string GeneratePanelName();
     void PanelStatusChange(const InputWindowStatus &status);
-    void PanelStatusChangeToImc(const InputWindowStatus &status);
+    void PanelStatusChangeToImc(const InputWindowStatus &status, const Rosen::Rect &rect);
     bool MarkListener(const std::string &type, bool isRegister);
     static uint32_t GenerateSequenceId();
     bool IsSizeValid(uint32_t width, uint32_t height);
@@ -106,6 +109,9 @@ private:
     static std::atomic<uint32_t> sequenceId_;
     std::mutex heightLock_;
     uint32_t panelHeight_ = 0;
+    sptr<Rosen::IWindowChangeListener> windowChangeListener_{ nullptr };
+    sptr<Rosen::IKeyboardPanelInfoChangeListener> kbPanelInfoListener_{ nullptr };
+    bool isScbEnable_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS
