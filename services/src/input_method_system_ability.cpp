@@ -945,7 +945,7 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
                     return true;
                 }
                 switchTaskExecuting_.store(false);
-                return fasle;
+                return false;
             };
             do {
                 SwitchType();
