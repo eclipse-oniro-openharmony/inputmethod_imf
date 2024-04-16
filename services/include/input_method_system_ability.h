@@ -157,7 +157,7 @@ private:
     bool isScbEnable_ = false;
     std::atomic<bool> imeStarting_ = false;
     std::mutex switchImeMutex_;
-    std::atomic<bool> isSwitching_ = false;
+    std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
 };
 } // namespace MiscServices

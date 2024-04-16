@@ -929,20 +929,27 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
         {
             std::lock_guard<std::mutex> lock(switchImeMutex_);
             // 0 means current swich ime task count.
-            if (isSwitching_.load()) {
+            if (switchTaskExecuting_.load()) {
                 IMSA_HILOGI("already has switch ime task.");
                 ++targetSwitchCount_;
                 return ErrorCode::NO_ERROR;
             } else {
-                isSwitching_.store(true);
+                switchTaskExecuting_.store(true);
                 ++targetSwitchCount_;
             }
         }
         auto switchTask = [this]() {
+            auto checkSwitchCount = [this]() {
+                std::lock_guard<std::mutex> lock(switchImeMutex_);
+                if (targetSwitchCount_ > 0) {
+                    return true;
+                }
+                switchTaskExecuting_.store(false);
+                return fasle;
+            };
             do {
                 SwitchType();
-            } while (targetSwitchCount_.load() > 0);
-            isSwitching_.store(false);
+            } while (checkSwitchCount());
         };
         // 0 means delay time is 0.
         serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
