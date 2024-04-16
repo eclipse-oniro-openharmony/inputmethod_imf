@@ -483,5 +483,32 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_002, TestSize.Level0
     EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
     imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, property->name, "");
 }
+
+/**
+* @tc.name: testCombinationKeySwitchIme_003
+* @tc.desc: switch ime by combination key.
+* @tc.type: FUNC
+* @tc.require: issuesI8RPP3
+* @tc.author: mashaoyin
+*/
+HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_003, TestSize.Level0)
+{
+    IMSA_HILOGI("testCombinationKeySwitchIme_003 Test START");
+    ImeSettingListenerTestImpl::ResetParam(); 
+    std::shared_ptr<Property> property = imc_->GetCurrentInputMethod();
+    std::vector<Property> props;
+    imc_->ListInputMethod(props);
+    std::string result;
+    static std::string cmd = "uinput -K -d 2077 -d 2050 -u 2050 -u 2077";
+    // 2 means switch count is double props.size().
+    for (auto iter = 0; iter < props.size() * 2; ++iter) {
+        auto ret = TddUtil::ExecuteCmd(cmd, result);
+        EXPECT_TRUE(ret);
+    }
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
+    std::shared_ptr<Property> curProperty = imc_->GetCurrentInputMethod();
+    EXPECT_EQ(property->name, curProperty->name);
+    imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, property->name, "");
+}
 } // namespace MiscServices
 } // namespace OHOS
