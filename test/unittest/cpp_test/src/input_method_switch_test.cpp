@@ -494,7 +494,7 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_002, TestSize.Level0
 HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_003, TestSize.Level0)
 {
     IMSA_HILOGI("testCombinationKeySwitchIme_003 Test START");
-    ImeSettingListenerTestImpl::ResetParam(); 
+    ImeSettingListenerTestImpl::ResetParam();
     std::shared_ptr<Property> property = imc_->GetCurrentInputMethod();
     std::vector<Property> props;
     imc_->ListInputMethod(props);

@@ -938,25 +938,30 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
                 ++targetSwitchCount_;
             }
         }
-        auto switchTask = [this]() {
-            auto checkSwitchCount = [this]() {
-                std::lock_guard<std::mutex> lock(switchImeMutex_);
-                if (targetSwitchCount_ > 0) {
-                    return true;
-                }
-                switchTaskExecuting_.store(false);
-                return false;
-            };
-            do {
-                SwitchType();
-            } while (checkSwitchCount());
-        };
-        // 0 means delay time is 0.
-        serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        PostTaskToEventHandler();
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGE("keycode undefined");
     return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
+}
+
+void InputMethodSystemAbility::PostTaskToEventHandler()
+{
+    auto switchTask = [this]() {
+        auto checkSwitchCount = [this]() {
+            std::lock_guard<std::mutex> lock(switchImeMutex_);
+            if (targetSwitchCount_ > 0) {
+                return true;
+            }
+            switchTaskExecuting_.store(false);
+            return false;
+        };
+        do {
+            SwitchType();
+        } while (checkSwitchCount());
+    };
+    // 0 means delay time is 0.
+    serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 int32_t InputMethodSystemAbility::SwitchMode()
