@@ -173,18 +173,17 @@ void InputMethodController::DeactivateClient()
         agent_ = nullptr;
         agentObject_ = nullptr;
     }
-    auto listener = GetTextListener();
-    if (listener != nullptr) {
-        IMSA_HILOGD("textListener_ is not nullptr");
-        listener->SendKeyboardStatus(KeyboardStatus::NONE);
-    }
+    SendKeyboardStatus(KeyboardStatus::NONE);
+    FinishTextPreview();
 }
 
 void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
 {
     std::lock_guard<std::mutex> lock(textConfigLock_);
-    IMSA_HILOGD("inputPattern: %{public}d, enterKeyType: %{public}d, windowId: %{public}d",
-        textConfig.inputAttribute.inputPattern, textConfig.inputAttribute.enterKeyType, textConfig.windowId);
+    IMSA_HILOGD("inputPattern: %{public}d, enterKeyType: %{public}d, isTextPreviewSupported: %{public}d, windowId: "
+                "%{public}d",
+        textConfig.inputAttribute.inputPattern, textConfig.inputAttribute.enterKeyType,
+        textConfig.inputAttribute.isTextPreviewSupported, textConfig.windowId);
     textConfig_ = textConfig;
 }
 
@@ -485,6 +484,7 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
         IMSA_HILOGE("handler_ is nullptr");
         return;
     }
+    FinishTextPreview();
     RestoreListenInfoInSaDied();
     RestoreAttachInfoInSaDied();
 }
@@ -892,6 +892,7 @@ void InputMethodController::OnInputStop()
         IMSA_HILOGD("textListener_ is not nullptr");
         listener->SendKeyboardStatus(KeyboardStatus::HIDE);
     }
+    FinishTextPreview();
     isBound_.store(false);
     isEditable_.store(false);
 }
@@ -1219,28 +1220,41 @@ int32_t InputMethodController::SendPrivateCommand(
 
 int32_t InputMethodController::SetPreviewText(const std::string &text, const Range &range)
 {
+    IMSA_HILOGD("IMC in");
+    if (!textConfig_.inputAttribute.isTextPreviewSupported) {
+        IMSA_HILOGE("text preview not supported");
+        return ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED;
+    }
     auto listener = GetTextListener();
     if (!IsEditable() || listener == nullptr) {
         IMSA_HILOGE("not editable or listener is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    if (!textConfig_.inputAttribute.isTextPreviewSupported) {
-        IMSA_HILOGE("text preview not supported");
-        return ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED;
+    int32_t ret = 0;
+    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    {
+        InputMethodSyncTrace aceTracer("ACE_SetPreviewText");
+        ret = listener->SetPreviewText(Str8ToStr16(text), range);
     }
-    return listener->SetPreviewText(Str8ToStr16(text), range);
+    PrintLogIfAceTimeout(start);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to SetPreviewText, ret: %{public}d", ret);
+        return ret == -1 ? ErrorCode::ERROR_INVALID_RANGE : ErrorCode::ERROR_TEXT_LISTENER_ERROR;
+    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodController::FinishTextPreview()
 {
+    IMSA_HILOGD("IMC in");
+    if (!textConfig_.inputAttribute.isTextPreviewSupported) {
+        IMSA_HILOGE("text preview not supported");
+        return ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED;
+    }
     auto listener = GetTextListener();
     if (!IsEditable() || listener == nullptr) {
         IMSA_HILOGE("not editable or listener is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
-    }
-    if (!textConfig_.inputAttribute.isTextPreviewSupported) {
-        IMSA_HILOGE("text preview not supported");
-        return ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED;
     }
     listener->FinishTextPreview();
     return ErrorCode::NO_ERROR;

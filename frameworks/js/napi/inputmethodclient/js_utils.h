@@ -47,6 +47,8 @@ enum IMFErrorCode : int32_t {
     EXCEPTION_DETACHED = 12800009,
     EXCEPTION_DEFAULTIME = 12800010,
     EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED = 12800011,
+    EXCEPTION_PANEL_NOT_FOUND = 12800012,
+    EXCEPTION_WINDOW_MANAGER = 12800013,
 };
 
 enum TypeCode : int32_t {
@@ -94,7 +96,7 @@ class JsUtils {
 public:
     static void ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type);
 
-    static napi_value ToError(napi_env env, int32_t code);
+    static napi_value ToError(napi_env env, int32_t code, const std::string &msg);
 
     static int32_t Convert(int32_t code);
 

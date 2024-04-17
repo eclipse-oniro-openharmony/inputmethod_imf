@@ -44,6 +44,11 @@ public:
             errorCode_ = errorCode;
         }
 
+        void SetErrorMessage(const std::string errMessage)
+        {
+            errMessage_ = errMessage;
+        }
+
         void SetState(const napi_status &status)
         {
             status_ = status;
@@ -91,6 +96,7 @@ public:
         ExecAction exec_ = nullptr;
         napi_status status_ = napi_generic_failure;
         int32_t errorCode_ = 0;
+        std::string errMessage_;
     };
     AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Context> context, size_t maxParamCount);
     ~AsyncCall();

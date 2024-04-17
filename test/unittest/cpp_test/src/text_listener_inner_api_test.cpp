@@ -599,7 +599,7 @@ HWTEST_F(TextListenerInnerApiTest, testSetPreviewText01, TestSize.Level0)
     std::string text = "text";
     std::u16string u16Text = Str8ToStr16(text);
     Range range = { 1, 2 };
-    TextListenerInnerApiTest::imc_->clientInfo_.attribute.isTextPreviewSupported = true;
+    TextListenerInnerApiTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
     int32_t ret = TextListenerInnerApiTest::imc_->SetPreviewText(text, range);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(TextListener::previewText_, text);
@@ -619,7 +619,7 @@ HWTEST_F(TextListenerInnerApiTest, testSetPreviewText02, TestSize.Level0)
     TextListener::ResetParam();
     std::string text = "text";
     Range range = { 1, 2 };
-    TextListenerInnerApiTest::imc_->clientInfo_.attribute.isTextPreviewSupported = true;
+    TextListenerInnerApiTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
     // textListener is nullptr
     TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
@@ -656,7 +656,7 @@ HWTEST_F(TextListenerInnerApiTest, testFinishTextPreview01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testFinishTextPreview01 START");
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->clientInfo_.attribute.isTextPreviewSupported = true;
+    TextListenerInnerApiTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
     TextListenerInnerApiTest::GetIMCAttached();
     int32_t ret = TextListenerInnerApiTest::imc_->FinishTextPreview();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -674,7 +674,7 @@ HWTEST_F(TextListenerInnerApiTest, testFinishTextPreview02, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testFinishTextPreview02 START");
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->clientInfo_.attribute.isTextPreviewSupported = true;
+    TextListenerInnerApiTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
 
     // textListener is nullptr
     TextListenerInnerApiTest::GetIMCAttached();

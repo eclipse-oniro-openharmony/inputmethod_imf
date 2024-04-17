@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #define private public
-#define protected public
 #include "input_method_ability.h"
 
 #include "input_method_controller.h"
@@ -1154,6 +1153,120 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testGetCallingWindowInfo_001
+ * @tc.desc: GetCallingWindowInfo with IMC not bound
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_001, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_001 Test START");
+    InputMethodAbilityTest::GetIMCDetachIMA();
+    CallingWindowInfo windowInfo;
+    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOUND);
+}
+
+/**
+ * @tc.name: testGetCallingWindowInfo_002
+ * @tc.desc: GetCallingWindowInfo with panel not created
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_002, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_002 Test START");
+    AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
+    // bind IMC
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    // no panel is created
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+    CallingWindowInfo windowInfo;
+    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
+    InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testGetCallingWindowInfo_003
+ * @tc.desc: GetCallingWindowInfo with only status_bar created
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_003, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_003 Test START");
+    AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
+    // bind IMC
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    // only STATUS_BAR panel in IMA
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo info = { PanelType::STATUS_BAR };
+    InputMethodAbilityTest::inputMethodAbility_->CreatePanel(nullptr, info, inputMethodPanel);
+    CallingWindowInfo windowInfo;
+    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
+    InputMethodAbilityTest::inputMethodAbility_->DestroyPanel(inputMethodPanel);
+    InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testGetCallingWindowInfo_004
+ * @tc.desc: GetCallingWindowInfo with invalid windowid
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_004, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_004 Test START");
+    AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
+    // bind imc
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    // SOFT_KEYBOARD panel exists
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo info = { PanelType::SOFT_KEYBOARD, PanelFlag::FLG_FIXED };
+    InputMethodAbilityTest::inputMethodAbility_->CreatePanel(nullptr, info, inputMethodPanel);
+    // invalid window id
+    InputMethodAbilityTest::imc_->clientInfo_.config.windowId = INVALID_WINDOW_ID;
+    CallingWindowInfo windowInfo;
+    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
+    EXPECT_EQ(ret, ErrorCode::ERROR_GET_TEXT_CONFIG);
+    InputMethodAbilityTest::inputMethodAbility_->DestroyPanel(inputMethodPanel);
+    InputMethodAbilityTest::GetIMCDetachIMA();
+}
+
+/**
+ * @tc.name: testGetCallingWindowInfo_005
+ * @tc.desc: GetCallingWindowInfo success
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodAbilityTest, testGetCallingWindowInfo_005, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodAbility testGetCallingWindowInfo_005 Test START");
+    AccessScope accessScope(InputMethodAbilityTest::currentImeTokenId_, InputMethodAbilityTest::currentImeUid_);
+    // SOFT_KEYBOARD window is created
+    InputMethodAbilityTest::inputMethodAbility_->panels_.Clear();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo info = { PanelType::SOFT_KEYBOARD, PanelFlag::FLG_FIXED };
+    InputMethodAbilityTest::inputMethodAbility_->CreatePanel(nullptr, info, inputMethodPanel);
+    // bind IMC
+    InputMethodAbilityTest::GetIMCAttachIMA();
+    InputMethodAbilityTest::imc_->textConfig_.windowId = TddUtil::WindowManager::currentWindowId_;
+    // get window info success
+    CallingWindowInfo windowInfo;
+    int32_t ret = InputMethodAbilityTest::inputMethodAbility_->GetCallingWindowInfo(windowInfo);
+    EXPECT_TRUE(ret == ErrorCode::NO_ERROR || ret == ErrorCode::ERROR_WINDOW_MANAGER);
+    InputMethodAbilityTest::GetIMCDetachIMA();
+    InputMethodAbilityTest::inputMethodAbility_->DestroyPanel(inputMethodPanel);
+}
+
+/**
  * @tc.name: testSetPreviewText_001
  * @tc.desc: IMA
  * @tc.type: FUNC
@@ -1167,7 +1280,7 @@ HWTEST_F(InputMethodAbilityTest, testSetPreviewText_001, TestSize.Level0)
     std::string text = "test";
     Range range = { 1, 2 };
     InputMethodAbilityTest::GetIMCAttachIMA();
-    InputMethodAbilityTest::imc_->clientInfo_.attribute.isTextPreviewSupported = true;
+    InputMethodAbilityTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
     auto ret = InputMethodAbilityTest::inputMethodAbility_->SetPreviewText(text, range);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(TextListener::previewText_, text);
@@ -1210,7 +1323,7 @@ HWTEST_F(InputMethodAbilityTest, testSetPreviewText_003, TestSize.Level0)
     std::string text = "test";
     Range range = { 1, 2 };
     InputMethodAbilityTest::GetIMCAttachIMA();
-    InputMethodAbilityTest::imc_->clientInfo_.attribute.isTextPreviewSupported = false;
+    InputMethodAbilityTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = false;
     auto ret = InputMethodAbilityTest::inputMethodAbility_->SetPreviewText(text, range);
     EXPECT_EQ(ret, ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED);
     EXPECT_NE(TextListener::previewText_, text);
@@ -1230,7 +1343,7 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_001, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbilityTest testFinishTextPreview_001 Test START");
     TextListener::ResetParam();
     InputMethodAbilityTest::GetIMCAttachIMA();
-    InputMethodAbilityTest::imc_->clientInfo_.attribute.isTextPreviewSupported = true;
+    InputMethodAbilityTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
     auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
@@ -1267,7 +1380,7 @@ HWTEST_F(InputMethodAbilityTest, testFinishTextPreview_003, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbilityTest testFinishTextPreview_003 Test START");
     TextListener::ResetParam();
     InputMethodAbilityTest::GetIMCAttachIMA();
-    InputMethodAbilityTest::imc_->clientInfo_.attribute.isTextPreviewSupported = false;
+    InputMethodAbilityTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = false;
     auto ret = InputMethodAbilityTest::inputMethodAbility_->FinishTextPreview();
     EXPECT_EQ(ret, ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED);
     EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);

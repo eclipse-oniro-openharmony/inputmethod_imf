@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -59,6 +60,7 @@ napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("getForwardSync", GetForwardSync),
         DECLARE_NAPI_FUNCTION("getBackwardSync", GetBackwardSync),
         DECLARE_NAPI_FUNCTION("sendPrivateCommand", SendPrivateCommand),
+        DECLARE_NAPI_FUNCTION("getCallingWindowInfo", GetCallingWindowInfo),
         DECLARE_NAPI_FUNCTION("setPreviewText", SetPreviewText),
         DECLARE_NAPI_FUNCTION("setPreviewTextSync", SetPreviewTextSync),
         DECLARE_NAPI_FUNCTION("finishTextPreview", FinishTextPreview),
@@ -851,9 +853,7 @@ napi_value JsTextInputClientEngine::SetPreviewText(napi_env env, napi_callback_i
     IMSA_HILOGD("JsTextInputClientEngine in");
     auto ctxt = std::make_shared<SetPreviewTextContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        if (argc < 2 || !JsUtil::GetValue(env, argv[0], ctxt->text) || JsUtil::GetType(env, argv[1]) != napi_object
-            || !JsRange::Read(env, argv[1], ctxt->range)) {
-            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
+        if (GetPreviewTextParam(env, argc, argv, ctxt->text, ctxt->range) != napi_ok) {
             return napi_generic_failure;
         }
         ctxt->info = { std::chrono::system_clock::now(), EditorEvent::SET_PREVIEW_TEXT };
@@ -867,8 +867,11 @@ napi_value JsTextInputClientEngine::SetPreviewText(napi_env env, napi_callback_i
         editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec setPreviewText success");
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
+            ctxt->SetState(napi_ok);
+        } else if (code == ErrorCode::ERROR_INVALID_RANGE) {
+            ctxt->SetErrorCode(code);
+            ctxt->SetErrorMessage("range should be included in preview text range, otherwise should be included in "
+                                  "total text range");
         } else {
             ctxt->SetErrorCode(code);
         }
@@ -891,17 +894,19 @@ napi_value JsTextInputClientEngine::SetPreviewTextSync(napi_env env, napi_callba
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     std::string text;
     Range range;
-    if (argc < 2 || !JsUtil::GetValue(env, argv[0], text) || !!JsRange::Read(env, argv[1], range)) {
+    if (GetPreviewTextParam(env, argc, argv, text, range) != napi_ok) {
         editorQueue_.Pop();
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
         return JsUtil::Const::Null(env);
     }
     int32_t ret = InputMethodAbility::GetInstance()->SetPreviewText(text, range);
     editorQueue_.Pop();
-    if (ret != ErrorCode::NO_ERROR) {
+    if (ret == ErrorCode::ERROR_INVALID_RANGE) {
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK,
+            "range should be included in preview text range, otherwise should be included in total text range",
+            TYPE_NONE);
+    } else if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to set preview text", TYPE_NONE);
     }
-    IMSA_HILOGI("exec setPreviewText success");
     return JsUtil::Const::Null(env);
 }
 
@@ -921,8 +926,7 @@ napi_value JsTextInputClientEngine::FinishTextPreview(napi_env env, napi_callbac
         editorQueue_.Pop();
         if (code == ErrorCode::NO_ERROR) {
             IMSA_HILOGI("exec finishTextPreview success");
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
+            ctxt->SetState(napi_ok);
         } else {
             ctxt->SetErrorCode(code);
         }
@@ -939,15 +943,11 @@ napi_value JsTextInputClientEngine::FinishTextPreviewSync(napi_env env, napi_cal
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SET_PREVIEW_TEXT };
     editorQueue_.Push(eventInfo);
     editorQueue_.Wait(eventInfo);
-    size_t argc = 1;
-    napi_value argv[1] = { nullptr };
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     int32_t ret = InputMethodAbility::GetInstance()->FinishTextPreview();
     editorQueue_.Pop();
     if (ret != ErrorCode::NO_ERROR) {
         JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to finish text preview", TYPE_NONE);
     }
-    IMSA_HILOGI("exec finishTextPreviewSync success");
     return JsUtil::Const::Null(env);
 }
 
@@ -966,6 +966,29 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursorSync(napi_env env, napi_
     return JsUtil::GetValue(env, index);
 }
 
+napi_value JsTextInputClientEngine::GetCallingWindowInfo(napi_env env, napi_callback_info info)
+{
+    IMSA_HILOGD("JsTextInputClientEngine in");
+    auto ctxt = std::make_shared<GetCallingWindowInfoContext>();
+    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+        *result = JsCallingWindowInfo::Write(env, ctxt->windowInfo);
+        return napi_ok;
+    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        int32_t ret = InputMethodAbility::GetInstance()->GetCallingWindowInfo(ctxt->windowInfo);
+        if (ret == ErrorCode::NO_ERROR) {
+            IMSA_HILOGI("exec GetCallingWindowInfo success");
+            ctxt->SetState(napi_ok);
+            return;
+        }
+        ctxt->SetErrorCode(ret);
+    };
+    ctxt->SetAction(nullptr, std::move(output));
+    // 0 means JsAPI:getCallingWindowInfo needs no parameter.
+    AsyncCall asyncCall(env, info, ctxt, 0);
+    return asyncCall.Call(env, exec, "getCallingWindowInfo");
+}
+
 void JsTextInputClientEngine::PrintEditorQueueInfoIfTimeout(int64_t start, const EditorEventInfo &currentInfo)
 {
     int64_t end = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -977,6 +1000,75 @@ void JsTextInputClientEngine::PrintEditorQueueInfoIfTimeout(int64_t start, const
         IMSA_HILOGW("ret:%{public}d,front[%{public}" PRId64 ",%{public}d],current[%{public}" PRId64 ",%{public}d]", ret,
             frontTime, static_cast<int32_t>(frontInfo.event), currentTime, static_cast<int32_t>(currentInfo.event));
     }
+}
+
+napi_status JsTextInputClientEngine::GetPreviewTextParam(
+    napi_env env, size_t argc, napi_value *argv, std::string &text, Range &range)
+{
+    // 2 means JsAPI:setPreviewText needs 2 params at least.
+    PARAM_CHECK_RETURN(env, argc >= 2, "at least 2 params", TYPE_NONE, napi_generic_failure);
+    PARAM_CHECK_RETURN(
+        env, JsUtil::GetValue(env, argv[0], text), "failed to get param text", TYPE_NONE, napi_generic_failure);
+    PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_object, "range", TYPE_OBJECT, napi_generic_failure);
+    PARAM_CHECK_RETURN(
+        env, JsRange::Read(env, argv[1], range), "failed to get param range", TYPE_NONE, napi_generic_failure);
+    return napi_ok;
+}
+
+napi_value JsRect::Write(napi_env env, const Rosen::Rect &nativeObject)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "left", nativeObject.posX_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "top", nativeObject.posY_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", nativeObject.width_);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", nativeObject.height_);
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
+bool JsRect::Read(napi_env env, napi_value jsObject, Rosen::Rect &nativeObject)
+{
+    auto ret = JsUtil::Object::ReadProperty(env, jsObject, "left", nativeObject.posX_);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "top", nativeObject.posY_);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "width", nativeObject.width_);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "height", nativeObject.height_);
+    return ret;
+}
+
+napi_value JsCallingWindowInfo::Write(napi_env env, const CallingWindowInfo &nativeObject)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "rect", JsRect::Write(env, nativeObject.rect));
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "status", static_cast<uint32_t>(nativeObject.status));
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
+bool JsCallingWindowInfo::Read(napi_env env, napi_value object, CallingWindowInfo &nativeObject)
+{
+    napi_value rectObject = nullptr;
+    napi_get_named_property(env, object, "rect", &rectObject);
+    auto ret = JsRect::Read(env, rectObject, nativeObject.rect);
+    uint32_t status = 0;
+    ret = ret && JsUtil::Object::ReadProperty(env, object, "status", status);
+    nativeObject.status = static_cast<Rosen::WindowStatus>(status);
+    return ret;
+}
+
+napi_value JsRange::Write(napi_env env, const Range &nativeObject)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "start", nativeObject.start);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "end", nativeObject.end);
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
+bool JsRange::Read(napi_env env, napi_value jsObject, Range &nativeObject)
+{
+    auto ret = JsUtil::Object::ReadProperty(env, jsObject, "start", nativeObject.start);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "end", nativeObject.end);
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

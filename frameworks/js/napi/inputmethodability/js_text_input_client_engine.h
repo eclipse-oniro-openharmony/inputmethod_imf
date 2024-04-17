@@ -19,10 +19,12 @@
 
 #include "async_call.h"
 #include "block_queue.h"
+#include "calling_window_info.h"
 #include "global.h"
 #include "js_util.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -57,6 +59,21 @@ struct PrivateCommandInfo {
     {
         return (timestamp == info.timestamp && privateCommand == info.privateCommand);
     }
+};
+
+struct JsRect {
+    static napi_value Write(napi_env env, const Rosen::Rect &nativeObject);
+    static bool Read(napi_env env, napi_value jsObject, Rosen::Rect &nativeObject);
+};
+
+struct JsCallingWindowInfo {
+    static napi_value Write(napi_env env, const CallingWindowInfo &nativeObject);
+    static bool Read(napi_env env, napi_value object, CallingWindowInfo &nativeObject);
+};
+
+struct JsRange {
+    static napi_value Write(napi_env env, const Range &nativeObject);
+    static bool Read(napi_env env, napi_value jsObject, Range &nativeObject);
 };
 
 struct SendKeyFunctionContext : public AsyncCall::Context {
@@ -330,20 +347,16 @@ struct SendPrivateCommandContext : public AsyncCall::Context {
     }
 };
 
-struct JsRange {
-    static napi_value Write(napi_env env, const Range &nativeObject)
+struct GetCallingWindowInfoContext : public AsyncCall::Context {
+    CallingWindowInfo windowInfo{};
+    GetCallingWindowInfoContext() : Context(nullptr, nullptr){};
+    napi_status operator()(napi_env env, napi_value *result) override
     {
-        napi_value jsObject = nullptr;
-        napi_create_object(env, &jsObject);
-        bool ret = JsUtil::Object::WriteProperty(env, jsObject, "start", nativeObject.start);
-        ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "end", nativeObject.end);
-        return ret ? jsObject : JsUtil::Const::Null(env);
-    }
-    static bool Read(napi_env env, napi_value jsObject, Range &nativeObject)
-    {
-        auto ret = JsUtil::Object::ReadProperty(env, jsObject, "start", nativeObject.start);
-        ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "end", nativeObject.end);
-        return ret;
+        if (status_ != napi_ok) {
+            output_ = nullptr;
+            return status_;
+        }
+        return Context::operator()(env, result);
     }
 };
 
@@ -351,20 +364,17 @@ struct SetPreviewTextContext : public AsyncCall::Context {
     std::string text;
     Range range;
     EditorEventInfo info;
-    napi_status status = napi_generic_failure;
     SetPreviewTextContext() : Context(nullptr, nullptr){};
-
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
         CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
-
     napi_status operator()(napi_env env, napi_value *result) override
     {
-        if (status != napi_ok) {
+        if (status_ != napi_ok) {
             output_ = nullptr;
-            return status;
+            return status_;
         }
         return Context::operator()(env, result);
     }
@@ -372,20 +382,17 @@ struct SetPreviewTextContext : public AsyncCall::Context {
 
 struct FinishTextPreviewContext : public AsyncCall::Context {
     EditorEventInfo info;
-    napi_status status = napi_generic_failure;
     FinishTextPreviewContext() : Context(nullptr, nullptr){};
-
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
         CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
-
     napi_status operator()(napi_env env, napi_value *result) override
     {
-        if (status != napi_ok) {
+        if (status_ != napi_ok) {
             output_ = nullptr;
-            return status;
+            return status_;
         }
         return Context::operator()(env, result);
     }
@@ -419,6 +426,7 @@ public:
     static napi_value DeleteBackwardSync(napi_env env, napi_callback_info info);
     static napi_value GetForwardSync(napi_env env, napi_callback_info info);
     static napi_value GetBackwardSync(napi_env env, napi_callback_info info);
+    static napi_value GetCallingWindowInfo(napi_env env, napi_callback_info info);
     static napi_value SendPrivateCommand(napi_env env, napi_callback_info info);
     static napi_value SetPreviewText(napi_env env, napi_callback_info info);
     static napi_value SetPreviewTextSync(napi_env env, napi_callback_info info);
@@ -434,6 +442,8 @@ private:
     static napi_value GetResultEditorAttribute(
         napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
     static void PrintEditorQueueInfoIfTimeout(int64_t start, const EditorEventInfo &currentInfo);
+    static napi_status GetPreviewTextParam(
+        napi_env env, size_t argc, napi_value *argv, std::string &text, Range &range);
 
     static const std::string TIC_CLASS_NAME;
     static thread_local napi_ref TICRef_;

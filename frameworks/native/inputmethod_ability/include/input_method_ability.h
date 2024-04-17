@@ -18,6 +18,7 @@
 
 #include <thread>
 
+#include "calling_window_info.h"
 #include "concurrent_map.h"
 #include "foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context/context.h"
 #include "i_input_control_channel.h"
@@ -89,6 +90,7 @@ public:
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsDefaultIme();
+    int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPreviewText(const std::string &text, const Range &range);
     int32_t FinishTextPreview();
 

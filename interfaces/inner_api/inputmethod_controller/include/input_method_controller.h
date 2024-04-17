@@ -70,10 +70,30 @@ public:
     {
         return ErrorCode::NO_ERROR;
     }
+    /**
+     * @brief Set preview text.
+     *
+     * When InputMethod app sends request to set preview text, the function will be called.
+     *
+     * @param text Indicates the text to be previewed.
+     * @param range Indicates the range of text to be replaced.
+     * @return
+     *     If success, please return 0.
+     *     If parameter range check error, please return -1.
+     *     If other failure, no specific requirement.
+     * @since 12
+     */
     virtual int32_t SetPreviewText(const std::u16string &text, const Range &range)
     {
         return ErrorCode::NO_ERROR;
     }
+    /**
+     * @brief Finish text preview.
+     *
+     * When InputMethod app sends request to finish text preview, the function will be called.
+     *
+     * @since 12
+     */
     virtual void FinishTextPreview()
     {
     }
@@ -723,7 +743,25 @@ public:
     IMF_API int32_t ReceivePrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
+    /**
+     * @brief Set preview text.
+     *
+     * This function is used to set preview text.
+     *
+     * @param text Indicates the text to be previewed.
+     * @param range Indicates the range of text to be replaced.
+     * @return Returns 0 for success, others for failure.
+     * @since 12
+     */
     IMF_API int32_t SetPreviewText(const std::string &text, const Range &range);
+
+    /**
+     * @brief Finish text preview.
+     *
+     * This function is used to finish text preview.
+     *
+     * @since 12
+     */
     IMF_API int32_t FinishTextPreview();
 
 private:
