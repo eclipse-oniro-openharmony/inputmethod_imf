@@ -148,7 +148,7 @@ private:
     void RegisterSecurityModeObserver();
     void CheckSecurityMode(InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(uint32_t tokenId);
-    void PostTaskToEventHandler();
+    void DealSwitchRequest();
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);

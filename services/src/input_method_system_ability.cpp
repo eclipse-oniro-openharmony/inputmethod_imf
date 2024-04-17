@@ -926,27 +926,27 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime");
-        {
-            std::lock_guard<std::mutex> lock(switchImeMutex_);
-            // 0 means current swich ime task count.
-            if (switchTaskExecuting_.load()) {
-                IMSA_HILOGI("already has switch ime task.");
-                ++targetSwitchCount_;
-                return ErrorCode::NO_ERROR;
-            } else {
-                switchTaskExecuting_.store(true);
-                ++targetSwitchCount_;
-            }
-        }
-        PostTaskToEventHandler();
+        DealSwitchRequest();
         return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGE("keycode undefined");
     return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
 }
 
-void InputMethodSystemAbility::PostTaskToEventHandler()
+void InputMethodSystemAbility::DealSwitchRequest()
 {
+    {
+        std::lock_guard<std::mutex> lock(switchImeMutex_);
+        // 0 means current swich ime task count.
+        if (switchTaskExecuting_.load()) {
+            IMSA_HILOGI("already has switch ime task.");
+            ++targetSwitchCount_;
+            return;
+        } else {
+            switchTaskExecuting_.store(true);
+            ++targetSwitchCount_;
+        }
+    }
     auto switchTask = [this]() {
         auto checkSwitchCount = [this]() {
             std::lock_guard<std::mutex> lock(switchImeMutex_);
