@@ -71,16 +71,6 @@ public:
         return ErrorCode::NO_ERROR;
     }
 };
-class OnSystemCmdListener : public virtual RefBase {
-public:
-    virtual int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
-    {
-        return ErrorCode::NO_ERROR;
-    }
-    virtual void OnNotifyIsShowSysPanel(bool isShow)
-    {
-    }
-};
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
 class InputMethodController : public RefBase, public PrivateCommandInterface {
@@ -133,18 +123,6 @@ public:
      * @since 8
      */
     IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const InputAttribute &attribute);
-
-    /**
-     * @brief Show soft keyboard, set listener and bind IMSA with default states and attribute.
-     *
-     * This function is used to show soft keyboard,  set listener and bind IMSA,
-     * default state is 'true', default attribute is 'InputAttribute::PATTERN_TEXT'.
-     *
-     * @param listener Indicates the listener in order to manipulate text.
-     * @return Returns 0 for success, others for failure.
-     * @since 6
-     */
-    IMF_API int32_t ConnectSystemCmd(const sptr<OnSystemCmdListener> &listener);
 
     /**
      * @brief Set listener and bind IMSA with given states and textConfig.
@@ -736,9 +714,8 @@ public:
      * @since 12
      */
     IMF_API int32_t ReceivePrivateCommand(
-        const std::unordered_map<std::string, PrivateDataValue> &privateCommand, bool isSystemCmd = false) override;
-    int32_t NotifyIsShowSysPanel(bool isShow);
-    void OnConnectCmdReady(sptr<IRemoteObject> agentObject);
+        const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+
 private:
     InputMethodController();
     ~InputMethodController();
@@ -763,10 +740,6 @@ private:
     void SetAgent(sptr<IRemoteObject> &agentObject);
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
-    void SetSystemCmdListener(sptr<OnSystemCmdListener> listener);
-    std::shared_ptr<IInputMethodAgent> GetSystemCmdAgent();
-    sptr<OnSystemCmdListener> GetSystemCmdListener();
-    void ClearSystemCmdAgent();
 
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
@@ -777,14 +750,7 @@ private:
     std::shared_ptr<IInputMethodAgent> agent_ = nullptr;
     std::mutex textListenerLock_;
     sptr<OnTextChangedListener> textListener_ = nullptr;
-    std::mutex systemCmdListenerLock_;
-    sptr<OnSystemCmdListener> systemCmdListener_ = nullptr;
     std::atomic_bool isDiedAttached_{ false };
-
-    std::mutex systemAgentLock_;
-    sptr<IRemoteObject> systemAgentObject_ = nullptr;
-    std::shared_ptr<IInputMethodAgent> systemAgent_ = nullptr;
-    std::atomic_bool isSystemCmdConnect_{ false };
 
     std::mutex cursorInfoMutex_;
     CursorInfo cursorInfo_;

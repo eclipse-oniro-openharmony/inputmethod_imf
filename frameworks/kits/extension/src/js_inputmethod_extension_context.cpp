@@ -19,6 +19,7 @@
 
 #include "global.h"
 #include "js_data_struct_converter.h"
+#include "js_error_utils.h"
 #include "js_extension_context.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
@@ -132,7 +133,7 @@ private:
             if (errcode == 0) {
                 task.Resolve(env, CreateJsUndefined(env));
             } else {
-                task.Reject(env, CreateJsError(env, errcode, "Start Ability failed."));
+                task.Reject(env, CreateJsErrorByNativeErr(env, errcode));
             }
         };
 

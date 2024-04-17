@@ -16,7 +16,7 @@
 #include "system_cmd_channel_stub.h"
 
 #include "global.h"
-#include "input_method_controller.h"
+#include "ime_system_channel.h"
 #include "ipc_object_stub.h"
 #include "ipc_skeleton.h"
 #include "ipc_types.h"
@@ -36,7 +36,7 @@ SystemCmdChannelStub::~SystemCmdChannelStub()
 int32_t SystemCmdChannelStub::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    return InputMethodController::GetInstance()->ReceivePrivateCommand(privateCommand, true);
+    return ImeSystemChannel::GetInstance()->ReceivePrivateCommand(privateCommand);
 }
 
 int32_t SystemCmdChannelStub::SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -51,7 +51,7 @@ int32_t SystemCmdChannelStub::SendPrivateCommandOnRemote(MessageParcel &data, Me
 
 int32_t SystemCmdChannelStub::NotifyIsShowSysPanel(bool isShow)
 {
-    return InputMethodController::GetInstance()->NotifyIsShowSysPanel(isShow);
+    return ImeSystemChannel::GetInstance()->NotifyIsShowSysPanel(isShow);
 }
 
 int32_t SystemCmdChannelStub::NotifyIsShowSysPanelOnRemote(MessageParcel &data, MessageParcel &reply)

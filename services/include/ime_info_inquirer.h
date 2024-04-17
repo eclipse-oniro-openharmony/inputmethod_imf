@@ -97,7 +97,7 @@ public:
     int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);
     int32_t ListInputMethodSubtype(int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);
     int32_t ListCurrentInputMethodSubtype(int32_t userId, std::vector<SubProperty> &subProps);
-    int32_t GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userId, bool enableOn);
+    int32_t GetSwitchInfoBySwitchCount(SwitchInfo &switchInfo, int32_t userId, bool enableOn, uint32_t cacheCount);
     bool IsEnableInputMethod();
     bool IsEnableSecurityMode();
     void InitSystemConfig();

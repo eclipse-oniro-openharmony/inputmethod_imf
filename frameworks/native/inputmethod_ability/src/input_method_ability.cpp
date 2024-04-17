@@ -241,7 +241,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel->AsObject());
     isBindFromClient ? InvokeTextChangeCallback(clientInfo.config) : NotifyAllTextConfig();
-    SaveInputAttribute(clientInfo.attribute);
+    SaveInputAttribute(clientInfo.config.inputAttribute);
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
@@ -287,6 +287,7 @@ int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
     IMSA_HILOGI("IMA");
     HideKeyboard();
     ClearDataChannel(channelObject);
+    ClearInputAttribute();
     if (imeListener_ != nullptr) {
         imeListener_->OnInputFinish();
     }
@@ -893,7 +894,7 @@ int32_t InputMethodAbility::NotifyIsShowSysPanel(
         return ErrorCode::NO_ERROR;
     }
     bool isShow = false;
-    if (flag == FLG_FIXED && !GetInputAttribute().GetSecurityFlag()) {
+    if (!GetInputAttribute().GetSecurityFlag()) {
         isShow = true;
     }
     auto systemChannel = GetSystemCmdChannelProxy();
@@ -908,6 +909,12 @@ void InputMethodAbility::SaveInputAttribute(const InputAttribute &inputAttribute
 {
     std::lock_guard<std::mutex> lock(inputAttrLock_);
     inputAttribute_ = inputAttribute;
+}
+
+void InputMethodAbility::ClearInputAttribute()
+{
+    std::lock_guard<std::mutex> lock(inputAttrLock_);
+    inputAttribute_ = {};
 }
 
 InputAttribute InputMethodAbility::GetInputAttribute()
@@ -1112,7 +1119,7 @@ int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::str
 }
 
 int32_t InputMethodAbility::ReceivePrivateCommand(
-    const std::unordered_map<std::string, PrivateDataValue> &privateCommand, bool isSystemCmd)
+    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     if (!IsDefaultIme()) {
         IMSA_HILOGE("current is not default ime.");

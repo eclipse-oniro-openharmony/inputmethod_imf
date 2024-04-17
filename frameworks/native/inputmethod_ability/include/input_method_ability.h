@@ -90,8 +90,7 @@ public:
     void OnClientInactive(const sptr<IRemoteObject> &channel);
     void NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel);
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
-    int32_t ReceivePrivateCommand(
-        const std::unordered_map<std::string, PrivateDataValue> &privateCommand, bool isSystemCmd = false) override;
+    int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsDefaultIme();
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
 
@@ -122,7 +121,6 @@ private:
     sptr<IInputMethodSystemAbility> GetImsaProxy();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
 
-    void SetSystemCmdChannel(const sptr<IRemoteObject> &object);
     std::shared_ptr<SystemCmdChannelProxy> GetSystemCmdProxy();
     void ClearSystemCmdChannel();
 
@@ -153,6 +151,7 @@ private:
     int32_t NotifyIsShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag);
     void SaveInputAttribute(const InputAttribute &inputAttribute);
     InputAttribute GetInputAttribute();
+    void ClearInputAttribute();
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
 
     std::shared_ptr<SystemCmdChannelProxy> GetSystemCmdChannelProxy();

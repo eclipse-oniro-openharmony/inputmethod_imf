@@ -182,6 +182,9 @@ private:
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
     int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec);
 
+    bool WaitForCurrentImeStop();
+    void NotifyImeStopFinished();
+
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
     std::mutex imeDataLock_;
     std::unordered_map<ImeType, std::shared_ptr<ImeData>> imeData_;
@@ -190,6 +193,10 @@ private:
     std::mutex inactiveClientLock_;
     sptr<IInputClient> inactiveClient_; // the inactive input client
     std::mutex focusedClientLock_;
+
+    std::atomic<bool> isSwitching_ = false;
+    std::mutex imeStopMutex_;
+    std::condition_variable imeStopCv_;
 };
 } // namespace MiscServices
 } // namespace OHOS

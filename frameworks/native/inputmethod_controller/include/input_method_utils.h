@@ -222,17 +222,14 @@ struct TextConfig {
     }
     static bool IsSystemPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
     {
-        IMSA_HILOGI("IsSystemPrivateCommand in.");
+        IMSA_HILOGD("in.");
         size_t privateCommandSize = privateCommand.size();
         if (privateCommandSize == 0 || privateCommandSize > MAX_PRIVATE_COMMAND_COUNT) {
             IMSA_HILOGE("privateCommand size must more than 0 and less than 5.");
             return false;
         }
         auto it = privateCommand.find(SYSTEM_CMD_KEY);
-        if (it != privateCommand.end()) {
-            return true;
-        }
-        return false;
+        return it != privateCommand.end();
     }
 };
 

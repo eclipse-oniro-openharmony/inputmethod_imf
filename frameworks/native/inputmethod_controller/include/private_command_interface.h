@@ -24,7 +24,7 @@ class PrivateCommandInterface {
 public:
     virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
     virtual int32_t ReceivePrivateCommand(
-        const std::unordered_map<std::string, PrivateDataValue> &privateCommand, bool isSystemCmd = false) = 0;
+        const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

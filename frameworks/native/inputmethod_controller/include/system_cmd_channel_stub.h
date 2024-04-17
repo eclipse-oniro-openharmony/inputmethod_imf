@@ -29,8 +29,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-class InputMethodController;
-
 class SystemCmdChannelStub : public IRemoteStub<ISystemCmdChannel> {
 public:
     DISALLOW_COPY_AND_MOVE(SystemCmdChannelStub);

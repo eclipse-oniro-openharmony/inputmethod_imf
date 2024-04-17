@@ -15,16 +15,14 @@
 
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_SYSTEM_CMD_CHANNEL_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_SYSTEM_CMD_CHANNEL_H
-#include <errors.h>
 
 #include <unordered_map>
 
-#include "global.h"
 #include "input_method_utils.h"
 #include "iremote_broker.h"
 
 /**
- * brief Definition of interface IInputDataChannel
+ * brief Definition of interface ISystemCmdChannel
  * It defines the remote calls from input method service to input client
  */
 namespace OHOS {

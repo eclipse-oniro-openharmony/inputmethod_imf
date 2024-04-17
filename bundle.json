@@ -91,6 +91,7 @@
                           "../../../../frameworks/native/inputmethod_controller/include/i_system_cmd_channel.h",
                           "ime_event_listener.h",
                           "ime_event_monitor_manager.h",
+                          "ime_system_channel.h",
                           "input_method_controller.h"
                       ], 
                       "header_base": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_controller/include"
