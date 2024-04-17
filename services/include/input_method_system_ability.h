@@ -148,6 +148,7 @@ private:
     void RegisterSecurityModeObserver();
     void CheckSecurityMode(InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(uint32_t tokenId);
+    void DealSwitchRequest();
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
@@ -156,6 +157,9 @@ private:
 
     bool isScbEnable_ = false;
     std::atomic<bool> imeStarting_ = false;
+    std::mutex switchImeMutex_;
+    std::atomic<bool> switchTaskExecuting_ = false;
+    std::atomic<uint32_t> targetSwitchCount_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

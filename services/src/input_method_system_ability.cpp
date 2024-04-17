@@ -50,7 +50,6 @@ constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr uint32_t RETRY_INTERVAL = 100;
 constexpr uint32_t BLOCK_RETRY_TIMES = 100;
-constexpr uint32_t SWITCH_BLOCK_TIME = 150000;
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
@@ -570,7 +569,6 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
     if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);
-        usleep(SWITCH_BLOCK_TIME);
     }
     IMSA_HILOGI("start switch %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     int32_t ret = CheckSwitchPermission(switchInfo, trigger);
@@ -607,7 +605,6 @@ int32_t InputMethodSystemAbility::OnStartInputType(const SwitchInfo &switchInfo,
     if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);
-        usleep(SWITCH_BLOCK_TIME);
     }
     auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (switchInfo.bundleName == cfgIme->bundleName && switchInfo.subName == cfgIme->subName) {
@@ -929,10 +926,42 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime");
-        return SwitchType();
+        DealSwitchRequest();
+        return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGE("keycode undefined");
     return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
+}
+
+void InputMethodSystemAbility::DealSwitchRequest()
+{
+    {
+        std::lock_guard<std::mutex> lock(switchImeMutex_);
+        // 0 means current swich ime task count.
+        if (switchTaskExecuting_.load()) {
+            IMSA_HILOGI("already has switch ime task.");
+            ++targetSwitchCount_;
+            return;
+        } else {
+            switchTaskExecuting_.store(true);
+            ++targetSwitchCount_;
+        }
+    }
+    auto switchTask = [this]() {
+        auto checkSwitchCount = [this]() {
+            std::lock_guard<std::mutex> lock(switchImeMutex_);
+            if (targetSwitchCount_ > 0) {
+                return true;
+            }
+            switchTaskExecuting_.store(false);
+            return false;
+        };
+        do {
+            SwitchType();
+        } while (checkSwitchCount());
+    };
+    // 0 means delay time is 0.
+    serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 int32_t InputMethodSystemAbility::SwitchMode()
@@ -989,7 +1018,13 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
 int32_t InputMethodSystemAbility::SwitchType()
 {
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), "", "" };
-    int32_t ret = ImeInfoInquirer::GetInstance().GetNextSwitchInfo(switchInfo, userId_, enableImeOn_);
+    uint32_t cacheCount = 0;
+    {
+        std::lock_guard<std::mutex> lock(switchImeMutex_);
+        cacheCount = targetSwitchCount_.exchange(0);
+    }
+    int32_t ret =
+        ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId_, enableImeOn_, cacheCount);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("Get next SwitchInfo failed, stop switching ime.");
         return ret;
