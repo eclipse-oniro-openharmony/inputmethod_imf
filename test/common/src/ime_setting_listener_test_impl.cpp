@@ -19,6 +19,7 @@ namespace OHOS {
 namespace MiscServices {
 InputWindowStatus ImeSettingListenerTestImpl::status_{ InputWindowStatus::NONE };
 SubProperty ImeSettingListenerTestImpl::subProperty_{};
+Property ImeSettingListenerTestImpl::property_{};
 std::mutex ImeSettingListenerTestImpl::imeSettingListenerLock_;
 bool ImeSettingListenerTestImpl::isImeChange_{ false };
 std::condition_variable ImeSettingListenerTestImpl::imeSettingListenerCv_;
@@ -48,6 +49,13 @@ bool ImeSettingListenerTestImpl::WaitImeChange()
     return isImeChange_;
 }
 
+bool ImeSettingListenerTestImpl::WaitTargetImeChange(const std::string &bundleName)
+{
+    std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(3), []() { return bundleName == property_.name; });
+    return isImeChange_ && bundleName == property_.name;
+}
+
 bool ImeSettingListenerTestImpl::WaitImeChange(const SubProperty &subProperty)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
@@ -60,6 +68,7 @@ void ImeSettingListenerTestImpl::OnImeChange(const Property &property, const Sub
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
     isImeChange_ = true;
     subProperty_ = subProperty;
+    property_ = property;
     imeSettingListenerCv_.notify_one();
 }
 void ImeSettingListenerTestImpl::OnImeShow(const ImeWindowInfo &info)

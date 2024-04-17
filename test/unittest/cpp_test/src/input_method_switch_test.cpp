@@ -500,12 +500,11 @@ HWTEST_F(InputMethodSwitchTest, testCombinationKeySwitchIme_003, TestSize.Level0
     imc_->ListInputMethod(props);
     std::string result;
     static std::string cmd = "uinput -K -d 2077 -d 2050 -u 2050 -u 2077";
-    // 2 means switch count is double props.size().
-    for (auto iter = 0; iter < props.size() * 2; ++iter) {
+    for (auto iter = 0; iter < props.size(); ++iter) {
         auto ret = TddUtil::ExecuteCmd(cmd, result);
         EXPECT_TRUE(ret);
     }
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitImeChange());
+    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitTargetImeChange(property->name));
     std::shared_ptr<Property> curProperty = imc_->GetCurrentInputMethod();
     EXPECT_EQ(property->name, curProperty->name);
     imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, property->name, "");
