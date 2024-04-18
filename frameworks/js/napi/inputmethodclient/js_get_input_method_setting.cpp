@@ -159,7 +159,7 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argv, &valueType);
-    PARAM_CHECK_RETURN(env, valueType == napi_object, "Parameter error.", TYPE_OBJECT, napi_invalid_arg);
+    PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodProperty", TYPE_OBJECT, napi_invalid_arg);
     napi_value result = nullptr;
     napi_get_named_property(env, argv, "name", &result);
     JsUtils::GetValue(env, result, ctxt->property.name);
@@ -177,7 +177,7 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
         napi_get_named_property(env, argv, "methodId", &result);
         JsUtils::GetValue(env, result, ctxt->property.id);
     }
-    PARAM_CHECK_RETURN(env, (!ctxt->property.name.empty() && !ctxt->property.id.empty()), "Parameter error.",
+    PARAM_CHECK_RETURN(env, (!ctxt->property.name.empty() && !ctxt->property.id.empty()), "name and id should not empty",
         TYPE_NONE, napi_invalid_arg);
     IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
     return napi_ok;
@@ -206,7 +206,7 @@ napi_value JsGetInputMethodSetting::ListInputMethod(napi_env env, napi_callback_
         ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    // 1 means JsAPI:listInputMethod has 1 params at most.
+    // 1 means JsAPI:listInputMethod has 1 param at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "listInputMethod");
 }
@@ -220,7 +220,7 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
         bool enable = false;
         // 0 means first param index
         napi_status status = JsUtils::GetValue(env, argv[0], enable);
-        PARAM_CHECK_RETURN(env, status == napi_ok, "enable.", TYPE_NUMBER, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "enable", TYPE_NUMBER, napi_invalid_arg);
         ctxt->inputMethodStatus = enable ? InputMethodStatus::ENABLE : InputMethodStatus::DISABLE;
         return napi_ok;
     };
@@ -254,10 +254,9 @@ napi_value JsGetInputMethodSetting::GetInputMethodsSync(napi_env env, napi_callb
 
     bool enable = false;
     // 0 means first param index
-    if (argc < 1 || JsUtils::GetValue(env, argv[0], enable) != napi_ok) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
-        return JsUtil::Const::Null(env);
-    }
+    PARAM_CHECK_RETURN(env, argc >= 1, "At least 1 param", TYPE_NONE, JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], enable) == napi_ok, "Failed to get param enable",
+        TYPE_NONE, JsUtil::Const::Null(env));
 
     std::vector<Property> properties;
     int32_t ret = InputMethodController::GetInstance()->ListInputMethod(enable, properties);
@@ -289,7 +288,7 @@ napi_value JsGetInputMethodSetting::GetAllInputMethods(napi_env env, napi_callba
         ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    // 1 means JsAPI:getAllInputMethods has 1 params at most.
+    // 1 means JsAPI:getAllInputMethods has 1 param at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "getInputMethods");
 }
@@ -322,7 +321,7 @@ napi_value JsGetInputMethodSetting::DisplayOptionalInputMethod(napi_env env, nap
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    // 1 means JsAPI:displayOptionalInputMethod has 1 params at most.
+    // 1 means JsAPI:displayOptionalInputMethod has 1 param at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "displayOptionalInputMethod");
 }
@@ -351,7 +350,7 @@ napi_value JsGetInputMethodSetting::ShowOptionalInputMethods(napi_env env, napi_
         }
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    // 1 means JsAPI:showOptionalInputMethods has 1 params at most.
+    // 1 means JsAPI:showOptionalInputMethods has 1 param at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "showOptionalInputMethods");
 }
@@ -410,7 +409,7 @@ napi_value JsGetInputMethodSetting::ListCurrentInputMethodSubtype(napi_env env, 
         ctxt->SetErrorCode(errCode);
     };
     ctxt->SetAction(std::move(input), std::move(output));
-    // 1 means JsAPI:listCurrentInputMethodSubtype has 1 params at most.
+    // 1 means JsAPI:listCurrentInputMethodSubtype has 1 param at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "listCurrentInputMethodSubtype");
 }
@@ -423,11 +422,11 @@ napi_value JsGetInputMethodSetting::IsPanelShown(napi_env env, napi_callback_inf
     napi_value argv[1] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     // 1 means least param num
-    PARAM_CHECK_RETURN(env, argc >= 1, "should has 1 parameters!", TYPE_NONE, JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, argc >= 1, "should has 1 parameter!", TYPE_NONE, JsUtil::Const::Null(env));
     // 0 means parameter of info<PanelInfo>
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argv[0], &valueType);
-    PARAM_CHECK_RETURN(env, valueType == napi_object, " panelInfo: ", TYPE_OBJECT, JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, valueType == napi_object, "panelInfo", TYPE_OBJECT, JsUtil::Const::Null(env));
 
     PanelInfo panelInfo;
     napi_status status = JsUtils::GetValue(env, argv[0], panelInfo);

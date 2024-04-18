@@ -77,8 +77,8 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_IMMS, "input method manager service error." },
     { EXCEPTION_DETACHED, "input method not attached." },
     { EXCEPTION_DEFAULTIME, "not default input method configured by system." },
-    { EXCEPTION_PANEL_NOT_FOUND, "soft keyboard panel doesn't exist" },
-    { EXCEPTION_WINDOW_MANAGER, "window manager service error" },
+    { EXCEPTION_PANEL_NOT_FOUND, "soft keyboard panel doesn't exist." },
+    { EXCEPTION_WINDOW_MANAGER, "window manager service error." },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
@@ -101,7 +101,7 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
     napi_value code;
     napi_value message;
     if (type == TypeCode::TYPE_NONE) {
-        errMsg = errMsg + msg;
+        errMsg = errMsg + " " + msg;
         IMSA_HILOGE("THROW_ERROR message: %{public}s", errMsg.c_str());
     } else {
         auto iter = PARAMETER_TYPE.find(type);

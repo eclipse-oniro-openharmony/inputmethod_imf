@@ -392,6 +392,7 @@ private:
     static napi_value GetResult(napi_env env, std::string &text);
     static napi_value GetResultEditorAttribute(
         napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
+    static napi_value HandleFailure(napi_env env, BlockQueue<EditorEventInfo> &queue);
     static void PrintEditorQueueInfoIfTimeout(int64_t start, const EditorEventInfo &currentInfo);
 
     static const std::string TIC_CLASS_NAME;
