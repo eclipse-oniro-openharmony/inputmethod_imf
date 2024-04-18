@@ -357,8 +357,8 @@ void InputMethodPanelTest::ImcPanelListeningTestRestore()
 void InputMethodPanelTest::TestShowPanel(const std::shared_ptr<InputMethodPanel> &panel)
 {
     ASSERT_NE(panel, nullptr);
-    // set tokenId as current ime
-    TokenScope scope(currentImeTokenId_);
+    // set tokenId and uid as current ime
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = panel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }

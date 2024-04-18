@@ -91,6 +91,8 @@ public:
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsDefaultIme();
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
+    int32_t SetPreviewText(const std::string &text, const Range &range);
+    int32_t FinishTextPreview();
 
 private:
     std::thread workThreadHandler;

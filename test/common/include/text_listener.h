@@ -48,6 +48,8 @@ public:
     std::u16string GetRightTextOfCursor(int32_t number) override;
     int32_t GetTextIndexAtCursor() override;
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t SetPreviewText(const std::u16string &text, const Range &range) override;
+    void FinishTextPreview() override;
     static void ResetParam();
     static bool WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus);
     static bool WaitNotifyPanelStatusInfoCallback(const PanelStatusInfo &info);
@@ -74,6 +76,9 @@ public:
     static constexpr const char *TEXT_BEFORE_CURSOR = "before";
     static constexpr const char *TEXT_AFTER_CURSOR = "after";
     static std::unordered_map<std::string, PrivateDataValue> privateCommand_;
+    static std::string previewText_;
+    static Range previewRange_;
+    static bool isFinishTextPreviewCalled_;
 };
 } // namespace MiscServices
 } // namespace OHOS

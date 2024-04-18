@@ -123,7 +123,7 @@ void AsyncCall::OnComplete(napi_env env, napi_status status, void *data)
         }
     } else {
         IMSA_HILOGE("runStatus[%{public}d]", runStatus);
-        result[ARG_ERROR] = JsUtils::ToError(env, context->ctx->errorCode_);
+        result[ARG_ERROR] = JsUtils::ToError(env, context->ctx->errorCode_, context->ctx->errMessage_);
         napi_get_undefined(env, &result[ARG_DATA]);
     }
     if (context->defer != nullptr) {
