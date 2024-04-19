@@ -33,6 +33,9 @@ using namespace MessageID;
 sptr<ImCommonEventManager> ImCommonEventManager::instance_;
 std::mutex ImCommonEventManager::instanceLock_;
 using namespace OHOS::EventFwk;
+constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.input_panel_status_changed";
+constexpr const char *COMMON_EVENT_PARAM_PANEL_STATE = "panelState";
+constexpr const char *COMMON_EVENT_PARAM_PANEL_RECT = "panelRect";
 ImCommonEventManager::ImCommonEventManager()
 {
 }
@@ -253,6 +256,22 @@ void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility
 void ImCommonEventManager::SystemAbilityStatusChangeListener::OnRemoveSystemAbility(
     int32_t systemAbilityId, const std::string &deviceId)
 {
+}
+
+int32_t ImCommonEventManager::PublicPanelStatusChangeEvent(const InputWindowStatus &status, const ImeWindowInfo &info)
+{
+    EventFwk::CommonEventPublishInfo publicInfo;
+    publicInfo.SetOrdered(false);
+    AAFwk::Want want;
+    want.SetAction(COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED);
+    bool visible = (status == InputWindowStatus::SHOW);
+    std::vector<int32_t> panelRect = { info.windowInfo.left, info.windowInfo.top,
+        static_cast<int32_t>(info.windowInfo.width), static_cast<int32_t>(info.windowInfo.height) };
+    want.SetParam(COMMON_EVENT_PARAM_PANEL_STATE, visible);
+    want.SetParam(COMMON_EVENT_PARAM_PANEL_RECT, panelRect);
+    EventFwk::CommonEventData data;
+    data.SetWant(want);
+    return EventFwk::CommonEventManager::NewPublishCommonEvent(data, publicInfo);
 }
 } // namespace MiscServices
 } // namespace OHOS

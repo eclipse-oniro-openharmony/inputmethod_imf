@@ -442,6 +442,11 @@ int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &sta
         IMSA_HILOGE("not current ime");
         return ErrorCode::ERROR_NOT_CURRENT_IME;
     }
+    auto commonEventManager = ImCommonEventManager::GetInstance();
+    if (commonEventManager != nullptr) {
+        auto ret = ImCommonEventManager::GetInstance()->PublicPanelStatusChangeEvent(status, info);
+        IMSA_HILOGD("public panel status change event:%{public}d", ret);
+    }
     return userSession_->OnPanelStatusChange(status, info);
 }
 

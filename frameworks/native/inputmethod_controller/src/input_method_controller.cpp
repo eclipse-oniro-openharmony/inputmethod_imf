@@ -1018,6 +1018,7 @@ int32_t InputMethodController::InsertText(const std::u16string &text)
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     {
         InputMethodSyncTrace aceTracer("ACE_InsertText");
+        IMSA_HILOGI("ACE InsertText");
         listener->InsertText(text);
     }
     PrintLogIfAceTimeout(start);

@@ -97,7 +97,7 @@ public:
     int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);
     int32_t ListInputMethodSubtype(int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);
     int32_t ListCurrentInputMethodSubtype(int32_t userId, std::vector<SubProperty> &subProps);
-    int32_t GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userId, bool enableOn);
+    int32_t GeSwitchInfo(SwitchInfo &switchInfo, int32_t userId, bool enableOn);
     bool IsEnableInputMethod();
     bool IsEnableSecurityMode();
     void InitSystemConfig();
@@ -117,8 +117,7 @@ private:
         const int32_t userId, const std::string &bundleName, const std::string &subName);
     int32_t GetExtInfosByBundleName(const int32_t userId, const std::string &bundleName,
         std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
-    bool GetExtInfoContainSubtypeCfg(const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos,
-        OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo);
+    bool IsNewExtInfos(const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
     bool IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName);
     std::vector<InputMethodInfo> ListInputMethodInfo(const int32_t userId);
     int32_t ListInputMethod(const int32_t userId, std::vector<Property> &props);

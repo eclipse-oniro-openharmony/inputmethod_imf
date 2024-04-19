@@ -158,9 +158,8 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(
     info->prop.iconId = extInfos[0].applicationInfo.iconId;
 
     std::vector<SubProperty> subProps;
-    ExtensionAbilityInfo extInfo;
-    info->isNewIme = GetExtInfoContainSubtypeCfg(extInfos, extInfo);
-    ret = info->isNewIme ? ListInputMethodSubtype(userId, extInfo, subProps)
+    info->isNewIme = IsNewExtInfos(extInfos);
+    ret = info->isNewIme ? ListInputMethodSubtype(userId, extInfos[0], subProps)
                          : ListInputMethodSubtype(userId, extInfos, subProps);
     if (ret != ErrorCode::NO_ERROR || subProps.empty()) {
         IMSA_HILOGE("userId: %{public}d listInputMethodSubtype failed", userId);
@@ -418,9 +417,8 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
         IMSA_HILOGE("userId: %{public}d getExtInfosByBundleName %{public}s failed", userId, bundleName.c_str());
         return ret;
     }
-    ExtensionAbilityInfo extInfo;
-    return GetExtInfoContainSubtypeCfg(extInfos, extInfo) ? ListInputMethodSubtype(userId, extInfo, subProps)
-                                                          : ListInputMethodSubtype(userId, extInfos, subProps);
+    return IsNewExtInfos(extInfos) ? ListInputMethodSubtype(userId, extInfos[0], subProps)
+                                   : ListInputMethodSubtype(userId, extInfos, subProps);
 }
 
 int32_t ImeInfoInquirer::ListCurrentInputMethodSubtype(int32_t userId, std::vector<SubProperty> &subProps)
@@ -430,22 +428,16 @@ int32_t ImeInfoInquirer::ListCurrentInputMethodSubtype(int32_t userId, std::vect
     return ListInputMethodSubtype(userId, currentImeCfg->bundleName, subProps);
 }
 
-bool ImeInfoInquirer::GetExtInfoContainSubtypeCfg(
-    const std::vector<ExtensionAbilityInfo> &extInfos, ExtensionAbilityInfo &extInfo)
+bool ImeInfoInquirer::IsNewExtInfos(const std::vector<ExtensionAbilityInfo> &extInfos)
 {
-    if (extInfos.empty()) {
-        IMSA_HILOGE("extInfos is empty");
+    // 1 represent the maximum of INPUTMETHOD extInfos in new ime
+    if (extInfos.empty() || extInfos.size() > 1) {
+        IMSA_HILOGE("extInfos size:%{public}d is error", extInfos.size());
         return false;
     }
-    for (const auto &info : extInfos) {
-        auto iter = std::find_if(info.metadata.begin(), info.metadata.end(),
-            [](const Metadata &metadata) { return metadata.name == SUBTYPE_PROFILE_METADATA_NAME; });
-        if (iter != extInfo.metadata.end()) {
-            extInfo = info;
-            return true;
-        }
-    }
-    return false;
+    auto iter = std::find_if(extInfos[0].metadata.begin(), extInfos[0].metadata.end(),
+        [](const Metadata &metadata) { return metadata.name == SUBTYPE_PROFILE_METADATA_NAME; });
+    return iter != extInfos[0].metadata.end();
 }
 
 int32_t ImeInfoInquirer::ListInputMethodSubtype(
