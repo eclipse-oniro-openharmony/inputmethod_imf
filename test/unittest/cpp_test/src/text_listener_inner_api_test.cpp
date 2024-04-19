@@ -37,6 +37,7 @@ public:
     static sptr<OnTextChangedListener> textListener_;
     static void SetUpTestCase(void)
     {
+        IMSA_HILOGI("TextListenerInnerApiTest::SetUpTestCase");
         TddUtil::InitWindow(true);
         TextListener::ResetParam();
 
@@ -45,20 +46,33 @@ public:
     }
     static void TearDownTestCase(void)
     {
-        IMSA_HILOGI("InputMethodInnerApiTest::TearDownTestCase");
+        IMSA_HILOGI("TextListenerInnerApiTest::TearDownTestCase");
         imc_->Close();
         TextListener::ResetParam();
         TddUtil::DestroyWindow();
     }
     void SetUp()
     {
-        IMSA_HILOGI("InputMethodAbilityTest::SetUp");
+        IMSA_HILOGI("TextListenerInnerApiTest::SetUp");
         TextListener::ResetParam();
     }
     void TearDown()
     {
-        IMSA_HILOGI("InputMethodAbilityTest::TearDown");
+        IMSA_HILOGI("TextListenerInnerApiTest::TearDown");
         TextListener::ResetParam();
+    }
+    static void GetIMCAttached()
+    {
+        imc_->SetTextListener(textListener_);
+        imc_->clientInfo_.state = ClientState::ACTIVE;
+        imc_->isBound_.store(true);
+        imc_->isEditable_.store(true);
+    }
+    static void GetIMCDetached()
+    {
+        imc_->SetTextListener(nullptr);
+        imc_->isBound_.store(false);
+        imc_->isEditable_.store(false);
     }
 };
 sptr<InputMethodController> TextListenerInnerApiTest::imc_;
@@ -74,7 +88,7 @@ HWTEST_F(TextListenerInnerApiTest, testInsertText01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testInsertText01 START");
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     std::string text = "text";
     std::u16string u16Text = Str8ToStr16(text);
     int32_t ret = imc_->InsertText(u16Text);
@@ -95,14 +109,14 @@ HWTEST_F(TextListenerInnerApiTest, testInsertText02, TestSize.Level0)
     std::string text = "text";
     std::u16string u16Text = Str8ToStr16(text);
 
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     int32_t ret = imc_->InsertText(u16Text);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::insertText_, u16Text);
 
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     ret = imc_->InsertText(u16Text);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::insertText_, u16Text);
@@ -118,7 +132,7 @@ HWTEST_F(TextListenerInnerApiTest, testDeleteForward01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testDeleteForward01 START");
     TextListener::ResetParam();
-    imc_->Attach(textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     int32_t length = 5;
     int32_t ret = TextListenerInnerApiTest::imc_->DeleteForward(length);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -137,14 +151,14 @@ HWTEST_F(TextListenerInnerApiTest, testDeleteForward02, TestSize.Level0)
     TextListener::ResetParam();
     int32_t length = 5;
 
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     int32_t ret = TextListenerInnerApiTest::imc_->DeleteForward(length);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::deleteForwardLength_, length);
 
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     ret = TextListenerInnerApiTest::imc_->DeleteForward(length);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::deleteBackwardLength_, length);
@@ -160,7 +174,7 @@ HWTEST_F(TextListenerInnerApiTest, testDeleteBackward01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testDeleteBackward01 START");
     TextListener::ResetParam();
-    imc_->Attach(textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     int32_t length = 5;
     int32_t ret = TextListenerInnerApiTest::imc_->DeleteBackward(length);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -179,14 +193,14 @@ HWTEST_F(TextListenerInnerApiTest, testDeleteBackward02, TestSize.Level0)
     TextListener::ResetParam();
     int32_t length = 5;
 
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     int32_t ret = TextListenerInnerApiTest::imc_->DeleteBackward(length);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::deleteBackwardLength_, length);
 
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     ret = TextListenerInnerApiTest::imc_->DeleteBackward(length);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::deleteForwardLength_, length);
@@ -202,7 +216,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetLeft01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testGetLeft01 START");
     TextListener::ResetParam();
-    imc_->Attach(textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     int32_t number = 5;
     std::u16string text;
     int32_t ret = TextListenerInnerApiTest::imc_->GetLeft(number, text);
@@ -223,7 +237,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetLeft02, TestSize.Level0)
     int32_t number = 5;
     std::u16string text = u"";
 
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     int32_t ret = TextListenerInnerApiTest::imc_->GetLeft(number, text);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
@@ -231,7 +245,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetLeft02, TestSize.Level0)
 
     text = u"";
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     ret = TextListenerInnerApiTest::imc_->GetLeft(number, text);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(text, Str8ToStr16(TextListener::TEXT_BEFORE_CURSOR));
@@ -247,7 +261,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetRight01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testGetRight01 START");
     TextListener::ResetParam();
-    imc_->Attach(textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     int32_t number = 5;
     std::u16string text;
     int32_t ret = TextListenerInnerApiTest::imc_->GetRight(number, text);
@@ -268,14 +282,14 @@ HWTEST_F(TextListenerInnerApiTest, testGetRight02, TestSize.Level0)
     int32_t number = 5;
     std::u16string text = u"";
 
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     int32_t ret = TextListenerInnerApiTest::imc_->GetRight(number, text);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(text, Str8ToStr16(TextListener::TEXT_AFTER_CURSOR));
 
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     ret = TextListenerInnerApiTest::imc_->GetRight(number, text);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(text, Str8ToStr16(TextListener::TEXT_AFTER_CURSOR));
@@ -291,7 +305,7 @@ HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSendKeyboardStatus01 START");
     TextListener::ResetParam();
-    imc_->Attach(textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->SendKeyboardStatus(KeyboardStatus::HIDE);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
 }
@@ -305,14 +319,14 @@ HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus01, TestSize.Level0)
 HWTEST_F(TextListenerInnerApiTest, testSendKeyboardStatus02, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSendKeyboardStatus02 START");
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListener::ResetParam();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     TextListenerInnerApiTest::imc_->SendKeyboardStatus(KeyboardStatus::HIDE);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::NONE));
 
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     TextListenerInnerApiTest::imc_->SendKeyboardStatus(KeyboardStatus::HIDE);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::NONE));
 }
@@ -327,7 +341,7 @@ HWTEST_F(TextListenerInnerApiTest, testSendFunctionKey01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSendFunctionKey01 START");
     TextListener::ResetParam();
-    imc_->Attach(textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     int32_t key = 1;
     TextListenerInnerApiTest::imc_->SendFunctionKey(key);
     EXPECT_EQ(TextListener::key_, key);
@@ -345,13 +359,13 @@ HWTEST_F(TextListenerInnerApiTest, testSendFunctionKey02, TestSize.Level0)
     TextListener::ResetParam();
     int32_t key = 1;
 
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     TextListenerInnerApiTest::imc_->SendFunctionKey(key);
     EXPECT_NE(TextListener::key_, key);
 
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     TextListenerInnerApiTest::imc_->SendFunctionKey(key);
     EXPECT_NE(TextListener::key_, key);
 }
@@ -366,7 +380,7 @@ HWTEST_F(TextListenerInnerApiTest, testMoveCursor01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testMoveCursor01 START");
     TextListener::ResetParam();
-    imc_->Attach(textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     int32_t direction = 2;
     int32_t ret = TextListenerInnerApiTest::imc_->MoveCursor(static_cast<Direction>(direction));
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -385,14 +399,14 @@ HWTEST_F(TextListenerInnerApiTest, testMoveCursor02, TestSize.Level0)
     TextListener::ResetParam();
     int32_t direction = 2;
 
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     int32_t ret = TextListenerInnerApiTest::imc_->MoveCursor(static_cast<Direction>(direction));
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::direction_, direction);
 
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     ret = TextListenerInnerApiTest::imc_->MoveCursor(static_cast<Direction>(direction));
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::direction_, direction);
@@ -408,7 +422,7 @@ HWTEST_F(TextListenerInnerApiTest, testSelectByRange01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSelectByRange01 START");
     TextListener::ResetParam();
-    imc_->Attach(textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     int32_t start = 1;
     int32_t end = 1;
     TextListenerInnerApiTest::imc_->SelectByRange(start, end);
@@ -429,14 +443,14 @@ HWTEST_F(TextListenerInnerApiTest, testSelectByRange02, TestSize.Level0)
     int32_t start = 1;
     int32_t end = 1;
 
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     TextListenerInnerApiTest::imc_->SelectByRange(start, end);
     EXPECT_NE(TextListener::selectionStart_, start);
     EXPECT_NE(TextListener::selectionEnd_, end);
 
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     TextListenerInnerApiTest::imc_->SelectByRange(start, end);
     EXPECT_NE(TextListener::selectionStart_, start);
     EXPECT_NE(TextListener::selectionEnd_, end);
@@ -452,7 +466,7 @@ HWTEST_F(TextListenerInnerApiTest, testSelectByMovement01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testSelectByMovement01 START");
     TextListener::ResetParam();
-    imc_->Attach(textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     int32_t direction = 1;
     int32_t cursorSkip = 2;
     TextListenerInnerApiTest::imc_->SelectByMovement(direction, cursorSkip);
@@ -473,14 +487,14 @@ HWTEST_F(TextListenerInnerApiTest, testSelectByMovement02, TestSize.Level0)
     int32_t direction = 1;
     int32_t skip = 2;
 
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     TextListenerInnerApiTest::imc_->SelectByMovement(direction, skip);
     EXPECT_NE(TextListener::direction_, direction);
     EXPECT_NE(TextListener::selectionSkip_, skip);
 
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     TextListenerInnerApiTest::imc_->SelectByMovement(direction, skip);
     EXPECT_NE(TextListener::selectionDirection_, direction + CURSOR_DIRECTION_BASE_VALUE);
     EXPECT_NE(TextListener::selectionSkip_, skip);
@@ -496,7 +510,7 @@ HWTEST_F(TextListenerInnerApiTest, testHandleExtendAction01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testHandleExtendAction01 START");
     TextListener::ResetParam();
-    imc_->Attach(textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     int32_t action = 2;
     int32_t ret = TextListenerInnerApiTest::imc_->HandleExtendAction(action);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -515,14 +529,14 @@ HWTEST_F(TextListenerInnerApiTest, testHandleExtendAction02, TestSize.Level0)
     TextListener::ResetParam();
     int32_t action = 2;
 
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     int32_t ret = TextListenerInnerApiTest::imc_->HandleExtendAction(action);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::action_, action);
 
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     ret = TextListenerInnerApiTest::imc_->HandleExtendAction(action);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(TextListener::action_, action);
@@ -538,7 +552,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetTextIndexAtCursor01, TestSize.Level0)
 {
     IMSA_HILOGI("TextListenerInnerApiTest testGetTextIndexAtCursor01 START");
     TextListener::ResetParam();
-    imc_->Attach(textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     int32_t index = -1;
     int32_t ret = TextListenerInnerApiTest::imc_->GetTextIndexAtCursor(index);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -557,7 +571,7 @@ HWTEST_F(TextListenerInnerApiTest, testGetTextIndexAtCursor02, TestSize.Level0)
     TextListener::ResetParam();
     int32_t index = -1;
 
-    TextListenerInnerApiTest::imc_->Attach(TextListenerInnerApiTest::textListener_);
+    TextListenerInnerApiTest::GetIMCAttached();
     TextListenerInnerApiTest::imc_->textListener_ = nullptr;
     int32_t ret = TextListenerInnerApiTest::imc_->GetTextIndexAtCursor(index);
     EXPECT_NE(ret, ErrorCode::NO_ERROR);
@@ -565,10 +579,123 @@ HWTEST_F(TextListenerInnerApiTest, testGetTextIndexAtCursor02, TestSize.Level0)
 
     index = -1;
     TextListener::ResetParam();
-    TextListenerInnerApiTest::imc_->Close();
+    TextListenerInnerApiTest::GetIMCDetached();
     ret = TextListenerInnerApiTest::imc_->GetTextIndexAtCursor(index);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     EXPECT_NE(index, TextListener::TEXT_INDEX);
+}
+
+/**
+ * @tc.name: testSetPreviewText01
+ * @tc.desc: insert text.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(TextListenerInnerApiTest, testSetPreviewText01, TestSize.Level0)
+{
+    IMSA_HILOGI("TextListenerInnerApiTest testSetPreviewText01 START");
+    TextListener::ResetParam();
+    TextListenerInnerApiTest::GetIMCAttached();
+    std::string text = "text";
+    std::u16string u16Text = Str8ToStr16(text);
+    Range range = { 1, 2 };
+    TextListenerInnerApiTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
+    int32_t ret = TextListenerInnerApiTest::imc_->SetPreviewText(text, range);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_EQ(TextListener::previewText_, text);
+    EXPECT_EQ(TextListener::previewRange_, range);
+    TextListenerInnerApiTest::GetIMCDetached();
+}
+
+/**
+ * @tc.name: testSetPreviewText02
+ * @tc.desc: insert text without Attach.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(TextListenerInnerApiTest, testSetPreviewText02, TestSize.Level0)
+{
+    IMSA_HILOGI("TextListenerInnerApiTest testSetPreviewText02 START");
+    TextListener::ResetParam();
+    std::string text = "text";
+    Range range = { 1, 2 };
+    TextListenerInnerApiTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
+    // textListener is nullptr
+    TextListenerInnerApiTest::GetIMCAttached();
+    TextListenerInnerApiTest::imc_->textListener_ = nullptr;
+    int32_t ret = TextListenerInnerApiTest::imc_->SetPreviewText(text, range);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    EXPECT_NE(TextListener::previewText_, text);
+    EXPECT_FALSE(TextListener::previewRange_ == range);
+    // isEditable: false
+    TextListener::ResetParam();
+    TextListenerInnerApiTest::GetIMCAttached();
+    TextListenerInnerApiTest::imc_->isEditable_.store(false);
+    ret = TextListenerInnerApiTest::imc_->SetPreviewText(text, range);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    EXPECT_NE(TextListener::previewText_, text);
+    EXPECT_FALSE(TextListener::previewRange_ == range);
+    TextListenerInnerApiTest::GetIMCDetached();
+    // ClientState: INACTIVE
+    TextListener::ResetParam();
+    TextListenerInnerApiTest::GetIMCAttached();
+    TextListenerInnerApiTest::imc_->clientInfo_.state = ClientState::INACTIVE;
+    ret = TextListenerInnerApiTest::imc_->SetPreviewText(text, range);
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    EXPECT_NE(TextListener::previewText_, text);
+    EXPECT_FALSE(TextListener::previewRange_ == range);
+}
+
+/**
+ * @tc.name: testFinishTextPreview01
+ * @tc.desc: insert text.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(TextListenerInnerApiTest, testFinishTextPreview01, TestSize.Level0)
+{
+    IMSA_HILOGI("TextListenerInnerApiTest testFinishTextPreview01 START");
+    TextListener::ResetParam();
+    TextListenerInnerApiTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
+    TextListenerInnerApiTest::GetIMCAttached();
+    int32_t ret = TextListenerInnerApiTest::imc_->FinishTextPreview();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
+    TextListenerInnerApiTest::GetIMCDetached();
+}
+
+/**
+ * @tc.name: testFinishTextPreview02
+ * @tc.desc: insert text without Attach.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(TextListenerInnerApiTest, testFinishTextPreview02, TestSize.Level0)
+{
+    IMSA_HILOGI("TextListenerInnerApiTest testFinishTextPreview02 START");
+    TextListener::ResetParam();
+    TextListenerInnerApiTest::imc_->textConfig_.inputAttribute.isTextPreviewSupported = true;
+
+    // textListener is nullptr
+    TextListenerInnerApiTest::GetIMCAttached();
+    TextListenerInnerApiTest::imc_->textListener_ = nullptr;
+    int32_t ret = TextListenerInnerApiTest::imc_->FinishTextPreview();
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
+    // isEditable: false
+    TextListener::ResetParam();
+    TextListenerInnerApiTest::GetIMCAttached();
+    TextListenerInnerApiTest::imc_->isEditable_.store(false);
+    ret = TextListenerInnerApiTest::imc_->FinishTextPreview();
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
+    // ClientState: INACTIVE
+    TextListener::ResetParam();
+    TextListenerInnerApiTest::GetIMCAttached();
+    TextListenerInnerApiTest::imc_->clientInfo_.state = ClientState::INACTIVE;
+    ret = TextListenerInnerApiTest::imc_->FinishTextPreview();
+    EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    EXPECT_FALSE(TextListener::isFinishTextPreviewCalled_);
 }
 } // namespace MiscServices
 } // namespace OHOS

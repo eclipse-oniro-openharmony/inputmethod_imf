@@ -226,6 +226,22 @@ int32_t InputDataChannelStub::SendPrivateCommandOnRemote(MessageParcel &data, Me
     return reply.WriteInt32(SendPrivateCommand(privateCommand)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
+int32_t InputDataChannelStub::SetPreviewTextOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    std::string text;
+    Range range;
+    if (!ITypesUtil::Unmarshal(data, text, range)) {
+        IMSA_HILOGE("failed to read message parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    return reply.WriteInt32(SetPreviewText(text, range)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputDataChannelStub::FinishTextPreviewOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    return reply.WriteInt32(FinishTextPreview()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
 int32_t InputDataChannelStub::InsertText(const std::u16string &text)
 {
     return InputMethodController::GetInstance()->InsertText(text);
@@ -317,6 +333,16 @@ int32_t InputDataChannelStub::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     return InputMethodController::GetInstance()->ReceivePrivateCommand(privateCommand);
+}
+
+int32_t InputDataChannelStub::SetPreviewText(const std::string &text, const Range &range)
+{
+    return InputMethodController::GetInstance()->SetPreviewText(text, range);
+}
+
+int32_t InputDataChannelStub::FinishTextPreview()
+{
+    return InputMethodController::GetInstance()->FinishTextPreview();
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -380,7 +380,8 @@ int32_t ImeInfoInquirer::ListDisabledInputMethod(const int32_t userId, std::vect
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userId, bool enableOn)
+int32_t ImeInfoInquirer::GetSwitchInfoBySwitchCount(
+    SwitchInfo &switchInfo, int32_t userId, bool enableOn, uint32_t cacheCount)
 {
     std::vector<Property> props;
     auto ret = ListEnabledInputMethod(userId, props, enableOn);
@@ -401,8 +402,8 @@ int32_t ImeInfoInquirer::GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userI
         IMSA_HILOGE("bundle manager error");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
-    auto nextIter = std::next(iter);
-    switchInfo.bundleName = nextIter == props.end() ? props[0].name : nextIter->name;
+    uint32_t nextIndex = (cacheCount + std::distance(props.begin(), iter)) % props.size();
+    switchInfo.bundleName = props[nextIndex].name;
     IMSA_HILOGD("Next ime: %{public}s", switchInfo.bundleName.c_str());
     return ErrorCode::NO_ERROR;
 }
@@ -430,9 +431,8 @@ int32_t ImeInfoInquirer::ListCurrentInputMethodSubtype(int32_t userId, std::vect
 
 bool ImeInfoInquirer::IsNewExtInfos(const std::vector<ExtensionAbilityInfo> &extInfos)
 {
-    // 1 represent the maximum of INPUTMETHOD extInfos in new ime
-    if (extInfos.empty() || extInfos.size() > 1) {
-        IMSA_HILOGE("extInfos size:%{public}d is error", extInfos.size());
+    if (extInfos.empty()) {
+        IMSA_HILOGE("extInfos is empty");
         return false;
     }
     auto iter = std::find_if(extInfos[0].metadata.begin(), extInfos[0].metadata.end(),
@@ -466,9 +466,15 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
     const int32_t userId, const ExtensionAbilityInfo &extInfo, std::vector<SubProperty> &subProps)
 {
     IMSA_HILOGD("newIme, userId: %{public}d", userId);
+    auto iter = std::find_if(extInfo.metadata.begin(), extInfo.metadata.end(),
+        [](const Metadata &metadata) { return metadata.name == SUBTYPE_PROFILE_METADATA_NAME; });
+    if (iter == extInfo.metadata.end()) {
+        IMSA_HILOGE("find metadata name:SUBTYPE_PROFILE_METADATA_NAME failed");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
     OHOS::AppExecFwk::BundleMgrClientImpl clientImpl;
     std::vector<std::string> profiles;
-    if (!clientImpl.GetResConfigFile(extInfo, SUBTYPE_PROFILE_METADATA_NAME, profiles)) {
+    if (!clientImpl.GetResConfigFile(extInfo, iter->name, profiles)) {
         IMSA_HILOGE("GetProfileFromExtension failed");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }

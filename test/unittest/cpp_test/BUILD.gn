@@ -268,6 +268,7 @@ ohos_unittest("InputMethodPanelTest") {
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "graphic_2d:window_animation",
     "hilog:libhilog",

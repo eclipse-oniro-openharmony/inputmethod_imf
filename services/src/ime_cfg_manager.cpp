@@ -26,8 +26,7 @@
 namespace OHOS {
 namespace MiscServices {
 namespace {
-constexpr const char *IME_CFG_DIR = "/data/service/el1/public/imf/ime_cfg";
-constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg/ime_cfg.json";
+constexpr const char *IME_CFG_FILE_PATH = "/data/service/el1/public/imf/ime_cfg.json";
 } // namespace
 ImeCfgManager &ImeCfgManager::GetInstance()
 {
@@ -63,14 +62,14 @@ void ImeCfgManager::WriteImeCfg()
         IMSA_HILOGE("Package imeCfg failed");
         return;
     }
-    std::string path(IME_CFG_DIR);
+    std::string path(IME_CFG_FILE_PATH);
     if (!FileOperator::IsExist(path)) {
         if (!FileOperator::Create(path, S_IRWXU)) {
             IMSA_HILOGE("ime cfg dir create failed");
             return;
         }
     }
-    if (!FileOperator::Write(IME_CFG_FILE_PATH, content, O_CREAT | O_WRONLY | O_SYNC | O_TRUNC)) {
+    if (!FileOperator::Write(IME_CFG_FILE_PATH, content, O_WRONLY | O_SYNC | O_TRUNC)) {
         IMSA_HILOGE("WriteJsonFile failed");
     }
 }

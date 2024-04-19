@@ -67,6 +67,10 @@ bool JsUtil::GetValue(napi_env env, napi_value in, double &out)
 {
     return napi_get_value_double(env, in, &out) == napi_ok;
 }
+napi_value JsUtil::GetValue(napi_env env, napi_value in)
+{
+    return in;
+}
 napi_value JsUtil::GetValue(napi_env env, const std::string &in)
 {
     napi_value out = nullptr;

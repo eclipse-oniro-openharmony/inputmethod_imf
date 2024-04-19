@@ -20,6 +20,7 @@
 #include <map>
 #include <string>
 
+#include "calling_window_info.h"
 #include "input_window_info.h"
 #include "js_runtime_utils.h"
 #include "panel_info.h"
@@ -47,6 +48,7 @@ public:
     void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void ClearPanelListener(const std::string &type);
     int32_t SetCallingWindow(uint32_t windowId);
+    int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);

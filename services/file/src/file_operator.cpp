@@ -25,11 +25,12 @@ namespace OHOS {
 namespace MiscServices {
 bool FileOperator::Create(const std::string &path, mode_t mode)
 {
-    auto ret = mkdir(path.c_str(), mode);
-    if (ret != SUCCESS) {
-        IMSA_HILOGE("%{public}s mkdir failed, errno:%{public}d", path.c_str(), errno);
+    auto fd = creat(path.c_str(), mode);
+    if (fd < 0) {
+        IMSA_HILOGE("%{public}s creat failed, errno:%{public}d", path.c_str(), errno);
         return false;
     }
+    close(fd);
     return true;
 }
 

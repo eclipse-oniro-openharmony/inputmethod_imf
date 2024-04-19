@@ -30,6 +30,7 @@ struct InputAttribute {
     int32_t inputPattern = 0;
     int32_t enterKeyType = 0;
     int32_t inputOption = 0;
+    bool isTextPreviewSupported{ false };
 
     static bool Marshalling(const InputAttribute &in, MessageParcel &data)
     {
@@ -50,7 +51,7 @@ struct InputAttribute {
     bool operator==(const InputAttribute &info) const
     {
         return inputPattern == info.inputPattern && enterKeyType == info.enterKeyType
-               && inputOption == info.inputOption;
+               && inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
     }
 };
 } // namespace MiscServices

@@ -529,7 +529,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_SwitchByCombinationKey_007, TestSize.L
     InputMethodController::GetInstance()->ListInputMethod(props);
     if (props.size() == 1) {
         auto ret = service_->SwitchByCombinationKey(KeyboardEvent::SHIFT_RIGHT_MASK | KeyboardEvent::CTRL_RIGHT_MASK);
-        EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+        EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     }
 }
 

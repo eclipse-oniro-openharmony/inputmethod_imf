@@ -25,11 +25,17 @@
 #include <cstdint>
 #include <string>
 
+#include "common_event_data.h"
+#include "common_event_manager.h"
+#include "common_event_subscribe_info.h"
+#include "common_event_subscriber.h"
+#include "common_event_support.h"
 #include "display_manager.h"
 #include "global.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "input_method_engine_listener_impl.h"
+#include "matching_skills.h"
 #include "panel_status_listener.h"
 #include "scope_utils.h"
 #include "tdd_util.h"
@@ -41,6 +47,8 @@ namespace MiscServices {
 constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 200;
 constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
+constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.input_panel_status_changed";
+constexpr const char *COMMON_EVENT_PARAM_PANEL_STATE = "panelState";
 enum ListeningStatus : uint32_t { ON, OFF, NONE };
 class InputMethodPanelTest : public testing::Test {
 public:
@@ -134,6 +142,31 @@ public:
         InputMethodPanelTest::imcPanelStatusListenerCv_.notify_one();
     }
 };
+
+class TestEventSubscriber : public EventFwk::CommonEventSubscriber {
+public:
+    explicit TestEventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
+        : EventFwk::CommonEventSubscriber(subscribeInfo)
+    {
+    }
+    void OnReceiveEvent(const EventFwk::CommonEventData &data)
+    {
+        std::unique_lock<std::mutex> lock(InputMethodPanelTest::imcPanelStatusListenerLock_);
+        auto const &want = data.GetWant();
+        action_ = want.GetAction();
+        bool visible = want.GetBoolParam(COMMON_EVENT_PARAM_PANEL_STATE, false);
+        status_ = visible ? InputWindowStatus::SHOW : InputWindowStatus::HIDE;
+        InputMethodPanelTest::imcPanelStatusListenerCv_.notify_one();
+    }
+    void ResetParam()
+    {
+        action_ = "";
+        status_ = InputWindowStatus::NONE;
+    }
+    std::string action_;
+    InputWindowStatus status_{ InputWindowStatus::NONE };
+};
+
 std::condition_variable InputMethodPanelTest::panelListenerCv_;
 std::mutex InputMethodPanelTest::panelListenerLock_;
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodPanelTest::panelHandler_{ nullptr };
@@ -357,8 +390,8 @@ void InputMethodPanelTest::ImcPanelListeningTestRestore()
 void InputMethodPanelTest::TestShowPanel(const std::shared_ptr<InputMethodPanel> &panel)
 {
     ASSERT_NE(panel, nullptr);
-    // set tokenId as current ime
-    TokenScope scope(currentImeTokenId_);
+    // set tokenId and uid as current ime
+    AccessScope scope(currentImeTokenId_, currentImeUid_);
     auto ret = panel->ShowPanel();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -1080,6 +1113,45 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_007, TestSize.Level0)
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
 }
 
+/*
+* @tc.name: testPanelStatusChangeEventPublicTest
+* @tc.desc: test subscriber can receive the panel status change event published by IMSA
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testPanelStatusChangeEventPublicTest, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testPanelStatusChangeEventPublicTest start.");
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED);
+    EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
+    auto subscriber = std::make_shared<TestEventSubscriber>(subscriberInfo);
+    auto ret = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
+    EXPECT_TRUE(ret);
+
+    InputMethodPanelTest::TestShowPanel(InputMethodPanelTest::inputMethodPanel_);
+    {
+        std::unique_lock<std::mutex> lock(imcPanelStatusListenerLock_);
+        auto waitRet = imcPanelStatusListenerCv_.wait_for(
+            lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME), [subscriber]() {
+                return subscriber->action_ == COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED
+                       && subscriber->status_ == InputWindowStatus::SHOW;
+            });
+        EXPECT_TRUE(waitRet);
+    }
+
+    subscriber->ResetParam();
+    InputMethodPanelTest::TestHidePanel(InputMethodPanelTest::inputMethodPanel_);
+    {
+        std::unique_lock<std::mutex> lock(imcPanelStatusListenerLock_);
+        auto waitRet = imcPanelStatusListenerCv_.wait_for(
+            lock, std::chrono::milliseconds(IMC_WAIT_PANEL_STATUS_LISTEN_TIME), [subscriber]() {
+                return subscriber->action_ == COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED
+                       && subscriber->status_ == InputWindowStatus::HIDE;
+            });
+        EXPECT_TRUE(waitRet);
+    }
+}
+
 /**
 * @tc.name: testSetCallingWindow
 * @tc.desc: test SetCallingWindow
@@ -1093,7 +1165,7 @@ HWTEST_F(InputMethodPanelTest, testSetCallingWindow, TestSize.Level0)
     // not CreatePanel, SetCallingWindow failed
     uint32_t windowId = 8;
     auto ret = inputMethodPanel->SetCallingWindow(windowId);
-    EXPECT_EQ(ret, ErrorCode::ERROR_NULL_POINTER);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PANEL_NOT_FOUND);
 
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);

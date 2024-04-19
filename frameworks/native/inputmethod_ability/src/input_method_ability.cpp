@@ -314,15 +314,15 @@ int32_t InputMethodAbility::DispatchKeyEvent(
 
 void InputMethodAbility::SetCallingWindow(uint32_t windowId)
 {
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr");
-        return;
-    }
     IMSA_HILOGD("InputMethodAbility windowId: %{public}d", windowId);
     panels_.ForEach([windowId](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         panel->SetCallingWindow(windowId);
         return false;
     });
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGD("imeListener_ is nullptr");
+        return;
+    }
     imeListener_->OnSetCallingWindow(windowId);
 }
 
@@ -1034,6 +1034,57 @@ int32_t InputMethodAbility::ReceivePrivateCommand(
     }
     imeListener_->ReceivePrivateCommand(privateCommand);
     return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range &range)
+{
+    auto dataChannel = GetInputDataChannelProxy();
+    if (dataChannel == nullptr) {
+        IMSA_HILOGE("dataChannel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return dataChannel->SetPreviewText(text, range);
+}
+
+int32_t InputMethodAbility::FinishTextPreview()
+{
+    auto dataChannel = GetInputDataChannelProxy();
+    if (dataChannel == nullptr) {
+        IMSA_HILOGE("dataChannel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return dataChannel->FinishTextPreview();
+}
+
+int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
+{
+    IMSA_HILOGD("IMA in");
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        IMSA_HILOGE("channel nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_FOUND;
+    }
+    auto panel = GetSoftKeyboardPanel();
+    if (panel == nullptr) {
+        IMSA_HILOGE("panel not found");
+        return ErrorCode::ERROR_PANEL_NOT_FOUND;
+    }
+    TextTotalConfig textConfig;
+    int32_t ret = GetTextConfig(textConfig);
+    if (ret != ErrorCode::NO_ERROR || textConfig.windowId == INVALID_WINDOW_ID) {
+        IMSA_HILOGE("failed to get window id, ret: %{public}d", ret);
+        return ErrorCode::ERROR_GET_TEXT_CONFIG;
+    }
+    ret = panel->SetCallingWindow(textConfig.windowId);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("SetCallingWindow failed, ret: %{public}d", ret);
+        return ret;
+    }
+    ret = panel->GetCallingWindowInfo(windowInfo);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("GetCallingWindowInfo failed, ret: %{public}d", ret);
+    }
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

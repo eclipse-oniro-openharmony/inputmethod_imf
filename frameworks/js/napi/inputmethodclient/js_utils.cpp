@@ -55,8 +55,13 @@ const std::map<int32_t, int32_t> JsUtils::ERROR_CODE_MAP = {
     { ErrorCode::ERROR_NOT_DEFAULT_IME, EXCEPTION_DEFAULTIME },
     { ErrorCode::ERROR_ENABLE_IME, EXCEPTION_IMMS },
     { ErrorCode::ERROR_NOT_CURRENT_IME, EXCEPTION_IMMS },
+    { ErrorCode::ERROR_PANEL_NOT_FOUND, EXCEPTION_PANEL_NOT_FOUND },
+    { ErrorCode::ERROR_WINDOW_MANAGER, EXCEPTION_WINDOW_MANAGER },
+    { ErrorCode::ERROR_GET_TEXT_CONFIG, EXCEPTION_IMCLIENT },
     { ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE, EXCEPTION_PARAMCHECK },
     { ErrorCode::ERROR_TEXT_LISTENER_ERROR, EXCEPTION_IMCLIENT },
+    { ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED, EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED },
+    { ErrorCode::ERROR_INVALID_RANGE, EXCEPTION_PARAMCHECK },
 };
 
 const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
@@ -74,6 +79,9 @@ const std::map<int32_t, std::string> JsUtils::ERROR_CODE_CONVERT_MESSAGE_MAP = {
     { EXCEPTION_IMMS, "input method manager service error." },
     { EXCEPTION_DETACHED, "input method not attached." },
     { EXCEPTION_DEFAULTIME, "not default input method configured by system." },
+    { EXCEPTION_TEXT_PREVIEW_NOT_SUPPORTED, "text preview is not supported." },
+    { EXCEPTION_PANEL_NOT_FOUND, "soft keyboard panel doesn't exist." },
+    { EXCEPTION_WINDOW_MANAGER, "window manager service error." },
 };
 
 const std::map<int32_t, std::string> JsUtils::PARAMETER_TYPE = {
@@ -112,7 +120,7 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
     NAPI_CALL_RETURN_VOID(env, napi_throw(env, error));
 }
 
-napi_value JsUtils::ToError(napi_env env, int32_t code)
+napi_value JsUtils::ToError(napi_env env, int32_t code, const std::string &msg)
 {
     IMSA_HILOGD("ToError start");
     napi_value errorObj;
@@ -120,7 +128,8 @@ napi_value JsUtils::ToError(napi_env env, int32_t code)
     napi_value errorCode = nullptr;
     NAPI_CALL(env, napi_create_int32(env, Convert(code), &errorCode));
     napi_value errorMessage = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, ToMessage(Convert(code)).c_str(), NAPI_AUTO_LENGTH, &errorMessage));
+    std::string errMsg = ToMessage(Convert(code)) + " " + msg;
+    NAPI_CALL(env, napi_create_string_utf8(env, errMsg.c_str(), NAPI_AUTO_LENGTH, &errorMessage));
     NAPI_CALL(env, napi_set_named_property(env, errorObj, "code", errorCode));
     NAPI_CALL(env, napi_set_named_property(env, errorObj, "message", errorMessage));
     IMSA_HILOGD("ToError end");
@@ -400,6 +409,9 @@ napi_value JsUtils::GetValue(napi_env env, const InputAttribute &attribute)
 
     auto ret = JsUtil::Object::WriteProperty(env, editorAttribute, "inputPattern", attribute.inputPattern);
     ret = ret && JsUtil::Object::WriteProperty(env, editorAttribute, "enterKeyType", attribute.enterKeyType);
+    ret = ret
+          && JsUtil::Object::WriteProperty(
+              env, editorAttribute, "isTextPreviewSupported", attribute.isTextPreviewSupported);
     return ret ? editorAttribute : JsUtil::Const::Null(env);
 }
 

@@ -162,7 +162,7 @@ bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 
 bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 {
-    if (!Marshal(data, input.inputPattern, input.enterKeyType, input.inputOption)) {
+    if (!Marshal(data, input.inputPattern, input.enterKeyType, input.inputOption, input.isTextPreviewSupported)) {
         IMSA_HILOGE("write InputAttribute to message parcel failed");
         return false;
     }
@@ -171,7 +171,7 @@ bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 {
-    if (!Unmarshal(data, output.inputPattern, output.enterKeyType, output.inputOption)) {
+    if (!Unmarshal(data, output.inputPattern, output.enterKeyType, output.inputOption, output.isTextPreviewSupported)) {
         IMSA_HILOGE("read InputAttribute from message parcel failed");
         return false;
     }
@@ -180,8 +180,7 @@ bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 
 bool ITypesUtil::Marshalling(const TextTotalConfig &input, MessageParcel &data)
 {
-    if (!Marshal(data, input.inputAttribute.inputPattern, input.inputAttribute.enterKeyType,
-        input.inputAttribute.inputOption)) {
+    if (!Marshal(data, input.inputAttribute)) {
         IMSA_HILOGE("write InputAttribute to message parcel failed");
         return false;
     }
@@ -456,6 +455,24 @@ bool ITypesUtil::Unmarshalling(PrivateDataValue &output, MessageParcel &data)
         IMSA_HILOGE("read PrivateDataValue from message parcel failed");
     }
     return res;
+}
+
+bool ITypesUtil::Marshalling(const Range &input, MessageParcel &data)
+{
+    if (!Marshal(data, input.start, input.end)) {
+        IMSA_HILOGE("failed to write Range into message parcel");
+        return false;
+    }
+    return true;
+}
+
+bool ITypesUtil::Unmarshalling(Range &output, MessageParcel &data)
+{
+    if (!Unmarshal(data, output.start, output.end)) {
+        IMSA_HILOGE("failed to read Range from message parcel");
+        return false;
+    }
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS

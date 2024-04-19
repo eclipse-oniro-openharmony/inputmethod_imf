@@ -258,7 +258,7 @@ void ImCommonEventManager::SystemAbilityStatusChangeListener::OnRemoveSystemAbil
 {
 }
 
-int32_t ImCommonEventManager::PublicPanelStatusChangeEvent(const InputWindowStatus &status, const ImeWindowInfo &info)
+int32_t ImCommonEventManager::PublishPanelStatusChangeEvent(const InputWindowStatus &status, const ImeWindowInfo &info)
 {
     EventFwk::CommonEventPublishInfo publicInfo;
     publicInfo.SetOrdered(false);

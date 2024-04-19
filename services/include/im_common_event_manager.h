@@ -45,7 +45,7 @@ public:
     bool SubscribeAccountManagerService(Handler handle);
     bool UnsubscribeEvent();
     // only public the status change of softKeyboard in FLG_FIXED or FLG_FLOATING
-    int32_t PublicPanelStatusChangeEvent(const InputWindowStatus &status, const ImeWindowInfo &info);
+    int32_t PublishPanelStatusChangeEvent(const InputWindowStatus &status, const ImeWindowInfo &info);
     class EventSubscriber : public EventFwk::CommonEventSubscriber {
     public:
         EventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo);

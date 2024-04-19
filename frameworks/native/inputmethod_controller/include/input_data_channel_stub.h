@@ -55,6 +55,8 @@ public:
     void NotifyPanelStatusInfo(const PanelStatusInfo &info) override;
     void NotifyKeyboardHeight(uint32_t height) override;
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t SetPreviewText(const std::string &text, const Range &range) override;
+    int32_t FinishTextPreview() override;
 
 private:
     int32_t InsertTextOnRemote(MessageParcel &data, MessageParcel &reply);
@@ -75,6 +77,8 @@ private:
     int32_t NotifyPanelStatusInfoOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t NotifyKeyboardHeightOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t SetPreviewTextOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t FinishTextPreviewOnRemote(MessageParcel &data, MessageParcel &reply);
     using RequestHandler = int32_t (InputDataChannelStub::*)(MessageParcel &, MessageParcel &);
     static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
         { static_cast<uint32_t>(INSERT_TEXT), &InputDataChannelStub::InsertTextOnRemote },
@@ -95,6 +99,8 @@ private:
         { static_cast<uint32_t>(NOTIFY_PANEL_STATUS_INFO), &InputDataChannelStub::NotifyPanelStatusInfoOnRemote },
         { static_cast<uint32_t>(NOTIFY_KEYBOARD_HEIGHT), &InputDataChannelStub::NotifyKeyboardHeightOnRemote },
         { static_cast<uint32_t>(SEND_PRIVATE_COMMAND), &InputDataChannelStub::SendPrivateCommandOnRemote },
+        { static_cast<uint32_t>(SET_PREVIEW_TEXT), &InputDataChannelStub::SetPreviewTextOnRemote },
+        { static_cast<uint32_t>(FINISH_TEXT_PREVIEW), &InputDataChannelStub::FinishTextPreviewOnRemote },
     };
 };
 } // namespace MiscServices

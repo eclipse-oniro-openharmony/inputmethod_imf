@@ -51,6 +51,7 @@ public:
     }
 
     // native to js
+    static napi_value GetValue(napi_env env, napi_value in);
     static napi_value GetValue(napi_env env, const std::string &in);
     static napi_value GetValue(napi_env env, int32_t in);
     static napi_value GetValue(napi_env env, uint32_t in);

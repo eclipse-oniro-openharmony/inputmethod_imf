@@ -34,6 +34,7 @@ public:
     static bool WaitPanelShow();
     static bool WaitImeChange(const SubProperty &subProperty);
     static bool WaitImeChange();
+    static bool WaitTargetImeChange(const std::string &bundleName);
 
 private:
     static InputWindowStatus status_;
@@ -41,6 +42,7 @@ private:
     static bool isImeChange_;
     static std::mutex imeSettingListenerLock_;
     static std::condition_variable imeSettingListenerCv_;
+    static Property property_;
 }; // namespace MiscServices
 } // namespace MiscServices
 } // namespace OHOS
