@@ -241,7 +241,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel->AsObject());
     isBindFromClient ? InvokeTextChangeCallback(clientInfo.config) : NotifyAllTextConfig();
-    SaveInputAttribute(clientInfo.config.inputAttribute);
+    SetInputAttribute(clientInfo.config.inputAttribute);
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
@@ -371,7 +371,7 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
     attribute.inputPattern = data->ReadInt32();
     IMSA_HILOGD("InputMethodAbility, enterKeyType: %{public}d, inputPattern: %{public}d", attribute.enterKeyType,
         attribute.inputPattern);
-    SaveInputAttribute(attribute);
+    SetInputAttribute(attribute);
     // add for mod inputPattern when panel show
     auto panel = GetSoftKeyboardPanel();
     if (panel != nullptr) {
@@ -905,7 +905,7 @@ int32_t InputMethodAbility::NotifyIsShowSysPanel(
     return systemChannel->NotifyIsShowSysPanel(isShow);
 }
 
-void InputMethodAbility::SaveInputAttribute(const InputAttribute &inputAttribute)
+void InputMethodAbility::SetInputAttribute(const InputAttribute &inputAttribute)
 {
     std::lock_guard<std::mutex> lock(inputAttrLock_);
     inputAttribute_ = inputAttribute;

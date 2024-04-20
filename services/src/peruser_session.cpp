@@ -482,14 +482,13 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, spt
     InputClientInfo infoTemp = *clientInfo;
     infoTemp.isShowKeyboard = inputClientInfo.isShowKeyboard;
     infoTemp.isNotifyInputStart = inputClientInfo.isNotifyInputStart;
-    infoTemp.config = inputClientInfo.config;
     auto imeType = IsProxyImeEnable() ? ImeType::PROXY_IME : ImeType::IME;
     int32_t ret = BindClientWithIme(std::make_shared<InputClientInfo>(infoTemp), imeType, true);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("bind failed, ret: %{public}d", ret);
         return ret;
     }
-    auto data = GetImeData(imeType); 
+    auto data = GetImeData(imeType);
     if (data == nullptr || data->agent == nullptr) {
         IMSA_HILOGE("data or agent is nullptr.");
         return ErrorCode::ERROR_IME_NOT_STARTED;

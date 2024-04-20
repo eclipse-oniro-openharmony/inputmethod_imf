@@ -149,7 +149,7 @@ private:
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     int32_t NotifyIsShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag);
-    void SaveInputAttribute(const InputAttribute &inputAttribute);
+    void SetInputAttribute(const InputAttribute &inputAttribute);
     InputAttribute GetInputAttribute();
     void ClearInputAttribute();
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);

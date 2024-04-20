@@ -45,7 +45,7 @@ int32_t SystemCmdChannelProxy::SendRequest(int code, ParcelHandler input, Parcel
     IMSA_HILOGD("SystemCmdChannelProxy run in, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option{ MessageOption::TF_SYNC };
+    MessageOption option{ MessageOption::TF_ASYNC };
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         IMSA_HILOGE("SystemCmdChannelProxy::write interface token failed");
         return ErrorCode::ERROR_EX_ILLEGAL_ARGUMENT;
