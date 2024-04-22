@@ -321,7 +321,7 @@ void InputMethodSystemAbility::CheckInputTypeOption(InputClientInfo &inputClient
     IMSA_HILOGI("SecurityFlag: %{public}d, IsSameTextInput: %{public}d, IsStarted: %{public}d, "
                 "IsSecurityImeStarted: %{public}d.",
         inputClientInfo.config.inputAttribute.GetSecurityFlag(), !inputClientInfo.isNotifyInputStart,
-        InputTypeManager::GetInstance().IsStarted(), );
+        InputTypeManager::GetInstance().IsStarted(), InputTypeManager::GetInstance().IsSecurityImeStarted());
     if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
         if (!InputTypeManager::GetInstance().IsStarted()) {
             StartInputType(InputType::SECURITY_INPUT);
