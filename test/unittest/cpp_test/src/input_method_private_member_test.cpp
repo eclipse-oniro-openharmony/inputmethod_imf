@@ -206,6 +206,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
     service_->imeStarting_ = false;
     service_->userId_ = 50;
     MessageParcel *parcel3 = new MessageParcel();
+    observer.OnConnected(333, 0);
     parcel3->WriteInt32(333);
     auto msg3 = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel3);
     ret = service_->OnUserStarted(msg3.get());
