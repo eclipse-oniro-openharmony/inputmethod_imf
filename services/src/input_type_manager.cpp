@@ -91,6 +91,13 @@ bool InputTypeManager::IsStarted()
     return isStarted_;
 }
 
+bool InputTypeManager::IsSecurityImeStarted()
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return isStarted_ && inputTypes_.find(InputType::SECURITY_INPUT) != inputTypes_.end()
+           && inputTypes_[InputType::SECURITY_INPUT] == currentTypeIme_;
+}
+
 bool InputTypeManager::IsCameraImeStarted()
 {
     std::lock_guard<std::mutex> lock(stateLock_);

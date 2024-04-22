@@ -306,7 +306,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
     }
 
     if (!userSession_->IsProxyImeEnable()) {
-        CheckSecurityMode(inputClientInfo);
+        CheckInputTypeOption(inputClientInfo);
     }
     int32_t ret = PrepareInput(inputClientInfo);
     if (ret != ErrorCode::NO_ERROR) {
@@ -316,23 +316,38 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
     return userSession_->OnStartInput(inputClientInfo, agent);
 };
 
-void InputMethodSystemAbility::CheckSecurityMode(InputClientInfo &inputClientInfo)
+void InputMethodSystemAbility::CheckInputTypeOption(InputClientInfo &inputClientInfo)
 {
+    IMSA_HILOGI("SecurityFlag: %{public}d, IsSameTextInput: %{public}d, IsStarted: %{public}d, "
+                "IsSecurityImeStarted: %{public}d.",
+        inputClientInfo.config.inputAttribute.GetSecurityFlag(), !inputClientInfo.isNotifyInputStart,
+        InputTypeManager::GetInstance().IsStarted(), );
     if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
-        if (InputTypeManager::GetInstance().IsStarted()) {
-            IMSA_HILOGD("security ime has started.");
+        if (!InputTypeManager::GetInstance().IsStarted()) {
+            StartInputType(InputType::SECURITY_INPUT);
+            IMSA_HILOGI("SecurityFlag, input type is not started.");
             return;
         }
-        auto ret = StartInputType(InputType::SECURITY_INPUT);
-        IMSA_HILOGD("switch to security ime ret = %{public}d.", ret);
+        if (InputTypeManager::GetInstance().IsStarted() && !InputTypeManager::GetInstance().IsSecurityImeStarted()) {
+            StartInputType(InputType::NONE);
+            StartInputType(InputType::SECURITY_INPUT);
+            IMSA_HILOGI("SecurityFlag, input type is started, but not security.");
+            return;
+        }
+        IMSA_HILOGI("SecurityFlag others.");
         return;
     }
-    if (!InputTypeManager::GetInstance().IsStarted() || InputTypeManager::GetInstance().IsCameraImeStarted()) {
-        IMSA_HILOGD("security ime is not start or camera ime started, keep current.");
+    if (!inputClientInfo.isNotifyInputStart && InputTypeManager::GetInstance().IsSecurityImeStarted()) {
+        IMSA_HILOGI("NormalFlag same textinput, security Ime started.");
+        StartInputType(InputType::NONE);
         return;
     }
-    auto ret = StartInputType(InputType::NONE);
-    IMSA_HILOGD("Exit security ime ret = %{public}d.", ret);
+    if (inputClientInfo.isNotifyInputStart && InputTypeManager::GetInstance().IsStarted()) {
+        IMSA_HILOGI("NormalFlag diff textinput, input type started.");
+        StartInputType(InputType::NONE);
+        return;
+    }
+    IMSA_HILOGI("NormalFlag others.");
 }
 
 int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)

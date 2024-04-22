@@ -28,6 +28,7 @@ void ImeSettingListenerTestImpl::ResetParam()
 {
     status_ = InputWindowStatus::NONE;
     subProperty_ = {};
+    property_ = {};
     isImeChange_ = false;
 }
 bool ImeSettingListenerTestImpl::WaitPanelHide()
@@ -53,9 +54,11 @@ bool ImeSettingListenerTestImpl::WaitImeChange()
 bool ImeSettingListenerTestImpl::WaitTargetImeChange(const std::string &bundleName)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    // 3 means 3 seconds.
-    imeSettingListenerCv_.wait_for(
-        lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME), [&bundleName]() { return bundleName == property_.name; });
+    do {
+        // 3 means 3 seconds.
+        imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME),
+            [&bundleName]() { return bundleName == property_.name; });
+    } while (bundleName != property_.name);
     return isImeChange_ && bundleName == property_.name;
 }
 

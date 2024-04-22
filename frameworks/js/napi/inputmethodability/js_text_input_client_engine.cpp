@@ -263,8 +263,9 @@ napi_value JsTextInputClientEngine::SendPrivateCommand(napi_env env, napi_callba
         napi_status status = JsUtils::GetValue(env, argv[0], ctxt->privateCommand);
         CHECK_RETURN(status == napi_ok, "GetValue privateCommand error", status);
         if (!TextConfig::IsPrivateCommandValid(ctxt->privateCommand)) {
-            PARAM_CHECK_RETURN(
-                env, false, "privateCommand size limit 32KB, count limit 5.", TYPE_NONE, napi_generic_failure);
+            JsUtils::ThrowException(
+                env, IMFErrorCode::EXCEPTION_PARAMCHECK, "privateCommand size limit 32KB, count limit 5.", TYPE_NONE);
+            return napi_generic_failure;
         }
         ctxt->info = { std::chrono::system_clock::now(), ctxt->privateCommand };
         privateCommandQueue_.Push(ctxt->info);
