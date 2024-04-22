@@ -151,9 +151,13 @@ private:
     EnterKeyType enterKeyType = EnterKeyType::UNSPECIFIED;
 };
 
-struct SelectionRange {
+struct Range {
     int32_t start = INVALID_VALUE;
     int32_t end = INVALID_VALUE;
+    bool operator==(const Range &range) const
+    {
+        return start == range.start && end == range.end;
+    }
 };
 
 struct TextSelection {
@@ -179,7 +183,7 @@ public:
 struct TextConfig {
     InputAttribute inputAttribute = {};
     CursorInfo cursorInfo = {};
-    SelectionRange range = {};
+    Range range = {};
     uint32_t windowId = INVALID_WINDOW_ID;
     double positionY = 0;
     double height = 0;
@@ -229,7 +233,18 @@ struct TextConfig {
             return false;
         }
         auto it = privateCommand.find(SYSTEM_CMD_KEY);
-        return it != privateCommand.end();
+        if (it != privateCommand.end()) {
+            // if privateCommand has the key system_cmd and value is 1, it's a system privateCommand.
+            if (it->second.index() == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
+                auto numberValue = std::get_if<int32_t>(&it->second);
+                if (numberValue == nullptr) {
+                    IMSA_HILOGE("get stringValue failed.");
+                    return false;
+                }
+                return *numberValue == 1;
+            }
+        }
+        return false;
     }
 };
 

@@ -36,7 +36,7 @@ SystemCmdChannelStub::~SystemCmdChannelStub()
 int32_t SystemCmdChannelStub::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    return ImeSystemChannel::GetInstance()->ReceivePrivateCommand(privateCommand);
+    return ImeSystemCmdChannel::GetInstance()->ReceivePrivateCommand(privateCommand);
 }
 
 int32_t SystemCmdChannelStub::SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply)
@@ -49,25 +49,25 @@ int32_t SystemCmdChannelStub::SendPrivateCommandOnRemote(MessageParcel &data, Me
     return reply.WriteInt32(SendPrivateCommand(privateCommand)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t SystemCmdChannelStub::NotifyIsShowSysPanel(bool isShow)
+int32_t SystemCmdChannelStub::ShowSysPanel(bool shouldSysPanelShow)
 {
-    return ImeSystemChannel::GetInstance()->NotifyIsShowSysPanel(isShow);
+    return ImeSystemCmdChannel::GetInstance()->ShowSysPanel(shouldSysPanelShow);
 }
 
-int32_t SystemCmdChannelStub::NotifyIsShowSysPanelOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t SystemCmdChannelStub::ShowSysPanelOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    bool isShow = false;
-    if (!ITypesUtil::Unmarshal(data, isShow)) {
+    bool shouldSysPanelShow = false;
+    if (!ITypesUtil::Unmarshal(data, shouldSysPanelShow)) {
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return reply.WriteInt32(NotifyIsShowSysPanel(isShow)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    return reply.WriteInt32(ShowSysPanel(shouldSysPanelShow)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t SystemCmdChannelStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGD("SystemCmdChannelStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
+    IMSA_HILOGI("SystemCmdChannelStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     auto descriptorToken = data.ReadInterfaceToken();
     if (descriptorToken != ISystemCmdChannel::GetDescriptor()) {

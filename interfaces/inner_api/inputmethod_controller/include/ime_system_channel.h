@@ -34,22 +34,22 @@ public:
     {
         return ErrorCode::NO_ERROR;
     }
-    virtual void OnNotifyIsShowSysPanel(bool isShow)
+    virtual void NotifyIsShowSysPanel(bool shouldSysPanelShow)
     {
     }
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
-class ImeSystemChannel : public RefBase, public PrivateCommandInterface {
+class ImeSystemCmdChannel : public RefBase, public PrivateCommandInterface {
 public:
     /**
-     * @brief Get the instance of ImeSystemChannel.
+     * @brief Get the instance of ImeSystemCmdChannel.
      *
-     * This function is used to get the instance of ImeSystemChannel.
+     * This function is used to get the instance of ImeSystemCmdChannel.
      *
-     * @return The instance of ImeSystemChannel.
+     * @return The instance of ImeSystemCmdChannel.
      * @since 12
      */
-    IMF_API static sptr<ImeSystemChannel> GetInstance();
+    IMF_API static sptr<ImeSystemCmdChannel> GetInstance();
 
     /**
      * @brief Connect system channel, set listener and bind IMSA.
@@ -77,23 +77,25 @@ public:
     int32_t ReceivePrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
-    int32_t NotifyIsShowSysPanel(bool isShow);
+    int32_t ShowSysPanel(bool shouldSysPanelShow);
 
     void OnConnectCmdReady(const sptr<IRemoteObject> &agentObject);
 
+    int32_t RunConnectSystemCmd();
+
 private:
-    ImeSystemChannel();
-    ~ImeSystemChannel();
+    ImeSystemCmdChannel();
+    ~ImeSystemCmdChannel();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
 
     void SetSystemCmdListener(const sptr<OnSystemCmdListener> &listener);
-    std::shared_ptr<IInputMethodAgent> GetSystemCmdAgent();
+    sptr<IInputMethodAgent> GetSystemCmdAgent();
     sptr<OnSystemCmdListener> GetSystemCmdListener();
     void ClearSystemCmdAgent();
 
     static std::mutex instanceLock_;
-    static sptr<ImeSystemChannel> instance_;
+    static sptr<ImeSystemCmdChannel> instance_;
 
     std::mutex abilityLock_;
     sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
@@ -103,8 +105,7 @@ private:
     sptr<OnSystemCmdListener> systemCmdListener_ = nullptr;
 
     std::mutex systemAgentLock_;
-    sptr<IRemoteObject> systemAgentObject_ = nullptr;
-    std::shared_ptr<IInputMethodAgent> systemAgent_ = nullptr;
+    sptr<IInputMethodAgent> systemAgent_ = nullptr;
     std::atomic_bool isSystemCmdConnect_{ false };
 };
 } // namespace MiscServices

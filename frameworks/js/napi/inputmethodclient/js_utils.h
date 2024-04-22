@@ -96,7 +96,7 @@ class JsUtils {
 public:
     static void ThrowException(napi_env env, int32_t err, const std::string &msg, TypeCode type);
 
-    static napi_value ToError(napi_env env, int32_t code);
+    static napi_value ToError(napi_env env, int32_t code, const std::string &msg);
 
     static int32_t Convert(int32_t code);
 

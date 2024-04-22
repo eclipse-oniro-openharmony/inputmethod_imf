@@ -25,25 +25,24 @@
 
 namespace OHOS {
 namespace MiscServices {
-std::mutex ImeSystemChannel::instanceLock_;
-sptr<ImeSystemChannel> ImeSystemChannel::instance_;
-ImeSystemChannel::ImeSystemChannel()
+std::mutex ImeSystemCmdChannel::instanceLock_;
+sptr<ImeSystemCmdChannel> ImeSystemCmdChannel::instance_;
+ImeSystemCmdChannel::ImeSystemCmdChannel()
 {
-    IMSA_HILOGD("IMC structure");
 }
 
-ImeSystemChannel::~ImeSystemChannel()
+ImeSystemCmdChannel::~ImeSystemCmdChannel()
 {
 }
-sptr<ImeSystemChannel> ImeSystemChannel::GetInstance()
+sptr<ImeSystemCmdChannel> ImeSystemCmdChannel::GetInstance()
 {
     if (instance_ == nullptr) {
         std::lock_guard<std::mutex> autoLock(instanceLock_);
         if (instance_ == nullptr) {
             IMSA_HILOGD("System IMC instance_ is nullptr");
-            instance_ = new (std::nothrow) ImeSystemChannel();
+            instance_ = new (std::nothrow) ImeSystemCmdChannel();
             if (instance_ == nullptr) {
-                IMSA_HILOGE("failed to create ImeSystemChannel");
+                IMSA_HILOGE("failed to create ImeSystemCmdChannel");
                 return instance_;
             }
         }
@@ -51,7 +50,7 @@ sptr<ImeSystemChannel> ImeSystemChannel::GetInstance()
     return instance_;
 }
 
-sptr<IInputMethodSystemAbility> ImeSystemChannel::GetSystemAbilityProxy()
+sptr<IInputMethodSystemAbility> ImeSystemCmdChannel::GetSystemAbilityProxy()
 {
     std::lock_guard<std::mutex> lock(abilityLock_);
     if (abilityManager_ != nullptr) {
@@ -85,7 +84,7 @@ sptr<IInputMethodSystemAbility> ImeSystemChannel::GetSystemAbilityProxy()
     return abilityManager_;
 }
 
-void ImeSystemChannel::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
+void ImeSystemCmdChannel::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
 {
     IMSA_HILOGI("input method service death");
     {
@@ -95,7 +94,7 @@ void ImeSystemChannel::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
     ClearSystemCmdAgent();
 }
 
-int32_t ImeSystemChannel::ConnectSystemCmd(const sptr<OnSystemCmdListener> &listener)
+int32_t ImeSystemCmdChannel::ConnectSystemCmd(const sptr<OnSystemCmdListener> &listener)
 {
     IMSA_HILOGD("in");
     SetSystemCmdListener(listener);
@@ -103,6 +102,11 @@ int32_t ImeSystemChannel::ConnectSystemCmd(const sptr<OnSystemCmdListener> &list
         IMSA_HILOGD("in connected state");
         return ErrorCode::NO_ERROR;
     }
+    return RunConnectSystemCmd();
+}
+
+int32_t ImeSystemCmdChannel::RunConnectSystemCmd()
+{
     auto channel = new (std::nothrow) SystemCmdChannelStub();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr");
@@ -111,20 +115,21 @@ int32_t ImeSystemChannel::ConnectSystemCmd(const sptr<OnSystemCmdListener> &list
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
+        delete channel;
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     sptr<IRemoteObject> agent = nullptr;
-    int32_t ret =  proxy->ConnectSystemCmd(channel, agent);
+    int32_t ret = proxy->ConnectSystemCmd(channel, agent);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to start input, ret:%{public}d", ret);
+        IMSA_HILOGE("failed to connect system cmd, ret:%{public}d", ret);
         return ret;
     }
     OnConnectCmdReady(agent);
-    IMSA_HILOGD("connect imf successfully");
+    IMSA_HILOGI("connect system cmd success");
     return ErrorCode::NO_ERROR;
 }
 
-void ImeSystemChannel::OnConnectCmdReady(const sptr<IRemoteObject> &agentObject)
+void ImeSystemCmdChannel::OnConnectCmdReady(const sptr<IRemoteObject> &agentObject)
 {
     if (agentObject == nullptr) {
         IMSA_HILOGE("agentObject is nullptr");
@@ -132,44 +137,42 @@ void ImeSystemChannel::OnConnectCmdReady(const sptr<IRemoteObject> &agentObject)
     }
     isSystemCmdConnect_.store(true);
     std::lock_guard<std::mutex> autoLock(systemAgentLock_);
-    if (systemAgent_ != nullptr && systemAgentObject_.GetRefPtr() == agentObject.GetRefPtr()) {
+    if (systemAgent_ != nullptr) {
         IMSA_HILOGD("agent has already been set");
         return;
     }
-    systemAgent_ = std::make_shared<InputMethodAgentProxy>(agentObject);
-    systemAgentObject_ = agentObject;
+    systemAgent_ = new (std::nothrow) InputMethodAgentProxy(agentObject);
 }
 
-std::shared_ptr<IInputMethodAgent> ImeSystemChannel::GetSystemCmdAgent()
+sptr<IInputMethodAgent> ImeSystemCmdChannel::GetSystemCmdAgent()
 {
     IMSA_HILOGD("GetSystemCmdAgent");
     std::lock_guard<std::mutex> autoLock(systemAgentLock_);
     return systemAgent_;
 }
 
-void ImeSystemChannel::SetSystemCmdListener(const sptr<OnSystemCmdListener> &listener)
+void ImeSystemCmdChannel::SetSystemCmdListener(const sptr<OnSystemCmdListener> &listener)
 {
     std::lock_guard<std::mutex> lock(systemCmdListenerLock_);
     systemCmdListener_ = listener;
 }
 
-sptr<OnSystemCmdListener> ImeSystemChannel::GetSystemCmdListener()
+sptr<OnSystemCmdListener> ImeSystemCmdChannel::GetSystemCmdListener()
 {
     std::lock_guard<std::mutex> lock(systemCmdListenerLock_);
     return systemCmdListener_;
 }
 
-void ImeSystemChannel::ClearSystemCmdAgent()
+void ImeSystemCmdChannel::ClearSystemCmdAgent()
 {
     {
         std::lock_guard<std::mutex> autoLock(systemAgentLock_);
         systemAgent_ = nullptr;
-        systemAgentObject_ = nullptr;
     }
     isSystemCmdConnect_.store(false);
 }
 
-int32_t ImeSystemChannel::ReceivePrivateCommand(
+int32_t ImeSystemCmdChannel::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     auto cmdlistener = GetSystemCmdListener();
@@ -185,11 +188,18 @@ int32_t ImeSystemChannel::ReceivePrivateCommand(
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeSystemChannel::SendPrivateCommand(
+int32_t ImeSystemCmdChannel::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     IMSA_HILOGD("in");
-    if (isSystemCmdConnect_.load() && TextConfig::IsSystemPrivateCommand(privateCommand)) {
+    if (TextConfig::IsSystemPrivateCommand(privateCommand)) {
+        if (!isSystemCmdConnect_.load()) {
+            auto ret = RunConnectSystemCmd();
+            if (ret != ErrorCode::NO_ERROR) {
+                IMSA_HILOGE("failed to connect system cmd, ret:%{public}d", ret);
+                return ret;
+            }
+        }
         if (!TextConfig::IsPrivateCommandValid(privateCommand)) {
             IMSA_HILOGE("invalid private command size.");
             return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE;
@@ -201,17 +211,17 @@ int32_t ImeSystemChannel::SendPrivateCommand(
         }
         return agent->SendPrivateCommand(privateCommand);
     }
-    return ErrorCode::ERROR_BAD_PARAMETERS;
+    return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND;
 }
 
-int32_t ImeSystemChannel::NotifyIsShowSysPanel(bool isShow)
+int32_t ImeSystemCmdChannel::ShowSysPanel(bool shouldSysPanelShow)
 {
     auto listener = GetSystemCmdListener();
     if (listener == nullptr) {
         IMSA_HILOGE("listener is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    listener->OnNotifyIsShowSysPanel(isShow);
+    listener->NotifyIsShowSysPanel(shouldSysPanelShow);
     return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices

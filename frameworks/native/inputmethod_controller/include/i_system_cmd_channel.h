@@ -31,14 +31,14 @@ class ISystemCmdChannel : public IRemoteBroker {
 public:
     enum {
         SEND_PRIVATE_COMMAND = FIRST_CALL_TRANSACTION,
-        NOTIFY_IS_SHOW_SYS_PANEL,
+        SHOULD_SYSTEM_PANEL_SHOW,
         SYSTEM_CMD_LAST,
     };
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.ISystemCmdChannel");
 
     virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
-    virtual int32_t NotifyIsShowSysPanel(bool isShow) = 0;
+    virtual int32_t ShowSysPanel(bool shouldSysPanelShow) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

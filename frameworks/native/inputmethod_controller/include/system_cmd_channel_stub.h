@@ -36,15 +36,15 @@ public:
     SystemCmdChannelStub();
     ~SystemCmdChannelStub();
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
-    int32_t NotifyIsShowSysPanel(bool isShow) override;
+    int32_t ShowSysPanel(bool shouldSysPanelShow) override;
 
 private:
-    int32_t NotifyIsShowSysPanelOnRemote(MessageParcel &data, MessageParcel &reply);
+    int32_t ShowSysPanelOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t SendPrivateCommandOnRemote(MessageParcel &data, MessageParcel &reply);
     using RequestHandler = int32_t (SystemCmdChannelStub::*)(MessageParcel &, MessageParcel &);
     static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
         { static_cast<uint32_t>(SEND_PRIVATE_COMMAND), &SystemCmdChannelStub::SendPrivateCommandOnRemote },
-        { static_cast<uint32_t>(NOTIFY_IS_SHOW_SYS_PANEL), &SystemCmdChannelStub::NotifyIsShowSysPanelOnRemote },
+        { static_cast<uint32_t>(SHOULD_SYSTEM_PANEL_SHOW), &SystemCmdChannelStub::ShowSysPanelOnRemote },
     };
 };
 } // namespace MiscServices

@@ -375,7 +375,7 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
     // add for mod inputPattern when panel show
     auto panel = GetSoftKeyboardPanel();
     if (panel != nullptr) {
-        NotifyIsShowSysPanel(panel, panel->GetPanelFlag());
+        ShowSysPanel(panel, panel->GetPanelFlag());
     }
     kdListener_->OnEditorAttributeChange(attribute);
 }
@@ -749,16 +749,15 @@ int32_t InputMethodAbility::GetSecurityMode(int32_t &security)
 void InputMethodAbility::ClearSystemCmdChannel()
 {
     std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
-    if (systemCmdObject_ == nullptr || systemCmdChannelProxy_ == nullptr) {
-        IMSA_HILOGD("systemCmdObject_ already nullptr");
+    if (systemCmdChannelProxy_ == nullptr) {
+        IMSA_HILOGD("systemCmdChannelProxy_ already nullptr");
         return;
     }
-    systemCmdObject_ = nullptr;
     systemCmdChannelProxy_ = nullptr;
     IMSA_HILOGD("end");
 }
 
-std::shared_ptr<SystemCmdChannelProxy> InputMethodAbility::GetSystemCmdChannelProxy()
+sptr<SystemCmdChannelProxy> InputMethodAbility::GetSystemCmdChannelProxy()
 {
     std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
     return systemCmdChannelProxy_;
@@ -766,18 +765,17 @@ std::shared_ptr<SystemCmdChannelProxy> InputMethodAbility::GetSystemCmdChannelPr
 
 int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
 {
-    IMSA_HILOGD("run in SetSystemCmdChannel");
+    IMSA_HILOGD("run in");
     std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
-    auto channelProxy = std::make_shared<SystemCmdChannelProxy>(channel);
-    if (channelProxy == nullptr) {
+    systemCmdChannelProxy_ = new (std::nothrow) SystemCmdChannelProxy(channel);
+    if (systemCmdChannelProxy_ == nullptr) {
         IMSA_HILOGE("failed to new data channel proxy");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    systemCmdObject_ = channel;
-    systemCmdChannelProxy_ = channelProxy;
     systemAgentStub_ = new (std::nothrow) InputMethodAgentStub();
     if (systemAgentStub_ == nullptr) {
         IMSA_HILOGE("failed to create agent");
+        systemCmdChannelProxy_ = nullptr;
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     agent = systemAgentStub_->AsObject();
@@ -866,9 +864,9 @@ int32_t InputMethodAbility::ShowPanel(
             IMSA_HILOGE("Set Keyboard failed, ret = %{public}d", ret);
         }
     }
-    NotifyIsShowSysPanel(inputMethodPanel, flag);
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
+        ShowSysPanel(inputMethodPanel, flag);
         NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, true, trigger });
     }
     return ret;
@@ -887,22 +885,19 @@ int32_t InputMethodAbility::HidePanel(
     return ret;
 }
 
-int32_t InputMethodAbility::NotifyIsShowSysPanel(
+int32_t InputMethodAbility::ShowSysPanel(
     const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag)
 {
     if (inputMethodPanel->GetPanelType() != SOFT_KEYBOARD) {
         return ErrorCode::NO_ERROR;
     }
-    bool isShow = false;
-    if (!GetInputAttribute().GetSecurityFlag()) {
-        isShow = true;
-    }
+    bool shouldSysPanelShow = !GetInputAttribute().GetSecurityFlag();
     auto systemChannel = GetSystemCmdChannelProxy();
     if (systemChannel == nullptr) {
         IMSA_HILOGE("channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return systemChannel->NotifyIsShowSysPanel(isShow);
+    return systemChannel->ShowSysPanel(shouldSysPanelShow);
 }
 
 void InputMethodAbility::SetInputAttribute(const InputAttribute &inputAttribute)
@@ -1105,7 +1100,7 @@ int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::str
         auto systemChannel = GetSystemCmdChannelProxy();
         if (systemChannel == nullptr) {
             IMSA_HILOGE("channel is nullptr");
-            return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+            return ErrorCode::ERROR_SYSTEM_CMD_CHANNEL_ERROR;
         }
         return systemChannel->SendPrivateCommand(privateCommand);
     } else {
@@ -1131,6 +1126,26 @@ int32_t InputMethodAbility::ReceivePrivateCommand(
     }
     imeListener_->ReceivePrivateCommand(privateCommand);
     return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range &range)
+{
+    auto dataChannel = GetInputDataChannelProxy();
+    if (dataChannel == nullptr) {
+        IMSA_HILOGE("dataChannel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return dataChannel->SetPreviewText(text, range);
+}
+
+int32_t InputMethodAbility::FinishTextPreview()
+{
+    auto dataChannel = GetInputDataChannelProxy();
+    if (dataChannel == nullptr) {
+        IMSA_HILOGE("dataChannel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return dataChannel->FinishTextPreview();
 }
 
 int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)

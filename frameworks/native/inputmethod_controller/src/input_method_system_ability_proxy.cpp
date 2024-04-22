@@ -48,8 +48,7 @@ int32_t InputMethodSystemAbilityProxy::ConnectSystemCmd(
         static_cast<uint32_t>(InputMethodInterfaceCode::CONNECT_SYSTEM_CMD),
         [channel](MessageParcel &data) { return data.WriteRemoteObject(channel->AsObject()); },
         [&agent](MessageParcel &reply) {
-            agent = reply.ReadRemoteObject();
-            return true;
+            return ITypesUtil::Unmarshal(reply, agent);
         });
 }
 

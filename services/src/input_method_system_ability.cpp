@@ -1214,7 +1214,7 @@ bool InputMethodSystemAbility::IsStartInputTypePermitted()
     if (identityChecker_->IsBundleNameValid(tokenId, defaultIme->prop.name)) {
         return true;
     }
-    if (identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
+    if (identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return true;
     }
     return identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId) && userSession_->IsBoundToClient();
@@ -1222,8 +1222,9 @@ bool InputMethodSystemAbility::IsStartInputTypePermitted()
 
 int32_t InputMethodSystemAbility::ConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent)
 {
-    if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())) {
-        IMSA_HILOGE("not system app");
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+        IMSA_HILOGE("not have PERMISSION_CONNECT_IME_ABILITY");
         return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
     }
     return userSession_->OnConnectSystemCmd(channel, agent);

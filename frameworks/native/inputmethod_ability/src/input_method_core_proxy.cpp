@@ -58,8 +58,7 @@ int32_t InputMethodCoreProxy::OnConnectSystemCmd(const sptr<ISystemCmdChannel> &
     return SendRequest(ON_CONNECT_SYSTEM_CMD, [channel](MessageParcel& data) {
         return data.WriteRemoteObject(channel->AsObject());
     }, [&agent](MessageParcel &reply) {
-        agent = reply.ReadRemoteObject();
-        return true;
+        return ITypesUtil::Unmarshal(reply, agent);
     });
 }
 

@@ -93,6 +93,8 @@ public:
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsDefaultIme();
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
+    int32_t SetPreviewText(const std::string &text, const Range &range);
+    int32_t FinishTextPreview();
 
 private:
     std::thread workThreadHandler;
@@ -107,8 +109,7 @@ private:
     std::shared_ptr<InputDataChannelProxy> dataChannelProxy_ = nullptr;
 
     std::mutex systemCmdChannelLock_;
-    sptr<IRemoteObject> systemCmdObject_ = nullptr;
-    std::shared_ptr<SystemCmdChannelProxy> systemCmdChannelProxy_ = nullptr;
+    sptr<SystemCmdChannelProxy> systemCmdChannelProxy_ = nullptr;
 
     std::shared_ptr<InputMethodEngineListener> imeListener_;
     std::shared_ptr<KeyboardListener> kdListener_;
@@ -121,7 +122,7 @@ private:
     sptr<IInputMethodSystemAbility> GetImsaProxy();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
 
-    std::shared_ptr<SystemCmdChannelProxy> GetSystemCmdProxy();
+    sptr<SystemCmdChannelProxy> GetSystemCmdChannelProxy();
     void ClearSystemCmdChannel();
 
     void SetInputDataChannel(const sptr<IRemoteObject> &object);
@@ -148,13 +149,11 @@ private:
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
-    int32_t NotifyIsShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag);
+    int32_t ShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag);
     void SetInputAttribute(const InputAttribute &inputAttribute);
     InputAttribute GetInputAttribute();
     void ClearInputAttribute();
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
-
-    std::shared_ptr<SystemCmdChannelProxy> GetSystemCmdChannelProxy();
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isBound_{ false };

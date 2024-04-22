@@ -15,7 +15,7 @@
   global:
     *ImeEventMonitorManager*;
     *InputMethodController*;
-    *ImeSystemChannel*;
+    *ImeSystemCmdChannel*;
   local:
     *;
 };
