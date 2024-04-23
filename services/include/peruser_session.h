@@ -36,7 +36,6 @@
 #include "ime_cfg_manager.h"
 #include "input_attribute.h"
 #include "input_client_info.h"
-#include "input_control_channel_stub.h"
 #include "input_death_recipient.h"
 #include "input_method_info.h"
 #include "input_method_property.h"

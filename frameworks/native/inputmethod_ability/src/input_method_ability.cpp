@@ -20,8 +20,8 @@
 #include <utility>
 
 #include "global.h"
-#include "input_method_agent_proxy.h"
-#include "input_method_core_proxy.h"
+#include "input_method_agent_stub.h"
+#include "input_method_core_stub.h"
 #include "input_method_utils.h"
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
@@ -143,13 +143,13 @@ int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
 void InputMethodAbility::Initialize()
 {
     IMSA_HILOGD("IMA");
-    coreStub_ = new (std::nothrow) InputMethodCoreStub();
-    if (coreStub_ == nullptr) {
+    auto coreStub = new (std::nothrow) InputMethodCoreStub();
+    if (coreStub == nullptr) {
         IMSA_HILOGE("failed to create core");
         return;
     }
-    agentStub_ = new (std::nothrow) InputMethodAgentStub();
-    if (agentStub_ == nullptr) {
+    auto agentStub = new (std::nothrow) InputMethodAgentStub();
+    if (agentStub == nullptr) {
         IMSA_HILOGE("failed to create agent");
         return;
     }
@@ -158,8 +158,10 @@ void InputMethodAbility::Initialize()
         IMSA_HILOGE("failed to create message handler");
         return;
     }
-    coreStub_->SetMessageHandler(msgHandler_);
-    agentStub_->SetMessageHandler(msgHandler_);
+    coreStub->SetMessageHandler(msgHandler_);
+    agentStub->SetMessageHandler(msgHandler_);
+    agentStub_ = agentStub;
+    coreStub_ = coreStub;
     workThreadHandler = std::thread([this] { WorkThread(); });
 }
 

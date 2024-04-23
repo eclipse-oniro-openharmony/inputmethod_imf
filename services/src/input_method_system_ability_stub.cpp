@@ -18,13 +18,8 @@
 #include <memory>
 
 #include "element_name.h"
-#include "input_client_proxy.h"
-#include "input_data_channel_proxy.h"
-#include "input_method_agent_proxy.h"
-#include "input_method_core_proxy.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
-#include "os_account_manager.h"
 
 namespace OHOS {
 namespace MiscServices {

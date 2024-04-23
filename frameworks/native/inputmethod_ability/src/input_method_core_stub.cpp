@@ -22,6 +22,7 @@
 #include "input_control_channel_proxy.h"
 #include "input_method_ability.h"
 #include "ipc_skeleton.h"
+#include "itypes_util.h"
 #include "message_handler.h"
 #include "message_parcel.h"
 

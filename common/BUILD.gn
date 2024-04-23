@@ -43,6 +43,7 @@ ohos_shared_library("inputmethod_common") {
     "src/inputmethod_dump.cpp",
     "src/inputmethod_sysevent.cpp",
     "src/inputmethod_trace.cpp",
+    "src/input_death_recipient.cpp",
   ]
 
   configs = [ ":inputmethod_common_native_config" ]

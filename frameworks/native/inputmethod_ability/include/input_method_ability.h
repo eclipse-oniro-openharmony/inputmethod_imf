@@ -25,14 +25,12 @@
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_core.h"
+#include "i_input_method_system_ability.h"
 #include "input_attribute.h"
 #include "input_control_channel_proxy.h"
 #include "input_data_channel_proxy.h"
-#include "input_method_agent_stub.h"
-#include "input_method_core_stub.h"
 #include "input_method_engine_listener.h"
 #include "input_method_panel.h"
-#include "input_method_system_ability_proxy.h"
 #include "iremote_object.h"
 #include "keyboard_listener.h"
 #include "keyevent_consumer_proxy.h"
@@ -144,8 +142,8 @@ private:
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isBound_{ false };
-    sptr<InputMethodCoreStub> coreStub_{ nullptr };
-    sptr<InputMethodAgentStub> agentStub_{ nullptr };
+    sptr<IInputMethodCore> coreStub_{ nullptr };
+    sptr<IInputMethodAgent> agentStub_{ nullptr };
     std::mutex imeCheckMutex_;
     bool isCurrentIme_ = false;
 
