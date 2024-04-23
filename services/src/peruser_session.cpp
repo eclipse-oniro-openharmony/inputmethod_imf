@@ -1061,16 +1061,6 @@ bool PerUserSession::IsProxyImeStartInImeBind(ImeType bindImeType, ImeType start
     return startImeType == ImeType::PROXY_IME && bindImeType == ImeType::IME;
 }
 
-bool PerUserSession::IsBindProxyImeInImeBind(ImeType bindImeType)
-{
-    return bindImeType == ImeType::IME && IsProxyImeEnable();
-}
-
-bool PerUserSession::IsBindImeInProxyImeBind(ImeType bindImeType)
-{
-    return bindImeType == ImeType::PROXY_IME && !IsProxyImeEnable();
-}
-
 bool PerUserSession::IsImeBindChanged(ImeType bindImeType)
 {
     return (bindImeType == ImeType::IME && IsProxyImeEnable())

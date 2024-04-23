@@ -39,6 +39,11 @@ ohos_shared_library("inputmethod_extension") {
     cfi_cross_dso = true
     debug = false
   }
+  cflags_cc = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-Os",
+  ]
   include_dirs = [
     "${inputmethod_path}/frameworks/kits/extension/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",

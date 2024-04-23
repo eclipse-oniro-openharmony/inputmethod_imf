@@ -67,10 +67,11 @@ ohos_shared_library("inputmethod_client") {
     "${inputmethod_path}/services/src/message_handler.cpp",
   ]
 
-  cflags = [
+  cflags_cc = [
+    "-fvisibility=hidden",
+    "-fvisibility-inlines-hidden",
     "-fdata-sections",
     "-ffunction-sections",
-    "-fvisibility=hidden",
     "-Os",
   ]
 

@@ -45,6 +45,8 @@ namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
 using namespace AccountSA;
+using namespace AppExecFwk;
+using namespace Security::AccessToken;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;

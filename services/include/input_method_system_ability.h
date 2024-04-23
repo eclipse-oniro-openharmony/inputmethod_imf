@@ -40,9 +40,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-using AbilityType = AppExecFwk::ExtensionAbilityType;
-using namespace AppExecFwk;
-using namespace Security::AccessToken;
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 class InputMethodSystemAbility : public SystemAbility, public InputMethodSystemAbilityStub {
     DECLARE_SYSTEM_ABILITY(InputMethodSystemAbility);

@@ -19,8 +19,6 @@
 
 #include "global.h"
 #include "ime_info_inquirer.h"
-#include "input_method_system_ability.h"
-#include "input_method_system_ability_stub.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "itypes_util.h"

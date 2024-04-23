@@ -67,7 +67,11 @@ ohos_shared_library("inputmethod_ability") {
     "${inputmethod_path}/services/src/message.cpp",
     "${inputmethod_path}/services/src/message_handler.cpp",
   ]
-
+  cflags_cc = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-Os",
+  ]
   version_script = "inputmethod_ability.versionscript"
 
   configs = [ ":inputmethod_ability_native_config" ]
