@@ -328,18 +328,16 @@ void InputMethodSystemAbility::CheckInputTypeOption(InputClientInfo &inputClient
             IMSA_HILOGI("SecurityFlag, input type is not started.");
             return;
         }
-        if (InputTypeManager::GetInstance().IsStarted() && !InputTypeManager::GetInstance().IsSecurityImeStarted()) {
-            StartInputType(InputType::NONE);
+        if (!inputClientInfo.isNotifyInputStart) {
+            IMSA_HILOGI("SecurityFlag, same textinput.");
+            return;
+        }
+        if (!InputTypeManager::GetInstance().IsSecurityImeStarted()) {
             StartInputType(InputType::SECURITY_INPUT);
             IMSA_HILOGI("SecurityFlag, input type is started, but not security.");
             return;
         }
         IMSA_HILOGI("SecurityFlag others.");
-        return;
-    }
-    if (!inputClientInfo.isNotifyInputStart && InputTypeManager::GetInstance().IsSecurityImeStarted()) {
-        IMSA_HILOGI("NormalFlag same textinput, security Ime started.");
-        StartInputType(InputType::NONE);
         return;
     }
     if (inputClientInfo.isNotifyInputStart && InputTypeManager::GetInstance().IsStarted()) {
