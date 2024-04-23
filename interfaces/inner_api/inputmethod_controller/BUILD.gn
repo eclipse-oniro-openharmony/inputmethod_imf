@@ -21,7 +21,6 @@ config("inputmethod_client_native_config") {
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
-    "${inputmethod_path}/services/dfx/include",
     "${inputmethod_path}/services/include",
   ]
 }
@@ -37,7 +36,6 @@ config("inputmethod_client_native_public_config") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
     "${inputmethod_path}/services/include",
-    "${inputmethod_path}/services/dfx/include",
   ]
 }
 
@@ -60,11 +58,8 @@ ohos_shared_library("inputmethod_client") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_controller.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_system_ability_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/itypes_util.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_stub.cpp",
-    "${inputmethod_path}/services/src/message.cpp",
-    "${inputmethod_path}/services/src/message_handler.cpp",
   ]
 
   cflags_cc = [
@@ -79,9 +74,9 @@ ohos_shared_library("inputmethod_client") {
 
   innerapi_tags = [ "platformsdk" ]
 
-  deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
+  deps = [ "${inputmethod_path}/common:inputmethod_common" ]
 
-  public_deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
+  public_deps = [ "${inputmethod_path}/common:inputmethod_common" ]
 
   external_deps = [
     "ability_base:want",
@@ -121,16 +116,13 @@ ohos_static_library("inputmethod_client_static") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_controller.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_system_ability_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_utils.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/itypes_util.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_stub.cpp",
-    "${inputmethod_path}/services/src/message.cpp",
-    "${inputmethod_path}/services/src/message_handler.cpp",
   ]
 
   public_configs = [ ":inputmethod_client_native_public_config" ]
 
-  public_deps = [ "${inputmethod_path}/services/dfx:inputmethod_dfx_static" ]
+  public_deps = [ "${inputmethod_path}/common:inputmethod_common" ]
 
   external_deps = [
     "ability_base:want",

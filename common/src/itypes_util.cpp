@@ -16,8 +16,6 @@
 #include "itypes_util.h"
 
 #include "global.h"
-#include "input_client_proxy.h"
-#include "input_data_channel_proxy.h"
 #include "iremote_object.h"
 
 namespace OHOS {
