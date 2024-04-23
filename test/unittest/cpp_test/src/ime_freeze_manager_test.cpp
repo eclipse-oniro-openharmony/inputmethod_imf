@@ -76,6 +76,27 @@ public:
             CheckAllState(false, true);
         }
     }
+    static void TestRequestShowInput(bool isSuccess)
+    {
+        IMSA_HILOGI("run in, isSuccess: %{public}d", isSuccess);
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            bool ret = freezeManager_->IsIpcNeeded(RequestType::REQUEST_SHOW);
+            if (!ret) {
+                return;
+            }
+            freezeManager_->BeforeIpc(RequestType::REQUEST_SHOW);
+            CheckFreezable(false);
+        }
+        usleep(IPC_COST_TIME);
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            freezeManager_->AfterIpc(RequestType::REQUEST_SHOW, isSuccess);
+            if (isSuccess) {
+                CheckAllState(true, false);
+            }
+        }
+    }
     static void TestRequestHideInput(bool isSuccess)
     {
         IMSA_HILOGI("run in, isSuccess: %{public}d", isSuccess);
@@ -248,6 +269,19 @@ HWTEST_F(ImeFreezeManagerTest, MultiThread_FullTest_001, TestSize.Level0)
     EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
     SET_THREAD_NUM(5);
     GTEST_RUN_TASK(FullTestTask);
+}
+
+/**
+ * @tc.name: SingleThread_RequestShow_001
+ * @tc.desc: test freeze manager
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImeFreezeManagerTest, SingleThread_RequestShow_001, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_RequestShow_001");
+    EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
+    ClearState();
+    TestRequestShowInput(true);
 }
 } // namespace MiscServices
 } // namespace OHOS

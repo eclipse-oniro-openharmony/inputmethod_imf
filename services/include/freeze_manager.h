@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-enum class RequestType : int32_t { NORMAL = 0, START_INPUT, STOP_INPUT, REQUEST_HIDE };
+enum class RequestType : int32_t { NORMAL = 0, START_INPUT, STOP_INPUT, REQUEST_SHOW, REQUEST_HIDE };
 class FreezeManager {
 public:
     explicit FreezeManager(pid_t pid) : pid_(pid)
