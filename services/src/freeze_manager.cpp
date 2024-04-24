@@ -34,7 +34,7 @@ void FreezeManager::BeforeIpc(RequestType type)
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (type == RequestType::START_INPUT) {
+        if (type == RequestType::START_INPUT || type == RequestType::REQUEST_SHOW) {
             isImeInUse_ = true;
         }
         if (!isFrozen_) {
@@ -51,7 +51,7 @@ void FreezeManager::AfterIpc(RequestType type, bool isSuccess)
     bool shouldFreeze = false;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (type == RequestType::START_INPUT) {
+        if (type == RequestType::START_INPUT || type == RequestType::REQUEST_SHOW) {
             isImeInUse_ = isSuccess;
         }
         if (type == RequestType::REQUEST_HIDE && isImeInUse_) {
