@@ -146,7 +146,7 @@ private:
     int32_t GenerateClientInfo(InputClientInfo &clientInfo);
     void RegisterEnableImeObserver();
     void RegisterSecurityModeObserver();
-    void CheckSecurityMode(InputClientInfo &inputClientInfo);
+    void CheckInputTypeOption(InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(uint32_t tokenId);
     void DealSwitchRequest();
 

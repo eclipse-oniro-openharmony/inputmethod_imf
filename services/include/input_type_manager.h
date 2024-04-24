@@ -47,6 +47,7 @@ public:
     bool IsSupported(InputType type);
     bool IsInputType(const ImeIdentification &ime);
     bool IsStarted();
+    bool IsSecurityImeStarted();
     bool IsCameraImeStarted();
     void Set(bool isStarted, const ImeIdentification &currentIme = {});
     ImeIdentification GetCurrentIme();
