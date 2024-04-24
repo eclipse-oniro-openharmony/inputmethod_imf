@@ -519,7 +519,7 @@ int32_t InputMethodSystemAbility::ExitCurrentInputType()
     if (userSession_->CheckSecurityMode()) {
         return StartInputType(InputType::SECURITY_INPUT);
     }
-    return userSession_->ExitCurrentInputType();
+    return StartInputType(InputType::NONE);
 }
 
 int32_t InputMethodSystemAbility::IsDefaultIme()
