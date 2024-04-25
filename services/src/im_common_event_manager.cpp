@@ -33,7 +33,7 @@ using namespace MessageID;
 sptr<ImCommonEventManager> ImCommonEventManager::instance_;
 std::mutex ImCommonEventManager::instanceLock_;
 using namespace OHOS::EventFwk;
-constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.input_panel_status_changed";
+constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.imf.input_panel_status_changed";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_STATE = "panelState";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_RECT = "panelRect";
 ImCommonEventManager::ImCommonEventManager()

@@ -41,13 +41,12 @@ void ImeCfgManager::Init()
 
 void ImeCfgManager::ReadImeCfg()
 {
-    std::string path(IME_CFG_FILE_PATH);
-    if (!FileOperator::IsExist(path)) {
+    if (!FileOperator::IsExist(IME_CFG_FILE_PATH)) {
         IMSA_HILOGD("ime cfg file not find");
         return;
     }
     std::string cfg;
-    bool ret = FileOperator::Read(path, cfg);
+    bool ret = FileOperator::Read(IME_CFG_FILE_PATH, cfg);
     if (!ret) {
         IMSA_HILOGE("ReadJsonFile failed");
         return;
@@ -62,14 +61,7 @@ void ImeCfgManager::WriteImeCfg()
         IMSA_HILOGE("Package imeCfg failed");
         return;
     }
-    std::string path(IME_CFG_FILE_PATH);
-    if (!FileOperator::IsExist(path)) {
-        if (!FileOperator::Create(path, S_IRWXU)) {
-            IMSA_HILOGE("ime cfg dir create failed");
-            return;
-        }
-    }
-    if (!FileOperator::Write(IME_CFG_FILE_PATH, content, O_WRONLY | O_SYNC | O_TRUNC)) {
+    if (!FileOperator::Write(IME_CFG_FILE_PATH, content, O_CREAT | O_WRONLY | O_SYNC | O_TRUNC)) {
         IMSA_HILOGE("WriteJsonFile failed");
     }
 }

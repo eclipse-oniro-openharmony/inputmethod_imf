@@ -32,11 +32,11 @@ public:
     static bool Read(const std::string &path, const std::string &key, std::string &content);
     static bool Write(
         const std::string &path, const std::string &content, int32_t flags, mode_t mode = S_IRUSR | S_IWUSR);
+    static std::string GetRealPath(const char *path);
 
 private:
     static constexpr int32_t SUCCESS = 0;
     static std::string Read(const std::string &path, const std::string &key);
-    static std::string GetRealPath(const char *path);
 };
 } // namespace MiscServices
 } // namespace OHOS

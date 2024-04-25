@@ -47,7 +47,7 @@ namespace MiscServices {
 constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 200;
 constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
-constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.input_panel_status_changed";
+constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.imf.input_panel_status_changed";
 constexpr const char *COMMON_EVENT_PARAM_PANEL_STATE = "panelState";
 enum ListeningStatus : uint32_t { ON, OFF, NONE };
 class InputMethodPanelTest : public testing::Test {

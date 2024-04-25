@@ -36,7 +36,7 @@ bool SysCfgParser::ParseSystemConfig(SystemConfig &systemConfig)
 
 bool SysCfgParser::ParseInputType(std::vector<InputTypeInfo> &inputType)
 {
-    auto content = GetSysCfgContent(GET_NAME(systemConfig));
+    auto content = GetSysCfgContent(GET_NAME(supportedInputTypeList));
     if (content.empty()) {
         IMSA_HILOGE("empty content");
         return false;

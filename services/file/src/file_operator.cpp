@@ -25,12 +25,11 @@ namespace OHOS {
 namespace MiscServices {
 bool FileOperator::Create(const std::string &path, mode_t mode)
 {
-    auto fd = creat(path.c_str(), mode);
-    if (fd < 0) {
-        IMSA_HILOGE("%{public}s creat failed, errno:%{public}d", path.c_str(), errno);
+    auto ret = mkdir(path.c_str(), mode);
+    if (ret != SUCCESS) {
+        IMSA_HILOGE("%{public}s mkdir failed, errno:%{public}d", path.c_str(), errno);
         return false;
     }
-    close(fd);
     return true;
 }
 
@@ -41,11 +40,6 @@ bool FileOperator::IsExist(const std::string &path)
 
 bool FileOperator::Read(const std::string &path, std::string &content)
 {
-    auto realPath = GetRealPath(path.c_str());
-    if (realPath.empty()) {
-        IMSA_HILOGE("not valid path:%{public}s", path.c_str());
-        return false;
-    }
     std::ifstream file(path);
     if (!file.is_open()) {
         IMSA_HILOGE("%{public}s open fail", path.c_str());
@@ -61,11 +55,6 @@ bool FileOperator::Read(const std::string &path, std::string &content)
 bool FileOperator::Write(const std::string &path, const std::string &content, int32_t flags, mode_t mode)
 {
     IMSA_HILOGD("content:%{public}s", content.c_str());
-    auto realPath = GetRealPath(path.c_str());
-    if (realPath.empty()) {
-        IMSA_HILOGE("not valid path:%{public}s", path.c_str());
-        return false;
-    }
     auto fd = open(path.c_str(), flags, mode);
     if (fd < 0) {
         IMSA_HILOGE("%{public}s open fail, errno:%{public}d", path.c_str(), errno);
@@ -136,8 +125,7 @@ std::string FileOperator::GetRealPath(const char *path)
         IMSA_HILOGE("failed to get realpath");
         return "";
     }
-    std::string cfgPath(realPath);
-    return cfgPath;
+    return std::string(realPath);
 }
 } // namespace MiscServices
 } // namespace OHOS

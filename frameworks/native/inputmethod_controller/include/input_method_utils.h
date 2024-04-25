@@ -31,6 +31,7 @@ constexpr uint32_t INVALID_WINDOW_ID = INIT_WINDOW_ID - 1;
 constexpr int32_t INVALID_VALUE = -1;
 constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32 * 1024; // 32K
 constexpr size_t MAX_PRIVATE_COMMAND_COUNT = 5;
+const constexpr char* SYSTEM_CMD_KEY = "sys_cmd";
 enum class EnterKeyType {
     UNSPECIFIED = 0,
     NONE,
@@ -191,7 +192,9 @@ struct TextConfig {
     static bool IsPrivateCommandValid(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
     {
         size_t privateCommandSize = privateCommand.size();
-        if (privateCommandSize == 0 || privateCommandSize > MAX_PRIVATE_COMMAND_COUNT) {
+        size_t maxSize = IsSystemPrivateCommand(privateCommand) ? (MAX_PRIVATE_COMMAND_COUNT + 1)
+                                                                : MAX_PRIVATE_COMMAND_COUNT;
+        if (privateCommandSize == 0 || privateCommandSize > maxSize) {
             IMSA_HILOGE("privateCommand size must more than 0 and less than 5.");
             return false;
         }
@@ -221,9 +224,31 @@ struct TextConfig {
         }
         return true;
     }
+    static bool IsSystemPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+    {
+        IMSA_HILOGD("in.");
+        size_t privateCommandSize = privateCommand.size();
+        if (privateCommandSize == 0 || privateCommandSize > MAX_PRIVATE_COMMAND_COUNT) {
+            IMSA_HILOGE("privateCommand size must more than 0 and less than 5.");
+            return false;
+        }
+        auto it = privateCommand.find(SYSTEM_CMD_KEY);
+        if (it != privateCommand.end()) {
+            // if privateCommand has the key system_cmd and value is 1, it's a system privateCommand.
+            if (it->second.index() == static_cast<size_t>(PrivateDataValueType::VALUE_TYPE_NUMBER)) {
+                auto numberValue = std::get_if<int32_t>(&it->second);
+                if (numberValue == nullptr) {
+                    IMSA_HILOGE("get stringValue failed.");
+                    return false;
+                }
+                return *numberValue == 1;
+            }
+        }
+        return false;
+    }
 };
 
-enum class InputType : int32_t { NONE = -1, CAMERA_INPUT = 0, SECURITY_INPUT, END };
+enum class InputType : int32_t { NONE = -1, CAMERA_INPUT = 0, SECURITY_INPUT, VOICE_INPUT, END };
 
 enum class SwitchTrigger : uint32_t { CURRENT_IME = 0, SYSTEM_APP, IMSA };
 } // namespace MiscServices

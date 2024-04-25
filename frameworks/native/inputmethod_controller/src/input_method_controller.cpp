@@ -22,6 +22,7 @@
 #include "global.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
+#include "system_cmd_channel_stub.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
@@ -1019,7 +1020,7 @@ int32_t InputMethodController::InsertText(const std::u16string &text)
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     {
         InputMethodSyncTrace aceTracer("ACE_InsertText");
-        IMSA_HILOGI("ACE InsertText");
+        IMSA_HILOGD("ACE InsertText");
         listener->InsertText(text);
     }
     PrintLogIfAceTimeout(start);

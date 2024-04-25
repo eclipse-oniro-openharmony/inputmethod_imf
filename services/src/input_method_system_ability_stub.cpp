@@ -19,6 +19,7 @@
 
 #include "element_name.h"
 #include "input_client_proxy.h"
+#include "system_cmd_channel_proxy.h"
 #include "input_data_channel_proxy.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_core_proxy.h"
@@ -347,6 +348,19 @@ int32_t InputMethodSystemAbilityStub::IsPanelShownOnRemote(MessageParcel &data, 
 int32_t InputMethodSystemAbilityStub::IsDefaultImeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     return ITypesUtil::Marshal(reply, IsDefaultIme()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::ConnectSystemCmdOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    auto systemCmdStub = data.ReadRemoteObject();
+    if (systemCmdStub == nullptr) {
+        IMSA_HILOGE("systemCmdStub is nullptr");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    sptr<IRemoteObject> agent = nullptr;
+    int32_t ret = ConnectSystemCmd(iface_cast<ISystemCmdChannel>(systemCmdStub), agent);
+    return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR
+                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices
 } // namespace OHOS
