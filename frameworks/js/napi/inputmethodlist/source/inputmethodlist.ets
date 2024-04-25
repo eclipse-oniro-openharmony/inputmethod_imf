@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,10 +15,9 @@
 
 import InputMethodSubtype from '@ohos.InputMethodSubtype';
 import inputMethod from '@ohos.inputMethod';
-import componentUtils from '@ohos.arkui.componentUtils';
 import settings from '@ohos.settings';
 import common from '@ohos.app.ability.common';
-import display from '@ohos.display';
+import deviceInfo from '@ohos.deviceInfo';
 import bundleManager from '@ohos.bundle.bundleManager';
 import inputMethodEngine from '@ohos.inputMethodEngine';
 
@@ -31,6 +30,12 @@ export interface PatternOptions {
 export interface Pattern {
   icon: Resource;
   selectedIcon: Resource;
+}
+
+interface SubType {
+  name: string;
+  id: string;
+  isCurrent: boolean;
 }
 
 @Extend(Divider)
@@ -50,9 +55,6 @@ function textStyle() {
 const TAG: string = 'InputMethodListDialog';
 const BIG_IMAGE_SIZE: number = 30;
 const NORMAL_IMAGE_SIZE: number = 24;
-const SCREEN_SIZE: number = 1920;
-const BIG_SCREEN_DPI: number = 1280;
-const NORMAL_SCREEN_DPI: number = 360;
 const BIG_DIALOG_WIDTH: number = 196;
 const NORMAL_DIALOG_WIDTH: number = 156;
 const BIG_FONT_SIZE: number = 20;
@@ -72,9 +74,9 @@ const BIG_FONT_PADDING: number = 20;
 const NORMAL_ITEM_RADIUS: number = 16;
 const BIG_ITEM_RADIUS: number = 12;
 
+
 @CustomDialog
 export struct InputMethodListDialog {
-  private borderBgColor: ResourceColor = '#00ffffff';
   private listBgColor: ResourceColor = '#ffffff';
   private pressedColor: ResourceColor = '#1A000000'
   private selectedColor: ResourceColor = '#220A59F7';
@@ -94,12 +96,12 @@ export struct InputMethodListDialog {
   @State subTypes: Array<InputMethodSubtype> = [];
   @State showHand: boolean = false;
   @State inputMethodConfig: bundleManager.ElementName | undefined = undefined;
-  @State maxHeight: number = 1;
   @State defaultInputMethod: inputMethod.InputMethodProperty | undefined = undefined;
   @State currentInputMethod: inputMethod.InputMethodProperty | undefined = undefined;
   @State currentSub: InputMethodSubtype | undefined = undefined;
-  @State viewOpacity: number = 0;
   @StorageLink('patternMode') patternMode: number | undefined = 0;
+  @StorageLink('maxListNum') maxListNum: number = 0;
+  private activeSubtypes: Array<SubType> = [];
   controller: CustomDialogController = new CustomDialogController({ builder: undefined });
   patternOptions?: PatternOptions;
 
@@ -113,7 +115,7 @@ export struct InputMethodListDialog {
     this.defaultInputMethod = inputMethod.getDefaultInputMethod();
     this.currentInputMethod = inputMethod.getCurrentInputMethod();
     let index = 0;
-    for (let k = 0;k < this.inputMethods.length; k++) {
+    for (let k = 0; k < this.inputMethods.length; k++) {
       if (this.inputMethods[k].name === this.defaultInputMethod.name) {
         index = k;
         break;
@@ -138,69 +140,60 @@ export struct InputMethodListDialog {
         this.showHand = true;
       }
     }
-    let listSubTypes = await inputMethod.getSetting().listInputMethodSubtype(this.defaultInputMethod);
-    console.info(`${TAG} defaultSubTypes: ${JSON.stringify(listSubTypes)}`);
     let context = getContext(this) as common.UIAbilityContext;
     try {
-      let activeSubType = await settings.getValue(context, settings.input.ACTIVATED_INPUT_METHOD_SUB_MODE);
+      let activeSubTypeStr = await settings.getValue(context, settings.input.ACTIVATED_INPUT_METHOD_SUB_MODE);
+      let activeSubType: Array<SubType> = JSON.parse(activeSubTypeStr);
       if (activeSubType) {
-        console.info(`${TAG} activeSubType: ${activeSubType}`);
-        for (let i = 0;i < this.inputMethods.length; i++) {
+        console.info(`${TAG} activeSubType: ${JSON.stringify(activeSubType)}`);
+        for (let i = 0; i < this.inputMethods.length; i++) {
           if (this.inputMethods[i].name === this.defaultInputMethod.name) {
             this.defaultInputMethod = this.inputMethods[i];
             let defaultSubTypes = await inputMethod.getSetting().listInputMethodSubtype(this.inputMethods[i]);
-            for (let k = 0;k < defaultSubTypes.length; k++) {
-              if (activeSubType.indexOf(defaultSubTypes[k].id) !== -1) {
-                this.subTypes.push(defaultSubTypes[k]);
+            console.info(`${TAG} defaultSubTypes: ${JSON.stringify(defaultSubTypes)}`)
+            for (let k = 0; k < defaultSubTypes.length; k++) {
+              for (let j = 0; j < activeSubType.length; j++) {
+                if (activeSubType[j].id === defaultSubTypes[k].id) {
+                  this.subTypes.push(defaultSubTypes[k]);
+                  this.activeSubtypes.push(activeSubType[j]);
+                }
               }
             }
           }
         }
+        console.info(`${TAG} this.subTypes: ${JSON.stringify(this.subTypes)}`)
+        console.info(`${TAG} this.activeSubtypes: ${JSON.stringify(this.activeSubtypes)}`)
       }
     } catch (err) {
       this.subTypes = [];
       console.info(`${TAG} subTypes is empty, err = ${JSON.stringify(err)}`);
     }
-    let size = this.subTypes.length == 0 ? this.inputMethods.length : this.subTypes.length + this.inputMethods.length - 1
-    size += (this.inputMethodConfig && this.inputMethodConfig.bundleName.length > 0) ? 1 : 0;
-    size += this.patternOptions && this.showHand ? 1 : 0;
-    let height = size * this.listItemHeight + this.columnPadding * 2;
-     let component = componentUtils.getRectangleById('inputDialog');
-    this.maxHeight = px2vp(component.size.height + component.windowOffset.y) - 10;
-    if (this.maxHeight > height) {
-      this.maxHeight = height;
-    }
-    console.info(`${TAG} this.maxHeight: ${this.maxHeight}`);
-    this.viewOpacity = 1;
   }
 
-  aboutToAppear() {
+  aboutToAppear(): void {
     console.info(`${TAG} aboutToAppear`);
-    let defaultDisplay = display.getDefaultDisplaySync();
-    if (defaultDisplay.width > SCREEN_SIZE) {
-      this.dialogWidth = px2vp(defaultDisplay.width) * BIG_DIALOG_WIDTH / BIG_SCREEN_DPI;
-      this.fontSize = px2vp(defaultDisplay.width) * BIG_FONT_SIZE / BIG_SCREEN_DPI;
-      this.imageSize = px2vp(defaultDisplay.width) * BIG_IMAGE_SIZE / BIG_SCREEN_DPI;
-      this.listItemHeight = px2vp(defaultDisplay.width) * BIG_ITEM_HEIGHT / NORMAL_SCREEN_DPI;
-      this.imageBtnWidth = px2vp(defaultDisplay.width) * BIG_IMAGE_BUTTON_WIDTH / BIG_SCREEN_DPI;
-      this.imageBtnHeight = px2vp(defaultDisplay.width) * BIG_IMAGE_BUTTON_HEIGHT / BIG_SCREEN_DPI;
-      this.columnPadding = px2vp(defaultDisplay.width) * BIG_COLUMN_PADDING / BIG_SCREEN_DPI;
-      this.fontPadding = px2vp(defaultDisplay.width) * BIG_FONT_PADDING / BIG_SCREEN_DPI;
-      this.listItemRadius = px2vp(defaultDisplay.width) * BIG_ITEM_RADIUS / BIG_SCREEN_DPI;
-      this.imageRadius = BIG_IMAGE_RADIUS;
-
+    if (deviceInfo.deviceType === 'tablet') {
+      this.dialogWidth = BIG_DIALOG_WIDTH;
+      this.fontSize = BIG_FONT_SIZE;
+      this.imageSize = BIG_IMAGE_SIZE;
+      this.listItemHeight = BIG_ITEM_HEIGHT;
+      this.imageBtnWidth = BIG_IMAGE_BUTTON_WIDTH;
+      this.imageBtnHeight = BIG_IMAGE_BUTTON_HEIGHT;
+      this.columnPadding = BIG_COLUMN_PADDING;
+      this.fontPadding = BIG_FONT_PADDING;
+      this.listItemRadius = BIG_ITEM_RADIUS;
     } else {
-      this.dialogWidth = px2vp(defaultDisplay.width) * NORMAL_DIALOG_WIDTH / NORMAL_SCREEN_DPI;
-      this.fontSize = px2vp(defaultDisplay.width) * NORMAL_FONT_SIZE / NORMAL_SCREEN_DPI;
-      this.imageSize = px2vp(defaultDisplay.width) * NORMAL_IMAGE_SIZE / NORMAL_SCREEN_DPI;
-      this.listItemHeight = px2vp(defaultDisplay.width) * NORMAL_ITEM_HEIGHT / NORMAL_SCREEN_DPI;
-      this.imageBtnWidth = px2vp(defaultDisplay.width) * NORMAL_IMAGE_BUTTON_WIDTH / NORMAL_SCREEN_DPI;
-      this.imageBtnHeight = px2vp(defaultDisplay.width) * NORMAL_IMAGE_BUTTON_HEIGHT / NORMAL_SCREEN_DPI;
-      this.columnPadding = px2vp(defaultDisplay.width) * NORMAL_COLUMN_PADDING / NORMAL_SCREEN_DPI;
-      this.fontPadding = px2vp(defaultDisplay.width) * NORMAL_FONT_PADDING / NORMAL_SCREEN_DPI;
-      this.listItemRadius = px2vp(defaultDisplay.width) * NORMAL_ITEM_RADIUS / NORMAL_SCREEN_DPI;
-      this.imageRadius = NORMAL_IMAGE_RADIUS;
+      this.dialogWidth = NORMAL_DIALOG_WIDTH;
+      this.fontSize = NORMAL_FONT_SIZE;
+      this.imageSize = NORMAL_IMAGE_SIZE;
+      this.listItemHeight = NORMAL_ITEM_HEIGHT;
+      this.imageBtnWidth = NORMAL_IMAGE_BUTTON_WIDTH;
+      this.imageBtnHeight = NORMAL_IMAGE_BUTTON_HEIGHT;
+      this.columnPadding = NORMAL_COLUMN_PADDING;
+      this.fontPadding = NORMAL_FONT_PADDING;
+      this.listItemRadius = NORMAL_ITEM_RADIUS;
     }
+    this.imageRadius = BIG_IMAGE_RADIUS;
     this.getDefaultInputMethodSubType();
     let inputMethodAbility = inputMethodEngine.getInputMethodAbility();
     inputMethodAbility.on('keyboardHide', () => {
@@ -208,22 +201,119 @@ export struct InputMethodListDialog {
     });
   }
 
+  isDefaultInputMethodCurrentSubType(subTypeId: string): boolean {
+    return this.defaultInputMethod?.name === this.currentInputMethod?.name && this.currentSub?.id === subTypeId;
+  }
+
   @Styles
-  listItemStyle(){
+  listItemStyle() {
     .padding({ left: this.fontPadding, right: this.fontPadding })
     .height(this.listItemHeight)
     .borderRadius(this.listItemRadius)
   }
 
+  @Builder
+  InputMethodItem(name: string | undefined, fontColor: ResourceColor, normalColor: ResourceColor,
+                  pressedColor: ResourceColor, isDivider: boolean, handleClick: Function) {
+    Column() {
+      Text(name)
+        .fontSize(this.fontSize)
+        .textStyle()
+        .listItemStyle()
+        .fontColor(fontColor)
+        .stateStyles({
+          pressed: {
+            .backgroundColor(pressedColor)
+          },
+          normal: {
+            .backgroundColor(normalColor)
+          }
+        })
+      if (isDivider) {
+        Divider()
+          .divider()
+      }
+    }
+    .width('100%')
+    .onClick(() => {
+      handleClick();
+    })
+  }
+
   build() {
-    Stack({ alignContent: Alignment.BottomStart }) {
-      Column() {
-        if (this.inputMethodConfig && this.inputMethodConfig.bundleName.length > 0) {
-          Text($r('sys.string.ohos_id_input_method_settings'))
-            .textStyle()
-            .listItemStyle()
-            .fontSize(this.fontSize)
-            .fontColor(this.fontColor)
+    Column() {
+      if (this.inputMethodConfig && this.inputMethodConfig.bundleName.length > 0) {
+        Text($r('sys.string.ohos_id_input_method_settings'))
+          .textStyle()
+          .listItemStyle()
+          .fontSize(this.fontSize)
+          .fontColor(this.fontColor)
+          .stateStyles({
+            pressed: {
+              .backgroundColor(this.pressedColor)
+            },
+            normal: {
+              .backgroundColor(this.listBgColor)
+            }
+          })
+          .onClick(() => {
+            if (this.inputMethodConfig) {
+              let context = getContext(this) as common.UIAbilityContext;
+              context.startAbility({
+                bundleName: this.inputMethodConfig.bundleName,
+                moduleName: this.inputMethodConfig.moduleName,
+                abilityName: this.inputMethodConfig.abilityName,
+                uri: 'set_input'
+              });
+            }
+          })
+        Divider()
+          .divider()
+      }
+      Scroll() {
+        Column() {
+          ForEach(this.subTypes, (item: InputMethodSubtype, index: number) => {
+            this.InputMethodItem(this.activeSubtypes[index].name,
+              this.isDefaultInputMethodCurrentSubType(item.id) ? this.selectedFontColor : this.fontColor,
+              this.isDefaultInputMethodCurrentSubType(item.id) ? this.selectedColor : this.listBgColor,
+              this.pressedColor, this.inputMethods.length > 1 || index < this.subTypes.length,
+              () => {
+                this.switchMethodSub(item);
+              })
+          }, (item: inputMethod.InputMethodProperty) => JSON.stringify(item));
+
+          ForEach(this.inputMethods, (item: inputMethod.InputMethodProperty, index: number) => {
+            if (this.subTypes.length === 0 || (this.defaultInputMethod && item.name !== this.defaultInputMethod.name)) {
+              this.InputMethodItem(this.inputMethods[index].label,
+                this.currentInputMethod?.name === item.name ? this.selectedFontColor : this.fontColor,
+                this.currentInputMethod?.name === item.name ? this.selectedColor : this.listBgColor,
+                this.pressedColor,
+                index < this.inputMethods.length - 1,
+                () => {
+                  this.switchMethod(item);
+                })
+            }
+          }, (item: inputMethod.InputMethodProperty) => JSON.stringify(item));
+        }
+        .width('100%')
+      }
+      .width('100%')
+      .constraintSize({ maxHeight: this.maxListNum > 0 ? this.maxListNum * this.listItemHeight : '100%' })
+      .scrollBar(BarState.Off)
+
+      if (this.patternOptions && this.showHand) {
+        Divider()
+          .divider()
+        Row() {
+          ForEach(this.patternOptions.patterns, (item: Pattern, index: number) => {
+            Row() {
+              Image(index === this.patternMode ? item.selectedIcon : item.icon)
+                .size({ width: this.imageSize, height: this.imageSize })
+                .objectFit(ImageFit.Contain)
+            }
+            .justifyContent(FlexAlign.Center)
+            .size({ width: this.imageBtnWidth, height: this.imageBtnHeight })
+            .borderRadius(this.imageRadius)
             .stateStyles({
               pressed: {
                 .backgroundColor(this.pressedColor)
@@ -233,136 +323,21 @@ export struct InputMethodListDialog {
               }
             })
             .onClick(() => {
-              if (this.inputMethodConfig) {
-                let context = getContext(this) as common.UIAbilityContext;
-                context.startAbility({
-                  bundleName: this.inputMethodConfig.bundleName,
-                  moduleName: this.inputMethodConfig.moduleName,
-                  abilityName: this.inputMethodConfig.abilityName
-                });
-              }
+              this.switchPositionPattern(index);
             })
-          Divider()
-            .divider()
-        }
-        Scroll() {
-          Column() {
-            ForEach(this.subTypes, (item: InputMethodSubtype, index: number) => {
-              Column() {
-                Text(item.label)
-                  .fontSize(this.fontSize)
-                  .textStyle()
-                  .listItemStyle()
-                  .fontColor((this.currentSub && this.currentSub.id === item.id && this.currentSub.name === item.name)
-                    ? this.selectedFontColor : this.fontColor)
-                  .stateStyles({
-                    pressed: {
-                      .backgroundColor(this.pressedColor)
-                    },
-                    normal: {
-                      .backgroundColor(
-                        (this.currentSub && this.currentSub.id === item.id && this.currentSub.name === item.name)
-                          ? this.selectedColor : this.listBgColor)
-                    }
-                  })
-                if (this.inputMethods.length > 1 || index < this.subTypes.length) {
-                  Divider()
-                    .divider()
-                }
-              }
-              .width('100%')
-              .onClick(() => {
-                this.switchMethodSub(item);
-              })
-            }, (item: inputMethod.InputMethodProperty) => JSON.stringify(item));
-
-            ForEach(this.inputMethods, (item: inputMethod.InputMethodProperty, index: number) => {
-              if (this.subTypes.length === 0 || (this.defaultInputMethod && item.name !== this.defaultInputMethod.name)) {
-                Text(item.label)
-                  .fontSize(this.fontSize)
-                  .textStyle()
-                  .listItemStyle()
-                  .fontColor((this.currentSub && this.currentSub.id === item.id && this.currentSub.name === item.name)
-                    ? this.selectedFontColor : this.fontColor)
-                  .stateStyles({
-                    pressed: {
-                      .backgroundColor(this.pressedColor)
-                    },
-                    normal: {
-                      .backgroundColor((this.currentInputMethod && this.currentInputMethod.name === item.name)
-                        ? this.selectedColor : this.listBgColor)
-                    }
-                  })
-                  .onClick(() => {
-                    this.switchMethod(item);
-                  })
-                if (index < this.inputMethods.length - 1) {
-                  Divider()
-                    .divider()
-                }
-              }
-            }, (item: inputMethod.InputMethodProperty) => JSON.stringify(item));
-          }
-          .width('100%')
+          }, (item: Resource) => JSON.stringify(item));
         }
         .width('100%')
-        .scrollBar(BarState.Off)
-        .layoutWeight(1)
-
-        if (this.patternOptions && this.showHand) {
-          Divider()
-            .divider()
-          Row() {
-            ForEach(this.patternOptions.patterns, (item: Pattern, index: number) => {
-              Row() {
-                Image(index === this.patternMode ? item.selectedIcon : item.icon)
-                  .size({ width: this.imageSize, height: this.imageSize })
-                  .objectFit(ImageFit.Contain)
-              }
-              .justifyContent(FlexAlign.Center)
-              .size({ width: this.imageBtnWidth, height: this.imageBtnHeight })
-              .borderRadius(this.imageRadius)
-              .stateStyles({
-                pressed: {
-                  .backgroundColor(this.pressedColor)
-                },
-                normal: {
-                  .backgroundColor(this.listBgColor)
-                }
-              })
-              .onClick(() => {
-                this.switchPositionPattern(index);
-              })
-            }, (item: Resource) => JSON.stringify(item));
-          }
-          .width('100%')
-          .height(this.listItemHeight)
-          .justifyContent(FlexAlign.SpaceEvenly)
-        }
+        .height(this.listItemHeight)
+        .justifyContent(FlexAlign.SpaceEvenly)
       }
-      .width(this.dialogWidth)
-      .margin({ top: this.columnPadding })
-      .borderRadius('16vp')
-      .backgroundColor(this.listBgColor)
-      .height(this.maxHeight)
-      .padding(this.columnPadding)
-      .shadow(ShadowStyle.OUTER_DEFAULT_SM)
     }
-    .id('inputDialog')
-    .height('100%')
-    .width('100%')
-    .opacity(this.viewOpacity)
-    .backgroundColor(this.borderBgColor)
-    .transition(TransitionEffect.translate({ y: 400 })
-      .combine(TransitionEffect.scale({ x: 1, y: 0 }))
-      .animation({ duration: 500 }))
-    .onAppear(() => {
-      let component = componentUtils.getRectangleById('inputDialog');
-      this.maxHeight = px2vp(component.size.height + component.windowOffset.y) - 10;
-    })
-    .onClick(() => {
-      this.controller.close();
-    })
+    .width(this.dialogWidth)
+    .margin({ top: this.columnPadding })
+    .borderRadius('16vp')
+    .backgroundColor(this.listBgColor)
+    .padding(this.columnPadding)
+    .shadow(ShadowStyle.OUTER_DEFAULT_SM)
   }
 
   switchPositionPattern(mode: number): void {
