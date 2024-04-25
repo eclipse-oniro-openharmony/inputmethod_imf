@@ -25,6 +25,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+constexpr const char *SMART_MENU_METADATA_NAME = "ohos.extension.smart_menu";
 std::mutex ImeSystemCmdChannel::instanceLock_;
 sptr<ImeSystemCmdChannel> ImeSystemCmdChannel::instance_;
 ImeSystemCmdChannel::ImeSystemCmdChannel()
@@ -34,6 +35,7 @@ ImeSystemCmdChannel::ImeSystemCmdChannel()
 ImeSystemCmdChannel::~ImeSystemCmdChannel()
 {
 }
+
 sptr<ImeSystemCmdChannel> ImeSystemCmdChannel::GetInstance()
 {
     if (instance_ == nullptr) {
@@ -154,7 +156,7 @@ sptr<IInputMethodAgent> ImeSystemCmdChannel::GetSystemCmdAgent()
 void ImeSystemCmdChannel::SetSystemCmdListener(const sptr<OnSystemCmdListener> &listener)
 {
     std::lock_guard<std::mutex> lock(systemCmdListenerLock_);
-    systemCmdListener_ = listener;
+    systemCmdListener_ = std::move(listener);
 }
 
 sptr<OnSystemCmdListener> ImeSystemCmdChannel::GetSystemCmdListener()
@@ -180,11 +182,7 @@ int32_t ImeSystemCmdChannel::ReceivePrivateCommand(
         IMSA_HILOGE("cmdlistener is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    auto ret = cmdlistener->ReceivePrivateCommand(privateCommand);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("ReceivePrivateCommand err, ret %{public}d", ret);
-        return ErrorCode::ERROR_CMD_LISTENER_ERROR;
-    }
+    cmdlistener->ReceivePrivateCommand(privateCommand);
     return ErrorCode::NO_ERROR;
 }
 
@@ -223,6 +221,48 @@ int32_t ImeSystemCmdChannel::ShowSysPanel(bool shouldSysPanelShow)
     }
     listener->NotifyIsShowSysPanel(shouldSysPanelShow);
     return ErrorCode::NO_ERROR;
+}
+
+std::string ImeSystemCmdChannel::GetSmartMenuCfg()
+{
+    auto inputMethodController = InputMethodController::GetInstance();
+    if (inputMethodController == nullptr) {
+        return "";
+    }
+    std::shared_ptr<Property> defaultIme = nullptr;
+    int32_t ret = inputMethodController->GetDefaultInputMethod(defaultIme);
+    if (ret != ErrorCode::NO_ERROR || defaultIme == nullptr) {
+        IMSA_HILOGE("GetDefaultInputMethod failed");
+        return "";
+    }
+    BundleMgrClient client;
+    BundleInfo bundleInfo;
+    if (!client.GetBundleInfo(defaultIme->name, BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO, bundleInfo)) {
+        IMSA_HILOGE("GetBundleInfo failed");
+        return "";
+    }
+    ExtensionAbilityInfo extInfo;
+    GetExtensionInfo(bundleInfo.extensionInfos, extInfo);
+    std::vector<std::string> profiles;
+    if (!client.GetResConfigFile(extInfo, SMART_MENU_METADATA_NAME, profiles) || profiles.empty()) {
+        IMSA_HILOGE("GetResConfigFile failed");
+        return "";
+    }
+    return profiles[0];
+}
+
+void ImeSystemCmdChannel::GetExtensionInfo(std::vector<ExtensionAbilityInfo> extensionInfos,
+    ExtensionAbilityInfo &extInfo)
+{
+    for (size_t i = 0; i < extensionInfos.size(); i++) {
+        auto metadata = extensionInfos[i].metadata;
+        for (size_t j = 0; j < metadata.size(); j++) {
+            if (metadata[j].name == SMART_MENU_METADATA_NAME) {
+                extInfo =  extensionInfos[i];
+                return;
+            }
+        }
+    }
 }
 } // namespace MiscServices
 } // namespace OHOS
