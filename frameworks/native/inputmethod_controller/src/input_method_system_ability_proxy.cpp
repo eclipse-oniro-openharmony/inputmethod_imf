@@ -41,6 +41,17 @@ int32_t InputMethodSystemAbilityProxy::StartInput(InputClientInfo &inputClientIn
         });
 }
 
+int32_t InputMethodSystemAbilityProxy::ConnectSystemCmd(
+    const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent)
+{
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::CONNECT_SYSTEM_CMD),
+        [channel](MessageParcel &data) { return data.WriteRemoteObject(channel->AsObject()); },
+        [&agent](MessageParcel &reply) {
+            return ITypesUtil::Unmarshal(reply, agent);
+        });
+}
+
 int32_t InputMethodSystemAbilityProxy::ShowCurrentInput()
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::SHOW_CURRENT_INPUT));

@@ -37,6 +37,7 @@
 #include "message.h"
 #include "message_handler.h"
 #include "private_command_interface.h"
+#include "system_cmd_channel_proxy.h"
 #include "unRegistered_type.h"
 
 namespace OHOS {
@@ -83,6 +84,7 @@ public:
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     int32_t GetSecurityMode(int32_t &security);
     int32_t OnSecurityChange(int32_t security);
+    int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent);
     void OnClientInactive(const sptr<IRemoteObject> &channel);
     void NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel);
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
@@ -103,6 +105,10 @@ private:
     std::mutex dataChannelLock_;
     sptr<IRemoteObject> dataChannelObject_ = nullptr;
     std::shared_ptr<InputDataChannelProxy> dataChannelProxy_ = nullptr;
+
+    std::mutex systemCmdChannelLock_;
+    sptr<SystemCmdChannelProxy> systemCmdChannelProxy_ = nullptr;
+
     std::shared_ptr<InputMethodEngineListener> imeListener_;
     std::shared_ptr<KeyboardListener> kdListener_;
 
@@ -113,6 +119,9 @@ private:
     sptr<InputDeathRecipient> deathRecipient_{ nullptr };
     sptr<IInputMethodSystemAbility> GetImsaProxy();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
+
+    sptr<SystemCmdChannelProxy> GetSystemCmdChannelProxy();
+    void ClearSystemCmdChannel();
 
     void SetInputDataChannel(const sptr<IRemoteObject> &object);
     std::shared_ptr<InputDataChannelProxy> GetInputDataChannelProxy();
@@ -138,12 +147,18 @@ private:
     std::shared_ptr<InputMethodPanel> GetSoftKeyboardPanel();
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
+    int32_t ShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag);
+    void SetInputAttribute(const InputAttribute &inputAttribute);
+    InputAttribute GetInputAttribute();
+    void ClearInputAttribute();
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isBound_{ false };
+
     sptr<IInputMethodCore> coreStub_{ nullptr };
     sptr<IInputMethodAgent> agentStub_{ nullptr };
+    sptr<IInputMethodAgentStub> systemAgentStub_{ nullptr };
     std::mutex imeCheckMutex_;
     bool isCurrentIme_ = false;
 
@@ -154,6 +169,8 @@ private:
 
     std::mutex defaultImeCheckMutex_;
     bool isDefaultIme_ = false;
+    std::mutex inputAttrLock_;
+    InputAttribute inputAttribute_{};
 };
 } // namespace MiscServices
 } // namespace OHOS

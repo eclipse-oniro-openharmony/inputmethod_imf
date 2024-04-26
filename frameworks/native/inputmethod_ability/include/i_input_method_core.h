@@ -19,6 +19,7 @@
 #include "global.h"
 #include "i_input_control_channel.h"
 #include "i_input_data_channel.h"
+#include "i_system_cmd_channel.h"
 #include "input_attribute.h"
 #include "input_client_info.h"
 #include "input_method_property.h"
@@ -46,6 +47,7 @@ public:
         IS_PANEL_SHOWN,
         SECURITY_CHANGE,
         ON_CLIENT_INACTIVE,
+        ON_CONNECT_SYSTEM_CMD,
         CORE_CMD_LAST,
     };
 
@@ -61,6 +63,7 @@ public:
     virtual bool IsEnable() = 0;
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
     virtual int32_t OnSecurityChange(int32_t security) = 0 ;
+    virtual int32_t OnConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent) = 0 ;
     virtual void OnClientInactive(const sptr<IInputDataChannel> &channel) = 0;
 };
 } // namespace MiscServices

@@ -53,6 +53,15 @@ int32_t InputMethodCoreProxy::OnSecurityChange(int32_t security)
     });
 }
 
+int32_t InputMethodCoreProxy::OnConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent)
+{
+    return SendRequest(ON_CONNECT_SYSTEM_CMD, [channel](MessageParcel& data) {
+        return data.WriteRemoteObject(channel->AsObject());
+    }, [&agent](MessageParcel &reply) {
+        return ITypesUtil::Unmarshal(reply, agent);
+    });
+}
+
 void InputMethodCoreProxy::StopInputService(bool isTerminateIme)
 {
     SendRequest(STOP_INPUT_SERVICE,

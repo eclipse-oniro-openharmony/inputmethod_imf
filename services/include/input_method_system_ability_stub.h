@@ -94,6 +94,8 @@ private:
 
     int32_t IsDefaultImeOnRemote(MessageParcel &data, MessageParcel &reply);
 
+    int32_t ConnectSystemCmdOnRemote(MessageParcel &data, MessageParcel &reply);
+
     using RequestHandler = int32_t (InputMethodSystemAbilityStub::*)(MessageParcel &, MessageParcel &);
     static inline const std::unordered_map<int32_t, RequestHandler> HANDLERS = {
         { static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT),
@@ -158,6 +160,8 @@ private:
           &InputMethodSystemAbilityStub::GetSecurityModeOnRemote },
         { static_cast<uint32_t>(InputMethodInterfaceCode::IS_DEFAULT_IME),
           &InputMethodSystemAbilityStub::IsDefaultImeOnRemote },
+        { static_cast<uint32_t>(InputMethodInterfaceCode::CONNECT_SYSTEM_CMD),
+            &InputMethodSystemAbilityStub::ConnectSystemCmdOnRemote },
     };
 };
 } // namespace OHOS::MiscServices

@@ -22,6 +22,7 @@
 #include "global.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
+#include "system_cmd_channel_stub.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_property.h"
 #include "input_method_status.h"

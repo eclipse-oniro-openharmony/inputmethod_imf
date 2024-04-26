@@ -27,6 +27,7 @@
 #include "i_input_client.h"
 #include "i_input_data_channel.h"
 #include "i_input_method_core.h"
+#include "i_system_cmd_channel.h"
 #include "input_attribute.h"
 #include "input_client_info.h"
 #include "input_method_property.h"
@@ -73,6 +74,7 @@ public:
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
     virtual int32_t GetSecurityMode(int32_t &security) = 0;
     virtual int32_t IsDefaultIme() = 0;
+    virtual int32_t ConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent) = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;

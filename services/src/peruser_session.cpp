@@ -1160,6 +1160,23 @@ int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, Request
     return ret;
 }
 
+int32_t PerUserSession::OnConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent)
+{
+    auto data = GetImeData(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
+        return ErrorCode::ERROR_IME_NOT_STARTED;
+    }
+    auto ret = RequestIme(data, RequestType::NORMAL,
+        [&data, &channel, &agent] { return data->core->OnConnectSystemCmd(channel, agent); });
+    IMSA_HILOGD("on connect systemCmd, ret: %{public}d", ret);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("bind failed, ret: %{public}d", ret);
+        return ret;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
 bool PerUserSession::WaitForCurrentImeStop()
 {
     IMSA_HILOGI("run in");

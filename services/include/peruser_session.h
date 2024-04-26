@@ -30,6 +30,7 @@
 #include "global.h"
 #include "i_input_client.h"
 #include "i_input_control_channel.h"
+#include "i_system_cmd_channel.h"
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_core.h"
@@ -103,6 +104,7 @@ public:
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     bool CheckSecurityMode();
     bool IsWmsReady();
+    int32_t OnConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent);
 
 private:
     struct ResetManager {

@@ -18,6 +18,7 @@
     *InputMethodAbilityInterface*;
     *InputMethodPanel*;
     *KeyEventConsumerProxy*;
+    *SystemCmdChannelProxy*;
   local:
     *;
 };
