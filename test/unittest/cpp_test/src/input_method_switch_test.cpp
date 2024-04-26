@@ -22,7 +22,6 @@
 
 #include "global.h"
 #include "ime_event_monitor_manager_impl.h"
-#include "ime_info_inquirer.h"
 #include "ime_setting_listener_test_impl.h"
 #include "input_method_controller.h"
 #include "input_method_property.h"
@@ -71,15 +70,11 @@ constexpr const char *ENABLE_IME_KEYWORD = "settings.inputmethod.enable_ime";
 void InputMethodSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::SetUpTestCase");
-    ImeInfoInquirer::GetInstance().InitSystemConfig();
-    enableOn = ImeInfoInquirer::GetInstance().IsEnableInputMethod();
     TddUtil::GrantNativePermission();
-    if (enableOn == true) {
+    int32_t ret = TddUtil::GetEnableData(beforeValue);
+    if (ret == ErrorCode::NO_ERROR) {
         IMSA_HILOGI("Enable ime switch test.");
-        int32_t ret = TddUtil::GetEnableData(beforeValue);
-        if (ret == ErrorCode::NO_ERROR) {
-            TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
-        }
+        TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
     }
     TddUtil::StorageSelfTokenID();
     TddUtil::SetTestTokenID(

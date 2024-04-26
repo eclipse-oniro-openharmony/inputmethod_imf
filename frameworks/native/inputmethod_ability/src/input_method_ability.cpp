@@ -119,7 +119,7 @@ int32_t InputMethodAbility::SetCoreAndAgent()
         IMSA_HILOGE("imsa proxy is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    int32_t ret = proxy->SetCoreAndAgent(coreStub_, agentStub_);
+    int32_t ret = proxy->SetCoreAndAgent(coreStub_, agentStub_->AsObject());
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("set failed, ret: %{public}d", ret);
         return ret;
@@ -143,12 +143,12 @@ int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
 void InputMethodAbility::Initialize()
 {
     IMSA_HILOGD("IMA");
-    auto coreStub = new (std::nothrow) InputMethodCoreStub();
+    sptr<InputMethodCoreStub> coreStub = new (std::nothrow) InputMethodCoreStub();
     if (coreStub == nullptr) {
         IMSA_HILOGE("failed to create core");
         return;
     }
-    auto agentStub = new (std::nothrow) InputMethodAgentStub();
+    sptr<InputMethodAgentStub> agentStub = new (std::nothrow) InputMethodAgentStub();
     if (agentStub == nullptr) {
         IMSA_HILOGE("failed to create agent");
         return;
@@ -235,13 +235,13 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
 
 int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
-    if (clientInfo.channel->AsObject() == nullptr) {
+    if (clientInfo.channel == nullptr) {
         IMSA_HILOGE("channelObject is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     IMSA_HILOGI(
         "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard, isBindFromClient);
-    SetInputDataChannel(clientInfo.channel->AsObject());
+    SetInputDataChannel(clientInfo.channel);
     isBindFromClient ? InvokeTextChangeCallback(clientInfo.config) : NotifyAllTextConfig();
     SetInputAttribute(clientInfo.config.inputAttribute);
     if (imeListener_ == nullptr) {

@@ -110,7 +110,7 @@ int32_t InputClientStub::DeactivateClientOnRemote(MessageParcel &data, MessagePa
     return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputClientStub::OnInputReady(const sptr<IInputMethodAgent> &agent)
+int32_t InputClientStub::OnInputReady(const sptr<IRemoteObject> &agent)
 {
     return ErrorCode::NO_ERROR;
 }

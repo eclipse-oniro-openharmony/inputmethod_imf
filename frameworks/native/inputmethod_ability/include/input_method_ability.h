@@ -160,7 +160,7 @@ private:
 
     sptr<IInputMethodCore> coreStub_{ nullptr };
     sptr<IInputMethodAgent> agentStub_{ nullptr };
-    sptr<IInputMethodAgentStub> systemAgentStub_{ nullptr };
+    sptr<IInputMethodAgent> systemAgentStub_{ nullptr };
     std::mutex imeCheckMutex_;
     bool isCurrentIme_ = false;
 

@@ -44,7 +44,7 @@ ohos_unittest("InputMethodControllerTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -84,7 +84,7 @@ ohos_unittest("InputMethodAttachTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -114,6 +114,7 @@ ohos_unittest("InputMethodAbilityTest") {
   module_out_path = module_output_path
 
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_proxy.cpp",
     "src/input_method_ability_exception_test.cpp",
     "src/input_method_ability_test.cpp",
   ]
@@ -126,7 +127,7 @@ ohos_unittest("InputMethodAbilityTest") {
   ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -170,7 +171,7 @@ ohos_unittest("InputMethodServiceTest") {
   ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -207,7 +208,7 @@ ohos_unittest("InputMethodDfxTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/common:inputmethod_common",
@@ -253,7 +254,7 @@ ohos_unittest("InputMethodPanelTest") {
   ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -277,32 +278,6 @@ ohos_unittest("InputMethodPanelTest") {
     "os_account:os_account_innerkits",
     "window_manager:libdm",
     "window_manager:libwm",
-  ]
-}
-
-ohos_unittest("InputMethodUtilsTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  module_out_path = module_output_path
-
-  sources = [
-    "src/block_queue_test.cpp",
-    "src/input_method_utils_test.cpp",
-  ]
-
-  deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_core",
   ]
 }
 
@@ -355,12 +330,10 @@ ohos_unittest("InputMethodPrivateMemberTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -395,7 +368,7 @@ ohos_unittest("InputMethodEditorTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -468,19 +441,10 @@ ohos_unittest("IdentityCheckerTest") {
 
   configs = [ ":module_private_config" ]
 
-  include_dirs = [
-    "${windowmanager_path}/interfaces/innerkits/dm",
-    "${windowmanager_path}/interfaces/innerkits/wm",
-  ]
-
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -516,7 +480,7 @@ ohos_unittest("TextListenerInnerApiTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
@@ -644,7 +608,6 @@ ohos_unittest("SecurityModeParseTest") {
 
   include_dirs = [
     "${inputmethod_path}/test/unittest/cpp_test/mock",
-    "${inputmethod_path}/common",
     "${inputmethod_path}/services/include",
     "${inputmethod_path}/services/identity_checker/include",
     "${inputmethod_path}/services/adapter/settings_data_provider/include",
@@ -654,17 +617,13 @@ ohos_unittest("SecurityModeParseTest") {
   ]
 
   sources = [
-    "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_observer.cpp",
-    "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_utils.cpp",
-    "${inputmethod_path}/services/adapter/settings_data_provider/src/security_mode_parser.cpp",
     "mock/datashare_helper.cpp",
     "src/security_mode_parser_test.cpp",
   ]
 
   deps = [
-    "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/services/json:imf_json_static",
-    "//third_party/cJSON:cjson",
+    "${inputmethod_path}/services:inputmethod_service_static",
+    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
@@ -697,12 +656,8 @@ ohos_unittest("ImeFreezeManagerTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -735,9 +690,8 @@ ohos_unittest("JsonOperateTest") {
   sources = [ "src/json_operate_test.cpp" ]
 
   deps = [
-    "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
-    "${inputmethod_path}/services/file:imf_file_static",
     "${inputmethod_path}/services/json:imf_json_static",
     "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",

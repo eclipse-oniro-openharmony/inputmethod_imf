@@ -271,6 +271,7 @@ int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 int32_t InputMethodSystemAbility::GenerateClientInfo(InputClientInfo &clientInfo)
 {
     if (clientInfo.client == nullptr || clientInfo.channel == nullptr) {
+        IMSA_HILOGE("client or channel is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto deathRecipient = new (std::nothrow) InputDeathRecipient();
@@ -411,8 +412,7 @@ int32_t InputMethodSystemAbility::RequestHideInput()
     return userSession_->OnRequestHideInput();
 }
 
-int32_t InputMethodSystemAbility::SetCoreAndAgent(
-    const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
+int32_t InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
     if (IsCurrentIme()) {
@@ -1240,7 +1240,7 @@ bool InputMethodSystemAbility::IsStartInputTypePermitted()
     return identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId) && userSession_->IsBoundToClient();
 }
 
-int32_t InputMethodSystemAbility::ConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent)
+int32_t InputMethodSystemAbility::ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
 {
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {

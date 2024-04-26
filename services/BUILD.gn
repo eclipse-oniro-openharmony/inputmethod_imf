@@ -110,3 +110,77 @@ ohos_shared_library("inputmethod_service") {
   subsystem_name = "inputmethod"
   part_name = "imf"
 }
+
+ohos_static_library("inputmethod_service_static") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  cflags_cc = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-Os",
+  ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_proxy.cpp",
+    "${inputmethod_path}/services/adapter/focus_monitor/src/focus_change_listener.cpp",
+    "${inputmethod_path}/services/adapter/focus_monitor/src/focus_monitor_manager.cpp",
+    "${inputmethod_path}/services/adapter/system_language_observer/src/system_language_observer.cpp",
+    "${inputmethod_path}/services/adapter/wms_connection_monitor/src/wms_connection_monitor_manager.cpp",
+    "${inputmethod_path}/services/adapter/wms_connection_monitor/src/wms_connection_observer.cpp",
+    "${inputmethod_path}/services/identity_checker/src/identity_checker_impl.cpp",
+    "src/freeze_manager.cpp",
+    "src/im_common_event_manager.cpp",
+    "src/ime_cfg_manager.cpp",
+    "src/ime_info_inquirer.cpp",
+    "src/input_control_channel_stub.cpp",
+    "src/input_method_system_ability.cpp",
+    "src/input_method_system_ability_stub.cpp",
+    "src/input_type_manager.cpp",
+    "src/peruser_session.cpp",
+    "src/sys_cfg_parser.cpp",
+  ]
+
+  public_configs = [ ":inputmethod_services_native_config" ]
+
+  public_deps = [
+    "${inputmethod_path}/services/adapter/keyboard:keboard_event_static",
+    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/common:inputmethod_common",
+    "${inputmethod_path}/services/file:imf_file_static",
+    "${inputmethod_path}/services/json:imf_json_static",
+    "//third_party/cJSON:cjson",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_manager",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
+    "config_policy:configpolicy_util",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "os_account:os_account_innerkits",
+    "resource_schedule_service:ressched_client",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "window_manager:libwm",
+    "window_manager:libwsutils",
+  ]
+
+  subsystem_name = "inputmethod"
+  part_name = "imf"
+}

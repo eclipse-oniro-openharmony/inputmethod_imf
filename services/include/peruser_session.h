@@ -52,10 +52,10 @@ namespace OHOS {
 namespace MiscServices {
 struct ImeData {
     sptr<IInputMethodCore> core{ nullptr };
-    sptr<IInputMethodAgent> agent{ nullptr };
+    sptr<IRemoteObject> agent{ nullptr };
     sptr<InputDeathRecipient> deathRecipient{ nullptr };
     std::shared_ptr<FreezeManager> freezeMgr;
-    ImeData(sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent, sptr<InputDeathRecipient> deathRecipient,
+    ImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, sptr<InputDeathRecipient> deathRecipient,
         pid_t imePid)
         : core(std::move(core)), agent(std::move(agent)), deathRecipient(std::move(deathRecipient)),
           freezeMgr(std::make_shared<FreezeManager>(imePid))
@@ -76,7 +76,7 @@ public:
     int32_t OnPrepareInput(const InputClientInfo &clientInfo);
     int32_t OnStartInput(const InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent);
     int32_t OnReleaseInput(const sptr<IInputClient> &client);
-    int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
+    int32_t OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnHideCurrentInput();
     int32_t OnShowCurrentInput();
     int32_t OnShowInput(sptr<IInputClient> client);
@@ -93,7 +93,7 @@ public:
     int64_t GetCurrentClientPid();
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info);
     int32_t OnUpdateListenEventFlag(const InputClientInfo &clientInfo);
-    int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent);
+    int32_t OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent);
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
     bool StartCurrentIme(int32_t userId, bool isRetry);
     void StopCurrentIme();
@@ -104,7 +104,7 @@ public:
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
     bool CheckSecurityMode();
     bool IsWmsReady();
-    int32_t OnConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent);
+    int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent);
 
 private:
     struct ResetManager {
@@ -145,7 +145,7 @@ private:
         const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>>
             &updateInfos);
 
-    int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent, pid_t pid);
+    int32_t AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid);
     void RemoveImeData(ImeType type, bool isImeDied);
     int32_t RemoveIme(const sptr<IInputMethodCore> &core, ImeType type);
     std::shared_ptr<ImeData> GetImeData(ImeType type);
@@ -156,7 +156,7 @@ private:
     void UnBindClientWithIme(
         const std::shared_ptr<InputClientInfo> &currentClientInfo, bool isUnbindFromClient = false);
     void StopClientInput(const sptr<IInputClient> &currentClient);
-    void StopImeInput(ImeType currentType, const sptr<IInputDataChannel> &currentChannel);
+    void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel);
 
     int32_t HideKeyboard(const sptr<IInputClient> &currentClient);
     int32_t ShowKeyboard(const sptr<IInputClient> &currentClient);

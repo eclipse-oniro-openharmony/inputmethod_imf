@@ -32,6 +32,7 @@
 #include "common_event_support.h"
 #include "display_manager.h"
 #include "global.h"
+#include "ime_event_monitor_manager.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "input_method_engine_listener_impl.h"

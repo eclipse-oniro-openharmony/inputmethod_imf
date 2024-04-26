@@ -31,6 +31,7 @@ config("inputmethod_ability_native_public_config") {
     "include",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/common",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
     "${inputmethod_path}/services/include",
     "${windowmanager_path}/interfaces/innerkits/dm",
     "${windowmanager_path}/interfaces/innerkits/wm",
@@ -56,7 +57,6 @@ ohos_shared_library("inputmethod_ability") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_system_ability_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/system_cmd_channel_proxy.cpp",
-    "${inputmethod_path}/services/src/global.cpp",
     "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
   ]
   cflags_cc = [
@@ -89,5 +89,49 @@ ohos_shared_library("inputmethod_ability") {
 
   subsystem_name = "inputmethod"
   innerapi_tags = [ "platformsdk" ]
+  part_name = "imf"
+}
+
+ohos_static_library("inputmethod_ability_static") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_interface.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_ability_utils.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_stub.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_panel.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_data_channel_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_method_system_ability_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/system_cmd_channel_proxy.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
+  ]
+
+  external_deps = [
+    "ability_base:configuration",
+    "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "c_utils:utils",
+    "graphic_2d:window_animation",
+    "hilog:libhilog",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "napi:ace_napi",
+    "samgr:samgr_proxy",
+    "window_manager:libdm",
+    "window_manager:libwm",
+  ]
+
+  public_deps = [ "${inputmethod_path}/common:inputmethod_common" ]
+
+  public_configs = [ ":inputmethod_ability_native_public_config" ]
+
+  subsystem_name = "inputmethod"
   part_name = "imf"
 }
