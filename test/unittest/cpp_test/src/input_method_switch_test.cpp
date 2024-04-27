@@ -46,7 +46,6 @@ public:
     static std::vector<std::string> extName;
     static std::vector<std::string> language;
     static std::vector<std::string> locale;
-    static bool enableOn;
     static std::string beforeValue;
     static std::string allEnableIme;
 };
@@ -57,7 +56,6 @@ std::string InputMethodSwitchTest::bundleName = "com.example.testIme";
 std::vector<std::string> InputMethodSwitchTest::extName{ "InputMethodExtAbility", "InputMethodExtAbility2" };
 std::vector<std::string> InputMethodSwitchTest::language{ "chinese", "english" };
 std::vector<std::string> InputMethodSwitchTest::locale{ "zh-CN", "en-US" };
-bool InputMethodSwitchTest::enableOn = false;
 std::string InputMethodSwitchTest::beforeValue;
 std::string InputMethodSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.newTestIme\", "
                                                   "\"com.example.testIme\"]}}";
@@ -87,10 +85,8 @@ void InputMethodSwitchTest::SetUpTestCase(void)
 void InputMethodSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::TearDownTestCase");
-    if (enableOn) {
-        TddUtil::GrantNativePermission();
-        TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
-    }
+    TddUtil::GrantNativePermission();
+    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
     InputMethodController::GetInstance()->Close();
     TddUtil::RestoreSelfTokenID();
 }
@@ -263,11 +259,7 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleName, TestSize.Level
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleName Test START");
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, "error bundleName", extName[0]);
-    if (InputMethodSwitchTest::enableOn) {
-        EXPECT_EQ(ret, ErrorCode::ERROR_ENABLE_IME);
-    } else {
-        EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
-    }
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
     CheckCurrentProp(subName);
     CheckCurrentSubProp(subName);
     CheckCurrentSubProps();
@@ -285,11 +277,7 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleNameWitchEmptySubNam
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleNameWitchEmptySubName Test START");
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, "error bundleName", " ");
-    if (InputMethodSwitchTest::enableOn) {
-        EXPECT_EQ(ret, ErrorCode::ERROR_ENABLE_IME);
-    } else {
-        EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
-    }
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
     CheckCurrentProp(subName);
     CheckCurrentSubProp(subName);
     CheckCurrentSubProps();

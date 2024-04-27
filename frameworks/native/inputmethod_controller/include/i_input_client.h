@@ -17,7 +17,6 @@
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_CLIENT_H
 
 #include "global.h"
-#include "i_input_method_agent.h"
 #include "input_method_property.h"
 #include "input_window_info.h"
 #include "iremote_broker.h"

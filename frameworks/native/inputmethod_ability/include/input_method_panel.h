@@ -25,7 +25,7 @@
 #include "js_runtime_utils.h"
 #include "panel_info.h"
 #include "panel_status_listener.h"
-#include "window.h"
+#include "foundation/window/window_manager/interfaces/innerkits/wm/window.h"
 
 namespace OHOS {
 namespace MiscServices {

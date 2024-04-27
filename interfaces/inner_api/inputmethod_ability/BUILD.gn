@@ -33,9 +33,6 @@ config("inputmethod_ability_native_public_config") {
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
     "${inputmethod_path}/services/include",
-    "${windowmanager_path}/interfaces/innerkits/dm",
-    "${windowmanager_path}/interfaces/innerkits/wm",
-    "${multimodalinput_path}/interfaces/native/innerkits/event/include",
   ]
 }
 

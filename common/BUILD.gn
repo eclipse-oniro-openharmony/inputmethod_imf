@@ -37,13 +37,13 @@ ohos_shared_library("inputmethod_common") {
   ]
   sources = [
     "src/global.cpp",
-    "src/itypes_util.cpp",
-    "src/message.cpp",
-    "src/message_handler.cpp",
+    "src/input_death_recipient.cpp",
     "src/inputmethod_dump.cpp",
     "src/inputmethod_sysevent.cpp",
     "src/inputmethod_trace.cpp",
-    "src/input_death_recipient.cpp",
+    "src/itypes_util.cpp",
+    "src/message.cpp",
+    "src/message_handler.cpp",
   ]
 
   configs = [ ":inputmethod_common_native_config" ]
@@ -51,14 +51,14 @@ ohos_shared_library("inputmethod_common") {
   public_configs = [ ":inputmethod_common_native_config" ]
 
   external_deps = [
-    "hilog:libhilog",
     "ability_base:want",
-    "ipc:ipc_single",
     "c_utils:utils",
+    "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "hitrace:libhitracechain",
     "input:libmmi-client",
+    "ipc:ipc_single",
   ]
 
   subsystem_name = "inputmethod"

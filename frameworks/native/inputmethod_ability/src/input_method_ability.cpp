@@ -22,6 +22,7 @@
 #include "global.h"
 #include "input_method_agent_stub.h"
 #include "input_method_core_stub.h"
+#include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"

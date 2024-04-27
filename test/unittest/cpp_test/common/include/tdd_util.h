@@ -20,7 +20,7 @@
 
 #include "block_data.h"
 #include "bundle_mgr_interface.h"
-#include "window.h"
+#include "foundation/window/window_manager/interfaces/innerkits/wm/window.h"
 #include "window_manager.h"
 #include "window_option.h"
 #include "wm_common.h"

@@ -301,6 +301,39 @@ public:
     IMF_API int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProperties);
 
     /**
+     * @brief Get enter key type.
+     *
+     * This function is used to get enter key type of current client.
+     *
+     * @param keyType Indicates the enter key type of current client that will be obtained, such as SEND, SEARCH...
+     * @return Returns 0 for success, others for failure.
+     * @since 6
+     */
+    int32_t GetEnterKeyType(int32_t &keyType);
+
+    /**
+     * @brief Get input pattern.
+     *
+     * This function is used to get text input type of current client.
+     *
+     * @param inputPattern Indicates the text input type of current client that will be obtained, such as TEXT, URL...
+     * @return Returns 0 for success, others for failure.
+     * @since 6
+     */
+    int32_t GetInputPattern(int32_t &inputPattern);
+
+    /**
+     * @brief Get text config.
+     *
+     * This function is used to get text config of current client.
+     *
+     * @param textConfig Indicates the text config of current client that will be obtained.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    int32_t GetTextConfig(TextTotalConfig &config);
+
+    /**
      * @brief Get current input method property.
      *
      * This function is used to get current input method property.
@@ -469,6 +502,189 @@ public:
     IMF_API bool WasAttached();
 
     /**
+     * @brief Set agent which will be used to communicate with IMA.
+     *
+     * This function is used to Set agent.
+     *
+     * @since 10
+     */
+    void OnInputReady(sptr<IRemoteObject> agentObject);
+
+    /**
+     * @brief Unbind IMC with Service.
+     *
+     * This function is unbind imc with service.
+     *
+     * @since 10
+     */
+    void OnInputStop();
+
+    /**
+     * @brief Insert text.
+     *
+     * This function is used to insert text into editor.
+     *
+     * @param text Indicates the text which will be inserted.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    int32_t InsertText(const std::u16string &text);
+
+    /**
+     * @brief Move cursor.
+     *
+     * This function is used to move cursor according to the direction.
+     *
+     * @param direction Indicates the direction according to which the cursor will be moved.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    int32_t MoveCursor(Direction direction);
+
+    /**
+     * @brief Delete forward.
+     *
+     * This function is used to delete text at the left of cursor.
+     *
+     * @param length Indicates the length of deleted text.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    int32_t DeleteForward(int32_t length);
+
+    /**
+     * @brief Delete backward.
+     *
+     * This function is used to delete text at the right of cursor.
+     *
+     * @param length Indicates the length of deleted text.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    int32_t DeleteBackward(int32_t length);
+
+    /**
+     * @brief Get text at the left of cursor.
+     *
+     * This function is used to get text at the left of cursor.
+     *
+     * @param length Indicates the length of text.
+     * @param text Indicates the text which will be get.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    int32_t GetLeft(int32_t length, std::u16string &text);
+
+    /**
+     * @brief Get text at the right of cursor.
+     *
+     * This function is used to get text at the right of cursor.
+     *
+     * @param length Indicates the length of text.
+     * @param text Indicates the text which will be get.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    int32_t GetRight(int32_t length, std::u16string &text);
+
+    /**
+     * @brief Select text in editor by range.
+     *
+     * This function is used to select text in editor by range.
+     *
+     * @param start Indicates the beginning of the range.
+     * @param start Indicates the end of the range.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    void SelectByRange(int32_t start, int32_t end);
+
+    /**
+     * @brief Select text in editor by cursor movement.
+     *
+     * This function is used to select text in editor by cursor movement.
+     *
+     * @param direction Indicates the direction of cursor movement.
+     * @param cursorMoveSkip Indicates the skip of cursor movement.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    void SelectByMovement(int32_t direction, int32_t cursorMoveSkip);
+
+    /**
+     * @brief Handle extend action code.
+     *
+     * This function is used to handle extend action code.
+     *
+     * @param action Indicates the action code which will be handled.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    int32_t HandleExtendAction(int32_t action);
+
+    /**
+     * @brief Get the index number of text at cursor.
+     *
+     * This function is used to get the index number of text at cursor.
+     *
+     * @param index Indicates the index number of text at cursor.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    int32_t GetTextIndexAtCursor(int32_t &index);
+
+    /**
+     * @brief Send keyboard status.
+     *
+     * This function is used to send keyboard status to editor.
+     *
+     * @param status Indicates the status of keyboard.
+     * @since 10
+     */
+    void SendKeyboardStatus(KeyboardStatus status);
+
+    /**
+     * @brief Send panel status info.
+     *
+     * This function is used to send panel status info to editor.
+     * Only notify the status info of soft keyboard(not contain candidate column) at present
+     *
+     * @param info Indicates the status info of panel.
+     * @since 11
+     */
+    void NotifyPanelStatusInfo(const PanelStatusInfo &info);
+
+    /**
+     * @brief Send panel height.
+     *
+     * This function is used to send panel height to editor.
+     *
+     * @param info Indicates the panel height.
+     * @since 11
+     */
+    void NotifyKeyboardHeight(uint32_t height);
+
+    /**
+     * @brief Send function key.
+     *
+     * This function is used to send function key to editor.
+     *
+     * @param functionKey Indicates the function key.
+     * @return Returns 0 for success, others for failure.
+     * @since 10
+     */
+    int32_t SendFunctionKey(int32_t functionKey);
+
+    /**
+     * @brief Deactivate the input client.
+     *
+     * This function is used to deactivate the input client.
+     *
+     * @since 11
+     */
+    void DeactivateClient();
+
+    /**
      * @brief Query whether an input type is supported.
      *
      * This function is used to query whether an input type is supported.
@@ -501,6 +717,7 @@ public:
      * @since 11
      */
     IMF_API int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown);
+    int32_t UpdateListenEventFlag(uint32_t finalEventFlag, uint32_t eventFlag, bool isOn);
 
     /**
      * @brief Send private command to ime.
@@ -514,30 +731,37 @@ public:
     IMF_API int32_t SendPrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
-    // Internal calls in so, no need IMF_API
-    int32_t GetEnterKeyType(int32_t &keyType);
-    int32_t GetInputPattern(int32_t &inputPattern);
-    int32_t GetTextConfig(TextTotalConfig &config);
-    void OnInputReady(sptr<IRemoteObject> agentObject);
-    void OnInputStop();
-    int32_t InsertText(const std::u16string &text);
-    int32_t MoveCursor(Direction direction);
-    int32_t DeleteForward(int32_t length);
-    int32_t DeleteBackward(int32_t length);
-    int32_t GetLeft(int32_t length, std::u16string &text);
-    int32_t GetRight(int32_t length, std::u16string &text);
-    void SelectByRange(int32_t start, int32_t end);
-    void SelectByMovement(int32_t direction, int32_t cursorMoveSkip);
-    int32_t HandleExtendAction(int32_t action);
-    int32_t GetTextIndexAtCursor(int32_t &index);
-    void SendKeyboardStatus(KeyboardStatus status);
-    void NotifyPanelStatusInfo(const PanelStatusInfo &info);
-    void NotifyKeyboardHeight(uint32_t height);
-    int32_t SendFunctionKey(int32_t functionKey);
-    void DeactivateClient();
-    int32_t UpdateListenEventFlag(uint32_t finalEventFlag, uint32_t eventFlag, bool isOn);
-    int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    /**
+     * @brief Receive private command from ime.
+     *
+     * This function is used to receive private command from ime.
+     *
+     * @param privateCommand Indicates the private command which send from ime.
+     * @return Returns 0 for success, others for failure.
+     * @since 12
+     */
+    int32_t ReceivePrivateCommand(
+        const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+
+    /**
+     * @brief Set preview text.
+     *
+     * This function is used to set preview text.
+     *
+     * @param text Indicates the text to be previewed.
+     * @param range Indicates the range of text to be replaced.
+     * @return Returns 0 for success, others for failure.
+     * @since 12
+     */
     int32_t SetPreviewText(const std::string &text, const Range &range);
+
+    /**
+     * @brief Finish text preview.
+     *
+     * This function is used to finish text preview.
+     *
+     * @since 12
+     */
     int32_t FinishTextPreview();
 
 private:

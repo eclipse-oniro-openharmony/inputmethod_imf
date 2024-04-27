@@ -249,7 +249,7 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, input.pid, input.uid, input.userID, input.isShowKeyboard, input.eventFlag, input.config,
-            input.state, input.isNotifyInputStart)) {
+        input.state, input.isNotifyInputStart)) {
         IMSA_HILOGE("write InputClientInfo to message parcel failed");
         return false;
     }

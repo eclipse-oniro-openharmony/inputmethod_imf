@@ -44,7 +44,6 @@ public:
     static std::vector<std::string> subName;
     static std::vector<std::string> locale;
     static std::vector<std::string> language;
-    static bool enableOn;
     static std::string beforeValue;
     static std::string allEnableIme;
 };
@@ -54,7 +53,6 @@ std::string NewImeSwitchTest::extName = "InputMethodExtAbility";
 std::vector<std::string> NewImeSwitchTest::subName{ "lowerInput", "upperInput", "chineseInput" };
 std::vector<std::string> NewImeSwitchTest::locale{ "en-US", "en-US", "zh-CN" };
 std::vector<std::string> NewImeSwitchTest::language{ "english", "english", "chinese" };
-bool NewImeSwitchTest::enableOn = false;
 std::string NewImeSwitchTest::beforeValue;
 std::string NewImeSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.newTestIme\"]}}";
 constexpr uint32_t IME_SUBTYPE_NUM = 3;
@@ -80,10 +78,8 @@ void NewImeSwitchTest::SetUpTestCase(void)
 void NewImeSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::TearDownTestCase");
-    if (enableOn) {
-        TddUtil::GrantNativePermission();
-        TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
-    }
+    TddUtil::GrantNativePermission();
+    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
     InputMethodController::GetInstance()->Close();
     TddUtil::RestoreSelfTokenID();
 }
