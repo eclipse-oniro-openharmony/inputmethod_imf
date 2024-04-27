@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_IME_SYSTEM_CHANNEL_H
-#define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_IME_SYSTEM_CHANNEL_H
+#ifndef INPUTMETHOD_CONTROLLER_IME_SYSTEM_CHANNEL_H
+#define INPUTMETHOD_CONTROLLER_IME_SYSTEM_CHANNEL_H
 
-#include "global.h"
+#include "bundle_mgr_client.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
 #include "input_method_utils.h"
@@ -28,11 +28,11 @@
 
 namespace OHOS {
 namespace MiscServices {
+using namespace OHOS::AppExecFwk;
 class OnSystemCmdListener : public virtual RefBase {
 public:
-    virtual int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+    virtual void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
     {
-        return ErrorCode::NO_ERROR;
     }
     virtual void NotifyIsShowSysPanel(bool shouldSysPanelShow)
     {
@@ -49,7 +49,7 @@ public:
      * @return The instance of ImeSystemCmdChannel.
      * @since 12
      */
-    IMF_API static sptr<ImeSystemCmdChannel> GetInstance();
+    static sptr<ImeSystemCmdChannel> GetInstance();
 
     /**
      * @brief Connect system channel, set listener and bind IMSA.
@@ -60,7 +60,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 12
      */
-    IMF_API int32_t ConnectSystemCmd(const sptr<OnSystemCmdListener> &listener);
+    int32_t ConnectSystemCmd(const sptr<OnSystemCmdListener> &listener);
 
     /**
      * @brief Send private command to ime.
@@ -71,28 +71,25 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 12
      */
-    IMF_API int32_t SendPrivateCommand(
+    int32_t SendPrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
-
+    std::string GetSmartMenuCfg();
     int32_t ReceivePrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
-
     int32_t ShowSysPanel(bool shouldSysPanelShow);
-
     void OnConnectCmdReady(const sptr<IRemoteObject> &agentObject);
-
-    int32_t RunConnectSystemCmd();
 
 private:
     ImeSystemCmdChannel();
     ~ImeSystemCmdChannel();
+    int32_t RunConnectSystemCmd();
     sptr<IInputMethodSystemAbility> GetSystemAbilityProxy();
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
-
     void SetSystemCmdListener(const sptr<OnSystemCmdListener> &listener);
     sptr<IInputMethodAgent> GetSystemCmdAgent();
     sptr<OnSystemCmdListener> GetSystemCmdListener();
     void ClearSystemCmdAgent();
+    void GetExtensionInfo(std::vector<ExtensionAbilityInfo> extensionInfos, ExtensionAbilityInfo &extInfo);
 
     static std::mutex instanceLock_;
     static sptr<ImeSystemCmdChannel> instance_;
@@ -110,4 +107,4 @@ private:
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_IME_SYSTEM_CHANNEL_H
+#endif // INPUTMETHOD_CONTROLLER_IME_SYSTEM_CHANNEL_H
