@@ -37,6 +37,7 @@ group("unittest") {
     "cpp_test:NewImeSwitchTest",
     "cpp_test:SecurityModeParseTest",
     "cpp_test:TextListenerInnerApiTest",
+    "cpp_test:VirtualListenerTest",
     "cpp_test/common:inputmethod_tdd_util",
     "napi_test/src:GetInputMethodJsTest",
     "resource/bundle_dependencies/editorBox:editorBox",

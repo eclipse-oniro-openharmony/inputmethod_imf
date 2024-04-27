@@ -109,7 +109,7 @@ public:
     void TearDown();
     static void SetInputDeathRecipient();
     static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
-    static bool CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
+    static void CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
     static bool WaitRemoteDiedCallback();
     static void WaitKeyboardStatusCallback(bool keyboardState);
     static void TriggerConfigurationChangeCallback(Configuration &info);
@@ -367,8 +367,9 @@ void InputMethodControllerTest::CheckProxyObject()
     }
 }
 
-bool InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
+void InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
+    ASSERT_NE(keyEvent, nullptr);
     bool ret = keyEvent->GetKeyCode() == keyEvent_->GetKeyCode();
     EXPECT_TRUE(ret);
     ret = keyEvent->GetKeyAction() == keyEvent_->GetKeyAction();
@@ -398,7 +399,6 @@ bool InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> key
     EXPECT_TRUE(ret);
     ret = keyEvent->GetKeyItem()->GetUnicode() == keyEvent_->GetKeyItem()->GetUnicode();
     EXPECT_TRUE(ret);
-    return ret;
 }
 
 void InputMethodControllerTest::WaitKeyboardStatusCallback(bool keyboardState)
@@ -637,8 +637,8 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent002, TestSize.Level0)
         keyEvent_, [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {});
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto keyEvent = blockFullKeyEvent_.GetValue();
-    EXPECT_NE(keyEvent, nullptr);
-    EXPECT_TRUE(CheckKeyEvent(keyEvent));
+    ASSERT_NE(keyEvent, nullptr);
+    CheckKeyEvent(keyEvent);
 }
 
 /**
@@ -659,11 +659,11 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent003, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto keyEvent = blockKeyEvent_.GetValue();
     auto keyFullEvent = blockFullKeyEvent_.GetValue();
-    EXPECT_NE(keyEvent, nullptr);
-    EXPECT_NE(keyFullEvent, nullptr);
+    ASSERT_NE(keyEvent, nullptr);
     EXPECT_EQ(keyEvent->GetKeyCode(), keyEvent_->GetKeyCode());
     EXPECT_EQ(keyEvent->GetKeyAction(), keyEvent_->GetKeyAction());
-    EXPECT_TRUE(CheckKeyEvent(keyFullEvent));
+    ASSERT_NE(keyFullEvent, nullptr);
+    CheckKeyEvent(keyFullEvent);
 }
 
 /**

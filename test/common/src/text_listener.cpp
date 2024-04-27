@@ -54,20 +54,21 @@ void TextListener::InsertText(const std::u16string &text)
 {
     insertText_ = text;
     textListenerCv_.notify_one();
+    IMSA_HILOGI("TextListener text: %{public}s", Str16ToStr8(text).c_str());
 }
 
 void TextListener::DeleteForward(int32_t length)
 {
     deleteForwardLength_ = length;
     textListenerCv_.notify_one();
-    IMSA_HILOGI("TextChangeListener: DeleteForward, length is: %{public}d", length);
+    IMSA_HILOGI("TextListener: DeleteForward, length is: %{public}d", length);
 }
 
 void TextListener::DeleteBackward(int32_t length)
 {
     deleteBackwardLength_ = length;
     textListenerCv_.notify_one();
-    IMSA_HILOGI("TextChangeListener: DeleteBackward, direction is: %{public}d", length);
+    IMSA_HILOGI("TextListener: DeleteBackward, direction is: %{public}d", length);
 }
 
 void TextListener::SendKeyEventFromInputMethod(const KeyEvent &event)
@@ -76,7 +77,7 @@ void TextListener::SendKeyEventFromInputMethod(const KeyEvent &event)
 
 void TextListener::SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
 {
-    IMSA_HILOGD("TextListener::SendKeyboardStatus %{public}d", static_cast<int>(keyboardStatus));
+    IMSA_HILOGI("TextListener::SendKeyboardStatus %{public}d", static_cast<int>(keyboardStatus));
     keyboardStatus_ = keyboardStatus;
     textListenerCv_.notify_one();
 }
@@ -85,19 +86,21 @@ void TextListener::SendFunctionKey(const FunctionKey &functionKey)
 {
     EnterKeyType enterKeyType = functionKey.GetEnterKeyType();
     key_ = static_cast<int32_t>(enterKeyType);
+    IMSA_HILOGI("TextListener functionKey: %{public}d", key_);
     textListenerCv_.notify_one();
 }
 
 void TextListener::SetKeyboardStatus(bool status)
 {
     status_ = status;
+    IMSA_HILOGI("TextListener status: %{public}d", status);
 }
 
 void TextListener::MoveCursor(const Direction direction)
 {
     direction_ = static_cast<int32_t>(direction);
     textListenerCv_.notify_one();
-    IMSA_HILOGI("TextChangeListener: MoveCursor, direction is: %{public}d", direction);
+    IMSA_HILOGI("TextListener: MoveCursor, direction is: %{public}d", direction);
 }
 
 void TextListener::HandleSetSelection(int32_t start, int32_t end)
@@ -106,7 +109,7 @@ void TextListener::HandleSetSelection(int32_t start, int32_t end)
     selectionEnd_ = end;
     textListenerCv_.notify_one();
     IMSA_HILOGI(
-        "TextChangeListener, selectionStart_: %{public}d, selectionEnd_: %{public}d", selectionStart_, selectionEnd_);
+        "TextListener, selectionStart_: %{public}d, selectionEnd_: %{public}d", selectionStart_, selectionEnd_);
 }
 
 void TextListener::HandleExtendAction(int32_t action)
@@ -121,16 +124,18 @@ void TextListener::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
     selectionDirection_ = keyCode;
     selectionSkip_ = cursorMoveSkip;
     textListenerCv_.notify_one();
-    IMSA_HILOGI("TextChangeListener, selectionDirection_: %{public}d", selectionDirection_);
+    IMSA_HILOGI("TextListener, selectionDirection_: %{public}d", selectionDirection_);
 }
 
 std::u16string TextListener::GetLeftTextOfCursor(int32_t number)
 {
+    IMSA_HILOGI("TextListener number: %{public}d", number);
     return Str8ToStr16(TEXT_BEFORE_CURSOR);
 }
 
 std::u16string TextListener::GetRightTextOfCursor(int32_t number)
 {
+    IMSA_HILOGI("TextListener number: %{public}d", number);
     return Str8ToStr16(TEXT_AFTER_CURSOR);
 }
 
@@ -147,7 +152,7 @@ int32_t TextListener::ReceivePrivateCommand(const std::unordered_map<std::string
 
 void TextListener::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
-    IMSA_HILOGD("TextListener::type: %{public}d, flag: %{public}d, visible: %{public}d, trigger: %{public}d.",
+    IMSA_HILOGI("TextListener::type: %{public}d, flag: %{public}d, visible: %{public}d, trigger: %{public}d.",
         static_cast<PanelType>(info.panelInfo.panelType), static_cast<PanelFlag>(info.panelInfo.panelFlag),
         info.visible, static_cast<Trigger>(info.trigger));
     info_ = info;
@@ -156,7 +161,7 @@ void TextListener::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 
 void TextListener::NotifyKeyboardHeight(uint32_t height)
 {
-    IMSA_HILOGD("keyboard height: %{public}u", height);
+    IMSA_HILOGI("keyboard height: %{public}u", height);
     height_ = height;
     textListenerCv_.notify_one();
 }
@@ -224,7 +229,6 @@ bool TextListener::WaitSendPrivateCommandCallback(std::unordered_map<std::string
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     textListenerCv_.wait_for(
         lock, std::chrono::seconds(1), [privateCommand]() { return privateCommand_ == privateCommand; });
-
     return privateCommand_ == privateCommand;
 }
 } // namespace MiscServices

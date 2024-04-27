@@ -960,7 +960,6 @@ HWTEST_F(InputMethodAbilityTest, testNotifyPanelStatusInfo_005, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_001 START");
-    TextListener::ResetParam();
     imc_->Attach(textListener_);
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
@@ -968,6 +967,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_001, TestSize.Level0)
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     panel->Resize(1, 1);
+    TextListener::ResetParam();
     inputMethodAbility_->NotifyKeyboardHeight(panel);
     EXPECT_TRUE(TextListener::WaitNotifyKeyboardHeightCallback(1));
 
@@ -985,7 +985,6 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_001, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_002 START");
-    TextListener::ResetParam();
     imc_->Attach(textListener_);
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo info = { .panelType = STATUS_BAR, .panelFlag = FLG_FIXED };
@@ -993,6 +992,7 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_002, TestSize.Level0)
     auto ret = inputMethodAbility_->CreatePanel(nullptr, info, panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     panel->Resize(1, 1);
+    TextListener::ResetParam();
     inputMethodAbility_->NotifyKeyboardHeight(panel);
     EXPECT_TRUE(TextListener::WaitNotifyKeyboardHeightCallback(0));
 
@@ -1010,7 +1010,6 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_002, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testNotifyKeyboardHeight_003 START");
-    TextListener::ResetParam();
     imc_->Attach(textListener_);
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo info = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_CANDIDATE_COLUMN };
@@ -1019,8 +1018,8 @@ HWTEST_F(InputMethodAbilityTest, testNotifyKeyboardHeight_003, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     panel->Resize(1, 1);
     inputMethodAbility_->NotifyKeyboardHeight(panel);
+    TextListener::ResetParam();
     EXPECT_TRUE(TextListener::WaitNotifyKeyboardHeightCallback(0));
-
     ret = inputMethodAbility_->DestroyPanel(panel);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
@@ -1099,7 +1098,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_001 Test START");
     TextListener::ResetParam();
-    imc_->Close();
+    InputMethodAbilityTest::GetIMCDetachIMA();
     TddUtil::RestoreSelfTokenID();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
@@ -1116,7 +1115,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_001, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_002 Test START");
-    TextListener::ResetParam();
+    InputMethodAbilityTest::GetIMCDetachIMA();
     TokenScope tokenScope(InputMethodAbilityTest::defaultImeTokenId_);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
@@ -1136,8 +1135,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_003 Test START");
     TextListener::ResetParam();
-    auto ret = imc_->Attach(textListener_, false);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodAbilityTest::GetIMCAttachIMA();
     TokenScope tokenScope(InputMethodAbilityTest::defaultImeTokenId_);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
@@ -1146,10 +1144,10 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
     privateCommand.emplace("value1", privateDataValue1);
     privateCommand.emplace("value2", privateDataValue2);
     privateCommand.emplace("value3", privateDataValue3);
-    ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
+    auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendPrivateCommandCallback(privateCommand));
-    imc_->Close();
+    InputMethodAbilityTest::GetIMCDetachIMA();
 }
 
 /**

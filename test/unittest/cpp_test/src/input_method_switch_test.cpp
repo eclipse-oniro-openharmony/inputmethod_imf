@@ -47,7 +47,7 @@ public:
     static std::vector<std::string> extName;
     static std::vector<std::string> language;
     static std::vector<std::string> locale;
-    static bool enableOn;
+    static bool enableOn_;
     static std::string beforeValue;
     static std::string allEnableIme;
 };
@@ -58,7 +58,7 @@ std::string InputMethodSwitchTest::bundleName = "com.example.testIme";
 std::vector<std::string> InputMethodSwitchTest::extName{ "InputMethodExtAbility", "InputMethodExtAbility2" };
 std::vector<std::string> InputMethodSwitchTest::language{ "chinese", "english" };
 std::vector<std::string> InputMethodSwitchTest::locale{ "zh-CN", "en-US" };
-bool InputMethodSwitchTest::enableOn = false;
+bool InputMethodSwitchTest::enableOn_ = false;
 std::string InputMethodSwitchTest::beforeValue;
 std::string InputMethodSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.newTestIme\", "
                                                   "\"com.example.testIme\"]}}";
@@ -72,10 +72,10 @@ void InputMethodSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::SetUpTestCase");
     ImeInfoInquirer::GetInstance().InitSystemConfig();
-    enableOn = ImeInfoInquirer::GetInstance().IsEnableInputMethod();
+    enableOn_ = ImeInfoInquirer::GetInstance().IsEnableInputMethod();
+    IMSA_HILOGI("enableOn: %{public}d", enableOn_);
     TddUtil::GrantNativePermission();
-    if (enableOn == true) {
-        IMSA_HILOGI("Enable ime switch test.");
+    if (enableOn_) {
         int32_t ret = TddUtil::GetEnableData(beforeValue);
         if (ret == ErrorCode::NO_ERROR) {
             TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
@@ -92,7 +92,7 @@ void InputMethodSwitchTest::SetUpTestCase(void)
 void InputMethodSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodSwitchTest::TearDownTestCase");
-    if (enableOn) {
+    if (enableOn_) {
         TddUtil::GrantNativePermission();
         TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
     }
@@ -268,7 +268,7 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleName, TestSize.Level
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleName Test START");
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, "error bundleName", extName[0]);
-    if (InputMethodSwitchTest::enableOn) {
+    if (InputMethodSwitchTest::enableOn_) {
         EXPECT_EQ(ret, ErrorCode::ERROR_ENABLE_IME);
     } else {
         EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
@@ -290,7 +290,7 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleNameWitchEmptySubNam
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleNameWitchEmptySubName Test START");
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, "error bundleName", " ");
-    if (InputMethodSwitchTest::enableOn) {
+    if (InputMethodSwitchTest::enableOn_) {
         EXPECT_EQ(ret, ErrorCode::ERROR_ENABLE_IME);
     } else {
         EXPECT_EQ(ret, ErrorCode::ERROR_BAD_PARAMETERS);
