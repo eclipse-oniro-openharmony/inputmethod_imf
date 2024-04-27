@@ -600,9 +600,8 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
             if (argc == 0) {
                 return false;
             }
-
-            napi_value jsObject = JsUtils::GetValue(env, entry->inputAttribute);
-            if (jsObject == nullptr) {
+            napi_value jsObject = JsInputAttribute::Write(env, entry->inputAttribute);
+            if (jsObject == JsUtil::Const::Null(env)) {
                 IMSA_HILOGE("get GetAttribute failed: jsObject is nullptr");
                 return false;
             }

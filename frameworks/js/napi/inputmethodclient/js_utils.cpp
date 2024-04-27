@@ -402,19 +402,6 @@ napi_value JsUtils::GetValue(napi_env env, const InputWindowInfo &in)
     return info;
 }
 
-napi_value JsUtils::GetValue(napi_env env, const InputAttribute &attribute)
-{
-    napi_value editorAttribute = nullptr;
-    napi_create_object(env, &editorAttribute);
-
-    auto ret = JsUtil::Object::WriteProperty(env, editorAttribute, "inputPattern", attribute.inputPattern);
-    ret = ret && JsUtil::Object::WriteProperty(env, editorAttribute, "enterKeyType", attribute.enterKeyType);
-    ret = ret
-          && JsUtil::Object::WriteProperty(
-              env, editorAttribute, "isTextPreviewSupported", attribute.isTextPreviewSupported);
-    return ret ? editorAttribute : JsUtil::Const::Null(env);
-}
-
 napi_status JsUtils::GetValue(napi_env env, const std::string &in, napi_value &out)
 {
     return napi_create_string_utf8(env, in.c_str(), in.size(), &out);

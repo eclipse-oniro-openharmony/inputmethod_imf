@@ -179,23 +179,6 @@ napi_value JsTextInputClientEngine::GetResult(napi_env env, std::string &text)
     return jsText;
 }
 
-napi_value JsTextInputClientEngine::GetResultEditorAttribute(
-    napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute)
-{
-    napi_value editorAttribute = nullptr;
-    napi_create_object(env, &editorAttribute);
-
-    napi_value jsValue = nullptr;
-    napi_create_int32(env, getEditorAttribute->enterKeyType, &jsValue);
-    napi_set_named_property(env, editorAttribute, "enterKeyType", jsValue);
-
-    napi_value jsMethodId = nullptr;
-    napi_create_int32(env, getEditorAttribute->inputPattern, &jsMethodId);
-    napi_set_named_property(env, editorAttribute, "inputPattern", jsMethodId);
-
-    return editorAttribute;
-}
-
 napi_status JsTextInputClientEngine::GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt)
 {
     napi_status status = napi_generic_failure;
@@ -620,45 +603,41 @@ napi_value JsTextInputClientEngine::GetBackward(napi_env env, napi_callback_info
 
 napi_value JsTextInputClientEngine::GetEditorAttributeSync(napi_env env, napi_callback_info info)
 {
-    int32_t enterKeyType = 0;
-    int32_t ret = InputMethodAbility::GetInstance()->GetEnterKeyType(enterKeyType);
+    TextTotalConfig config;
+    int32_t ret = InputMethodAbility::GetInstance()->GetTextConfig(config);
     if (ret != ErrorCode::NO_ERROR) {
-        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to getEnterKeyType", TYPE_NONE);
+        IMSA_HILOGE("GetTextConfig failed ret: %{public}d", ret);
+        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_IMCLIENT, "failed to get text config", TYPE_NONE);
     }
-    IMSA_HILOGD("enterKeyType: %{public}d", enterKeyType);
-
-    int32_t inputPattern = 0;
-    ret = InputMethodAbility::GetInstance()->GetInputPattern(inputPattern);
-    if (ret != ErrorCode::NO_ERROR) {
-        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to getInputPattern", TYPE_NONE);
-    }
-    IMSA_HILOGD("patternCode: %{public}d", inputPattern);
-
-    const InputAttribute attribute = { .inputPattern = inputPattern, .enterKeyType = enterKeyType };
-    return JsUtils::GetValue(env, attribute);
+    IMSA_HILOGD("inputPattern: %{public}d, enterKeyType: %{public}d, isTextPreviewSupported: %{public}d",
+        config.inputAttribute.inputPattern, config.inputAttribute.enterKeyType,
+        config.inputAttribute.isTextPreviewSupported);
+    return JsInputAttribute::Write(env, config.inputAttribute);
 }
 
 napi_value JsTextInputClientEngine::GetEditorAttribute(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<GetEditorAttributeContext>();
-    auto input = [ctxt](
-                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
-        napi_value data = GetResultEditorAttribute(env, ctxt);
-        *result = data;
+        *result = JsInputAttribute::Write(env, ctxt->inputAttribute);
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
-        int32_t typeCode = InputMethodAbility::GetInstance()->GetEnterKeyType(ctxt->enterKeyType);
-        int32_t patternCode = InputMethodAbility::GetInstance()->GetInputPattern(ctxt->inputPattern);
-        if (typeCode == ErrorCode::NO_ERROR && patternCode == ErrorCode::NO_ERROR) {
-            ctxt->status = napi_ok;
-            ctxt->SetState(ctxt->status);
+        TextTotalConfig config;
+        int32_t ret = InputMethodAbility::GetInstance()->GetTextConfig(config);
+        ctxt->inputAttribute = config.inputAttribute;
+        if (ret == ErrorCode::NO_ERROR) {
+            ctxt->SetState(napi_ok);
+            IMSA_HILOGD("inputPattern: %{public}d, enterKeyType: %{public}d, isTextPreviewSupported: %{public}d",
+                config.inputAttribute.inputPattern, config.inputAttribute.enterKeyType,
+                config.inputAttribute.isTextPreviewSupported);
         } else {
-            typeCode == ErrorCode::NO_ERROR ? ctxt->SetErrorCode(patternCode) : ctxt->SetErrorCode(typeCode);
+            IMSA_HILOGE("GetTextConfig failed ret: %{public}d", ret);
+            ctxt->SetErrorCode(IMFErrorCode::EXCEPTION_IMCLIENT);
+            ctxt->SetErrorMessage("Failed to get text config.");
         }
     };
-    ctxt->SetAction(std::move(input), std::move(output));
+    ctxt->SetAction(nullptr, std::move(output));
     // 1 means JsAPI:getEditorAttribute has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "getEditorAttribute");
@@ -1069,6 +1048,27 @@ bool JsRange::Read(napi_env env, napi_value jsObject, Range &nativeObject)
 {
     auto ret = JsUtil::Object::ReadProperty(env, jsObject, "start", nativeObject.start);
     ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "end", nativeObject.end);
+    return ret;
+}
+
+napi_value JsInputAttribute::Write(napi_env env, const InputAttribute &nativeObject)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    auto ret = JsUtil::Object::WriteProperty(env, jsObject, "inputPattern", nativeObject.inputPattern);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "enterKeyType", nativeObject.enterKeyType);
+    ret =
+        ret
+        && JsUtil::Object::WriteProperty(env, jsObject, "isTextPreviewSupported", nativeObject.isTextPreviewSupported);
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+
+bool JsInputAttribute::Read(napi_env env, napi_value jsObject, InputAttribute &nativeObject)
+{
+    auto ret = JsUtil::Object::ReadProperty(env, jsObject, "inputPattern", nativeObject.inputPattern);
+    ret = ret && JsUtil::Object::ReadProperty(env, jsObject, "enterKeyType", nativeObject.enterKeyType);
+    ret = ret
+          && JsUtil::Object::ReadProperty(env, jsObject, "isTextPreviewSupported", nativeObject.isTextPreviewSupported);
     return ret;
 }
 } // namespace MiscServices
