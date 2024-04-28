@@ -18,6 +18,7 @@ config("inputmethod_client_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
+    "${inputmethod_path}/common/include",
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
@@ -29,7 +30,7 @@ config("inputmethod_client_native_public_config") {
   visibility = [ "./*" ]
   include_dirs = [
     "include",
-    "${inputmethod_path}/common",
+    "${inputmethod_path}/common/include",
     "${inputmethod_path}/frameworks/common",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
@@ -74,8 +75,6 @@ ohos_shared_library("inputmethod_client") {
 
   deps = [ "${inputmethod_path}/common:inputmethod_common" ]
 
-  public_deps = [ "${inputmethod_path}/common:inputmethod_common" ]
-
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
@@ -118,7 +117,7 @@ ohos_static_library("inputmethod_client_static") {
 
   public_configs = [ ":inputmethod_client_native_public_config" ]
 
-  public_deps = [ "${inputmethod_path}/common:inputmethod_common" ]
+  deps = [ "${inputmethod_path}/common:inputmethod_common" ]
 
   external_deps = [
     "ability_base:want",

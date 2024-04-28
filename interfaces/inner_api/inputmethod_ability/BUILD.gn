@@ -125,7 +125,7 @@ ohos_static_library("inputmethod_ability_static") {
     "window_manager:libwm",
   ]
 
-  public_deps = [ "${inputmethod_path}/common:inputmethod_common" ]
+  deps = [ "${inputmethod_path}/common:inputmethod_common" ]
 
   public_configs = [ ":inputmethod_ability_native_public_config" ]
 

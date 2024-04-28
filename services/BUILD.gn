@@ -152,7 +152,6 @@ ohos_static_library("inputmethod_service_static") {
     "adapter/settings_data_provider:settings_data_static",
     "file:imf_file_static",
     "json:imf_json_static",
-    "//third_party/cJSON:cjson",
   ]
 
   external_deps = [
