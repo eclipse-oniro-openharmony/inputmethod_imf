@@ -49,7 +49,7 @@ public:
      * @return The instance of ImeSystemCmdChannel.
      * @since 12
      */
-    static sptr<ImeSystemCmdChannel> GetInstance();
+    IMF_API static sptr<ImeSystemCmdChannel> GetInstance();
 
     /**
      * @brief Connect system channel, set listener and bind IMSA.
@@ -60,7 +60,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 12
      */
-    int32_t ConnectSystemCmd(const sptr<OnSystemCmdListener> &listener);
+    IMF_API int32_t ConnectSystemCmd(const sptr<OnSystemCmdListener> &listener);
 
     /**
      * @brief Send private command to ime.
@@ -71,9 +71,18 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 12
      */
-    int32_t SendPrivateCommand(
+    IMF_API int32_t SendPrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
-    std::string GetSmartMenuCfg();
+
+    /**
+     * @brief Get smart menu config from default input method.
+     *
+     * This function is used to get smart menu config from default input method.
+     *
+     * @return string.
+     * @since 12
+     */
+    IMF_API std::string GetSmartMenuCfg();
     int32_t ReceivePrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     int32_t ShowSysPanel(bool shouldSysPanelShow);
