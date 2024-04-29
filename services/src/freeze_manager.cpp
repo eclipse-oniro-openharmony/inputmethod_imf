@@ -27,6 +27,7 @@ const std::string INPUT_METHOD_SERVICE_SA_NAME = "inputmethod_service";
 bool FreezeManager::IsIpcNeeded(RequestType type)
 {
     // If ime is in use, no need to request hide.
+    std::lock_guard<std::mutex> lock(mutex_);
     return !(type == RequestType::REQUEST_HIDE && !isImeInUse_);
 }
 
