@@ -17,6 +17,7 @@ import("//build/ohos.gni")
 config("settings_data_config") {
   include_dirs = [
     "include",
+    "${inputmethod_path}/common/include",
     "${inputmethod_path}/services/include",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/include",
     "${inputmethod_path}/services/json/include",

@@ -36,7 +36,7 @@ ohos_fuzztest("ControlChannelStubFuzzTest") {
 
   sources = [ "controlchannelstub_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/services:inputmethod_service" ]
+  deps = [ "${inputmethod_path}/services:inputmethod_service_static" ]
 
   external_deps = [
     "c_utils:utils",

@@ -25,7 +25,6 @@
 #include "event_status_manager.h"
 #include "global.h"
 #include "i_input_client.h"
-#include "i_input_data_channel.h"
 #include "i_input_method_core.h"
 #include "i_system_cmd_channel.h"
 #include "input_attribute.h"
@@ -59,7 +58,7 @@ public:
     virtual std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() = 0;
     virtual int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) = 0;
     virtual int32_t DisplayOptionalInputMethod() = 0;
-    virtual int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) = 0;
+    virtual int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) = 0;
     virtual int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) = 0;
     virtual int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) = 0;
     virtual int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) = 0;
@@ -74,7 +73,7 @@ public:
     virtual int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) = 0;
     virtual int32_t GetSecurityMode(int32_t &security) = 0;
     virtual int32_t IsDefaultIme() = 0;
-    virtual int32_t ConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent) = 0;
+    virtual int32_t ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) = 0;
 
     // Deprecated because of no permission check, and keep for compatibility
     virtual int32_t HideCurrentInputDeprecated() = 0;

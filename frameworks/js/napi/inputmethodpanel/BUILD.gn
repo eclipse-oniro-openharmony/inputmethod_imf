@@ -18,6 +18,7 @@ config("inputmethod_panel_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "./",
+    "${inputmethod_path}/common/include",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
   ]
 }
@@ -30,7 +31,6 @@ ohos_shared_library("panel") {
     debug = false
   }
   sources = [
-    "${inputmethod_path}/services/src/global.cpp",
     "input_method_panel_module.cpp",
     "js_input_method_panel.cpp",
   ]

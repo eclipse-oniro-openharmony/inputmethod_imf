@@ -115,19 +115,18 @@ void InputMethodController::SetControllerListener(std::shared_ptr<ControllerList
 
 int32_t InputMethodController::Initialize()
 {
-    auto client = new (std::nothrow) InputClientStub();
+    sptr<IInputClient> client = new (std::nothrow) InputClientStub();
     if (client == nullptr) {
         IMSA_HILOGE("failed to new client");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto channel = new (std::nothrow) InputDataChannelStub();
+    sptr<IInputDataChannel> channel = new (std::nothrow) InputDataChannelStub();
     if (channel == nullptr) {
-        delete client;
         IMSA_HILOGE("failed to new channel");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     InputAttribute attribute = { .inputPattern = InputAttribute::PATTERN_TEXT };
-    clientInfo_ = { .attribute = attribute, .client = client, .channel = channel };
+    clientInfo_ = { .attribute = attribute, .client = client, .channel = channel->AsObject() };
 
     // make AppExecFwk::EventHandler handler
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());

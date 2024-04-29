@@ -17,7 +17,6 @@
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_CLIENT_H
 
 #include "global.h"
-#include "i_input_method_agent.h"
 #include "input_method_property.h"
 #include "input_window_info.h"
 #include "iremote_broker.h"
@@ -39,7 +38,7 @@ public:
 
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.InputClient");
 
-    virtual int32_t OnInputReady(const sptr<IInputMethodAgent> &agent) = 0;
+    virtual int32_t OnInputReady(const sptr<IRemoteObject> &agent) = 0;
     virtual int32_t OnInputStop() = 0;
     virtual int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) = 0;
     virtual int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) = 0;

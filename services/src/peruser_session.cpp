@@ -21,11 +21,7 @@
 #include "element_name.h"
 #include "ime_cfg_manager.h"
 #include "ime_info_inquirer.h"
-#include "input_client_proxy.h"
-#include "input_control_channel_proxy.h"
-#include "input_data_channel_proxy.h"
-#include "input_method_agent_proxy.h"
-#include "input_method_core_proxy.h"
+#include "input_control_channel_stub.h"
 #include "input_type_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -493,7 +489,7 @@ int32_t PerUserSession::OnStartInput(const InputClientInfo &inputClientInfo, spt
         IMSA_HILOGE("data or agent is nullptr.");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    agent = data->agent->AsObject();
+    agent = data->agent;
     return ErrorCode::NO_ERROR;
 }
 
@@ -549,7 +545,7 @@ void PerUserSession::StopClientInput(const sptr<IInputClient> &currentClient)
     IMSA_HILOGI("stop client input, ret: %{public}d", ret);
 }
 
-void PerUserSession::StopImeInput(ImeType currentType, const sptr<IInputDataChannel> &currentChannel)
+void PerUserSession::StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel)
 {
     auto data = GetImeData(currentType);
     if (data == nullptr) {
@@ -572,7 +568,7 @@ void PerUserSession::OnSecurityChange(int32_t security)
     IMSA_HILOGD("on security change, ret: %{public}d", ret);
 }
 
-int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
+int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGI("run in");
     auto imeType = ImeType::IME;
@@ -593,7 +589,7 @@ int32_t PerUserSession::OnSetCoreAndAgent(const sptr<IInputMethodCore> &core, co
     return ErrorCode::NO_ERROR;
 }
 
-int32_t PerUserSession::OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
+int32_t PerUserSession::OnRegisterProxyIme(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGD("run in");
     auto imeType = ImeType::PROXY_IME;
@@ -756,7 +752,7 @@ void PerUserSession::NotifyImeChangeToClients(const Property &property, const Su
     }
 }
 
-int32_t PerUserSession::AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IInputMethodAgent> agent, pid_t pid)
+int32_t PerUserSession::AddImeData(ImeType type, sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, pid_t pid)
 {
     if (core == nullptr || agent == nullptr) {
         IMSA_HILOGE("core or agent is nullptr");
@@ -1061,16 +1057,6 @@ bool PerUserSession::IsProxyImeStartInImeBind(ImeType bindImeType, ImeType start
     return startImeType == ImeType::PROXY_IME && bindImeType == ImeType::IME;
 }
 
-bool PerUserSession::IsBindProxyImeInImeBind(ImeType bindImeType)
-{
-    return bindImeType == ImeType::IME && IsProxyImeEnable();
-}
-
-bool PerUserSession::IsBindImeInProxyImeBind(ImeType bindImeType)
-{
-    return bindImeType == ImeType::PROXY_IME && !IsProxyImeEnable();
-}
-
 bool PerUserSession::IsImeBindChanged(ImeType bindImeType)
 {
     return (bindImeType == ImeType::IME && IsProxyImeEnable())
@@ -1174,7 +1160,7 @@ int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, Request
     return ret;
 }
 
-int32_t PerUserSession::OnConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent)
+int32_t PerUserSession::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
 {
     auto data = GetImeData(ImeType::IME);
     if (data == nullptr) {

@@ -18,7 +18,6 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "global.h"
 #include "input_method_agent_stub.h"
 #include "message_parcel.h"
 

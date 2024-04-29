@@ -24,7 +24,6 @@
 #include "js_input_method.h"
 #include "js_util.h"
 #include "js_utils.h"
-#include "keyevent_consumer_proxy.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"

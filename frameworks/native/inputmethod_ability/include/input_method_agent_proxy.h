@@ -24,7 +24,6 @@
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "iremote_proxy.h"
-#include "keyevent_consumer_proxy.h"
 #include "message_parcel.h"
 #include "nocopyable.h"
 #include "refbase.h"
