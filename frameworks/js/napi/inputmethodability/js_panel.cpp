@@ -317,7 +317,6 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
         JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
         return nullptr;
     }
-
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {
