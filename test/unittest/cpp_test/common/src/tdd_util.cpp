@@ -310,7 +310,7 @@ void TddUtil::PushEnableImeValue(const std::string &key, const std::string &valu
         IMSA_HILOGI("data exits");
     }
     bool ret = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
-    IMSA_HILOGE("ReleaseDataShareHelper isSuccess: %{public}d", ret);
+    IMSA_HILOGI("ReleaseDataShareHelper isSuccess: %{public}d", ret);
 }
 
 int32_t TddUtil::GetEnableData(std::string &value)
@@ -384,6 +384,7 @@ void TddUtil::WindowManager::ShowWindow()
         IMSA_HILOGE("window is not exist.");
         return;
     }
+    TokenScope scope(windowTokenId_);
     auto ret = window_->Show();
     IMSA_HILOGI("Show window end, ret = %{public}d", ret);
 }
@@ -401,8 +402,9 @@ void TddUtil::WindowManager::HideWindow()
 
 void TddUtil::WindowManager::DestroyWindow()
 {
-    if (window_ != nullptr) {
-        IMSA_HILOGE("window nullptr");
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ nullptr");
+        return;
     }
     TokenScope scope(windowTokenId_);
     auto wmError = window_->Destroy();

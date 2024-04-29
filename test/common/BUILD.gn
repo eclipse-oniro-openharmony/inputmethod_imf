@@ -50,7 +50,10 @@ ohos_static_library("inputmethod_test_common") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
   ]
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "input:libmmi-client",
+  ]
 
   subsystem_name = "inputmethod"
   part_name = "imf"

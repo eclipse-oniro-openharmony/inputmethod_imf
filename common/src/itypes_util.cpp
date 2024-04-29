@@ -16,8 +16,6 @@
 #include "itypes_util.h"
 
 #include "global.h"
-#include "input_client_proxy.h"
-#include "input_data_channel_proxy.h"
 #include "iremote_object.h"
 
 namespace OHOS {
@@ -122,6 +120,7 @@ bool ITypesUtil::Unmarshalling(sptr<IRemoteObject> &output, MessageParcel &data)
     output = data.ReadRemoteObject();
     return true;
 }
+
 bool ITypesUtil::Marshalling(const Property &input, MessageParcel &data)
 {
     if (!Marshal(data, input.name, input.id, input.label, input.labelId, input.icon, input.iconId)) {
@@ -143,7 +142,7 @@ bool ITypesUtil::Unmarshalling(Property &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const SubProperty &input, MessageParcel &data)
 {
     if (!Marshal(data, input.label, input.labelId, input.name, input.id, input.mode, input.locale, input.language,
-            input.icon, input.iconId)) {
+        input.icon, input.iconId)) {
         IMSA_HILOGE("ITypesUtil::write SubProperty to message parcel failed");
         return false;
     }
@@ -250,7 +249,7 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, input.pid, input.uid, input.userID, input.isShowKeyboard, input.eventFlag, input.config,
-        input.state, input.isNotifyInputStart, input.client->AsObject(), input.channel->AsObject())) {
+        input.state, input.isNotifyInputStart)) {
         IMSA_HILOGE("write InputClientInfo to message parcel failed");
         return false;
     }
@@ -264,14 +263,6 @@ bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
         IMSA_HILOGE("read InputClientInfo from message parcel failed");
         return false;
     }
-    auto client = data.ReadRemoteObject();
-    auto channel = data.ReadRemoteObject();
-    if (client == nullptr || channel == nullptr) {
-        IMSA_HILOGE("read remote object failed");
-        return false;
-    }
-    output.client = iface_cast<IInputClient>(client);
-    output.channel = iface_cast<IInputDataChannel>(channel);
     return true;
 }
 

@@ -43,6 +43,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+using namespace AppExecFwk;
 class InputMethodPrivateMemberTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -591,7 +592,7 @@ HWTEST_F(InputMethodPrivateMemberTest, III_TestGetCurrentSubtype_001, TestSize.L
     ImeCfgManager::GetInstance().imeConfigs_.push_back(
         { currentUserId, currentProp->name + "/" + currentProp->id, "tt" });
     subProp = ImeInfoInquirer::GetInstance().GetCurrentSubtype(currentUserId);
-    EXPECT_TRUE(subProp != nullptr);
+    ASSERT_TRUE(subProp != nullptr);
     EXPECT_TRUE(subProp->name == currentProp->name);
 
     // get correct subProp

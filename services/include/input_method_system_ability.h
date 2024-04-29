@@ -40,9 +40,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-using AbilityType = AppExecFwk::ExtensionAbilityType;
-using namespace AppExecFwk;
-using namespace Security::AccessToken;
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 class InputMethodSystemAbility : public SystemAbility, public InputMethodSystemAbilityStub {
     DECLARE_SYSTEM_ABILITY(InputMethodSystemAbility);
@@ -72,7 +69,7 @@ public:
     int32_t SwitchInputMethod(
         const std::string &bundleName, const std::string &subName, SwitchTrigger trigger) override;
     int32_t DisplayOptionalInputMethod() override;
-    int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
+    int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
     int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) override;
     int32_t PanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) override;
     int32_t UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag) override;
@@ -82,7 +79,7 @@ public:
     int32_t ExitCurrentInputType() override;
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     int32_t GetSecurityMode(int32_t &security) override;
-    int32_t ConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent) override;
+    int32_t ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) override;
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;
     int32_t ShowCurrentInputDeprecated() override;

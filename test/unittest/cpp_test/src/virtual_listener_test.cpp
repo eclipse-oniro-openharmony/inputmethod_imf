@@ -20,6 +20,8 @@
 
 #include "global.h"
 #include "ime_event_listener.h"
+#include "ime_setting_listener_test_impl.h"
+#include "ime_system_channel.h"
 #include "input_method_controller.h"
 #include "input_method_engine_listener.h"
 #include "input_method_utils.h"
@@ -111,6 +113,32 @@ public:
  */
 class EventListenerImpl : public ImeEventListener {
 };
+/**
+ * @brief Only pure virtual functions are implemented.
+ */
+class SystemCmdChannelImpl : public OnSystemCmdListener {
+};
+
+class SystemCmdChannelListenerImpl : public OnSystemCmdListener {
+public:
+    void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override
+    {
+        isReceivePrivateCommand_ = true;
+    }
+    void NotifyIsShowSysPanel(bool shouldSysPanelShow) override
+    {
+        isNotifyIsShowSysPanel_ = true;
+    }
+    static void ResetParam()
+    {
+        isReceivePrivateCommand_ = false;
+        isNotifyIsShowSysPanel_ = false;
+    }
+    static bool isReceivePrivateCommand_;
+    static bool isNotifyIsShowSysPanel_;
+};
+bool SystemCmdChannelListenerImpl::isReceivePrivateCommand_{ false };
+bool SystemCmdChannelListenerImpl::isNotifyIsShowSysPanel_{ false };
 
 class VirtualListenerTest : public testing::Test {
 public:
@@ -120,6 +148,7 @@ public:
         textListener_ = new (std::nothrow) TextListenerImpl();
         eventListener_ = std::make_shared<EventListenerImpl>();
         engineListener_ = std::make_shared<EngineListenerImpl>();
+        systemCmdListener_ = new (std::nothrow) SystemCmdChannelImpl();
     }
     static void TearDownTestCase(void)
     {
@@ -136,10 +165,12 @@ public:
     static sptr<OnTextChangedListener> textListener_;
     static std::shared_ptr<ImeEventListener> eventListener_;
     static std::shared_ptr<InputMethodEngineListener> engineListener_;
+    static sptr<OnSystemCmdListener> systemCmdListener_;
 };
 sptr<OnTextChangedListener> VirtualListenerTest::textListener_{ nullptr };
 std::shared_ptr<ImeEventListener> VirtualListenerTest::eventListener_{ nullptr };
 std::shared_ptr<InputMethodEngineListener> VirtualListenerTest::engineListener_{ nullptr };
+sptr<OnSystemCmdListener> VirtualListenerTest::systemCmdListener_{ nullptr };
 
 /**
  * @tc.name: testOnTextChangedListener_001
@@ -150,14 +181,17 @@ std::shared_ptr<InputMethodEngineListener> VirtualListenerTest::engineListener_{
 HWTEST_F(VirtualListenerTest, testOnTextChangedListener_001, TestSize.Level0)
 {
     IMSA_HILOGI("VirtualListenerTest testOnTextChangedListener_001 START");
+    ASSERT_NE(VirtualListenerTest::textListener_, nullptr);
     PanelStatusInfo statusInfo;
     Range range;
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     VirtualListenerTest::textListener_->NotifyPanelStatusInfo(statusInfo);
     VirtualListenerTest::textListener_->NotifyKeyboardHeight(0);
-    VirtualListenerTest::textListener_->ReceivePrivateCommand(privateCommand);
-    VirtualListenerTest::textListener_->SetPreviewText(Str8ToStr16("test"), range);
+    int32_t ret = VirtualListenerTest::textListener_->ReceivePrivateCommand(privateCommand);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     VirtualListenerTest::textListener_->FinishTextPreview();
+    ret = VirtualListenerTest::textListener_->SetPreviewText(Str8ToStr16("test"), range);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 /**
@@ -169,8 +203,10 @@ HWTEST_F(VirtualListenerTest, testOnTextChangedListener_001, TestSize.Level0)
 HWTEST_F(VirtualListenerTest, testInputMethodEngineListener_001, TestSize.Level0)
 {
     IMSA_HILOGI("VirtualListenerTest testInputMethodEngineListener_001 START");
+    ASSERT_NE(VirtualListenerTest::engineListener_, nullptr);
     VirtualListenerTest::engineListener_->OnInputFinish();
-    VirtualListenerTest::engineListener_->IsEnable();
+    bool isEnable = VirtualListenerTest::engineListener_->IsEnable();
+    EXPECT_FALSE(isEnable);
 }
 
 /**
@@ -182,12 +218,43 @@ HWTEST_F(VirtualListenerTest, testInputMethodEngineListener_001, TestSize.Level0
 HWTEST_F(VirtualListenerTest, testImeEventListener_001, TestSize.Level0)
 {
     IMSA_HILOGI("VirtualListenerTest testImeEventListener_001 START");
+    ASSERT_NE(VirtualListenerTest::eventListener_, nullptr);
     Property property;
     SubProperty subProperty;
     ImeWindowInfo imeWindowInfo;
+    auto listener = std::make_shared<ImeSettingListenerTestImpl>();
+    ImeSettingListenerTestImpl::ResetParam();
     VirtualListenerTest::eventListener_->OnImeChange(property, subProperty);
     VirtualListenerTest::eventListener_->OnImeShow(imeWindowInfo);
     VirtualListenerTest::eventListener_->OnImeHide(imeWindowInfo);
+    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitImeChange());
+    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitPanelHide());
+    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitPanelHide());
+}
+
+/**
+ * @tc.name: testOnSystemCmdListener_001
+ * @tc.desc: Cover non-pure virtual function in class: OnSystemCmdListener.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VirtualListenerTest, testOnSystemCmdListener_001, TestSize.Level0)
+{
+    IMSA_HILOGI("VirtualListenerTest testOnSystemCmdListener_001 START");
+    sptr<OnSystemCmdListener> listener = new (std::nothrow) SystemCmdChannelListenerImpl();
+    ASSERT_NE(listener, nullptr);
+    ASSERT_NE(VirtualListenerTest::systemCmdListener_, nullptr);
+    SystemCmdChannelListenerImpl::ResetParam();
+    std::unordered_map<std::string, PrivateDataValue> privateCommand;
+    VirtualListenerTest::systemCmdListener_->ReceivePrivateCommand(privateCommand);
+    VirtualListenerTest::systemCmdListener_->NotifyIsShowSysPanel(false);
+    EXPECT_FALSE(SystemCmdChannelListenerImpl::isNotifyIsShowSysPanel_);
+    EXPECT_FALSE(SystemCmdChannelListenerImpl::isReceivePrivateCommand_);
+    SystemCmdChannelListenerImpl::ResetParam();
+    listener->ReceivePrivateCommand(privateCommand);
+    listener->NotifyIsShowSysPanel(false);
+    EXPECT_TRUE(SystemCmdChannelListenerImpl::isNotifyIsShowSysPanel_);
+    EXPECT_TRUE(SystemCmdChannelListenerImpl::isReceivePrivateCommand_);
 }
 } // namespace MiscServices
 } // namespace OHOS

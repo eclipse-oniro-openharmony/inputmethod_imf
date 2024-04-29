@@ -178,7 +178,7 @@ std::mutex ImeFreezeManagerTest::mtx_;
 HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_StartInput_001");
-    EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
+    ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
     ClearState();
     TestAttach(false);
     TestAttach(true);
@@ -204,7 +204,7 @@ HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInput_001, TestSize.Level0)
 HWTEST_F(ImeFreezeManagerTest, SingleThread_StartAndStopInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_StartAndStopInput_001");
-    EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
+    ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
     ClearState();
     TestAttach(true);
     TestDetach();
@@ -227,7 +227,7 @@ HWTEST_F(ImeFreezeManagerTest, SingleThread_StartAndStopInput_001, TestSize.Leve
 HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInputAndRequestHide_001, TestSize.Level0)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_StartInputAndRequestHide_001");
-    EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
+    ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
     ClearState();
     TestAttach(true);
     TestRequestHideInput(true);
@@ -245,7 +245,7 @@ HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInputAndRequestHide_001, TestSi
 HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInputAndNormalIPC_001, TestSize.Level0)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_StartInputAndNormalIPC_001");
-    EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
+    ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
     ClearState();
     TestNormalIPC();
 
@@ -266,7 +266,7 @@ HWTEST_F(ImeFreezeManagerTest, SingleThread_StartInputAndNormalIPC_001, TestSize
 HWTEST_F(ImeFreezeManagerTest, MultiThread_FullTest_001, TestSize.Level0)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::MultiThread_FullTest_001");
-    EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
+    ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
     SET_THREAD_NUM(5);
     GTEST_RUN_TASK(FullTestTask);
 }
@@ -279,7 +279,7 @@ HWTEST_F(ImeFreezeManagerTest, MultiThread_FullTest_001, TestSize.Level0)
 HWTEST_F(ImeFreezeManagerTest, SingleThread_RequestShow_001, TestSize.Level0)
 {
     IMSA_HILOGI("ImeFreezeManagerTest::SingleThread_RequestShow_001");
-    EXPECT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
+    ASSERT_NE(ImeFreezeManagerTest::freezeManager_, nullptr);
     ClearState();
     TestRequestShowInput(true);
 }

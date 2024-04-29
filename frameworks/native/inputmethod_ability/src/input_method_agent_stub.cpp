@@ -18,6 +18,7 @@
 #include "global.h"
 #include "input_method_ability.h"
 #include "ipc_skeleton.h"
+#include "itypes_util.h"
 #include "message.h"
 #include "message_handler.h"
 

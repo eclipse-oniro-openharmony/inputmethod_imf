@@ -41,10 +41,8 @@ ohos_static_library("imf_sa_stub_fuzztest_common_static") {
 
   public_deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
-    "//third_party/cJSON:cjson",
   ]
 
   public_configs = [ ":imf_sa_stub_fuzztest_common_config" ]

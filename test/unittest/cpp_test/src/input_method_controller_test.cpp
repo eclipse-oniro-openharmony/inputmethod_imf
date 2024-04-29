@@ -552,7 +552,7 @@ HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testGetIMSAProxy, TestSize.Level0)
 {
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    EXPECT_TRUE(systemAbilityManager != nullptr);
+    ASSERT_NE(systemAbilityManager, nullptr);
     auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
     EXPECT_TRUE(systemAbility != nullptr);
 }

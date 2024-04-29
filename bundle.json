@@ -56,13 +56,12 @@
       }, 
       "build": {
           "group_type": {
-              "base_group": [ ], 
+              "base_group": ["//base/inputmethod/imf/common:inputmethod_common"],
               "fwk_group": [
                   "//base/inputmethod/imf/interfaces/inner_api/inputmethod_controller:inputmethod_client",
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethodclient:inputmethod",
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethodlist:inputmethodlist",
-                  "//base/inputmethod/imf/frameworks/js/napi/inputmethodpanel:panel",
-                  "//base/inputmethod/imf/services/dfx:inputmethod_dfx_static"
+                  "//base/inputmethod/imf/frameworks/js/napi/inputmethodpanel:panel"
               ], 
               "service_group": [
                   "//base/inputmethod/imf/etc/init:inputmethodservice.cfg", 
@@ -75,7 +74,8 @@
                   "//base/inputmethod/imf/frameworks/kits/extension:inputmethod_extension_module", 
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethodability:inputmethodengine", 
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_ability:inputmethodextensionability_napi",
-                  "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi"
+                  "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi",
+                  "//base/inputmethod/imf/frameworks/js/napi/keyboardpanelmanager:keyboardpanelmanager"
               ]
           },
           "inner_api": [
@@ -88,10 +88,8 @@
                           "../../../../frameworks/native/inputmethod_controller/include/input_method_property.h",
                           "../../../../frameworks/native/inputmethod_controller/include/input_method_utils.h",
                           "../../../../frameworks/native/inputmethod_controller/include/input_window_info.h",
-                          "../../../../frameworks/native/inputmethod_controller/include/i_system_cmd_channel.h",
                           "ime_event_listener.h",
                           "ime_event_monitor_manager.h",
-                          "ime_system_channel.h",
                           "input_method_controller.h"
                       ], 
                       "header_base": "//base/inputmethod/imf/interfaces/inner_api/inputmethod_controller/include"

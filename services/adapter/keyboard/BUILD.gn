@@ -18,7 +18,7 @@ config("inputmethod_adapter_native_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "include",
-    "${inputmethod_path}/services/include",
+    "${inputmethod_path}/common/include",
   ]
 }
 
