@@ -26,8 +26,9 @@
 #include "js_runtime_utils.h"
 #include "panel_info.h"
 #include "panel_status_listener.h"
-#include "window.h"
+#include "foundation/window/window_manager/interfaces/innerkits/wm/window.h"
 #include "wm_common.h"
+
 namespace OHOS {
 namespace MiscServices {
 class InputMethodPanel {
@@ -57,19 +58,6 @@ public:
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
-    class WindowChangedListener : public Rosen::IWindowChangeListener {
-    public:
-        using ChangeHandler = std::function<void(const Rosen::Rect &rect)>;
-        explicit WindowChangedListener(ChangeHandler handler) : handler_(std::move(handler))
-        {
-        }
-        ~WindowChangedListener() = default;
-        void OnSizeChange(Rosen::Rect Rect, Rosen::WindowSizeChangeReason reason,
-            const std::shared_ptr<Rosen::RSTransaction> &rsTransaction = nullptr) override;
-
-    private:
-        ChangeHandler handler_ = nullptr;
-    };
     class KeyboardPanelInfoChangeListener : public Rosen::IKeyboardPanelInfoChangeListener {
     public:
         using ChangeHandler = std::function<void(const Rosen::KeyboardPanelInfo &keyboardPanelInfo)>;
@@ -77,7 +65,13 @@ private:
         {
         }
         ~KeyboardPanelInfoChangeListener() = default;
-        void OnKeyboardPanelInfoChanged(const Rosen::KeyboardPanelInfo &keyboardPanelInfo) override;
+        void OnKeyboardPanelInfoChanged(const Rosen::KeyboardPanelInfo &keyboardPanelInfo) override
+        {
+            if (handler_ == nullptr) {
+                return;
+            }
+            handler_(keyboardPanelInfo);
+        }
 
     private:
         ChangeHandler handler_ = nullptr;
@@ -85,9 +79,6 @@ private:
     void RegisterKeyboardPanelInfoChangeListener();
     void UnregisterKeyboardPanelInfoChangeListener();
     void HandleKbPanelInfoChange(const Rosen::KeyboardPanelInfo &keyboardPanelInfo);
-    void RegisterWindowChangeListener();
-    void UnregisterWindowChangeListener();
-    void HandleSizeChange(const Rosen::Rect &rect);
     bool IsHidden();
     int32_t SetPanelProperties();
     std::string GeneratePanelName();
@@ -109,7 +100,6 @@ private:
     static std::atomic<uint32_t> sequenceId_;
     std::mutex heightLock_;
     uint32_t panelHeight_ = 0;
-    sptr<Rosen::IWindowChangeListener> windowChangeListener_{ nullptr };
     sptr<Rosen::IKeyboardPanelInfoChangeListener> kbPanelInfoListener_{ nullptr };
     bool isScbEnable_{ false };
 };

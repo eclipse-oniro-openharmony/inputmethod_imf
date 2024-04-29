@@ -16,14 +16,9 @@
     *InputDataChannelProxy*;
     *InputMethodAbility*;
     *InputMethodAbilityInterface*;
-    *InputMethodAgentProxy*;
-    *InputMethodAgentStub*;
-    *InputMethodCoreProxy*;
-    *InputMethodCoreStub*;
     *InputMethodPanel*;
-    *InputMethodSystemAbilityProxy*;
-    *ITypesUtil*;
-    *MessageHandler*;
+    *KeyEventConsumerProxy*;
+    *SystemCmdChannelProxy*;
   local:
     *;
 };

@@ -380,7 +380,8 @@ int32_t ImeInfoInquirer::ListDisabledInputMethod(const int32_t userId, std::vect
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userId, bool enableOn)
+int32_t ImeInfoInquirer::GetSwitchInfoBySwitchCount(
+    SwitchInfo &switchInfo, int32_t userId, bool enableOn, uint32_t cacheCount)
 {
     std::vector<Property> props;
     auto ret = ListEnabledInputMethod(userId, props, enableOn);
@@ -401,8 +402,8 @@ int32_t ImeInfoInquirer::GetNextSwitchInfo(SwitchInfo &switchInfo, int32_t userI
         IMSA_HILOGE("bundle manager error");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
-    auto nextIter = std::next(iter);
-    switchInfo.bundleName = nextIter == props.end() ? props[0].name : nextIter->name;
+    uint32_t nextIndex = (cacheCount + std::distance(props.begin(), iter)) % props.size();
+    switchInfo.bundleName = props[nextIndex].name;
     IMSA_HILOGD("Next ime: %{public}s", switchInfo.bundleName.c_str());
     return ErrorCode::NO_ERROR;
 }

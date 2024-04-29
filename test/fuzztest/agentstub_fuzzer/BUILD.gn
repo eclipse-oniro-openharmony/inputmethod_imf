@@ -25,6 +25,7 @@ ohos_fuzztest("AgentStubFuzzTest") {
   fuzz_config_file = "//base/inputmethod/imf/test/fuzztest/agentstub_fuzzer"
 
   include_dirs = [
+    "${inputmethod_path}/common/include",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
   ]
@@ -36,16 +37,14 @@ ohos_fuzztest("AgentStubFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
-    "agentstub_fuzzer.cpp",
-  ]
+  sources = [ "agentstub_fuzzer.cpp" ]
 
-  deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability" ]
+  deps = [ "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static" ]
 
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "input:libmmi-client",
     "ipc:ipc_single",
   ]
 }

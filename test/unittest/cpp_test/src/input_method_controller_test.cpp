@@ -505,7 +505,7 @@ HWTEST_F(InputMethodControllerTest, testIMCAttach002, TestSize.Level0)
     IMSA_HILOGD("IMC testIMCAttach002 Test START");
     TextListener::ResetParam();
     CursorInfo cursorInfo = { 1, 1, 1, 1 };
-    SelectionRange selectionRange = { 1, 2 };
+    Range selectionRange = { 1, 2 };
     InputAttribute attribute = { 1, 1 };
     uint32_t windowId = 10;
     TextConfig textConfig = {

@@ -19,12 +19,9 @@
 
 #include "element_name.h"
 #include "input_client_proxy.h"
-#include "input_data_channel_proxy.h"
-#include "input_method_agent_proxy.h"
 #include "input_method_core_proxy.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
-#include "os_account_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -48,10 +45,12 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(
 int32_t InputMethodSystemAbilityStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     InputClientInfo clientInfo;
-    if (!ITypesUtil::Unmarshal(data, clientInfo)) {
+    sptr<IRemoteObject> client = nullptr;
+    if (!ITypesUtil::Unmarshal(data, clientInfo, client, clientInfo.channel)) {
         IMSA_HILOGE("read clientInfo failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
+    clientInfo.client = iface_cast<IInputClient>(client);
     sptr<IRemoteObject> agent = nullptr;
     int32_t ret = StartInput(clientInfo, agent);
     return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR
@@ -137,7 +136,7 @@ int32_t InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote(MessageParcel &dat
         IMSA_HILOGE("agentObject is nullptr");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    int32_t ret = SetCoreAndAgent(iface_cast<IInputMethodCore>(coreObject), iface_cast<IInputMethodAgent>(agentObject));
+    int32_t ret = SetCoreAndAgent(iface_cast<IInputMethodCore>(coreObject), agentObject);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
@@ -267,11 +266,13 @@ int32_t InputMethodSystemAbilityStub::PanelStatusChangeOnRemote(MessageParcel &d
 int32_t InputMethodSystemAbilityStub::UpdateListenEventFlagOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     InputClientInfo clientInfo;
+    sptr<IRemoteObject> client = nullptr;
     uint32_t eventFlag = 0;
-    if (!ITypesUtil::Unmarshal(data, clientInfo, eventFlag)) {
+    if (!ITypesUtil::Unmarshal(data, clientInfo, client, clientInfo.channel, eventFlag)) {
         IMSA_HILOGE("Unmarshal failed");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
+    clientInfo.client = iface_cast<IInputClient>(client);
     int32_t ret = UpdateListenEventFlag(clientInfo, eventFlag);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
@@ -347,6 +348,19 @@ int32_t InputMethodSystemAbilityStub::IsPanelShownOnRemote(MessageParcel &data, 
 int32_t InputMethodSystemAbilityStub::IsDefaultImeOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     return ITypesUtil::Marshal(reply, IsDefaultIme()) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodSystemAbilityStub::ConnectSystemCmdOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    auto systemCmdStub = data.ReadRemoteObject();
+    if (systemCmdStub == nullptr) {
+        IMSA_HILOGE("systemCmdStub is nullptr");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    sptr<IRemoteObject> agent = nullptr;
+    int32_t ret = ConnectSystemCmd(systemCmdStub, agent);
+    return reply.WriteInt32(ret) && reply.WriteRemoteObject(agent) ? ErrorCode::NO_ERROR
+                                                                   : ErrorCode::ERROR_EX_PARCELABLE;
 }
 } // namespace MiscServices
 } // namespace OHOS

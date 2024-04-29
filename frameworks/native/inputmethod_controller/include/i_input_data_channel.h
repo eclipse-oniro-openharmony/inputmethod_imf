@@ -50,6 +50,8 @@ public:
         NOTIFY_PANEL_STATUS_INFO,
         NOTIFY_KEYBOARD_HEIGHT,
         SEND_PRIVATE_COMMAND,
+        SET_PREVIEW_TEXT,
+        FINISH_TEXT_PREVIEW,
         DATA_CHANNEL_CMD_LAST
     };
 
@@ -73,6 +75,8 @@ public:
     virtual void NotifyPanelStatusInfo(const PanelStatusInfo &info) = 0;
     virtual void NotifyKeyboardHeight(uint32_t height) = 0;
     virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
+    virtual int32_t SetPreviewText(const std::string &text, const Range &range) = 0;
+    virtual int32_t FinishTextPreview() = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

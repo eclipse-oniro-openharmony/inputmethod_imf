@@ -16,8 +16,6 @@
 #include "itypes_util.h"
 
 #include "global.h"
-#include "input_client_proxy.h"
-#include "input_data_channel_proxy.h"
 #include "iremote_object.h"
 
 namespace OHOS {
@@ -122,6 +120,7 @@ bool ITypesUtil::Unmarshalling(sptr<IRemoteObject> &output, MessageParcel &data)
     output = data.ReadRemoteObject();
     return true;
 }
+
 bool ITypesUtil::Marshalling(const Property &input, MessageParcel &data)
 {
     if (!Marshal(data, input.name, input.id, input.label, input.labelId, input.icon, input.iconId)) {
@@ -162,7 +161,7 @@ bool ITypesUtil::Unmarshalling(SubProperty &output, MessageParcel &data)
 
 bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 {
-    if (!Marshal(data, input.inputPattern, input.enterKeyType, input.inputOption)) {
+    if (!Marshal(data, input.inputPattern, input.enterKeyType, input.inputOption, input.isTextPreviewSupported)) {
         IMSA_HILOGE("write InputAttribute to message parcel failed");
         return false;
     }
@@ -171,7 +170,7 @@ bool ITypesUtil::Marshalling(const InputAttribute &input, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 {
-    if (!Unmarshal(data, output.inputPattern, output.enterKeyType, output.inputOption)) {
+    if (!Unmarshal(data, output.inputPattern, output.enterKeyType, output.inputOption, output.isTextPreviewSupported)) {
         IMSA_HILOGE("read InputAttribute from message parcel failed");
         return false;
     }
@@ -180,8 +179,7 @@ bool ITypesUtil::Unmarshalling(InputAttribute &output, MessageParcel &data)
 
 bool ITypesUtil::Marshalling(const TextTotalConfig &input, MessageParcel &data)
 {
-    if (!Marshal(data, input.inputAttribute.inputPattern, input.inputAttribute.enterKeyType,
-        input.inputAttribute.inputOption)) {
+    if (!Marshal(data, input.inputAttribute)) {
         IMSA_HILOGE("write InputAttribute to message parcel failed");
         return false;
     }
@@ -251,7 +249,7 @@ bool ITypesUtil::Unmarshalling(TextTotalConfig &output, MessageParcel &data)
 bool ITypesUtil::Marshalling(const InputClientInfo &input, MessageParcel &data)
 {
     if (!Marshal(data, input.pid, input.uid, input.userID, input.isShowKeyboard, input.eventFlag, input.config,
-        input.state, input.isNotifyInputStart, input.client->AsObject(), input.channel->AsObject())) {
+        input.state, input.isNotifyInputStart)) {
         IMSA_HILOGE("write InputClientInfo to message parcel failed");
         return false;
     }
@@ -265,14 +263,6 @@ bool ITypesUtil::Unmarshalling(InputClientInfo &output, MessageParcel &data)
         IMSA_HILOGE("read InputClientInfo from message parcel failed");
         return false;
     }
-    auto client = data.ReadRemoteObject();
-    auto channel = data.ReadRemoteObject();
-    if (client == nullptr || channel == nullptr) {
-        IMSA_HILOGE("read remote object failed");
-        return false;
-    }
-    output.client = iface_cast<IInputClient>(client);
-    output.channel = iface_cast<IInputDataChannel>(channel);
     return true;
 }
 
@@ -456,6 +446,24 @@ bool ITypesUtil::Unmarshalling(PrivateDataValue &output, MessageParcel &data)
         IMSA_HILOGE("read PrivateDataValue from message parcel failed");
     }
     return res;
+}
+
+bool ITypesUtil::Marshalling(const Range &input, MessageParcel &data)
+{
+    if (!Marshal(data, input.start, input.end)) {
+        IMSA_HILOGE("failed to write Range into message parcel");
+        return false;
+    }
+    return true;
+}
+
+bool ITypesUtil::Unmarshalling(Range &output, MessageParcel &data)
+{
+    if (!Unmarshal(data, output.start, output.end)) {
+        IMSA_HILOGE("failed to read Range from message parcel");
+        return false;
+    }
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -100,6 +100,7 @@ ohos_unittest("InputMethodAttachTest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
+    "input:libmmi-client",
     "napi:ace_napi",
     "window_manager:libwm",
   ]
@@ -114,16 +115,15 @@ ohos_unittest("InputMethodAbilityTest") {
   module_out_path = module_output_path
 
   sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_proxy.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_stub.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
     "src/input_method_ability_exception_test.cpp",
     "src/input_method_ability_test.cpp",
   ]
 
   configs = [ ":module_private_config" ]
-
-  include_dirs = [
-    "${windowmanager_path}/interfaces/innerkits/dm",
-    "${windowmanager_path}/interfaces/innerkits/wm",
-  ]
 
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
@@ -164,11 +164,6 @@ ohos_unittest("InputMethodServiceTest") {
 
   configs = [ ":module_private_config" ]
 
-  include_dirs = [
-    "${windowmanager_path}/interfaces/innerkits/dm",
-    "${windowmanager_path}/interfaces/innerkits/wm",
-  ]
-
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
@@ -207,10 +202,10 @@ ohos_unittest("InputMethodDfxTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${inputmethod_path}/common:inputmethod_common",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
     "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
@@ -247,11 +242,6 @@ ohos_unittest("InputMethodPanelTest") {
 
   configs = [ ":module_private_config" ]
 
-  include_dirs = [
-    "${windowmanager_path}/interfaces/innerkits/dm",
-    "${windowmanager_path}/interfaces/innerkits/wm",
-  ]
-
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
@@ -268,6 +258,7 @@ ohos_unittest("InputMethodPanelTest") {
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "graphic_2d:window_animation",
     "hilog:libhilog",
@@ -276,32 +267,6 @@ ohos_unittest("InputMethodPanelTest") {
     "os_account:os_account_innerkits",
     "window_manager:libdm",
     "window_manager:libwm",
-  ]
-}
-
-ohos_unittest("InputMethodUtilsTest") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  module_out_path = module_output_path
-
-  sources = [
-    "src/block_queue_test.cpp",
-    "src/input_method_utils_test.cpp",
-  ]
-
-  deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_core",
   ]
 }
 
@@ -349,17 +314,20 @@ ohos_unittest("InputMethodPrivateMemberTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/input_method_private_member_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp",
+    "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_stub.cpp",
+    "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
+    "src/input_method_private_member_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -375,6 +343,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "input:libmmi-client",
     "ipc:ipc_core",
     "ipc:ipc_single",
+    "napi:ace_napi",
     "os_account:os_account_innerkits",
     "window_manager:libwm",
   ]
@@ -467,19 +436,10 @@ ohos_unittest("IdentityCheckerTest") {
 
   configs = [ ":module_private_config" ]
 
-  include_dirs = [
-    "${windowmanager_path}/interfaces/innerkits/dm",
-    "${windowmanager_path}/interfaces/innerkits/wm",
-  ]
-
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -554,11 +514,6 @@ ohos_unittest("ImeProxyTest") {
   sources = [ "src/ime_proxy_test.cpp" ]
 
   configs = [ ":module_private_config" ]
-
-  include_dirs = [
-    "${windowmanager_path}/interfaces/innerkits/dm",
-    "${windowmanager_path}/interfaces/innerkits/wm",
-  ]
 
   deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
@@ -643,7 +598,6 @@ ohos_unittest("SecurityModeParseTest") {
 
   include_dirs = [
     "${inputmethod_path}/test/unittest/cpp_test/mock",
-    "${inputmethod_path}/common",
     "${inputmethod_path}/services/include",
     "${inputmethod_path}/services/identity_checker/include",
     "${inputmethod_path}/services/adapter/settings_data_provider/include",
@@ -661,9 +615,7 @@ ohos_unittest("SecurityModeParseTest") {
   ]
 
   deps = [
-    "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/services/json:imf_json_static",
-    "//third_party/cJSON:cjson",
+    "${inputmethod_path}/services:inputmethod_service_static",
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
@@ -696,12 +648,8 @@ ohos_unittest("ImeFreezeManagerTest") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
+    "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
-    "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -734,9 +682,8 @@ ohos_unittest("JsonOperateTest") {
   sources = [ "src/json_operate_test.cpp" ]
 
   deps = [
-    "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services:inputmethod_service_static",
     "${inputmethod_path}/services/adapter/settings_data_provider:settings_data_static",
-    "${inputmethod_path}/services/file:imf_file_static",
     "${inputmethod_path}/services/json:imf_json_static",
     "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",

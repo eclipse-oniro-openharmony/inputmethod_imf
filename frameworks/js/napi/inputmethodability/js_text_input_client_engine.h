@@ -39,6 +39,8 @@ enum class EditorEvent : uint32_t {
     GET_FORWARD,
     GET_BACKWARD,
     GET_TEXT_INDEX_AT_CURSOR,
+    SET_PREVIEW_TEXT,
+    FINISH_TEXT_PREVIEW,
     EVENT_END,
 };
 struct EditorEventInfo {
@@ -67,6 +69,11 @@ struct JsRect {
 struct JsCallingWindowInfo {
     static napi_value Write(napi_env env, const CallingWindowInfo &nativeObject);
     static bool Read(napi_env env, napi_value object, CallingWindowInfo &nativeObject);
+};
+
+struct JsRange {
+    static napi_value Write(napi_env env, const Range &nativeObject);
+    static bool Read(napi_env env, napi_value jsObject, Range &nativeObject);
 };
 
 struct SendKeyFunctionContext : public AsyncCall::Context {
@@ -300,8 +307,8 @@ struct GetTextIndexAtCursorContext : public AsyncCall::Context {
 struct SendExtendActionContext : public AsyncCall::Context {
     int32_t action = 0;
     EditorEventInfo info;
-    SendExtendActionContext() : Context(nullptr, nullptr) {};
-    SendExtendActionContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) {};
+    SendExtendActionContext() : Context(nullptr, nullptr){};
+    SendExtendActionContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -353,6 +360,44 @@ struct GetCallingWindowInfoContext : public AsyncCall::Context {
     }
 };
 
+struct SetPreviewTextContext : public AsyncCall::Context {
+    std::string text;
+    Range range;
+    EditorEventInfo info;
+    SetPreviewTextContext() : Context(nullptr, nullptr){};
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status_ != napi_ok) {
+            output_ = nullptr;
+            return status_;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
+struct FinishTextPreviewContext : public AsyncCall::Context {
+    EditorEventInfo info;
+    FinishTextPreviewContext() : Context(nullptr, nullptr){};
+    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
+    {
+        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
+        return Context::operator()(env, argc, argv, self);
+    }
+    napi_status operator()(napi_env env, napi_value *result) override
+    {
+        if (status_ != napi_ok) {
+            output_ = nullptr;
+            return status_;
+        }
+        return Context::operator()(env, result);
+    }
+};
+
 class JsTextInputClientEngine {
 public:
     JsTextInputClientEngine() = default;
@@ -383,6 +428,10 @@ public:
     static napi_value GetBackwardSync(napi_env env, napi_callback_info info);
     static napi_value GetCallingWindowInfo(napi_env env, napi_callback_info info);
     static napi_value SendPrivateCommand(napi_env env, napi_callback_info info);
+    static napi_value SetPreviewText(napi_env env, napi_callback_info info);
+    static napi_value SetPreviewTextSync(napi_env env, napi_callback_info info);
+    static napi_value FinishTextPreview(napi_env env, napi_callback_info info);
+    static napi_value FinishTextPreviewSync(napi_env env, napi_callback_info info);
 
 private:
     static napi_status GetSelectRange(napi_env env, napi_value argv, std::shared_ptr<SelectContext> ctxt);
@@ -393,6 +442,8 @@ private:
     static napi_value GetResultEditorAttribute(
         napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
     static void PrintEditorQueueInfoIfTimeout(int64_t start, const EditorEventInfo &currentInfo);
+    static napi_status GetPreviewTextParam(
+        napi_env env, size_t argc, napi_value *argv, std::string &text, Range &range);
 
     static const std::string TIC_CLASS_NAME;
     static thread_local napi_ref TICRef_;

@@ -50,7 +50,7 @@ int32_t ImeEventMonitorManagerImpl::RegisterImeEventListener(
         return ret;
     }
     for (uint32_t i = 0; i < MAX_EVENT_NUM; i++) {
-        auto eventMask = eventFlag & (1u << (MAX_EVENT_NUM - (i + 1)));
+        auto eventMask = eventFlag & (1u << i);
         if (eventMask == 0) {
             continue;
         }
@@ -70,7 +70,7 @@ int32_t ImeEventMonitorManagerImpl::UnRegisterImeEventListener(
     std::lock_guard<std::mutex> lock(lock_);
     bool isAbsentParam = false;
     for (uint32_t i = 0; i < MAX_EVENT_NUM; i++) {
-        auto eventMask = eventFlag & (1u << (MAX_EVENT_NUM - (i + 1)));
+        auto eventMask = eventFlag & (1u << i);
         if (eventMask == 0) {
             continue;
         }

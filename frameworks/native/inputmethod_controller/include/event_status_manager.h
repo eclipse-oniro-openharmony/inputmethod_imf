@@ -16,7 +16,7 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_LISTEN_EVENT_MANAGER_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_LISTEN_EVENT_MANAGER_H
 
-#include "ime_event_monitor_manager.h"
+#include "ime_event_listener.h"
 
 namespace OHOS {
 namespace MiscServices {

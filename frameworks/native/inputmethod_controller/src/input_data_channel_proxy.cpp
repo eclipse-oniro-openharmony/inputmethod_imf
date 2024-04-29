@@ -136,6 +136,17 @@ int32_t InputDataChannelProxy::SendPrivateCommand(
         [&privateCommand](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, privateCommand); });
 }
 
+int32_t InputDataChannelProxy::SetPreviewText(const std::string &text, const Range &range)
+{
+    return SendRequest(
+        SET_PREVIEW_TEXT, [&text, &range](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text, range); });
+}
+
+int32_t InputDataChannelProxy::FinishTextPreview()
+{
+    return SendRequest(FINISH_TEXT_PREVIEW);
+}
+
 void InputDataChannelProxy::GetMessageOption(int32_t code, MessageOption &option)
 {
     switch (code) {

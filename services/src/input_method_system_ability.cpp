@@ -45,12 +45,13 @@ namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
 using namespace AccountSA;
+using namespace AppExecFwk;
+using namespace Security::AccessToken;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr uint32_t RETRY_INTERVAL = 100;
 constexpr uint32_t BLOCK_RETRY_TIMES = 100;
-constexpr uint32_t SWITCH_BLOCK_TIME = 150000;
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
@@ -270,6 +271,7 @@ int32_t InputMethodSystemAbility::PrepareInput(InputClientInfo &clientInfo)
 int32_t InputMethodSystemAbility::GenerateClientInfo(InputClientInfo &clientInfo)
 {
     if (clientInfo.client == nullptr || clientInfo.channel == nullptr) {
+        IMSA_HILOGE("client or channel is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto deathRecipient = new (std::nothrow) InputDeathRecipient();
@@ -307,7 +309,7 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
     }
 
     if (!userSession_->IsProxyImeEnable()) {
-        CheckSecurityMode(inputClientInfo);
+        CheckInputTypeOption(inputClientInfo);
     }
     int32_t ret = PrepareInput(inputClientInfo);
     if (ret != ErrorCode::NO_ERROR) {
@@ -317,23 +319,36 @@ int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, s
     return userSession_->OnStartInput(inputClientInfo, agent);
 };
 
-void InputMethodSystemAbility::CheckSecurityMode(InputClientInfo &inputClientInfo)
+void InputMethodSystemAbility::CheckInputTypeOption(InputClientInfo &inputClientInfo)
 {
+    IMSA_HILOGI("SecurityFlag: %{public}d, IsSameTextInput: %{public}d, IsStarted: %{public}d, "
+                "IsSecurityImeStarted: %{public}d.",
+        inputClientInfo.config.inputAttribute.GetSecurityFlag(), !inputClientInfo.isNotifyInputStart,
+        InputTypeManager::GetInstance().IsStarted(), InputTypeManager::GetInstance().IsSecurityImeStarted());
     if (inputClientInfo.config.inputAttribute.GetSecurityFlag()) {
-        if (InputTypeManager::GetInstance().IsStarted()) {
-            IMSA_HILOGD("security ime has started.");
+        if (!InputTypeManager::GetInstance().IsStarted()) {
+            StartInputType(InputType::SECURITY_INPUT);
+            IMSA_HILOGI("SecurityFlag, input type is not started.");
             return;
         }
-        auto ret = StartInputType(InputType::SECURITY_INPUT);
-        IMSA_HILOGD("switch to security ime ret = %{public}d.", ret);
+        if (!inputClientInfo.isNotifyInputStart) {
+            IMSA_HILOGI("SecurityFlag, same textinput.");
+            return;
+        }
+        if (!InputTypeManager::GetInstance().IsSecurityImeStarted()) {
+            StartInputType(InputType::SECURITY_INPUT);
+            IMSA_HILOGI("SecurityFlag, input type is started, but not security.");
+            return;
+        }
+        IMSA_HILOGI("SecurityFlag others.");
         return;
     }
-    if (!InputTypeManager::GetInstance().IsStarted() || InputTypeManager::GetInstance().IsCameraImeStarted()) {
-        IMSA_HILOGD("security ime is not start or camera ime started, keep current.");
+    if (inputClientInfo.isNotifyInputStart && InputTypeManager::GetInstance().IsStarted()) {
+        IMSA_HILOGI("NormalFlag diff textinput, input type started.");
+        StartInputType(InputType::NONE);
         return;
     }
-    auto ret = StartInputType(InputType::NONE);
-    IMSA_HILOGD("Exit security ime ret = %{public}d.", ret);
+    IMSA_HILOGI("NormalFlag others.");
 }
 
 int32_t InputMethodSystemAbility::ShowInput(sptr<IInputClient> client)
@@ -397,8 +412,7 @@ int32_t InputMethodSystemAbility::RequestHideInput()
     return userSession_->OnRequestHideInput();
 }
 
-int32_t InputMethodSystemAbility::SetCoreAndAgent(
-    const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
+int32_t InputMethodSystemAbility::SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
     IMSA_HILOGD("InputMethodSystemAbility run in");
     if (IsCurrentIme()) {
@@ -441,6 +455,11 @@ int32_t InputMethodSystemAbility::PanelStatusChange(const InputWindowStatus &sta
     if (!identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentImeCfg->bundleName)) {
         IMSA_HILOGE("not current ime");
         return ErrorCode::ERROR_NOT_CURRENT_IME;
+    }
+    auto commonEventManager = ImCommonEventManager::GetInstance();
+    if (commonEventManager != nullptr) {
+        auto ret = ImCommonEventManager::GetInstance()->PublishPanelStatusChangeEvent(status, info);
+        IMSA_HILOGD("public panel status change event:%{public}d", ret);
     }
     return userSession_->OnPanelStatusChange(status, info);
 }
@@ -507,7 +526,7 @@ int32_t InputMethodSystemAbility::ExitCurrentInputType()
     if (userSession_->CheckSecurityMode()) {
         return StartInputType(InputType::SECURITY_INPUT);
     }
-    return userSession_->ExitCurrentInputType();
+    return StartInputType(InputType::NONE);
 }
 
 int32_t InputMethodSystemAbility::IsDefaultIme()
@@ -570,7 +589,6 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
     if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);
-        usleep(SWITCH_BLOCK_TIME);
     }
     IMSA_HILOGI("start switch %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     int32_t ret = CheckSwitchPermission(switchInfo, trigger);
@@ -607,7 +625,6 @@ int32_t InputMethodSystemAbility::OnStartInputType(const SwitchInfo &switchInfo,
     if (!switchQueue_.IsReady(switchInfo)) {
         IMSA_HILOGD("start wait");
         switchQueue_.Wait(switchInfo);
-        usleep(SWITCH_BLOCK_TIME);
     }
     auto cfgIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (switchInfo.bundleName == cfgIme->bundleName && switchInfo.subName == cfgIme->subName) {
@@ -929,10 +946,42 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     }
     if (CombinationKey::IsMatch(CombinationKeyFunction::SWITCH_IME, state)) {
         IMSA_HILOGI("switch ime");
-        return SwitchType();
+        DealSwitchRequest();
+        return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGE("keycode undefined");
     return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
+}
+
+void InputMethodSystemAbility::DealSwitchRequest()
+{
+    {
+        std::lock_guard<std::mutex> lock(switchImeMutex_);
+        // 0 means current swich ime task count.
+        if (switchTaskExecuting_.load()) {
+            IMSA_HILOGI("already has switch ime task.");
+            ++targetSwitchCount_;
+            return;
+        } else {
+            switchTaskExecuting_.store(true);
+            ++targetSwitchCount_;
+        }
+    }
+    auto switchTask = [this]() {
+        auto checkSwitchCount = [this]() {
+            std::lock_guard<std::mutex> lock(switchImeMutex_);
+            if (targetSwitchCount_ > 0) {
+                return true;
+            }
+            switchTaskExecuting_.store(false);
+            return false;
+        };
+        do {
+            SwitchType();
+        } while (checkSwitchCount());
+    };
+    // 0 means delay time is 0.
+    serviceHandler_->PostTask(switchTask, "SwitchImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 int32_t InputMethodSystemAbility::SwitchMode()
@@ -989,7 +1038,13 @@ int32_t InputMethodSystemAbility::SwitchLanguage()
 int32_t InputMethodSystemAbility::SwitchType()
 {
     SwitchInfo switchInfo = { std::chrono::system_clock::now(), "", "" };
-    int32_t ret = ImeInfoInquirer::GetInstance().GetNextSwitchInfo(switchInfo, userId_, enableImeOn_);
+    uint32_t cacheCount = 0;
+    {
+        std::lock_guard<std::mutex> lock(switchImeMutex_);
+        cacheCount = targetSwitchCount_.exchange(0);
+    }
+    int32_t ret =
+        ImeInfoInquirer::GetInstance().GetSwitchInfoBySwitchCount(switchInfo, userId_, enableImeOn_, cacheCount);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("Get next SwitchInfo failed, stop switching ime.");
         return ret;
@@ -1179,7 +1234,20 @@ bool InputMethodSystemAbility::IsStartInputTypePermitted()
     if (identityChecker_->IsBundleNameValid(tokenId, defaultIme->prop.name)) {
         return true;
     }
+    if (identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+        return true;
+    }
     return identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId) && userSession_->IsBoundToClient();
+}
+
+int32_t InputMethodSystemAbility::ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
+{
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+        IMSA_HILOGE("not have PERMISSION_CONNECT_IME_ABILITY");
+        return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
+    }
+    return userSession_->OnConnectSystemCmd(channel, agent);
 }
 } // namespace MiscServices
 } // namespace OHOS

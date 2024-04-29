@@ -39,12 +39,16 @@ ohos_shared_library("inputmethod_extension") {
     cfi_cross_dso = true
     debug = false
   }
+  cflags_cc = [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-Os",
+  ]
   include_dirs = [
     "${inputmethod_path}/frameworks/kits/extension/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
-    "${inputmethod_path}/services/include",
-    "${inputmethod_path}/services/dfx/include",
+    "${inputmethod_path}/common/include",
   ]
 
   sources = [
@@ -52,14 +56,13 @@ ohos_shared_library("inputmethod_extension") {
     "${inputmethod_path}/frameworks/kits/extension/src/inputmethod_extension_context.cpp",
     "${inputmethod_path}/frameworks/kits/extension/src/js_inputmethod_extension.cpp",
     "${inputmethod_path}/frameworks/kits/extension/src/js_inputmethod_extension_context.cpp",
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
   ]
   configs = [ ":ability_config" ]
   public_configs = [ ":ability_public_config" ]
 
   deps = [
+    "${inputmethod_path}/common:inputmethod_common",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
-    "${inputmethod_path}/services/dfx:inputmethod_dfx_static",
   ]
 
   external_deps = [
@@ -75,7 +78,9 @@ ohos_shared_library("inputmethod_extension") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "i18n:intl_util",
+    "input:libmmi-client",
     "ipc:ipc_napi",
+    "ipc:ipc_single",
     "napi:ace_napi",
     "samgr:samgr_proxy",
     "window_manager:libdm",
@@ -92,7 +97,7 @@ ohos_shared_library("inputmethod_extension_module") {
     cfi_cross_dso = true
     debug = false
   }
-  include_dirs = [ "${inputmethod_path}/services/include" ]
+  include_dirs = [ "${inputmethod_path}/common/include" ]
 
   sources = [ "${inputmethod_path}/frameworks/kits/extension/src/inputmethod_extension_module_loader.cpp" ]
 

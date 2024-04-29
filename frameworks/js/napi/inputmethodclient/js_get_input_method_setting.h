@@ -147,7 +147,9 @@ private:
     static std::mutex msMutex_;
     static std::shared_ptr<JsGetInputMethodSetting> inputMethod_;
 
-    PanelFlag showSoftKbFlag_{ FLG_CANDIDATE_COLUMN };
+    PanelFlag softKbShowingFlag_{ FLG_CANDIDATE_COLUMN };
+    PanelFlag GetSoftKbShowingFlag();
+    void SetSoftKbShowingFlag(PanelFlag flag);
 };
 } // namespace MiscServices
 } // namespace OHOS

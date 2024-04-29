@@ -62,8 +62,7 @@ void TextOnInputReady()
     MessageParcel data;
     data.WriteRemoteObject(mInputMethodAgentStub->AsObject());
     auto remoteObject = data.ReadRemoteObject();
-    sptr<IInputMethodAgent> iface = iface_cast<IInputMethodAgent>(remoteObject);
-    mClient->OnInputReady(iface);
+    mClient->OnInputReady(remoteObject);
 }
 
 void TestOnSwitchInput()

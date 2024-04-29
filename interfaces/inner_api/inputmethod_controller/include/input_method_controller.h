@@ -70,6 +70,33 @@ public:
     {
         return ErrorCode::NO_ERROR;
     }
+    /**
+     * @brief Set preview text.
+     *
+     * When InputMethod app sends request to set preview text, the function will be called.
+     *
+     * @param text Indicates the text to be previewed.
+     * @param range Indicates the range of text to be replaced.
+     * @return
+     *     If success, please return 0.
+     *     If parameter range check error, please return -1.
+     *     If other failure, no specific requirement.
+     * @since 12
+     */
+    virtual int32_t SetPreviewText(const std::u16string &text, const Range &range)
+    {
+        return ErrorCode::NO_ERROR;
+    }
+    /**
+     * @brief Finish text preview.
+     *
+     * When InputMethod app sends request to finish text preview, the function will be called.
+     *
+     * @since 12
+     */
+    virtual void FinishTextPreview()
+    {
+    }
 };
 using PrivateDataValue = std::variant<std::string, bool, int32_t>;
 using KeyEventCallback = std::function<void(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)>;
@@ -282,7 +309,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API int32_t GetEnterKeyType(int32_t &keyType);
+    int32_t GetEnterKeyType(int32_t &keyType);
 
     /**
      * @brief Get input pattern.
@@ -293,7 +320,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API int32_t GetInputPattern(int32_t &inputPattern);
+    int32_t GetInputPattern(int32_t &inputPattern);
 
     /**
      * @brief Get text config.
@@ -304,7 +331,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t GetTextConfig(TextTotalConfig &config);
+    int32_t GetTextConfig(TextTotalConfig &config);
 
     /**
      * @brief Get current input method property.
@@ -481,7 +508,7 @@ public:
      *
      * @since 10
      */
-    IMF_API void OnInputReady(sptr<IRemoteObject> agentObject);
+    void OnInputReady(sptr<IRemoteObject> agentObject);
 
     /**
      * @brief Unbind IMC with Service.
@@ -490,7 +517,7 @@ public:
      *
      * @since 10
      */
-    IMF_API void OnInputStop();
+    void OnInputStop();
 
     /**
      * @brief Insert text.
@@ -501,7 +528,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t InsertText(const std::u16string &text);
+    int32_t InsertText(const std::u16string &text);
 
     /**
      * @brief Move cursor.
@@ -512,7 +539,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t MoveCursor(Direction direction);
+    int32_t MoveCursor(Direction direction);
 
     /**
      * @brief Delete forward.
@@ -523,7 +550,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t DeleteForward(int32_t length);
+    int32_t DeleteForward(int32_t length);
 
     /**
      * @brief Delete backward.
@@ -534,7 +561,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t DeleteBackward(int32_t length);
+    int32_t DeleteBackward(int32_t length);
 
     /**
      * @brief Get text at the left of cursor.
@@ -546,7 +573,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t GetLeft(int32_t length, std::u16string &text);
+    int32_t GetLeft(int32_t length, std::u16string &text);
 
     /**
      * @brief Get text at the right of cursor.
@@ -558,7 +585,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t GetRight(int32_t length, std::u16string &text);
+    int32_t GetRight(int32_t length, std::u16string &text);
 
     /**
      * @brief Select text in editor by range.
@@ -570,7 +597,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API void SelectByRange(int32_t start, int32_t end);
+    void SelectByRange(int32_t start, int32_t end);
 
     /**
      * @brief Select text in editor by cursor movement.
@@ -582,7 +609,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API void SelectByMovement(int32_t direction, int32_t cursorMoveSkip);
+    void SelectByMovement(int32_t direction, int32_t cursorMoveSkip);
 
     /**
      * @brief Handle extend action code.
@@ -593,7 +620,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t HandleExtendAction(int32_t action);
+    int32_t HandleExtendAction(int32_t action);
 
     /**
      * @brief Get the index number of text at cursor.
@@ -604,7 +631,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t GetTextIndexAtCursor(int32_t &index);
+    int32_t GetTextIndexAtCursor(int32_t &index);
 
     /**
      * @brief Send keyboard status.
@@ -614,7 +641,7 @@ public:
      * @param status Indicates the status of keyboard.
      * @since 10
      */
-    IMF_API void SendKeyboardStatus(KeyboardStatus status);
+    void SendKeyboardStatus(KeyboardStatus status);
 
     /**
      * @brief Send panel status info.
@@ -625,7 +652,7 @@ public:
      * @param info Indicates the status info of panel.
      * @since 11
      */
-    IMF_API void NotifyPanelStatusInfo(const PanelStatusInfo &info);
+    void NotifyPanelStatusInfo(const PanelStatusInfo &info);
 
     /**
      * @brief Send panel height.
@@ -635,7 +662,7 @@ public:
      * @param info Indicates the panel height.
      * @since 11
      */
-    IMF_API void NotifyKeyboardHeight(uint32_t height);
+    void NotifyKeyboardHeight(uint32_t height);
 
     /**
      * @brief Send function key.
@@ -646,7 +673,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t SendFunctionKey(int32_t functionKey);
+    int32_t SendFunctionKey(int32_t functionKey);
 
     /**
      * @brief Deactivate the input client.
@@ -655,7 +682,7 @@ public:
      *
      * @since 11
      */
-    IMF_API void DeactivateClient();
+    void DeactivateClient();
 
     /**
      * @brief Query whether an input type is supported.
@@ -713,8 +740,29 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 12
      */
-    IMF_API int32_t ReceivePrivateCommand(
+    int32_t ReceivePrivateCommand(
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+
+    /**
+     * @brief Set preview text.
+     *
+     * This function is used to set preview text.
+     *
+     * @param text Indicates the text to be previewed.
+     * @param range Indicates the range of text to be replaced.
+     * @return Returns 0 for success, others for failure.
+     * @since 12
+     */
+    int32_t SetPreviewText(const std::string &text, const Range &range);
+
+    /**
+     * @brief Finish text preview.
+     *
+     * This function is used to finish text preview.
+     *
+     * @since 12
+     */
+    int32_t FinishTextPreview();
 
 private:
     InputMethodController();

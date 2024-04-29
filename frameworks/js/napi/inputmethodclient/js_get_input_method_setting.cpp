@@ -24,7 +24,6 @@
 #include "js_input_method.h"
 #include "js_util.h"
 #include "js_utils.h"
-#include "keyevent_consumer_proxy.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
@@ -626,35 +625,45 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
     FreeWorkIfFail(ret, work);
 }
 
+PanelFlag JsGetInputMethodSetting::GetSoftKbShowingFlag()
+{
+    return softKbShowingFlag_;
+}
+void JsGetInputMethodSetting::SetSoftKbShowingFlag(PanelFlag flag)
+{
+    softKbShowingFlag_ = flag;
+}
+
 void JsGetInputMethodSetting::OnImeShow(const ImeWindowInfo &info)
 {
     if (info.panelInfo.panelType != PanelType::SOFT_KEYBOARD
         || (info.panelInfo.panelFlag != FLG_FLOATING && info.panelInfo.panelFlag != FLG_FIXED)) {
         return;
     }
+    auto showingFlag = GetSoftKbShowingFlag();
     // FLG_FIXED->FLG_FLOATING in show
-    if (info.panelInfo.panelFlag == FLG_FLOATING && showSoftKbFlag_ == FLG_FIXED) {
+    if (info.panelInfo.panelFlag == FLG_FLOATING && showingFlag == FLG_FIXED) {
         InputWindowInfo windowInfo{ info.windowInfo.name, 0, 0, 0, 0 };
         OnPanelStatusChange("imeHide", windowInfo);
     }
     // FLG_FLOATING->FLG_FIXED in show
-    if (info.panelInfo.panelFlag == FLG_FIXED && showSoftKbFlag_ == FLG_FLOATING) {
+    if (info.panelInfo.panelFlag == FLG_FIXED && showingFlag == FLG_FLOATING) {
         OnPanelStatusChange("imeShow", info.windowInfo);
     }
     // show FLG_FIXED
-    if (info.panelInfo.panelFlag == FLG_FIXED && showSoftKbFlag_ == FLG_CANDIDATE_COLUMN) {
+    if (info.panelInfo.panelFlag == FLG_FIXED && showingFlag == FLG_CANDIDATE_COLUMN) {
         OnPanelStatusChange("imeShow", info.windowInfo);
     }
     // rotating in FLG_FIXED show
-    if (info.panelInfo.panelFlag == FLG_FIXED && showSoftKbFlag_ == FLG_FIXED) {
+    if (info.panelInfo.panelFlag == FLG_FIXED && showingFlag == FLG_FIXED) {
         OnPanelStatusChange("imeShow", info.windowInfo);
     }
-    showSoftKbFlag_ = info.panelInfo.panelFlag;
+    SetSoftKbShowingFlag(info.panelInfo.panelFlag);
 }
 
 void JsGetInputMethodSetting::OnImeHide(const ImeWindowInfo &info)
 {
-    showSoftKbFlag_ = FLG_CANDIDATE_COLUMN;
+    SetSoftKbShowingFlag(FLG_CANDIDATE_COLUMN);
     if (info.panelInfo.panelType != PanelType::SOFT_KEYBOARD || info.panelInfo.panelFlag != PanelFlag::FLG_FIXED) {
         return;
     }

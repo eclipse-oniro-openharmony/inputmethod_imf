@@ -20,7 +20,6 @@
 #include <mutex>
 
 #include "i_input_control_channel.h"
-#include "i_input_method_agent.h"
 #include "iremote_broker.h"
 #include "iremote_stub.h"
 #include "message_parcel.h"
