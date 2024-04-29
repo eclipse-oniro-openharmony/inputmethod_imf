@@ -38,25 +38,22 @@ ohos_fuzztest("PerUserSessionFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [
-    "${inputmethod_path}/frameworks/native/inputmethod_controller/src/keyevent_consumer_proxy.cpp",
-    "perusersession_fuzzer.cpp",
-  ]
+  sources = [ "perusersession_fuzzer.cpp" ]
 
   deps = [
-    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
+    "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability_static",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
-    "${inputmethod_path}/services:inputmethod_service",
-    "${inputmethod_path}/services/json:imf_json_static",
-    "//third_party/cJSON:cjson",
+    "${inputmethod_path}/services:inputmethod_service_static",
   ]
 
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "hilog:libhilog",
+    "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "window_manager:libwm",
   ]
 }
 

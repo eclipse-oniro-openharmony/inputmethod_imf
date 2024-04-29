@@ -34,11 +34,22 @@ int32_t InputMethodSystemAbilityProxy::StartInput(InputClientInfo &inputClientIn
 {
     return SendRequest(
         static_cast<uint32_t>(InputMethodInterfaceCode::START_INPUT),
-        [&inputClientInfo](MessageParcel &data) { return ITypesUtil::Marshal(data, inputClientInfo); },
+        [&inputClientInfo](MessageParcel &data) {
+            return ITypesUtil::Marshal(
+                data, inputClientInfo, inputClientInfo.client->AsObject(), inputClientInfo.channel);
+        },
         [&agent](MessageParcel &reply) {
             agent = reply.ReadRemoteObject();
             return true;
         });
+}
+
+int32_t InputMethodSystemAbilityProxy::ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
+{
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::CONNECT_SYSTEM_CMD),
+        [channel](MessageParcel &data) { return data.WriteRemoteObject(channel); },
+        [&agent](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, agent); });
 }
 
 int32_t InputMethodSystemAbilityProxy::ShowCurrentInput()
@@ -90,11 +101,11 @@ int32_t InputMethodSystemAbilityProxy::DisplayOptionalInputMethod()
 }
 
 int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(
-    const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent)
+    const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent)
 {
     return SendRequest(
         static_cast<uint32_t>(InputMethodInterfaceCode::SET_CORE_AND_AGENT), [core, agent](MessageParcel &data) {
-            return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent->AsObject());
+            return data.WriteRemoteObject(core->AsObject()) && data.WriteRemoteObject(agent);
         });
 }
 
@@ -204,7 +215,9 @@ int32_t InputMethodSystemAbilityProxy::PanelStatusChange(const InputWindowStatus
 int32_t InputMethodSystemAbilityProxy::UpdateListenEventFlag(InputClientInfo &clientInfo, uint32_t eventFlag)
 {
     return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::UPDATE_LISTEN_EVENT_FLAG),
-        [&clientInfo, eventFlag](MessageParcel &data) { return ITypesUtil::Marshal(data, clientInfo, eventFlag); });
+        [&clientInfo, eventFlag](MessageParcel &data) {
+            return ITypesUtil::Marshal(data, clientInfo, clientInfo.client->AsObject(), clientInfo.channel, eventFlag);
+        });
 }
 
 bool InputMethodSystemAbilityProxy::IsCurrentIme()

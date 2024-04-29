@@ -17,8 +17,6 @@
 #define protected public
 #include "security_mode_parser.h"
 
-#include "ime_cfg_manager.h"
-#include "ime_info_inquirer.h"
 #include "input_method_system_ability.h"
 #undef private
 

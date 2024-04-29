@@ -24,7 +24,6 @@
 #include "js_input_method.h"
 #include "js_util.h"
 #include "js_utils.h"
-#include "keyevent_consumer_proxy.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
@@ -177,8 +176,8 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
         napi_get_named_property(env, argv, "methodId", &result);
         JsUtils::GetValue(env, result, ctxt->property.id);
     }
-    PARAM_CHECK_RETURN(env, (!ctxt->property.name.empty() && !ctxt->property.id.empty()), "name and id should not empty",
-        TYPE_NONE, napi_invalid_arg);
+    PARAM_CHECK_RETURN(env, (!ctxt->property.name.empty() && !ctxt->property.id.empty()),
+        "name and id should not empty", TYPE_NONE, napi_invalid_arg);
     IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
     return napi_ok;
 }

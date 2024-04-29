@@ -30,10 +30,12 @@
 #include "i_input_method_agent.h"
 #include "i_input_method_core.h"
 #include "input_client_proxy.h"
+#include "input_client_stub.h"
 #include "input_method_ability.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_agent_stub.h"
 #include "input_method_core_proxy.h"
+#include "input_method_core_stub.h"
 #include "input_method_info.h"
 #include "input_method_property.h"
 #include "iremote_broker.h"
@@ -56,16 +58,15 @@ uint32_t ConvertToUint32(const uint8_t *ptr)
 
 bool InitializeClientInfo(InputClientInfo &clientInfo)
 {
-    auto clientStub = new (std::nothrow) InputClientStub();
+    sptr<IInputClient> clientStub = new (std::nothrow) InputClientStub();
     if (clientStub == nullptr) {
         IMSA_HILOGE("failed to create client");
         return false;
     }
-    auto deathRecipient = new (std::nothrow) InputDeathRecipient();
+    sptr<InputDeathRecipient> deathRecipient = new (std::nothrow) InputDeathRecipient();
     if (deathRecipient == nullptr) {
         IMSA_HILOGE("failed to new deathRecipient");
-        delete clientStub;
-        return ErrorCode::ERROR_EX_NULL_POINTER;
+        return false;
     }
     clientInfo = { .userID = MAIN_USER_ID, .client = clientStub, .deathRecipient = deathRecipient };
     return true;
@@ -92,13 +93,13 @@ bool FuzzPerUserSession(const uint8_t *rawData, size_t size)
     auto agent = iface_cast<IInputMethodAgent>(agentStub);
     static std::shared_ptr<PerUserSession> userSessions = std::make_shared<PerUserSession>(MAIN_USER_ID);
 
-    userSessions->OnRegisterProxyIme(core, agent);
+    userSessions->OnRegisterProxyIme(core, agent->AsObject());
     int32_t type = 4;
     userSessions->OnUnRegisteredProxyIme(static_cast<UnRegisteredType>(type), core);
     userSessions->IsProxyImeEnable();
 
     userSessions->OnPrepareInput(clientInfo);
-    userSessions->OnSetCoreAndAgent(core, agent);
+    userSessions->OnSetCoreAndAgent(core, agent->AsObject());
     userSessions->OnShowCurrentInput();
     sptr<IRemoteObject> agentObject = nullptr;
     clientInfo.isShowKeyboard = false;

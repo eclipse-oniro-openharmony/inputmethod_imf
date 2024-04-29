@@ -185,7 +185,7 @@ HWTEST_F(InputMethodAttachTest, testAttach005, TestSize.Level0)
     cursorInfo.width = 0.5;
     cursorInfo.height = 1.2;
     config.cursorInfo = cursorInfo;
-    SelectionRange selectionRange;
+    Range selectionRange;
     selectionRange.start = 0;
     selectionRange.end = 2;
     config.range = selectionRange;
@@ -302,7 +302,7 @@ HWTEST_F(InputMethodAttachTest, testGetTextConfig, TestSize.Level0)
     cursorInfo.width = 0.5;
     cursorInfo.height = 1.2;
     config.cursorInfo = cursorInfo;
-    SelectionRange selectionRange;
+    Range selectionRange;
     selectionRange.start = 0;
     selectionRange.end = 2;
     config.range = selectionRange;
@@ -637,7 +637,7 @@ HWTEST_F(InputMethodAttachTest, testImeCallbackInAttach, TestSize.Level0)
     cursorInfo.width = 0.5;
     cursorInfo.height = 1.2;
     config.cursorInfo = cursorInfo;
-    SelectionRange selectionRange;
+    Range selectionRange;
     selectionRange.start = 5;
     selectionRange.end = 2;
     config.range = selectionRange;

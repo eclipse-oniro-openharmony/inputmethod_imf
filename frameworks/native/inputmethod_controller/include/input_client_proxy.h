@@ -20,7 +20,6 @@
 #include <functional>
 
 #include "i_input_client.h"
-#include "i_input_method_agent.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "iremote_proxy.h"
@@ -35,7 +34,7 @@ public:
     ~InputClientProxy() = default;
     DISALLOW_COPY_AND_MOVE(InputClientProxy);
 
-    int32_t OnInputReady(const sptr<IInputMethodAgent> &agent) override;
+    int32_t OnInputReady(const sptr<IRemoteObject> &agent) override;
     int32_t OnInputStop() override;
     int32_t OnSwitchInput(const Property &property, const SubProperty &subProperty) override;
     int32_t OnPanelStatusChange(const InputWindowStatus &status, const ImeWindowInfo &info) override;

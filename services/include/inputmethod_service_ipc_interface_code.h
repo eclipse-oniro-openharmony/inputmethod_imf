@@ -51,6 +51,7 @@ enum class InputMethodInterfaceCode {
     IS_PANEL_SHOWN,
     GET_SECURITY_MODE,
     IS_DEFAULT_IME,
+    CONNECT_SYSTEM_CMD,
     IMS_CMD_LAST,
 };
 } // namespace MiscServices

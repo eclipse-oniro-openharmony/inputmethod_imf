@@ -460,7 +460,7 @@ napi_value JsGetInputMethodController::HandleSoftKeyboard(
     return asyncCall.Call(env, exec, "handleSoftKeyboard");
 }
 
-bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, SelectionRange &out)
+bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, Range &out)
 {
     auto ret = JsUtil::Object::ReadProperty(env, in, "start", out.start);
     return ret && JsUtil::Object::ReadProperty(env, in, "end", out.end);

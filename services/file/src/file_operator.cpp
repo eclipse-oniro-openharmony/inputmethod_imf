@@ -83,21 +83,11 @@ bool FileOperator::Read(const std::string &path, const std::string &key, std::st
     }
     // parse config files, ordered by priority from high to low
     for (int32_t i = MAX_CFG_POLICY_DIRS_CNT - 1; i >= 0; i--) {
-        auto pathTemp = cfgFiles->paths[i];
-        if (pathTemp == nullptr) {
+        auto realPath = GetRealPath(cfgFiles->paths[i]);
+        if (realPath.empty()) {
             continue;
         }
-        auto size = strnlen(pathTemp, PATH_MAX);
-        if (size == 0 || size == PATH_MAX) {
-            continue;
-        }
-        char realPath[PATH_MAX] = { 0x00 };
-        if (realpath(pathTemp, realPath) == nullptr) {
-            IMSA_HILOGE("failed to get realpath");
-            continue;
-        }
-        std::string cfgPath(realPath);
-        content = Read(cfgPath, key);
+        content = Read(realPath, key);
         if (!content.empty()) {
             break;
         }
@@ -119,6 +109,23 @@ std::string FileOperator::Read(const std::string &path, const std::string &key)
         return "";
     }
     return content;
+}
+
+std::string FileOperator::GetRealPath(const char *path)
+{
+    if (path == nullptr) {
+        return "";
+    }
+    auto size = strnlen(path, PATH_MAX);
+    if (size == 0 || size == PATH_MAX) {
+        return "";
+    }
+    char realPath[PATH_MAX] = { 0x00 };
+    if (realpath(path, realPath) == nullptr) {
+        IMSA_HILOGE("failed to get realpath");
+        return "";
+    }
+    return std::string(realPath);
 }
 } // namespace MiscServices
 } // namespace OHOS

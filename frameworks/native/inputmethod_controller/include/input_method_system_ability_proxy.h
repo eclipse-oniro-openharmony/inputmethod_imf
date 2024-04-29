@@ -60,7 +60,7 @@ public:
     int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;
     int32_t SwitchInputMethod(const std::string &name, const std::string &subName, SwitchTrigger trigger) override;
     int32_t DisplayOptionalInputMethod() override;
-    int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IInputMethodAgent> &agent) override;
+    int32_t SetCoreAndAgent(const sptr<IInputMethodCore> &core, const sptr<IRemoteObject> &agent) override;
     int32_t UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core) override;
     int32_t ListCurrentInputMethodSubtype(std::vector<SubProperty> &subProps) override;
     int32_t ListInputMethodSubtype(const std::string &name, std::vector<SubProperty> &subProps) override;
@@ -73,7 +73,7 @@ public:
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     int32_t GetSecurityMode(int32_t &security) override;
     int32_t IsDefaultIme() override;
-
+    int32_t ConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) override;
     // Deprecated because of no permission check, kept for compatibility
     int32_t HideCurrentInputDeprecated() override;
     int32_t ShowCurrentInputDeprecated() override;

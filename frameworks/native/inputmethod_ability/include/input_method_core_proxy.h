@@ -16,8 +16,6 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_INPUT_METHOD_CORE_PROXY_H
 #define FRAMEWORKS_INPUTMETHOD_ABILITY_INCLUDE_INPUT_METHOD_CORE_PROXY_H
 
-#include "i_input_control_channel.h"
-#include "i_input_data_channel.h"
 #include "i_input_method_core.h"
 #include "input_attribute.h"
 #include "input_method_property.h"
@@ -36,7 +34,7 @@ public:
     DISALLOW_COPY_AND_MOVE(InputMethodCoreProxy);
 
     int32_t StartInput(const InputClientInfo &clientInfo, bool isBindFromClient) override;
-    int32_t StopInput(const sptr<IInputDataChannel> &channel) override;
+    int32_t StopInput(const sptr<IRemoteObject> &channel) override;
     int32_t ShowKeyboard() override;
     int32_t HideKeyboard() override;
     int32_t InitInputControlChannel(const sptr<IInputControlChannel> &inputControlChannel) override;
@@ -45,7 +43,8 @@ public:
     bool IsEnable() override;
     int32_t IsPanelShown(const PanelInfo &panelInfo, bool &isShown) override;
     int32_t OnSecurityChange(int32_t security) override;
-    void OnClientInactive(const sptr<IInputDataChannel> &channel) override;
+    int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent) override;
+    void OnClientInactive(const sptr<IRemoteObject> &channel) override;
 
 private:
     static inline BrokerDelegator<InputMethodCoreProxy> delegator_;

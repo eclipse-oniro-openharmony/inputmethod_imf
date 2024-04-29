@@ -18,7 +18,6 @@
 
 #include "i_input_method_agent.h"
 #include "iremote_stub.h"
-#include "keyevent_consumer_proxy.h"
 #include "message_handler.h"
 #include "message_option.h"
 #include "message_parcel.h"

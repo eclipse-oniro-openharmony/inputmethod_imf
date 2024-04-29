@@ -319,7 +319,7 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     PARAM_CHECK_RETURN(env, (paramType == napi_function || paramType == napi_null || paramType == napi_undefined),
-        "ParamType should be function or null or undefined", TYPE_FUNCTION, nullptr);
+        "ParamType should be function or null or undefined", TYPE_NONE, nullptr);
     // if the second param is napi_function, delete it, else delete all
     argv[1] = paramType == napi_function ? argv[1] : nullptr;
 

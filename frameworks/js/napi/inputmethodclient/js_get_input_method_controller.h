@@ -199,7 +199,7 @@ private:
     static bool GetValue(napi_env env, napi_value in, CursorInfo &out);
     static bool GetValue(napi_env env, napi_value in, InputAttribute &out);
     static bool GetValue(napi_env env, napi_value in, TextConfig &out);
-    static bool GetValue(napi_env env, napi_value in, SelectionRange &out);
+    static bool GetValue(napi_env env, napi_value in, Range &out);
     static napi_value GetJsKeyboardStatusProperty(napi_env env);
     static napi_value GetJsEnterKeyTypeProperty(napi_env env);
     static napi_value GetJsTextInputTypeProperty(napi_env env);

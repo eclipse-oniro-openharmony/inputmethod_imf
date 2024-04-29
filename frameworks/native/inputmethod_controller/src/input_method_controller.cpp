@@ -22,6 +22,7 @@
 #include "global.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
+#include "system_cmd_channel_stub.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
@@ -44,6 +45,8 @@ std::mutex InputMethodController::instanceLock_;
 constexpr int32_t LOOP_COUNT = 5;
 constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t ACE_DEAL_TIME_OUT = 200;
+constexpr uint32_t GET_IMSA_MAX_RETRY_TIME = 10;
+constexpr uint32_t GET_IMSA_RETRY_INTERVAL = 100;
 InputMethodController::InputMethodController()
 {
     IMSA_HILOGD("IMC structure");
@@ -88,6 +91,9 @@ int32_t InputMethodController::UpdateListenEventFlag(uint32_t finalEventFlag, ui
 {
     auto oldEventFlag = clientInfo_.eventFlag;
     clientInfo_.eventFlag = finalEventFlag;
+    // js has no errcode, ensure not failed in GetSystemAbilityProxy();
+    BlockRetry(
+        GET_IMSA_RETRY_INTERVAL, GET_IMSA_MAX_RETRY_TIME, [this]() { return GetSystemAbilityProxy() != nullptr; });
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr && isOn) {
         IMSA_HILOGE("proxy is nullptr");
@@ -109,19 +115,18 @@ void InputMethodController::SetControllerListener(std::shared_ptr<ControllerList
 
 int32_t InputMethodController::Initialize()
 {
-    auto client = new (std::nothrow) InputClientStub();
+    sptr<IInputClient> client = new (std::nothrow) InputClientStub();
     if (client == nullptr) {
         IMSA_HILOGE("failed to new client");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    auto channel = new (std::nothrow) InputDataChannelStub();
+    sptr<IInputDataChannel> channel = new (std::nothrow) InputDataChannelStub();
     if (channel == nullptr) {
-        delete client;
         IMSA_HILOGE("failed to new channel");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     InputAttribute attribute = { .inputPattern = InputAttribute::PATTERN_TEXT };
-    clientInfo_ = { .attribute = attribute, .client = client, .channel = channel };
+    clientInfo_ = { .attribute = attribute, .client = client, .channel = channel->AsObject() };
 
     // make AppExecFwk::EventHandler handler
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
@@ -173,18 +178,17 @@ void InputMethodController::DeactivateClient()
         agent_ = nullptr;
         agentObject_ = nullptr;
     }
-    auto listener = GetTextListener();
-    if (listener != nullptr) {
-        IMSA_HILOGD("textListener_ is not nullptr");
-        listener->SendKeyboardStatus(KeyboardStatus::NONE);
-    }
+    SendKeyboardStatus(KeyboardStatus::NONE);
+    FinishTextPreview();
 }
 
 void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
 {
     std::lock_guard<std::mutex> lock(textConfigLock_);
-    IMSA_HILOGD("inputPattern: %{public}d, enterKeyType: %{public}d, windowId: %{public}d",
-        textConfig.inputAttribute.inputPattern, textConfig.inputAttribute.enterKeyType, textConfig.windowId);
+    IMSA_HILOGD("inputPattern: %{public}d, enterKeyType: %{public}d, isTextPreviewSupported: %{public}d, windowId: "
+                "%{public}d",
+        textConfig.inputAttribute.inputPattern, textConfig.inputAttribute.enterKeyType,
+        textConfig.inputAttribute.isTextPreviewSupported, textConfig.windowId);
     textConfig_ = textConfig;
 }
 
@@ -485,6 +489,7 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
         IMSA_HILOGE("handler_ is nullptr");
         return;
     }
+    FinishTextPreview();
     RestoreListenInfoInSaDied();
     RestoreAttachInfoInSaDied();
 }
@@ -892,6 +897,7 @@ void InputMethodController::OnInputStop()
         IMSA_HILOGD("textListener_ is not nullptr");
         listener->SendKeyboardStatus(KeyboardStatus::HIDE);
     }
+    FinishTextPreview();
     isBound_.store(false);
     isEditable_.store(false);
 }
@@ -1013,6 +1019,7 @@ int32_t InputMethodController::InsertText(const std::u16string &text)
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     {
         InputMethodSyncTrace aceTracer("ACE_InsertText");
+        IMSA_HILOGD("ACE InsertText");
         listener->InsertText(text);
     }
     PrintLogIfAceTimeout(start);
@@ -1215,6 +1222,48 @@ int32_t InputMethodController::SendPrivateCommand(
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
     return agent->SendPrivateCommand(privateCommand);
+}
+
+int32_t InputMethodController::SetPreviewText(const std::string &text, const Range &range)
+{
+    IMSA_HILOGD("IMC in");
+    if (!textConfig_.inputAttribute.isTextPreviewSupported) {
+        IMSA_HILOGE("text preview not supported");
+        return ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED;
+    }
+    auto listener = GetTextListener();
+    if (!IsEditable() || listener == nullptr) {
+        IMSA_HILOGE("not editable or listener is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    int32_t ret = 0;
+    int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+    {
+        InputMethodSyncTrace aceTracer("ACE_SetPreviewText");
+        ret = listener->SetPreviewText(Str8ToStr16(text), range);
+    }
+    PrintLogIfAceTimeout(start);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to SetPreviewText, ret: %{public}d", ret);
+        return ret == -1 ? ErrorCode::ERROR_INVALID_RANGE : ErrorCode::ERROR_TEXT_LISTENER_ERROR;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodController::FinishTextPreview()
+{
+    IMSA_HILOGD("IMC in");
+    if (!textConfig_.inputAttribute.isTextPreviewSupported) {
+        IMSA_HILOGE("text preview not supported");
+        return ErrorCode::ERROR_TEXT_PREVIEW_NOT_SUPPORTED;
+    }
+    auto listener = GetTextListener();
+    if (!IsEditable() || listener == nullptr) {
+        IMSA_HILOGE("not editable or listener is nullptr");
+        return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
+    }
+    listener->FinishTextPreview();
+    return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
 } // namespace OHOS

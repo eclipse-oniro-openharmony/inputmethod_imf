@@ -20,8 +20,9 @@
 #include <utility>
 
 #include "global.h"
-#include "input_method_agent_proxy.h"
-#include "input_method_core_proxy.h"
+#include "input_method_agent_stub.h"
+#include "input_method_core_stub.h"
+#include "input_method_system_ability_proxy.h"
 #include "input_method_utils.h"
 #include "inputmethod_sysevent.h"
 #include "inputmethod_trace.h"
@@ -119,7 +120,7 @@ int32_t InputMethodAbility::SetCoreAndAgent()
         IMSA_HILOGE("imsa proxy is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    int32_t ret = proxy->SetCoreAndAgent(coreStub_, agentStub_);
+    int32_t ret = proxy->SetCoreAndAgent(coreStub_, agentStub_->AsObject());
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("set failed, ret: %{public}d", ret);
         return ret;
@@ -143,13 +144,13 @@ int32_t InputMethodAbility::UnRegisteredProxyIme(UnRegisteredType type)
 void InputMethodAbility::Initialize()
 {
     IMSA_HILOGD("IMA");
-    coreStub_ = new (std::nothrow) InputMethodCoreStub();
-    if (coreStub_ == nullptr) {
+    sptr<InputMethodCoreStub> coreStub = new (std::nothrow) InputMethodCoreStub();
+    if (coreStub == nullptr) {
         IMSA_HILOGE("failed to create core");
         return;
     }
-    agentStub_ = new (std::nothrow) InputMethodAgentStub();
-    if (agentStub_ == nullptr) {
+    sptr<InputMethodAgentStub> agentStub = new (std::nothrow) InputMethodAgentStub();
+    if (agentStub == nullptr) {
         IMSA_HILOGE("failed to create agent");
         return;
     }
@@ -158,8 +159,10 @@ void InputMethodAbility::Initialize()
         IMSA_HILOGE("failed to create message handler");
         return;
     }
-    coreStub_->SetMessageHandler(msgHandler_);
-    agentStub_->SetMessageHandler(msgHandler_);
+    coreStub->SetMessageHandler(msgHandler_);
+    agentStub->SetMessageHandler(msgHandler_);
+    agentStub_ = agentStub;
+    coreStub_ = coreStub;
     workThreadHandler = std::thread([this] { WorkThread(); });
 }
 
@@ -233,14 +236,15 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
 
 int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
-    if (clientInfo.channel->AsObject() == nullptr) {
+    if (clientInfo.channel == nullptr) {
         IMSA_HILOGE("channelObject is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     IMSA_HILOGI(
         "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard, isBindFromClient);
-    SetInputDataChannel(clientInfo.channel->AsObject());
+    SetInputDataChannel(clientInfo.channel);
     isBindFromClient ? InvokeTextChangeCallback(clientInfo.config) : NotifyAllTextConfig();
+    SetInputAttribute(clientInfo.config.inputAttribute);
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
@@ -286,6 +290,7 @@ int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
     IMSA_HILOGI("IMA");
     HideKeyboard();
     ClearDataChannel(channelObject);
+    ClearInputAttribute();
     if (imeListener_ != nullptr) {
         imeListener_->OnInputFinish();
     }
@@ -369,6 +374,12 @@ void InputMethodAbility::OnConfigurationChange(Message *msg)
     attribute.inputPattern = data->ReadInt32();
     IMSA_HILOGD("InputMethodAbility, enterKeyType: %{public}d, inputPattern: %{public}d", attribute.enterKeyType,
         attribute.inputPattern);
+    SetInputAttribute(attribute);
+    // add for mod inputPattern when panel show
+    auto panel = GetSoftKeyboardPanel();
+    if (panel != nullptr) {
+        ShowSysPanel(panel, panel->GetPanelFlag());
+    }
     kdListener_->OnEditorAttributeChange(attribute);
 }
 
@@ -707,6 +718,7 @@ void InputMethodAbility::OnRemoteSaDied(const wptr<IRemoteObject> &object)
     IMSA_HILOGI("input method service died");
     isBound_.store(false);
     ClearInputControlChannel();
+    ClearSystemCmdChannel();
     {
         std::lock_guard<std::mutex> lock(abilityLock_);
         abilityManager_ = nullptr;
@@ -735,6 +747,42 @@ int32_t InputMethodAbility::GetSecurityMode(int32_t &security)
         return false;
     }
     return proxy->GetSecurityMode(security);
+}
+
+void InputMethodAbility::ClearSystemCmdChannel()
+{
+    std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
+    if (systemCmdChannelProxy_ == nullptr) {
+        IMSA_HILOGD("systemCmdChannelProxy_ already nullptr");
+        return;
+    }
+    systemCmdChannelProxy_ = nullptr;
+    IMSA_HILOGD("end");
+}
+
+sptr<SystemCmdChannelProxy> InputMethodAbility::GetSystemCmdChannelProxy()
+{
+    std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
+    return systemCmdChannelProxy_;
+}
+
+int32_t InputMethodAbility::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
+{
+    IMSA_HILOGD("run in");
+    std::lock_guard<std::mutex> lock(systemCmdChannelLock_);
+    systemCmdChannelProxy_ = new (std::nothrow) SystemCmdChannelProxy(channel);
+    if (systemCmdChannelProxy_ == nullptr) {
+        IMSA_HILOGE("failed to new data channel proxy");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    systemAgentStub_ = new (std::nothrow) InputMethodAgentStub();
+    if (systemAgentStub_ == nullptr) {
+        IMSA_HILOGE("failed to create agent");
+        systemCmdChannelProxy_ = nullptr;
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    agent = systemAgentStub_->AsObject();
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAbility::OnSecurityChange(int32_t security)
@@ -821,6 +869,7 @@ int32_t InputMethodAbility::ShowPanel(
     }
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
+        ShowSysPanel(inputMethodPanel, flag);
         NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, true, trigger });
     }
     return ret;
@@ -837,6 +886,39 @@ int32_t InputMethodAbility::HidePanel(
         NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, false, trigger });
     }
     return ret;
+}
+
+int32_t InputMethodAbility::ShowSysPanel(
+    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag)
+{
+    if (inputMethodPanel->GetPanelType() != SOFT_KEYBOARD) {
+        return ErrorCode::NO_ERROR;
+    }
+    bool shouldSysPanelShow = !GetInputAttribute().GetSecurityFlag();
+    auto systemChannel = GetSystemCmdChannelProxy();
+    if (systemChannel == nullptr) {
+        IMSA_HILOGE("channel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return systemChannel->ShowSysPanel(shouldSysPanelShow);
+}
+
+void InputMethodAbility::SetInputAttribute(const InputAttribute &inputAttribute)
+{
+    std::lock_guard<std::mutex> lock(inputAttrLock_);
+    inputAttribute_ = inputAttribute;
+}
+
+void InputMethodAbility::ClearInputAttribute()
+{
+    std::lock_guard<std::mutex> lock(inputAttrLock_);
+    inputAttribute_ = {};
+}
+
+InputAttribute InputMethodAbility::GetInputAttribute()
+{
+    std::lock_guard<std::mutex> lock(inputAttrLock_);
+    return inputAttribute_;
 }
 
 int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
@@ -1013,12 +1095,25 @@ int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::str
         IMSA_HILOGE("current is not default ime.");
         return ErrorCode::ERROR_NOT_DEFAULT_IME;
     }
-    auto channel = GetInputDataChannelProxy();
-    if (channel == nullptr) {
-        IMSA_HILOGE("channel is nullptr");
-        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    if (!TextConfig::IsPrivateCommandValid(privateCommand)) {
+        IMSA_HILOGE("privateCommand is limit 32KB, count limit 5.");
+        return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE;
     }
-    return channel->SendPrivateCommand(privateCommand);
+    if (TextConfig::IsSystemPrivateCommand(privateCommand)) {
+        auto systemChannel = GetSystemCmdChannelProxy();
+        if (systemChannel == nullptr) {
+            IMSA_HILOGE("channel is nullptr");
+            return ErrorCode::ERROR_SYSTEM_CMD_CHANNEL_ERROR;
+        }
+        return systemChannel->SendPrivateCommand(privateCommand);
+    } else {
+        auto channel = GetInputDataChannelProxy();
+        if (channel == nullptr) {
+            IMSA_HILOGE("channel is nullptr");
+            return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+        }
+        return channel->SendPrivateCommand(privateCommand);
+    }
 }
 
 int32_t InputMethodAbility::ReceivePrivateCommand(
@@ -1034,6 +1129,26 @@ int32_t InputMethodAbility::ReceivePrivateCommand(
     }
     imeListener_->ReceivePrivateCommand(privateCommand);
     return ErrorCode::NO_ERROR;
+}
+
+int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range &range)
+{
+    auto dataChannel = GetInputDataChannelProxy();
+    if (dataChannel == nullptr) {
+        IMSA_HILOGE("dataChannel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return dataChannel->SetPreviewText(text, range);
+}
+
+int32_t InputMethodAbility::FinishTextPreview()
+{
+    auto dataChannel = GetInputDataChannelProxy();
+    if (dataChannel == nullptr) {
+        IMSA_HILOGE("dataChannel is nullptr");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return dataChannel->FinishTextPreview();
 }
 
 int32_t InputMethodAbility::GetCallingWindowInfo(CallingWindowInfo &windowInfo)
