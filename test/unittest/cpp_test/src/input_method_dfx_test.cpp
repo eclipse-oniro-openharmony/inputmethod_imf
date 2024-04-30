@@ -74,7 +74,7 @@ public:
             IMSA_HILOGE("string is not matched.");
             return;
         }
-        std::unique_lock <std::mutex> lock(cvMutex_);
+        std::unique_lock<std::mutex> lock(cvMutex_);
         watcherCv_.notify_all();
     }
     void OnServiceDied() final
@@ -90,8 +90,8 @@ private:
 
 class WatcherImeChange : public HiSysEventListener {
 public:
-    explicit WatcherImeChange(const std::string &state, const std::string &pid, const std::string &bundleName) : state_(
-            state), pid_(pid), bundleName_(bundleName)
+    explicit WatcherImeChange(const std::string &state, const std::string &pid, const std::string &bundleName)
+        : state_(state), pid_(pid), bundleName_(bundleName)
     {
     }
     virtual ~WatcherImeChange()
@@ -109,13 +109,13 @@ public:
         sysEvent->GetParamValue(STATE, state);
         sysEvent->GetParamValue(PID, pid);
         sysEvent->GetParamValue(BUNDLE_NAME, bundleName);
-        IMSA_HILOGD("bundleName: %{public}s, state: %{public}s, pid: %{public}s", bundleName.c_str(),
-                    state.c_str(), pid.c_str());
+        IMSA_HILOGD("bundleName: %{public}s, state: %{public}s, pid: %{public}s", bundleName.c_str(), state.c_str(),
+            pid.c_str());
         if (state != state_ || pid != pid_ || bundleName != bundleName_) {
             IMSA_HILOGE("string is not matched.");
             return;
         }
-        std::unique_lock <std::mutex> lock(cvMutexImeChange_);
+        std::unique_lock<std::mutex> lock(cvMutexImeChange_);
         watcherCvImeChange_.notify_all();
     }
     void OnServiceDied() final
@@ -128,7 +128,7 @@ public:
 private:
     std::string state_;
     std::string pid_;
-    std::string bundleName_; 
+    std::string bundleName_;
 };
 
 class InputMethodDfxTest : public testing::Test {
@@ -136,8 +136,9 @@ public:
     using ExecFunc = std::function<void()>;
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
-    static bool WriteAndWatch(std::shared_ptr <Watcher> watcher, InputMethodDfxTest::ExecFunc exec);
-    static bool WriteAndWatchImeChange(std::shared_ptr <WatcherImeChange> watcher, InputMethodDfxTest::ExecFunc exec);
+    static bool WriteAndWatch(const std::shared_ptr<Watcher> &watcher, const InputMethodDfxTest::ExecFunc &exec);
+    static bool WriteAndWatchImeChange(
+        const std::shared_ptr<WatcherImeChange> &watcher, const InputMethodDfxTest::ExecFunc &exec);
     void SetUp();
     void TearDown();
     static sptr<InputMethodController> inputMethodController_;
@@ -150,18 +151,19 @@ sptr<OnTextChangedListener> InputMethodDfxTest::textListener_;
 sptr<InputMethodAbility> InputMethodDfxTest::inputMethodAbility_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodDfxTest::imeListener_;
 
-bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr <Watcher> watcher, InputMethodDfxTest::ExecFunc exec)
+bool InputMethodDfxTest::WriteAndWatch(
+    const std::shared_ptr<Watcher> &watcher, const InputMethodDfxTest::ExecFunc &exec)
 {
-    OHOS::HiviewDFX::ListenerRule listenerRule(DOMAIN, OPERATE_SOFTKEYBOARD_EVENT_NAME, "",
-                                               OHOS::HiviewDFX::RuleType::WHOLE_WORD);
-    std::vector <OHOS::HiviewDFX::ListenerRule> sysRules;
+    OHOS::HiviewDFX::ListenerRule listenerRule(
+        DOMAIN, OPERATE_SOFTKEYBOARD_EVENT_NAME, "", OHOS::HiviewDFX::RuleType::WHOLE_WORD);
+    std::vector<OHOS::HiviewDFX::ListenerRule> sysRules;
     sysRules.emplace_back(listenerRule);
     auto ret = OHOS::HiviewDFX::HiSysEventManager::AddListener(watcher, sysRules);
     if (ret != SUCCESS) {
         IMSA_HILOGE("AddListener failed! ret = %{public}d", ret);
         return false;
     }
-    std::unique_lock <std::mutex> lock(watcher->cvMutex_);
+    std::unique_lock<std::mutex> lock(watcher->cvMutex_);
     exec();
     bool result = watcher->watcherCv_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
     ret = OHOS::HiviewDFX::HiSysEventManager::RemoveListener(watcher);
@@ -172,19 +174,19 @@ bool InputMethodDfxTest::WriteAndWatch(std::shared_ptr <Watcher> watcher, InputM
     return true;
 }
 
-bool InputMethodDfxTest::WriteAndWatchImeChange(std::shared_ptr <WatcherImeChange> watcher,
-                                                InputMethodDfxTest::ExecFunc exec)
+bool InputMethodDfxTest::WriteAndWatchImeChange(
+    const std::shared_ptr<WatcherImeChange> &watcher, const InputMethodDfxTest::ExecFunc &exec)
 {
-    OHOS::HiviewDFX::ListenerRule listenerRule(DOMAIN, IME_STATE_CHANGED_EVENT_NAME, "",
-                                               OHOS::HiviewDFX::RuleType::WHOLE_WORD);
-    std::vector <OHOS::HiviewDFX::ListenerRule> sysRules;
+    OHOS::HiviewDFX::ListenerRule listenerRule(
+        DOMAIN, IME_STATE_CHANGED_EVENT_NAME, "", OHOS::HiviewDFX::RuleType::WHOLE_WORD);
+    std::vector<OHOS::HiviewDFX::ListenerRule> sysRules;
     sysRules.emplace_back(listenerRule);
     auto ret = OHOS::HiviewDFX::HiSysEventManager::AddListener(watcher, sysRules);
     if (ret != SUCCESS) {
         IMSA_HILOGE("AddListener failed! ret = %{public}d", ret);
         return false;
     }
-    std::unique_lock <std::mutex> lock(watcher->cvMutexImeChange_);
+    std::unique_lock<std::mutex> lock(watcher->cvMutexImeChange_);
     exec();
     bool result = watcher->watcherCvImeChange_.wait_for(lock, std::chrono::seconds(1)) != std::cv_status::timeout;
     ret = OHOS::HiviewDFX::HiSysEventManager::RemoveListener(watcher);
@@ -210,8 +212,7 @@ void InputMethodDfxTest::SetUpTestCase(void)
     inputMethodController_ = InputMethodController::GetInstance();
     textListener_ = new TextListener();
     TddUtil::SetTestTokenID(
-            TddUtil::AllocTestTokenID(true, "undefine",
-                                      {"ohos.permission.READ_DFX_SYSEVENT", "ohos.permission.DUMP"}));
+        TddUtil::AllocTestTokenID(true, "undefine", { "ohos.permission.READ_DFX_SYSEVENT", "ohos.permission.DUMP" }));
     TddUtil::InitWindow(true);
 }
 
@@ -408,8 +409,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_UnBind, TestSize.Leve
 {
     std::string bundleName = "com.example.kikakeyboard";
     auto watcherImeChange = std::make_shared<WatcherImeChange>(std::to_string(static_cast<int32_t>(ImeState::UNBIND)),
-                                                               std::to_string(static_cast<int32_t>(getpid())),
-                                                               bundleName);
+        std::to_string(static_cast<int32_t>(getpid())), bundleName);
     auto imeStateUnBind = []() {
         inputMethodController_->Attach(textListener_, true);
         inputMethodController_->Close();
@@ -426,8 +426,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Bind, TestSize.Level0
 {
     std::string bundleName = "com.example.kikakeyboard";
     auto watcherImeChange = std::make_shared<WatcherImeChange>(std::to_string(static_cast<int32_t>(ImeState::BIND)),
-                                                               std::to_string(static_cast<int32_t>(getpid())),
-                                                               bundleName);
+        std::to_string(static_cast<int32_t>(getpid())), bundleName);
     auto imeStateBind = []() { inputMethodController_->RequestShowInput(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatchImeChange(watcherImeChange, imeStateBind));
 }
