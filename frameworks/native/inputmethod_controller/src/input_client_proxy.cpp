@@ -27,10 +27,9 @@ InputClientProxy::InputClientProxy(const sptr<IRemoteObject> &object) : IRemoteP
 {
 }
 
-int32_t InputClientProxy::OnInputReady(const sptr<IInputMethodAgent> &agent)
+int32_t InputClientProxy::OnInputReady(const sptr<IRemoteObject> &agent)
 {
-    return SendRequest(
-        ON_INPUT_READY, [agent](MessageParcel &data) { return ITypesUtil::Marshal(data, agent->AsObject()); });
+    return SendRequest(ON_INPUT_READY, [agent](MessageParcel &data) { return ITypesUtil::Marshal(data, agent); });
 }
 
 int32_t InputClientProxy::OnInputStop()

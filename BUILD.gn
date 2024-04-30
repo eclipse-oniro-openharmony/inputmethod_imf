@@ -24,6 +24,7 @@ group("imf_packages") {
       "frameworks/js/napi/inputmethodability:inputmethodengine",
       "frameworks/js/napi/inputmethodclient:inputmethod",
       "frameworks/js/napi/inputmethodlist:inputmethodlist",
+      "frameworks/js/napi/keyboardpanelmanager:keyboardpanelmanager",
       "interfaces/inner_api/inputmethod_ability:inputmethod_ability",
       "interfaces/inner_api/inputmethod_controller:inputmethod_client",
       "profile:inputmethod_inputmethod_sa_profiles",

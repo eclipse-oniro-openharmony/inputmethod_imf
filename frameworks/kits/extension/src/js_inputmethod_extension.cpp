@@ -61,6 +61,10 @@ napi_value AttachInputMethodExtensionContext(napi_env env, void *value, void *)
     napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachInputMethodExtensionContext, value, nullptr);
     auto workContext = new (std::nothrow) std::weak_ptr<InputMethodExtensionContext>(ptr);
+    if (workContext == nullptr) {
+        IMSA_HILOGE("workContext is nullptr");
+        return nullptr;
+    }
     napi_wrap(env, contextObj, workContext,
         [](napi_env, void *data, void *) {
             IMSA_HILOGI("Finalizer for weak_ptr input method extension context is called");
@@ -218,6 +222,10 @@ void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
         return;
     }
     auto workContext = new (std::nothrow) std::weak_ptr<InputMethodExtensionContext>(context);
+    if (workContext == nullptr) {
+        IMSA_HILOGE("workContext is nullptr");
+        return;
+    }
     napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachInputMethodExtensionContext, workContext, nullptr);
     IMSA_HILOGD("JsInputMethodExtension::Init Bind.");

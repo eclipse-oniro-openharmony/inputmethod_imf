@@ -175,7 +175,7 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        PARAM_CHECK_RETURN(env, argc > 1, " should 2 or 3 parameters! ", TYPE_NONE, status);
+        PARAM_CHECK_RETURN(env, argc > 1, "should 2 or 3 parameters! ", TYPE_NONE, status);
         // 0 means the first param x<int32_t>
         status = JsUtils::GetValue(env, argv[0], ctxt->x);
         CHECK_RETURN(status == napi_ok, "get x failed!", status);
@@ -212,7 +212,7 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
         }
         ctxt->SetErrorCode(code);
     };
-    // 1 means JsAPI:show has 1 params at most.
+    // 1 means JsAPI:show has 1 param at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "show");
 }
@@ -229,7 +229,7 @@ napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
         }
         ctxt->SetErrorCode(code);
     };
-    // 1 means JsAPI:hide has 1 params at most.
+    // 1 means JsAPI:hide has 1 param at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "panel.hide");
 }
@@ -240,7 +240,7 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_MAX] = { nullptr };
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
-    PARAM_CHECK_RETURN(env, argc > 0, " should 1 parameter! ", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameter! ", TYPE_NONE, nullptr);
     int32_t panelFlag = 0;
     // 0 means the first param flag<PanelFlag>
     napi_status status = JsUtils::GetValue(env, argv[0], panelFlag);
@@ -258,7 +258,7 @@ napi_value JsPanel::SetPrivacyMode(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_MAX] = {nullptr};
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
-    PARAM_CHECK_RETURN(env, argc > 0, " should 1 parameter! ", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameter! ", TYPE_NONE, nullptr);
     bool isPrivacyMode = false;
     // 0 means the first param isPrivacyMode<boolean>
     napi_status status = JsUtils::GetValue(env, argv[0], isPrivacyMode);
@@ -311,19 +311,15 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     std::string type;
     // 1 means least param num.
-    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type)) {
-        IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_NONE);
-        return nullptr;
-    }
-
+    PARAM_CHECK_RETURN(env, argc >= 1, "At least 1 param", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(
+        env, JsUtil::GetValue(env, argv[0], type), "Failed to get param text", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type),
+        "EventType is invalid", TYPE_NONE, nullptr);
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
-    if (paramType != napi_function && paramType != napi_null && paramType != napi_undefined) {
-        JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "please check the params", TYPE_FUNCTION);
-        return nullptr;
-    }
+    PARAM_CHECK_RETURN(env, (paramType == napi_function || paramType == napi_null || paramType == napi_undefined),
+        "ParamType should be function or null or undefined", TYPE_NONE, nullptr);
     // if the second param is napi_function, delete it, else delete all
     argv[1] = paramType == napi_function ? argv[1] : nullptr;
 

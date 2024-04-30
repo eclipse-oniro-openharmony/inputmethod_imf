@@ -37,7 +37,7 @@ struct InputClientInfo {
     uint32_t eventFlag{ NO_EVENT_ON };                     // the flag of the all listen event
     InputAttribute attribute;                              // the input client attribute
     sptr<IInputClient> client{ nullptr };       // the remote object handler for service to callback input client
-    sptr<IInputDataChannel> channel{ nullptr }; // the remote object handler for ime to callback input client
+    sptr<IRemoteObject> channel{ nullptr };     // the remote object handler for ime to callback input client
     sptr<InputDeathRecipient> deathRecipient{ nullptr }; // death recipient of client
     ClientState state{ ClientState::INACTIVE };          // the state of input client
     bool isNotifyInputStart { true };

@@ -145,7 +145,7 @@ public:
         auto agent = inputMethodAbility_->agentStub_->AsObject();
         imc_->SetAgent(agent);
 
-        sptr<IInputDataChannel> channel = iface_cast<IInputDataChannel>(imc_->clientInfo_.channel->AsObject());
+        sptr<IInputDataChannel> channel = iface_cast<IInputDataChannel>(imc_->clientInfo_.channel);
         inputMethodAbility_->SetInputDataChannel(channel->AsObject());
         IMSA_HILOGI("end");
     }

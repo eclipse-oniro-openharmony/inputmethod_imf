@@ -24,7 +24,6 @@
 #include "js_util.h"
 #include "js_utils.h"
 #include "key_event_napi.h"
-#include "keyevent_consumer_proxy.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 

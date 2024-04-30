@@ -21,7 +21,6 @@
 
 #include "global.h"
 #include "ime_event_monitor_manager_impl.h"
-#include "ime_info_inquirer.h"
 #include "ime_setting_listener_test_impl.h"
 #include "input_method_controller.h"
 #include "input_method_property.h"
@@ -45,7 +44,6 @@ public:
     static std::vector<std::string> subName;
     static std::vector<std::string> locale;
     static std::vector<std::string> language;
-    static bool enableOn;
     static std::string beforeValue;
     static std::string allEnableIme;
 };
@@ -55,7 +53,6 @@ std::string NewImeSwitchTest::extName = "InputMethodExtAbility";
 std::vector<std::string> NewImeSwitchTest::subName{ "lowerInput", "upperInput", "chineseInput" };
 std::vector<std::string> NewImeSwitchTest::locale{ "en-US", "en-US", "zh-CN" };
 std::vector<std::string> NewImeSwitchTest::language{ "english", "english", "chinese" };
-bool NewImeSwitchTest::enableOn = false;
 std::string NewImeSwitchTest::beforeValue;
 std::string NewImeSwitchTest::allEnableIme = "{\"enableImeList\" : {\"100\" : [ \"com.example.newTestIme\"]}}";
 constexpr uint32_t IME_SUBTYPE_NUM = 3;
@@ -64,15 +61,11 @@ constexpr const char *ENABLE_IME_KEYWORD = "settings.inputmethod.enable_ime";
 void NewImeSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::SetUpTestCase");
-    ImeInfoInquirer::GetInstance().InitSystemConfig();
-    enableOn = ImeInfoInquirer::GetInstance().IsEnableInputMethod();
     TddUtil::GrantNativePermission();
-    if (enableOn == true) {
+    int32_t ret = TddUtil::GetEnableData(beforeValue);
+    if (ret == ErrorCode::NO_ERROR) {
         IMSA_HILOGI("Enable ime switch test.");
-        int32_t ret = TddUtil::GetEnableData(beforeValue);
-        if (ret == ErrorCode::NO_ERROR) {
-            TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
-        }
+        TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
     }
     TddUtil::StorageSelfTokenID();
     TddUtil::SetTestTokenID(
@@ -85,10 +78,8 @@ void NewImeSwitchTest::SetUpTestCase(void)
 void NewImeSwitchTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::TearDownTestCase");
-    if (enableOn) {
-        TddUtil::GrantNativePermission();
-        TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
-    }
+    TddUtil::GrantNativePermission();
+    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, beforeValue);
     InputMethodController::GetInstance()->Close();
     TddUtil::RestoreSelfTokenID();
 }

@@ -26,6 +26,7 @@ enum class EventSubscribeModule : uint32_t {
     INPUT_METHOD_SETTING,
     INPUT_METHOD_ABILITY,
     KEYBOARD_DELEGATE,
+    KEYBOARD_PANEL_MANAGER,
     PANEL,
 };
 class EventChecker {

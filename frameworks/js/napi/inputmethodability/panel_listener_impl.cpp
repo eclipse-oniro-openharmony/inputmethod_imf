@@ -81,14 +81,21 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
     auto result = callbacks_.Find(windowId);
     if (!result.first) {
         IMSA_HILOGE("no callback of windowId = %{public}d!", windowId);
+        delete work;
         return;
     }
     auto callback = result.second.Find(type);
     if (!callback.first) {
         IMSA_HILOGE("no callback in map!");
+        delete work;
         return;
     }
     work->data = new (std::nothrow) UvEntry(callback.second);
+    if (work->data == nullptr) {
+        IMSA_HILOGE("work->data is nullptr!");
+        delete work;
+        return;
+    }
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(callback.second->env_, &loop);
     IMSA_HILOGI("windowId = %{public}u, type = %{public}s", windowId, type.c_str());

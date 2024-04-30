@@ -88,7 +88,7 @@ private:
     std::unordered_map<std::string, std::vector<std::string>> enableList_;
     std::mutex defaultImeMutex_;
     std::shared_ptr<Property> defaultImeInfo_{ nullptr };
-    int32_t currrentUserId_ = 0;
+    int32_t currentUserId_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

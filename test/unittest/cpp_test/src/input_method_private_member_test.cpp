@@ -43,6 +43,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
+using namespace AppExecFwk;
 class InputMethodPrivateMemberTest : public testing::Test {
 public:
     static void SetUpTestCase(void);

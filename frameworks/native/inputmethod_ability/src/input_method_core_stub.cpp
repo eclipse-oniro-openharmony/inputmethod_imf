@@ -23,6 +23,7 @@
 #include "system_cmd_channel_proxy.h"
 #include "input_method_ability.h"
 #include "ipc_skeleton.h"
+#include "itypes_util.h"
 #include "message_handler.h"
 #include "message_parcel.h"
 
@@ -105,7 +106,8 @@ int32_t InputMethodCoreStub::StartInputOnRemote(MessageParcel &data, MessageParc
         "CoreStub, callingPid/Uid: %{public}d/%{public}d", IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     bool isBindFromClient = false;
     InputClientInfo clientInfo = {};
-    if (!ITypesUtil::Unmarshal(data, isBindFromClient, clientInfo)) {
+    sptr<IRemoteObject> channel = nullptr;
+    if (!ITypesUtil::Unmarshal(data, isBindFromClient, clientInfo, clientInfo.channel)) {
         IMSA_HILOGE("Unmarshal failed.");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
@@ -124,7 +126,7 @@ int32_t InputMethodCoreStub::SecurityChangeOnRemote(MessageParcel &data, Message
     return ITypesUtil::Marshal(reply, ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t InputMethodCoreStub::OnConnectSystemCmd(const sptr<ISystemCmdChannel> &channel, sptr<IRemoteObject> &agent)
+int32_t InputMethodCoreStub::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
 {
     return ErrorCode::NO_ERROR;
 }
@@ -230,7 +232,7 @@ int32_t InputMethodCoreStub::OnSecurityChange(int32_t security)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodCoreStub::StopInput(const sptr<IInputDataChannel> &channel)
+int32_t InputMethodCoreStub::StopInput(const sptr<IRemoteObject> &channel)
 {
     return ErrorCode::NO_ERROR;
 }
@@ -245,7 +247,7 @@ int32_t InputMethodCoreStub::IsPanelShown(const PanelInfo &panelInfo, bool &isSh
     return InputMethodAbility::GetInstance()->IsPanelShown(panelInfo, isShown);
 }
 
-void InputMethodCoreStub::OnClientInactive(const sptr<IInputDataChannel> &channel)
+void InputMethodCoreStub::OnClientInactive(const sptr<IRemoteObject> &channel)
 {
 }
 
