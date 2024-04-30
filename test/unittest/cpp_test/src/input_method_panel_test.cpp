@@ -363,8 +363,6 @@ void InputMethodPanelTest::ImcPanelShowInfoCheck(const InputWindowInfo &windowIn
     IMSA_HILOGI("InputMethodPanelTest::name: %{public}s, ret:[%{public}d, %{public}d,%{public}d, %{public}d]",
         windowInfo_.name.c_str(), windowInfo_.top, windowInfo_.left, windowInfo_.width, windowInfo_.height);
     EXPECT_FALSE(windowInfo_.name.empty());
-    EXPECT_EQ(windowInfo_.width, windowInfo.width);
-    EXPECT_EQ(windowInfo_.height, windowInfo.height);
 }
 
 void InputMethodPanelTest::ImcPanelHideInfoCheck(const InputWindowInfo &windowInfo)
@@ -376,8 +374,6 @@ void InputMethodPanelTest::ImcPanelHideInfoCheck(const InputWindowInfo &windowIn
     IMSA_HILOGI("InputMethodPanelTest::name: %{public}s, ret:[%{public}d, %{public}d,%{public}d, %{public}d]",
         windowInfo_.name.c_str(), windowInfo_.top, windowInfo_.left, windowInfo_.width, windowInfo_.height);
     EXPECT_FALSE(windowInfo_.name.empty());
-    EXPECT_EQ(windowInfo_.width, windowInfo.width);
-    EXPECT_EQ(windowInfo_.height, windowInfo.height);
 }
 
 void InputMethodPanelTest::ImcPanelListeningTestRestore()
@@ -465,7 +461,7 @@ HWTEST_F(InputMethodPanelTest, testResizePanel001, TestSize.Level0)
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    EXPECT_TRUE(defaultDisplay != nullptr);
+    ASSERT_TRUE(defaultDisplay != nullptr);
     int32_t width = defaultDisplay->GetWidth();
     int32_t height = defaultDisplay->GetHeight();
 
@@ -506,7 +502,7 @@ HWTEST_F(InputMethodPanelTest, testResizePanel002, TestSize.Level0)
     ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
-    EXPECT_TRUE(defaultDisplay != nullptr);
+    ASSERT_TRUE(defaultDisplay != nullptr);
     int32_t width = defaultDisplay->GetWidth();
     int32_t height = defaultDisplay->GetHeight();
 

@@ -289,6 +289,7 @@ void TddUtil::GrantNativePermission()
 
 void TddUtil::PushEnableImeValue(const std::string &key, const std::string &value)
 {
+    IMSA_HILOGI("key: %{public}s, value: %{public}s", key.c_str(), value.c_str());
     auto helper = SettingsDataUtils::GetInstance()->CreateDataShareHelper();
     if (helper == nullptr) {
         IMSA_HILOGE("helper is nullptr.");
@@ -303,15 +304,23 @@ void TddUtil::PushEnableImeValue(const std::string &key, const std::string &valu
     predicates.EqualTo(SETTING_COLUMN_KEYWORD, key);
     Uri uri(SettingsDataUtils::GetInstance()->GenerateTargetUri(key));
     if (helper->Update(uri, predicates, bucket) <= 0) {
-        IMSA_HILOGD("no data exist, insert one row");
-        helper->Insert(uri, bucket);
+        int index = helper->Insert(uri, bucket);
+        IMSA_HILOGI("no data exists, insert ret index: %{public}d", index);
+    } else {
+        IMSA_HILOGI("data exits");
     }
-    SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
+    bool ret = SettingsDataUtils::GetInstance()->ReleaseDataShareHelper(helper);
+    IMSA_HILOGI("ReleaseDataShareHelper isSuccess: %{public}d", ret);
 }
 
 int32_t TddUtil::GetEnableData(std::string &value)
 {
-    return SettingsDataUtils::GetInstance()->GetStringValue(EnableImeDataParser::ENABLE_IME, value);
+    auto ret = SettingsDataUtils::GetInstance()->GetStringValue(EnableImeDataParser::ENABLE_IME, value);
+    if (ret == ErrorCode::NO_ERROR) {
+        IMSA_HILOGI("success, value: %{public}s", value.c_str());
+    }
+    IMSA_HILOGI("GetStringValue ret: %{public}d", ret);
+    return ret;
 }
 
 void TddUtil::InitWindow(bool isShow)
@@ -361,6 +370,10 @@ void TddUtil::WindowManager::CreateWindow()
     std::shared_ptr<AbilityRuntime::Context> context = nullptr;
     WMError wmError = WMError::WM_OK;
     window_ = Window::Create(windowName, winOption, context, wmError);
+    if (window_ == nullptr) {
+        IMSA_HILOGE("failed to create window, ret: %{public}d", wmError);
+        return;
+    }
     IMSA_HILOGI("Create window ret:%{public}d", wmError);
     currentWindowId_ = window_->GetWindowId();
 }
@@ -371,6 +384,7 @@ void TddUtil::WindowManager::ShowWindow()
         IMSA_HILOGE("window is not exist.");
         return;
     }
+    TokenScope scope(windowTokenId_);
     auto ret = window_->Show();
     IMSA_HILOGI("Show window end, ret = %{public}d", ret);
 }
@@ -388,10 +402,13 @@ void TddUtil::WindowManager::HideWindow()
 
 void TddUtil::WindowManager::DestroyWindow()
 {
-    if (window_ != nullptr) {
-        TokenScope scope(windowTokenId_);
-        window_->Destroy();
+    if (window_ == nullptr) {
+        IMSA_HILOGE("window_ nullptr");
+        return;
     }
+    TokenScope scope(windowTokenId_);
+    auto wmError = window_->Destroy();
+    IMSA_HILOGI("Destroy window ret: %{public}d", wmError);
 }
 
 void TddUtil::WindowManager::RegisterFocusChangeListener()
