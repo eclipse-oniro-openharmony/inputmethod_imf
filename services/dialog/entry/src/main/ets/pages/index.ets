@@ -25,10 +25,10 @@ struct Index {
   private arr: string[] = [];
   private propertyMap: Map<string, inputMethod.InputMethodProperty> = new Map();
   @StorageLink('inputMethodList') inputMethods: Array<inputMethod.InputMethodProperty> | undefined = [];
-  private TAG = "[InputMethodChooseDialog]";
+  private TAG = '[InputMethodChooseDialog]';
 
   aboutToAppear() {
-    console.log(this.TAG, "dialog page appears")
+    console.log(this.TAG, 'dialog page appears')
     this.inputMethods = AppStorage.get('inputMethodList');
     if (this.inputMethods) {
       for (let inputmethod of this.inputMethods) {
@@ -40,18 +40,18 @@ struct Index {
   }
 
   onPrint(): void {
-    console.log(this.TAG + "print file or text");
+    console.log(this.TAG + 'print file or text');
   }
 
   onCopy(): void {
-    console.log(this.TAG + "copy file and html");
+    console.log(this.TAG + 'copy file and html');
   }
 
   build() {
     Column() {
       List({ space: 1, initialIndex: 0 }) {
         ListItem() {
-          Text($r("app.string.dialogTitle"))
+          Text($r('app.string.dialogTitle'))
             .width('100%')
             .height(40)
             .fontSize(14)
@@ -67,7 +67,7 @@ struct Index {
               .fontSize(16)
               .textAlign(TextAlign.Center)
               .borderRadius(10)
-              .backgroundColor($r("app.color.btn_default"))
+              .backgroundColor($r('app.color.btn_default'))
               .onClick(async () => {
                 if (this.propertyMap.has(item)) {
                   let prop = this.propertyMap.get(item);
