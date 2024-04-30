@@ -104,7 +104,7 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
     napi_value code;
     napi_value message;
     if (type == TypeCode::TYPE_NONE) {
-        errMsg = errMsg + msg;
+        errMsg = errMsg + " " + msg;
         IMSA_HILOGE("THROW_ERROR message: %{public}s", errMsg.c_str());
     } else {
         auto iter = PARAMETER_TYPE.find(type);
