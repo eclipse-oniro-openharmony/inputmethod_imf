@@ -70,8 +70,13 @@ napi_value JsPanel::JsNew(napi_env env, napi_callback_info info)
         delete jsPanel;
     };
     napi_value thisVar = nullptr;
-    NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
-    napi_status status = napi_wrap(env, thisVar, panel, finalize, nullptr, nullptr);
+    napi_status status = napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("JsPanel napi_get_cb_info failed: %{public}d", status);
+        delete panel;
+        return nullptr;
+    }
+    status = napi_wrap(env, thisVar, panel, finalize, nullptr, nullptr);
     if (status != napi_ok) {
         IMSA_HILOGE("JsPanel napi_wrap failed: %{public}d", status);
         delete panel;
