@@ -118,6 +118,7 @@ public:
     static napi_value GetValue(napi_env env, const InputAttribute &attribute);
     static napi_value GetJsPrivateCommand(napi_env env, const std::unordered_map<std::string, PrivateDataValue> &in);
     static napi_status GetValue(napi_env env, const std::string &in, napi_value &out);
+    static napi_status GetValue(napi_env env, napi_value in, PanelFlag &out);
 
 private:
     static const std::string ToMessage(int32_t code);

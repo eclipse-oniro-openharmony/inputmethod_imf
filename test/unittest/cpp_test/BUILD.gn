@@ -47,6 +47,7 @@ ohos_unittest("InputMethodControllerTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
@@ -66,6 +67,7 @@ ohos_unittest("InputMethodControllerTest") {
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "window_manager:libdm",
     "window_manager:libwm",
   ]
 }
@@ -87,6 +89,7 @@ ohos_unittest("InputMethodAttachTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gmock",
@@ -102,6 +105,7 @@ ohos_unittest("InputMethodAttachTest") {
     "hilog:libhilog",
     "input:libmmi-client",
     "napi:ace_napi",
+    "window_manager:libdm",
     "window_manager:libwm",
   ]
 }
@@ -129,6 +133,7 @@ ohos_unittest("InputMethodAbilityTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
@@ -206,6 +211,7 @@ ohos_unittest("InputMethodDfxTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
@@ -225,6 +231,7 @@ ohos_unittest("InputMethodDfxTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "window_manager:libdm",
     "window_manager:libwm",
   ]
 }
@@ -246,6 +253,7 @@ ohos_unittest("InputMethodPanelTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
@@ -345,6 +353,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
+    "window_manager:libdm",
     "window_manager:libwm",
   ]
 }
@@ -366,6 +375,7 @@ ohos_unittest("InputMethodEditorTest") {
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
     "${inputmethod_path}/services:inputmethod_service",
+    "${inputmethod_path}/services/json:imf_json_static",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
     "//third_party/googletest:gtest_main",
@@ -383,6 +393,7 @@ ohos_unittest("InputMethodEditorTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "window_manager:libdm",
     "window_manager:libwm",
   ]
 }

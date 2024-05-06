@@ -17,10 +17,13 @@
 
 #include "event_checker.h"
 #include "input_method_ability.h"
+#include "js_text_input_client_engine.h"
 #include "js_util.h"
 #include "js_utils.h"
 #include "napi/native_common.h"
+#include "panel_info.h"
 #include "panel_listener_impl.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -49,6 +52,7 @@ napi_value JsPanel::Init(napi_env env)
         DECLARE_NAPI_FUNCTION("setPrivacyMode", SetPrivacyMode),
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
+        DECLARE_NAPI_FUNCTION("adjustPanelRect", AdjustPanelRect),
     };
     NAPI_CALL(env, napi_define_class(env, CLASS_NAME.c_str(), CLASS_NAME.size(), JsNew, nullptr,
                        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
@@ -113,17 +117,18 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
             if (valueType == napi_object) {
                 napi_ref storage = nullptr;
                 napi_create_reference(env, argv[1], 1, &storage);
-                auto contentStorage = (storage == nullptr)
-                                          ? nullptr
-                                          : std::shared_ptr<NativeReference>(
-                                              reinterpret_cast<NativeReference *>(storage));
+                auto contentStorage = (storage == nullptr) ? nullptr
+                                                           : std::shared_ptr<NativeReference>(
+                                                                 reinterpret_cast<NativeReference *>(storage));
                 ctxt->contentStorage = contentStorage;
             }
         }
         return napi_ok;
     };
 
-    auto exec = [ctxt](AsyncCall::Context *ctx) { ctxt->SetState(napi_ok); };
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        ctxt->SetState(napi_ok);
+    };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         CHECK_RETURN(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
         auto code = ctxt->inputMethodPanel->SetUiContent(ctxt->path, env, ctxt->contentStorage);
@@ -255,7 +260,7 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
 napi_value JsPanel::SetPrivacyMode(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_MAX;
-    napi_value argv[ARGC_MAX] = {nullptr};
+    napi_value argv[ARGC_MAX] = { nullptr };
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameter! ", TYPE_NONE, nullptr);
@@ -264,14 +269,14 @@ napi_value JsPanel::SetPrivacyMode(napi_env env, napi_callback_info info)
     napi_status status = JsUtils::GetValue(env, argv[0], isPrivacyMode);
     if (status != napi_ok) {
         JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_PARAMETER_CHECK_FAILED), " param check failed!",
-                                TYPE_BOOLEAN);
+            TYPE_BOOLEAN);
     }
     CHECK_RETURN(status == napi_ok, "get isPrivacyMode failed!", nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     auto ret = inputMethodPanel->SetPrivacyMode(isPrivacyMode);
     if (ret == static_cast<int32_t>(WMError::WM_ERROR_INVALID_PERMISSION)) {
         JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_STATUS_PERMISSION_DENIED),
-                                " ohos.permission.PRIVACY_WINDOW permission denied", TYPE_NONE);
+            " ohos.permission.PRIVACY_WINDOW permission denied", TYPE_NONE);
     }
     CHECK_RETURN(ret == ErrorCode::NO_ERROR, "SetPrivacyMode failed!", nullptr);
     return nullptr;
@@ -286,9 +291,9 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     std::string type;
     // 2 means least param num.
-    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type)
-        || JsUtil::GetType(env, argv[1]) != napi_function) {
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type) ||
+        JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
@@ -312,10 +317,9 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     std::string type;
     // 1 means least param num.
     PARAM_CHECK_RETURN(env, argc >= 1, "At least 1 param", TYPE_NONE, nullptr);
-    PARAM_CHECK_RETURN(
-        env, JsUtil::GetValue(env, argv[0], type), "Failed to get param text", TYPE_NONE, nullptr);
-    PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type),
-        "EventType is invalid", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], type), "Failed to get param text", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type), "EventType is invalid",
+        TYPE_NONE, nullptr);
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     PARAM_CHECK_RETURN(env, (paramType == napi_function || paramType == napi_null || paramType == napi_undefined),
@@ -333,6 +337,39 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     return result;
 }
 
+napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
+{
+    auto ctxt = std::make_shared<PanelContentContext>(env, info);
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        napi_status status = napi_generic_failure;
+        PARAM_CHECK_RETURN(env, argc > 1, "should 2 parameters!", TYPE_NONE, status);
+        // 0 means the first param keyboardGravity
+        CHECK_RETURN(JsUtils::GetValue(env, argv[0], ctxt->panelFlag) == napi_ok,
+            "panelFlag should be FIXED/FLOATING", napi_generic_failure);
+        // 1 means the second param rect
+        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_object, "rect", TYPE_OBJECT,
+            napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsPanelRect::Read(env, argv[1], ctxt->layoutParams), "failed to get layoutParams",
+            TYPE_NONE, napi_generic_failure);
+        return napi_ok;
+    };
+
+    auto exec = [ctxt](AsyncCall::Context *ctx) {
+        CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
+        auto code = ctxt->inputMethodPanel->AdjustPanelRect(ctxt->panelFlag, ctxt->layoutParams);
+        if (code == ErrorCode::NO_ERROR) {
+            InputMethodAbility::GetInstance()->NotifyKeyboardHeight(ctxt->inputMethodPanel);
+            ctxt->SetState(napi_ok);
+            return;
+        }
+        ctxt->SetErrorCode(code);
+    };
+    ctxt->SetAction(std::move(input));
+    // 2 means JsAPI:adjustPanelLayout has 2 params at most.
+    AsyncCall asyncCall(env, info, ctxt, 2);
+    return asyncCall.Call(env, exec, "adjustPanelLayout");
+}
+
 std::shared_ptr<InputMethodPanel> JsPanel::UnwrapPanel(napi_env env, napi_value thisVar)
 {
     void *native = nullptr;
@@ -345,6 +382,26 @@ std::shared_ptr<InputMethodPanel> JsPanel::UnwrapPanel(napi_env env, napi_value 
     auto inputMethodPanel = jsPanel->GetNative();
     CHECK_RETURN(inputMethodPanel != nullptr, "inputMethodPanel is nullptr", nullptr);
     return inputMethodPanel;
+}
+
+napi_value JsPanelRect::Write(napi_env env, const LayoutParams &layoutParams)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret =
+        JsUtil::Object::WriteProperty(env, jsObject, "landscapeRect", JsRect::Write(env, layoutParams.landscapeRect));
+    ret = ret &&
+          JsUtil::Object::WriteProperty(env, jsObject, "portraitRect", JsRect::Write(env, layoutParams.portraitRect));
+    return ret ? jsObject : JsUtil::Const::Null(env);
+}
+bool JsPanelRect::Read(napi_env env, napi_value object, LayoutParams &layoutParams)
+{
+    napi_value rectObject = nullptr;
+    napi_get_named_property(env, object, "landscapeRect", &rectObject);
+    bool ret = JsRect::Read(env, rectObject, layoutParams.landscapeRect);
+    napi_get_named_property(env, object, "portraitRect", &rectObject);
+    ret = ret && JsRect::Read(env, rectObject, layoutParams.portraitRect);
+    return ret;
 }
 } // namespace MiscServices
 } // namespace OHOS

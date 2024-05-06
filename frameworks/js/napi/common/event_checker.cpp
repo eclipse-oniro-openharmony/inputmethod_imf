@@ -28,7 +28,7 @@ const std::unordered_map<EventSubscribeModule, std::unordered_set<std::string>> 
             "securityModeChange", "privateCommand" } },
     { EventSubscribeModule::KEYBOARD_DELEGATE, { "editorAttributeChanged", "keyDown", "keyUp", "keyEvent",
                                                    "cursorContextChange", "selectionChange", "textChange" } },
-    { EventSubscribeModule::PANEL, { "show", "hide" } },
+    { EventSubscribeModule::PANEL, { "show", "hide", "sizeChange" } },
     { EventSubscribeModule::KEYBOARD_PANEL_MANAGER, { "panelPrivateCommand", "isPanelShow" } }
 };
 bool EventChecker::IsValidEventType(EventSubscribeModule module, const std::string &type)

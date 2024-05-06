@@ -47,6 +47,19 @@ bool SysCfgParser::ParseInputType(std::vector<InputTypeInfo> &inputType)
     return ret;
 }
 
+bool SysCfgParser::ParsePanelAdjust(std::vector<SysPanelAdjust> &sysPanelAdjust)
+{
+    auto content = GetSysCfgContent(GET_NAME(systemConfig));
+    if (content.empty()) {
+        IMSA_HILOGE("empty content");
+        return false;
+    }
+    SysPanelAdjustCfg sysPanelAdjustCfg;
+    auto ret = sysPanelAdjustCfg.Unmarshall(content);
+    sysPanelAdjust = sysPanelAdjustCfg.panelAdjust;
+    return ret;
+}
+
 std::string SysCfgParser::GetSysCfgContent(const std::string &key)
 {
     std::string content;

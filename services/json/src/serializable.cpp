@@ -73,6 +73,22 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, int32_t &value
     return true;
 }
 
+bool Serializable::GetValue(cJSON *node, const std::string &name, uint32_t &value)
+{
+    auto subNode = GetSubNode(node, name);
+    if (!cJSON_IsNumber(subNode)) {
+        IMSA_HILOGE("%{public}s not number", name.c_str());
+        return false;
+    }
+    // Make sure it's not negative
+    if (subNode->valueint < 0) {
+        IMSA_HILOGE("%{public}s is negative", name.c_str());
+        return false;
+    }
+    value = static_cast<uint32_t>(subNode->valueint);
+    return true;
+}
+
 bool Serializable::GetValue(cJSON *node, const std::string &name, bool &value)
 {
     auto subNode = GetSubNode(node, name);
