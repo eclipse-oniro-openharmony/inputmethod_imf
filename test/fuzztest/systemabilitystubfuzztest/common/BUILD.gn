@@ -17,6 +17,7 @@ import("//build/ohos.gni")
 
 config("imf_sa_stub_fuzztest_common_config") {
   include_dirs = [
+    "${inputmethod_path}/services/adapter/ime_connection_manager/include",
     "${inputmethod_path}/services/include",
     "${inputmethod_path}/test/common",
     "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest",
@@ -37,7 +38,10 @@ ohos_static_library("imf_sa_stub_fuzztest_common_static") {
     cfi_cross_dso = true
     debug = false
   }
-  sources = [ "imf_sa_stub_fuzz_util.cpp" ]
+  sources = [
+    "${inputmethod_path}/services/adapter/ime_connection_manager/src/ime_connection.cpp",
+    "imf_sa_stub_fuzz_util.cpp",
+  ]
 
   public_deps = [
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller:inputmethod_client_static",
