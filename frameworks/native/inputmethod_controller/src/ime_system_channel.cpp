@@ -55,8 +55,8 @@ sptr<ImeSystemCmdChannel> ImeSystemCmdChannel::GetInstance()
 sptr<IInputMethodSystemAbility> ImeSystemCmdChannel::GetSystemAbilityProxy()
 {
     std::lock_guard<std::mutex> lock(abilityLock_);
-    if (abilityManager_ != nullptr) {
-        return abilityManager_;
+    if (systemAbility_ != nullptr) {
+        return systemAbility_;
     }
     IMSA_HILOGI("get input method service proxy");
     sptr<ISystemAbilityManager> systemAbilityManager =
@@ -82,8 +82,8 @@ sptr<IInputMethodSystemAbility> ImeSystemCmdChannel::GetSystemAbilityProxy()
         IMSA_HILOGE("failed to add death recipient.");
         return nullptr;
     }
-    abilityManager_ = iface_cast<IInputMethodSystemAbility>(systemAbility);
-    return abilityManager_;
+    systemAbility_ = iface_cast<IInputMethodSystemAbility>(systemAbility);
+    return systemAbility_;
 }
 
 void ImeSystemCmdChannel::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
@@ -91,7 +91,7 @@ void ImeSystemCmdChannel::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
     IMSA_HILOGI("input method service death");
     {
         std::lock_guard<std::mutex> lock(abilityLock_);
-        abilityManager_ = nullptr;
+        systemAbility_ = nullptr;
     }
     ClearSystemCmdAgent();
 }
@@ -109,22 +109,28 @@ int32_t ImeSystemCmdChannel::ConnectSystemCmd(const sptr<OnSystemCmdListener> &l
 
 int32_t ImeSystemCmdChannel::RunConnectSystemCmd()
 {
-    auto channel = new (std::nothrow) SystemCmdChannelStub();
-    if (channel == nullptr) {
-        IMSA_HILOGE("channel is nullptr");
-        return ErrorCode::ERROR_NULL_POINTER;
+    if (systemChannelStub_ == nullptr) {
+        systemChannelStub_ = new (std::nothrow) SystemCmdChannelStub();
+        if (systemChannelStub_ == nullptr) {
+            IMSA_HILOGE("channel is nullptr");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
     }
+ 
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
-        delete channel;
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
     sptr<IRemoteObject> agent = nullptr;
-    int32_t ret = proxy->ConnectSystemCmd(channel, agent);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("failed to connect system cmd, ret:%{public}d", ret);
-        return ret;
+    static constexpr uint32_t RETRY_INTERVAL = 100;
+    static constexpr uint32_t BLOCK_RETRY_TIMES = 5;
+    if (!BlockRetry(RETRY_INTERVAL, BLOCK_RETRY_TIMES, [&agent, this, proxy]() -> bool {
+            int32_t ret = proxy->ConnectSystemCmd(systemChannelStub_->AsObject(), agent);
+            return ret == ErrorCode::NO_ERROR;
+        })) {
+        IMSA_HILOGE("failed to connect system cmd");
+        return ErrorCode::ERROR_SYSTEM_CMD_CHANNEL_ERROR;
     }
     OnConnectCmdReady(agent);
     IMSA_HILOGI("connect system cmd success");
@@ -144,6 +150,27 @@ void ImeSystemCmdChannel::OnConnectCmdReady(const sptr<IRemoteObject> &agentObje
         return;
     }
     systemAgent_ = new (std::nothrow) InputMethodAgentProxy(agentObject);
+    if (agentDeathRecipient_ == nullptr) {
+        agentDeathRecipient_ = new (std::nothrow) InputDeathRecipient();
+        if (agentDeathRecipient_ == nullptr) {
+            IMSA_HILOGE("new death recipient failed");
+            return;
+        }
+    }
+    agentDeathRecipient_->SetDeathRecipient([this](const wptr<IRemoteObject> &remote) {
+        OnSystemCmdAgentDied(remote);
+    });
+    if (!agentObject->AddDeathRecipient(agentDeathRecipient_)) {
+        IMSA_HILOGE("failed to add death recipient.");
+        return;
+    }
+}
+
+void ImeSystemCmdChannel::OnSystemCmdAgentDied(const wptr<IRemoteObject> &remote)
+{
+    IMSA_HILOGI("input method death");
+    ClearSystemCmdAgent();
+    RunConnectSystemCmd();
 }
 
 sptr<IInputMethodAgent> ImeSystemCmdChannel::GetSystemCmdAgent()
@@ -191,13 +218,6 @@ int32_t ImeSystemCmdChannel::SendPrivateCommand(
 {
     IMSA_HILOGD("in");
     if (TextConfig::IsSystemPrivateCommand(privateCommand)) {
-        if (!isSystemCmdConnect_.load()) {
-            auto ret = RunConnectSystemCmd();
-            if (ret != ErrorCode::NO_ERROR) {
-                IMSA_HILOGE("failed to connect system cmd, ret:%{public}d", ret);
-                return ret;
-            }
-        }
         if (!TextConfig::IsPrivateCommandValid(privateCommand)) {
             IMSA_HILOGE("invalid private command size.");
             return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE;
