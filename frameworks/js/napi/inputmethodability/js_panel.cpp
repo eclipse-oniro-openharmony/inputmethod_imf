@@ -318,9 +318,9 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     // 1 means least param num.
     PARAM_CHECK_RETURN(env, argc >= 1, "At least 1 param", TYPE_NONE, nullptr);
     PARAM_CHECK_RETURN(
-        env, JsUtil::GetValue(env, argv[0], type), "Failed to get param text", TYPE_NONE, nullptr);
+        env, JsUtil::GetValue(env, argv[0], type), "js param: type covert failed", TYPE_NONE, nullptr);
     PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type),
-        "EventType is invalid", TYPE_NONE, nullptr);
+        "EventType shoule be show or hide", TYPE_NONE, nullptr);
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     PARAM_CHECK_RETURN(env, (paramType == napi_function || paramType == napi_null || paramType == napi_undefined),

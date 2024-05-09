@@ -254,7 +254,7 @@ napi_value JsGetInputMethodSetting::GetInputMethodsSync(napi_env env, napi_callb
     bool enable = false;
     // 0 means first param index
     PARAM_CHECK_RETURN(env, argc >= 1, "At least 1 param", TYPE_NONE, JsUtil::Const::Null(env));
-    PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], enable) == napi_ok, "Failed to get param enable",
+    PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], enable) == napi_ok, "Failed to get param, should be bool",
         TYPE_NONE, JsUtil::Const::Null(env));
 
     std::vector<Property> properties;
@@ -429,7 +429,8 @@ napi_value JsGetInputMethodSetting::IsPanelShown(napi_env env, napi_callback_inf
 
     PanelInfo panelInfo;
     napi_status status = JsUtils::GetValue(env, argv[0], panelInfo);
-    PARAM_CHECK_RETURN(env, status == napi_ok, "failed to get PanelInfo value", TYPE_NONE, JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, status == napi_ok, "PanelInfo should contain PanelType and PanelFlag",
+        TYPE_NONE, JsUtil::Const::Null(env));
 
     bool isShown = false;
     int32_t errorCode = InputMethodController::GetInstance()->IsPanelShown(panelInfo, isShown);
