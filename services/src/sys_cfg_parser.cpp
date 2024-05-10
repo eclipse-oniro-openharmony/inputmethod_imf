@@ -49,7 +49,7 @@ bool SysCfgParser::ParseInputType(std::vector<InputTypeInfo> &inputType)
 
 bool SysCfgParser::ParsePanelAdjust(std::vector<SysPanelAdjust> &sysPanelAdjust)
 {
-    auto content = GetSysCfgContent(GET_NAME(systemConfig));
+    auto content = GetSysCfgContent(GET_NAME(sysPanelAdjust));
     if (content.empty()) {
         IMSA_HILOGE("empty content");
         return false;

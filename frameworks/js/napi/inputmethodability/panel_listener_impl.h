@@ -30,6 +30,10 @@
 
 namespace OHOS {
 namespace MiscServices {
+struct JsWindowSize {
+    static napi_value Write(napi_env env, const WindowSize &nativeObject);
+    static bool Read(napi_env env, napi_value jsObject, WindowSize &nativeObject);
+};
 class PanelListenerImpl : public PanelStatusListener {
 public:
     struct UvEntry {
@@ -37,19 +41,19 @@ public:
         std::shared_ptr<JSCallbackObject> cbCopy;
         explicit UvEntry(const std::shared_ptr<JSCallbackObject> &cb) : cbCopy(cb) {}
     };
+    using EntrySetter = std::function<void(UvEntry &)>;
     static std::shared_ptr<PanelListenerImpl> GetInstance();
     ~PanelListenerImpl();
     void OnPanelStatus(uint32_t windowId, bool isShow) override;
     void OnSizeChange(uint32_t windowId, const WindowSize &size) override;
     void SaveInfo(napi_env env, const std::string &type, napi_value callback, uint32_t windowId);
     void RemoveInfo(const std::string &type, uint32_t windowId);
-    std::tuple<uv_work_t*, std::pair<bool, std::shared_ptr<JSCallbackObject>>> GetUvWork(uint32_t windowId,
-        const WindowSize &windowSize);
+    uv_work_t *GetUVwork(const std::shared_ptr<JSCallbackObject> &callback, EntrySetter entrySetter);
+    std::shared_ptr<JSCallbackObject> GetCallback(const std::string &type, uint32_t windowId);
 
     ConcurrentMap<uint32_t, ConcurrentMap<std::string, std::shared_ptr<JSCallbackObject>>> callbacks_;
     static std::mutex listenerMutex_;
     static std::shared_ptr<PanelListenerImpl> instance_;
-    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace MiscServices
 } // namespace OHOS
