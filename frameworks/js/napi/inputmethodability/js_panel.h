@@ -30,6 +30,12 @@
 
 namespace OHOS {
 namespace MiscServices {
+
+struct JsPanelRect {
+    static napi_value Write(napi_env env, const LayoutParams &layoutParams);
+    static bool Read(napi_env env, napi_value jsObject, LayoutParams &layoutParams);
+};
+
 class JsPanel {
 public:
     JsPanel() = default;
@@ -44,11 +50,15 @@ public:
     static napi_value SetPrivacyMode(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
+    static napi_value AdjustPanelRect(napi_env env, napi_callback_info info);
     void SetNative(const std::shared_ptr<InputMethodPanel> &panel);
     std::shared_ptr<InputMethodPanel> GetNative();
 
 private:
+
     struct PanelContentContext : public AsyncCall::Context {
+        LayoutParams layoutParams;
+        PanelFlag panelFlag = PanelFlag::FLG_FIXED;
         std::string path = "";
         uint32_t width = 0;
         uint32_t height = 0;

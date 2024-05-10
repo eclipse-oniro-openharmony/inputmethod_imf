@@ -95,6 +95,7 @@ public:
             InputMethodPanelTest::panelListenerCv_.notify_one();
             IMSA_HILOGI("PanelStatusListenerImpl OnPanelStatus in, isShow is %{public}s", isShow ? "true" : "false");
         }
+        void OnSizeChange(uint32_t windowId, const WindowSize &size) {}
     };
     static std::mutex imcPanelStatusListenerLock_;
     static std::condition_variable imcPanelStatusListenerCv_;

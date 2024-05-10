@@ -21,14 +21,34 @@
 #include <string>
 
 #include "calling_window_info.h"
+#include "display_manager.h"
 #include "input_window_info.h"
 #include "js_runtime_utils.h"
 #include "panel_info.h"
 #include "panel_status_listener.h"
-#include "foundation/window/window_manager/interfaces/innerkits/wm/window.h"
+#include "window_change_listener_impl.h"
+#include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
+
+struct LayoutParams {
+    Rosen::Rect landscapeRect;
+    Rosen::Rect portraitRect;
+};
+
+struct PanelAdjust {
+    int32_t top;
+    int32_t left;
+    uint32_t right;
+    uint32_t bottom;
+    bool operator==(const PanelAdjust &panelAdjust) const
+    {
+        return (top == panelAdjust.top && left == panelAdjust.left && right == panelAdjust.right &&
+                bottom == panelAdjust.bottom);
+    }
+};
+
 class InputMethodPanel {
 public:
     static constexpr uint32_t INVALID_WINDOW_ID = 0;
@@ -40,11 +60,21 @@ public:
 
     int32_t Resize(uint32_t width, uint32_t height);
     int32_t MoveTo(int32_t x, int32_t y);
+    int32_t AdjustPanelRect(PanelFlag &panelFlag, LayoutParams &layoutParams);
+    int32_t ParsePanelRect(PanelFlag &panelFlag, LayoutParams &layoutParams);
+    int32_t GetSysPanelAdjust(PanelFlag &panelFlag,
+        std::tuple<std::vector<std::string>, std::vector<std::string>> &keys, LayoutParams &layoutParams);
+    int32_t CalculatePanelRect(PanelFlag &panelFlag, PanelAdjust &lanIterValue, PanelAdjust &porIterValue,
+        LayoutParams &layoutParams);
+    int32_t CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &defaultDisplay, LayoutParams &layoutParams,
+        PanelAdjust &lanIterValue, int densityDpi);
+    std::tuple<std::vector<std::string>, std::vector<std::string>> GetScreenStatus(PanelFlag panelFlag);
     int32_t ChangePanelFlag(PanelFlag panelFlag);
     PanelType GetPanelType();
     PanelFlag GetPanelFlag();
     int32_t ShowPanel();
     int32_t HidePanel();
+    int32_t SizeChange(const WindowSize &size);
     void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void ClearPanelListener(const std::string &type);
     int32_t SetCallingWindow(uint32_t windowId);
@@ -67,16 +97,27 @@ private:
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
+    sptr<WindowChangeListenerImpl> windowChangeListenerImpl_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
     PanelFlag panelFlag_ = PanelFlag::FLG_FIXED;
     bool showRegistered_ = false;
     bool hideRegistered_ = false;
+    bool sizeChangeRegistered_ = false;
     uint32_t invalidGravityPercent = 0;
     std::shared_ptr<PanelStatusListener> panelStatusListener_ = nullptr;
 
     static std::atomic<uint32_t> sequenceId_;
     std::mutex heightLock_;
     uint32_t panelHeight_ = 0;
+
+    std::mutex panelAdjustLock_;
+    std::mutex panelAdjustListLock_;
+    std::map<std::vector<std::string>, PanelAdjust> panelAdjust_;
+
+    std::vector<std::string> lanPanel_;
+    std::vector<std::string> porPanel_;
+
+    Rosen::KeyboardLayoutParams keyboardLayoutParams_;
 };
 } // namespace MiscServices
 } // namespace OHOS
