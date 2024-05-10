@@ -163,6 +163,7 @@ public:
         bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer) override
         {
             if (!doesKeyEventConsume_) {
+                IMSA_HILOGI("KeyboardListenerImpl doesKeyEventConsume_ false");
                 return false;
             }
             IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
@@ -173,6 +174,7 @@ public:
         bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override
         {
             if (!doesFUllKeyEventConsume_) {
+                IMSA_HILOGI("KeyboardListenerImpl doesFUllKeyEventConsume_ false");
                 return false;
             }
             IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyEvent->GetKeyCode(),
@@ -184,6 +186,7 @@ public:
         bool OnDealKeyEvent(
             const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override
         {
+            IMSA_HILOGI("KeyboardListenerImpl run in");
             bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
             bool isKeyEventConsume = OnKeyEvent(keyEvent, consumer);
             if (consumer != nullptr) {
@@ -193,16 +196,15 @@ public:
         }
         void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override
         {
-            IMSA_HILOGD(
-                "KeyboardListenerImpl::OnCursorUpdate %{public}d %{public}d %{public}d", positionX, positionY, height);
+            IMSA_HILOGI("KeyboardListenerImpl %{public}d %{public}d %{public}d", positionX, positionY, height);
             cursorInfo_ = { static_cast<double>(positionX), static_cast<double>(positionY), 0,
                 static_cast<double>(height) };
             InputMethodControllerTest::keyboardListenerCv_.notify_one();
         }
         void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override
         {
-            IMSA_HILOGD("KeyboardListenerImpl::OnSelectionChange %{public}d %{public}d %{public}d %{public}d",
-                oldBegin, oldEnd, newBegin, newBegin);
+            IMSA_HILOGI("KeyboardListenerImpl %{public}d %{public}d %{public}d %{public}d", oldBegin, oldEnd, newBegin,
+                newBegin);
             oldBegin_ = oldBegin;
             oldEnd_ = oldEnd;
             newBegin_ = newBegin;
@@ -211,13 +213,15 @@ public:
         }
         void OnTextChange(const std::string &text) override
         {
-            IMSA_HILOGD("KeyboardListenerImpl::OnTextChange text: %{public}s", text.c_str());
+            IMSA_HILOGI("KeyboardListenerImpl text: %{public}s", text.c_str());
             text_ = text;
             InputMethodControllerTest::keyboardListenerCv_.notify_one();
         }
         void OnEditorAttributeChange(const InputAttribute &inputAttribute) override
         {
-            IMSA_HILOGD("KeyboardListenerImpl in.");
+            IMSA_HILOGI("KeyboardListenerImpl inputPattern: %{public}d, enterKeyType: %{public}d, "
+                        "isTextPreviewSupported: %{public}d",
+                inputAttribute.inputPattern, inputAttribute.enterKeyType, inputAttribute.isTextPreviewSupported);
             inputAttribute_ = inputAttribute;
             InputMethodControllerTest::keyboardListenerCv_.notify_one();
         }
@@ -465,6 +469,7 @@ void InputMethodControllerTest::CheckTextConfig(const TextConfig &config)
 
 void InputMethodControllerTest::DispatchKeyEventCallback(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)
 {
+    IMSA_HILOGI("InputMethodControllerTest isConsumed: %{public}d", isConsumed);
     consumeResult_ = isConsumed;
     keyEventCv_.notify_one();
 }
@@ -484,7 +489,7 @@ bool InputMethodControllerTest::WaitKeyEventCallback()
  */
 HWTEST_F(InputMethodControllerTest, testIMCAttach001, TestSize.Level0)
 {
-    IMSA_HILOGD("IMC testIMCAttach001 Test START");
+    IMSA_HILOGI("IMC testIMCAttach001 Test START");
     imeListener_->isInputStart_ = false;
     TextListener::ResetParam();
     inputMethodController_->Attach(textListener_, false);
@@ -502,7 +507,7 @@ HWTEST_F(InputMethodControllerTest, testIMCAttach001, TestSize.Level0)
  */
 HWTEST_F(InputMethodControllerTest, testIMCAttach002, TestSize.Level0)
 {
-    IMSA_HILOGD("IMC testIMCAttach002 Test START");
+    IMSA_HILOGI("IMC testIMCAttach002 Test START");
     TextListener::ResetParam();
     CursorInfo cursorInfo = { 1, 1, 1, 1 };
     Range selectionRange = { 1, 2 };
@@ -535,7 +540,7 @@ HWTEST_F(InputMethodControllerTest, testIMCAttach002, TestSize.Level0)
  */
 HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
 {
-    IMSA_HILOGD("IMC SetCallingWindow Test START");
+    IMSA_HILOGI("IMC SetCallingWindow Test START");
     auto ret = inputMethodController_->Attach(textListener_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     uint32_t windowId = 3;
