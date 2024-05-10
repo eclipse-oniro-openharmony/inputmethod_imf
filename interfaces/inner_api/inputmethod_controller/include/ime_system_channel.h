@@ -99,12 +99,13 @@ private:
     sptr<OnSystemCmdListener> GetSystemCmdListener();
     void ClearSystemCmdAgent();
     void GetExtensionInfo(std::vector<ExtensionAbilityInfo> extensionInfos, ExtensionAbilityInfo &extInfo);
+    void OnSystemCmdAgentDied(const wptr<IRemoteObject> &remote);
 
     static std::mutex instanceLock_;
     static sptr<ImeSystemCmdChannel> instance_;
 
     std::mutex abilityLock_;
-    sptr<IInputMethodSystemAbility> abilityManager_ = nullptr;
+    sptr<IInputMethodSystemAbility> systemAbility_ = nullptr;
     sptr<InputDeathRecipient> deathRecipient_;
     
     std::mutex systemCmdListenerLock_;
@@ -112,7 +113,10 @@ private:
 
     std::mutex systemAgentLock_;
     sptr<IInputMethodAgent> systemAgent_ = nullptr;
+    sptr<InputDeathRecipient> agentDeathRecipient_;
     std::atomic_bool isSystemCmdConnect_{ false };
+
+    sptr<ISystemCmdChannel> systemChannelStub_;
 };
 } // namespace MiscServices
 } // namespace OHOS

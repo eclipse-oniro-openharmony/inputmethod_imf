@@ -74,8 +74,13 @@ napi_value JsPanel::JsNew(napi_env env, napi_callback_info info)
         delete jsPanel;
     };
     napi_value thisVar = nullptr;
-    NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
-    napi_status status = napi_wrap(env, thisVar, panel, finalize, nullptr, nullptr);
+    napi_status status = napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
+    if (status != napi_ok) {
+        IMSA_HILOGE("JsPanel napi_get_cb_info failed: %{public}d", status);
+        delete panel;
+        return nullptr;
+    }
+    status = napi_wrap(env, thisVar, panel, finalize, nullptr, nullptr);
     if (status != napi_ok) {
         IMSA_HILOGE("JsPanel napi_wrap failed: %{public}d", status);
         delete panel;
@@ -317,9 +322,10 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     std::string type;
     // 1 means least param num.
     PARAM_CHECK_RETURN(env, argc >= 1, "At least 1 param", TYPE_NONE, nullptr);
-    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], type), "Failed to get param text", TYPE_NONE, nullptr);
-    PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type), "EventType is invalid",
-        TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(
+        env, JsUtil::GetValue(env, argv[0], type), "js param: type covert failed", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type),
+        "EventType shoule be show or hide", TYPE_NONE, nullptr);
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     PARAM_CHECK_RETURN(env, (paramType == napi_function || paramType == napi_null || paramType == napi_undefined),

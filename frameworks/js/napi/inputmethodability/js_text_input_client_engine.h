@@ -441,7 +441,7 @@ private:
     static napi_value GetResult(napi_env env, std::string &text);
     static napi_value GetResultEditorAttribute(
         napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
-    static napi_value HandleParamCheckFailure(napi_env env, BlockQueue<EditorEventInfo> &queue);
+    static napi_value HandleParamCheckFailure(napi_env env);
     static void PrintEditorQueueInfoIfTimeout(int64_t start, const EditorEventInfo &currentInfo);
     static napi_status GetPreviewTextParam(
         napi_env env, size_t argc, napi_value *argv, std::string &text, Range &range);

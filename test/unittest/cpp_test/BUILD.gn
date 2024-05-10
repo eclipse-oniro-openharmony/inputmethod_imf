@@ -325,6 +325,7 @@ ohos_unittest("InputMethodPrivateMemberTest") {
   sources = [
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_agent_stub.cpp",
     "${inputmethod_path}/frameworks/native/inputmethod_ability/src/input_method_core_stub.cpp",
+    "${inputmethod_path}/services/adapter/ime_connection_manager/src/ime_connection.cpp",
     "${inputmethod_path}/services/src/input_control_channel_proxy.cpp",
     "src/input_method_private_member_test.cpp",
   ]
@@ -443,7 +444,10 @@ ohos_unittest("IdentityCheckerTest") {
   }
   module_out_path = module_output_path
 
-  sources = [ "src/identity_checker_test.cpp" ]
+  sources = [
+    "${inputmethod_path}/services/adapter/ime_connection_manager/src/ime_connection.cpp",
+    "src/identity_checker_test.cpp",
+  ]
 
   configs = [ ":module_private_config" ]
 
@@ -611,6 +615,7 @@ ohos_unittest("SecurityModeParseTest") {
     "${inputmethod_path}/test/unittest/cpp_test/mock",
     "${inputmethod_path}/services/include",
     "${inputmethod_path}/services/identity_checker/include",
+    "${inputmethod_path}/services/adapter/ime_connection_manager/include",
     "${inputmethod_path}/services/adapter/settings_data_provider/include",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
@@ -618,6 +623,7 @@ ohos_unittest("SecurityModeParseTest") {
   ]
 
   sources = [
+    "${inputmethod_path}/services/adapter/ime_connection_manager/src/ime_connection.cpp",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_observer.cpp",
     "${inputmethod_path}/services/adapter/settings_data_provider/common/src/settings_data_utils.cpp",
     "${inputmethod_path}/services/adapter/settings_data_provider/src/security_mode_parser.cpp",
