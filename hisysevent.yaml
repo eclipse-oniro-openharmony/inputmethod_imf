@@ -35,3 +35,9 @@ OPERATE_SOFTKEYBOARD:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: IMEOperate, desc: Operate the soft keyboard report}
   OPERATING: {type: STRING, desc: 'Show, hide or unbind soft keyboard'}
   OPERATE_INFO: {type: STRING, desc: 'Manipulate to show, hide, or unbind soft keyboard information'}
+
+IME_STATE_CHANGED:
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: IMEState, desc: InputMethodExtension state changed}
+  STATE: {type: INT32, desc: InputMethodExtension STATE}
+  PID: {type: INT32, desc: The process id of current InputMethodExtension}
+  BUNDLE_NAME: {type: STRING, desc: The bundle name of current InputMethodExtension}

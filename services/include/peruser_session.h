@@ -54,10 +54,11 @@ struct ImeData {
     sptr<IInputMethodCore> core{ nullptr };
     sptr<IRemoteObject> agent{ nullptr };
     sptr<InputDeathRecipient> deathRecipient{ nullptr };
+    pid_t pid;
     std::shared_ptr<FreezeManager> freezeMgr;
     ImeData(sptr<IInputMethodCore> core, sptr<IRemoteObject> agent, sptr<InputDeathRecipient> deathRecipient,
         pid_t imePid)
-        : core(std::move(core)), agent(std::move(agent)), deathRecipient(std::move(deathRecipient)),
+        : core(std::move(core)), agent(std::move(agent)), deathRecipient(std::move(deathRecipient)), pid(imePid),
           freezeMgr(std::make_shared<FreezeManager>(imePid))
     {
     }

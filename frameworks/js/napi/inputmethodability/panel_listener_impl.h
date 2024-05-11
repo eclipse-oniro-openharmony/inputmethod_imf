@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include <thread>
+#include <tuple>
 #include <uv.h>
 
 #include "concurrent_map.h"
@@ -25,24 +26,30 @@
 #include "panel_status_listener.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "input_method_panel.h"
 
 namespace OHOS {
 namespace MiscServices {
 class PanelListenerImpl : public PanelStatusListener {
 public:
-    static std::shared_ptr<PanelListenerImpl> GetInstance();
-    ~PanelListenerImpl();
-    void OnPanelStatus(uint32_t windowId, bool isShow) override;
-    void SaveInfo(napi_env env, const std::string &type, napi_value callback, uint32_t windowId);
-    void RemoveInfo(const std::string &type, uint32_t windowId);
-
     struct UvEntry {
+        WindowSize size;
         std::shared_ptr<JSCallbackObject> cbCopy;
         explicit UvEntry(const std::shared_ptr<JSCallbackObject> &cb) : cbCopy(cb) {}
     };
+    static std::shared_ptr<PanelListenerImpl> GetInstance();
+    ~PanelListenerImpl();
+    void OnPanelStatus(uint32_t windowId, bool isShow) override;
+    void OnSizeChange(uint32_t windowId, const WindowSize &size) override;
+    void SaveInfo(napi_env env, const std::string &type, napi_value callback, uint32_t windowId);
+    void RemoveInfo(const std::string &type, uint32_t windowId);
+    std::tuple<uv_work_t*, std::pair<bool, std::shared_ptr<JSCallbackObject>>> GetUvWork(uint32_t windowId,
+        const WindowSize &windowSize);
+
     ConcurrentMap<uint32_t, ConcurrentMap<std::string, std::shared_ptr<JSCallbackObject>>> callbacks_;
     static std::mutex listenerMutex_;
     static std::shared_ptr<PanelListenerImpl> instance_;
+    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace MiscServices
 } // namespace OHOS

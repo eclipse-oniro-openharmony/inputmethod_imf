@@ -118,6 +118,18 @@ void InputMethodSysEvent::OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCo
     }
 }
 
+void InputMethodSysEvent::ReportImeState(ImeState state, pid_t pid, const std::string &bundleName)
+{
+    IMSA_HILOGD("run in.");
+    int32_t ret = HiSysEventWrite(HiSysEventNameSpace::Domain::INPUTMETHOD, "IME_STATE_CHANGED",
+        HiSysEventNameSpace::EventType::BEHAVIOR, "STATE", static_cast<int32_t>(state), "PID", pid, "BUNDLE_NAME",
+        bundleName);
+    if (ret != HiviewDFX::SUCCESS) {
+        IMSA_HILOGE("ime: %{public}s state: %{public}d report failed! ret: %{public}d", bundleName.c_str(),
+            static_cast<int32_t>(state), ret);
+    }
+}
+
 const std::string InputMethodSysEvent::GetOperateInfo(int32_t infoCode)
 {
     auto iter = operateInfo_.find(static_cast<int32_t>(infoCode));

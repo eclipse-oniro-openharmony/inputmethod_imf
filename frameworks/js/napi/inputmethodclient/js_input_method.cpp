@@ -71,8 +71,8 @@ napi_status JsInputMethod::GetInputMethodProperty(
         status = JsUtils::GetValue(env, result, ctxt->methodId);
         CHECK_RETURN(status == napi_ok, "get ctxt->methodId failed!", status);
     }
-    PARAM_CHECK_RETURN(env, (!ctxt->packageName.empty() && !ctxt->methodId.empty()), "JsInputMethod, Parameter error.",
-        TYPE_NONE, napi_invalid_arg);
+    PARAM_CHECK_RETURN(env, (!ctxt->packageName.empty() && !ctxt->methodId.empty()),
+        "packageName and methodId is empty", TYPE_NONE, napi_invalid_arg);
     IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->methodId.c_str(), ctxt->packageName.c_str());
     return napi_ok;
 }

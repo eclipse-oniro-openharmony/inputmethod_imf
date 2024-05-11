@@ -20,6 +20,7 @@
 #include "ability_manager_client.h"
 #include "element_name.h"
 #include "ime_cfg_manager.h"
+#include "ime_connection.h"
 #include "ime_info_inquirer.h"
 #include "input_control_channel_stub.h"
 #include "input_type_manager.h"
@@ -326,6 +327,8 @@ int32_t PerUserSession::OnRequestShowInput()
         IMSA_HILOGE("failed to show keyboard, ret: %{public}d", ret);
         return ErrorCode::ERROR_KBD_SHOW_FAILED;
     }
+    InputMethodSysEvent::GetInstance().ReportImeState(
+        ImeState::BIND, data->pid, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName);
     auto currentClient = GetCurrentClient();
     if (currentClient != nullptr) {
         UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, true } });
@@ -452,6 +455,8 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
         data->core->OnClientInactive(clientInfo->channel);
         return ErrorCode::NO_ERROR;
     });
+    InputMethodSysEvent::GetInstance().ReportImeState(
+        ImeState::UNBIND, data->pid, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName);
 }
 
 bool PerUserSession::IsProxyImeEnable()
@@ -512,6 +517,10 @@ int32_t PerUserSession::BindClientWithIme(
         IMSA_HILOGE("start input failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_IME_START_INPUT_FAILED;
     }
+    if (type == ImeType::IME) {
+        InputMethodSysEvent::GetInstance().ReportImeState(
+            ImeState::BIND, data->pid, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName);
+    }
     if (!isBindFromClient && clientInfo->client->OnInputReady(data->agent) != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
         return ErrorCode::ERROR_EX_PARCELABLE;
@@ -554,6 +563,10 @@ void PerUserSession::StopImeInput(ImeType currentType, const sptr<IRemoteObject>
     auto ret = RequestIme(
         data, RequestType::STOP_INPUT, [&data, &currentChannel]() { return data->core->StopInput(currentChannel); });
     IMSA_HILOGI("stop ime input, ret: %{public}d", ret);
+    if (ret == ErrorCode::NO_ERROR && currentType == ImeType::IME) {
+        InputMethodSysEvent::GetInstance().ReportImeState(
+            ImeState::UNBIND, data->pid, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName);
+    }
 }
 
 void PerUserSession::OnSecurityChange(int32_t security)
@@ -941,8 +954,12 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime,
     AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
     isImeStarted_.Clear(false);
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->StartExtensionAbility(
-        want, nullptr, userId_, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
+    sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
+    if (connection == nullptr) {
+        IMSA_HILOGE("failed to create connection");
+        return false;
+    }
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbility(want, connection, userId_);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to start ability");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(

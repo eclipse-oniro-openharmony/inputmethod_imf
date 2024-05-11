@@ -37,6 +37,7 @@ public:
     }
     static bool GetValue(cJSON *node, const std::string &name, std::string &value);
     static bool GetValue(cJSON *node, const std::string &name, int32_t &value);
+    static bool GetValue(cJSON *node, const std::string &name, uint32_t &value);
     static bool GetValue(cJSON *node, const std::string &name, bool &value);
     static bool GetValue(cJSON *node, const std::string &name, Serializable &value);
     template<typename T>

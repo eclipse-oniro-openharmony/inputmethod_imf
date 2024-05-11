@@ -259,7 +259,7 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleName, TestSize.Level
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleName Test START");
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, "error bundleName", extName[0]);
-    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(ret == ErrorCode::ERROR_ENABLE_IME || ret == ErrorCode::ERROR_BAD_PARAMETERS);
     CheckCurrentProp(subName);
     CheckCurrentSubProp(subName);
     CheckCurrentSubProps();
@@ -277,7 +277,7 @@ HWTEST_F(InputMethodSwitchTest, testSwitchImeWithErrorBundleNameWitchEmptySubNam
     IMSA_HILOGI("oldIme testSwitchImeWithErrorBundleNameWitchEmptySubName Test START");
     std::string subName = InputMethodSwitchTest::imc_->GetCurrentInputMethodSubtype()->id;
     int32_t ret = imc_->SwitchInputMethod(SwitchTrigger::CURRENT_IME, "error bundleName", " ");
-    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    EXPECT_TRUE(ret == ErrorCode::ERROR_ENABLE_IME || ret == ErrorCode::ERROR_BAD_PARAMETERS);
     CheckCurrentProp(subName);
     CheckCurrentSubProp(subName);
     CheckCurrentSubProps();

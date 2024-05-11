@@ -33,9 +33,7 @@ std::shared_ptr<PanelListenerImpl> PanelListenerImpl::GetInstance()
     return instance_;
 }
 
-PanelListenerImpl::~PanelListenerImpl()
-{
-}
+PanelListenerImpl::~PanelListenerImpl() {}
 
 void PanelListenerImpl::SaveInfo(napi_env env, const std::string &type, napi_value callback, uint32_t windowId)
 {
@@ -119,6 +117,85 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
         delete data;
         delete work;
     }
+}
+
+void PanelListenerImpl::OnSizeChange(uint32_t windowId, const WindowSize &size)
+{
+    std::tuple<uv_work_t *, std::pair<bool, std::shared_ptr<JSCallbackObject>>> params = GetUvWork(windowId, size);
+    uv_work_t *work = std::get<0>(params);
+    std::pair<bool, std::shared_ptr<JSCallbackObject>> callback = std::get<1>(params);
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(callback.second->env_, &loop);
+    auto ret = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
+                delete data;
+                delete work;
+            });
+            if (entry == nullptr) {
+                IMSA_HILOGE("entry is nullptr");
+                return;
+            }
+            auto gitWindowSizeParams = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+                if (argc == 0) {
+                    return false;
+                }
+                napi_value windowSize = nullptr;
+                napi_create_object(env, &windowSize);
+                napi_value width = nullptr;
+                napi_create_uint32(env, entry->size.width, &width);
+                napi_set_named_property(env, windowSize, "width", width);
+                napi_value height = nullptr;
+                napi_create_uint32(env, entry->size.height, &height);
+                napi_set_named_property(env, windowSize, "height", height);
+                return true;
+            };
+            JsCallbackHandler::Traverse({ entry->cbCopy }, { 1, gitWindowSizeParams });
+        },
+        uv_qos_user_initiated);
+    if (ret != 0) {
+        IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
+        UvEntry *data = static_cast<UvEntry *>(work->data);
+        delete data;
+        delete work;
+    }
+}
+
+std::tuple<uv_work_t *, std::pair<bool, std::shared_ptr<JSCallbackObject>>>PanelListenerImpl::GetUvWork(
+    uint32_t windowId, const WindowSize &windowSize)
+{
+    uv_work_t *emptyUVWork = nullptr;
+    std::shared_ptr<JSCallbackObject> emptySharedPtr = nullptr;
+    auto emptyPair = std::make_pair(false, emptySharedPtr);
+    std::string type = "sizeChange";
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        IMSA_HILOGE("uv_work_t is nullptr!");
+        delete work;
+        return std::make_tuple(emptyUVWork, emptyPair);
+    }
+    auto result = callbacks_.Find(windowId);
+    if (!result.first) {
+        IMSA_HILOGE("no callback of windowId = %{public}d!", windowId);
+        delete work;
+        return std::make_tuple(emptyUVWork, emptyPair);
+    }
+    auto callback = result.second.Find(type);
+    if (!callback.first) {
+        IMSA_HILOGE("no callback in map!");
+        delete work;
+        return std::make_tuple(emptyUVWork, emptyPair);
+    }
+    auto entry = new (std::nothrow) PanelListenerImpl::UvEntry(callback.second);
+    if (entry == nullptr) {
+        IMSA_HILOGE("entry is nullptr");
+        delete work;
+        return std::make_tuple(emptyUVWork, emptyPair);
+    }
+    entry->size = windowSize;
+    work->data = entry;
+    return std::make_tuple(work, callback);
 }
 } // namespace MiscServices
 } // namespace OHOS
