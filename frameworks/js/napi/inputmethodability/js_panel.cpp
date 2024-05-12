@@ -21,9 +21,7 @@
 #include "js_util.h"
 #include "js_utils.h"
 #include "napi/native_common.h"
-#include "panel_info.h"
 #include "panel_listener_impl.h"
-#include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -305,9 +303,13 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     IMSA_HILOGD("Subscribe type:%{public}s", type.c_str());
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
-    // 1 means the second param callback.
-    observer->SaveInfo(env, type, argv[1], inputMethodPanel->windowId_);
-    inputMethodPanel->SetPanelStatusListener(observer, type);
+    bool ret = inputMethodPanel->SetPanelStatusListener(observer, type);
+    if (ret) {
+        // 1 means the second param callback.
+        observer->SaveInfo(env, type, argv[1], inputMethodPanel->windowId_);
+    } else {
+        IMSA_HILOGE("failed to subscribe %{public}s", type.c_str());
+    }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     return result;
@@ -349,13 +351,19 @@ napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
         PARAM_CHECK_RETURN(env, argc > 1, "should 2 parameters!", TYPE_NONE, status);
-        // 0 means the first param keyboardGravity
-        CHECK_RETURN(JsUtils::GetValue(env, argv[0], ctxt->panelFlag) == napi_ok,
-            "panelFlag should be FIXED/FLOATING", napi_generic_failure);
+        // 0 means the first param flag
+        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "flag",
+            TYPE_NUMBER, napi_generic_failure);
+        int32_t panelFlag = 0;
+        CHECK_RETURN(JsUtils::GetValue(env, argv[0], panelFlag) == napi_ok,
+            "js param: flag covert failed", napi_generic_failure);
+        ctxt->panelFlag = PanelFlag(panelFlag);
+        PARAM_CHECK_RETURN(env, ctxt->panelFlag == 0 || ctxt->panelFlag == 1,
+            "flag shoule be FLG_FIXED or FLG_FLOATING ", TYPE_NONE, napi_generic_failure);
         // 1 means the second param rect
         PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_object, "rect", TYPE_OBJECT,
             napi_generic_failure);
-        PARAM_CHECK_RETURN(env, JsPanelRect::Read(env, argv[1], ctxt->layoutParams), "failed to get layoutParams",
+        PARAM_CHECK_RETURN(env, JsPanelRect::Read(env, argv[1], ctxt->layoutParams), "js param: rect covert failed",
             TYPE_NONE, napi_generic_failure);
         return napi_ok;
     };
@@ -367,13 +375,15 @@ napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
             InputMethodAbility::GetInstance()->NotifyKeyboardHeight(ctxt->inputMethodPanel);
             ctxt->SetState(napi_ok);
             return;
+        } else if (code == ErrorCode::ERROR_PARAMETER_CHECK_FAILED) {
+            ctxt->SetErrorMessage("width limit:[0, displayWidth], height limit:[0, 70 percent of displayHeight]");
         }
         ctxt->SetErrorCode(code);
     };
     ctxt->SetAction(std::move(input));
-    // 2 means JsAPI:adjustPanelLayout has 2 params at most.
+    // 2 means JsAPI:adjustPanelRect has 2 params at most
     AsyncCall asyncCall(env, info, ctxt, 2);
-    return asyncCall.Call(env, exec, "adjustPanelLayout");
+    return asyncCall.Call(env, exec, "adjustPanelRect");
 }
 
 std::shared_ptr<InputMethodPanel> JsPanel::UnwrapPanel(napi_env env, napi_value thisVar)

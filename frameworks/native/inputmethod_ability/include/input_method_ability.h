@@ -78,7 +78,6 @@ public:
     int32_t DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
-    int32_t SizeChange(const std::shared_ptr<InputMethodPanel> &inputMethodPanel);
     bool IsCurrentIme();
     bool IsEnable();
     int32_t ExitCurrentInputType();
@@ -149,7 +148,6 @@ private:
     /* param flag: ShowPanel is async, show/hide softkeyboard in alphabet keyboard attached,
        flag will be changed before finishing show/hide */
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
-    int32_t SizeChange(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     int32_t ShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag);
     void SetInputAttribute(const InputAttribute &inputAttribute);
