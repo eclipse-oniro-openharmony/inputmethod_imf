@@ -252,6 +252,14 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     if (clientInfo.isNotifyInputStart) {
         imeListener_->OnInputStart();
     }
+    auto task = [this, clientInfo]() {
+        panels_.ForEach(
+            [&clientInfo.config](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+                panel->SetCallingWindow(clientInfo.config.windowId);
+                return false;
+            });
+    };
+    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
@@ -479,10 +487,6 @@ void InputMethodAbility::InvokeTextChangeCallback(const TextTotalConfig &textCon
         IMSA_HILOGD("invalid window id");
         return;
     }
-    panels_.ForEach([&textConfig](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
-        panel->SetCallingWindow(textConfig.windowId);
-        return false;
-    });
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
     if (imeListener_ == nullptr) {
