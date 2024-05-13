@@ -59,20 +59,20 @@ void InputMethodEngineListenerImpl::OnSetSubtype(const SubProperty &property)
 }
 void InputMethodEngineListenerImpl::OnInputFinish()
 {
-    IMSA_HILOGI("OnInputFinish");
+    IMSA_HILOGI("InputMethodEngineListenerImpl");
     isInputFinish_ = true;
     imeListenerCv_.notify_one();
 }
 void InputMethodEngineListenerImpl::ReceivePrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
-    IMSA_HILOGI("ReceivePrivateCommand");
+    IMSA_HILOGI("InputMethodEngineListenerImpl");
     privateCommand_ = privateCommand;
     imeListenerCv_.notify_one();
 }
 bool InputMethodEngineListenerImpl::IsEnable()
 {
-    IMSA_HILOGD("test::isEnable: %{public}d", isEnable_);
+    IMSA_HILOGI("InputMethodEngineListenerImpl isEnable: %{public}d", isEnable_);
     return isEnable_;
 }
 void InputMethodEngineListenerImpl::ResetParam()
