@@ -1348,7 +1348,7 @@ HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
 {
     IMSA_HILOGI("IMC OnRemoteDied Test START");
     InputAttribute inputAttribute = { .isTextPreviewSupported = true };
-    int32_t ret = inputMethodController_->Attach(textListener_, false, inputAttribute);
+    int32_t ret = inputMethodController_->Attach(textListener_, true, inputAttribute);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     TextListener::ResetParam();
     bool result = TddUtil::KillImsaProcess();

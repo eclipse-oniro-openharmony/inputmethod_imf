@@ -15,6 +15,7 @@
 
 #include "window_change_listener_impl.h"
 
+#include "global.h"
 #include "input_method_panel.h"
 
 namespace OHOS {
@@ -22,11 +23,8 @@ namespace MiscServices {
 void WindowChangeListenerImpl::OnSizeChange(Rosen::Rect rect, Rosen::WindowSizeChangeReason reason,
     const std::shared_ptr<Rosen::RSTransaction> &rsTransaction)
 {
-    //调用panel的sizeChange方法
-    WindowSize windowSize;
-    windowSize.width = rect.width_;
-    windowSize.height = rect.height_;
-    changeHandler_(windowSize);
+    IMSA_HILOGD("OnSizeChange begin");
+    changeHandler_({rect.width_, rect.height_});
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -171,7 +171,7 @@ void InputMethodController::DeactivateClient()
 {
     auto textListener = GetTextListener();
     if (textListener != nullptr && textConfig_.inputAttribute.isTextPreviewSupported) {
-        IMSA_HILOGD("textListener_ exists and text preview supported");
+        IMSA_HILOGD("finish text preview");
         textListener->FinishTextPreview();
     }
     {
@@ -487,6 +487,7 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
     IMSA_HILOGI("input method service death");
     auto textListener = GetTextListener();
     if (textListener != nullptr && textConfig_.inputAttribute.isTextPreviewSupported) {
+        IMSA_HILOGD("finish text preview");
         textListener->FinishTextPreview();
     }
     {
@@ -903,7 +904,7 @@ void InputMethodController::OnInputStop()
     if (listener != nullptr) {
         IMSA_HILOGD("textListener_ is not nullptr");
         if (textConfig_.inputAttribute.isTextPreviewSupported) {
-            IMSA_HILOGD("text preview supported");
+            IMSA_HILOGD("finish text preview");
             listener->FinishTextPreview();
         }
         listener->SendKeyboardStatus(KeyboardStatus::HIDE);

@@ -402,16 +402,6 @@ napi_value JsUtils::GetValue(napi_env env, const InputWindowInfo &in)
     return info;
 }
 
-napi_status JsUtils::GetValue(napi_env env, napi_value in, PanelFlag &out)
-{
-    int32_t enumIntValue = static_cast<int32_t>(out);
-    napi_valuetype type = napi_undefined;
-    napi_status status = napi_typeof(env, in, &type);
-    CHECK_RETURN((status == napi_ok), "failed to obtain parameters", napi_generic_failure);
-    CHECK_RETURN((type == napi_number), "param type is incorrect", napi_generic_failure);
-    return napi_get_value_int32(env, in, &enumIntValue);
-}
-
 napi_status JsUtils::GetValue(napi_env env, const std::string &in, napi_value &out)
 {
     return napi_create_string_utf8(env, in.c_str(), in.size(), &out);

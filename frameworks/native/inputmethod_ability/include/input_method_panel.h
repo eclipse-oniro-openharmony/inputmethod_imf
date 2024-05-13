@@ -37,12 +37,12 @@ struct LayoutParams {
     Rosen::Rect portraitRect;
 };
 
-struct PanelAdjust {
+struct PanelAdjustInfo {
     int32_t top;
     int32_t left;
     uint32_t right;
     uint32_t bottom;
-    bool operator==(const PanelAdjust &panelAdjust) const
+    bool operator==(const PanelAdjustInfo &panelAdjust) const
     {
         return (top == panelAdjust.top && left == panelAdjust.left && right == panelAdjust.right &&
                 bottom == panelAdjust.bottom);
@@ -60,14 +60,14 @@ public:
 
     int32_t Resize(uint32_t width, uint32_t height);
     int32_t MoveTo(int32_t x, int32_t y);
-    int32_t AdjustPanelRect(PanelFlag &panelFlag, LayoutParams &layoutParams);
-    int32_t ParsePanelRect(PanelFlag &panelFlag, LayoutParams &layoutParams);
+    int32_t AdjustPanelRect(PanelFlag &panelFlag, const LayoutParams &layoutParams);
+    int32_t ParsePanelRect(PanelFlag &panelFlag, const LayoutParams &layoutParams);
     int32_t GetSysPanelAdjust(PanelFlag &panelFlag,
-        std::tuple<std::vector<std::string>, std::vector<std::string>> &keys, LayoutParams &layoutParams);
-    int32_t CalculatePanelRect(PanelFlag &panelFlag, PanelAdjust &lanIterValue, PanelAdjust &porIterValue,
-        LayoutParams &layoutParams);
-    int32_t CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &defaultDisplay, LayoutParams &layoutParams,
-        PanelAdjust &lanIterValue, int densityDpi);
+        std::tuple<std::vector<std::string>, std::vector<std::string>> &keys, const LayoutParams &layoutParams);
+    int32_t CalculatePanelRect(PanelFlag &panelFlag, PanelAdjustInfo &lanIterValue, PanelAdjustInfo &porIterValue,
+        const LayoutParams &layoutParams);
+    int32_t CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &defaultDisplay, const LayoutParams &layoutParams,
+        PanelAdjustInfo &lanIterValue, int densityDpi);
     std::tuple<std::vector<std::string>, std::vector<std::string>> GetScreenStatus(PanelFlag panelFlag);
     int32_t ChangePanelFlag(PanelFlag panelFlag);
     PanelType GetPanelType();
@@ -75,7 +75,7 @@ public:
     int32_t ShowPanel();
     int32_t HidePanel();
     int32_t SizeChange(const WindowSize &size);
-    void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
+    bool SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void ClearPanelListener(const std::string &type);
     int32_t SetCallingWindow(uint32_t windowId);
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
@@ -94,10 +94,14 @@ private:
     bool MarkListener(const std::string &type, bool isRegister);
     static uint32_t GenerateSequenceId();
     bool IsSizeValid(uint32_t width, uint32_t height);
+    bool IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t height, int32_t displayWidth, int32_t displayHeight);
+    bool CheckSize(PanelFlag panelFlag, uint32_t width, uint32_t height, bool isDataPortrait);
+    bool GetDisplaySize(bool isPortrait, WindowSize &size);
+    void CalculateFaloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
+        PanelAdjustInfo &porIterValue, int densityDpi);
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
-    sptr<WindowChangeListenerImpl> windowChangeListenerImpl_ = nullptr;
     PanelType panelType_ = PanelType::SOFT_KEYBOARD;
     PanelFlag panelFlag_ = PanelFlag::FLG_FIXED;
     bool showRegistered_ = false;
@@ -111,13 +115,12 @@ private:
     uint32_t panelHeight_ = 0;
 
     std::mutex panelAdjustLock_;
-    std::mutex panelAdjustListLock_;
-    std::map<std::vector<std::string>, PanelAdjust> panelAdjust_;
-
-    std::vector<std::string> lanPanel_;
-    std::vector<std::string> porPanel_;
+    std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;
 
     Rosen::KeyboardLayoutParams keyboardLayoutParams_;
+
+    std::mutex windowListenerLock_;
+    sptr<Rosen::IWindowChangeListener> windowChangedListener_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS
