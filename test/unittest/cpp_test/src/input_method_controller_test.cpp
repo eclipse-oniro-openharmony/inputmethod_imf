@@ -1311,6 +1311,40 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_008, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testFinishTextPreviewAfterDetach_001
+ * @tc.desc: IMC testFinishTextPreviewAfterDetach.
+ * @tc.type: IMC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testFinishTextPreviewAfterDetach_001, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testFinishTextPreviewAfterDetach_001 Test START");
+    InputAttribute inputAttribute = { .isTextPreviewSupported = true };
+    inputMethodController_->Attach(textListener_, false, inputAttribute);
+    TextListener::ResetParam();
+    inputMethodController_->Close();
+    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
+}
+
+/**
+ * @tc.name: testFinishTextPreviewAfterDetach_002
+ * @tc.desc: IMC testFinishTextPreviewAfterDetach_002.
+ * @tc.type: IMC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testFinishTextPreviewAfterDetach_002, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testFinishTextPreviewAfterDetach_002 Test START");
+    InputAttribute inputAttribute = { .isTextPreviewSupported = true };
+    inputMethodController_->Attach(textListener_, false, inputAttribute);
+    TextListener::ResetParam();
+    inputMethodController_->DeactivateClient();
+    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
+}
+
+/**
  * @tc.name: testOnRemoteDied
  * @tc.desc: IMC OnRemoteDied
  * @tc.type: FUNC
@@ -1318,7 +1352,8 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_008, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
 {
     IMSA_HILOGI("IMC OnRemoteDied Test START");
-    int32_t ret = inputMethodController_->Attach(textListener_, true);
+    InputAttribute inputAttribute = { .isTextPreviewSupported = true };
+    int32_t ret = inputMethodController_->Attach(textListener_, true, inputAttribute);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     TextListener::ResetParam();
     bool result = TddUtil::KillImsaProcess();
@@ -1327,6 +1362,7 @@ HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
     CheckProxyObject();
     inputMethodController_->OnRemoteSaDied(nullptr);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
+    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
     result = inputMethodController_->WasAttached();
     EXPECT_TRUE(result);
     inputMethodController_->Close();
