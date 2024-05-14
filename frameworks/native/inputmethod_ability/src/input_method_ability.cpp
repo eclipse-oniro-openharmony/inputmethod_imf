@@ -253,11 +253,10 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         imeListener_->OnInputStart();
     }
     auto task = [this, clientInfo]() {
-        panels_.ForEach(
-            [&clientInfo.config](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
-                panel->SetCallingWindow(clientInfo.config.windowId);
-                return false;
-            });
+        panels_.ForEach([&clientInfo](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+            panel->SetCallingWindow(clientInfo.config.windowId);
+            return false;
+        });
     };
     imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
