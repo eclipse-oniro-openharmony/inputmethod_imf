@@ -76,6 +76,11 @@ struct JsRange {
     static bool Read(napi_env env, napi_value jsObject, Range &nativeObject);
 };
 
+struct JsInputAttribute {
+    static napi_value Write(napi_env env, const InputAttribute &nativeObject);
+    static bool Read(napi_env env, napi_value jsObject, InputAttribute &nativeObject);
+};
+
 struct SendKeyFunctionContext : public AsyncCall::Context {
     bool isSendKeyFunction = false;
     int32_t action = 0;
@@ -237,22 +242,14 @@ struct GetBackwardContext : public AsyncCall::Context {
 };
 
 struct GetEditorAttributeContext : public AsyncCall::Context {
-    int32_t inputPattern = 0;
-    int32_t enterKeyType = 0;
-    napi_status status = napi_generic_failure;
+    InputAttribute inputAttribute;
     GetEditorAttributeContext() : Context(nullptr, nullptr){};
     GetEditorAttributeContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
-
-    napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
-    {
-        CHECK_RETURN(self != nullptr, "self is nullptr", napi_invalid_arg);
-        return Context::operator()(env, argc, argv, self);
-    }
     napi_status operator()(napi_env env, napi_value *result) override
     {
-        if (status != napi_ok) {
+        if (status_ != napi_ok) {
             output_ = nullptr;
-            return status;
+            return status_;
         }
         return Context::operator()(env, result);
     }
@@ -441,6 +438,7 @@ private:
     static napi_value GetResult(napi_env env, std::string &text);
     static napi_value GetResultEditorAttribute(
         napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
+    static napi_value HandleParamCheckFailure(napi_env env);
     static void PrintEditorQueueInfoIfTimeout(int64_t start, const EditorEventInfo &currentInfo);
     static napi_status GetPreviewTextParam(
         napi_env env, size_t argc, napi_value *argv, std::string &text, Range &range);

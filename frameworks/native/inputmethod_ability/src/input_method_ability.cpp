@@ -867,9 +867,9 @@ int32_t InputMethodAbility::ShowPanel(
             IMSA_HILOGE("Set Keyboard failed, ret = %{public}d", ret);
         }
     }
+    ShowSysPanel(inputMethodPanel, flag);
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
-        ShowSysPanel(inputMethodPanel, flag);
         NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, true, trigger });
     }
     return ret;

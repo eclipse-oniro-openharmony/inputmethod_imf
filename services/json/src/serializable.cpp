@@ -54,7 +54,7 @@ bool Serializable::Marshall(std::string &content) const
 bool Serializable::GetValue(cJSON *node, const std::string &name, std::string &value)
 {
     auto subNode = GetSubNode(node, name);
-    if (!cJSON_IsString(subNode)) {
+    if (subNode == nullptr || !cJSON_IsString(subNode)) {
         IMSA_HILOGE("%{public}s not string", name.c_str());
         return false;
     }
@@ -65,7 +65,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, std::string &v
 bool Serializable::GetValue(cJSON *node, const std::string &name, int32_t &value)
 {
     auto subNode = GetSubNode(node, name);
-    if (!cJSON_IsNumber(subNode)) {
+    if (subNode == nullptr || !cJSON_IsNumber(subNode)) {
         IMSA_HILOGE("%{public}s not number", name.c_str());
         return false;
     }
@@ -73,10 +73,26 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, int32_t &value
     return true;
 }
 
+bool Serializable::GetValue(cJSON *node, const std::string &name, uint32_t &value)
+{
+    auto subNode = GetSubNode(node, name);
+    if (!cJSON_IsNumber(subNode)) {
+        IMSA_HILOGE("%{public}s not number", name.c_str());
+        return false;
+    }
+    // Make sure it's not negative
+    if (subNode->valueint < 0) {
+        IMSA_HILOGE("%{public}s is negative", name.c_str());
+        return false;
+    }
+    value = static_cast<uint32_t>(subNode->valueint);
+    return true;
+}
+
 bool Serializable::GetValue(cJSON *node, const std::string &name, bool &value)
 {
     auto subNode = GetSubNode(node, name);
-    if (!cJSON_IsBool(subNode)) {
+    if (subNode == nullptr || !cJSON_IsBool(subNode)) {
         IMSA_HILOGE("%{public}s not bool", name.c_str());
         return false;
     }
@@ -87,7 +103,7 @@ bool Serializable::GetValue(cJSON *node, const std::string &name, bool &value)
 bool Serializable::GetValue(cJSON *node, const std::string &name, Serializable &value)
 {
     auto object = GetSubNode(node, name);
-    if (!cJSON_IsObject(object)) {
+    if (object == nullptr || !cJSON_IsObject(object)) {
         IMSA_HILOGE("%{public}s not object", name.c_str());
         return false;
     }

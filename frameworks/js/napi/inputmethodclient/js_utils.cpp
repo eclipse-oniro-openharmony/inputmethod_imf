@@ -104,7 +104,7 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
     napi_value code;
     napi_value message;
     if (type == TypeCode::TYPE_NONE) {
-        errMsg = errMsg + msg;
+        errMsg = errMsg + " " + msg;
         IMSA_HILOGE("THROW_ERROR message: %{public}s", errMsg.c_str());
     } else {
         auto iter = PARAMETER_TYPE.find(type);
@@ -400,19 +400,6 @@ napi_value JsUtils::GetValue(napi_env env, const InputWindowInfo &in)
     napi_set_named_property(env, info, "height", height);
 
     return info;
-}
-
-napi_value JsUtils::GetValue(napi_env env, const InputAttribute &attribute)
-{
-    napi_value editorAttribute = nullptr;
-    napi_create_object(env, &editorAttribute);
-
-    auto ret = JsUtil::Object::WriteProperty(env, editorAttribute, "inputPattern", attribute.inputPattern);
-    ret = ret && JsUtil::Object::WriteProperty(env, editorAttribute, "enterKeyType", attribute.enterKeyType);
-    ret = ret
-          && JsUtil::Object::WriteProperty(
-              env, editorAttribute, "isTextPreviewSupported", attribute.isTextPreviewSupported);
-    return ret ? editorAttribute : JsUtil::Const::Null(env);
 }
 
 napi_status JsUtils::GetValue(napi_env env, const std::string &in, napi_value &out)

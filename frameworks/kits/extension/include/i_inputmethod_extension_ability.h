@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,23 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_PANEL_STATUS_LISTENER_H
-#define INPUTMETHOD_IMF_PANEL_STATUS_LISTENER_H
-#include <cstdint>
+#ifndef INPUTMETHOD_IMF_I_INPUTMETHOD_EXTENSION_ABILITY_H
+#define INPUTMETHOD_IMF_I_INPUTMETHOD_EXTENSION_ABILITY_H
+
+#include "iremote_broker.h"
 
 namespace OHOS {
 namespace MiscServices {
-struct WindowSize {
-    uint32_t width = 0;
-    uint32_t height = 0;
-};
-class PanelStatusListener {
+class IInputMethodExtensionAbility : public IRemoteBroker {
 public:
-    virtual ~PanelStatusListener(){};
-    virtual void OnPanelStatus(uint32_t windowId, bool isShow) = 0;
-    virtual void OnSizeChange(uint32_t windowId, const WindowSize &size) = 0;
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.IInputMethodExtensionAbility");
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif //INPUTMETHOD_IMF_PANEL_STATUS_LISTENER_H
+#endif // INPUTMETHOD_IMF_I_INPUTMETHOD_EXTENSION_ABILITY_H

@@ -55,7 +55,7 @@ const BIG_ITEM_RADIUS = 12;
 export class InputMethodListDialog extends ViewPU {
   constructor(a, b, c, d = -1, e = undefined, f) {
     super(a, c, d, f);
-    if (typeof e === "function") {
+    if (typeof e === 'function') {
       this.paramsGenerator_ = e;
     }
     this.listBgColor = '#ffffff';
@@ -63,25 +63,25 @@ export class InputMethodListDialog extends ViewPU {
     this.selectedColor = '#220A59F7';
     this.fontColor = '#E6000000';
     this.selectedFontColor = '#0A59F7';
-    this.__listItemHeight = new ObservedPropertySimplePU(NORMAL_ITEM_HEIGHT, this, "listItemHeight");
-    this.__listItemRadius = new ObservedPropertySimplePU(NORMAL_IMAGE_RADIUS, this, "listItemRadius");
-    this.__inputMethods = new ObservedPropertyObjectPU([], this, "inputMethods");
-    this.__fontSize = new ObservedPropertySimplePU(NORMAL_FONT_SIZE, this, "fontSize");
-    this.__fontPadding = new ObservedPropertySimplePU(NORMAL_FONT_PADDING, this, "fontPadding");
-    this.__dialogWidth = new ObservedPropertySimplePU(NORMAL_DIALOG_WIDTH, this, "dialogWidth");
-    this.__imageSize = new ObservedPropertySimplePU(NORMAL_IMAGE_SIZE, this, "imageSize");
-    this.__imageBtnWidth = new ObservedPropertySimplePU(NORMAL_IMAGE_BUTTON_WIDTH, this, "imageBtnWidth");
-    this.__imageBtnHeight = new ObservedPropertySimplePU(NORMAL_IMAGE_BUTTON_HEIGHT, this, "imageBtnHeight");
-    this.__columnPadding = new ObservedPropertySimplePU(NORMAL_COLUMN_PADDING, this, "columnPadding");
-    this.__imageRadius = new ObservedPropertySimplePU(NORMAL_IMAGE_RADIUS, this, "imageRadius");
-    this.__subTypes = new ObservedPropertyObjectPU([], this, "subTypes");
-    this.__showHand = new ObservedPropertySimplePU(false, this, "showHand");
-    this.__inputMethodConfig = new ObservedPropertyObjectPU(undefined, this, "inputMethodConfig");
-    this.__defaultInputMethod = new ObservedPropertyObjectPU(undefined, this, "defaultInputMethod");
-    this.__currentInputMethod = new ObservedPropertyObjectPU(undefined, this, "currentInputMethod");
-    this.__currentSub = new ObservedPropertyObjectPU(undefined, this, "currentSub");
-    this.__patternMode = this.createStorageLink('patternMode', 0, "patternMode");
-    this.__maxListNum = this.createStorageLink('maxListNum', 0, "maxListNum");
+    this.__listItemHeight = new ObservedPropertySimplePU(NORMAL_ITEM_HEIGHT, this, 'listItemHeight');
+    this.__listItemRadius = new ObservedPropertySimplePU(NORMAL_IMAGE_RADIUS, this, 'listItemRadius');
+    this.__inputMethods = new ObservedPropertyObjectPU([], this, 'inputMethods');
+    this.__fontSize = new ObservedPropertySimplePU(NORMAL_FONT_SIZE, this, 'fontSize');
+    this.__fontPadding = new ObservedPropertySimplePU(NORMAL_FONT_PADDING, this, 'fontPadding');
+    this.__dialogWidth = new ObservedPropertySimplePU(NORMAL_DIALOG_WIDTH, this, 'dialogWidth');
+    this.__imageSize = new ObservedPropertySimplePU(NORMAL_IMAGE_SIZE, this, 'imageSize');
+    this.__imageBtnWidth = new ObservedPropertySimplePU(NORMAL_IMAGE_BUTTON_WIDTH, this, 'imageBtnWidth');
+    this.__imageBtnHeight = new ObservedPropertySimplePU(NORMAL_IMAGE_BUTTON_HEIGHT, this, 'imageBtnHeight');
+    this.__columnPadding = new ObservedPropertySimplePU(NORMAL_COLUMN_PADDING, this, 'columnPadding');
+    this.__imageRadius = new ObservedPropertySimplePU(NORMAL_IMAGE_RADIUS, this, 'imageRadius');
+    this.__subTypes = new ObservedPropertyObjectPU([], this, 'subTypes');
+    this.__showHand = new ObservedPropertySimplePU(false, this, 'showHand');
+    this.__inputMethodConfig = new ObservedPropertyObjectPU(undefined, this, 'inputMethodConfig');
+    this.__defaultInputMethod = new ObservedPropertyObjectPU(undefined, this, 'defaultInputMethod');
+    this.__currentInputMethod = new ObservedPropertyObjectPU(undefined, this, 'currentInputMethod');
+    this.__currentSub = new ObservedPropertyObjectPU(undefined, this, 'currentSub');
+    this.__patternMode = this.createStorageLink('patternMode', 0, 'patternMode');
+    this.__maxListNum = this.createStorageLink('maxListNum', 0, 'maxListNum');
     this.activeSubtypes = [];
     this.controller = new CustomDialogController({
       builder: undefined
@@ -470,7 +470,9 @@ export class InputMethodListDialog extends ViewPU {
   }
 
   isDefaultInputMethodCurrentSubType(p1) {
-    var q1, r1, s1;
+    var q1;
+    var r1;
+    var s1;
     return ((q1 = this.defaultInputMethod) === null || q1 === void 0 ? void 0 : q1.name) ===
       ((r1 = this.currentInputMethod) === null || r1 === void 0 ? void 0 : r1.name) &&
       ((s1 = this.currentSub) === null || s1 === void 0 ? void 0 : s1.id) === p1;
@@ -492,9 +494,9 @@ export class InputMethodListDialog extends ViewPU {
       Text.height(this.listItemHeight);
       Text.borderRadius(this.listItemRadius);
       Text.fontColor(u1);
-      ViewStackProcessor.visualState("pressed");
+      ViewStackProcessor.visualState('pressed');
       Text.backgroundColor(w1);
-      ViewStackProcessor.visualState("normal");
+      ViewStackProcessor.visualState('normal');
       Text.backgroundColor(v1);
       ViewStackProcessor.visualState();
     }, Text);
@@ -533,11 +535,11 @@ export class InputMethodListDialog extends ViewPU {
         this.ifElseBranchUpdateFunction(0, () => {
           this.observeComponentCreation2((u2, v2) => {
             Text.create({
-              "id": -1,
-              "type": 10003,
+              'id': -1,
+              'type': 10003,
               params: ['sys.string.ohos_id_input_method_settings'],
-              "bundleName": "",
-              "moduleName": ""
+              'bundleName': '',
+              'moduleName': ''
             });
             __Text__textStyle();
             Text.padding({ left: this.fontPadding, right: this.fontPadding });
@@ -545,9 +547,9 @@ export class InputMethodListDialog extends ViewPU {
             Text.borderRadius(this.listItemRadius);
             Text.fontSize(this.fontSize);
             Text.fontColor(this.fontColor);
-            ViewStackProcessor.visualState("pressed");
+            ViewStackProcessor.visualState('pressed');
             Text.backgroundColor(this.pressedColor);
-            ViewStackProcessor.visualState("normal");
+            ViewStackProcessor.visualState('normal');
             Text.backgroundColor(this.listBgColor);
             ViewStackProcessor.visualState();
             Text.onClick(() => {
@@ -608,7 +610,8 @@ export class InputMethodListDialog extends ViewPU {
           If.create();
           if (this.subTypes.length === 0 || (this.defaultInputMethod && u3.name !== this.defaultInputMethod.name)) {
             this.ifElseBranchUpdateFunction(0, () => {
-              var z3, a4;
+              var z3;
+              var a4;
               this.InputMethodItem.bind(this)(this.inputMethods[t3].label,
                 ((z3 = this.currentInputMethod) === null || z3 === void 0 ? void 0 : z3.name) === u3.name ?
                 this.selectedFontColor : this.fontColor,
@@ -655,9 +658,9 @@ export class InputMethodListDialog extends ViewPU {
                 Row.justifyContent(FlexAlign.Center);
                 Row.size({ width: this.imageBtnWidth, height: this.imageBtnHeight });
                 Row.borderRadius(this.imageRadius);
-                ViewStackProcessor.visualState("pressed");
+                ViewStackProcessor.visualState('pressed');
                 Row.backgroundColor(this.pressedColor);
-                ViewStackProcessor.visualState("normal");
+                ViewStackProcessor.visualState('normal');
                 Row.backgroundColor(this.listBgColor);
                 ViewStackProcessor.visualState();
                 Row.onClick(() => {

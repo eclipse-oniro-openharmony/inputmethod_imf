@@ -43,6 +43,8 @@ enum class IMEBehaviour : int32_t {
     CHANGE_IME,
 };
 
+enum class ImeState : int32_t { UNBIND = 0, BIND };
+
 class InputMethodSysEvent {
 public:
     static InputMethodSysEvent &GetInstance();
@@ -50,6 +52,7 @@ public:
     void InputmethodFaultReporter(int32_t errCode, const std::string &name, const std::string &info);
     void RecordEvent(IMEBehaviour behaviour);
     void OperateSoftkeyboardBehaviour(OperateIMEInfoCode infoCode);
+    void ReportImeState(ImeState state, pid_t pid, const std::string &bundleName);
     bool StartTimerForReport();
     void SetUserId(int32_t userId);
 

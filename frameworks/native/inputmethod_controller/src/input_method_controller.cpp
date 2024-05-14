@@ -169,6 +169,11 @@ sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
 
 void InputMethodController::DeactivateClient()
 {
+    auto textListener = GetTextListener();
+    if (textListener != nullptr && textConfig_.inputAttribute.isTextPreviewSupported) {
+        IMSA_HILOGD("finish text preview");
+        textListener->FinishTextPreview();
+    }
     {
         std::lock_guard<std::recursive_mutex> lock(clientInfoLock_);
         clientInfo_.state = ClientState::INACTIVE;
@@ -179,7 +184,6 @@ void InputMethodController::DeactivateClient()
         agentObject_ = nullptr;
     }
     SendKeyboardStatus(KeyboardStatus::NONE);
-    FinishTextPreview();
 }
 
 void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
@@ -481,6 +485,11 @@ int32_t InputMethodController::HideInput(sptr<IInputClient> &client)
 void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
 {
     IMSA_HILOGI("input method service death");
+    auto textListener = GetTextListener();
+    if (textListener != nullptr && textConfig_.inputAttribute.isTextPreviewSupported) {
+        IMSA_HILOGD("finish text preview");
+        textListener->FinishTextPreview();
+    }
     {
         std::lock_guard<std::mutex> lock(abilityLock_);
         abilityManager_ = nullptr;
@@ -489,7 +498,6 @@ void InputMethodController::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
         IMSA_HILOGE("handler_ is nullptr");
         return;
     }
-    FinishTextPreview();
     RestoreListenInfoInSaDied();
     RestoreAttachInfoInSaDied();
 }
@@ -895,9 +903,12 @@ void InputMethodController::OnInputStop()
     auto listener = GetTextListener();
     if (listener != nullptr) {
         IMSA_HILOGD("textListener_ is not nullptr");
+        if (textConfig_.inputAttribute.isTextPreviewSupported) {
+            IMSA_HILOGD("finish text preview");
+            listener->FinishTextPreview();
+        }
         listener->SendKeyboardStatus(KeyboardStatus::HIDE);
     }
-    FinishTextPreview();
     isBound_.store(false);
     isEditable_.store(false);
 }

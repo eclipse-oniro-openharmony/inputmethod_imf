@@ -109,7 +109,7 @@ public:
     void TearDown();
     static void SetInputDeathRecipient();
     static void OnRemoteSaDied(const wptr<IRemoteObject> &remote);
-    static bool CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
+    static void CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent);
     static bool WaitRemoteDiedCallback();
     static void WaitKeyboardStatusCallback(bool keyboardState);
     static void TriggerConfigurationChangeCallback(Configuration &info);
@@ -163,6 +163,7 @@ public:
         bool OnKeyEvent(int32_t keyCode, int32_t keyStatus, sptr<KeyEventConsumerProxy> &consumer) override
         {
             if (!doesKeyEventConsume_) {
+                IMSA_HILOGI("KeyboardListenerImpl doesKeyEventConsume_ false");
                 return false;
             }
             IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyCode, keyStatus);
@@ -173,6 +174,7 @@ public:
         bool OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override
         {
             if (!doesFUllKeyEventConsume_) {
+                IMSA_HILOGI("KeyboardListenerImpl doesFUllKeyEventConsume_ false");
                 return false;
             }
             IMSA_HILOGI("KeyboardListenerImpl::OnKeyEvent %{public}d %{public}d", keyEvent->GetKeyCode(),
@@ -184,6 +186,7 @@ public:
         bool OnDealKeyEvent(
             const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer) override
         {
+            IMSA_HILOGI("KeyboardListenerImpl run in");
             bool isKeyCodeConsume = OnKeyEvent(keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), consumer);
             bool isKeyEventConsume = OnKeyEvent(keyEvent, consumer);
             if (consumer != nullptr) {
@@ -193,16 +196,15 @@ public:
         }
         void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override
         {
-            IMSA_HILOGD(
-                "KeyboardListenerImpl::OnCursorUpdate %{public}d %{public}d %{public}d", positionX, positionY, height);
+            IMSA_HILOGI("KeyboardListenerImpl %{public}d %{public}d %{public}d", positionX, positionY, height);
             cursorInfo_ = { static_cast<double>(positionX), static_cast<double>(positionY), 0,
                 static_cast<double>(height) };
             InputMethodControllerTest::keyboardListenerCv_.notify_one();
         }
         void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override
         {
-            IMSA_HILOGD("KeyboardListenerImpl::OnSelectionChange %{public}d %{public}d %{public}d %{public}d",
-                oldBegin, oldEnd, newBegin, newBegin);
+            IMSA_HILOGI("KeyboardListenerImpl %{public}d %{public}d %{public}d %{public}d", oldBegin, oldEnd, newBegin,
+                newBegin);
             oldBegin_ = oldBegin;
             oldEnd_ = oldEnd;
             newBegin_ = newBegin;
@@ -211,13 +213,15 @@ public:
         }
         void OnTextChange(const std::string &text) override
         {
-            IMSA_HILOGD("KeyboardListenerImpl::OnTextChange text: %{public}s", text.c_str());
+            IMSA_HILOGI("KeyboardListenerImpl text: %{public}s", text.c_str());
             text_ = text;
             InputMethodControllerTest::keyboardListenerCv_.notify_one();
         }
         void OnEditorAttributeChange(const InputAttribute &inputAttribute) override
         {
-            IMSA_HILOGD("KeyboardListenerImpl in.");
+            IMSA_HILOGI("KeyboardListenerImpl inputPattern: %{public}d, enterKeyType: %{public}d, "
+                        "isTextPreviewSupported: %{public}d",
+                inputAttribute.inputPattern, inputAttribute.enterKeyType, inputAttribute.isTextPreviewSupported);
             inputAttribute_ = inputAttribute;
             InputMethodControllerTest::keyboardListenerCv_.notify_one();
         }
@@ -367,8 +371,9 @@ void InputMethodControllerTest::CheckProxyObject()
     }
 }
 
-bool InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
+void InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent)
 {
+    ASSERT_NE(keyEvent, nullptr);
     bool ret = keyEvent->GetKeyCode() == keyEvent_->GetKeyCode();
     EXPECT_TRUE(ret);
     ret = keyEvent->GetKeyAction() == keyEvent_->GetKeyAction();
@@ -398,7 +403,6 @@ bool InputMethodControllerTest::CheckKeyEvent(std::shared_ptr<MMI::KeyEvent> key
     EXPECT_TRUE(ret);
     ret = keyEvent->GetKeyItem()->GetUnicode() == keyEvent_->GetKeyItem()->GetUnicode();
     EXPECT_TRUE(ret);
-    return ret;
 }
 
 void InputMethodControllerTest::WaitKeyboardStatusCallback(bool keyboardState)
@@ -465,6 +469,7 @@ void InputMethodControllerTest::CheckTextConfig(const TextConfig &config)
 
 void InputMethodControllerTest::DispatchKeyEventCallback(std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed)
 {
+    IMSA_HILOGI("InputMethodControllerTest isConsumed: %{public}d", isConsumed);
     consumeResult_ = isConsumed;
     keyEventCv_.notify_one();
 }
@@ -484,7 +489,7 @@ bool InputMethodControllerTest::WaitKeyEventCallback()
  */
 HWTEST_F(InputMethodControllerTest, testIMCAttach001, TestSize.Level0)
 {
-    IMSA_HILOGD("IMC testIMCAttach001 Test START");
+    IMSA_HILOGI("IMC testIMCAttach001 Test START");
     imeListener_->isInputStart_ = false;
     TextListener::ResetParam();
     inputMethodController_->Attach(textListener_, false);
@@ -502,7 +507,7 @@ HWTEST_F(InputMethodControllerTest, testIMCAttach001, TestSize.Level0)
  */
 HWTEST_F(InputMethodControllerTest, testIMCAttach002, TestSize.Level0)
 {
-    IMSA_HILOGD("IMC testIMCAttach002 Test START");
+    IMSA_HILOGI("IMC testIMCAttach002 Test START");
     TextListener::ResetParam();
     CursorInfo cursorInfo = { 1, 1, 1, 1 };
     Range selectionRange = { 1, 2 };
@@ -535,7 +540,7 @@ HWTEST_F(InputMethodControllerTest, testIMCAttach002, TestSize.Level0)
  */
 HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
 {
-    IMSA_HILOGD("IMC SetCallingWindow Test START");
+    IMSA_HILOGI("IMC SetCallingWindow Test START");
     auto ret = inputMethodController_->Attach(textListener_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     uint32_t windowId = 3;
@@ -552,7 +557,7 @@ HWTEST_F(InputMethodControllerTest, testIMCSetCallingWindow, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testGetIMSAProxy, TestSize.Level0)
 {
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    EXPECT_TRUE(systemAbilityManager != nullptr);
+    ASSERT_NE(systemAbilityManager, nullptr);
     auto systemAbility = systemAbilityManager->GetSystemAbility(INPUT_METHOD_SYSTEM_ABILITY_ID, "");
     EXPECT_TRUE(systemAbility != nullptr);
 }
@@ -637,8 +642,8 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent002, TestSize.Level0)
         keyEvent_, [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {});
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto keyEvent = blockFullKeyEvent_.GetValue();
-    EXPECT_NE(keyEvent, nullptr);
-    EXPECT_TRUE(CheckKeyEvent(keyEvent));
+    ASSERT_NE(keyEvent, nullptr);
+    CheckKeyEvent(keyEvent);
 }
 
 /**
@@ -659,11 +664,11 @@ HWTEST_F(InputMethodControllerTest, testIMCDispatchKeyEvent003, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto keyEvent = blockKeyEvent_.GetValue();
     auto keyFullEvent = blockFullKeyEvent_.GetValue();
-    EXPECT_NE(keyEvent, nullptr);
-    EXPECT_NE(keyFullEvent, nullptr);
+    ASSERT_NE(keyEvent, nullptr);
     EXPECT_EQ(keyEvent->GetKeyCode(), keyEvent_->GetKeyCode());
     EXPECT_EQ(keyEvent->GetKeyAction(), keyEvent_->GetKeyAction());
-    EXPECT_TRUE(CheckKeyEvent(keyFullEvent));
+    ASSERT_NE(keyFullEvent, nullptr);
+    CheckKeyEvent(keyFullEvent);
 }
 
 /**
@@ -1306,6 +1311,40 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_008, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testFinishTextPreviewAfterDetach_001
+ * @tc.desc: IMC testFinishTextPreviewAfterDetach.
+ * @tc.type: IMC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testFinishTextPreviewAfterDetach_001, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testFinishTextPreviewAfterDetach_001 Test START");
+    InputAttribute inputAttribute = { .isTextPreviewSupported = true };
+    inputMethodController_->Attach(textListener_, false, inputAttribute);
+    TextListener::ResetParam();
+    inputMethodController_->Close();
+    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
+}
+
+/**
+ * @tc.name: testFinishTextPreviewAfterDetach_002
+ * @tc.desc: IMC testFinishTextPreviewAfterDetach_002.
+ * @tc.type: IMC
+ * @tc.require:
+ * @tc.author: zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testFinishTextPreviewAfterDetach_002, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testFinishTextPreviewAfterDetach_002 Test START");
+    InputAttribute inputAttribute = { .isTextPreviewSupported = true };
+    inputMethodController_->Attach(textListener_, false, inputAttribute);
+    TextListener::ResetParam();
+    inputMethodController_->DeactivateClient();
+    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
+}
+
+/**
  * @tc.name: testOnRemoteDied
  * @tc.desc: IMC OnRemoteDied
  * @tc.type: FUNC
@@ -1313,7 +1352,8 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_008, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
 {
     IMSA_HILOGI("IMC OnRemoteDied Test START");
-    int32_t ret = inputMethodController_->Attach(textListener_, true);
+    InputAttribute inputAttribute = { .isTextPreviewSupported = true };
+    int32_t ret = inputMethodController_->Attach(textListener_, true, inputAttribute);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     TextListener::ResetParam();
     bool result = TddUtil::KillImsaProcess();
@@ -1322,6 +1362,7 @@ HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
     CheckProxyObject();
     inputMethodController_->OnRemoteSaDied(nullptr);
     EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
+    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
     result = inputMethodController_->WasAttached();
     EXPECT_TRUE(result);
     inputMethodController_->Close();

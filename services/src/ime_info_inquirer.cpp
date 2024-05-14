@@ -402,7 +402,7 @@ int32_t ImeInfoInquirer::GetSwitchInfoBySwitchCount(
         IMSA_HILOGE("bundle manager error");
         return ErrorCode::ERROR_PACKAGE_MANAGER;
     }
-    uint32_t nextIndex = (cacheCount + std::distance(props.begin(), iter)) % props.size();
+    uint32_t nextIndex = (cacheCount + static_cast<uint32_t>(std::distance(props.begin(), iter))) % props.size();
     switchInfo.bundleName = props[nextIndex].name;
     IMSA_HILOGD("Next ime: %{public}s", switchInfo.bundleName.c_str());
     return ErrorCode::NO_ERROR;
@@ -490,12 +490,13 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
         if (InputTypeManager::GetInstance().IsInputType({ extInfo.bundleName, subtype.id })) {
             continue;
         }
-        SubProperty subProp{ .name = extInfo.bundleName,
+        SubProperty subProp{
             .label = subtype.label,
+            .name = extInfo.bundleName,
             .id = subtype.id,
-            .icon = subtype.icon,
             .mode = subtype.mode,
-            .locale = subtype.locale };
+            .locale = subtype.locale,
+            .icon = subtype.icon};
         auto pos = subProp.label.find(':');
         if (pos != std::string::npos && pos + 1 < subProp.label.size()) {
             subProp.labelId = atoi(subProp.label.substr(pos + 1).c_str());

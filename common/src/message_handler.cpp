@@ -38,10 +38,8 @@ MessageHandler::~MessageHandler()
  */
 void MessageHandler::SendMessage(Message *msg)
 {
-    {
-        std::unique_lock<std::mutex> lock(mMutex);
-        mQueue.push(msg);
-    }
+    std::unique_lock<std::mutex> lock(mMutex);
+    mQueue.push(msg);
     mCV.notify_one();
 }
 

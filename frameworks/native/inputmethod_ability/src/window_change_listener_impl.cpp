@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,23 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_PANEL_STATUS_LISTENER_H
-#define INPUTMETHOD_IMF_PANEL_STATUS_LISTENER_H
-#include <cstdint>
+#include "window_change_listener_impl.h"
+
+#include "global.h"
+#include "input_method_panel.h"
 
 namespace OHOS {
 namespace MiscServices {
-struct WindowSize {
-    uint32_t width = 0;
-    uint32_t height = 0;
-};
-class PanelStatusListener {
-public:
-    virtual ~PanelStatusListener(){};
-    virtual void OnPanelStatus(uint32_t windowId, bool isShow) = 0;
-    virtual void OnSizeChange(uint32_t windowId, const WindowSize &size) = 0;
-};
+void WindowChangeListenerImpl::OnSizeChange(Rosen::Rect rect, Rosen::WindowSizeChangeReason reason,
+    const std::shared_ptr<Rosen::RSTransaction> &rsTransaction)
+{
+    IMSA_HILOGD("OnSizeChange begin");
+    changeHandler_({rect.width_, rect.height_});
+}
 } // namespace MiscServices
 } // namespace OHOS
-
-#endif //INPUTMETHOD_IMF_PANEL_STATUS_LISTENER_H

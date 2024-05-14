@@ -22,15 +22,34 @@
 #include <string>
 
 #include "calling_window_info.h"
+#include "display_manager.h"
 #include "input_window_info.h"
 #include "js_runtime_utils.h"
 #include "panel_info.h"
 #include "panel_status_listener.h"
-#include "foundation/window/window_manager/interfaces/innerkits/wm/window.h"
+#include "window_change_listener_impl.h"
 #include "wm_common.h"
 
 namespace OHOS {
 namespace MiscServices {
+
+struct LayoutParams {
+    Rosen::Rect landscapeRect;
+    Rosen::Rect portraitRect;
+};
+
+struct PanelAdjustInfo {
+    int32_t top;
+    int32_t left;
+    uint32_t right;
+    uint32_t bottom;
+    bool operator==(const PanelAdjustInfo &panelAdjust) const
+    {
+        return (top == panelAdjust.top && left == panelAdjust.left && right == panelAdjust.right &&
+                bottom == panelAdjust.bottom);
+    }
+};
+
 class InputMethodPanel {
 public:
     static constexpr uint32_t INVALID_WINDOW_ID = 0;
@@ -42,12 +61,22 @@ public:
 
     int32_t Resize(uint32_t width, uint32_t height);
     int32_t MoveTo(int32_t x, int32_t y);
+    int32_t AdjustPanelRect(PanelFlag &panelFlag, const LayoutParams &layoutParams);
+    int32_t ParsePanelRect(PanelFlag &panelFlag, const LayoutParams &layoutParams);
+    int32_t GetSysPanelAdjust(PanelFlag &panelFlag,
+        std::tuple<std::vector<std::string>, std::vector<std::string>> &keys, const LayoutParams &layoutParams);
+    int32_t CalculatePanelRect(PanelFlag &panelFlag, PanelAdjustInfo &lanIterValue, PanelAdjustInfo &porIterValue,
+        const LayoutParams &layoutParams);
+    int32_t CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &defaultDisplay, const LayoutParams &layoutParams,
+        PanelAdjustInfo &lanIterValue, int densityDpi);
+    std::tuple<std::vector<std::string>, std::vector<std::string>> GetScreenStatus(PanelFlag panelFlag);
     int32_t ChangePanelFlag(PanelFlag panelFlag);
     PanelType GetPanelType();
     PanelFlag GetPanelFlag();
     int32_t ShowPanel();
     int32_t HidePanel();
-    void SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
+    int32_t SizeChange(const WindowSize &size);
+    bool SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void ClearPanelListener(const std::string &type);
     int32_t SetCallingWindow(uint32_t windowId);
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
@@ -87,6 +116,11 @@ private:
     bool MarkListener(const std::string &type, bool isRegister);
     static uint32_t GenerateSequenceId();
     bool IsSizeValid(uint32_t width, uint32_t height);
+    bool IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t height, int32_t displayWidth, int32_t displayHeight);
+    bool CheckSize(PanelFlag panelFlag, uint32_t width, uint32_t height, bool isDataPortrait);
+    bool GetDisplaySize(bool isPortrait, WindowSize &size);
+    void CalculateFaloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
+        PanelAdjustInfo &porIterValue, int densityDpi);
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
@@ -94,6 +128,7 @@ private:
     PanelFlag panelFlag_ = PanelFlag::FLG_FIXED;
     bool showRegistered_ = false;
     bool hideRegistered_ = false;
+    bool sizeChangeRegistered_ = false;
     uint32_t invalidGravityPercent = 0;
     std::shared_ptr<PanelStatusListener> panelStatusListener_ = nullptr;
 
@@ -102,6 +137,14 @@ private:
     uint32_t panelHeight_ = 0;
     sptr<Rosen::IKeyboardPanelInfoChangeListener> kbPanelInfoListener_{ nullptr };
     bool isScbEnable_{ false };
+
+    std::mutex panelAdjustLock_;
+    std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;
+
+    Rosen::KeyboardLayoutParams keyboardLayoutParams_;
+
+    std::mutex windowListenerLock_;
+    sptr<Rosen::IWindowChangeListener> windowChangedListener_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS

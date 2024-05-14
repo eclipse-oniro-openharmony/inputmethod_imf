@@ -72,10 +72,36 @@ struct InputTypeCfg : public Serializable {
     }
 };
 
+struct SysPanelAdjust : public Serializable {
+    std::vector<std::string> style;
+    int32_t top = 0;
+    int32_t left = 0;
+    uint32_t right = 0;
+    uint32_t bottom = 0;
+    bool Unmarshal(cJSON *node) override
+    {
+        auto ret = GetValue(node, GET_NAME(style), style);
+        ret = GetValue(node, GET_NAME(top), top) && ret;
+        ret = GetValue(node, GET_NAME(left), left) && ret;
+        ret = GetValue(node, GET_NAME(right), right) && ret;
+        ret = GetValue(node, GET_NAME(bottom), bottom) && ret;
+        return ret;
+    }
+};
+
+struct SysPanelAdjustCfg : public Serializable {
+    std::vector<SysPanelAdjust> panelAdjust;
+    bool Unmarshal(cJSON *node) override
+    {
+        return GetValue(node, GET_NAME(sysPanelAdjust), panelAdjust);
+    }
+};
+
 class SysCfgParser {
 public:
     static bool ParseSystemConfig(SystemConfig &systemConfig);
     static bool ParseInputType(std::vector<InputTypeInfo> &inputType);
+    static bool ParsePanelAdjust(std::vector<SysPanelAdjust> &sysPanelAdjust);
 
 private:
     static constexpr const char *SYS_CFG_FILE_PATH = "etc/inputmethod/inputmethod_framework_config.json";
