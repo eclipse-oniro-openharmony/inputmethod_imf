@@ -781,6 +781,7 @@ void InputMethodPanel::UnregisterKeyboardPanelInfoChangeListener()
         return;
     }
     auto ret = window_->UnregisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
+    kbPanelInfoListener_ = nullptr;
     IMSA_HILOGD("ret: %{public}d", ret);
 }
 
