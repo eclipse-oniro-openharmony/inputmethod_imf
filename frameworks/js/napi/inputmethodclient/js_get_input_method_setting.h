@@ -18,6 +18,7 @@
 #include <uv.h>
 
 #include "async_call.h"
+#include "event_handler.h"
 #include "global.h"
 #include "input_method_controller.h"
 #include "input_method_status.h"
@@ -122,6 +123,7 @@ private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static napi_value GetJsConstProperty(napi_env env, uint32_t num);
     static napi_value GetIMSetting(napi_env env, napi_callback_info info, bool needThrowException);
+    static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     int32_t RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type, bool &isUpdateFlag);
     void OnPanelStatusChange(const std::string &type, const ImeWindowInfo &info);
@@ -137,10 +139,11 @@ private:
         }
     };
     using EntrySetter = std::function<void(UvEntry &)>;
-    uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
-    void FreeWorkIfFail(int ret, uv_work_t *work);
+    std::shared_ptr<UvEntry> GetEntry(const std::string &type, EntrySetter entrySetter = nullptr);
     static const std::string IMS_CLASS_NAME;
     static thread_local napi_ref IMSRef_;
+    static std::mutex eventHandlerMutex_;
+    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;

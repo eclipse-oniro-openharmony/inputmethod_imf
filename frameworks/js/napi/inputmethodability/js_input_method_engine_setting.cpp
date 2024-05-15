@@ -670,41 +670,35 @@ void JsInputMethodEngineSetting::OnSetCallingWindow(uint32_t windowId)
 void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
 {
     std::string type = "setSubtype";
-    uv_work_t *work = GetUVwork(type, [&property](UvEntry &entry) { entry.subProperty = property; });
-    if (work == nullptr) {
+    auto entry = GetEntry(type, [&property](UvEntry &entry) { entry.subProperty = property; });
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
     IMSA_HILOGI("subtypeId: %{public}s", property.id.c_str());
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("entryptr is null");
-                return;
+    auto task = [entry]() {
+        auto getSubtypeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == 0) {
+                return false;
             }
-            auto getSubtypeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == 0) {
-                    return false;
-                }
-                napi_value jsObject = GetResultOnSetSubtype(env, entry->subProperty);
-                if (jsObject == nullptr) {
-                    IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                args[0] = { jsObject };
-                return true;
-            };
-            // 1 means callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSubtypeProperty });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            napi_value jsObject = GetResultOnSetSubtype(env, entry->subProperty);
+            if (jsObject == nullptr) {
+                IMSA_HILOGE("get GetResultOnSetSubtype failed: jsObject is nullptr");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = { jsObject };
+            return true;
+        };
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSubtypeProperty });
+    };
+    handler_->PostTask(task, type);
 }
 
 void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)
@@ -808,13 +802,7 @@ uv_work_t *JsInputMethodEngineSetting::GetUVwork(const std::string &type, EntryS
 
 std::shared_ptr<AppExecFwk::EventHandler> JsInputMethodEngineSetting::GetEventHandler()
 {
-    if (handler_ != nullptr) {
-        return handler_;
-    }
     std::lock_guard<std::mutex> lock(eventHandlerMutex_);
-    if (handler_ == nullptr) {
-        handler_ = AppExecFwk::EventHandler::Current();
-    }
     return handler_;
 }
 

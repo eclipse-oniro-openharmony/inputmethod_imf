@@ -17,6 +17,7 @@
 
 #include "async_call.h"
 #include "controller_listener.h"
+#include "event_handler.h"
 #include "global.h"
 #include "js_callback_object.h"
 #include "js_input_method.h"
@@ -205,6 +206,7 @@ private:
     static napi_value GetJsTextInputTypeProperty(napi_env env);
     static napi_value GetJsDirectionProperty(napi_env env);
     static napi_value GetJsExtendActionProperty(napi_env env);
+    static std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     static const std::set<std::string> TEXT_EVENT_TYPE;
     static constexpr int32_t MAX_TIMEOUT = 2500;
     struct UvEntry {
@@ -227,8 +229,7 @@ private:
         }
     };
     using EntrySetter = std::function<void(UvEntry &)>;
-    uv_work_t *GetUVwork(const std::string &type, EntrySetter entrySetter = nullptr);
-    void FreeWorkIfFail(int ret, uv_work_t *work);
+    std::shared_ptr<UvEntry> GetEntry(const std::string &type, EntrySetter entrySetter = nullptr);
     uv_loop_s *loop_ = nullptr;
     std::recursive_mutex mutex_;
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
@@ -236,6 +237,8 @@ private:
     static std::shared_ptr<JsGetInputMethodController> controller_;
     static const std::string IMC_CLASS_NAME;
     static thread_local napi_ref IMCRef_;
+    static std::mutex eventHandlerMutex_;
+    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
     static constexpr size_t PARAM_POS_ZERO = 0;
     static constexpr size_t PARAM_POS_ONE = 1;
     static constexpr size_t PARAM_POS_TWO = 2;

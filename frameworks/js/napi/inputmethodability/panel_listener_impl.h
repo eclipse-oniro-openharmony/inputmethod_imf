@@ -22,11 +22,12 @@
 #include <uv.h>
 
 #include "concurrent_map.h"
+#include "event_handler.h"
+#include "input_method_panel.h"
 #include "js_callback_object.h"
-#include "panel_status_listener.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "input_method_panel.h"
+#include "panel_status_listener.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -48,12 +49,17 @@ public:
     void OnSizeChange(uint32_t windowId, const WindowSize &size) override;
     void SaveInfo(napi_env env, const std::string &type, napi_value callback, uint32_t windowId);
     void RemoveInfo(const std::string &type, uint32_t windowId);
-    uv_work_t *GetUVwork(const std::shared_ptr<JSCallbackObject> &callback, EntrySetter entrySetter);
+    void SetEventHandler(std::shared_ptr<AppExecFwk::EventHandler> handler);
+    std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
+    std::shared_ptr<PanelListenerImpl::UvEntry> GetEntry(
+        const std::shared_ptr<JSCallbackObject> &callback, EntrySetter entrySetter);
     std::shared_ptr<JSCallbackObject> GetCallback(const std::string &type, uint32_t windowId);
 
     ConcurrentMap<uint32_t, ConcurrentMap<std::string, std::shared_ptr<JSCallbackObject>>> callbacks_;
     static std::mutex listenerMutex_;
     static std::shared_ptr<PanelListenerImpl> instance_;
+    std::mutex eventHandlerMutex_;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace MiscServices
 } // namespace OHOS
