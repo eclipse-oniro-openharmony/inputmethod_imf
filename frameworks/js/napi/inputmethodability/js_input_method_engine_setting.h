@@ -57,6 +57,7 @@ public:
     void OnSetSubtype(const SubProperty &property) override;
     void OnSecurityChange(int32_t security) override;
     void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    void PostTaskToEventHandler(std::function<void()> task, const std::string &taskName) override;
 
 private:
     struct PanelContext : public AsyncCall::Context {
