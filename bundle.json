@@ -75,7 +75,8 @@
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethodability:inputmethodengine", 
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_ability:inputmethodextensionability_napi",
                   "//base/inputmethod/imf/frameworks/js/napi/inputmethod_extension_context:inputmethodextensioncontext_napi",
-                  "//base/inputmethod/imf/frameworks/js/napi/keyboardpanelmanager:keyboardpanelmanager"
+                  "//base/inputmethod/imf/frameworks/js/napi/keyboardpanelmanager:keyboardpanelmanager",
+                  "//base/inputmethod/imf/seccomp_policy:imf_ext_secure_filter"
               ]
           },
           "inner_api": [
