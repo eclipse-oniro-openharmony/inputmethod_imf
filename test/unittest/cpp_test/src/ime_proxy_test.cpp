@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 
+#define private public
+#include "input_method_ability.h"
+#undef private
+
 #include <gtest/gtest.h>
 
 #include "ability_manager_client.h"
@@ -513,52 +517,35 @@ HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_014, TestSize.Level0)
 }
 
 /**
-* @tc.name: TextEditingTest_015
+* @tc.name: KeyboardListenerTest_015
 * @tc.desc:
 * @tc.type: FUNC
 */
-HWTEST_F(ImeProxyTest, TextEditingTest_015, TestSize.Level0)
+HWTEST_F(ImeProxyTest, KeyboardListenerTest_015, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest::TextEditingTest_015");
-    auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-
-    // open the app, click the edit box in pc, bind proxy
-    StartApp();
-    InputMethodEngineListenerImpl::ResetParam();
-    ClickEditor(true);
-    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
-    EnsureBindComplete();
-
-    KeyboardListenerTestImpl::ResetParam();
-    ret = InputMethodAbilityInterface::GetInstance().InsertText("abc");
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitSelectionChange(3));
+    IMSA_HILOGI("ImeProxyTest::KeyboardListenerTest_015");
+    MessageParcel *data = new MessageParcel();
+    // 1:positionX, 2: positionY, 5: height
+    data->WriteInt32(1);
+    data->WriteInt32(2);
+    data->WriteInt32(5);
+    Message *message = new Message(MessageID::MSG_ID_ON_CURSOR_UPDATE, data);
+    InputMethodAbility::GetInstance()->OnCursorUpdate(message);
     EXPECT_TRUE(KeyboardListenerTestImpl::WaitCursorUpdate());
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange("abc"));
+    delete message;
 
-    KeyboardListenerTestImpl::ResetParam();
-    ret = InputMethodAbilityInterface::GetInstance().DeleteForward(1);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitSelectionChange(2));
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitCursorUpdate());
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange("ab"));
-
-    KeyboardListenerTestImpl::ResetParam();
-    ret = InputMethodAbilityInterface::GetInstance().MoveCursor(3); //left
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitSelectionChange(1));
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitCursorUpdate());
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange("ab"));
-
-    KeyboardListenerTestImpl::ResetParam();
-    ret = InputMethodAbilityInterface::GetInstance().DeleteBackward(1);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitSelectionChange(1));
-    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange("a"));
-
-    InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
-    StopApp();
+    MessageParcel *data1 = new MessageParcel();
+    // u"text": text, 1: oldBegin, 2: oldEnd, 4: newBegin, 6: newEnd
+    data1->WriteString16(u"text");
+    data1->WriteInt32(1);
+    data1->WriteInt32(2);
+    data1->WriteInt32(4);
+    data1->WriteInt32(6);
+    Message *message1 = new Message(MessageID::MSG_ID_ON_SELECTION_CHANGE, data1);
+    InputMethodAbility::GetInstance()->OnSelectionChange(message1);
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitSelectionChange(4));
+    EXPECT_TRUE(KeyboardListenerTestImpl::WaitTextChange("text"));
+    delete message1;
 }
 
 /**
@@ -604,6 +591,29 @@ HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_017, TestSize.Level0)
     StopApp();
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
+}
+
+/**
+* @tc.name: onInputFinishTest_StopInput
+* @tc.desc: close
+* @tc.type: FUNC
+*/
+HWTEST_F(ImeProxyTest, onInputFinishTest_StopInput, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::onInputFinishTest_StopInput");
+    InputMethodAbility::GetInstance()->StopInput(nullptr);
+    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
+}
+/**
+* @tc.name: onInputFinishTest_OnClientInactive
+* @tc.desc: OnClientInactive
+* @tc.type: FUNC
+*/
+HWTEST_F(ImeProxyTest, onInputFinishTest_OnClientInactive, TestSize.Level0)
+{
+    IMSA_HILOGI("ImeProxyTest::onInputFinishTest_OnClientInactive");
+    InputMethodAbility::GetInstance()->OnClientInactive(nullptr);
+    EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
 }
 } // namespace MiscServices
 } // namespace OHOS

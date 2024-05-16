@@ -1062,6 +1062,9 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
 {
     IMSA_HILOGI("client inactive");
     ClearDataChannel(channel);
+    if (imeListener_ != nullptr) {
+        imeListener_->OnInputFinish();
+    }
     panels_.ForEach([](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
             panel->HidePanel();
