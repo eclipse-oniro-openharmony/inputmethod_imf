@@ -81,7 +81,7 @@ napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_in
 {
     {
         std::lock_guard<std::mutex> lock(eventHandlerMutex_);
-        handler_ = AppExecFwk::EventHandler::Current(); 
+        handler_ = AppExecFwk::EventHandler::Current();
     }
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
