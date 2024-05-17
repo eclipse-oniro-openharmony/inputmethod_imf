@@ -34,7 +34,8 @@ struct SecModeCfg : public Serializable {
     UserImeConfig userImeCfg;
     bool Unmarshal(cJSON *node) override
     {
-        return GetValue(node, GET_NAME(fullExperienceList), userImeCfg);
+        GetValue(node, GET_NAME(fullExperienceList), userImeCfg);
+        return true;
     }
 };
 class SecurityModeParser : public RefBase {
