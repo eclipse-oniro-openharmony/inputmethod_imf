@@ -698,7 +698,7 @@ void JsInputMethodEngineSetting::OnSetSubtype(const SubProperty &property)
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSubtypeProperty });
     };
-    handler_->PostTask(task, type);
+    eventHandler->PostTask(task, type);
 }
 
 void JsInputMethodEngineSetting::OnSecurityChange(int32_t security)

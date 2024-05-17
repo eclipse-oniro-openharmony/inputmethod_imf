@@ -83,7 +83,7 @@ void PanelListenerImpl::OnPanelStatus(uint32_t windowId, bool isShow)
         IMSA_HILOGE("no callback in map!");
         return;
     }
-    auto entry = new (std::nothrow) UvEntry(callback.second);
+    auto entry = std::make_shared<UvEntry>(callback.second);
     if (entry == nullptr) {
         IMSA_HILOGE("work->data is nullptr!");
         return;
