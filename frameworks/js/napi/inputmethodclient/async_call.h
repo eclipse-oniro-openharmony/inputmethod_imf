@@ -44,7 +44,7 @@ public:
             errorCode_ = errorCode;
         }
 
-        void SetErrorMessage(const std::string errMessage)
+        void SetErrorMessage(const std::string &errMessage)
         {
             errMessage_ = errMessage;
         }
