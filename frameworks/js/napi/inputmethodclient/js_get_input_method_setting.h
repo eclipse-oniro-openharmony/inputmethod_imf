@@ -124,7 +124,7 @@ private:
     static napi_value GetIMSetting(napi_env env, napi_callback_info info, bool needThrowException);
     int32_t RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type, bool &isUpdateFlag);
-    void OnPanelStatusChange(const std::string &type, const ImeWindowInfo &info);
+    void OnPanelStatusChange(const std::string &type, const InputWindowInfo &info);
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
@@ -146,6 +146,10 @@ private:
     std::map<std::string, std::vector<std::shared_ptr<JSCallbackObject>>> jsCbMap_;
     static std::mutex msMutex_;
     static std::shared_ptr<JsGetInputMethodSetting> inputMethod_;
+
+    PanelFlag softKbShowingFlag_{ FLG_CANDIDATE_COLUMN };
+    PanelFlag GetSoftKbShowingFlag();
+    void SetSoftKbShowingFlag(PanelFlag flag);
 };
 } // namespace MiscServices
 } // namespace OHOS

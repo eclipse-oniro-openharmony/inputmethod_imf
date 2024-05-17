@@ -625,27 +625,54 @@ void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubPro
     FreeWorkIfFail(ret, work);
 }
 
+PanelFlag JsGetInputMethodSetting::GetSoftKbShowingFlag()
+{
+    return softKbShowingFlag_;
+}
+void JsGetInputMethodSetting::SetSoftKbShowingFlag(PanelFlag flag)
+{
+    softKbShowingFlag_ = flag;
+}
+
 void JsGetInputMethodSetting::OnImeShow(const ImeWindowInfo &info)
 {
-    OnPanelStatusChange("imeShow", info);
+    if (info.panelInfo.panelType != PanelType::SOFT_KEYBOARD
+        || (info.panelInfo.panelFlag != FLG_FLOATING && info.panelInfo.panelFlag != FLG_FIXED)) {
+        return;
+    }
+    auto showingFlag = GetSoftKbShowingFlag();
+    // FLG_FIXED->FLG_FLOATING in show
+    if (info.panelInfo.panelFlag == FLG_FLOATING && showingFlag == FLG_FIXED) {
+        InputWindowInfo windowInfo{ info.windowInfo.name, 0, 0, 0, 0 };
+        OnPanelStatusChange("imeHide", windowInfo);
+    }
+    // FLG_FLOATING->FLG_FIXED in show/show FLG_FIXED/ rotating(resize) in FLG_FIXED show
+    if ((info.panelInfo.panelFlag == FLG_FIXED && showingFlag == FLG_FLOATING)
+        || (info.panelInfo.panelFlag == FLG_FIXED && showingFlag == FLG_CANDIDATE_COLUMN)
+        || (info.panelInfo.panelFlag == FLG_FIXED && showingFlag == FLG_FIXED)) {
+        OnPanelStatusChange("imeShow", info.windowInfo);
+    }
+    SetSoftKbShowingFlag(info.panelInfo.panelFlag);
 }
 
 void JsGetInputMethodSetting::OnImeHide(const ImeWindowInfo &info)
 {
-    OnPanelStatusChange("imeHide", info);
-}
-
-void JsGetInputMethodSetting::OnPanelStatusChange(const std::string &type, const ImeWindowInfo &info)
-{
+    SetSoftKbShowingFlag(FLG_CANDIDATE_COLUMN);
     if (info.panelInfo.panelType != PanelType::SOFT_KEYBOARD || info.panelInfo.panelFlag != PanelFlag::FLG_FIXED) {
         return;
     }
-    uv_work_t *work = GetUVwork(type, [&info](UvEntry &entry) { entry.windowInfo = { info.windowInfo }; });
+    OnPanelStatusChange("imeHide", info.windowInfo);
+}
+
+void JsGetInputMethodSetting::OnPanelStatusChange(const std::string &type, const InputWindowInfo &info)
+{
+    IMSA_HILOGI("type: %{public}s, rect[%{public}d, %{public}d, %{public}u, %{public}u]", type.c_str(), info.left,
+        info.top, info.width, info.height);
+    uv_work_t *work = GetUVwork(type, [&info](UvEntry &entry) { entry.windowInfo = { info }; });
     if (work == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("type: %{public}s", type.c_str());
     auto ret = uv_queue_work_with_qos(
         loop_, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {

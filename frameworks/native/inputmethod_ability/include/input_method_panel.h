@@ -17,6 +17,7 @@
 #define INPUT_METHOD_PANEL_H
 
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <string>
 
@@ -86,11 +87,32 @@ public:
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
+    class KeyboardPanelInfoChangeListener : public Rosen::IKeyboardPanelInfoChangeListener {
+    public:
+        using ChangeHandler = std::function<void(const Rosen::KeyboardPanelInfo &keyboardPanelInfo)>;
+        explicit KeyboardPanelInfoChangeListener(ChangeHandler handler) : handler_(std::move(handler))
+        {
+        }
+        ~KeyboardPanelInfoChangeListener() = default;
+        void OnKeyboardPanelInfoChanged(const Rosen::KeyboardPanelInfo &keyboardPanelInfo) override
+        {
+            if (handler_ == nullptr) {
+                return;
+            }
+            handler_(keyboardPanelInfo);
+        }
+
+    private:
+        ChangeHandler handler_ = nullptr;
+    };
+    void RegisterKeyboardPanelInfoChangeListener();
+    void UnregisterKeyboardPanelInfoChangeListener();
+    void HandleKbPanelInfoChange(const Rosen::KeyboardPanelInfo &keyboardPanelInfo);
     bool IsHidden();
     int32_t SetPanelProperties();
     std::string GeneratePanelName();
     void PanelStatusChange(const InputWindowStatus &status);
-    void PanelStatusChangeToImc(const InputWindowStatus &status);
+    void PanelStatusChangeToImc(const InputWindowStatus &status, const Rosen::Rect &rect);
     bool MarkListener(const std::string &type, bool isRegister);
     static uint32_t GenerateSequenceId();
     bool IsSizeValid(uint32_t width, uint32_t height);
@@ -113,6 +135,8 @@ private:
     static std::atomic<uint32_t> sequenceId_;
     std::mutex heightLock_;
     uint32_t panelHeight_ = 0;
+    sptr<Rosen::IKeyboardPanelInfoChangeListener> kbPanelInfoListener_{ nullptr };
+    bool isScbEnable_{ false };
 
     std::mutex panelAdjustLock_;
     std::map<std::vector<std::string>, PanelAdjustInfo> panelAdjust_;

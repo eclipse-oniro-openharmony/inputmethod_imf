@@ -20,6 +20,7 @@
 #include "dm_common.h"
 #include "global.h"
 #include "input_method_ability_utils.h"
+#include "scene_board_judgement.h"
 #include "sys_cfg_parser.h"
 #include "ui/rs_surface_node.h"
 
@@ -28,6 +29,7 @@ namespace MiscServices {
 using WMError = OHOS::Rosen::WMError;
 using WindowGravity = OHOS::Rosen::WindowGravity;
 using WindowState = OHOS::Rosen::WindowState;
+using namespace Rosen;
 constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 constexpr int32_t NUMBER_ZERO = 0;
@@ -70,6 +72,12 @@ int32_t InputMethodPanel::CreatePanel(const std::shared_ptr<AbilityRuntime::Cont
     windowId_ = window_->GetWindowId();
     IMSA_HILOGI("success, type/flag/windowId: %{public}d/%{public}d/%{public}u", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_), windowId_);
+    if (panelInfo.panelType == SOFT_KEYBOARD) {
+        isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
+        if (isScbEnable_) {
+            RegisterKeyboardPanelInfoChangeListener();
+        }
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -113,6 +121,9 @@ int32_t InputMethodPanel::DestroyPanel()
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("InputMethodPanel, hide panel failed, ret = %{public}d.", ret);
         return ret;
+    }
+    if (panelType_ == SOFT_KEYBOARD) {
+        UnregisterKeyboardPanelInfoChangeListener();
     }
     auto result = window_->Destroy();
     IMSA_HILOGI("ret = %{public}d", result);
@@ -451,6 +462,9 @@ int32_t InputMethodPanel::ShowPanel()
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
     PanelStatusChange(InputWindowStatus::SHOW);
+    if (!isScbEnable_) {
+        PanelStatusChangeToImc(InputWindowStatus::SHOW, window_->GetRect());
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -487,6 +501,9 @@ int32_t InputMethodPanel::HidePanel()
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
     PanelStatusChange(InputWindowStatus::HIDE);
+    if (!isScbEnable_) {
+        PanelStatusChangeToImc(InputWindowStatus::HIDE, { 0, 0, 0, 0 });
+    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -551,17 +568,14 @@ void InputMethodPanel::PanelStatusChange(const InputWindowStatus &status)
         IMSA_HILOGD("HidePanel panelStatusListener_ is not nullptr");
         panelStatusListener_->OnPanelStatus(windowId_, false);
     }
-    PanelStatusChangeToImc(status);
 }
 
-void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status)
+void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status, const Rosen::Rect &rect)
 {
-    if (panelType_ != SOFT_KEYBOARD) {
-        IMSA_HILOGD("not SOFT_KEYBOARD");
-        return;
-    }
-    if (panelFlag_ != FLG_FIXED && panelFlag_ != FLG_FLOATING) {
-        IMSA_HILOGD("not FLG_FIXED && FLG_FLOATING");
+    ImeWindowInfo info;
+    info.panelInfo = { panelType_, panelFlag_ };
+    if (info.panelInfo.panelType != SOFT_KEYBOARD || info.panelInfo.panelFlag == FLG_CANDIDATE_COLUMN) {
+        IMSA_HILOGD("no need to deal");
         return;
     }
     auto imsa = ImaUtils::GetImsaProxy();
@@ -569,13 +583,11 @@ void InputMethodPanel::PanelStatusChangeToImc(const InputWindowStatus &status)
         IMSA_HILOGE("imsa is nullptr");
         return;
     }
-    auto rect = window_->GetRect();
-    IMSA_HILOGD("InputMethodPanel::rect[%{public}d,%{public}d,%{public}u,%{public}u]", rect.posX_, rect.posY_,
-        rect.width_, rect.height_);
     std::string name = window_->GetWindowName() + "/" + std::to_string(window_->GetWindowId());
-    ImeWindowInfo info;
-    info.panelInfo = { panelType_, panelFlag_ };
     info.windowInfo = { std::move(name), rect.posX_, rect.posY_, rect.width_, rect.height_ };
+    IMSA_HILOGD("rect[%{public}d,%{public}d,%{public}u,%{public}u], status:%{public}d, "
+                "panelFlag:%{public}d",
+        rect.posX_, rect.posY_, rect.width_, rect.height_, status, info.panelInfo.panelFlag);
     imsa->PanelStatusChange(status, info);
 }
 
@@ -747,6 +759,39 @@ uint32_t InputMethodPanel::GetHeight()
 {
     std::lock_guard<std::mutex> lock(heightLock_);
     return panelHeight_;
+}
+
+void InputMethodPanel::RegisterKeyboardPanelInfoChangeListener()
+{
+    kbPanelInfoListener_ = new (std::nothrow) KeyboardPanelInfoChangeListener(
+        [this](const KeyboardPanelInfo &keyboardPanelInfo) { HandleKbPanelInfoChange(keyboardPanelInfo); });
+    if (kbPanelInfoListener_ == nullptr) {
+        return;
+    }
+    if (window_ == nullptr) {
+        return;
+    }
+    auto ret = window_->RegisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
+    IMSA_HILOGD("ret: %{public}d", ret);
+}
+
+void InputMethodPanel::UnregisterKeyboardPanelInfoChangeListener()
+{
+    if (window_ == nullptr) {
+        return;
+    }
+    auto ret = window_->UnregisterKeyboardPanelInfoChangeListener(kbPanelInfoListener_);
+    kbPanelInfoListener_ = nullptr;
+    IMSA_HILOGD("ret: %{public}d", ret);
+}
+
+void InputMethodPanel::HandleKbPanelInfoChange(const KeyboardPanelInfo &keyboardPanelInfo)
+{
+    InputWindowStatus status = InputWindowStatus::HIDE;
+    if (keyboardPanelInfo.isShowing_) {
+        status = InputWindowStatus::SHOW;
+    }
+    PanelStatusChangeToImc(status, keyboardPanelInfo.rect_);
 }
 
 bool InputMethodPanel::GetDisplaySize(bool isPortrait, WindowSize &size)

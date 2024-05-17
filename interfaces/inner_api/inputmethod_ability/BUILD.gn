@@ -82,6 +82,7 @@ ohos_shared_library("inputmethod_ability") {
     "napi:ace_napi",
     "samgr:samgr_proxy",
     "window_manager:libdm",
+    "window_manager:libwsutils",
   ]
 
   public_external_deps = [ "window_manager:libwm" ]
@@ -132,6 +133,7 @@ ohos_static_library("inputmethod_ability_static") {
     "napi:ace_napi",
     "samgr:samgr_proxy",
     "window_manager:libdm",
+    "window_manager:libwsutils",
   ]
 
   public_external_deps = [ "window_manager:libwm" ]
