@@ -775,7 +775,7 @@ private:
     int32_t HideInput(sptr<IInputClient> &client);
     int32_t ReleaseInput(sptr<IInputClient> &client);
     int32_t ListInputMethodCommon(InputMethodStatus status, std::vector<Property> &props);
-    void ClearEditorCache();
+    void ClearEditorCache(bool isNewEditor);
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void RestoreListenInfoInSaDied();
     void RestoreAttachInfoInSaDied();

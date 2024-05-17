@@ -188,12 +188,16 @@ void InputMethodController::DeactivateClient()
 
 void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
 {
-    std::lock_guard<std::mutex> lock(textConfigLock_);
-    IMSA_HILOGD("inputPattern: %{public}d, enterKeyType: %{public}d, isTextPreviewSupported: %{public}d, windowId: "
-                "%{public}d",
-        textConfig.inputAttribute.inputPattern, textConfig.inputAttribute.enterKeyType,
-        textConfig.inputAttribute.isTextPreviewSupported, textConfig.windowId);
-    textConfig_ = textConfig;
+    IMSA_HILOGD("textConfig: %{public}s", textConfig.ToString().c_str());
+    {
+        std::lock_guard<std::mutex> lock(textConfigLock_);
+        textConfig_ = textConfig;
+    }
+    if (textConfig.range.start != INVALID_VALUE) {
+        std::lock_guard<std::mutex> lock(editorContentLock_);
+        selectNewBegin_ = textConfig.range.start;
+        selectNewEnd_ = textConfig.range.end;
+    }
 }
 
 int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener)
@@ -221,9 +225,9 @@ int32_t InputMethodController::Attach(
     sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const TextConfig &textConfig)
 {
     IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
-    ClearEditorCache();
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
     clientInfo_.isNotifyInputStart = GetTextListener() != listener;
+    ClearEditorCache(clientInfo_.isNotifyInputStart);
     SetTextListener(listener);
     clientInfo_.isShowKeyboard = isShowKeyboard;
     SaveTextConfig(textConfig);
@@ -622,7 +626,8 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    IMSA_HILOGI("IMC size: %{public}zu, range: %{public}d/%{public}d", text.size(), start, end);
+    IMSA_HILOGI("IMC size: %{public}zu, range: %{public}d/%{public}d/%{public}d/%{public}d", text.size(),
+        selectOldBegin_, selectOldEnd_, start, end);
     agent->OnSelectionChange(textString_, selectOldBegin_, selectOldEnd_, selectNewBegin_, selectNewEnd_);
     return ErrorCode::NO_ERROR;
 }
@@ -913,16 +918,22 @@ void InputMethodController::OnInputStop()
     isEditable_.store(false);
 }
 
-void InputMethodController::ClearEditorCache()
+void InputMethodController::ClearEditorCache(bool isNewEditor)
 {
     IMSA_HILOGD("clear editor content cache");
     {
         std::lock_guard<std::mutex> lock(editorContentLock_);
         textString_ = Str8ToStr16("");
-        selectOldBegin_ = 0;
-        selectOldEnd_ = 0;
-        selectNewBegin_ = 0;
-        selectNewEnd_ = 0;
+        // reset old range when editor changes or first attach
+        if (isNewEditor || !isBound_.load()) {
+            selectOldBegin_ = INVALID_VALUE;
+            selectOldEnd_ = INVALID_VALUE;
+        } else {
+            selectOldBegin_ = selectNewBegin_;
+            selectOldEnd_ = selectNewEnd_;
+        }
+        selectNewBegin_ = INVALID_VALUE;
+        selectNewEnd_ = INVALID_VALUE;
     }
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
@@ -1204,6 +1215,7 @@ int32_t InputMethodController::ReceivePrivateCommand(
         IMSA_HILOGE("textListener_ is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
+    IMSA_HILOGD("IMC in");
     auto ret = listener->ReceivePrivateCommand(privateCommand);
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("ReceivePrivateCommand err, ret %{public}d", ret);
@@ -1232,6 +1244,7 @@ int32_t InputMethodController::SendPrivateCommand(
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
+    IMSA_HILOGD("IMC start");
     return agent->SendPrivateCommand(privateCommand);
 }
 

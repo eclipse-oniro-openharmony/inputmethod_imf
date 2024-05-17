@@ -190,6 +190,7 @@ HWTEST_F(InputMethodAttachTest, testAttach005, TestSize.Level0)
     selectionRange.end = 2;
     config.range = selectionRange;
     config.windowId = 10;
+    inputMethodController_->Close();
     auto ret = inputMethodController_->Attach(textListener, true, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -210,8 +211,8 @@ HWTEST_F(InputMethodAttachTest, testAttach005, TestSize.Level0)
     EXPECT_EQ(textConfig.cursorInfo, config.cursorInfo);
     EXPECT_EQ(textConfig.textSelection.newBegin, config.range.start);
     EXPECT_EQ(textConfig.textSelection.newEnd, config.range.end);
-    EXPECT_EQ(textConfig.textSelection.oldBegin, 0);
-    EXPECT_EQ(textConfig.textSelection.oldEnd, 0);
+    EXPECT_EQ(textConfig.textSelection.oldBegin, INVALID_VALUE);
+    EXPECT_EQ(textConfig.textSelection.oldEnd, INVALID_VALUE);
 }
 
 /**
@@ -307,6 +308,7 @@ HWTEST_F(InputMethodAttachTest, testGetTextConfig, TestSize.Level0)
     selectionRange.end = 2;
     config.range = selectionRange;
     config.windowId = 10;
+    inputMethodController_->Close();
     auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     TextTotalConfig totalConfig;
@@ -317,8 +319,8 @@ HWTEST_F(InputMethodAttachTest, testGetTextConfig, TestSize.Level0)
     EXPECT_EQ(totalConfig.cursorInfo, cursorInfo);
     EXPECT_EQ(totalConfig.textSelection.newBegin, selectionRange.start);
     EXPECT_EQ(totalConfig.textSelection.newEnd, selectionRange.end);
-    EXPECT_EQ(totalConfig.textSelection.oldBegin, 0);
-    EXPECT_EQ(totalConfig.textSelection.oldEnd, 0);
+    EXPECT_EQ(totalConfig.textSelection.oldBegin, INVALID_VALUE);
+    EXPECT_EQ(totalConfig.textSelection.oldEnd, INVALID_VALUE);
     EXPECT_EQ(totalConfig.windowId, config.windowId);
 }
 
@@ -383,6 +385,7 @@ HWTEST_F(InputMethodAttachTest, testOnSelectionChangeAfterAttach002, TestSize.Le
     TextConfig config;
     config.inputAttribute = attribute;
     config.range = { .start = 1, .end = 2 };
+    inputMethodController_->Close();
     auto ret = inputMethodController_->Attach(textListener, false, config);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     int start = 0;
@@ -395,8 +398,8 @@ HWTEST_F(InputMethodAttachTest, testOnSelectionChangeAfterAttach002, TestSize.Le
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(totalConfig.textSelection.newBegin, start);
     EXPECT_EQ(totalConfig.textSelection.newEnd, end);
-    EXPECT_EQ(totalConfig.textSelection.oldBegin, 0);
-    EXPECT_EQ(totalConfig.textSelection.oldEnd, 0);
+    EXPECT_EQ(totalConfig.textSelection.oldBegin, config.range.start);
+    EXPECT_EQ(totalConfig.textSelection.oldEnd, config.range.end);
 }
 
 /**
@@ -544,8 +547,8 @@ HWTEST_F(InputMethodAttachTest, testOnSelectionChange, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(totalConfig.textSelection.newBegin, config.range.start);
     EXPECT_EQ(totalConfig.textSelection.newEnd, config.range.end);
-    EXPECT_EQ(totalConfig.textSelection.oldBegin, 0);
-    EXPECT_EQ(totalConfig.textSelection.oldEnd, 0);
+    EXPECT_EQ(totalConfig.textSelection.oldBegin, start);
+    EXPECT_EQ(totalConfig.textSelection.oldEnd, end);
 }
 
 /**
