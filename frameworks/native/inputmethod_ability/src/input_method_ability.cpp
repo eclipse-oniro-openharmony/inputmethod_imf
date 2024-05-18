@@ -243,22 +243,12 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     IMSA_HILOGI(
         "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard, isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
-    isBindFromClient ? InvokeTextChangeCallback(clientInfo.config) : NotifyAllTextConfig();
-    SetInputAttribute(clientInfo.config.inputAttribute);
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGE("imeListener is nullptr");
-        return ErrorCode::ERROR_IME;
+    int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart)
+                                   : InvokeStartInputCallback(clientInfo.isNotifyInputStart);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to invoke callback, ret: %{public}d", ret);
+        return ret;
     }
-    if (clientInfo.isNotifyInputStart) {
-        imeListener_->OnInputStart();
-    }
-    auto task = [this, clientInfo]() {
-        panels_.ForEach([&clientInfo](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
-            panel->SetCallingWindow(clientInfo.config.windowId);
-            return false;
-        });
-    };
-    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
@@ -453,50 +443,64 @@ void InputMethodAbility::NotifyPanelStatusInfo(const PanelStatusInfo &info)
     }
 }
 
-void InputMethodAbility::NotifyAllTextConfig()
+int32_t InputMethodAbility::InvokeStartInputCallback(bool isNotifyInputStart)
 {
     TextTotalConfig textConfig = {};
     int32_t ret = GetTextConfig(textConfig);
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("get text config failed, ret is %{public}d", ret);
-        return;
+    if (ret == ErrorCode::NO_ERROR) {
+        return InvokeStartInputCallback(textConfig, isNotifyInputStart);
     }
-    InvokeTextChangeCallback(textConfig);
+    IMSA_HILOGW("get text config failed, ret is %{public}d", ret);
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("imeListener is nullptr");
+        return ErrorCode::ERROR_IME;
+    }
+    if (isNotifyInputStart) {
+        imeListener_->OnInputStart();
+    }
+    return ErrorCode::NO_ERROR;
 }
 
-void InputMethodAbility::InvokeTextChangeCallback(const TextTotalConfig &textConfig)
+int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &textConfig, bool isNotifyInputStart)
 {
-    if (kdListener_ == nullptr) {
-        IMSA_HILOGD("kdListener_ is nullptr.");
-    } else {
-        IMSA_HILOGD("start to invoke callbacks");
+    if (imeListener_ == nullptr) {
+        IMSA_HILOGE("imeListener is nullptr");
+        return ErrorCode::ERROR_IME;
+    }
+    positionY_ = textConfig.positionY;
+    height_ = textConfig.height;
+    SetInputAttribute(textConfig.inputAttribute);
+    if (kdListener_ != nullptr) {
         kdListener_->OnEditorAttributeChange(textConfig.inputAttribute);
+    }
+    if (TextConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
+        IMSA_HILOGI("notify privateCommand");
+        imeListener_->ReceivePrivateCommand(textConfig.privateCommand);
+    }
+    if (isNotifyInputStart) {
+        imeListener_->OnInputStart();
+    }
+    if (kdListener_ != nullptr) {
         if (textConfig.cursorInfo.left != INVALID_CURSOR_VALUE) {
-            IMSA_HILOGD("callback cursorUpdate");
             kdListener_->OnCursorUpdate(
                 textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
         }
         if (textConfig.textSelection.newBegin != INVALID_SELECTION_VALUE) {
-            IMSA_HILOGD("callback selectionChange");
             kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
                 textConfig.textSelection.newBegin, textConfig.textSelection.newEnd);
         }
     }
-    if (textConfig.windowId == INVALID_WINDOW_ID) {
-        IMSA_HILOGD("invalid window id");
-        return;
+    if (textConfig.windowId != INVALID_WINDOW_ID) {
+        auto task = [this, textConfig]() {
+            panels_.ForEach([&textConfig](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+                panel->SetCallingWindow(textConfig.windowId);
+                return false;
+            });
+        };
+        imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
+        imeListener_->OnSetCallingWindow(textConfig.windowId);
     }
-    positionY_ = textConfig.positionY;
-    height_ = textConfig.height;
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGE("imeListener_ is nullptr");
-        return;
-    }
-    imeListener_->OnSetCallingWindow(textConfig.windowId);
-    if (TextConfig::IsPrivateCommandValid(textConfig.privateCommand) && IsDefaultIme()) {
-        IMSA_HILOGI("notify privateCommand.");
-        imeListener_->ReceivePrivateCommand(textConfig.privateCommand);
-    }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAbility::HideKeyboard()

@@ -136,8 +136,8 @@ private:
 
     void OnInitInputControlChannel(Message *msg);
     void OnSetSubtype(Message *msg);
-    void NotifyAllTextConfig();
-    void InvokeTextChangeCallback(const TextTotalConfig &textConfig);
+    int32_t InvokeStartInputCallback(bool isNotifyInputStart);
+    int32_t InvokeStartInputCallback(const TextTotalConfig &textConfig, bool isNotifyInputStart);
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
     void OnConfigurationChange(Message *msg);

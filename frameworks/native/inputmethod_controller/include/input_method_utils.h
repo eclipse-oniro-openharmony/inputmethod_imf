@@ -189,6 +189,20 @@ struct TextConfig {
     double height = 0;
     std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
 
+    std::string ToString() const
+    {
+        std::string config;
+        config.append("pattern/enterKey/previewSupport: " + std::to_string(inputAttribute.inputPattern) + "/"
+                      + std::to_string(inputAttribute.enterKeyType) + "/"
+                      + std::to_string(inputAttribute.isTextPreviewSupported));
+        config.append(" windowId/y/height: " + std::to_string(windowId) + "/" + std::to_string(positionY) + "/"
+                      + std::to_string(height));
+        config.append(" range: " + std::to_string(range.start) + "/" + std::to_string(range.end));
+        config.append(" cursor: " + std::to_string(cursorInfo.left) + "/" + std::to_string(cursorInfo.top) + "/"
+                      + std::to_string(cursorInfo.width) + "/" + std::to_string(cursorInfo.height));
+        return config;
+    }
+
     static bool IsPrivateCommandValid(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
     {
         size_t privateCommandSize = privateCommand.size();
