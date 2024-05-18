@@ -40,6 +40,8 @@ const std::unordered_map<std::string, uint32_t> EVENT_TYPE{ { "imeChange", EVENT
     { "imeShow", EVENT_IME_SHOW_MASK }, { "imeHide", EVENT_IME_HIDE_MASK } };
 std::mutex JsGetInputMethodSetting::msMutex_;
 std::shared_ptr<JsGetInputMethodSetting> JsGetInputMethodSetting::inputMethod_{ nullptr };
+std::mutex JsGetInputMethodSetting::eventHandlerMutex_;
+std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodSetting::handler_{ nullptr };
 napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
 {
     napi_value maxTypeNumber = nullptr;
@@ -77,6 +79,10 @@ napi_value JsGetInputMethodSetting::Init(napi_env env, napi_value exports)
 
 napi_value JsGetInputMethodSetting::JsConstructor(napi_env env, napi_callback_info cbinfo)
 {
+    {
+        std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+        handler_ = AppExecFwk::EventHandler::Current();
+    }
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
 
@@ -582,47 +588,41 @@ napi_value JsGetInputMethodSetting::UnSubscribe(napi_env env, napi_callback_info
 void JsGetInputMethodSetting::OnImeChange(const Property &property, const SubProperty &subProperty)
 {
     std::string type = "imeChange";
-    uv_work_t *work = GetUVwork(type, [&property, &subProperty](UvEntry &entry) {
+    auto entry = GetEntry(type, [&property, &subProperty](UvEntry &entry) {
         entry.property = property;
         entry.subProperty = subProperty;
     });
-    if (work == nullptr) {
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
     IMSA_HILOGI("run in");
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("OnInputStart:: entryptr is null");
-                return;
+    auto task = [entry]() {
+        auto getImeChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc < 2) {
+                return false;
             }
-            auto getImeChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc < 2) {
-                    return false;
-                }
-                napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(env, entry->subProperty);
-                napi_value property = JsInputMethod::GetJsInputMethodProperty(env, entry->property);
-                if (subProperty == nullptr || property == nullptr) {
-                    IMSA_HILOGE("get KBCins or TICins failed:");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                args[0] = property;
-                // 1 means the second param of callback.
-                args[1] = subProperty;
-                return true;
-            };
-            // 2 means callback has two params.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 2, getImeChangeProperty });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            napi_value subProperty = JsInputMethod::GetJsInputMethodSubProperty(env, entry->subProperty);
+            napi_value property = JsInputMethod::GetJsInputMethodProperty(env, entry->property);
+            if (subProperty == nullptr || property == nullptr) {
+                IMSA_HILOGE("get KBCins or TICins failed:");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = property;
+            // 1 means the second param of callback.
+            args[1] = subProperty;
+            return true;
+        };
+        // 2 means callback has two params.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 2, getImeChangeProperty });
+    };
+    eventHandler->PostTask(task, type);
 }
 
 PanelFlag JsGetInputMethodSetting::GetSoftKbShowingFlag()
@@ -668,81 +668,59 @@ void JsGetInputMethodSetting::OnPanelStatusChange(const std::string &type, const
 {
     IMSA_HILOGI("type: %{public}s, rect[%{public}d, %{public}d, %{public}u, %{public}u]", type.c_str(), info.left,
         info.top, info.width, info.height);
-    uv_work_t *work = GetUVwork(type, [&info](UvEntry &entry) { entry.windowInfo = { info }; });
-    if (work == nullptr) {
+    auto entry = GetEntry(type, [&info](UvEntry &entry) { entry.windowInfo = { info }; });
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("OnInputStart:: entry is nullptr");
-                return;
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    auto task = [entry]() {
+        auto getWindowInfo = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc < 1) {
+                return false;
             }
-            auto getWindowInfo = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc < 1) {
-                    return false;
-                }
-                auto windowInfo = JsUtils::GetValue(env, entry->windowInfo);
-                if (windowInfo == nullptr) {
-                    IMSA_HILOGE("converse windowInfo failed");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                args[0] = windowInfo;
-                return true;
-            };
-            // 1 means callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getWindowInfo });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            auto windowInfo = JsUtils::GetValue(env, entry->windowInfo);
+            if (windowInfo == nullptr) {
+                IMSA_HILOGE("converse windowInfo failed");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = windowInfo;
+            return true;
+        };
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getWindowInfo });
+    };
+    eventHandler->PostTask(task, type);
 }
 
-uv_work_t *JsGetInputMethodSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
+std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodSetting::GetEventHandler()
 {
-    IMSA_HILOGD("run in, type: %{public}s", type.c_str());
-    UvEntry *entry = nullptr;
+    std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+    return handler_;
+}
+
+std::shared_ptr<JsGetInputMethodSetting::UvEntry> JsGetInputMethodSetting::GetEntry(
+    const std::string &type, EntrySetter entrySetter)
+{
+    IMSA_HILOGD("type: %{public}s", type.c_str());
+    std::shared_ptr<UvEntry> entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
-
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
-        if (entrySetter != nullptr) {
-            entrySetter(*entry);
-        }
+        entry = std::make_shared<UvEntry>(jsCbMap_[type], type);
     }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        IMSA_HILOGE("entry ptr is nullptr!");
-        delete entry;
-        return nullptr;
+    if (entrySetter != nullptr) {
+        entrySetter(*entry);
     }
-    work->data = entry;
-    return work;
-}
-void JsGetInputMethodSetting::FreeWorkIfFail(int ret, uv_work_t *work)
-{
-    if (ret == 0 || work == nullptr) {
-        return;
-    }
-    
-    UvEntry *data = static_cast<UvEntry *>(work->data);
-    delete data;
-    delete work;
-    IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
+    return entry;
 }
 } // namespace MiscServices
 } // namespace OHOS

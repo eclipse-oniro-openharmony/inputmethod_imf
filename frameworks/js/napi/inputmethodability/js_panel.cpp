@@ -62,6 +62,11 @@ napi_value JsPanel::Init(napi_env env)
 napi_value JsPanel::JsNew(napi_env env, napi_callback_info info)
 {
     IMSA_HILOGD("JsPanel, create panel instance in.");
+    std::shared_ptr<PanelListenerImpl> panelImpl = PanelListenerImpl::GetInstance();
+    if (panelImpl != nullptr) {
+        IMSA_HILOGD("Set eventhandler.");
+        panelImpl->SetEventHandler(AppExecFwk::EventHandler::Current());
+    }
     JsPanel *panel = new (std::nothrow) JsPanel();
     CHECK_RETURN(panel != nullptr, "no memory for JsPanel", nullptr);
     auto finalize = [](napi_env env, void *data, void *hint) {

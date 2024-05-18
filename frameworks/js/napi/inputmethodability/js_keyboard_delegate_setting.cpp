@@ -540,44 +540,37 @@ void JsKeyboardDelegateSetting::OnSelectionChange(int32_t oldBegin, int32_t oldE
         // 4 means callback has four params.
         JsCallbackHandler::Traverse(entry->vecCopy, { 4, paramGetter });
     };
-    handler_->PostTask(task, type);
+    eventHandler->PostTask(task, type);
 }
 
 void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
 {
     std::string type = "textChange";
-    uv_work_t *work = GetUVwork(type, [&text](UvEntry &entry) { entry.text = text; });
-    if (work == nullptr) {
+    auto entry = GetEntry(type, [&text](UvEntry &entry) { entry.text = text; });
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry");
         return;
     }
-    IMSA_HILOGI("run in");
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-
-            auto getTextChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == 0) {
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[0]);
-                return true;
-            };
-            // 1 means callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getTextChangeProperty });
-        },
-        uv_qos_user_initiated);
-    if (ret != 0) {
-        IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
-        UvEntry *data = static_cast<UvEntry *>(work->data);
-        delete data;
-        delete work;
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
     }
+    IMSA_HILOGI("run in");
+    
+    auto task = [entry]() {
+        auto getTextChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == 0) {
+                return false;
+            }
+            // 0 means the first param of callback.
+            napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[0]);
+            return true;
+        };
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getTextChangeProperty });
+    };
+    eventHandler->PostTask(task, type);
 }
 
 void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &inputAttribute)
@@ -611,7 +604,7 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(entry->vecCopy, { 1, paramGetter });
     };
-    handler_->PostTask(task, type);
+    eventHandler->PostTask(task, type);
 }
 
 uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySetter entrySetter)
@@ -646,13 +639,7 @@ uv_work_t *JsKeyboardDelegateSetting::GetUVwork(const std::string &type, EntrySe
 
 std::shared_ptr<AppExecFwk::EventHandler> JsKeyboardDelegateSetting::GetEventHandler()
 {
-    if (handler_ != nullptr) {
-        return handler_;
-    }
     std::lock_guard<std::mutex> lock(eventHandlerMutex_);
-    if (handler_ == nullptr) {
-        handler_ = AppExecFwk::EventHandler::Current();
-    }
     return handler_;
 }
 

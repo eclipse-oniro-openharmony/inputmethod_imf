@@ -51,6 +51,8 @@ thread_local napi_ref JsGetInputMethodController::IMCRef_ = nullptr;
 const std::string JsGetInputMethodController::IMC_CLASS_NAME = "InputMethodController";
 std::mutex JsGetInputMethodController::controllerMutex_;
 std::shared_ptr<JsGetInputMethodController> JsGetInputMethodController::controller_{ nullptr };
+std::mutex JsGetInputMethodController::eventHandlerMutex_;
+std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodController::handler_{ nullptr };
 napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
 {
     napi_property_descriptor descriptor[] = {
@@ -214,6 +216,10 @@ napi_value JsGetInputMethodController::GetJsExtendActionProperty(napi_env env)
 
 napi_value JsGetInputMethodController::JsConstructor(napi_env env, napi_callback_info cbinfo)
 {
+    {
+        std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+        handler_ = AppExecFwk::EventHandler::Current();
+    }
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
 
@@ -703,234 +709,193 @@ napi_value JsGetInputMethodController::StopInput(napi_env env, napi_callback_inf
 void JsGetInputMethodController::OnSelectByRange(int32_t start, int32_t end)
 {
     std::string type = "selectByRange";
-    uv_work_t *work = GetUVwork("selectByRange", [start, end](UvEntry &entry) {
+    auto entry = GetEntry("selectByRange", [start, end](UvEntry &entry) {
         entry.start = start;
         entry.end = end;
     });
-    if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv entry");
+    if (entry == nullptr) {
+        IMSA_HILOGD("entry is nullptr.");
         return;
     }
-    IMSA_HILOGI("start: %{public}d, end: %{public}d", start, end);
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("OnSelectByRange entryptr is null");
-                return;
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
+    auto task = [entry]() {
+        auto getProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc < ARGC_ONE) {
+                return false;
             }
-            auto getProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc < ARGC_ONE) {
-                    return false;
-                }
-                napi_value range = CreateSelectRange(env, entry->start, entry->end);
-                if (range == nullptr) {
-                    IMSA_HILOGE("set select range failed");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                args[0] = range;
-                return true;
-            };
-            // 1 means the callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            napi_value range = CreateSelectRange(env, entry->start, entry->end);
+            if (range == nullptr) {
+                IMSA_HILOGE("set select range failed");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = range;
+            return true;
+        };
+        // 1 means the callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
+    };
+    eventHandler->PostTask(task, type);
 }
 
 void JsGetInputMethodController::OnSelectByMovement(int32_t direction)
 {
     std::string type = "selectByMovement";
-    uv_work_t *work = GetUVwork(type, [direction](UvEntry &entry) { entry.direction = direction; });
-    if (work == nullptr) {
-        IMSA_HILOGD("failed to get uv entry");
+    auto entry = GetEntry(type, [direction](UvEntry &entry) { entry.direction = direction; });
+    if (entry == nullptr) {
+        IMSA_HILOGE("failed to get uv entry");
+        return;
+    }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
     IMSA_HILOGI("direction: %{public}d", direction);
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("OnSelectByMovement entryptr is null");
-                return;
+    auto task = [entry]() {
+        auto getProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc < 1) {
+                return false;
             }
-            auto getProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc < 1) {
-                    return false;
-                }
-                napi_value movement = CreateSelectMovement(env, entry->direction);
-                if (movement == nullptr) {
-                    IMSA_HILOGE("set select movement failed");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                args[0] = movement;
-                return true;
-            };
-            // 1 means the callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            napi_value movement = CreateSelectMovement(env, entry->direction);
+            if (movement == nullptr) {
+                IMSA_HILOGE("set select movement failed");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = movement;
+            return true;
+        };
+        // 1 means the callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getProperty });
+    };
+    eventHandler->PostTask(task, type);
 }
 
 void JsGetInputMethodController::InsertText(const std::u16string &text)
 {
     std::string insertText = Str16ToStr8(text);
     std::string type = "insertText";
-    uv_work_t *work = GetUVwork(type, [&insertText](UvEntry &entry) { entry.text = insertText; });
-    if (work == nullptr) {
+    auto entry = GetEntry(type, [&insertText](UvEntry &entry) { entry.text = insertText; });
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
     IMSA_HILOGI("run in");
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("insertText entryptr is null.");
-                return;
+    auto task = [entry]() {
+        auto getInsertTextProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == ARGC_ZERO) {
+                IMSA_HILOGE("insertText:getInsertTextProperty the number of argc is invalid.");
+                return false;
             }
-
-            auto getInsertTextProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == ARGC_ZERO) {
-                    IMSA_HILOGE("insertText:getInsertTextProperty the number of argc is invalid.");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[0]);
-                return true;
-            };
-            // 1 means the callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInsertTextProperty });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            // 0 means the first param of callback.
+            napi_create_string_utf8(env, entry->text.c_str(), NAPI_AUTO_LENGTH, &args[0]);
+            return true;
+        };
+        // 1 means the callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getInsertTextProperty });
+    };
+    eventHandler->PostTask(task, type);
 }
 
 void JsGetInputMethodController::DeleteRight(int32_t length)
 {
     std::string type = "deleteRight";
-    uv_work_t *work = GetUVwork(type, [&length](UvEntry &entry) { entry.length = length; });
-    if (work == nullptr) {
+    auto entry = GetEntry(type, [&length](UvEntry &entry) { entry.length = length; });
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
     IMSA_HILOGI("length: %{public}d", length);
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("deleteRight entryptr is null.");
-                return;
-            }
 
-            auto getDeleteForwardProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == ARGC_ZERO) {
-                    IMSA_HILOGE("deleteRight:getDeleteForwardProperty the number of argc is invalid.");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_int32(env, entry->length, &args[0]);
-                return true;
-            };
-            // 1 means the callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteForwardProperty });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+    auto task = [entry]() {
+        auto getDeleteForwardProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == ARGC_ZERO) {
+                IMSA_HILOGE("deleteRight:getDeleteForwardProperty the number of argc is invalid.");
+                return false;
+            }
+            // 0 means the first param of callback.
+            napi_create_int32(env, entry->length, &args[0]);
+            return true;
+        };
+        // 1 means the callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteForwardProperty });
+    };
+    eventHandler->PostTask(task, type);
 }
 
 void JsGetInputMethodController::DeleteLeft(int32_t length)
 {
     std::string type = "deleteLeft";
-    uv_work_t *work = GetUVwork(type, [&length](UvEntry &entry) { entry.length = length; });
-    if (work == nullptr) {
+    auto entry = GetEntry(type, [&length](UvEntry &entry) { entry.length = length; });
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
     IMSA_HILOGI("length: %{public}d", length);
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("deleteLeft entryptr is null.");
-                return;
+    auto task = [entry]() {
+        auto getDeleteBackwardProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == ARGC_ZERO) {
+                IMSA_HILOGE("deleteLeft::getDeleteBackwardProperty the number of argc is invalid.");
+                return false;
             }
-
-            auto getDeleteBackwardProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == ARGC_ZERO) {
-                    IMSA_HILOGE("deleteLeft::getDeleteBackwardProperty the number of argc is invalid.");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_int32(env, entry->length, &args[0]);
-                return true;
-            };
-            // 1 means the callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteBackwardProperty });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            // 0 means the first param of callback.
+            napi_create_int32(env, entry->length, &args[0]);
+            return true;
+        };
+        // 1 means the callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getDeleteBackwardProperty });
+    };
+    eventHandler->PostTask(task, type);
 }
 
 void JsGetInputMethodController::SendKeyboardStatus(const KeyboardStatus &status)
 {
     std::string type = "sendKeyboardStatus";
-    uv_work_t *work =
-        GetUVwork(type, [&status](UvEntry &entry) { entry.keyboardStatus = static_cast<int32_t>(status); });
-    if (work == nullptr) {
+    auto entry = GetEntry(type, [&status](UvEntry &entry) { entry.keyboardStatus = static_cast<int32_t>(status); });
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
     IMSA_HILOGI("status: %{public}d", static_cast<int32_t>(status));
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("sendKeyboardStatus entryptr is null.");
-                return;
+    auto task = [entry]() {
+        auto getSendKeyboardStatusProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == ARGC_ZERO) {
+                IMSA_HILOGE("sendKeyboardStatus:getSendKeyboardStatusProperty the number of argc is invalid.");
+                return false;
             }
-
-            auto getSendKeyboardStatusProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == ARGC_ZERO) {
-                    IMSA_HILOGE("sendKeyboardStatus:getSendKeyboardStatusProperty the number of argc is invalid.");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_int32(env, entry->keyboardStatus, &args[0]);
-                return true;
-            };
-            // 1 means the callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendKeyboardStatusProperty });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            // 0 means the first param of callback.
+            napi_create_int32(env, entry->keyboardStatus, &args[0]);
+            return true;
+        };
+        // 1 means the callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendKeyboardStatusProperty });
+    };
+    eventHandler->PostTask(task, type);
 }
 
 napi_value JsGetInputMethodController::CreateSendFunctionKey(napi_env env, int32_t functionKey)
@@ -948,159 +913,132 @@ napi_value JsGetInputMethodController::CreateSendFunctionKey(napi_env env, int32
 void JsGetInputMethodController::SendFunctionKey(const FunctionKey &functionKey)
 {
     std::string type = "sendFunctionKey";
-    uv_work_t *work = GetUVwork(type,
+    auto entry = GetEntry(type,
         [&functionKey](UvEntry &entry) { entry.enterKeyType = static_cast<int32_t>(functionKey.GetEnterKeyType()); });
-    if (work == nullptr) {
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
     IMSA_HILOGI("functionKey: %{public}d", static_cast<int32_t>(functionKey.GetEnterKeyType()));
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("sendFunctionKey entryptr is null.");
-                return;
+    auto task = [entry]() {
+        auto getSendFunctionKeyProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == ARGC_ZERO) {
+                IMSA_HILOGE("sendFunctionKey:getSendFunctionKeyProperty the number of argc is invalid.");
+                return false;
             }
-
-            auto getSendFunctionKeyProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == ARGC_ZERO) {
-                    IMSA_HILOGE("sendFunctionKey:getSendFunctionKeyProperty the number of argc is invalid.");
-                    return false;
-                }
-                napi_value functionKey = CreateSendFunctionKey(env, entry->enterKeyType);
-                if (functionKey == nullptr) {
-                    IMSA_HILOGE("set select movement failed");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                args[0] = functionKey;
-                return true;
-            };
-            // 1 means the callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendFunctionKeyProperty });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            napi_value functionKey = CreateSendFunctionKey(env, entry->enterKeyType);
+            if (functionKey == nullptr) {
+                IMSA_HILOGE("set select movement failed");
+                return false;
+            }
+            // 0 means the first param of callback.
+            args[0] = functionKey;
+            return true;
+        };
+        // 1 means the callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getSendFunctionKeyProperty });
+    };
+    eventHandler->PostTask(task, type);
 }
 
 void JsGetInputMethodController::MoveCursor(const Direction direction)
 {
     std::string type = "moveCursor";
-    uv_work_t *work =
-        GetUVwork(type, [&direction](UvEntry &entry) { entry.direction = static_cast<int32_t>(direction); });
-    if (work == nullptr) {
+    auto entry = GetEntry(type, [&direction](UvEntry &entry) { entry.direction = static_cast<int32_t>(direction); });
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
     IMSA_HILOGI("direction: %{public}d", static_cast<int32_t>(direction));
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("moveCursor entryptr is null.");
-                return;
+    auto task = [entry]() {
+        auto getMoveCursorProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == ARGC_ZERO) {
+                IMSA_HILOGE("moveCursor:getMoveCursorProperty the number of argc is invalid.");
+                return false;
             }
-
-            auto getMoveCursorProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == ARGC_ZERO) {
-                    IMSA_HILOGE("moveCursor:getMoveCursorProperty the number of argc is invalid.");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_int32(env, static_cast<int32_t>(entry->direction), &args[0]);
-                return true;
-            };
-            // 1 means the callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getMoveCursorProperty });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            // 0 means the first param of callback.
+            napi_create_int32(env, static_cast<int32_t>(entry->direction), &args[0]);
+            return true;
+        };
+        // 1 means the callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getMoveCursorProperty });
+    };
+    eventHandler->PostTask(task, type);
 }
 
 void JsGetInputMethodController::HandleExtendAction(int32_t action)
 {
     std::string type = "handleExtendAction";
-    uv_work_t *work = GetUVwork(type, [&action](UvEntry &entry) { entry.action = action; });
-    if (work == nullptr) {
+    auto entry = GetEntry(type, [&action](UvEntry &entry) { entry.action = action; });
+    if (entry == nullptr) {
         IMSA_HILOGD("failed to get uv entry.");
         return;
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return;
+    }
     IMSA_HILOGI("action: %{public}d", action);
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("handleExtendAction entryptr is null.");
-                return;
+    auto task = [entry]() {
+        auto getHandleExtendActionProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc == ARGC_ZERO) {
+                IMSA_HILOGE("handleExtendAction:getHandleExtendActionProperty the number of argc is invalid.");
+                return false;
             }
-            auto getHandleExtendActionProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc == ARGC_ZERO) {
-                    IMSA_HILOGE("handleExtendAction:getHandleExtendActionProperty the number of argc is invalid.");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_int32(env, entry->action, &args[0]);
-                return true;
-            };
-            // 1 means the callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, getHandleExtendActionProperty });
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            // 0 means the first param of callback.
+            napi_create_int32(env, entry->action, &args[0]);
+            return true;
+        };
+        // 1 means the callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, getHandleExtendActionProperty });
+    };
+    eventHandler->PostTask(task, type);
 }
 
 std::u16string JsGetInputMethodController::GetText(const std::string &type, int32_t number)
 {
     auto textResultHandler = std::make_shared<BlockData<std::string>>(MAX_TIMEOUT, "");
-    uv_work_t *work = GetUVwork(type, [&number, textResultHandler](UvEntry &entry) {
+    auto entry = GetEntry(type, [&number, textResultHandler](UvEntry &entry) {
         entry.number = number;
         entry.textResultHandler = textResultHandler;
     });
-    if (work == nullptr) {
+    if (entry == nullptr) {
         IMSA_HILOGE("failed to get uv entry.");
         return u"";
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return u"";
+    }
     IMSA_HILOGI("type: %{public}s, number: %{public}d", type.c_str(), number);
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("handleExtendAction entryptr is null.");
-                return;
+    auto task = [entry]() {
+        auto fillArguments = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
+            if (argc < 1) {
+                IMSA_HILOGE("argc is err.");
+                return false;
             }
-            auto fillArguments = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
-                if (argc < 1) {
-                    IMSA_HILOGE("argc is err.");
-                    return false;
-                }
-                // 0 means the first param of callback.
-                napi_create_int32(env, entry->number, &args[0]);
-                return true;
-            };
-            std::string text;
-            // 1 means callback has one param.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 1, fillArguments }, text);
-            entry->textResultHandler->SetValue(text);
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+            // 0 means the first param of callback.
+            napi_create_int32(env, entry->number, &args[0]);
+            return true;
+        };
+        std::string text;
+        // 1 means callback has one param.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 1, fillArguments }, text);
+        entry->textResultHandler->SetValue(text);
+    };
+    eventHandler->PostTask(task, type);
     return Str8ToStr16(textResultHandler->GetValue());
 }
 
@@ -1108,74 +1046,51 @@ int32_t JsGetInputMethodController::GetTextIndexAtCursor()
 {
     std::string type = "getTextIndexAtCursor";
     auto indexResultHandler = std::make_shared<BlockData<int32_t>>(MAX_TIMEOUT, -1);
-    uv_work_t *work =
-        GetUVwork(type, [indexResultHandler](UvEntry &entry) { entry.indexResultHandler = indexResultHandler; });
-    if (work == nullptr) {
+    auto entry =
+        GetEntry(type, [indexResultHandler](UvEntry &entry) { entry.indexResultHandler = indexResultHandler; });
+    if (entry == nullptr) {
         IMSA_HILOGE("failed to get uv entry.");
         return -1;
     }
+    auto eventHandler = GetEventHandler();
+    if (eventHandler == nullptr) {
+        IMSA_HILOGE("eventHandler is nullptr!");
+        return -1;
+    }
     IMSA_HILOGI("run in");
-    auto ret = uv_queue_work_with_qos(
-        loop_, work, [](uv_work_t *work) {},
-        [](uv_work_t *work, int status) {
-            std::shared_ptr<UvEntry> entry(static_cast<UvEntry *>(work->data), [work](UvEntry *data) {
-                delete data;
-                delete work;
-            });
-            if (entry == nullptr) {
-                IMSA_HILOGE("handleExtendAction entryptr is null.");
-                return;
-            }
-            int32_t index = -1;
-            // 0 means callback has no params.
-            JsCallbackHandler::Traverse(entry->vecCopy, { 0, nullptr }, index);
-            entry->indexResultHandler->SetValue(index);
-        },
-        uv_qos_user_initiated);
-    FreeWorkIfFail(ret, work);
+    auto task = [entry]() {
+        int32_t index = -1;
+        // 0 means callback has no params.
+        JsCallbackHandler::Traverse(entry->vecCopy, { 0, nullptr }, index);
+        entry->indexResultHandler->SetValue(index);
+    };
+    eventHandler->PostTask(task, type);
     return indexResultHandler->GetValue();
 }
 
-uv_work_t *JsGetInputMethodController::GetUVwork(const std::string &type, EntrySetter entrySetter)
+std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodController::GetEventHandler()
 {
-    IMSA_HILOGD("run in, type: %{public}s", type.c_str());
-    UvEntry *entry = nullptr;
+    std::lock_guard<std::mutex> lock(eventHandlerMutex_);
+    return handler_;
+}
+
+std::shared_ptr<JsGetInputMethodController::UvEntry> JsGetInputMethodController::GetEntry(
+    const std::string &type, EntrySetter entrySetter)
+{
+    IMSA_HILOGD("type: %{public}s", type.c_str());
+    std::shared_ptr<UvEntry> entry = nullptr;
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
-
         if (jsCbMap_[type].empty()) {
             IMSA_HILOGD("%{public}s cb-vector is empty", type.c_str());
             return nullptr;
         }
-        entry = new (std::nothrow) UvEntry(jsCbMap_[type], type);
-        if (entry == nullptr) {
-            IMSA_HILOGE("entry ptr is nullptr!");
-            return nullptr;
-        }
-        if (entrySetter != nullptr) {
-            entrySetter(*entry);
-        }
+        entry = std::make_shared<UvEntry>(jsCbMap_[type], type);
     }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        IMSA_HILOGE("entry ptr is nullptr!");
-        delete entry;
-        return nullptr;
+    if (entrySetter != nullptr) {
+        entrySetter(*entry);
     }
-    work->data = entry;
-    return work;
-}
-
-void JsGetInputMethodController::FreeWorkIfFail(int ret, uv_work_t *work)
-{
-    if (ret == 0 || work == nullptr) {
-        return;
-    }
-    
-    UvEntry *data = static_cast<UvEntry *>(work->data);
-    delete data;
-    delete work;
-    IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
+    return entry;
 }
 } // namespace MiscServices
 } // namespace OHOS
