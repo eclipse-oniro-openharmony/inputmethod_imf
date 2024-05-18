@@ -143,7 +143,12 @@ void InputMethodEditorTest::SetUpTestCase(void)
     keyEvent_->SetKeyCode(keyCode);
     TextListener::ResetParam();
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine"));
-    TddUtil::InitWindow(false);
+    TddUtil::InitWindow(true);
+    int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ret = InputMethodEditorTest::inputMethodController_->Close();
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    TddUtil::GetUnfocused();
 }
 
 void InputMethodEditorTest::TearDownTestCase(void)
@@ -221,8 +226,6 @@ HWTEST_F(InputMethodEditorTest, testUnfocused, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testRequestInput001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestInput001 Test START");
-    TddUtil::GetUnfocused();
-    InputMethodEditorTest::inputMethodController_->Close();
     int32_t ret = InputMethodEditorTest::inputMethodController_->RequestShowInput();
     EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_PERMISSION_DENIED);
     ret = InputMethodEditorTest::inputMethodController_->RequestHideInput();
@@ -237,8 +240,6 @@ HWTEST_F(InputMethodEditorTest, testRequestInput001, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testRequestInput002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestInput002 Test START");
-    TddUtil::GetUnfocused();
-    InputMethodEditorTest::inputMethodController_->Close();
     TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine", { "ohos.permission.CONNECT_IME_ABILITY" }));
     int32_t ret = InputMethodEditorTest::inputMethodController_->RequestShowInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -296,6 +297,7 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
     ret = InputMethodEditorTest::inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
+    InputMethodEditorTest::inputMethodController_->Close();
     TddUtil::GetUnfocused();
 }
 
@@ -307,7 +309,6 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest HideTextInputAndShowTextInput Test START");
-    InputMethodEditorTest::inputMethodController_->Close();
     TddUtil::GetFocused();
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -333,6 +334,7 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     ret = InputMethodEditorTest::inputMethodController_->OnConfigurationChange({});
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
+    InputMethodEditorTest::inputMethodController_->Close();
     TddUtil::GetUnfocused();
 }
 
@@ -376,6 +378,7 @@ HWTEST_F(InputMethodEditorTest, testIMCDeactivateClient, TestSize.Level0)
     ret = inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     ret = inputMethodController_->ShowTextInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodEditorTest::inputMethodController_->Close();
     TddUtil::GetUnfocused();
 }
 
@@ -387,7 +390,6 @@ HWTEST_F(InputMethodEditorTest, testIMCDeactivateClient, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest ShowTextInput Test START");
-    InputMethodEditorTest::inputMethodController_->Close();
     TddUtil::GetFocused();
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -402,6 +404,7 @@ HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
     ret = ret && kbListener_->keyCode_ == keyEvent_->GetKeyCode()
           && kbListener_->keyStatus_ == keyEvent_->GetKeyAction();
     EXPECT_TRUE(consumeResult);
+    InputMethodEditorTest::inputMethodController_->Close();
     TddUtil::GetUnfocused();
 }
 
@@ -451,7 +454,6 @@ HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestShowInput Test START");
     TddUtil::GetFocused();
-    InputMethodEditorTest::inputMethodController_->Close();
     imeListener_->keyboardState_ = false;
     int32_t ret = InputMethodEditorTest::inputMethodController_->RequestShowInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -468,7 +470,6 @@ HWTEST_F(InputMethodEditorTest, testRequestHideInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestHideInput_001 Test START");
     TddUtil::GetFocused();
-    InputMethodEditorTest::inputMethodController_->Close();
     imeListener_->keyboardState_ = true;
     int32_t ret = InputMethodEditorTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -484,13 +485,13 @@ HWTEST_F(InputMethodEditorTest, testRequestHideInput_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestHideInput_002 Test START");
     TddUtil::GetFocused();
-    InputMethodEditorTest::inputMethodController_->Close();
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     imeListener_->keyboardState_ = true;
     ret = InputMethodEditorTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_FALSE(imeListener_->keyboardState_);
+    InputMethodEditorTest::inputMethodController_->Close();
     TddUtil::GetUnfocused();
 }
 } // namespace MiscServices

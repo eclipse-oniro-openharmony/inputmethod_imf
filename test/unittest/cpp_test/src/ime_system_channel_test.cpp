@@ -84,7 +84,7 @@ HWTEST_F(ImeSystemChannelTest, testConnectSystemCmd001, TestSize.Level0)
 {
     IMSA_HILOGI("ImeSystemChannelTest testConnectSystemCmd001 Test START");
     auto ret = imeSystemChannel_->ConnectSystemCmd(sysCmdListener_);
-    EXPECT_EQ(ret, ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION);
+    EXPECT_EQ(ret, ErrorCode::ERROR_SYSTEM_CMD_CHANNEL_ERROR);
 }
 
 /**

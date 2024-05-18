@@ -45,7 +45,8 @@ struct EnableKeyBoardCfg : public Serializable {
     UserImeConfig userImeCfg;
     bool Unmarshal(cJSON *node) override
     {
-        return GetValue(node, GET_NAME(enableKeyboardList), userImeCfg);
+        GetValue(node, GET_NAME(enableKeyboardList), userImeCfg);
+        return true;
     }
 };
 
@@ -53,7 +54,8 @@ struct EnableImeCfg : public Serializable {
     UserImeConfig userImeCfg;
     bool Unmarshal(cJSON *node) override
     {
-        return GetValue(node, GET_NAME(enableImeList), userImeCfg);
+        GetValue(node, GET_NAME(enableImeList), userImeCfg);
+        return true;
     }
 };
 

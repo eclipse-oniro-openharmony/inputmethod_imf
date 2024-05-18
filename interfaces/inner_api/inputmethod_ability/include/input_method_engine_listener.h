@@ -38,6 +38,9 @@ public:
     {
         return false;
     }
+    virtual void PostTaskToEventHandler(std::function<void()> task, const std::string &taskName)
+    {
+    }
 };
 } // namespace MiscServices
 } // namespace OHOS

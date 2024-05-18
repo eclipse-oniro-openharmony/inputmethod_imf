@@ -252,6 +252,13 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     if (clientInfo.isNotifyInputStart) {
         imeListener_->OnInputStart();
     }
+    auto task = [this, clientInfo]() {
+        panels_.ForEach([&clientInfo](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
+            panel->SetCallingWindow(clientInfo.config.windowId);
+            return false;
+        });
+    };
+    imeListener_->PostTaskToEventHandler(task, "SetCallingWindow");
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
@@ -479,10 +486,6 @@ void InputMethodAbility::InvokeTextChangeCallback(const TextTotalConfig &textCon
         IMSA_HILOGD("invalid window id");
         return;
     }
-    panels_.ForEach([&textConfig](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
-        panel->SetCallingWindow(textConfig.windowId);
-        return false;
-    });
     positionY_ = textConfig.positionY;
     height_ = textConfig.height;
     if (imeListener_ == nullptr) {
@@ -1059,6 +1062,9 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
 {
     IMSA_HILOGI("client inactive");
     ClearDataChannel(channel);
+    if (imeListener_ != nullptr) {
+        imeListener_->OnInputFinish();
+    }
     panels_.ForEach([](const PanelType &panelType, const std::shared_ptr<InputMethodPanel> &panel) {
         if (panelType != PanelType::SOFT_KEYBOARD || panel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
             panel->HidePanel();

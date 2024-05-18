@@ -521,7 +521,7 @@ int32_t InputMethodSystemAbility::ExitCurrentInputType()
     auto ret = IsDefaultImeFromTokenId(IPCSkeleton::GetCallingTokenID());
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("Not default ime.");
-        return ret;
+        return ErrorCode::ERROR_NOT_DEFAULT_IME;
     }
     if (userSession_->CheckSecurityMode()) {
         return StartInputType(InputType::SECURITY_INPUT);

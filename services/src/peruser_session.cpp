@@ -41,7 +41,7 @@ using namespace MessageID;
 constexpr uint32_t IME_RESTART_TIMES = 5;
 constexpr uint32_t IME_RESTART_INTERVAL = 300;
 constexpr int64_t INVALID_PID = -1;
-constexpr uint32_t STOP_IME_TIME = 300;
+constexpr uint32_t STOP_IME_TIME = 600;
 PerUserSession::PerUserSession(int32_t userId) : userId_(userId)
 {
 }
@@ -894,9 +894,6 @@ bool PerUserSession::StartCurrentIme(int32_t userId, bool isRetry)
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
             ErrorCode::ERROR_IME_START_FAILED, imeToStart->imeId, "start ime failed!");
         return false;
-    }
-    if (currentIme->imeId == imeToStart->imeId) {
-        return true;
     }
     IMSA_HILOGI("current ime changed to %{public}s", imeToStart->imeId.c_str());
     auto currentImeInfo = ImeInfoInquirer::GetInstance().GetCurrentImeInfo();

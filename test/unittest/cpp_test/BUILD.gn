@@ -275,6 +275,7 @@ ohos_unittest("InputMethodPanelTest") {
     "os_account:os_account_innerkits",
     "window_manager:libdm",
     "window_manager:libwm",
+    "window_manager:libwsutils",
   ]
 }
 

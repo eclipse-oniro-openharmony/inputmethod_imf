@@ -35,7 +35,8 @@ struct UserImeConfig : public Serializable {
     std::vector<std::string> identities;
     bool Unmarshal(cJSON *node) override
     {
-        return GetValue(node, userId, identities);
+        GetValue(node, userId, identities);
+        return true;
     }
 };
 
