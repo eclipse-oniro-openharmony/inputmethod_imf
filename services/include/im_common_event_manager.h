@@ -42,6 +42,7 @@ public:
     bool SubscribeEvent(const std::string &event);
     bool SubscribeKeyboardEvent(KeyHandle handle);
     bool SubscribeWindowManagerService(FocusHandle handle, Handler inputHandler);
+    bool SubscribeMemMgrService(const Handler &handler);
     bool SubscribeAccountManagerService(Handler handle);
     bool UnsubscribeEvent();
     // only public the status change of softKeyboard in FLG_FIXED or FLG_FLOATING

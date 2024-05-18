@@ -32,6 +32,7 @@
 #include "iservice_registry.h"
 #include "itypes_util.h"
 #include "key_event.h"
+#include "mem_mgr_client.h"
 #include "message_handler.h"
 #include "native_token_info.h"
 #include "os_account_manager.h"
@@ -174,7 +175,7 @@ void InputMethodSystemAbility::HandleUserChanged(int32_t userId)
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 }
 
-int32_t InputMethodSystemAbility::StartImeWhenWmsReady()
+int32_t InputMethodSystemAbility::RestartCurrentIme()
 {
     if (imeStarting_.exchange(true)) {
         IMSA_HILOGD("do starting");
@@ -196,7 +197,7 @@ void InputMethodSystemAbility::HandleWmsReady(int32_t userId)
     if (userId != userId_) {
         HandleUserChanged(userId);
     }
-    StartImeWhenWmsReady();
+    RestartCurrentIme();
 }
 
 void InputMethodSystemAbility::OnStop()
@@ -204,6 +205,7 @@ void InputMethodSystemAbility::OnStop()
     IMSA_HILOGI("OnStop started.");
     serviceHandler_ = nullptr;
     state_ = ServiceRunningState::STATE_NOT_START;
+    Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 0, INPUT_METHOD_SYSTEM_ABILITY_ID);
 }
 
 void InputMethodSystemAbility::InitServiceHandler()
@@ -859,7 +861,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         IMSA_HILOGI("wms not ready, wait");
         return ErrorCode::NO_ERROR;
     }
-    return StartImeWhenWmsReady();
+    return RestartCurrentIme();
 }
 
 int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
@@ -1060,6 +1062,8 @@ void InputMethodSystemAbility::InitMonitors()
     int32_t ret = InitAccountMonitor();
     IMSA_HILOGI("init account monitor, ret: %{public}d", ret);
     StartUserIdListener();
+    ret = InitMemMgrMonitor();
+    IMSA_HILOGI("init MemMgr monitor, ret: %{public}d", ret);
     ret = InitKeyEventMonitor();
     IMSA_HILOGI("init KeyEvent monitor, ret: %{public}d", ret);
     ret = InitWmsMonitor();
@@ -1112,6 +1116,14 @@ bool InputMethodSystemAbility::InitWmsMonitor()
             }
             HandleWmsReady(GetCurrentUserIdFromOsAccount());
         });
+}
+
+bool InputMethodSystemAbility::InitMemMgrMonitor()
+{
+    return ImCommonEventManager::GetInstance()->SubscribeMemMgrService([this]() {
+        IMSA_HILOGI("MemMgr start");
+        Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 1, INPUT_METHOD_SYSTEM_ABILITY_ID);
+    });
 }
 
 void InputMethodSystemAbility::InitWmsConnectionMonitor()

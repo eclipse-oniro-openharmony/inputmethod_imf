@@ -120,7 +120,7 @@ private:
     void InitServiceHandler();
     int32_t GetCurrentUserIdFromOsAccount();
     void HandleUserChanged(int32_t userId);
-    int32_t StartImeWhenWmsReady();
+    int32_t RestartCurrentIme();
     void HandleWmsReady(int32_t userId);
     int32_t InitAccountMonitor();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
@@ -135,6 +135,7 @@ private:
     int32_t InitKeyEventMonitor();
     bool InitWmsMonitor();
     void InitSystemLanguageMonitor();
+    bool InitMemMgrMonitor();
     void InitWmsConnectionMonitor();
     int32_t SwitchByCombinationKey(uint32_t state);
     int32_t SwitchMode();
