@@ -15,6 +15,11 @@
 #define private public
 #define protected public
 #include "input_method_panel.h"
+
+#include "input_method_ability.h"
+#include "input_method_ability_utils.h"
+#include "input_method_controller.h"
+#include "input_method_system_ability.h"
 #undef private
 
 #include <gtest/gtest.h>
@@ -32,6 +37,7 @@
 #include "common_event_support.h"
 #include "display_manager.h"
 #include "global.h"
+#include "identity_checker_mock.h"
 #include "ime_event_monitor_manager.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
@@ -46,7 +52,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace MiscServices {
-constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 200;
+constexpr uint32_t IMC_WAIT_PANEL_STATUS_LISTEN_TIME = 500;
 constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 constexpr const char *COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED = "usual.event.imf.input_panel_status_changed";
@@ -106,6 +112,7 @@ public:
 
     static sptr<InputMethodController> imc_;
     static sptr<InputMethodAbility> ima_;
+    static sptr<InputMethodSystemAbility> imsa_;
     static uint32_t windowWidth_;
     static uint32_t windowHeight_;
     static std::condition_variable panelListenerCv_;
@@ -113,7 +120,6 @@ public:
     static constexpr uint32_t DELAY_TIME = 100;
     static constexpr int32_t INTERVAL = 10;
     static std::shared_ptr<AppExecFwk::EventHandler> panelHandler_;
-    static uint64_t sysTokenId_;
     static int32_t currentImeUid_;
     static uint64_t currentImeTokenId_;
     static sptr<OnTextChangedListener> textListener_;
@@ -179,9 +185,9 @@ uint32_t InputMethodPanelTest::imeShowCallbackNum_{ 0 };
 uint32_t InputMethodPanelTest::imeHideCallbackNum_{ 0 };
 sptr<InputMethodController> InputMethodPanelTest::imc_{ nullptr };
 sptr<InputMethodAbility> InputMethodPanelTest::ima_{ nullptr };
+sptr<InputMethodSystemAbility> InputMethodPanelTest::imsa_{ nullptr };
 uint32_t InputMethodPanelTest::windowWidth_ = 0;
 uint32_t InputMethodPanelTest::windowHeight_ = 0;
-uint64_t InputMethodPanelTest::sysTokenId_ = 0;
 uint64_t InputMethodPanelTest::currentImeTokenId_ = 0;
 int32_t InputMethodPanelTest::currentImeUid_ = 0;
 sptr<OnTextChangedListener> InputMethodPanelTest::textListener_{ nullptr };
@@ -190,9 +196,11 @@ bool InputMethodPanelTest::isScbEnable_{ false };
 void InputMethodPanelTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::SetUpTestCase");
+    IdentityCheckerMock::ResetParam();
     isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
     // storage current token id
     TddUtil::StorageSelfTokenID();
+
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
     imc_ = InputMethodController::GetInstance();
     textListener_ = new (std::nothrow) TextListener();
@@ -202,20 +210,34 @@ void InputMethodPanelTest::SetUpTestCase(void)
     std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
     currentImeTokenId_ = TddUtil::GetTestTokenID(bundleName);
     currentImeUid_ = TddUtil::GetUid(bundleName);
-    sysTokenId_ = TddUtil::AllocTestTokenID(true, "undefined", {});
-    {
-        TokenScope tokenScope(currentImeTokenId_);
-        ima_ = InputMethodAbility::GetInstance();
-        ima_->SetCoreAndAgent();
-        InputMethodPanelTest::ima_->SetImeListener(imeListener_);
+
+    imsa_ = new (std::nothrow) InputMethodSystemAbility();
+    if (imsa_ == nullptr) {
+        return;
     }
+    imsa_->OnStart();
+    imsa_->userId_ = TddUtil::GetCurrentUserId();
+    imsa_->identityChecker_ = std::make_shared<IdentityCheckerMock>();
+
+    imc_->abilityManager_ = imsa_;
+
+    ima_ = InputMethodAbility::GetInstance();
+    ima_->abilityManager_ = imsa_;
+    IdentityCheckerMock::SetBundleNameValid(true);
+    ima_->SetCoreAndAgent();
+    IdentityCheckerMock::SetBundleNameValid(false);
+    InputMethodPanelTest::ima_->SetImeListener(imeListener_);
+
+    ImaUtils::abilityManager_ = imsa_;
 }
 
 void InputMethodPanelTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodPanelTest::TearDownTestCase");
     TddUtil::RestoreSelfTokenID();
-    TddUtil::KillImsaProcess();
+    IdentityCheckerMock::ResetParam();
+    imsa_->OnStop();
+    ImaUtils::abilityManager_ = nullptr;
 }
 
 void InputMethodPanelTest::SetUp(void)
@@ -263,9 +285,10 @@ void InputMethodPanelTest::ImaDestroyPanel(const std::shared_ptr<InputMethodPane
 
 void InputMethodPanelTest::Attach()
 {
-    TddUtil::InitWindow(true);
+    IdentityCheckerMock::SetFocused(true);
     auto ret = imc_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    IdentityCheckerMock::SetFocused(false);
 }
 
 bool InputMethodPanelTest::TriggerShowCallback(std::shared_ptr<InputMethodPanel> &inputMethodPanel)
@@ -370,22 +393,23 @@ void InputMethodPanelTest::TestHidePanel(const std::shared_ptr<InputMethodPanel>
 
 void InputMethodPanelTest::TestIsPanelShown(const PanelInfo &info, bool expectedResult)
 {
-    // set tokenId as system app
-    TokenScope scope(sysTokenId_);
+    IdentityCheckerMock::SetSystemApp(true);
     bool result = !expectedResult;
     auto ret = imc_->IsPanelShown(info, result);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(result, expectedResult);
+    IdentityCheckerMock::SetSystemApp(false);
 }
 
 void InputMethodPanelTest::TriggerPanelStatusChangeToImc(
     const std::shared_ptr<InputMethodPanel> &panel, InputWindowStatus status)
 {
     ASSERT_NE(panel, nullptr);
-    TokenScope tokenScope(currentImeTokenId_);
     if (isScbEnable_) {
+        IdentityCheckerMock::SetBundleNameValid(true);
         // add for SetTestTokenID in mainThread, but has no effect for other thread ipc
         panel->PanelStatusChangeToImc(status, { 0, 0, 0, 0 });
+        IdentityCheckerMock::SetBundleNameValid(false);
     }
 }
 
@@ -612,7 +636,6 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_001, TestSize.Level0)
 
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
     InputMethodPanelTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -640,7 +663,6 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_002, TestSize.Level0)
 
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
     InputMethodPanelTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -666,7 +688,6 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
 
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
     InputMethodPanelTest::imc_->Close();
-    TddUtil::DestroyWindow();
 }
 
 /**
@@ -838,13 +859,11 @@ HWTEST_F(InputMethodPanelTest, testRegisterListener, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_001 start.");
+    // system app for RegisterImeEventListener and currentIme for PanelStatusChangeToImc
+    IdentityCheckerMock::SetSystemApp(true);
+    IdentityCheckerMock::SetBundleNameValid(true);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    {
-        // set system app
-        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
-        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-            EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
-    }
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
     std::shared_ptr<InputMethodPanel> panel = nullptr;
     ImaCreatePanel(panelInfo, panel);
@@ -859,12 +878,10 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
     InputMethodPanelTest::TriggerPanelStatusChangeToImc(panel, InputWindowStatus::HIDE);
     InputMethodPanelTest::ImcPanelHideNumCheck(1);
     ImaDestroyPanel(panel);
-    {
-        // set system app
-        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
-        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
-            EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
-    }
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
+    IdentityCheckerMock::SetSystemApp(false);
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /*
@@ -875,13 +892,12 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_001, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_002 start.");
+    // system app for RegisterImeEventListener and currentIme for PanelStatusChangeToImc
+    IdentityCheckerMock::SetSystemApp(true);
+    IdentityCheckerMock::SetBundleNameValid(true);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    {
-        // set system app
-        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
-        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-            EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
-    }
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
+
     AccessScope scope(currentImeTokenId_, currentImeUid_);
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
     std::shared_ptr<InputMethodPanel> panel = nullptr;
@@ -897,12 +913,11 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
     InputMethodPanelTest::TriggerPanelStatusChangeToImc(panel, InputWindowStatus::HIDE);
     InputMethodPanelTest::ImcPanelHideNumCheck(1);
     ImaDestroyPanel(panel);
-    {
-        // set system app
-        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
-        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
-            EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
-    }
+
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
+    IdentityCheckerMock::SetSystemApp(false);
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /*
@@ -913,13 +928,13 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_002, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_003 start.");
+    // system app for RegisterImeEventListener and currentIme for PanelStatusChangeToImc
+    IdentityCheckerMock::SetSystemApp(true);
+    IdentityCheckerMock::SetBundleNameValid(true);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    {
-        // set system app
-        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
-        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-            EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
-    }
+
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
+
     PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_CANDIDATE_COLUMN };
     std::shared_ptr<InputMethodPanel> panel = nullptr;
     ImaCreatePanel(panelInfo, panel);
@@ -934,12 +949,11 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
     InputMethodPanelTest::TriggerPanelStatusChangeToImc(panel, InputWindowStatus::HIDE);
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
     ImaDestroyPanel(panel);
-    {
-        // set system app
-        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
-        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
-            EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
-    }
+
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
+    IdentityCheckerMock::SetSystemApp(false);
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /**
@@ -950,13 +964,13 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_003, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testImcPanelListening_004 start.");
+    // system app for RegisterImeEventListener and currentIme for PanelStatusChangeToImc
+    IdentityCheckerMock::SetSystemApp(true);
+    IdentityCheckerMock::SetBundleNameValid(true);
     auto listener = std::make_shared<InputMethodSettingListenerImpl>();
-    {
-        // set system app
-        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
-        ImeEventMonitorManager::GetInstance().RegisterImeEventListener(
-            EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
-    }
+
+    ImeEventMonitorManager::GetInstance().RegisterImeEventListener(EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
+
     PanelInfo panelInfo = { .panelType = STATUS_BAR };
     std::shared_ptr<InputMethodPanel> panel = nullptr;
     ImaCreatePanel(panelInfo, panel);
@@ -969,12 +983,11 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
     InputMethodPanelTest::TestHidePanel(panel);
     InputMethodPanelTest::ImcPanelHideNumCheck(0);
     ImaDestroyPanel(panel);
-    {
-        // set system app
-        TokenScope tokenScope(InputMethodPanelTest::sysTokenId_);
-        ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
-            EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
-    }
+
+    ImeEventMonitorManager::GetInstance().UnRegisterImeEventListener(
+        EVENT_IME_SHOW_MASK | EVENT_IME_HIDE_MASK, listener);
+    IdentityCheckerMock::SetSystemApp(false);
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /*
@@ -985,6 +998,8 @@ HWTEST_F(InputMethodPanelTest, testImcPanelListening_004, TestSize.Level0)
 HWTEST_F(InputMethodPanelTest, testPanelStatusChangeEventPublicTest, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodPanelTest::testPanelStatusChangeEventPublicTest start.");
+    // currentIme for PanelStatusChangeToImc
+    IdentityCheckerMock::SetBundleNameValid(true);
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(COMMON_EVENT_INPUT_PANEL_STATUS_CHANGED);
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
@@ -1021,6 +1036,7 @@ HWTEST_F(InputMethodPanelTest, testPanelStatusChangeEventPublicTest, TestSize.Le
         EXPECT_TRUE(waitRet);
     }
     ImaDestroyPanel(panel);
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /**

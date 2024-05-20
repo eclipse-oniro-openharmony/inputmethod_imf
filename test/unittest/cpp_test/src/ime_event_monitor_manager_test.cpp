@@ -50,7 +50,7 @@ void ImeEventMonitorManagerTest::TearDownTestCase()
 
 void ImeEventMonitorManagerTest::SetUp()
 {
-    // native sa
+    // native sa permission
     TddUtil::GrantNativePermission();
     IMSA_HILOGI("ImeEventMonitorManagerTest::SetUp");
 }

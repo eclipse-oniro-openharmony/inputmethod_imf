@@ -130,6 +130,7 @@ ohos_static_library("inputmethod_service_static") {
     "${inputmethod_path}/frameworks/native/inputmethod_controller/src/input_client_proxy.cpp",
     "adapter/focus_monitor/src/focus_change_listener.cpp",
     "adapter/focus_monitor/src/focus_monitor_manager.cpp",
+    "adapter/ime_connection_manager/src/ime_connection.cpp",
     "adapter/system_language_observer/src/system_language_observer.cpp",
     "adapter/wms_connection_monitor/src/wms_connection_monitor_manager.cpp",
     "adapter/wms_connection_monitor/src/wms_connection_observer.cpp",

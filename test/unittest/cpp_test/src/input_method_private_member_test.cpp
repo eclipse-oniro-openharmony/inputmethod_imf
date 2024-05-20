@@ -56,14 +56,16 @@ constexpr std::int32_t MAIN_USER_ID = 100;
 void InputMethodPrivateMemberTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodPrivateMemberTest::SetUpTestCase");
-    service_ = new InputMethodSystemAbility();
+    service_ = new (std::nothrow) InputMethodSystemAbility();
+    if (service_ == nullptr) {
+        return;
+    }
     service_->OnStart();
 }
 
 void InputMethodPrivateMemberTest::TearDownTestCase(void)
 {
     service_->OnStop();
-    TddUtil::KillImsaProcess();
     IMSA_HILOGI("InputMethodPrivateMemberTest::TearDownTestCase");
 }
 

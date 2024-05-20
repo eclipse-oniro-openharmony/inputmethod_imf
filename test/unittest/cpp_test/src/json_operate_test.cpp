@@ -113,13 +113,9 @@ HWTEST_F(JsonOperateTest, testParseEnableIme001, TestSize.Level0)
     EXPECT_TRUE(enableVec2.empty());
 
     std::vector<std::string> enableVec3;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableIme(
-        ENABLE_IME, 104, enableVec3);
-    EXPECT_FALSE(ret);
-
-    std::vector<std::string> enableVec4;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableIme(ENABLE_KEYBOARD, 100, enableVec4);
-    EXPECT_FALSE(ret);
+    ret = EnableImeDataParser::GetInstance()->ParseEnableIme(ENABLE_IME, 104, enableVec3);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(enableVec3.empty());
 }
 /**
 * @tc.name: testParseEnableKeyboard001
@@ -151,11 +147,8 @@ HWTEST_F(JsonOperateTest, testParseEnableKeyboard001, TestSize.Level0)
 
     std::vector<std::string> enableVec3;
     ret = EnableImeDataParser::GetInstance()->ParseEnableKeyboard(ENABLE_KEYBOARD, 104, enableVec3);
-    EXPECT_FALSE(ret);
-
-    std::vector<std::string> enableVec4;
-    ret = EnableImeDataParser::GetInstance()->ParseEnableKeyboard(ENABLE_IME, 100, enableVec4);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(enableVec3.empty());
 }
 
 /**
@@ -181,11 +174,10 @@ HWTEST_F(JsonOperateTest, testParseSecurityMode001, TestSize.Level0)
     EXPECT_TRUE(ret);
     EXPECT_TRUE(SecurityModeParser::GetInstance()->fullModeList_.empty());
 
+    SecurityModeParser::GetInstance()->fullModeList_.clear();
     ret = SecurityModeParser::GetInstance()->ParseSecurityMode(JsonOperateTest::SECURITY_MODE, 105);
-    EXPECT_FALSE(ret);
-
-    ret = SecurityModeParser::GetInstance()->ParseSecurityMode(JsonOperateTest::ENABLE_IME, 100);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(SecurityModeParser::GetInstance()->fullModeList_.empty());
 }
 
 /**

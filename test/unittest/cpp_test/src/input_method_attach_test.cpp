@@ -13,14 +13,24 @@
  * limitations under the License.
  */
 
+#define private public
+#define protected public
+#include "input_method_ability.h"
+#include "input_method_controller.h"
+#include "input_method_system_ability.h"
+#undef private
+
 #include <gtest/gtest.h>
 #include <string_ex.h>
 
 #include "global.h"
+#include "identity_checker_mock.h"
 #include "input_attribute.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "input_method_engine_listener_impl.h"
+#include "input_method_system_ability_proxy.h"
+#include "input_method_system_ability_stub.h"
 #include "keyboard_listener_test_impl.h"
 #include "tdd_util.h"
 #include "text_listener.h"
@@ -32,27 +42,41 @@ class InputMethodAttachTest : public testing::Test {
 public:
     static sptr<InputMethodController> inputMethodController_;
     static sptr<InputMethodAbility> inputMethodAbility_;
-
+    static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
+    static sptr<InputMethodSystemAbility> imsa_;
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("InputMethodAttachTest::SetUpTestCase");
-        // Set the tokenID to the tokenID of the current ime
-        TddUtil::StorageSelfTokenID();
-        std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
-        std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-        TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
-        inputMethodAbility_ = InputMethodAbility::GetInstance();
-        inputMethodAbility_->SetCoreAndAgent();
-        inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
-        TddUtil::RestoreSelfTokenID();
+        IdentityCheckerMock::ResetParam();
+        imsa_ = new (std::nothrow) InputMethodSystemAbility();
+        if (imsa_ == nullptr) {
+            return;
+        }
+        imsa_->OnStart();
+        imsa_->userId_ = TddUtil::GetCurrentUserId();
+        imsa_->identityChecker_ = std::make_shared<IdentityCheckerMock>();
+        sptr<InputMethodSystemAbilityStub> serviceStub = imsa_;
+        imsaProxy_ = new InputMethodSystemAbilityProxy(serviceStub->AsObject());
+        if (imsaProxy_ == nullptr) {
+            return;
+        }
+        IdentityCheckerMock::SetFocused(true);
 
-        TddUtil::InitWindow(true);
+        inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->abilityManager_ = imsaProxy_;
+        IdentityCheckerMock::SetBundleNameValid(true);
+        inputMethodAbility_->SetCoreAndAgent();
+        IdentityCheckerMock::SetBundleNameValid(false);
+        inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
+
         inputMethodController_ = InputMethodController::GetInstance();
+        inputMethodController_->abilityManager_ = imsaProxy_;
     }
     static void TearDownTestCase(void)
     {
         IMSA_HILOGI("InputMethodAttachTest::TearDownTestCase");
-        TddUtil::DestroyWindow();
+        IdentityCheckerMock::ResetParam();
+        imsa_->OnStop();
     }
     void SetUp()
     {
@@ -66,6 +90,8 @@ public:
 };
 sptr<InputMethodController> InputMethodAttachTest::inputMethodController_;
 sptr<InputMethodAbility> InputMethodAttachTest::inputMethodAbility_;
+sptr<InputMethodSystemAbilityProxy> InputMethodAttachTest::imsaProxy_;
+sptr<InputMethodSystemAbility> InputMethodAttachTest::imsa_;
 
 /**
  * @tc.name: testAttach001

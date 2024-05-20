@@ -23,6 +23,9 @@ namespace MiscServices {
 class ImaUtils {
 public:
     static sptr<IInputMethodSystemAbility> GetImsaProxy();
+
+private:
+    static sptr<IInputMethodSystemAbility> abilityManager_;  // for tdd test
 };
 } // namespace MiscServices
 } // namespace OHOS

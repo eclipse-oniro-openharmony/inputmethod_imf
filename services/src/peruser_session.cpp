@@ -71,7 +71,7 @@ int PerUserSession::AddClientInfo(
         IMSA_HILOGE("client obj is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    if (!obj->AddDeathRecipient(info->deathRecipient)) {
+    if (obj->IsProxyObject() && !obj->AddDeathRecipient(info->deathRecipient)) {
         IMSA_HILOGE("failed to add client death recipient");
         return ErrorCode::ERROR_CLIENT_ADD_FAILED;
     }
@@ -778,7 +778,7 @@ int32_t PerUserSession::AddImeData(ImeType type, sptr<IInputMethodCore> core, sp
     }
     deathRecipient->SetDeathRecipient([this, core, type](const wptr<IRemoteObject> &) { this->OnImeDied(core, type); });
     auto coreObject = core->AsObject();
-    if (coreObject == nullptr || !coreObject->AddDeathRecipient(deathRecipient)) {
+    if (coreObject == nullptr || (coreObject->IsProxyObject() && !coreObject->AddDeathRecipient(deathRecipient))) {
         IMSA_HILOGE("failed to add death recipient");
         return ErrorCode::ERROR_ADD_DEATH_RECIPIENT_FAILED;
     }

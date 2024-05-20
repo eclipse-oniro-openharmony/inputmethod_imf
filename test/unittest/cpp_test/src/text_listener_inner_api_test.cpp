@@ -38,7 +38,6 @@ public:
     static void SetUpTestCase(void)
     {
         IMSA_HILOGI("TextListenerInnerApiTest::SetUpTestCase");
-        TddUtil::InitWindow(true);
         TextListener::ResetParam();
 
         textListener_ = new TextListener();
@@ -49,7 +48,6 @@ public:
         IMSA_HILOGI("TextListenerInnerApiTest::TearDownTestCase");
         imc_->Close();
         TextListener::ResetParam();
-        TddUtil::DestroyWindow();
     }
     void SetUp()
     {
