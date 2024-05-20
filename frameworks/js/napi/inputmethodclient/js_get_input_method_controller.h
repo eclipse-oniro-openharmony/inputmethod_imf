@@ -194,8 +194,6 @@ private:
     static napi_value CreateSendFunctionKey(napi_env env, int32_t functionKey);
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
-    static bool ParseAttachInput(
-        napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<AttachContext> &ctxt);
     static bool GetValue(napi_env env, napi_value in, CursorInfo &out);
     static bool GetValue(napi_env env, napi_value in, InputAttribute &out);
     static bool GetValue(napi_env env, napi_value in, TextConfig &out);

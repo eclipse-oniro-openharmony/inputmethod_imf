@@ -45,6 +45,8 @@ ohos_shared_library("inputmethod_extension") {
     "-Os",
   ]
   include_dirs = [
+    "${inputmethod_path}/frameworks/js/napi/common",
+    "${inputmethod_path}/frameworks/js/napi/inputmethodclient",
     "${inputmethod_path}/frameworks/kits/extension/include",
     "${inputmethod_path}/frameworks/native/inputmethod_controller/include",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_controller/include",
@@ -52,6 +54,7 @@ ohos_shared_library("inputmethod_extension") {
   ]
 
   sources = [
+    "${inputmethod_path}/frameworks/js/napi/inputmethodclient/js_utils.cpp",
     "${inputmethod_path}/frameworks/kits/extension/src/inputmethod_extension.cpp",
     "${inputmethod_path}/frameworks/kits/extension/src/inputmethod_extension_context.cpp",
     "${inputmethod_path}/frameworks/kits/extension/src/js_inputmethod_extension.cpp",
@@ -62,6 +65,7 @@ ohos_shared_library("inputmethod_extension") {
 
   deps = [
     "${inputmethod_path}/common:inputmethod_common",
+    "${inputmethod_path}/frameworks/js/napi/common:inputmethod_js_common",
     "${inputmethod_path}/interfaces/inner_api/inputmethod_ability:inputmethod_ability",
   ]
 

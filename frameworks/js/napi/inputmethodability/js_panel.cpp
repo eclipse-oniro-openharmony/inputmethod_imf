@@ -108,10 +108,10 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        PARAM_CHECK_RETURN(env, argc >= 1, "should 1 or 2 parameters!", TYPE_NONE, status);
+        PARAM_CHECK_RETURN(env, argc >= 1, "at least one paramster is required", TYPE_NONE, status);
         // 0 means the first param path<std::string>
-        status = JsUtils::GetValue(env, argv[0], ctxt->path);
-        CHECK_RETURN(status == napi_ok, "get path failed!", status);
+        PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], ctxt->path) == napi_ok,
+            "js param path covert failed, must be string", TYPE_NONE, status);
         // if type of argv[1] is object, we will get value of 'storage' from it.
         if (argc >= 2) {
             napi_valuetype valueType = napi_undefined;
@@ -137,6 +137,7 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         auto code = ctxt->inputMethodPanel->SetUiContent(ctxt->path, env, ctxt->contentStorage);
         if (code == ErrorCode::ERROR_PARAMETER_CHECK_FAILED) {
             ctxt->SetErrorCode(code);
+            ctxt->SetErrorMessage("path should be a path to specific page.");
             return napi_generic_failure;
         }
         return napi_ok;
@@ -152,13 +153,13 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        PARAM_CHECK_RETURN(env, argc > 1, "should 2 or 3 parameters!", TYPE_NONE, status);
+        PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required", TYPE_NONE, status);
         // 0 means the first param width<uint32_t>
-        status = JsUtils::GetValue(env, argv[0], ctxt->width);
-        CHECK_RETURN(status == napi_ok, "get width failed!", status);
+        PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], ctxt->width) == napi_ok,
+            "param width type must be number", TYPE_NONE, status);
         // 1 means the second param height<uint32_t>
-        status = JsUtils::GetValue(env, argv[1], ctxt->height);
-        CHECK_RETURN(status == napi_ok, "get height failed!", status);
+        PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[1], ctxt->height) == napi_ok,
+            "param height type must be number", TYPE_NONE, status);
         return napi_ok;
     };
 
@@ -183,24 +184,24 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        PARAM_CHECK_RETURN(env, argc > 1, "should 2 or 3 parameters! ", TYPE_NONE, status);
+        PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required ", TYPE_NONE, status);
         // 0 means the first param x<int32_t>
-        status = JsUtils::GetValue(env, argv[0], ctxt->x);
-        CHECK_RETURN(status == napi_ok, "get x failed!", status);
+        PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], ctxt->x) == napi_ok, "param x type must be number",
+            TYPE_NONE, status);
         // 1 means the second param y<int32_t>
-        status = JsUtils::GetValue(env, argv[1], ctxt->y);
-        CHECK_RETURN(status == napi_ok, "get y failed!", status);
+        PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[1], ctxt->y) == napi_ok, "param y type must be number",
+            TYPE_NONE, status);
         return napi_ok;
     };
 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
         auto code = ctxt->inputMethodPanel->MoveTo(ctxt->x, ctxt->y);
-        if (code == ErrorCode::NO_ERROR) {
-            ctxt->SetState(napi_ok);
+        if (code == ErrorCode::ERROR_PARAMETER_CHECK_FAILED) {
+            ctxt->SetErrorCode(code);
             return;
         }
-        ctxt->SetErrorCode(code);
+        ctxt->SetState(napi_ok);
     };
     ctxt->SetAction(std::move(input));
     // 3 means JsAPI:moveTo has 3 params at most.
@@ -248,12 +249,14 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_MAX] = { nullptr };
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
-    PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameter! ", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, nullptr);
     int32_t panelFlag = 0;
     // 0 means the first param flag<PanelFlag>
     napi_status status = JsUtils::GetValue(env, argv[0], panelFlag);
-    CHECK_RETURN(status == napi_ok, "get panelFlag failed!", nullptr);
+    PARAM_CHECK_RETURN(env, status == napi_ok, "param flag type must be PanelFlag", TYPE_NONE, nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
+    PARAM_CHECK_RETURN(env, (panelFlag == PanelFlag::FLG_FIXED || panelFlag == PanelFlag::FLG_FLOATING ||
+        panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN), "param flag type must be one of PanelFlag", TYPE_NONE, nullptr);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
     CHECK_RETURN(ret == ErrorCode::NO_ERROR, "ChangePanelFlag failed!", nullptr);
     InputMethodAbility::GetInstance()->NotifyKeyboardHeight(inputMethodPanel);
@@ -266,14 +269,11 @@ napi_value JsPanel::SetPrivacyMode(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_MAX] = { nullptr };
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
-    PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameter! ", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, nullptr);
     bool isPrivacyMode = false;
     // 0 means the first param isPrivacyMode<boolean>
     napi_status status = JsUtils::GetValue(env, argv[0], isPrivacyMode);
-    if (status != napi_ok) {
-        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_PARAMETER_CHECK_FAILED), " param check failed!",
-            TYPE_BOOLEAN);
-    }
+    PARAM_CHECK_RETURN(env, status == napi_ok, "param isPrivacyMode type must be boolean", TYPE_NONE, nullptr);
     CHECK_RETURN(status == napi_ok, "get isPrivacyMode failed!", nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
     auto ret = inputMethodPanel->SetPrivacyMode(isPrivacyMode);
@@ -323,15 +323,15 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     std::string type;
     // 1 means least param num.
-    PARAM_CHECK_RETURN(env, argc >= 1, "At least 1 param", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, argc >= 1, "at least one paramster is required", TYPE_NONE, nullptr);
     PARAM_CHECK_RETURN(
-        env, JsUtil::GetValue(env, argv[0], type), "js param: type covert failed", TYPE_NONE, nullptr);
+        env, JsUtil::GetValue(env, argv[0], type), "param type must be string", TYPE_NONE, nullptr);
     PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type),
-        "EventType shoule be show or hide", TYPE_NONE, nullptr);
+        "type shoule be show/hide/sizeChange", TYPE_NONE, nullptr);
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
     PARAM_CHECK_RETURN(env, (paramType == napi_function || paramType == napi_null || paramType == napi_undefined),
-        "ParamType should be function or null or undefined", TYPE_NONE, nullptr);
+        "callback should be function or null or undefined", TYPE_NONE, nullptr);
     // if the second param is napi_function, delete it, else delete all
     argv[1] = paramType == napi_function ? argv[1] : nullptr;
 
@@ -350,20 +350,20 @@ napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         napi_status status = napi_generic_failure;
-        PARAM_CHECK_RETURN(env, argc > 1, "should 2 parameters!", TYPE_NONE, status);
+        PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required", TYPE_NONE, status);
         // 0 means the first param flag
         PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "flag",
             TYPE_NUMBER, napi_generic_failure);
         int32_t panelFlag = 0;
         CHECK_RETURN(JsUtils::GetValue(env, argv[0], panelFlag) == napi_ok,
-            "js param: flag covert failed", napi_generic_failure);
+            "js param flag covert failed", napi_generic_failure);
         ctxt->panelFlag = PanelFlag(panelFlag);
         PARAM_CHECK_RETURN(env, ctxt->panelFlag == 0 || ctxt->panelFlag == 1,
-            "flag shoule be FLG_FIXED or FLG_FLOATING ", TYPE_NONE, napi_generic_failure);
+            "param flag type shoule be FLG_FIXED or FLG_FLOATING ", TYPE_NONE, napi_generic_failure);
         // 1 means the second param rect
-        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_object, "rect", TYPE_OBJECT,
-            napi_generic_failure);
-        PARAM_CHECK_RETURN(env, JsPanelRect::Read(env, argv[1], ctxt->layoutParams), "js param: rect covert failed",
+        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_object, "param rect type must be PanelRect",
+            TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsPanelRect::Read(env, argv[1], ctxt->layoutParams), "js param rect covert failed",
             TYPE_NONE, napi_generic_failure);
         return napi_ok;
     };

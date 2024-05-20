@@ -158,7 +158,8 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argv, &valueType);
-    PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodProperty", TYPE_OBJECT, napi_invalid_arg);
+    PARAM_CHECK_RETURN(env, valueType == napi_object, "param inputMethodProperty type must be InputMethodProperty",
+        TYPE_NONE, napi_invalid_arg);
     napi_value result = nullptr;
     napi_get_named_property(env, argv, "name", &result);
     JsUtils::GetValue(env, result, ctxt->property.name);
@@ -177,7 +178,7 @@ napi_status JsGetInputMethodSetting::GetInputMethodProperty(
         JsUtils::GetValue(env, result, ctxt->property.id);
     }
     PARAM_CHECK_RETURN(env, (!ctxt->property.name.empty() && !ctxt->property.id.empty()),
-        "name and id should not empty", TYPE_NONE, napi_invalid_arg);
+        "name and id must be string and cannot empty", TYPE_NONE, napi_invalid_arg);
     IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->property.id.c_str(), ctxt->property.name.c_str());
     return napi_ok;
 }
@@ -215,11 +216,11 @@ napi_value JsGetInputMethodSetting::GetInputMethods(napi_env env, napi_callback_
     IMSA_HILOGD("run in GetInputMethods");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "should has one parameter.", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_invalid_arg);
         bool enable = false;
         // 0 means first param index
         napi_status status = JsUtils::GetValue(env, argv[0], enable);
-        PARAM_CHECK_RETURN(env, status == napi_ok, "enable", TYPE_NUMBER, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "param enable type must be boolean", TYPE_NONE, napi_invalid_arg);
         ctxt->inputMethodStatus = enable ? InputMethodStatus::ENABLE : InputMethodStatus::DISABLE;
         return napi_ok;
     };
@@ -253,8 +254,8 @@ napi_value JsGetInputMethodSetting::GetInputMethodsSync(napi_env env, napi_callb
 
     bool enable = false;
     // 0 means first param index
-    PARAM_CHECK_RETURN(env, argc >= 1, "At least 1 param", TYPE_NONE, JsUtil::Const::Null(env));
-    PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], enable) == napi_ok, "Failed to get param, should be bool",
+    PARAM_CHECK_RETURN(env, argc >= 1, "at least one paramster is required", TYPE_NONE, JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, JsUtils::GetValue(env, argv[0], enable) == napi_ok, "param enable type must be boolean",
         TYPE_NONE, JsUtil::Const::Null(env));
 
     std::vector<Property> properties;
@@ -359,10 +360,11 @@ napi_value JsGetInputMethodSetting::ListInputMethodSubtype(napi_env env, napi_ca
     IMSA_HILOGD("run in ListInputMethodSubtype");
     auto ctxt = std::make_shared<ListInputContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "should has one parameter.", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodProperty", TYPE_OBJECT, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "param inputMethodProperty type must be InputMethodProperty",
+            TYPE_NONE, napi_invalid_arg);
         napi_status status = JsGetInputMethodSetting::GetInputMethodProperty(env, argv[0], ctxt);
         return status;
     };
@@ -421,15 +423,16 @@ napi_value JsGetInputMethodSetting::IsPanelShown(napi_env env, napi_callback_inf
     napi_value argv[1] = { nullptr };
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     // 1 means least param num
-    PARAM_CHECK_RETURN(env, argc >= 1, "should has 1 parameter!", TYPE_NONE, JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, argc >= 1, "at least one paramster is required", TYPE_NONE, JsUtil::Const::Null(env));
     // 0 means parameter of info<PanelInfo>
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argv[0], &valueType);
-    PARAM_CHECK_RETURN(env, valueType == napi_object, "panelInfo", TYPE_OBJECT, JsUtil::Const::Null(env));
+    PARAM_CHECK_RETURN(env, valueType == napi_object, "param panelInfo type must be PanelInfo", TYPE_NONE,
+        JsUtil::Const::Null(env));
 
     PanelInfo panelInfo;
     napi_status status = JsUtils::GetValue(env, argv[0], panelInfo);
-    PARAM_CHECK_RETURN(env, status == napi_ok, "PanelInfo should contain PanelType and PanelFlag",
+    PARAM_CHECK_RETURN(env, status == napi_ok, "js param panelInfo covert failed",
         TYPE_NONE, JsUtil::Const::Null(env));
 
     bool isShown = false;

@@ -23,6 +23,8 @@
 #include "js_extension_context.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "js_util.h"
+#include "js_utils.h"
 #include "napi/native_api.h"
 #include "napi_common_start_options.h"
 #include "napi_common_util.h"
@@ -32,6 +34,7 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+using namespace OHOS::MiscServices;
 namespace {
 constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
@@ -98,9 +101,12 @@ private:
         // only support one or two or three params
         if (argc != ARGC_ONE && argc != ARGC_TWO && argc != ARGC_THREE) {
             IMSA_HILOGE("Not enough params");
+            JsUtils::ThrowException(env, IMFErrorCode::EXCEPTION_PARAMCHECK, "number of param should in [1,3]",
+                TYPE_NONE);
             return CreateJsUndefined(env);
         }
-
+        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_object, "param want type must be Want",
+            TYPE_NONE, JsUtil::Const::Null(env));
         decltype(argc) unwrapArgc = 0;
         AAFwk::Want want;
         OHOS::AppExecFwk::UnwrapWant(env, argv[INDEX_ZERO], want);
