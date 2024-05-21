@@ -15,6 +15,9 @@
 #define private public
 #define protected public
 #include "input_method_controller.h"
+
+#include "input_method_ability.h"
+#include "input_method_system_ability.h"
 #undef private
 
 #include <event_handler.h>
@@ -54,7 +57,7 @@
 #include "system_ability_definition.h"
 #include "tdd_util.h"
 #include "text_listener.h"
-
+#include "identity_checker_mock.h"
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
@@ -122,6 +125,8 @@ public:
     static void ResetKeyboardListenerTextConfig();
     static sptr<InputMethodController> inputMethodController_;
     static sptr<InputMethodAbility> inputMethodAbility_;
+    static sptr<InputMethodSystemAbility> imsa_;
+    static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
     static std::shared_ptr<MMI::KeyEvent> keyEvent_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
     static std::shared_ptr<SelectListenerMock> controllerListener_;
@@ -149,8 +154,6 @@ public:
     static constexpr uint32_t DELAY_TIME = 1;
     static constexpr uint32_t KEY_EVENT_DELAY_TIME = 100;
     static constexpr int32_t TASK_DELAY_TIME = 10;
-    static uint64_t defaultImeTokenId_;
-    static uint64_t permissionTokenId_;
 
     class KeyboardListenerImpl : public KeyboardListener {
     public:
@@ -230,6 +233,8 @@ public:
 };
 sptr<InputMethodController> InputMethodControllerTest::inputMethodController_;
 sptr<InputMethodAbility> InputMethodControllerTest::inputMethodAbility_;
+sptr<InputMethodSystemAbility> InputMethodControllerTest::imsa_;
+sptr<InputMethodSystemAbilityProxy> InputMethodControllerTest::imsaProxy_;
 std::shared_ptr<MMI::KeyEvent> InputMethodControllerTest::keyEvent_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodControllerTest::imeListener_;
 std::shared_ptr<SelectListenerMock> InputMethodControllerTest::controllerListener_;
@@ -258,50 +263,55 @@ std::condition_variable InputMethodControllerTest::keyEventCv_;
 std::mutex InputMethodControllerTest::keyEventLock_;
 bool InputMethodControllerTest::consumeResult_{ false };
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodControllerTest::textConfigHandler_{ nullptr };
-uint64_t InputMethodControllerTest::defaultImeTokenId_ = 0;
-uint64_t InputMethodControllerTest::permissionTokenId_ = 0;
 
 void InputMethodControllerTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodControllerTest::SetUpTestCase");
-    TddUtil::StorageSelfTokenID();
-    // Set the tokenID to the tokenID of the current ime
-    std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
-    std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-    {
-        TokenScope tokenScope(TddUtil::GetTestTokenID(bundleName));
-        inputMethodAbility_ = InputMethodAbility::GetInstance();
-        inputMethodAbility_->SetCoreAndAgent();
+    IdentityCheckerMock::ResetParam();
+    imsa_ = new (std::nothrow) InputMethodSystemAbility();
+    if (imsa_ == nullptr) {
+        return;
     }
+    imsa_->OnStart();
+    imsa_->userId_ = TddUtil::GetCurrentUserId();
+    imsa_->identityChecker_ = std::make_shared<IdentityCheckerMock>();
+    sptr<InputMethodSystemAbilityStub> serviceStub = imsa_;
+    imsaProxy_ = new (std::nothrow) InputMethodSystemAbilityProxy(serviceStub->AsObject());
+    if (imsaProxy_ == nullptr) {
+        return;
+    }
+    IdentityCheckerMock::SetFocused(true);
+
+    inputMethodAbility_ = InputMethodAbility::GetInstance();
+    inputMethodAbility_->abilityManager_ = imsaProxy_;
+    IdentityCheckerMock::SetBundleNameValid(true);
+    inputMethodAbility_->SetCoreAndAgent();
+    IdentityCheckerMock::SetBundleNameValid(false);
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     controllerListener_ = std::make_shared<SelectListenerMock>();
     textListener_ = new TextListener();
     inputMethodAbility_->SetKdListener(std::make_shared<KeyboardListenerImpl>());
     inputMethodAbility_->SetImeListener(imeListener_);
+
     inputMethodController_ = InputMethodController::GetInstance();
+    inputMethodController_->abilityManager_ = imsaProxy_;
 
     keyEvent_ = KeyEventUtil::CreateKeyEvent(MMI::KeyEvent::KEYCODE_A, MMI::KeyEvent::KEY_ACTION_DOWN);
     keyEvent_->SetFunctionKey(MMI::KeyEvent::NUM_LOCK_FUNCTION_KEY, 0);
     keyEvent_->SetFunctionKey(MMI::KeyEvent::CAPS_LOCK_FUNCTION_KEY, 1);
     keyEvent_->SetFunctionKey(MMI::KeyEvent::SCROLL_LOCK_FUNCTION_KEY, 1);
 
-    TddUtil::InitWindow(true);
     SetInputDeathRecipient();
     TextListener::ResetParam();
-
-    auto ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
-    auto defaultIme = ret == ErrorCode::NO_ERROR ? property->name : "default.inputmethod.unittest";
-    defaultImeTokenId_ = TddUtil::GetTestTokenID(defaultIme);
-    permissionTokenId_ = TddUtil::AllocTestTokenID(false, "undefine", { "ohos.permission.CONNECT_IME_ABILITY" });
 }
 
 void InputMethodControllerTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodControllerTest::TearDownTestCase");
     TextListener::ResetParam();
-    TddUtil::DestroyWindow();
     inputMethodController_->SetControllerListener(nullptr);
-    TddUtil::RestoreSelfTokenID();
+    IdentityCheckerMock::ResetParam();
+    imsa_->OnStop();
 }
 
 void InputMethodControllerTest::SetUp(void)
@@ -856,12 +866,13 @@ HWTEST_F(InputMethodControllerTest, testShowTextInput, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testShowSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("IMC ShowSoftKeyboard Test START");
-    TokenScope scope(InputMethodControllerTest::permissionTokenId_);
+    IdentityCheckerMock::SetPermission(true);
     imeListener_->keyboardState_ = false;
     TextListener::ResetParam();
     int32_t ret = inputMethodController_->ShowSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
+    IdentityCheckerMock::SetPermission(false);
 }
 
 /**
@@ -936,12 +947,13 @@ HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged, TestSize.Level
 HWTEST_F(InputMethodControllerTest, testHideSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("IMC HideSoftKeyboard Test START");
-    TokenScope scope(InputMethodControllerTest::permissionTokenId_);
+    IdentityCheckerMock::SetPermission(true);
     imeListener_->keyboardState_ = true;
     TextListener::ResetParam();
     int32_t ret = inputMethodController_->HideSoftKeyboard();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(!imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::HIDE));
+    IdentityCheckerMock::SetPermission(false);
 }
 
 /**
@@ -1085,9 +1097,10 @@ HWTEST_F(InputMethodControllerTest, testWasAttached, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testGetDefaultInputMethod, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testGetDefaultInputMethod Test START");
-    std::shared_ptr<Property> property;
+    std::shared_ptr<Property> property = nullptr;
     int32_t ret = inputMethodController_->GetDefaultInputMethod(property);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    ASSERT_NE(property, nullptr);
     EXPECT_FALSE(property->name.empty());
 }
 
@@ -1190,9 +1203,11 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_001, TestSize.Level0)
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
     privateCommand.emplace("value1", privateDataValue1);
+    IdentityCheckerMock::SetBundleNameValid(false);
     ret = inputMethodController_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_DEFAULT_IME);
     inputMethodController_->Close();
+    IdentityCheckerMock::SetBundleNameValid(true);
 }
 
 /**
@@ -1205,8 +1220,8 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_001, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_002, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_002 Test START");
-    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
     InputMethodEngineListenerImpl::ResetParam();
+    IdentityCheckerMock::SetBundleNameValid(true);
     inputMethodController_->Close();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     auto ret = inputMethodController_->SendPrivateCommand(privateCommand);
@@ -1217,6 +1232,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_002, TestSize.Level0)
     ret = inputMethodController_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
     inputMethodController_->Close();
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /**
@@ -1229,7 +1245,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_002, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_003, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_003 Test START");
-    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
+    IdentityCheckerMock::SetBundleNameValid(true);
     InputMethodEngineListenerImpl::ResetParam();
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1239,6 +1255,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_003, TestSize.Level0)
     ret = inputMethodController_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     inputMethodController_->Close();
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /**
@@ -1251,7 +1268,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_003, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_004, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_004 Test START");
-    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
+    IdentityCheckerMock::SetBundleNameValid(true);
     InputMethodEngineListenerImpl::ResetParam();
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1266,6 +1283,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_004, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitSendPrivateCommand(privateCommand));
     inputMethodController_->Close();
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /**
@@ -1278,7 +1296,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_004, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_005, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_005 Test START");
-    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
+    IdentityCheckerMock::SetBundleNameValid(true);
     InputMethodEngineListenerImpl::ResetParam();
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1293,6 +1311,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_005, TestSize.Level0)
     ret = inputMethodController_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
     inputMethodController_->Close();
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /**
@@ -1305,7 +1324,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_005, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_006, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_006 Test START");
-    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
+    IdentityCheckerMock::SetBundleNameValid(true);
     InputMethodEngineListenerImpl::ResetParam();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
@@ -1321,6 +1340,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_006, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitSendPrivateCommand(privateCommand));
     inputMethodController_->Close();
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /**
@@ -1333,7 +1353,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_006, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_007, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_007 Test START");
-    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
+    IdentityCheckerMock::SetBundleNameValid(true);
     TextListener::ResetParam();
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
@@ -1344,6 +1364,7 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_007, TestSize.Level0)
     ret = inputMethodController_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
     inputMethodController_->Close();
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /**
@@ -1356,9 +1377,9 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_007, TestSize.Level0)
 HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_008, TestSize.Level0)
 {
     IMSA_HILOGI("IMC testSendPrivateCommand_008 Test START");
+    IdentityCheckerMock::SetBundleNameValid(true);
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    TokenScope scope(InputMethodControllerTest::defaultImeTokenId_);
     TextListener::ResetParam();
     std::unordered_map<std::string, PrivateDataValue> privateCommand1{ { "v",
         string(PRIVATE_COMMAND_SIZE_MAX - 2, 'a') } };
@@ -1372,8 +1393,8 @@ HWTEST_F(InputMethodControllerTest, testSendPrivateCommand_008, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = inputMethodController_->SendPrivateCommand(privateCommand3);
     EXPECT_EQ(ret, ErrorCode::ERROR_INVALID_PRIVATE_COMMAND_SIZE);
-    TddUtil::RestoreSelfTokenID();
     inputMethodController_->Close();
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /**
@@ -1408,30 +1429,6 @@ HWTEST_F(InputMethodControllerTest, testFinishTextPreviewAfterDetach_002, TestSi
     TextListener::ResetParam();
     inputMethodController_->DeactivateClient();
     EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
-}
-
-/**
- * @tc.name: testOnRemoteDied
- * @tc.desc: IMC OnRemoteDied
- * @tc.type: FUNC
- */
-HWTEST_F(InputMethodControllerTest, testOnRemoteDied, TestSize.Level0)
-{
-    IMSA_HILOGI("IMC OnRemoteDied Test START");
-    InputAttribute inputAttribute = { .isTextPreviewSupported = true };
-    int32_t ret = inputMethodController_->Attach(textListener_, true, inputAttribute);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    TextListener::ResetParam();
-    bool result = TddUtil::KillImsaProcess();
-    EXPECT_TRUE(result);
-    EXPECT_TRUE(WaitRemoteDiedCallback());
-    CheckProxyObject();
-    inputMethodController_->OnRemoteSaDied(nullptr);
-    EXPECT_TRUE(TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
-    EXPECT_TRUE(TextListener::isFinishTextPreviewCalled_);
-    result = inputMethodController_->WasAttached();
-    EXPECT_TRUE(result);
-    inputMethodController_->Close();
 }
 } // namespace MiscServices
 } // namespace OHOS

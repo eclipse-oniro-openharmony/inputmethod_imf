@@ -12,6 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#define private public
+#define protected public
+#include "input_method_ability.h"
+#include "input_method_controller.h"
+#include "input_method_system_ability.h"
+#undef private
 #include <event_handler.h>
 #include <gtest/gtest.h>
 #include <string_ex.h>
@@ -28,6 +35,7 @@
 #include "global.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_system_ability.h"
+#include "identity_checker_mock.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
 #include "input_method_ability.h"
@@ -111,6 +119,7 @@ public:
     static std::shared_ptr<KeyboardListenerImpl> kbListener_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
     static sptr<OnTextChangedListener> textListener_;
+    static sptr<InputMethodSystemAbility> imsa_;
 };
 sptr<InputMethodController> InputMethodEditorTest::inputMethodController_;
 sptr<InputMethodAbility> InputMethodEditorTest::inputMethodAbility_;
@@ -118,16 +127,26 @@ std::shared_ptr<MMI::KeyEvent> InputMethodEditorTest::keyEvent_;
 std::shared_ptr<KeyboardListenerImpl> InputMethodEditorTest::kbListener_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodEditorTest::imeListener_;
 sptr<OnTextChangedListener> InputMethodEditorTest::textListener_;
+sptr<InputMethodSystemAbility> InputMethodEditorTest::imsa_;
 
 void InputMethodEditorTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodEditorTest::SetUpTestCase");
-    TddUtil::StorageSelfTokenID();
-    std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
-    std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-    TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
+    IdentityCheckerMock::ResetParam();
+
+    imsa_ = new (std::nothrow) InputMethodSystemAbility();
+    if (imsa_ == nullptr) {
+        return;
+    }
+    imsa_->OnStart();
+    imsa_->userId_ = TddUtil::GetCurrentUserId();
+    imsa_->identityChecker_ = std::make_shared<IdentityCheckerMock>();
+
     inputMethodAbility_ = InputMethodAbility::GetInstance();
+    inputMethodAbility_->abilityManager_ = imsa_;
+    IdentityCheckerMock::SetBundleNameValid(true);
     inputMethodAbility_->SetCoreAndAgent();
+    IdentityCheckerMock::SetBundleNameValid(false);
     kbListener_ = std::make_shared<KeyboardListenerImpl>();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
     inputMethodAbility_->SetKdListener(kbListener_);
@@ -135,28 +154,28 @@ void InputMethodEditorTest::SetUpTestCase(void)
 
     textListener_ = new TextListener();
     inputMethodController_ = InputMethodController::GetInstance();
+    inputMethodController_->abilityManager_ = imsa_;
 
     keyEvent_ = MMI::KeyEvent::Create();
     constexpr int32_t keyAction = 2;
     constexpr int32_t keyCode = 2001;
     keyEvent_->SetKeyAction(keyAction);
     keyEvent_->SetKeyCode(keyCode);
-    TextListener::ResetParam();
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine"));
-    TddUtil::InitWindow(true);
+    IdentityCheckerMock::SetFocused(true);
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = InputMethodEditorTest::inputMethodController_->Close();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    TddUtil::GetUnfocused();
+    IdentityCheckerMock::SetFocused(false);
+    TextListener::ResetParam();
 }
 
 void InputMethodEditorTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodEditorTest::TearDownTestCase");
-    TddUtil::RestoreSelfTokenID();
     TextListener::ResetParam();
-    TddUtil::DestroyWindow();
+    IdentityCheckerMock::ResetParam();
+    imsa_->OnStop();
 }
 
 void InputMethodEditorTest::SetUp(void)
@@ -176,12 +195,12 @@ void InputMethodEditorTest::TearDown(void)
  */
 HWTEST_F(InputMethodEditorTest, testIMCAttachUnfocused, TestSize.Level0)
 {
-    IMSA_HILOGD("InputMethodEditorTest Attach Unfocused Test START");
-    int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(textListener_, false);
+    IMSA_HILOGI("InputMethodEditorTest Attach Unfocused Test START");
+    int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
-    ret = InputMethodEditorTest::inputMethodController_->Attach(textListener_);
+    ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
-    ret = InputMethodEditorTest::inputMethodController_->Attach(textListener_, true);
+    ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_FOCUSED);
 }
 
@@ -240,13 +259,12 @@ HWTEST_F(InputMethodEditorTest, testRequestInput001, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testRequestInput002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestInput002 Test START");
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine", { "ohos.permission.CONNECT_IME_ABILITY" }));
+    IdentityCheckerMock::SetPermission(true);
     int32_t ret = InputMethodEditorTest::inputMethodController_->RequestShowInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     ret = InputMethodEditorTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    TddUtil::RestoreSelfTokenID();
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefine"));
+    IdentityCheckerMock::SetPermission(false);
 }
 
 /**
@@ -257,7 +275,7 @@ HWTEST_F(InputMethodEditorTest, testRequestInput002, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest Attach Focused Test START");
-    TddUtil::GetFocused();
+    IdentityCheckerMock::SetFocused(true);
     InputMethodEditorTest::imeListener_->isInputStart_ = false;
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
@@ -277,7 +295,7 @@ HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level0)
     EXPECT_TRUE(imeListener_->keyboardState_);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodEditorTest::inputMethodController_->Close();
-    TddUtil::GetUnfocused();
+    IdentityCheckerMock::SetFocused(false);
 }
 
 /**
@@ -288,8 +306,8 @@ HWTEST_F(InputMethodEditorTest, testAttachFocused, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest ShowSoftKeyboard Test START");
-    TddUtil::SetTestTokenID(TddUtil::AllocTestTokenID(true, "undefined", { "ohos.permission.CONNECT_IME_ABILITY" }));
-    TddUtil::GetFocused();
+    IdentityCheckerMock::SetFocused(true);
+    IdentityCheckerMock::SetPermission(true);
     InputMethodEditorTest::imeListener_->keyboardState_ = false;
     TextListener::ResetParam();
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
@@ -298,7 +316,8 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(imeListener_->keyboardState_ && TextListener::WaitSendKeyboardStatusCallback(KeyboardStatus::SHOW));
     InputMethodEditorTest::inputMethodController_->Close();
-    TddUtil::GetUnfocused();
+    IdentityCheckerMock::SetFocused(false);
+    IdentityCheckerMock::SetPermission(false);
 }
 
 /**
@@ -309,7 +328,8 @@ HWTEST_F(InputMethodEditorTest, testShowSoftKeyboard, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest HideTextInputAndShowTextInput Test START");
-    TddUtil::GetFocused();
+    IdentityCheckerMock::SetFocused(true);
+    IdentityCheckerMock::SetPermission(true);
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -335,7 +355,8 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
     ret = InputMethodEditorTest::inputMethodController_->OnConfigurationChange({});
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_EDITABLE);
     InputMethodEditorTest::inputMethodController_->Close();
-    TddUtil::GetUnfocused();
+    IdentityCheckerMock::SetFocused(false);
+    IdentityCheckerMock::SetPermission(false);
 }
 
 /**
@@ -346,7 +367,8 @@ HWTEST_F(InputMethodEditorTest, testIMCHideTextInput, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testIMCDeactivateClient, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest testIMCDeactivateClient Test START");
-    TddUtil::GetFocused();
+    IdentityCheckerMock::SetFocused(true);
+    IdentityCheckerMock::SetPermission(true);
     int32_t ret = inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
@@ -379,7 +401,8 @@ HWTEST_F(InputMethodEditorTest, testIMCDeactivateClient, TestSize.Level0)
     ret = inputMethodController_->ShowTextInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodEditorTest::inputMethodController_->Close();
-    TddUtil::GetUnfocused();
+    IdentityCheckerMock::SetFocused(false);
+    IdentityCheckerMock::SetPermission(false);
 }
 
 /**
@@ -390,7 +413,7 @@ HWTEST_F(InputMethodEditorTest, testIMCDeactivateClient, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest ShowTextInput Test START");
-    TddUtil::GetFocused();
+    IdentityCheckerMock::SetFocused(true);
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodEditorTest::inputMethodController_->HideTextInput();
@@ -405,7 +428,7 @@ HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
           && kbListener_->keyStatus_ == keyEvent_->GetKeyAction();
     EXPECT_TRUE(consumeResult);
     InputMethodEditorTest::inputMethodController_->Close();
-    TddUtil::GetUnfocused();
+    IdentityCheckerMock::SetFocused(false);
 }
 
 /**
@@ -416,7 +439,8 @@ HWTEST_F(InputMethodEditorTest, testShowTextInput, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
 {
     IMSA_HILOGI("IMC Close Test START");
-    TddUtil::GetFocused();
+    IdentityCheckerMock::SetFocused(true);
+    IdentityCheckerMock::SetPermission(true);
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     InputMethodEditorTest::inputMethodController_->Close();
@@ -442,7 +466,8 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
     ret = InputMethodEditorTest::inputMethodController_->OnConfigurationChange({});
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NOT_BOUND);
-    TddUtil::GetUnfocused();
+    IdentityCheckerMock::SetFocused(false);
+    IdentityCheckerMock::SetPermission(false);
 }
 
 /**
@@ -453,12 +478,12 @@ HWTEST_F(InputMethodEditorTest, testIMCClose, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestShowInput Test START");
-    TddUtil::GetFocused();
+    IdentityCheckerMock::SetFocused(true);
     imeListener_->keyboardState_ = false;
     int32_t ret = InputMethodEditorTest::inputMethodController_->RequestShowInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(imeListener_->keyboardState_);
-    TddUtil::GetUnfocused();
+    IdentityCheckerMock::SetFocused(false);
 }
 
 /**
@@ -469,11 +494,11 @@ HWTEST_F(InputMethodEditorTest, testRequestShowInput, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testRequestHideInput_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestHideInput_001 Test START");
-    TddUtil::GetFocused();
+    IdentityCheckerMock::SetFocused(true);
     imeListener_->keyboardState_ = true;
     int32_t ret = InputMethodEditorTest::inputMethodController_->RequestHideInput();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    TddUtil::GetUnfocused();
+    IdentityCheckerMock::SetFocused(false);
 }
 
 /**
@@ -484,7 +509,7 @@ HWTEST_F(InputMethodEditorTest, testRequestHideInput_001, TestSize.Level0)
 HWTEST_F(InputMethodEditorTest, testRequestHideInput_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodEditorTest testRequestHideInput_002 Test START");
-    TddUtil::GetFocused();
+    IdentityCheckerMock::SetFocused(true);
     int32_t ret = InputMethodEditorTest::inputMethodController_->Attach(InputMethodEditorTest::textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     imeListener_->keyboardState_ = true;
@@ -492,7 +517,7 @@ HWTEST_F(InputMethodEditorTest, testRequestHideInput_002, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_FALSE(imeListener_->keyboardState_);
     InputMethodEditorTest::inputMethodController_->Close();
-    TddUtil::GetUnfocused();
+    IdentityCheckerMock::SetFocused(false);
 }
 } // namespace MiscServices
 } // namespace OHOS

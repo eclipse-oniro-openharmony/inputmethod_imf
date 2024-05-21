@@ -15,6 +15,10 @@
 
 #define private public
 #define protected public
+#include "ime_cfg_manager.h"
+#include "input_method_ability.h"
+#include "input_method_controller.h"
+#include "input_method_system_ability.h"
 #include "inputmethod_sysevent.h"
 #undef private
 
@@ -31,6 +35,7 @@
 #include "hisysevent_manager.h"
 #include "hisysevent_query_callback.h"
 #include "hisysevent_record.h"
+#include "identity_checker_mock.h"
 #include "input_method_ability.h"
 #include "input_method_controller.h"
 #include "input_method_engine_listener_impl.h"
@@ -69,7 +74,7 @@ public:
         }
         std::string result;
         sysEvent->GetParamValue(PARAM_KEY, result);
-        IMSA_HILOGD("result = %{public}s", result.c_str());
+        IMSA_HILOGI("result = %{public}s", result.c_str());
         if (result != operateInfo_) {
             IMSA_HILOGE("string is not matched.");
             return;
@@ -109,7 +114,7 @@ public:
         sysEvent->GetParamValue(STATE, state);
         sysEvent->GetParamValue(PID, pid);
         sysEvent->GetParamValue(BUNDLE_NAME, bundleName);
-        IMSA_HILOGD("bundleName: %{public}s, state: %{public}s, pid: %{public}s", bundleName.c_str(), state.c_str(),
+        IMSA_HILOGI("bundleName: %{public}s, state: %{public}s, pid: %{public}s", bundleName.c_str(), state.c_str(),
             pid.c_str());
         if (state != state_ || pid != pid_ || bundleName != bundleName_) {
             IMSA_HILOGE("string is not matched.");
@@ -145,11 +150,15 @@ public:
     static sptr<OnTextChangedListener> textListener_;
     static sptr<InputMethodAbility> inputMethodAbility_;
     static std::shared_ptr<InputMethodEngineListenerImpl> imeListener_;
+    static sptr<InputMethodSystemAbility> imsa_;
+    static std::string currentImeBundleName_;
 };
 sptr<InputMethodController> InputMethodDfxTest::inputMethodController_;
 sptr<OnTextChangedListener> InputMethodDfxTest::textListener_;
 sptr<InputMethodAbility> InputMethodDfxTest::inputMethodAbility_;
 std::shared_ptr<InputMethodEngineListenerImpl> InputMethodDfxTest::imeListener_;
+sptr<InputMethodSystemAbility> InputMethodDfxTest::imsa_;
+std::string InputMethodDfxTest::currentImeBundleName_;
 
 bool InputMethodDfxTest::WriteAndWatch(
     const std::shared_ptr<Watcher> &watcher, const InputMethodDfxTest::ExecFunc &exec)
@@ -200,27 +209,44 @@ bool InputMethodDfxTest::WriteAndWatchImeChange(
 void InputMethodDfxTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::SetUpTestCase");
-    TddUtil::StorageSelfTokenID();
-    std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
-    std::string bundleName = property != nullptr ? property->name : "default.inputmethod.unittest";
-    TddUtil::SetTestTokenID(TddUtil::GetTestTokenID(bundleName));
+    auto prop = InputMethodController::GetInstance()->GetCurrentInputMethod();
+    std::string currentImeExtName;
+    if (prop != nullptr) {
+        currentImeBundleName_ = prop->name;
+        currentImeExtName = prop->id;
+    }
+    IdentityCheckerMock::ResetParam();
+    imsa_ = new (std::nothrow) InputMethodSystemAbility();
+    if (imsa_ == nullptr) {
+        return;
+    }
+    imsa_->OnStart();
+    imsa_->userId_ = TddUtil::GetCurrentUserId();
+    imsa_->identityChecker_ = std::make_shared<IdentityCheckerMock>();
+    IdentityCheckerMock::SetFocused(true);
+
     inputMethodAbility_ = InputMethodAbility::GetInstance();
     imeListener_ = std::make_shared<InputMethodEngineListenerImpl>();
+    inputMethodAbility_->abilityManager_ = imsa_;
+    IdentityCheckerMock::SetBundleNameValid(true);
     inputMethodAbility_->SetCoreAndAgent();
+    IdentityCheckerMock::SetBundleNameValid(false);
     inputMethodAbility_->SetImeListener(imeListener_);
 
     inputMethodController_ = InputMethodController::GetInstance();
+    inputMethodController_->abilityManager_ = imsa_;
     textListener_ = new TextListener();
-    TddUtil::SetTestTokenID(
-        TddUtil::AllocTestTokenID(true, "undefine", { "ohos.permission.READ_DFX_SYSEVENT", "ohos.permission.DUMP" }));
-    TddUtil::InitWindow(true);
+
+    std::string currentIme = currentImeBundleName_ + "/" + currentImeExtName;
+    ImeCfgManager::GetInstance().imeConfigs_.push_back({ imsa_->userId_, currentIme, "" });
 }
 
 void InputMethodDfxTest::TearDownTestCase(void)
 {
     IMSA_HILOGI("InputMethodDfxTest::TearDownTestCase");
-    TddUtil::RestoreSelfTokenID();
-    TddUtil::DestroyWindow();
+    IdentityCheckerMock::ResetParam();
+    imsa_->OnStop();
+    ImeCfgManager::GetInstance().imeConfigs_.clear();
 }
 
 void InputMethodDfxTest::SetUp(void)
@@ -242,6 +268,7 @@ void InputMethodDfxTest::TearDown(void)
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_DumpAllMethod_001");
     std::string result;
     auto ret = TddUtil::ExecuteCmd(CMD1, result);
     EXPECT_TRUE(ret);
@@ -258,6 +285,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Leve
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Dump_ShowHelp_001");
     std::string result;
     auto ret = TddUtil::ExecuteCmd(CMD2, result);
     EXPECT_TRUE(ret);
@@ -275,6 +303,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowHelp_001, TestSize.Leve
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Dump_ShowIllealInformation_001");
     std::string result;
     auto ret = TddUtil::ExecuteCmd(CMD3, result);
     EXPECT_TRUE(ret);
@@ -288,6 +317,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ShowIllealInformation_001, 
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_Attach");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ATTACH)));
     auto attach = []() { inputMethodController_->Attach(textListener_, true); };
@@ -301,6 +331,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Attach, TestSize.Leve
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_HideTextInput");
     auto ret = inputMethodController_->Attach(textListener_, true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetInstance().GetOperateInfo(
@@ -316,6 +347,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideTextInput, TestSi
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowTextInput, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_ShowTextInput");
     auto watcher = std::make_shared<Watcher>(InputMethodSysEvent::GetInstance().GetOperateInfo(
         static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_ENEDITABLE)));
     auto showTextInput = []() { inputMethodController_->ShowTextInput(); };
@@ -329,6 +361,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowTextInput, TestSi
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideCurrentInput, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_HideCurrentInput");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_NORMAL)));
     auto hideCurrentInput = []() { inputMethodController_->HideCurrentInput(); };
@@ -342,6 +375,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideCurrentInput, Tes
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowCurrentInput, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_ShowCurrentInput");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_NORMAL)));
     auto showCurrentInput = []() { inputMethodController_->ShowCurrentInput(); };
@@ -355,6 +389,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowCurrentInput, Tes
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideSoftKeyboard, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_HideSoftKeyboard");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_NORMAL)));
     auto hideSoftKeyboard = []() { inputMethodController_->HideSoftKeyboard(); };
@@ -368,6 +403,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideSoftKeyboard, Tes
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowSoftKeyboard, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_ShowSoftKeyboard");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_SHOW_NORMAL)));
     auto showSoftKeyboard = []() { inputMethodController_->ShowSoftKeyboard(); };
@@ -381,6 +417,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_ShowSoftKeyboard, Tes
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideKeyboardSelf, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_HideKeyboardSelf");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_HIDE_SELF)));
     auto hideKeyboardSelf = []() { inputMethodAbility_->HideKeyboardSelf(); };
@@ -394,6 +431,7 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_HideKeyboardSelf, Tes
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Close, TestSize.Level0)
 {
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_Close");
     auto watcher = std::make_shared<Watcher>(
         InputMethodSysEvent::GetInstance().GetOperateInfo(static_cast<int32_t>(OperateIMEInfoCode::IME_UNBIND)));
     auto close = []() { inputMethodController_->Close(); };
@@ -407,9 +445,9 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Close, TestSize.Level
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_UnBind, TestSize.Level0)
 {
-    std::string bundleName = "com.example.kikakeyboard";
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_UnBind");
     auto watcherImeChange = std::make_shared<WatcherImeChange>(std::to_string(static_cast<int32_t>(ImeState::UNBIND)),
-        std::to_string(static_cast<int32_t>(getpid())), bundleName);
+        std::to_string(static_cast<int32_t>(getpid())), currentImeBundleName_);
     auto imeStateUnBind = []() {
         inputMethodController_->Attach(textListener_, true);
         inputMethodController_->Close();
@@ -424,9 +462,9 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_UnBind, TestSize.Leve
 */
 HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Bind, TestSize.Level0)
 {
-    std::string bundleName = "com.example.kikakeyboard";
+    IMSA_HILOGI("InputMethodDfxTest::InputMethodDfxTest_Hisysevent_Bind");
     auto watcherImeChange = std::make_shared<WatcherImeChange>(std::to_string(static_cast<int32_t>(ImeState::BIND)),
-        std::to_string(static_cast<int32_t>(getpid())), bundleName);
+        std::to_string(static_cast<int32_t>(getpid())), currentImeBundleName_);
     auto imeStateBind = []() { inputMethodController_->RequestShowInput(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatchImeChange(watcherImeChange, imeStateBind));
 }

@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 #define private public
+#define protected public
 #include "input_method_ability.h"
 
 #include "input_method_controller.h"
+#include "input_method_system_ability.h"
 #undef private
 
 #include <gtest/gtest.h>
@@ -30,6 +32,7 @@
 
 #include "global.h"
 #include "i_input_data_channel.h"
+#include "identity_checker_mock.h"
 #include "input_attribute.h"
 #include "input_control_channel_stub.h"
 #include "input_data_channel_proxy.h"
@@ -38,6 +41,7 @@
 #include "input_method_core_proxy.h"
 #include "input_method_core_stub.h"
 #include "input_method_panel.h"
+#include "input_method_system_ability_proxy.h"
 #include "message_handler.h"
 #include "scope_utils.h"
 #include "tdd_util.h"
@@ -59,8 +63,9 @@ public:
     static uint32_t windowId_;
     static int32_t security_;
     static uint64_t currentImeTokenId_;
-    static uint64_t defaultImeTokenId_;
     static int32_t currentImeUid_;
+    static sptr<InputMethodSystemAbility> imsa_;
+    static sptr<InputMethodSystemAbilityProxy> imsaProxy_;
 
     class InputMethodEngineListenerImpl : public InputMethodEngineListener {
     public:
@@ -109,23 +114,37 @@ public:
 
     static void SetUpTestCase(void)
     {
+        IdentityCheckerMock::ResetParam();
         // Set the tokenID to the tokenID of the current ime
         TddUtil::StorageSelfTokenID();
+        imsa_ = new (std::nothrow) InputMethodSystemAbility();
+        if (imsa_ == nullptr) {
+            return;
+        }
+        imsa_->OnStart();
+        imsa_->userId_ = TddUtil::GetCurrentUserId();
+        imsa_->identityChecker_ = std::make_shared<IdentityCheckerMock>();
+        sptr<InputMethodSystemAbilityStub> serviceStub = imsa_;
+        imsaProxy_ = new (std::nothrow) InputMethodSystemAbilityProxy(serviceStub->AsObject());
+        if (imsaProxy_ == nullptr) {
+            return;
+        }
+        IdentityCheckerMock::SetFocused(true);
+
         std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
         auto currentIme = property != nullptr ? property->name : "default.inputmethod.unittest";
         currentImeTokenId_ = TddUtil::GetTestTokenID(currentIme);
         currentImeUid_ = TddUtil::GetUid(currentIme);
-        auto ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
-        auto defaultIme = ret == ErrorCode::NO_ERROR ? property->name : "default.inputmethod.unittest";
-        defaultImeTokenId_ = TddUtil::GetTestTokenID(defaultIme);
-        {
-            TokenScope scope(currentImeTokenId_);
-            inputMethodAbility_ = InputMethodAbility::GetInstance();
-            inputMethodAbility_->SetCoreAndAgent();
-        }
+
+        inputMethodAbility_ = InputMethodAbility::GetInstance();
+        inputMethodAbility_->abilityManager_ = imsaProxy_;
+        IdentityCheckerMock::SetBundleNameValid(true);
+        inputMethodAbility_->SetCoreAndAgent();
+        IdentityCheckerMock::SetBundleNameValid(false);
+
         TextListener::ResetParam();
-        TddUtil::InitWindow(true);
         imc_ = InputMethodController::GetInstance();
+        imc_->abilityManager_ = imsaProxy_;
         textListener_ = new TextListener();
     }
     static void TearDownTestCase(void)
@@ -133,8 +152,9 @@ public:
         IMSA_HILOGI("InputMethodAbilityTest::TearDownTestCase");
         imc_->Close();
         TextListener::ResetParam();
-        TddUtil::DestroyWindow();
         TddUtil::RestoreSelfTokenID();
+        IdentityCheckerMock::ResetParam();
+        imsa_->OnStop();
     }
     static void GetIMCAttachIMA()
     {
@@ -216,8 +236,9 @@ sptr<InputMethodAbility> InputMethodAbilityTest::inputMethodAbility_;
 uint32_t InputMethodAbilityTest::windowId_ = 0;
 int32_t InputMethodAbilityTest::security_ = -1;
 uint64_t InputMethodAbilityTest::currentImeTokenId_ = 0;
-uint64_t InputMethodAbilityTest::defaultImeTokenId_ = 0;
 int32_t InputMethodAbilityTest::currentImeUid_ = 0;
+sptr<InputMethodSystemAbility> InputMethodAbilityTest::imsa_;
+sptr<InputMethodSystemAbilityProxy> InputMethodAbilityTest::imsaProxy_;
 
 /**
 * @tc.name: testSerializedInputAttribute
@@ -790,9 +811,8 @@ HWTEST_F(InputMethodAbilityTest, testSetCallingWindow001, TestSize.Level0)
     inputMethodAbility_->SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
     uint32_t windowId = 10;
     inputMethodAbility_->SetCallingWindow(windowId);
-    InputMethodAbilityTest::imeListenerCv_.wait_for(lock, std::chrono::seconds(DEALY_TIME), [windowId] {
-        return InputMethodAbilityTest::windowId_ == windowId;
-    });
+    InputMethodAbilityTest::imeListenerCv_.wait_for(
+        lock, std::chrono::seconds(DEALY_TIME), [windowId] { return InputMethodAbilityTest::windowId_ == windowId; });
     EXPECT_EQ(InputMethodAbilityTest::windowId_, windowId);
 }
 
@@ -1097,12 +1117,14 @@ HWTEST_F(InputMethodAbilityTest, testOnSecurityChange, TestSize.Level0)
 HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_001, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_001 Test START");
+    IdentityCheckerMock::SetBundleNameValid(false);
     TextListener::ResetParam();
     InputMethodAbilityTest::GetIMCDetachIMA();
     TddUtil::RestoreSelfTokenID();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_NOT_DEFAULT_IME);
+    IdentityCheckerMock::SetBundleNameValid(true);
 }
 
 /**
@@ -1116,12 +1138,13 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_002, TestSize.Level0)
 {
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_002 Test START");
     InputMethodAbilityTest::GetIMCDetachIMA();
-    TokenScope tokenScope(InputMethodAbilityTest::defaultImeTokenId_);
+    IdentityCheckerMock::SetBundleNameValid(true);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
     privateCommand.insert({ "value1", privateDataValue1 });
     auto ret = inputMethodAbility_->SendPrivateCommand(privateCommand);
     EXPECT_EQ(ret, ErrorCode::ERROR_CLIENT_NULL_POINTER);
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /**
@@ -1136,7 +1159,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
     IMSA_HILOGI("InputMethodAbility testSendPrivateCommand_003 Test START");
     TextListener::ResetParam();
     InputMethodAbilityTest::GetIMCAttachIMA();
-    TokenScope tokenScope(InputMethodAbilityTest::defaultImeTokenId_);
+    IdentityCheckerMock::SetBundleNameValid(true);
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     PrivateDataValue privateDataValue1 = std::string("stringValue");
     PrivateDataValue privateDataValue2 = true;
@@ -1148,6 +1171,7 @@ HWTEST_F(InputMethodAbilityTest, testSendPrivateCommand_003, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(TextListener::WaitSendPrivateCommandCallback(privateCommand));
     InputMethodAbilityTest::GetIMCDetachIMA();
+    IdentityCheckerMock::SetBundleNameValid(false);
 }
 
 /**

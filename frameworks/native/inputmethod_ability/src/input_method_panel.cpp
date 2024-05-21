@@ -787,6 +787,7 @@ void InputMethodPanel::UnregisterKeyboardPanelInfoChangeListener()
 
 void InputMethodPanel::HandleKbPanelInfoChange(const KeyboardPanelInfo &keyboardPanelInfo)
 {
+    IMSA_HILOGD("run in");
     InputWindowStatus status = InputWindowStatus::HIDE;
     if (keyboardPanelInfo.isShowing_) {
         status = InputWindowStatus::SHOW;

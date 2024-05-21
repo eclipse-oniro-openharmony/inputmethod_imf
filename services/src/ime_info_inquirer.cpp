@@ -695,11 +695,7 @@ int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared
         return ErrorCode::ERROR_NULL_POINTER;
     }
     IMSA_HILOGD("getDefaultInputMethod name: %{public}s", imeInfo->prop.name.c_str());
-    prop->name = imeInfo->prop.name;
-    prop->id = imeInfo->prop.id;
-    prop->label = imeInfo->prop.label;
-    prop->labelId = imeInfo->prop.labelId;
-    prop->iconId = imeInfo->prop.iconId;
+    prop = std::make_shared<Property>(imeInfo->prop);
     return ErrorCode::NO_ERROR;
 }
 

@@ -95,7 +95,10 @@ bool IdentityCheckerTest::IdentityCheckerMock::isNativeSa_ = false;
 void IdentityCheckerTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("IdentityCheckerTest::SetUpTestCase");
-    service_ = new InputMethodSystemAbility();
+    service_ = new (std::nothrow) InputMethodSystemAbility();
+    if (service_ == nullptr) {
+        return;
+    }
     service_->OnStart();
     service_->userId_ = CURRENT_USERID;
     ImeCfgManager::GetInstance().imeConfigs_ = { { CURRENT_USERID, CURRENT_IME, CURRENT_SUBNAME } };

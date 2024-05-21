@@ -43,17 +43,21 @@ public:
     static sptr<InputMethodController> imc_;
     static void SetUpTestCase(void)
     {
+        TddUtil::StorageSelfTokenID();
         TddUtil::InitWindow(false);
         imc_ = InputMethodController::GetInstance();
         RegisterImeSettingListener();
         SwitchToTestIme();
         InputMethodAbilityInterface::GetInstance().SetImeListener(std::make_shared<InputMethodEngineListenerImpl>());
         InputMethodAbilityInterface::GetInstance().SetKdListener(std::make_shared<KeyboardListenerTestImpl>());
+        // native sa permission
         TddUtil::GrantNativePermission();
     }
     static void TearDownTestCase(void)
     {
         TddUtil::DestroyWindow();
+        TddUtil::RestoreSelfTokenID();
+        TddUtil::KillImsaProcess();
     }
     void SetUp()
     {
@@ -119,8 +123,7 @@ public:
     static void SwitchToTestIme()
     {
         ImeSettingListenerTestImpl::ResetParam();
-        TddUtil::SetTestTokenID(
-            TddUtil::AllocTestTokenID(false, "undefined", { "ohos.permission.CONNECT_IME_ABILITY" }));
+        // ohos.permission.MANAGE_SECURE_SETTINGS ohos.permission.CONNECT_IME_ABILITY
         TddUtil::GrantNativePermission();
         std::string beforeValue;
         TddUtil::GetEnableData(beforeValue);
