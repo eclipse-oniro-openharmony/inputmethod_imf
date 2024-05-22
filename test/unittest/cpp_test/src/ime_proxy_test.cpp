@@ -186,11 +186,11 @@ HWTEST_F(ImeProxyTest, AttachInPcAfterRegisteredProxyNotInEditor_002, TestSize.L
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     // mock click the edit box in pc, bind proxy
-    ImeSettingListenerTestImpl::ResetParam();
+    TextListener::ResetParam();
     InputMethodEngineListenerImpl::ResetParam();
     ret = Attach(true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitPanelShow());
+    EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(InputWindowStatus::SHOW));
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
     Close(false);
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
@@ -212,11 +212,11 @@ HWTEST_F(ImeProxyTest, AttachInPeAfterRegisteredProxyNotInEditor_003, TestSize.L
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     // mock click the edit box in pe, bind ima
-    ImeSettingListenerTestImpl::ResetParam();
+    TextListener::ResetParam();
     InputMethodEngineListenerImpl::ResetParam();
     ret = Attach(false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelShow());
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(InputWindowStatus::SHOW));
     EXPECT_FALSE(InputMethodEngineListenerImpl::WaitInputStart());
     Close(false);
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
@@ -233,19 +233,19 @@ HWTEST_F(ImeProxyTest, RegisteredProxyInImaEditor_004, TestSize.Level0)
     IMSA_HILOGI("ImeProxyTest::RegisteredProxyInImaEditor_004");
     ASSERT_TRUE(TddUtil::GetFocused());
     // mock click the edit box in pe, bind ima
-    ImeSettingListenerTestImpl::ResetParam();
+    TextListener::ResetParam();
     auto ret = Attach(false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelShow());
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(InputWindowStatus::SHOW));
 
     // RegisteredProxy in ima bind, unbind ima, bind proxy
     InputMethodEngineListenerImpl::ResetParam();
-    ImeSettingListenerTestImpl::ResetParam();
+    TextListener::ResetParam();
     KeyboardListenerTestImpl::ResetParam();
     InputMethodEngineListenerImpl::isEnable_ = true;
     ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelHide());
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(InputWindowStatus::HIDE));
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
     EXPECT_TRUE(KeyboardListenerTestImpl::WaitCursorUpdate());
     Close(false);
@@ -327,11 +327,11 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_stop_007, TestSize.Level0)
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
 
     InputMethodEngineListenerImpl::ResetParam();
-    ImeSettingListenerTestImpl::ResetParam();
+    TextListener::ResetParam();
     ret = InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
-    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitPanelShow());
+    EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(InputWindowStatus::SHOW));
     Close(false);
     TddUtil::GetUnfocused();
 }
@@ -350,16 +350,16 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInImaBind_stop_008, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     // mock click the edit box in pe, bind ima
-    ImeSettingListenerTestImpl::ResetParam();
+    TextListener::ResetParam();
     ret = Attach(false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelShow());
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(InputWindowStatus::SHOW));
 
     InputMethodEngineListenerImpl::ResetParam();
-    ImeSettingListenerTestImpl::ResetParam();
+    TextListener::ResetParam();
     ret = InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_FALSE(ImeSettingListenerTestImpl::WaitPanelHide());
+    EXPECT_FALSE(TextListener::WaitNotifyPanelStatusInfoCallback(InputWindowStatus::HIDE));
     EXPECT_FALSE(InputMethodEngineListenerImpl::WaitInputFinish());
     Close(false);
     TddUtil::GetUnfocused();
@@ -399,12 +399,12 @@ HWTEST_F(ImeProxyTest, UnRegisteredProxyInProxyBind_switch_010, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
 
-    ImeSettingListenerTestImpl::ResetParam();
+    TextListener::ResetParam();
     InputMethodEngineListenerImpl::ResetParam();
     ret = InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::SWITCH_PROXY_IME_TO_IME);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelShow());
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(InputWindowStatus::SHOW));
     Close(false);
     TddUtil::GetUnfocused();
 }
@@ -493,25 +493,25 @@ HWTEST_F(ImeProxyTest, ProxyAndImaSwitchTest_014, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 
     // mock click the edit box in pe, bind ima
-    ImeSettingListenerTestImpl::ResetParam();
+    TextListener::ResetParam();
     ret = Attach(false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelShow());
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(InputWindowStatus::SHOW));
 
     // mock click the edit box in pc, unbind ima, bind proxy
-    ImeSettingListenerTestImpl::ResetParam();
+    TextListener::ResetParam();
     InputMethodEngineListenerImpl::ResetParam();
     ret = Attach(true);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputStart());
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelHide());
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(InputWindowStatus::HIDE));
 
     // mock click the edit box in pe, unbind proxy, bind ima
-    ImeSettingListenerTestImpl::ResetParam();
+    TextListener::ResetParam();
     InputMethodEngineListenerImpl::ResetParam();
     ret = Attach(false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelShow());
+    EXPECT_TRUE(TextListener::WaitNotifyPanelStatusInfoCallback(InputWindowStatus::SHOW));
     EXPECT_TRUE(InputMethodEngineListenerImpl::WaitInputFinish());
 
     InputMethodAbilityInterface::GetInstance().UnRegisteredProxy(UnRegisteredType::REMOVE_PROXY_IME);
@@ -552,33 +552,13 @@ HWTEST_F(ImeProxyTest, KeyboardListenerTest_015, TestSize.Level0)
 }
 
 /**
-* @tc.name: ClientDiedInImaBind_016
+* @tc.name: ClientDiedInProxyBind_016
 * @tc.desc:
 * @tc.type: FUNC
 */
-HWTEST_F(ImeProxyTest, ClientDiedInImaBind_016, TestSize.Level0)
+HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_016, TestSize.Level0)
 {
-    IMSA_HILOGI("ImeProxyTest::ClientDiedInImaBind_016");
-    // open the app, click the edit box in pe, bind ima
-    StartApp();
-    ImeSettingListenerTestImpl::ResetParam();
-    ClickEditor(false);
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelShow());
-    EnsureBindComplete();
-
-    ImeSettingListenerTestImpl::ResetParam();
-    StopApp();
-    EXPECT_TRUE(ImeSettingListenerTestImpl::WaitPanelHide());
-}
-
-/**
-* @tc.name: ClientDiedInProxyBind_017
-* @tc.desc:
-* @tc.type: FUNC
-*/
-HWTEST_F(ImeProxyTest, ClientDiedInProxyBind_017, TestSize.Level0)
-{
-    IMSA_HILOGI("ImeProxyTest::ClientDiedInProxyBind_017");
+    IMSA_HILOGI("ImeProxyTest::ClientDiedInProxyBind_016");
     // RegisteredProxy not in ima bind
     InputMethodEngineListenerImpl::isEnable_ = true;
     auto ret = InputMethodAbilityInterface::GetInstance().RegisteredProxy();
