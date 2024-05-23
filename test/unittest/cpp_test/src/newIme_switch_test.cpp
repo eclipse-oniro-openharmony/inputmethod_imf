@@ -62,11 +62,8 @@ void NewImeSwitchTest::SetUpTestCase(void)
 {
     IMSA_HILOGI("NewImeSwitchTest::SetUpTestCase");
     TddUtil::GrantNativePermission();
-    int32_t ret = TddUtil::GetEnableData(beforeValue);
-    if (ret == ErrorCode::NO_ERROR) {
-        IMSA_HILOGI("Enable ime switch test.");
-        TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
-    }
+    TddUtil::GetEnableData(beforeValue);
+    TddUtil::PushEnableImeValue(ENABLE_IME_KEYWORD, allEnableIme);
     TddUtil::StorageSelfTokenID();
     TddUtil::SetTestTokenID(
         TddUtil::AllocTestTokenID(true, "ohos.inputMethod.test", { "ohos.permission.CONNECT_IME_ABILITY" }));
