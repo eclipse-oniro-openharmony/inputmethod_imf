@@ -53,7 +53,6 @@ public:
     static void ResetParam();
     static bool WaitSendKeyboardStatusCallback(const KeyboardStatus &keyboardStatus);
     static bool WaitNotifyPanelStatusInfoCallback(const PanelStatusInfo &info);
-    static bool WaitNotifyPanelStatusInfoCallback(InputWindowStatus panelStatus);
     static bool WaitNotifyKeyboardHeightCallback(uint32_t height);
     static bool WaitSendPrivateCommandCallback(std::unordered_map<std::string, PrivateDataValue> &privateCommand);
     static std::mutex textListenerCallbackLock_;
@@ -80,7 +79,6 @@ public:
     static std::string previewText_;
     static Range previewRange_;
     static bool isFinishTextPreviewCalled_;
-    static InputWindowStatus panelStatus_;
 };
 } // namespace MiscServices
 } // namespace OHOS

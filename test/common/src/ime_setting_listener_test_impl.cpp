@@ -49,25 +49,22 @@ bool ImeSettingListenerTestImpl::WaitPanelShow()
 bool ImeSettingListenerTestImpl::WaitImeChange()
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1), []() { return isImeChange_; });
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME), []() { return isImeChange_; });
     return isImeChange_;
 }
 
 bool ImeSettingListenerTestImpl::WaitTargetImeChange(const std::string &bundleName)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    do {
-        // 3 means 3 seconds.
-        imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME),
-            [&bundleName]() { return bundleName == property_.name; });
-    } while (bundleName != property_.name);
+    imeSettingListenerCv_.wait_for(
+        lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME), [&bundleName]() { return bundleName == property_.name; });
     return isImeChange_ && bundleName == property_.name;
 }
 
 bool ImeSettingListenerTestImpl::WaitImeChange(const SubProperty &subProperty)
 {
     std::unique_lock<std::mutex> lock(imeSettingListenerLock_);
-    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(1),
+    imeSettingListenerCv_.wait_for(lock, std::chrono::seconds(SWITCH_IME_WAIT_TIME),
         [&subProperty]() { return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name; });
     return subProperty_.id == subProperty.id && subProperty_.name == subProperty.name;
 }
