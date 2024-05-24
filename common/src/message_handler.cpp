@@ -51,8 +51,7 @@ Message *MessageHandler::GetMessage()
 {
     std::unique_lock<std::mutex> lock(mMutex);
     mCV.wait(lock, [this] { return !this->mQueue.empty(); });
-
-    Message *msg = (Message *)mQueue.front();
+    Message *msg = reinterpret_cast<Message *>(mQueue.front());
     mQueue.pop();
     return msg;
 }

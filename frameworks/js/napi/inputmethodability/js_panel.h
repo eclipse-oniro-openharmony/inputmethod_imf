@@ -33,7 +33,7 @@ namespace MiscServices {
 
 struct JsPanelRect {
     static napi_value Write(napi_env env, const LayoutParams &layoutParams);
-    static bool Read(napi_env env, napi_value jsObject, LayoutParams &layoutParams);
+    static bool Read(napi_env env, napi_value object, LayoutParams &layoutParams);
 };
 
 class JsPanel {
