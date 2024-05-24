@@ -22,7 +22,6 @@
 #include "global.h"
 #include "input_client_stub.h"
 #include "input_data_channel_stub.h"
-#include "system_cmd_channel_stub.h"
 #include "input_method_agent_proxy.h"
 #include "input_method_property.h"
 #include "input_method_status.h"
@@ -34,6 +33,8 @@
 #include "string_ex.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
+#include "system_cmd_channel_stub.h"
+
 
 namespace OHOS {
 namespace MiscServices {
@@ -315,7 +316,9 @@ int32_t InputMethodController::ShowCurrentInput()
 
 int32_t InputMethodController::Close()
 {
-    IMSA_HILOGI("run in");
+    if (IsBound()) {
+        IMSA_HILOGI("run in");
+    }
     bool isReportHide = clientInfo_.isShowKeyboard;
     InputMethodSyncTrace tracer("InputMethodController Close trace.");
     isReportHide ? InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNBIND)
@@ -341,7 +344,7 @@ int32_t InputMethodController::RequestHideInput()
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_EX_NULL_POINTER;
     }
-    IMSA_HILOGI("InputMethodController, run in");
+    IMSA_HILOGD("InputMethodController, run in");
     return proxy->RequestHideInput();
 }
 
@@ -722,7 +725,7 @@ int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> k
         keyEventQueue_.Pop();
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    IMSA_HILOGI("start");
+    IMSA_HILOGD("start");
     sptr<IKeyEventConsumer> consumer = new (std::nothrow) KeyEventConsumerStub(callback, keyEvent);
     if (consumer == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");

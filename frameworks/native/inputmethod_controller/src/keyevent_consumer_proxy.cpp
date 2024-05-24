@@ -30,7 +30,6 @@ KeyEventConsumerProxy::KeyEventConsumerProxy(const sptr<IRemoteObject> &object)
 
 int32_t KeyEventConsumerProxy::OnKeyEventResult(bool isConsumed)
 {
-    IMSA_HILOGI("run in");
     return SendRequest(
         KEY_EVENT_RESULT, [isConsumed](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, isConsumed); });
 }
