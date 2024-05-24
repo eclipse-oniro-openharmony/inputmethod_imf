@@ -649,7 +649,7 @@ bool InputMethodPanel::SetPanelStatusListener(std::shared_ptr<PanelStatusListene
     }
     if (panelType_ == PanelType::SOFT_KEYBOARD && (panelFlag_ == PanelFlag::FLG_FIXED ||
             panelFlag_ == PanelFlag::FLG_FLOATING) && type == "sizeChange") {
-        if (panelStatusListener_ == nullptr) {
+        if (panelStatusListener_ == nullptr && statusListener != nullptr) {
             panelStatusListener_ = std::move(statusListener);
         }
         std::lock_guard<std::mutex> lock(windowListenerLock_);
