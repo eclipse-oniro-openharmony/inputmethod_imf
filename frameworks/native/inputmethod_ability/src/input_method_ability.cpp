@@ -256,7 +256,7 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         return ErrorCode::ERROR_IME;
     }
     auto showKeyboardHandler = std::make_shared<BlockData<int32_t>>(SHOW_KEYBOARD_TIMEOUT, -1);
-    auto task = [this, clientInfo]() {
+    auto task = [this, clientInfo, showKeyboardHandler]() {
         isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
         auto ret = clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
         showKeyboardHandler->SetValue(ret);
