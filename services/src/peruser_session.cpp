@@ -1176,7 +1176,7 @@ int32_t PerUserSession::RequestIme(const std::shared_ptr<ImeData> &data, Request
 
 int32_t PerUserSession::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
 {
-    auto data = GetValidIme(ImeType::IME);
+    auto data = GetImeData(ImeType::IME);
     if (data == nullptr) {
         IMSA_HILOGE("ime: %{public}d is not exist", ImeType::IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;
