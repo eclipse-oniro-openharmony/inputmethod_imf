@@ -127,7 +127,8 @@ int32_t InputMethodPanel::DestroyPanel()
     }
     auto result = window_->Destroy();
     IMSA_HILOGI("ret = %{public}d", result);
-    return result == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
+    return (result == WMError::WM_OK || result == WMError::WM_ERROR_NULLPTR) ? ErrorCode::NO_ERROR
+                                                                             : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
 int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
