@@ -313,7 +313,7 @@ bool JsKeyboardDelegateSetting::OnDealKeyEvent(
         IMSA_HILOGW("no key event callback registered");
         return false;
     }
-    IMSA_HILOGI("run in");
+    IMSA_HILOGD("run in");
     auto task = [keyEventEntry, keyCodeEntry, consumer]() { DealKeyEvent(keyEventEntry, keyCodeEntry, consumer); };
     eventHandler->PostTask(task, "OnDealKeyEvent");
     return true;
@@ -360,9 +360,12 @@ void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<UvEntry> &key
         // 1 means callback has one param.
         JsCallbackHandler::Traverse(keyCodeEntry->vecCopy, { 1, getKeyEventProperty }, isKeyCodeConsumed);
     }
+    bool consumeResult = isKeyEventConsumed || isKeyCodeConsumed;
     if (consumer != nullptr) {
-        IMSA_HILOGI("consumer result: %{public}d", isKeyEventConsumed || isKeyCodeConsumed);
-        consumer->OnKeyEventResult(isKeyEventConsumed || isKeyCodeConsumed);
+        consumer->OnKeyEventResult(consumeResult);
+        if (!consumeResult) {
+            IMSA_HILOGW("ime is not consumed, result: %{public}d", consumeResult);
+        }
     }
 }
 
@@ -548,7 +551,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
     std::string type = "textChange";
     auto entry = GetEntry(type, [&text](UvEntry &entry) { entry.text = text; });
     if (entry == nullptr) {
-        IMSA_HILOGD("failed to get uv entry");
+        IMSA_HILOGE("failed to get uv entry");
         return;
     }
     auto eventHandler = GetEventHandler();
@@ -556,7 +559,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    IMSA_HILOGI("run in");
+    IMSA_HILOGD("run in");
     
     auto task = [entry]() {
         auto getTextChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {

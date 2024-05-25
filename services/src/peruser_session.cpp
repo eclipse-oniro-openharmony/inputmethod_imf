@@ -229,7 +229,7 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
-        StopClientInput(client);
+        StopClientInput(clientInfo);
         if (type == ImeType::IME && !isSwitching_.load()) {
             RestartIme();
         }
@@ -412,15 +412,16 @@ int32_t PerUserSession::RemoveClient(const sptr<IInputClient> &client, bool isUn
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
     // if client is current client, unbind firstly
+    auto clientInfo = GetClientInfo(client->AsObject());
     if (IsSameClient(client, GetCurrentClient())) {
-        UnBindClientWithIme(GetClientInfo(client->AsObject()), isUnbindFromClient);
+        UnBindClientWithIme(clientInfo, isUnbindFromClient);
         SetCurrentClient(nullptr);
         ExitCurrentInputType();
     }
     if (IsSameClient(client, GetInactiveClient())) {
         SetInactiveClient(nullptr);
     }
-    StopClientInput(client);
+    StopClientInput(clientInfo);
     RemoveClientInfo(client->AsObject());
     return ErrorCode::NO_ERROR;
 }
@@ -540,18 +541,18 @@ void PerUserSession::UnBindClientWithIme(
     }
     if (!isUnbindFromClient) {
         IMSA_HILOGD("Unbind from service.");
-        StopClientInput(currentClientInfo->client);
+        StopClientInput(currentClientInfo);
     }
     StopImeInput(currentClientInfo->bindImeType, currentClientInfo->channel);
 }
 
-void PerUserSession::StopClientInput(const sptr<IInputClient> &currentClient)
+void PerUserSession::StopClientInput(const std::shared_ptr<InputClientInfo> &clientInfo)
 {
-    if (currentClient == nullptr) {
+    if (clientInfo == nullptr || clientInfo->client == nullptr) {
         return;
     }
-    auto ret = currentClient->OnInputStop();
-    IMSA_HILOGI("stop client input, ret: %{public}d", ret);
+    auto ret = clientInfo->client->OnInputStop();
+    IMSA_HILOGI("stop client input, client pid: %{public}d, ret: %{public}d", ret, clientInfo->pid);
 }
 
 void PerUserSession::StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel)
@@ -914,7 +915,7 @@ void PerUserSession::StopCurrentIme()
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == ImeType::IME) {
-        StopClientInput(client);
+        StopClientInput(clientInfo);
     }
     auto ret = RequestIme(data, RequestType::NORMAL, [&data] {
         data->core->StopInputService(true);

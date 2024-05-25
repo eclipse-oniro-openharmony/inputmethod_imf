@@ -156,7 +156,7 @@ private:
         const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type, bool isBindFromClient = false);
     void UnBindClientWithIme(
         const std::shared_ptr<InputClientInfo> &currentClientInfo, bool isUnbindFromClient = false);
-    void StopClientInput(const sptr<IInputClient> &currentClient);
+    void StopClientInput(const std::shared_ptr<InputClientInfo> &clientInfo);
     void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel);
 
     int32_t HideKeyboard(const sptr<IInputClient> &currentClient);

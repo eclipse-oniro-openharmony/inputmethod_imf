@@ -278,7 +278,7 @@ void InputMethodSystemAbilityProxy::GetMessageOption(int32_t code, MessageOption
 
 int32_t InputMethodSystemAbilityProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)
 {
-    IMSA_HILOGI("IMSAProxy, code = %{public}d", code);
+    IMSA_HILOGD("IMSAProxy, code = %{public}d", code);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;

@@ -52,15 +52,15 @@ int32_t KeyEventConsumerStub::OnRemoteRequest(
 
 int32_t KeyEventConsumerStub::OnKeyEventResultOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI("callingPid/Uid: %{public}d/%{public}d", IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     bool isConsumed = false;
     if (!ITypesUtil::Unmarshal(data, isConsumed)) {
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
     if (callback_ != nullptr) {
-        IMSA_HILOGE("callback is not nullptr, isConsumed:%{public}d ", isConsumed);
         callback_(keyEvent_, isConsumed);
+    } else {
+        IMSA_HILOGE("callback is nullptr, isConsumed: %{public}d ", isConsumed);
     }
     return reply.WriteInt32(ErrorCode::NO_ERROR) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }

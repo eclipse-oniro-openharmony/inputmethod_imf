@@ -28,8 +28,10 @@ namespace MiscServices {
 int32_t InputMethodSystemAbilityStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    IMSA_HILOGI("IMSA, code = %{public}u, callingPid/Uid: %{public}d/%{public}d", code, IPCSkeleton::GetCallingPid(),
-        IPCSkeleton::GetCallingUid());
+    if (code != static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT)) {
+        IMSA_HILOGI("IMSA, code = %{public}u, callingPid/Uid/timestamp: %{public}d/%{public}d", code,
+            IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
+    }
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (remoteDescriptor != IInputMethodSystemAbility::GetDescriptor()) {
         IMSA_HILOGE("%{public}s descriptor failed", __func__);
