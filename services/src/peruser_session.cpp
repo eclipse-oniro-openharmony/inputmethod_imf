@@ -26,6 +26,7 @@
 #include "input_type_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "mem_mgr_client.h"
 #include "message_parcel.h"
 #include "parcel.h"
 #include "scene_board_judgement.h"
@@ -329,6 +330,7 @@ int32_t PerUserSession::OnRequestShowInput()
     }
     InputMethodSysEvent::GetInstance().ReportImeState(
         ImeState::BIND, data->pid, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName);
+    Memory::MemMgrClient::GetInstance().SetCritical(getpid(), true, INPUT_METHOD_SYSTEM_ABILITY_ID);
     auto currentClient = GetCurrentClient();
     if (currentClient != nullptr) {
         UpdateClientInfo(currentClient->AsObject(), { { UpdateFlag::ISSHOWKEYBOARD, true } });
@@ -458,6 +460,7 @@ void PerUserSession::DeactivateClient(const sptr<IInputClient> &client)
     });
     InputMethodSysEvent::GetInstance().ReportImeState(
         ImeState::UNBIND, data->pid, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName);
+    Memory::MemMgrClient::GetInstance().SetCritical(getpid(), false, INPUT_METHOD_SYSTEM_ABILITY_ID);
 }
 
 bool PerUserSession::IsProxyImeEnable()
@@ -521,6 +524,7 @@ int32_t PerUserSession::BindClientWithIme(
     if (type == ImeType::IME) {
         InputMethodSysEvent::GetInstance().ReportImeState(
             ImeState::BIND, data->pid, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName);
+        Memory::MemMgrClient::GetInstance().SetCritical(getpid(), true, INPUT_METHOD_SYSTEM_ABILITY_ID);
     }
     if (!isBindFromClient && clientInfo->client->OnInputReady(data->agent) != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("start client input failed, ret: %{public}d", ret);
@@ -567,6 +571,7 @@ void PerUserSession::StopImeInput(ImeType currentType, const sptr<IRemoteObject>
     if (ret == ErrorCode::NO_ERROR && currentType == ImeType::IME) {
         InputMethodSysEvent::GetInstance().ReportImeState(
             ImeState::UNBIND, data->pid, ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName);
+        Memory::MemMgrClient::GetInstance().SetCritical(getpid(), false, INPUT_METHOD_SYSTEM_ABILITY_ID);
     }
 }
 

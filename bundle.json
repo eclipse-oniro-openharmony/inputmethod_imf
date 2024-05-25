@@ -48,7 +48,8 @@
               "graphic_2d",
               "config_policy",
               "data_share",
-              "resource_schedule_service"
+              "resource_schedule_service",
+              "memmgr"
           ], 
           "third_party": [
               "cJSON"
