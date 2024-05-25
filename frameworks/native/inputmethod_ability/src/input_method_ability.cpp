@@ -43,6 +43,7 @@ constexpr double INVALID_CURSOR_VALUE = -1.0;
 constexpr int32_t INVALID_SELECTION_VALUE = -1;
 constexpr uint32_t FIND_PANEL_RETRY_INTERVAL = 10;
 constexpr uint32_t MAX_RETRY_TIMES = 100;
+constexpr int32_t START_INPUT_PROCESS_TIMEOUT = 1500;
 InputMethodAbility::InputMethodAbility() : msgHandler_(nullptr), stop_(false)
 {
 }
@@ -253,15 +254,15 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    auto task = [this, clientInfo]() {
-        isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
-        auto ret = clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
-        if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("failed to show keyboard, ret: %{public}d", ret);
-        }
+    auto startInputProcessHandler = std::make_shared<BlockData<bool>>(START_INPUT_PROCESS_TIMEOUT, false);
+    auto task = [startInputProcessHandler]() {
+        bool isCallbackFinished = true;
+        startInputProcessHandler->SetValue(isCallbackFinished);
     };
-    imeListener_->PostTaskToEventHandler(task, "ShowKeyboard");
-    return ErrorCode::NO_ERROR;
+    imeListener_->PostTaskToEventHandler(task, "startInput");
+    isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
+    startInputProcessHandler->GetValue();
+    return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
 
 void InputMethodAbility::OnSetSubtype(Message *msg)
