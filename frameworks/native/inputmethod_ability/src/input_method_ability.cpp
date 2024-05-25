@@ -19,7 +19,6 @@
 
 #include <utility>
 
-#include "block_data.h"
 #include "global.h"
 #include "input_method_agent_stub.h"
 #include "input_method_core_stub.h"
@@ -255,14 +254,15 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
     }
-    auto showKeyboardHandler = std::make_shared<BlockData<int32_t>>(SHOW_KEYBOARD_TIMEOUT, -1);
-    auto task = [this, clientInfo, showKeyboardHandler]() {
+    auto task = [this, clientInfo]() {
         isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
         auto ret = clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
-        showKeyboardHandler->SetValue(ret);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("failed to show keyboard, ret: %{public}d", ret);
+        }
     };
     imeListener_->PostTaskToEventHandler(task, "ShowKeyboard");
-    return showKeyboardHandler->GetValue();
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodAbility::OnSetSubtype(Message *msg)
