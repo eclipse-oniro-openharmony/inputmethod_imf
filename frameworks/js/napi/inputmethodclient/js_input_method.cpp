@@ -72,7 +72,7 @@ napi_status JsInputMethod::GetInputMethodProperty(
         CHECK_RETURN(status == napi_ok, "get ctxt->methodId failed!", status);
     }
     PARAM_CHECK_RETURN(env, (!ctxt->packageName.empty() && !ctxt->methodId.empty()),
-        "packageName and methodId is empty", TYPE_NONE, napi_invalid_arg);
+        "param packageName and methodId is empty", TYPE_NONE, napi_invalid_arg);
     IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->methodId.c_str(), ctxt->packageName.c_str());
     return napi_ok;
 }
@@ -233,11 +233,11 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
 {
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "at least 1 parameter", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object || valueType == napi_string, "type must be object or string",
-            TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object || valueType == napi_string,
+            "when param is target/bundleName type must be InputMethodProperty/string", TYPE_NONE, napi_invalid_arg);
         napi_status status = napi_generic_failure;
         if (valueType == napi_object) {
             ctxt->trigger = SwitchTrigger::CURRENT_IME;
@@ -331,10 +331,11 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
 {
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "should has one parameter. ", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodSubtype: ", TYPE_OBJECT, napi_object_expected);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "param target type must be InputMethodSubtype",
+            TYPE_NONE, napi_invalid_arg);
         napi_status status = GetInputMethodSubProperty(env, argv[0], ctxt);
         return status;
     };
@@ -365,12 +366,14 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
 {
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 1, "should has two parameter.", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodProperty: ", TYPE_OBJECT, napi_object_expected);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "param inputMethodProperty type must be InputMethodProperty",
+            TYPE_NONE, napi_invalid_arg);
         napi_typeof(env, argv[1], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodSubtype: ", TYPE_OBJECT, napi_object_expected);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "param inputMethodSubtype type must be InputMethodSubtype",
+            TYPE_NONE, napi_invalid_arg);
         napi_status status = GetInputMethodSubProperty(env, argv[1], ctxt);
         return status;
     };

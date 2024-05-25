@@ -379,20 +379,22 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
 {
     auto ctxt = std::make_shared<PanelContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc >= 2, "should has 2 or 3 parameters!", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc >= 2, "at least two paramsters is required", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         // 0 means parameter of ctx<BaseContext>
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, " ctx: ", TYPE_OBJECT, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "ctx type must be BaseContext",
+            TYPE_NONE, napi_invalid_arg);
         napi_status status = GetContext(env, argv[0], ctxt->context);
         if (status != napi_ok) {
             return status;
         }
         // 1 means parameter of info<PanelInfo>
         napi_typeof(env, argv[1], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, " panelInfo: ", TYPE_OBJECT, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "param info type must be PanelInfo",
+            TYPE_NONE, napi_invalid_arg);
         status = JsUtils::GetValue(env, argv[1], ctxt->panelInfo);
-        PARAM_CHECK_RETURN(env, status == napi_ok, " panelInfo: ", TYPE_OBJECT, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "js param info covert failed", TYPE_NONE, napi_invalid_arg);
         return status;
     };
 
@@ -427,15 +429,17 @@ napi_value JsInputMethodEngineSetting::DestroyPanel(napi_env env, napi_callback_
 {
     auto ctxt = std::make_shared<PanelContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc >= 1, "should has 1 parameters!", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc >= 1, "at least one paramster is required", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, " target: ", TYPE_OBJECT, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "param panel type must be Panel", TYPE_NONE,
+            napi_invalid_arg);
         bool isPanel = false;
         napi_value constructor = JsPanel::Init(env);
         CHECK_RETURN(constructor != nullptr, "Failed to get panel constructor.", napi_invalid_arg);
         napi_status status = napi_instanceof(env, argv[0], constructor, &isPanel);
-        CHECK_RETURN((status == napi_ok) && isPanel, "It's not expected panel instance!", status);
+        CHECK_RETURN((status == napi_ok) && isPanel, "param verification failed. It's not expected panel instance!",
+            status);
         JsPanel *jsPanel = nullptr;
         status = napi_unwrap(env, argv[0], (void **)(&jsPanel));
         CHECK_RETURN((status == napi_ok) && (jsPanel != nullptr), "Can not unwrap to JsPanel!", status);
