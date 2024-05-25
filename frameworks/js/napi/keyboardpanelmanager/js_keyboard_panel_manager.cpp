@@ -189,12 +189,12 @@ napi_value JsKeyboardPanelManager::SendPrivateCommand(napi_env env, napi_callbac
 {
     auto ctxt = std::make_shared<SendPrivateCommandContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "should 1 parameter!", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_generic_failure);
         CHECK_RETURN(JsUtils::GetValue(env, argv[0], ctxt->privateCommand) == napi_ok,
-            "GetValue privateCommand error", napi_generic_failure);
+            "param commandData covert failed, type must be Record<string, CommandDataType>", napi_generic_failure);
         if (!TextConfig::IsPrivateCommandValid(ctxt->privateCommand)) {
             PARAM_CHECK_RETURN(
-                env, false, "privateCommand size limit 32KB, count limit 5.", TYPE_NONE, napi_generic_failure);
+                env, false, "commandData size limit 32KB, count limit 5.", TYPE_NONE, napi_generic_failure);
         }
         ctxt->info = { std::chrono::system_clock::now(), ctxt->privateCommand };
         privateCommandQueue_.Push(ctxt->info);

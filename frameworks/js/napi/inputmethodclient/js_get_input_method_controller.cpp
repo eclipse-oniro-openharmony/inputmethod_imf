@@ -345,11 +345,11 @@ napi_value JsGetInputMethodController::Subscribe(napi_env env, napi_callback_inf
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 2 means least param num.
-    PARAM_CHECK_RETURN(env, argc >= 2, "At least 2 params", TYPE_NONE, nullptr);
-    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], type), "js param: type covert failed",
+    PARAM_CHECK_RETURN(env, argc >= 2, "at least two paramsters is required", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], type), "js param type covert failed, must be string",
         TYPE_NONE, nullptr);
     PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_CONTROLLER, type),
-        "EventType verification failed ,should be CONTROLLER type", TYPE_NONE, nullptr);
+        "type verification failed, review the instructions and fill in the fixed values", TYPE_NONE, nullptr);
     PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[1]) == napi_function, "callback", TYPE_FUNCTION, nullptr);
     IMSA_HILOGD("Subscribe type:%{public}s.", type.c_str());
     if (TEXT_EVENT_TYPE.find(type) != TEXT_EVENT_TYPE.end()) {
@@ -496,9 +496,9 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfi
 {
     napi_value attributeResult = nullptr;
     napi_status status = JsUtils::GetValue(env, in, "inputAttribute", attributeResult);
-    CHECK_RETURN(status == napi_ok, "get inputAttribute", false);
+    CHECK_RETURN(status == napi_ok, "inputAttribute must be InputAttribute", false);
     bool ret = JsGetInputMethodController::GetValue(env, attributeResult, out.inputAttribute);
-    CHECK_RETURN(ret, "get inputAttribute of TextConfig", ret);
+    CHECK_RETURN(ret, "inputAttribute of TextConfig must be valid", ret);
 
     napi_value cursorInfoResult = nullptr;
     status = JsUtils::GetValue(env, in, "cursorInfo", cursorInfoResult);
@@ -520,25 +520,15 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfi
     return ret;
 }
 
-bool JsGetInputMethodController::ParseAttachInput(
-    napi_env env, size_t argc, napi_value *argv, const std::shared_ptr<AttachContext> &ctxt)
-{
-    // 0 means the first parameter: showkeyboard
-    bool ret = JsUtil::GetValue(env, argv[0], ctxt->showKeyboard);
-    IMSA_HILOGE("get showKeyboard end, ret = %{public}d", ret);
-
-    // 1 means the second parameter: textConfig
-    return ret && JsGetInputMethodController::GetValue(env, argv[1], ctxt->textConfig);
-}
-
 napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<AttachContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 1, "should 2 or 3 parameters!", TYPE_NONE, napi_generic_failure);
-        bool ret = ParseAttachInput(env, argc, argv, ctxt);
-        PARAM_CHECK_RETURN(env, ret, "attach verification failed. shoule contain showKeyboard and textConfig",
-            TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], ctxt->showKeyboard),
+            "js param showKeyboard covert failed, type must be boolean", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsGetInputMethodController::GetValue(env, argv[1], ctxt->textConfig),
+            "js param textConfig covert failed, type must be TextConfig", TYPE_NONE, napi_generic_failure);
         return napi_ok;
     };
     auto exec = [ctxt, env](AsyncCall::Context *ctx) {
@@ -577,11 +567,10 @@ napi_value JsGetInputMethodController::SetCallingWindow(napi_env env, napi_callb
 {
     auto ctxt = std::make_shared<SetCallingWindowContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_generic_failure);
         // 0 means the first parameter: windowId
         napi_status status = JsUtils::GetValue(env, argv[0], ctxt->windID);
-        PARAM_CHECK_RETURN(env, status == napi_ok, "windID verification failed. shoule be number",
-            TYPE_NONE, status);
+        PARAM_CHECK_RETURN(env, status == napi_ok, "param windowId type must be number", TYPE_NONE, status);
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
@@ -608,11 +597,13 @@ napi_value JsGetInputMethodController::UpdateCursor(napi_env env, napi_callback_
 {
     auto ctxt = std::make_shared<UpdateCursorContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_generic_failure);
         // 0 means the first parameter: cursorInfo
+        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_object,
+            "param cursorInfo type must be CursorInfo", TYPE_NONE, napi_generic_failure);
         bool ret = JsGetInputMethodController::GetValue(env, argv[0], ctxt->cursorInfo);
-        PARAM_CHECK_RETURN(env, ret, "cursorInfo verification failed. should contain 4 number", TYPE_NONE,
-            napi_generic_failure);
+        PARAM_CHECK_RETURN(env, ret, "param cursorInfo covert failed, must contain four numbers",
+            TYPE_NONE, napi_generic_failure);
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
@@ -631,13 +622,13 @@ napi_value JsGetInputMethodController::ChangeSelection(napi_env env, napi_callba
 {
     std::shared_ptr<ChangeSelectionContext> ctxt = std::make_shared<ChangeSelectionContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 2, "should 3 or 4 parameters!", TYPE_NONE, napi_generic_failure);
-        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], ctxt->text), "text verification failed",
-            TYPE_NONE, napi_generic_failure);
-        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[1], ctxt->start), "start verification failed",
-            TYPE_NONE, napi_generic_failure);
-        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[2], ctxt->end), "end verification failed",
-            TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, argc > 2, "at least three paramsters is required", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], ctxt->text),
+            "param text type must be string", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[1], ctxt->start),
+            "param start type must be number", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[2], ctxt->end),
+            "param end type must be number", TYPE_NONE, napi_generic_failure);
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
@@ -662,9 +653,9 @@ napi_value JsGetInputMethodController::UpdateAttribute(napi_env env, napi_callba
 {
     auto ctxt = std::make_shared<UpdateAttributeContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "should 1 or 2 parameters!", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_generic_failure);
         bool ret = JsGetInputMethodController::GetValue(env, argv[0], ctxt->attribute);
-        PARAM_CHECK_RETURN(env, ret, "paramters of updateAttribute verification failed",
+        PARAM_CHECK_RETURN(env, ret, "param attribute type must be InputAttribute",
             TYPE_NONE, napi_generic_failure);
         ctxt->configuration.SetTextInputType(static_cast<TextInputType>(ctxt->attribute.inputPattern));
         ctxt->configuration.SetEnterKeyType(static_cast<EnterKeyType>(ctxt->attribute.enterKeyType));
