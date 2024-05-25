@@ -250,18 +250,18 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("failed to invoke callback, ret: %{public}d", ret);
         return ret;
     }
-    if (imeListener_ == nullptr) {
-        IMSA_HILOGE("imeListener is nullptr");
-        return ErrorCode::ERROR_IME;
-    }
     auto startInputProcessHandler = std::make_shared<BlockData<bool>>(START_INPUT_PROCESS_TIMEOUT, false);
     auto task = [startInputProcessHandler]() {
         bool isCallbackFinished = true;
         startInputProcessHandler->SetValue(isCallbackFinished);
     };
-    imeListener_->PostTaskToEventHandler(task, "startInput");
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
-    startInputProcessHandler->GetValue();
+    if (imeListener_ != nullptr) {
+        imeListener_->PostTaskToEventHandler(task, "startInput");
+        startInputProcessHandler->GetValue();
+    } else {
+        IMSA_HILOGE("imeListener_ is nullptr.");
+    }
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
 
