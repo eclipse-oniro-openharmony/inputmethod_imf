@@ -19,6 +19,7 @@
 
 #include <utility>
 
+#include "block_data.h"
 #include "global.h"
 #include "input_method_agent_stub.h"
 #include "input_method_core_stub.h"
