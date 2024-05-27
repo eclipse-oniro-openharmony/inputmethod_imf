@@ -19,6 +19,7 @@
 
 #include <utility>
 
+#include "block_data.h"
 #include "global.h"
 #include "input_method_agent_stub.h"
 #include "input_method_core_stub.h"
@@ -43,6 +44,7 @@ constexpr double INVALID_CURSOR_VALUE = -1.0;
 constexpr int32_t INVALID_SELECTION_VALUE = -1;
 constexpr uint32_t FIND_PANEL_RETRY_INTERVAL = 10;
 constexpr uint32_t MAX_RETRY_TIMES = 100;
+constexpr int32_t START_INPUT_PROCESS_TIMEOUT = 1500;
 InputMethodAbility::InputMethodAbility() : msgHandler_(nullptr), stop_(false)
 {
 }
@@ -249,7 +251,18 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("failed to invoke callback, ret: %{public}d", ret);
         return ret;
     }
+    auto startInputProcessHandler = std::make_shared<BlockData<bool>>(START_INPUT_PROCESS_TIMEOUT, false);
+    auto task = [startInputProcessHandler]() {
+        bool isCallbackFinished = true;
+        startInputProcessHandler->SetValue(isCallbackFinished);
+    };
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
+    if (imeListener_ != nullptr) {
+        imeListener_->PostTaskToEventHandler(task, "startInput");
+        startInputProcessHandler->GetValue();
+    } else {
+        IMSA_HILOGE("imeListener_ is nullptr.");
+    }
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }
 
