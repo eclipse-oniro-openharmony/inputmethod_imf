@@ -41,8 +41,8 @@ struct LayoutParams {
 struct PanelAdjustInfo {
     int32_t top;
     int32_t left;
-    uint32_t right;
-    uint32_t bottom;
+    int32_t right;
+    int32_t bottom;
     bool operator==(const PanelAdjustInfo &panelAdjust) const
     {
         return (top == panelAdjust.top && left == panelAdjust.left && right == panelAdjust.right &&
@@ -119,7 +119,7 @@ private:
     bool IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t height, int32_t displayWidth, int32_t displayHeight);
     bool CheckSize(PanelFlag panelFlag, uint32_t width, uint32_t height, bool isDataPortrait);
     bool GetDisplaySize(bool isPortrait, WindowSize &size);
-    void CalculateFaloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
+    void CalculateFloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
         PanelAdjustInfo &porIterValue, int densityDpi);
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
