@@ -84,7 +84,7 @@ private:
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
-        bool shouldSysPanelShow;
+        bool shouldSysPanelShow = false;
         std::string smartMenu;
         std::unordered_map<std::string, PrivateDataValue> privateCommand;
         explicit UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
