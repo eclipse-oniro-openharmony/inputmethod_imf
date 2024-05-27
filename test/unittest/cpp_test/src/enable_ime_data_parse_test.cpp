@@ -407,7 +407,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_013, TestSize.Level0)
     EXPECT_TRUE(ret);
 }
 
-/** 
+/**
  * @tc.name: testOnUserChanged_001
  * @tc.desc: Test local enable list cache change when user changed.
  * @tc.type: FUNC
