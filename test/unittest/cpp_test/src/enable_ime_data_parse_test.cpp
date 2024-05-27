@@ -48,9 +48,12 @@ void EnableImeDataParseTest::SetUpTestCase(void)
     DataSharePredicates predicates;
     Uri uri("tsetUri");
     resultSet_ = helper_->Query(uri, predicates, columns);
+    EnableImeDataParser::GetInstance()->Initialize(USER_ID);
+    ImeInfoInquirer::currentIme_ = std::make_shared<Property>();
+    ImeInfoInquirer::defaultImeProperty_ = std::make_shared<Property>();
+    ImeInfoInquirer::defaultIme_ = std::make_shared<ImeInfo>();
     ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp()->name = "defaultImeName";
     ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp()->id = "defaultImeId";
-    EnableImeDataParser::GetInstance()->Initialize(USER_ID);
 }
 
 void EnableImeDataParseTest::TearDownTestCase(void)
@@ -330,6 +333,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_010, TestSize.Level0)
  */
 HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_011, TestSize.Level0)
 {
+    IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_011 START");
     EnableImeDataParseTest::resultSet_->strValue_ = "";
     SwitchInfo switchInfo;
     bool ret = EnableImeDataParser::GetInstance()->CheckNeedSwitch(IME_KEY, switchInfo, USER_ID);
@@ -346,7 +350,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_011, TestSize.Level0)
  */
 HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_012, TestSize.Level0)
 {
-    IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_005 START");
+    IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_012 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
     EnableImeDataParseTest::resultSet_->strValue_ = "{\"enableImeList\" : {\"100\" : []}}";
@@ -368,7 +372,7 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_012, TestSize.Level0)
  */
 HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_013, TestSize.Level0)
 {
-    IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_005 START");
+    IMSA_HILOGI("EnableImeDataParseTest testCheckNeedSwitch_013 START");
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->name = "xiaoyiIme";
     ImeInfoInquirer::GetInstance().GetCurrentInputMethod(USER_ID)->id = "xiaoyiImeId";
     SwitchInfo switchInfo;
@@ -390,9 +394,20 @@ HWTEST_F(EnableImeDataParseTest, testCheckNeedSwitch_013, TestSize.Level0)
     if (EnableImeDataParser::GetInstance()->enableList_[IME_KEY].size() == USER_101_TOTAL_COUNT) {
         EXPECT_EQ(EnableImeDataParser::GetInstance()->enableList_[IME_KEY][0], "xiaoyiIme");
     }
+
+    ImeInfoInquirer::currentIme_ = nullptr;
+    EXPECT_NE(ImeInfoInquirer::defaultImeProperty_, nullptr);
+    ret = EnableImeDataParser::GetInstance()->CheckNeedSwitch(IME_KEY, switchInfo, USER_ID);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(switchInfo.bundleName, ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp()->name);
+
+    ImeInfoInquirer::currentIme_ = std::make_shared<Property>();
+    ImeInfoInquirer::defaultImeProperty_ = nullptr;
+    ret = EnableImeDataParser::GetInstance()->CheckNeedSwitch(IME_KEY, switchInfo, USER_ID);
+    EXPECT_TRUE(ret);
 }
 
-/**
+/** 
  * @tc.name: testOnUserChanged_001
  * @tc.desc: Test local enable list cache change when user changed.
  * @tc.type: FUNC
