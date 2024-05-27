@@ -76,8 +76,8 @@ struct SysPanelAdjust : public Serializable {
     std::vector<std::string> style;
     int32_t top = 0;
     int32_t left = 0;
-    uint32_t right = 0;
-    uint32_t bottom = 0;
+    int32_t right = 0;
+    int32_t bottom = 0;
     bool Unmarshal(cJSON *node) override
     {
         auto ret = GetValue(node, GET_NAME(style), style);
