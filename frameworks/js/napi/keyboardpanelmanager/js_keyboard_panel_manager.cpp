@@ -286,7 +286,9 @@ std::shared_ptr<AppExecFwk::EventHandler> JsKeyboardPanelManager::GetEventHandle
         return handler_;
     }
     std::lock_guard<std::mutex> lock(eventHandlerMutex_);
-    handler_ = AppExecFwk::EventHandler::Current();
+    if (handler_ == nullptr) {
+        handler_ = AppExecFwk::EventHandler::Current();
+    }
     return handler_;
 }
 
