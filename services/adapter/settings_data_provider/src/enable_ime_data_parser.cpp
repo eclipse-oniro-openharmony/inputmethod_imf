@@ -79,6 +79,9 @@ bool EnableImeDataParser::CheckNeedSwitch(const std::string &key, SwitchInfo &sw
     IMSA_HILOGD("Run in, data changed.");
     auto currentIme = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId);
     auto defaultIme = GetDefaultIme();
+    if (defaultIme != nullptr) {
+        return false;
+    }
     switchInfo.bundleName = defaultIme->name;
     switchInfo.subName = "";
     if (key == std::string(ENABLE_IME)) {

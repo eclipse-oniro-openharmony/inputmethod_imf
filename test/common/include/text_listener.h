@@ -55,6 +55,10 @@ public:
     static bool WaitNotifyPanelStatusInfoCallback(const PanelStatusInfo &info);
     static bool WaitNotifyKeyboardHeightCallback(uint32_t height);
     static bool WaitSendPrivateCommandCallback(std::unordered_map<std::string, PrivateDataValue> &privateCommand);
+    static bool WaitInsertText(const std::u16string &insertText);
+    static bool WaitMoveCursor(int32_t direction);
+    static bool WaitDeleteForward(int32_t length);
+    static bool WaitDeleteBackward(int32_t length);
     static std::mutex textListenerCallbackLock_;
     static std::condition_variable textListenerCv_;
     static int32_t direction_;
