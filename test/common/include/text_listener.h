@@ -59,6 +59,10 @@ public:
     static bool WaitMoveCursor(int32_t direction);
     static bool WaitDeleteForward(int32_t length);
     static bool WaitDeleteBackward(int32_t length);
+    static bool WaitSendFunctionKey(int32_t functionKey);
+    static bool WaitHandleExtendAction(int32_t action);
+    static bool WaitHandleSetSelection(int32_t start, int32_t end);
+    static bool WaitHandleSelect(int32_t keyCode, int32_t cursorMoveSkip);
     static std::mutex textListenerCallbackLock_;
     static std::condition_variable textListenerCv_;
     static int32_t direction_;

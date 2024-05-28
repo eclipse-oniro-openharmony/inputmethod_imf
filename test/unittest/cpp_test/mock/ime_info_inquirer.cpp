@@ -17,9 +17,9 @@
 
 namespace OHOS {
 namespace MiscServices {
-std::shared_ptr<ImeInfo> ImeInfoInquirer::defaultIme_ = std::make_shared<ImeInfo>();
-std::shared_ptr<Property> ImeInfoInquirer::currentIme_ = std::make_shared<Property>();
-std::shared_ptr<Property> ImeInfoInquirer::defaultImeProperty_ = std::make_shared<Property>();
+std::shared_ptr<ImeInfo> ImeInfoInquirer::defaultIme_ = nullptr;
+std::shared_ptr<Property> ImeInfoInquirer::defaultImeProperty_ = nullptr;
+std::shared_ptr<Property> ImeInfoInquirer::currentIme_ = nullptr;
 ImeInfoInquirer &ImeInfoInquirer::GetInstance()
 {
     static ImeInfoInquirer instance;
@@ -28,28 +28,16 @@ ImeInfoInquirer &ImeInfoInquirer::GetInstance()
 
 std::shared_ptr<ImeInfo> ImeInfoInquirer::GetDefaultImeInfo(int32_t userId)
 {
-    if (defaultIme_ != nullptr) {
-        return defaultIme_;
-    }
-    defaultIme_ = std::make_shared<ImeInfo>();
     return defaultIme_;
 }
 
 std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
 {
-    if (currentIme_ != nullptr) {
-        return currentIme_;
-    }
-    currentIme_ = std::make_shared<Property>();
     return currentIme_;
 }
 
 std::shared_ptr<Property> ImeInfoInquirer::GetDefaultImeCfgProp()
 {
-    if (defaultImeProperty_ != nullptr) {
-        return defaultImeProperty_;
-    }
-    defaultImeProperty_ = std::make_shared<Property>();
     return defaultImeProperty_;
 }
 } // namespace MiscServices

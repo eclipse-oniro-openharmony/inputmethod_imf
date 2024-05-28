@@ -272,7 +272,8 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_DumpAllMethod_001, TestSize.Leve
     std::string result;
     auto ret = TddUtil::ExecuteCmd(CMD1, result);
     EXPECT_TRUE(ret);
-    EXPECT_NE(result.find("DumpAllMethod"), std::string::npos);
+    EXPECT_NE(result.find("imeList"), std::string::npos);
+    EXPECT_NE(result.find("com.example.testIme"), std::string::npos);
 }
 
 /**

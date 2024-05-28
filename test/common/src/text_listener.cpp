@@ -115,8 +115,7 @@ void TextListener::HandleSetSelection(int32_t start, int32_t end)
     selectionStart_ = start;
     selectionEnd_ = end;
     textListenerCv_.notify_one();
-    IMSA_HILOGI(
-        "TextListener, selectionStart_: %{public}d, selectionEnd_: %{public}d", selectionStart_, selectionEnd_);
+    IMSA_HILOGI("TextListener, selectionStart_: %{public}d, selectionEnd_: %{public}d", selectionStart_, selectionEnd_);
 }
 
 void TextListener::HandleExtendAction(int32_t action)
@@ -265,6 +264,31 @@ bool TextListener::WaitDeleteBackward(int32_t length)
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     textListenerCv_.wait_for(lock, std::chrono::seconds(1), [length]() { return deleteBackwardLength_ == length; });
     return deleteBackwardLength_ == length;
+}
+bool TextListener::WaitSendFunctionKey(int32_t functionKey)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [functionKey]() { return key_ == functionKey; });
+    return key_ == functionKey;
+}
+bool TextListener::WaitHandleExtendAction(int32_t action)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [action]() { return action_ == action; });
+    return action_ == action;
+}
+bool TextListener::WaitHandleSetSelection(int32_t start, int32_t end)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(
+        lock, std::chrono::seconds(1), [start, end]() { return selectionStart_ == start && selectionEnd_ == end; });
+    return selectionStart_ == start && selectionEnd_ == end;
+}
+bool TextListener::WaitHandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [keyCode]() { return selectionDirection_ == keyCode; });
+    return selectionDirection_ == keyCode;
 }
 } // namespace MiscServices
 } // namespace OHOS
