@@ -395,7 +395,7 @@ int32_t InputMethodController::GetDefaultInputMethod(std::shared_ptr<Property> &
         IMSA_HILOGE("proxy is nullptr");
         return ErrorCode::ERROR_SERVICE_START_FAILED;
     }
-    return proxy->GetDefaultInputMethod(property);
+    return proxy->GetDefaultInputMethod(property, false);
 }
 
 int32_t InputMethodController::GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig)

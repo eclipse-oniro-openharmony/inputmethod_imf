@@ -41,6 +41,7 @@ napi_value JsKeyboardPanelManager::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("getSmartMenuCfg", GetSmartMenuCfg),
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
+        DECLARE_NAPI_FUNCTION("getDefaultInputMethod", GetDefaultInputMethod),
     };
     NAPI_CALL(
         env, napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
@@ -215,6 +216,36 @@ napi_value JsKeyboardPanelManager::SendPrivateCommand(napi_env env, napi_callbac
     // 1 means JsAPI:SendPrivateCommand has 1 params at most.
     AsyncCall asyncCall(env, info, ctxt, 1);
     return asyncCall.Call(env, exec, "SendPrivateCommand");
+}
+
+napi_value JsKeyboardPanelManager::GetDefaultInputMethod(napi_env env, napi_callback_info info)
+{
+    std::shared_ptr<Property> property;
+    int32_t ret = ImeSystemCmdChannel::GetInstance()->GetDefaultImeCfg(property);
+    if (ret != ErrorCode::NO_ERROR || property == nullptr) {
+        IMSA_HILOGE("GetDefaultImeCfg failed or property is nullptr ret: %{public}d", ret);
+        return nullptr;
+    }
+    return GetJsInputMethodProperty(env, *property);
+}
+
+napi_value JsKeyboardPanelManager::GetJsInputMethodProperty(napi_env env, const Property &property)
+{
+    napi_value obj = nullptr;
+    napi_create_object(env, &obj);
+
+    auto ret = JsUtil::Object::WriteProperty(env, obj, "packageName", property.name);
+    ret = ret && JsUtil::Object::WriteProperty(env, obj, "name", property.name);
+    ret = ret && JsUtil::Object::WriteProperty(env, obj, "methodId", property.id);
+    ret = ret && JsUtil::Object::WriteProperty(env, obj, "id", property.id);
+    ret = ret && JsUtil::Object::WriteProperty(env, obj, "icon", property.icon);
+    ret = ret && JsUtil::Object::WriteProperty(env, obj, "iconId", property.iconId);
+    ret = ret && JsUtil::Object::WriteProperty(env, obj, "label", property.label);
+    ret = ret && JsUtil::Object::WriteProperty(env, obj, "labelId", property.labelId);
+    if (!ret) {
+        IMSA_HILOGE("init module inputMethod.Panel.PanelType failed, ret: %{public}d", ret);
+    }
+    return obj;
 }
 
 void JsKeyboardPanelManager::ReceivePrivateCommand(

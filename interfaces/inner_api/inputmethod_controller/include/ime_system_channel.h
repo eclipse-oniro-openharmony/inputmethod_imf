@@ -87,6 +87,7 @@ public:
         const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     int32_t ShowSysPanel(bool shouldSysPanelShow);
     void OnConnectCmdReady(const sptr<IRemoteObject> &agentObject);
+    IMF_API int32_t GetDefaultImeCfg(std::shared_ptr<Property> &property);
 
 private:
     ImeSystemCmdChannel();

@@ -73,6 +73,8 @@ public:
     static napi_value GetSmartMenuCfg(napi_env env, napi_callback_info info);
     static napi_value Subscribe(napi_env env, napi_callback_info info);
     static napi_value UnSubscribe(napi_env env, napi_callback_info info);
+    static napi_value GetDefaultInputMethod(napi_env env, napi_callback_info info);
+    static napi_value GetJsInputMethodProperty(napi_env env, const Property &property);
 
     void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     void NotifyIsShowSysPanel(bool shouldSysPanelShow) override;
