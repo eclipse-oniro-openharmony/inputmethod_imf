@@ -92,7 +92,7 @@ public:
     void RefreshCurrentImeInfo(int32_t userId);
     std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(
     const std::vector<SubProperty> &subProps, const Condition &condition);
-    int32_t GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop);
+    int32_t GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop, bool isBrief = false);
     int32_t GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig);
     int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);
     int32_t ListInputMethodSubtype(int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps);

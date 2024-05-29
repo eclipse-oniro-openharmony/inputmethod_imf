@@ -687,11 +687,22 @@ int32_t ImeInfoInquirer::GetInputMethodConfig(const int32_t userId, AppExecFwk::
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop)
+int32_t ImeInfoInquirer::GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop, bool isBrief)
 {
     IMSA_HILOGD("userId: %{public}d", userId);
+    if (isBrief) {
+        IMSA_HILOGD("GetDefaultInputMethod from ime.");
+        auto defaultIme = GetDefaultImeCfgProp();
+        if (defaultIme == nullptr) {
+            IMSA_HILOGE("defaultIme is nullptr.");
+            return ErrorCode::ERROR_NULL_POINTER;
+        }
+        prop = std::make_shared<Property>(*defaultIme);
+        return ErrorCode::NO_ERROR;
+    }
     auto imeInfo = GetDefaultImeInfo(userId);
     if (imeInfo == nullptr) {
+        IMSA_HILOGE("imeInfo is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     IMSA_HILOGD("getDefaultInputMethod name: %{public}s", imeInfo->prop.name.c_str());

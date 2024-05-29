@@ -52,7 +52,7 @@ public:
     virtual int32_t ReleaseInput(sptr<IInputClient> client) = 0;
     virtual int32_t RequestShowInput() = 0;
     virtual int32_t RequestHideInput() = 0;
-    virtual int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop) = 0;
+    virtual int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop, bool isBrief) = 0;
     virtual int32_t GetInputMethodConfig(AppExecFwk::ElementName &inputMethodConfig) = 0;
     virtual std::shared_ptr<Property> GetCurrentInputMethod() = 0;
     virtual std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() = 0;

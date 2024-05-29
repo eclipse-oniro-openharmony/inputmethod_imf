@@ -55,7 +55,7 @@ public:
     int32_t RequestHideInput() override;
     std::shared_ptr<Property> GetCurrentInputMethod() override;
     std::shared_ptr<SubProperty> GetCurrentInputMethodSubtype() override;
-    int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop) override;
+    int32_t GetDefaultInputMethod(std::shared_ptr<Property> &prop, bool isBrief) override;
     int32_t GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig) override;
     int32_t ListInputMethod(InputMethodStatus status, std::vector<Property> &props) override;
     int32_t SwitchInputMethod(const std::string &name, const std::string &subName, SwitchTrigger trigger) override;

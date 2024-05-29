@@ -145,7 +145,12 @@ int32_t InputMethodSystemAbilityStub::SetCoreAndAgentOnRemote(MessageParcel &dat
 int32_t InputMethodSystemAbilityStub::GetDefaultInputMethodOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     std::shared_ptr<Property> prop = std::make_shared<Property>();
-    auto ret = GetDefaultInputMethod(prop);
+    bool isBrief = false;
+    auto ret = data.ReadBool(isBrief);
+    if (!ret) {
+        IMSA_HILOGE("ReadBool failed.");
+    }
+    ret = GetDefaultInputMethod(prop, isBrief);
     return ITypesUtil::Marshal(reply, ret, *prop) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 

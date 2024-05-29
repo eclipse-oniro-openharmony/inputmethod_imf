@@ -775,9 +775,9 @@ std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubt
     return ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);
 }
 
-int32_t InputMethodSystemAbility::GetDefaultInputMethod(std::shared_ptr<Property> &prop)
+int32_t InputMethodSystemAbility::GetDefaultInputMethod(std::shared_ptr<Property> &prop, bool isBrief)
 {
-    return ImeInfoInquirer::GetInstance().GetDefaultInputMethod(userId_, prop);
+    return ImeInfoInquirer::GetInstance().GetDefaultInputMethod(userId_, prop, isBrief);
 }
 
 int32_t InputMethodSystemAbility::GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig)

@@ -109,10 +109,13 @@ int32_t InputMethodSystemAbilityProxy::SetCoreAndAgent(
         });
 }
 
-int32_t InputMethodSystemAbilityProxy::GetDefaultInputMethod(std::shared_ptr<Property> &property)
+int32_t InputMethodSystemAbilityProxy::GetDefaultInputMethod(std::shared_ptr<Property> &property, bool isBrief)
 {
-    return SendRequest(static_cast<uint32_t>(InputMethodInterfaceCode::GET_DEFAULT_INPUT_METHOD), nullptr,
-        [&property](MessageParcel& reply) {
+    return SendRequest(
+        static_cast<uint32_t>(InputMethodInterfaceCode::GET_DEFAULT_INPUT_METHOD),
+        [isBrief](
+            MessageParcel &data) { return ITypesUtil::Marshal(data, isBrief); },
+        [&property](MessageParcel &reply) {
             property = std::make_shared<Property>();
             return ITypesUtil::Unmarshal(reply, *property);
         });

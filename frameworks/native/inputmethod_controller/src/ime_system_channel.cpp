@@ -245,12 +245,8 @@ int32_t ImeSystemCmdChannel::ShowSysPanel(bool shouldSysPanelShow)
 
 std::string ImeSystemCmdChannel::GetSmartMenuCfg()
 {
-    auto inputMethodController = InputMethodController::GetInstance();
-    if (inputMethodController == nullptr) {
-        return "";
-    }
     std::shared_ptr<Property> defaultIme = nullptr;
-    int32_t ret = inputMethodController->GetDefaultInputMethod(defaultIme);
+    int32_t ret = GetDefaultImeCfg(defaultIme);
     if (ret != ErrorCode::NO_ERROR || defaultIme == nullptr) {
         IMSA_HILOGE("GetDefaultInputMethod failed");
         return "";
@@ -283,6 +279,17 @@ void ImeSystemCmdChannel::GetExtensionInfo(std::vector<ExtensionAbilityInfo> ext
             }
         }
     }
+}
+
+int32_t ImeSystemCmdChannel::GetDefaultImeCfg(std::shared_ptr<Property> &property)
+{
+    IMSA_HILOGD("InputMethodAbility::GetDefaultImeCfg");
+    auto proxy = GetSystemAbilityProxy();
+    if (proxy == nullptr) {
+        IMSA_HILOGE("imsa proxy is nullptr");
+        return ErrorCode::ERROR_NULL_POINTER;
+    }
+    return proxy->GetDefaultInputMethod(property, true);
 }
 } // namespace MiscServices
 } // namespace OHOS
