@@ -1156,6 +1156,7 @@ int32_t InputMethodAbility::ReceivePrivateCommand(
 
 int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range &range)
 {
+    InputMethodSyncTrace tracer("IMA_SetPreviewText");
     auto dataChannel = GetInputDataChannelProxy();
     if (dataChannel == nullptr) {
         IMSA_HILOGE("dataChannel is nullptr");
@@ -1166,6 +1167,7 @@ int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range 
 
 int32_t InputMethodAbility::FinishTextPreview()
 {
+    InputMethodSyncTrace tracer("IMA_FinishTextPreview");
     auto dataChannel = GetInputDataChannelProxy();
     if (dataChannel == nullptr) {
         IMSA_HILOGE("dataChannel is nullptr");

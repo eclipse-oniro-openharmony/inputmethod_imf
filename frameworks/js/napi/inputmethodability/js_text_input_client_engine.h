@@ -20,6 +20,7 @@
 #include "async_call.h"
 #include "block_queue.h"
 #include "calling_window_info.h"
+#include "ffrt_block_queue.h"
 #include "global.h"
 #include "js_util.h"
 #include "native_engine/native_engine.h"
@@ -446,8 +447,10 @@ private:
     static const std::string TIC_CLASS_NAME;
     static thread_local napi_ref TICRef_;
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
-    static BlockQueue<EditorEventInfo> editorQueue_;
+    static FFRTBlockQueue<EditorEventInfo> editorQueue_;
     static BlockQueue<PrivateCommandInfo> privateCommandQueue_;
+    static std::string GenerateTraceId();
+    static uint32_t traceId_;
 };
 } // namespace MiscServices
 } // namespace OHOS
