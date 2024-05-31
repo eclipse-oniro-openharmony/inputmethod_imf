@@ -692,6 +692,7 @@ ohos_unittest("ImeFreezeManagerTest") {
     "c_utils:utils",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_core",

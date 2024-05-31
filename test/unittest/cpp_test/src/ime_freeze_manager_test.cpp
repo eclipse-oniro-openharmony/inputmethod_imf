@@ -21,6 +21,7 @@
 #include <gtest/hwext/gtest-multithread.h>
 #include <sys/time.h>
 
+#include "event_handler.h"
 #include "global.h"
 using namespace testing::ext;
 using namespace testing::mt;
@@ -33,9 +34,14 @@ public:
     static void SetUpTestCase(void)
     {
         freezeManager_ = std::make_shared<FreezeManager>(-1);
+        auto runner = AppExecFwk::EventRunner::Create("test_freezeManager");
+        eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+        freezeManager_->SetEventHandler(eventHandler_);
     }
     static void TearDownTestCase(void)
     {
+        freezeManager_->SetEventHandler(nullptr);
+        eventHandler_ = nullptr;
     }
     void SetUp()
     {
@@ -150,6 +156,7 @@ public:
         }
     }
     static std::shared_ptr<FreezeManager> freezeManager_;
+    static std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
     static std::mutex mtx_;
 
 private:
@@ -169,6 +176,7 @@ private:
 };
 std::shared_ptr<FreezeManager> ImeFreezeManagerTest::freezeManager_{ nullptr };
 std::mutex ImeFreezeManagerTest::mtx_;
+std::shared_ptr<AppExecFwk::EventHandler> ImeFreezeManagerTest::eventHandler_{ nullptr };
 
 /**
  * @tc.name: SingleThread_StartInput_001

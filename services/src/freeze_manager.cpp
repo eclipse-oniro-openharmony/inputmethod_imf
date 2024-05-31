@@ -24,6 +24,9 @@
 namespace OHOS {
 namespace MiscServices {
 const std::string INPUT_METHOD_SERVICE_SA_NAME = "inputmethod_service";
+constexpr const char *STOP_TASK_NAME = "ReportStop";
+constexpr std::int32_t DELAY_TIME = 3000L;
+std::shared_ptr<AppExecFwk::EventHandler> FreezeManager::eventHandler_ = nullptr;
 bool FreezeManager::IsIpcNeeded(RequestType type)
 {
     // If ime is in use, no need to request hide.
@@ -73,6 +76,23 @@ void FreezeManager::AfterIpc(RequestType type, bool isSuccess)
 
 void FreezeManager::ControlIme(bool shouldFreeze)
 {
+    if (eventHandler_ == nullptr) {
+        IMSA_HILOGW("eventHandler_ is nullptr");
+        ReportRss(shouldFreeze);
+        return;
+    }
+    if (shouldFreeze) {
+        // Delay the FREEZE report by 3s.
+        eventHandler_->PostTask([this, shouldFreeze]() { ReportRss(shouldFreeze); }, STOP_TASK_NAME, DELAY_TIME);
+    } else {
+        // Cancel the unexecuted FREEZE task.
+        eventHandler_->RemoveTask(STOP_TASK_NAME);
+        ReportRss(shouldFreeze);
+    }
+}
+
+void FreezeManager::ReportRss(bool shouldFreeze)
+{
     auto type = ResourceSchedule::ResType::RES_TYPE_SA_CONTROL_APP_EVENT;
     auto status = shouldFreeze ? ResourceSchedule::ResType::SaControlAppStatus::SA_STOP_APP
                                : ResourceSchedule::ResType::SaControlAppStatus::SA_START_APP;
@@ -81,8 +101,13 @@ void FreezeManager::ControlIme(bool shouldFreeze)
         { "saName", INPUT_METHOD_SERVICE_SA_NAME },
         { "extensionType", std::to_string(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::INPUTMETHOD)) },
         { "pid", std::to_string(pid_) } };
-    IMSA_HILOGI("report RSS should freeze: %{public}d", shouldFreeze);
+    IMSA_HILOGD("report RSS should freeze: %{public}d", shouldFreeze);
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
+}
+
+void FreezeManager::SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler)
+{
+    eventHandler_ = eventHandler;
 }
 } // namespace MiscServices
 } // namespace OHOS

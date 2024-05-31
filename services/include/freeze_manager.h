@@ -18,6 +18,8 @@
 
 #include <mutex>
 
+#include "event_handler.h"
+
 namespace OHOS {
 namespace MiscServices {
 enum class RequestType : int32_t { NORMAL = 0, START_INPUT, STOP_INPUT, REQUEST_SHOW, REQUEST_HIDE };
@@ -26,12 +28,15 @@ public:
     explicit FreezeManager(pid_t pid) : pid_(pid)
     {
     }
+    static void SetEventHandler(const std::shared_ptr<AppExecFwk::EventHandler> &eventHandler);
     bool IsIpcNeeded(RequestType type);
     void BeforeIpc(RequestType type);
     void AfterIpc(RequestType type, bool isSuccess);
 
 private:
+    static std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
     void ControlIme(bool shouldFreeze);
+    void ReportRss(bool shouldFreeze);
     std::mutex mutex_;
     bool isImeInUse_{ false };
     bool isFrozen_{ true };

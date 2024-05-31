@@ -203,6 +203,7 @@ void InputMethodSystemAbility::HandleWmsReady(int32_t userId)
 void InputMethodSystemAbility::OnStop()
 {
     IMSA_HILOGI("OnStop started.");
+    FreezeManager::SetEventHandler(nullptr);
     serviceHandler_ = nullptr;
     state_ = ServiceRunningState::STATE_NOT_START;
     Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 0, INPUT_METHOD_SYSTEM_ABILITY_ID);
@@ -217,6 +218,7 @@ void InputMethodSystemAbility::InitServiceHandler()
     }
     std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_InputMethodSystemAbility");
     serviceHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    FreezeManager::SetEventHandler(serviceHandler_);
 
     IMSA_HILOGI("InitServiceHandler succeeded.");
 }
