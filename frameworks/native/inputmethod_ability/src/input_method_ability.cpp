@@ -914,7 +914,7 @@ int32_t InputMethodAbility::ShowSysPanel(
     if (inputMethodPanel->GetPanelType() != SOFT_KEYBOARD) {
         return ErrorCode::NO_ERROR;
     }
-    bool shouldSysPanelShow = !GetInputAttribute().GetSecurityFlag();
+    bool shouldSysPanelShow = !GetInputAttribute().GetSecurityFlag() && flag != PanelFlag::FLG_CANDIDATE_COLUMN;
     auto systemChannel = GetSystemCmdChannelProxy();
     if (systemChannel == nullptr) {
         IMSA_HILOGE("channel is nullptr");
