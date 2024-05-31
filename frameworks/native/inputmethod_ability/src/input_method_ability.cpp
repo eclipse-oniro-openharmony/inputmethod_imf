@@ -44,7 +44,7 @@ constexpr double INVALID_CURSOR_VALUE = -1.0;
 constexpr int32_t INVALID_SELECTION_VALUE = -1;
 constexpr uint32_t FIND_PANEL_RETRY_INTERVAL = 10;
 constexpr uint32_t MAX_RETRY_TIMES = 100;
-constexpr int32_t START_INPUT_PROCESS_TIMEOUT = 1500;
+constexpr int32_t START_INPUT_PROCESS_TIMEOUT = 500;
 InputMethodAbility::InputMethodAbility() : msgHandler_(nullptr), stop_(false)
 {
 }
