@@ -208,7 +208,7 @@ public:
         void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override
         {
             IMSA_HILOGI("KeyboardListenerImpl %{public}d %{public}d %{public}d %{public}d", oldBegin, oldEnd, newBegin,
-                newBegin);
+                newEnd);
             oldBegin_ = oldBegin;
             oldEnd_ = oldEnd;
             newBegin_ = newBegin;
@@ -843,6 +843,92 @@ HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange04, TestSize.Level0)
     EXPECT_EQ(InputMethodControllerTest::oldEnd_, 1);
     EXPECT_EQ(InputMethodControllerTest::newBegin_, 2);
     EXPECT_EQ(InputMethodControllerTest::newEnd_, 2);
+}
+
+/**
+ * @tc.name: testIMCOnSelectionChange05
+ * @tc.desc: 'Attach without range'-> it will get no selectionChange callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange05, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCOnSelectionChange05 Test START");
+    InputMethodControllerTest::ResetKeyboardListenerTextConfig();
+    InputMethodControllerTest::inputMethodController_->Close();
+    inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(InputMethodControllerTest::oldBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::oldEnd_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newEnd_, INVALID_VALUE);
+}
+
+/**
+ * @tc.name: testIMCOnSelectionChange06
+ * @tc.desc: 'Update(1, 2)'->'Attach without range', it will get no selectionChange callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange06, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCOnSelectionChange06 Test START");
+    InputMethodControllerTest::inputMethodController_->Close();
+    inputMethodController_->Attach(textListener_, false);
+    std::u16string text = Str8ToStr16("");
+    InputMethodControllerTest::TriggerSelectionChangeCallback(text, 1, 2);
+    InputMethodControllerTest::ResetKeyboardListenerTextConfig();
+    inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(InputMethodControllerTest::oldBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::oldEnd_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newEnd_, INVALID_VALUE);
+}
+
+/**
+ * @tc.name: testIMCOnSelectionChange07
+ * @tc.desc: 'Attach with range -> Attach without range', it will get no selectionChange callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange07, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCOnSelectionChange07 Test START");
+    InputMethodControllerTest::inputMethodController_->Close();
+    TextConfig textConfig;
+    textConfig.range = { 1, 1 };
+    inputMethodController_->Attach(textListener_, false, textConfig);
+    InputMethodControllerTest::ResetKeyboardListenerTextConfig();
+    inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(InputMethodControllerTest::oldBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::oldEnd_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newEnd_, INVALID_VALUE);
+}
+
+/**
+ * @tc.name: testIMCOnSelectionChange08
+ * @tc.desc: 'OnSelectionChange(1, 2) -> Attach without range -> OnSelectionChange(3, 4)', it will get (1,2,3,4)
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange08, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCOnSelectionChange08 Test START");
+    InputMethodControllerTest::inputMethodController_->Close();
+    inputMethodController_->Attach(textListener_, false);
+    std::u16string text = Str8ToStr16("");
+    InputMethodControllerTest::TriggerSelectionChangeCallback(text, 1, 2);
+    InputMethodControllerTest::ResetKeyboardListenerTextConfig();
+    inputMethodController_->Attach(textListener_, false);
+    InputMethodControllerTest::TriggerSelectionChangeCallback(text, 3, 4);
+    EXPECT_EQ(InputMethodControllerTest::oldBegin_, 1);
+    EXPECT_EQ(InputMethodControllerTest::oldEnd_, 2);
+    EXPECT_EQ(InputMethodControllerTest::newBegin_, 3);
+    EXPECT_EQ(InputMethodControllerTest::newEnd_, 4);
 }
 
 /**
