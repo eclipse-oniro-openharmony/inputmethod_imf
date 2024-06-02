@@ -172,27 +172,15 @@ export struct InputMethodListDialog {
 
   aboutToAppear(): void {
     console.info(`${TAG} aboutToAppear`);
-    if (deviceInfo.deviceType === 'tablet') {
-      this.dialogWidth = BIG_DIALOG_WIDTH;
-      this.fontSize = BIG_FONT_SIZE;
-      this.imageSize = BIG_IMAGE_SIZE;
-      this.listItemHeight = BIG_ITEM_HEIGHT;
-      this.imageBtnWidth = BIG_IMAGE_BUTTON_WIDTH;
-      this.imageBtnHeight = BIG_IMAGE_BUTTON_HEIGHT;
-      this.columnPadding = BIG_COLUMN_PADDING;
-      this.fontPadding = BIG_FONT_PADDING;
-      this.listItemRadius = BIG_ITEM_RADIUS;
-    } else {
-      this.dialogWidth = NORMAL_DIALOG_WIDTH;
-      this.fontSize = NORMAL_FONT_SIZE;
-      this.imageSize = NORMAL_IMAGE_SIZE;
-      this.listItemHeight = NORMAL_ITEM_HEIGHT;
-      this.imageBtnWidth = NORMAL_IMAGE_BUTTON_WIDTH;
-      this.imageBtnHeight = NORMAL_IMAGE_BUTTON_HEIGHT;
-      this.columnPadding = NORMAL_COLUMN_PADDING;
-      this.fontPadding = NORMAL_FONT_PADDING;
-      this.listItemRadius = NORMAL_ITEM_RADIUS;
-    }
+    this.dialogWidth = NORMAL_DIALOG_WIDTH;
+    this.fontSize = NORMAL_FONT_SIZE;
+    this.imageSize = NORMAL_IMAGE_SIZE;
+    this.listItemHeight = NORMAL_ITEM_HEIGHT;
+    this.imageBtnWidth = NORMAL_IMAGE_BUTTON_WIDTH;
+    this.imageBtnHeight = NORMAL_IMAGE_BUTTON_HEIGHT;
+    this.columnPadding = NORMAL_COLUMN_PADDING;
+    this.fontPadding = NORMAL_FONT_PADDING;
+    this.listItemRadius = NORMAL_ITEM_RADIUS;
     this.imageRadius = BIG_IMAGE_RADIUS;
     this.getDefaultInputMethodSubType();
     let inputMethodAbility = inputMethodEngine.getInputMethodAbility();
@@ -216,6 +204,7 @@ export struct InputMethodListDialog {
   InputMethodItem(name: string | undefined, fontColor: ResourceColor, normalColor: ResourceColor,
                   pressedColor: ResourceColor, isDivider: boolean, handleClick: Function) {
     Column() {
+      Row() {
       Text(name)
         .fontSize(this.fontSize)
         .textStyle()
@@ -229,6 +218,13 @@ export struct InputMethodListDialog {
             .backgroundColor(normalColor)
           }
         })
+        Blank()
+        if (this.isDefaultInputMethodCurrentSubType(id, isSubType)) {
+          Image($r('app.media.ohos_ic_public_ok'))  
+            .size({width: this.dialogStyle.listImageSize, height: this.dialogStyle.listImageSize})
+            .fillColor(this.dialogStyle.listFontColor)
+        }
+      }
       if (isDivider) {
         Divider()
           .divider()
