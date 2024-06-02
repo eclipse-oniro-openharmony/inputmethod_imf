@@ -52,6 +52,7 @@ TextListener::~TextListener()
 
 void TextListener::InsertText(const std::u16string &text)
 {
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     insertText_ = text;
     textListenerCv_.notify_one();
     IMSA_HILOGI("TextListener text: %{public}s", Str16ToStr8(text).c_str());
@@ -59,6 +60,7 @@ void TextListener::InsertText(const std::u16string &text)
 
 void TextListener::DeleteForward(int32_t length)
 {
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     deleteForwardLength_ = length;
     textListenerCv_.notify_one();
     IMSA_HILOGI("TextListener: DeleteForward, length is: %{public}d", length);
@@ -66,6 +68,7 @@ void TextListener::DeleteForward(int32_t length)
 
 void TextListener::DeleteBackward(int32_t length)
 {
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     deleteBackwardLength_ = length;
     textListenerCv_.notify_one();
     IMSA_HILOGI("TextListener: DeleteBackward, direction is: %{public}d", length);
@@ -77,6 +80,7 @@ void TextListener::SendKeyEventFromInputMethod(const KeyEvent &event)
 
 void TextListener::SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
 {
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     IMSA_HILOGI("TextListener::SendKeyboardStatus %{public}d", static_cast<int>(keyboardStatus));
     keyboardStatus_ = keyboardStatus;
     textListenerCv_.notify_one();
@@ -84,6 +88,7 @@ void TextListener::SendKeyboardStatus(const KeyboardStatus &keyboardStatus)
 
 void TextListener::SendFunctionKey(const FunctionKey &functionKey)
 {
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     EnterKeyType enterKeyType = functionKey.GetEnterKeyType();
     key_ = static_cast<int32_t>(enterKeyType);
     IMSA_HILOGI("TextListener functionKey: %{public}d", key_);
@@ -98,6 +103,7 @@ void TextListener::SetKeyboardStatus(bool status)
 
 void TextListener::MoveCursor(const Direction direction)
 {
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     direction_ = static_cast<int32_t>(direction);
     textListenerCv_.notify_one();
     IMSA_HILOGI("TextListener: MoveCursor, direction is: %{public}d", direction);
@@ -105,15 +111,16 @@ void TextListener::MoveCursor(const Direction direction)
 
 void TextListener::HandleSetSelection(int32_t start, int32_t end)
 {
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     selectionStart_ = start;
     selectionEnd_ = end;
     textListenerCv_.notify_one();
-    IMSA_HILOGI(
-        "TextListener, selectionStart_: %{public}d, selectionEnd_: %{public}d", selectionStart_, selectionEnd_);
+    IMSA_HILOGI("TextListener, selectionStart_: %{public}d, selectionEnd_: %{public}d", selectionStart_, selectionEnd_);
 }
 
 void TextListener::HandleExtendAction(int32_t action)
 {
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     action_ = action;
     textListenerCv_.notify_one();
     IMSA_HILOGI("HandleExtendAction, action_: %{public}d", action_);
@@ -121,6 +128,7 @@ void TextListener::HandleExtendAction(int32_t action)
 
 void TextListener::HandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
 {
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     selectionDirection_ = keyCode;
     selectionSkip_ = cursorMoveSkip;
     textListenerCv_.notify_one();
@@ -152,6 +160,7 @@ int32_t TextListener::ReceivePrivateCommand(const std::unordered_map<std::string
 
 void TextListener::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 {
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     IMSA_HILOGI("TextListener::type: %{public}d, flag: %{public}d, visible: %{public}d, trigger: %{public}d.",
         static_cast<PanelType>(info.panelInfo.panelType), static_cast<PanelFlag>(info.panelInfo.panelFlag),
         info.visible, static_cast<Trigger>(info.trigger));
@@ -161,6 +170,7 @@ void TextListener::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 
 void TextListener::NotifyKeyboardHeight(uint32_t height)
 {
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
     IMSA_HILOGI("keyboard height: %{public}u", height);
     height_ = height;
     textListenerCv_.notify_one();
@@ -230,6 +240,55 @@ bool TextListener::WaitSendPrivateCommandCallback(std::unordered_map<std::string
     textListenerCv_.wait_for(
         lock, std::chrono::seconds(1), [privateCommand]() { return privateCommand_ == privateCommand; });
     return privateCommand_ == privateCommand;
+}
+bool TextListener::WaitInsertText(const std::u16string &insertText)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [insertText]() { return insertText_ == insertText; });
+    return insertText_ == insertText;
+}
+bool TextListener::WaitMoveCursor(int32_t direction)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [direction]() { return direction_ == direction; });
+    return direction_ == direction;
+}
+bool TextListener::WaitDeleteForward(int32_t length)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [length]() { return deleteForwardLength_ == length; });
+    return deleteForwardLength_ == length;
+}
+bool TextListener::WaitDeleteBackward(int32_t length)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [length]() { return deleteBackwardLength_ == length; });
+    return deleteBackwardLength_ == length;
+}
+bool TextListener::WaitSendFunctionKey(int32_t functionKey)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [functionKey]() { return key_ == functionKey; });
+    return key_ == functionKey;
+}
+bool TextListener::WaitHandleExtendAction(int32_t action)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [action]() { return action_ == action; });
+    return action_ == action;
+}
+bool TextListener::WaitHandleSetSelection(int32_t start, int32_t end)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(
+        lock, std::chrono::seconds(1), [start, end]() { return selectionStart_ == start && selectionEnd_ == end; });
+    return selectionStart_ == start && selectionEnd_ == end;
+}
+bool TextListener::WaitHandleSelect(int32_t keyCode, int32_t cursorMoveSkip)
+{
+    std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1), [keyCode]() { return selectionDirection_ == keyCode; });
+    return selectionDirection_ == keyCode;
 }
 } // namespace MiscServices
 } // namespace OHOS
