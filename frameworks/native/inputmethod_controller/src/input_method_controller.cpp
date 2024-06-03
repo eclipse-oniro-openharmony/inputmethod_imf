@@ -196,6 +196,8 @@ void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
     }
     if (textConfig.range.start != INVALID_VALUE) {
         std::lock_guard<std::mutex> lock(editorContentLock_);
+        selectOldBegin_ = selectNewBegin_;
+        selectOldEnd_ = selectNewEnd_;
         selectNewBegin_ = textConfig.range.start;
         selectNewEnd_ = textConfig.range.end;
     }
@@ -758,7 +760,6 @@ int32_t InputMethodController::GetInputPattern(int32_t &inputpattern)
 
 int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
 {
-    IMSA_HILOGD("InputMethodController run in.");
     std::lock_guard<std::mutex> lock(textConfigLock_);
     config.inputAttribute = textConfig_.inputAttribute;
     config.cursorInfo = textConfig_.cursorInfo;
@@ -766,18 +767,18 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
     config.positionY = textConfig_.positionY;
     config.height = textConfig_.height;
     config.privateCommand = textConfig_.privateCommand;
-
     if (textConfig_.range.start == INVALID_VALUE) {
         IMSA_HILOGD("no valid SelectionRange param.");
-        return ErrorCode::NO_ERROR;
+    } else {
+        {
+            std::lock_guard<std::mutex> editorLock(editorContentLock_);
+            config.textSelection.oldBegin = selectOldBegin_;
+            config.textSelection.oldEnd = selectOldEnd_;
+        }
+        config.textSelection.newBegin = textConfig_.range.start;
+        config.textSelection.newEnd = textConfig_.range.end;
     }
-    {
-        std::lock_guard<std::mutex> editorLock(editorContentLock_);
-        config.textSelection.oldBegin = selectOldBegin_;
-        config.textSelection.oldEnd = selectOldEnd_;
-    }
-    config.textSelection.newBegin = textConfig_.range.start;
-    config.textSelection.newEnd = textConfig_.range.end;
+    IMSA_HILOGD("textConfig: %{public}s", config.ToString().c_str());
     return ErrorCode::NO_ERROR;
 }
 
@@ -923,7 +924,7 @@ void InputMethodController::OnInputStop()
 
 void InputMethodController::ClearEditorCache(bool isNewEditor)
 {
-    IMSA_HILOGD("clear editor content cache");
+    IMSA_HILOGD("isNewEditor: %{public}d", isNewEditor);
     {
         std::lock_guard<std::mutex> lock(editorContentLock_);
         textString_ = Str8ToStr16("");
@@ -931,19 +932,19 @@ void InputMethodController::ClearEditorCache(bool isNewEditor)
         if (isNewEditor || !isBound_.load()) {
             selectOldBegin_ = INVALID_VALUE;
             selectOldEnd_ = INVALID_VALUE;
-        } else {
-            selectOldBegin_ = selectNewBegin_;
-            selectOldEnd_ = selectNewEnd_;
+            selectNewBegin_ = INVALID_VALUE;
+            selectNewEnd_ = INVALID_VALUE;
         }
-        selectNewBegin_ = INVALID_VALUE;
-        selectNewEnd_ = INVALID_VALUE;
     }
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_ = {};
     }
-    std::lock_guard<std::mutex> lock(cursorInfoMutex_);
-    cursorInfo_ = {};
+    {
+        std::lock_guard<std::mutex> lock(cursorInfoMutex_);
+        cursorInfo_ = {};
+    }
+    clientInfo_.config = {};
 }
 
 void InputMethodController::SelectByRange(int32_t start, int32_t end)
