@@ -106,10 +106,16 @@ ohos_shared_library("inputmethod_service") {
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "window_manager:libwm",
     "window_manager:libwsutils",
   ]
 
+  defines = []
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+    defines += [ "SCENE_BOARD_ENABLE" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
   subsystem_name = "inputmethod"
   part_name = "imf"
 }
@@ -181,10 +187,16 @@ ohos_static_library("inputmethod_service_static") {
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "window_manager:libwm",
     "window_manager:libwsutils",
   ]
 
+  defines = []
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+    defines += [ "SCENE_BOARD_ENABLE" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
   subsystem_name = "inputmethod"
   part_name = "imf"
 }

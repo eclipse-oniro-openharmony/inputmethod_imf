@@ -17,7 +17,11 @@
 #define IMF_FOCUS_CHANGE_LISTENER_H
 
 #include "focus_monitor_manager.h"
+#ifdef SCENE_BOARD_ENABLE
+#include "window_manager_lite.h"
+#else
 #include "window_manager.h"
+#endif
 
 namespace OHOS {
 namespace MiscServices {

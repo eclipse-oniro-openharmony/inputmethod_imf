@@ -69,8 +69,13 @@ ohos_unittest("InputMethodControllerTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libdm",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("InputMethodAttachTest") {
@@ -110,8 +115,13 @@ ohos_unittest("InputMethodAttachTest") {
     "input:libmmi-client",
     "napi:ace_napi",
     "window_manager:libdm",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 ohos_unittest("InputMethodAbilityTest") {
   branch_protector_ret = "pac_ret"
@@ -159,8 +169,13 @@ ohos_unittest("InputMethodAbilityTest") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "window_manager:libdm",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("InputMethodServiceTest") {
@@ -196,8 +211,13 @@ ohos_unittest("InputMethodServiceTest") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "window_manager:libdm",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("InputMethodDfxTest") {
@@ -240,8 +260,13 @@ ohos_unittest("InputMethodDfxTest") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "window_manager:libdm",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("InputMethodPanelTest") {
@@ -284,9 +309,14 @@ ohos_unittest("InputMethodPanelTest") {
     "napi:ace_napi",
     "os_account:os_account_innerkits",
     "window_manager:libdm",
-    "window_manager:libwm",
     "window_manager:libwsutils",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("InputMethodSwitchTest") {
@@ -320,8 +350,13 @@ ohos_unittest("InputMethodSwitchTest") {
     "data_share:datashare_consumer",
     "hilog:libhilog",
     "input:libmmi-client",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("InputMethodPrivateMemberTest") {
@@ -366,8 +401,13 @@ ohos_unittest("InputMethodPrivateMemberTest") {
     "napi:ace_napi",
     "os_account:os_account_innerkits",
     "window_manager:libdm",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("InputMethodEditorTest") {
@@ -408,8 +448,13 @@ ohos_unittest("InputMethodEditorTest") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "window_manager:libdm",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("NewImeSwitchTest") {
@@ -443,8 +488,13 @@ ohos_unittest("NewImeSwitchTest") {
     "data_share:datashare_consumer",
     "hilog:libhilog",
     "input:libmmi-client",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("IdentityCheckerTest") {
@@ -485,8 +535,13 @@ ohos_unittest("IdentityCheckerTest") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "window_manager:libdm",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("TextListenerInnerApiTest") {
@@ -526,8 +581,13 @@ ohos_unittest("TextListenerInnerApiTest") {
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("ImeProxyTest") {
@@ -569,8 +629,13 @@ ohos_unittest("ImeProxyTest") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "window_manager:libdm",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("EnableImeDataParseTest") {
@@ -698,8 +763,13 @@ ohos_unittest("ImeFreezeManagerTest") {
     "ipc:ipc_core",
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ohos_unittest("JsonOperateTest") {
@@ -767,8 +837,13 @@ ohos_unittest("VirtualListenerTest") {
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 ohos_unittest("ImeSystemChannelTest") {
   branch_protector_ret = "pac_ret"
@@ -807,6 +882,11 @@ ohos_unittest("ImeSystemChannelTest") {
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }

@@ -17,7 +17,11 @@
 
 #include "focus_change_listener.h"
 #include "global.h"
+#ifdef SCENE_BOARD_ENABLE
+#include "window_manager_lite.h"
+#else
 #include "window_manager.h"
+#endif
 
 namespace OHOS {
 namespace MiscServices {
@@ -35,7 +39,11 @@ void FocusMonitorManager::RegisterFocusChangedListener(const FocusHandle &handle
         IMSA_HILOGE("failed to create listener");
         return;
     }
+#ifdef SCENE_BOARD_ENABLE
+    WMError ret = WindowManagerLite::GetInstance().RegisterFocusChangedListener(listener);
+#else
     WMError ret = WindowManager::GetInstance().RegisterFocusChangedListener(listener);
+#endif
     IMSA_HILOGI("register focus changed listener ret: %{public}d", ret);
 }
 } // namespace MiscServices

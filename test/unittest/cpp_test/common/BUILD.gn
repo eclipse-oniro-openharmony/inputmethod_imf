@@ -64,8 +64,14 @@ ohos_static_library("inputmethod_tdd_util") {
     "os_account:os_account_innerkits",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
+
   subsystem_name = "inputmethod"
   part_name = "imf"
 }

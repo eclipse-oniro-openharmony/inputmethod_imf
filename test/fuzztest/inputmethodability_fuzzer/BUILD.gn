@@ -51,8 +51,13 @@ ohos_fuzztest("InputMethodAbilityFuzzTest") {
     "ipc:ipc_single",
     "napi:ace_napi",
     "window_manager:libdm",
-    "window_manager:libwm",
   ]
+
+  if (scene_board_enabled) {
+    external_deps += [ "window_manager:libwm_lite" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
 }
 
 ###############################################################################
