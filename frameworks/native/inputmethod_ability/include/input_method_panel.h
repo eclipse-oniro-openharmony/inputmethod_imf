@@ -61,15 +61,15 @@ public:
 
     int32_t Resize(uint32_t width, uint32_t height);
     int32_t MoveTo(int32_t x, int32_t y);
-    int32_t AdjustPanelRect(PanelFlag &panelFlag, const LayoutParams &layoutParams);
-    int32_t ParsePanelRect(PanelFlag &panelFlag, const LayoutParams &layoutParams);
-    int32_t GetSysPanelAdjust(PanelFlag &panelFlag,
+    int32_t AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
+    int32_t ParsePanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
+    int32_t GetSysPanelAdjust(const PanelFlag panelFlag,
         std::tuple<std::vector<std::string>, std::vector<std::string>> &keys, const LayoutParams &layoutParams);
-    int32_t CalculatePanelRect(PanelFlag &panelFlag, PanelAdjustInfo &lanIterValue, PanelAdjustInfo &porIterValue,
+    int32_t CalculatePanelRect(const PanelFlag panelFlag, PanelAdjustInfo &lanIterValue, PanelAdjustInfo &porIterValue,
         const LayoutParams &layoutParams);
     int32_t CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &defaultDisplay, const LayoutParams &layoutParams,
         PanelAdjustInfo &lanIterValue, int densityDpi);
-    std::tuple<std::vector<std::string>, std::vector<std::string>> GetScreenStatus(PanelFlag panelFlag);
+    std::tuple<std::vector<std::string>, std::vector<std::string>> GetScreenStatus(const PanelFlag panelFlag);
     int32_t ChangePanelFlag(PanelFlag panelFlag);
     PanelType GetPanelType();
     PanelFlag GetPanelFlag();
@@ -121,6 +121,7 @@ private:
     bool GetDisplaySize(bool isPortrait, WindowSize &size);
     void CalculateFloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
         PanelAdjustInfo &porIterValue, int densityDpi);
+    int32_t CalculateNoConfigRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
