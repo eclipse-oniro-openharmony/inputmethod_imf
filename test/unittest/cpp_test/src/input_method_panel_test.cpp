@@ -691,7 +691,7 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetPanelStatusListener
+* @tc.name: testSetPanelStatusListener03
 * @tc.desc: Test SetPanelStatusListener.
 * @tc.type: FUNC
 */

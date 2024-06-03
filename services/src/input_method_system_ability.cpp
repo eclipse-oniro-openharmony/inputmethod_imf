@@ -170,7 +170,7 @@ void InputMethodSystemAbility::HandleUserChanged(int32_t userId)
         EnableImeDataParser::GetInstance()->OnUserChanged(userId_);
     }
     if (enableSecurityMode_) {
-        SecurityModeParser::GetInstance()->GetFullModeList(userId_);
+        SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
     }
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 }
@@ -1169,14 +1169,31 @@ void InputMethodSystemAbility::DatashareCallback(const std::string &key)
             OnSwitchInputMethod(switchInfo, SwitchTrigger::IMSA);
         }
     }
-
     if (key == SecurityModeParser::SECURITY_MODE) {
-        auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
-        if (SecurityModeParser::GetInstance()->IsSecurityChange(currentBundleName, userId_)) {
-            int32_t security;
-            SecurityModeParser::GetInstance()->GetSecurityMode(currentBundleName, security, userId_);
-            userSession_->OnSecurityChange(security);
-        }
+        OnSecurityModeChange();
+    }
+}
+
+void InputMethodSystemAbility::OnSecurityModeChange()
+{
+    IMSA_HILOGD("run in");
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    SecurityMode beforeMode = SecurityMode::INVALID;
+    SecurityModeParser::GetInstance()->GetSecurityMode(currentIme->bundleName, beforeMode, userId_);
+    SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
+    SecurityMode afterMode = SecurityMode::INVALID;
+    SecurityModeParser::GetInstance()->GetSecurityMode(currentIme->bundleName, beforeMode, userId_);
+    if (beforeMode == afterMode) {
+        IMSA_HILOGD("current ime mode not changed");
+        return;
+    }
+    IMSA_HILOGI("ime: %{public}s securityMode change to: %{public}d", currentIme->bundleName.c_str(),
+        static_cast<int32_t>(afterMode));
+    userSession_->OnSecurityChange(static_cast<int32_t>(afterMode));
+    userSession_->StopCurrentIme();
+    auto ret = userSession_->StartInputService(currentIme, true);
+    if (!ret) {
+        IMSA_HILOGE("start ime failed, ret: %{public}d", ret);
     }
 }
 
@@ -1188,7 +1205,10 @@ int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
         return ErrorCode::NO_ERROR;
     }
     auto callBundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
-    return SecurityModeParser::GetInstance()->GetSecurityMode(callBundleName, security, userId_);
+    SecurityMode mode;
+    int32_t ret = SecurityModeParser::GetInstance()->GetSecurityMode(callBundleName, mode, userId_);
+    security = static_cast<int32_t>(mode);
+    return ret;
 }
 
 int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)

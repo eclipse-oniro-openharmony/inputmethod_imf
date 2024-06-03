@@ -48,10 +48,10 @@ sptr<SecurityModeParser> SecurityModeParser::GetInstance()
 
 int32_t SecurityModeParser::Initialize(const int32_t userId)
 {
-    return GetFullModeList(userId);
+    return UpdateFullModeList(userId);
 }
 
-int32_t SecurityModeParser::GetFullModeList(const int32_t userId)
+int32_t SecurityModeParser::UpdateFullModeList(int32_t userId)
 {
     IMSA_HILOGD("key: %{public}s.", SECURITY_MODE);
     std::string valueStr;
@@ -71,7 +71,7 @@ int32_t SecurityModeParser::GetFullModeList(const int32_t userId)
 bool SecurityModeParser::IsSecurityChange(const std::string bundleName, const int32_t userId)
 {
     bool oldExit = IsFullMode(bundleName);
-    GetFullModeList(userId);
+    UpdateFullModeList(userId);
     bool onewExit = IsFullMode(bundleName);
     return oldExit!= onewExit;
 }
@@ -89,13 +89,12 @@ bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const in
     return true;
 }
 
-int32_t SecurityModeParser::GetSecurityMode(const std::string bundleName, int32_t &security, const int32_t userId)
+int32_t SecurityModeParser::GetSecurityMode(const std::string &bundleName, SecurityMode &security, int32_t userId)
 {
-    GetFullModeList(userId);
     if (IsFullMode(bundleName)) {
-        security = static_cast<int32_t>(SecurityMode::FULL);
+        security = SecurityMode::FULL;
     } else {
-        security = static_cast<int32_t>(SecurityMode::BASIC);
+        security = SecurityMode::BASIC;
     }
     return ErrorCode::NO_ERROR;
 }

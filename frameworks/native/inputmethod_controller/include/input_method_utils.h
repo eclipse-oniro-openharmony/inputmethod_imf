@@ -69,7 +69,8 @@ enum class Direction {
     RIGHT,
 };
 
-enum class SecurityMode {
+enum class SecurityMode : int32_t {
+    INVALID = -1,
     BASIC = 0,
     FULL = 1,
 };

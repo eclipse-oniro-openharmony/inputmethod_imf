@@ -147,6 +147,7 @@ private:
     void CheckInputTypeOption(InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(uint32_t tokenId);
     void DealSwitchRequest();
+    void OnSecurityModeChange();
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
