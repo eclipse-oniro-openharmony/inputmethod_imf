@@ -54,7 +54,7 @@ bool InputTypeManager::IsSupported(InputType type)
 bool InputTypeManager::IsInputType(const ImeIdentification &ime)
 {
     if (!isTypeCfgReady_.load() && !Init()) {
-        IMSA_HILOGE("init cfg failed");
+        IMSA_HILOGD("init cfg failed");
         return false;
     }
     std::lock_guard<std::mutex> lock(listLock_);
