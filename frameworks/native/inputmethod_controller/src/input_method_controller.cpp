@@ -643,23 +643,25 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         IMSA_HILOGD("not bound");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
+    InputAttribute attribute;
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_.inputAttribute.enterKeyType = static_cast<int32_t>(info.GetEnterKeyType());
         textConfig_.inputAttribute.inputPattern = static_cast<int32_t>(info.GetTextInputType());
+        attribute = textConfig_.inputAttribute;
     }
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    IMSA_HILOGI("IMC enterKeyType: %{public}d, textInputType: %{public}d", textConfig_.inputAttribute.enterKeyType,
-        textConfig_.inputAttribute.inputPattern);
+    IMSA_HILOGI(
+        "IMC enterKeyType: %{public}d, textInputType: %{public}d", attribute.enterKeyType, attribute.inputPattern);
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    agent->OnConfigurationChange(info);
+    agent->OnAttributeChange(attribute);
     return ErrorCode::NO_ERROR;
 }
 

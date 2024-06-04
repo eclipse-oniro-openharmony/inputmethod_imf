@@ -64,13 +64,11 @@ void InputMethodAgentProxy::SetCallingWindow(uint32_t windowId)
     IMSA_HILOGD("InputMethodAgentProxy::SetCallingWindow ret = %{public}d", ret);
 }
 
-void InputMethodAgentProxy::OnConfigurationChange(const Configuration &config)
+void InputMethodAgentProxy::OnAttributeChange(const InputAttribute &attribute)
 {
-    auto ret = SendRequest(ON_CONFIGURATION_CHANGE, [&config](MessageParcel &data) {
-        return data.WriteInt32(static_cast<int32_t>(config.GetEnterKeyType()))
-               && data.WriteInt32(static_cast<int32_t>(config.GetTextInputType()));
-    });
-    IMSA_HILOGD("InputMethodAgentProxy, ret = %{public}d", ret);
+    auto ret = SendRequest(
+        ON_ATTRIBUTE_CHANGE, [&attribute](MessageParcel &data) { return ITypesUtil::Marshal(data, attribute); });
+    IMSA_HILOGD("InputMethodAgentProxy, ret: %{public}d", ret);
 }
 
 int32_t InputMethodAgentProxy::SendPrivateCommand(

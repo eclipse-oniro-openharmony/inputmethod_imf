@@ -202,8 +202,8 @@ void InputMethodAbility::WorkThread()
                 OnSelectionChange(msg);
                 break;
             }
-            case MSG_ID_ON_CONFIGURATION_CHANGE: {
-                OnConfigurationChange(msg);
+            case MSG_ID_ON_ATTRIBUTE_CHANGE: {
+                OnAttributeChange(msg);
                 break;
             }
             case MSG_ID_STOP_INPUT_SERVICE: {
@@ -372,18 +372,20 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
     kdListener_->OnSelectionChange(oldBegin, oldEnd, newBegin, newEnd);
 }
 
-void InputMethodAbility::OnConfigurationChange(Message *msg)
+void InputMethodAbility::OnAttributeChange(Message *msg)
 {
-    if (kdListener_ == nullptr) {
-        IMSA_HILOGE("in, kdListener_ is nullptr");
+    if (kdListener_ == nullptr || msg == nullptr) {
+        IMSA_HILOGE("kdListener_ or msg is nullptr");
         return;
     }
     MessageParcel *data = msg->msgContent_;
     InputAttribute attribute;
-    attribute.enterKeyType = data->ReadInt32();
-    attribute.inputPattern = data->ReadInt32();
-    IMSA_HILOGD("InputMethodAbility, enterKeyType: %{public}d, inputPattern: %{public}d", attribute.enterKeyType,
-        attribute.inputPattern);
+    if (!ITypesUtil::Unmarshal(*data, attribute)) {
+        IMSA_HILOGE("failed to read attribute");
+        return;
+    }
+    IMSA_HILOGD(
+        "IMA, enterKeyType: %{public}d, inputPattern: %{public}d", attribute.enterKeyType, attribute.inputPattern);
     SetInputAttribute(attribute);
     // add for mod inputPattern when panel show
     auto panel = GetSoftKeyboardPanel();

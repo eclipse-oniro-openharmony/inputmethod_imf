@@ -588,8 +588,8 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d", inputAttribute.enterKeyType,
-        inputAttribute.inputPattern);
+    IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d, previewSupport: %{public}d",
+        inputAttribute.enterKeyType, inputAttribute.inputPattern, inputAttribute.isTextPreviewSupported);
     auto task = [entry]() {
         auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc == 0) {

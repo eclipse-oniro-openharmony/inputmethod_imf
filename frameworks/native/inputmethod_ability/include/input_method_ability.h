@@ -140,7 +140,7 @@ private:
     int32_t InvokeStartInputCallback(const TextTotalConfig &textConfig, bool isNotifyInputStart);
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
-    void OnConfigurationChange(Message *msg);
+    void OnAttributeChange(Message *msg);
     void OnStopInputService(Message *msg);
 
     int32_t HideKeyboard(Trigger trigger);
