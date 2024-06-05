@@ -1007,14 +1007,14 @@ HWTEST_F(InputMethodControllerTest, testIMCGetInputPattern, TestSize.Level0)
 }
 
 /**
- * @tc.name: testOnEditorAttributeChanged
- * @tc.desc: IMC testOnEditorAttributeChanged.
+ * @tc.name: testOnEditorAttributeChanged01
+ * @tc.desc: IMC testOnEditorAttributeChanged01.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged, TestSize.Level0)
+HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged01, TestSize.Level0)
 {
-    IMSA_HILOGI("IMC testOnEditorAttributeChanged Test START");
+    IMSA_HILOGI("IMC testOnEditorAttributeChanged01 Test START");
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     Configuration info;
@@ -1023,6 +1023,30 @@ HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged, TestSize.Level
     InputMethodControllerTest::TriggerConfigurationChangeCallback(info);
     EXPECT_EQ(InputMethodControllerTest::inputAttribute_.inputPattern, static_cast<int32_t>(info.GetTextInputType()));
     EXPECT_EQ(InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
+}
+
+/**
+ * @tc.name: testOnEditorAttributeChanged02
+ * @tc.desc: Attach(isPreviewSupport) -> OnConfigurationChange -> editorChange callback (isPreviewSupport).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged02, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testOnEditorAttributeChanged02 Test START");
+    InputAttribute attribute = { .inputPattern = static_cast<int32_t>(TextInputType::DATETIME),
+        .enterKeyType = static_cast<int32_t>(EnterKeyType::GO),
+        .isTextPreviewSupported = true };
+    auto ret = inputMethodController_->Attach(textListener_, false, attribute);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    Configuration info;
+    info.SetEnterKeyType(EnterKeyType::NEW_LINE);
+    info.SetTextInputType(TextInputType::NUMBER);
+    InputMethodControllerTest::ResetKeyboardListenerTextConfig();
+    InputMethodControllerTest::TriggerConfigurationChangeCallback(info);
+    EXPECT_EQ(InputMethodControllerTest::inputAttribute_.inputPattern, static_cast<int32_t>(info.GetTextInputType()));
+    EXPECT_EQ(InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
+    EXPECT_EQ(InputMethodControllerTest::inputAttribute_.isTextPreviewSupported, attribute.isTextPreviewSupported);
 }
 
 /**

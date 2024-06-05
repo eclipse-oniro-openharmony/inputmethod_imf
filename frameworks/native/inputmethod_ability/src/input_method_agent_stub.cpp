@@ -71,16 +71,11 @@ int32_t InputMethodAgentStub::OnRemoteRequest(
             reply.WriteNoException();
             return ErrorCode::NO_ERROR;
         }
-        case ON_CONFIGURATION_CHANGE: {
-            Configuration configuration;
-            configuration.SetEnterKeyType(EnterKeyType(data.ReadInt32()));
-            configuration.SetTextInputType(TextInputType(data.ReadInt32()));
-            OnConfigurationChange(configuration);
-            reply.WriteNoException();
-            return ErrorCode::NO_ERROR;
-        }
         case SEND_PRIVATE_COMMAND: {
             return SendPrivateCommandOnRemote(data, reply);
+        }
+        case ON_ATTRIBUTE_CHANGE: {
+            return OnAttributeChangeOnRemote(data, reply);
         }
         default: {
             return IRemoteStub::OnRemoteRequest(code, data, reply, option);
@@ -115,6 +110,18 @@ int32_t InputMethodAgentStub::SendPrivateCommandOnRemote(MessageParcel &data, Me
     }
     auto ret = InputMethodAbility::GetInstance()->ReceivePrivateCommand(privateCommand);
     return reply.WriteInt32(ret) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+}
+
+int32_t InputMethodAgentStub::OnAttributeChangeOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    InputAttribute attribute;
+    if (!ITypesUtil::Unmarshal(data, attribute)) {
+        IMSA_HILOGE("failed to read attribute from parcel");
+        return ErrorCode::ERROR_EX_PARCELABLE;
+    }
+    OnAttributeChange(attribute);
+    reply.WriteNoException();
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodAgentStub::DispatchKeyEvent(
@@ -157,22 +164,35 @@ void InputMethodAgentStub::OnSelectionChange(
     msgHandler_->SendMessage(message);
 }
 
-void InputMethodAgentStub::OnConfigurationChange(const Configuration &config)
-{
-    if (msgHandler_ == nullptr) {
-        return;
-    }
-    MessageParcel *data = new MessageParcel();
-    data->WriteInt32(static_cast<int32_t>(config.GetEnterKeyType()));
-    data->WriteInt32(static_cast<int32_t>(config.GetTextInputType()));
-    Message *message = new Message(MessageID::MSG_ID_ON_CONFIGURATION_CHANGE, data);
-    msgHandler_->SendMessage(message);
-}
-
 int32_t InputMethodAgentStub::SendPrivateCommand(
     const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     return ErrorCode::NO_ERROR;
+}
+
+void InputMethodAgentStub::OnAttributeChange(const InputAttribute &attribute)
+{
+    if (msgHandler_ == nullptr) {
+        IMSA_HILOGE("msgHandler_ is nullptr");
+        return;
+    }
+    auto data = new (std::nothrow) MessageParcel();
+    if (data == nullptr) {
+        IMSA_HILOGE("failed to create message parcel");
+        return;
+    }
+    if (!ITypesUtil::Marshal(*data, attribute)) {
+        IMSA_HILOGE("failed to write attribute");
+        delete data;
+        return;
+    }
+    auto message = new (std::nothrow) Message(MessageID::MSG_ID_ON_ATTRIBUTE_CHANGE, data);
+    if (message == nullptr) {
+        IMSA_HILOGE("failed to create Message");
+        delete data;
+        return;
+    }
+    msgHandler_->SendMessage(message);
 }
 
 void InputMethodAgentStub::SetMessageHandler(MessageHandler *msgHandler)
