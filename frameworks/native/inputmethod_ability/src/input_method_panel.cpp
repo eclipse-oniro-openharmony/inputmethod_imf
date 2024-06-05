@@ -201,11 +201,6 @@ int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const Layou
     }
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
-    {
-        std::lock_guard<std::mutex> lock(heightLock_);
-        panelHeight_ = layoutParams.portraitRect.height_;
-        panelFlag_ = panelFlag;
-    }
     return ErrorCode::NO_ERROR;
 }
 
