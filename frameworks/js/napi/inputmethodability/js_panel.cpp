@@ -170,6 +170,7 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
 
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
+        InputMethodAbility::GetInstance()->ShowSysPanel(ctxt->inputMethodPanel, ctxt->panelFlag);
         auto code = ctxt->inputMethodPanel->Resize(ctxt->width, ctxt->height);
         if (code == ErrorCode::NO_ERROR) {
             InputMethodAbility::GetInstance()->NotifyKeyboardHeight(ctxt->inputMethodPanel);
