@@ -24,3 +24,5 @@ windowmanager_path = "//foundation/window/window_manager"
 bundllemanager_path = "//foundation/bundlemanager/bundle_framework"
 
 multimodalinput_path = "//foundation/multimodalinput/input"
+
+startup_init_path = "//base/startup/init"
