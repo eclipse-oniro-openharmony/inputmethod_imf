@@ -14,18 +14,17 @@
  */
 #include "input_method_core_stub.h"
 
-#include <string_ex.h>
-
 #include <cstdint>
+#include <string_ex.h>
 
 #include "i_input_data_channel.h"
 #include "input_control_channel_proxy.h"
-#include "system_cmd_channel_proxy.h"
 #include "input_method_ability.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
 #include "message_handler.h"
 #include "message_parcel.h"
+#include "system_cmd_channel_proxy.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -39,8 +38,8 @@ InputMethodCoreStub::~InputMethodCoreStub()
 {
 }
 
-int32_t InputMethodCoreStub::OnRemoteRequest(
-    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+int32_t InputMethodCoreStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+    MessageOption &option)
 {
     IMSA_HILOGD("InputMethodCoreStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
@@ -102,8 +101,8 @@ int32_t InputMethodCoreStub::InitInputControlChannelOnRemote(MessageParcel &data
 
 int32_t InputMethodCoreStub::StartInputOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    IMSA_HILOGI(
-        "CoreStub, callingPid/Uid: %{public}d/%{public}d", IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
+    IMSA_HILOGI("CoreStub, callingPid/Uid: %{public}d/%{public}d", IPCSkeleton::GetCallingPid(),
+        IPCSkeleton::GetCallingUid());
     bool isBindFromClient = false;
     InputClientInfo clientInfo = {};
     sptr<IRemoteObject> channel = nullptr;

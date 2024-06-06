@@ -81,8 +81,8 @@ bool ImeInfoInquirer::QueryImeExtInfos(const int32_t userId, std::vector<Extensi
     return true;
 }
 
-int32_t ImeInfoInquirer::GetExtInfosByBundleName(
-    const int32_t userId, const std::string &bundleName, std::vector<AppExecFwk::ExtensionAbilityInfo> &extInfos)
+int32_t ImeInfoInquirer::GetExtInfosByBundleName(const int32_t userId, const std::string &bundleName,
+    std::vector<AppExecFwk::ExtensionAbilityInfo> &extInfos)
 {
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s", userId, bundleName.c_str());
     std::vector<AppExecFwk::ExtensionAbilityInfo> tempExtInfos;
@@ -102,15 +102,15 @@ int32_t ImeInfoInquirer::GetExtInfosByBundleName(
     return ErrorCode::NO_ERROR;
 }
 
-std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfo(
-    int32_t userId, const std::string &bundleName, const std::string &subName)
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfo(int32_t userId, const std::string &bundleName,
+    const std::string &subName)
 {
     auto info = GetImeInfoFromCache(userId, bundleName, subName);
     return info == nullptr ? GetImeInfoFromBundleMgr(userId, bundleName, subName) : info;
 }
 
-std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(
-    const int32_t userId, const std::string &bundleName, const std::string &subName)
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(const int32_t userId, const std::string &bundleName,
+    const std::string &subName)
 {
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, subName: %{public}s", userId, bundleName.c_str(),
         subName.c_str());
@@ -137,8 +137,8 @@ std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromCache(
     return newInfo;
 }
 
-std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(
-    const int32_t userId, const std::string &bundleName, const std::string &subName)
+std::shared_ptr<ImeInfo> ImeInfoInquirer::GetImeInfoFromBundleMgr(const int32_t userId, const std::string &bundleName,
+    const std::string &subName)
 {
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s, subName: %{public}s", userId, bundleName.c_str(),
         subName.c_str());
@@ -279,8 +279,8 @@ std::vector<InputMethodInfo> ImeInfoInquirer::ListInputMethodInfo(const int32_t 
     return properties;
 }
 
-int32_t ImeInfoInquirer::ListInputMethod(
-    int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn)
+int32_t ImeInfoInquirer::ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props,
+    bool enableOn)
 {
     IMSA_HILOGD("userId: %{public}d, status: %{public}d", userId, status);
     if (status == InputMethodStatus::ALL) {
@@ -380,8 +380,8 @@ int32_t ImeInfoInquirer::ListDisabledInputMethod(const int32_t userId, std::vect
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::GetSwitchInfoBySwitchCount(
-    SwitchInfo &switchInfo, int32_t userId, bool enableOn, uint32_t cacheCount)
+int32_t ImeInfoInquirer::GetSwitchInfoBySwitchCount(SwitchInfo &switchInfo, int32_t userId, bool enableOn,
+    uint32_t cacheCount)
 {
     std::vector<Property> props;
     auto ret = ListEnabledInputMethod(userId, props, enableOn);
@@ -408,8 +408,8 @@ int32_t ImeInfoInquirer::GetSwitchInfoBySwitchCount(
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::ListInputMethodSubtype(
-    int32_t userId, const std::string &bundleName, std::vector<SubProperty> &subProps)
+int32_t ImeInfoInquirer::ListInputMethodSubtype(int32_t userId, const std::string &bundleName,
+    std::vector<SubProperty> &subProps)
 {
     IMSA_HILOGD("userId: %{public}d, bundleName: %{public}s", userId, bundleName.c_str());
     std::vector<ExtensionAbilityInfo> extInfos;
@@ -440,8 +440,8 @@ bool ImeInfoInquirer::IsNewExtInfos(const std::vector<ExtensionAbilityInfo> &ext
     return iter != extInfos[0].metadata.end();
 }
 
-int32_t ImeInfoInquirer::ListInputMethodSubtype(
-    const int32_t userId, const std::vector<ExtensionAbilityInfo> &extInfos, std::vector<SubProperty> &subProps)
+int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId,
+    const std::vector<ExtensionAbilityInfo> &extInfos, std::vector<SubProperty> &subProps)
 {
     IMSA_HILOGD("oldIme, userId: %{public}d", userId);
     for (const auto &extInfo : extInfos) {
@@ -462,8 +462,8 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeInfoInquirer::ListInputMethodSubtype(
-    const int32_t userId, const ExtensionAbilityInfo &extInfo, std::vector<SubProperty> &subProps)
+int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const ExtensionAbilityInfo &extInfo,
+    std::vector<SubProperty> &subProps)
 {
     IMSA_HILOGD("newIme, userId: %{public}d", userId);
     auto iter = std::find_if(extInfo.metadata.begin(), extInfo.metadata.end(),
@@ -490,13 +490,12 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(
         if (InputTypeManager::GetInstance().IsInputType({ extInfo.bundleName, subtype.id })) {
             continue;
         }
-        SubProperty subProp{
-            .label = subtype.label,
+        SubProperty subProp{ .label = subtype.label,
             .name = extInfo.bundleName,
             .id = subtype.id,
             .mode = subtype.mode,
             .locale = subtype.locale,
-            .icon = subtype.icon};
+            .icon = subtype.icon };
         auto pos = subProp.label.find(':');
         if (pos != std::string::npos && pos + 1 < subProp.label.size()) {
             subProp.labelId = atoi(subProp.label.substr(pos + 1).c_str());
@@ -532,8 +531,8 @@ void ImeInfoInquirer::CovertToLanguage(const std::string &locale, std::string &l
     }
 }
 
-std::string ImeInfoInquirer::GetStringById(
-    const std::string &bundleName, const std::string &moduleName, int32_t labelId, int32_t userId)
+std::string ImeInfoInquirer::GetStringById(const std::string &bundleName, const std::string &moduleName,
+    int32_t labelId, int32_t userId)
 {
     auto bundleMgr = GetBundleMgr();
     return bundleMgr == nullptr ? "" : bundleMgr->GetStringById(bundleName, moduleName, labelId, userId);
@@ -586,8 +585,8 @@ std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
     std::vector<AppExecFwk::ExtensionAbilityInfo> extInfos;
     auto ret = ImeInfoInquirer::GetInstance().GetExtInfosByBundleName(userId, currentImeCfg->bundleName, extInfos);
     if (ret != ErrorCode::NO_ERROR || extInfos.empty()) {
-        IMSA_HILOGE(
-            "userId: %{public}d getExtInfosByBundleName %{public}s failed", userId, currentImeCfg->bundleName.c_str());
+        IMSA_HILOGE("userId: %{public}d getExtInfosByBundleName %{public}s failed", userId,
+            currentImeCfg->bundleName.c_str());
         return nullptr;
     }
     Property prop = { .name = extInfos[0].bundleName,
@@ -771,19 +770,19 @@ sptr<OHOS::AppExecFwk::IBundleMgr> ImeInfoInquirer::GetBundleMgr()
     return iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
 }
 
-std::shared_ptr<SubProperty> ImeInfoInquirer::FindTargetSubtypeByCondition(
-    const std::vector<SubProperty> &subProps, const Condition &condition)
+std::shared_ptr<SubProperty> ImeInfoInquirer::FindTargetSubtypeByCondition(const std::vector<SubProperty> &subProps,
+    const Condition &condition)
 {
     auto it = subProps.end();
     switch (condition) {
         case Condition::UPPER: {
-            it = std::find_if(
-                subProps.begin(), subProps.end(), [](const SubProperty &subProp) { return subProp.mode == "upper"; });
+            it = std::find_if(subProps.begin(), subProps.end(),
+                [](const SubProperty &subProp) { return subProp.mode == "upper"; });
             break;
         }
         case Condition::LOWER: {
-            it = std::find_if(
-                subProps.begin(), subProps.end(), [](const SubProperty &subProp) { return subProp.mode == "lower"; });
+            it = std::find_if(subProps.begin(), subProps.end(),
+                [](const SubProperty &subProp) { return subProp.mode == "lower"; });
             break;
         }
         case Condition::ENGLISH: {

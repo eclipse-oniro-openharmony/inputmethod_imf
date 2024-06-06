@@ -17,7 +17,7 @@
 #define OH_IMF_VISIBILITY_H
 
 #ifndef IMF_API
-#define IMF_API __attribute__ ((visibility ("default")))
+#define IMF_API __attribute__((visibility("default")))
 #endif
 
 #endif // OH_IMF_VISIBILITY_H

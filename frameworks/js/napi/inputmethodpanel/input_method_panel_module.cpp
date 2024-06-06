@@ -29,8 +29,7 @@ EXTERN_C_END
 /*
  * module define
  */
-static napi_module _module = {
-    .nm_version = 1,
+static napi_module _module = { .nm_version = 1,
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = Init,

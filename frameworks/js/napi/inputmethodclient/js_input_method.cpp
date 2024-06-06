@@ -19,8 +19,8 @@
 #include "event_runner.h"
 #include "input_method_controller.h"
 #include "input_method_property.h"
-#include "napi/native_api.h"
 #include "js_util.h"
+#include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "string_ex.h"
 
@@ -37,13 +37,13 @@ napi_value JsInputMethod::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodSubtype", SwitchCurrentInputMethodSubtype),
         DECLARE_NAPI_FUNCTION("switchCurrentInputMethodAndSubtype", SwitchCurrentInputMethodAndSubtype),
     };
-    NAPI_CALL(
-        env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
+    NAPI_CALL(env,
+        napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
     return exports;
 };
 
-napi_status JsInputMethod::GetInputMethodProperty(
-    napi_env env, napi_value argv, std::shared_ptr<SwitchInputMethodContext> ctxt)
+napi_status JsInputMethod::GetInputMethodProperty(napi_env env, napi_value argv,
+    std::shared_ptr<SwitchInputMethodContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
@@ -77,8 +77,8 @@ napi_status JsInputMethod::GetInputMethodProperty(
     return napi_ok;
 }
 
-napi_status JsInputMethod::GetInputMethodSubProperty(
-    napi_env env, napi_value argv, std::shared_ptr<SwitchInputMethodContext> ctxt)
+napi_status JsInputMethod::GetInputMethodSubProperty(napi_env env, napi_value argv,
+    std::shared_ptr<SwitchInputMethodContext> ctxt)
 {
     napi_valuetype valueType = napi_undefined;
     napi_status status = napi_generic_failure;
@@ -334,8 +334,8 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
         PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "param target type must be InputMethodSubtype",
-            TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "param target type must be InputMethodSubtype", TYPE_NONE,
+            napi_invalid_arg);
         napi_status status = GetInputMethodSubProperty(env, argv[0], ctxt);
         return status;
     };

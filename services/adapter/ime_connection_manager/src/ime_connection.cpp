@@ -19,8 +19,8 @@
 
 namespace OHOS {
 namespace MiscServices {
-void ImeConnection::OnAbilityConnectDone(
-    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
+void ImeConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &element,
+    const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
 {
     IMSA_HILOGI("ime: %{public}s/%{public}s, ret=%{public}d", element.GetBundleName().c_str(),
         element.GetAbilityName().c_str(), resultCode);

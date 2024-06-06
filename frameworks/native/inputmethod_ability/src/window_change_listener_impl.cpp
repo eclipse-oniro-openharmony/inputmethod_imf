@@ -24,7 +24,7 @@ void WindowChangeListenerImpl::OnSizeChange(Rosen::Rect rect, Rosen::WindowSizeC
     const std::shared_ptr<Rosen::RSTransaction> &rsTransaction)
 {
     IMSA_HILOGD("OnSizeChange begin");
-    changeHandler_({rect.width_, rect.height_});
+    changeHandler_({ rect.width_, rect.height_ });
 }
 } // namespace MiscServices
 } // namespace OHOS

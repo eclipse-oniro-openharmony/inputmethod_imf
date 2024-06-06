@@ -134,9 +134,7 @@ napi_value JsPanel::SetUiContent(napi_env env, napi_callback_info info)
         return napi_ok;
     };
 
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        ctxt->SetState(napi_ok);
-    };
+    auto exec = [ctxt](AsyncCall::Context *ctx) { ctxt->SetState(napi_ok); };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         CHECK_RETURN(ctxt->inputMethodPanel != nullptr, "inputMethodPanel is nullptr!", napi_generic_failure);
         auto code = ctxt->inputMethodPanel->SetUiContent(ctxt->path, env, ctxt->contentStorage);
@@ -261,8 +259,10 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
     napi_status status = JsUtils::GetValue(env, argv[0], panelFlag);
     PARAM_CHECK_RETURN(env, status == napi_ok, "param flag type must be PanelFlag", TYPE_NONE, nullptr);
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
-    PARAM_CHECK_RETURN(env, (panelFlag == PanelFlag::FLG_FIXED || panelFlag == PanelFlag::FLG_FLOATING ||
-        panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN), "param flag type must be one of PanelFlag", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env,
+        (panelFlag == PanelFlag::FLG_FIXED || panelFlag == PanelFlag::FLG_FLOATING ||
+            panelFlag == PanelFlag::FLG_CANDIDATE_COLUMN),
+        "param flag type must be one of PanelFlag", TYPE_NONE, nullptr);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
     CHECK_RETURN(ret == ErrorCode::NO_ERROR, "ChangePanelFlag failed!", nullptr);
     InputMethodAbility::GetInstance()->NotifyKeyboardHeight(inputMethodPanel);
@@ -330,8 +330,7 @@ napi_value JsPanel::UnSubscribe(napi_env env, napi_callback_info info)
     std::string type;
     // 1 means least param num.
     PARAM_CHECK_RETURN(env, argc >= 1, "at least one paramster is required", TYPE_NONE, nullptr);
-    PARAM_CHECK_RETURN(
-        env, JsUtil::GetValue(env, argv[0], type), "param type must be string", TYPE_NONE, nullptr);
+    PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], type), "param type must be string", TYPE_NONE, nullptr);
     PARAM_CHECK_RETURN(env, EventChecker::IsValidEventType(EventSubscribeModule::PANEL, type),
         "type shoule be show/hide/sizeChange", TYPE_NONE, nullptr);
     // if the second param is not napi_function/napi_null/napi_undefined, return
@@ -358,11 +357,11 @@ napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
         napi_status status = napi_generic_failure;
         PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required", TYPE_NONE, status);
         // 0 means the first param flag
-        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "flag",
-            TYPE_NUMBER, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_number, "flag", TYPE_NUMBER,
+            napi_generic_failure);
         int32_t panelFlag = 0;
-        CHECK_RETURN(JsUtils::GetValue(env, argv[0], panelFlag) == napi_ok,
-            "js param flag covert failed", napi_generic_failure);
+        CHECK_RETURN(JsUtils::GetValue(env, argv[0], panelFlag) == napi_ok, "js param flag covert failed",
+            napi_generic_failure);
         ctxt->panelFlag = PanelFlag(panelFlag);
         PARAM_CHECK_RETURN(env, ctxt->panelFlag == 0 || ctxt->panelFlag == 1,
             "param flag type shoule be FLG_FIXED or FLG_FLOATING ", TYPE_NONE, napi_generic_failure);

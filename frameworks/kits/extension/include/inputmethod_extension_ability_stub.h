@@ -20,8 +20,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-class InputMethodExtensionAbilityStub : public IRemoteStub<IInputMethodExtensionAbility> {
-};
+class InputMethodExtensionAbilityStub : public IRemoteStub<IInputMethodExtensionAbility> {};
 } // namespace MiscServices
 } // namespace OHOS
 

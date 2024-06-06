@@ -36,10 +36,8 @@ int32_t SystemCmdChannelProxy::SendPrivateCommand(
 
 int32_t SystemCmdChannelProxy::ShowSysPanel(bool shouldSysPanelShow)
 {
-    return SendRequest(
-        SHOULD_SYSTEM_PANEL_SHOW, [shouldSysPanelShow](MessageParcel &parcel) {
-            return ITypesUtil::Marshal(parcel, shouldSysPanelShow);
-        });
+    return SendRequest(SHOULD_SYSTEM_PANEL_SHOW,
+        [shouldSysPanelShow](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, shouldSysPanelShow); });
 }
 
 int32_t SystemCmdChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)

@@ -16,7 +16,6 @@
 #ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_DATA_CHANNEL_H
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_I_INPUT_DATA_CHANNEL_H
 #include <errors.h>
-
 #include <unordered_map>
 
 #include "global.h"

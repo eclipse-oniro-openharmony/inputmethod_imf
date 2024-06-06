@@ -119,9 +119,9 @@ public:
     static bool Unmarshalling(std::unordered_map<K, V> &val, MessageParcel &parcel);
 
     template<typename T, typename... Types>
-    static bool Marshal(MessageParcel &parcel, const T &first, const Types &... others);
+    static bool Marshal(MessageParcel &parcel, const T &first, const Types &...others);
     template<typename T, typename... Types>
-    static bool Unmarshal(MessageParcel &parcel, T &first, Types &... others);
+    static bool Unmarshal(MessageParcel &parcel, T &first, Types &...others);
 };
 
 template<class T>
@@ -172,7 +172,7 @@ bool ITypesUtil::Unmarshalling(std::vector<T> &val, MessageParcel &parcel)
 }
 
 template<typename T, typename... Types>
-bool ITypesUtil::Marshal(MessageParcel &parcel, const T &first, const Types &... others)
+bool ITypesUtil::Marshal(MessageParcel &parcel, const T &first, const Types &...others)
 {
     if (!Marshalling(first, parcel)) {
         return false;
@@ -181,7 +181,7 @@ bool ITypesUtil::Marshal(MessageParcel &parcel, const T &first, const Types &...
 }
 
 template<typename T, typename... Types>
-bool ITypesUtil::Unmarshal(MessageParcel &parcel, T &first, Types &... others)
+bool ITypesUtil::Unmarshal(MessageParcel &parcel, T &first, Types &...others)
 {
     if (!Unmarshalling(first, parcel)) {
         return false;

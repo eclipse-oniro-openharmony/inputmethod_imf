@@ -16,11 +16,10 @@
 #ifndef INTERFACE_KITS_JS_KEYBOARD_DELEGATE_SETTING_H
 #define INTERFACE_KITS_JS_KEYBOARD_DELEGATE_SETTING_H
 
-#include <uv.h>
-
 #include <map>
 #include <memory>
 #include <mutex>
+#include <uv.h>
 
 #include "async_call.h"
 #include "global.h"

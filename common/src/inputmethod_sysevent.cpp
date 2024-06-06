@@ -41,8 +41,7 @@ const std::unordered_map<int32_t, std::string> InputMethodSysEvent::operateInfo_
 };
 
 std::map<int32_t, int32_t> InputMethodSysEvent::inputmethodBehaviour_ = {
-    {static_cast<int32_t>(IMEBehaviour::START_IME), 0},
-    {static_cast<int32_t>(IMEBehaviour::CHANGE_IME), 0}
+    { static_cast<int32_t>(IMEBehaviour::START_IME), 0 }, { static_cast<int32_t>(IMEBehaviour::CHANGE_IME), 0 }
 };
 
 InputMethodSysEvent::~InputMethodSysEvent()

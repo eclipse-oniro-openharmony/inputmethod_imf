@@ -64,8 +64,8 @@ int32_t SystemCmdChannelStub::ShowSysPanelOnRemote(MessageParcel &data, MessageP
     return reply.WriteInt32(ShowSysPanel(shouldSysPanelShow)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t SystemCmdChannelStub::OnRemoteRequest(
-    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+int32_t SystemCmdChannelStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+    MessageOption &option)
 {
     IMSA_HILOGI("SystemCmdChannelStub, code: %{public}u, callingPid: %{public}d, callingUid: %{public}d", code,
         IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());

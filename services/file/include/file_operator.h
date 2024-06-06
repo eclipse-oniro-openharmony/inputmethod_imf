@@ -17,9 +17,8 @@
 #define IMF_SERVICES_INCLUDE_FILE_OPERATOR_H
 
 #include <fcntl.h>
-#include <sys/types.h>
-
 #include <string>
+#include <sys/types.h>
 
 #include "config_policy_utils.h"
 namespace OHOS {
@@ -30,8 +29,8 @@ public:
     static bool IsExist(const std::string &path);
     static bool Read(const std::string &path, std::string &content);
     static bool Read(const std::string &path, const std::string &key, std::string &content);
-    static bool Write(
-        const std::string &path, const std::string &content, int32_t flags, mode_t mode = S_IRUSR | S_IWUSR);
+    static bool Write(const std::string &path, const std::string &content, int32_t flags,
+        mode_t mode = S_IRUSR | S_IWUSR);
     static std::string GetRealPath(const char *path);
 
 private:

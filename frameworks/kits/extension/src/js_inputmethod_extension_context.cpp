@@ -116,15 +116,15 @@ private:
 
         AAFwk::StartOptions startOptions;
         napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[INDEX_ONE],  &valueType);
+        napi_typeof(env, argv[INDEX_ONE], &valueType);
         if (argc > ARGC_ONE && valueType == napi_object) {
             IMSA_HILOGI("OnStartAbility start options is used.");
             AppExecFwk::UnwrapStartOptions(env, argv[INDEX_ONE], startOptions);
             unwrapArgc++;
         }
 
-        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, startOptions, unwrapArgc](
-                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, startOptions, unwrapArgc](napi_env env,
+                                                       NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("startAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
@@ -176,8 +176,8 @@ private:
             AppExecFwk::UnwrapStartOptions(env, argv[INDEX_TWO], startOptions);
             unwrapArgc++;
         }
-        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, accountId, startOptions, unwrapArgc](
-                                                       napi_env env, NapiAsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, accountId, startOptions,
+                                                       unwrapArgc](napi_env env, NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("startAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
@@ -209,7 +209,7 @@ private:
         }
 
         NapiAsyncTask::CompleteCallback complete = [weak = context_](
-                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
+                                                       napi_env env, NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("TerminateAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
@@ -260,8 +260,8 @@ private:
         } else {
             serialNumber_ = 0;
         }
-        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, connection, connectId](
-                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, connection, connectId](napi_env env,
+                                                       NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnConnectAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
@@ -278,7 +278,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("InputMethodExtensionContext::OnConnectAbility", env,
             CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
-        napi_value connectResult =  nullptr;
+        napi_value connectResult = nullptr;
         napi_create_int64(env, connectId, &connectResult);
         return connectResult;
     }
@@ -313,8 +313,8 @@ private:
         } else {
             serialNumber_ = 0;
         }
-        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, accountId, connection, connectId](
-                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, accountId, connection,
+                                                       connectId](napi_env env, NapiAsyncTask &task, int32_t status) {
             auto context = weak.lock();
             if (context == nullptr) {
                 IMSA_HILOGW("context is released");
@@ -330,7 +330,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("InputMethodExtensionContext::OnConnectAbilityWithAccount", env,
             CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
-        napi_value connectResult =  nullptr;
+        napi_value connectResult = nullptr;
         napi_create_int64(env, connectId, &connectResult);
         return connectResult;
     }
@@ -361,8 +361,8 @@ private:
             }
         }
         // begin disconnect
-        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, connection](
-                                                   napi_env env, NapiAsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [weak = context_, want, connection](napi_env env,
+                                                       NapiAsyncTask &task, int32_t status) {
             IMSA_HILOGI("OnDisconnectAbility begin");
             auto context = weak.lock();
             if (context == nullptr) {
@@ -447,8 +447,7 @@ napi_value CreateJsExtensionAbilityInfo(napi_env env, const AppExecFwk::Extensio
     return objValue;
 }
 
-napi_value CreateJsInputMethodExtensionContext(
-    napi_env env, std::shared_ptr<InputMethodExtensionContext> context)
+napi_value CreateJsInputMethodExtensionContext(napi_env env, std::shared_ptr<InputMethodExtensionContext> context)
 {
     IMSA_HILOGI("CreateJsInputMethodExtensionContext begin");
     if (context != nullptr) {
@@ -466,8 +465,8 @@ napi_value CreateJsInputMethodExtensionContext(
     BindNativeFunction(env, objValue, "terminateSelf", moduleName, JsInputMethodExtensionContext::TerminateAbility);
     BindNativeFunction(env, objValue, "destroy", moduleName, JsInputMethodExtensionContext::TerminateAbility);
     BindNativeFunction(env, objValue, "connectAbility", moduleName, JsInputMethodExtensionContext::ConnectAbility);
-    BindNativeFunction(
-        env, objValue, "disconnectAbility", moduleName, JsInputMethodExtensionContext::DisconnectAbility);
+    BindNativeFunction(env, objValue, "disconnectAbility", moduleName,
+        JsInputMethodExtensionContext::DisconnectAbility);
     BindNativeFunction(env, objValue, "startAbilityWithAccount", moduleName,
         JsInputMethodExtensionContext::StartAbilityWithAccount);
     BindNativeFunction(env, objValue, "connectAbilityWithAccount", moduleName,
@@ -481,8 +480,8 @@ JSInputMethodExtensionConnection::JSInputMethodExtensionConnection(napi_env env)
 
 JSInputMethodExtensionConnection::~JSInputMethodExtensionConnection() = default;
 
-void JSInputMethodExtensionConnection::OnAbilityConnectDone(
-    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
+void JSInputMethodExtensionConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &element,
+    const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
     IMSA_HILOGI("OnAbilityConnectDone begin, resultCode:%{public}d", resultCode);
     if (handler_ == nullptr) {
@@ -501,8 +500,8 @@ void JSInputMethodExtensionConnection::OnAbilityConnectDone(
     handler_->PostTask(task, "OnAbilityConnectDone");
 }
 
-void JSInputMethodExtensionConnection::HandleOnAbilityConnectDone(
-    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
+void JSInputMethodExtensionConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName &element,
+    const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
     IMSA_HILOGI("HandleOnAbilityConnectDone begin, resultCode:%{public}d", resultCode);
     // wrap ElementName
@@ -510,10 +509,9 @@ void JSInputMethodExtensionConnection::HandleOnAbilityConnectDone(
 
     // wrap RemoteObject
     IMSA_HILOGI("OnAbilityConnectDone begin NAPI_ohos_rpc_CreateJsRemoteObject");
-    napi_value napiRemoteObject =
-        NAPI_ohos_rpc_CreateJsRemoteObject(env_, remoteObject);
+    napi_value napiRemoteObject = NAPI_ohos_rpc_CreateJsRemoteObject(env_, remoteObject);
     napi_value argv[] = { napiElementName, napiRemoteObject };
-    
+
     if (jsConnectionObject_ == nullptr) {
         IMSA_HILOGE("jsConnectionObject_ nullptr");
         return;
@@ -555,8 +553,8 @@ void JSInputMethodExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk:
     handler_->PostTask(task, "OnAbilityDisconnectDone");
 }
 
-void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(
-    const AppExecFwk::ElementName &element, int resultCode)
+void JSInputMethodExtensionConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element,
+    int resultCode)
 {
     IMSA_HILOGI("HandleOnAbilityDisconnectDone begin, resultCode:%{public}d", resultCode);
     napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
@@ -603,7 +601,7 @@ void JSInputMethodExtensionConnection::SetJsConnectionObject(napi_value jsConnec
 {
     napi_ref value = nullptr;
     napi_create_reference(env_, jsConnectionObject, 1, &value);
-    jsConnectionObject_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(value));
+    jsConnectionObject_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference *>(value));
 }
 
 void JSInputMethodExtensionConnection::CallJsFailed(int32_t errorCode)
@@ -625,7 +623,7 @@ void JSInputMethodExtensionConnection::CallJsFailed(int32_t errorCode)
         IMSA_HILOGE("Failed to get onFailed from object");
         return;
     }
-    napi_value result =  nullptr;
+    napi_value result = nullptr;
     napi_create_int32(env_, errorCode, &result);
     napi_value argv[] = { result };
     IMSA_HILOGI("CallJsFailed CallFunction success");

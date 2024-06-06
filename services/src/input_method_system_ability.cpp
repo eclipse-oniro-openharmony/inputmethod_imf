@@ -399,8 +399,8 @@ int32_t InputMethodSystemAbility::StopInputSession()
 int32_t InputMethodSystemAbility::RequestShowInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)
-        && !identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId) &&
+        !identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return userSession_->OnRequestShowInput();
@@ -409,8 +409,8 @@ int32_t InputMethodSystemAbility::RequestShowInput()
 int32_t InputMethodSystemAbility::RequestHideInput()
 {
     AccessTokenID tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId)
-        && !identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
+    if (!identityChecker_->IsFocused(IPCSkeleton::GetCallingPid(), tokenId) &&
+        !identityChecker_->HasPermission(tokenId, PERMISSION_CONNECT_IME_ABILITY)) {
         return ErrorCode::ERROR_STATUS_PERMISSION_DENIED;
     }
     return userSession_->OnRequestHideInput();
@@ -472,8 +472,8 @@ int32_t InputMethodSystemAbility::UpdateListenEventFlag(InputClientInfo &clientI
 {
     IMSA_HILOGI("finalEventFlag: %{public}u, eventFlag: %{public}u", clientInfo.eventFlag, eventFlag);
     if (EventStatusManager::IsImeHideOn(eventFlag) || EventStatusManager::IsImeShowOn(eventFlag)) {
-        if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID())
-            && !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
+        if (!identityChecker_->IsSystemApp(IPCSkeleton::GetCallingFullTokenID()) &&
+            !identityChecker_->IsNativeSa(IPCSkeleton::GetCallingTokenID())) {
             IMSA_HILOGE("not system application");
             return ErrorCode::ERROR_STATUS_SYSTEM_PERMISSION;
         }
@@ -566,8 +566,8 @@ int32_t InputMethodSystemAbility::DisplayOptionalInputMethod()
     return OnDisplayOptionalInputMethod();
 }
 
-int32_t InputMethodSystemAbility::SwitchInputMethod(
-    const std::string &bundleName, const std::string &subName, SwitchTrigger trigger)
+int32_t InputMethodSystemAbility::SwitchInputMethod(const std::string &bundleName, const std::string &subName,
+    SwitchTrigger trigger)
 {
     // IMSA not check permission, add this verify for prevent counterfeit
     if (trigger == SwitchTrigger::IMSA) {
@@ -597,8 +597,8 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
     IMSA_HILOGI("start switch %{public}s|%{public}s", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
     int32_t ret = CheckSwitchPermission(switchInfo, trigger);
     if (ret != ErrorCode::NO_ERROR) {
-        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
-            ErrorCode::ERROR_STATUS_PERMISSION_DENIED, switchInfo.bundleName, "switch inputmethod failed!");
+        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_STATUS_PERMISSION_DENIED,
+            switchInfo.bundleName, "switch inputmethod failed!");
         switchQueue_.Pop();
         return ret;
     }
@@ -618,8 +618,8 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
     }
     switchQueue_.Pop();
     if (ret != ErrorCode::NO_ERROR) {
-        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
-            ret, switchInfo.bundleName, "switch inputmethod failed!");
+        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ret, switchInfo.bundleName,
+            "switch inputmethod failed!");
     }
     return ret;
 }
@@ -662,8 +662,8 @@ bool InputMethodSystemAbility::IsNeedSwitch(const std::string &bundleName, const
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     IMSA_HILOGI("currentIme: %{public}s/%{public}s, targetIme: %{public}s/%{public}s",
         currentImeCfg->bundleName.c_str(), currentImeCfg->subName.c_str(), bundleName.c_str(), subName.c_str());
-    if ((subName.empty() && bundleName == currentImeCfg->bundleName)
-        || (!subName.empty() && subName == currentImeCfg->subName && currentImeCfg->bundleName == bundleName)) {
+    if ((subName.empty() && bundleName == currentImeCfg->bundleName) ||
+        (!subName.empty() && subName == currentImeCfg->subName && currentImeCfg->bundleName == bundleName)) {
         IMSA_HILOGI("no need to switch");
         return false;
     }
@@ -797,8 +797,8 @@ int32_t InputMethodSystemAbility::ListCurrentInputMethodSubtype(std::vector<SubP
     return ImeInfoInquirer::GetInstance().ListCurrentInputMethodSubtype(userId_, subProps);
 }
 
-int32_t InputMethodSystemAbility::ListInputMethodSubtype(
-    const std::string &bundleName, std::vector<SubProperty> &subProps)
+int32_t InputMethodSystemAbility::ListInputMethodSubtype(const std::string &bundleName,
+    std::vector<SubProperty> &subProps)
 {
     return ImeInfoInquirer::GetInstance().ListInputMethodSubtype(userId_, bundleName, subProps);
 }
@@ -1142,18 +1142,18 @@ void InputMethodSystemAbility::InitSystemLanguageMonitor()
 
 void InputMethodSystemAbility::RegisterEnableImeObserver()
 {
-    int32_t ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(
-        EnableImeDataParser::ENABLE_IME, [this]() { DatashareCallback(EnableImeDataParser::ENABLE_IME); });
+    int32_t ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(EnableImeDataParser::ENABLE_IME,
+        [this]() { DatashareCallback(EnableImeDataParser::ENABLE_IME); });
     IMSA_HILOGI("Register enable ime observer, ret: %{public}d", ret);
-    ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(
-        EnableImeDataParser::ENABLE_KEYBOARD, [this]() { DatashareCallback(EnableImeDataParser::ENABLE_KEYBOARD); });
+    ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(EnableImeDataParser::ENABLE_KEYBOARD,
+        [this]() { DatashareCallback(EnableImeDataParser::ENABLE_KEYBOARD); });
     IMSA_HILOGI("Register enable keyboard observer, ret: %{public}d", ret);
 }
 
 void InputMethodSystemAbility::RegisterSecurityModeObserver()
 {
-    int32_t ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(
-        SecurityModeParser::SECURITY_MODE, [this]() { DatashareCallback(SecurityModeParser::SECURITY_MODE); });
+    int32_t ret = SettingsDataUtils::GetInstance()->CreateAndRegisterObserver(SecurityModeParser::SECURITY_MODE,
+        [this]() { DatashareCallback(SecurityModeParser::SECURITY_MODE); });
     IMSA_HILOGI("Register security mode observer, ret: %{public}d", ret);
 }
 
@@ -1225,8 +1225,8 @@ int32_t InputMethodSystemAbility::CheckSwitchPermission(const SwitchInfo &switch
         IMSA_HILOGE("not have PERMISSION_CONNECT_IME_ABILITY");
         // switchInfo.subName.empty() check temporarily reserved for application adaptation, will be deleted soon
         auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
-        if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName)
-            && !switchInfo.subName.empty()) {
+        if (identityChecker_->IsBundleNameValid(IPCSkeleton::GetCallingTokenID(), currentBundleName) &&
+            !switchInfo.subName.empty()) {
             return ErrorCode::NO_ERROR;
         }
         IMSA_HILOGE("not current ime");

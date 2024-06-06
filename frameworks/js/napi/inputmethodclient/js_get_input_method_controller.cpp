@@ -64,8 +64,8 @@ napi_value JsGetInputMethodController::Init(napi_env env, napi_value info)
         DECLARE_NAPI_STATIC_PROPERTY("Direction", GetJsDirectionProperty(env)),
         DECLARE_NAPI_STATIC_PROPERTY("ExtendAction", GetJsExtendActionProperty(env)),
     };
-    NAPI_CALL(
-        env, napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
+    NAPI_CALL(env,
+        napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
 
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("attach", Attach),
@@ -289,8 +289,8 @@ std::shared_ptr<JsGetInputMethodController> JsGetInputMethodController::GetInsta
     return controller_;
 }
 
-void JsGetInputMethodController::RegisterListener(
-    napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
+void JsGetInputMethodController::RegisterListener(napi_value callback, std::string type,
+    std::shared_ptr<JSCallbackObject> callbackObj)
 {
     IMSA_HILOGD("run in, type: %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -381,8 +381,8 @@ napi_value JsGetInputMethodController::UnSubscribe(napi_env env, napi_callback_i
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 1 means least param num.
-    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_CONTROLLER, type)) {
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_CONTROLLER, type)) {
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
@@ -434,12 +434,13 @@ napi_value JsGetInputMethodController::CreateSelectMovement(napi_env env, int32_
     return movement;
 }
 
-napi_value JsGetInputMethodController::HandleSoftKeyboard(
-    napi_env env, napi_callback_info info, std::function<int32_t()> callback, bool isOutput, bool needThrowException)
+napi_value JsGetInputMethodController::HandleSoftKeyboard(napi_env env, napi_callback_info info,
+    std::function<int32_t()> callback, bool isOutput, bool needThrowException)
 {
     auto ctxt = std::make_shared<HandleContext>();
-    auto input = [ctxt](
-                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        return napi_ok;
+    };
     auto output = [ctxt, isOutput](napi_env env, napi_value *result) -> napi_status {
         if (!isOutput) {
             return napi_ok;
@@ -602,8 +603,8 @@ napi_value JsGetInputMethodController::UpdateCursor(napi_env env, napi_callback_
         PARAM_CHECK_RETURN(env, JsUtil::GetType(env, argv[0]) == napi_object,
             "param cursorInfo type must be CursorInfo", TYPE_NONE, napi_generic_failure);
         bool ret = JsGetInputMethodController::GetValue(env, argv[0], ctxt->cursorInfo);
-        PARAM_CHECK_RETURN(env, ret, "param cursorInfo covert failed, must contain four numbers",
-            TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, ret, "param cursorInfo covert failed, must contain four numbers", TYPE_NONE,
+            napi_generic_failure);
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
@@ -623,12 +624,12 @@ napi_value JsGetInputMethodController::ChangeSelection(napi_env env, napi_callba
     std::shared_ptr<ChangeSelectionContext> ctxt = std::make_shared<ChangeSelectionContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 2, "at least three paramsters is required", TYPE_NONE, napi_generic_failure);
-        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], ctxt->text),
-            "param text type must be string", TYPE_NONE, napi_generic_failure);
-        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[1], ctxt->start),
-            "param start type must be number", TYPE_NONE, napi_generic_failure);
-        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[2], ctxt->end),
-            "param end type must be number", TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[0], ctxt->text), "param text type must be string",
+            TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[1], ctxt->start), "param start type must be number",
+            TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, JsUtil::GetValue(env, argv[2], ctxt->end), "param end type must be number", TYPE_NONE,
+            napi_generic_failure);
         return napi_ok;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
@@ -655,8 +656,7 @@ napi_value JsGetInputMethodController::UpdateAttribute(napi_env env, napi_callba
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_generic_failure);
         bool ret = JsGetInputMethodController::GetValue(env, argv[0], ctxt->attribute);
-        PARAM_CHECK_RETURN(env, ret, "param attribute type must be InputAttribute",
-            TYPE_NONE, napi_generic_failure);
+        PARAM_CHECK_RETURN(env, ret, "param attribute type must be InputAttribute", TYPE_NONE, napi_generic_failure);
         ctxt->configuration.SetTextInputType(static_cast<TextInputType>(ctxt->attribute.inputPattern));
         ctxt->configuration.SetEnterKeyType(static_cast<EnterKeyType>(ctxt->attribute.enterKeyType));
         return napi_ok;
@@ -1065,8 +1065,8 @@ std::shared_ptr<AppExecFwk::EventHandler> JsGetInputMethodController::GetEventHa
     return handler_;
 }
 
-std::shared_ptr<JsGetInputMethodController::UvEntry> JsGetInputMethodController::GetEntry(
-    const std::string &type, EntrySetter entrySetter)
+std::shared_ptr<JsGetInputMethodController::UvEntry> JsGetInputMethodController::GetEntry(const std::string &type,
+    EntrySetter entrySetter)
 {
     IMSA_HILOGD("type: %{public}s", type.c_str());
     std::shared_ptr<UvEntry> entry = nullptr;

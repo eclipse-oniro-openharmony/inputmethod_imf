@@ -21,7 +21,8 @@
 
 namespace OHOS {
 namespace MiscServices {
-template<typename T> class BlockQueue {
+template<typename T>
+class BlockQueue {
 public:
     explicit BlockQueue(uint32_t timeout) : timeout_(timeout)
     {

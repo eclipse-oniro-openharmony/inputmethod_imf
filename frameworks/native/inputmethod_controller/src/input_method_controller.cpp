@@ -35,7 +35,6 @@
 #include "system_ability_definition.h"
 #include "system_cmd_channel_stub.h"
 
-
 namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
@@ -93,8 +92,8 @@ int32_t InputMethodController::UpdateListenEventFlag(uint32_t finalEventFlag, ui
     auto oldEventFlag = clientInfo_.eventFlag;
     clientInfo_.eventFlag = finalEventFlag;
     // js has no errcode, ensure not failed in GetSystemAbilityProxy();
-    BlockRetry(
-        GET_IMSA_RETRY_INTERVAL, GET_IMSA_MAX_RETRY_TIME, [this]() { return GetSystemAbilityProxy() != nullptr; });
+    BlockRetry(GET_IMSA_RETRY_INTERVAL, GET_IMSA_MAX_RETRY_TIME,
+        [this]() { return GetSystemAbilityProxy() != nullptr; });
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr && isOn) {
         IMSA_HILOGE("proxy is nullptr");
@@ -215,8 +214,8 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener, boo
     return Attach(listener, isShowKeyboard, attribute);
 }
 
-int32_t InputMethodController::Attach(
-    sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const InputAttribute &attribute)
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard,
+    const InputAttribute &attribute)
 {
     InputMethodSyncTrace tracer("InputMethodController Attach trace.");
     TextConfig textConfig;
@@ -224,8 +223,8 @@ int32_t InputMethodController::Attach(
     return Attach(listener, isShowKeyboard, textConfig);
 }
 
-int32_t InputMethodController::Attach(
-    sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const TextConfig &textConfig)
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard,
+    const TextConfig &textConfig)
 {
     IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
@@ -654,8 +653,8 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    IMSA_HILOGI(
-        "IMC enterKeyType: %{public}d, textInputType: %{public}d", attribute.enterKeyType, attribute.inputPattern);
+    IMSA_HILOGI("IMC enterKeyType: %{public}d, textInputType: %{public}d", attribute.enterKeyType,
+        attribute.inputPattern);
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
@@ -879,8 +878,8 @@ int32_t InputMethodController::ListCurrentInputMethodSubtype(std::vector<SubProp
     return proxy->ListCurrentInputMethodSubtype(subProps);
 }
 
-int32_t InputMethodController::SwitchInputMethod(
-    SwitchTrigger trigger, const std::string &name, const std::string &subName)
+int32_t InputMethodController::SwitchInputMethod(SwitchTrigger trigger, const std::string &name,
+    const std::string &subName)
 {
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
@@ -1123,8 +1122,8 @@ void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
         return;
     }
     listener->NotifyPanelStatusInfo(info);
-    if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD
-        && info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
+    if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD &&
+        info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
         clientInfo_.isShowKeyboard = false;
     }
 }

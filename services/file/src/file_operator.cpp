@@ -15,10 +15,9 @@
 
 #include "file_operator.h"
 
+#include <fstream>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#include <fstream>
 
 #include "global.h"
 namespace OHOS {
