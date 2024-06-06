@@ -48,9 +48,8 @@ int32_t InputMethodCoreProxy::StartInput(const InputClientInfo &clientInfo, bool
 
 int32_t InputMethodCoreProxy::OnSecurityChange(int32_t security)
 {
-    return SendRequest(SECURITY_CHANGE, [security](MessageParcel& data) {
-        return ITypesUtil::Marshal(data, security);
-    });
+    return SendRequest(SECURITY_CHANGE,
+        [security](MessageParcel &data) { return ITypesUtil::Marshal(data, security); });
 }
 
 int32_t InputMethodCoreProxy::OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent)
@@ -89,8 +88,8 @@ int32_t InputMethodCoreProxy::StopInput(const sptr<IRemoteObject> &channel)
 bool InputMethodCoreProxy::IsEnable()
 {
     bool isEnable = false;
-    SendRequest(
-        IS_ENABLE, nullptr, [&isEnable](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isEnable); });
+    SendRequest(IS_ENABLE, nullptr,
+        [&isEnable](MessageParcel &reply) { return ITypesUtil::Unmarshal(reply, isEnable); });
     return isEnable;
 }
 

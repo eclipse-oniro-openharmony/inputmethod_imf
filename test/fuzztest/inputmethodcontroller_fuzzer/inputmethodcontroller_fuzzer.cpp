@@ -59,8 +59,8 @@ void TestDispatchKeyEvent(sptr<InputMethodController> imc, int32_t fuzzedInt32)
     imc->DispatchKeyEvent(keyEvent, [](std::shared_ptr<MMI::KeyEvent> &keyEvent, bool isConsumed) {});
 }
 
-void TestOnSelectionChange(
-    sptr<InputMethodController> imc, std::u16string fuzzedU16String, int fuzzedInt, double fuzzedDouble)
+void TestOnSelectionChange(sptr<InputMethodController> imc, std::u16string fuzzedU16String, int fuzzedInt,
+    double fuzzedDouble)
 {
     sptr<OnTextChangedListener> textListener = new TextListener();
     imc->Attach(textListener);
@@ -92,8 +92,8 @@ void TestOnConfigurationChange(sptr<InputMethodController> imc)
     imc->GetInputPattern(inputPattern);
 }
 
-void TestSwitchInputMethod(
-    SwitchTrigger fuzzedTrigger, sptr<InputMethodController> imc, const std::string &fuzzedString)
+void TestSwitchInputMethod(SwitchTrigger fuzzedTrigger, sptr<InputMethodController> imc,
+    const std::string &fuzzedString)
 {
     imc->SwitchInputMethod(fuzzedTrigger, fuzzedString, fuzzedString);
     imc->ShowOptionalInputMethod();

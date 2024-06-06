@@ -87,8 +87,9 @@ napi_value JsKeyboardControllerEngine::GetKeyboardControllerInstance(napi_env en
 napi_value JsKeyboardControllerEngine::Hide(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<HideContext>();
-    auto input = [ctxt](
-                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        return napi_ok;
+    };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         int32_t code = InputMethodAbility::GetInstance()->HideKeyboardSelf();
         if (code == ErrorCode::NO_ERROR) {
@@ -107,8 +108,9 @@ napi_value JsKeyboardControllerEngine::Hide(napi_env env, napi_callback_info inf
 napi_value JsKeyboardControllerEngine::HideKeyboard(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<HideKeyboardContext>();
-    auto input = [ctxt](
-                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        return napi_ok;
+    };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         InputMethodAbility::GetInstance()->HideKeyboardSelf();
         ctxt->status = napi_ok;
@@ -122,8 +124,9 @@ napi_value JsKeyboardControllerEngine::HideKeyboard(napi_env env, napi_callback_
 napi_value JsKeyboardControllerEngine::ExitCurrentInputType(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<ExitContext>();
-    auto input = [ctxt](
-                     napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status { return napi_ok; };
+    auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
+        return napi_ok;
+    };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         int32_t errorCode = InputMethodAbility::GetInstance()->ExitCurrentInputType();

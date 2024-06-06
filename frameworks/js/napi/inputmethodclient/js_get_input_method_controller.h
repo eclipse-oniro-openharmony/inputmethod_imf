@@ -50,8 +50,8 @@ struct AttachContext : public AsyncCall::Context {
     InputAttribute attribute;
     bool showKeyboard = false;
     TextConfig textConfig;
-    AttachContext() : Context(nullptr, nullptr) {};
-    AttachContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) {};
+    AttachContext() : Context(nullptr, nullptr){};
+    AttachContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -70,8 +70,8 @@ struct AttachContext : public AsyncCall::Context {
 
 struct SetCallingWindowContext : public AsyncCall::Context {
     int32_t windID = 0;
-    SetCallingWindowContext() : Context(nullptr, nullptr) {};
-    SetCallingWindowContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) {};
+    SetCallingWindowContext() : Context(nullptr, nullptr){};
+    SetCallingWindowContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -90,8 +90,8 @@ struct SetCallingWindowContext : public AsyncCall::Context {
 
 struct UpdateCursorContext : public AsyncCall::Context {
     CursorInfo cursorInfo;
-    UpdateCursorContext() : Context(nullptr, nullptr) {};
-    UpdateCursorContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) {};
+    UpdateCursorContext() : Context(nullptr, nullptr){};
+    UpdateCursorContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -112,8 +112,8 @@ struct ChangeSelectionContext : public AsyncCall::Context {
     std::u16string text;
     int32_t start = 0;
     int32_t end = 0;
-    ChangeSelectionContext() : Context(nullptr, nullptr) {};
-    ChangeSelectionContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) {};
+    ChangeSelectionContext() : Context(nullptr, nullptr){};
+    ChangeSelectionContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
@@ -133,8 +133,8 @@ struct ChangeSelectionContext : public AsyncCall::Context {
 struct UpdateAttributeContext : public AsyncCall::Context {
     InputAttribute attribute;
     Configuration configuration;
-    UpdateAttributeContext() : Context(nullptr, nullptr) {};
-    UpdateAttributeContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)) {};
+    UpdateAttributeContext() : Context(nullptr, nullptr){};
+    UpdateAttributeContext(InputAction input, OutputAction output) : Context(std::move(input), std::move(output)){};
 
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {

@@ -134,7 +134,6 @@ Uri SettingsDataUtils::GenerateTargetUri(const std::string &key)
     return uri;
 }
 
-
 int32_t SettingsDataUtils::GetStringValue(const std::string &key, std::string &value)
 {
     IMSA_HILOGD("Run in.");

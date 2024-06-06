@@ -69,8 +69,8 @@ bool ImfSaStubFuzzUtil::FuzzInputMethodSystemAbility(const uint8_t *rawData, siz
     datas.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
-    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnRemoteRequest(
-        static_cast<int32_t>(code), datas, reply, option);
+    DelayedSingleton<InputMethodSystemAbility>::GetInstance()->OnRemoteRequest(static_cast<int32_t>(code), datas,
+        reply, option);
     return true;
 }
 

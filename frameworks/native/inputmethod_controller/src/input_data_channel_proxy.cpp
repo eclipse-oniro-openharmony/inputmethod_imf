@@ -40,8 +40,8 @@ int32_t InputDataChannelProxy::DeleteForward(int32_t length)
 
 int32_t InputDataChannelProxy::DeleteBackward(int32_t length)
 {
-    return SendRequest(
-        DELETE_BACKWARD, [length](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, length); });
+    return SendRequest(DELETE_BACKWARD,
+        [length](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, length); });
 }
 
 int32_t InputDataChannelProxy::GetTextBeforeCursor(int32_t number, std::u16string &text)
@@ -71,8 +71,8 @@ void InputDataChannelProxy::NotifyPanelStatusInfo(const PanelStatusInfo &info)
 
 int32_t InputDataChannelProxy::SendFunctionKey(int32_t funcKey)
 {
-    return SendRequest(
-        SEND_FUNCTION_KEY, [funcKey](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, funcKey); });
+    return SendRequest(SEND_FUNCTION_KEY,
+        [funcKey](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, funcKey); });
 }
 
 int32_t InputDataChannelProxy::MoveCursor(int32_t keyCode)
@@ -106,8 +106,8 @@ int32_t InputDataChannelProxy::GetTextConfig(TextTotalConfig &textConfig)
 
 int32_t InputDataChannelProxy::SelectByRange(int32_t start, int32_t end)
 {
-    return SendRequest(
-        SELECT_BY_RANGE, [start, end](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, start, end); });
+    return SendRequest(SELECT_BY_RANGE,
+        [start, end](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, start, end); });
 }
 
 int32_t InputDataChannelProxy::SelectByMovement(int32_t direction, int32_t cursorMoveSkip)
@@ -119,14 +119,14 @@ int32_t InputDataChannelProxy::SelectByMovement(int32_t direction, int32_t curso
 
 int32_t InputDataChannelProxy::HandleExtendAction(int32_t action)
 {
-    return SendRequest(
-        HANDLE_EXTEND_ACTION, [action](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, action); });
+    return SendRequest(HANDLE_EXTEND_ACTION,
+        [action](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, action); });
 }
 
 void InputDataChannelProxy::NotifyKeyboardHeight(uint32_t height)
 {
-    SendRequest(
-        NOTIFY_KEYBOARD_HEIGHT, [height](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, height); });
+    SendRequest(NOTIFY_KEYBOARD_HEIGHT,
+        [height](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, height); });
 }
 
 int32_t InputDataChannelProxy::SendPrivateCommand(
@@ -138,8 +138,8 @@ int32_t InputDataChannelProxy::SendPrivateCommand(
 
 int32_t InputDataChannelProxy::SetPreviewText(const std::string &text, const Range &range)
 {
-    return SendRequest(
-        SET_PREVIEW_TEXT, [&text, &range](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text, range); });
+    return SendRequest(SET_PREVIEW_TEXT,
+        [&text, &range](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, text, range); });
 }
 
 int32_t InputDataChannelProxy::FinishTextPreview()

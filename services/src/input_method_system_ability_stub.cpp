@@ -25,8 +25,8 @@
 
 namespace OHOS {
 namespace MiscServices {
-int32_t InputMethodSystemAbilityStub::OnRemoteRequest(
-    uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+int32_t InputMethodSystemAbilityStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+    MessageOption &option)
 {
     if (code != static_cast<uint32_t>(InputMethodInterfaceCode::RELEASE_INPUT)) {
         IMSA_HILOGI("IMSA, code = %{public}u, callingPid/Uid/timestamp: %{public}d/%{public}d", code,

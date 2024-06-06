@@ -15,18 +15,17 @@
 
 #include "input_type_manager.h"
 
-#include <dlfcn.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include <algorithm>
 #include <cinttypes>
 #include <cstdio>
+#include <dlfcn.h>
+#include <fcntl.h>
 #include <fstream>
 #include <ios>
 #include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "climits"
 #include "file_operator.h"
@@ -94,15 +93,15 @@ bool InputTypeManager::IsStarted()
 bool InputTypeManager::IsSecurityImeStarted()
 {
     std::lock_guard<std::mutex> lock(stateLock_);
-    return isStarted_ && inputTypes_.find(InputType::SECURITY_INPUT) != inputTypes_.end()
-           && inputTypes_[InputType::SECURITY_INPUT] == currentTypeIme_;
+    return isStarted_ && inputTypes_.find(InputType::SECURITY_INPUT) != inputTypes_.end() &&
+           inputTypes_[InputType::SECURITY_INPUT] == currentTypeIme_;
 }
 
 bool InputTypeManager::IsCameraImeStarted()
 {
     std::lock_guard<std::mutex> lock(stateLock_);
-    return isStarted_ && inputTypes_.find(InputType::CAMERA_INPUT) != inputTypes_.end()
-           && inputTypes_[InputType::CAMERA_INPUT] == currentTypeIme_;
+    return isStarted_ && inputTypes_.find(InputType::CAMERA_INPUT) != inputTypes_.end() &&
+           inputTypes_[InputType::CAMERA_INPUT] == currentTypeIme_;
 }
 
 ImeIdentification InputTypeManager::GetCurrentIme()

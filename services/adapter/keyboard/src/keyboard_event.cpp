@@ -16,7 +16,6 @@
 #include "keyboard_event.h"
 
 #include <global.h>
-
 #include <memory>
 
 #include "global.h"
@@ -37,13 +36,12 @@ int32_t KeyboardEvent::AddKeyEventMonitor(KeyHandle handle)
     IMSA_HILOGI("KeyboardEvent::AddKeyEventMonitor");
     std::shared_ptr<InputEventCallback> callback = std::make_shared<InputEventCallback>();
     callback->SetKeyHandle(handle);
-    int32_t monitorId =
-        InputManager::GetInstance()->AddMonitor([callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
-            if (callback == nullptr) {
-                IMSA_HILOGE("callback is nullptr.");
-                return;
-            }
-            callback->OnInputEvent(keyEvent);
+    int32_t monitorId = InputManager::GetInstance()->AddMonitor([callback](std::shared_ptr<MMI::KeyEvent> keyEvent) {
+        if (callback == nullptr) {
+            IMSA_HILOGE("callback is nullptr.");
+            return;
+        }
+        callback->OnInputEvent(keyEvent);
     });
     if (monitorId < 0) {
         IMSA_HILOGE("add monitor failed, id: %{public}d", monitorId);

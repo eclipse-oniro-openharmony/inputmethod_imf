@@ -15,9 +15,10 @@
 
 #ifndef INPUTMETHOD_IMF_WINDOW_CHANGE_LISTENER_H
 #define INPUTMETHOD_IMF_WINDOW_CHANGE_LISTENER_H
+#include <functional>
+
 #include "panel_status_listener.h"
 #include "window.h"
-#include <functional>
 
 namespace OHOS {
 namespace MiscServices {
@@ -27,7 +28,7 @@ public:
     explicit WindowChangeListenerImpl(ChangeHandler handler) : changeHandler_(std::move(handler)){};
     virtual ~WindowChangeListenerImpl(){};
     void OnSizeChange(OHOS::Rosen::Rect rect, OHOS::Rosen::WindowSizeChangeReason reason,
-        const std::shared_ptr<OHOS::Rosen::RSTransaction>& rsTransaction = nullptr) override;
+        const std::shared_ptr<OHOS::Rosen::RSTransaction> &rsTransaction = nullptr) override;
 
 private:
     ChangeHandler changeHandler_ = nullptr;

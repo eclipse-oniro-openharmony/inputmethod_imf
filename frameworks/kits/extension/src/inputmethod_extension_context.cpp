@@ -48,8 +48,8 @@ ErrCode InputMethodExtensionContext::StartAbility(
     return err;
 }
 
-bool InputMethodExtensionContext::ConnectAbility(
-    const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const
+bool InputMethodExtensionContext::ConnectAbility(const AAFwk::Want &want,
+    const sptr<AbilityConnectCallback> &connectCallback) const
 {
     IMSA_HILOGI("%{public}s begin.", __func__);
     ErrCode ret = ConnectionManager::GetInstance().ConnectAbility(token_, want, connectCallback);
@@ -69,12 +69,12 @@ ErrCode InputMethodExtensionContext::StartAbilityWithAccount(const AAFwk::Want &
     return err;
 }
 
-ErrCode InputMethodExtensionContext::StartAbilityWithAccount(
-    const AAFwk::Want &want, int accountId, const AAFwk::StartOptions &startOptions) const
+ErrCode InputMethodExtensionContext::StartAbilityWithAccount(const AAFwk::Want &want, int accountId,
+    const AAFwk::StartOptions &startOptions) const
 {
     IMSA_HILOGD("%{public}s begin.", __func__);
-    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(
-        want, startOptions, token_, ILLEGAL_REQUEST_CODE, accountId);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_,
+        ILLEGAL_REQUEST_CODE, accountId);
     IMSA_HILOGD("%{public}s ret=%{public}d", __func__, err);
     if (err != ERR_OK) {
         IMSA_HILOGE("InputMethodContext::StartAbilityWithAccount is failed %{public}d", err);
@@ -82,8 +82,8 @@ ErrCode InputMethodExtensionContext::StartAbilityWithAccount(
     return err;
 }
 
-bool InputMethodExtensionContext::ConnectAbilityWithAccount(
-    const AAFwk::Want &want, int accountId, const sptr<AbilityConnectCallback> &connectCallback) const
+bool InputMethodExtensionContext::ConnectAbilityWithAccount(const AAFwk::Want &want, int accountId,
+    const sptr<AbilityConnectCallback> &connectCallback) const
 {
     IMSA_HILOGI("%{public}s begin.", __func__);
     ErrCode ret = ConnectionManager::GetInstance().ConnectAbilityWithAccount(token_, want, accountId, connectCallback);
@@ -91,8 +91,8 @@ bool InputMethodExtensionContext::ConnectAbilityWithAccount(
     return ret == ERR_OK;
 }
 
-ErrCode InputMethodExtensionContext::DisconnectAbility(
-    const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const
+ErrCode InputMethodExtensionContext::DisconnectAbility(const AAFwk::Want &want,
+    const sptr<AbilityConnectCallback> &connectCallback) const
 {
     IMSA_HILOGI("%{public}s begin.", __func__);
     ErrCode ret = ConnectionManager::GetInstance().DisconnectAbility(token_, want.GetElement(), connectCallback);

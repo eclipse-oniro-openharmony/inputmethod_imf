@@ -73,7 +73,7 @@ bool SecurityModeParser::IsSecurityChange(const std::string bundleName, const in
     bool oldExit = IsFullMode(bundleName);
     GetFullModeList(userId);
     bool onewExit = IsFullMode(bundleName);
-    return oldExit!= onewExit;
+    return oldExit != onewExit;
 }
 
 bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const int32_t userId)
@@ -103,9 +103,8 @@ int32_t SecurityModeParser::GetSecurityMode(const std::string bundleName, int32_
 bool SecurityModeParser::IsFullMode(std::string bundleName)
 {
     std::lock_guard<std::mutex> autoLock(listMutex_);
-    auto it = std::find_if(fullModeList_.begin(), fullModeList_.end(), [&bundleName](const std::string& bundle) {
-        return bundle == bundleName;
-    });
+    auto it = std::find_if(fullModeList_.begin(), fullModeList_.end(),
+        [&bundleName](const std::string &bundle) { return bundle == bundleName; });
     return it != fullModeList_.end();
 }
 } // namespace MiscServices

@@ -30,8 +30,8 @@ KeyEventConsumerProxy::KeyEventConsumerProxy(const sptr<IRemoteObject> &object)
 
 int32_t KeyEventConsumerProxy::OnKeyEventResult(bool isConsumed)
 {
-    return SendRequest(
-        KEY_EVENT_RESULT, [isConsumed](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, isConsumed); });
+    return SendRequest(KEY_EVENT_RESULT,
+        [isConsumed](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, isConsumed); });
 }
 
 void KeyEventConsumerProxy::OnKeyEventConsumeResult(bool isConsumed)

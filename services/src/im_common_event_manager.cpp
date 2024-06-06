@@ -262,13 +262,13 @@ ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChan
 {
 }
 
-void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility(
-    int32_t systemAbilityId, const std::string &deviceId)
+void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility(int32_t systemAbilityId,
+    const std::string &deviceId)
 {
     IMSA_HILOGD("systemAbilityId: %{public}d", systemAbilityId);
-    if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID
-        && systemAbilityId != WINDOW_MANAGER_SERVICE_ID && systemAbilityId != SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN
-        && systemAbilityId != MEMORY_MANAGER_SA_ID) {
+    if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID &&
+        systemAbilityId != WINDOW_MANAGER_SERVICE_ID && systemAbilityId != SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN &&
+        systemAbilityId != MEMORY_MANAGER_SA_ID) {
         return;
     }
     if (func_ != nullptr) {
@@ -276,8 +276,8 @@ void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility
     }
 }
 
-void ImCommonEventManager::SystemAbilityStatusChangeListener::OnRemoveSystemAbility(
-    int32_t systemAbilityId, const std::string &deviceId)
+void ImCommonEventManager::SystemAbilityStatusChangeListener::OnRemoveSystemAbility(int32_t systemAbilityId,
+    const std::string &deviceId)
 {
 }
 

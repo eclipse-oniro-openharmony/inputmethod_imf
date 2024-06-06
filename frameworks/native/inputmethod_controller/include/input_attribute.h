@@ -44,14 +44,14 @@ struct InputAttribute {
 
     bool GetSecurityFlag()
     {
-        return inputPattern == PATTERN_PASSWORD || inputPattern == PATTERN_PASSWORD_SCREEN_LOCK
-               || PATTERN_PASSWORD_NUMBER == inputPattern;
+        return inputPattern == PATTERN_PASSWORD || inputPattern == PATTERN_PASSWORD_SCREEN_LOCK ||
+               PATTERN_PASSWORD_NUMBER == inputPattern;
     }
 
     bool operator==(const InputAttribute &info) const
     {
-        return inputPattern == info.inputPattern && enterKeyType == info.enterKeyType
-               && inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
+        return inputPattern == info.inputPattern && enterKeyType == info.enterKeyType &&
+               inputOption == info.inputOption && isTextPreviewSupported == info.isTextPreviewSupported;
     }
 };
 } // namespace MiscServices

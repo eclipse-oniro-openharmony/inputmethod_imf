@@ -33,7 +33,8 @@ public:
     static bool GetValue(napi_env env, napi_value in, int64_t &out);
     static bool GetValue(napi_env env, napi_value in, bool &out);
     static bool GetValue(napi_env env, napi_value in, double &out);
-    template<typename T> static bool GetValue(napi_env env, napi_value in, std::vector<T> &items)
+    template<typename T>
+    static bool GetValue(napi_env env, napi_value in, std::vector<T> &items)
     {
         uint32_t len = 0;
         napi_get_array_length(env, in, &len);
@@ -57,7 +58,8 @@ public:
     static napi_value GetValue(napi_env env, uint32_t in);
     static napi_value GetValue(napi_env env, int64_t in);
     static napi_value GetValue(napi_env env, bool in);
-    template<typename T> static napi_value GetValue(napi_env env, const std::vector<T> &items)
+    template<typename T>
+    static napi_value GetValue(napi_env env, const std::vector<T> &items)
     {
         napi_value array = nullptr;
         auto status = napi_create_array(env, &array);

@@ -16,7 +16,6 @@
 #include "input_method_ability.h"
 
 #include <unistd.h>
-
 #include <utility>
 
 #include "block_data.h"
@@ -242,8 +241,8 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("channelObject is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    IMSA_HILOGI(
-        "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard, isBindFromClient);
+    IMSA_HILOGI("IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard,
+        isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
     int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart)
                                    : InvokeStartInputCallback(clientInfo.isNotifyInputStart);
@@ -307,8 +306,8 @@ int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::DispatchKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+int32_t InputMethodAbility::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
+    sptr<KeyEventConsumerProxy> &consumer)
 {
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
@@ -384,8 +383,8 @@ void InputMethodAbility::OnAttributeChange(Message *msg)
         IMSA_HILOGE("failed to read attribute");
         return;
     }
-    IMSA_HILOGD(
-        "IMA, enterKeyType: %{public}d, inputPattern: %{public}d", attribute.enterKeyType, attribute.inputPattern);
+    IMSA_HILOGD("IMA, enterKeyType: %{public}d, inputPattern: %{public}d", attribute.enterKeyType,
+        attribute.inputPattern);
     SetInputAttribute(attribute);
     // add for mod inputPattern when panel show
     auto panel = GetSoftKeyboardPanel();
@@ -497,8 +496,8 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     if (kdListener_ != nullptr) {
         if (textConfig.cursorInfo.left != INVALID_CURSOR_VALUE) {
-            kdListener_->OnCursorUpdate(
-                textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
+            kdListener_->OnCursorUpdate(textConfig.cursorInfo.left, textConfig.cursorInfo.top,
+                textConfig.cursorInfo.height);
         }
         if (textConfig.textSelection.newBegin != INVALID_SELECTION_VALUE) {
             kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
@@ -873,8 +872,8 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
     return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP);
 }
 
-int32_t InputMethodAbility::ShowPanel(
-    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger)
+int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag,
+    Trigger trigger)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -897,8 +896,8 @@ int32_t InputMethodAbility::ShowPanel(
     return ret;
 }
 
-int32_t InputMethodAbility::HidePanel(
-    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger)
+int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag,
+    Trigger trigger)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -910,8 +909,7 @@ int32_t InputMethodAbility::HidePanel(
     return ret;
 }
 
-int32_t InputMethodAbility::ShowSysPanel(
-    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag)
+int32_t InputMethodAbility::ShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag)
 {
     if (inputMethodPanel->GetPanelType() != SOFT_KEYBOARD) {
         return ErrorCode::NO_ERROR;

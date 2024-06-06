@@ -16,8 +16,8 @@
 #include "inputmethod_extension.h"
 
 #include "ability_loader.h"
-#include "connection_manager.h"
 #include "configuration_utils.h"
+#include "connection_manager.h"
 #include "global.h"
 #include "inputmethod_extension_context.h"
 #include "js_inputmethod_extension.h"
