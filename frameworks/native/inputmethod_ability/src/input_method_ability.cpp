@@ -418,7 +418,6 @@ int32_t InputMethodAbility::ShowKeyboard()
             IMSA_HILOGE("panel is nullptr.");
             return ErrorCode::ERROR_IME;
         }
-        NotifyKeyboardHeight(panel);
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(true);
         if (flag == FLG_CANDIDATE_COLUMN) {
@@ -821,9 +820,13 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
     const PanelInfo &panelInfo, std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
     IMSA_HILOGI("IMA");
-    auto flag = panels_.ComputeIfAbsent(panelInfo.panelType,
-        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType,
-            std::shared_ptr<InputMethodPanel> &panel) {
+    auto panelHeightCallback = [this](uint32_t panelHeight, PanelFlag panelFlag) {
+        NotifyKeyboardHeight(panelHeight, panelFlag);
+    };
+    auto flag = panels_.ComputeIfAbsent(
+        panelInfo.panelType, [panelHeightCallback, &panelInfo, &context, &inputMethodPanel](
+                                 const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) {
+            inputMethodPanel->SetPanelHeightCallback(panelHeightCallback);
             inputMethodPanel = std::make_shared<InputMethodPanel>();
             auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
             if (ret == ErrorCode::NO_ERROR) {
@@ -1090,26 +1093,19 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
     });
 }
 
-void InputMethodAbility::NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel)
+void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag)
 {
-    if (inputMethodPanel == nullptr) {
-        IMSA_HILOGE("inputMethodPanel is nullptr");
-        return;
-    }
-    if (inputMethodPanel->GetPanelType() != PanelType::SOFT_KEYBOARD) {
-        IMSA_HILOGW("current panel is not soft keyboard");
-        return;
-    }
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr");
         return;
     }
-    if (inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
+    IMSA_HILOGD("notify panel height: %{public}u, flag: %{public}d", panelHeight, static_cast<int32_t>(panelFlag));
+    if (panelFlag != PanelFlag::FLG_FIXED) {
         channel->NotifyKeyboardHeight(0);
         return;
     }
-    channel->NotifyKeyboardHeight(inputMethodPanel->GetHeight());
+    channel->NotifyKeyboardHeight(panelHeight);
 }
 
 int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)

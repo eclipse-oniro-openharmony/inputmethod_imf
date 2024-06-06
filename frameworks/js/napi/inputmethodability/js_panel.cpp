@@ -171,7 +171,6 @@ napi_value JsPanel::Resize(napi_env env, napi_callback_info info)
         InputMethodAbility::GetInstance()->ShowSysPanel(ctxt->inputMethodPanel, ctxt->panelFlag);
         auto code = ctxt->inputMethodPanel->Resize(ctxt->width, ctxt->height);
         if (code == ErrorCode::NO_ERROR) {
-            InputMethodAbility::GetInstance()->NotifyKeyboardHeight(ctxt->inputMethodPanel);
             ctxt->SetState(napi_ok);
             return;
         }
@@ -265,7 +264,6 @@ napi_value JsPanel::ChangeFlag(napi_env env, napi_callback_info info)
         "param flag type must be one of PanelFlag", TYPE_NONE, nullptr);
     auto ret = inputMethodPanel->ChangePanelFlag(PanelFlag(panelFlag));
     CHECK_RETURN(ret == ErrorCode::NO_ERROR, "ChangePanelFlag failed!", nullptr);
-    InputMethodAbility::GetInstance()->NotifyKeyboardHeight(inputMethodPanel);
     return nullptr;
 }
 
@@ -377,7 +375,6 @@ napi_value JsPanel::AdjustPanelRect(napi_env env, napi_callback_info info)
         CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
         auto code = ctxt->inputMethodPanel->AdjustPanelRect(ctxt->panelFlag, ctxt->layoutParams);
         if (code == ErrorCode::NO_ERROR) {
-            InputMethodAbility::GetInstance()->NotifyKeyboardHeight(ctxt->inputMethodPanel);
             ctxt->SetState(napi_ok);
             return;
         } else if (code == ErrorCode::ERROR_PARAMETER_CHECK_FAILED) {
