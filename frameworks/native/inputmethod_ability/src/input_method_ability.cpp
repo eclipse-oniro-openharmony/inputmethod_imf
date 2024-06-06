@@ -422,6 +422,7 @@ int32_t InputMethodAbility::ShowKeyboard()
         imeListener_->OnKeyboardStatus(true);
         if (flag == FLG_CANDIDATE_COLUMN) {
             IMSA_HILOGI("panel flag is candidate, no need to show.");
+            NotifyKeyboardHeight(0, flag);
             return ErrorCode::NO_ERROR;
         }
         return ShowPanel(panel, flag, Trigger::IMF);
