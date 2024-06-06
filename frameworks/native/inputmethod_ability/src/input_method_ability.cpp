@@ -826,8 +826,8 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
     auto flag = panels_.ComputeIfAbsent(
         panelInfo.panelType, [panelHeightCallback, &panelInfo, &context, &inputMethodPanel](
                                  const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) {
-            inputMethodPanel->SetPanelHeightCallback(panelHeightCallback);
             inputMethodPanel = std::make_shared<InputMethodPanel>();
+            inputMethodPanel->SetPanelHeightCallback(panelHeightCallback);
             auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
             if (ret == ErrorCode::NO_ERROR) {
                 panel = inputMethodPanel;
