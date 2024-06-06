@@ -51,6 +51,7 @@ ohos_shared_library("keyboardpanelmanager") {
   ]
 
   external_deps = [
+    "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:abilitykit_native",
     "c_utils:utils",
     "eventhandler:libeventhandler",
