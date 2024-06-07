@@ -227,6 +227,21 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     IMSA_HILOGI("type: %{public}d", type);
     RemoveImeData(type, true);
     InputTypeManager::GetInstance().Set(false);
+
+    if (isSwitching_.load()) {
+        StopClientInput(clientInfo);
+        NotifyImeStopFinished();
+        return;
+    }
+    auto client = GetCurrentClient();
+    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
+    if (clientInfo != nullptr && clientInfo->bindImeType == type) {
+        StopClientInput(clientInfo);
+        if (type == ImeType::IME) {
+            RestartIme();
+        }
+        return;
+    }
     auto currentImeInfo = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     if (currentImeInfo == nullptr) {
         IMSA_HILOGE("currentImeInfo is nullptr");
@@ -237,20 +252,8 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
         IMSA_HILOGE("defaultImeInfo is nullptr");
         return;
     }
-    auto client = GetCurrentClient();
-    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
-    if (clientInfo != nullptr && clientInfo->bindImeType == type) {
-        StopClientInput(clientInfo);
-        if (type == ImeType::IME && !isSwitching_.load()) {
-            RestartIme();
-        }
-    } else {
-        if (type == ImeType::IME && !isSwitching_.load() && currentImeInfo->bundleName == defaultImeInfo->name) {
-            RestartIme();
-        }
-    }
-    if (!isSwitching_.load()) {
-        NotifyImeStopFinished();
+    if (type == ImeType::IME && currentImeInfo->bundleName == defaultImeInfo->name) {
+        RestartIme();
     }
 }
 
