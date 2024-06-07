@@ -146,10 +146,6 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     IMSA_HILOGI("success, width/height: %{public}u/%{public}u", width, height);
-    {
-        std::lock_guard<std::mutex> lock(heightLock_);
-        panelHeight_ = height;
-    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -802,16 +798,15 @@ int32_t InputMethodPanel::SizeChange(const WindowSize &size)
     return ErrorCode::NO_ERROR;
 }
 
-uint32_t InputMethodPanel::GetHeight()
-{
-    std::lock_guard<std::mutex> lock(heightLock_);
-    return panelHeight_;
-}
-
 void InputMethodPanel::RegisterKeyboardPanelInfoChangeListener()
 {
-    kbPanelInfoListener_ = new (std::nothrow) KeyboardPanelInfoChangeListener(
-        [this](const KeyboardPanelInfo &keyboardPanelInfo) { HandleKbPanelInfoChange(keyboardPanelInfo); });
+    kbPanelInfoListener_ = new (std::nothrow)
+        KeyboardPanelInfoChangeListener([this](const KeyboardPanelInfo &keyboardPanelInfo) {
+            if (panelHeightCallback_ != nullptr) {
+                panelHeightCallback_(keyboardPanelInfo.rect_.height_, panelFlag_);
+            }
+            HandleKbPanelInfoChange(keyboardPanelInfo);
+        });
     if (kbPanelInfoListener_ == nullptr) {
         return;
     }
@@ -889,6 +884,11 @@ bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t
         return false;
     }
     return true;
+}
+
+void InputMethodPanel::SetPanelHeightCallback(CallbackFunc heightCallback)
+{
+    panelHeightCallback_ = std::move(heightCallback);
 }
 } // namespace MiscServices
 } // namespace OHOS

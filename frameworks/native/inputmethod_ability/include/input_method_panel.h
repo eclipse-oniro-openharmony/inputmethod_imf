@@ -53,6 +53,7 @@ struct PanelAdjustInfo {
 class InputMethodPanel {
 public:
     static constexpr uint32_t INVALID_WINDOW_ID = 0;
+    using CallbackFunc = std::function<void(uint32_t, PanelFlag)>;
     InputMethodPanel() = default;
     ~InputMethodPanel();
     int32_t SetUiContent(const std::string &contentInfo, napi_env env, std::shared_ptr<NativeReference> contentStorage);
@@ -83,7 +84,7 @@ public:
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
-    uint32_t GetHeight();
+    void SetPanelHeightCallback(CallbackFunc heightCallback);
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
@@ -134,8 +135,6 @@ private:
     std::shared_ptr<PanelStatusListener> panelStatusListener_ = nullptr;
 
     static std::atomic<uint32_t> sequenceId_;
-    std::mutex heightLock_;
-    uint32_t panelHeight_ = 0;
     sptr<Rosen::IKeyboardPanelInfoChangeListener> kbPanelInfoListener_{ nullptr };
     bool isScbEnable_{ false };
 
@@ -146,6 +145,7 @@ private:
 
     std::mutex windowListenerLock_;
     sptr<Rosen::IWindowChangeListener> windowChangedListener_ = nullptr;
+    CallbackFunc panelHeightCallback_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS
