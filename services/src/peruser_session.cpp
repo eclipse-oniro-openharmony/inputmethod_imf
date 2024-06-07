@@ -228,13 +228,13 @@ void PerUserSession::OnImeDied(const sptr<IInputMethodCore> &remote, ImeType typ
     RemoveImeData(type, true);
     InputTypeManager::GetInstance().Set(false);
 
+    auto client = GetCurrentClient();
+    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (isSwitching_.load()) {
         StopClientInput(clientInfo);
         NotifyImeStopFinished();
         return;
     }
-    auto client = GetCurrentClient();
-    auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == type) {
         StopClientInput(clientInfo);
         if (type == ImeType::IME) {
