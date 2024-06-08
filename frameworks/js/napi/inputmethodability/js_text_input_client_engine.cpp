@@ -221,7 +221,7 @@ napi_status JsTextInputClientEngine::GetSelectMovement(
 
 napi_value JsTextInputClientEngine::SendKeyFunction(napi_env env, napi_callback_info info)
 {
-    auto ctxt = std::make_shared<SendKeyFunctionContext>(); 
+    auto ctxt = std::make_shared<SendKeyFunctionContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_generic_failure);
         napi_status ret = JsUtils::GetValue(env, argv[0], ctxt->action);
@@ -1118,12 +1118,6 @@ bool JsInputAttribute::Read(napi_env env, napi_value jsObject, InputAttribute &n
     ret = ret
           && JsUtil::Object::ReadProperty(env, jsObject, "isTextPreviewSupported", nativeObject.isTextPreviewSupported);
     return ret;
-}
-
-std::string JsTextInputClientEngine::GenerateTraceId()
-{
-    auto traceId = traceId_++;
-    return std::to_string(traceId);
 }
 } // namespace MiscServices
 } // namespace OHOS

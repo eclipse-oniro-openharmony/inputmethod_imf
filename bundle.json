@@ -45,12 +45,12 @@
               "os_account",
               "hisysevent",
               "hitrace",
+              "ffrt",
               "graphic_2d",
               "config_policy",
               "data_share",
               "resource_schedule_service",
-              "memmgr",
-              "ffrt"
+              "memmgr"
           ], 
           "third_party": [
               "cJSON"

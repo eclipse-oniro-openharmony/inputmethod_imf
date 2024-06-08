@@ -449,7 +449,11 @@ private:
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
     static FFRTBlockQueue<EditorEventInfo> editorQueue_;
     static BlockQueue<PrivateCommandInfo> privateCommandQueue_;
-    static std::string GenerateTraceId();
+    static std::string GenerateTraceId()
+    {
+        auto traceId = traceId_++;
+        return std::to_string(traceId);
+    }
     static uint32_t traceId_;
 };
 } // namespace MiscServices
