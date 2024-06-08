@@ -682,13 +682,17 @@ bool InputMethodPanel::SetPanelStatusListener(std::shared_ptr<PanelStatusListene
     }
     IMSA_HILOGD("type: %{public}s", type.c_str());
     if (type == "show" || type == "hide") {
-        if (panelStatusListener_ != nullptr) {
-            IMSA_HILOGD("PanelStatusListener already set.");
-            return true;
+        if (panelStatusListener_ == nullptr) {
+            IMSA_HILOGD("panelStatusListener_ need to be set");
+            panelStatusListener_ = std::move(statusListener);
         }
-        panelStatusListener_ = std::move(statusListener);
-        if (window_ != nullptr && IsShowing()) {
-            panelStatusListener_->OnPanelStatus(windowId_, true);
+        if (window_ != nullptr) {
+            if (type == "show" && IsShowing()) {
+                panelStatusListener_->OnPanelStatus(windowId_, true);
+            }
+            if (type == "hide" && IsHidden()) {
+                panelStatusListener_->OnPanelStatus(windowId_, false);
+            }
         }
     }
     if (panelType_ == PanelType::SOFT_KEYBOARD &&

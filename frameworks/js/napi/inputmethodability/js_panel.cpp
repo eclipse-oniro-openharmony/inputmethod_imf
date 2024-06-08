@@ -307,12 +307,12 @@ napi_value JsPanel::Subscribe(napi_env env, napi_callback_info info)
     IMSA_HILOGD("Subscribe type:%{public}s", type.c_str());
     std::shared_ptr<PanelListenerImpl> observer = PanelListenerImpl::GetInstance();
     auto inputMethodPanel = UnwrapPanel(env, thisVar);
+    // 1 means the second param callback.
+    observer->SaveInfo(env, type, argv[1], inputMethodPanel->windowId_);
     bool ret = inputMethodPanel->SetPanelStatusListener(observer, type);
-    if (ret) {
-        // 1 means the second param callback.
-        observer->SaveInfo(env, type, argv[1], inputMethodPanel->windowId_);
-    } else {
+    if (!ret) {
         IMSA_HILOGE("failed to subscribe %{public}s", type.c_str());
+        observer->RemoveInfo(type, inputMethodPanel->windowId_);
     }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);

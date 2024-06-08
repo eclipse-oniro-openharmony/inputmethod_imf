@@ -691,13 +691,13 @@ HWTEST_F(InputMethodPanelTest, testIsPanelShown_003, TestSize.Level0)
 }
 
 /**
-* @tc.name: testSetPanelStatusListener
-* @tc.desc: Test SetPanelStatusListener.
+* @tc.name: testSetPanelStatusListener01
+* @tc.desc: Test testSetPanelStatusListener01.
 * @tc.type: FUNC
 */
-HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener, TestSize.Level0)
+HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener01, TestSize.Level0)
 {
-    IMSA_HILOGI("InputMethodPanelTest::testSetPanelStatusListener start.");
+    IMSA_HILOGI("InputMethodPanelTest::testSetPanelStatusListener01 start.");
     auto inputMethodPanel = std::make_shared<InputMethodPanel>();
     auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
     // on('show')->on('hide')->show->hide
@@ -711,6 +711,40 @@ HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener, TestSize.Level0)
 
     EXPECT_TRUE(InputMethodPanelTest::TriggerShowCallback(inputMethodPanel));
     EXPECT_TRUE(InputMethodPanelTest::TriggerHideCallback(inputMethodPanel));
+
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+}
+
+/**
+* @tc.name: testSetPanelStatusListener02
+* @tc.desc: Test testSetPanelStatusListener02.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testSetPanelStatusListener02, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPanelTest::testSetPanelStatusListener02 start.");
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    auto statusListener = std::make_shared<InputMethodPanelTest::PanelStatusListenerImpl>();
+
+    AccessScope scope(InputMethodPanelTest::currentImeTokenId_, InputMethodPanelTest::currentImeUid_);
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    auto ret = inputMethodPanel->CreatePanel(nullptr, panelInfo);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+
+    // panelStatusListener_ not nullptr
+    inputMethodPanel->panelStatusListener_ = statusListener;
+
+    // subscribe 'show' after panel shown, get 'show' callback
+    InputMethodPanelTest::status_ = InputWindowStatus::NONE;
+    InputMethodPanelTest::TestShowPanel(inputMethodPanel);
+    inputMethodPanel->SetPanelStatusListener(statusListener, "show");
+    EXPECT_EQ(status_, InputWindowStatus::SHOW);
+
+    // subscribe 'hide' after panel hidden, get 'hide' callback
+    InputMethodPanelTest::status_ = InputWindowStatus::NONE;
+    InputMethodPanelTest::TestHidePanel(inputMethodPanel);
+    inputMethodPanel->SetPanelStatusListener(statusListener, "hide");
+    EXPECT_EQ(status_, InputWindowStatus::HIDE);
 
     InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
 }
