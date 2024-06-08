@@ -256,11 +256,10 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         startInputProcessHandler->SetValue(isCallbackFinished);
     };
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
-    if (imeListener_ != nullptr) {
-        imeListener_->PostTaskToEventHandler(task, "startInput");
+    if (imeListener_ != nullptr && imeListener_->PostTaskToEventHandler(task, "startInput")) {
         startInputProcessHandler->GetValue();
     } else {
-        IMSA_HILOGE("imeListener_ is nullptr.");
+        IMSA_HILOGE("imeListener_ is nullptr, or post task failed!");
     }
     return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
 }

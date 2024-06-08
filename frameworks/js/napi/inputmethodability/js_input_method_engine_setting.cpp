@@ -840,14 +840,19 @@ void JsInputMethodEngineSetting::FreeWorkIfFail(int ret, uv_work_t *work)
     IMSA_HILOGE("uv_queue_work failed retCode:%{public}d", ret);
 }
 
-void JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> task, const std::string &taskName)
+bool JsInputMethodEngineSetting::PostTaskToEventHandler(std::function<void()> task, const std::string &taskName)
 {
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
         IMSA_HILOGE("eventHandler is nullptr!");
-        return;
+        return false;
+    }
+    if (eventHandler == AppExecFwk::EventHandler::Current()) {
+        IMSA_HILOGE("in current thread!");
+        return false;
     }
     handler_->PostTask(task, taskName);
+    return true;
 }
 } // namespace MiscServices
 } // namespace OHOS
