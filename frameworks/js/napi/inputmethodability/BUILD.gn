@@ -82,6 +82,7 @@ ohos_shared_library("inputmethodengine") {
     "ability_runtime:napi_base_context",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "input:libmmi-client",
     "input:libmmi-util",

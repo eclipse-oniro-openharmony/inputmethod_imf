@@ -45,6 +45,7 @@
               "os_account",
               "hisysevent",
               "hitrace",
+              "ffrt",
               "graphic_2d",
               "config_policy",
               "data_share",

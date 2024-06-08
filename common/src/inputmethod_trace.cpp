@@ -45,6 +45,12 @@ InputMethodSyncTrace::InputMethodSyncTrace(const std::string &value)
     StartTrace(HITRACE_TAG_MISC, value);
 }
 
+InputMethodSyncTrace::InputMethodSyncTrace(const std::string &value, const std::string &id)
+{
+    auto info = value + "_" + id;
+    StartTrace(HITRACE_TAG_MISC, info);
+}
+
 InputMethodSyncTrace::~InputMethodSyncTrace()
 {
     FinishTrace(HITRACE_TAG_MISC);

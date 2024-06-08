@@ -31,8 +31,9 @@ thread_local napi_ref JsTextInputClientEngine::TICRef_ = nullptr;
 const std::string JsTextInputClientEngine::TIC_CLASS_NAME = "TextInputClient";
 constexpr int32_t MAX_WAIT_TIME = 5000;
 constexpr int32_t MAX_WAIT_TIME_PRIVATE_COMMAND = 2000;
-BlockQueue<EditorEventInfo> JsTextInputClientEngine::editorQueue_{ MAX_WAIT_TIME };
+FFRTBlockQueue<EditorEventInfo> JsTextInputClientEngine::editorQueue_{ MAX_WAIT_TIME };
 BlockQueue<PrivateCommandInfo> JsTextInputClientEngine::privateCommandQueue_{ MAX_WAIT_TIME_PRIVATE_COMMAND };
+uint32_t JsTextInputClientEngine::traceId_{ 0 };
 napi_value JsTextInputClientEngine::Init(napi_env env, napi_value info)
 {
     IMSA_HILOGD("JsTextInputClientEngine init");
@@ -276,7 +277,7 @@ napi_value JsTextInputClientEngine::SendPrivateCommand(napi_env env, napi_callba
 
 napi_value JsTextInputClientEngine::DeleteForwardSync(napi_env env, napi_callback_info info)
 {
-    InputMethodSyncTrace tracer("JS_DeleteForwardSync");
+    InputMethodSyncTrace tracer("JS_DeleteForwardSync", GenerateTraceId());
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::DELETE_FORWARD };
     editorQueue_.Push(eventInfo);
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -304,7 +305,8 @@ napi_value JsTextInputClientEngine::DeleteForwardSync(napi_env env, napi_callbac
 
 napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_info info)
 {
-    InputMethodSyncTrace tracer("JS_DeleteForward");
+    auto traceId = GenerateTraceId();
+    InputMethodSyncTrace tracer("JS_DeleteForward_Start", traceId);
     auto ctxt = std::make_shared<DeleteForwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_generic_failure);
@@ -318,12 +320,13 @@ napi_value JsTextInputClientEngine::DeleteForward(napi_env env, napi_callback_in
         }
         return status;
     };
-    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+    auto output = [ctxt, traceId](napi_env env, napi_value *result) -> napi_status {
+        InputMethodSyncTrace tracer("JS_DeleteForward_Complete", traceId);
         napi_status status = napi_get_boolean(env, ctxt->isDeleteForward, result);
         return status;
     };
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        InputMethodSyncTrace tracer("JS_DeleteForward_Exec");
+    auto exec = [ctxt, traceId](AsyncCall::Context *ctx) {
+        InputMethodSyncTrace tracer("JS_DeleteForward_Exec", traceId);
         int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
         editorQueue_.Wait(ctxt->info);
         PrintEditorQueueInfoIfTimeout(start, ctxt->info);
@@ -406,7 +409,8 @@ napi_value JsTextInputClientEngine::DeleteBackward(napi_env env, napi_callback_i
 
 napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info info)
 {
-    InputMethodSyncTrace tracer("JS_InsertText");
+    auto traceId = GenerateTraceId();
+    InputMethodSyncTrace tracer("JS_InsertText_Start", traceId);
     auto ctxt = std::make_shared<InsertTextContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_generic_failure);
@@ -419,12 +423,13 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
         }
         return status;
     };
-    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+    auto output = [ctxt, traceId](napi_env env, napi_value *result) -> napi_status {
+        InputMethodSyncTrace tracer("JS_InsertText_Complete", traceId);
         napi_status status = napi_get_boolean(env, ctxt->isInsertText, result);
         return status;
     };
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        InputMethodSyncTrace tracer("JS_InsertText_Exec");
+    auto exec = [ctxt, traceId](AsyncCall::Context *ctx) {
+        InputMethodSyncTrace tracer("JS_InsertText_Exec", traceId);
         int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
         editorQueue_.Wait(ctxt->info);
         PrintEditorQueueInfoIfTimeout(start, ctxt->info);
@@ -446,7 +451,7 @@ napi_value JsTextInputClientEngine::InsertText(napi_env env, napi_callback_info 
 
 napi_value JsTextInputClientEngine::InsertTextSync(napi_env env, napi_callback_info info)
 {
-    InputMethodSyncTrace tracer("JS_InsertTextSync");
+    InputMethodSyncTrace tracer("JS_InsertTextSync", GenerateTraceId());
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::INSERT_TEXT };
     editorQueue_.Push(eventInfo);
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -473,7 +478,7 @@ napi_value JsTextInputClientEngine::InsertTextSync(napi_env env, napi_callback_i
 
 napi_value JsTextInputClientEngine::GetForwardSync(napi_env env, napi_callback_info info)
 {
-    InputMethodSyncTrace tracer("JS_GetForwardSync");
+    InputMethodSyncTrace tracer("JS_GetForwardSync", GenerateTraceId());
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::GET_FORWARD };
     editorQueue_.Push(eventInfo);
     int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
@@ -506,7 +511,8 @@ napi_value JsTextInputClientEngine::GetForwardSync(napi_env env, napi_callback_i
 
 napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info info)
 {
-    InputMethodSyncTrace tracer("JS_GetForward");
+    auto traceId = GenerateTraceId();
+    InputMethodSyncTrace tracer("JS_GetForward_Start", traceId);
     auto ctxt = std::make_shared<GetForwardContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_generic_failure);
@@ -519,13 +525,14 @@ napi_value JsTextInputClientEngine::GetForward(napi_env env, napi_callback_info 
         }
         return status;
     };
-    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
+    auto output = [ctxt, traceId](napi_env env, napi_value *result) -> napi_status {
+        InputMethodSyncTrace tracer("JS_GetForward_Complete", traceId);
         napi_value data = GetResult(env, ctxt->text);
         *result = data;
         return napi_ok;
     };
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
-        InputMethodSyncTrace tracer("JS_GetForward_Exec");
+    auto exec = [ctxt, traceId](AsyncCall::Context *ctx) {
+        InputMethodSyncTrace tracer("JS_GetForward_Exec", traceId);
         int64_t start = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
         editorQueue_.Wait(ctxt->info);
         PrintEditorQueueInfoIfTimeout(start, ctxt->info);
@@ -844,6 +851,8 @@ napi_value JsTextInputClientEngine::GetTextIndexAtCursor(napi_env env, napi_call
 
 napi_value JsTextInputClientEngine::SetPreviewText(napi_env env, napi_callback_info info)
 {
+    auto traceId = GenerateTraceId();
+    InputMethodSyncTrace tracer("JS_SetPreviewText_Start", traceId);
     IMSA_HILOGD("JsTextInputClientEngine in");
     auto ctxt = std::make_shared<SetPreviewTextContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
@@ -854,8 +863,12 @@ napi_value JsTextInputClientEngine::SetPreviewText(napi_env env, napi_callback_i
         editorQueue_.Push(ctxt->info);
         return napi_ok;
     };
-    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
+    auto output = [ctxt, traceId](napi_env env, napi_value *result) -> napi_status {
+        InputMethodSyncTrace tracer("JS_SetPreviewText_Complete", traceId);
+        return napi_ok;
+    };
+    auto exec = [ctxt, traceId](AsyncCall::Context *ctx) {
+        InputMethodSyncTrace tracer("JS_SetPreviewText_Exec", traceId);
         editorQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->SetPreviewText(ctxt->text, ctxt->range);
         editorQueue_.Pop();
@@ -878,6 +891,7 @@ napi_value JsTextInputClientEngine::SetPreviewText(napi_env env, napi_callback_i
 
 napi_value JsTextInputClientEngine::SetPreviewTextSync(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JS_SetPreviewTextSync", GenerateTraceId());
     IMSA_HILOGD("JsTextInputClientEngine in");
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SET_PREVIEW_TEXT };
     editorQueue_.Push(eventInfo);
@@ -906,6 +920,8 @@ napi_value JsTextInputClientEngine::SetPreviewTextSync(napi_env env, napi_callba
 
 napi_value JsTextInputClientEngine::FinishTextPreview(napi_env env, napi_callback_info info)
 {
+    auto traceId = GenerateTraceId();
+    InputMethodSyncTrace tracer("JS_FinishTextPreview_Start", traceId);
     IMSA_HILOGD("JsTextInputClientEngine in");
     auto ctxt = std::make_shared<FinishTextPreviewContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
@@ -913,8 +929,12 @@ napi_value JsTextInputClientEngine::FinishTextPreview(napi_env env, napi_callbac
         editorQueue_.Push(ctxt->info);
         return napi_ok;
     };
-    auto output = [ctxt](napi_env env, napi_value *result) -> napi_status { return napi_ok; };
-    auto exec = [ctxt](AsyncCall::Context *ctx) {
+    auto output = [ctxt, traceId](napi_env env, napi_value *result) -> napi_status {
+        InputMethodSyncTrace tracer("JS_FinishTextPreview_Complete", traceId);
+        return napi_ok;
+    };
+    auto exec = [ctxt, traceId](AsyncCall::Context *ctx) {
+        InputMethodSyncTrace tracer("JS_FinishTextPreview_Exec", traceId);
         editorQueue_.Wait(ctxt->info);
         int32_t code = InputMethodAbility::GetInstance()->FinishTextPreview();
         editorQueue_.Pop();
@@ -933,6 +953,7 @@ napi_value JsTextInputClientEngine::FinishTextPreview(napi_env env, napi_callbac
 
 napi_value JsTextInputClientEngine::FinishTextPreviewSync(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JS_FinishTextPreviewSync", GenerateTraceId());
     IMSA_HILOGD("JsTextInputClientEngine in");
     EditorEventInfo eventInfo = { std::chrono::system_clock::now(), EditorEvent::SET_PREVIEW_TEXT };
     editorQueue_.Push(eventInfo);

@@ -1255,6 +1255,7 @@ int32_t InputMethodController::SendPrivateCommand(
 
 int32_t InputMethodController::SetPreviewText(const std::string &text, const Range &range)
 {
+    InputMethodSyncTrace tracer("IMC_SetPreviewText");
     IMSA_HILOGD("IMC in");
     if (!textConfig_.inputAttribute.isTextPreviewSupported) {
         IMSA_HILOGE("text preview not supported");
@@ -1281,6 +1282,7 @@ int32_t InputMethodController::SetPreviewText(const std::string &text, const Ran
 
 int32_t InputMethodController::FinishTextPreview()
 {
+    InputMethodSyncTrace tracer("IMC_FinishTextPreview");
     IMSA_HILOGD("IMC in");
     if (!textConfig_.inputAttribute.isTextPreviewSupported) {
         IMSA_HILOGE("text preview not supported");
@@ -1291,7 +1293,10 @@ int32_t InputMethodController::FinishTextPreview()
         IMSA_HILOGE("not editable or listener is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    listener->FinishTextPreview();
+    {
+        InputMethodSyncTrace aceTracer("ACE_FinishTextPreview");
+        listener->FinishTextPreview();
+    }
     return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices
