@@ -17,7 +17,6 @@
 #define SERVICES_INCLUDE_IME_INFO_ENQUIRER_H
 
 #include <application_info.h>
-
 #include <memory>
 #include <mutex>
 #include <string>
@@ -90,8 +89,8 @@ public:
     std::shared_ptr<Property> GetDefaultImeCfgProp();
     void SetCurrentImeInfo(std::shared_ptr<ImeInfo> info);
     void RefreshCurrentImeInfo(int32_t userId);
-    std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(
-    const std::vector<SubProperty> &subProps, const Condition &condition);
+    std::shared_ptr<SubProperty> FindTargetSubtypeByCondition(const std::vector<SubProperty> &subProps,
+        const Condition &condition);
     int32_t GetDefaultInputMethod(const int32_t userId, std::shared_ptr<Property> &prop, bool isBrief = false);
     int32_t GetInputMethodConfig(const int32_t userId, AppExecFwk::ElementName &inputMethodConfig);
     int32_t ListInputMethod(int32_t userId, InputMethodStatus status, std::vector<Property> &props, bool enableOn);
@@ -109,12 +108,12 @@ private:
     void InitCache(int32_t userId);
     SubProperty GetExtends(const std::vector<OHOS::AppExecFwk::Metadata> &metaData);
     ImeNativeCfg GetDefaultIme();
-    std::string GetStringById(
-        const std::string &bundleName, const std::string &moduleName, const int32_t labelId, const int32_t userId);
-    std::shared_ptr<ImeInfo> GetImeInfoFromCache(
-        const int32_t userId, const std::string &bundleName, const std::string &subName);
-    std::shared_ptr<ImeInfo> GetImeInfoFromBundleMgr(
-        const int32_t userId, const std::string &bundleName, const std::string &subName);
+    std::string GetStringById(const std::string &bundleName, const std::string &moduleName, const int32_t labelId,
+        const int32_t userId);
+    std::shared_ptr<ImeInfo> GetImeInfoFromCache(const int32_t userId, const std::string &bundleName,
+        const std::string &subName);
+    std::shared_ptr<ImeInfo> GetImeInfoFromBundleMgr(const int32_t userId, const std::string &bundleName,
+        const std::string &subName);
     int32_t GetExtInfosByBundleName(const int32_t userId, const std::string &bundleName,
         std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);
     bool IsNewExtInfos(const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos);

@@ -96,8 +96,7 @@ void FreezeManager::ReportRss(bool shouldFreeze)
     auto type = ResourceSchedule::ResType::RES_TYPE_SA_CONTROL_APP_EVENT;
     auto status = shouldFreeze ? ResourceSchedule::ResType::SaControlAppStatus::SA_STOP_APP
                                : ResourceSchedule::ResType::SaControlAppStatus::SA_START_APP;
-    std::unordered_map<std::string, std::string> payload = {
-        { "saId", std::to_string(INPUT_METHOD_SYSTEM_ABILITY_ID) },
+    std::unordered_map<std::string, std::string> payload = { { "saId", std::to_string(INPUT_METHOD_SYSTEM_ABILITY_ID) },
         { "saName", INPUT_METHOD_SERVICE_SA_NAME },
         { "extensionType", std::to_string(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::INPUTMETHOD)) },
         { "pid", std::to_string(pid_) } };

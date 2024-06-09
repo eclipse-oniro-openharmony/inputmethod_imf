@@ -43,8 +43,7 @@ class SecurityModeParser : public RefBase {
 public:
     static sptr<SecurityModeParser> GetInstance();
     int32_t Initialize(const int32_t userId);
-    int32_t GetSecurityMode(const std::string &bundleName, SecurityMode &security, int32_t userId);
-    bool IsSecurityChange(const std::string bundleName, const int32_t userId);
+    SecurityMode GetSecurityMode(const std::string &bundleName);
     int32_t UpdateFullModeList(int32_t userId);
     static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
 

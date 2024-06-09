@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,51 +13,45 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_INPUTMETHOD_BLOCK_QUEUE_H
-#define OHOS_INPUTMETHOD_BLOCK_QUEUE_H
-#include <condition_variable>
-#include <mutex>
+#ifndef OHOS_INPUTMETHOD_FFRT_BLOCK_QUEUE_H
+#define OHOS_INPUTMETHOD_FFRT_BLOCK_QUEUE_H
 #include <queue>
+
+#include "cpp/mutex.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace MiscServices {
-template<typename T>
-class BlockQueue {
+template<typename T> class FFRTBlockQueue {
 public:
-    explicit BlockQueue(uint32_t timeout) : timeout_(timeout)
+    explicit FFRTBlockQueue(uint32_t timeout) : timeout_(timeout)
     {
     }
 
-    ~BlockQueue() = default;
+    ~FFRTBlockQueue() = default;
 
     void Pop()
     {
-        std::unique_lock<std::mutex> lock(queuesMutex_);
+        std::unique_lock<ffrt::mutex> lock(queuesMutex_);
         queues_.pop();
         cv_.notify_all();
     }
 
     void Push(const T &data)
     {
-        std::unique_lock<std::mutex> lock(queuesMutex_);
+        std::unique_lock<ffrt::mutex> lock(queuesMutex_);
         queues_.push(data);
     }
 
     void Wait(const T &data)
     {
-        std::unique_lock<std::mutex> lock(queuesMutex_);
+        std::unique_lock<ffrt::mutex> lock(queuesMutex_);
         cv_.wait_for(lock, std::chrono::milliseconds(timeout_), [&data, this]() { return data == queues_.front(); });
-    }
-
-    bool IsReady(const T &data)
-    {
-        std::unique_lock<std::mutex> lock(queuesMutex_);
-        return data == queues_.front();
     }
 
     bool GetFront(T &data)
     {
-        std::unique_lock<std::mutex> lock(queuesMutex_);
+        std::unique_lock<ffrt::mutex> lock(queuesMutex_);
         if (queues_.empty()) {
             return false;
         }
@@ -67,10 +61,10 @@ public:
 
 private:
     const uint32_t timeout_;
-    std::mutex queuesMutex_;
+    ffrt::mutex queuesMutex_;
     std::queue<T> queues_;
-    std::condition_variable cv_;
+    ffrt::condition_variable cv_;
 };
 } // namespace MiscServices
 } // namespace OHOS
-#endif // OHOS_INPUTMETHOD_BLOCK_QUEUE_H
+#endif // OHOS_INPUTMETHOD_FFRT_BLOCK_QUEUE_H

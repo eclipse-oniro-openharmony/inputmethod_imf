@@ -30,10 +30,10 @@
 #include "global.h"
 #include "i_input_client.h"
 #include "i_input_control_channel.h"
-#include "i_system_cmd_channel.h"
 #include "i_input_data_channel.h"
 #include "i_input_method_agent.h"
 #include "i_input_method_core.h"
+#include "i_system_cmd_channel.h"
 #include "ime_cfg_manager.h"
 #include "input_attribute.h"
 #include "input_client_info.h"
@@ -98,7 +98,8 @@ public:
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
     bool StartCurrentIme(int32_t userId, bool isRetry);
     void StopCurrentIme();
-    bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry);
+    bool StartInputService(
+        const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry, SecurityMode mode = SecurityMode::INVALID);
     bool IsProxyImeEnable();
     bool IsBoundToClient();
     int32_t ExitCurrentInputType();
@@ -152,10 +153,10 @@ private:
     std::shared_ptr<ImeData> GetImeData(ImeType type);
     std::shared_ptr<ImeData> GetValidIme(ImeType type);
 
-    int32_t BindClientWithIme(
-        const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type, bool isBindFromClient = false);
-    void UnBindClientWithIme(
-        const std::shared_ptr<InputClientInfo> &currentClientInfo, bool isUnbindFromClient = false);
+    int32_t BindClientWithIme(const std::shared_ptr<InputClientInfo> &clientInfo, ImeType type,
+        bool isBindFromClient = false);
+    void UnBindClientWithIme(const std::shared_ptr<InputClientInfo> &currentClientInfo,
+        bool isUnbindFromClient = false);
     void StopClientInput(const std::shared_ptr<InputClientInfo> &clientInfo);
     void StopImeInput(ImeType currentType, const sptr<IRemoteObject> &currentChannel);
 

@@ -146,10 +146,6 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     IMSA_HILOGI("success, width/height: %{public}u/%{public}u", width, height);
-    {
-        std::lock_guard<std::mutex> lock(heightLock_);
-        panelHeight_ = height;
-    }
     return ErrorCode::NO_ERROR;
 }
 
@@ -168,7 +164,7 @@ int32_t InputMethodPanel::MoveTo(int32_t x, int32_t y)
     return ret == WMError::WM_ERROR_INVALID_PARAM ? ErrorCode::ERROR_PARAMETER_CHECK_FAILED : ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodPanel::AdjustPanelRect(PanelFlag &panelFlag, const LayoutParams &layoutParams)
+int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams)
 {
     if (window_ == nullptr) {
         IMSA_HILOGE("window is nullptr");
@@ -179,13 +175,11 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag &panelFlag, const LayoutPara
         IMSA_HILOGE("posX_ and posY_ cannot be less than 0");
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
-    if (!CheckSize(panelFlag, layoutParams.portraitRect.width_,
-        layoutParams.portraitRect.height_, true)) {
+    if (!CheckSize(panelFlag, layoutParams.portraitRect.width_, layoutParams.portraitRect.height_, true)) {
         IMSA_HILOGE("Portrait invalid size");
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
-    if (!CheckSize(panelFlag, layoutParams.landscapeRect.width_,
-        layoutParams.landscapeRect.height_, false)) {
+    if (!CheckSize(panelFlag, layoutParams.landscapeRect.width_, layoutParams.landscapeRect.height_, false)) {
         IMSA_HILOGE("Landscape invalid size");
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
@@ -201,15 +195,10 @@ int32_t InputMethodPanel::AdjustPanelRect(PanelFlag &panelFlag, const LayoutPara
     }
     IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
-    {
-        std::lock_guard<std::mutex> lock(heightLock_);
-        panelHeight_ = layoutParams.portraitRect.height_;
-        panelFlag_ = panelFlag;
-    }
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodPanel::ParsePanelRect(PanelFlag &panelFlag, const LayoutParams &layoutParams)
+int32_t InputMethodPanel::ParsePanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams)
 {
     std::vector<SysPanelAdjust> configs;
     auto isSuccess = SysCfgParser::ParsePanelAdjust(configs);
@@ -221,10 +210,11 @@ int32_t InputMethodPanel::ParsePanelRect(PanelFlag &panelFlag, const LayoutParam
         }
     } else {
         IMSA_HILOGE("There is no configuration file.");
-        keyboardLayoutParams_.LandscapeKeyboardRect_ = layoutParams.landscapeRect;
-        keyboardLayoutParams_.PortraitKeyboardRect_ = layoutParams.portraitRect;
-        keyboardLayoutParams_.LandscapePanelRect_ = layoutParams.landscapeRect;
-        keyboardLayoutParams_.PortraitPanelRect_ = layoutParams.portraitRect;
+        auto ret = CalculateNoConfigRect(panelFlag, layoutParams);
+        if (ret != ErrorCode::NO_ERROR) {
+            IMSA_HILOGE("CalculateNoConfigRect failed, err = %{public}d", ret);
+            return ret;
+        }
         return ErrorCode::NO_ERROR;
     }
     std::tuple<std::vector<std::string>, std::vector<std::string>> keys = GetScreenStatus(panelFlag);
@@ -236,7 +226,53 @@ int32_t InputMethodPanel::ParsePanelRect(PanelFlag &panelFlag, const LayoutParam
     return ErrorCode::NO_ERROR;
 }
 
-std::tuple<std::vector<std::string>, std::vector<std::string>> InputMethodPanel::GetScreenStatus(PanelFlag panelFlag)
+int32_t InputMethodPanel::CalculateNoConfigRect(const PanelFlag panelFlag, const LayoutParams &layoutParams)
+{
+    if (panelFlag == PanelFlag::FLG_FIXED) {
+        keyboardLayoutParams_.gravity_ = WindowGravity::WINDOW_GRAVITY_BOTTOM;
+        WindowSize portraitDisplaySize;
+        if (!GetDisplaySize(true, portraitDisplaySize)) {
+            IMSA_HILOGE("GetPortraitDisplaySize failed.");
+            return ErrorCode::ERROR_WINDOW_MANAGER;
+        }
+        keyboardLayoutParams_.PortraitPanelRect_.width_ = portraitDisplaySize.width;
+        keyboardLayoutParams_.PortraitPanelRect_.height_ = layoutParams.portraitRect.height_;
+        keyboardLayoutParams_.PortraitPanelRect_.posY_ =
+            static_cast<int32_t>(portraitDisplaySize.height - keyboardLayoutParams_.PortraitPanelRect_.height_);
+        keyboardLayoutParams_.PortraitPanelRect_.posX_ = NUMBER_ZERO;
+        //fixed Portraitkeyboard
+        keyboardLayoutParams_.PortraitKeyboardRect_.width_ = keyboardLayoutParams_.PortraitPanelRect_.width_;
+        keyboardLayoutParams_.PortraitKeyboardRect_.height_ = keyboardLayoutParams_.PortraitPanelRect_.height_;
+        keyboardLayoutParams_.PortraitKeyboardRect_.posY_ = keyboardLayoutParams_.PortraitPanelRect_.posY_;
+        keyboardLayoutParams_.PortraitKeyboardRect_.posX_ = keyboardLayoutParams_.PortraitPanelRect_.posX_;
+
+        WindowSize landscapeDisplaySize;
+        if (!GetDisplaySize(false, landscapeDisplaySize)) {
+            IMSA_HILOGE("GetLandscapeDisplaySize failed.");
+            return ErrorCode::ERROR_WINDOW_MANAGER;
+        }
+        keyboardLayoutParams_.LandscapePanelRect_.width_ = landscapeDisplaySize.width;
+        keyboardLayoutParams_.LandscapePanelRect_.height_ = layoutParams.landscapeRect.height_;
+        keyboardLayoutParams_.LandscapePanelRect_.posY_ =
+            static_cast<int32_t>(landscapeDisplaySize.height - keyboardLayoutParams_.LandscapePanelRect_.height_);
+        keyboardLayoutParams_.LandscapePanelRect_.posX_ = NUMBER_ZERO;
+        //Landscapekeyboard
+        keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = keyboardLayoutParams_.LandscapePanelRect_.width_;
+        keyboardLayoutParams_.LandscapeKeyboardRect_.height_ = keyboardLayoutParams_.LandscapePanelRect_.height_;
+        keyboardLayoutParams_.LandscapeKeyboardRect_.posY_ = keyboardLayoutParams_.LandscapePanelRect_.posY_;
+        keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ = keyboardLayoutParams_.LandscapePanelRect_.posX_;
+    } else {
+        keyboardLayoutParams_.gravity_ = WindowGravity::WINDOW_GRAVITY_FLOAT;
+        keyboardLayoutParams_.LandscapeKeyboardRect_ = layoutParams.landscapeRect;
+        keyboardLayoutParams_.PortraitKeyboardRect_ = layoutParams.portraitRect;
+        keyboardLayoutParams_.LandscapePanelRect_ = layoutParams.landscapeRect;
+        keyboardLayoutParams_.PortraitPanelRect_ = layoutParams.portraitRect;
+    }
+    return ErrorCode::NO_ERROR;
+}
+
+std::tuple<std::vector<std::string>, std::vector<std::string>> InputMethodPanel::GetScreenStatus(
+    const PanelFlag panelFlag)
 {
     std::lock_guard<std::mutex> lock(panelAdjustLock_);
     std::string flag;
@@ -253,12 +289,12 @@ std::tuple<std::vector<std::string>, std::vector<std::string>> InputMethodPanel:
     } else {
         foldStatus = "foldable";
     }
-    std::vector<std::string> lanPanel = { flag, foldStatus, "landscape"};
-    std::vector<std::string> porPanel = { flag, foldStatus, "portrait"};
+    std::vector<std::string> lanPanel = { flag, foldStatus, "landscape" };
+    std::vector<std::string> porPanel = { flag, foldStatus, "portrait" };
     return std::make_tuple(lanPanel, porPanel);
 }
 
-int32_t InputMethodPanel::GetSysPanelAdjust(PanelFlag &panelFlag,
+int32_t InputMethodPanel::GetSysPanelAdjust(const PanelFlag panelFlag,
     std::tuple<std::vector<std::string>, std::vector<std::string>> &keys, const LayoutParams &layoutParams)
 {
     std::lock_guard<std::mutex> lock(panelAdjustLock_);
@@ -279,7 +315,7 @@ int32_t InputMethodPanel::GetSysPanelAdjust(PanelFlag &panelFlag,
     return CalculatePanelRect(panelFlag, lanIterValue, porIterValue, layoutParams);
 }
 
-int32_t InputMethodPanel::CalculatePanelRect(PanelFlag &panelFlag, PanelAdjustInfo &lanIterValue,
+int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdjustInfo &lanIterValue,
     PanelAdjustInfo &porIterValue, const LayoutParams &layoutParams)
 {
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
@@ -293,28 +329,31 @@ int32_t InputMethodPanel::CalculatePanelRect(PanelFlag &panelFlag, PanelAdjustIn
         WindowSize portraitDisplaySize;
         if (!GetDisplaySize(true, portraitDisplaySize)) {
             IMSA_HILOGE("GetDisplaySize failed.");
-            return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
+            return ErrorCode::ERROR_WINDOW_MANAGER;
         }
         keyboardLayoutParams_.PortraitPanelRect_.width_ = portraitDisplaySize.width;
-        keyboardLayoutParams_.PortraitPanelRect_.height_ = layoutParams.portraitRect.height_ +
+        keyboardLayoutParams_.PortraitPanelRect_.height_ =
+            layoutParams.portraitRect.height_ +
             static_cast<uint32_t>((porIterValue.top + porIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
         if (keyboardLayoutParams_.PortraitPanelRect_.height_ >
             portraitDisplaySize.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO) {
             keyboardLayoutParams_.PortraitPanelRect_.height_ =
                 portraitDisplaySize.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO;
         }
-        keyboardLayoutParams_.PortraitPanelRect_.posY_ = static_cast<int32_t>(portraitDisplaySize.height -
-            keyboardLayoutParams_.PortraitPanelRect_.height_);
+        keyboardLayoutParams_.PortraitPanelRect_.posY_ =
+            static_cast<int32_t>(portraitDisplaySize.height - keyboardLayoutParams_.PortraitPanelRect_.height_);
         keyboardLayoutParams_.PortraitPanelRect_.posX_ = NUMBER_ZERO;
         //fixed Portraitkeyboard
-        keyboardLayoutParams_.PortraitKeyboardRect_.width_ = keyboardLayoutParams_.PortraitPanelRect_.width_ -
+        keyboardLayoutParams_.PortraitKeyboardRect_.width_ =
+            keyboardLayoutParams_.PortraitPanelRect_.width_ -
             static_cast<uint32_t>((porIterValue.left + porIterValue.right) * (densityDpi / DPI_CALCULATION_RATIO));
-        keyboardLayoutParams_.PortraitKeyboardRect_.height_ = keyboardLayoutParams_.PortraitPanelRect_.height_ -
+        keyboardLayoutParams_.PortraitKeyboardRect_.height_ =
+            keyboardLayoutParams_.PortraitPanelRect_.height_ -
             static_cast<uint32_t>((porIterValue.top + porIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
-        keyboardLayoutParams_.PortraitKeyboardRect_.posY_ = keyboardLayoutParams_.PortraitPanelRect_.posY_ +
-            porIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
-        keyboardLayoutParams_.PortraitKeyboardRect_.posX_ = keyboardLayoutParams_.PortraitPanelRect_.posX_ +
-            porIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
+        keyboardLayoutParams_.PortraitKeyboardRect_.posY_ =
+            keyboardLayoutParams_.PortraitPanelRect_.posY_ + porIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
+        keyboardLayoutParams_.PortraitKeyboardRect_.posX_ =
+            keyboardLayoutParams_.PortraitPanelRect_.posX_ + porIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
         return CalculateLandscapeRect(defaultDisplay, layoutParams, lanIterValue, densityDpi);
     }
     CalculateFloatRect(layoutParams, lanIterValue, porIterValue, densityDpi);
@@ -330,14 +369,16 @@ void InputMethodPanel::CalculateFloatRect(const LayoutParams &layoutParams, Pane
     keyboardLayoutParams_.PortraitKeyboardRect_.posY_ = layoutParams.portraitRect.posY_;
     keyboardLayoutParams_.PortraitKeyboardRect_.posX_ = layoutParams.portraitRect.posX_;
     //portrait floating panel
-    keyboardLayoutParams_.PortraitPanelRect_.width_ = keyboardLayoutParams_.PortraitKeyboardRect_.width_ +
+    keyboardLayoutParams_.PortraitPanelRect_.width_ =
+        keyboardLayoutParams_.PortraitKeyboardRect_.width_ +
         static_cast<uint32_t>((porIterValue.left + porIterValue.right) * (densityDpi / DPI_CALCULATION_RATIO));
-    keyboardLayoutParams_.PortraitPanelRect_.height_ = keyboardLayoutParams_.PortraitKeyboardRect_.height_ +
+    keyboardLayoutParams_.PortraitPanelRect_.height_ =
+        keyboardLayoutParams_.PortraitKeyboardRect_.height_ +
         static_cast<uint32_t>((porIterValue.top + porIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
-    keyboardLayoutParams_.PortraitPanelRect_.posY_ = keyboardLayoutParams_.PortraitKeyboardRect_.posY_ -
-        porIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
-    keyboardLayoutParams_.PortraitPanelRect_.posX_ = keyboardLayoutParams_.PortraitKeyboardRect_.posX_ -
-        porIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
+    keyboardLayoutParams_.PortraitPanelRect_.posY_ =
+        keyboardLayoutParams_.PortraitKeyboardRect_.posY_ - porIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
+    keyboardLayoutParams_.PortraitPanelRect_.posX_ =
+        keyboardLayoutParams_.PortraitKeyboardRect_.posX_ - porIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
 
     //landscape floating keyboard
     keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = layoutParams.landscapeRect.width_;
@@ -345,14 +386,16 @@ void InputMethodPanel::CalculateFloatRect(const LayoutParams &layoutParams, Pane
     keyboardLayoutParams_.LandscapeKeyboardRect_.posY_ = layoutParams.landscapeRect.posY_;
     keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ = layoutParams.landscapeRect.posX_;
     //landscape floating panel
-    keyboardLayoutParams_.LandscapePanelRect_.width_ = keyboardLayoutParams_.LandscapeKeyboardRect_.width_ +
+    keyboardLayoutParams_.LandscapePanelRect_.width_ =
+        keyboardLayoutParams_.LandscapeKeyboardRect_.width_ +
         static_cast<uint32_t>((lanIterValue.left + lanIterValue.right) * (densityDpi / DPI_CALCULATION_RATIO));
-    keyboardLayoutParams_.LandscapePanelRect_.height_ = keyboardLayoutParams_.LandscapeKeyboardRect_.height_ +
+    keyboardLayoutParams_.LandscapePanelRect_.height_ =
+        keyboardLayoutParams_.LandscapeKeyboardRect_.height_ +
         static_cast<uint32_t>((lanIterValue.top + lanIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
-    keyboardLayoutParams_.LandscapePanelRect_.posY_ = keyboardLayoutParams_.LandscapeKeyboardRect_.posY_ -
-        lanIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
-    keyboardLayoutParams_.LandscapePanelRect_.posX_ = keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ -
-        lanIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
+    keyboardLayoutParams_.LandscapePanelRect_.posY_ =
+        keyboardLayoutParams_.LandscapeKeyboardRect_.posY_ - lanIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
+    keyboardLayoutParams_.LandscapePanelRect_.posX_ =
+        keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ - lanIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
 }
 
 int32_t InputMethodPanel::CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &defaultDisplay,
@@ -362,28 +405,31 @@ int32_t InputMethodPanel::CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &def
     WindowSize landscapeDisplaySize;
     if (!GetDisplaySize(false, landscapeDisplaySize)) {
         IMSA_HILOGE("GetDisplaySize failed.");
-        return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
+        return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     keyboardLayoutParams_.LandscapePanelRect_.width_ = landscapeDisplaySize.width;
-    keyboardLayoutParams_.LandscapePanelRect_.height_ = layoutParams.landscapeRect.height_ +
+    keyboardLayoutParams_.LandscapePanelRect_.height_ =
+        layoutParams.landscapeRect.height_ +
         static_cast<uint32_t>((lanIterValue.top + lanIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
     if (keyboardLayoutParams_.LandscapePanelRect_.height_ >
-            landscapeDisplaySize.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO) {
+        landscapeDisplaySize.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO) {
         keyboardLayoutParams_.LandscapePanelRect_.height_ =
             landscapeDisplaySize.height * FIXED_SOFT_KEYBOARD_PANEL_RATIO;
     }
-    keyboardLayoutParams_.LandscapePanelRect_.posY_ = static_cast<int32_t>(landscapeDisplaySize.height -
-        keyboardLayoutParams_.LandscapePanelRect_.height_);
+    keyboardLayoutParams_.LandscapePanelRect_.posY_ =
+        static_cast<int32_t>(landscapeDisplaySize.height - keyboardLayoutParams_.LandscapePanelRect_.height_);
     keyboardLayoutParams_.LandscapePanelRect_.posX_ = NUMBER_ZERO;
     //Landscapekeyboard
-    keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = keyboardLayoutParams_.LandscapePanelRect_.width_ -
+    keyboardLayoutParams_.LandscapeKeyboardRect_.width_ =
+        keyboardLayoutParams_.LandscapePanelRect_.width_ -
         static_cast<uint32_t>((lanIterValue.left + lanIterValue.right) * (densityDpi / DPI_CALCULATION_RATIO));
-    keyboardLayoutParams_.LandscapeKeyboardRect_.height_ = keyboardLayoutParams_.LandscapePanelRect_.height_ -
+    keyboardLayoutParams_.LandscapeKeyboardRect_.height_ =
+        keyboardLayoutParams_.LandscapePanelRect_.height_ -
         static_cast<uint32_t>((lanIterValue.top + lanIterValue.bottom) * (densityDpi / DPI_CALCULATION_RATIO));
-    keyboardLayoutParams_.LandscapeKeyboardRect_.posY_ = keyboardLayoutParams_.LandscapePanelRect_.posY_ +
-        lanIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
-    keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ = keyboardLayoutParams_.LandscapePanelRect_.posX_ +
-        lanIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
+    keyboardLayoutParams_.LandscapeKeyboardRect_.posY_ =
+        keyboardLayoutParams_.LandscapePanelRect_.posY_ + lanIterValue.top * (densityDpi / DPI_CALCULATION_RATIO);
+    keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ =
+        keyboardLayoutParams_.LandscapePanelRect_.posX_ + lanIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
     sptr<Rosen::CutoutInfo> cutoutInfo = defaultDisplay->GetCutoutInfo();
     if (cutoutInfo != nullptr) {
         std::vector<Rosen::DMRect> cutoutAreas = cutoutInfo->GetBoundingRects();
@@ -391,7 +437,7 @@ int32_t InputMethodPanel::CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &def
             IMSA_HILOGD("There is no cutoutAreas");
             return ErrorCode::NO_ERROR;
         }
-        for (auto& cutoutArea : cutoutAreas) {
+        for (auto &cutoutArea : cutoutAreas) {
             if (cutoutArea.height_ != NUMBER_ZERO) {
                 keyboardLayoutParams_.LandscapeKeyboardRect_.width_ =
                     keyboardLayoutParams_.LandscapeKeyboardRect_.width_ - cutoutArea.height_ * NUMBER_TWO;
@@ -636,17 +682,21 @@ bool InputMethodPanel::SetPanelStatusListener(std::shared_ptr<PanelStatusListene
     }
     IMSA_HILOGD("type: %{public}s", type.c_str());
     if (type == "show" || type == "hide") {
-        if (panelStatusListener_ != nullptr) {
-            IMSA_HILOGD("PanelStatusListener already set.");
-            return true;
+        if (panelStatusListener_ == nullptr) {
+            IMSA_HILOGD("panelStatusListener_ need to be set");
+            panelStatusListener_ = std::move(statusListener);
         }
-        panelStatusListener_ = std::move(statusListener);
-        if (window_ != nullptr && IsShowing()) {
-            panelStatusListener_->OnPanelStatus(windowId_, true);
+        if (window_ != nullptr) {
+            if (type == "show" && IsShowing()) {
+                panelStatusListener_->OnPanelStatus(windowId_, true);
+            }
+            if (type == "hide" && IsHidden()) {
+                panelStatusListener_->OnPanelStatus(windowId_, false);
+            }
         }
     }
-    if (panelType_ == PanelType::SOFT_KEYBOARD && (panelFlag_ == PanelFlag::FLG_FIXED ||
-            panelFlag_ == PanelFlag::FLG_FLOATING) && type == "sizeChange") {
+    if (panelType_ == PanelType::SOFT_KEYBOARD &&
+        (panelFlag_ == PanelFlag::FLG_FIXED || panelFlag_ == PanelFlag::FLG_FLOATING) && type == "sizeChange") {
         if (panelStatusListener_ == nullptr && statusListener != nullptr) {
             panelStatusListener_ = std::move(statusListener);
         }
@@ -655,9 +705,8 @@ bool InputMethodPanel::SetPanelStatusListener(std::shared_ptr<PanelStatusListene
             IMSA_HILOGD("windowChangedListener already registered");
             return true;
         }
-        windowChangedListener_ = new (std::nothrow) WindowChangeListenerImpl([this](WindowSize windowSize) {
-            SizeChange(windowSize);
-        });
+        windowChangedListener_ = new (std::nothrow)
+            WindowChangeListenerImpl([this](WindowSize windowSize) { SizeChange(windowSize); });
         if (windowChangedListener_ == nullptr || window_ == nullptr) {
             IMSA_HILOGE("observer or window_ is nullptr");
             return false;
@@ -753,16 +802,15 @@ int32_t InputMethodPanel::SizeChange(const WindowSize &size)
     return ErrorCode::NO_ERROR;
 }
 
-uint32_t InputMethodPanel::GetHeight()
-{
-    std::lock_guard<std::mutex> lock(heightLock_);
-    return panelHeight_;
-}
-
 void InputMethodPanel::RegisterKeyboardPanelInfoChangeListener()
 {
-    kbPanelInfoListener_ = new (std::nothrow) KeyboardPanelInfoChangeListener(
-        [this](const KeyboardPanelInfo &keyboardPanelInfo) { HandleKbPanelInfoChange(keyboardPanelInfo); });
+    kbPanelInfoListener_ = new (std::nothrow)
+        KeyboardPanelInfoChangeListener([this](const KeyboardPanelInfo &keyboardPanelInfo) {
+            if (panelHeightCallback_ != nullptr) {
+                panelHeightCallback_(keyboardPanelInfo.rect_.height_, panelFlag_);
+            }
+            HandleKbPanelInfoChange(keyboardPanelInfo);
+        });
     if (kbPanelInfoListener_ == nullptr) {
         return;
     }
@@ -801,11 +849,11 @@ bool InputMethodPanel::GetDisplaySize(bool isPortrait, WindowSize &size)
         return false;
     }
     bool isDisplayPortrait = defaultDisplay->GetRotation() == Rosen::Rotation::ROTATION_0 ||
-        defaultDisplay->GetRotation() == Rosen::Rotation::ROTATION_180;
-    if (!isPortrait != isDisplayPortrait) {
-        size = {.width = defaultDisplay->GetHeight(), .height = defaultDisplay->GetWidth()};
+                             defaultDisplay->GetRotation() == Rosen::Rotation::ROTATION_180;
+    if (isPortrait != isDisplayPortrait) {
+        size = { .width = defaultDisplay->GetHeight(), .height = defaultDisplay->GetWidth() };
     } else {
-        size = {.width = defaultDisplay->GetWidth(), .height = defaultDisplay->GetHeight()};
+        size = { .width = defaultDisplay->GetWidth(), .height = defaultDisplay->GetHeight() };
     }
     return true;
 }
@@ -820,27 +868,31 @@ bool InputMethodPanel::CheckSize(PanelFlag panelFlag, uint32_t width, uint32_t h
     return IsSizeValid(panelFlag, width, height, displaySize.width, displaySize.height);
 }
 
-bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t height,
-    int32_t displayWidth, int32_t displayHeight)
+bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t height, int32_t displayWidth,
+    int32_t displayHeight)
 {
     if (width > INT32_MAX || height > INT32_MAX) {
         IMSA_HILOGE("width or height over maximum");
         return false;
     }
     float ratio = panelType_ == PanelType::SOFT_KEYBOARD && panelFlag == PanelFlag::FLG_FIXED
-                                ? FIXED_SOFT_KEYBOARD_PANEL_RATIO
-                                : NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO;
+                      ? FIXED_SOFT_KEYBOARD_PANEL_RATIO
+                      : NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO;
     if (static_cast<float>(height) > displayHeight * ratio) {
-        IMSA_HILOGE("height invalid, defaultDisplay height = %{public}d, target height = %{public}u",
-            displayHeight, height);
+        IMSA_HILOGE("height invalid, defaultDisplay height = %{public}d, target height = %{public}u", displayHeight,
+            height);
         return false;
     }
     if (static_cast<int32_t>(width) > displayWidth) {
-        IMSA_HILOGE("width invalid, defaultDisplay width = %{public}d, target width = %{public}u",
-            displayWidth, width);
+        IMSA_HILOGE("width invalid, defaultDisplay width = %{public}d, target width = %{public}u", displayWidth, width);
         return false;
     }
     return true;
+}
+
+void InputMethodPanel::SetPanelHeightCallback(CallbackFunc heightCallback)
+{
+    panelHeightCallback_ = std::move(heightCallback);
 }
 } // namespace MiscServices
 } // namespace OHOS

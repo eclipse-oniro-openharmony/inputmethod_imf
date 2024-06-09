@@ -52,7 +52,9 @@ struct PanelAdjustInfo {
 
 class InputMethodPanel {
 public:
-    static constexpr uint32_t INVALID_WINDOW_ID = 0;
+    static constexpr uint32_t INIT_WINDOW_ID = 0;
+    static constexpr uint32_t INVALID_WINDOW_ID = INIT_WINDOW_ID - 1;
+    using CallbackFunc = std::function<void(uint32_t, PanelFlag)>;
     InputMethodPanel() = default;
     ~InputMethodPanel();
     int32_t SetUiContent(const std::string &contentInfo, napi_env env, std::shared_ptr<NativeReference> contentStorage);
@@ -61,15 +63,15 @@ public:
 
     int32_t Resize(uint32_t width, uint32_t height);
     int32_t MoveTo(int32_t x, int32_t y);
-    int32_t AdjustPanelRect(PanelFlag &panelFlag, const LayoutParams &layoutParams);
-    int32_t ParsePanelRect(PanelFlag &panelFlag, const LayoutParams &layoutParams);
-    int32_t GetSysPanelAdjust(PanelFlag &panelFlag,
+    int32_t AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
+    int32_t ParsePanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
+    int32_t GetSysPanelAdjust(const PanelFlag panelFlag,
         std::tuple<std::vector<std::string>, std::vector<std::string>> &keys, const LayoutParams &layoutParams);
-    int32_t CalculatePanelRect(PanelFlag &panelFlag, PanelAdjustInfo &lanIterValue, PanelAdjustInfo &porIterValue,
+    int32_t CalculatePanelRect(const PanelFlag panelFlag, PanelAdjustInfo &lanIterValue, PanelAdjustInfo &porIterValue,
         const LayoutParams &layoutParams);
     int32_t CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &defaultDisplay, const LayoutParams &layoutParams,
         PanelAdjustInfo &lanIterValue, int densityDpi);
-    std::tuple<std::vector<std::string>, std::vector<std::string>> GetScreenStatus(PanelFlag panelFlag);
+    std::tuple<std::vector<std::string>, std::vector<std::string>> GetScreenStatus(const PanelFlag panelFlag);
     int32_t ChangePanelFlag(PanelFlag panelFlag);
     PanelType GetPanelType();
     PanelFlag GetPanelFlag();
@@ -83,7 +85,7 @@ public:
     int32_t SetPrivacyMode(bool isPrivacyMode);
     bool IsShowing();
     int32_t SetTextFieldAvoidInfo(double positionY, double height);
-    uint32_t GetHeight();
+    void SetPanelHeightCallback(CallbackFunc heightCallback);
     uint32_t windowId_ = INVALID_WINDOW_ID;
 
 private:
@@ -121,6 +123,7 @@ private:
     bool GetDisplaySize(bool isPortrait, WindowSize &size);
     void CalculateFloatRect(const LayoutParams &layoutParams, PanelAdjustInfo &lanIterValue,
         PanelAdjustInfo &porIterValue, int densityDpi);
+    int32_t CalculateNoConfigRect(const PanelFlag panelFlag, const LayoutParams &layoutParams);
 
     sptr<OHOS::Rosen::Window> window_ = nullptr;
     sptr<OHOS::Rosen::WindowOption> winOption_ = nullptr;
@@ -133,8 +136,6 @@ private:
     std::shared_ptr<PanelStatusListener> panelStatusListener_ = nullptr;
 
     static std::atomic<uint32_t> sequenceId_;
-    std::mutex heightLock_;
-    uint32_t panelHeight_ = 0;
     sptr<Rosen::IKeyboardPanelInfoChangeListener> kbPanelInfoListener_{ nullptr };
     bool isScbEnable_{ false };
 
@@ -145,6 +146,7 @@ private:
 
     std::mutex windowListenerLock_;
     sptr<Rosen::IWindowChangeListener> windowChangedListener_ = nullptr;
+    CallbackFunc panelHeightCallback_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS

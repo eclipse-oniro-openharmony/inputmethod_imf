@@ -208,7 +208,7 @@ public:
         void OnSelectionChange(int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override
         {
             IMSA_HILOGI("KeyboardListenerImpl %{public}d %{public}d %{public}d %{public}d", oldBegin, oldEnd, newBegin,
-                newBegin);
+                newEnd);
             oldBegin_ = oldBegin;
             oldEnd_ = oldEnd;
             newBegin_ = newBegin;
@@ -846,6 +846,92 @@ HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange04, TestSize.Level0)
 }
 
 /**
+ * @tc.name: testIMCOnSelectionChange05
+ * @tc.desc: 'Attach without range'-> it will get no selectionChange callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange05, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCOnSelectionChange05 Test START");
+    InputMethodControllerTest::ResetKeyboardListenerTextConfig();
+    InputMethodControllerTest::inputMethodController_->Close();
+    inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(InputMethodControllerTest::oldBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::oldEnd_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newEnd_, INVALID_VALUE);
+}
+
+/**
+ * @tc.name: testIMCOnSelectionChange06
+ * @tc.desc: 'Update(1, 2)'->'Attach without range', it will get no selectionChange callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange06, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCOnSelectionChange06 Test START");
+    InputMethodControllerTest::inputMethodController_->Close();
+    inputMethodController_->Attach(textListener_, false);
+    std::u16string text = Str8ToStr16("");
+    InputMethodControllerTest::TriggerSelectionChangeCallback(text, 1, 2);
+    InputMethodControllerTest::ResetKeyboardListenerTextConfig();
+    inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(InputMethodControllerTest::oldBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::oldEnd_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newEnd_, INVALID_VALUE);
+}
+
+/**
+ * @tc.name: testIMCOnSelectionChange07
+ * @tc.desc: 'Attach with range -> Attach without range', it will get no selectionChange callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange07, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCOnSelectionChange07 Test START");
+    InputMethodControllerTest::inputMethodController_->Close();
+    TextConfig textConfig;
+    textConfig.range = { 1, 1 };
+    inputMethodController_->Attach(textListener_, false, textConfig);
+    InputMethodControllerTest::ResetKeyboardListenerTextConfig();
+    inputMethodController_->Attach(textListener_, false);
+    EXPECT_EQ(InputMethodControllerTest::oldBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::oldEnd_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newBegin_, INVALID_VALUE);
+    EXPECT_EQ(InputMethodControllerTest::newEnd_, INVALID_VALUE);
+}
+
+/**
+ * @tc.name: testIMCOnSelectionChange08
+ * @tc.desc: 'OnSelectionChange(1, 2) -> Attach without range -> OnSelectionChange(3, 4)', it will get (1,2,3,4)
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: Zhaolinglan
+ */
+HWTEST_F(InputMethodControllerTest, testIMCOnSelectionChange08, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testIMCOnSelectionChange08 Test START");
+    InputMethodControllerTest::inputMethodController_->Close();
+    inputMethodController_->Attach(textListener_, false);
+    std::u16string text = Str8ToStr16("");
+    InputMethodControllerTest::TriggerSelectionChangeCallback(text, 1, 2);
+    InputMethodControllerTest::ResetKeyboardListenerTextConfig();
+    inputMethodController_->Attach(textListener_, false);
+    InputMethodControllerTest::TriggerSelectionChangeCallback(text, 3, 4);
+    EXPECT_EQ(InputMethodControllerTest::oldBegin_, 1);
+    EXPECT_EQ(InputMethodControllerTest::oldEnd_, 2);
+    EXPECT_EQ(InputMethodControllerTest::newBegin_, 3);
+    EXPECT_EQ(InputMethodControllerTest::newEnd_, 4);
+}
+
+/**
  * @tc.name: testShowTextInput
  * @tc.desc: IMC ShowTextInput
  * @tc.type: FUNC
@@ -921,14 +1007,14 @@ HWTEST_F(InputMethodControllerTest, testIMCGetInputPattern, TestSize.Level0)
 }
 
 /**
- * @tc.name: testOnEditorAttributeChanged
- * @tc.desc: IMC testOnEditorAttributeChanged.
+ * @tc.name: testOnEditorAttributeChanged01
+ * @tc.desc: IMC testOnEditorAttributeChanged01.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged, TestSize.Level0)
+HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged01, TestSize.Level0)
 {
-    IMSA_HILOGI("IMC testOnEditorAttributeChanged Test START");
+    IMSA_HILOGI("IMC testOnEditorAttributeChanged01 Test START");
     auto ret = inputMethodController_->Attach(textListener_, false);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     Configuration info;
@@ -937,6 +1023,30 @@ HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged, TestSize.Level
     InputMethodControllerTest::TriggerConfigurationChangeCallback(info);
     EXPECT_EQ(InputMethodControllerTest::inputAttribute_.inputPattern, static_cast<int32_t>(info.GetTextInputType()));
     EXPECT_EQ(InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
+}
+
+/**
+ * @tc.name: testOnEditorAttributeChanged02
+ * @tc.desc: Attach(isPreviewSupport) -> OnConfigurationChange -> editorChange callback (isPreviewSupport).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InputMethodControllerTest, testOnEditorAttributeChanged02, TestSize.Level0)
+{
+    IMSA_HILOGI("IMC testOnEditorAttributeChanged02 Test START");
+    InputAttribute attribute = { .inputPattern = static_cast<int32_t>(TextInputType::DATETIME),
+        .enterKeyType = static_cast<int32_t>(EnterKeyType::GO),
+        .isTextPreviewSupported = true };
+    auto ret = inputMethodController_->Attach(textListener_, false, attribute);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    Configuration info;
+    info.SetEnterKeyType(EnterKeyType::NEW_LINE);
+    info.SetTextInputType(TextInputType::NUMBER);
+    InputMethodControllerTest::ResetKeyboardListenerTextConfig();
+    InputMethodControllerTest::TriggerConfigurationChangeCallback(info);
+    EXPECT_EQ(InputMethodControllerTest::inputAttribute_.inputPattern, static_cast<int32_t>(info.GetTextInputType()));
+    EXPECT_EQ(InputMethodControllerTest::inputAttribute_.enterKeyType, static_cast<int32_t>(info.GetEnterKeyType()));
+    EXPECT_EQ(InputMethodControllerTest::inputAttribute_.isTextPreviewSupported, attribute.isTextPreviewSupported);
 }
 
 /**

@@ -35,7 +35,6 @@
 #include "system_ability_definition.h"
 #include "system_cmd_channel_stub.h"
 
-
 namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
@@ -93,8 +92,8 @@ int32_t InputMethodController::UpdateListenEventFlag(uint32_t finalEventFlag, ui
     auto oldEventFlag = clientInfo_.eventFlag;
     clientInfo_.eventFlag = finalEventFlag;
     // js has no errcode, ensure not failed in GetSystemAbilityProxy();
-    BlockRetry(
-        GET_IMSA_RETRY_INTERVAL, GET_IMSA_MAX_RETRY_TIME, [this]() { return GetSystemAbilityProxy() != nullptr; });
+    BlockRetry(GET_IMSA_RETRY_INTERVAL, GET_IMSA_MAX_RETRY_TIME,
+        [this]() { return GetSystemAbilityProxy() != nullptr; });
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr && isOn) {
         IMSA_HILOGE("proxy is nullptr");
@@ -196,6 +195,8 @@ void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
     }
     if (textConfig.range.start != INVALID_VALUE) {
         std::lock_guard<std::mutex> lock(editorContentLock_);
+        selectOldBegin_ = selectNewBegin_;
+        selectOldEnd_ = selectNewEnd_;
         selectNewBegin_ = textConfig.range.start;
         selectNewEnd_ = textConfig.range.end;
     }
@@ -213,8 +214,8 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener, boo
     return Attach(listener, isShowKeyboard, attribute);
 }
 
-int32_t InputMethodController::Attach(
-    sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const InputAttribute &attribute)
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard,
+    const InputAttribute &attribute)
 {
     InputMethodSyncTrace tracer("InputMethodController Attach trace.");
     TextConfig textConfig;
@@ -222,8 +223,8 @@ int32_t InputMethodController::Attach(
     return Attach(listener, isShowKeyboard, textConfig);
 }
 
-int32_t InputMethodController::Attach(
-    sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const TextConfig &textConfig)
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard,
+    const TextConfig &textConfig)
 {
     IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
     InputMethodSyncTrace tracer("InputMethodController Attach with textConfig trace.");
@@ -641,23 +642,25 @@ int32_t InputMethodController::OnConfigurationChange(Configuration info)
         IMSA_HILOGD("not bound");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
     }
+    InputAttribute attribute;
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_.inputAttribute.enterKeyType = static_cast<int32_t>(info.GetEnterKeyType());
         textConfig_.inputAttribute.inputPattern = static_cast<int32_t>(info.GetTextInputType());
+        attribute = textConfig_.inputAttribute;
     }
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    IMSA_HILOGI("IMC enterKeyType: %{public}d, textInputType: %{public}d", textConfig_.inputAttribute.enterKeyType,
-        textConfig_.inputAttribute.inputPattern);
+    IMSA_HILOGI("IMC enterKeyType: %{public}d, textInputType: %{public}d", attribute.enterKeyType,
+        attribute.inputPattern);
     auto agent = GetAgent();
     if (agent == nullptr) {
         IMSA_HILOGE("agent is nullptr");
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    agent->OnConfigurationChange(info);
+    agent->OnAttributeChange(attribute);
     return ErrorCode::NO_ERROR;
 }
 
@@ -758,7 +761,6 @@ int32_t InputMethodController::GetInputPattern(int32_t &inputpattern)
 
 int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
 {
-    IMSA_HILOGD("InputMethodController run in.");
     std::lock_guard<std::mutex> lock(textConfigLock_);
     config.inputAttribute = textConfig_.inputAttribute;
     config.cursorInfo = textConfig_.cursorInfo;
@@ -766,18 +768,18 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
     config.positionY = textConfig_.positionY;
     config.height = textConfig_.height;
     config.privateCommand = textConfig_.privateCommand;
-
     if (textConfig_.range.start == INVALID_VALUE) {
         IMSA_HILOGD("no valid SelectionRange param.");
-        return ErrorCode::NO_ERROR;
+    } else {
+        {
+            std::lock_guard<std::mutex> editorLock(editorContentLock_);
+            config.textSelection.oldBegin = selectOldBegin_;
+            config.textSelection.oldEnd = selectOldEnd_;
+        }
+        config.textSelection.newBegin = textConfig_.range.start;
+        config.textSelection.newEnd = textConfig_.range.end;
     }
-    {
-        std::lock_guard<std::mutex> editorLock(editorContentLock_);
-        config.textSelection.oldBegin = selectOldBegin_;
-        config.textSelection.oldEnd = selectOldEnd_;
-    }
-    config.textSelection.newBegin = textConfig_.range.start;
-    config.textSelection.newEnd = textConfig_.range.end;
+    IMSA_HILOGD("textConfig: %{public}s", config.ToString().c_str());
     return ErrorCode::NO_ERROR;
 }
 
@@ -876,8 +878,8 @@ int32_t InputMethodController::ListCurrentInputMethodSubtype(std::vector<SubProp
     return proxy->ListCurrentInputMethodSubtype(subProps);
 }
 
-int32_t InputMethodController::SwitchInputMethod(
-    SwitchTrigger trigger, const std::string &name, const std::string &subName)
+int32_t InputMethodController::SwitchInputMethod(SwitchTrigger trigger, const std::string &name,
+    const std::string &subName)
 {
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
@@ -923,7 +925,7 @@ void InputMethodController::OnInputStop()
 
 void InputMethodController::ClearEditorCache(bool isNewEditor)
 {
-    IMSA_HILOGD("clear editor content cache");
+    IMSA_HILOGD("isNewEditor: %{public}d", isNewEditor);
     {
         std::lock_guard<std::mutex> lock(editorContentLock_);
         textString_ = Str8ToStr16("");
@@ -931,19 +933,19 @@ void InputMethodController::ClearEditorCache(bool isNewEditor)
         if (isNewEditor || !isBound_.load()) {
             selectOldBegin_ = INVALID_VALUE;
             selectOldEnd_ = INVALID_VALUE;
-        } else {
-            selectOldBegin_ = selectNewBegin_;
-            selectOldEnd_ = selectNewEnd_;
+            selectNewBegin_ = INVALID_VALUE;
+            selectNewEnd_ = INVALID_VALUE;
         }
-        selectNewBegin_ = INVALID_VALUE;
-        selectNewEnd_ = INVALID_VALUE;
     }
     {
         std::lock_guard<std::mutex> lock(textConfigLock_);
         textConfig_ = {};
     }
-    std::lock_guard<std::mutex> lock(cursorInfoMutex_);
-    cursorInfo_ = {};
+    {
+        std::lock_guard<std::mutex> lock(cursorInfoMutex_);
+        cursorInfo_ = {};
+    }
+    clientInfo_.config = {};
 }
 
 void InputMethodController::SelectByRange(int32_t start, int32_t end)
@@ -1120,8 +1122,8 @@ void InputMethodController::NotifyPanelStatusInfo(const PanelStatusInfo &info)
         return;
     }
     listener->NotifyPanelStatusInfo(info);
-    if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD
-        && info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
+    if (info.panelInfo.panelType == PanelType::SOFT_KEYBOARD &&
+        info.panelInfo.panelFlag != PanelFlag::FLG_CANDIDATE_COLUMN && !info.visible) {
         clientInfo_.isShowKeyboard = false;
     }
 }
@@ -1253,6 +1255,7 @@ int32_t InputMethodController::SendPrivateCommand(
 
 int32_t InputMethodController::SetPreviewText(const std::string &text, const Range &range)
 {
+    InputMethodSyncTrace tracer("IMC_SetPreviewText");
     IMSA_HILOGD("IMC in");
     if (!textConfig_.inputAttribute.isTextPreviewSupported) {
         IMSA_HILOGE("text preview not supported");
@@ -1279,6 +1282,7 @@ int32_t InputMethodController::SetPreviewText(const std::string &text, const Ran
 
 int32_t InputMethodController::FinishTextPreview()
 {
+    InputMethodSyncTrace tracer("IMC_FinishTextPreview");
     IMSA_HILOGD("IMC in");
     if (!textConfig_.inputAttribute.isTextPreviewSupported) {
         IMSA_HILOGE("text preview not supported");
@@ -1289,7 +1293,10 @@ int32_t InputMethodController::FinishTextPreview()
         IMSA_HILOGE("not editable or listener is nullptr");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
     }
-    listener->FinishTextPreview();
+    {
+        InputMethodSyncTrace aceTracer("ACE_FinishTextPreview");
+        listener->FinishTextPreview();
+    }
     return ErrorCode::NO_ERROR;
 }
 } // namespace MiscServices

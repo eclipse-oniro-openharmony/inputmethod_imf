@@ -86,13 +86,14 @@ public:
     int32_t OnSecurityChange(int32_t security);
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent);
     void OnClientInactive(const sptr<IRemoteObject> &channel);
-    void NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel);
+    void NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag);
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
     bool IsDefaultIme();
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPreviewText(const std::string &text, const Range &range);
     int32_t FinishTextPreview();
+    int32_t ShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag);
 
 private:
     std::thread workThreadHandler;
@@ -140,7 +141,7 @@ private:
     int32_t InvokeStartInputCallback(const TextTotalConfig &textConfig, bool isNotifyInputStart);
     void OnCursorUpdate(Message *msg);
     void OnSelectionChange(Message *msg);
-    void OnConfigurationChange(Message *msg);
+    void OnAttributeChange(Message *msg);
     void OnStopInputService(Message *msg);
 
     int32_t HideKeyboard(Trigger trigger);
@@ -149,7 +150,6 @@ private:
        flag will be changed before finishing show/hide */
     int32_t ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
     int32_t HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger);
-    int32_t ShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag);
     void SetInputAttribute(const InputAttribute &inputAttribute);
     InputAttribute GetInputAttribute();
     void ClearInputAttribute();

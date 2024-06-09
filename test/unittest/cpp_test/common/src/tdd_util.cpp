@@ -47,7 +47,7 @@ using namespace Rosen;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr int32_t MAIN_USER_ID = 100;
 constexpr const uint16_t EACH_LINE_LENGTH = 500;
-constexpr int32_t PERMISSION_NUM = 2;
+constexpr int32_t PERMISSION_NUM = 3;
 constexpr const char *SETTING_COLUMN_KEYWORD = "KEYWORD";
 constexpr const char *SETTING_COLUMN_VALUE = "VALUE";
 static constexpr int32_t MAX_TIMEOUT_WAIT_FOCUS = 2000;
@@ -266,6 +266,7 @@ void TddUtil::GrantNativePermission()
     const char **perms = new const char *[PERMISSION_NUM];
     perms[0] = "ohos.permission.MANAGE_SECURE_SETTINGS";
     perms[1] = "ohos.permission.CONNECT_IME_ABILITY";
+    perms[2] = "ohos.permission.MANAGE_SETTINGS";
     TokenInfoParams infoInstance = {
         .dcapsNum = 0,
         .permsNum = PERMISSION_NUM,

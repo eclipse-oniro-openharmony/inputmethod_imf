@@ -116,7 +116,7 @@ int32_t ImeSystemCmdChannel::RunConnectSystemCmd()
             return ErrorCode::ERROR_NULL_POINTER;
         }
     }
- 
+
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
@@ -157,9 +157,8 @@ void ImeSystemCmdChannel::OnConnectCmdReady(const sptr<IRemoteObject> &agentObje
             return;
         }
     }
-    agentDeathRecipient_->SetDeathRecipient([this](const wptr<IRemoteObject> &remote) {
-        OnSystemCmdAgentDied(remote);
-    });
+    agentDeathRecipient_->SetDeathRecipient(
+        [this](const wptr<IRemoteObject> &remote) { OnSystemCmdAgentDied(remote); });
     if (!agentObject->AddDeathRecipient(agentDeathRecipient_)) {
         IMSA_HILOGE("failed to add death recipient.");
         return;
@@ -213,8 +212,7 @@ int32_t ImeSystemCmdChannel::ReceivePrivateCommand(
     return ErrorCode::NO_ERROR;
 }
 
-int32_t ImeSystemCmdChannel::SendPrivateCommand(
-    const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+int32_t ImeSystemCmdChannel::SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     IMSA_HILOGD("in");
     if (TextConfig::IsSystemPrivateCommand(privateCommand)) {
@@ -274,7 +272,7 @@ void ImeSystemCmdChannel::GetExtensionInfo(std::vector<ExtensionAbilityInfo> ext
         auto metadata = extensionInfos[i].metadata;
         for (size_t j = 0; j < metadata.size(); j++) {
             if (metadata[j].name == SMART_MENU_METADATA_NAME) {
-                extInfo =  extensionInfos[i];
+                extInfo = extensionInfos[i];
                 return;
             }
         }

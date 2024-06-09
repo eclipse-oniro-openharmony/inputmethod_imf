@@ -36,13 +36,13 @@ public:
     ~InputMethodAgentProxy() = default;
     DISALLOW_COPY_AND_MOVE(InputMethodAgentProxy);
 
-    int32_t DispatchKeyEvent(
-        const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<IKeyEventConsumer> &consumer) override;
+    int32_t DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
+        sptr<IKeyEventConsumer> &consumer) override;
     void OnCursorUpdate(int32_t positionX, int32_t positionY, int32_t height) override;
-    void OnSelectionChange(
-        std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin, int32_t newEnd) override;
+    void OnSelectionChange(std::u16string text, int32_t oldBegin, int32_t oldEnd, int32_t newBegin,
+        int32_t newEnd) override;
     void SetCallingWindow(uint32_t windowId) override;
-    void OnConfigurationChange(const Configuration &config) override;
+    void OnAttributeChange(const InputAttribute &attribute) override;
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
 private:

@@ -38,7 +38,7 @@ bool SysCfgParser::ParseInputType(std::vector<InputTypeInfo> &inputType)
 {
     auto content = GetSysCfgContent(GET_NAME(supportedInputTypeList));
     if (content.empty()) {
-        IMSA_HILOGE("empty content");
+        IMSA_HILOGD("empty content");
         return false;
     }
     InputTypeCfg inputTypeCfg;
@@ -65,7 +65,7 @@ std::string SysCfgParser::GetSysCfgContent(const std::string &key)
     std::string content;
     auto ret = FileOperator::Read(SYS_CFG_FILE_PATH, key, content);
     if (!ret) {
-        IMSA_HILOGE("get content by %{public}s failed", key.c_str());
+        IMSA_HILOGD("get content by %{public}s failed", key.c_str());
     }
     return content;
 }

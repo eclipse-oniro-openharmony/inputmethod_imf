@@ -29,8 +29,8 @@ public:
     ImeConnection() = default;
     virtual ~ImeConnection() = default;
 
-    void OnAbilityConnectDone(
-        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode) override;
+    void OnAbilityConnectDone(const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject,
+        int32_t resultCode) override;
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode) override;
 };
 } // namespace MiscServices

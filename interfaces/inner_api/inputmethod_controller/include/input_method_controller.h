@@ -740,8 +740,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 12
      */
-    int32_t ReceivePrivateCommand(
-        const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
+    int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
 
     /**
      * @brief Set preview text.

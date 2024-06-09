@@ -28,14 +28,22 @@ public:
     void InsertText(const std::u16string &text) override;
     void DeleteForward(int32_t length) override;
     void DeleteBackward(int32_t length) override;
-    void SendKeyEventFromInputMethod(const KeyEvent &event) override {}
+    void SendKeyEventFromInputMethod(const KeyEvent &event) override
+    {
+    }
     void SendKeyboardStatus(const KeyboardStatus &status) override;
     void SendFunctionKey(const FunctionKey &functionKey) override;
-    void SetKeyboardStatus(bool status) override {}
+    void SetKeyboardStatus(bool status) override
+    {
+    }
     void MoveCursor(const Direction direction) override;
-    void HandleSetSelection(int32_t start, int32_t end) override {}
+    void HandleSetSelection(int32_t start, int32_t end) override
+    {
+    }
     void HandleExtendAction(int32_t action) override;
-    void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override {}
+    void HandleSelect(int32_t keyCode, int32_t cursorMoveSkip) override
+    {
+    }
     std::u16string GetLeftTextOfCursor(int32_t number) override;
     std::u16string GetRightTextOfCursor(int32_t number) override;
     int32_t GetTextIndexAtCursor() override;

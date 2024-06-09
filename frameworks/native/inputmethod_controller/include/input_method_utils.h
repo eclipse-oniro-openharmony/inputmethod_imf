@@ -17,7 +17,6 @@
 #define FRAMEWORKS_INPUTMETHOD_CONTROLLER_INCLUDE_INPUT_METHOD_UTILS_H
 
 #include <stdint.h>
-
 #include <variant>
 
 #include "global.h"
@@ -31,7 +30,7 @@ constexpr uint32_t INVALID_WINDOW_ID = INIT_WINDOW_ID - 1;
 constexpr int32_t INVALID_VALUE = -1;
 constexpr size_t MAX_PRIVATE_COMMAND_SIZE = 32 * 1024; // 32K
 constexpr size_t MAX_PRIVATE_COMMAND_COUNT = 5;
-const constexpr char* SYSTEM_CMD_KEY = "sys_cmd";
+const constexpr char *SYSTEM_CMD_KEY = "sys_cmd";
 enum class EnterKeyType {
     UNSPECIFIED = 0,
     NONE,
@@ -131,8 +130,8 @@ struct PanelStatusInfo {
     Trigger trigger{ END };
     bool operator==(const PanelStatusInfo &info) const
     {
-        return info.panelInfo.panelFlag == panelInfo.panelFlag && info.panelInfo.panelType == panelInfo.panelType
-               && info.visible == visible && info.trigger == trigger;
+        return info.panelInfo.panelFlag == panelInfo.panelFlag && info.panelInfo.panelType == panelInfo.panelType &&
+               info.visible == visible && info.trigger == trigger;
     }
 };
 
@@ -180,6 +179,23 @@ public:
     double positionY = 0;
     double height = 0;
     std::unordered_map<std::string, PrivateDataValue> privateCommand = {};
+
+    std::string ToString() const
+    {
+        std::string config;
+        config.append("pattern/enterKey/preview: " + std::to_string(inputAttribute.inputPattern) + "/" +
+                      std::to_string(inputAttribute.enterKeyType) + "/" +
+                      std::to_string(inputAttribute.isTextPreviewSupported));
+        config.append(" windowId/y/height: " + std::to_string(windowId) + "/" + std::to_string(positionY) + "/" +
+                      std::to_string(height));
+        config.append(
+            " oldRange: " + std::to_string(textSelection.oldBegin) + "/" + std::to_string(textSelection.oldEnd));
+        config.append(
+            " newRange: " + std::to_string(textSelection.newBegin) + "/" + std::to_string(textSelection.newEnd));
+        config.append(" cursor: " + std::to_string(cursorInfo.left) + "/" + std::to_string(cursorInfo.top) + "/" +
+                      std::to_string(cursorInfo.width) + "/" + std::to_string(cursorInfo.height));
+        return config;
+    }
 };
 struct TextConfig {
     InputAttribute inputAttribute = {};
@@ -193,14 +209,14 @@ struct TextConfig {
     std::string ToString() const
     {
         std::string config;
-        config.append("pattern/enterKey/previewSupport: " + std::to_string(inputAttribute.inputPattern) + "/"
-                      + std::to_string(inputAttribute.enterKeyType) + "/"
-                      + std::to_string(inputAttribute.isTextPreviewSupported));
-        config.append(" windowId/y/height: " + std::to_string(windowId) + "/" + std::to_string(positionY) + "/"
-                      + std::to_string(height));
+        config.append("pattern/enterKey/preview: " + std::to_string(inputAttribute.inputPattern) + "/" +
+                      std::to_string(inputAttribute.enterKeyType) + "/" +
+                      std::to_string(inputAttribute.isTextPreviewSupported));
+        config.append(" windowId/y/height: " + std::to_string(windowId) + "/" + std::to_string(positionY) + "/" +
+                      std::to_string(height));
         config.append(" range: " + std::to_string(range.start) + "/" + std::to_string(range.end));
-        config.append(" cursor: " + std::to_string(cursorInfo.left) + "/" + std::to_string(cursorInfo.top) + "/"
-                      + std::to_string(cursorInfo.width) + "/" + std::to_string(cursorInfo.height));
+        config.append(" cursor: " + std::to_string(cursorInfo.left) + "/" + std::to_string(cursorInfo.top) + "/" +
+                      std::to_string(cursorInfo.width) + "/" + std::to_string(cursorInfo.height));
         return config;
     }
 

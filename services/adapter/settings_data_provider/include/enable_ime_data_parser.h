@@ -79,8 +79,8 @@ private:
 
     bool ParseEnableIme(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
     bool ParseEnableKeyboard(const std::string &valueStr, int32_t userId, std::vector<std::string> &enableVec);
-    bool CheckTargetEnableName(
-        const std::string &key, const std::string &targetName, std::string &nextIme, const int32_t userId);
+    bool CheckTargetEnableName(const std::string &key, const std::string &targetName, std::string &nextIme,
+        const int32_t userId);
     std::shared_ptr<Property> GetDefaultIme();
 
 private:

@@ -15,13 +15,14 @@
 
 #include "js_inputmethod_extension.h"
 
-#include "ability_info.h"
 #include "ability_handler.h"
+#include "ability_info.h"
 #include "configuration_utils.h"
 #include "global.h"
 #include "input_method_ability.h"
 #include "inputmethod_extension_ability_stub.h"
 #include "inputmethod_trace.h"
+#include "iservice_registry.h"
 #include "js_extension_context.h"
 #include "js_inputmethod_extension_context.h"
 #include "js_runtime.h"
@@ -31,7 +32,6 @@
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
-#include "iservice_registry.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -56,21 +56,23 @@ napi_value AttachInputMethodExtensionContext(napi_env env, void *value, void *)
         IMSA_HILOGW("invalid context.");
         return nullptr;
     }
-    napi_value object  = CreateJsInputMethodExtensionContext(env, ptr);
-    auto contextObj = JsRuntime::LoadSystemModuleByEngine(
-        env, "InputMethodExtensionContext", &object, 1)->GetNapiValue();
-    napi_coerce_to_native_binding_object(
-        env, contextObj, DetachCallbackFunc, AttachInputMethodExtensionContext, value, nullptr);
+    napi_value object = CreateJsInputMethodExtensionContext(env, ptr);
+    auto contextObj =
+        JsRuntime::LoadSystemModuleByEngine(env, "InputMethodExtensionContext", &object, 1)->GetNapiValue();
+    napi_coerce_to_native_binding_object(env, contextObj, DetachCallbackFunc, AttachInputMethodExtensionContext, value,
+        nullptr);
     auto workContext = new (std::nothrow) std::weak_ptr<InputMethodExtensionContext>(ptr);
     if (workContext == nullptr) {
         IMSA_HILOGE("workContext is nullptr");
         return nullptr;
     }
-    napi_wrap(env, contextObj, workContext,
+    napi_wrap(
+        env, contextObj, workContext,
         [](napi_env, void *data, void *) {
             IMSA_HILOGI("Finalizer for weak_ptr input method extension context is called");
             delete static_cast<std::weak_ptr<InputMethodExtensionContext> *>(data);
-        }, nullptr, nullptr);
+        },
+        nullptr, nullptr);
     return object;
 }
 
@@ -108,8 +110,8 @@ void JsInputMethodExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
     IMSA_HILOGI("JsInputMethodExtension, module:%{public}s,srcPath:%{public}s.", moduleName.c_str(), srcPath.c_str());
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
-    jsObj_ = jsRuntime_.LoadModule(
-        moduleName, srcPath, abilityInfo_->hapPath, abilityInfo_->compileMode == CompileMode::ES_MODULE);
+    jsObj_ = jsRuntime_.LoadModule(moduleName, srcPath, abilityInfo_->hapPath,
+        abilityInfo_->compileMode == CompileMode::ES_MODULE);
     if (jsObj_ == nullptr) {
         IMSA_HILOGE("Failed to get jsObj_");
         return;
@@ -154,7 +156,7 @@ void JsInputMethodExtension::ListenWindowManager()
     }
 }
 
-void JsInputMethodExtension::OnConfigurationUpdated(const AppExecFwk::Configuration& config)
+void JsInputMethodExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &config)
 {
     InputMethodExtension::OnConfigurationUpdated(config);
     IMSA_HILOGD("call");
@@ -198,7 +200,7 @@ void JsInputMethodExtension::ConfigurationUpdated()
 }
 
 void JsInputMethodExtension::SystemAbilityStatusChangeListener::OnAddSystemAbility(int32_t systemAbilityId,
-    const std::string& deviceId)
+    const std::string &deviceId)
 {
     IMSA_HILOGD("systemAbilityId: %{public}d add", systemAbilityId);
     if (systemAbilityId == WINDOW_MANAGER_SERVICE_ID) {
@@ -227,17 +229,19 @@ void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
         IMSA_HILOGE("workContext is nullptr");
         return;
     }
-    napi_coerce_to_native_binding_object(
-        env, contextObj, DetachCallbackFunc, AttachInputMethodExtensionContext, workContext, nullptr);
+    napi_coerce_to_native_binding_object(env, contextObj, DetachCallbackFunc, AttachInputMethodExtensionContext,
+        workContext, nullptr);
     IMSA_HILOGD("JsInputMethodExtension::Init Bind.");
     context->Bind(jsRuntime_, shellContextRef.release());
     IMSA_HILOGD("JsInputMethodExtension::SetProperty.");
     napi_set_named_property(env, obj, "context", contextObj);
-    napi_wrap(env, contextObj, workContext,
+    napi_wrap(
+        env, contextObj, workContext,
         [](napi_env, void *data, void *) {
             IMSA_HILOGI("Finalizer for weak_ptr input method extension context is called");
             delete static_cast<std::weak_ptr<InputMethodExtensionContext> *>(data);
-        }, nullptr, nullptr);
+        },
+        nullptr, nullptr);
 }
 
 void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
@@ -318,10 +322,10 @@ void JsInputMethodExtension::OnCommand(const AAFwk::Want &want, bool restart, in
 {
     IMSA_HILOGI("JsInputMethodExtension OnCommand begin.");
     Extension::OnCommand(want, restart, startId);
-    IMSA_HILOGI(
-        "%{public}s begin restart=%{public}s,startId=%{public}d.", __func__, restart ? "true" : "false", startId);
+    IMSA_HILOGI("%{public}s begin restart=%{public}s,startId=%{public}d.", __func__, restart ? "true" : "false",
+        startId);
     HandleScope handleScope(jsRuntime_);
-    napi_env env =  jsRuntime_.GetNapiEnv();
+    napi_env env = jsRuntime_.GetNapiEnv();
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
     napi_value napiStartId = nullptr;
     napi_create_int32(env, startId, &napiStartId);
@@ -340,7 +344,7 @@ napi_value JsInputMethodExtension::CallObjectMethod(const char *name, const napi
     }
 
     HandleScope handleScope(jsRuntime_);
-    napi_env env =  jsRuntime_.GetNapiEnv();
+    napi_env env = jsRuntime_.GetNapiEnv();
     napi_value obj = jsObj_->GetNapiValue();
     if (obj == nullptr) {
         IMSA_HILOGE("Failed to get InputMethodExtension object");
@@ -396,7 +400,7 @@ void JsInputMethodExtension::OnDestroy(Rosen::DisplayId displayId)
 
 void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
 {
-    IMSA_HILOGD("displayId: %{public}" PRIu64"", displayId);
+    IMSA_HILOGD("displayId: %{public}" PRIu64 "", displayId);
     auto context = GetContext();
     if (context == nullptr) {
         IMSA_HILOGE("Context is invalid");
@@ -412,8 +416,8 @@ void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
     bool isConfigChanged = false;
     auto configUtils = std::make_shared<ConfigurationUtils>();
     configUtils->UpdateDisplayConfig(displayId, contextConfig, context->GetResourceManager(), isConfigChanged);
-    IMSA_HILOGD("OnChange, isConfigChanged: %{public}d, Config after update: %{public}s",
-        isConfigChanged, contextConfig->GetName().c_str());
+    IMSA_HILOGD("OnChange, isConfigChanged: %{public}d, Config after update: %{public}s", isConfigChanged,
+        contextConfig->GetName().c_str());
 
     if (isConfigChanged) {
         auto inputMethodExtension = std::static_pointer_cast<JsInputMethodExtension>(shared_from_this());

@@ -80,8 +80,8 @@ public:
    */
     ErrCode StartAbilityWithAccount(const AAFwk::Want &want, int accountId) const;
 
-    ErrCode StartAbilityWithAccount(
-        const AAFwk::Want &want, int accountId, const AAFwk::StartOptions &startOptions) const;
+    ErrCode StartAbilityWithAccount(const AAFwk::Want &want, int accountId,
+        const AAFwk::StartOptions &startOptions) const;
 
     /**
    * @brief Connects the current ability to an ability using the
@@ -97,8 +97,8 @@ public:
    *
    * @return True means success and false means failure.
    */
-    bool ConnectAbilityWithAccount(
-        const AAFwk::Want &want, int accountId, const sptr<AbilityConnectCallback> &connectCallback) const;
+    bool ConnectAbilityWithAccount(const AAFwk::Want &want, int accountId,
+        const sptr<AbilityConnectCallback> &connectCallback) const;
 
     /**
    * @brief Disconnects the current ability from an ability.

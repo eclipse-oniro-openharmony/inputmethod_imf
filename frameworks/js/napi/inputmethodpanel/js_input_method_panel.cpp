@@ -48,11 +48,10 @@ napi_value JsInputMethodPanel::GetJsPanelFlagProperty(napi_env env)
     napi_create_object(env, &obj);
 
     auto ret = JsUtil::Object::WriteProperty(env, obj, "FLAG_FIXED", static_cast<int32_t>(PanelFlag::FLG_FIXED));
-    ret = ret
-          && JsUtil::Object::WriteProperty(env, obj, "FLAG_FLOATING", static_cast<int32_t>(PanelFlag::FLG_FLOATING));
-    ret = ret
-          && JsUtil::Object::WriteProperty(
-              env, obj, "FLAG_CANDIDATE", static_cast<int32_t>(PanelFlag::FLG_CANDIDATE_COLUMN));
+    ret = ret &&
+          JsUtil::Object::WriteProperty(env, obj, "FLAG_FLOATING", static_cast<int32_t>(PanelFlag::FLG_FLOATING));
+    ret = ret && JsUtil::Object::WriteProperty(env, obj, "FLAG_CANDIDATE",
+                                               static_cast<int32_t>(PanelFlag::FLG_CANDIDATE_COLUMN));
     if (!ret) {
         IMSA_HILOGI("init module inputMethod.Panel.PanelFlag failed, ret: %{public}d", ret);
     }

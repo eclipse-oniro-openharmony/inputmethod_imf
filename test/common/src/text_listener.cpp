@@ -237,8 +237,8 @@ bool TextListener::WaitNotifyKeyboardHeightCallback(uint32_t height)
 bool TextListener::WaitSendPrivateCommandCallback(std::unordered_map<std::string, PrivateDataValue> &privateCommand)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(
-        lock, std::chrono::seconds(1), [privateCommand]() { return privateCommand_ == privateCommand; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1),
+        [privateCommand]() { return privateCommand_ == privateCommand; });
     return privateCommand_ == privateCommand;
 }
 bool TextListener::WaitInsertText(const std::u16string &insertText)
@@ -280,8 +280,8 @@ bool TextListener::WaitHandleExtendAction(int32_t action)
 bool TextListener::WaitHandleSetSelection(int32_t start, int32_t end)
 {
     std::unique_lock<std::mutex> lock(textListenerCallbackLock_);
-    textListenerCv_.wait_for(
-        lock, std::chrono::seconds(1), [start, end]() { return selectionStart_ == start && selectionEnd_ == end; });
+    textListenerCv_.wait_for(lock, std::chrono::seconds(1),
+        [start, end]() { return selectionStart_ == start && selectionEnd_ == end; });
     return selectionStart_ == start && selectionEnd_ == end;
 }
 bool TextListener::WaitHandleSelect(int32_t keyCode, int32_t cursorMoveSkip)

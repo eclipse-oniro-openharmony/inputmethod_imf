@@ -18,8 +18,8 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr size_t MAX_ARGV_COUNT = 10;
-void JsCallbackHandler::Execute(
-    const std::shared_ptr<JSCallbackObject> &object, const ArgContainer &argContainer, napi_value &output)
+void JsCallbackHandler::Execute(const std::shared_ptr<JSCallbackObject> &object, const ArgContainer &argContainer,
+    napi_value &output)
 {
     if (object->threadId_ != std::this_thread::get_id()) {
         return;

@@ -16,7 +16,6 @@
 #include "input_method_ability.h"
 
 #include <unistd.h>
-
 #include <utility>
 
 #include "block_data.h"
@@ -202,8 +201,8 @@ void InputMethodAbility::WorkThread()
                 OnSelectionChange(msg);
                 break;
             }
-            case MSG_ID_ON_CONFIGURATION_CHANGE: {
-                OnConfigurationChange(msg);
+            case MSG_ID_ON_ATTRIBUTE_CHANGE: {
+                OnAttributeChange(msg);
                 break;
             }
             case MSG_ID_STOP_INPUT_SERVICE: {
@@ -242,8 +241,8 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("channelObject is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    IMSA_HILOGI(
-        "IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard, isBindFromClient);
+    IMSA_HILOGI("IMA isShowKeyboard: %{public}d, isBindFromClient: %{public}d", clientInfo.isShowKeyboard,
+        isBindFromClient);
     SetInputDataChannel(clientInfo.channel);
     int32_t ret = isBindFromClient ? InvokeStartInputCallback(clientInfo.config, clientInfo.isNotifyInputStart)
                                    : InvokeStartInputCallback(clientInfo.isNotifyInputStart);
@@ -307,8 +306,8 @@ int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
     return ErrorCode::NO_ERROR;
 }
 
-int32_t InputMethodAbility::DispatchKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+int32_t InputMethodAbility::DispatchKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
+    sptr<KeyEventConsumerProxy> &consumer)
 {
     if (keyEvent == nullptr) {
         IMSA_HILOGE("keyEvent is nullptr");
@@ -372,17 +371,19 @@ void InputMethodAbility::OnSelectionChange(Message *msg)
     kdListener_->OnSelectionChange(oldBegin, oldEnd, newBegin, newEnd);
 }
 
-void InputMethodAbility::OnConfigurationChange(Message *msg)
+void InputMethodAbility::OnAttributeChange(Message *msg)
 {
-    if (kdListener_ == nullptr) {
-        IMSA_HILOGE("in, kdListener_ is nullptr");
+    if (kdListener_ == nullptr || msg == nullptr) {
+        IMSA_HILOGE("kdListener_ or msg is nullptr");
         return;
     }
     MessageParcel *data = msg->msgContent_;
     InputAttribute attribute;
-    attribute.enterKeyType = data->ReadInt32();
-    attribute.inputPattern = data->ReadInt32();
-    IMSA_HILOGD("InputMethodAbility, enterKeyType: %{public}d, inputPattern: %{public}d", attribute.enterKeyType,
+    if (!ITypesUtil::Unmarshal(*data, attribute)) {
+        IMSA_HILOGE("failed to read attribute");
+        return;
+    }
+    IMSA_HILOGD("IMA, enterKeyType: %{public}d, inputPattern: %{public}d", attribute.enterKeyType,
         attribute.inputPattern);
     SetInputAttribute(attribute);
     // add for mod inputPattern when panel show
@@ -417,11 +418,11 @@ int32_t InputMethodAbility::ShowKeyboard()
             IMSA_HILOGE("panel is nullptr.");
             return ErrorCode::ERROR_IME;
         }
-        NotifyKeyboardHeight(panel);
         auto flag = panel->GetPanelFlag();
         imeListener_->OnKeyboardStatus(true);
         if (flag == FLG_CANDIDATE_COLUMN) {
             IMSA_HILOGI("panel flag is candidate, no need to show.");
+            NotifyKeyboardHeight(0, flag);
             return ErrorCode::NO_ERROR;
         }
         return ShowPanel(panel, flag, Trigger::IMF);
@@ -495,8 +496,8 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
     }
     if (kdListener_ != nullptr) {
         if (textConfig.cursorInfo.left != INVALID_CURSOR_VALUE) {
-            kdListener_->OnCursorUpdate(
-                textConfig.cursorInfo.left, textConfig.cursorInfo.top, textConfig.cursorInfo.height);
+            kdListener_->OnCursorUpdate(textConfig.cursorInfo.left, textConfig.cursorInfo.top,
+                textConfig.cursorInfo.height);
         }
         if (textConfig.textSelection.newBegin != INVALID_SELECTION_VALUE) {
             kdListener_->OnSelectionChange(textConfig.textSelection.oldBegin, textConfig.textSelection.oldEnd,
@@ -820,10 +821,14 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
     const PanelInfo &panelInfo, std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
     IMSA_HILOGI("IMA");
-    auto flag = panels_.ComputeIfAbsent(panelInfo.panelType,
-        [&panelInfo, &context, &inputMethodPanel](const PanelType &panelType,
-            std::shared_ptr<InputMethodPanel> &panel) {
+    auto panelHeightCallback = [this](uint32_t panelHeight, PanelFlag panelFlag) {
+        NotifyKeyboardHeight(panelHeight, panelFlag);
+    };
+    auto flag = panels_.ComputeIfAbsent(
+        panelInfo.panelType, [panelHeightCallback, &panelInfo, &context, &inputMethodPanel](
+                                 const PanelType &panelType, std::shared_ptr<InputMethodPanel> &panel) {
             inputMethodPanel = std::make_shared<InputMethodPanel>();
+            inputMethodPanel->SetPanelHeightCallback(panelHeightCallback);
             auto ret = inputMethodPanel->CreatePanel(context, panelInfo);
             if (ret == ErrorCode::NO_ERROR) {
                 panel = inputMethodPanel;
@@ -871,8 +876,8 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
     return HidePanel(inputMethodPanel, inputMethodPanel->GetPanelFlag(), Trigger::IME_APP);
 }
 
-int32_t InputMethodAbility::ShowPanel(
-    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger)
+int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag,
+    Trigger trigger)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -895,8 +900,8 @@ int32_t InputMethodAbility::ShowPanel(
     return ret;
 }
 
-int32_t InputMethodAbility::HidePanel(
-    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag, Trigger trigger)
+int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag,
+    Trigger trigger)
 {
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
@@ -908,8 +913,7 @@ int32_t InputMethodAbility::HidePanel(
     return ret;
 }
 
-int32_t InputMethodAbility::ShowSysPanel(
-    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag)
+int32_t InputMethodAbility::ShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag)
 {
     if (inputMethodPanel->GetPanelType() != SOFT_KEYBOARD) {
         return ErrorCode::NO_ERROR;
@@ -1090,26 +1094,19 @@ void InputMethodAbility::OnClientInactive(const sptr<IRemoteObject> &channel)
     });
 }
 
-void InputMethodAbility::NotifyKeyboardHeight(const std::shared_ptr<InputMethodPanel> inputMethodPanel)
+void InputMethodAbility::NotifyKeyboardHeight(uint32_t panelHeight, PanelFlag panelFlag)
 {
-    if (inputMethodPanel == nullptr) {
-        IMSA_HILOGE("inputMethodPanel is nullptr");
-        return;
-    }
-    if (inputMethodPanel->GetPanelType() != PanelType::SOFT_KEYBOARD) {
-        IMSA_HILOGW("current panel is not soft keyboard");
-        return;
-    }
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
         IMSA_HILOGE("channel is nullptr");
         return;
     }
-    if (inputMethodPanel->GetPanelFlag() != PanelFlag::FLG_FIXED) {
+    IMSA_HILOGD("notify panel height: %{public}u, flag: %{public}d", panelHeight, static_cast<int32_t>(panelFlag));
+    if (panelFlag != PanelFlag::FLG_FIXED) {
         channel->NotifyKeyboardHeight(0);
         return;
     }
-    channel->NotifyKeyboardHeight(inputMethodPanel->GetHeight());
+    channel->NotifyKeyboardHeight(panelHeight);
 }
 
 int32_t InputMethodAbility::SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
@@ -1156,6 +1153,7 @@ int32_t InputMethodAbility::ReceivePrivateCommand(
 
 int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range &range)
 {
+    InputMethodSyncTrace tracer("IMA_SetPreviewText");
     auto dataChannel = GetInputDataChannelProxy();
     if (dataChannel == nullptr) {
         IMSA_HILOGE("dataChannel is nullptr");
@@ -1166,6 +1164,7 @@ int32_t InputMethodAbility::SetPreviewText(const std::string &text, const Range 
 
 int32_t InputMethodAbility::FinishTextPreview()
 {
+    InputMethodSyncTrace tracer("IMA_FinishTextPreview");
     auto dataChannel = GetInputDataChannelProxy();
     if (dataChannel == nullptr) {
         IMSA_HILOGE("dataChannel is nullptr");

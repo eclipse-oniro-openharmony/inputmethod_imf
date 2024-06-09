@@ -43,8 +43,8 @@ napi_value JsKeyboardPanelManager::Init(napi_env env, napi_value info)
         DECLARE_NAPI_FUNCTION("off", UnSubscribe),
         DECLARE_NAPI_FUNCTION("getDefaultInputMethod", GetDefaultInputMethod),
     };
-    NAPI_CALL(
-        env, napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
+    NAPI_CALL(env,
+        napi_define_properties(env, info, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
     return info;
 }
 
@@ -68,9 +68,9 @@ napi_value JsKeyboardPanelManager::Subscribe(napi_env env, napi_callback_info in
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 2 means least param num.
-    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_PANEL_MANAGER, type)
-        || JsUtil::GetType(env, argv[1]) != napi_function) {
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_PANEL_MANAGER, type) ||
+        JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
@@ -96,14 +96,14 @@ napi_value JsKeyboardPanelManager::UnSubscribe(napi_env env, napi_callback_info 
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 1 means least param num.
-    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_PANEL_MANAGER, type)) {
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_PANEL_MANAGER, type)) {
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
     auto manager = JsKeyboardPanelManager::GetInstance();
     auto ret = ImeSystemCmdChannel::GetInstance()->ConnectSystemCmd(manager);
-    if (ret !=  ErrorCode::NO_ERROR) {
+    if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
@@ -120,8 +120,8 @@ napi_value JsKeyboardPanelManager::UnSubscribe(napi_env env, napi_callback_info 
     return JsUtil::Const::Null(env);
 }
 
-void JsKeyboardPanelManager::RegisterListener(
-    napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
+void JsKeyboardPanelManager::RegisterListener(napi_value callback, std::string type,
+    std::shared_ptr<JSCallbackObject> callbackObj)
 {
     IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -185,7 +185,6 @@ napi_value JsKeyboardPanelManager::GetSmartMenuCfg(napi_env env, napi_callback_i
     return asyncCall.Call(env, exec, "GetSmartMenuCfg");
 }
 
-
 napi_value JsKeyboardPanelManager::SendPrivateCommand(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<SendPrivateCommandContext>();
@@ -194,8 +193,8 @@ napi_value JsKeyboardPanelManager::SendPrivateCommand(napi_env env, napi_callbac
         CHECK_RETURN(JsUtils::GetValue(env, argv[0], ctxt->privateCommand) == napi_ok,
             "param commandData covert failed, type must be Record<string, CommandDataType>", napi_generic_failure);
         if (!TextConfig::IsPrivateCommandValid(ctxt->privateCommand)) {
-            PARAM_CHECK_RETURN(
-                env, false, "commandData size limit 32KB, count limit 5.", TYPE_NONE, napi_generic_failure);
+            PARAM_CHECK_RETURN(env, false, "commandData size limit 32KB, count limit 5.", TYPE_NONE,
+                napi_generic_failure);
         }
         ctxt->info = { std::chrono::system_clock::now(), ctxt->privateCommand };
         privateCommandQueue_.Push(ctxt->info);
@@ -323,8 +322,8 @@ std::shared_ptr<AppExecFwk::EventHandler> JsKeyboardPanelManager::GetEventHandle
     return handler_;
 }
 
-std::shared_ptr<JsKeyboardPanelManager::UvEntry> JsKeyboardPanelManager::GetEntry(
-    const std::string &type, EntrySetter entrySetter)
+std::shared_ptr<JsKeyboardPanelManager::UvEntry> JsKeyboardPanelManager::GetEntry(const std::string &type,
+    EntrySetter entrySetter)
 {
     IMSA_HILOGD("type: %{public}s", type.c_str());
     std::shared_ptr<UvEntry> entry = nullptr;

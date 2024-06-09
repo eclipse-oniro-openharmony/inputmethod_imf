@@ -55,12 +55,8 @@ public:
     std::shared_ptr<InputMethodPanel> GetNative();
 
 private:
-
     struct PanelContentContext : public AsyncCall::Context {
-        LayoutParams layoutParams = {
-            {0, 0, 0, 0},
-            {0, 0, 0, 0}
-        };
+        LayoutParams layoutParams = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
         PanelFlag panelFlag = PanelFlag::FLG_FIXED;
         std::string path = "";
         uint32_t width = 0;

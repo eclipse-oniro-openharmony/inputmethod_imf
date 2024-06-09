@@ -20,6 +20,7 @@
 #include "async_call.h"
 #include "block_queue.h"
 #include "calling_window_info.h"
+#include "ffrt_block_queue.h"
 #include "global.h"
 #include "js_util.h"
 #include "native_engine/native_engine.h"
@@ -436,18 +437,24 @@ private:
 
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static napi_value GetResult(napi_env env, std::string &text);
-    static napi_value GetResultEditorAttribute(
-        napi_env env, std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
+    static napi_value GetResultEditorAttribute(napi_env env,
+        std::shared_ptr<GetEditorAttributeContext> getEditorAttribute);
     static napi_value HandleParamCheckFailure(napi_env env);
     static void PrintEditorQueueInfoIfTimeout(int64_t start, const EditorEventInfo &currentInfo);
-    static napi_status GetPreviewTextParam(
-        napi_env env, size_t argc, napi_value *argv, std::string &text, Range &range);
+    static napi_status GetPreviewTextParam(napi_env env, size_t argc, napi_value *argv, std::string &text,
+        Range &range);
 
     static const std::string TIC_CLASS_NAME;
     static thread_local napi_ref TICRef_;
     static constexpr std::int32_t MAX_VALUE_LEN = 4096;
-    static BlockQueue<EditorEventInfo> editorQueue_;
+    static FFRTBlockQueue<EditorEventInfo> editorQueue_;
     static BlockQueue<PrivateCommandInfo> privateCommandQueue_;
+    static std::string GenerateTraceId()
+    {
+        auto traceId = traceId_++;
+        return std::to_string(traceId);
+    }
+    static uint32_t traceId_;
 };
 } // namespace MiscServices
 } // namespace OHOS

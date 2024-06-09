@@ -147,6 +147,7 @@ private:
     void CheckInputTypeOption(InputClientInfo &inputClientInfo);
     int32_t IsDefaultImeFromTokenId(uint32_t tokenId);
     void DealSwitchRequest();
+    void DealSecurityChange();
     void OnSecurityModeChange();
 
     std::mutex checkMutex_;
@@ -159,6 +160,10 @@ private:
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
+
+    std::mutex modeChangeMutex_;
+    std::atomic<bool> isChangeHandling_{ false };
+    std::atomic<bool> hasPendingChanges_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -277,8 +277,8 @@ napi_value JsInputMethodEngineSetting::GetIMEInstance(napi_env env, napi_callbac
     return instance;
 }
 
-void JsInputMethodEngineSetting::RegisterListener(
-    napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
+void JsInputMethodEngineSetting::RegisterListener(napi_value callback, std::string type,
+    std::shared_ptr<JSCallbackObject> callbackObj)
 {
     IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -334,15 +334,15 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 2 means least param num.
-    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)
-        || JsUtil::GetType(env, argv[1]) != napi_function) {
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type) ||
+        JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
     if (type == "privateCommand" && !InputMethodAbility::GetInstance()->IsDefaultIme()) {
-        JsUtils::ThrowException(
-            env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed", TYPE_NONE);
+        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed",
+            TYPE_NONE);
     }
     IMSA_HILOGD("Subscribe type:%{public}s.", type.c_str());
     auto engine = reinterpret_cast<JsInputMethodEngineSetting *>(JsUtils::GetNativeSelf(env, info));
@@ -358,8 +358,8 @@ napi_value JsInputMethodEngineSetting::Subscribe(napi_env env, napi_callback_inf
     return result;
 }
 
-napi_status JsInputMethodEngineSetting::GetContext(
-    napi_env env, napi_value in, std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
+napi_status JsInputMethodEngineSetting::GetContext(napi_env env, napi_value in,
+    std::shared_ptr<OHOS::AbilityRuntime::Context> &context)
 {
     bool stageMode = false;
     napi_status status = OHOS::AbilityRuntime::IsStageContext(env, in, stageMode);
@@ -383,16 +383,15 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
         napi_valuetype valueType = napi_undefined;
         // 0 means parameter of ctx<BaseContext>
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "ctx type must be BaseContext",
-            TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "ctx type must be BaseContext", TYPE_NONE, napi_invalid_arg);
         napi_status status = GetContext(env, argv[0], ctxt->context);
         if (status != napi_ok) {
             return status;
         }
         // 1 means parameter of info<PanelInfo>
         napi_typeof(env, argv[1], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "param info type must be PanelInfo",
-            TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "param info type must be PanelInfo", TYPE_NONE,
+            napi_invalid_arg);
         status = JsUtils::GetValue(env, argv[1], ctxt->panelInfo);
         PARAM_CHECK_RETURN(env, status == napi_ok, "js param info covert failed", TYPE_NONE, napi_invalid_arg);
         return status;
@@ -492,14 +491,14 @@ napi_value JsInputMethodEngineSetting::UnSubscribe(napi_env env, napi_callback_i
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 1 means least param num.
-    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)) {
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::INPUT_METHOD_ABILITY, type)) {
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
     if (type == "privateCommand" && !InputMethodAbility::GetInstance()->IsDefaultIme()) {
-        JsUtils::ThrowException(
-            env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed", TYPE_NONE);
+        JsUtils::ThrowException(env, JsUtils::Convert(ErrorCode::ERROR_NOT_DEFAULT_IME), "default ime check failed",
+            TYPE_NONE);
     }
     // if the second param is not napi_function/napi_null/napi_undefined, return
     auto paramType = JsUtil::GetType(env, argv[1]);
@@ -810,8 +809,8 @@ std::shared_ptr<AppExecFwk::EventHandler> JsInputMethodEngineSetting::GetEventHa
     return handler_;
 }
 
-std::shared_ptr<JsInputMethodEngineSetting::UvEntry> JsInputMethodEngineSetting::GetEntry(
-    const std::string &type, EntrySetter entrySetter)
+std::shared_ptr<JsInputMethodEngineSetting::UvEntry> JsInputMethodEngineSetting::GetEntry(const std::string &type,
+    EntrySetter entrySetter)
 {
     IMSA_HILOGD("type: %{public}s", type.c_str());
     std::shared_ptr<UvEntry> entry = nullptr;

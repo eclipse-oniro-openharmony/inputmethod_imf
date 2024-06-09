@@ -15,10 +15,9 @@
 
 #include "file_operator.h"
 
+#include <fstream>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#include <fstream>
 
 #include "global.h"
 namespace OHOS {
@@ -105,7 +104,7 @@ std::string FileOperator::Read(const std::string &path, const std::string &key)
         return "";
     }
     if (content.find(key) == std::string::npos) {
-        IMSA_HILOGE("%{public}s not contain %{public}s", path.c_str(), key.c_str());
+        IMSA_HILOGD("%{public}s not contain %{public}s", path.c_str(), key.c_str());
         return "";
     }
     return content;

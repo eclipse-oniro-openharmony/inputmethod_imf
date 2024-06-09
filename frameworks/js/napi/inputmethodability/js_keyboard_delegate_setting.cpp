@@ -64,8 +64,8 @@ napi_value JsKeyboardDelegateSetting::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("createKeyboardDelegate", CreateKeyboardDelegate),
         DECLARE_NAPI_FUNCTION("getKeyboardDelegate", GetKeyboardDelegate),
     };
-    NAPI_CALL(
-        env, napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
+    NAPI_CALL(env,
+        napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor));
 
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("on", Subscribe),
@@ -167,8 +167,8 @@ napi_value JsKeyboardDelegateSetting::GetKDInstance(napi_env env, napi_callback_
     return instance;
 }
 
-void JsKeyboardDelegateSetting::RegisterListener(
-    napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj)
+void JsKeyboardDelegateSetting::RegisterListener(napi_value callback, std::string type,
+    std::shared_ptr<JSCallbackObject> callbackObj)
 {
     IMSA_HILOGD("RegisterListener %{public}s", type.c_str());
     std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -204,8 +204,8 @@ void JsKeyboardDelegateSetting::UnRegisterListener(napi_value callback, std::str
     }
 
     for (auto item = jsCbMap_[type].begin(); item != jsCbMap_[type].end(); item++) {
-        if ((callback != nullptr)
-            && (JsUtils::Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
+        if ((callback != nullptr) &&
+            (JsUtils::Equals((*item)->env_, callback, (*item)->callback_, (*item)->threadId_))) {
             jsCbMap_[type].erase(item);
             break;
         }
@@ -224,9 +224,9 @@ napi_value JsKeyboardDelegateSetting::Subscribe(napi_env env, napi_callback_info
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 2 means least param num.
-    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type)
-        || JsUtil::GetType(env, argv[1]) != napi_function) {
+    if (argc < 2 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type) ||
+        JsUtil::GetType(env, argv[1]) != napi_function) {
         IMSA_HILOGE("Subscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
@@ -253,8 +253,8 @@ napi_value JsKeyboardDelegateSetting::UnSubscribe(napi_env env, napi_callback_in
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     std::string type;
     // 1 means least param num.
-    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type)
-        || !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type)) {
+    if (argc < 1 || !JsUtil::GetValue(env, argv[0], type) ||
+        !EventChecker::IsValidEventType(EventSubscribeModule::KEYBOARD_DELEGATE, type)) {
         IMSA_HILOGE("UnSubscribe failed, type:%{public}s", type.c_str());
         return nullptr;
     }
@@ -294,16 +294,15 @@ napi_value JsKeyboardDelegateSetting::GetResultOnKeyEvent(napi_env env, int32_t 
     return KeyboardDelegate;
 }
 
-bool JsKeyboardDelegateSetting::OnDealKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+bool JsKeyboardDelegateSetting::OnDealKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
+    sptr<KeyEventConsumerProxy> &consumer)
 {
     auto eventHandler = GetEventHandler();
     if (eventHandler == nullptr) {
         IMSA_HILOGE("eventHandler is nullptr");
         return false;
     }
-    auto keyEventEntry =
-        GetEntry("keyEvent", [keyEvent](UvEntry &entry) { entry.pullKeyEventPara = keyEvent; });
+    auto keyEventEntry = GetEntry("keyEvent", [keyEvent](UvEntry &entry) { entry.pullKeyEventPara = keyEvent; });
     KeyEventPara para{ keyEvent->GetKeyCode(), keyEvent->GetKeyAction(), false };
     std::string type = (keyEvent->GetKeyAction() == ARGC_TWO ? "keyDown" : "keyUp");
     auto keyCodeEntry = GetEntry(type, [&para](UvEntry &entry) {
@@ -369,8 +368,8 @@ void JsKeyboardDelegateSetting::DealKeyEvent(const std::shared_ptr<UvEntry> &key
     }
 }
 
-bool JsKeyboardDelegateSetting::OnKeyEvent(
-    const std::shared_ptr<MMI::KeyEvent> &keyEvent, sptr<KeyEventConsumerProxy> &consumer)
+bool JsKeyboardDelegateSetting::OnKeyEvent(const std::shared_ptr<MMI::KeyEvent> &keyEvent,
+    sptr<KeyEventConsumerProxy> &consumer)
 {
     std::string type = "keyEvent";
     auto entry = GetEntry(type, [keyEvent, &consumer](UvEntry &entry) {
@@ -483,8 +482,8 @@ void JsKeyboardDelegateSetting::OnCursorUpdate(int32_t positionX, int32_t positi
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    IMSA_HILOGD(
-        "JsKeyboardDelegateSetting, x: %{public}d, y: %{public}d, height: %{public}d", positionX, positionY, height);
+    IMSA_HILOGD("JsKeyboardDelegateSetting, x: %{public}d, y: %{public}d, height: %{public}d", positionX, positionY,
+        height);
     auto task = [entry]() {
         auto paramGetter = [&entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc < 3) {
@@ -560,7 +559,7 @@ void JsKeyboardDelegateSetting::OnTextChange(const std::string &text)
         return;
     }
     IMSA_HILOGD("run in");
-    
+
     auto task = [entry]() {
         auto getTextChangeProperty = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc == 0) {
@@ -588,8 +587,8 @@ void JsKeyboardDelegateSetting::OnEditorAttributeChange(const InputAttribute &in
         IMSA_HILOGE("eventHandler is nullptr!");
         return;
     }
-    IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d", inputAttribute.enterKeyType,
-        inputAttribute.inputPattern);
+    IMSA_HILOGD("enterKeyType: %{public}d, inputPattern: %{public}d, previewSupport: %{public}d",
+        inputAttribute.enterKeyType, inputAttribute.inputPattern, inputAttribute.isTextPreviewSupported);
     auto task = [entry]() {
         auto paramGetter = [entry](napi_env env, napi_value *args, uint8_t argc) -> bool {
             if (argc == 0) {
@@ -646,8 +645,8 @@ std::shared_ptr<AppExecFwk::EventHandler> JsKeyboardDelegateSetting::GetEventHan
     return handler_;
 }
 
-std::shared_ptr<JsKeyboardDelegateSetting::UvEntry> JsKeyboardDelegateSetting::GetEntry(
-    const std::string &type, EntrySetter entrySetter)
+std::shared_ptr<JsKeyboardDelegateSetting::UvEntry> JsKeyboardDelegateSetting::GetEntry(const std::string &type,
+    EntrySetter entrySetter)
 {
     IMSA_HILOGD("type: %{public}s", type.c_str());
     std::shared_ptr<UvEntry> entry = nullptr;

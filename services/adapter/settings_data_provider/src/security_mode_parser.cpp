@@ -68,43 +68,39 @@ int32_t SecurityModeParser::UpdateFullModeList(int32_t userId)
     return ErrorCode::NO_ERROR;
 }
 
-bool SecurityModeParser::IsSecurityChange(const std::string bundleName, const int32_t userId)
-{
-    bool oldExit = IsFullMode(bundleName);
-    UpdateFullModeList(userId);
-    bool onewExit = IsFullMode(bundleName);
-    return oldExit!= onewExit;
-}
-
 bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const int32_t userId)
 {
     SecModeCfg secModeCfg;
     secModeCfg.userImeCfg.userId = std::to_string(userId);
     auto ret = secModeCfg.Unmarshall(valueStr);
     if (!ret) {
+        IMSA_HILOGE("unmarshall failed");
         return ret;
     }
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
     std::lock_guard<std::mutex> autoLock(listMutex_);
     fullModeList_ = secModeCfg.userImeCfg.identities;
+    // always set default ime to full mode, remove this rule when default ime finishes adaptation.
+    if (defaultIme != nullptr) {
+        fullModeList_.push_back(defaultIme->name);
+    }
     return true;
 }
 
-int32_t SecurityModeParser::GetSecurityMode(const std::string &bundleName, SecurityMode &security, int32_t userId)
+SecurityMode SecurityModeParser::GetSecurityMode(const std::string &bundleName)
 {
     if (IsFullMode(bundleName)) {
-        security = SecurityMode::FULL;
+        return SecurityMode::FULL;
     } else {
-        security = SecurityMode::BASIC;
+        return SecurityMode::BASIC;
     }
-    return ErrorCode::NO_ERROR;
 }
 
 bool SecurityModeParser::IsFullMode(std::string bundleName)
 {
     std::lock_guard<std::mutex> autoLock(listMutex_);
-    auto it = std::find_if(fullModeList_.begin(), fullModeList_.end(), [&bundleName](const std::string& bundle) {
-        return bundle == bundleName;
-    });
+    auto it = std::find_if(fullModeList_.begin(), fullModeList_.end(),
+        [&bundleName](const std::string &bundle) { return bundle == bundleName; });
     return it != fullModeList_.end();
 }
 } // namespace MiscServices

@@ -26,7 +26,6 @@ static napi_module g_ExtensionModule = {
     .nm_modname = "InputMethodExtensionAbility",
 };
 
-
 extern "C" __attribute__((constructor)) void NAPI_InputMethodExtensionAbility_AutoRegister()
 {
     napi_module_register(&g_ExtensionModule);

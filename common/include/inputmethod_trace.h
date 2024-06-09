@@ -29,6 +29,7 @@ void FinishAsync(const std::string &value, int32_t taskId);
 class InputMethodSyncTrace {
 public:
     explicit InputMethodSyncTrace(const std::string &value);
+    InputMethodSyncTrace(const std::string &value, const std::string &id);
     virtual ~InputMethodSyncTrace();
 };
 
