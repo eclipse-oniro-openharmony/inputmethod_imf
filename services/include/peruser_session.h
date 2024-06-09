@@ -98,8 +98,7 @@ public:
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
     bool StartCurrentIme(int32_t userId, bool isRetry);
     void StopCurrentIme();
-    bool StartInputService(
-        const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry, SecurityMode mode = SecurityMode::INVALID);
+    bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry);
     bool IsProxyImeEnable();
     bool IsBoundToClient();
     int32_t ExitCurrentInputType();

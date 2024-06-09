@@ -972,10 +972,13 @@ void PerUserSession::StopCurrentIme()
     }
 }
 
-bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry, SecurityMode mode)
+bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry)
 {
-    if (mode == SecurityMode::INVALID) {
-        mode = SecurityModeParser::GetInstance()->GetSecurityMode(ime->bundleName);
+    SecurityMode mode;
+    if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
+        mode = SecurityModeParser::GetInstance()->GetSecurityMode(ime->bundleName, userId_);
+    } else {
+        mode = SecurityMode::FULL;
     }
     IMSA_HILOGI("ime: %{public}s, mode: %{public}d isRetry: %{public}d", ime->imeId.c_str(),
                 static_cast<int32_t>(mode), isRetry);

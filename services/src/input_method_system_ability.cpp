@@ -996,6 +996,8 @@ void InputMethodSystemAbility::DealSecurityChange()
             OnSecurityModeChange();
         } while (checkChangeCount());
     };
+    // 0 means delay time is 0.
+    serviceHandler_->PostTask(changeTask, "SecurityChangeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 void InputMethodSystemAbility::DealSwitchRequest()
@@ -1222,9 +1224,9 @@ void InputMethodSystemAbility::OnSecurityModeChange()
         hasPendingChanges_.store(false);
     }
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-    auto oldMode = SecurityModeParser::GetInstance()->GetSecurityMode(currentIme->bundleName);
+    auto oldMode = SecurityModeParser::GetInstance()->GetSecurityMode(currentIme->bundleName, userId_);
     SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
-    auto newMode = SecurityModeParser::GetInstance()->GetSecurityMode(currentIme->bundleName);
+    auto newMode = SecurityModeParser::GetInstance()->GetSecurityMode(currentIme->bundleName, userId_);
     if (oldMode == newMode) {
         IMSA_HILOGD("current ime mode not changed");
         return;
@@ -1233,7 +1235,7 @@ void InputMethodSystemAbility::OnSecurityModeChange()
         static_cast<int32_t>(newMode));
     userSession_->OnSecurityChange(static_cast<int32_t>(newMode));
     userSession_->StopCurrentIme();
-    auto ret = userSession_->StartInputService(currentIme, true, newMode);
+    auto ret = userSession_->StartInputService(currentIme, true);
     if (!ret) {
         IMSA_HILOGE("ime start failed");
     }
@@ -1247,7 +1249,7 @@ int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
         return ErrorCode::NO_ERROR;
     }
     auto callBundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
-    SecurityMode mode = SecurityModeParser::GetInstance()->GetSecurityMode(callBundleName);
+    SecurityMode mode = SecurityModeParser::GetInstance()->GetSecurityMode(callBundleName, userId_);
     security = static_cast<int32_t>(mode);
     return ErrorCode::NO_ERROR;
 }

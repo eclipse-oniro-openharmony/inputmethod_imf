@@ -77,18 +77,25 @@ bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const in
         IMSA_HILOGE("unmarshall failed");
         return ret;
     }
-    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
     std::lock_guard<std::mutex> autoLock(listMutex_);
     fullModeList_ = secModeCfg.userImeCfg.identities;
-    // always set default ime to full mode, remove this rule when default ime finishes adaptation.
-    if (defaultIme != nullptr) {
-        fullModeList_.push_back(defaultIme->name);
-    }
     return true;
 }
 
-SecurityMode SecurityModeParser::GetSecurityMode(const std::string &bundleName)
+SecurityMode SecurityModeParser::GetSecurityMode(const std::string &bundleName, int32_t userId)
 {
+    // always set default ime to full mode, remove this rule when default ime finishes adaptation.
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
+    if (defaultIme != nullptr && bundleName == defaultIme->name) {
+        return SecurityMode::FULL;
+    }
+    if (!initialized_) {
+        std::lock_guard<std::mutex> lock(initLock_);
+        if (!initialized_) {
+            UpdateFullModeList(userId);
+            initialized_ = true;
+        }
+    }
     if (IsFullMode(bundleName)) {
         return SecurityMode::FULL;
     } else {
