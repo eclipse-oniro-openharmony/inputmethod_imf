@@ -32,6 +32,7 @@ enum {
     MSG_ID_USER_START = 0,  //  a user started
     MSG_ID_USER_REMOVED,    // a user removed
     MSG_ID_PACKAGE_REMOVED, // a package is removed
+    MSG_ID_BUNDLE_SCAN_FINISHED, // bundle scan finished, ready to create data share helper
     MSG_ID_SELECT_BY_RANGE,
     MSG_ID_SELECT_BY_MOVEMENT,
     MSG_ID_HANDLE_EXTEND_ACTION,

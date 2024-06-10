@@ -173,7 +173,7 @@ void InputMethodSystemAbility::HandleUserChanged(int32_t userId)
         EnableImeDataParser::GetInstance()->OnUserChanged(userId_);
     }
     if (enableSecurityMode_) {
-        SecurityModeParser::GetInstance()->GetFullModeList(userId_);
+        SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
     }
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 }
@@ -842,6 +842,10 @@ void InputMethodSystemAbility::WorkThread()
                 userSession_->OnHideSoftKeyBoardSelf();
                 break;
             }
+            case MSG_ID_BUNDLE_SCAN_FINISHED: {
+                RegisterDataShareObserver();
+                break;
+            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -970,6 +974,36 @@ int32_t InputMethodSystemAbility::SwitchByCombinationKey(uint32_t state)
     return ErrorCode::ERROR_EX_UNSUPPORTED_OPERATION;
 }
 
+void InputMethodSystemAbility::DealSecurityChange()
+{
+    {
+        std::lock_guard<std::mutex> lock(modeChangeMutex_);
+        if (isChangeHandling_) {
+            IMSA_HILOGI("already has mode change task.");
+            hasPendingChanges_ = true;
+            return;
+        } else {
+            isChangeHandling_ = true;
+            hasPendingChanges_ = true;
+        }
+    }
+    auto changeTask = [this]() {
+        pthread_setname_np(pthread_self(), "SecurityChange");
+        auto checkChangeCount = [this]() {
+            std::lock_guard<std::mutex> lock(modeChangeMutex_);
+            if (hasPendingChanges_) {
+                return true;
+            }
+            isChangeHandling_ = false;
+            return false;
+        };
+        do {
+            OnSecurityModeChange();
+        } while (checkChangeCount());
+    };
+    std::thread(changeTask).detach();
+}
+
 void InputMethodSystemAbility::DealSwitchRequest()
 {
     {
@@ -1088,13 +1122,24 @@ void InputMethodSystemAbility::InitMonitors()
         IMSA_HILOGW("Enter enable mode");
         EnableImeDataParser::GetInstance()->Initialize(userId_);
         enableImeOn_ = true;
-        RegisterEnableImeObserver();
     }
     if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         IMSA_HILOGW("Enter security mode");
         enableSecurityMode_ = true;
+    }
+    RegisterDataShareObserver();
+}
+
+int32_t InputMethodSystemAbility::RegisterDataShareObserver()
+{
+    IMSA_HILOGD("in");
+    if (enableImeOn_) {
+        RegisterEnableImeObserver();
+    }
+    if (enableSecurityMode_) {
         RegisterSecurityModeObserver();
     }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::InitAccountMonitor()
@@ -1182,26 +1227,46 @@ void InputMethodSystemAbility::DatashareCallback(const std::string &key)
             OnSwitchInputMethod(switchInfo, SwitchTrigger::IMSA);
         }
     }
-
     if (key == SecurityModeParser::SECURITY_MODE) {
-        auto currentBundleName = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_)->bundleName;
-        if (SecurityModeParser::GetInstance()->IsSecurityChange(currentBundleName, userId_)) {
-            int32_t security;
-            SecurityModeParser::GetInstance()->GetSecurityMode(currentBundleName, security, userId_);
-            userSession_->OnSecurityChange(security);
-        }
+        DealSecurityChange();
+    }
+}
+
+void InputMethodSystemAbility::OnSecurityModeChange()
+{
+    {
+        std::lock_guard<std::mutex> lock(modeChangeMutex_);
+        hasPendingChanges_ = false;
+    }
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    auto oldMode = SecurityModeParser::GetInstance()->GetSecurityMode(currentIme->bundleName, userId_);
+    SecurityModeParser::GetInstance()->UpdateFullModeList(userId_);
+    auto newMode = SecurityModeParser::GetInstance()->GetSecurityMode(currentIme->bundleName, userId_);
+    if (oldMode == newMode) {
+        IMSA_HILOGD("current ime mode not changed");
+        return;
+    }
+    IMSA_HILOGI("ime: %{public}s securityMode change to: %{public}d", currentIme->bundleName.c_str(),
+        static_cast<int32_t>(newMode));
+    userSession_->OnSecurityChange(static_cast<int32_t>(newMode));
+    userSession_->StopCurrentIme();
+    auto ret = userSession_->StartInputService(currentIme, true);
+    if (!ret) {
+        IMSA_HILOGE("ime start failed");
     }
 }
 
 int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
 {
-    IMSA_HILOGD("GetSecurityMode");
+    IMSA_HILOGD("InputMethodSystemAbility in");
     if (!enableSecurityMode_) {
         security = static_cast<int32_t>(SecurityMode::FULL);
         return ErrorCode::NO_ERROR;
     }
     auto callBundleName = identityChecker_->GetBundleNameByToken(IPCSkeleton::GetCallingTokenID());
-    return SecurityModeParser::GetInstance()->GetSecurityMode(callBundleName, security, userId_);
+    SecurityMode mode = SecurityModeParser::GetInstance()->GetSecurityMode(callBundleName, userId_);
+    security = static_cast<int32_t>(mode);
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::UnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core)

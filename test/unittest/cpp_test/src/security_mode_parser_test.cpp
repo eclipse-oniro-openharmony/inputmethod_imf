@@ -92,7 +92,7 @@ void SecurityModeParserTest::TearDown()
 HWTEST_F(SecurityModeParserTest, testGetFullModeList_001, TestSize.Level0)
 {
     IMSA_HILOGI("SecurityModeParserTest testGetFullModeList_001 START");
-    int32_t ret = SecurityModeParser::GetInstance()->GetFullModeList(101);
+    int32_t ret = SecurityModeParser::GetInstance()->UpdateFullModeList(101);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(SecurityModeParser::GetInstance()->fullModeList_.size(), USER_101_TOTAL_COUNT);
     if (SecurityModeParser::GetInstance()->fullModeList_.size() == USER_101_TOTAL_COUNT) {
@@ -110,7 +110,7 @@ HWTEST_F(SecurityModeParserTest, testGetFullModeList_001, TestSize.Level0)
 HWTEST_F(SecurityModeParserTest, testGetFullModeList_002, TestSize.Level0)
 {
     IMSA_HILOGI("SecurityModeParserTest testGetFullModeList_002 START");
-    int32_t ret = SecurityModeParser::GetInstance()->GetFullModeList(SecurityModeParserTest::USER_ID);
+    int32_t ret = SecurityModeParser::GetInstance()->UpdateFullModeList(SecurityModeParserTest::USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(SecurityModeParser::GetInstance()->fullModeList_.size(), USER_100_TOTAL_COUNT);
     if (SecurityModeParser::GetInstance()->fullModeList_.size() == USER_100_TOTAL_COUNT) {
@@ -130,12 +130,11 @@ HWTEST_F(SecurityModeParserTest, testGetFullModeList_002, TestSize.Level0)
 HWTEST_F(SecurityModeParserTest, testGetSecurityMode_001, TestSize.Level0)
 {
     IMSA_HILOGI("SecurityModeParserTest testGetSecurityMode_001 START");
-    int32_t ret = SecurityModeParser::GetInstance()->GetFullModeList(SecurityModeParserTest::USER_ID);
+    int32_t ret = SecurityModeParser::GetInstance()->UpdateFullModeList(SecurityModeParserTest::USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    int32_t security;
-    ret = SecurityModeParser::GetInstance()->GetSecurityMode("xiaoyiIme", security, SecurityModeParserTest::USER_ID);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(security, 1);
+    SecurityMode security =
+        SecurityModeParser::GetInstance()->GetSecurityMode("xiaoyiIme", SecurityModeParserTest::USER_ID);
+    EXPECT_EQ(static_cast<int32_t>(security), 1);
 }
 
 /**
@@ -148,12 +147,11 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_001, TestSize.Level0)
 HWTEST_F(SecurityModeParserTest, testGetSecurityMode_002, TestSize.Level0)
 {
     IMSA_HILOGI("SecurityModeParserTest testGetSecurityMode_002 START");
-    int32_t ret = SecurityModeParser::GetInstance()->GetFullModeList(SecurityModeParserTest::USER_ID);
+    int32_t ret = SecurityModeParser::GetInstance()->UpdateFullModeList(SecurityModeParserTest::USER_ID);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    int32_t security;
-    ret = SecurityModeParser::GetInstance()->GetSecurityMode("test", security, SecurityModeParserTest::USER_ID);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    EXPECT_EQ(security, 0);
+    SecurityMode security =
+        SecurityModeParser::GetInstance()->GetSecurityMode("test", SecurityModeParserTest::USER_ID);
+    EXPECT_EQ(static_cast<int32_t>(security), 0);
 }
 
 /**
@@ -188,25 +186,6 @@ HWTEST_F(SecurityModeParserTest, testGetSecurityMode_004, TestSize.Level0)
     auto ret = service_->GetSecurityMode(securityMode);
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     EXPECT_EQ(securityMode, 0);
-}
-
-/**
- * @tc.name: testIsSecurityChange_001
- * @tc.desc: is security change
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author: guojin
- */
-HWTEST_F(SecurityModeParserTest, testIsSecurityChange_001, TestSize.Level0)
-{
-    IMSA_HILOGI("SecurityModeParserTest testIsSecurityChange_001 START");
-    int32_t ret = SecurityModeParser::GetInstance()->GetFullModeList(SecurityModeParserTest::USER_ID);
-    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
-    SecurityModeParserTest::resultSet_->strValue_ = "{\"fullExperienceList\" : {\"100\" : [ \"baiduIme\", "
-                                                    "\"sougouIme\"],\"101\" : [\"sougouIme\"]}}";
-    bool isSecurityChange =
-        SecurityModeParser::GetInstance()->IsSecurityChange("xiaoyiIme", SecurityModeParserTest::USER_ID);
-    EXPECT_EQ(isSecurityChange, true);
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -90,11 +90,9 @@ pread64;all
 pwrite64;all
 preadv;all
 pwritev;all
-sendfile;all
 pselect6;all
 ppoll;all
 signalfd4;all
-vmsplice;all
 splice;all
 tee;all
 readlinkat;all
@@ -178,19 +176,12 @@ getegid;arm64
 gettid;all
 sysinfo;all
 socket;all
-socketpair;all
 bind;all
-listen;all
-accept;all
 connect;all
-getsockname;all
-getpeername;all
 sendto;all
 recvfrom;all
 setsockopt;all
 getsockopt;all
-shutdown;all
-sendmsg;all
 recvmsg;all
 readahead;all
 brk;all
@@ -209,8 +200,6 @@ mincore;all
 madvise;all
 rt_tgsigqueueinfo;all
 perf_event_open;all
-accept4;all
-recvmmsg;all
 wait4;all
 prlimit64;all
 syncfs;all
@@ -277,7 +266,6 @@ getresuid32;arm
 getresgid32;arm
 chown32;arm
 fcntl64;arm
-sendfile64;arm
 epoll_create;arm
 epoll_wait;arm
 remap_file_pages;arm
@@ -300,7 +288,6 @@ timerfd_settime64;arm
 utimensat_time64;arm
 pselect6_time64;arm
 ppoll_time64;arm
-recvmmsg_time64;arm
 semtimedop_time64;arm
 rt_sigtimedwait_time64;arm
 futex_time64;arm

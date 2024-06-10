@@ -30,6 +30,7 @@
 #include "message_parcel.h"
 #include "parcel.h"
 #include "scene_board_judgement.h"
+#include "security_mode_parser.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "unistd.h"
@@ -43,6 +44,7 @@ constexpr uint32_t IME_RESTART_TIMES = 5;
 constexpr uint32_t IME_RESTART_INTERVAL = 300;
 constexpr int64_t INVALID_PID = -1;
 constexpr uint32_t STOP_IME_TIME = 600;
+constexpr const char *STRICT_MODE = "strictMode";
 PerUserSession::PerUserSession(int32_t userId) : userId_(userId)
 {
 }
@@ -972,9 +974,17 @@ void PerUserSession::StopCurrentIme()
 
 bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry)
 {
-    IMSA_HILOGI("start %{public}s with isRetry: %{public}d", ime->imeId.c_str(), isRetry);
+    SecurityMode mode;
+    if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
+        mode = SecurityModeParser::GetInstance()->GetSecurityMode(ime->bundleName, userId_);
+    } else {
+        mode = SecurityMode::FULL;
+    }
+    IMSA_HILOGI("ime: %{public}s, mode: %{public}d isRetry: %{public}d", ime->imeId.c_str(),
+                static_cast<int32_t>(mode), isRetry);
     AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
+    want.SetParam(STRICT_MODE, !(mode == SecurityMode::FULL));
     isImeStarted_.Clear(false);
     sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
     if (connection == nullptr) {

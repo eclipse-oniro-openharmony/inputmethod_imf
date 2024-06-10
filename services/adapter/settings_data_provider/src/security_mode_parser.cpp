@@ -48,10 +48,10 @@ sptr<SecurityModeParser> SecurityModeParser::GetInstance()
 
 int32_t SecurityModeParser::Initialize(const int32_t userId)
 {
-    return GetFullModeList(userId);
+    return UpdateFullModeList(userId);
 }
 
-int32_t SecurityModeParser::GetFullModeList(const int32_t userId)
+int32_t SecurityModeParser::UpdateFullModeList(int32_t userId)
 {
     IMSA_HILOGD("key: %{public}s.", SECURITY_MODE);
     std::string valueStr;
@@ -68,20 +68,13 @@ int32_t SecurityModeParser::GetFullModeList(const int32_t userId)
     return ErrorCode::NO_ERROR;
 }
 
-bool SecurityModeParser::IsSecurityChange(const std::string bundleName, const int32_t userId)
-{
-    bool oldExit = IsFullMode(bundleName);
-    GetFullModeList(userId);
-    bool onewExit = IsFullMode(bundleName);
-    return oldExit != onewExit;
-}
-
 bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const int32_t userId)
 {
     SecModeCfg secModeCfg;
     secModeCfg.userImeCfg.userId = std::to_string(userId);
     auto ret = secModeCfg.Unmarshall(valueStr);
     if (!ret) {
+        IMSA_HILOGE("unmarshall failed");
         return ret;
     }
     std::lock_guard<std::mutex> autoLock(listMutex_);
@@ -89,15 +82,25 @@ bool SecurityModeParser::ParseSecurityMode(const std::string &valueStr, const in
     return true;
 }
 
-int32_t SecurityModeParser::GetSecurityMode(const std::string bundleName, int32_t &security, const int32_t userId)
+SecurityMode SecurityModeParser::GetSecurityMode(const std::string &bundleName, int32_t userId)
 {
-    GetFullModeList(userId);
-    if (IsFullMode(bundleName)) {
-        security = static_cast<int32_t>(SecurityMode::FULL);
-    } else {
-        security = static_cast<int32_t>(SecurityMode::BASIC);
+    // always set default ime to full mode, remove this rule when default ime finishes adaptation.
+    auto defaultIme = ImeInfoInquirer::GetInstance().GetDefaultImeCfgProp();
+    if (defaultIme != nullptr && bundleName == defaultIme->name) {
+        return SecurityMode::FULL;
     }
-    return ErrorCode::NO_ERROR;
+    if (!initialized_) {
+        std::lock_guard<std::mutex> lock(initLock_);
+        if (!initialized_) {
+            UpdateFullModeList(userId);
+            initialized_ = true;
+        }
+    }
+    if (IsFullMode(bundleName)) {
+        return SecurityMode::FULL;
+    } else {
+        return SecurityMode::BASIC;
+    }
 }
 
 bool SecurityModeParser::IsFullMode(std::string bundleName)

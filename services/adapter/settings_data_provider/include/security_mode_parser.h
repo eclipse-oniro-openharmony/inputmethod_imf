@@ -24,6 +24,7 @@
 
 #include "datashare_helper.h"
 #include "global.h"
+#include "input_method_utils.h"
 #include "serializable.h"
 #include "settings_data_observer.h"
 #include "settings_data_utils.h"
@@ -42,9 +43,8 @@ class SecurityModeParser : public RefBase {
 public:
     static sptr<SecurityModeParser> GetInstance();
     int32_t Initialize(const int32_t userId);
-    int32_t GetSecurityMode(const std::string bundleName, int32_t &security, const int32_t userId);
-    bool IsSecurityChange(const std::string bundleName, const int32_t userId);
-    int32_t GetFullModeList(const int32_t userId);
+    SecurityMode GetSecurityMode(const std::string &bundleName, int32_t userId);
+    int32_t UpdateFullModeList(int32_t userId);
     static constexpr const char *SECURITY_MODE = "settings.inputmethod.full_experience";
 
 private:
@@ -57,6 +57,8 @@ private:
     static sptr<SecurityModeParser> instance_;
     std::mutex listMutex_;
     std::vector<std::string> fullModeList_;
+    std::mutex initLock_;
+    bool initialized_{ false };
 };
 } // namespace MiscServices
 } // namespace OHOS

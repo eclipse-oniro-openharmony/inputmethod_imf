@@ -54,6 +54,7 @@ public:
         void RemovePackage(const EventFwk::CommonEventData &data);
         void StartUser(const EventFwk::CommonEventData &data);
         void RemoveUser(const EventFwk::CommonEventData &data);
+        void OnBundleScanFinished(const EventFwk::CommonEventData &data);
 
     private:
         using EventListenerFunc = void (EventSubscriber::*)(const EventFwk::CommonEventData &data);
