@@ -842,6 +842,10 @@ void InputMethodSystemAbility::WorkThread()
                 userSession_->OnHideSoftKeyBoardSelf();
                 break;
             }
+            case MSG_ID_BUNDLE_SCAN_FINISHED: {
+                RegisterDataShareObserver();
+                break;
+            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -974,30 +978,30 @@ void InputMethodSystemAbility::DealSecurityChange()
 {
     {
         std::lock_guard<std::mutex> lock(modeChangeMutex_);
-        if (isChangeHandling_.load()) {
+        if (isChangeHandling_) {
             IMSA_HILOGI("already has mode change task.");
-            hasPendingChanges_.store(true);
+            hasPendingChanges_ = true;
             return;
         } else {
-            isChangeHandling_.store(true);
-            hasPendingChanges_.store(true);
+            isChangeHandling_ = true;
+            hasPendingChanges_ = true;
         }
     }
     auto changeTask = [this]() {
+        pthread_setname_np(pthread_self(), "SecurityChange");
         auto checkChangeCount = [this]() {
             std::lock_guard<std::mutex> lock(modeChangeMutex_);
-            if (hasPendingChanges_.load()) {
+            if (hasPendingChanges_) {
                 return true;
             }
-            isChangeHandling_.store(false);
+            isChangeHandling_ = false;
             return false;
         };
         do {
             OnSecurityModeChange();
         } while (checkChangeCount());
     };
-    // 0 means delay time is 0.
-    serviceHandler_->PostTask(changeTask, "SecurityChangeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    std::thread(changeTask).detach();
 }
 
 void InputMethodSystemAbility::DealSwitchRequest()
@@ -1118,13 +1122,24 @@ void InputMethodSystemAbility::InitMonitors()
         IMSA_HILOGW("Enter enable mode");
         EnableImeDataParser::GetInstance()->Initialize(userId_);
         enableImeOn_ = true;
-        RegisterEnableImeObserver();
     }
     if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
         IMSA_HILOGW("Enter security mode");
         enableSecurityMode_ = true;
+    }
+    RegisterDataShareObserver();
+}
+
+int32_t InputMethodSystemAbility::RegisterDataShareObserver()
+{
+    IMSA_HILOGD("in");
+    if (enableImeOn_) {
+        RegisterEnableImeObserver();
+    }
+    if (enableSecurityMode_) {
         RegisterSecurityModeObserver();
     }
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::InitAccountMonitor()
@@ -1221,7 +1236,7 @@ void InputMethodSystemAbility::OnSecurityModeChange()
 {
     {
         std::lock_guard<std::mutex> lock(modeChangeMutex_);
-        hasPendingChanges_.store(false);
+        hasPendingChanges_ = false;
     }
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
     auto oldMode = SecurityModeParser::GetInstance()->GetSecurityMode(currentIme->bundleName, userId_);

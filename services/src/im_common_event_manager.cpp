@@ -60,6 +60,7 @@ bool ImCommonEventManager::SubscribeEvent(const std::string &event)
     matchingSkills.AddEvent(event);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_REMOVED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED);
 
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
 
@@ -198,6 +199,7 @@ ImCommonEventManager::EventSubscriber::EventSubscriber(const EventFwk::CommonEve
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_SWITCHED] = &EventSubscriber::StartUser;
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_REMOVED] = &EventSubscriber::RemoveUser;
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED] = &EventSubscriber::RemovePackage;
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED] = &EventSubscriber::OnBundleScanFinished;
 }
 
 void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
@@ -222,6 +224,23 @@ void ImCommonEventManager::EventSubscriber::StartUser(const CommonEventData &dat
     MessageParcel *parcel = new MessageParcel();
     parcel->WriteInt32(newUserId);
     Message *msg = new Message(MessageID::MSG_ID_USER_START, parcel);
+    MessageHandler::Instance()->SendMessage(msg);
+}
+
+void ImCommonEventManager::EventSubscriber::OnBundleScanFinished(const EventFwk::CommonEventData &data)
+{
+    IMSA_HILOGI("ImCommonEventManager in");
+    auto parcel = new (std::nothrow) MessageParcel();
+    if (parcel == nullptr) {
+        IMSA_HILOGE("failed to create MessageParcel");
+        return;
+    }
+    auto msg = new (std::nothrow) Message(MessageID::MSG_ID_BUNDLE_SCAN_FINISHED, parcel);
+    if (msg == nullptr) {
+        IMSA_HILOGE("failed to create Message");
+        delete parcel;
+        return;
+    }
     MessageHandler::Instance()->SendMessage(msg);
 }
 

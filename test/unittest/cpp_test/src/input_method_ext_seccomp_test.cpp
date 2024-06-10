@@ -13,23 +13,23 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-
-#include <cstdlib>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <csignal>
-#include <cerrno>
-#include <cstring>
-#include <sys/prctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/syscall.h>
 #include <asm/unistd.h>
-#include <syscall.h>
-#include <climits>
+#include <fcntl.h>
+#include <gtest/gtest.h>
 #include <sched.h>
+#include <sys/prctl.h>
+#include <sys/stat.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <syscall.h>
+#include <unistd.h>
+
+#include <cerrno>
+#include <climits>
+#include <csignal>
+#include <cstdlib>
+#include <cstring>
 
 #include "seccomp_policy.h"
 
@@ -44,10 +44,10 @@ namespace OHOS {
 namespace MiscServices {
 class SeccompUnitTest : public testing::Test {
 public:
-    SeccompUnitTest() {};
-    virtual ~SeccompUnitTest() {};
-    static void SetUpTestCase() {};
-    static void TearDownTestCase() {};
+    SeccompUnitTest(){};
+    virtual ~SeccompUnitTest(){};
+    static void SetUpTestCase(){};
+    static void TearDownTestCase(){};
 
     void SetUp()
     {
@@ -59,8 +59,8 @@ public:
         sleep(SLEEP_TIME_1S);
     };
 
-    void TearDown() {};
-    void TestBody(void) {};
+    void TearDown(){};
+    void TestBody(void){};
 
     static pid_t StartChild(SeccompFilterType type, const char *filterName, SyscallFunc func)
     {
@@ -96,8 +96,8 @@ public:
 
         if (WIFSIGNALED(status)) {
             if (WTERMSIG(status) == SIGSYS) {
-                    std::cout << "child process exit with SIGSYS" << std::endl;
-                    return isAllow ? -1 : 0;
+                std::cout << "child process exit with SIGSYS" << std::endl;
+                return isAllow ? -1 : 0;
             }
         } else {
             std::cout << "child process finished normally" << std::endl;
@@ -113,7 +113,7 @@ public:
         int status;
         pid_t pid;
         int flag = 0;
-        struct timespec waitTime = {5, 0};
+        struct timespec waitTime = { 5, 0 };
 
         sigemptyset(&set);
         sigaddset(&set, SIGCHLD);
@@ -156,6 +156,115 @@ public:
         return CheckStatus(status, isAllow);
     }
 
+    static bool CheckSendfile()
+    {
+        int ret = syscall(__NR_sendfile, 0, 0, nullptr, 0);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool CheckVmsplice()
+    {
+        int ret = syscall(__NR_vmsplice, 0, nullptr, 0, 0);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool CheckSocketpair()
+    {
+        int ret = syscall(__NR_socketpair, 0, 0, 0, nullptr);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool CheckListen()
+    {
+        int ret = syscall(__NR_listen, 0, 0);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool CheckAccept()
+    {
+        int ret = syscall(__NR_accept, 0, nullptr, nullptr);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool CheckAccept4()
+    {
+        int ret = syscall(__NR_accept4, 0, nullptr, nullptr, 0);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool CheckGetsockname()
+    {
+        int ret = syscall(__NR_getsockname, 0, nullptr, nullptr);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool CheckGetpeername()
+    {
+        int ret = syscall(__NR_getpeername, 0, nullptr, nullptr);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool CheckShutdown()
+    {
+        int ret = syscall(__NR_shutdown, 0, 0);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool CheckSendmsg()
+    {
+        int ret = syscall(__NR_sendmsg, 0, nullptr, 0);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool CheckRecvmmsg()
+    {
+        int ret = syscall(__NR_recvmmsg, 0, nullptr, 0, 0, nullptr);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
 #if defined __aarch64__
     static bool CheckSetuid()
     {
@@ -165,12 +274,6 @@ public:
         }
 
         return false;
-    }
-    void TestInputMethodExtSycall()
-    {
-        // system blocklist
-        int ret = CheckSyscall(APP, IMF_EXTENTOIN_NAME, CheckSetuid, false);
-        EXPECT_EQ(ret, 0);
     }
 
 #elif defined __arm__
@@ -183,13 +286,49 @@ public:
         return false;
     }
 
-    void TestInputMethodExtSycall()
+    static bool CheckSendfile64()
     {
-        // system blocklist
-        int ret = CheckSyscall(APP, IMF_EXTENTOIN_NAME, CheckSetuid32, false);
-        EXPECT_EQ(ret, 0);
+        int ret = syscall(__NR_sendfile64, 0, 0, nullptr, 0);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
+    }
+    static bool CheckRecvmmsgTime64()
+    {
+        int ret = syscall(__NR_recvmmsg_time64, 0, nullptr, 0, 0, nullptr);
+        if (ret == 0) {
+            return true;
+        }
+
+        return false;
     }
 #endif
+
+    void TestInputMethodExtSycall()
+    {
+        int ret = -1;
+        ret = CheckSyscall(APP, IMF_EXTENTOIN_NAME, CheckSendfile, false);
+        EXPECT_EQ(ret, 0);
+
+        ret = CheckSyscall(APP, IMF_EXTENTOIN_NAME, CheckVmsplice, false);
+        EXPECT_EQ(ret, 0);
+
+#if defined __aarch64__
+        // system blocklist
+        ret = CheckSyscall(APP, IMF_EXTENTOIN_NAME, CheckSetuid, false);
+        EXPECT_EQ(ret, 0);
+#elif defined __arm__
+        // system blocklist
+        ret = CheckSyscall(APP, IMF_EXTENTOIN_NAME, CheckSetuid32, false);
+        EXPECT_EQ(ret, 0);
+        ret = CheckSyscall(APP, IMF_EXTENTOIN_NAME, CheckSendfile64, false);
+        EXPECT_EQ(ret, 0);
+        ret = CheckSyscall(APP, IMF_EXTENTOIN_NAME, CheckRecvmmsgTime64, false);
+        EXPECT_EQ(ret, 0);
+#endif
+    }
 };
 
 /**
@@ -203,6 +342,5 @@ HWTEST_F(SeccompUnitTest, TestInputMethodExtSycall, TestSize.Level1)
     SeccompUnitTest test;
     test.TestInputMethodExtSycall();
 }
-}
-}
-
+} // namespace MiscServices
+} // namespace OHOS

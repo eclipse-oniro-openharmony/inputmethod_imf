@@ -123,6 +123,7 @@ private:
     int32_t RestartCurrentIme();
     void HandleWmsReady(int32_t userId);
     int32_t InitAccountMonitor();
+    int32_t RegisterDataShareObserver();
     static std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
     int32_t userId_;
     static constexpr const char *SELECT_DIALOG_ACTION = "action.system.inputmethodchoose";
@@ -162,8 +163,8 @@ private:
     std::atomic<uint32_t> targetSwitchCount_ = 0;
 
     std::mutex modeChangeMutex_;
-    std::atomic<bool> isChangeHandling_{ false };
-    std::atomic<bool> hasPendingChanges_{ false };
+    bool isChangeHandling_ = false;
+    bool hasPendingChanges_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS
