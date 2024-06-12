@@ -83,7 +83,8 @@ void FreezeManager::ControlIme(bool shouldFreeze)
     }
     if (shouldFreeze) {
         // Delay the FREEZE report by 3s.
-        eventHandler_->PostTask([this, shouldFreeze]() { ReportRss(shouldFreeze, pid_); }, STOP_TASK_NAME, DELAY_TIME);
+        eventHandler_->PostTask(
+            [shouldFreeze, pid = pid_]() { ReportRss(shouldFreeze, pid); }, STOP_TASK_NAME, DELAY_TIME);
     } else {
         // Cancel the unexecuted FREEZE task.
         eventHandler_->RemoveTask(STOP_TASK_NAME);
