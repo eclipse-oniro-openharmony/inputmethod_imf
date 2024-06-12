@@ -78,20 +78,20 @@ void FreezeManager::ControlIme(bool shouldFreeze)
 {
     if (eventHandler_ == nullptr) {
         IMSA_HILOGW("eventHandler_ is nullptr");
-        ReportRss(shouldFreeze);
+        ReportRss(shouldFreeze, pid_);
         return;
     }
     if (shouldFreeze) {
         // Delay the FREEZE report by 3s.
-        eventHandler_->PostTask([this, shouldFreeze]() { ReportRss(shouldFreeze); }, STOP_TASK_NAME, DELAY_TIME);
+        eventHandler_->PostTask([this, shouldFreeze]() { ReportRss(shouldFreeze, pid_); }, STOP_TASK_NAME, DELAY_TIME);
     } else {
         // Cancel the unexecuted FREEZE task.
         eventHandler_->RemoveTask(STOP_TASK_NAME);
-        ReportRss(shouldFreeze);
+        ReportRss(shouldFreeze, pid_);
     }
 }
 
-void FreezeManager::ReportRss(bool shouldFreeze)
+void FreezeManager::ReportRss(bool shouldFreeze, pid_t pid)
 {
     auto type = ResourceSchedule::ResType::RES_TYPE_SA_CONTROL_APP_EVENT;
     auto status = shouldFreeze ? ResourceSchedule::ResType::SaControlAppStatus::SA_STOP_APP
@@ -99,7 +99,7 @@ void FreezeManager::ReportRss(bool shouldFreeze)
     std::unordered_map<std::string, std::string> payload = { { "saId", std::to_string(INPUT_METHOD_SYSTEM_ABILITY_ID) },
         { "saName", INPUT_METHOD_SERVICE_SA_NAME },
         { "extensionType", std::to_string(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::INPUTMETHOD)) },
-        { "pid", std::to_string(pid_) } };
+        { "pid", std::to_string(pid) } };
     IMSA_HILOGD("report RSS should freeze: %{public}d", shouldFreeze);
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
 }

@@ -36,7 +36,7 @@ public:
 private:
     static std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
     void ControlIme(bool shouldFreeze);
-    void ReportRss(bool shouldFreeze);
+    static void ReportRss(bool shouldFreeze, pid_t pid);
     std::mutex mutex_;
     bool isImeInUse_{ false };
     bool isFrozen_{ true };
