@@ -440,27 +440,15 @@ export class InputMethodListDialog extends ViewPU {
 
   async aboutToAppear() {
     console.info(`${TAG} aboutToAppear`);
-    if (deviceInfo.deviceType === 'tablet') {
-      this.dialogWidth = BIG_DIALOG_WIDTH;
-      this.fontSize = BIG_FONT_SIZE;
-      this.imageSize = BIG_IMAGE_SIZE;
-      this.listItemHeight = BIG_ITEM_HEIGHT;
-      this.imageBtnWidth = BIG_IMAGE_BUTTON_WIDTH;
-      this.imageBtnHeight = BIG_IMAGE_BUTTON_HEIGHT;
-      this.columnPadding = BIG_COLUMN_PADDING;
-      this.fontPadding = BIG_FONT_PADDING;
-      this.listItemRadius = BIG_ITEM_RADIUS;
-    } else {
-      this.dialogWidth = NORMAL_DIALOG_WIDTH;
-      this.fontSize = NORMAL_FONT_SIZE;
-      this.imageSize = NORMAL_IMAGE_SIZE;
-      this.listItemHeight = NORMAL_ITEM_HEIGHT;
-      this.imageBtnWidth = NORMAL_IMAGE_BUTTON_WIDTH;
-      this.imageBtnHeight = NORMAL_IMAGE_BUTTON_HEIGHT;
-      this.columnPadding = NORMAL_COLUMN_PADDING;
-      this.fontPadding = NORMAL_FONT_PADDING;
-      this.listItemRadius = NORMAL_ITEM_RADIUS;
-    }
+    this.dialogWidth = NORMAL_DIALOG_WIDTH;
+    this.fontSize = NORMAL_FONT_SIZE;
+    this.imageSize = NORMAL_IMAGE_SIZE;
+    this.listItemHeight = NORMAL_ITEM_HEIGHT;
+    this.imageBtnWidth = NORMAL_IMAGE_BUTTON_WIDTH;
+    this.imageBtnHeight = NORMAL_IMAGE_BUTTON_HEIGHT;
+    this.columnPadding = NORMAL_COLUMN_PADDING;
+    this.fontPadding = NORMAL_FONT_PADDING;
+    this.listItemRadius = NORMAL_ITEM_RADIUS;
     this.imageRadius = BIG_IMAGE_RADIUS;
     await this.getDefaultInputMethodSubType();
     let n1 = inputMethodEngine.getInputMethodAbility();
