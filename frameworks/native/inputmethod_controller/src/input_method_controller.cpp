@@ -30,6 +30,7 @@
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
 #include "keyevent_consumer_stub.h"
+#include "parameters.h"
 #include "string_ex.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
@@ -47,6 +48,7 @@ constexpr int64_t DELAY_TIME = 100;
 constexpr int32_t ACE_DEAL_TIME_OUT = 200;
 constexpr uint32_t GET_IMSA_MAX_RETRY_TIME = 10;
 constexpr uint32_t GET_IMSA_RETRY_INTERVAL = 100;
+constexpr const char* BOOTEVENT_BOOT_COMPLETED = "bootevent.boot.completed";
 InputMethodController::InputMethodController()
 {
     IMSA_HILOGD("IMC structure");
@@ -135,6 +137,10 @@ int32_t InputMethodController::Initialize()
 
 sptr<IInputMethodSystemAbility> InputMethodController::GetSystemAbilityProxy()
 {
+    if (!IsBootCompleted()) {
+        IMSA_HILOGE("Boot is not completed.");
+        return nullptr;
+    }
     std::lock_guard<std::mutex> lock(abilityLock_);
     if (abilityManager_ != nullptr) {
         return abilityManager_;
@@ -428,7 +434,7 @@ std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
 
 std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype()
 {
-    IMSA_HILOGD("InputMethodController::GetCurrentInputMethod");
+    IMSA_HILOGD("InputMethodController::GetCurrentInputMethodSubtype");
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");
@@ -571,6 +577,9 @@ void InputMethodController::RestoreAttachInfoInSaDied()
 
 int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 {
+    if (!IsBootCompleted()) {
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
     if (!IsBound()) {
         IMSA_HILOGD("not bound");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -604,6 +613,9 @@ int32_t InputMethodController::OnCursorUpdate(CursorInfo cursorInfo)
 
 int32_t InputMethodController::OnSelectionChange(std::u16string text, int start, int end)
 {
+    if (!IsBootCompleted()) {
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
     if (!IsBound()) {
         IMSA_HILOGD("not bound");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -638,6 +650,9 @@ int32_t InputMethodController::OnSelectionChange(std::u16string text, int start,
 
 int32_t InputMethodController::OnConfigurationChange(Configuration info)
 {
+    if (!IsBootCompleted()) {
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
     if (!IsBound()) {
         IMSA_HILOGD("not bound");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -708,6 +723,9 @@ int32_t InputMethodController::GetTextIndexAtCursor(int32_t &index)
 
 int32_t InputMethodController::DispatchKeyEvent(std::shared_ptr<MMI::KeyEvent> keyEvent, KeyEventCallback callback)
 {
+    if (!IsBootCompleted()) {
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
     KeyEventInfo keyEventInfo = { std::chrono::system_clock::now(), keyEvent };
     keyEventQueue_.Push(keyEventInfo);
     InputMethodSyncTrace tracer("DispatchKeyEvent trace");
@@ -785,6 +803,9 @@ int32_t InputMethodController::GetTextConfig(TextTotalConfig &config)
 
 int32_t InputMethodController::SetCallingWindow(uint32_t windowId)
 {
+    if (!IsBootCompleted()) {
+        return ErrorCode::ERROR_SERVICE_START_FAILED;
+    }
     if (!IsBound()) {
         IMSA_HILOGD("not bound");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -1298,6 +1319,20 @@ int32_t InputMethodController::FinishTextPreview()
         listener->FinishTextPreview();
     }
     return ErrorCode::NO_ERROR;
+}
+
+bool InputMethodController::IsBootCompleted()
+{
+    IMSA_HILOGD("call");
+    if (bootCompleted_.load()) {
+        return true;
+    }
+    std::string ret = OHOS::system::GetParameter(BOOTEVENT_BOOT_COMPLETED, "false");
+    if (ret == "true") {
+        bootCompleted_.store(true);
+        return true;
+    }
+    return false;
 }
 } // namespace MiscServices
 } // namespace OHOS

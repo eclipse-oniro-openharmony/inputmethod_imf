@@ -787,6 +787,7 @@ private:
     void SetAgent(sptr<IRemoteObject> &agentObject);
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
+    bool IsBootCompleted();
 
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;
@@ -815,6 +816,7 @@ private:
 
     std::atomic_bool isEditable_{ false };
     std::atomic_bool isBound_{ false };
+    std::atomic_bool bootCompleted_{ false };
 
     std::recursive_mutex clientInfoLock_;
     InputClientInfo clientInfo_;
