@@ -20,7 +20,11 @@
 #include "accesstoken_kit.h"
 #include "global.h"
 #include "tokenid_kit.h"
+#ifdef SCENE_BOARD_ENABLE
+#include "window_manager_lite.h"
+#else
 #include "window_manager.h"
+#endif
 
 namespace OHOS {
 namespace MiscServices {
@@ -31,7 +35,11 @@ bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId,
     int64_t realFocusedPid = focusedPid;
     if (realFocusedPid == INVALID_PID) {
         FocusChangeInfo info;
+#ifdef SCENE_BOARD_ENABLE
+        WindowManagerLite::GetInstance().GetFocusWindowInfo(info);
+#else
         WindowManager::GetInstance().GetFocusWindowInfo(info);
+#endif
         realFocusedPid = info.pid_;
     }
     IMSA_HILOGD("focusedPid:%{public}" PRId64 ", pid:%{public}" PRId64 "", realFocusedPid, callingPid);

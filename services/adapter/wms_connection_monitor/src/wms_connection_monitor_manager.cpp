@@ -16,7 +16,11 @@
 #include "wms_connection_monitor_manager.h"
 
 #include "global.h"
+#ifdef SCENE_BOARD_ENABLE
+#include "window_manager_lite.h"
+#else
 #include "window_manager.h"
+#endif
 #include "wms_connection_observer.h"
 
 namespace OHOS {
@@ -35,7 +39,11 @@ void WmsConnectionMonitorManager::RegisterWMSConnectionChangedListener(const Cha
         IMSA_HILOGE("failed to create listener");
         return;
     }
+#ifdef SCENE_BOARD_ENABLE
+    WMError ret = WindowManagerLite::GetInstance().RegisterWMSConnectionChangedListener(listener);
+#else
     WMError ret = WindowManager::GetInstance().RegisterWMSConnectionChangedListener(listener);
+#endif
     IMSA_HILOGI("register WMS connection listener ret: %{public}d", ret);
 }
 } // namespace MiscServices

@@ -20,7 +20,11 @@
 #include <set>
 #include <utility>
 
+#ifdef SCENE_BOARD_ENABLE
+#include "window_manager_lite.h"
+#else
 #include "window_manager.h"
+#endif
 #include "wms_connection_monitor_manager.h"
 namespace OHOS {
 namespace MiscServices {
