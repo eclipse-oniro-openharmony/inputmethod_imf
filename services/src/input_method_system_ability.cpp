@@ -290,6 +290,7 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(InputClientInfo &clientInfo
     clientInfo.uid = IPCSkeleton::GetCallingUid();
     clientInfo.userID = userId_;
     clientInfo.deathRecipient = deathRecipient;
+    clientInfo.callingTokenId = IPCSkeleton::GetCallingTokenID();
     return ErrorCode::NO_ERROR;
 }
 

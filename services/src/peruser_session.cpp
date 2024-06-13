@@ -19,6 +19,7 @@
 
 #include "ability_manager_client.h"
 #include "element_name.h"
+#include "identity_checker_impl.h"
 #include "ime_cfg_manager.h"
 #include "ime_connection.h"
 #include "ime_info_inquirer.h"
@@ -902,6 +903,10 @@ bool PerUserSession::IsCurrentClient(int32_t pid, int32_t uid)
     if (clientInfo == nullptr) {
         IMSA_HILOGE("failed to get client info");
         return false;
+    }
+    auto identityChecker = std::make_shared<IdentityCheckerImpl>();
+    if (identityChecker->IsFocusedUIExtension(clientInfo->callingTokenId)) {
+        return true;
     }
     return clientInfo->pid == pid && clientInfo->uid == uid;
 }

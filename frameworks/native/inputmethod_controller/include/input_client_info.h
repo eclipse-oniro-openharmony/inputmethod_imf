@@ -41,6 +41,7 @@ struct InputClientInfo {
     sptr<InputDeathRecipient> deathRecipient{ nullptr }; // death recipient of client
     ClientState state{ ClientState::INACTIVE };          // the state of input client
     bool isNotifyInputStart{ true };
+    uint32_t callingTokenId{ 0 };
 };
 } // namespace MiscServices
 } // namespace OHOS

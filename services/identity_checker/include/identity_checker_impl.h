@@ -29,6 +29,7 @@ public:
     bool IsBroker(Security::AccessToken::AccessTokenID tokenId) override;
     bool IsNativeSa(Security::AccessToken::AccessTokenID tokenId) override;
     std::string GetBundleNameByToken(uint32_t tokenId) override;
+    bool IsFocusedUIExtension(uint32_t callingTokenId);
 };
 } // namespace MiscServices
 } // namespace OHOS
