@@ -40,7 +40,7 @@ public:
     }
     virtual bool PostTaskToEventHandler(std::function<void()> task, const std::string &taskName)
     {
-        return true;
+        return false;
     }
 };
 } // namespace MiscServices
