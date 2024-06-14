@@ -47,10 +47,7 @@ bool IdentityCheckerImpl::IsFocused(int64_t callingPid, uint32_t callingTokenId,
         IMSA_HILOGD("pid is same, focused app");
         return true;
     }
-    bool isFocused = false;
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
-    IMSA_HILOGI("tokenId: %{public}d, check result:%{public}d, isFocused:%{public}d", callingTokenId, ret, isFocused);
-    return ret == ErrorCode::NO_ERROR && isFocused;
+    return IsFocusedUIExtension(callingTokenId);
 }
 
 bool IdentityCheckerImpl::IsSystemApp(uint64_t fullTokenId)
@@ -93,6 +90,14 @@ bool IdentityCheckerImpl::IsBroker(AccessTokenID tokenId)
 bool IdentityCheckerImpl::IsNativeSa(AccessTokenID tokenId)
 {
     return AccessTokenKit::GetTokenType(tokenId) == TypeATokenTypeEnum::TOKEN_NATIVE;
+}
+
+bool IdentityCheckerImpl::IsFocusedUIExtension(uint32_t callingTokenId)
+{
+    bool isFocused = false;
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(callingTokenId, isFocused);
+    IMSA_HILOGD("tokenId: %{public}d, check result:%{public}d, isFocused:%{public}d", callingTokenId, ret, isFocused);
+    return ret == ErrorCode::NO_ERROR && isFocused;
 }
 
 std::string IdentityCheckerImpl::GetBundleNameByToken(uint32_t tokenId)

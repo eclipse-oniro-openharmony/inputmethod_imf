@@ -19,6 +19,7 @@
 
 #include "ability_manager_client.h"
 #include "element_name.h"
+#include "identity_checker_impl.h"
 #include "ime_cfg_manager.h"
 #include "ime_connection.h"
 #include "ime_info_inquirer.h"
@@ -60,6 +61,10 @@ int PerUserSession::AddClientInfo(sptr<IRemoteObject> inputClient, const InputCl
     auto cacheInfo = GetClientInfo(inputClient);
     if (cacheInfo != nullptr) {
         IMSA_HILOGD("info is existed");
+        if (cacheInfo->uiExtensionTokenId == IMF_INVALID_TOKENID
+            && clientInfo.uiExtensionTokenId != IMF_INVALID_TOKENID) {
+            UpdateClientInfo(inputClient, { { UpdateFlag::UIEXTENSION_TOKENID, clientInfo.uiExtensionTokenId } });
+        }
         UpdateClientInfo(inputClient, { { UpdateFlag::TEXT_CONFIG, clientInfo.config } });
         if (event == START_LISTENING) {
             UpdateClientInfo(inputClient, { { UpdateFlag::EVENTFLAG, clientInfo.eventFlag } });
@@ -143,6 +148,10 @@ void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
             }
             case UpdateFlag::TEXT_CONFIG: {
                 info->config = std::get<TextTotalConfig>(updateInfo.second);
+                break;
+            }
+            case UpdateFlag::UIEXTENSION_TOKENID: {
+                info->uiExtensionTokenId = std::get<uint32_t>(updateInfo.second);
                 break;
             }
             default:
@@ -860,8 +869,8 @@ void PerUserSession::OnFocused(int32_t pid, int32_t uid)
     if (client == nullptr) {
         return;
     }
-    if (IsCurrentClient(pid, uid)) {
-        IMSA_HILOGD("pid[%{public}d] same as current client", pid);
+    if (IsCurClientFocused(pid, uid)) {
+        IMSA_HILOGD("current client focused, focusedPid:%{public}d", pid);
         return;
     }
     if (!OHOS::Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
@@ -879,8 +888,8 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     if (GetCurrentClient() == nullptr) {
         return;
     }
-    if (IsCurrentClient(pid, uid)) {
-        IMSA_HILOGD("pid[%{public}d] same as current client", pid);
+    if (IsCurClientUnFocused(pid, uid)) {
+        IMSA_HILOGD("current client Unfocused, unFocusedPid:%{public}d", pid);
         return;
     }
     auto clientInfo = GetClientInfo(pid);
@@ -891,17 +900,44 @@ void PerUserSession::OnUnfocused(int32_t pid, int32_t uid)
     InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_UNFOCUSED);
 }
 
-bool PerUserSession::IsCurrentClient(int32_t pid, int32_t uid)
+std::shared_ptr<InputClientInfo> PerUserSession::GetCurClientInfo()
 {
     auto client = GetCurrentClient();
     if (client == nullptr) {
         IMSA_HILOGD("no client in bound state");
+        return nullptr;
+    }
+    return GetClientInfo(client->AsObject());
+}
+
+bool PerUserSession::IsCurClientFocused(int32_t pid, int32_t uid)
+{
+    auto clientInfo = GetCurClientInfo();
+    if (clientInfo == nullptr) {
+        IMSA_HILOGE("failed to get cur client info");
         return false;
     }
-    auto clientInfo = GetClientInfo(client->AsObject());
+    auto identityChecker = std::make_shared<IdentityCheckerImpl>();
+    if (clientInfo->uiExtensionTokenId != IMF_INVALID_TOKENID
+        && identityChecker->IsFocusedUIExtension(clientInfo->uiExtensionTokenId)) {
+        IMSA_HILOGI("UIExtension focused");
+        return true;
+    }
+    return clientInfo->pid == pid && clientInfo->uid == uid;
+}
+
+bool PerUserSession::IsCurClientUnFocused(int32_t pid, int32_t uid)
+{
+    auto clientInfo = GetCurClientInfo();
     if (clientInfo == nullptr) {
-        IMSA_HILOGE("failed to get client info");
+        IMSA_HILOGE("failed to get cur client info");
         return false;
+    }
+    auto identityChecker = std::make_shared<IdentityCheckerImpl>();
+    if (clientInfo->uiExtensionTokenId != IMF_INVALID_TOKENID
+        && !identityChecker->IsFocusedUIExtension(clientInfo->uiExtensionTokenId)) {
+        IMSA_HILOGI("UIExtension UnFocused");
+        return true;
     }
     return clientInfo->pid == pid && clientInfo->uid == uid;
 }

@@ -142,6 +142,7 @@ private:
     void DeactivateClient(const sptr<IInputClient> &client);
     std::shared_ptr<InputClientInfo> GetClientInfo(sptr<IRemoteObject> inputClient);
     std::shared_ptr<InputClientInfo> GetClientInfo(pid_t pid);
+    std::shared_ptr<InputClientInfo> GetCurClientInfo();
     void UpdateClientInfo(const sptr<IRemoteObject> &client,
         const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>>
             &updateInfos);
@@ -170,7 +171,8 @@ private:
     void ReplaceCurrentClient(const sptr<IInputClient> &client);
     void SetInactiveClient(sptr<IInputClient> client);
     sptr<IInputClient> GetInactiveClient();
-    bool IsCurrentClient(int32_t pid, int32_t uid);
+    bool IsCurClientFocused(int32_t pid, int32_t uid);
+    bool IsCurClientUnFocused(int32_t pid, int32_t uid);
     bool IsSameClient(sptr<IInputClient> source, sptr<IInputClient> dest);
 
     bool IsImeStartInBind(ImeType bindImeType, ImeType startImeType);
