@@ -23,10 +23,18 @@
 
 namespace OHOS {
 namespace MiscServices {
-enum class UpdateFlag : uint32_t { EVENTFLAG = 0, ISSHOWKEYBOARD, BINDIMETYPE, STATE, TEXT_CONFIG };
+enum class UpdateFlag : uint32_t {
+    EVENTFLAG = 0,
+    ISSHOWKEYBOARD,
+    BINDIMETYPE,
+    STATE,
+    TEXT_CONFIG,
+    UIEXTENSION_TOKENID,
+};
 enum class ImeType : int32_t { IME = 0, PROXY_IME, NONE };
 enum class ClientState : uint32_t { INACTIVE = 0, ACTIVE };
 constexpr uint32_t NO_EVENT_ON = 0;
+constexpr uint32_t IMF_INVALID_TOKENID = 0;
 struct InputClientInfo {
     pid_t pid{ -1 };                        // process id
     pid_t uid{ -1 };                        // uid
@@ -41,7 +49,7 @@ struct InputClientInfo {
     sptr<InputDeathRecipient> deathRecipient{ nullptr }; // death recipient of client
     ClientState state{ ClientState::INACTIVE };          // the state of input client
     bool isNotifyInputStart{ true };
-    uint32_t callingTokenId{ 0 };
+    uint32_t uiExtensionTokenId{ IMF_INVALID_TOKENID }; // the value is valid only in curClient and only UIExtension
 };
 } // namespace MiscServices
 } // namespace OHOS

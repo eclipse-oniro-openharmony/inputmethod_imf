@@ -290,7 +290,10 @@ int32_t InputMethodSystemAbility::GenerateClientInfo(InputClientInfo &clientInfo
     clientInfo.uid = IPCSkeleton::GetCallingUid();
     clientInfo.userID = userId_;
     clientInfo.deathRecipient = deathRecipient;
-    clientInfo.callingTokenId = IPCSkeleton::GetCallingTokenID();
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (identityChecker_->IsFocusedUIExtension(tokenId)) {
+        clientInfo.uiExtensionTokenId = tokenId;
+    }
     return ErrorCode::NO_ERROR;
 }
 
