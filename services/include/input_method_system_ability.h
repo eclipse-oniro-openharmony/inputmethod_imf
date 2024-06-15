@@ -120,6 +120,7 @@ private:
     void InitServiceHandler();
     int32_t GetCurrentUserIdFromOsAccount();
     void HandleUserChanged(int32_t userId);
+    int32_t OnRestartIme();
     int32_t RestartCurrentIme();
     void HandleWmsReady(int32_t userId);
     int32_t InitAccountMonitor();
@@ -150,6 +151,7 @@ private:
     void DealSwitchRequest();
     void DealSecurityChange();
     void OnSecurityModeChange();
+    bool IsDependentSaReady();
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
@@ -157,7 +159,6 @@ private:
     bool enableSecurityMode_ = false;
 
     bool isScbEnable_ = false;
-    std::atomic<bool> imeStarting_ = false;
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
@@ -165,6 +166,10 @@ private:
     std::mutex modeChangeMutex_;
     bool isChangeHandling_ = false;
     bool hasPendingChanges_ = false;
+
+    std::mutex restartMutex_;
+    bool isRestarting_ = false;
+    bool needRestart_ = false;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -178,11 +178,34 @@ void InputMethodSystemAbility::HandleUserChanged(int32_t userId)
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 }
 
-int32_t InputMethodSystemAbility::RestartCurrentIme()
+bool InputMethodSystemAbility::IsDependentSaReady()
 {
-    if (imeStarting_.exchange(true)) {
-        IMSA_HILOGD("do starting");
-        return ErrorCode::NO_ERROR;
+    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (abilityManager == nullptr) {
+        IMSA_HILOGE("failed to get samgr");
+        return false;
+    }
+    if (!userSession_->IsWmsReady()) {
+        IMSA_HILOGD("wms not ready");
+        return false;
+    }
+    if (abilityManager->CheckSystemAbility(MEMORY_MANAGER_SA_ID) == nullptr) {
+        IMSA_HILOGD("memmgr not ready");
+        return false;
+    }
+    IMSA_HILOGI("ready");
+    return true;
+}
+
+int32_t InputMethodSystemAbility::OnRestartIme()
+{
+    {
+        std::lock_guard<std::mutex> lock(restartMutex_);
+        needRestart_ = false;
+    }
+    if (!IsDependentSaReady()) {
+        IMSA_HILOGI("dependent sa not ready");
+        return ErrorCode::ERROR_EX_ILLEGAL_STATE;
     }
     IMSA_HILOGI("start ime, userId: %{public}d", userId_);
     userSession_->StopCurrentIme();
@@ -190,8 +213,36 @@ int32_t InputMethodSystemAbility::RestartCurrentIme()
     if (!ret) {
         IMSA_HILOGE("start ime failed");
     }
-    imeStarting_.store(false);
     return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME_START_FAILED;
+}
+
+int32_t InputMethodSystemAbility::RestartCurrentIme()
+{
+    {
+        std::lock_guard<std::mutex> lock(restartMutex_);
+        needRestart_ = true;
+        if (isRestarting_) {
+            IMSA_HILOGD("restarting");
+            return ErrorCode::NO_ERROR;
+        }
+        isRestarting_ = true;
+    }
+    auto restartTask = [this]() {
+        auto needRestart = [this]() {
+            std::lock_guard<std::mutex> lock(restartMutex_);
+            if (needRestart_) {
+                return true;
+            }
+            isRestarting_ = false;
+            return false;
+        };
+        do {
+            OnRestartIme();
+        } while (needRestart());
+    };
+    // 0 means delay time is 0.
+    serviceHandler_->PostTask(restartTask, "RestartIme", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodSystemAbility::HandleWmsReady(int32_t userId)
@@ -1187,6 +1238,7 @@ bool InputMethodSystemAbility::InitMemMgrMonitor()
     return ImCommonEventManager::GetInstance()->SubscribeMemMgrService([this]() {
         IMSA_HILOGI("MemMgr start");
         Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 1, INPUT_METHOD_SYSTEM_ABILITY_ID);
+        RestartCurrentIme();
     });
 }
 
@@ -1253,11 +1305,7 @@ void InputMethodSystemAbility::OnSecurityModeChange()
     IMSA_HILOGI("ime: %{public}s securityMode change to: %{public}d", currentIme->bundleName.c_str(),
         static_cast<int32_t>(newMode));
     userSession_->OnSecurityChange(static_cast<int32_t>(newMode));
-    userSession_->StopCurrentIme();
-    auto ret = userSession_->StartInputService(currentIme, true);
-    if (!ret) {
-        IMSA_HILOGE("ime start failed");
-    }
+    RestartCurrentIme();
 }
 
 int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)

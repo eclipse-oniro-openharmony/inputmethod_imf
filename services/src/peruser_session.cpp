@@ -1119,7 +1119,7 @@ bool PerUserSession::IsWmsReady()
         IMSA_HILOGI("system ability manager is nullptr");
         return false;
     }
-    auto systemAbility = systemAbilityManager->GetSystemAbility(WINDOW_MANAGER_SERVICE_ID, "");
+    auto systemAbility = systemAbilityManager->CheckSystemAbility(WINDOW_MANAGER_SERVICE_ID);
     if (systemAbility == nullptr) {
         IMSA_HILOGI("window manager service not found");
         return false;
