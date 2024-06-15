@@ -416,7 +416,7 @@ ohos_fuzztest("IsCurrentImeFuzzTest") {
 ohos_fuzztest("IsInputTypeSupportedFuzzTest") {
   module_out_path = "imf/imf"
 
-  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/iscurrentime_fuzzer"
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/isinputtypesupported_fuzzer"
 
   include_dirs = [
     "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/isinputtypesupported_fuzzer",
@@ -501,7 +501,7 @@ ohos_fuzztest("GetDefaultInputmethodFuzzTest") {
 ohos_fuzztest("GetInputMethodConfigFuzzTest") {
   module_out_path = "imf/imf"
 
-  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/getdefaultinputmethod_fuzzer"
+  fuzz_config_file = "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/getinputmethodconfig_fuzzer"
 
   include_dirs = [
     "${inputmethod_path}/test/fuzztest/systemabilitystubfuzztest/getinputmethodconfig_fuzzer",
