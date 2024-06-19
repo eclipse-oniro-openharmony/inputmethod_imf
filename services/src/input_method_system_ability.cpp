@@ -180,13 +180,13 @@ void InputMethodSystemAbility::HandleUserChanged(int32_t userId)
 
 bool InputMethodSystemAbility::IsDependentSaReady()
 {
+    if (!userSession_->IsWmsReady()) {
+        IMSA_HILOGD("wms not ready");
+        return false;
+    }
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (abilityManager == nullptr) {
         IMSA_HILOGE("failed to get samgr");
-        return false;
-    }
-    if (!userSession_->IsWmsReady()) {
-        IMSA_HILOGD("wms not ready");
         return false;
     }
     if (abilityManager->CheckSystemAbility(MEMORY_MANAGER_SA_ID) == nullptr) {

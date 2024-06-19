@@ -969,43 +969,37 @@ bool PerUserSession::StartCurrentIme(int32_t userId, bool isRetry)
 void PerUserSession::StopCurrentIme()
 {
     auto data = GetImeData(ImeType::IME);
-    if (data == nullptr) {
-        IMSA_HILOGE("ime doesn't exist");
-        return;
+    if (data != nullptr) {
+        auto ret = RequestIme(data, RequestType::NORMAL, [&data] {
+            data->core->StopInputService(true);
+            return ErrorCode::NO_ERROR;
+        });
+        if (ret == ErrorCode::NO_ERROR && WaitForCurrentImeStop()) {
+            IMSA_HILOGI("success");
+            return;
+        }
     }
-    IMSA_HILOGI("start");
+    IMSA_HILOGI("force stop current ime");
     auto client = GetCurrentClient();
     auto clientInfo = client != nullptr ? GetClientInfo(client->AsObject()) : nullptr;
     if (clientInfo != nullptr && clientInfo->bindImeType == ImeType::IME) {
         StopClientInput(clientInfo);
     }
-    auto ret = RequestIme(data, RequestType::NORMAL, [&data] {
-        data->core->StopInputService(true);
-        return ErrorCode::NO_ERROR;
-    });
-    if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("StopInputService return false.");
+    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
+    if (currentImeCfg == nullptr) {
+        IMSA_HILOGE("currentImeCfg nullptr");
         RemoveImeData(ImeType::IME, true);
         return;
     }
-    if (!WaitForCurrentImeStop()) {
-        auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId_);
-        if (currentImeCfg == nullptr) {
-            IMSA_HILOGE("currentImeCfg is nullptr.");
-            RemoveImeData(ImeType::IME, true);
-            return;
-        }
-        AAFwk::Want want;
-        want.SetElementName(currentImeCfg->bundleName, currentImeCfg->extName);
-        auto res = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(want, nullptr, userId_,
-            AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
-        if (res != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("StopExtensionAbility failed.");
-            RemoveImeData(ImeType::IME, true);
-            return;
-        }
-        WaitForCurrentImeStop();
+    AAFwk::Want want;
+    want.SetElementName(currentImeCfg->bundleName, currentImeCfg->extName);
+    auto res = AAFwk::AbilityManagerClient::GetInstance()->StopExtensionAbility(
+        want, nullptr, userId_, AppExecFwk::ExtensionAbilityType::INPUTMETHOD);
+    if (res != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("StopExtensionAbility failed, res: %{public}d", res);
+        RemoveImeData(ImeType::IME, true);
     }
+    WaitForCurrentImeStop();
 }
 
 bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry)

@@ -498,7 +498,7 @@ int32_t InputMethodPanel::ShowPanel()
         IMSA_HILOGI("Panel already shown.");
         return ErrorCode::NO_ERROR;
     }
-    auto ret = window_->Show();
+    auto ret = window_->Show1();
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("ShowPanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
