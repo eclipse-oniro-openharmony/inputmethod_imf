@@ -917,6 +917,11 @@ int32_t InputMethodAbility::ShowSysPanel(const std::shared_ptr<InputMethodPanel>
     if (inputMethodPanel->GetPanelType() != SOFT_KEYBOARD) {
         return ErrorCode::NO_ERROR;
     }
+    // If it is not binding, do not need to notify the panel
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        return ErrorCode::NO_ERROR;
+    }
     bool shouldSysPanelShow = !GetInputAttribute().GetSecurityFlag() && flag != PanelFlag::FLG_CANDIDATE_COLUMN;
     auto systemChannel = GetSystemCmdChannelProxy();
     if (systemChannel == nullptr) {
