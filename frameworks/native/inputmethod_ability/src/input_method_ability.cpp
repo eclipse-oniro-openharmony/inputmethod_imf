@@ -249,10 +249,12 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         return ret;
     }
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
-    auto task = [this]() { ShowKeyboard(); };
-    if (imeListener_ == nullptr || !imeListener_->PostTaskToEventHandler(task, "ShowKeyboard")) {
-        IMSA_HILOGE("imeListener_ is nullptr, or post task failed!");
-        ShowKeyboard();
+    if (clientInfo.isShowKeyboard) {
+        auto task = [this]() { ShowKeyboard(); };
+        if (imeListener_ == nullptr || !imeListener_->PostTaskToEventHandler(task, "ShowKeyboard")) {
+            IMSA_HILOGE("imeListener_ is nullptr, or post task failed!");
+            ShowKeyboard();
+        }
     }
     return ErrorCode::NO_ERROR;
 }
