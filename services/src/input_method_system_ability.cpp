@@ -776,7 +776,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
-    constexpr int32_t TIME_OUT_SECOND = 2;
+    constexpr int32_t TIME_OUT_SECOND = 10;
     auto id =
         XCollie::GetInstance().SetTimer("GetCurrentInputMethod", TIME_OUT_SECOND, nullptr, nullptr, XCOLLIE_FLAG_LOG);
     auto property = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId_);
@@ -786,7 +786,7 @@ std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 
 std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
 {
-    constexpr int32_t TIME_OUT_SECOND = 2;
+    constexpr int32_t TIME_OUT_SECOND = 10;
     auto id = XCollie::GetInstance().SetTimer(
         "GetCurrentInputMethodSubtype", TIME_OUT_SECOND, nullptr, nullptr, XCOLLIE_FLAG_LOG);
     auto property = ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);

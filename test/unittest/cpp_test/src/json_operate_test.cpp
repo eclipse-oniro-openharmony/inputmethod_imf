@@ -298,7 +298,7 @@ HWTEST_F(JsonOperateTest, testParseSubtype001, TestSize.Level0)
     IMSA_HILOGI("JsonOperateTest testParseSubtype001 START");
     std::vector<std::string> profiles{ { JsonOperateTest::SUBTYPE } };
     SubtypeCfg subtype;
-    auto ret = ImeInfoInquirer::GetInstance().ParseSubType(profiles, subtype);
+    auto ret = ImeInfoInquirer::GetInstance().ParseSubtypeProfile(profiles, subtype);
     ASSERT_TRUE(ret);
     ASSERT_EQ(subtype.subtypes.size(), 2);
     auto subtypes = subtype.subtypes;
@@ -315,7 +315,7 @@ HWTEST_F(JsonOperateTest, testParseSubtype001, TestSize.Level0)
 
     std::vector<std::string> profiles1{ { JsonOperateTest::SECURITY_MODE } };
     SubtypeCfg subtype1;
-    ret = ImeInfoInquirer::GetInstance().ParseSubType(profiles1, subtype1);
+    ret = ImeInfoInquirer::GetInstance().ParseSubtypeProfile(profiles1, subtype1);
     EXPECT_FALSE(ret);
     EXPECT_TRUE(subtype1.subtypes.empty());
 }

@@ -440,6 +440,30 @@ bool ImeInfoInquirer::IsNewExtInfos(const std::vector<ExtensionAbilityInfo> &ext
     return iter != extInfos[0].metadata.end();
 }
 
+int32_t ImeInfoInquirer::GetSubProperty(int32_t userId, const std::string &subName,
+    const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, SubProperty &subProp)
+{
+    IMSA_HILOGD("oldIme, userId: %{public}d", userId);
+    auto extInfo = std::find_if(extInfos.begin(), extInfos.end(),
+        [&subName](const ExtensionAbilityInfo &info) { return info.name == subName; });
+    if (extInfo == extInfos.end()) {
+        IMSA_HILOGE("subtype %{public}s not found", subName.c_str());
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    subProp.labelId = extInfo->labelId;
+    subProp.label = GetStringById(extInfo->bundleName, extInfo->moduleName, extInfo->labelId, userId);
+    subProp.id = extInfo->name;
+    subProp.name = extInfo->bundleName;
+    subProp.iconId = extInfo->iconId;
+    std::vector<Metadata> extends = extInfo->metadata;
+    auto property = GetExtends(extends);
+    subProp.language = property.language;
+    subProp.mode = property.mode;
+    subProp.locale = property.locale;
+    subProp.icon = property.icon;
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId,
     const std::vector<ExtensionAbilityInfo> &extInfos, std::vector<SubProperty> &subProps)
 {
@@ -462,28 +486,51 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId,
     return ErrorCode::NO_ERROR;
 }
 
+int32_t ImeInfoInquirer::GetSubProperty(int32_t userId, const std::string &subName,
+    const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo, SubProperty &subProp)
+{
+    IMSA_HILOGD("newIme, userId: %{public}d", userId);
+    std::vector<Subtype> subtypes;
+    auto ret = ParseSubtype(extInfo, subtypes);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to parse subtype");
+        return ret;
+    }
+    auto subtype = std::find_if(
+        subtypes.begin(), subtypes.end(), [&subName](const Subtype &subtype) { return subtype.id == subName; });
+    if (subtype == subtypes.end()) {
+        IMSA_HILOGE("subtype %{public}s not found", subName.c_str());
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    subProp.label = subtype->label;
+    subProp.name = extInfo.bundleName;
+    subProp.id = subtype->id;
+    subProp.mode = subtype->mode;
+    subProp.locale = subtype->locale;
+    subProp.icon = subtype->icon;
+    auto pos = subProp.label.find(':');
+    if (pos != std::string::npos && pos + 1 < subProp.label.size()) {
+        subProp.labelId = atoi(subProp.label.substr(pos + 1).c_str());
+        subProp.label = GetStringById(extInfo.bundleName, extInfo.moduleName, subProp.labelId, userId);
+    }
+    pos = subProp.icon.find(':');
+    if (pos != std::string::npos && pos + 1 < subProp.icon.size()) {
+        subProp.iconId = atoi(subProp.icon.substr(pos + 1).c_str());
+    }
+    CovertToLanguage(subProp.locale, subProp.language);
+    return ErrorCode::NO_ERROR;
+}
+
 int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const ExtensionAbilityInfo &extInfo,
     std::vector<SubProperty> &subProps)
 {
     IMSA_HILOGD("newIme, userId: %{public}d", userId);
-    auto iter = std::find_if(extInfo.metadata.begin(), extInfo.metadata.end(),
-        [](const Metadata &metadata) { return metadata.name == SUBTYPE_PROFILE_METADATA_NAME; });
-    if (iter == extInfo.metadata.end()) {
-        IMSA_HILOGE("find metadata name:SUBTYPE_PROFILE_METADATA_NAME failed");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
+    std::vector<Subtype> subtypes;
+    auto ret = ParseSubtype(extInfo, subtypes);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("failed to parse subtype");
+        return ret;
     }
-    OHOS::AppExecFwk::BundleMgrClientImpl clientImpl;
-    std::vector<std::string> profiles;
-    if (!clientImpl.GetResConfigFile(extInfo, iter->name, profiles)) {
-        IMSA_HILOGE("GetProfileFromExtension failed");
-        return ErrorCode::ERROR_PACKAGE_MANAGER;
-    }
-    SubtypeCfg subtypeCfg;
-    if (!ParseSubType(profiles, subtypeCfg)) {
-        IMSA_HILOGE("ParseSubTypeCfg failed");
-        return ErrorCode::ERROR_BAD_PARAMETERS;
-    }
-    auto subtypes = subtypeCfg.subtypes;
     IMSA_HILOGD("subtypes size: %{public}zu", subtypes.size());
     for (const auto &subtype : subtypes) {
         // subtype which provides a particular input type should not appear in the subtype list
@@ -508,6 +555,31 @@ int32_t ImeInfoInquirer::ListInputMethodSubtype(const int32_t userId, const Exte
         CovertToLanguage(subProp.locale, subProp.language);
         subProps.emplace_back(subProp);
     }
+    return ErrorCode::NO_ERROR;
+}
+
+int32_t ImeInfoInquirer::ParseSubtype(
+    const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo, std::vector<Subtype> &subtypes)
+{
+    auto iter = std::find_if(extInfo.metadata.begin(), extInfo.metadata.end(),
+        [](const Metadata &metadata) { return metadata.name == SUBTYPE_PROFILE_METADATA_NAME; });
+    if (iter == extInfo.metadata.end()) {
+        IMSA_HILOGE("find metadata name:SUBTYPE_PROFILE_METADATA_NAME failed");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    OHOS::AppExecFwk::BundleMgrClientImpl clientImpl;
+    std::vector<std::string> profiles;
+    if (!clientImpl.GetResConfigFile(extInfo, iter->name, profiles)) {
+        IMSA_HILOGE("GetProfileFromExtension failed");
+        return ErrorCode::ERROR_PACKAGE_MANAGER;
+    }
+    SubtypeCfg subtypeCfg;
+    if (!ParseSubtypeProfile(profiles, subtypeCfg)) {
+        IMSA_HILOGE("ParseSubTypeCfg failed");
+        return ErrorCode::ERROR_BAD_PARAMETERS;
+    }
+    subtypes = subtypeCfg.subtypes;
+    IMSA_HILOGD("success");
     return ErrorCode::NO_ERROR;
 }
 
@@ -600,22 +672,22 @@ std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
 
 std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentSubtype(int32_t userId)
 {
-    auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
-    IMSA_HILOGD("currentIme: %{public}s", currentImeCfg->imeId.c_str());
-    std::vector<SubProperty> subProps = {};
-    auto ret = ListInputMethodSubtype(userId, currentImeCfg->bundleName, subProps);
-    if (ret != ErrorCode::NO_ERROR || subProps.empty()) {
-        IMSA_HILOGE("userId: %{public}d listInputMethodSubtype by bundleName: %{public}s failed", userId,
-            currentImeCfg->bundleName.c_str());
+    auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
+    IMSA_HILOGD("currentIme: %{public}s", currentIme->imeId.c_str());
+    std::vector<ExtensionAbilityInfo> extInfos;
+    auto ret = GetExtInfosByBundleName(userId, currentIme->bundleName, extInfos);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("GetExtInfosByBundleName %{public}s failed, ret: %{public}d", currentIme->bundleName.c_str(), ret);
         return nullptr;
     }
-    auto it = std::find_if(subProps.begin(), subProps.end(),
-        [&currentImeCfg](const SubProperty &subProp) { return subProp.id == currentImeCfg->subName; });
-    if (it != subProps.end()) {
-        return std::make_shared<SubProperty>(*it);
+    SubProperty subProp;
+    ret = IsNewExtInfos(extInfos) ? GetSubProperty(userId, currentIme->subName, extInfos[0], subProp)
+                                  : GetSubProperty(userId, currentIme->subName, extInfos, subProp);
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("get %{public}s property failed, ret: %{public}d", currentIme->subName.c_str(), ret);
+        return nullptr;
     }
-    IMSA_HILOGE("Find subName: %{public}s failed", currentImeCfg->subName.c_str());
-    return std::make_shared<SubProperty>(subProps[0]);
+    return std::make_shared<SubProperty>(subProp);
 }
 
 bool ImeInfoInquirer::IsImeInstalled(const int32_t userId, const std::string &bundleName, const std::string &extName)
@@ -805,7 +877,7 @@ std::shared_ptr<SubProperty> ImeInfoInquirer::FindTargetSubtypeByCondition(const
     return std::make_shared<SubProperty>(*it);
 }
 
-bool ImeInfoInquirer::ParseSubType(const std::vector<std::string> &profiles, SubtypeCfg &subtypeCfg)
+bool ImeInfoInquirer::ParseSubtypeProfile(const std::vector<std::string> &profiles, SubtypeCfg &subtypeCfg)
 {
     if (profiles.empty() || profiles.size() != SUBTYPE_PROFILE_NUM) {
         IMSA_HILOGE("profiles size: %{public}zu", profiles.size());
