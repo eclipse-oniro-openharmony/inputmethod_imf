@@ -106,6 +106,7 @@ public:
     bool CheckSecurityMode();
     bool IsWmsReady();
     int32_t OnConnectSystemCmd(const sptr<IRemoteObject> &channel, sptr<IRemoteObject> &agent);
+    int32_t RemoveCurrentClient();
 
 private:
     struct ResetManager {
