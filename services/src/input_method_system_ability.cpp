@@ -200,6 +200,11 @@ void InputMethodSystemAbility::HandleWmsReady(int32_t userId)
     if (userId != userId_) {
         HandleUserChanged(userId);
     }
+    //clear client
+    auto ret = userSession_->RemoveCurrentClient();
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("RemoveCurrentClient failed");
+    }
     RestartCurrentIme();
 }
 
