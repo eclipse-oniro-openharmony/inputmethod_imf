@@ -17,6 +17,7 @@
 
 #include "event_handler.h"
 #include "event_runner.h"
+#include "inputmethod_trace.h"
 #include "input_method_controller.h"
 #include "input_method_property.h"
 #include "js_util.h"
@@ -231,6 +232,7 @@ napi_value JsInputMethod::GetJSInputMethodProperties(napi_env env, const std::ve
 
 napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JsInputMethod_SwitchInputMethod");
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_invalid_arg);
@@ -329,6 +331,7 @@ napi_value JsInputMethod::GetSystemInputMethodConfigAbility(napi_env env, napi_c
 
 napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JsInputMethod_SwitchCurrentInputMethodSubtype");
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_invalid_arg);
@@ -364,6 +367,7 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
 
 napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JsInputMethod_SwitchCurrentInputMethodAndSubtype");
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required", TYPE_NONE, napi_invalid_arg);

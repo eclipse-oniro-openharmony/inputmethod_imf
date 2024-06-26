@@ -624,7 +624,10 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
         switchQueue_.Pop();
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    ret = info->isNewIme ? Switch(switchInfo.bundleName, info) : SwitchExtension(info);
+    {
+        InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
+        ret = info->isNewIme ? Switch(switchInfo.bundleName, info) : SwitchExtension(info);
+    }
     if (InputTypeManager::GetInstance().IsStarted()) {
         InputTypeManager::GetInstance().Set(false);
     }

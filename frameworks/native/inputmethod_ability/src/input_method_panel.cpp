@@ -19,6 +19,7 @@
 
 #include "dm_common.h"
 #include "global.h"
+#include "inputmethod_trace.h"
 #include "input_method_ability_utils.h"
 #include "scene_board_judgement.h"
 #include "sys_cfg_parser.h"
@@ -493,7 +494,11 @@ int32_t InputMethodPanel::ShowPanel()
         IMSA_HILOGI("Panel already shown.");
         return ErrorCode::NO_ERROR;
     }
-    auto ret = window_->Show();
+    auto ret = WMError::WM_OK;
+    {
+        InputMethodSyncTrace tracer("InputMethodPanel_ShowPanel");
+        ret = window_->Show();
+    }
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("ShowPanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
@@ -532,7 +537,11 @@ int32_t InputMethodPanel::HidePanel()
         IMSA_HILOGI("Panel already hidden.");
         return ErrorCode::NO_ERROR;
     }
-    auto ret = window_->Hide();
+    auto ret = WMError::WM_OK;
+    {
+        InputMethodSyncTrace tracer("InputMethodPanel_HidePanel");
+        ret = window_->Hide();
+    }
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("HidePanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;

@@ -258,6 +258,7 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener, boo
 
 int32_t InputMethodController::ShowTextInput()
 {
+    InputMethodSyncTrace tracer("IMC_ShowTextInput");
     if (!IsBound()) {
         IMSA_HILOGE("not bound");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -277,6 +278,7 @@ int32_t InputMethodController::ShowTextInput()
 
 int32_t InputMethodController::HideTextInput()
 {
+    InputMethodSyncTrace tracer("IMC_HideTextInput");
     if (!IsBound()) {
         IMSA_HILOGE("not bound");
         return ErrorCode::ERROR_CLIENT_NOT_BOUND;
@@ -289,6 +291,7 @@ int32_t InputMethodController::HideTextInput()
 
 int32_t InputMethodController::HideCurrentInput()
 {
+    InputMethodSyncTrace tracer("IMC_HideCurrentInput");
     IMSA_HILOGD("InputMethodController::HideCurrentInput");
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
@@ -306,6 +309,7 @@ int32_t InputMethodController::HideCurrentInput()
 
 int32_t InputMethodController::ShowCurrentInput()
 {
+    InputMethodSyncTrace tracer("IMC_ShowCurrentInput");
     if (!IsEditable()) {
         IMSA_HILOGD("not editable");
         return ErrorCode::ERROR_CLIENT_NOT_EDITABLE;
@@ -396,6 +400,7 @@ int32_t InputMethodController::ListInputMethod(bool enable, std::vector<Property
 
 int32_t InputMethodController::GetDefaultInputMethod(std::shared_ptr<Property> &property)
 {
+    InputMethodSyncTrace tracer("IMC_GetDefaultInputMethod");
     IMSA_HILOGD("InputMethodController::GetDefaultInputMethod");
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
@@ -407,6 +412,7 @@ int32_t InputMethodController::GetDefaultInputMethod(std::shared_ptr<Property> &
 
 int32_t InputMethodController::GetInputMethodConfig(OHOS::AppExecFwk::ElementName &inputMethodConfig)
 {
+    InputMethodSyncTrace tracer("IMC_GetInputMethodConfig");
     IMSA_HILOGD("InputMethodController::inputMethodConfig");
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
@@ -418,6 +424,7 @@ int32_t InputMethodController::GetInputMethodConfig(OHOS::AppExecFwk::ElementNam
 
 std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
 {
+    InputMethodSyncTrace tracer("IMC_GetCurrentInputMethod");
     IMSA_HILOGD("InputMethodController::GetCurrentInputMethod");
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
@@ -434,6 +441,7 @@ std::shared_ptr<Property> InputMethodController::GetCurrentInputMethod()
 
 std::shared_ptr<SubProperty> InputMethodController::GetCurrentInputMethodSubtype()
 {
+    InputMethodSyncTrace tracer("IMC_GetCurrentInputMethodSubtype");
     IMSA_HILOGD("InputMethodController::GetCurrentInputMethodSubtype");
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
@@ -902,6 +910,7 @@ int32_t InputMethodController::ListCurrentInputMethodSubtype(std::vector<SubProp
 int32_t InputMethodController::SwitchInputMethod(SwitchTrigger trigger, const std::string &name,
     const std::string &subName)
 {
+    InputMethodSyncTrace tracer("IMC_SwitchInputMethod");
     auto proxy = GetSystemAbilityProxy();
     if (proxy == nullptr) {
         IMSA_HILOGE("proxy is nullptr");

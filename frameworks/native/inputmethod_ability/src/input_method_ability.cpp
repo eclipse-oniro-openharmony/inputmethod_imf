@@ -563,6 +563,7 @@ int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey)
 
 int32_t InputMethodAbility::HideKeyboardSelf()
 {
+    InputMethodSyncTrace tracer("IMA_HideKeyboardSelf");
     auto ret = HideKeyboard(Trigger::IME_APP);
     if (ret == ErrorCode::NO_ERROR) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_SELF);
@@ -595,6 +596,7 @@ int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &
 
 int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
+    InputMethodSyncTrace tracer("IMA_GetTextAfterCursor");
     IMSA_HILOGD("InputMethodAbility, number: %{public}d", number);
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
@@ -946,6 +948,7 @@ InputAttribute InputMethodAbility::GetInputAttribute()
 
 int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
 {
+    InputMethodSyncTrace tracer("IMA_HideKeyboard");
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener_ is nullptr");
         return ErrorCode::ERROR_IME;
