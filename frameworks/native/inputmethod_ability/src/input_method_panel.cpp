@@ -843,11 +843,13 @@ bool InputMethodPanel::GetDisplaySize(bool isPortrait, WindowSize &size)
         IMSA_HILOGE("GetDefaultDisplay failed.");
         return false;
     }
-    bool isDisplayPortrait = (defaultDisplay->GetWidth() < defaultDisplay->GetHeight()) ? true : false;
+    auto width = defaultDisplay->GetWidth();
+    auto height = defaultDisplay->GetHeight();
+    bool isDisplayPortrait = width < height;
     if (isPortrait != isDisplayPortrait) {
-        size = { .width = defaultDisplay->GetHeight(), .height = defaultDisplay->GetWidth() };
+        size = { .width = height, .height = width };
     } else {
-        size = { .width = defaultDisplay->GetWidth(), .height = defaultDisplay->GetHeight() };
+        size = { .width = width, .height = height };
     }
     return true;
 }
