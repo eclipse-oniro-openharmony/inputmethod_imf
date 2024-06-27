@@ -281,12 +281,12 @@ void JsKeyboardPanelManager::ReceivePrivateCommand(
     eventHandler->PostTask(task, type, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
-void JsKeyboardPanelManager::NotifyIsShowSysPanel(bool shouldSysPanelShow)
+void JsKeyboardPanelManager::NotifyPanelStatus(const SysPanelStatus &sysPanelStatus)
 {
     IMSA_HILOGD("JsKeyboardPanelManager, run in");
     std::string type = "isPanelShow";
     auto entry =
-        GetEntry(type, [shouldSysPanelShow](UvEntry &entry) { entry.shouldSysPanelShow = shouldSysPanelShow; });
+        GetEntry(type, [sysPanelStatus](UvEntry &entry) { entry.sysPanelStatus = sysPanelStatus; });
     if (entry == nullptr) {
         return;
     }
@@ -300,7 +300,12 @@ void JsKeyboardPanelManager::NotifyIsShowSysPanel(bool shouldSysPanelShow)
             if (argc < 1) {
                 return false;
             }
-            napi_value jsObject = JsUtil::GetValue(env, entry->shouldSysPanelShow);
+            napi_value jsObject = JsPanelStatus::Write(env, entry->sysPanelStatus);
+            if (jsObject == nullptr) {
+                IMSA_HILOGE("GetJsSysPanelStatus failed: jsObject is nullptr");
+                return false;
+            }
+            // 0 means the first param of callback.
             args[0] = { jsObject };
             return true;
         };
@@ -339,6 +344,17 @@ std::shared_ptr<JsKeyboardPanelManager::UvEntry> JsKeyboardPanelManager::GetEntr
         entrySetter(*entry);
     }
     return entry;
+}
+
+napi_value JsPanelStatus::Write(napi_env env, const SysPanelStatus &in)
+{
+    napi_value jsObject = nullptr;
+    napi_create_object(env, &jsObject);
+    bool ret = JsUtil::Object::WriteProperty(env, jsObject, "isSecurity", in.isSecurity);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "flag", in.flag);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "width", in.width);
+    ret = ret && JsUtil::Object::WriteProperty(env, jsObject, "height", in.height);
+    return ret ? jsObject : JsUtil::Const::Null(env);
 }
 } // namespace MiscServices
 } // namespace OHOS

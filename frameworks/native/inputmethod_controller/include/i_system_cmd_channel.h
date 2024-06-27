@@ -20,6 +20,7 @@
 
 #include "input_method_utils.h"
 #include "iremote_broker.h"
+#include "sys_panel_status.h"
 
 /**
  * brief Definition of interface ISystemCmdChannel
@@ -38,7 +39,7 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.inputmethod.ISystemCmdChannel");
 
     virtual int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) = 0;
-    virtual int32_t ShowSysPanel(bool shouldSysPanelShow) = 0;
+    virtual int32_t NotifyPanelStatus(const SysPanelStatus &sysPanelStatus) = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -34,10 +34,12 @@ int32_t SystemCmdChannelProxy::SendPrivateCommand(
         [&privateCommand](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, privateCommand); });
 }
 
-int32_t SystemCmdChannelProxy::ShowSysPanel(bool shouldSysPanelShow)
+int32_t SystemCmdChannelProxy::NotifyPanelStatus(const SysPanelStatus &sysPanelStatus)
 {
-    return SendRequest(SHOULD_SYSTEM_PANEL_SHOW,
-        [shouldSysPanelShow](MessageParcel &parcel) { return ITypesUtil::Marshal(parcel, shouldSysPanelShow); });
+    return SendRequest(
+        SHOULD_SYSTEM_PANEL_SHOW, [sysPanelStatus](MessageParcel &parcel) {
+            return ITypesUtil::Marshal(parcel, sysPanelStatus);
+        });
 }
 
 int32_t SystemCmdChannelProxy::SendRequest(int code, ParcelHandler input, ParcelHandler output)

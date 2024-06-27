@@ -383,7 +383,9 @@ void InputMethodAbility::OnAttributeChange(Message *msg)
     // add for mod inputPattern when panel show
     auto panel = GetSoftKeyboardPanel();
     if (panel != nullptr) {
-        ShowSysPanel(panel, panel->GetPanelFlag());
+        auto keyboardSize = panel->GetKeyboardSize();
+        SysPanelStatus sysPanelStatus = { false, panel->GetPanelFlag(), keyboardSize.width, keyboardSize.height };
+        NotifyPanelStatus(panel, sysPanelStatus);
     }
     kdListener_->OnEditorAttributeChange(attribute);
 }
@@ -886,7 +888,9 @@ int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &i
             IMSA_HILOGE("Set Keyboard failed, ret = %{public}d", ret);
         }
     }
-    ShowSysPanel(inputMethodPanel, flag);
+    auto keyboardSize = inputMethodPanel->GetKeyboardSize();
+    SysPanelStatus sysPanelStatus = { false, flag, keyboardSize.width, keyboardSize.height };
+    NotifyPanelStatus(inputMethodPanel, sysPanelStatus);
     auto ret = inputMethodPanel->ShowPanel();
     if (ret == ErrorCode::NO_ERROR) {
         NotifyPanelStatusInfo({ { inputMethodPanel->GetPanelType(), flag }, true, trigger });
@@ -907,7 +911,8 @@ int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &i
     return ret;
 }
 
-int32_t InputMethodAbility::ShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag)
+int32_t InputMethodAbility::NotifyPanelStatus(
+    const std::shared_ptr<InputMethodPanel> &inputMethodPanel, SysPanelStatus &sysPanelStatus)
 {
     if (inputMethodPanel->GetPanelType() != SOFT_KEYBOARD) {
         return ErrorCode::NO_ERROR;
@@ -917,13 +922,14 @@ int32_t InputMethodAbility::ShowSysPanel(const std::shared_ptr<InputMethodPanel>
     if (channel == nullptr) {
         return ErrorCode::NO_ERROR;
     }
-    bool shouldSysPanelShow = !GetInputAttribute().GetSecurityFlag() && flag != PanelFlag::FLG_CANDIDATE_COLUMN;
+    bool isSecurity = GetInputAttribute().GetSecurityFlag();
+    sysPanelStatus.isSecurity = isSecurity;
     auto systemChannel = GetSystemCmdChannelProxy();
     if (systemChannel == nullptr) {
         IMSA_HILOGE("channel is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return systemChannel->ShowSysPanel(shouldSysPanelShow);
+    return systemChannel->NotifyPanelStatus(sysPanelStatus);
 }
 
 void InputMethodAbility::SetInputAttribute(const InputAttribute &inputAttribute)

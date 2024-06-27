@@ -146,6 +146,8 @@ int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
         IMSA_HILOGE("failed to resize, ret: %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
+    std::lock_guard<std::mutex> lock(keyboardSizeLock_);
+    keyboardSize_ = { width, height };
     IMSA_HILOGI("success, width/height: %{public}u/%{public}u", width, height);
     return ErrorCode::NO_ERROR;
 }
@@ -787,12 +789,20 @@ bool InputMethodPanel::IsSizeValid(uint32_t width, uint32_t height)
     return true;
 }
 
+WindowSize InputMethodPanel::GetKeyboardSize()
+{
+    std::lock_guard<std::mutex> lock(keyboardSizeLock_);
+    return keyboardSize_;
+}
+
 int32_t InputMethodPanel::SizeChange(const WindowSize &size)
 {
     IMSA_HILOGD("InputMethodPanel, run in");
     IMSA_HILOGI("type/flag: %{public}d/%{public}d, width/height: %{public}d/%{public}d",
         static_cast<int32_t>(panelType_), static_cast<int32_t>(panelFlag_), static_cast<int32_t>(size.width),
         static_cast<int32_t>(size.height));
+    std::lock_guard<std::mutex> lock(keyboardSizeLock_);
+    keyboardSize_ = size;
     panelStatusListener_->OnSizeChange(windowId_, size);
     return ErrorCode::NO_ERROR;
 }
