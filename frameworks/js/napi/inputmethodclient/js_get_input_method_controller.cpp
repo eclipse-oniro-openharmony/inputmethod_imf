@@ -17,6 +17,7 @@
 #include <set>
 
 #include "event_checker.h"
+#include "inputmethod_trace.h"
 #include "input_method_controller.h"
 #include "input_method_utils.h"
 #include "js_callback_handler.h"
@@ -523,6 +524,7 @@ bool JsGetInputMethodController::GetValue(napi_env env, napi_value in, TextConfi
 
 napi_value JsGetInputMethodController::Attach(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JsGetInputMethodController_Attach");
     auto ctxt = std::make_shared<AttachContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
         PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required", TYPE_NONE, napi_generic_failure);
@@ -554,12 +556,14 @@ napi_value JsGetInputMethodController::Detach(napi_env env, napi_callback_info i
 
 napi_value JsGetInputMethodController::ShowTextInput(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JsGetInputMethodController_ShowTextInput");
     return HandleSoftKeyboard(
         env, info, [] { return InputMethodController::GetInstance()->ShowTextInput(); }, false, true);
 }
 
 napi_value JsGetInputMethodController::HideTextInput(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JsGetInputMethodController_HideTextInput");
     return HandleSoftKeyboard(
         env, info, [] { return InputMethodController::GetInstance()->HideTextInput(); }, false, true);
 }
@@ -675,12 +679,14 @@ napi_value JsGetInputMethodController::UpdateAttribute(napi_env env, napi_callba
 
 napi_value JsGetInputMethodController::ShowSoftKeyboard(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JsGetInputMethodController_ShowSoftKeyboard");
     return HandleSoftKeyboard(
         env, info, [] { return InputMethodController::GetInstance()->ShowSoftKeyboard(); }, false, true);
 }
 
 napi_value JsGetInputMethodController::HideSoftKeyboard(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JsGetInputMethodController_HideSoftKeyboard");
     return HandleSoftKeyboard(
         env, info, [] { return InputMethodController::GetInstance()->HideSoftKeyboard(); }, false, true);
 }
