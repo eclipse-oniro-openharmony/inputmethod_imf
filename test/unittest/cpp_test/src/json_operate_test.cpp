@@ -68,6 +68,9 @@ public:
                                                  "\"testBundleName\", "
                                                  "\"subtypeId\":\"testSubtypeId\"},{\"inputType\":1,\"bundleName\":"
                                                  "\"\", \"subtypeId\":\"\"}]}";
+    static constexpr const char *SYS_PANEL_ADJUST = "{\"sysPanelAdjust\":"
+                                                    "[{\"style\": [\"fix\",\"default\",\"landscape\"],"
+                                                    "\"top\": 1,\"left\": 2,\"right\": 3,\"bottom\": 4}]}";
 
     static void SetUpTestCase()
     {
@@ -318,6 +321,28 @@ HWTEST_F(JsonOperateTest, testParseSubtype001, TestSize.Level0)
     ret = ImeInfoInquirer::GetInstance().ParseSubtypeProfile(profiles1, subtype1);
     EXPECT_FALSE(ret);
     EXPECT_TRUE(subtype1.subtypes.empty());
+}
+
+/**
+* @tc.name: testParseSysPanelAdjust001
+* @tc.desc: parse SysPanelAdjust
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(JsonOperateTest, testParseSysPanelAdjust001, TestSize.Level0)
+{
+    IMSA_HILOGI("JsonOperateTest testParseSysPanelAdjust001 START");
+    SysPanelAdjustCfg sysPanelAdjustCfg;
+    auto ret = sysPanelAdjustCfg.Unmarshall(SYS_PANEL_ADJUST);
+    ASSERT_TRUE(ret);
+    auto panelAdjust = sysPanelAdjustCfg.panelAdjust;
+    EXPECT_EQ(panelAdjust[0].style[0], "fix");
+    EXPECT_EQ(panelAdjust[0].style[1], "default");
+    EXPECT_EQ(panelAdjust[0].style[2], "landscape");
+    EXPECT_EQ(panelAdjust[0].top, 1);
+    EXPECT_EQ(panelAdjust[0].left, 2);
+    EXPECT_EQ(panelAdjust[0].right, 3);
+    EXPECT_EQ(panelAdjust[0].bottom, 4);
 }
 } // namespace MiscServices
 } // namespace OHOS

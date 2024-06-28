@@ -894,7 +894,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
 
 int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
 {
-    if (msg->msgContent_ == nullptr) {
+    if (msg != nullptr || msg->msgContent_ == nullptr) {
         IMSA_HILOGE("Aborted! Message is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }
