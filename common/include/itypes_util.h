@@ -26,6 +26,7 @@
 #include "input_window_info.h"
 #include "message_parcel.h"
 #include "panel_info.h"
+#include "sys_panel_status.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -81,6 +82,9 @@ public:
 
     static bool Marshalling(const PanelStatusInfo &info, MessageParcel &data);
     static bool Unmarshalling(PanelStatusInfo &info, MessageParcel &data);
+
+    static bool Marshalling(const SysPanelStatus &input, MessageParcel &data);
+    static bool Unmarshalling(SysPanelStatus &output, MessageParcel &data);
 
     static bool Marshalling(InputType input, MessageParcel &data);
     static bool Unmarshalling(InputType &output, MessageParcel &data);

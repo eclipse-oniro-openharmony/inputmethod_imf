@@ -34,7 +34,7 @@ public:
     virtual void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
     {
     }
-    virtual void NotifyIsShowSysPanel(bool shouldSysPanelShow)
+    virtual void NotifyPanelStatus(const SysPanelStatus &sysPanelStatus)
     {
     }
 };
@@ -84,7 +84,7 @@ public:
      */
     IMF_API std::string GetSmartMenuCfg();
     int32_t ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
-    int32_t ShowSysPanel(bool shouldSysPanelShow);
+    int32_t NotifyPanelStatus(const SysPanelStatus &sysPanelStatus);
     void OnConnectCmdReady(const sptr<IRemoteObject> &agentObject);
     IMF_API int32_t GetDefaultImeCfg(std::shared_ptr<Property> &property);
 

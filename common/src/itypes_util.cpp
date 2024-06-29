@@ -312,6 +312,21 @@ bool ITypesUtil::Unmarshalling(PanelStatusInfo &output, MessageParcel &data)
     return true;
 }
 
+bool ITypesUtil::Marshalling(const SysPanelStatus &input, MessageParcel &data)
+{
+    return data.WriteBool(input.isSecurity) && data.WriteInt32(input.flag) && data.WriteUint32(input.width) &&
+        data.WriteUint32(input.height);
+}
+
+bool ITypesUtil::Unmarshalling(SysPanelStatus &output, MessageParcel &data)
+{
+    if (!data.ReadBool(output.isSecurity) || !data.ReadInt32(output.flag) || !data.ReadUint32(output.width) ||
+        !data.ReadUint32(output.height)) {
+        return false;
+    }
+    return true;
+}
+
 bool ITypesUtil::Marshalling(const OHOS::AppExecFwk::ElementName &input, MessageParcel &data)
 {
     return data.WriteString(input.GetBundleName().c_str()) && data.WriteString(input.GetModuleName().c_str()) &&

@@ -62,6 +62,10 @@ struct SmartMenuContext : public AsyncCall::Context {
     }
 };
 
+struct JsPanelStatus {
+    static napi_value Write(napi_env env, const SysPanelStatus &in);
+};
+
 class JsKeyboardPanelManager : public OnSystemCmdListener {
 public:
     JsKeyboardPanelManager();
@@ -77,20 +81,20 @@ public:
     static napi_value GetJsInputMethodProperty(napi_env env, const Property &property);
 
     void ReceivePrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
-    void NotifyIsShowSysPanel(bool shouldSysPanelShow) override;
+    void NotifyPanelStatus(const SysPanelStatus &sysPanelStatus) override;
 
 private:
     void RegisterListener(napi_value callback, std::string type, std::shared_ptr<JSCallbackObject> callbackObj);
     void UnRegisterListener(napi_value callback, std::string type);
-
+    napi_value GetJsPanelStatus(napi_env env, const SysPanelStatus &in);
     struct UvEntry {
         std::vector<std::shared_ptr<JSCallbackObject>> vecCopy;
         std::string type;
-        bool shouldSysPanelShow = false;
+        SysPanelStatus sysPanelStatus;
         std::string smartMenu;
         std::unordered_map<std::string, PrivateDataValue> privateCommand;
         explicit UvEntry(const std::vector<std::shared_ptr<JSCallbackObject>> &cbVec, const std::string &type)
-            : vecCopy(cbVec), type(type), shouldSysPanelShow(false), smartMenu(""), privateCommand({})
+            : vecCopy(cbVec), type(type), sysPanelStatus({ false, 0, 0, 0 }), smartMenu(""), privateCommand({})
         {
         }
     };
