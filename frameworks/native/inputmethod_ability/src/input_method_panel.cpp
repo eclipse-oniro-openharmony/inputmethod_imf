@@ -19,6 +19,7 @@
 
 #include "dm_common.h"
 #include "global.h"
+#include "inputmethod_trace.h"
 #include "input_method_ability_utils.h"
 #include "scene_board_judgement.h"
 #include "sys_cfg_parser.h"
@@ -34,7 +35,8 @@ constexpr float FIXED_SOFT_KEYBOARD_PANEL_RATIO = 0.7;
 constexpr float NON_FIXED_SOFT_KEYBOARD_PANEL_RATIO = 1;
 constexpr int32_t NUMBER_ZERO = 0;
 constexpr int32_t NUMBER_TWO = 2;
-constexpr int32_t DPI_CALCULATION_RATIO = 160;
+constexpr int32_t CUTOUTINFO = 100;
+constexpr float DPI_CALCULATION_RATIO = 160.0;
 std::atomic<uint32_t> InputMethodPanel::sequenceId_{ 0 };
 InputMethodPanel::~InputMethodPanel() = default;
 
@@ -276,7 +278,7 @@ std::tuple<std::vector<std::string>, std::vector<std::string>> InputMethodPanel:
 {
     std::lock_guard<std::mutex> lock(panelAdjustLock_);
     std::string flag;
-    std::string foldStatus;
+    std::string foldStatus = "default";
     if (panelFlag == PanelFlag::FLG_FIXED) {
         flag = "fix";
         keyboardLayoutParams_.gravity_ = WindowGravity::WINDOW_GRAVITY_BOTTOM;
@@ -284,9 +286,8 @@ std::tuple<std::vector<std::string>, std::vector<std::string>> InputMethodPanel:
         flag = "floating";
         keyboardLayoutParams_.gravity_ = WindowGravity::WINDOW_GRAVITY_FLOAT;
     }
-    if (Rosen::DisplayManager::GetInstance().GetFoldStatus() == Rosen::FoldStatus::FOLDED) {
-        foldStatus = "default";
-    } else {
+    if (Rosen::DisplayManager::GetInstance().IsFoldable() &&
+        Rosen::DisplayManager::GetInstance().GetFoldStatus() != Rosen::FoldStatus::FOLDED) {
         foldStatus = "foldable";
     }
     std::vector<std::string> lanPanel = { flag, foldStatus, "landscape" };
@@ -432,19 +433,14 @@ int32_t InputMethodPanel::CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &def
         keyboardLayoutParams_.LandscapePanelRect_.posX_ + lanIterValue.left * (densityDpi / DPI_CALCULATION_RATIO);
     sptr<Rosen::CutoutInfo> cutoutInfo = defaultDisplay->GetCutoutInfo();
     if (cutoutInfo != nullptr) {
-        std::vector<Rosen::DMRect> cutoutAreas = cutoutInfo->GetBoundingRects();
-        if (cutoutAreas.empty()) {
-            IMSA_HILOGD("There is no cutoutAreas");
+        if (Rosen::DisplayManager::GetInstance().IsFoldable() &&
+            Rosen::DisplayManager::GetInstance().GetFoldStatus() != Rosen::FoldStatus::FOLDED) {
             return ErrorCode::NO_ERROR;
         }
-        for (auto &cutoutArea : cutoutAreas) {
-            if (cutoutArea.height_ != NUMBER_ZERO) {
-                keyboardLayoutParams_.LandscapeKeyboardRect_.width_ =
-                    keyboardLayoutParams_.LandscapeKeyboardRect_.width_ - cutoutArea.height_ * NUMBER_TWO;
-                keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ =
-                    keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ + static_cast<int32_t>(cutoutArea.height_);
-            }
-        }
+        keyboardLayoutParams_.LandscapeKeyboardRect_.width_ = keyboardLayoutParams_.LandscapeKeyboardRect_.width_ -
+            (CUTOUTINFO - lanIterValue.left) * NUMBER_TWO  * (densityDpi / DPI_CALCULATION_RATIO);
+        keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ = keyboardLayoutParams_.LandscapeKeyboardRect_.posX_ +
+            (CUTOUTINFO - lanIterValue.left) * (densityDpi / DPI_CALCULATION_RATIO);
     }
     return ErrorCode::NO_ERROR;
 }
@@ -498,7 +494,11 @@ int32_t InputMethodPanel::ShowPanel()
         IMSA_HILOGI("Panel already shown.");
         return ErrorCode::NO_ERROR;
     }
-    auto ret = window_->Show1();
+    auto ret = WMError::WM_OK;
+    {
+        InputMethodSyncTrace tracer("InputMethodPanel_ShowPanel");
+        ret = window_->Show();
+    }
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("ShowPanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
@@ -537,7 +537,11 @@ int32_t InputMethodPanel::HidePanel()
         IMSA_HILOGI("Panel already hidden.");
         return ErrorCode::NO_ERROR;
     }
-    auto ret = window_->Hide();
+    auto ret = WMError::WM_OK;
+    {
+        InputMethodSyncTrace tracer("InputMethodPanel_HidePanel");
+        ret = window_->Hide();
+    }
     if (ret != WMError::WM_OK) {
         IMSA_HILOGE("HidePanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
@@ -848,12 +852,13 @@ bool InputMethodPanel::GetDisplaySize(bool isPortrait, WindowSize &size)
         IMSA_HILOGE("GetDefaultDisplay failed.");
         return false;
     }
-    bool isDisplayPortrait = defaultDisplay->GetRotation() == Rosen::Rotation::ROTATION_0 ||
-                             defaultDisplay->GetRotation() == Rosen::Rotation::ROTATION_180;
+    auto width = defaultDisplay->GetWidth();
+    auto height = defaultDisplay->GetHeight();
+    bool isDisplayPortrait = width < height;
     if (isPortrait != isDisplayPortrait) {
-        size = { .width = defaultDisplay->GetHeight(), .height = defaultDisplay->GetWidth() };
+        size = { .width = height, .height = width };
     } else {
-        size = { .width = defaultDisplay->GetWidth(), .height = defaultDisplay->GetHeight() };
+        size = { .width = width, .height = height };
     }
     return true;
 }

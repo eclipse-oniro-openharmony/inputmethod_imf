@@ -210,6 +210,22 @@ HWTEST_F(VirtualListenerTest, testInputMethodEngineListener_001, TestSize.Level0
 }
 
 /**
+ * @tc.name: testInputMethodEngineListener_002
+ * @tc.desc: Cover non-pure virtual function in class: InputMethodEngineListener.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(VirtualListenerTest, testInputMethodEngineListener_002, TestSize.Level0)
+{
+    IMSA_HILOGI("VirtualListenerTest testInputMethodEngineListener_002 START");
+    ASSERT_NE(VirtualListenerTest::engineListener_, nullptr);
+    int32_t security = 1;
+    VirtualListenerTest::engineListener_->OnSecurityChange(security);
+    bool isEnable = VirtualListenerTest::engineListener_->IsEnable();
+    EXPECT_FALSE(isEnable);
+}
+
+/**
  * @tc.name: testImeEventListener_001
  * @tc.desc: Cover non-pure virtual function in class: ImeEventListener.
  * @tc.type: FUNC

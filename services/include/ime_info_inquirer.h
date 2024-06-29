@@ -126,7 +126,12 @@ private:
         const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, std::vector<SubProperty> &subProps);
     int32_t ListInputMethodSubtype(const int32_t userId, const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo,
         std::vector<SubProperty> &subProps);
-    bool ParseSubType(const std::vector<std::string> &profiles, SubtypeCfg &subtypeCfg);
+    int32_t GetSubProperty(int32_t userId, const std::string &subName,
+        const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, SubProperty &subProp);
+    int32_t GetSubProperty(int32_t userId, const std::string &subName,
+        const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo, SubProperty &subProp);
+    int32_t ParseSubtype(const OHOS::AppExecFwk::ExtensionAbilityInfo &extInfo, std::vector<Subtype> &subtypes);
+    bool ParseSubtypeProfile(const std::vector<std::string> &profiles, SubtypeCfg &subtypeCfg);
     void CovertToLanguage(const std::string &locale, std::string &language);
     bool QueryImeExtInfos(const int32_t userId, std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &infos);
 

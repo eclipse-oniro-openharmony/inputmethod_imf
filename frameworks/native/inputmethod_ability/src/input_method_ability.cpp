@@ -18,7 +18,6 @@
 #include <unistd.h>
 #include <utility>
 
-#include "block_data.h"
 #include "global.h"
 #include "input_method_agent_stub.h"
 #include "input_method_core_stub.h"
@@ -43,7 +42,6 @@ constexpr double INVALID_CURSOR_VALUE = -1.0;
 constexpr int32_t INVALID_SELECTION_VALUE = -1;
 constexpr uint32_t FIND_PANEL_RETRY_INTERVAL = 10;
 constexpr uint32_t MAX_RETRY_TIMES = 100;
-constexpr int32_t START_INPUT_PROCESS_TIMEOUT = 500;
 InputMethodAbility::InputMethodAbility() : msgHandler_(nullptr), stop_(false)
 {
 }
@@ -250,18 +248,15 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
         IMSA_HILOGE("failed to invoke callback, ret: %{public}d", ret);
         return ret;
     }
-    auto startInputProcessHandler = std::make_shared<BlockData<bool>>(START_INPUT_PROCESS_TIMEOUT, false);
-    auto task = [startInputProcessHandler]() {
-        bool isCallbackFinished = true;
-        startInputProcessHandler->SetValue(isCallbackFinished);
-    };
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
-    if (imeListener_ != nullptr && imeListener_->PostTaskToEventHandler(task, "startInput")) {
-        startInputProcessHandler->GetValue();
-    } else {
-        IMSA_HILOGE("imeListener_ is nullptr, or post task failed!");
+    if (clientInfo.isShowKeyboard) {
+        auto task = [this]() { ShowKeyboard(); };
+        if (imeListener_ == nullptr || !imeListener_->PostTaskToEventHandler(task, "ShowKeyboard")) {
+            IMSA_HILOGE("imeListener_ is nullptr, or post task failed!");
+            ShowKeyboard();
+        }
     }
-    return clientInfo.isShowKeyboard ? ShowKeyboard() : ErrorCode::NO_ERROR;
+    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodAbility::OnSetSubtype(Message *msg)
@@ -568,6 +563,7 @@ int32_t InputMethodAbility::SendFunctionKey(int32_t funcKey)
 
 int32_t InputMethodAbility::HideKeyboardSelf()
 {
+    InputMethodSyncTrace tracer("IMA_HideKeyboardSelf");
     auto ret = HideKeyboard(Trigger::IME_APP);
     if (ret == ErrorCode::NO_ERROR) {
         InputMethodSysEvent::GetInstance().OperateSoftkeyboardBehaviour(OperateIMEInfoCode::IME_HIDE_SELF);
@@ -600,6 +596,7 @@ int32_t InputMethodAbility::GetTextBeforeCursor(int32_t number, std::u16string &
 
 int32_t InputMethodAbility::GetTextAfterCursor(int32_t number, std::u16string &text)
 {
+    InputMethodSyncTrace tracer("IMA_GetTextAfterCursor");
     IMSA_HILOGD("InputMethodAbility, number: %{public}d", number);
     auto channel = GetInputDataChannelProxy();
     if (channel == nullptr) {
@@ -917,6 +914,11 @@ int32_t InputMethodAbility::ShowSysPanel(const std::shared_ptr<InputMethodPanel>
     if (inputMethodPanel->GetPanelType() != SOFT_KEYBOARD) {
         return ErrorCode::NO_ERROR;
     }
+    // If it is not binding, do not need to notify the panel
+    auto channel = GetInputDataChannelProxy();
+    if (channel == nullptr) {
+        return ErrorCode::NO_ERROR;
+    }
     bool shouldSysPanelShow = !GetInputAttribute().GetSecurityFlag() && flag != PanelFlag::FLG_CANDIDATE_COLUMN;
     auto systemChannel = GetSystemCmdChannelProxy();
     if (systemChannel == nullptr) {
@@ -946,6 +948,7 @@ InputAttribute InputMethodAbility::GetInputAttribute()
 
 int32_t InputMethodAbility::HideKeyboard(Trigger trigger)
 {
+    InputMethodSyncTrace tracer("IMA_HideKeyboard");
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener_ is nullptr");
         return ErrorCode::ERROR_IME;

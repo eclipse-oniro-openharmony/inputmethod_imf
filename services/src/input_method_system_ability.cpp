@@ -251,6 +251,11 @@ void InputMethodSystemAbility::HandleWmsReady(int32_t userId)
     if (userId != userId_) {
         HandleUserChanged(userId);
     }
+    //clear client
+    auto ret = userSession_->RemoveCurrentClient();
+    if (ret != ErrorCode::NO_ERROR) {
+        IMSA_HILOGE("RemoveCurrentClient failed");
+    }
     RestartCurrentIme();
 }
 
@@ -670,7 +675,10 @@ int32_t InputMethodSystemAbility::OnSwitchInputMethod(const SwitchInfo &switchIn
         switchQueue_.Pop();
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
-    ret = info->isNewIme ? Switch(switchInfo.bundleName, info) : SwitchExtension(info);
+    {
+        InputMethodSyncTrace tracer("InputMethodSystemAbility_OnSwitchInputMethod");
+        ret = info->isNewIme ? Switch(switchInfo.bundleName, info) : SwitchExtension(info);
+    }
     if (InputTypeManager::GetInstance().IsStarted()) {
         InputTypeManager::GetInstance().Set(false);
     }
@@ -827,7 +835,7 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
-    constexpr int32_t TIME_OUT_SECOND = 2;
+    constexpr int32_t TIME_OUT_SECOND = 10;
     auto id =
         XCollie::GetInstance().SetTimer("GetCurrentInputMethod", TIME_OUT_SECOND, nullptr, nullptr, XCOLLIE_FLAG_LOG);
     auto property = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId_);
@@ -837,7 +845,7 @@ std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 
 std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
 {
-    constexpr int32_t TIME_OUT_SECOND = 2;
+    constexpr int32_t TIME_OUT_SECOND = 10;
     auto id = XCollie::GetInstance().SetTimer(
         "GetCurrentInputMethodSubtype", TIME_OUT_SECOND, nullptr, nullptr, XCOLLIE_FLAG_LOG);
     auto property = ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);

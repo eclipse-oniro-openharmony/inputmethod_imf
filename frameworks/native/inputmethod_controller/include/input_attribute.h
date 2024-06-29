@@ -27,6 +27,7 @@ struct InputAttribute {
     static const int32_t PATTERN_PASSWORD = 0x00000007;
     static const int32_t PATTERN_PASSWORD_NUMBER = 0x00000008;
     static const int32_t PATTERN_PASSWORD_SCREEN_LOCK = 0x00000009;
+    static const int32_t PATTERN_NEWPASSWORD = 0x0000000b;
     int32_t inputPattern = 0;
     int32_t enterKeyType = 0;
     int32_t inputOption = 0;
@@ -45,7 +46,7 @@ struct InputAttribute {
     bool GetSecurityFlag()
     {
         return inputPattern == PATTERN_PASSWORD || inputPattern == PATTERN_PASSWORD_SCREEN_LOCK ||
-               PATTERN_PASSWORD_NUMBER == inputPattern;
+               PATTERN_PASSWORD_NUMBER == inputPattern || PATTERN_NEWPASSWORD == inputPattern;
     }
 
     bool operator==(const InputAttribute &info) const

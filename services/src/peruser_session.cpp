@@ -1271,5 +1271,15 @@ void PerUserSession::NotifyImeStopFinished()
     isSwitching_.store(false);
     imeStopCv_.notify_one();
 }
+
+int32_t PerUserSession::RemoveCurrentClient()
+{
+    auto currentClient = GetCurrentClient();
+    if (currentClient == nullptr) {
+        IMSA_HILOGE("currentClient is null");
+        return ErrorCode::ERROR_CLIENT_NULL_POINTER;
+    }
+    return RemoveClient(currentClient, false);
+}
 } // namespace MiscServices
 } // namespace OHOS
