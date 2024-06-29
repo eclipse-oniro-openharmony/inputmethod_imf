@@ -21,12 +21,11 @@
 #include <thread>
 
 #include "application_info.h"
+#include "bite_state_manager.h"
 #include "block_queue.h"
 #include "bundle_mgr_proxy.h"
-#include "enable_ime_data_parser.h"
-#include "settings_data_utils.h"
-#include "security_mode_parser.h"
 #include "element_name.h"
+#include "enable_ime_data_parser.h"
 #include "event_handler.h"
 #include "identity_checker_impl.h"
 #include "ime_info_inquirer.h"
@@ -35,6 +34,8 @@
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
 #include "peruser_session.h"
+#include "security_mode_parser.h"
+#include "settings_data_utils.h"
 #include "system_ability.h"
 #include "unRegistered_type.h"
 
@@ -106,7 +107,7 @@ private:
     int32_t OnUserRemoved(const Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
     int32_t OnDisplayOptionalInputMethod();
-    void StartUserIdListener();
+    void SubscribeCommonEvents();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);
     int32_t CheckSwitchPermission(const SwitchInfo &switchInfo, SwitchTrigger trigger);
     bool IsStartInputTypePermitted();
@@ -170,6 +171,8 @@ private:
     std::mutex restartMutex_;
     bool isRestarting_ = false;
     bool needRestart_ = false;
+
+    BitStateManager depServiceState_{ 0 };
 };
 } // namespace MiscServices
 } // namespace OHOS

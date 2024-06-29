@@ -34,16 +34,14 @@
 namespace OHOS {
 namespace MiscServices {
 using Handler = std::function<void()>;
+using SaHandler = std::function<void(bool)>;
 class ImCommonEventManager : public RefBase {
 public:
-    ImCommonEventManager();
-    ~ImCommonEventManager();
     static sptr<ImCommonEventManager> GetInstance();
-    bool SubscribeEvent(const std::string &event);
+    bool SubscribeEvents();
+    bool SubscribeService(int32_t saId, const SaHandler &handler);
     bool SubscribeKeyboardEvent(KeyHandle handle);
-    bool SubscribeWindowManagerService(FocusHandle handle, Handler inputHandler);
-    bool SubscribeMemMgrService(const Handler &handler);
-    bool SubscribeAccountManagerService(Handler handle);
+    bool SubscribeWindowManagerService(FocusHandle handle, SaHandler inputHandler);
     bool UnsubscribeEvent();
     // only public the status change of softKeyboard in FLG_FIXED or FLG_FLOATING
     int32_t PublishPanelStatusChangeEvent(const InputWindowStatus &status, const ImeWindowInfo &info);
@@ -55,6 +53,7 @@ public:
         void StartUser(const EventFwk::CommonEventData &data);
         void RemoveUser(const EventFwk::CommonEventData &data);
         void OnBundleScanFinished(const EventFwk::CommonEventData &data);
+        void OnBootCompleted(const EventFwk::CommonEventData &data);
 
     private:
         using EventListenerFunc = void (EventSubscriber::*)(const EventFwk::CommonEventData &data);
@@ -64,21 +63,21 @@ public:
 private:
     class SystemAbilityStatusChangeListener : public SystemAbilityStatusChangeStub {
     public:
-        explicit SystemAbilityStatusChangeListener(std::function<void()>);
+        explicit SystemAbilityStatusChangeListener(SaHandler func);
         ~SystemAbilityStatusChangeListener() = default;
         virtual void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
         virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
 
     private:
-        std::function<void()> func_ = nullptr;
+        SaHandler func_ = nullptr;
     };
 
 private:
+    ImCommonEventManager();
+    ~ImCommonEventManager();
+    bool SubscribeSystemAbility(int32_t saId, const sptr<ISystemAbilityStatusChange> &listener);
     static std::mutex instanceLock_;
     static sptr<ImCommonEventManager> instance_;
-    sptr<ISystemAbilityStatusChange> statusChangeListener_ = nullptr;
-    sptr<ISystemAbilityStatusChange> keyboardEventListener_ = nullptr;
-    sptr<ISystemAbilityStatusChange> focusChangeEventListener_ = nullptr;
 };
 } // namespace MiscServices
 } // namespace OHOS

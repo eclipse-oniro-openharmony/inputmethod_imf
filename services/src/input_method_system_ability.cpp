@@ -36,6 +36,7 @@
 #include "message_handler.h"
 #include "native_token_info.h"
 #include "os_account_manager.h"
+#include "parameters.h"
 #include "scene_board_judgement.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
@@ -58,7 +59,11 @@ constexpr uint32_t RETRY_INTERVAL = 100;
 constexpr uint32_t BLOCK_RETRY_TIMES = 100;
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
-
+constexpr uint32_t BOOT_COMPLETE_MASK = 1u;
+constexpr uint32_t WMS_MASK = 1u << 1u;
+constexpr uint32_t ACCOUNT_MASK = 1u << 2u;
+constexpr uint32_t MEMMGR_MASK = 1u << 3u;
+constexpr const char* BOOTEVENT_BOOT_COMPLETED = "bootevent.boot.completed";
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
     : SystemAbility(systemAbilityId, runOnCreate), state_(ServiceRunningState::STATE_NOT_START)
 {
@@ -180,21 +185,13 @@ void InputMethodSystemAbility::HandleUserChanged(int32_t userId)
 
 bool InputMethodSystemAbility::IsDependentSaReady()
 {
-    if (!userSession_->IsWmsReady()) {
-        IMSA_HILOGD("wms not ready");
+    if (depServiceState_.IsMatch(BOOT_COMPLETE_MASK | WMS_MASK | MEMMGR_MASK)) {
+        IMSA_HILOGI("ready");
+        return true;
+    } else {
+        IMSA_HILOGE("not ready");
         return false;
     }
-    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("failed to get samgr");
-        return false;
-    }
-    if (abilityManager->CheckSystemAbility(MEMORY_MANAGER_SA_ID) == nullptr) {
-        IMSA_HILOGD("memmgr not ready");
-        return false;
-    }
-    IMSA_HILOGI("ready");
-    return true;
 }
 
 int32_t InputMethodSystemAbility::OnRestartIme()
@@ -296,19 +293,19 @@ void InputMethodSystemAbility::Initialize()
     userSession_ = std::make_shared<PerUserSession>(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
     isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
+    if (OHOS::system::GetParameter(BOOTEVENT_BOOT_COMPLETED, "false") == "true") {
+        depServiceState_.UpdateState(BOOT_COMPLETE_MASK, true);
+    }
 }
 
-void InputMethodSystemAbility::StartUserIdListener()
+void InputMethodSystemAbility::SubscribeCommonEvents()
 {
-    sptr<ImCommonEventManager> imCommonEventManager = ImCommonEventManager::GetInstance();
-    bool isSuccess = imCommonEventManager->SubscribeEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
-    if (isSuccess) {
-        IMSA_HILOGI("Initialize subscribe service event success");
+    if (ImCommonEventManager::GetInstance()->SubscribeEvents()) {
+        IMSA_HILOGI("success");
         return;
     }
-
     IMSA_HILOGE("failed. Try again 10s later");
-    auto callback = [this]() { StartUserIdListener(); };
+    auto callback = [this]() { SubscribeCommonEvents(); };
     serviceHandler_->PostTask(callback, INIT_INTERVAL);
 }
 
@@ -909,6 +906,11 @@ void InputMethodSystemAbility::WorkThread()
                 RegisterDataShareObserver();
                 break;
             }
+            case MSG_ID_BOOT_COMPLETED: {
+                depServiceState_.UpdateState(BOOT_COMPLETE_MASK, true);
+                RestartCurrentIme();
+                break;
+            }
             default: {
                 IMSA_HILOGD("the message is %{public}d.", msg->msgId_);
                 break;
@@ -1173,7 +1175,7 @@ void InputMethodSystemAbility::InitMonitors()
 {
     int32_t ret = InitAccountMonitor();
     IMSA_HILOGI("init account monitor, ret: %{public}d", ret);
-    StartUserIdListener();
+    SubscribeCommonEvents();
     ret = InitMemMgrMonitor();
     IMSA_HILOGI("init MemMgr monitor, ret: %{public}d", ret);
     ret = InitKeyEventMonitor();
@@ -1190,7 +1192,6 @@ void InputMethodSystemAbility::InitMonitors()
         IMSA_HILOGW("Enter security mode");
         enableSecurityMode_ = true;
     }
-    RegisterDataShareObserver();
 }
 
 int32_t InputMethodSystemAbility::RegisterDataShareObserver()
@@ -1208,13 +1209,18 @@ int32_t InputMethodSystemAbility::RegisterDataShareObserver()
 int32_t InputMethodSystemAbility::InitAccountMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitAccountMonitor");
-    return ImCommonEventManager::GetInstance()->SubscribeAccountManagerService([this]() {
-        auto userId = GetCurrentUserIdFromOsAccount();
-        if (userId_ == userId) {
-            return;
-        }
-        HandleUserChanged(userId);
-    });
+    return ImCommonEventManager::GetInstance()->SubscribeService(
+        SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, [this](bool isAdd) {
+            depServiceState_.UpdateState(ACCOUNT_MASK, isAdd);
+            if (!isAdd) {
+                return;
+            }
+            auto userId = GetCurrentUserIdFromOsAccount();
+            if (userId_ == userId) {
+                return;
+            }
+            HandleUserChanged(userId);
+        });
 }
 
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
@@ -1231,29 +1237,41 @@ bool InputMethodSystemAbility::InitWmsMonitor()
         [this](bool isOnFocused, int32_t pid, int32_t uid) {
             return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
         },
-        [this]() {
+        [this](bool isAdd) {
+            if (!isAdd) {
+                depServiceState_.UpdateState(WMS_MASK, false);
+                return;
+            }
             if (isScbEnable_) {
                 IMSA_HILOGI("scb enable, register WMS connection listener");
                 InitWmsConnectionMonitor();
-                return;
+            } else {
+                depServiceState_.UpdateState(WMS_MASK, true);
+                HandleWmsReady(GetCurrentUserIdFromOsAccount());
             }
-            HandleWmsReady(GetCurrentUserIdFromOsAccount());
         });
 }
 
 bool InputMethodSystemAbility::InitMemMgrMonitor()
 {
-    return ImCommonEventManager::GetInstance()->SubscribeMemMgrService([this]() {
-        IMSA_HILOGI("MemMgr start");
-        Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 1, INPUT_METHOD_SYSTEM_ABILITY_ID);
-        RestartCurrentIme();
+    return ImCommonEventManager::GetInstance()->SubscribeService(MEMORY_MANAGER_SA_ID, [this](bool isAdd) {
+        depServiceState_.UpdateState(MEMMGR_MASK, isAdd);
+        if (isAdd) {
+            IMSA_HILOGI("MemMgr start");
+            Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 1, INPUT_METHOD_SYSTEM_ABILITY_ID);
+        }
     });
 }
 
 void InputMethodSystemAbility::InitWmsConnectionMonitor()
 {
     WmsConnectionMonitorManager::GetInstance().RegisterWMSConnectionChangedListener(
-        [this](int32_t userId, int32_t screenId) { HandleWmsReady(userId); });
+        [this](int32_t userId, int32_t screenId, bool isConnected) {
+            depServiceState_.UpdateState(WMS_MASK, isConnected);
+            if (isConnected) {
+                HandleWmsReady(userId);
+            }
+        });
 }
 
 void InputMethodSystemAbility::InitSystemLanguageMonitor()

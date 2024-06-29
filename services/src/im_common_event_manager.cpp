@@ -54,135 +54,91 @@ sptr<ImCommonEventManager> ImCommonEventManager::GetInstance()
     return instance_;
 }
 
-bool ImCommonEventManager::SubscribeEvent(const std::string &event)
+bool ImCommonEventManager::SubscribeEvents()
 {
     EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent(event);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_REMOVED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED);
-
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED);
     EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
-
-    std::shared_ptr<EventSubscriber> subscriber = std::make_shared<EventSubscriber>(subscriberInfo);
-    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("SubscribeEvent abilityManager is nullptr");
-        return false;
-    }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([subscriber]() {
-        bool subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
-        IMSA_HILOGI("SubscribeCommonEvent ret = %{public}d", subscribeResult);
-    });
+    auto subscriber = std::make_shared<EventSubscriber>(subscriberInfo);
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow)
+        SystemAbilityStatusChangeListener([subscriber](bool isAdd) {
+            if (isAdd) {
+                bool subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
+                IMSA_HILOGI("SubscribeCommonEvent ret = %{public}d", subscribeResult);
+            }
+        });
     if (listener == nullptr) {
-        IMSA_HILOGE("SubscribeEvent listener is nullptr");
+        IMSA_HILOGE("listener is nullptr");
         return false;
     }
-    int32_t ret = abilityManager->SubscribeSystemAbility(COMMON_EVENT_SERVICE_ID, listener);
-    if (ret != ERR_OK) {
-        IMSA_HILOGE("SubscribeEvent SubscribeSystemAbility failed. ret = %{public}d", ret);
-        return false;
-    }
-    statusChangeListener_ = listener;
-    return true;
+    return SubscribeSystemAbility(COMMON_EVENT_SERVICE_ID, listener);
 }
 
 bool ImCommonEventManager::SubscribeKeyboardEvent(KeyHandle handle)
 {
     IMSA_HILOGI("ImCommonEventManager::SubscribeKeyboardEvent");
-    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("SubscribeKeyboardEvent abilityManager is nullptr");
-        return false;
-    }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handle]() {
-        int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(handle);
-        IMSA_HILOGI("SubscribeKeyboardEvent add monitor %{public}s", ret == ErrorCode::NO_ERROR ? "success" : "failed");
-    });
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow)
+        SystemAbilityStatusChangeListener([handle](bool isAdd) {
+            if (isAdd) {
+                int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(handle);
+                IMSA_HILOGI("AddKeyEventMonitor ret: %{public}d", ret);
+            }
+        });
     if (listener == nullptr) {
-        IMSA_HILOGE("SubscribeKeyboardEvent listener is nullptr");
+        IMSA_HILOGE("listener is nullptr");
         return false;
     }
-    int32_t ret = abilityManager->SubscribeSystemAbility(MULTIMODAL_INPUT_SERVICE_ID, listener);
-    if (ret != ERR_OK) {
-        IMSA_HILOGE("SubscribeKeyboardEvent SubscribeSystemAbility failed. ret = %{public}d", ret);
-        return false;
-    }
-    keyboardEventListener_ = listener;
-    return true;
+    return SubscribeSystemAbility(MULTIMODAL_INPUT_SERVICE_ID, listener);
 }
 
-bool ImCommonEventManager::SubscribeWindowManagerService(FocusHandle handle, Handler inputHandler)
+bool ImCommonEventManager::SubscribeWindowManagerService(FocusHandle handle, SaHandler inputHandler)
 {
     IMSA_HILOGI("run in");
-    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("abilityManager is nullptr");
-        return false;
-    }
     sptr<ISystemAbilityStatusChange> listener = new (std::nothrow)
-        SystemAbilityStatusChangeListener([handle, inputHandler]() {
+        SystemAbilityStatusChangeListener([handle, inputHandler](bool isAdd) {
             if (inputHandler != nullptr) {
-                inputHandler();
+                inputHandler(isAdd);
             }
-            FocusMonitorManager::GetInstance().RegisterFocusChangedListener(handle);
+            if (isAdd) {
+                FocusMonitorManager::GetInstance().RegisterFocusChangedListener(handle);
+            }
         });
     if (listener == nullptr) {
         IMSA_HILOGE("failed to create listener");
         return false;
     }
-    int32_t ret = abilityManager->SubscribeSystemAbility(WINDOW_MANAGER_SERVICE_ID, listener);
-    if (ret != ERR_OK) {
-        IMSA_HILOGE("subscribe system ability failed, ret = %{public}d", ret);
-        return false;
-    }
-    focusChangeEventListener_ = listener;
-    return true;
+    return SubscribeSystemAbility(WINDOW_MANAGER_SERVICE_ID, listener);
 }
 
-bool ImCommonEventManager::SubscribeMemMgrService(const Handler &handler)
+bool ImCommonEventManager::SubscribeService(int32_t saId, const SaHandler &handler)
+{
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow)
+        SystemAbilityStatusChangeListener([handler](bool isAdd) {
+            if (handler != nullptr) {
+                handler(isAdd);
+            }
+        });
+    if (listener == nullptr) {
+        IMSA_HILOGE("failed to create sa %{public}d listener", saId);
+        return false;
+    }
+    return SubscribeSystemAbility(saId, listener);
+}
+
+bool ImCommonEventManager::SubscribeSystemAbility(int32_t saId, const sptr<ISystemAbilityStatusChange> &listener)
 {
     auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (abilityManager == nullptr) {
         IMSA_HILOGE("abilityManager is nullptr");
         return false;
     }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
-        if (handler != nullptr) {
-            handler();
-        }
-    });
-    if (listener == nullptr) {
-        IMSA_HILOGE("failed to create listener");
-        return false;
-    }
-    int32_t ret = abilityManager->SubscribeSystemAbility(MEMORY_MANAGER_SA_ID, listener);
+    int32_t ret = abilityManager->SubscribeSystemAbility(saId, listener);
     if (ret != ERR_OK) {
-        IMSA_HILOGE("subscribe system ability failed, ret = %{public}d", ret);
-        return false;
-    }
-    return true;
-}
-
-bool ImCommonEventManager::SubscribeAccountManagerService(Handler handler)
-{
-    auto abilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (abilityManager == nullptr) {
-        IMSA_HILOGE("abilityManager is nullptr");
-        return false;
-    }
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([handler]() {
-        if (handler != nullptr) {
-            handler();
-        }
-    });
-    if (listener == nullptr) {
-        IMSA_HILOGE("failed to create listener");
-        return false;
-    }
-    int32_t ret = abilityManager->SubscribeSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, listener);
-    if (ret != ERR_OK) {
-        IMSA_HILOGE("subscribe system ability failed, ret = %{public}d", ret);
+        IMSA_HILOGE("subscribe sa %{public}d failed, ret = %{public}d", saId, ret);
         return false;
     }
     return true;
@@ -200,6 +156,7 @@ ImCommonEventManager::EventSubscriber::EventSubscriber(const EventFwk::CommonEve
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_USER_REMOVED] = &EventSubscriber::RemoveUser;
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED] = &EventSubscriber::RemovePackage;
     EventManagerFunc_[CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED] = &EventSubscriber::OnBundleScanFinished;
+    EventManagerFunc_[CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED] = &EventSubscriber::OnBootCompleted;
 }
 
 void ImCommonEventManager::EventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
@@ -244,6 +201,23 @@ void ImCommonEventManager::EventSubscriber::OnBundleScanFinished(const EventFwk:
     MessageHandler::Instance()->SendMessage(msg);
 }
 
+void ImCommonEventManager::EventSubscriber::OnBootCompleted(const EventFwk::CommonEventData &data)
+{
+    IMSA_HILOGI("ImCommonEventManager in");
+    auto parcel = new (std::nothrow) MessageParcel();
+    if (parcel == nullptr) {
+        IMSA_HILOGE("failed to create MessageParcel");
+        return;
+    }
+    auto msg = new (std::nothrow) Message(MessageID::MSG_ID_BOOT_COMPLETED, parcel);
+    if (msg == nullptr) {
+        IMSA_HILOGE("failed to create Message");
+        delete parcel;
+        return;
+    }
+    MessageHandler::Instance()->SendMessage(msg);
+}
+
 void ImCommonEventManager::EventSubscriber::RemoveUser(const CommonEventData &data)
 {
     auto userId = data.GetCode();
@@ -276,7 +250,7 @@ void ImCommonEventManager::EventSubscriber::RemovePackage(const CommonEventData 
     MessageHandler::Instance()->SendMessage(msg);
 }
 
-ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(std::function<void()> func)
+ImCommonEventManager::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(SaHandler func)
     : func_(std::move(func))
 {
 }
@@ -291,13 +265,17 @@ void ImCommonEventManager::SystemAbilityStatusChangeListener::OnAddSystemAbility
         return;
     }
     if (func_ != nullptr) {
-        func_();
+        func_(true);
     }
 }
 
 void ImCommonEventManager::SystemAbilityStatusChangeListener::OnRemoveSystemAbility(int32_t systemAbilityId,
     const std::string &deviceId)
 {
+    IMSA_HILOGD("systemAbilityId: %{public}d", systemAbilityId);
+    if (func_ != nullptr) {
+        func_(false);
+    }
 }
 
 int32_t ImCommonEventManager::PublishPanelStatusChangeEvent(const InputWindowStatus &status, const ImeWindowInfo &info)
