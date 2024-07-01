@@ -235,6 +235,8 @@ void InputMethodAbility::OnInitInputControlChannel(Message *msg)
 
 int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool isBindFromClient)
 {
+    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
+    int32_t cmdCount = ++cmdId_;
     if (clientInfo.channel == nullptr) {
         IMSA_HILOGE("channelObject is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
@@ -250,10 +252,10 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     }
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
     if (clientInfo.isShowKeyboard) {
-        auto task = [this]() { ShowKeyboard(); };
+        auto task = [this, cmdCount]() { ShowKeyboardImplWithLock(cmdCount); };
         if (imeListener_ == nullptr || !imeListener_->PostTaskToEventHandler(task, "ShowKeyboard")) {
             IMSA_HILOGE("imeListener_ is nullptr, or post task failed!");
-            ShowKeyboard();
+            ShowKeyboardImplWithoutLock(cmdCount);
         }
     }
     return ErrorCode::NO_ERROR;
@@ -290,8 +292,10 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
 
 int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
 {
+    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     IMSA_HILOGI("IMA");
-    HideKeyboard();
+    int32_t cmdCount = ++cmdId_;
+    HideKeyboardWithoutLock(cmdCount);
     ClearDataChannel(channelObject);
     ClearInputAttribute();
     if (imeListener_ != nullptr) {
@@ -401,8 +405,41 @@ void InputMethodAbility::OnStopInputService(Message *msg)
     isBound_.store(false);
 }
 
+int32_t InputMethodAbility::HideKeyboard()
+{
+    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
+    int32_t cmdCount = ++cmdId_;
+    return HideKeyboardImplWithoutLock(cmdCount);
+}
+
+int32_t InputMethodAbility::HideKeyboardImplWithoutLock(int32_t cmdId)
+{
+    if (cmdId != cmdId_) {
+        IMSA_HILOGE("current is not last cmd cur: %{public}d, cmdId_: %{public}d", cmdId, cmdId_);
+        return ErrorCode::NO_ERROR;
+    }
+    return HideKeyboard(Trigger::IMF);
+}
+
 int32_t InputMethodAbility::ShowKeyboard()
 {
+    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
+    int32_t cmdCount = ++cmdId_;
+    return ShowKeyboardImplWithoutLock(cmdCount);
+}
+
+int32_t InputMethodAbility::ShowKeyboardImplWithLock(int32_t cmdId)
+{
+    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
+    return ShowKeyboardImplWithoutLock(cmdId);
+}
+
+int32_t InputMethodAbility::ShowKeyboardImplWithoutLock(int32_t cmdId)
+{
+    if (cmdId != cmdId_) {
+        IMSA_HILOGE("current is not last cmd cur: %{public}d, cmdId_: %{public}d", cmdId, cmdId_);
+        return ErrorCode::NO_ERROR;
+    }
     if (imeListener_ == nullptr) {
         IMSA_HILOGE("imeListener is nullptr");
         return ErrorCode::ERROR_IME;
@@ -511,11 +548,6 @@ int32_t InputMethodAbility::InvokeStartInputCallback(const TextTotalConfig &text
         imeListener_->OnSetCallingWindow(textConfig.windowId);
     }
     return ErrorCode::NO_ERROR;
-}
-
-int32_t InputMethodAbility::HideKeyboard()
-{
-    return HideKeyboard(Trigger::IMF);
 }
 
 int32_t InputMethodAbility::InsertText(const std::string text)
@@ -845,6 +877,7 @@ int32_t InputMethodAbility::CreatePanel(const std::shared_ptr<AbilityRuntime::Co
 
 int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
+    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     IMSA_HILOGI("IMA");
     if (inputMethodPanel == nullptr) {
         IMSA_HILOGE("panel is nullptr");
@@ -860,6 +893,7 @@ int32_t InputMethodAbility::DestroyPanel(const std::shared_ptr<InputMethodPanel>
 
 int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
+    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
@@ -868,6 +902,7 @@ int32_t InputMethodAbility::ShowPanel(const std::shared_ptr<InputMethodPanel> &i
 
 int32_t InputMethodAbility::HidePanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel)
 {
+    std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
     if (inputMethodPanel == nullptr) {
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
