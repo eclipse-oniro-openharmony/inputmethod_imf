@@ -127,10 +127,15 @@ private:
 
     void ListenWindowManager();
 
+    void OnBootCompleted(const char *key, const char *value, void *context);
+
+    void InvokeOnCreate();
+
     JsRuntime &jsRuntime_;
     std::unique_ptr<NativeReference> jsObj_;
     std::shared_ptr<NativeReference> shellContextRef_ = nullptr;
     std::shared_ptr<AbilityHandler> handler_ = nullptr;
+    AAFwk::Want want_{};
 
 protected:
     class JsInputMethodExtensionDisplayListener : public Rosen::DisplayManager::IDisplayListener {

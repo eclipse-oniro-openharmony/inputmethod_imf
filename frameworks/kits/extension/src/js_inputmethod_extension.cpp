@@ -32,6 +32,7 @@
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
+#include "parameters.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -43,7 +44,7 @@ constexpr size_t ARGC_TWO = 2;
 JsInputMethodExtension *JsInputMethodExtension::jsInputMethodExtension = nullptr;
 using namespace OHOS::AppExecFwk;
 using namespace OHOS::MiscServices;
-
+constexpr const char* BOOTEVENT_BOOT_COMPLETED = "bootevent.boot.completed";
 napi_value AttachInputMethodExtensionContext(napi_env env, void *value, void *)
 {
     IMSA_HILOGI("AttachInputMethodExtensionContext");
@@ -246,20 +247,13 @@ void JsInputMethodExtension::BindContext(napi_env env, napi_value obj)
 
 void JsInputMethodExtension::OnStart(const AAFwk::Want &want)
 {
-    StartAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
-    StartAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
-    Extension::OnStart(want);
-    FinishAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
-    IMSA_HILOGI("JsInputMethodExtension OnStart begin..");
-    HandleScope handleScope(jsRuntime_);
-    napi_env env = jsRuntime_.GetNapiEnv();
-    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
-    napi_value argv[] = { napiWant };
-    StartAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
-    CallObjectMethod("onCreate", argv, ARGC_ONE);
-    FinishAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
-    auto ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
-    IMSA_HILOGI("ime bind imf ret: %{public}d", ret);
+    std::string isBoot = OHOS::system::GetParameter(BOOTEVENT_BOOT_COMPLETED, "false");
+    if (isBoot == "true") {
+        InvokeOnCreate();
+    } else {
+        want_ = want;
+        OHOS::system::WatchParameter(BOOTEVENT_BOOT_COMPLETED, OnBootCompleted, nullptr);
+    }
     FinishAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
 }
 
@@ -430,6 +424,41 @@ void JsInputMethodExtension::OnChange(Rosen::DisplayId displayId)
             handler_->PostTask(task, "JsInputMethodExtension:OnChange");
         }
     }
+}
+
+void JsInputMethodExtension::OnBootCompleted(const char *key, const char *value, void *context)
+{
+    if (key == nullptr || value == nullptr) {
+        return;
+    }
+    if (strncmp(key, BOOTEVENT_BOOT_COMPLETED, strlen(BOOTEVENT_BOOT_COMPLETED)) != 0) {
+        IMSA_HILOGE("key: %{public}s is error", key);
+        return;
+    }
+    if (strcmp(value, "true") != 0) {
+        return;
+    }
+    IMSA_HILOGI("boot complete");
+    InvokeOnCreate();
+}
+
+void JsInputMethodExtension::InvokeOnCreate()
+{
+    IMSA_HILOGI("run in");
+    StartAsync("OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_EXTENSION));
+    StartAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
+    Extension::OnStart(want_);
+    FinishAsync("Extension::OnStart", static_cast<int32_t>(TraceTaskId::ONSTART_MIDDLE_EXTENSION));
+    IMSA_HILOGI("JsInputMethodExtension OnStart begin..");
+    HandleScope handleScope(jsRuntime_);
+    napi_env env = jsRuntime_.GetNapiEnv();
+    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
+    napi_value argv[] = { napiWant };
+    StartAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
+    CallObjectMethod("onCreate", argv, ARGC_ONE);
+    FinishAsync("onCreate", static_cast<int32_t>(TraceTaskId::ONCREATE_EXTENSION));
+    auto ret = InputMethodAbility::GetInstance()->SetCoreAndAgent();
+    IMSA_HILOGI("ime bind imf ret: %{public}d", ret);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

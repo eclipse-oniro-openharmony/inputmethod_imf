@@ -839,6 +839,12 @@ std::shared_ptr<ImeData> PerUserSession::GetValidIme(ImeType type)
     if (data != nullptr || type != ImeType::IME) {
         return data;
     }
+    if (isStarting_.load() && isImeStarted_.GetValue()) {
+        auto imeData = GetImeData(ImeType::IME);
+        if (imeData != nullptr) {
+            return imeData;
+        }
+    }
     IMSA_HILOGI("current ime is empty, try to restart it");
     if (!StartCurrentIme(userId_, true)) {
         return nullptr;
@@ -1026,6 +1032,7 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime,
     want.SetElementName(ime->bundleName, ime->extName);
     want.SetParam(STRICT_MODE, !(mode == SecurityMode::FULL));
     isImeStarted_.Clear(false);
+    isStarting_.store(true);
     sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
     if (connection == nullptr) {
         IMSA_HILOGE("failed to create connection");
@@ -1033,13 +1040,17 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime,
     }
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbility(want, connection, userId_);
     if (ret != ErrorCode::NO_ERROR) {
+        isStarting_.store(false);
         IMSA_HILOGE("failed to start ability");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_IME_START_FAILED, ime->imeId,
             "StartInputService, failed to start ability.");
     } else if (isImeStarted_.GetValue()) {
+        isStarting_.store(false);
         IMSA_HILOGI("ime started successfully");
         InputMethodSysEvent::GetInstance().RecordEvent(IMEBehaviour::START_IME);
         return true;
+    } else {
+        isStarting_.store(false);
     }
     if (isRetry) {
         IMSA_HILOGE("failed to start ime, begin to retry five times");

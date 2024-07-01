@@ -653,6 +653,10 @@ std::shared_ptr<Property> ImeInfoInquirer::GetImeByBundleName(int32_t userId, co
 std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
 {
     auto currentImeCfg = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
+    if (currentImeCfg->bundleName.empty()) {
+        IMSA_HILOGI("current ime cfg null, get default ime");
+        *currentImeCfg = GetDefaultIme();
+    }
     IMSA_HILOGD("currentIme: %{public}s", currentImeCfg->imeId.c_str());
     std::vector<AppExecFwk::ExtensionAbilityInfo> extInfos;
     auto ret = ImeInfoInquirer::GetInstance().GetExtInfosByBundleName(userId, currentImeCfg->bundleName, extInfos);
@@ -673,6 +677,10 @@ std::shared_ptr<Property> ImeInfoInquirer::GetCurrentInputMethod(int32_t userId)
 std::shared_ptr<SubProperty> ImeInfoInquirer::GetCurrentSubtype(int32_t userId)
 {
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
+    if (currentIme->bundleName.empty()) {
+        IMSA_HILOGI("current ime cfg null, get default ime");
+        *currentIme = GetDefaultIme();
+    }
     IMSA_HILOGD("currentIme: %{public}s", currentIme->imeId.c_str());
     std::vector<ExtensionAbilityInfo> extInfos;
     auto ret = GetExtInfosByBundleName(userId, currentIme->bundleName, extInfos);

@@ -188,13 +188,14 @@ private:
     void NotifyImeStopFinished();
 
     BlockData<bool> isImeStarted_{ MAX_IME_START_TIME, false };
+    std::atomic_bool isStarting_{ false };
     std::mutex imeDataLock_;
     std::unordered_map<ImeType, std::shared_ptr<ImeData>> imeData_;
     std::mutex inactiveClientLock_;
     sptr<IInputClient> inactiveClient_; // the inactive input client
     std::mutex focusedClientLock_;
 
-    std::atomic<bool> isSwitching_ = false;
+    std::atomic<bool> isStopping_ = false;
     std::mutex imeStopMutex_;
     std::condition_variable imeStopCv_;
 };
