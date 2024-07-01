@@ -33,15 +33,12 @@
 
 namespace OHOS {
 namespace MiscServices {
-using Handler = std::function<void()>;
 using SaHandler = std::function<void(bool)>;
 class ImCommonEventManager : public RefBase {
 public:
     static sptr<ImCommonEventManager> GetInstance();
     bool SubscribeEvents();
     bool SubscribeService(int32_t saId, const SaHandler &handler);
-    bool SubscribeKeyboardEvent(KeyHandle handle);
-    bool SubscribeWindowManagerService(FocusHandle handle, SaHandler inputHandler);
     bool UnsubscribeEvent();
     // only public the status change of softKeyboard in FLG_FIXED or FLG_FLOATING
     int32_t PublishPanelStatusChangeEvent(const InputWindowStatus &status, const ImeWindowInfo &info);

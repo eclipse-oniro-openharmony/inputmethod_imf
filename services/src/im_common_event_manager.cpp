@@ -56,62 +56,25 @@ sptr<ImCommonEventManager> ImCommonEventManager::GetInstance()
 
 bool ImCommonEventManager::SubscribeEvents()
 {
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
-    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_REMOVED);
-    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
-    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED);
-    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED);
-    EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
-    auto subscriber = std::make_shared<EventSubscriber>(subscriberInfo);
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow)
-        SystemAbilityStatusChangeListener([subscriber](bool isAdd) {
-            if (isAdd) {
-                bool subscribeResult = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
-                IMSA_HILOGI("SubscribeCommonEvent ret = %{public}d", subscribeResult);
-            }
-        });
+    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow) SystemAbilityStatusChangeListener([](bool isAdd) {
+        if (isAdd) {
+            EventFwk::MatchingSkills matchingSkills;
+            matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
+            matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_REMOVED);
+            matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
+            matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED);
+            matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_BOOT_COMPLETED);
+            EventFwk::CommonEventSubscribeInfo subscriberInfo(matchingSkills);
+            auto subscriber = std::make_shared<EventSubscriber>(subscriberInfo);
+            bool ret = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber);
+            IMSA_HILOGI("SubscribeCommonEvent ret = %{public}d", ret);
+        }
+    });
     if (listener == nullptr) {
         IMSA_HILOGE("listener is nullptr");
         return false;
     }
     return SubscribeSystemAbility(COMMON_EVENT_SERVICE_ID, listener);
-}
-
-bool ImCommonEventManager::SubscribeKeyboardEvent(KeyHandle handle)
-{
-    IMSA_HILOGI("ImCommonEventManager::SubscribeKeyboardEvent");
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow)
-        SystemAbilityStatusChangeListener([handle](bool isAdd) {
-            if (isAdd) {
-                int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(handle);
-                IMSA_HILOGI("AddKeyEventMonitor ret: %{public}d", ret);
-            }
-        });
-    if (listener == nullptr) {
-        IMSA_HILOGE("listener is nullptr");
-        return false;
-    }
-    return SubscribeSystemAbility(MULTIMODAL_INPUT_SERVICE_ID, listener);
-}
-
-bool ImCommonEventManager::SubscribeWindowManagerService(FocusHandle handle, SaHandler inputHandler)
-{
-    IMSA_HILOGI("run in");
-    sptr<ISystemAbilityStatusChange> listener = new (std::nothrow)
-        SystemAbilityStatusChangeListener([handle, inputHandler](bool isAdd) {
-            if (inputHandler != nullptr) {
-                inputHandler(isAdd);
-            }
-            if (isAdd) {
-                FocusMonitorManager::GetInstance().RegisterFocusChangedListener(handle);
-            }
-        });
-    if (listener == nullptr) {
-        IMSA_HILOGE("failed to create listener");
-        return false;
-    }
-    return SubscribeSystemAbility(WINDOW_MANAGER_SERVICE_ID, listener);
 }
 
 bool ImCommonEventManager::SubscribeService(int32_t saId, const SaHandler &handler)
@@ -273,6 +236,11 @@ void ImCommonEventManager::SystemAbilityStatusChangeListener::OnRemoveSystemAbil
     const std::string &deviceId)
 {
     IMSA_HILOGD("systemAbilityId: %{public}d", systemAbilityId);
+    if (systemAbilityId != COMMON_EVENT_SERVICE_ID && systemAbilityId != MULTIMODAL_INPUT_SERVICE_ID &&
+        systemAbilityId != WINDOW_MANAGER_SERVICE_ID && systemAbilityId != SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN &&
+        systemAbilityId != MEMORY_MANAGER_SA_ID) {
+        return;
+    }
     if (func_ != nullptr) {
         func_(false);
     }

@@ -185,13 +185,9 @@ void InputMethodSystemAbility::HandleUserChanged(int32_t userId)
 
 bool InputMethodSystemAbility::IsDependentSaReady()
 {
-    if (depServiceState_.IsMatch(BOOT_COMPLETE_MASK | WMS_MASK | MEMMGR_MASK)) {
-        IMSA_HILOGI("ready");
-        return true;
-    } else {
-        IMSA_HILOGE("not ready");
-        return false;
-    }
+    bool isReady = depServiceState_.IsMatch(BOOT_COMPLETE_MASK | WMS_MASK | MEMMGR_MASK);
+    IMSA_HILOGI("dependent services ready: %{public}d", isReady);
+    return isReady;
 }
 
 int32_t InputMethodSystemAbility::OnRestartIme()
@@ -200,12 +196,12 @@ int32_t InputMethodSystemAbility::OnRestartIme()
         std::lock_guard<std::mutex> lock(restartMutex_);
         needRestart_ = false;
     }
+    userSession_->StopCurrentIme();
     if (!IsDependentSaReady()) {
         IMSA_HILOGI("dependent sa not ready");
         return ErrorCode::ERROR_EX_ILLEGAL_STATE;
     }
     IMSA_HILOGI("start ime, userId: %{public}d", userId_);
-    userSession_->StopCurrentIme();
     auto ret = userSession_->StartCurrentIme(userId_, true);
     if (!ret) {
         IMSA_HILOGE("start ime failed");
@@ -248,7 +244,7 @@ void InputMethodSystemAbility::HandleWmsReady(int32_t userId)
     if (userId != userId_) {
         HandleUserChanged(userId);
     }
-    //clear client
+    // unbind current client
     auto ret = userSession_->RemoveCurrentClient();
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("RemoveCurrentClient failed");
@@ -1226,30 +1222,37 @@ int32_t InputMethodSystemAbility::InitAccountMonitor()
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor");
-    bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
-        [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode); });
-    return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
+    return ImCommonEventManager::GetInstance()->SubscribeService(MULTIMODAL_INPUT_SERVICE_ID, [this](bool isAdd) {
+        if (isAdd) {
+            int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(
+                [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode); });
+            IMSA_HILOGI("AddKeyEventMonitor ret: %{public}d", ret);
+        }
+    });
 }
 
 bool InputMethodSystemAbility::InitWmsMonitor()
 {
-    return ImCommonEventManager::GetInstance()->SubscribeWindowManagerService(
-        [this](bool isOnFocused, int32_t pid, int32_t uid) {
-            return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
-        },
-        [this](bool isAdd) {
-            if (!isAdd) {
-                depServiceState_.UpdateState(WMS_MASK, false);
-                return;
-            }
-            if (isScbEnable_) {
-                IMSA_HILOGI("scb enable, register WMS connection listener");
-                InitWmsConnectionMonitor();
-            } else {
-                depServiceState_.UpdateState(WMS_MASK, true);
-                HandleWmsReady(GetCurrentUserIdFromOsAccount());
-            }
-        });
+    return ImCommonEventManager::GetInstance()->SubscribeService(WINDOW_MANAGER_SERVICE_ID, [this](bool isAdd) {
+        if (!isAdd) {
+            IMSA_HILOGD("wms sa removed");
+            depServiceState_.UpdateState(WMS_MASK, false);
+            return;
+        }
+        IMSA_HILOGI("wms sa added");
+        FocusMonitorManager::GetInstance().RegisterFocusChangedListener(
+            [this](bool isOnFocused, int32_t pid, int32_t uid) {
+                return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
+            });
+        if (isScbEnable_) {
+            IMSA_HILOGI("scb enable, register WMS connection listener");
+            InitWmsConnectionMonitor();
+        } else {
+            // if scb not enable, sa adding means wms ready
+            depServiceState_.UpdateState(WMS_MASK, true);
+            HandleWmsReady(GetCurrentUserIdFromOsAccount());
+        }
+    });
 }
 
 bool InputMethodSystemAbility::InitMemMgrMonitor()

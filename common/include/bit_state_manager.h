@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef INPUTMETHOD_IMF_BITE_STATE_MANAGER_H
-#define INPUTMETHOD_IMF_BITE_STATE_MANAGER_H
+#ifndef INPUTMETHOD_IMF_BIT_STATE_MANAGER_H
+#define INPUTMETHOD_IMF_BIT_STATE_MANAGER_H
 
 #include <cstdint>
 
@@ -56,4 +56,4 @@ private:
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif // INPUTMETHOD_IMF_BITE_STATE_MANAGER_H
+#endif // INPUTMETHOD_IMF_BIT_STATE_MANAGER_H

@@ -21,7 +21,7 @@
 #include <thread>
 
 #include "application_info.h"
-#include "bite_state_manager.h"
+#include "bit_state_manager.h"
 #include "block_queue.h"
 #include "bundle_mgr_proxy.h"
 #include "element_name.h"
