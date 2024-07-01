@@ -1035,6 +1035,9 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime,
     } else if (isImeStarted_.GetValue()) {
         IMSA_HILOGI("ime started successfully");
         InputMethodSysEvent::GetInstance().RecordEvent(IMEBehaviour::START_IME);
+        auto subProp = ImeInfoInquirer::GetInstance().GetCurrentImeInfo()->subProp;
+        auto data = GetImeData(ImeType::IME);
+        RequestIme(data, RequestType::NORMAL, [&data, &subProp] {return data->core->SetSubtype(subProp); });
         return true;
     }
     if (isRetry) {
