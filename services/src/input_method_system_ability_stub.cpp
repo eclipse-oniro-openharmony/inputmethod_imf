@@ -15,6 +15,7 @@
 
 #include "input_method_system_ability_stub.h"
 
+#include <cinttypes>
 #include <memory>
 
 #include "element_name.h"
@@ -22,9 +23,14 @@
 #include "input_method_core_proxy.h"
 #include "ipc_skeleton.h"
 #include "itypes_util.h"
-
+#include "xcollie/xcollie.h"
+#include "xcollie/xcollie_define.h"
 namespace OHOS {
 namespace MiscServices {
+using namespace std::chrono;
+using namespace HiviewDFX;
+constexpr uint32_t FATAL_TIMEOUT = 30;    // 30s
+constexpr int64_t WARNING_TIMEOUT = 5000; // 5s
 int32_t InputMethodSystemAbilityStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
@@ -38,7 +44,19 @@ int32_t InputMethodSystemAbilityStub::OnRemoteRequest(uint32_t code, MessageParc
         return ErrorCode::ERROR_STATUS_UNKNOWN_TRANSACTION;
     }
     if (code >= FIRST_CALL_TRANSACTION && code < static_cast<uint32_t>(InputMethodInterfaceCode::IMS_CMD_LAST)) {
-        return (this->*HANDLERS.at(code))(data, reply);
+        // service reboot when timeout 30s
+        auto id = XCollie::GetInstance().SetTimer(
+            "IMSA_API[" + std::to_string(code) + "]", FATAL_TIMEOUT, nullptr, nullptr, XCOLLIE_FLAG_DEFAULT);
+        int64_t startPoint = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+        auto ret = (this->*HANDLERS.at(code))(data, reply);
+        int64_t costTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() - startPoint;
+        // log warning when timeout 5s
+        if (costTime > WARNING_TIMEOUT) {
+            IMSA_HILOGW("code: %{public}d pid: %{public}d uid: %{public}d cost: %{public}" PRId64 "", code,
+                IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), costTime);
+        }
+        XCollie::GetInstance().CancelTimer(id);
+        return ret;
     } else {
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }

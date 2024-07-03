@@ -30,7 +30,6 @@
 #include "inputmethod_trace.h"
 #include "iservice_registry.h"
 #include "keyevent_consumer_stub.h"
-#include "parameters.h"
 #include "string_ex.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
