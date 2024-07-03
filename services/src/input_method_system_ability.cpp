@@ -56,6 +56,7 @@ constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
 constexpr uint32_t RETRY_INTERVAL = 100;
 constexpr uint32_t BLOCK_RETRY_TIMES = 100;
+constexpr uint32_t SYS_TIMEOUT = 10;
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
 
@@ -308,8 +309,11 @@ int32_t InputMethodSystemAbility::ReleaseInput(sptr<IInputClient> client)
         IMSA_HILOGE("InputMethodSystemAbility::client is nullptr");
         return ErrorCode::ERROR_CLIENT_NULL_POINTER;
     }
-    return userSession_->OnReleaseInput(client);
-};
+    auto id = XCollie::GetInstance().SetTimer("ReleaseInput", SYS_TIMEOUT, nullptr, nullptr, XCOLLIE_FLAG_DEFAULT);
+    int32_t ret = userSession_->OnReleaseInput(client);
+    XCollie::GetInstance().CancelTimer(id);
+    return ret;
+}
 
 int32_t InputMethodSystemAbility::StartInput(InputClientInfo &inputClientInfo, sptr<IRemoteObject> &agent)
 {
@@ -784,9 +788,8 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
-    constexpr int32_t TIME_OUT_SECOND = 10;
     auto id =
-        XCollie::GetInstance().SetTimer("GetCurrentInputMethod", TIME_OUT_SECOND, nullptr, nullptr, XCOLLIE_FLAG_LOG);
+        XCollie::GetInstance().SetTimer("GetCurrentInputMethod", SYS_TIMEOUT, nullptr, nullptr, XCOLLIE_FLAG_DEFAULT);
     auto property = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId_);
     XCollie::GetInstance().CancelTimer(id);
     return property;
@@ -794,9 +797,8 @@ std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 
 std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
 {
-    constexpr int32_t TIME_OUT_SECOND = 10;
     auto id = XCollie::GetInstance().SetTimer(
-        "GetCurrentInputMethodSubtype", TIME_OUT_SECOND, nullptr, nullptr, XCOLLIE_FLAG_LOG);
+        "GetCurrentInputMethodSubtype", SYS_TIMEOUT, nullptr, nullptr, XCOLLIE_FLAG_DEFAULT);
     auto property = ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);
     XCollie::GetInstance().CancelTimer(id);
     return property;
