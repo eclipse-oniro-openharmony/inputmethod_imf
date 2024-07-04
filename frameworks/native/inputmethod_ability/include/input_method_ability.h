@@ -155,6 +155,9 @@ private:
     InputAttribute GetInputAttribute();
     void ClearInputAttribute();
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
+    int32_t HideKeyboardImplWithoutLock(int32_t cmdId);
+    int32_t ShowKeyboardImplWithLock(int32_t cmdId);
+    int32_t ShowKeyboardImplWithoutLock(int32_t cmdId);
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isBound_{ false };
@@ -174,6 +177,8 @@ private:
     bool isDefaultIme_ = false;
     std::mutex inputAttrLock_;
     InputAttribute inputAttribute_{};
+    std::recursive_mutex keyboardCmdLock_;
+    int32_t cmdId_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
