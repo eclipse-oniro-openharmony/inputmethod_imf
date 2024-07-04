@@ -173,7 +173,7 @@ int32_t PerUserSession::HideKeyboard(const sptr<IInputClient> &currentClient)
         IMSA_HILOGE("ime: %{public}d is not exist", clientInfo->bindImeType);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    auto ret = RequestIme(data, RequestType::REQUEST_HIDE, [&data] { return data->core->HideKeyboard(); });
+    auto ret = RequestIme(data, RequestType::NORMAL, [&data] { return data->core->HideKeyboard(); });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to hide keyboard, ret: %{public}d", ret);
         return ErrorCode::ERROR_KBD_HIDE_FAILED;
