@@ -293,8 +293,8 @@ void InputMethodAbility::ClearDataChannel(const sptr<IRemoteObject> &channel)
 int32_t InputMethodAbility::StopInput(const sptr<IRemoteObject> &channelObject)
 {
     std::lock_guard<std::recursive_mutex> lock(keyboardCmdLock_);
-    IMSA_HILOGI("IMA");
     int32_t cmdCount = ++cmdId_;
+    IMSA_HILOGI("IMA");
     HideKeyboardImplWithoutLock(cmdCount);
     ClearDataChannel(channelObject);
     ClearInputAttribute();
