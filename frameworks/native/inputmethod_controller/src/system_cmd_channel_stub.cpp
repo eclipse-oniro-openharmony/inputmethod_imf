@@ -49,19 +49,20 @@ int32_t SystemCmdChannelStub::SendPrivateCommandOnRemote(MessageParcel &data, Me
     return reply.WriteInt32(SendPrivateCommand(privateCommand)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
-int32_t SystemCmdChannelStub::ShowSysPanel(bool shouldSysPanelShow)
+int32_t SystemCmdChannelStub::NotifyPanelStatus(const SysPanelStatus &sysPanelStatus)
 {
-    return ImeSystemCmdChannel::GetInstance()->ShowSysPanel(shouldSysPanelShow);
+    return ImeSystemCmdChannel::GetInstance()->NotifyPanelStatus(sysPanelStatus);
 }
 
-int32_t SystemCmdChannelStub::ShowSysPanelOnRemote(MessageParcel &data, MessageParcel &reply)
+int32_t SystemCmdChannelStub::NotifyPanelStatusOnRemote(MessageParcel &data, MessageParcel &reply)
 {
-    bool shouldSysPanelShow = false;
-    if (!ITypesUtil::Unmarshal(data, shouldSysPanelShow)) {
+    SysPanelStatus sysPanelStatus;
+    if (!ITypesUtil::Unmarshal(data, sysPanelStatus)) {
         IMSA_HILOGE("failed to read message parcel");
         return ErrorCode::ERROR_EX_PARCELABLE;
     }
-    return reply.WriteInt32(ShowSysPanel(shouldSysPanelShow)) ? ErrorCode::NO_ERROR : ErrorCode::ERROR_EX_PARCELABLE;
+    return reply.WriteInt32(NotifyPanelStatus(sysPanelStatus)) ? ErrorCode::NO_ERROR
+                                                                  : ErrorCode::ERROR_EX_PARCELABLE;
 }
 
 int32_t SystemCmdChannelStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,

@@ -21,11 +21,12 @@
 #include <thread>
 
 #include "application_info.h"
-#include "bit_state_manager.h"
 #include "block_queue.h"
 #include "bundle_mgr_proxy.h"
-#include "element_name.h"
 #include "enable_ime_data_parser.h"
+#include "settings_data_utils.h"
+#include "security_mode_parser.h"
+#include "element_name.h"
 #include "event_handler.h"
 #include "identity_checker_impl.h"
 #include "ime_info_inquirer.h"
@@ -34,8 +35,6 @@
 #include "inputmethod_dump.h"
 #include "inputmethod_trace.h"
 #include "peruser_session.h"
-#include "security_mode_parser.h"
-#include "settings_data_utils.h"
 #include "system_ability.h"
 #include "unRegistered_type.h"
 
@@ -107,7 +106,7 @@ private:
     int32_t OnUserRemoved(const Message *msg);
     int32_t OnPackageRemoved(const Message *msg);
     int32_t OnDisplayOptionalInputMethod();
-    void SubscribeCommonEvents();
+    void StartUserIdListener();
     bool IsNeedSwitch(const std::string &bundleName, const std::string &subName);
     int32_t CheckSwitchPermission(const SwitchInfo &switchInfo, SwitchTrigger trigger);
     bool IsStartInputTypePermitted();
@@ -121,7 +120,6 @@ private:
     void InitServiceHandler();
     int32_t GetCurrentUserIdFromOsAccount();
     void HandleUserChanged(int32_t userId);
-    int32_t OnRestartIme();
     int32_t RestartCurrentIme();
     void HandleWmsReady(int32_t userId);
     int32_t InitAccountMonitor();
@@ -152,7 +150,6 @@ private:
     void DealSwitchRequest();
     void DealSecurityChange();
     void OnSecurityModeChange();
-    bool IsDependentSaReady();
 
     std::mutex checkMutex_;
     void DatashareCallback(const std::string &key);
@@ -160,6 +157,7 @@ private:
     bool enableSecurityMode_ = false;
 
     bool isScbEnable_ = false;
+    std::atomic<bool> imeStarting_ = false;
     std::mutex switchImeMutex_;
     std::atomic<bool> switchTaskExecuting_ = false;
     std::atomic<uint32_t> targetSwitchCount_ = 0;
@@ -167,12 +165,6 @@ private:
     std::mutex modeChangeMutex_;
     bool isChangeHandling_ = false;
     bool hasPendingChanges_ = false;
-
-    std::mutex restartMutex_;
-    bool isRestarting_ = false;
-    bool needRestart_ = false;
-
-    BitStateManager depServiceState_{ 0 };
 };
 } // namespace MiscServices
 } // namespace OHOS

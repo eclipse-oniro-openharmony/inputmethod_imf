@@ -125,7 +125,7 @@ public:
     {
         isReceivePrivateCommand_ = true;
     }
-    void NotifyIsShowSysPanel(bool shouldSysPanelShow) override
+    void NotifyPanelStatus(const SysPanelStatus &sysPanelStatus)override
     {
         isNotifyIsShowSysPanel_ = true;
     }
@@ -263,12 +263,12 @@ HWTEST_F(VirtualListenerTest, testOnSystemCmdListener_001, TestSize.Level0)
     SystemCmdChannelListenerImpl::ResetParam();
     std::unordered_map<std::string, PrivateDataValue> privateCommand;
     VirtualListenerTest::systemCmdListener_->ReceivePrivateCommand(privateCommand);
-    VirtualListenerTest::systemCmdListener_->NotifyIsShowSysPanel(false);
+    VirtualListenerTest::systemCmdListener_->NotifyPanelStatus({ false, 0, 0, 0 });
     EXPECT_FALSE(SystemCmdChannelListenerImpl::isNotifyIsShowSysPanel_);
     EXPECT_FALSE(SystemCmdChannelListenerImpl::isReceivePrivateCommand_);
     SystemCmdChannelListenerImpl::ResetParam();
     listener->ReceivePrivateCommand(privateCommand);
-    listener->NotifyIsShowSysPanel(false);
+    listener->NotifyPanelStatus({ false, 0, 0, 0 });
     EXPECT_TRUE(SystemCmdChannelListenerImpl::isNotifyIsShowSysPanel_);
     EXPECT_TRUE(SystemCmdChannelListenerImpl::isReceivePrivateCommand_);
 }

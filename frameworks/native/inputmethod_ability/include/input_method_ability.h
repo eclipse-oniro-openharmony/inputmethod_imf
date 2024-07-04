@@ -93,7 +93,8 @@ public:
     int32_t GetCallingWindowInfo(CallingWindowInfo &windowInfo);
     int32_t SetPreviewText(const std::string &text, const Range &range);
     int32_t FinishTextPreview();
-    int32_t ShowSysPanel(const std::shared_ptr<InputMethodPanel> &inputMethodPanel, PanelFlag flag);
+    int32_t NotifyPanelStatus(const std::shared_ptr<InputMethodPanel> &inputMethodPanel,
+        SysPanelStatus &sysPanelStatus);
 
 private:
     std::thread workThreadHandler;
@@ -154,6 +155,9 @@ private:
     InputAttribute GetInputAttribute();
     void ClearInputAttribute();
     void NotifyPanelStatusInfo(const PanelStatusInfo &info);
+    int32_t HideKeyboardImplWithoutLock(int32_t cmdId);
+    int32_t ShowKeyboardImplWithLock(int32_t cmdId);
+    int32_t ShowKeyboardImplWithoutLock(int32_t cmdId);
 
     ConcurrentMap<PanelType, std::shared_ptr<InputMethodPanel>> panels_{};
     std::atomic_bool isBound_{ false };
@@ -173,6 +177,8 @@ private:
     bool isDefaultIme_ = false;
     std::mutex inputAttrLock_;
     InputAttribute inputAttribute_{};
+    std::recursive_mutex keyboardCmdLock_;
+    int32_t cmdId_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS

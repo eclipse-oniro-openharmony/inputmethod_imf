@@ -41,8 +41,6 @@
 namespace OHOS {
 namespace MiscServices {
 using namespace MessageID;
-constexpr uint32_t IME_RESTART_TIMES = 5;
-constexpr uint32_t IME_RESTART_INTERVAL = 300;
 constexpr int64_t INVALID_PID = -1;
 constexpr uint32_t STOP_IME_TIME = 600;
 constexpr const char *STRICT_MODE = "strictMode";
@@ -197,7 +195,7 @@ int32_t PerUserSession::ShowKeyboard(const sptr<IInputClient> &currentClient)
         IMSA_HILOGE("ime: %{public}d is not exist", clientInfo->bindImeType);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    auto ret = RequestIme(data, RequestType::NORMAL, [&data] { return data->core->ShowKeyboard(); });
+    auto ret = RequestIme(data, RequestType::REQUEST_SHOW, [&data] { return data->core->ShowKeyboard(); });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to show keyboard, ret: %{public}d", ret);
         return ErrorCode::ERROR_KBD_SHOW_FAILED;
@@ -353,7 +351,7 @@ int32_t PerUserSession::OnRequestShowInput()
         IMSA_HILOGE("ime: %{public}d doesn't exist", ImeType::IME);
         return ErrorCode::ERROR_IME_NOT_STARTED;
     }
-    auto ret = RequestIme(data, RequestType::NORMAL, [&data] { return data->core->ShowKeyboard(); });
+    auto ret = RequestIme(data, RequestType::REQUEST_SHOW, [&data] { return data->core->ShowKeyboard(); });
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("failed to show keyboard, ret: %{public}d", ret);
         return ErrorCode::ERROR_KBD_SHOW_FAILED;
@@ -839,12 +837,6 @@ std::shared_ptr<ImeData> PerUserSession::GetValidIme(ImeType type)
     if (data != nullptr || type != ImeType::IME) {
         return data;
     }
-    if (isStarting_.load() && isImeStarted_.GetValue()) {
-        auto imeData = GetImeData(ImeType::IME);
-        if (imeData != nullptr) {
-            return imeData;
-        }
-    }
     IMSA_HILOGI("current ime is empty, try to restart it");
     if (!StartCurrentIme(userId_, true)) {
         return nullptr;
@@ -958,7 +950,7 @@ bool PerUserSession::StartCurrentIme(int32_t userId, bool isRetry)
     auto currentIme = ImeCfgManager::GetInstance().GetCurrentImeCfg(userId);
     auto imeToStart = ImeInfoInquirer::GetInstance().GetImeToStart(userId);
     IMSA_HILOGD("currentIme: %{public}s, imeToStart: %{public}s", currentIme->imeId.c_str(), imeToStart->imeId.c_str());
-    if (!StartInputService(imeToStart, isRetry)) {
+    if (!StartInputService(imeToStart)) {
         IMSA_HILOGE("failed to start ime");
         InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_IME_START_FAILED,
             imeToStart->imeId, "start ime failed!");
@@ -1018,7 +1010,7 @@ int32_t PerUserSession::ForceStopCurrentIme()
     return ret;
 }
 
-bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry)
+bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime)
 {
     SecurityMode mode;
     if (ImeInfoInquirer::GetInstance().IsEnableSecurityMode()) {
@@ -1026,13 +1018,12 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime,
     } else {
         mode = SecurityMode::FULL;
     }
-    IMSA_HILOGI("ime: %{public}s, mode: %{public}d isRetry: %{public}d", ime->imeId.c_str(),
-                static_cast<int32_t>(mode), isRetry);
+    IMSA_HILOGI(
+        "userId %{public}d ime %{public}s mode %{public}d", userId_, ime->imeId.c_str(), static_cast<int32_t>(mode));
     AAFwk::Want want;
     want.SetElementName(ime->bundleName, ime->extName);
     want.SetParam(STRICT_MODE, !(mode == SecurityMode::FULL));
     isImeStarted_.Clear(false);
-    isStarting_.store(true);
     sptr<AAFwk::IAbilityConnection> connection = new (std::nothrow) ImeConnection();
     if (connection == nullptr) {
         IMSA_HILOGE("failed to create connection");
@@ -1040,28 +1031,25 @@ bool PerUserSession::StartInputService(const std::shared_ptr<ImeNativeCfg> &ime,
     }
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectExtensionAbility(want, connection, userId_);
     if (ret != ErrorCode::NO_ERROR) {
-        isStarting_.store(false);
-        IMSA_HILOGE("failed to start ability");
-        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(ErrorCode::ERROR_IME_START_FAILED, ime->imeId,
-            "StartInputService, failed to start ability.");
-    } else if (isImeStarted_.GetValue()) {
-        isStarting_.store(false);
-        IMSA_HILOGI("ime started successfully");
-        InputMethodSysEvent::GetInstance().RecordEvent(IMEBehaviour::START_IME);
-        return true;
-    } else {
-        isStarting_.store(false);
+        IMSA_HILOGE("connect %{public}s failed, ret: %{public}d", ime->imeId.c_str(), ret);
+        InputMethodSysEvent::GetInstance().InputmethodFaultReporter(
+            ErrorCode::ERROR_IME_START_FAILED, ime->imeId, "StartInputService, failed to start ability.");
+        return false;
     }
-    if (isRetry) {
-        IMSA_HILOGE("failed to start ime, begin to retry five times");
-        auto retryTask = [this, ime]() {
-            pthread_setname_np(pthread_self(), "ImeRestart");
-            BlockRetry(IME_RESTART_INTERVAL, IME_RESTART_TIMES,
-                [this, ime]() { return StartInputService(ime, false); });
-        };
-        std::thread(retryTask).detach();
+    if (!isImeStarted_.GetValue()) {
+        IMSA_HILOGE("start %{public}s timeout", ime->imeId.c_str());
+        return false;
     }
-    return false;
+    IMSA_HILOGI("%{public}s started successfully", ime->imeId.c_str());
+    InputMethodSysEvent::GetInstance().RecordEvent(IMEBehaviour::START_IME);
+    auto subProp = ImeInfoInquirer::GetInstance().GetCurrentImeInfo()->subProp;
+    auto data = GetImeData(ImeType::IME);
+    if (data == nullptr) {
+        IMSA_HILOGE("ime doesn't exist");
+        return false;
+    }
+    RequestIme(data, RequestType::NORMAL, [&data, &subProp] { return data->core->SetSubtype(subProp); });
+    return true;
 }
 
 int64_t PerUserSession::GetCurrentClientPid()
@@ -1134,7 +1122,7 @@ bool PerUserSession::IsWmsReady()
         IMSA_HILOGI("system ability manager is nullptr");
         return false;
     }
-    auto systemAbility = systemAbilityManager->CheckSystemAbility(WINDOW_MANAGER_SERVICE_ID);
+    auto systemAbility = systemAbilityManager->GetSystemAbility(WINDOW_MANAGER_SERVICE_ID, "");
     if (systemAbility == nullptr) {
         IMSA_HILOGI("window manager service not found");
         return false;
@@ -1201,7 +1189,7 @@ int32_t PerUserSession::ExitCurrentInputType()
     IMSA_HILOGI("need switch ime to: %{public}s", cfgIme->imeId.c_str());
     StopCurrentIme();
     InputTypeManager::GetInstance().Set(false);
-    if (!StartInputService(cfgIme, true)) {
+    if (!StartInputService(cfgIme)) {
         IMSA_HILOGE("failed to start ime");
         return ErrorCode::ERROR_IME_START_FAILED;
     }

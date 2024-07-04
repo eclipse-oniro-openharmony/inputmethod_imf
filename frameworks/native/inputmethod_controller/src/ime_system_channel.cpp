@@ -230,14 +230,14 @@ int32_t ImeSystemCmdChannel::SendPrivateCommand(const std::unordered_map<std::st
     return ErrorCode::ERROR_INVALID_PRIVATE_COMMAND;
 }
 
-int32_t ImeSystemCmdChannel::ShowSysPanel(bool shouldSysPanelShow)
+int32_t ImeSystemCmdChannel::NotifyPanelStatus(const SysPanelStatus &sysPanelStatus)
 {
     auto listener = GetSystemCmdListener();
     if (listener == nullptr) {
         IMSA_HILOGE("listener is nullptr");
         return ErrorCode::ERROR_NULL_POINTER;
     }
-    listener->NotifyIsShowSysPanel(shouldSysPanelShow);
+    listener->NotifyPanelStatus(sysPanelStatus);
     return ErrorCode::NO_ERROR;
 }
 

@@ -787,7 +787,6 @@ private:
     void SetAgent(sptr<IRemoteObject> &agentObject);
     std::shared_ptr<IInputMethodAgent> GetAgent();
     void PrintLogIfAceTimeout(int64_t start);
-    bool IsBootCompleted();
 
     std::shared_ptr<ControllerListener> controllerListener_;
     std::mutex abilityLock_;

@@ -78,6 +78,7 @@ public:
     int32_t ShowPanel();
     int32_t HidePanel();
     int32_t SizeChange(const WindowSize &size);
+    WindowSize GetKeyboardSize();
     bool SetPanelStatusListener(std::shared_ptr<PanelStatusListener> statusListener, const std::string &type);
     void ClearPanelListener(const std::string &type);
     int32_t SetCallingWindow(uint32_t windowId);
@@ -144,6 +145,8 @@ private:
 
     Rosen::KeyboardLayoutParams keyboardLayoutParams_;
 
+    std::mutex keyboardSizeLock_;
+    WindowSize keyboardSize_{ 0, 0 };
     std::mutex windowListenerLock_;
     sptr<Rosen::IWindowChangeListener> windowChangedListener_ = nullptr;
     CallbackFunc panelHeightCallback_ = nullptr;

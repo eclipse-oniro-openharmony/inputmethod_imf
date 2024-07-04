@@ -36,14 +36,11 @@
 #include "message_handler.h"
 #include "native_token_info.h"
 #include "os_account_manager.h"
-#include "parameters.h"
 #include "scene_board_judgement.h"
 #include "sys/prctl.h"
 #include "system_ability_definition.h"
 #include "system_language_observer.h"
 #include "wms_connection_observer.h"
-#include "xcollie/xcollie.h"
-#include "xcollie/xcollie_define.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -51,7 +48,6 @@ using namespace MessageID;
 using namespace AccountSA;
 using namespace AppExecFwk;
 using namespace Security::AccessToken;
-using namespace HiviewDFX;
 REGISTER_SYSTEM_ABILITY_BY_ID(InputMethodSystemAbility, INPUT_METHOD_SYSTEM_ABILITY_ID, true);
 constexpr std::int32_t INIT_INTERVAL = 10000L;
 constexpr std::int32_t MAIN_USER_ID = 100;
@@ -59,11 +55,7 @@ constexpr uint32_t RETRY_INTERVAL = 100;
 constexpr uint32_t BLOCK_RETRY_TIMES = 100;
 static const std::string PERMISSION_CONNECT_IME_ABILITY = "ohos.permission.CONNECT_IME_ABILITY";
 std::shared_ptr<AppExecFwk::EventHandler> InputMethodSystemAbility::serviceHandler_;
-constexpr uint32_t BOOT_COMPLETE_MASK = 1u;
-constexpr uint32_t WMS_MASK = 1u << 1u;
-constexpr uint32_t ACCOUNT_MASK = 1u << 2u;
-constexpr uint32_t MEMMGR_MASK = 1u << 3u;
-constexpr const char* BOOTEVENT_BOOT_COMPLETED = "bootevent.boot.completed";
+
 InputMethodSystemAbility::InputMethodSystemAbility(int32_t systemAbilityId, bool runOnCreate)
     : SystemAbility(systemAbilityId, runOnCreate), state_(ServiceRunningState::STATE_NOT_START)
 {
@@ -183,59 +175,20 @@ void InputMethodSystemAbility::HandleUserChanged(int32_t userId)
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 }
 
-bool InputMethodSystemAbility::IsDependentSaReady()
+int32_t InputMethodSystemAbility::RestartCurrentIme()
 {
-    bool isReady = depServiceState_.IsMatch(BOOT_COMPLETE_MASK | WMS_MASK | MEMMGR_MASK);
-    IMSA_HILOGI("dependent services ready: %{public}d", isReady);
-    return isReady;
-}
-
-int32_t InputMethodSystemAbility::OnRestartIme()
-{
-    {
-        std::lock_guard<std::mutex> lock(restartMutex_);
-        needRestart_ = false;
-    }
-    userSession_->StopCurrentIme();
-    if (!IsDependentSaReady()) {
-        IMSA_HILOGI("dependent sa not ready");
-        return ErrorCode::ERROR_EX_ILLEGAL_STATE;
+    if (imeStarting_.exchange(true)) {
+        IMSA_HILOGD("do starting");
+        return ErrorCode::NO_ERROR;
     }
     IMSA_HILOGI("start ime, userId: %{public}d", userId_);
+    userSession_->StopCurrentIme();
     auto ret = userSession_->StartCurrentIme(userId_, true);
     if (!ret) {
         IMSA_HILOGE("start ime failed");
     }
+    imeStarting_.store(false);
     return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME_START_FAILED;
-}
-
-int32_t InputMethodSystemAbility::RestartCurrentIme()
-{
-    {
-        std::lock_guard<std::mutex> lock(restartMutex_);
-        needRestart_ = true;
-        if (isRestarting_) {
-            IMSA_HILOGD("restarting");
-            return ErrorCode::NO_ERROR;
-        }
-        isRestarting_ = true;
-    }
-    auto restartTask = [this]() {
-        auto needRestart = [this]() {
-            std::lock_guard<std::mutex> lock(restartMutex_);
-            if (needRestart_) {
-                return true;
-            }
-            isRestarting_ = false;
-            return false;
-        };
-        do {
-            OnRestartIme();
-        } while (needRestart());
-    };
-    // 0 means delay time is 0.
-    serviceHandler_->PostTask(restartTask, "RestartIme", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    return ErrorCode::NO_ERROR;
 }
 
 void InputMethodSystemAbility::HandleWmsReady(int32_t userId)
@@ -244,7 +197,7 @@ void InputMethodSystemAbility::HandleWmsReady(int32_t userId)
     if (userId != userId_) {
         HandleUserChanged(userId);
     }
-    // unbind current client
+    //clear client
     auto ret = userSession_->RemoveCurrentClient();
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("RemoveCurrentClient failed");
@@ -289,25 +242,25 @@ void InputMethodSystemAbility::Initialize()
     userSession_ = std::make_shared<PerUserSession>(userId_);
     InputMethodSysEvent::GetInstance().SetUserId(userId_);
     isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
-    if (OHOS::system::GetParameter(BOOTEVENT_BOOT_COMPLETED, "false") == "true") {
-        depServiceState_.UpdateState(BOOT_COMPLETE_MASK, true);
-    }
 }
 
-void InputMethodSystemAbility::SubscribeCommonEvents()
+void InputMethodSystemAbility::StartUserIdListener()
 {
-    if (ImCommonEventManager::GetInstance()->SubscribeEvents()) {
-        IMSA_HILOGI("success");
+    sptr<ImCommonEventManager> imCommonEventManager = ImCommonEventManager::GetInstance();
+    bool isSuccess = imCommonEventManager->SubscribeEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
+    if (isSuccess) {
+        IMSA_HILOGI("Initialize subscribe service event success");
         return;
     }
+
     IMSA_HILOGE("failed. Try again 10s later");
-    auto callback = [this]() { SubscribeCommonEvents(); };
+    auto callback = [this]() { StartUserIdListener(); };
     serviceHandler_->PostTask(callback, INIT_INTERVAL);
 }
 
 bool InputMethodSystemAbility::StartInputService(const std::shared_ptr<ImeNativeCfg> &imeId)
 {
-    return userSession_->StartInputService(imeId, true);
+    return userSession_->StartInputService(imeId);
 }
 
 void InputMethodSystemAbility::StopInputService()
@@ -828,22 +781,12 @@ int32_t InputMethodSystemAbility::ShowCurrentInputDeprecated()
 
 std::shared_ptr<Property> InputMethodSystemAbility::GetCurrentInputMethod()
 {
-    constexpr int32_t TIME_OUT_SECOND = 10;
-    auto id =
-        XCollie::GetInstance().SetTimer("GetCurrentInputMethod", TIME_OUT_SECOND, nullptr, nullptr, XCOLLIE_FLAG_LOG);
-    auto property = ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId_);
-    XCollie::GetInstance().CancelTimer(id);
-    return property;
+    return ImeInfoInquirer::GetInstance().GetCurrentInputMethod(userId_);
 }
 
 std::shared_ptr<SubProperty> InputMethodSystemAbility::GetCurrentInputMethodSubtype()
 {
-    constexpr int32_t TIME_OUT_SECOND = 10;
-    auto id = XCollie::GetInstance().SetTimer(
-        "GetCurrentInputMethodSubtype", TIME_OUT_SECOND, nullptr, nullptr, XCOLLIE_FLAG_LOG);
-    auto property = ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);
-    XCollie::GetInstance().CancelTimer(id);
-    return property;
+    return ImeInfoInquirer::GetInstance().GetCurrentSubtype(userId_);
 }
 
 int32_t InputMethodSystemAbility::GetDefaultInputMethod(std::shared_ptr<Property> &prop, bool isBrief)
@@ -900,11 +843,6 @@ void InputMethodSystemAbility::WorkThread()
             }
             case MSG_ID_BUNDLE_SCAN_FINISHED: {
                 RegisterDataShareObserver();
-                break;
-            }
-            case MSG_ID_BOOT_COMPLETED: {
-                depServiceState_.UpdateState(BOOT_COMPLETE_MASK, true);
-                RestartCurrentIme();
                 break;
             }
             default: {
@@ -1171,7 +1109,7 @@ void InputMethodSystemAbility::InitMonitors()
 {
     int32_t ret = InitAccountMonitor();
     IMSA_HILOGI("init account monitor, ret: %{public}d", ret);
-    SubscribeCommonEvents();
+    StartUserIdListener();
     ret = InitMemMgrMonitor();
     IMSA_HILOGI("init MemMgr monitor, ret: %{public}d", ret);
     ret = InitKeyEventMonitor();
@@ -1188,6 +1126,7 @@ void InputMethodSystemAbility::InitMonitors()
         IMSA_HILOGW("Enter security mode");
         enableSecurityMode_ = true;
     }
+    RegisterDataShareObserver();
 }
 
 int32_t InputMethodSystemAbility::RegisterDataShareObserver()
@@ -1205,76 +1144,51 @@ int32_t InputMethodSystemAbility::RegisterDataShareObserver()
 int32_t InputMethodSystemAbility::InitAccountMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitAccountMonitor");
-    return ImCommonEventManager::GetInstance()->SubscribeService(
-        SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, [this](bool isAdd) {
-            depServiceState_.UpdateState(ACCOUNT_MASK, isAdd);
-            if (!isAdd) {
-                return;
-            }
-            auto userId = GetCurrentUserIdFromOsAccount();
-            if (userId_ == userId) {
-                return;
-            }
-            HandleUserChanged(userId);
-        });
+    return ImCommonEventManager::GetInstance()->SubscribeAccountManagerService([this]() {
+        auto userId = GetCurrentUserIdFromOsAccount();
+        if (userId_ == userId) {
+            return;
+        }
+        HandleUserChanged(userId);
+    });
 }
 
 int32_t InputMethodSystemAbility::InitKeyEventMonitor()
 {
     IMSA_HILOGI("InputMethodSystemAbility::InitKeyEventMonitor");
-    return ImCommonEventManager::GetInstance()->SubscribeService(MULTIMODAL_INPUT_SERVICE_ID, [this](bool isAdd) {
-        if (isAdd) {
-            int32_t ret = KeyboardEvent::GetInstance().AddKeyEventMonitor(
-                [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode); });
-            IMSA_HILOGI("AddKeyEventMonitor ret: %{public}d", ret);
-        }
-    });
+    bool ret = ImCommonEventManager::GetInstance()->SubscribeKeyboardEvent(
+        [this](uint32_t keyCode) { return SwitchByCombinationKey(keyCode); });
+    return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_SERVICE_START_FAILED;
 }
 
 bool InputMethodSystemAbility::InitWmsMonitor()
 {
-    return ImCommonEventManager::GetInstance()->SubscribeService(WINDOW_MANAGER_SERVICE_ID, [this](bool isAdd) {
-        if (!isAdd) {
-            IMSA_HILOGD("wms sa removed");
-            depServiceState_.UpdateState(WMS_MASK, false);
-            return;
-        }
-        IMSA_HILOGI("wms sa added");
-        FocusMonitorManager::GetInstance().RegisterFocusChangedListener(
-            [this](bool isOnFocused, int32_t pid, int32_t uid) {
-                return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
-            });
-        if (isScbEnable_) {
-            IMSA_HILOGI("scb enable, register WMS connection listener");
-            InitWmsConnectionMonitor();
-        } else {
-            // if scb not enable, sa adding means wms ready
-            depServiceState_.UpdateState(WMS_MASK, true);
+    return ImCommonEventManager::GetInstance()->SubscribeWindowManagerService(
+        [this](bool isOnFocused, int32_t pid, int32_t uid) {
+            return isOnFocused ? userSession_->OnFocused(pid, uid) : userSession_->OnUnfocused(pid, uid);
+        },
+        [this]() {
+            if (isScbEnable_) {
+                IMSA_HILOGI("scb enable, register WMS connection listener");
+                InitWmsConnectionMonitor();
+                return;
+            }
             HandleWmsReady(GetCurrentUserIdFromOsAccount());
-        }
-    });
+        });
 }
 
 bool InputMethodSystemAbility::InitMemMgrMonitor()
 {
-    return ImCommonEventManager::GetInstance()->SubscribeService(MEMORY_MANAGER_SA_ID, [this](bool isAdd) {
-        depServiceState_.UpdateState(MEMMGR_MASK, isAdd);
-        if (isAdd) {
-            IMSA_HILOGI("MemMgr start");
-            Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 1, INPUT_METHOD_SYSTEM_ABILITY_ID);
-        }
+    return ImCommonEventManager::GetInstance()->SubscribeMemMgrService([this]() {
+        IMSA_HILOGI("MemMgr start");
+        Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 1, INPUT_METHOD_SYSTEM_ABILITY_ID);
     });
 }
 
 void InputMethodSystemAbility::InitWmsConnectionMonitor()
 {
     WmsConnectionMonitorManager::GetInstance().RegisterWMSConnectionChangedListener(
-        [this](int32_t userId, int32_t screenId, bool isConnected) {
-            depServiceState_.UpdateState(WMS_MASK, isConnected);
-            if (isConnected) {
-                HandleWmsReady(userId);
-            }
-        });
+        [this](int32_t userId, int32_t screenId) { HandleWmsReady(userId); });
 }
 
 void InputMethodSystemAbility::InitSystemLanguageMonitor()
@@ -1334,7 +1248,11 @@ void InputMethodSystemAbility::OnSecurityModeChange()
     IMSA_HILOGI("ime: %{public}s securityMode change to: %{public}d", currentIme->bundleName.c_str(),
         static_cast<int32_t>(newMode));
     userSession_->OnSecurityChange(static_cast<int32_t>(newMode));
-    RestartCurrentIme();
+    userSession_->StopCurrentIme();
+    auto ret = userSession_->StartInputService(currentIme);
+    if (!ret) {
+        IMSA_HILOGE("ime start failed");
+    }
 }
 
 int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)

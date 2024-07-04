@@ -36,7 +36,7 @@ public:
     DISALLOW_COPY_AND_MOVE(SystemCmdChannelProxy);
 
     int32_t SendPrivateCommand(const std::unordered_map<std::string, PrivateDataValue> &privateCommand) override;
-    int32_t ShowSysPanel(bool shouldSysPanelShow) override;
+    int32_t NotifyPanelStatus(const SysPanelStatus &sysPanelStatus) override;
 
 private:
     static inline BrokerDelegator<SystemCmdChannelProxy> delegator_;

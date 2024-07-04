@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,21 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef IMF_WMS_CONNECTION_MONITOR_MANAGER_H
-#define IMF_WMS_CONNECTION_MONITOR_MANAGER_H
-#include <functional>
+#ifndef FRAMEWORKS_INPUTMETHOD_CONTROLLER_SYS_PANEL_STATUS_H
+#define FRAMEWORKS_INPUTMETHOD_CONTROLLER_SYS_PANEL_STATUS_H
+
+#include <cstdint>
+
+#include "message_parcel.h"
+#include "panel_info.h"
+
 namespace OHOS {
 namespace MiscServices {
-using ChangeHandler = std::function<void(int32_t userId, int32_t screenId)>;
-class WmsConnectionMonitorManager {
-public:
-    static WmsConnectionMonitorManager &GetInstance();
-    void RegisterWMSConnectionChangedListener(const ChangeHandler &handler);
-
-private:
-    WmsConnectionMonitorManager() = default;
+struct SysPanelStatus {
+    bool isSecurity { false };
+    int32_t flag = FLG_FIXED;
+    uint32_t width = 0;
+    uint32_t height = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif // IMF_WMS_CONNECTION_MONITOR_MANAGER_H
+#endif // FRAMEWORKS_INPUTMETHOD_CONTROLLER_SYS_PANEL_STATUS_H
