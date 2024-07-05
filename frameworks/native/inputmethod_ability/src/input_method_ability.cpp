@@ -252,7 +252,9 @@ int32_t InputMethodAbility::StartInput(const InputClientInfo &clientInfo, bool i
     }
     isPendingShowKeyboard_ = clientInfo.isShowKeyboard;
     if (clientInfo.isShowKeyboard) {
-        auto task = [this, cmdCount]() { ShowKeyboardImplWithLock(cmdCount); };
+        auto task = [this, cmdCount]() {
+            std::thread([this, cmdCount]() { ShowKeyboardImplWithLock(cmdCount); }).detach();
+        };
         if (imeListener_ == nullptr || !imeListener_->PostTaskToEventHandler(task, "ShowKeyboard")) {
             IMSA_HILOGE("imeListener_ is nullptr, or post task failed!");
             ShowKeyboardImplWithoutLock(cmdCount);
