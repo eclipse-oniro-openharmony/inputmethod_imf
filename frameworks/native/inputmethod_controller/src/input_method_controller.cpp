@@ -202,19 +202,19 @@ void InputMethodController::SaveTextConfig(const TextConfig &textConfig)
     }
 }
 
-int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener)
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener)
 {
     return Attach(listener, true);
 }
 
-int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard)
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard)
 {
     InputAttribute attribute;
     attribute.inputPattern = InputAttribute::PATTERN_TEXT;
     return Attach(listener, isShowKeyboard, attribute);
 }
 
-int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard,
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard,
     const InputAttribute &attribute)
 {
     InputMethodSyncTrace tracer("InputMethodController Attach trace.");
@@ -223,7 +223,7 @@ int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener, boo
     return Attach(listener, isShowKeyboard, textConfig);
 }
 
-int32_t InputMethodController::Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard,
+int32_t InputMethodController::Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard,
     const TextConfig &textConfig)
 {
     IMSA_HILOGI("isShowKeyboard %{public}d", isShowKeyboard);
