@@ -260,7 +260,7 @@ void InputMethodSystemAbility::StartUserIdListener()
 
 bool InputMethodSystemAbility::StartInputService(const std::shared_ptr<ImeNativeCfg> &imeId)
 {
-    return userSession_->StartInputService(imeId, true);
+    return userSession_->StartInputService(imeId);
 }
 
 void InputMethodSystemAbility::StopInputService()
@@ -1249,7 +1249,7 @@ void InputMethodSystemAbility::OnSecurityModeChange()
         static_cast<int32_t>(newMode));
     userSession_->OnSecurityChange(static_cast<int32_t>(newMode));
     userSession_->StopCurrentIme();
-    auto ret = userSession_->StartInputService(currentIme, true);
+    auto ret = userSession_->StartInputService(currentIme);
     if (!ret) {
         IMSA_HILOGE("ime start failed");
     }
