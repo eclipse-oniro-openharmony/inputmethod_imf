@@ -468,5 +468,31 @@ HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Hisysevent_Bind, TestSize.Level0
     auto imeStateBind = []() { inputMethodController_->RequestShowInput(); };
     EXPECT_TRUE(InputMethodDfxTest::WriteAndWatchImeChange(watcherImeChange, imeStateBind));
 }
+
+/**
+* @tc.name: InputMethod_Dump_HELP
+* @tc.desc: InputMethodDump.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_HELP, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodDump::InputMethod_Dump_HELP");
+    std::vector<std::string> args = {"-h"};
+    int fd = 1;
+    EXPECT_TRUE(InputmethodDump::GetInstance().Dump(fd, args));
+}
+
+/**
+* @tc.name: InputMethod_Dump_ALL
+* @tc.desc: InputMethodDump.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodDfxTest, InputMethodDfxTest_Dump_ALL, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodDump::InputMethod_Dump_ALL");
+    std::vector<std::string> args = {"-a"};
+    int fd = 1;
+    EXPECT_FALSE(!InputmethodDump::GetInstance().Dump(fd, args));
+}
 } // namespace MiscServices
 } // namespace OHOS

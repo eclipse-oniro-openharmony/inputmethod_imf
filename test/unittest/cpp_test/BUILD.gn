@@ -37,6 +37,7 @@ ohos_unittest("InputMethodControllerTest") {
   module_out_path = module_output_path
 
   sources = [
+    "${inputmethod_path}/services/src/input_type_manager.cpp",
     "src/ime_event_monitor_manager_test.cpp",
     "src/input_method_controller_test.cpp",
   ]
@@ -59,6 +60,7 @@ ohos_unittest("InputMethodControllerTest") {
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "eventhandler:libeventhandler",
@@ -167,8 +169,11 @@ ohos_unittest("InputMethodAbilityTest") {
     "hilog:libhilog",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "memmgr:memmgrclient",
     "napi:ace_napi",
+    "os_account:os_account_innerkits",
     "window_manager:libdm",
+    "window_manager:libwsutils",
   ]
 
   if (scene_board_enabled) {
@@ -197,6 +202,7 @@ ohos_unittest("InputMethodServiceTest") {
     "${inputmethod_path}/services:inputmethod_service",
     "${inputmethod_path}/test/common:inputmethod_test_common",
     "${inputmethod_path}/test/unittest/cpp_test/common:inputmethod_tdd_util",
+    "//third_party/cJSON:cjson",
     "//third_party/googletest:gtest_main",
   ]
 

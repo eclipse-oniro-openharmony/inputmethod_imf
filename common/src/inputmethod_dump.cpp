@@ -25,7 +25,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t MAX_RECORD_ERROR = 10;
 constexpr int32_t SUB_CMD_NAME = 0;
 constexpr int32_t CMD_ONE_PARAM = 1;
 constexpr const char *CMD_HELP = "-h";
@@ -38,17 +37,6 @@ void InputmethodDump::AddDumpAllMethod(const DumpNoParamFunc dumpAllMethod)
         return;
     }
     dumpAllMethod_ = dumpAllMethod;
-}
-
-void InputmethodDump::AddErrorInfo(const std::string &error)
-{
-    std::lock_guard<std::mutex> lock(hidumperMutex_);
-    if (errorInfo_.size() + 1 > MAX_RECORD_ERROR) {
-        errorInfo_.pop_front();
-        errorInfo_.push_back(error);
-    } else {
-        errorInfo_.push_back(error);
-    }
 }
 
 bool InputmethodDump::Dump(int fd, const std::vector<std::string> &args)

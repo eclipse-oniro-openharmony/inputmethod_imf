@@ -1135,5 +1135,457 @@ HWTEST_F(InputMethodPanelTest, testKeyboardPanelInfoChangeListenerRegister_002, 
     EXPECT_EQ(panel->kbPanelInfoListener_, nullptr);
     ImaDestroyPanel(panel);
 }
+
+/**
+* @tc.name: testAdjustPanelRect_001
+* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_001, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, 0, 0};
+    layoutParams.portraitRect = {0, 0, 0, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_002
+* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_002, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {-1, 0, 0, 0};
+    layoutParams.portraitRect = {-1, 0, 0, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_003
+* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_003, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, -1, 0, 0};
+    layoutParams.portraitRect = {0, -1, 0, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_004
+* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_004, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, -1, 0};
+    layoutParams.portraitRect = {0, 0, -1, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_005
+* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_005, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, 0, -1};
+    layoutParams.portraitRect = {0, 0, 0, -1};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_006
+* @tc.desc: Test AdjustPanelRect with FLG_FIXED valid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_006, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    ASSERT_TRUE(defaultDisplay != nullptr);
+    windowWidth_ = defaultDisplay->GetWidth();
+    windowHeight_ = defaultDisplay->GetHeight();
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, windowHeight_, 0};
+    layoutParams.portraitRect = {0, 0, windowWidth_, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_007
+* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_007, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    ASSERT_TRUE(defaultDisplay != nullptr);
+    windowWidth_ = defaultDisplay->GetWidth();
+    windowHeight_ = defaultDisplay->GetHeight();
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, windowHeight_ + 1, 0};
+    layoutParams.portraitRect = {0, 0, windowWidth_ + 1, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+
+/**
+* @tc.name: testAdjustPanelRect_008
+* @tc.desc: Test AdjustPanelRect with FLG_FIXED invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_008, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    ASSERT_TRUE(defaultDisplay != nullptr);
+    windowWidth_ = defaultDisplay->GetWidth();
+    windowHeight_ = defaultDisplay->GetHeight();
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, windowHeight_, windowWidth_*0.7 + 1};
+    layoutParams.portraitRect = {0, 0, windowWidth_, windowHeight_*0.7 + 1};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_009
+* @tc.desc: Test AdjustPanelRect with FLG_FIXED valid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_009, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    ASSERT_TRUE(defaultDisplay != nullptr);
+    windowWidth_ = defaultDisplay->GetWidth();
+    windowHeight_ = defaultDisplay->GetHeight();
+    PanelFlag panelFlag = PanelFlag::FLG_FIXED;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, windowHeight_, windowWidth_*0.7};
+    layoutParams.portraitRect = {0, 0, windowWidth_, windowHeight_*0.7};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_010
+* @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_010, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, 0, 0};
+    layoutParams.portraitRect = {0, 0, 0, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_011
+* @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_011, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {-1, 0, 0, 0};
+    layoutParams.portraitRect = {-1, 0, 0, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_012
+* @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_012, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, -1, 0, 0};
+    layoutParams.portraitRect = {0, -1, 0, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_013
+* @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_013, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, -1, 0};
+    layoutParams.portraitRect = {0, 0, -1, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_014
+* @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_014, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    ASSERT_TRUE(defaultDisplay != nullptr);
+    windowWidth_ = defaultDisplay->GetWidth();
+    windowHeight_ = defaultDisplay->GetHeight();
+    PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, windowWidth_, 0};
+    layoutParams.portraitRect = {0, 0, windowWidth_, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_015
+* @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_015, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    ASSERT_TRUE(defaultDisplay != nullptr);
+    windowWidth_ = defaultDisplay->GetWidth();
+    windowHeight_ = defaultDisplay->GetHeight();
+    PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, windowHeight_+1, 0};
+    layoutParams.portraitRect = {0, 0, windowWidth_+1, 0};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_016
+* @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_016, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    ASSERT_TRUE(defaultDisplay != nullptr);
+    windowWidth_ = defaultDisplay->GetWidth();
+    windowHeight_ = defaultDisplay->GetHeight();
+    PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, windowHeight_, windowWidth_*0.7 + 1};
+    layoutParams.portraitRect = {0, 0, windowWidth_, windowHeight_*0.7 + 1};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_017
+* @tc.desc: Test AdjustPanelRect with FLG_FLOATING valid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_017, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    ASSERT_TRUE(defaultDisplay != nullptr);
+    windowWidth_ = defaultDisplay->GetWidth();
+    windowHeight_ = defaultDisplay->GetHeight();
+    PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, windowHeight_, windowWidth_};
+    layoutParams.portraitRect = {0, 0, windowWidth_, windowHeight_};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testAdjustPanelRect_018
+* @tc.desc: Test AdjustPanelRect with FLG_FLOATING invalid params.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testAdjustPanelRect_018, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
+    ASSERT_TRUE(defaultDisplay != nullptr);
+    windowWidth_ = defaultDisplay->GetWidth();
+    windowHeight_ = defaultDisplay->GetHeight();
+    PanelFlag panelFlag = PanelFlag::FLG_FLOATING;
+    LayoutParams layoutParams;
+    layoutParams.landscapeRect = {0, 0, windowHeight_, windowWidth_ + 1};
+    layoutParams.portraitRect = {0, 0, windowWidth_, windowHeight_ + 1};
+    auto ret = inputMethodPanel->AdjustPanelRect(panelFlag, layoutParams);
+    EXPECT_EQ(ret, ErrorCode::ERROR_PARAMETER_CHECK_FAILED);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
+/**
+* @tc.name: testSetPrivacyMode
+* @tc.desc: Test SetPrivacyMode.
+* @tc.type: FUNC
+*/
+HWTEST_F(InputMethodPanelTest, testSetPrivacyMode, TestSize.Level0)
+{
+    InputMethodPanelTest::Attach();
+    auto inputMethodPanel = std::make_shared<InputMethodPanel>();
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FLOATING };
+    InputMethodPanelTest::ImaCreatePanel(panelInfo, inputMethodPanel);
+    auto ret = inputMethodPanel->SetPrivacyMode(true);
+    EXPECT_NE(ret, ErrorCode::NO_ERROR);
+    InputMethodPanelTest::ImaDestroyPanel(inputMethodPanel);
+    InputMethodPanelTest::imc_->Close();
+    TddUtil::DestroyWindow();
+}
+
 } // namespace MiscServices
 } // namespace OHOS

@@ -763,5 +763,20 @@ HWTEST_F(InputMethodPrivateMemberTest, IMC_testDeactivateClient, TestSize.Level0
     EXPECT_EQ(imc->agent_, nullptr);
     EXPECT_EQ(imc->agentObject_, nullptr);
 }
+
+/**
+ * @tc.name: testIsPanelShown
+ * @tc.desc: Test Panel Shown.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, testIsPanelShown, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr003 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    bool flag = true;
+    auto ret = userSession->IsPanelShown(panelInfo, flag);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
+}
 } // namespace MiscServices
 } // namespace OHOS
