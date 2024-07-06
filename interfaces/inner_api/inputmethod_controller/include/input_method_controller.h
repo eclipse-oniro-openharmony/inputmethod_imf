@@ -46,6 +46,7 @@ namespace OHOS {
 namespace MiscServices {
 class OnTextChangedListener : public virtual RefBase {
 public:
+    virtual ~OnTextChangedListener() {}
     virtual void InsertText(const std::u16string &text) = 0;
     virtual void DeleteForward(int32_t length) = 0;
     virtual void DeleteBackward(int32_t length) = 0;
