@@ -17,6 +17,7 @@
 
 #include "event_checker.h"
 #include "input_method_ability.h"
+#include "inputmethod_trace.h"
 #include "js_text_input_client_engine.h"
 #include "js_util.h"
 #include "js_utils.h"
@@ -215,6 +216,7 @@ napi_value JsPanel::MoveTo(napi_env env, napi_callback_info info)
 
 napi_value JsPanel::Show(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JsPanel_Show");
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
@@ -232,6 +234,7 @@ napi_value JsPanel::Show(napi_env env, napi_callback_info info)
 
 napi_value JsPanel::Hide(napi_env env, napi_callback_info info)
 {
+    InputMethodSyncTrace tracer("JsPanel_Hide");
     auto ctxt = std::make_shared<PanelContentContext>(env, info);
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         CHECK_RETURN_VOID(ctxt->inputMethodPanel != nullptr, "inputMethodPanel_ is nullptr.");
