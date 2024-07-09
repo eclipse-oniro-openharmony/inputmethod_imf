@@ -105,12 +105,12 @@ void JsUtils::ThrowException(napi_env env, int32_t err, const std::string &msg, 
     napi_value message;
     if (type == TypeCode::TYPE_NONE) {
         errMsg = errMsg + " " + msg;
-        IMSA_HILOGE("THROW_ERROR message: %{public}s", errMsg.c_str());
+        IMSA_HILOGE("THROW_ERROR message: %{public}s!", errMsg.c_str());
     } else {
         auto iter = PARAMETER_TYPE.find(type);
         if (iter != PARAMETER_TYPE.end()) {
             errMsg = errMsg + "The type of " + msg + " must be " + iter->second;
-            IMSA_HILOGE("THROW_ERROR message: %{public}s", errMsg.c_str());
+            IMSA_HILOGE("THROW_ERROR message: %{public}s!", errMsg.c_str());
         }
     }
     NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, errMsg.c_str(), NAPI_AUTO_LENGTH, &message));
@@ -138,13 +138,13 @@ napi_value JsUtils::ToError(napi_env env, int32_t code, const std::string &msg)
 
 int32_t JsUtils::Convert(int32_t code)
 {
-    IMSA_HILOGD("Convert start");
+    IMSA_HILOGD("Convert start.");
     auto iter = ERROR_CODE_MAP.find(code);
     if (iter != ERROR_CODE_MAP.end()) {
         IMSA_HILOGE("ErrorCode: %{public}d", iter->second);
         return iter->second;
     }
-    IMSA_HILOGD("Convert end");
+    IMSA_HILOGD("Convert end.");
     return ERROR_CODE_QUERY_FAILED;
 }
 
