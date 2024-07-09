@@ -113,8 +113,8 @@ void PerUserSession::RemoveClientInfo(const sptr<IRemoteObject> &client, bool is
     IMSA_HILOGI("client[%{public}d] is removed.", clientInfo->pid);
 }
 
-void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client,
-    const std::unordered_map<UpdateFlag, std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>> &updateInfos)
+void PerUserSession::UpdateClientInfo(const sptr<IRemoteObject> &client, const std::unordered_map<UpdateFlag,
+    std::variant<bool, uint32_t, ImeType, ClientState, TextTotalConfig>> &updateInfos)
 {
     if (client == nullptr) {
         IMSA_HILOGE("client is nullptr!");

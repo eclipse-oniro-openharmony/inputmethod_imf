@@ -901,7 +901,8 @@ bool InputMethodPanel::IsSizeValid(PanelFlag panelFlag, uint32_t width, uint32_t
         return false;
     }
     if (static_cast<int32_t>(width) > displayWidth) {
-        IMSA_HILOGE("width is invalid, defaultDisplay width: %{public}d, target width: %{public}u!", displayWidth, width);
+        IMSA_HILOGE("width is invalid, defaultDisplay width: %{public}d, target width: %{public}u!", displayWidth,
+            width);
         return false;
     }
     return true;

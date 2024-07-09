@@ -733,7 +733,8 @@ int32_t InputMethodSystemAbility::SwitchInputType(const SwitchInfo &switchInfo)
         }
         return ret;
     }
-    IMSA_HILOGD("need to switch ime: %{public}s|%{public}s.", switchInfo.bundleName.c_str(), switchInfo.subName.c_str());
+    IMSA_HILOGD("need to switch ime: %{public}s|%{public}s.", switchInfo.bundleName.c_str(),
+        switchInfo.subName.c_str());
     auto targetImeProperty = ImeInfoInquirer::GetInstance().GetImeByBundleName(userId_, switchInfo.bundleName);
     if (targetImeProperty == nullptr) {
         return ErrorCode::ERROR_NULL_POINTER;
@@ -884,7 +885,7 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
 
 int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
 {
-    if (msg != nullptr || msg->msgContent_ == nullptr) {
+    if (msg == nullptr || msg->msgContent_ == nullptr) {
         IMSA_HILOGE("Aborted! Message is nullptr.");
         return ErrorCode::ERROR_NULL_POINTER;
     }

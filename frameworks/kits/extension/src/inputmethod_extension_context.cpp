@@ -35,7 +35,8 @@ ErrCode InputMethodExtensionContext::StartAbility(const AAFwk::Want &want) const
     return err;
 }
 
-ErrCode InputMethodExtensionContext::StartAbility(const AAFwk::Want &want, const AAFwk::StartOptions &startOptions) const
+ErrCode InputMethodExtensionContext::StartAbility(const AAFwk::Want &want,
+    const AAFwk::StartOptions &startOptions) const
 {
     IMSA_HILOGD("%{public}s start.", __func__);
     ErrCode err =
