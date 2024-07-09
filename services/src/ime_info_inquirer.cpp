@@ -444,11 +444,15 @@ int32_t ImeInfoInquirer::GetSubProperty(int32_t userId, const std::string &subNa
     const std::vector<OHOS::AppExecFwk::ExtensionAbilityInfo> &extInfos, SubProperty &subProp)
 {
     IMSA_HILOGD("oldIme, userId: %{public}d", userId);
+    if (extInfos.empty()) {
+        IMSA_HILOGE("extInfos is empty");
+        return ErrorCode::ERROR_PACKAGE_MANAGER;
+    }
     auto extInfo = std::find_if(extInfos.begin(), extInfos.end(),
         [&subName](const ExtensionAbilityInfo &info) { return info.name == subName; });
     if (extInfo == extInfos.end()) {
         IMSA_HILOGE("subtype %{public}s not found", subName.c_str());
-        return ErrorCode::ERROR_BAD_PARAMETERS;
+        extInfo = extInfos.begin();
     }
     subProp.labelId = extInfo->labelId;
     subProp.label = GetStringById(extInfo->bundleName, extInfo->moduleName, extInfo->labelId, userId);
@@ -496,11 +500,15 @@ int32_t ImeInfoInquirer::GetSubProperty(int32_t userId, const std::string &subNa
         IMSA_HILOGE("failed to parse subtype");
         return ret;
     }
+    if (subtypes.empty()) {
+        IMSA_HILOGE("subtypes is empty");
+        return ErrorCode::ERROR_PACKAGE_MANAGER;
+    }
     auto subtype = std::find_if(
         subtypes.begin(), subtypes.end(), [&subName](const Subtype &subtype) { return subtype.id == subName; });
     if (subtype == subtypes.end()) {
         IMSA_HILOGE("subtype %{public}s not found", subName.c_str());
-        return ErrorCode::ERROR_BAD_PARAMETERS;
+        subtype = subtypes.begin();
     }
     subProp.label = subtype->label;
     subProp.name = extInfo.bundleName;
