@@ -43,7 +43,7 @@ InputMethodPanel::~InputMethodPanel() = default;
 int32_t InputMethodPanel::CreatePanel(const std::shared_ptr<AbilityRuntime::Context> &context,
     const PanelInfo &panelInfo)
 {
-    IMSA_HILOGD("start, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
+    IMSA_HILOGD("start, type/flag: %{public}d/%{public}d.", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
     panelType_ = panelInfo.panelType;
     panelFlag_ = panelInfo.panelFlag;
@@ -59,20 +59,20 @@ int32_t InputMethodPanel::CreatePanel(const std::shared_ptr<AbilityRuntime::Cont
     WMError wmError = WMError::WM_OK;
     window_ = OHOS::Rosen::Window::Create(GeneratePanelName(), winOption_, context, wmError);
     if (wmError == WMError::WM_ERROR_INVALID_PERMISSION || wmError == WMError::WM_ERROR_NOT_SYSTEM_APP) {
-        IMSA_HILOGE("Create window failed, permission denied, %{public}d", wmError);
+        IMSA_HILOGE("create window failed, permission denied, %{public}d~", wmError);
         return ErrorCode::ERROR_NOT_IME;
     }
     if (window_ == nullptr || wmError != WMError::WM_OK) {
-        IMSA_HILOGE("Create window failed: %{public}d", wmError);
+        IMSA_HILOGE("create window failed: %{public}d!", wmError);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     if (SetPanelProperties() != ErrorCode::NO_ERROR) {
         wmError = window_->Destroy();
-        IMSA_HILOGI("Destroy window end, wmError is %{public}d.", wmError);
+        IMSA_HILOGI("destroy window end, wmError is %{public}d.", wmError);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     windowId_ = window_->GetWindowId();
-    IMSA_HILOGI("success, type/flag/windowId: %{public}d/%{public}d/%{public}u", static_cast<int32_t>(panelType_),
+    IMSA_HILOGI("success, type/flag/windowId: %{public}d/%{public}d/%{public}u.", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_), windowId_);
     if (panelInfo.panelType == SOFT_KEYBOARD) {
         isScbEnable_ = Rosen::SceneBoardJudgement::IsSceneBoardEnabled();
@@ -88,14 +88,14 @@ std::string InputMethodPanel::GeneratePanelName()
     uint32_t sequenceId = GenerateSequenceId();
     std::string windowName = panelType_ == SOFT_KEYBOARD ? "softKeyboard" + std::to_string(sequenceId)
                                                          : "statusBar" + std::to_string(sequenceId);
-    IMSA_HILOGD("InputMethodPanel,  windowName = %{public}s", windowName.c_str());
+    IMSA_HILOGD("InputMethodPanel, windowName: %{public}s.", windowName.c_str());
     return windowName;
 }
 
 int32_t InputMethodPanel::SetPanelProperties()
 {
     if (window_ == nullptr) {
-        IMSA_HILOGE("window is not exist.");
+        IMSA_HILOGE("window is nullptr!");
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     WindowGravity gravity = WindowGravity::WINDOW_GRAVITY_FLOAT;
@@ -111,7 +111,7 @@ int32_t InputMethodPanel::SetPanelProperties()
     }
     WMError wmError = window_->SetWindowGravity(gravity, invalidGravityPercent);
     if (wmError != WMError::WM_OK) {
-        IMSA_HILOGE("SetWindowGravity failed, wmError is %{public}d, start destroy window.", wmError);
+        IMSA_HILOGE("failed to set window gravity, wmError is %{public}d, start destroy window!", wmError);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     return ErrorCode::NO_ERROR;
@@ -121,83 +121,83 @@ int32_t InputMethodPanel::DestroyPanel()
 {
     auto ret = HidePanel();
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("InputMethodPanel, hide panel failed, ret = %{public}d.", ret);
+        IMSA_HILOGE("InputMethodPanel, hide panel failed, ret: %{public}d!", ret);
         return ret;
     }
     if (panelType_ == SOFT_KEYBOARD) {
         UnregisterKeyboardPanelInfoChangeListener();
     }
     auto result = window_->Destroy();
-    IMSA_HILOGI("ret = %{public}d", result);
+    IMSA_HILOGI("destroy ret: %{public}d", result);
     return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodPanel::Resize(uint32_t width, uint32_t height)
 {
     if (window_ == nullptr) {
-        IMSA_HILOGE("window is nullptr");
+        IMSA_HILOGE("window is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (!IsSizeValid(width, height)) {
-        IMSA_HILOGE("invalid size");
+        IMSA_HILOGE("size is invalid!");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto ret = window_->Resize(width, height);
     if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("failed to resize, ret: %{public}d", ret);
+        IMSA_HILOGE("failed to resize, ret: %{public}d!", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     std::lock_guard<std::mutex> lock(keyboardSizeLock_);
     keyboardSize_ = { width, height };
-    IMSA_HILOGI("success, width/height: %{public}u/%{public}u", width, height);
+    IMSA_HILOGI("success, width/height: %{public}u/%{public}u.", width, height);
     return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodPanel::MoveTo(int32_t x, int32_t y)
 {
     if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr.");
+        IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (panelType_ == SOFT_KEYBOARD && panelFlag_ == FLG_FIXED) {
-        IMSA_HILOGE("FLG_FIXED panel can not moveTo.");
+        IMSA_HILOGE("FLG_FIXED panel can not moveTo!");
         return ErrorCode::NO_ERROR;
     }
     auto ret = window_->MoveTo(x, y);
-    IMSA_HILOGI("x/y: %{public}d/%{public}d, ret = %{public}d", x, y, ret);
+    IMSA_HILOGI("x/y: %{public}d/%{public}d, ret = %{public}d.", x, y, ret);
     return ret == WMError::WM_ERROR_INVALID_PARAM ? ErrorCode::ERROR_PARAMETER_CHECK_FAILED : ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodPanel::AdjustPanelRect(const PanelFlag panelFlag, const LayoutParams &layoutParams)
 {
     if (window_ == nullptr) {
-        IMSA_HILOGE("window is nullptr");
+        IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     if (layoutParams.portraitRect.posX_ < 0 || layoutParams.portraitRect.posY_ < 0 ||
         layoutParams.landscapeRect.posX_ < 0 || layoutParams.landscapeRect.posY_ < 0) {
-        IMSA_HILOGE("posX_ and posY_ cannot be less than 0");
+        IMSA_HILOGE("posX_ and posY_ cannot be less than 0!");
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
     if (!CheckSize(panelFlag, layoutParams.portraitRect.width_, layoutParams.portraitRect.height_, true)) {
-        IMSA_HILOGE("Portrait invalid size");
+        IMSA_HILOGE("portrait invalid size!");
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
     if (!CheckSize(panelFlag, layoutParams.landscapeRect.width_, layoutParams.landscapeRect.height_, false)) {
-        IMSA_HILOGE("Landscape invalid size");
+        IMSA_HILOGE("landscape invalid size!");
         return ErrorCode::ERROR_PARAMETER_CHECK_FAILED;
     }
     auto result = ParsePanelRect(panelFlag, layoutParams);
     if (result != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("ParsePanelRect failed result = %{public}d", result);
+        IMSA_HILOGE("failed to parse panel rect, result: %{public}d!", result);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     auto ret = window_->AdjustKeyboardLayout(keyboardLayoutParams_);
     if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("AdjustPanelRect error, err = %{public}d", ret);
+        IMSA_HILOGE("AdjustPanelRect error, err: %{public}d!", ret);
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
-    IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
+    IMSA_HILOGI("success, type/flag: %{public}d/%{public}d.", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
     return ErrorCode::NO_ERROR;
 }
@@ -213,10 +213,10 @@ int32_t InputMethodPanel::ParsePanelRect(const PanelFlag panelFlag, const Layout
             panelAdjust_.insert({ config.style, { config.top, config.left, config.right, config.bottom } });
         }
     } else {
-        IMSA_HILOGE("There is no configuration file.");
+        IMSA_HILOGE("there is no configuration file.");
         auto ret = CalculateNoConfigRect(panelFlag, layoutParams);
         if (ret != ErrorCode::NO_ERROR) {
-            IMSA_HILOGE("CalculateNoConfigRect failed, err = %{public}d", ret);
+            IMSA_HILOGE("failed to calculate NoConfigRect, err: %{public}d!", ret);
             return ret;
         }
         return ErrorCode::NO_ERROR;
@@ -224,7 +224,7 @@ int32_t InputMethodPanel::ParsePanelRect(const PanelFlag panelFlag, const Layout
     std::tuple<std::vector<std::string>, std::vector<std::string>> keys = GetScreenStatus(panelFlag);
     auto ret = GetSysPanelAdjust(panelFlag, keys, layoutParams);
     if (ret != ErrorCode::NO_ERROR) {
-        IMSA_HILOGE("GetSysPanelAdjust failed");
+        IMSA_HILOGE("GetSysPanelAdjust failed!");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     return ErrorCode::NO_ERROR;
@@ -236,7 +236,7 @@ int32_t InputMethodPanel::CalculateNoConfigRect(const PanelFlag panelFlag, const
         keyboardLayoutParams_.gravity_ = WindowGravity::WINDOW_GRAVITY_BOTTOM;
         WindowSize portraitDisplaySize;
         if (!GetDisplaySize(true, portraitDisplaySize)) {
-            IMSA_HILOGE("GetPortraitDisplaySize failed.");
+            IMSA_HILOGE("GetPortraitDisplaySize failed!");
             return ErrorCode::ERROR_WINDOW_MANAGER;
         }
         keyboardLayoutParams_.PortraitPanelRect_.width_ = portraitDisplaySize.width;
@@ -252,7 +252,7 @@ int32_t InputMethodPanel::CalculateNoConfigRect(const PanelFlag panelFlag, const
 
         WindowSize landscapeDisplaySize;
         if (!GetDisplaySize(false, landscapeDisplaySize)) {
-            IMSA_HILOGE("GetLandscapeDisplaySize failed.");
+            IMSA_HILOGE("GetLandscapeDisplaySize failed!");
             return ErrorCode::ERROR_WINDOW_MANAGER;
         }
         keyboardLayoutParams_.LandscapePanelRect_.width_ = landscapeDisplaySize.width;
@@ -306,7 +306,7 @@ int32_t InputMethodPanel::GetSysPanelAdjust(const PanelFlag panelFlag,
     auto lanIter = panelAdjust_.find(lanPanel);
     auto porIter = panelAdjust_.find(porPanel);
     if (lanIter == panelAdjust_.end() || porIter == panelAdjust_.end()) {
-        IMSA_HILOGE("lanIter or porIter not supported");
+        IMSA_HILOGE("lanIter or porIter not supported!");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     auto lanIterValue = lanIter->second;
@@ -323,7 +323,7 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
 {
     auto defaultDisplay = Rosen::DisplayManager::GetInstance().GetDefaultDisplay();
     if (defaultDisplay == nullptr) {
-        IMSA_HILOGE("GetDefaultDisplay failed.");
+        IMSA_HILOGE("GetDefaultDisplay failed!");
         return ErrorCode::ERROR_EX_SERVICE_SPECIFIC;
     }
     auto densityDpi = defaultDisplay->GetDpi();
@@ -331,7 +331,7 @@ int32_t InputMethodPanel::CalculatePanelRect(const PanelFlag panelFlag, PanelAdj
         //fixed PortraitPanel
         WindowSize portraitDisplaySize;
         if (!GetDisplaySize(true, portraitDisplaySize)) {
-            IMSA_HILOGE("GetDisplaySize failed.");
+            IMSA_HILOGE("GetDisplaySize failed!");
             return ErrorCode::ERROR_WINDOW_MANAGER;
         }
         keyboardLayoutParams_.PortraitPanelRect_.width_ = portraitDisplaySize.width;
@@ -407,7 +407,7 @@ int32_t InputMethodPanel::CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &def
     //LandscapePanel
     WindowSize landscapeDisplaySize;
     if (!GetDisplaySize(false, landscapeDisplaySize)) {
-        IMSA_HILOGE("GetDisplaySize failed.");
+        IMSA_HILOGE("GetDisplaySize failed!");
         return ErrorCode::ERROR_WINDOW_MANAGER;
     }
     keyboardLayoutParams_.LandscapePanelRect_.width_ = landscapeDisplaySize.width;
@@ -450,14 +450,14 @@ int32_t InputMethodPanel::CalculateLandscapeRect(sptr<OHOS::Rosen::Display> &def
 int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
 {
     if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr.");
+        IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (panelFlag_ == panelFlag) {
         return ErrorCode::NO_ERROR;
     }
     if (panelType_ == STATUS_BAR) {
-        IMSA_HILOGE("STATUS_BAR cannot ChangePanelFlag.");
+        IMSA_HILOGE("STATUS_BAR cannot ChangePanelFlag!");
         return ErrorCode::ERROR_BAD_PARAMETERS;
     }
     WindowGravity gravity = WindowGravity::WINDOW_GRAVITY_FLOAT;
@@ -471,7 +471,7 @@ int32_t InputMethodPanel::ChangePanelFlag(PanelFlag panelFlag)
     if (ret == WMError::WM_OK) {
         panelFlag_ = panelFlag;
     }
-    IMSA_HILOGI("flag: %{public}d, ret = %{public}d", panelFlag, ret);
+    IMSA_HILOGI("flag: %{public}d, ret: %{public}d.", panelFlag, ret);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_OPERATE_PANEL;
 }
 
@@ -487,13 +487,13 @@ PanelFlag InputMethodPanel::GetPanelFlag()
 
 int32_t InputMethodPanel::ShowPanel()
 {
-    IMSA_HILOGD("InputMethodPanel, run in");
+    IMSA_HILOGD("InputMethodPanel start.");
     if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr.");
+        IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (IsShowing()) {
-        IMSA_HILOGI("Panel already shown.");
+        IMSA_HILOGI("panel already shown.");
         return ErrorCode::NO_ERROR;
     }
     auto ret = WMError::WM_OK;
@@ -505,7 +505,7 @@ int32_t InputMethodPanel::ShowPanel()
         IMSA_HILOGE("ShowPanel error, err = %{public}d", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
+    IMSA_HILOGI("success, type/flag: %{public}d/%{public}d.", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
     PanelStatusChange(InputWindowStatus::SHOW);
     if (!isScbEnable_) {
@@ -517,12 +517,12 @@ int32_t InputMethodPanel::ShowPanel()
 int32_t InputMethodPanel::SetTextFieldAvoidInfo(double positionY, double height)
 {
     if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr.");
+        IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     auto ret = window_->SetTextFieldAvoidInfo(positionY, height);
     if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("SetTextFieldAvoidInfo error, err = %{public}d", ret);
+        IMSA_HILOGE("SetTextFieldAvoidInfo error, err: %{public}d!", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
     return ErrorCode::NO_ERROR;
@@ -530,13 +530,13 @@ int32_t InputMethodPanel::SetTextFieldAvoidInfo(double positionY, double height)
 
 int32_t InputMethodPanel::HidePanel()
 {
-    IMSA_HILOGD("InputMethodPanel, run in");
+    IMSA_HILOGD("InputMethodPanel start.");
     if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr.");
+        IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     if (IsHidden()) {
-        IMSA_HILOGI("Panel already hidden.");
+        IMSA_HILOGI("panel already hidden.");
         return ErrorCode::NO_ERROR;
     }
     auto ret = WMError::WM_OK;
@@ -545,10 +545,10 @@ int32_t InputMethodPanel::HidePanel()
         ret = window_->Hide();
     }
     if (ret != WMError::WM_OK) {
-        IMSA_HILOGE("HidePanel error, err = %{public}d", ret);
+        IMSA_HILOGE("HidePanel error, err: %{public}d!", ret);
         return ErrorCode::ERROR_OPERATE_PANEL;
     }
-    IMSA_HILOGI("success, type/flag: %{public}d/%{public}d", static_cast<int32_t>(panelType_),
+    IMSA_HILOGI("success, type/flag: %{public}d/%{public}d.", static_cast<int32_t>(panelType_),
         static_cast<int32_t>(panelFlag_));
     PanelStatusChange(InputWindowStatus::HIDE);
     if (!isScbEnable_) {
@@ -559,13 +559,13 @@ int32_t InputMethodPanel::HidePanel()
 
 int32_t InputMethodPanel::SetCallingWindow(uint32_t windowId)
 {
-    IMSA_HILOGD("InputMethodPanel run in, windowId: %{public}d", windowId);
+    IMSA_HILOGD("InputMethodPanel start, windowId: %{public}d.", windowId);
     if (window_ == nullptr) {
-        IMSA_HILOGE("window_ is nullptr.");
+        IMSA_HILOGE("window_ is nullptr!");
         return ErrorCode::ERROR_PANEL_NOT_FOUND;
     }
     auto ret = window_->SetCallingWindow(windowId);
-    IMSA_HILOGI("ret = %{public}d, windowId = %{public}u", ret, windowId);
+    IMSA_HILOGI("ret: %{public}d, windowId: %{public}u", ret, windowId);
     return ret == WMError::WM_OK ? ErrorCode::NO_ERROR : ErrorCode::ERROR_WINDOW_MANAGER;
 }
 
