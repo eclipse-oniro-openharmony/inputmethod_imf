@@ -46,13 +46,13 @@ napi_value JsKeyboardControllerEngine::JsConstructor(napi_env env, napi_callback
 
     JsKeyboardControllerEngine *controllerObject = new (std::nothrow) JsKeyboardControllerEngine();
     if (controllerObject == nullptr) {
-        IMSA_HILOGE("controllerObject is nullptr");
+        IMSA_HILOGE("controllerObject is nullptr!");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
     }
     auto finalize = [](napi_env env, void *data, void *hint) {
-        IMSA_HILOGD("JsKBCEngine finalize");
+        IMSA_HILOGD("JsKBCEngine finalize.");
         auto *objInfo = reinterpret_cast<JsKeyboardControllerEngine *>(data);
         if (objInfo != nullptr) {
             delete objInfo;
@@ -60,7 +60,7 @@ napi_value JsKeyboardControllerEngine::JsConstructor(napi_env env, napi_callback
     };
     napi_status status = napi_wrap(env, thisVar, controllerObject, finalize, nullptr, nullptr);
     if (status != napi_ok) {
-        IMSA_HILOGE("JsKeyboardControllerEngine napi_wrap failed: %{public}d", status);
+        IMSA_HILOGE("JsKeyboardControllerEngine wrap failed: %{public}d!", status);
         delete controllerObject;
         return nullptr;
     }
@@ -73,11 +73,11 @@ napi_value JsKeyboardControllerEngine::GetKeyboardControllerInstance(napi_env en
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, KCERef_, &cons) != napi_ok) {
-        IMSA_HILOGE("GetKeyboardController::napi_get_reference_value not ok");
+        IMSA_HILOGE("failed to get reference value!");
         return nullptr;
     }
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
-        IMSA_HILOGE("GetKeyboardController::napi_new_instance not ok");
+        IMSA_HILOGE("failed to new instance value!");
         return nullptr;
     }
     IMSA_HILOGD("success");

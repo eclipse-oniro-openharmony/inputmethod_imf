@@ -72,7 +72,7 @@ void InputmethodDump::ShowHelp(int fd)
     dprintf(fd, "%s\n", result.c_str());
 }
 
-void InputmethodDump::ShowIllealInformation(int fd)
+void InputmethodDump::ShowIllegalInformation(int fd)
 {
     dprintf(fd, "%s\n", ILLEGAL_INFO.c_str());
 }
