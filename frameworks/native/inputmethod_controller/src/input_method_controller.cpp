@@ -114,7 +114,7 @@ int32_t InputMethodController::Initialize()
 {
     sptr<IInputClient> client = new (std::nothrow) InputClientStub();
     if (client == nullptr) {
-        IMSA_HILOGE("failed to new client" !);
+        IMSA_HILOGE("failed to create client");
         return ErrorCode::ERROR_NULL_POINTER;
     }
     sptr<IInputDataChannel> channel = new (std::nothrow) InputDataChannelStub();

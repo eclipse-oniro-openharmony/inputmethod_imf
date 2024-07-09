@@ -400,8 +400,7 @@ napi_value JsInputMethodEngineSetting::CreatePanel(napi_env env, napi_callback_i
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         auto ret = InputMethodAbility::GetInstance()->CreatePanel(ctxt->context, ctxt->panelInfo, ctxt->panel);
         ctxt->SetErrorCode(ret);
-        CHECK_RETURN_VOID(ret == ErrorCode::NO_ERROR, "JsInputMethodEngineSetting CreatePanel failed: %{public}d!",
-            ret);
+        CHECK_RETURN_VOID(ret == ErrorCode::NO_ERROR, "JsInputMethodEngineSetting CreatePanel failed!");
         ctxt->SetState(napi_ok);
     };
 

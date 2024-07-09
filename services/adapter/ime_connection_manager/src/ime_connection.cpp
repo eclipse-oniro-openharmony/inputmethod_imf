@@ -22,13 +22,13 @@ namespace MiscServices {
 void ImeConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &element,
     const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
 {
-    IMSA_HILOGI("ime: %{public}s/%{public}s, ret=%{public}d", element.GetBundleName().c_str(),
+    IMSA_HILOGI("ime: %{public}s/%{public}s, ret: %{public}d", element.GetBundleName().c_str(),
         element.GetAbilityName().c_str(), resultCode);
 }
 
 void ImeConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode)
 {
-    IMSA_HILOGI("ime: %{public}s/%{public}s, ret=%{public}d", element.GetBundleName().c_str(),
+    IMSA_HILOGI("ime: %{public}s/%{public}s, ret: %{public}d", element.GetBundleName().c_str(),
         element.GetAbilityName().c_str(), resultCode);
 }
 } // namespace MiscServices
