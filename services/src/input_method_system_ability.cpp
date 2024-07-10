@@ -175,20 +175,58 @@ void InputMethodSystemAbility::HandleUserChanged(int32_t userId)
     ImeInfoInquirer::GetInstance().SetCurrentImeInfo(nullptr);
 }
 
-int32_t InputMethodSystemAbility::RestartCurrentIme()
+bool InputMethodSystemAbility::IsReady(int32_t saId)
 {
-    if (imeStarting_.exchange(true)) {
-        IMSA_HILOGD("do starting");
-        return ErrorCode::NO_ERROR;
+    auto saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (saMgr == nullptr) {
+        IMSA_HILOGE("get saMgr failed!");
+        return false;
     }
-    IMSA_HILOGI("start ime, userId: %{public}d", userId_);
-    userSession_->StopCurrentIme();
-    auto ret = userSession_->StartCurrentIme(userId_, true);
-    if (!ret) {
-        IMSA_HILOGE("start ime failed");
+    if (saMgr->CheckSystemAbility(saId) == nullptr) {
+        IMSA_HILOGE("sa:%{public}d not ready!", saId);
+        return false;
+    };
+    return true;
+}
+
+void InputMethodSystemAbility::AddRestartIme()
+{
+    int32_t tasks = 0;
+    {
+        std::lock_guard <std::mutex> lock(restartMutex_);
+        if (restartTasks_ >= MAX_RESTART_TASKS) {
+            return;
+        }
+        restartTasks_ = std::max(restartTasks_, 0);
+        tasks = ++restartTasks_;
     }
-    imeStarting_.store(false);
-    return ret ? ErrorCode::NO_ERROR : ErrorCode::ERROR_IME_START_FAILED;
+    if (tasks == 1 && !RestartCurrentIme()) {
+        std::lock_guard<std::mutex> lock(restartMutex_);
+        restartTasks_ = 0;
+    }
+}
+
+bool InputMethodSystemAbility::RestartCurrentIme()
+{
+    auto task = [this]() {
+        if (IsReady(MEMORY_MANAGER_SA_ID) && userSession_->IsWmsReady()) {
+            userSession_->StopCurrentIme();
+            auto ret = userSession_->StartCurrentIme(userId_, true);
+            if (!ret) {
+                IMSA_HILOGE("start ime failed");
+            }
+        }
+        int32_t tasks = 0;
+        {
+            std::lock_guard<std::mutex> lock(restartMutex_);
+            tasks = --restartTasks_;
+        }
+        if (tasks > 0 && !RestartCurrentIme()) {
+            std::lock_guard<std::mutex> lock(restartMutex_);
+            restartTasks_ = 0;
+        }
+    };
+    return serviceHandler_->PostTask(task, "RestartImeTask", 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 void InputMethodSystemAbility::HandleWmsReady(int32_t userId)
@@ -202,7 +240,7 @@ void InputMethodSystemAbility::HandleWmsReady(int32_t userId)
     if (ret != ErrorCode::NO_ERROR) {
         IMSA_HILOGE("RemoveCurrentClient failed");
     }
-    RestartCurrentIme();
+    AddRestartIme();
 }
 
 void InputMethodSystemAbility::OnStop()
@@ -875,11 +913,8 @@ int32_t InputMethodSystemAbility::OnUserStarted(const Message *msg)
         return ErrorCode::NO_ERROR;
     }
     HandleUserChanged(newUserId);
-    if (!userSession_->IsWmsReady()) {
-        IMSA_HILOGI("wms not ready, wait");
-        return ErrorCode::NO_ERROR;
-    }
-    return RestartCurrentIme();
+    AddRestartIme();
+    return ErrorCode::NO_ERROR;
 }
 
 int32_t InputMethodSystemAbility::OnUserRemoved(const Message *msg)
@@ -1182,6 +1217,7 @@ bool InputMethodSystemAbility::InitMemMgrMonitor()
     return ImCommonEventManager::GetInstance()->SubscribeMemMgrService([this]() {
         IMSA_HILOGI("MemMgr start");
         Memory::MemMgrClient::GetInstance().NotifyProcessStatus(getpid(), 1, 1, INPUT_METHOD_SYSTEM_ABILITY_ID);
+        AddRestartIme();
     });
 }
 
@@ -1248,11 +1284,7 @@ void InputMethodSystemAbility::OnSecurityModeChange()
     IMSA_HILOGI("ime: %{public}s securityMode change to: %{public}d", currentIme->bundleName.c_str(),
         static_cast<int32_t>(newMode));
     userSession_->OnSecurityChange(static_cast<int32_t>(newMode));
-    userSession_->StopCurrentIme();
-    auto ret = userSession_->StartInputService(currentIme);
-    if (!ret) {
-        IMSA_HILOGE("ime start failed");
-    }
+    AddRestartIme();
 }
 
 int32_t InputMethodSystemAbility::GetSecurityMode(int32_t &security)
