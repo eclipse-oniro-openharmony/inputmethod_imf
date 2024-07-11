@@ -50,31 +50,31 @@ napi_status JsInputMethod::GetInputMethodProperty(napi_env env, napi_value argv,
     napi_status status = napi_generic_failure;
     napi_typeof(env, argv, &valueType);
     if (valueType != napi_object) {
-        IMSA_HILOGE("valueType error");
+        IMSA_HILOGE("type is not object!");
         return status;
     }
     napi_value result = nullptr;
     napi_get_named_property(env, argv, "name", &result);
     status = JsUtils::GetValue(env, result, ctxt->packageName);
-    CHECK_RETURN(status == napi_ok, "get ctxt->packageName failed!", status);
+    CHECK_RETURN(status == napi_ok, "get name failed!", status);
     result = nullptr;
     napi_get_named_property(env, argv, "id", &result);
     status = JsUtils::GetValue(env, result, ctxt->methodId);
-    CHECK_RETURN(status == napi_ok, "get ctxt->methodId failed!", status);
+    CHECK_RETURN(status == napi_ok, "get id failed!", status);
     if (ctxt->packageName.empty() || ctxt->methodId.empty()) {
         result = nullptr;
         napi_get_named_property(env, argv, "packageName", &result);
         status = JsUtils::GetValue(env, result, ctxt->packageName);
-        CHECK_RETURN(status == napi_ok, "get ctxt->packageName failed!", status);
+        CHECK_RETURN(status == napi_ok, "get packageName failed!", status);
 
         result = nullptr;
         napi_get_named_property(env, argv, "methodId", &result);
         status = JsUtils::GetValue(env, result, ctxt->methodId);
-        CHECK_RETURN(status == napi_ok, "get ctxt->methodId failed!", status);
+        CHECK_RETURN(status == napi_ok, "get methodId failed!", status);
     }
     PARAM_CHECK_RETURN(env, (!ctxt->packageName.empty() && !ctxt->methodId.empty()),
-        "param packageName and methodId is empty", TYPE_NONE, napi_invalid_arg);
-    IMSA_HILOGD("methodId:%{public}s, packageName:%{public}s", ctxt->methodId.c_str(), ctxt->packageName.c_str());
+        "packageName and methodId is empty", TYPE_NONE, napi_invalid_arg);
+    IMSA_HILOGD("methodId: %{public}s, packageName: %{public}s.", ctxt->methodId.c_str(), ctxt->packageName.c_str());
     return napi_ok;
 }
 
@@ -89,13 +89,13 @@ napi_status JsInputMethod::GetInputMethodSubProperty(napi_env env, napi_value ar
         status = napi_get_named_property(env, argv, "name", &result);
         PARAM_CHECK_RETURN(env, status == napi_ok, " name ", TYPE_STRING, status);
         status = JsUtils::GetValue(env, result, ctxt->name);
-        CHECK_RETURN(status == napi_ok, "get ctxt->name failed!", status);
+        CHECK_RETURN(status == napi_ok, "get name failed!", status);
         result = nullptr;
         status = napi_get_named_property(env, argv, "id", &result);
         PARAM_CHECK_RETURN(env, status == napi_ok, " id ", TYPE_STRING, status);
         status = JsUtils::GetValue(env, result, ctxt->id);
-        CHECK_RETURN(status == napi_ok, "get ctxt->id failed!", status);
-        IMSA_HILOGD("name:%{public}s and id:%{public}s", ctxt->name.c_str(), ctxt->id.c_str());
+        CHECK_RETURN(status == napi_ok, "get id failed!", status);
+        IMSA_HILOGD("name: %{public}s and id: %{public}s.", ctxt->name.c_str(), ctxt->id.c_str());
     }
     return status;
 }
@@ -202,7 +202,7 @@ napi_value JsInputMethod::GetJSInputMethodSubProperties(napi_env env, const std:
     napi_value prop = nullptr;
     napi_create_array(env, &prop);
     if (prop == nullptr) {
-        IMSA_HILOGE("create array failed");
+        IMSA_HILOGE("create array failed!");
         return prop;
     }
     for (const auto &subproperty : subProperties) {
@@ -219,7 +219,7 @@ napi_value JsInputMethod::GetJSInputMethodProperties(napi_env env, const std::ve
     napi_value prop = nullptr;
     napi_create_array(env, &prop);
     if (prop == nullptr) {
-        IMSA_HILOGE("create array failed");
+        IMSA_HILOGE("create array failed!");
         return prop;
     }
     for (const auto &property : properties) {
@@ -235,11 +235,11 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
     InputMethodSyncTrace tracer("JsInputMethod_SwitchInputMethod");
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
         PARAM_CHECK_RETURN(env, valueType == napi_object || valueType == napi_string,
-            "when param is target/bundleName type must be InputMethodProperty/string", TYPE_NONE, napi_invalid_arg);
+            "target/bundleName type must be InputMethodProperty/string!", TYPE_NONE, napi_invalid_arg);
         napi_status status = napi_generic_failure;
         if (valueType == napi_object) {
             ctxt->trigger = SwitchTrigger::CURRENT_IME;
@@ -267,7 +267,7 @@ napi_value JsInputMethod::SwitchInputMethod(napi_env env, napi_callback_info inf
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;
         } else {
-            IMSA_HILOGE("exec SwitchInputMethod failed ret: %{public}d", errCode);
+            IMSA_HILOGE("exec SwitchInputMethod failed ret: %{public}d!", errCode);
             ctxt->SetErrorCode(errCode);
         }
     };
@@ -281,7 +281,7 @@ napi_value JsInputMethod::GetCurrentInputMethod(napi_env env, napi_callback_info
 {
     std::shared_ptr<Property> property = InputMethodController::GetInstance()->GetCurrentInputMethod();
     if (property == nullptr) {
-        IMSA_HILOGE("get current inputmethod is nullptr");
+        IMSA_HILOGE("current input method is nullptr!");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
@@ -293,7 +293,7 @@ napi_value JsInputMethod::GetCurrentInputMethodSubtype(napi_env env, napi_callba
 {
     std::shared_ptr<SubProperty> subProperty = InputMethodController::GetInstance()->GetCurrentInputMethodSubtype();
     if (subProperty == nullptr) {
-        IMSA_HILOGE("get current inputmethodsubtype is nullptr");
+        IMSA_HILOGE("current input method subtype is nullptr!");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
@@ -306,13 +306,13 @@ napi_value JsInputMethod::GetDefaultInputMethod(napi_env env, napi_callback_info
     std::shared_ptr<Property> property;
     int32_t ret = InputMethodController::GetInstance()->GetDefaultInputMethod(property);
     if (property == nullptr) {
-        IMSA_HILOGE("get default input method is nullptr");
+        IMSA_HILOGE("default input method is nullptr!");
         napi_value result = nullptr;
         napi_get_null(env, &result);
         return result;
     }
     if (ret != ErrorCode::NO_ERROR) {
-        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get default input method", TYPE_NONE);
+        JsUtils::ThrowException(env, JsUtils::Convert(ret), "failed to get default input method!", TYPE_NONE);
         return JsUtil::Const::Null(env);
     }
     return GetJsInputMethodProperty(env, *property);
@@ -334,24 +334,24 @@ napi_value JsInputMethod::SwitchCurrentInputMethodSubtype(napi_env env, napi_cal
     InputMethodSyncTrace tracer("JsInputMethod_SwitchCurrentInputMethodSubtype");
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 0, "at least one paramster is required", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc > 0, "at least one parameter is required!", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "param target type must be InputMethodSubtype", TYPE_NONE,
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "target type must be InputMethodSubtype!", TYPE_NONE,
             napi_invalid_arg);
         napi_status status = GetInputMethodSubProperty(env, argv[0], ctxt);
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_status status = napi_get_boolean(env, ctxt->isSwitchInput, result);
-        IMSA_HILOGE("output napi_get_boolean != nullptr[%{public}d]", result != nullptr);
+        IMSA_HILOGE("output get boolean != nullptr[%{public}d]!", result != nullptr);
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         int32_t errCode =
             InputMethodController::GetInstance()->SwitchInputMethod(SwitchTrigger::CURRENT_IME, ctxt->name, ctxt->id);
         if (errCode == ErrorCode::NO_ERROR) {
-            IMSA_HILOGI("exec SwitchInputMethod success");
+            IMSA_HILOGI("exec SwitchInputMethod success.");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;
@@ -370,27 +370,27 @@ napi_value JsInputMethod::SwitchCurrentInputMethodAndSubtype(napi_env env, napi_
     InputMethodSyncTrace tracer("JsInputMethod_SwitchCurrentInputMethodAndSubtype");
     auto ctxt = std::make_shared<SwitchInputMethodContext>();
     auto input = [ctxt](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
-        PARAM_CHECK_RETURN(env, argc > 1, "at least two paramsters is required", TYPE_NONE, napi_invalid_arg);
+        PARAM_CHECK_RETURN(env, argc > 1, "at least two parameters is required!", TYPE_NONE, napi_invalid_arg);
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[0], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "param inputMethodProperty type must be InputMethodProperty",
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodProperty type must be InputMethodProperty!",
             TYPE_NONE, napi_invalid_arg);
         napi_typeof(env, argv[1], &valueType);
-        PARAM_CHECK_RETURN(env, valueType == napi_object, "param inputMethodSubtype type must be InputMethodSubtype",
+        PARAM_CHECK_RETURN(env, valueType == napi_object, "inputMethodSubtype type must be InputMethodSubtype!",
             TYPE_NONE, napi_invalid_arg);
         napi_status status = GetInputMethodSubProperty(env, argv[1], ctxt);
         return status;
     };
     auto output = [ctxt](napi_env env, napi_value *result) -> napi_status {
         napi_status status = napi_get_boolean(env, ctxt->isSwitchInput, result);
-        IMSA_HILOGE("output  napi_get_boolean != nullptr[%{public}d]", result != nullptr);
+        IMSA_HILOGE("output get boolean != nullptr[%{public}d]!", result != nullptr);
         return status;
     };
     auto exec = [ctxt](AsyncCall::Context *ctx) {
         int32_t errCode =
             InputMethodController::GetInstance()->SwitchInputMethod(SwitchTrigger::CURRENT_IME, ctxt->name, ctxt->id);
         if (errCode == ErrorCode::NO_ERROR) {
-            IMSA_HILOGI("exec SwitchInputMethod success");
+            IMSA_HILOGI("exec SwitchInputMethod success.");
             ctxt->status = napi_ok;
             ctxt->SetState(ctxt->status);
             ctxt->isSwitchInput = true;

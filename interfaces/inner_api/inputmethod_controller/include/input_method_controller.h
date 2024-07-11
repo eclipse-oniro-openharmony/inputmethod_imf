@@ -46,6 +46,7 @@ namespace OHOS {
 namespace MiscServices {
 class OnTextChangedListener : public virtual RefBase {
 public:
+    virtual ~OnTextChangedListener() {}
     virtual void InsertText(const std::u16string &text) = 0;
     virtual void DeleteForward(int32_t length) = 0;
     virtual void DeleteBackward(int32_t length) = 0;
@@ -122,7 +123,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 6
      */
-    IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener);
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener);
 
     /**
      * @brief Set listener and bind IMSA with given states and default attribute.
@@ -135,7 +136,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 8
      */
-    IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard);
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard);
 
     /**
      * @brief Set listener and bind IMSA with given states and attribute.
@@ -149,7 +150,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 8
      */
-    IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const InputAttribute &attribute);
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard, const InputAttribute &attribute);
 
     /**
      * @brief Set listener and bind IMSA with given states and textConfig.
@@ -164,7 +165,7 @@ public:
      * @return Returns 0 for success, others for failure.
      * @since 10
      */
-    IMF_API int32_t Attach(sptr<OnTextChangedListener> &listener, bool isShowKeyboard, const TextConfig &textConfig);
+    IMF_API int32_t Attach(sptr<OnTextChangedListener> listener, bool isShowKeyboard, const TextConfig &textConfig);
 
     /**
      * @brief Show soft keyboard.

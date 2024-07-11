@@ -197,7 +197,7 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
     observer.OnConnected(60, 0);
     // imeStarting_ is true
     IMSA_HILOGI("InputMethodPrivateMemberTest::imeStarting_ is true");
-    service_->imeStarting_ = true;
+    service_->restartTasks_ = 2;
     service_->userId_ = 50;
     MessageParcel *parcel2 = new MessageParcel();
     parcel2->WriteInt32(60);
@@ -206,14 +206,14 @@ HWTEST_F(InputMethodPrivateMemberTest, SA_TestOnUserStarted, TestSize.Level0)
     EXPECT_EQ(ret, ErrorCode::NO_ERROR);
     // imeStarting_ is false
     IMSA_HILOGI("InputMethodPrivateMemberTest::imeStarting_ is false");
-    service_->imeStarting_ = false;
+    service_->restartTasks_ = 0;
     service_->userId_ = 50;
     MessageParcel *parcel3 = new MessageParcel();
     observer.OnConnected(333, 0);
     parcel3->WriteInt32(333);
     auto msg3 = std::make_shared<Message>(MessageID::MSG_ID_USER_START, parcel3);
     ret = service_->OnUserStarted(msg3.get());
-    EXPECT_EQ(ret, ErrorCode::ERROR_IME_START_FAILED);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 
 /**
@@ -762,6 +762,21 @@ HWTEST_F(InputMethodPrivateMemberTest, IMC_testDeactivateClient, TestSize.Level0
     EXPECT_EQ(imc->clientInfo_.state, ClientState::INACTIVE);
     EXPECT_EQ(imc->agent_, nullptr);
     EXPECT_EQ(imc->agentObject_, nullptr);
+}
+
+/**
+ * @tc.name: testIsPanelShown
+ * @tc.desc: Test Panel Shown.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InputMethodPrivateMemberTest, testIsPanelShown, TestSize.Level0)
+{
+    IMSA_HILOGI("InputMethodPrivateMemberTest PerUserSessionParameterNullptr003 TEST START");
+    auto userSession = std::make_shared<PerUserSession>(MAIN_USER_ID);
+    PanelInfo panelInfo = { .panelType = SOFT_KEYBOARD, .panelFlag = FLG_FIXED };
+    bool flag = true;
+    auto ret = userSession->IsPanelShown(panelInfo, flag);
+    EXPECT_EQ(ret, ErrorCode::NO_ERROR);
 }
 } // namespace MiscServices
 } // namespace OHOS

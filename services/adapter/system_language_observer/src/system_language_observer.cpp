@@ -17,6 +17,7 @@
 
 #include "global.h"
 #include "parameter.h"
+
 namespace OHOS {
 namespace MiscServices {
 SystemLanguageObserver::ChangeHandler SystemLanguageObserver::handler_;
@@ -30,16 +31,16 @@ void SystemLanguageObserver::Watch(ChangeHandler handler)
 {
     handler_ = std::move(handler);
     auto errNo = WatchParameter(SYSTEM_LANGUAGE_KEY, OnChange, nullptr);
-    IMSA_HILOGD("ret: %{public}d", errNo);
+    IMSA_HILOGD("ret: %{public}d.", errNo);
 }
 
 void SystemLanguageObserver::OnChange(const char *key, const char *value, void *context)
 {
     if (strncmp(key, SYSTEM_LANGUAGE_KEY, strlen(SYSTEM_LANGUAGE_KEY)) != 0) {
-        IMSA_HILOGE("key: %{public}s is error", key);
+        IMSA_HILOGE("key: %{public}s is error!", key);
         return;
     }
-    IMSA_HILOGD("value: %{public}s", value);
+    IMSA_HILOGD("value: %{public}s.", value);
     if (handler_ != nullptr) {
         handler_();
     }

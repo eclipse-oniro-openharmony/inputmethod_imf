@@ -98,7 +98,7 @@ public:
     int32_t OnUnRegisteredProxyIme(UnRegisteredType type, const sptr<IInputMethodCore> &core);
     bool StartCurrentIme(int32_t userId, bool isRetry);
     void StopCurrentIme();
-    bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime, bool isRetry);
+    bool StartInputService(const std::shared_ptr<ImeNativeCfg> &ime);
     bool IsProxyImeEnable();
     bool IsBoundToClient();
     int32_t ExitCurrentInputType();
@@ -182,6 +182,7 @@ private:
     bool IsImeBindChanged(ImeType bindImeType);
     std::map<sptr<IRemoteObject>, std::shared_ptr<InputClientInfo>> GetClientMap();
     int32_t RequestIme(const std::shared_ptr<ImeData> &data, RequestType type, const IpcExec &exec);
+    int32_t ForceStopCurrentIme();
 
     bool WaitForCurrentImeStop();
     void NotifyImeStopFinished();

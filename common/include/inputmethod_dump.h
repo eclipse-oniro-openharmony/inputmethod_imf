@@ -33,14 +33,12 @@ public:
     InputmethodDump() = default;
     virtual ~InputmethodDump() = default;
     void AddDumpAllMethod(const DumpNoParamFunc dumpAllMethod);
-    void AddErrorInfo(const std::string &error);
     bool Dump(int fd, const std::vector<std::string> &args);
 
 private:
     void ShowHelp(int fd);
-    void ShowIllealInformation(int fd);
+    void ShowIllegalInformation(int fd);
     mutable std::mutex hidumperMutex_;
-    std::list<std::string> errorInfo_;
     DumpNoParamFunc dumpAllMethod_;
 };
 } // namespace MiscServices
